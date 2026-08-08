@@ -1,13 +1,15 @@
 {
   "title": "ePartsCart customer journey parity (new customer → order)",
   "date": "2026-08-08",
-  "status": "still-broken-after-operator-ack-2026-08-08T08:57Z",
+  "status": "still-broken-after-second-operator-ack-2026-08-08T09:11Z",
   "post_operator_ack_probe": {
-    "register_app": "404 — new binary not live",
+    "register_app": "404 — new binary not live (acks did not publish this branch)",
     "en_users_login_registration": "404",
+    "chrome_register_href": "still /en/users/registration (PreferAspNet false or stale binary)",
     "search_bunches": "still unbound tenant shop DB",
-    "php_reference": "still Archive paused (restore script needs ECOMAE_CONFIRM_RESTORE_PHP_REFERENCE_SERVING=YES)",
-    "note": "Recover script hardened: preflight SHA markers, portal tenant db_name sync, local :5100 register prove, restore confirm flag."
+    "php_reference": "still Archive paused",
+    "own_catalog_app": "200 — proves /storefront/* reaches Kestrel; register route simply missing from binary",
+    "note": "Use cloudpanel_EPARTSCART_JOURNEY_NUCLEAR.sh — hard gates; PreferAspNet=true; must print RESULT=PASS."
   },
   "tenant_complaint": "Website not function and present as per PHP reference — full journey broken.",
   "live_findings_before_fix": {
