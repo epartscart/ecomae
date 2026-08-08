@@ -4,14 +4,14 @@
 #
 # CloudPanel root paste (prefer NUCLEAR wrapper — hard GATE_OK / RESULT=PASS):
 #   cd /opt/ecomae-aspnet-source 2>/dev/null || cd /root/ecomae
-#   git fetch origin cursor/epartscart-journey-live-publish-7b3b
-#   git checkout -f cursor/epartscart-journey-live-publish-7b3b
-#   git reset --hard origin/cursor/epartscart-journey-live-publish-7b3b
-#   export ECOMAE_BRANCH=cursor/epartscart-journey-live-publish-7b3b ECOMAE_SKIP_LIFEOS_MP4=YES
+#   git fetch origin main
+#   git checkout -f main
+#   git reset --hard origin/main
+#   export ECOMAE_BRANCH=main ECOMAE_SKIP_LIFEOS_MP4=YES
 #   bash scripts/cloudpanel_EPARTSCART_JOURNEY_NUCLEAR.sh 2>&1 | tee /root/epartscart-journey-nuclear.log
 set -euo pipefail
 
-ECOMAE_BRANCH="${ECOMAE_BRANCH:-cursor/epartscart-journey-live-publish-7b3b}"
+ECOMAE_BRANCH="${ECOMAE_BRANCH:-main}"
 export ECOMAE_BRANCH
 export ECOMAE_SKIP_LIFEOS_MP4="${ECOMAE_SKIP_LIFEOS_MP4:-YES}"
 
