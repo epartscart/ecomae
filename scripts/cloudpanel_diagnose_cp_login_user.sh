@@ -65,17 +65,33 @@ ORDER BY CASE WHEN IFNULL(TRIM(db_name),'')<>'' THEN 0 ELSE 1 END,
 LIMIT 20;
 " || true
 
+printf '\n-- resolver simulation (status dns_pending|live required) --\n'
+mysql -h "$DB_HOST" -u "$DB_USER" "$REG_DB" -N -e "
+SELECT CONCAT('RESOLVER_CANDIDATE hostname=', IFNULL(hostname,''),
+  ' db_name=', IFNULL(db_name,''),
+  ' status=', IFNULL(status,''),
+  ' active=', IFNULL(is_active,1))
+FROM epc_portal_tenants
+WHERE hostname IN ('${HOST}', REPLACE('${HOST}', 'www.', ''), CONCAT('www.', REPLACE('${HOST}', 'www.', '')))
+  AND status IN ('dns_pending','live')
+  AND COALESCE(is_active,1)=1
+ORDER BY CASE WHEN IFNULL(TRIM(db_name),'')<>'' THEN 0 ELSE 1 END,
+         CASE WHEN hostname='${HOST}' THEN 0 ELSE 1 END
+LIMIT 5;
+" || true
+
 SHOP_DB="$(mysql -h "$DB_HOST" -u "$DB_USER" "$REG_DB" -N -e "
 SELECT db_name FROM epc_portal_tenants
 WHERE hostname IN ('${HOST}', REPLACE('${HOST}', 'www.', ''), CONCAT('www.', REPLACE('${HOST}', 'www.', '')))
   AND IFNULL(TRIM(db_name),'') <> ''
+  AND status IN ('dns_pending','live')
   AND COALESCE(is_active,1)=1
 ORDER BY CASE WHEN hostname='${HOST}' THEN 0 ELSE 1 END, IFNULL(erp_only_shared,0) ASC
 LIMIT 1;
 " 2>/dev/null || true)"
 
 if [[ -z "$SHOP_DB" ]]; then
-  printf 'RESULT=FAIL tenant_db_unbound host=%s — run cloudpanel_fix_epartscart_portal_tenant_db.sh\n' "$HOST"
+  printf 'RESULT=FAIL tenant_db_unbound host=%s — rows may lack db_name OR status not in (dns_pending,live). Run cloudpanel_fix_epartscart_portal_tenant_db.sh\n' "$HOST"
   unset MYSQL_PWD
   exit 1
 fi

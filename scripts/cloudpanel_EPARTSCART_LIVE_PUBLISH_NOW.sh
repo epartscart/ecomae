@@ -110,6 +110,19 @@ DIAG_RC=${PIPESTATUS[0]}
 set -e
 printf 'cp_login_diag_exit=%s\n' "$DIAG_RC"
 
+# Hard refuse RESULT=PASS while shop DB still unbound (silent acks left this stale).
+BUNCH_BODY="$(mktemp)"
+BUNCH_CODE="$(curl -sS -o "$BUNCH_BODY" -w '%{http_code}' --max-time 30 -k \
+  'https://www.epartscart.com/storefront/search-bunches?article=OC90' || echo 000)"
+if [[ "$BUNCH_CODE" != "200" ]] || grep -q 'Tenant shop database is not bound' "$BUNCH_BODY"; then
+  printf 'FINAL_GATE_BAD bunches code=%s\n' "$BUNCH_CODE"
+  head -c 240 "$BUNCH_BODY"; echo
+  rm -f "$BUNCH_BODY"
+  die "search-bunches still unbound after publish"
+fi
+rm -f "$BUNCH_BODY"
+printf 'FINAL_GATE_OK bunches bound\n'
+
 if [[ "$RC" -ne 0 ]]; then
   die "nuclear_exit=$RC — send /root/epartscart-live-publish-now.log (or journey-nuclear.log)"
 fi
