@@ -1709,6 +1709,8 @@ public static class EcomAeRoutes
     public const string StorefrontQuotesApp = "/storefront/quotes-app";
     /// <summary>Wishlist/bookmarks cookie shell.</summary>
     public const string StorefrontWishlistApp = "/storefront/wishlist-app";
+    /// <summary>Accessories marketplace (PHP <c>/en/accessories-spare-parts</c>).</summary>
+    public const string StorefrontAccessoriesApp = "/storefront/accessories-app";
     /// <summary>Compare cookie shell.</summary>
     public const string StorefrontCompareApp = "/storefront/compare-app";
     /// <summary>Catalogue product digest shell (writes remain PHP).</summary>

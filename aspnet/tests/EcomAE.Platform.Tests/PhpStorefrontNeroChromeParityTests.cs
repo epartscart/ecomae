@@ -147,6 +147,9 @@ public sealed class PhpStorefrontNeroChromeParityTests
         Assert.Contains("id=\"dp_menu\"", text, StringComparison.Ordinal);
         Assert.Contains("showCatalogMenu", text, StringComparison.Ordinal);
         Assert.Equal("/storefront/own-catalog-app", StorefrontAspNetCanonical.OwnCatalog);
+        // Product → Accessories must stay a dedicated marketplace (not Product Family hash).
+        Assert.Contains("StorefrontSurfaceLinks.Accessories", text, StringComparison.Ordinal);
+        Assert.Equal("/storefront/accessories-app", StorefrontAspNetCanonical.Accessories);
     }
 
     [Fact]

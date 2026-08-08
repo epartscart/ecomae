@@ -25,7 +25,8 @@ public static class StorefrontAspNetCanonical
     public const string ProductFamily = "/storefront/app#epc-product-family";
     public const string AvailableBrands = "/storefront/app#epc-brands";
     public const string PartsInStock = "/storefront/app#epc-brands";
-    public const string Accessories = "/storefront/app#epc-product-family";
+    /// <summary>Accessories marketplace (PHP twin: <c>/en/accessories-spare-parts</c>).</summary>
+    public const string Accessories = "/storefront/accessories-app";
     /// <summary>Tenant own catalogue (PHP Catalog of products mega menu / category browse).</summary>
     public const string OwnCatalog = "/storefront/own-catalog-app";
     public const string EpartsCata = "/storefront/app#epc-umapi";

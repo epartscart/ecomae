@@ -150,6 +150,11 @@ public static class PhpLegacyAssetBridge
                          "content/general_pages/epc_own_catalog.css"),
                      ("/platform-assets/epc_own_catalog_menu.js",
                          "content/general_pages/epc_own_catalog_menu.js"),
+                     // ePartsCart accessories marketplace (storefront top-menu Product → Accessories).
+                     ("/platform-assets/epc_accessories.css",
+                         "content/general_pages/epc_accessories.css"),
+                     ("/platform-assets/epc_accessories_marketplace.js",
+                         "content/general_pages/epc_accessories_marketplace.js"),
                  })
         {
             var localRelative = relative;

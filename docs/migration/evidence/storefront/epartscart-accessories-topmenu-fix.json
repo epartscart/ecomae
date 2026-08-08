@@ -1,0 +1,30 @@
+{
+  "role": "epartscart-accessories-topmenu-fix",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "problem": "Top menu Product → Accessories pointed at /storefront/app#epc-product-family; /en/accessories-spare-parts 302'd to the same hash via ForCatalogBrowse collapse.",
+  "phpReference": {
+    "path": "/en/accessories-spare-parts",
+    "source": "content/general_pages/epc_epartscart_accessories.php",
+    "api": "/content/shop/docpart/ajax_epc_accessories_search.php",
+    "navHelper": "epc-nav-accessories-under-product.php"
+  },
+  "aspNetFix": {
+    "canonical": "/storefront/accessories-app",
+    "app": "aspnet/src/EcomAE.Platform/Components/Pages/StorefrontAccessoriesApp.razor",
+    "assets": [
+      "/platform-assets/epc_accessories.css",
+      "/platform-assets/epc_accessories_marketplace.js"
+    ],
+    "remap": "ForCatalogBrowse(/en/accessories-spare-parts[?…]) → /storefront/accessories-app[?…]",
+    "chrome": "PhpStorefrontDesktopChrome uses StorefrontSurfaceLinks.Accessories"
+  },
+  "liveBefore": {
+    "topMenuHref": "/storefront/app#epc-product-family",
+    "enAccessoriesLocation": "/storefront/app#epc-product-family"
+  },
+  "notes": [
+    "Marketplace browse API remains PHP ajax (read-only JSON); writes/CP photos stay dry-run/PHP-authoritative.",
+    "CloudPanel FORCE_LIVE / republish :5100 required for public prove after merge."
+  ]
+}
