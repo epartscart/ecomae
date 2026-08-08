@@ -34,6 +34,8 @@ public sealed class AllSitesAspNetPrimaryLockTests
         Assert.Contains("/php-reference", summary["mandate"]!.ToString()!, StringComparison.OrdinalIgnoreCase);
         Assert.Equal("scripts/cloudpanel_FORCE_LIVE_ALL_SITES.sh", summary["forceLiveScript"]);
         Assert.Contains("--all-hosts", summary["classicEntryScript"]!.ToString()!, StringComparison.Ordinal);
+        Assert.Contains("industry-aspnet-primary", summary["industryNginxExample"]!.ToString()!, StringComparison.Ordinal);
+        Assert.Contains("agriculture|automotive", summary["nginxIndustryHostRegex"]!.ToString()!, StringComparison.Ordinal);
 
         var classes = (Array)summary["classes"]!;
         Assert.Equal(4, classes.Length);

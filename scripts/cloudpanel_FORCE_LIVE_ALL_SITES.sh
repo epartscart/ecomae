@@ -9,8 +9,8 @@
 #   - LifeOS: lifeos.ecomae.com
 #
 # CloudPanel root paste (this branch):
-#   ECOMAE_BRANCH=cursor/full-arch-link-remap-audit-7b3b ECOMAE_SKIP_LIFEOS_MP4=YES \
-#     bash -c "$(curl -fsSL https://raw.githubusercontent.com/epartscart/ecomae/cursor/full-arch-link-remap-audit-7b3b/scripts/cloudpanel_FORCE_LIVE_ALL_SITES.sh)" \
+#   ECOMAE_BRANCH=cursor/all-sites-aspnet-primary-set-7b3b ECOMAE_SKIP_LIFEOS_MP4=YES \
+#     bash -c "$(curl -fsSL https://raw.githubusercontent.com/epartscart/ecomae/cursor/all-sites-aspnet-primary-set-7b3b/scripts/cloudpanel_FORCE_LIVE_ALL_SITES.sh)" \
 #     2>&1 | tee /root/force-live-all-sites.log
 #
 # After merge to main:
@@ -19,7 +19,7 @@
 #     2>&1 | tee /root/force-live-all-sites.log
 set -euo pipefail
 
-ECOMAE_BRANCH="${ECOMAE_BRANCH:-main}"
+ECOMAE_BRANCH="${ECOMAE_BRANCH:-cursor/all-sites-aspnet-primary-set-7b3b}"
 export ECOMAE_BRANCH
 export ECOMAE_SKIP_LIFEOS_MP4="${ECOMAE_SKIP_LIFEOS_MP4:-YES}"
 

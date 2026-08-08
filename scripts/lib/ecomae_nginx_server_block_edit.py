@@ -75,6 +75,9 @@ def is_redirect_only(body: str) -> bool:
 
 def host_matches(names: list[str], host: str) -> bool:
     host = host.lower().strip()
+    # Explicit wildcard target (industry pack on server_name *.ecomae.com).
+    if host in {"*.ecomae.com", "wildcard-ecomae"}:
+        return any(n == "*.ecomae.com" for n in names)
     variants = {host}
     if host.startswith("www."):
         variants.add(host[4:])
@@ -83,6 +86,13 @@ def host_matches(names: list[str], host: str) -> bool:
     for n in names:
         if n in variants:
             return True
+        # *.ecomae.com matches agriculture.ecomae.com (not www/cp — those have dedicated blocks).
+        if n.startswith("*.") and "." in host:
+            suffix = n[1:]  # .ecomae.com
+            if host.endswith(suffix) and host.count(".") >= 2:
+                left = host[: -len(suffix)]
+                if left and left not in {"www", "cp", "lifeos"} and "." not in left:
+                    return True
     return False
 
 

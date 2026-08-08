@@ -59,6 +59,41 @@
         "/lifeos",
         "/lifeos/login"
       ]
+    },
+    "wildcard-industry": {
+      "homeBackend": "/storefront/app",
+      "homePresentation": "aspnet",
+      "sharedEntriesAspNet": [
+        "/",
+        "/cp",
+        "/erp"
+      ],
+      "superCpOnlyDeny": [
+        "/bos",
+        "/bos/login",
+        "/ip",
+        "/ip/login"
+      ],
+      "note": "Industry showcase pack (28 hosts or *.ecomae.com wildcard); BOS Super-CP only"
+    },
+    "lifeos.ecomae.com": {
+      "homeBackend": "/",
+      "homePresentation": "aspnet-lifeos",
+      "example": "deploy/aspnet/nginx-lifeos-host-aspnet-primary-example.conf",
+      "note": "LifeOSHostHomeMiddleware; not marketing /marketing/app"
+    },
+    "cp.ecomae.com": {
+      "homeBackend": "/marketing/app",
+      "homePresentation": "aspnet",
+      "sharedEntries": [
+        "/",
+        "/bos",
+        "/cp",
+        "/erp",
+        "/ip",
+        "/lifeos"
+      ],
+      "note": "Dedicated Super CP \u2014 same www classic-entry pack"
     }
   },
   "phpReferenceUrls": [
@@ -92,5 +127,10 @@
   "installer": "scripts/cloudpanel_install_classic_entry_aspnet_primary.sh",
   "confirmEnv": "ECOMAE_CONFIRM_INSTALL_CLASSIC_ENTRY_ASPNET_PRIMARY=YES",
   "tenantConfirmEnv": "ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW=YES",
-  "allHostsFlag": "--all-hosts"
+  "allHostsFlag": "--all-hosts",
+  "industryAspNetPrimary": true,
+  "lifeOsAspNetPrimary": true,
+  "allSitesBoard": "/migration/all-sites-aspnet-primary",
+  "forceLiveAllSites": "scripts/cloudpanel_FORCE_LIVE_ALL_SITES.sh",
+  "industryExample": "deploy/aspnet/nginx-classic-entry-industry-aspnet-primary-shadow-example.conf"
 }

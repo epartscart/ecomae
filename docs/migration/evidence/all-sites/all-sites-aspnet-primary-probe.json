@@ -1,6 +1,6 @@
 {
   "role": "all-sites-aspnet-primary-probe",
-  "generatedAtUnix": 1786173928,
+  "generatedAtUnix": 1786174327,
   "policy": "aspnet-primary-all-sites-php-reference-only",
   "cutoverAllowed": false,
   "readyForPhpRemoval": false,
@@ -16,7 +16,9 @@
     "Policy is set in code (AllSitesAspNetPrimaryLock + LiveSurfaceLinkReporter).",
     "Agent VM cannot CloudPanel root FORCE_LIVE; splash/502 means set-live still required.",
     "Tenant /bos 404 is correct; Super-CP /bos must be ASP.NET.",
-    "Writes remain PHP-authoritative; dry-runs writes=0."
+    "Writes remain PHP-authoritative; dry-runs writes=0.",
+    "classic-entry --all-hosts now installs industry + LifeOS + cp packs (needs LIVE_TENANT confirm).",
+    "Safety unlock: ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW=YES for industry/lifeos/cp."
   ],
   "probes": [
     {
@@ -259,5 +261,13 @@
       "liveOk": false,
       "note": "Cloudflare/origin 502 \u2014 Kestrel or vhost down"
     }
-  ]
+  ],
+  "classicEntryCovers": [
+    "www",
+    "cp",
+    "product-tenants",
+    "industry-28-or-wildcard",
+    "lifeos"
+  ],
+  "industryNginxExample": "deploy/aspnet/nginx-classic-entry-industry-aspnet-primary-shadow-example.conf"
 }

@@ -35,9 +35,42 @@ class NginxSiteSafetyTests(unittest.TestCase):
     def test_classify_industry(self):
         self.assertEqual(self.m.classify_site_conf("/etc/nginx/sites-enabled/healthcare.ecomae.com.conf"), "industry")
 
+    def test_classify_lifeos(self):
+        self.assertEqual(self.m.classify_site_conf("/etc/nginx/sites-enabled/lifeos.ecomae.com.conf"), "lifeos")
+
     def test_platform_allowed(self):
         self.m.assert_shadow_target_allowed("/etc/nginx/sites-enabled/www.ecomae.com.conf", purpose="exact-route")
         self.m.assert_shadow_target_allowed("/etc/nginx/sites-enabled/www.ecomae.com.conf", purpose="presentation")
+
+    def test_industry_allows_parity_confirm(self):
+        import os
+
+        conf = "/etc/nginx/sites-enabled/healthcare.ecomae.com.conf"
+        os.environ["ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW"] = "YES"
+        try:
+            self.m.assert_shadow_target_allowed(conf, purpose="exact-route", confirm_tenant="")
+        finally:
+            os.environ.pop("ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW", None)
+
+    def test_lifeos_allows_parity_confirm(self):
+        import os
+
+        conf = "/etc/nginx/sites-enabled/lifeos.ecomae.com.conf"
+        os.environ["ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW"] = "YES"
+        try:
+            self.m.assert_shadow_target_allowed(conf, purpose="exact-route", confirm_tenant="")
+        finally:
+            os.environ.pop("ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW", None)
+
+    def test_cp_optional_allows_parity_confirm(self):
+        import os
+
+        conf = "/etc/nginx/sites-enabled/cp.ecomae.com.conf"
+        os.environ["ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW"] = "YES"
+        try:
+            self.m.assert_shadow_target_allowed(conf, purpose="exact-route", confirm_tenant="")
+        finally:
+            os.environ.pop("ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW", None)
 
     def test_tenant_refused_without_confirm(self):
         with self.assertRaises(SystemExit):

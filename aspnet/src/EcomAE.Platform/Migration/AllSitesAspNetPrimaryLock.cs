@@ -61,11 +61,12 @@ public static class AllSitesAspNetPrimaryLock
     public static readonly IReadOnlyList<string> SetLiveCriteria =
     [
         "CloudPanel root: ECOMAE_BRANCH=<branch|main> bash scripts/cloudpanel_FORCE_LIVE_ALL_SITES.sh",
-        "Classic-entry on www + every named tenant: ECOMAE_CONFIRM_INSTALL_CLASSIC_ENTRY_ASPNET_PRIMARY=YES "
+        "Classic-entry on www + cp + every named tenant + industry (28/wildcard) + LifeOS: "
+            + "ECOMAE_CONFIRM_INSTALL_CLASSIC_ENTRY_ASPNET_PRIMARY=YES "
             + "ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW=YES "
             + "bash scripts/cloudpanel_install_classic_entry_aspnet_primary.sh --all-hosts",
         "Probe: bash scripts/cloudpanel_probe_classic_entry_aspnet_primary.sh --all-hosts",
-        "Expect: no warmup splash on product /; tenant /bos → 404; Super-CP /bos → ASP.NET; "
+        "Expect: no warmup splash on product /; tenant/industry /bos → 404; Super-CP /bos → ASP.NET; "
             + "industry / /cp /erp → ASP.NET; LifeOS home → ASP.NET (not Cloudflare 502).",
         "PHP compare only via /php-reference/* — never product /CP|/ERP|/BOS trees.",
         "Keep RequirePhpFallback=true and writes PHP-authoritative until dual-sample-green per exact write route.",
@@ -96,6 +97,10 @@ public static class AllSitesAspNetPrimaryLock
             ["setLiveCriteria"] = SetLiveCriteria,
             ["forceLiveScript"] = "scripts/cloudpanel_FORCE_LIVE_ALL_SITES.sh",
             ["classicEntryScript"] = "scripts/cloudpanel_install_classic_entry_aspnet_primary.sh --all-hosts",
+            ["industryNginxExample"] = "deploy/aspnet/nginx-classic-entry-industry-aspnet-primary-shadow-example.conf",
+            ["lifeOsNginxExample"] = "deploy/aspnet/nginx-lifeos-host-aspnet-primary-example.conf",
+            ["nginxIndustryHostRegex"] =
+                @"^(agriculture|automotive|beauty|cleaning|construction|education|electronics|energy|fashion|finance|food|healthcare|homeliving|hospitality|jewellery|logistics|manufacturing|media|nonprofit|pet|printing|professional|rental|retail|security|sports|technology|wholesale)\.ecomae\.com$",
             ["probeEvidence"] = probePath,
             ["relatedBoards"] = new[]
             {
