@@ -35,24 +35,59 @@ printf 'REPO=%s SHA=%s\n' "$REPO" "$SHA"
 
 chmod +x scripts/cloudpanel_FORCE_LIVE_NOW.sh \
   scripts/cloudpanel_restore_php_reference_serving.sh \
-  scripts/cloudpanel_fix_warmup_splash_storefront_loop.sh 2>/dev/null || true
+  scripts/cloudpanel_fix_warmup_splash_storefront_loop.sh \
+  scripts/cloudpanel_fix_epartscart_portal_tenant_db.sh 2>/dev/null || true
 
-printf '\n---- [1] FORCE_LIVE_NOW (republish :5100 with tenant SQL fix) ----\n'
+# Hard preflight — refuse empty/wrong tree.
+if [[ ! -f aspnet/src/EcomAE.Platform/Components/Pages/StorefrontRegisterApp.razor ]]; then
+  printf 'ERROR: StorefrontRegisterApp.razor missing after checkout — wrong branch/SHA\n' >&2
+  exit 1
+fi
+if ! grep -q "IFNULL(TRIM(\`db_name\`), '') <> ''" aspnet/src/EcomAE.Platform/Data/PortalTenantSql.cs; then
+  printf 'ERROR: PortalTenantSql shop-db preference missing — wrong branch/SHA\n' >&2
+  exit 1
+fi
+printf 'PREFLIGHT_OK register-app + tenant SQL present SHA=%s\n' "$SHA"
+
+printf '\n---- [1] Portal tenant db_name sync (www/apex epartscart) ----\n'
+set +e
+ECOMAE_CONFIRM_FIX_EPARTSCART_PORTAL_TENANT_DB=YES \
+  bash scripts/cloudpanel_fix_epartscart_portal_tenant_db.sh 2>&1 | tee /root/epartscart-journey-inner.log
+TENANT_RC=${PIPESTATUS[0]}
+set -e
+printf 'portal_tenant_fix exit=%s\n' "$TENANT_RC"
+
+printf '\n---- [2] FORCE_LIVE_NOW (republish :5100) ----\n'
 set +e
 ECOMAE_BRANCH="$ECOMAE_BRANCH" ECOMAE_SKIP_LIFEOS_MP4=YES \
-  bash scripts/cloudpanel_FORCE_LIVE_NOW.sh 2>&1 | tee /root/epartscart-journey-inner.log
+  bash scripts/cloudpanel_FORCE_LIVE_NOW.sh 2>&1 | tee -a /root/epartscart-journey-inner.log
 FORCE_RC=${PIPESTATUS[0]}
 set -e
 printf 'FORCE_LIVE_NOW exit=%s\n' "$FORCE_RC"
 
-printf '\n---- [2] Restore /php-reference/* (registration + checkout writes) ----\n'
-set +e
-if [[ -x scripts/cloudpanel_restore_php_reference_serving.sh ]]; then
-  bash scripts/cloudpanel_restore_php_reference_serving.sh 2>&1 | tee -a /root/epartscart-journey-inner.log
+LOCAL_REG="$(curl -sS -o /dev/null -w '%{http_code}' --max-time 20 http://127.0.0.1:5100/storefront/register-app || echo 000)"
+LOCAL_BUNCH="$(curl -sS -o /tmp/local-bunch.json -w '%{http_code}' --max-time 20 \
+  -H 'Host: www.epartscart.com' \
+  'http://127.0.0.1:5100/storefront/search-bunches?article=OC90' || echo 000)"
+printf 'local_5100_register_app=%s\n' "$LOCAL_REG"
+printf 'local_5100_bunches=%s\n' "$LOCAL_BUNCH"
+head -c 240 /tmp/local-bunch.json 2>/dev/null; echo || true
+if [[ "$LOCAL_REG" != "200" ]]; then
+  printf 'ERROR: local :5100/storefront/register-app=%s — publish did not land new binary\n' "$LOCAL_REG" >&2
+  journalctl -u ecomae-platform.service -n 80 --no-pager || true
+  exit 1
 fi
-set -e
 
-printf '\n---- [3] Warmup splash loop fix ----\n'
+printf '\n---- [3] Restore /php-reference/* (registration + checkout writes) ----\n'
+set +e
+# Prior recover forgot this confirm flag — restore refused and left Archive paused.
+ECOMAE_CONFIRM_RESTORE_PHP_REFERENCE_SERVING=YES \
+  bash scripts/cloudpanel_restore_php_reference_serving.sh 2>&1 | tee -a /root/epartscart-journey-inner.log
+RESTORE_RC=${PIPESTATUS[0]}
+set -e
+printf 'restore_php_reference exit=%s\n' "$RESTORE_RC"
+
+printf '\n---- [4] Warmup splash loop fix ----\n'
 set +e
 if [[ -x scripts/cloudpanel_fix_warmup_splash_storefront_loop.sh ]]; then
   ECOMAE_CONFIRM_FIX_WARMUP_SPLASH_LOOP=YES \
@@ -60,7 +95,7 @@ if [[ -x scripts/cloudpanel_fix_warmup_splash_storefront_loop.sh ]]; then
 fi
 set -e
 
-printf '\n---- [4] Journey prove ----\n'
+printf '\n---- [5] Journey prove ----\n'
 PROBE=/root/epartscart-journey-probe.txt
 : > "$PROBE"
 bad=0
