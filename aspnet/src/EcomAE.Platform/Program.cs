@@ -544,7 +544,9 @@ builder.Services.AddHttpClient();
 builder.Services.AddHttpClient(nameof(PhpWarehouseSearchBridge))
     .ConfigureHttpClient(client =>
     {
-        client.Timeout = TimeSpan.FromSeconds(8);
+        // Progressive ajax_getProductsOfBunch can exceed 8s (supplier handlers).
+        // Brands/offers GETs usually finish faster; one client covers both.
+        client.Timeout = TimeSpan.FromSeconds(45);
         client.DefaultRequestHeaders.UserAgent.ParseAdd("EcomAE-PhpWarehouseBridge/1.0");
     })
     .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler

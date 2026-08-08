@@ -206,17 +206,20 @@ for dir in "${DOCROOTS[@]+"${DOCROOTS[@]}"}"; do
 done
 printf 'Synced docroots: %s\n' "$SYNCED"
 
-# ---- Inject nginx search-app redirect into every conf mentioning epartscart ----
+# ---- Inject nginx search-app → Kestrel (never 302 to /en/shop/part_search) ----
+# PreferAspNet / TemporarilyDeactivatePhpServing maps /en/shop/part_search → search-app;
+# edge-redirecting search-app → part_search creates a public loop and zero warehouse results.
 SNIP_FILE="/tmp/epc-storefront-search-app-redirect.snip"
 cat > "$SNIP_FILE" <<'NGX'
 # BEGIN ecomae-storefront-search-app-redirect
 location = /storefront/search-app {
-    if ($arg_mode = "attr") { return 302 /en/shop/warehouse-search$is_args$args; }
-    if ($arg_mode = "vin") { return 302 /en/katalog-laximo$is_args$args; }
-    if ($arg_mode = "car") { return 302 /en/vehicle-catalog$is_args$args; }
-    if ($arg_mode = "engine") { return 302 /en/vehicle-catalog$is_args$args; }
-    if ($arg_mode = "name") { return 302 /en/shop/search$is_args$args; }
-    return 302 /en/shop/part_search$is_args$args;
+    proxy_pass http://127.0.0.1:5100;
+    proxy_http_version 1.1;
+    proxy_set_header Host $host;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header Cookie $http_cookie;
+    proxy_set_header X-EcomAE-Route-Cutover storefront-search-app-warehouse-results;
 }
 location ^~ /platform-assets/ {
   proxy_pass http://127.0.0.1:5100;
@@ -683,7 +686,8 @@ do
 done
 check_form_action local "$BODY"
 
-# search-app: redirect to PHP part_search (PHP mode) OR serve the app 200 (paused mode).
+# search-app must answer on Kestrel (warehouse Blazor). Redirect to /en/shop/part_search
+# loops with PreferAspNet / PHP-paused and yields zero results.
 # GET, not HEAD — Blazor endpoints answer 405 to HEAD (curl -I false-fails a good deploy).
 SA_HDR="$(curl -sS -D - -o /dev/null -A 'Mozilla/5.0' --max-time 20 \
   'http://127.0.0.1:5100/storefront/search-app?article=1310154101' || true)"
@@ -691,11 +695,14 @@ SA_HDR="$(curl -sS -D - -o /dev/null -A 'Mozilla/5.0' --max-time 20 \
 LOC="$(printf '%s' "$SA_HDR" | awk 'tolower($1) == "location:" {print $2}' | tr -d '\r' | head -1)"
 printf 'local search-app Location: %s\n' "${LOC:-<none>}"
 if [[ "$LOC" == *'/en/shop/part_search'* ]]; then
-  printf 'PASS local search-app redirects to part_search (PHP mode)\n'
-elif printf '%s' "$SA_HDR" | head -1 | grep -qE ' (200|302)'; then
-  printf 'PASS local search-app answers %s\n' "$(printf '%s' "$SA_HDR" | head -1 | tr -d '\r')"
+  printf 'FAIL local search-app still redirects to part_search (redirect loop with PHP-paused)\n'
+  fail=1
+elif printf '%s' "$SA_HDR" | head -1 | grep -qE ' 200'; then
+  printf 'PASS local search-app answers 200\n'
+elif printf '%s' "$SA_HDR" | head -1 | grep -qE ' (302|301)'; then
+  printf 'PASS local search-app answers %s (non-part_search redirect)\n' "$(printf '%s' "$SA_HDR" | head -1 | tr -d '\r')"
 else
-  printf 'FAIL local search-app neither redirect nor 200\n'
+  printf 'FAIL local search-app neither 200 nor acceptable redirect\n'
   fail=1
 fi
 
@@ -764,9 +771,10 @@ if grep -Fq 'Mon–Sat 9:00' <<<"$P_BODY"; then
   fail=1
 fi
 if printf '%s' "$P_HDR" | grep -qiE '^location:.*(/en/shop/part_search|part_search)'; then
-  printf 'PASS public search-app redirects to part_search (PHP mode)\n'
+  printf 'FAIL public search-app redirects to part_search (redirect loop — strip edge 302)\n'
+  fail=1
 elif printf '%s' "$P_HDR" | head -1 | grep -qE ' 200'; then
-  printf 'PASS public search-app serves app 200 (PHP-paused mode)\n'
+  printf 'PASS public search-app serves app 200\n'
 elif printf '%s' "$P_HDR" | grep -qiE '^HTTP/.* 404'; then
   printf 'FAIL public search-app still 404 (nginx ^~ /storefront/ route not installed)\n'
   fail=1

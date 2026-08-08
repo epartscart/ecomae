@@ -96,6 +96,76 @@ public sealed class PhpWarehouseSearchBridge
     }
 
     /// <summary>
+    /// Load office/storage bunches from PHP <c>ajax_epc_office_storage_bunches.php</c>
+    /// (same construction as <c>part_search_page.php</c>).
+    /// </summary>
+    public async Task<IReadOnlyList<StorefrontOfficeStorageBunchDigest>> TryLoadBunchesAsync(
+        string article,
+        string? brand,
+        CancellationToken cancellationToken = default)
+    {
+        var payload = await GetJsonAsync<PhpOfficeStorageBunchesPayload>(
+                "/content/shop/docpart/ajax_epc_office_storage_bunches.php",
+                new Dictionary<string, string?>
+                {
+                    ["article"] = article,
+                    ["brand"] = brand
+                },
+                cancellationToken)
+            .ConfigureAwait(false);
+
+        if (payload is null || payload.Status == false || payload.Bunches is null || payload.Bunches.Count == 0)
+        {
+            return [];
+        }
+
+        return payload.Bunches
+            .Select(MapPhpBunch)
+            .Where(b => b is not null)
+            .Select(b => b!)
+            .ToList();
+    }
+
+    private static StorefrontOfficeStorageBunchDigest? MapPhpBunch(PhpOfficeStorageBunchRow row)
+    {
+        // Skip async cross-server sentinel (protocol_version: "server").
+        if (row.ProtocolVersion.ValueKind == JsonValueKind.String
+            && string.Equals(row.ProtocolVersion.GetString(), "server", StringComparison.OrdinalIgnoreCase))
+        {
+            return null;
+        }
+
+        var protocol = 1;
+        if (row.ProtocolVersion.ValueKind == JsonValueKind.Number)
+        {
+            protocol = row.ProtocolVersion.GetInt32();
+        }
+        else if (row.ProtocolVersion.ValueKind == JsonValueKind.String
+                 && int.TryParse(row.ProtocolVersion.GetString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsed))
+        {
+            protocol = parsed;
+        }
+
+        IReadOnlyList<StorefrontOfficeStorageBunchDigest>? nested = null;
+        if (row.OfficeStorageBunches is { Count: > 0 })
+        {
+            nested = row.OfficeStorageBunches
+                .Select(MapPhpBunch)
+                .Where(b => b is not null)
+                .Select(b => b!)
+                .ToList();
+        }
+
+        return new StorefrontOfficeStorageBunchDigest(
+            row.OfficeId,
+            row.StorageId,
+            protocol,
+            protocol == 3 ? "prices" : string.Empty,
+            row.TreelaxCatalogue,
+            nested);
+    }
+
+    /// <summary>
     /// POST proxy to PHP <c>ajax_getProductsOfBunch.php</c> (progressive supplier poll).
     /// Forwards the browser Cookie header so pricing identity matches PHP session.
     /// </summary>
@@ -422,6 +492,30 @@ public sealed class PhpWarehouseSearchBridge
 
         [JsonPropertyName("manufacturer_show")]
         public string? ManufacturerShow { get; set; }
+    }
+
+    private sealed class PhpOfficeStorageBunchesPayload
+    {
+        public bool Status { get; set; }
+        public List<PhpOfficeStorageBunchRow>? Bunches { get; set; }
+    }
+
+    private sealed class PhpOfficeStorageBunchRow
+    {
+        [JsonPropertyName("office_id")]
+        public int OfficeId { get; set; }
+
+        [JsonPropertyName("storage_id")]
+        public int StorageId { get; set; }
+
+        [JsonPropertyName("protocol_version")]
+        public JsonElement ProtocolVersion { get; set; }
+
+        [JsonPropertyName("treelax_catalogue")]
+        public bool TreelaxCatalogue { get; set; }
+
+        [JsonPropertyName("office_storage_bunches")]
+        public List<PhpOfficeStorageBunchRow>? OfficeStorageBunches { get; set; }
     }
 
     private sealed class PhpProductsOfBunchPayload
