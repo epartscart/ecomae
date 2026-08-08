@@ -39,7 +39,8 @@ public static class PhpHomeWidgetHtml
 
     public static string UmapiCatalog() => Render("content/umapi_catalog.php");
 
-    public static string AvailableBrands() => Render("content/available_brands.php");
+    public static string AvailableBrands(bool pricesVisible = false)
+        => Render("content/available_brands.php", pricesVisible: pricesVisible);
 
     public static string VehicleCatalog() => Render("content/vehicle_catalog.php");
 
@@ -69,7 +70,7 @@ public static class PhpHomeWidgetHtml
     }
 
     /// <summary>Empty string when the widget source is unavailable — caller shows the PHP fallback alert.</summary>
-    public static string Render(string relativePath)
+    public static string Render(string relativePath, bool pricesVisible = false)
     {
         var root = RepoRoot();
         if (root is null)
@@ -83,10 +84,11 @@ public static class PhpHomeWidgetHtml
             return string.Empty;
         }
 
+        var cacheKey = relativePath + (pricesVisible ? "|pv1" : "|pv0");
         var stamp = File.GetLastWriteTimeUtc(path);
         lock (Gate)
         {
-            if (Cache.TryGetValue(relativePath, out var hit) && hit.StampUtc == stamp)
+            if (Cache.TryGetValue(cacheKey, out var hit) && hit.StampUtc == stamp)
             {
                 return hit.Html;
             }
@@ -95,7 +97,7 @@ public static class PhpHomeWidgetHtml
         string html;
         try
         {
-            html = Substitute(File.ReadAllText(path), DefaultLangHref);
+            html = Substitute(File.ReadAllText(path), DefaultLangHref, pricesVisible);
         }
         catch (IOException)
         {
@@ -104,14 +106,14 @@ public static class PhpHomeWidgetHtml
 
         lock (Gate)
         {
-            Cache[relativePath] = (stamp, html);
+            Cache[cacheKey] = (stamp, html);
         }
 
         return html;
     }
 
     /// <summary>Exposed for tests.</summary>
-    public static string Substitute(string phpSource, string langHref)
+    public static string Substitute(string phpSource, string langHref, bool pricesVisible = false)
     {
         var text = phpSource;
 
@@ -123,8 +125,11 @@ public static class PhpHomeWidgetHtml
         text = Replace(text, @"<\?php\s+echo\s+json_encode\(\$epc_(?:pf|umapi|vc)_chpu_brands_url[^?]*\?>", "\"brands\"");
         text = Replace(text, @"<\?php\s+echo\s+json_encode\(\$epc_(?:pf|umapi|vc)_chpu_slash_code[^?]*\?>", "\"%2F\"");
 
-        // Guest pricing gate (epartscart hides guest prices; login CTA identical to PHP helper output).
-        text = Replace(text, @"<\?php\s+echo\s+\$epc_brands_prices_visible\s*\?\s*'1'\s*:\s*'0';\s*\?>", "0");
+        // Price visibility gate (PHP epc_storefront_prices_helpers — guest/pending hide).
+        text = Replace(
+            text,
+            @"<\?php\s+echo\s+\$epc_brands_prices_visible\s*\?\s*'1'\s*:\s*'0';\s*\?>",
+            pricesVisible ? "1" : "0");
         var loginCta = GuestLoginCtaJson(langHref);
         text = Replace(text, @"<\?php\s+echo\s+json_encode\(\$epc_brands_login_cta[^?]*\?>", loginCta);
 

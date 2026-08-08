@@ -1,54 +1,43 @@
 {
   "title": "ePartsCart customer journey parity (new customer → order)",
   "date": "2026-08-08",
-  "status": "still-broken-after-operator-ack-2026-08-08T08:57Z",
+  "status": "still-stale-after-fourth-operator-ack-2026-08-08T09:35Z",
+  "pr_967": {
+    "state": "MERGED",
+    "mergedAt": "2026-08-08T09:13:39Z",
+    "note": "Journey on main; :5100 never republished."
+  },
+  "publish_pack": {
+    "pr": 968,
+    "branch": "cursor/epartscart-journey-live-publish-7b3b",
+    "includes": ["#967 journey", "#969 autofill+Google", "#970 guest price visibility"],
+    "entrypoint": "scripts/cloudpanel_EPARTSCART_LIVE_PUBLISH_NOW.sh",
+    "nuclear": "scripts/cloudpanel_EPARTSCART_JOURNEY_NUCLEAR.sh"
+  },
   "post_operator_ack_probe": {
-    "register_app": "404 — new binary not live",
-    "en_users_login_registration": "404",
-    "search_bunches": "still unbound tenant shop DB",
-    "php_reference": "still Archive paused (restore script needs ECOMAE_CONFIRM_RESTORE_PHP_REFERENCE_SERVING=YES)",
-    "note": "Recover script hardened: preflight SHA markers, portal tenant db_name sync, local :5100 register prove, restore confirm flag."
+    "at": "2026-08-08T09:35Z",
+    "register_app": "404",
+    "en_users": "404",
+    "chrome_register": "/en/users/registration",
+    "search_bunches": "Tenant shop database is not bound",
+    "php_reference": "503 Archive paused",
+    "cp_login": "autocomplete=username/current-password (no Google)",
+    "own_catalog_app": "200",
+    "note": "Acks without RESULT=PASS are not publishes — use download-guarded LIVE_PUBLISH_NOW"
   },
-  "tenant_complaint": "Website not function and present as per PHP reference — full journey broken.",
-  "live_findings_before_fix": {
-    "home": "ASP.NET nero chrome OK after :5100 recover",
-    "search_bunches": "empty — Tenant shop database is not bound for www.epartscart.com (erp_only/www stub won over shop db_name)",
-    "en_users_login": "404",
-    "en_users_registration": "404 (chrome still linked here)",
-    "php_reference": "503 Archive paused — registration/checkout writes blocked",
-    "own_catalog_app": "200 after #963 merge/republish",
-    "cart_checkout_orders": "shells 200 but empty without session; checkout steps collapsed"
-  },
-  "fixes": {
-    "tenant_sql": "PortalTenantSql SelectActiveTenantByHost(s) prefer non-empty db_name, then exact host; erp_only_shared ASC",
-    "registration": "StorefrontRegisterApp @ /storefront/register-app + /en/users/registration",
-    "login_aliases": "StorefrontLoginApp + /en/users/login + /users/login",
-    "chrome": "register → StorefrontSurfaceLinks.Registration",
-    "checkout_steps": "/en/shop/checkout/{how_get,confirm,login_offer} → checkout-app?step=… with php-reference iframe",
-    "orders_aliases": "/en/shop/orders(+order|items)",
-    "recover_script": "scripts/cloudpanel_EPARTSCART_CUSTOMER_JOURNEY_RECOVER.sh"
-  },
-  "journey_board": [
-    { "step": "Home", "aspnet": "/storefront/app", "php": "templates/nero/desktop.php", "status": "partial-chrome-ok" },
-    { "step": "Register", "aspnet": "/storefront/register-app", "php": "content/users/regform.php", "status": "built-writes-php" },
-    { "step": "Login", "aspnet": "/storefront/login", "php": "content/users/loginform.php", "status": "twin+aliases" },
-    { "step": "Own catalog", "aspnet": "/storefront/own-catalog-app", "php": "dp_menu + catalogue", "status": "app" },
-    { "step": "Part search", "aspnet": "/storefront/search-app", "php": "part_search_page.php", "status": "needs-tenant-db-bind" },
-    { "step": "Cart", "aspnet": "/storefront/cart-app", "php": "cart.php", "status": "read-digest-writes-php" },
-    { "step": "Checkout", "aspnet": "/storefront/checkout-app?step=*", "php": "checkout_*.php", "status": "step-shells+php-ref" },
-    { "step": "Orders", "aspnet": "/storefront/orders-app", "php": "my_orders.php", "status": "list-digest" }
-  ],
   "cloudpanel_paste": [
-    "cd /opt/ecomae-aspnet-source 2>/dev/null || cd /root/ecomae",
-    "git fetch origin cursor/epartscart-customer-journey-parity-7b3b",
-    "git checkout -f cursor/epartscart-customer-journey-parity-7b3b",
-    "git reset --hard origin/cursor/epartscart-customer-journey-parity-7b3b",
-    "export ECOMAE_BRANCH=cursor/epartscart-customer-journey-parity-7b3b ECOMAE_SKIP_LIFEOS_MP4=YES",
-    "bash scripts/cloudpanel_EPARTSCART_CUSTOMER_JOURNEY_RECOVER.sh 2>&1 | tee /root/epartscart-journey-recover.log"
+    "set -euxo pipefail",
+    "URL='https://raw.githubusercontent.com/epartscart/ecomae/cursor/epartscart-journey-live-publish-7b3b/scripts/cloudpanel_EPARTSCART_LIVE_PUBLISH_NOW.sh'",
+    "TMP=/tmp/epartscart-live-publish-now.sh",
+    "curl -fsSL \"$URL\" -o \"$TMP\"",
+    "wc -c \"$TMP\"",
+    "grep -q LIVE_PUBLISH_NOW \"$TMP\" || { echo RESULT=FAIL bad_download; exit 1; }",
+    "export ECOMAE_BRANCH=cursor/epartscart-journey-live-publish-7b3b ECOMAE_SKIP_LIFEOS_MP4=YES",
+    "bash \"$TMP\" 2>&1 | tee /root/epartscart-live-publish-now.log",
+    "grep -E 'RESULT=|PREFLIGHT|GATE_|RECHECK|ERROR|SHA=|HOST=' /root/epartscart-live-publish-now.log | tail -100"
   ],
   "locks": {
     "cutoverAllowed": false,
-    "readyForPhpRemoval": false,
-    "writes": "PHP-authoritative via /php-reference/* after restore"
+    "readyForPhpRemoval": false
   }
 }

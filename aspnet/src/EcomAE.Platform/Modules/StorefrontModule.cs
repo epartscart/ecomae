@@ -4,6 +4,7 @@ using EcomAE.Platform.Middleware;
 using EcomAE.Platform.Migration;
 using EcomAE.Platform.Presentation;
 using EcomAE.Platform.Services;
+using EcomAE.Platform.Storefront;
 using EcomAE.Platform.Surfaces;
 using EcomAE.Platform.Routing;
 
@@ -184,30 +185,35 @@ public sealed class StorefrontModule : ISurfaceModule
             string? brend,
             int? limit,
             ILegacySessionValidator validator,
+            IStorefrontPriceAccess priceAccess,
             ISurfaceDashboardSummaryReporter dashboards,
             CancellationToken cancellationToken) =>
         {
             // PHP part_search / warehouse offers are public; attach session when present.
             // Prefer brand= (ASP.NET); accept brend= (PHP legacy typo).
             var session = await validator.ValidateAsync(context, cancellationToken);
+            var access = await priceAccess.ResolveAsync(context, cancellationToken);
             var manufacturer = string.IsNullOrWhiteSpace(brand) ? brend : brand;
             var result = await dashboards.SearchStorefrontPartsAsync(
                 article ?? string.Empty,
                 manufacturer,
                 limit ?? 25,
                 cancellationToken);
+            var rows = access.PricesVisible ? result.Rows : priceAccess.RedactOffers(result.Rows);
             return Results.Ok(new
             {
                 ok = true,
                 surface = "storefront",
                 article = result.Article,
                 brand = manufacturer,
-                rows = result.Rows,
-                count = result.Count,
+                rows,
+                count = rows.Count,
+                prices_visible = access.PricesVisible,
+                access_state = access.StateToken,
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Public read-only warehouse offer digest (PHP brand+article parity). Cart/VIN remain PHP."
+                note = "Public warehouse digest with PHP price-visibility gate (guest/wholesale approval)."
             });
         });
 
@@ -423,6 +429,7 @@ public sealed class StorefrontModule : ISurfaceModule
 
         endpoints.MapPost(EcomAeRoutes.StorefrontProductsOfBunch, async (
             HttpContext context,
+            IStorefrontPriceAccess priceAccess,
             ISurfaceDashboardSummaryReporter dashboards,
             CancellationToken cancellationToken) =>
         {
@@ -460,6 +467,7 @@ public sealed class StorefrontModule : ISurfaceModule
                 }
             }
 
+            var access = await priceAccess.ResolveAsync(context, cancellationToken);
             var result = await dashboards.PollStorefrontProductsOfBunchAsync(
                 article,
                 brand,
@@ -468,6 +476,12 @@ public sealed class StorefrontModule : ISurfaceModule
                 string.IsNullOrWhiteSpace(queryJson) ? null : queryJson,
                 geoId,
                 cancellationToken);
+            // ASP.NET session gate wins over native path hardcoding prices_visible=true
+            // (PHP twin: epc_storefront_prices_redact_products when not visible).
+            var products = access.PricesVisible
+                ? result.Products
+                : priceAccess.RedactOffers(result.Products);
+
             return Results.Ok(new
             {
                 ok = result.Result == 1,
@@ -475,12 +489,14 @@ public sealed class StorefrontModule : ISurfaceModule
                 result = result.Result,
                 office_id = result.OfficeId,
                 storage_id = result.StorageId,
-                products = result.Products,
-                count = result.Products.Count,
-                prices_visible = result.PricesVisible,
+                products,
+                count = products.Count,
+                prices_visible = access.PricesVisible,
+                access_state = access.StateToken,
+                login_cta = access.LoginCtaPlain,
                 source = result.Source,
                 message = result.Message,
-                note = "Progressive supplier poll proxy → PHP ajax_getProductsOfBunch (authoritative)."
+                note = "Progressive supplier poll with PHP price-visibility gate (guest/wholesale approval)."
             });
         });
 

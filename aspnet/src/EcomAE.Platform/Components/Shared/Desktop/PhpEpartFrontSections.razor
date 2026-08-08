@@ -1,6 +1,9 @@
 @namespace EcomAE.Platform.Components.Shared
 @using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Storefront
 @inject IEpartFrontOwnBrandService OwnBrand
+@inject IStorefrontPriceAccess PriceAccess
+@inject IHttpContextAccessor Http
 @*
   Port of content/general_pages/epart_catalog_front_links.php — the epartscart front-page
   catalog sections (Family Product, Epart Catalog, Available Brands, Original Catalog).
@@ -302,9 +305,16 @@
 
     protected override async Task OnInitializedAsync()
     {
+        var pricesVisible = false;
+        if (Http.HttpContext is not null)
+        {
+            var access = await PriceAccess.ResolveAsync(Http.HttpContext);
+            pricesVisible = access.PricesVisible;
+        }
+
         _family = PhpHomeWidgetHtml.ProductFamily();
         _catalog = PhpHomeWidgetHtml.UmapiCatalog();
-        _brands = PhpHomeWidgetHtml.AvailableBrands();
+        _brands = PhpHomeWidgetHtml.AvailableBrands(pricesVisible);
         _vehicle = PhpHomeWidgetHtml.VehicleCatalog();
         _ownBrand = await OwnBrand.GetAsync();
     }

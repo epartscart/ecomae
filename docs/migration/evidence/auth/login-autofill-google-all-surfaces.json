@@ -1,0 +1,33 @@
+{
+  "title": "Login autofill leak fix + Google sign-in across all surfaces",
+  "date": "2026-08-08",
+  "complaint": "Guest found autofilled username(email) and password on CP — confidential credential leak risk.",
+  "scope": [
+    "Super-CP /bos/login",
+    "IP /ip/login",
+    "CP /cp/login (tenant + platform)",
+    "ERP /erp/login",
+    "LifeOS /lifeos/login",
+    "Storefront /storefront/login (+ /en/users/login)",
+    "LifeOS results clientId/token (was stealing password-manager slots)"
+  ],
+  "autofill_hardening": {
+    "form": "autocomplete=off + data-lpignore/1p-ignore + data-form-type=other",
+    "contact": "autocomplete=off + readonly-until-focus (data-epc-anti-autofill)",
+    "password": "autocomplete=new-password + readonly-until-focus (not current-password)",
+    "decoy": "hidden username/current-password fields absorb browser autofill",
+    "managers": "data-lpignore / data-1p-ignore / data-bwignore"
+  },
+  "google_login": {
+    "component": "PhpOAuthLoginButtons.razor",
+    "php_twin": "content/general_pages/epc_oauth_buttons.php",
+    "start_url": "/api/epc_oauth_start.php?provider=google&context=storefront|cp&return_url=…",
+    "writes": "PHP-authoritative (OAuth start/callback unchanged)",
+    "also_shown": ["Microsoft", "Apple", "GitHub"]
+  },
+  "tests": "LoginAutofillAndGoogleParityTests.cs",
+  "locks": {
+    "cutoverAllowed": false,
+    "readyForPhpRemoval": false
+  }
+}

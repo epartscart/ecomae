@@ -165,18 +165,33 @@
                     <h2>Operator Access</h2>
                     <p>Manage your entire tenant fleet from one dashboard</p>
                 </div>
-                <form class="bos-login__form" id="bosLoginForm" method="post" action="@EcomAeRoutes.BosLogin">
+                <PhpOAuthLoginButtons Context="cp" ReturnUrl="/bos" Tone="dark"
+                                      Heading="Continue with Google — credentials stay private" />
+                <LoginAntiAutofill />
+                <form class="bos-login__form" id="bosLoginForm" method="post" action="@EcomAeRoutes.BosLogin"
+                      autocomplete="off" data-lpignore="true" data-1p-ignore="true" data-form-type="other">
                     <input type="hidden" name="surface" value="bos" />
                     <input type="hidden" name="redirect" value="/bos" />
                     <input type="hidden" name="contact_type" value="email" />
+                    <div aria-hidden="true" style="position:absolute;left:-10000px;top:auto;width:1px;height:1px;overflow:hidden;">
+                        <input type="text" name="epc_autofill_decoy_user" tabindex="-1" autocomplete="username" value="" />
+                        <input type="password" name="epc_autofill_decoy_pass" tabindex="-1" autocomplete="current-password" value="" />
+                    </div>
                     <div class="bos-login__field">
                         <label for="bosEmail"><i class="fa fa-envelope-o"></i> Email</label>
-                        <input type="email" id="bosEmail" name="contact" required autocomplete="username" placeholder="operator@ecomae.com" />
+                        <input type="email" id="bosEmail" name="contact" required autocomplete="off"
+                               autocapitalize="none" spellcheck="false"
+                               data-lpignore="true" data-1p-ignore="true" data-bwignore="true"
+                               data-epc-anti-autofill="1" readonly="readonly"
+                               placeholder="operator@ecomae.com" />
                         <div class="bos-login__field-line"></div>
                     </div>
                     <div class="bos-login__field">
                         <label for="bosPassword"><i class="fa fa-lock"></i> Password</label>
-                        <input type="password" id="bosPassword" name="password" required autocomplete="current-password" placeholder="Enter secure password" />
+                        <input type="password" id="bosPassword" name="password" required autocomplete="new-password"
+                               data-lpignore="true" data-1p-ignore="true" data-bwignore="true"
+                               data-epc-anti-autofill="1" readonly="readonly"
+                               placeholder="Enter secure password" />
                         <div class="bos-login__field-line"></div>
                     </div>
                     @if (!string.IsNullOrEmpty(_error) && _errorSurface != "erp")
@@ -204,18 +219,32 @@
                     <h2>ERP Access</h2>
                     <p>Access your enterprise resource planning system</p>
                 </div>
-                <form class="bos-login__form" id="bosLoginFormErp" method="post" action="@EcomAeRoutes.ErpLogin">
+                <PhpOAuthLoginButtons Context="cp" ReturnUrl="/erp" Tone="dark"
+                                      Heading="Continue with Google — credentials stay private" />
+                <form class="bos-login__form" id="bosLoginFormErp" method="post" action="@EcomAeRoutes.ErpLogin"
+                      autocomplete="off" data-lpignore="true" data-1p-ignore="true" data-form-type="other">
                     <input type="hidden" name="surface" value="erp" />
                     <input type="hidden" name="redirect" value="/erp" />
                     <input type="hidden" name="contact_type" value="email" />
+                    <div aria-hidden="true" style="position:absolute;left:-10000px;top:auto;width:1px;height:1px;overflow:hidden;">
+                        <input type="text" name="epc_autofill_decoy_user_erp" tabindex="-1" autocomplete="username" value="" />
+                        <input type="password" name="epc_autofill_decoy_pass_erp" tabindex="-1" autocomplete="current-password" value="" />
+                    </div>
                     <div class="bos-login__field">
                         <label for="bosErpEmail"><i class="fa fa-envelope-o"></i> Business Email</label>
-                        <input type="email" id="bosErpEmail" name="contact" required autocomplete="username" placeholder="finance@yourcompany.com" />
+                        <input type="email" id="bosErpEmail" name="contact" required autocomplete="off"
+                               autocapitalize="none" spellcheck="false"
+                               data-lpignore="true" data-1p-ignore="true" data-bwignore="true"
+                               data-epc-anti-autofill="1" readonly="readonly"
+                               placeholder="finance@yourcompany.com" />
                         <div class="bos-login__field-line"></div>
                     </div>
                     <div class="bos-login__field">
                         <label for="bosErpPassword"><i class="fa fa-lock"></i> Password</label>
-                        <input type="password" id="bosErpPassword" name="password" required autocomplete="current-password" placeholder="Enter your password" />
+                        <input type="password" id="bosErpPassword" name="password" required autocomplete="new-password"
+                               data-lpignore="true" data-1p-ignore="true" data-bwignore="true"
+                               data-epc-anti-autofill="1" readonly="readonly"
+                               placeholder="Enter your password" />
                         <div class="bos-login__field-line"></div>
                     </div>
                     @if (!string.IsNullOrEmpty(_error) && _errorSurface == "erp")

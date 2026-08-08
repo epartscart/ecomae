@@ -1,4 +1,7 @@
 @namespace EcomAE.Platform.Components.Shared
+@using EcomAE.Platform.Storefront
+@inject IStorefrontPriceAccess PriceAccess
+@inject IHttpContextAccessor Http
 @*
   Same-to-same storefront homepage depth mirrored from templates/nero + automotive spareparts pro.
   Uses existing PHP class names / CSS hooks — no new brand look. Compare-only scaffold depth.
@@ -197,7 +200,7 @@
                         <span class="epc-sf-featured__badge">@item.Badge</span>
                         <strong>@item.Name</strong>
                         <span class="epc-sf-featured__sku">@item.Sku</span>
-                        <span class="epc-sf-featured__price">@item.Price</span>
+                        <span class="epc-sf-featured__price">@(_pricesVisible ? item.Price : StorefrontPriceAccess.SensitiveMask)</span>
                         <small>@item.Note</small>
                     </a>
                 }
@@ -418,7 +421,17 @@
         new("Castrol", StorefrontSurfaceLinks.ForUmapiBrand("Castrol")),
     ];
 
+    private bool _pricesVisible;
     private static readonly FeaturedStrip[] FeaturedStrips = BuildFeaturedStrips();
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (Http.HttpContext is not null)
+        {
+            var access = await PriceAccess.ResolveAsync(Http.HttpContext);
+            _pricesVisible = access.PricesVisible;
+        }
+    }
 
     private static readonly Step[] Steps =
     [

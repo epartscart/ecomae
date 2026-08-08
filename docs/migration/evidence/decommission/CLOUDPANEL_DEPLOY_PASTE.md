@@ -2,6 +2,30 @@
 
 Paste on the **production CloudPanel server** as root. Deploys latest `main` (includes human `RELEASE_OWNER_APPROVAL.md` + exact-route ASP.NET primary execute operator). Keeps PHP as **reference**; does not broad-cut `/api|/cp|/erp|/bos|/storefront`.
 
+## 0🔥) EPARTSCART LIVE PUBLISH — STILL 404 AFTER ACKS (do immediately)
+
+**Symptom (2026-08-08):** `#967` is on `main`; publish pack also stacks `#969` (Google/autofill) + `#970` (guest prices). Live still: `/storefront/register-app` **404**, shop DB unbound, `/php-reference/*` **Archive paused**, `/cp/login` still autofills. `/storefront/own-catalog-app` 200 — Kestrel up, **binary never republished**.
+
+**Do not mark complete** unless the log contains `RESULT=PASS`. Paste the `grep` lines back. Prior “completed” acks did not republish.
+
+**Paste as root — download-guarded (cannot silently no-op):**
+
+```bash
+set -euxo pipefail
+URL='https://raw.githubusercontent.com/epartscart/ecomae/cursor/epartscart-journey-live-publish-7b3b/scripts/cloudpanel_EPARTSCART_LIVE_PUBLISH_NOW.sh'
+TMP=/tmp/epartscart-live-publish-now.sh
+curl -fsSL "$URL" -o "$TMP"
+wc -c "$TMP"
+grep -q LIVE_PUBLISH_NOW "$TMP" || { echo RESULT=FAIL bad_download; exit 1; }
+export ECOMAE_BRANCH=cursor/epartscart-journey-live-publish-7b3b ECOMAE_SKIP_LIFEOS_MP4=YES
+bash "$TMP" 2>&1 | tee /root/epartscart-live-publish-now.log
+grep -E 'RESULT=|PREFLIGHT|GATE_|RECHECK|ERROR|SHA=|HOST=' /root/epartscart-live-publish-now.log | tail -100
+```
+
+**PASS criteria:** `RESULT=PASS`; register-app 200; bunches not unbound; php-reference not Archive paused; `/cp/login` shows Continue with Google.
+
+If `RESULT=FAIL`, send `/root/epartscart-live-publish-now.log`.
+
 ## 0☠) ALL SITES 502 / epartscart stuck on “Loading — Please wait”
 
 **Symptom (2026-08-08):** `cp.ecomae.com`, `erp`, `bos`, `ip`, `lifeos`, `platform` → Cloudflare **502**; `www.epartscart.com/` and `/storefront/app` → static warmup splash (**Loading — Please wait**), not ASP.NET chrome.
