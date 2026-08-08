@@ -2775,6 +2775,70 @@ public static class LegacySurfaceDashboardSql
         LIMIT 500
         """;
 
+    /// <summary>
+    /// Published own-catalogue categories for storefront mega menu / own-catalog-app
+    /// (PHP <c>get_catalogue_tree.php</c> + <c>dp_menu.php</c>).
+    /// </summary>
+    public const string SelectStorefrontCatalogueCategories = """
+        SELECT `id`, IFNULL(`alias`,'') AS alias, IFNULL(`url`,'') AS url,
+               IFNULL(`parent`,0) AS parent, IFNULL(`level`,0) AS level,
+               IFNULL(`count`,0) AS child_count, IFNULL(`order`,0) AS sort_order,
+               IFNULL(`image`,'') AS image, IFNULL(`published_flag`,0) AS published_flag,
+               IFNULL(`value`,0) AS value_lang_id
+        FROM `shop_catalogue_categories`
+        WHERE IFNULL(`published_flag`,0) = 1
+        ORDER BY `level` ASC, `order` ASC, `id` ASC
+        LIMIT 5000
+        """;
+
+    /// <summary>Own-catalogue products in a category (PHP <c>catalogue_for_customer</c> / name search).</summary>
+    public const string SelectStorefrontCatalogueProductsByCategory = """
+        SELECT p.`id`, IFNULL(p.`caption`,'') AS caption, IFNULL(p.`alias`,'') AS alias,
+               IFNULL(p.`category_id`,0) AS category_id, IFNULL(p.`published`,0) AS published,
+               IFNULL(sku.`brand`,'') AS manufacturer, IFNULL(sku.`article`,'') AS article,
+               IFNULL(sku.`title`,'') AS description, IFNULL(sku.`id`,0) AS sku_profile_id
+        FROM `shop_catalogue_products` p
+        LEFT JOIN `epc_sku_profiles` sku
+          ON sku.`id` = (
+              SELECT s2.`id` FROM `epc_sku_profiles` s2
+              WHERE s2.`product_id` = p.`id`
+                AND IFNULL(s2.`status`,'') NOT IN ('hidden','draft')
+              ORDER BY s2.`id` DESC LIMIT 1
+          )
+        WHERE p.`category_id` = @categoryId
+          AND IFNULL(p.`published`, 1) = 1
+          AND (@search = '' OR LOWER(IFNULL(p.`caption`,'')) LIKE CONCAT('%', @search, '%')
+               OR LOWER(IFNULL(p.`alias`,'')) LIKE CONCAT('%', @search, '%')
+               OR LOWER(IFNULL(sku.`article`,'')) LIKE CONCAT('%', @search, '%')
+               OR LOWER(IFNULL(sku.`brand`,'')) LIKE CONCAT('%', @search, '%'))
+        ORDER BY p.`id` DESC
+        LIMIT @limit
+        """;
+
+    /// <summary>Own-catalogue name search across published products (PHP <c>/en/shop/search</c>).</summary>
+    public const string SelectStorefrontCatalogueProductsByName = """
+        SELECT p.`id`, IFNULL(p.`caption`,'') AS caption, IFNULL(p.`alias`,'') AS alias,
+               IFNULL(p.`category_id`,0) AS category_id, IFNULL(p.`published`,0) AS published,
+               IFNULL(sku.`brand`,'') AS manufacturer, IFNULL(sku.`article`,'') AS article,
+               IFNULL(sku.`title`,'') AS description, IFNULL(sku.`id`,0) AS sku_profile_id
+        FROM `shop_catalogue_products` p
+        LEFT JOIN `epc_sku_profiles` sku
+          ON sku.`id` = (
+              SELECT s2.`id` FROM `epc_sku_profiles` s2
+              WHERE s2.`product_id` = p.`id`
+                AND IFNULL(s2.`status`,'') NOT IN ('hidden','draft')
+              ORDER BY s2.`id` DESC LIMIT 1
+          )
+        WHERE IFNULL(p.`published`, 1) = 1
+          AND @search != ''
+          AND (LOWER(IFNULL(p.`caption`,'')) LIKE CONCAT('%', @search, '%')
+               OR LOWER(IFNULL(p.`alias`,'')) LIKE CONCAT('%', @search, '%')
+               OR LOWER(IFNULL(sku.`article`,'')) LIKE CONCAT('%', @search, '%')
+               OR LOWER(IFNULL(sku.`brand`,'')) LIKE CONCAT('%', @search, '%'))
+        ORDER BY p.`id` DESC
+        LIMIT @limit
+        """;
+
     /// <summary>Catalogue product card fields for wishlist/compare/product-app digests.</summary>
     public const string SelectStorefrontProductById = """
         SELECT p.`id`, IFNULL(p.`caption`,'') AS caption, IFNULL(p.`alias`,'') AS alias,

@@ -142,6 +142,11 @@ public sealed class PhpStorefrontNeroChromeParityTests
         // Top nav: Original catalog / Demand intelligence are top-level (PHP nero), not under Selection catalogs.
         Assert.Contains("StorefrontSurfaceLinks.OriginalCatalog", text, StringComparison.Ordinal);
         Assert.Contains("StorefrontSurfaceLinks.DemandIntelligence", text, StringComparison.Ordinal);
+        // Catalog of products opens own-catalogue mega menu (PHP dp_menu), not Product Family.
+        Assert.Contains("StorefrontSurfaceLinks.OwnCatalog", text, StringComparison.Ordinal);
+        Assert.Contains("id=\"dp_menu\"", text, StringComparison.Ordinal);
+        Assert.Contains("showCatalogMenu", text, StringComparison.Ordinal);
+        Assert.Equal("/storefront/own-catalog-app", StorefrontAspNetCanonical.OwnCatalog);
     }
 
     [Fact]

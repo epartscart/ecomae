@@ -24,6 +24,7 @@ public static class StorefrontSurfaceLinks
     public static string AvailableBrands => PreferAspNetApps ? StorefrontAspNetCanonical.AvailableBrands : StorefrontPhpCanonical.AvailableBrands;
     public static string PartsInStock => PreferAspNetApps ? StorefrontAspNetCanonical.PartsInStock : StorefrontPhpCanonical.PartsInStock;
     public static string Accessories => PreferAspNetApps ? StorefrontAspNetCanonical.Accessories : StorefrontPhpCanonical.Accessories;
+    public static string OwnCatalog => PreferAspNetApps ? StorefrontAspNetCanonical.OwnCatalog : StorefrontPhpCanonical.OwnCatalog;
     public static string EpartsCata => PreferAspNetApps ? StorefrontAspNetCanonical.EpartsCata : StorefrontPhpCanonical.EpartsCata;
     public static string EpartsMod => PreferAspNetApps ? StorefrontAspNetCanonical.EpartsMod : StorefrontPhpCanonical.EpartsMod;
     public static string PartsApiCatalog => PreferAspNetApps ? StorefrontAspNetCanonical.PartsApiCatalog : StorefrontPhpCanonical.PartsApiCatalog;
@@ -129,6 +130,23 @@ public static class StorefrontSurfaceLinks
         => PreferAspNetApps
             ? StorefrontAspNetCanonical.ProductFamily + "?manufacturer=" + Uri.EscapeDataString(manufacturer)
             : StorefrontPhpCanonical.ForManufacturer(manufacturer);
+
+    public static string ForOwnCatalogCategory(string? categoryUrl = null, int categoryId = 0)
+    {
+        var basePath = OwnCatalog;
+        if (categoryId > 0)
+        {
+            return basePath + "?category_id=" + categoryId.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        }
+
+        var route = (categoryUrl ?? string.Empty).Trim().TrimStart('/');
+        if (route.Length == 0)
+        {
+            return basePath;
+        }
+
+        return basePath + "?url=" + Uri.EscapeDataString(route);
+    }
 
     public static string ForUmapiBrand(string brand)
         => PreferAspNetApps
