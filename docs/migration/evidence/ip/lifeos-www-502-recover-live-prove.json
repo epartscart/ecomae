@@ -1,0 +1,31 @@
+{
+  "id": "lifeos-www-502-recover-live-prove",
+  "date": "2026-08-07",
+  "branch": "cursor/www-lifeos-film-frontpage-7b3b",
+  "sha": "2f38b76c",
+  "verdict": "PASS",
+  "probes": {
+    "lifeos_root": {
+      "url": "https://lifeos.ecomae.com/",
+      "http": 200,
+      "markers": ["LifeOS", "lo-chrome", "lifeos-product.css", "lifeos-navstrip"]
+    },
+    "lifeos_app": {
+      "url": "https://lifeos.ecomae.com/lifeos",
+      "http": 200,
+      "markers": ["lo-chrome", "lifeos-navstrip"]
+    },
+    "lifeos_product_css": {
+      "url": "https://lifeos.ecomae.com/lifeos/lifeos-product.css",
+      "http": 200,
+      "contentType": "text/css"
+    },
+    "www_home": {
+      "url": "https://www.ecomae.com/",
+      "http": 200,
+      "note": "Agent default curl may fail on IPv6; IPv4 --resolve prove PASS",
+      "markers": ["epm-hub", "epm-lofilm", "Understand the LifeOS", "platform-assets"]
+    }
+  },
+  "homeOrder": ["epm-hub", "epm-lofilm", "ehm-home-sections"]
+}
