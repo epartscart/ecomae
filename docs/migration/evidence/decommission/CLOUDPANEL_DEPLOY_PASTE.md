@@ -32,16 +32,22 @@ If `RESULT=FAIL`, send `/root/epartscart-live-publish-now.log`.
 
 **Merging a PR is not a republish.** Do not mark CloudPanel actions complete without pasting the `RESULT=` grep lines back into chat.
 
-ePartsCart shop DB (PHP portal parity) is the shared **`docpart`** schema — no secret required:
+ePartsCart shop DB (PHP portal parity) is the shared **`docpart`** schema — no secret required.
+
+**Prefer STANDALONE** (no git checkout; prior git-based pastes were marked complete without changing live):
 
 ```bash
 set -euxo pipefail
-curl -fsSL 'https://raw.githubusercontent.com/epartscart/ecomae/cursor/epartscart-portal-dump-bind-7b3b/scripts/cloudpanel_EPARTSCART_BIND_DOCPART_NOW.sh' \
-  | bash 2>&1 | tee /root/epartscart-bind-docpart-now.log
-grep -E 'RESULT=|BOUND_|CP_LOGIN_DIAG|GATE_|RESOLVER_|POST_LOGIN|resolved_shop|docpart' /root/epartscart-bind-docpart-now.log | tail -80
+URL='https://raw.githubusercontent.com/epartscart/ecomae/cursor/epartscart-portal-dump-bind-7b3b/scripts/cloudpanel_EPARTSCART_BIND_DOCPART_STANDALONE.sh'
+TMP=/tmp/epartscart-bind-docpart-standalone.sh
+curl -fsSL "$URL" -o "$TMP"
+wc -c "$TMP"
+grep -q BIND_DOCPART_STANDALONE "$TMP" || { echo RESULT=FAIL bad_download; exit 1; }
+bash "$TMP" 2>&1 | tee /root/epartscart-bind-docpart-standalone.log
+grep -E 'RESULT=|BOUND_|GATE_|RESOLVER_|POST_LOGIN|ROW_|PASTE_ME_|docpart|ERROR' /root/epartscart-bind-docpart-standalone.log | tail -80
 ```
 
-**PASS:** paste includes `RESULT=PASS` + `BOUND_BUNCHES=YES`; login POST is not `tenant_db_unbound`.
+**PASS:** paste includes `RESULT=PASS` + `BOUND_BUNCHES=YES` + `PASTE_ME_*`; login POST is not `tenant_db_unbound`.
 
 ## 0☠) ALL SITES 502 / epartscart stuck on “Loading — Please wait”
 
