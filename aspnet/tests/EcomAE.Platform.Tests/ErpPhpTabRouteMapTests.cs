@@ -58,6 +58,32 @@ public sealed class ErpPhpTabRouteMapTests
         Assert.Equal("/erp/delivery-notes-app", dn);
     }
 
+    [Fact]
+    public void CatalogErpTabs_AllMapped_154Of154()
+    {
+        var root = FindRepoRoot();
+        var catalogPath = Path.Combine(root, "aspnet/src/EcomAE.Platform/Presentation/Generated/php_module_catalog.json");
+        Assert.True(File.Exists(catalogPath), catalogPath);
+        using var doc = System.Text.Json.JsonDocument.Parse(File.ReadAllText(catalogPath));
+        var missing = new List<string>();
+        var total = 0;
+        foreach (var area in doc.RootElement.GetProperty("erpAreas").EnumerateArray())
+        {
+            foreach (var tab in area.GetProperty("tabs").EnumerateArray())
+            {
+                total++;
+                var id = tab.GetProperty("id").GetString() ?? "";
+                if (!ErpPhpTabRouteMap.TryMapTab(id, out _))
+                {
+                    missing.Add(id);
+                }
+            }
+        }
+
+        Assert.Equal(154, total);
+        Assert.True(missing.Count == 0, "Unmapped catalog ERP tabs: " + string.Join(", ", missing));
+    }
+
     private static string FindRepoRoot()
     {
         var dir = new DirectoryInfo(AppContext.BaseDirectory);

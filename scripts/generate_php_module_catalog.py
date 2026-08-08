@@ -292,17 +292,17 @@ def main() -> int:
     storefront = [
         {"id": "home", "label": "Home", "href": "https://epartscart.com/"},
         {"id": "part_search", "label": "Part search", "href": "https://epartscart.com/shop/part_search"},
-        {"id": "vin_search", "label": "VIN / vehicle search", "href": "https://epartscart.com/shop/part_search"},
+        {"id": "vin_search", "label": "VIN / vehicle search", "href": "https://epartscart.com/en/katalog-laximo"},
         {"id": "catalog", "label": "Catalogue", "href": "https://epartscart.com/"},
         {"id": "cart", "label": "Cart", "href": "https://epartscart.com/shop/cart"},
         {"id": "checkout", "label": "Checkout", "href": "https://epartscart.com/shop/checkout"},
         {"id": "account", "label": "Account", "href": "https://epartscart.com/users/"},
         {"id": "profile", "label": "Profile", "href": "https://epartscart.com/users/profile"},
-        {"id": "garage", "label": "Garage", "href": "https://epartscart.com/shop/part_search"},
+        {"id": "garage", "label": "Garage", "href": "https://epartscart.com/garage/login"},
         {"id": "orders", "label": "Orders", "href": "https://epartscart.com/shop/orders"},
-        {"id": "returns", "label": "Returns", "href": "https://epartscart.com/"},
-        {"id": "payments", "label": "Payments", "href": "https://epartscart.com/"},
-        {"id": "support", "label": "Support", "href": "https://epartscart.com/"},
+        {"id": "returns", "label": "Returns", "href": "https://epartscart.com/en/shop/orders"},
+        {"id": "payments", "label": "Payments", "href": "https://epartscart.com/en/shop/balans"},
+        {"id": "support", "label": "Support", "href": "https://epartscart.com/en/shop/orders"},
     ]
 
     catalog = {

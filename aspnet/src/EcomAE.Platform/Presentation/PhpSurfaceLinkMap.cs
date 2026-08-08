@@ -35,14 +35,23 @@ public static class PhpSurfaceLinkMap
         ("shop/orders/statuses", "/cp/orders"),
         ("shop/orders/orders", "/cp/orders"),
         ("shop/orders/carts", "/cp/abandoned-carts-app"),
+        // Hub before ops|guide catch-all so oms-guide / whatsapp-guide stay on OMS.
+        ("shop/orders", "/cp/orders"),
         ("shop/onlajn-kassy", "/cp/kkt-app"),
         ("shop/perenos-dannyx", "/cp/data-transfer-app"),
         ("shop/cash", "/erp/cash-accounts-app"),
+        // Longer catalogue / statistics markers BEFORE short hubs (Contains match).
+        ("control/shop/catalogue/stock", "/erp/inventory-stock-app"),
+        ("shop/catalogue/catalogue_editor", "/cp/product-catalogue-app"),
+        ("shop/catalogue/sku_media", "/cp/product-catalogue-app"),
+        ("shop/catalogue/products", "/cp/product-catalogue-app"),
         ("shop/catalogue", "/cp/product-catalogue-app"),
         ("shop/payments", "/cp/payment-gateways-app"),
         ("shop/document_control", "/cp/document-control-app"),
         ("shop/customer_mgmt", "/cp/users-app"),
         ("shop/quote_requests", "/cp/quote-requests-app"),
+        ("shop/statistics/web_tracker", "/cp/web-tracker-app"),
+        ("shop/statistics/statistics", "/cp/statistics-app"),
         ("shop/statistics", "/cp/statistics-app"),
         ("shop/accessories", "/cp/accessories-app"),
         ("shop/manufacturers_synonyms", "/cp/synonyms-app"),
@@ -107,17 +116,29 @@ public static class PhpSurfaceLinkMap
         ("polya-registracii", "/cp/users-app"),
         ("users/registracionnye-varianty", "/cp/users-app"),
         ("registracionnye-varianty", "/cp/users-app"),
+        ("users/usergroups", "/cp/groups-app"),
         ("users/user_manager", "/cp/users-app"),
+        // After usergroups — "users/user" would otherwise steal usergroups.
         ("users/user", "/cp/users-app"),
         ("users/approvals", "/cp/users-app"),
         ("control/version_control", "/cp/ops-guides-app"),
         ("shop/taby-poiska", "/cp/search-tabs-app"),
         ("taby-poiska", "/cp/search-tabs-app"),
         ("control/shop/docpart/crosses", "/cp/crosses-app"),
-        ("control/shop/catalogue/stock", "/erp/inventory-stock-app"),
         ("control/shop/procurement", "/cp/purchase-requests-app"),
         ("control/shop/multivendor", "/cp/prices-upload-app"),
         ("multivendor", "/cp/prices-upload-app"),
+        // BocNav / brochure holdouts that previously collapsed to bare /cp.
+        ("epc_webhooks", "/cp/integrations-app"),
+        ("epc_rest_api_v2", "/cp/api-clients-app"),
+        ("epc_dealer_portal", "/cp/tenants-app"),
+        ("epc_industry_license_trends", "/cp/industry-packs-app"),
+        ("epc_cp_role_home", "/cp/groups-app"),
+        ("epc_tenant_data_policy", "/cp/platform-governance-app"),
+        ("epc_boc_product_brochure", "/brochure/cp"),
+        ("epc_isolation_anomaly", "/cp/isolation-audit-app"),
+        ("usefull/ip", "/cp/server-ip-app"),
+        ("content/usefull/ip", "/cp/server-ip-app"),
         ("control/shop/prices", "/cp/price-lists-app"),
         ("control/shop/pos", "/cp/pos-overview-app"),
         ("control/portal/epc_super_cp_fleet_dashboard", "/bos/fleet-health-app"),
@@ -304,7 +325,15 @@ public static class PhpSurfaceLinkMap
 
                 if (IsUpperPhpShell(path, "ERP") || path.Equals("/erp", StringComparison.OrdinalIgnoreCase) || path.StartsWith("/erp/", StringComparison.OrdinalIgnoreCase))
                 {
-                    return absolute.GetLeftPart(UriPartial.Authority).TrimEnd('/') + "/erp";
+                    // Deep /ERP/?tab=… must survive — never collapse every ecomae ERP URL to host+/erp.
+                    var mappedErp = MapErpPhpPath(path + absQuery);
+                    if (mappedErp.Equals("/erp", StringComparison.OrdinalIgnoreCase)
+                        || mappedErp.Equals("/erp/", StringComparison.OrdinalIgnoreCase))
+                    {
+                        return absolute.GetLeftPart(UriPartial.Authority).TrimEnd('/') + "/erp";
+                    }
+
+                    return mappedErp + absHash;
                 }
 
                 if (IsUpperPhpShell(path, "BOS")
@@ -426,10 +455,35 @@ public static class PhpSurfaceLinkMap
             return StorefrontSurfaceLinks.GarageLogin;
         }
 
+        // Account/profile before blanket /users → login.
+        if (value.Contains("/users/profile", StringComparison.OrdinalIgnoreCase))
+        {
+            return StorefrontSurfaceLinks.PreferAspNetApps
+                ? "/storefront/profile-app"
+                : StorefrontPhpCanonical.LangPrefix + "/users/profile";
+        }
+
+        if (value.Contains("/users/account", StringComparison.OrdinalIgnoreCase)
+            || value.Equals("/users/", StringComparison.OrdinalIgnoreCase)
+            || value.Equals("/users", StringComparison.OrdinalIgnoreCase)
+            || value.StartsWith("/users/?", StringComparison.OrdinalIgnoreCase))
+        {
+            return StorefrontSurfaceLinks.PreferAspNetApps
+                ? StorefrontAspNetCanonical.Balance
+                : StorefrontPhpCanonical.Balance;
+        }
+
         if (value.StartsWith("/users", StringComparison.OrdinalIgnoreCase)
             || value.StartsWith("/vendor", StringComparison.OrdinalIgnoreCase))
         {
             return StorefrontSurfaceLinks.Login;
+        }
+
+        // Server IP utility (catalog href is content/usefull/ip.php, not under /CP).
+        if (value.Contains("usefull/ip", StringComparison.OrdinalIgnoreCase)
+            || value.Contains("useful/ip", StringComparison.OrdinalIgnoreCase))
+        {
+            return "/cp/server-ip-app";
         }
 
         if (value.StartsWith("/shop/", StringComparison.OrdinalIgnoreCase)
@@ -955,14 +1009,15 @@ public static class PhpSurfaceLinkMap
         return areaKey switch
         {
             "overview" or "finance" or "common" or "setup" or "enterprise" => "/erp",
+            "gl" or "general_ledger" => "/erp/gl-journals-app",
             "sales" or "ar" => "/erp/sales-orders-app",
             "purchasing" or "ap" => "/erp/purchase-orders-app",
             "banking" or "credit_coll" => "/erp/cash-accounts-app",
             "inventory_mgmt" or "pim" or "logistics" => "/erp/inventory-stock-app",
             "warehouse" => "/erp/warehouses-app",
-            "people" or "payroll_area" or "leave_abs" => "/cp/hr-overview-app",
+            "people" or "payroll" or "payroll_area" or "leave_abs" => "/cp/hr-overview-app",
             "tax" or "risk" => "/cp/uae-tax-compliance-app",
-            "production" => "/cp/production-overview-app",
+            "production" or "master_planning_area" or "mhei" => "/cp/production-overview-app",
             "projects" => "/cp/projects-overview-app",
             "retail" or "service_mgmt" => "/cp/jewellery-retail-app",
             "budgeting" => "/cp/budgets-app",
@@ -970,6 +1025,8 @@ public static class PhpSurfaceLinkMap
             "cost_mgmt" or "cost_acct" => "/cp/cost-models-app",
             "landed_cost_area" => "/cp/landed-cost-app",
             "consolidations" => "/cp/consolidations-app",
+            "audit_wb" or "audit" => "/cp/audit-trail-app",
+            "expense" => "/erp/expense-reports-app",
             _ => "/erp",
         };
     }
@@ -977,41 +1034,66 @@ public static class PhpSurfaceLinkMap
     private static string MapBosPhpPath(string value)
     {
         var path = value.Split('?', 2)[0].ToLowerInvariant();
-        var module = ExtractQuery(value, "m")?.Trim().ToLowerInvariant();
+        var module = ExtractQuery(value, "m")?.Trim().ToLowerInvariant() ?? string.Empty;
+        var section = ExtractQuery(value, "section")?.Trim().ToLowerInvariant() ?? string.Empty;
 
-        if (module is "fleet_cp" or "tenant" or "tenants")
+        // Exact module match first — never let substring Contains steal (isolation_audit, tenant_email).
+        if (module.Length > 0)
+        {
+            var fromModule = module switch
+            {
+                "fleet_cp" or "tenant" or "tenants" => "/bos/tenants-app",
+                "command_center" or "command" => "/bos/app",
+                "fleet_health" or "health" => "/bos/fleet-health-app",
+                "fleet_readiness" or "readiness" or "ready" => "/bos/fleet-readiness-app",
+                "fleet_summary" or "summary" => "/bos/fleet-summary-app",
+                "audit_log" or "boc_audit" => "/bos/audit-log-app",
+                "isolation_audit" => "/cp/isolation-audit-app",
+                "tenant_email" => "/cp/portal-settings-app",
+                "license_trends" or "industry_license_trends" => "/cp/industry-packs-app",
+                "data_policy" or "tenant_data_policy" => "/cp/platform-governance-app",
+                _ => null,
+            };
+            if (fromModule is not null)
+            {
+                return fromModule;
+            }
+
+            // Known CP Boc modules under /BOS/?m= → CP apps via MapCpPhpPath markers.
+            var asCp = MapCpPhpPath("/CP/control/portal/" + module);
+            if (!asCp.Equals("/cp", StringComparison.OrdinalIgnoreCase))
+            {
+                return asCp;
+            }
+        }
+
+        if (section is "tenants" or "tenant")
         {
             return "/bos/tenants-app";
         }
 
-        if (module is "command_center" or "command")
-        {
-            return "/bos/app";
-        }
-
-        if (path.Contains("tenant", StringComparison.Ordinal) || module?.Contains("tenant", StringComparison.Ordinal) == true)
+        if (path.Contains("/bos/tenants", StringComparison.Ordinal)
+            || path.Contains("fleet_cp", StringComparison.Ordinal))
         {
             return "/bos/tenants-app";
         }
 
-        if (path.Contains("health", StringComparison.Ordinal) || module?.Contains("health", StringComparison.Ordinal) == true)
+        if (path.Contains("fleet-health", StringComparison.Ordinal) || path.Contains("fleet_health", StringComparison.Ordinal))
         {
             return "/bos/fleet-health-app";
         }
 
-        if (path.Contains("ready", StringComparison.Ordinal)
-            || path.Contains("readiness", StringComparison.Ordinal)
-            || module?.Contains("ready", StringComparison.Ordinal) == true)
+        if (path.Contains("fleet-readiness", StringComparison.Ordinal) || path.Contains("readiness", StringComparison.Ordinal))
         {
             return "/bos/fleet-readiness-app";
         }
 
-        if (path.Contains("audit", StringComparison.Ordinal) || module?.Contains("audit", StringComparison.Ordinal) == true)
+        if (path.Contains("audit-log", StringComparison.Ordinal) || path.Contains("audit_log", StringComparison.Ordinal))
         {
             return "/bos/audit-log-app";
         }
 
-        if (path.Contains("summary", StringComparison.Ordinal) || module?.Contains("summary", StringComparison.Ordinal) == true)
+        if (path.Contains("fleet-summary", StringComparison.Ordinal) || path.Contains("fleet_summary", StringComparison.Ordinal))
         {
             return "/bos/fleet-summary-app";
         }

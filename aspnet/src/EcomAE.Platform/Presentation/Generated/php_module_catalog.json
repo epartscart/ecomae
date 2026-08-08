@@ -5370,7 +5370,7 @@
     {
       "id": "vin_search",
       "label": "VIN / vehicle search",
-      "href": "https://epartscart.com/shop/part_search"
+      "href": "https://epartscart.com/en/katalog-laximo"
     },
     {
       "id": "catalog",
@@ -5400,7 +5400,7 @@
     {
       "id": "garage",
       "label": "Garage",
-      "href": "https://epartscart.com/shop/part_search"
+      "href": "https://epartscart.com/garage/login"
     },
     {
       "id": "orders",
@@ -5410,17 +5410,17 @@
     {
       "id": "returns",
       "label": "Returns",
-      "href": "https://epartscart.com/"
+      "href": "https://epartscart.com/en/shop/orders"
     },
     {
       "id": "payments",
       "label": "Payments",
-      "href": "https://epartscart.com/"
+      "href": "https://epartscart.com/en/shop/balans"
     },
     {
       "id": "support",
       "label": "Support",
-      "href": "https://epartscart.com/"
+      "href": "https://epartscart.com/en/shop/orders"
     }
   ]
 }
