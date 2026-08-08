@@ -78,7 +78,7 @@
             <tbody>
                 @if (_tasks.Count == 0)
                 {
-                    <tr><td colspan="8">Nothing to show yet.</td></tr>
+                    <tr><td colspan="8">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? "Nothing to show yet." : _message) : "Sign in with ERP capability for live rows.")</td></tr>
                 }
                 else
                 {
@@ -108,6 +108,7 @@
 
 @code {
     private bool _isAdmin;
+    private string _message = "";
     private ErpProcessFlowTasksSummary _summary = new(0, 0, 0, 0, 0, "migration", string.Empty);
     private IReadOnlyList<ErpProcessFlowTaskDigest> _tasks = [];
     private readonly string _phpTab = "/ERP/?epc_erp_shell=1&area=overview&tab=processflow";
@@ -130,5 +131,6 @@
         var result = await Dashboards.BuildErpProcessFlowTasksDigestAsync(100);
         _summary = result.Summary;
         _tasks = result.Tasks;
+        _message = result.Message;
     }
 }

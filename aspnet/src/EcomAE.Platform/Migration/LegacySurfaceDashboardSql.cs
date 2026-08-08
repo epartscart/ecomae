@@ -3345,4 +3345,115 @@ public const string SelectCpOpsGuidesStats = """
         LIMIT @limit
         """;
 
+    /// <summary>ERP delivery notes (notes/pdf omitted) — PHP epc_erp_delivery_notes.</summary>
+    public const string SelectErpDeliveryNotes = """
+        SELECT `id`, IFNULL(`note_no`,'') AS note_no, IFNULL(`order_id`,0) AS order_id,
+               IFNULL(`carrier`,'') AS carrier, IFNULL(`tracking_no`,'') AS tracking_no,
+               IFNULL(`status`,'') AS status, IFNULL(`shipped_at`,0) AS shipped_at,
+               IFNULL(`delivered_at`,0) AS delivered_at, IFNULL(`time_created`,0) AS time_created
+        FROM `epc_erp_delivery_notes`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
+    /// <summary>ERP supplier RFQs (description omitted) — PHP epc_erp_rfq.</summary>
+    public const string SelectErpRfqs = """
+        SELECT `id`, IFNULL(`rfq_no`,'') AS rfq_no, IFNULL(`supplier_id`,0) AS supplier_id,
+               IFNULL(`title`,'') AS title, IFNULL(`amount_est`,0) AS amount_est,
+               IFNULL(`currency_code`,'AED') AS currency_code, IFNULL(`status`,'') AS status,
+               IFNULL(`due_date`,0) AS due_date, IFNULL(`order_id`,0) AS order_id,
+               IFNULL(`time_created`,0) AS time_created
+        FROM `epc_erp_rfq`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
+    /// <summary>ERP three-way match rows — PHP epc_erp_three_way_match_rows.</summary>
+    public const string SelectErpThreeWayMatch = """
+        SELECT po.`id` AS po_id, IFNULL(po.`po_no`,'') AS po_no, IFNULL(po.`status`,'') AS po_status,
+               IFNULL(po.`total_amount`,0) AS po_total,
+               IFNULL(p.`id`,0) AS purchase_id, IFNULL(p.`invoice_number`,'') AS invoice_number,
+               IFNULL(p.`total_amount`,0) AS invoice_total, IFNULL(p.`status`,'') AS purchase_status,
+               (SELECT COUNT(*) FROM `epc_erp_po_receipts` r WHERE r.`po_id` = po.`id`) AS receipt_count
+        FROM `epc_erp_purchase_orders` po
+        LEFT JOIN `epc_erp_purchases` p ON p.`id` = po.`purchase_id` OR (po.`order_id` > 0 AND p.`order_id` = po.`order_id`)
+        WHERE po.`status` IN ('approved', 'partial', 'received')
+        ORDER BY po.`id` DESC
+        LIMIT @limit
+        """;
+
+    /// <summary>ERP contacts (address/notes omitted) — PHP epc_erp_contacts.</summary>
+    public const string SelectErpContacts = """
+        SELECT `id`, IFNULL(`party_type`,'') AS party_type, IFNULL(`name`,'') AS name,
+               IFNULL(`company`,'') AS company, IFNULL(`email`,'') AS email,
+               IFNULL(`phone`,'') AS phone, IFNULL(`trn`,'') AS trn,
+               IFNULL(`city`,'') AS city, IFNULL(`country_code`,'AE') AS country_code,
+               IFNULL(`linked_user_id`,0) AS linked_user_id,
+               IFNULL(`linked_supplier_id`,0) AS linked_supplier_id,
+               IFNULL(`active`,1) AS active, IFNULL(`time_updated`,0) AS time_updated
+        FROM `epc_erp_contacts`
+        WHERE IFNULL(`active`,1) = 1
+        ORDER BY `name` ASC
+        LIMIT @limit
+        """;
+
+    /// <summary>ERP payment batches (notes omitted) — PHP epc_erp_payment_batches.</summary>
+    public const string SelectErpPaymentBatches = """
+        SELECT b.`id`, IFNULL(b.`batch_no`,'') AS batch_no, IFNULL(b.`batch_type`,'') AS batch_type,
+               IFNULL(b.`account_id`,0) AS account_id, IFNULL(a.`name`,'') AS account_name,
+               IFNULL(b.`total_amount`,0) AS total_amount, IFNULL(b.`line_count`,0) AS line_count,
+               IFNULL(b.`status`,'') AS status, IFNULL(b.`execution_date`,0) AS execution_date,
+               IFNULL(b.`time_updated`,0) AS time_updated
+        FROM `epc_erp_payment_batches` b
+        LEFT JOIN `epc_erp_cash_bank_accounts` a ON a.`id` = b.`account_id`
+        ORDER BY b.`time_updated` DESC
+        LIMIT @limit
+        """;
+
+    /// <summary>ERP fiscal periods peek — PHP epc_erp_periods (period_close).</summary>
+    public const string SelectErpFiscalPeriods = """
+        SELECT `id`, IFNULL(`year_month`,'') AS year_month, IFNULL(`status`,'') AS status,
+               CASE WHEN IFNULL(`status`,'') IN ('soft_close','locked') THEN 1 ELSE 0 END AS soft_closed,
+               CASE WHEN IFNULL(`status`,'') = 'locked' THEN 1 ELSE 0 END AS locked,
+               IFNULL(`updated_at`,0) AS time_updated
+        FROM `epc_erp_periods`
+        ORDER BY `year_month` DESC
+        LIMIT @limit
+        """;
+
+
+    /// <summary>ERP agenda events (notes omitted) — PHP epc_erp_agenda_events.</summary>
+    public const string SelectErpAgendaEvents = """
+        SELECT `id`, IFNULL(`title`,'') AS title, IFNULL(`event_type`,'') AS event_type,
+               IFNULL(`start_at`,0) AS start_at, IFNULL(`end_at`,0) AS end_at,
+               IFNULL(`entity_type`,'') AS entity_type, IFNULL(`entity_id`,0) AS entity_id,
+               IFNULL(`location`,'') AS location, IFNULL(`time_created`,0) AS time_created
+        FROM `epc_erp_agenda_events`
+        ORDER BY `start_at` DESC
+        LIMIT @limit
+        """;
+
+    /// <summary>ERP documents library (notes/path omitted) — PHP epc_erp_documents.</summary>
+    public const string SelectErpDocuments = """
+        SELECT `id`, IFNULL(`entity_type`,'') AS entity_type, IFNULL(`entity_id`,0) AS entity_id,
+               IFNULL(`doc_category`,'') AS doc_category, IFNULL(`file_name`,'') AS file_name,
+               IFNULL(`file_size`,0) AS file_size, IFNULL(`mime_type`,'') AS mime_type,
+               IFNULL(`time_created`,0) AS time_created
+        FROM `epc_erp_documents`
+        WHERE IFNULL(`active`,1) = 1
+        ORDER BY `time_created` DESC
+        LIMIT @limit
+        """;
+
+    /// <summary>ERP expense reports (notes omitted) — PHP epc_erp_expense_reports.</summary>
+    public const string SelectErpExpenseReports = """
+        SELECT `id`, IFNULL(`report_no`,'') AS report_no, IFNULL(`staff_user_id`,0) AS staff_user_id,
+               IFNULL(`title`,'') AS title, IFNULL(`total_amount`,0) AS total_amount,
+               IFNULL(`status`,'') AS status, IFNULL(`period_from`,0) AS period_from,
+               IFNULL(`period_to`,0) AS period_to, IFNULL(`time_updated`,0) AS time_updated
+        FROM `epc_erp_expense_reports`
+        ORDER BY `time_updated` DESC
+        LIMIT @limit
+        """;
+
 }

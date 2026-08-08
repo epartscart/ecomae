@@ -75,7 +75,7 @@
             <tbody>
                 @if (_orders.Count == 0)
                 {
-                    <tr><td colspan="6">Nothing to show yet.</td></tr>
+                    <tr><td colspan="6">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? "Nothing to show yet." : _message) : "Sign in with ERP capability for live sales orders.")</td></tr>
                 }
                 else
                 {

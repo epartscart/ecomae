@@ -3444,3 +3444,157 @@ public sealed record CpEventBusSummary(int EventCount, int TypeCount, int Tenant
 public sealed record CpEventBusRowDigest(long Id, string EventType, string TenantKey, string ActorType, string CreatedAt);
 public sealed record CpEventBusDigestResult(CpEventBusSummary Summary, IReadOnlyList<CpEventBusRowDigest> Rows, int Count, string Source, string Message);
 
+public sealed record ErpDeliveryNoteDigest(
+    long Id,
+    string NoteNo,
+    long OrderId,
+    string Carrier,
+    string TrackingNo,
+    string Status,
+    long ShippedAt,
+    long DeliveredAt,
+    long TimeCreated);
+
+public sealed record ErpDeliveryNoteListResult(
+    IReadOnlyList<ErpDeliveryNoteDigest> Notes,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record ErpRfqDigest(
+    long Id,
+    string RfqNo,
+    long SupplierId,
+    string Title,
+    decimal AmountEst,
+    string CurrencyCode,
+    string Status,
+    long DueDate,
+    long OrderId,
+    long TimeCreated);
+
+public sealed record ErpRfqListResult(
+    IReadOnlyList<ErpRfqDigest> Rfqs,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record ErpThreeWayMatchDigest(
+    long PoId,
+    string PoNo,
+    string PoStatus,
+    decimal PoTotal,
+    long PurchaseId,
+    string InvoiceNumber,
+    decimal InvoiceTotal,
+    string PurchaseStatus,
+    int ReceiptCount);
+
+public sealed record ErpThreeWayMatchListResult(
+    IReadOnlyList<ErpThreeWayMatchDigest> Rows,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record ErpContactDigest(
+    long Id,
+    string PartyType,
+    string Name,
+    string Company,
+    string Email,
+    string Phone,
+    string Trn,
+    string City,
+    string CountryCode,
+    long LinkedUserId,
+    long LinkedSupplierId,
+    bool Active,
+    long TimeUpdated);
+
+public sealed record ErpContactListResult(
+    IReadOnlyList<ErpContactDigest> Contacts,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record ErpPaymentBatchDigest(
+    long Id,
+    string BatchNo,
+    string BatchType,
+    long AccountId,
+    string AccountName,
+    decimal TotalAmount,
+    int LineCount,
+    string Status,
+    long ExecutionDate,
+    long TimeUpdated);
+
+public sealed record ErpPaymentBatchListResult(
+    IReadOnlyList<ErpPaymentBatchDigest> Batches,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record ErpFiscalPeriodDigest(
+    long Id,
+    string YearMonth,
+    string Status,
+    bool SoftClosed,
+    bool Locked,
+    long TimeUpdated);
+
+public sealed record ErpFiscalPeriodListResult(
+    IReadOnlyList<ErpFiscalPeriodDigest> Periods,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record ErpAgendaEventDigest(
+    long Id,
+    string Title,
+    string EventType,
+    long StartAt,
+    long EndAt,
+    string EntityType,
+    long EntityId,
+    string Location,
+    long TimeCreated);
+
+public sealed record ErpAgendaEventListResult(
+    IReadOnlyList<ErpAgendaEventDigest> Events,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record ErpDocumentDigest(
+    long Id,
+    string EntityType,
+    long EntityId,
+    string DocCategory,
+    string FileName,
+    long FileSize,
+    string MimeType,
+    long TimeCreated);
+
+public sealed record ErpDocumentListResult(
+    IReadOnlyList<ErpDocumentDigest> Documents,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record ErpExpenseReportDigest(
+    long Id,
+    string ReportNo,
+    long StaffUserId,
+    string Title,
+    decimal TotalAmount,
+    string Status,
+    long PeriodFrom,
+    long PeriodTo,
+    long TimeUpdated);
+
+public sealed record ErpExpenseReportListResult(
+    IReadOnlyList<ErpExpenseReportDigest> Reports,
+    int Count,
+    string Source,
+    string Message);

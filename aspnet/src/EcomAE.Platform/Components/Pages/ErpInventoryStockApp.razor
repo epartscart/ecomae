@@ -82,7 +82,7 @@
             <tbody>
                 @if (_stock.Count == 0)
                 {
-                    <tr><td colspan="10">Nothing to show yet.</td></tr>
+                    <tr><td colspan="10">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? "Nothing to show yet." : _message) : "Sign in with ERP capability for live rows.")</td></tr>
                 }
                 else
                 {
@@ -148,6 +148,7 @@
 @code {
     private const string _phpTab = "/ERP/?epc_erp_shell=1&area=inventory_mgmt&tab=inventory";
     private bool _isAdmin;
+    private string _message = "";
     private ErpInventoryStockSummaryResult _summary = new(0, 0m, 0m, 0, 0, "migration", string.Empty);
     private IReadOnlyList<ErpInventoryStockDigest> _stock = [];
     private IReadOnlyList<ErpInventoryLowStockDigest> _lowStock = [];
@@ -168,5 +169,6 @@
         _summary = result.Summary;
         _stock = result.Stock;
         _lowStock = result.LowStock;
+        _message = result.Message;
     }
 }

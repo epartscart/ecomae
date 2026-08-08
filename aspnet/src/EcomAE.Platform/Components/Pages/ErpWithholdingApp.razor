@@ -1,0 +1,119 @@
+@page "/erp/withholding-app"
+@layout Layout.PhpChromeLayout
+@using System.Globalization
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Migration
+@using EcomAE.Platform.Presentation
+@inject ISurfaceDashboardSummaryReporter Dashboards
+@inject ILegacySessionValidator Sessions
+@inject IHttpContextAccessor Http
+
+<PageTitle>Withholding · ERP · eParts Cart</PageTitle>
+<PhpChromeStyles Surface="erp" />
+<HeadContent>
+<style>
+    .epc-wht-hero {
+        margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
+        background:linear-gradient(135deg,#0c4a6e 0%,#7c2d12 50%,#ea580c 100%);
+    }
+    .epc-wht-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
+    .epc-wht-hero p { margin:0; color:#ffedd5; max-width:44rem; font-size:.92rem; line-height:1.45; }
+    .epc-wht-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
+    .epc-wht-cta a {
+        display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
+        text-decoration:none; color:#0f172a; background:#fff;
+    }
+    .epc-wht-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.4); color:#fff; }
+    .epc-wht-kpis { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
+    .epc-wht-kpi { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; padding:.85rem .9rem; }
+    .epc-wht-kpi strong { display:block; font-size:1.2rem; }
+    .epc-wht-kpi span { color:#64748b; font-size:.78rem; }
+    .epc-wht-table-wrap { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; overflow:auto; }
+    .epc-wht-table { width:100%; border-collapse:collapse; font-size:.86rem; }
+    .epc-wht-table th, .epc-wht-table td { padding:.55rem .7rem; border-bottom:1px solid #f1f5f9; text-align:left; white-space:nowrap; }
+    .epc-wht-table th { background:#f8fafc; color:#475569; font-size:.75rem; text-transform:uppercase; }
+    .epc-wht-note { margin-top:1rem; padding:.75rem .9rem; background:#fff7ed; border:1px solid #fdba74; border-radius:.45rem; color:#9a3412; font-size:.86rem; }
+    @@media (max-width:900px){ .epc-wht-kpis{grid-template-columns:1fr;} }
+</style>
+</HeadContent>
+
+<PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Withholding" BreadcrumbArea="Tax" BreadcrumbTab="Withholding">
+
+    <section class="epc-wht-hero">
+        <h1>Withholding tax</h1>
+        <p>ERP withholding surface over the UAE tax compliance digest. Certificates, codes, and settlements remain PHP-authoritative.</p>
+        <div class="epc-wht-cta">
+            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open PHP WHT tab</a>
+            <a class="ghost" href="/erp/vat-app">VAT</a>
+            <a class="ghost" href="/cp/uae-tax-compliance-app">UAE tax hub</a>
+            <a class="ghost" href="/erp/ajax-writes/catalog">Ajax dry-runs</a>
+        </div>
+    </section>
+
+    <div class="epc-wht-kpis" aria-label="Withholding KPIs">
+        <div class="epc-wht-kpi"><strong>@_items.Count.ToString(CultureInfo.InvariantCulture)</strong><span>Tax items shown</span></div>
+        <div class="epc-wht-kpi"><strong>@_source</strong><span>Digest source</span></div>
+        <div class="epc-wht-kpi"><strong>@(_isAdmin ? "live" : "guest")</strong><span>Session</span></div>
+    </div>
+
+    <div class="epc-wht-table-wrap">
+        <table class="epc-wht-table">
+            <thead>
+                <tr>
+                    <th>Slug</th>
+                    <th>Title</th>
+                    <th>Category</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (_items.Count == 0)
+                {
+                    <tr><td colspan="4">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? "Nothing to show yet." : _message) : "Sign in with ERP capability for live tax rows.")</td></tr>
+                }
+                else
+                {
+                    @foreach (var row in _items)
+                    {
+                        <tr>
+                            <td><strong>@row.Slug</strong></td>
+                            <td>@row.Title</td>
+                            <td>@row.TaxCategory</td>
+                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="epc-wht-note">
+        Dry-runs: <code>wht_code_save</code>, <code>wht_record</code>, <code>wht_certificate</code>, <code>wht_settle</code> — writes=0.
+    </div>
+</PhpErpDesktopChrome>
+
+@code {
+    private const string _phpTab = "/ERP/?epc_erp_shell=1&area=tax&tab=withholding";
+    private bool _isAdmin;
+    private IReadOnlyList<CpUaeTaxItemDigest> _items = [];
+    private string _source = "n/a";
+    private string _message = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null) return;
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("erp");
+        if (!_isAdmin)
+        {
+            _message = "Sign in for live data.";
+            return;
+        }
+
+        var result = await Dashboards.BuildCpUaeTaxComplianceDigestAsync(100, ctx.RequestAborted);
+        _items = result.Items;
+        _source = result.Source;
+        _message = result.Message;
+    }
+}

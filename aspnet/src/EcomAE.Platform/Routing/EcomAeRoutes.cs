@@ -685,6 +685,38 @@ public static class EcomAeRoutes
     public const string ErpFixedAssetsApp = "/erp/fixed-assets-app";
     /// <summary>ERP On-Premises deployment Blazor overview (PHP erp_tabs_on_premises.php remains primary until dual-sample).</summary>
     public const string ErpOnPremisesApp = "/erp/on-premises-app";
+    /// <summary>ERP delivery notes Blazor list (JSON digest remains <see cref="ErpDeliveryNotes"/>).</summary>
+    public const string ErpDeliveryNotes = "/erp/delivery-notes";
+    public const string ErpDeliveryNotesApp = "/erp/delivery-notes-app";
+    /// <summary>ERP RFQ Blazor list (JSON digest remains <see cref="ErpRfqs"/>).</summary>
+    public const string ErpRfqs = "/erp/rfqs";
+    public const string ErpRfqApp = "/erp/rfq-app";
+    /// <summary>ERP three-way match Blazor list (JSON digest remains <see cref="ErpThreeWayMatch"/>).</summary>
+    public const string ErpThreeWayMatch = "/erp/three-way-match";
+    public const string ErpThreeWayMatchApp = "/erp/three-way-match-app";
+    /// <summary>ERP contacts Blazor list (JSON digest remains <see cref="ErpContacts"/>).</summary>
+    public const string ErpContacts = "/erp/contacts";
+    public const string ErpContactsApp = "/erp/contacts-app";
+    /// <summary>ERP payment batches Blazor list (JSON digest remains <see cref="ErpPaymentBatches"/>).</summary>
+    public const string ErpPaymentBatches = "/erp/payment-batches";
+    public const string ErpPaymentBatchesApp = "/erp/payment-batches-app";
+    /// <summary>ERP period close Blazor list (JSON digest remains <see cref="ErpFiscalPeriods"/>).</summary>
+    public const string ErpFiscalPeriods = "/erp/fiscal-periods";
+    public const string ErpPeriodCloseApp = "/erp/period-close-app";
+    /// <summary>Generic ERP module shell for tabs without a dedicated list UI.</summary>
+    public const string ErpModuleApp = "/erp/module-app";
+    public const string ErpAgendaEvents = "/erp/agenda-events";
+    public const string ErpAgendaApp = "/erp/agenda-app";
+    public const string ErpDocuments = "/erp/documents";
+    public const string ErpDocumentsApp = "/erp/documents-app";
+    public const string ErpExpenseReports = "/erp/expense-reports";
+    public const string ErpExpenseReportsApp = "/erp/expense-reports-app";
+    public const string ErpVatApp = "/erp/vat-app";
+    public const string ErpWithholdingApp = "/erp/withholding-app";
+
+    /// <summary>ERP tab→app coverage board.</summary>
+    public const string ErpTabCoverage = "/erp/tab-coverage";
+
     /// <summary>Wave B dry-run for PHP inv_sync_warehouses (writes=0).</summary>
     public const string ErpAjaxInvSyncWarehouses = "/erp/ajax/inv-sync-warehouses";
     /// <summary>Wave B dry-run for PHP inv_create_warehouse (writes=0).</summary>
