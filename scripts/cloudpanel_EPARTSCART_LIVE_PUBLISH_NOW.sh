@@ -5,7 +5,7 @@
 # cloudpanel_EPARTSCART_JOURNEY_NUCLEAR.sh (hard GATE_OK / RESULT=PASS).
 #
 # Paste as root:
-#   URL='https://raw.githubusercontent.com/epartscart/ecomae/cursor/epartscart-journey-live-publish-7b3b/scripts/cloudpanel_EPARTSCART_LIVE_PUBLISH_NOW.sh'
+#   URL='https://raw.githubusercontent.com/epartscart/ecomae/main/scripts/cloudpanel_EPARTSCART_LIVE_PUBLISH_NOW.sh'
 #   TMP=/tmp/epartscart-live-publish-now.sh
 #   curl -fsSL "$URL" -o "$TMP"
 #   test -s "$TMP" || { echo RESULT=FAIL empty_download; exit 1; }
@@ -14,7 +14,7 @@
 #   grep -E 'RESULT=|PREFLIGHT|GATE_|ERROR|SHA=|HOST=' /root/epartscart-live-publish-now.log | tail -100
 set -euo pipefail
 
-ECOMAE_BRANCH="${ECOMAE_BRANCH:-cursor/epartscart-journey-live-publish-7b3b}"
+ECOMAE_BRANCH="${ECOMAE_BRANCH:-main}"
 export ECOMAE_BRANCH ECOMAE_SKIP_LIFEOS_MP4="${ECOMAE_SKIP_LIFEOS_MP4:-YES}"
 
 die() { printf 'RESULT=FAIL %s\n' "$*" >&2; exit 1; }
