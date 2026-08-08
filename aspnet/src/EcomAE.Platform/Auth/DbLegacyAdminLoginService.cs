@@ -3,6 +3,9 @@ using System.Globalization;
 using System.Net;
 using EcomAE.Platform.Configuration;
 using EcomAE.Platform.Data;
+using EcomAE.Platform.Middleware;
+using EcomAE.Platform.Services;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace EcomAE.Platform.Auth;
@@ -16,15 +19,21 @@ public sealed class DbLegacyAdminLoginService : ILegacyAdminLoginService
     private readonly ITenantDbConnectionFactory _connections;
     private readonly ILegacySessionStore _sessions;
     private readonly EcomAeOptions _options;
+    private readonly IHttpContextAccessor _http;
+    private readonly ILogger<DbLegacyAdminLoginService> _log;
 
     public DbLegacyAdminLoginService(
         ITenantDbConnectionFactory connections,
         ILegacySessionStore sessions,
-        IOptions<EcomAeOptions> options)
+        IOptions<EcomAeOptions> options,
+        IHttpContextAccessor http,
+        ILogger<DbLegacyAdminLoginService> log)
     {
         _connections = connections;
         _sessions = sessions;
         _options = options.Value;
+        _http = http;
+        _log = log;
     }
 
     public bool IsConfigured
@@ -53,17 +62,95 @@ public sealed class DbLegacyAdminLoginService : ILegacyAdminLoginService
             return LegacyLoginOutcome.Failed("Enter login and password.", "missing_fields");
         }
 
+        var tenant = _http.HttpContext?.Items[TenantResolutionMiddleware.HttpContextItemKey] as TenantContext;
+        var host = _http.HttpContext?.Request.Host.Host ?? string.Empty;
+        var superCpHost = PlatformHostPolicy.IsSuperCpHost(host);
+
+        // Named tenants (storefront/CP/ERP) must use the shop DB — never silently fall through to
+        // portal registry users (that yields false invalid_credentials). Super-CP hosts keep
+        // registry fallback for platform operator accounts.
+        var needsTenantShopDb = !superCpHost
+            && request.Surface is (LegacyLoginSurface.ControlPanel
+                or LegacyLoginSurface.Erp
+                or LegacyLoginSurface.Storefront);
+        if (needsTenantShopDb && (tenant is null || !tenant.HasTenantDatabase))
+        {
+            _log.LogWarning(
+                "Tenant login blocked: shop db_name unbound host={Host} siteKey={SiteKey} surface={Surface}",
+                host,
+                tenant?.SiteKey,
+                request.Surface);
+            return LegacyLoginOutcome.Failed(
+                "Shop database is not bound for this host. Operator must sync epc_portal_tenants.db_name (scripts/cloudpanel_fix_epartscart_portal_tenant_db.sh) and republish.",
+                "tenant_db_unbound");
+        }
+
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
-            var user = await LoadUserAsync(connection, contactLookup, contactType, cancellationToken).ConfigureAwait(false);
+            await using var connection = await _connections
+                .OpenForTenantAsync(tenant, cancellationToken)
+                .ConfigureAwait(false);
+
+            _log.LogInformation(
+                "Login attempt host={Host} siteKey={SiteKey} db={Database} surface={Surface} contactType={ContactType}",
+                host,
+                tenant?.SiteKey,
+                tenant?.DatabaseName ?? "(registry-default)",
+                request.Surface,
+                contactType);
+
+            var user = await LoadUserAsync(connection, contactLookup, contactType, cancellationToken)
+                .ConfigureAwait(false);
+            // Retry raw contact if HtmlEncode form differed (rare for emails; keeps PHP parity).
+            if (user is null && !string.Equals(contactLookup, contactRaw, StringComparison.Ordinal))
+            {
+                user = await LoadUserAsync(connection, contactRaw, contactType, cancellationToken)
+                    .ConfigureAwait(false);
+            }
+
             if (user is null)
             {
+                var probe = await ProbeUserAsync(connection, contactLookup, contactType, cancellationToken)
+                    .ConfigureAwait(false);
+                if (probe is null && !string.Equals(contactLookup, contactRaw, StringComparison.Ordinal))
+                {
+                    probe = await ProbeUserAsync(connection, contactRaw, contactType, cancellationToken)
+                        .ConfigureAwait(false);
+                }
+
+                if (probe is not null)
+                {
+                    if (!probe.Confirmed)
+                    {
+                        return LegacyLoginOutcome.Failed(
+                            contactType == "phone"
+                                ? "Phone is not confirmed on this account."
+                                : "Email is not confirmed on this account.",
+                            "email_unconfirmed");
+                    }
+
+                    if (!probe.Unlocked)
+                    {
+                        return LegacyLoginOutcome.Failed("This account is locked.", "account_locked");
+                    }
+                }
+
+                _log.LogWarning(
+                    "Login user not found host={Host} db={Database} siteKey={SiteKey} (wrong tenant host? taxofinca email on epartscart?)",
+                    host,
+                    tenant?.DatabaseName,
+                    tenant?.SiteKey);
                 return LegacyLoginOutcome.Failed("Incorrect login or password.", "invalid_credentials");
             }
 
             if (!LegacyPasswordVerifier.Verify(password, user.PasswordHash, _options.SecretSuccession))
             {
+                _log.LogWarning(
+                    "Login password mismatch host={Host} db={Database} userId={UserId} hashKind={HashKind}",
+                    host,
+                    tenant?.DatabaseName,
+                    user.UserId,
+                    LegacyPasswordVerifier.IsLegacyMd5(user.PasswordHash) ? "md5" : "modern");
                 return LegacyLoginOutcome.Failed("Incorrect login or password.", "invalid_credentials");
             }
 
@@ -113,8 +200,9 @@ public sealed class DbLegacyAdminLoginService : ILegacyAdminLoginService
                 adminSession,
                 RedirectFor(request.Surface)));
         }
-        catch (Exception)
+        catch (Exception ex)
         {
+            _log.LogError(ex, "Login backend error host={Host} db={Database}", host, tenant?.DatabaseName);
             return LegacyLoginOutcome.Failed(
                 "Login backend error. Check TenantRegistry DB connection and sessions table.",
                 "login_backend_error");
@@ -157,6 +245,29 @@ public sealed class DbLegacyAdminLoginService : ILegacyAdminLoginService
             Convert.ToString(reader["email"], CultureInfo.InvariantCulture) ?? string.Empty);
     }
 
+    private static async Task<UserProbe?> ProbeUserAsync(
+        DbConnection connection,
+        string contact,
+        string contactType,
+        CancellationToken cancellationToken)
+    {
+        await using var command = connection.CreateCommand();
+        command.CommandText = contactType == "phone"
+            ? LegacyAdminLoginSql.SelectUserProbeByPhone
+            : LegacyAdminLoginSql.SelectUserProbeByEmail;
+        AddParameter(command, "@contact", contact);
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+        if (!await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+        {
+            return null;
+        }
+
+        var confirmedCol = contactType == "phone" ? "phone_confirmed" : "email_confirmed";
+        var confirmed = Convert.ToInt32(reader[confirmedCol], CultureInfo.InvariantCulture) == 1;
+        var unlocked = Convert.ToInt32(reader["unlocked"], CultureInfo.InvariantCulture) == 1;
+        return new UserProbe(confirmed, unlocked);
+    }
+
     private static void AddParameter(DbCommand command, string name, object value)
     {
         var parameter = command.CreateParameter();
@@ -166,6 +277,7 @@ public sealed class DbLegacyAdminLoginService : ILegacyAdminLoginService
     }
 
     private sealed record UserRow(int UserId, string PasswordHash, string Email);
+    private sealed record UserProbe(bool Confirmed, bool Unlocked);
 }
 
 /// <summary>No-op login when DB/secret missing — forces PHP login fallback.</summary>

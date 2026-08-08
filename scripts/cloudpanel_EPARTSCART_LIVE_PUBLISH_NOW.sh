@@ -4,14 +4,16 @@
 # wrapper prints HOST/DATE loudly, refuses empty trees, and delegates to
 # cloudpanel_EPARTSCART_JOURNEY_NUCLEAR.sh (hard GATE_OK / RESULT=PASS).
 #
-# Paste as root:
-#   URL='https://raw.githubusercontent.com/epartscart/ecomae/main/scripts/cloudpanel_EPARTSCART_LIVE_PUBLISH_NOW.sh'
+# Paste as root (pre-merge of #972: use the PR branch URL + ECOMAE_BRANCH below;
+# after merge: URL .../main/... and ECOMAE_BRANCH=main):
+#   URL='https://raw.githubusercontent.com/epartscart/ecomae/cursor/cp-login-tenant-db-credentials-7b3b/scripts/cloudpanel_EPARTSCART_LIVE_PUBLISH_NOW.sh'
 #   TMP=/tmp/epartscart-live-publish-now.sh
 #   curl -fsSL "$URL" -o "$TMP"
 #   test -s "$TMP" || { echo RESULT=FAIL empty_download; exit 1; }
 #   grep -q LIVE_PUBLISH_NOW "$TMP" || { echo RESULT=FAIL bad_download; exit 1; }
+#   export ECOMAE_BRANCH=cursor/cp-login-tenant-db-credentials-7b3b ECOMAE_SKIP_LIFEOS_MP4=YES
 #   bash "$TMP" 2>&1 | tee /root/epartscart-live-publish-now.log
-#   grep -E 'RESULT=|PREFLIGHT|GATE_|ERROR|SHA=|HOST=' /root/epartscart-live-publish-now.log | tail -100
+#   grep -E 'RESULT=|PREFLIGHT|GATE_|ERROR|SHA=|HOST=|CP_LOGIN_DIAG' /root/epartscart-live-publish-now.log | tail -120
 set -euo pipefail
 
 ECOMAE_BRANCH="${ECOMAE_BRANCH:-main}"
@@ -49,7 +51,31 @@ chmod +x "$NUCLEAR" \
   "$REPO/scripts/cloudpanel_EPARTSCART_CUSTOMER_JOURNEY_RECOVER.sh" \
   "$REPO/scripts/cloudpanel_FORCE_LIVE_NOW.sh" \
   "$REPO/scripts/cloudpanel_restore_php_reference_serving.sh" \
-  "$REPO/scripts/cloudpanel_fix_epartscart_portal_tenant_db.sh" 2>/dev/null || true
+  "$REPO/scripts/cloudpanel_fix_epartscart_portal_tenant_db.sh" \
+  "$REPO/scripts/cloudpanel_diagnose_cp_login_user.sh" \
+  "$REPO/scripts/cloudpanel_sync_secret_succession_from_php.sh" \
+  "$REPO/scripts/cloudpanel_EPARTSCART_BIND_SHOP_DB_NOW.sh" 2>/dev/null || true
+
+# Bind shop DB before nuclear prove (prior acks left bunches unbound / CP tenant_db_unbound).
+printf '\n---- bind epartscart shop db_name (hardened) ----\n'
+set +e
+ECOMAE_CONFIRM_FIX_EPARTSCART_PORTAL_TENANT_DB=YES \
+ECOMAE_CONFIRM_RESTART_PLATFORM=YES \
+  bash "$REPO/scripts/cloudpanel_fix_epartscart_portal_tenant_db.sh" 2>&1 | tee /root/epartscart-portal-tenant-bind.log
+BIND_RC=${PIPESTATUS[0]}
+set -e
+printf 'portal_bind_exit=%s\n' "$BIND_RC"
+grep -E 'RESULT=|resolved_shop_db|discovered_' /root/epartscart-portal-tenant-bind.log | tail -20 || true
+[[ "$BIND_RC" -eq 0 ]] || die "portal tenant db bind failed — set ECOMAE_EPARTSCART_SHOP_DB if needed"
+
+# Keep MD5 login parity with PHP when secret is missing/stale (non-fatal if confirm flags unset).
+if [[ "${ECOMAE_CONFIRM_SYNC_SECRET_SUCCESSION:-YES}" == "YES" ]]; then
+  printf '\n---- sync SecretSuccession from PHP ----\n'
+  set +e
+  ECOMAE_CONFIRM_SYNC_SECRET_SUCCESSION=YES ECOMAE_CONFIRM_RESTART_PLATFORM=YES \
+    bash "$REPO/scripts/cloudpanel_sync_secret_succession_from_php.sh" 2>&1 | tee /root/epartscart-secret-sync.log | tail -40
+  set -e
+fi
 
 printf 'systemctl ecomae-platform: %s\n' "$(systemctl is-active ecomae-platform.service 2>/dev/null || echo unknown)"
 ss -lntp 2>/dev/null | grep -E ':5100\b' || printf 'WARN: nothing listening on :5100 before publish\n'
@@ -75,8 +101,17 @@ do
   printf 'RECHECK %s %s\n' "$code" "$u"
 done
 
+printf '\n---- CP login diagnose (taxofin2025@gmail.com @ www.epartscart.com) ----\n'
+set +e
+ECOMAE_DIAG_EMAIL="${ECOMAE_DIAG_EMAIL:-taxofin2025@gmail.com}" \
+ECOMAE_DIAG_HOST="${ECOMAE_DIAG_HOST:-www.epartscart.com}" \
+  bash "$REPO/scripts/cloudpanel_diagnose_cp_login_user.sh" 2>&1 | tee /root/epartscart-cp-login-diag.log | sed 's/^/CP_LOGIN_DIAG /'
+DIAG_RC=${PIPESTATUS[0]}
+set -e
+printf 'cp_login_diag_exit=%s\n' "$DIAG_RC"
+
 if [[ "$RC" -ne 0 ]]; then
   die "nuclear_exit=$RC — send /root/epartscart-live-publish-now.log (or journey-nuclear.log)"
 fi
-printf 'RESULT=PASS LIVE_PUBLISH_NOW SHA=%s\n' "$SHA"
+printf 'RESULT=PASS LIVE_PUBLISH_NOW SHA=%s cp_login_diag_exit=%s\n' "$SHA" "$DIAG_RC"
 exit 0

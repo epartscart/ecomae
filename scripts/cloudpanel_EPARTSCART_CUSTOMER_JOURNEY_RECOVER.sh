@@ -55,10 +55,15 @@ printf 'PREFLIGHT_OK register-app + tenant SQL present SHA=%s\n' "$SHA"
 printf '\n---- [1] Portal tenant db_name sync (www/apex epartscart) ----\n'
 set +e
 ECOMAE_CONFIRM_FIX_EPARTSCART_PORTAL_TENANT_DB=YES \
+ECOMAE_CONFIRM_RESTART_PLATFORM=YES \
   bash scripts/cloudpanel_fix_epartscart_portal_tenant_db.sh 2>&1 | tee /root/epartscart-journey-inner.log
 TENANT_RC=${PIPESTATUS[0]}
 set -e
 printf 'portal_tenant_fix exit=%s\n' "$TENANT_RC"
+if [[ "$TENANT_RC" -ne 0 ]] || ! grep -q 'RESULT=PASS' /root/epartscart-journey-inner.log; then
+  printf 'ERROR: portal tenant db_name bind failed — CP login will stay tenant_db_unbound\n' >&2
+  exit 1
+fi
 
 printf '\n---- [2] FORCE_LIVE_NOW (republish :5100) ----\n'
 set +e

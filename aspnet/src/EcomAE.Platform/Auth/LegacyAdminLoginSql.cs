@@ -2,10 +2,14 @@ namespace EcomAE.Platform.Auth;
 
 public static class LegacyAdminLoginSql
 {
+    /// <summary>
+    /// PHP twin uses exact match after htmlentities; also accept case-insensitive email
+    /// (MySQL CI collations usually already do this — LOWER keeps parity on binary collations).
+    /// </summary>
     public const string SelectUserByEmail = """
         SELECT `user_id`, `password`, IFNULL(`email`, '') AS email
         FROM `users`
-        WHERE `email` = @contact AND `email_confirmed` = 1 AND `unlocked` = 1
+        WHERE LOWER(`email`) = LOWER(@contact) AND `email_confirmed` = 1 AND `unlocked` = 1
         LIMIT 1
         """;
 
@@ -13,6 +17,27 @@ public static class LegacyAdminLoginSql
         SELECT `user_id`, `password`, IFNULL(`email`, '') AS email
         FROM `users`
         WHERE `phone` = @contact AND `phone_confirmed` = 1 AND `unlocked` = 1
+        LIMIT 1
+        """;
+
+    /// <summary>Diagnostic probe (flags only) when confirmed/unlocked lookup misses.</summary>
+    public const string SelectUserProbeByEmail = """
+        SELECT `user_id`,
+               IFNULL(`email_confirmed`, 0) AS email_confirmed,
+               IFNULL(`unlocked`, 0) AS unlocked,
+               IFNULL(`email`, '') AS email
+        FROM `users`
+        WHERE LOWER(`email`) = LOWER(@contact)
+        LIMIT 1
+        """;
+
+    public const string SelectUserProbeByPhone = """
+        SELECT `user_id`,
+               IFNULL(`phone_confirmed`, 0) AS phone_confirmed,
+               IFNULL(`unlocked`, 0) AS unlocked,
+               IFNULL(`email`, '') AS email
+        FROM `users`
+        WHERE `phone` = @contact
         LIMIT 1
         """;
 
