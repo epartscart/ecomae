@@ -2,27 +2,29 @@
 
 Paste on the **production CloudPanel server** as root. Deploys latest `main` (includes human `RELEASE_OWNER_APPROVAL.md` + exact-route ASP.NET primary execute operator). Keeps PHP as **reference**; does not broad-cut `/api|/cp|/erp|/bos|/storefront`.
 
-## 0🔥) EPARTSCART JOURNEY — #967 MERGED BUT LIVE STILL 404 (do immediately)
+## 0🔥) EPARTSCART LIVE PUBLISH — STILL 404 AFTER ACKS (do immediately)
 
-**Symptom (2026-08-08):** `#967` is on `main`, but `https://www.epartscart.com/storefront/register-app` is **404**, chrome still links `/en/users/registration`, `search-bunches` says shop DB unbound, `/php-reference/*` is **Archive paused**. `/storefront/own-catalog-app` is 200 — Kestrel is up; the **journey binary was never published**.
+**Symptom (2026-08-08):** `#967` is on `main`; publish pack also stacks `#969` (Google/autofill) + `#970` (guest prices). Live still: `/storefront/register-app` **404**, shop DB unbound, `/php-reference/*` **Archive paused**, `/cp/login` still autofills. `/storefront/own-catalog-app` 200 — Kestrel up, **binary never republished**.
 
-**Do not mark complete** unless the log contains `RESULT=PASS` and the `GATE_OK` lines. Prior “completed” acks did not republish.
+**Do not mark complete** unless the log contains `RESULT=PASS`. Paste the `grep` lines back. Prior “completed” acks did not republish.
 
-**Paste as root — wait for `RESULT=PASS`:**
+**Paste as root — download-guarded (cannot silently no-op):**
 
 ```bash
-cd /opt/ecomae-aspnet-source 2>/dev/null || cd /root/ecomae || echo REPO_NOT_FOUND
-git fetch origin cursor/epartscart-journey-live-publish-7b3b
-git checkout -f cursor/epartscart-journey-live-publish-7b3b
-git reset --hard origin/cursor/epartscart-journey-live-publish-7b3b
+set -euxo pipefail
+URL='https://raw.githubusercontent.com/epartscart/ecomae/cursor/epartscart-journey-live-publish-7b3b/scripts/cloudpanel_EPARTSCART_LIVE_PUBLISH_NOW.sh'
+TMP=/tmp/epartscart-live-publish-now.sh
+curl -fsSL "$URL" -o "$TMP"
+wc -c "$TMP"
+grep -q LIVE_PUBLISH_NOW "$TMP" || { echo RESULT=FAIL bad_download; exit 1; }
 export ECOMAE_BRANCH=cursor/epartscart-journey-live-publish-7b3b ECOMAE_SKIP_LIFEOS_MP4=YES
-bash scripts/cloudpanel_EPARTSCART_JOURNEY_NUCLEAR.sh 2>&1 | tee /root/epartscart-journey-nuclear.log
-grep -E 'RESULT=|PREFLIGHT|GATE_|local_5100|ERROR|SHA=' /root/epartscart-journey-nuclear.log | tail -80
+bash "$TMP" 2>&1 | tee /root/epartscart-live-publish-now.log
+grep -E 'RESULT=|PREFLIGHT|GATE_|RECHECK|ERROR|SHA=|HOST=' /root/epartscart-live-publish-now.log | tail -100
 ```
 
-**PASS criteria:** `RESULT=PASS`; public `/storefront/register-app` and `/en/users/registration` show “Create your account”; `/en/users/login` shows “Customer login”; bunches not “Tenant shop database is not bound”; php-reference registration not “Archive paused”.
+**PASS criteria:** `RESULT=PASS`; register-app 200; bunches not unbound; php-reference not Archive paused; `/cp/login` shows Continue with Google.
 
-If anything else prints, send `/root/epartscart-journey-nuclear.log`.
+If `RESULT=FAIL`, send `/root/epartscart-live-publish-now.log`.
 
 ## 0☠) ALL SITES 502 / epartscart stuck on “Loading — Please wait”
 

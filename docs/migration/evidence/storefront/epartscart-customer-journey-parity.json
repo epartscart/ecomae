@@ -1,48 +1,43 @@
 {
   "title": "ePartsCart customer journey parity (new customer → order)",
   "date": "2026-08-08",
-  "status": "still-stale-after-third-operator-ack-2026-08-08T09:32Z",
+  "status": "still-stale-after-fourth-operator-ack-2026-08-08T09:35Z",
   "pr_967": {
     "state": "MERGED",
     "mergedAt": "2026-08-08T09:13:39Z",
-    "mergeCommit": "e3ebd313",
-    "note": "Journey code is on main; CloudPanel never republished :5100 after merge."
+    "note": "Journey on main; :5100 never republished."
   },
-  "stacked_on_publish_branch": {
+  "publish_pack": {
+    "pr": 968,
     "branch": "cursor/epartscart-journey-live-publish-7b3b",
-    "includes": ["#967 journey (main)", "#969 autofill+Google", "#970 guest price visibility"],
-    "script": "scripts/cloudpanel_EPARTSCART_JOURNEY_NUCLEAR.sh"
+    "includes": ["#967 journey", "#969 autofill+Google", "#970 guest price visibility"],
+    "entrypoint": "scripts/cloudpanel_EPARTSCART_LIVE_PUBLISH_NOW.sh",
+    "nuclear": "scripts/cloudpanel_EPARTSCART_JOURNEY_NUCLEAR.sh"
   },
   "post_operator_ack_probe": {
-    "at": "2026-08-08T09:32Z",
-    "register_app": "404 — stale Kestrel binary",
-    "en_users_login_registration": "404",
-    "chrome_register_href": "still /en/users/registration",
+    "at": "2026-08-08T09:35Z",
+    "register_app": "404",
+    "en_users": "404",
+    "chrome_register": "/en/users/registration",
     "search_bunches": "Tenant shop database is not bound",
     "php_reference": "503 Archive paused",
-    "cp_login": "still autocomplete=username/current-password (no Google CTA) — #969 not live",
-    "own_catalog_app": "200 — /storefront/* reaches Kestrel; new routes missing from binary",
-    "operator_acks": "completed acks without RESULT=PASS — treat as not run / wrong paste"
+    "cp_login": "autocomplete=username/current-password (no Google)",
+    "own_catalog_app": "200",
+    "note": "Acks without RESULT=PASS are not publishes — use download-guarded LIVE_PUBLISH_NOW"
   },
-  "pass_criteria": [
-    "log contains RESULT=PASS",
-    "GATE_OK register-app + /en/users/* + Continue with Google on /cp/login",
-    "search-bunches not unbound",
-    "php-reference registration not Archive paused",
-    "search-app shows data-prices-visible=0 or price gate for guests"
-  ],
   "cloudpanel_paste": [
-    "cd /opt/ecomae-aspnet-source 2>/dev/null || cd /root/ecomae",
-    "git fetch origin cursor/epartscart-journey-live-publish-7b3b",
-    "git checkout -f cursor/epartscart-journey-live-publish-7b3b",
-    "git reset --hard origin/cursor/epartscart-journey-live-publish-7b3b",
+    "set -euxo pipefail",
+    "URL='https://raw.githubusercontent.com/epartscart/ecomae/cursor/epartscart-journey-live-publish-7b3b/scripts/cloudpanel_EPARTSCART_LIVE_PUBLISH_NOW.sh'",
+    "TMP=/tmp/epartscart-live-publish-now.sh",
+    "curl -fsSL \"$URL\" -o \"$TMP\"",
+    "wc -c \"$TMP\"",
+    "grep -q LIVE_PUBLISH_NOW \"$TMP\" || { echo RESULT=FAIL bad_download; exit 1; }",
     "export ECOMAE_BRANCH=cursor/epartscart-journey-live-publish-7b3b ECOMAE_SKIP_LIFEOS_MP4=YES",
-    "bash scripts/cloudpanel_EPARTSCART_JOURNEY_NUCLEAR.sh 2>&1 | tee /root/epartscart-journey-nuclear.log",
-    "grep -E 'RESULT=|PREFLIGHT|GATE_|local_5100|ERROR|SHA=' /root/epartscart-journey-nuclear.log | tail -80"
+    "bash \"$TMP\" 2>&1 | tee /root/epartscart-live-publish-now.log",
+    "grep -E 'RESULT=|PREFLIGHT|GATE_|RECHECK|ERROR|SHA=|HOST=' /root/epartscart-live-publish-now.log | tail -100"
   ],
   "locks": {
     "cutoverAllowed": false,
-    "readyForPhpRemoval": false,
-    "writes": "PHP-authoritative via /php-reference/* after restore"
+    "readyForPhpRemoval": false
   }
 }

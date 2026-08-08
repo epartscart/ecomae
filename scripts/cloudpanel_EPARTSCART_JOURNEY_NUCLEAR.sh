@@ -42,7 +42,11 @@ printf 'REPO=%s SHA=%s FULL=%s\n' "$REPO" "$SHA" "$FULL"
   || die "StorefrontRegisterApp.razor missing — wrong tree"
 grep -q "IFNULL(TRIM(\`db_name\`), '') <> ''" aspnet/src/EcomAE.Platform/Data/PortalTenantSql.cs \
   || die "PortalTenantSql shop-db preference missing — wrong tree"
-printf 'PREFLIGHT_OK SHA=%s\n' "$SHA"
+[[ -f aspnet/src/EcomAE.Platform/Components/Shared/PhpOAuthLoginButtons.razor ]] \
+  || die "PhpOAuthLoginButtons.razor missing — merge #969 not on tree"
+[[ -f aspnet/src/EcomAE.Platform/Storefront/StorefrontPriceAccess.cs ]] \
+  || die "StorefrontPriceAccess.cs missing — merge #970 not on tree"
+printf 'PREFLIGHT_OK SHA=%s (journey+autofill+price)\n' "$SHA"
 
 chmod +x scripts/cloudpanel_EPARTSCART_CUSTOMER_JOURNEY_RECOVER.sh \
   scripts/cloudpanel_FORCE_LIVE_NOW.sh \
