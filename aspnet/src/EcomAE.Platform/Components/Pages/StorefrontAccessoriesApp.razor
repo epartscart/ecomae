@@ -1,0 +1,167 @@
+@page "/storefront/accessories-app"
+@layout Layout.PhpChromeLayout
+@using EcomAE.Platform.Presentation
+
+<PageTitle>Accessories & spare parts · eParts Cart</PageTitle>
+<PhpChromeStyles Surface="storefront" />
+<HeadContent>
+    <link rel="stylesheet" href="/platform-assets/epc_accessories.css?v=20260808acc" />
+</HeadContent>
+
+<StorefrontAnalytics Enabled="true" IncludeClarity="true" />
+
+<PhpStorefrontDesktopChrome>
+    <section class="epc-acc" id="epc-accessories"
+             data-api="/content/shop/docpart/ajax_epc_accessories_search.php"
+             data-lang="/en"
+             data-base="/storefront/accessories-app">
+
+        <div class="epc-acc__hero">
+            <div class="container">
+                <div class="epc-acc__brand">eParts<span>Cart</span></div>
+                <h1>Car spare parts and accessories</h1>
+                <p>Browse categories and filters. Listings are added into each category over time.</p>
+                <div class="epc-acc__hero-cta">
+                    <form class="epc-acc__search" id="epc-acc-search-form" role="search">
+                        <label class="sr-only" for="epc-acc-q">Search accessories</label>
+                        <input id="epc-acc-q" name="q" type="search" placeholder="Search accessories and spare parts" maxlength="80" />
+                        <button type="submit"><i class="fa fa-search" aria-hidden="true"></i> Search</button>
+                    </form>
+                    <button type="button" class="epc-acc__btn epc-acc__btn--ghost" id="epc-acc-notify-open">Notify Me</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="epc-acc__vehicle" id="epc-acc-vehicle">
+                <div class="epc-acc__vehicle-head">
+                    <strong>Select Vehicle</strong>
+                    <span>Filter ads by make and model</span>
+                </div>
+                <div class="epc-acc__vehicle-row">
+                    <label>
+                        <span>Make</span>
+                        <select id="epc-acc-vehicle-make" aria-label="Vehicle make">
+                            <option value="">Any make</option>
+                        </select>
+                    </label>
+                    <label>
+                        <span>Model</span>
+                        <input type="text" id="epc-acc-vehicle-model" placeholder="e.g. Corolla, Civic" />
+                    </label>
+                    <label>
+                        <span>Year</span>
+                        <input type="text" id="epc-acc-vehicle-year" placeholder="e.g. 2018" maxlength="4" />
+                    </label>
+                    <button type="button" class="epc-acc__btn" id="epc-acc-vehicle-apply">Apply</button>
+                    <button type="button" class="epc-acc__btn epc-acc__btn-muted" id="epc-acc-vehicle-clear">Clear</button>
+                </div>
+                <div class="epc-acc__saved-bar" id="epc-acc-saved-bar" hidden>
+                    Saved ads: <strong id="epc-acc-saved-count">0</strong>
+                    <button type="button" id="epc-acc-show-saved">Show saved</button>
+                </div>
+            </div>
+
+            <div class="epc-acc__layout">
+                <aside class="epc-acc__side" aria-label="Filters">
+                    <div class="epc-acc__facet">
+                        <h3>Category</h3>
+                        <ul class="epc-acc__facet-list" id="epc-acc-cats"></ul>
+                    </div>
+                    <div class="epc-acc__facet">
+                        <h3>Sub category</h3>
+                        <ul class="epc-acc__facet-list" id="epc-acc-subs"></ul>
+                    </div>
+                    <div class="epc-acc__facet">
+                        <h3>Make</h3>
+                        <ul class="epc-acc__facet-list" id="epc-acc-makes"></ul>
+                    </div>
+                    <div class="epc-acc__facet">
+                        <h3>Model</h3>
+                        <input type="text" id="epc-acc-model" class="epc-acc-input" placeholder="e.g. Corolla, Civic" />
+                    </div>
+                    <div class="epc-acc__facet">
+                        <h3>City</h3>
+                        <ul class="epc-acc__facet-list" id="epc-acc-cities"></ul>
+                    </div>
+                    <div class="epc-acc__facet">
+                        <h3>Condition</h3>
+                        <ul class="epc-acc__facet-list" id="epc-acc-condition"></ul>
+                    </div>
+                    <div class="epc-acc__facet">
+                        <h3>Price range</h3>
+                        <div class="epc-acc__price-row">
+                            <input type="number" id="epc-acc-price-min" min="0" step="1" placeholder="Min" />
+                            <input type="number" id="epc-acc-price-max" min="0" step="1" placeholder="Max" />
+                        </div>
+                        <button type="button" class="epc-acc__btn" id="epc-acc-apply-price">Apply filters</button>
+                        <button type="button" class="epc-acc__btn epc-acc__btn-muted" id="epc-acc-reset">Reset</button>
+                    </div>
+                </aside>
+
+                <div class="epc-acc__main">
+                    <div id="epc-acc-detail" class="epc-acc__detail" hidden aria-live="polite"></div>
+                    <div class="epc-acc__toolbar" id="epc-acc-toolbar">
+                        <div class="epc-acc__count" id="epc-acc-count">Loading…</div>
+                        <div class="epc-acc__tools">
+                            <label>
+                                <span class="sr-only">Sort by</span>
+                                <select id="epc-acc-sort" aria-label="Sort by">
+                                    <option value="updated-desc">Updated Date: Recent First</option>
+                                    <option value="updated-asc">Updated Date: Oldest First</option>
+                                    <option value="price-asc">Price: Low to High</option>
+                                    <option value="price-desc">Price: High to Low</option>
+                                    <option value="top-sales">Top Sales</option>
+                                </select>
+                            </label>
+                            <div class="epc-acc__view-toggle" role="group" aria-label="View mode">
+                                <button type="button" id="epc-acc-view-list" title="List">LIST</button>
+                                <button type="button" id="epc-acc-view-grid" class="is-active" title="Grid">GRID</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="epc-acc-results" class="epc-acc__grid" aria-live="polite"></div>
+                    <div class="epc-acc__pager" id="epc-acc-pager"></div>
+                </div>
+            </div>
+
+            <div class="epc-acc__browse">
+                <div class="epc-acc__browse-block">
+                    <h2>View spare parts and accessories by category</h2>
+                    <div class="epc-acc__chips" id="epc-acc-browse-cats"></div>
+                </div>
+                <div class="epc-acc__browse-block">
+                    <h2>View by sub category</h2>
+                    <div class="epc-acc__chips" id="epc-acc-browse-subs"></div>
+                </div>
+                <div class="epc-acc__browse-block">
+                    <h2>View spare parts and accessories by make</h2>
+                    <div class="epc-acc__chips" id="epc-acc-browse-makes"></div>
+                </div>
+                <div class="epc-acc__browse-block">
+                    <h2>View spare parts and accessories by city</h2>
+                    <div class="epc-acc__chips" id="epc-acc-browse-cities"></div>
+                </div>
+            </div>
+        </div>
+
+        <dialog class="epc-acc__dialog" id="epc-acc-notify-dialog">
+            <form method="dialog" class="epc-acc__dialog-inner" id="epc-acc-notify-form">
+                <h3>Notify Me</h3>
+                <p>Get an alert when new ads match your current filters.</p>
+                <label>
+                    <span>Email</span>
+                    <input type="email" id="epc-acc-notify-email" required placeholder="you@example.com" />
+                </label>
+                <div class="epc-acc__dialog-actions">
+                    <button type="submit" class="epc-acc__btn" value="ok">Save alert</button>
+                    <button type="submit" class="epc-acc__btn epc-acc__btn-muted" value="cancel">Cancel</button>
+                </div>
+                <p class="epc-acc__dialog-note" id="epc-acc-notify-note" hidden></p>
+            </form>
+        </dialog>
+    </section>
+</PhpStorefrontDesktopChrome>
+
+@* Marketplace JS (PHP twin). MarkupString so Blazor SSR does not strip the tag. *@
+@((MarkupString)"""<script src="/platform-assets/epc_accessories_marketplace.js?v=20260808acc"></script>""")

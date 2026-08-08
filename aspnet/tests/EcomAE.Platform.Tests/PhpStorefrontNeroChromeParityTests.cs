@@ -142,6 +142,9 @@ public sealed class PhpStorefrontNeroChromeParityTests
         // Top nav: Original catalog / Demand intelligence are top-level (PHP nero), not under Selection catalogs.
         Assert.Contains("StorefrontSurfaceLinks.OriginalCatalog", text, StringComparison.Ordinal);
         Assert.Contains("StorefrontSurfaceLinks.DemandIntelligence", text, StringComparison.Ordinal);
+        // Product → Accessories must stay a dedicated marketplace (not Product Family hash).
+        Assert.Contains("StorefrontSurfaceLinks.Accessories", text, StringComparison.Ordinal);
+        Assert.Equal("/storefront/accessories-app", StorefrontAspNetCanonical.Accessories);
     }
 
     [Fact]

@@ -104,6 +104,7 @@ public static class StorefrontPhpCanonical
             "/available-brands" => AvailableBrands + query,
             "/parts" => PartsInStock + query,
             "/accessories-spare-parts" => Accessories + query,
+            "/accessories" => Accessories + query,
             "/eparts-cata" => EpartsCata + query,
             "/eparts-mod" => EpartsMod + query,
             "/partsapi-catalog" => PartsApiCatalog + query,

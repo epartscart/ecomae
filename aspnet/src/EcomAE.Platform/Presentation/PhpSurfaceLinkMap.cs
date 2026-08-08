@@ -659,6 +659,7 @@ public static class PhpSurfaceLinkMap
             || path.Equals("/available-brands", StringComparison.OrdinalIgnoreCase)
             || path.Equals("/parts", StringComparison.OrdinalIgnoreCase)
             || path.Equals("/accessories-spare-parts", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/accessories", StringComparison.OrdinalIgnoreCase)
             || path.Equals("/eparts-cata", StringComparison.OrdinalIgnoreCase)
             || path.Equals("/eparts-mod", StringComparison.OrdinalIgnoreCase)
             || path.Equals("/partsapi-catalog", StringComparison.OrdinalIgnoreCase)
