@@ -1,0 +1,81 @@
+/* Storefront Google Translate top bar (PHP google_translate_top.php twin). */
+.epc-google-translate-top {
+	position: relative;
+	z-index: 10000;
+	background: #ffffff;
+	border-bottom: 1px solid #e5e5e5;
+	padding: 6px 12px;
+	text-align: right;
+	min-height: 42px;
+}
+.epc-google-translate-top__inner {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	max-width: 100%;
+}
+.epc-google-translate-top__label {
+	color: #444;
+	font-size: 13px;
+	line-height: 1;
+	white-space: nowrap;
+}
+.epc-google-translate-top__status {
+	color: #667085;
+	font-size: 12px;
+	line-height: 1.2;
+	max-width: 320px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+.epc-native-translate-select {
+	appearance: none;
+	-webkit-appearance: none;
+	background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='7' viewBox='0 0 11 7'%3E%3Cpath fill='%23555' d='M5.5 7 0 0h11z'/%3E%3C/svg%3E") no-repeat right 10px center;
+	border: 1px solid #d7d7d7;
+	border-radius: 4px;
+	color: #333;
+	cursor: pointer;
+	font-size: 13px;
+	height: 32px;
+	line-height: 32px;
+	max-width: 240px;
+	min-width: 185px;
+	padding: 0 32px 0 10px;
+	display: inline-block;
+}
+.epc-native-translate-select:focus {
+	border-color: #5b9dd9;
+	box-shadow: 0 0 0 2px rgba(91, 157, 217, 0.18);
+	outline: none;
+}
+#google_translate_element {
+	height: 0;
+	left: -9999px;
+	overflow: hidden;
+	position: absolute;
+	top: -9999px;
+	width: 0;
+}
+#google_translate_element .goog-te-gadget {
+	color: transparent;
+	font-size: 0;
+	line-height: 1;
+}
+#google_translate_element .goog-te-gadget span { display: none; }
+body { top: 0 !important; }
+.goog-te-banner-frame, .skiptranslate.goog-te-banner-frame {
+	display: none !important;
+	height: 0 !important;
+}
+@media (max-width: 767px) {
+	.epc-google-translate-top {
+		text-align: center;
+		padding-left: 6px;
+		padding-right: 6px;
+	}
+	.epc-google-translate-top__inner { justify-content: center; }
+	.epc-google-translate-top__label,
+	.epc-google-translate-top__status { display: none; }
+}

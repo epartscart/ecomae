@@ -131,6 +131,33 @@ public static class PhpLegacyAssetBridge
             return Results.NotFound();
         });
 
+        // Google Translate (country-IP site language) — PHP twins for all chrome areas.
+        // Live PHP serving is paused; /platform-assets must reach Kestrel on every vhost.
+        foreach (var (url, relative) in new (string Url, string Relative)[]
+                 {
+                     ("/platform-assets/epc_google_translate_storefront.css",
+                         "content/general_pages/epc_google_translate_storefront.css"),
+                     ("/platform-assets/epc_google_translate_storefront.js",
+                         "content/general_pages/epc_google_translate_storefront.js"),
+                     ("/platform-assets/epc_google_translate_cp.css",
+                         "content/general_pages/epc_google_translate_cp.css"),
+                     ("/platform-assets/epc_google_translate_cp.js",
+                         "content/general_pages/epc_google_translate_cp.js"),
+                 })
+        {
+            var localRelative = relative;
+            endpoints.MapGet(url, () =>
+            {
+                var path = Path.GetFullPath(Path.Combine(repoRoot, localRelative));
+                if (!path.StartsWith(repoRoot, StringComparison.Ordinal) || !File.Exists(path))
+                {
+                    return Results.NotFound();
+                }
+
+                return Results.File(path, ContentTypeFor(path));
+            });
+        }
+
         // www.ecomae.com marketing hub — same /platform-assets pattern as login accents.
         // Live classic-entry proxies / → /marketing/app; CSS must not depend on PHP HTTP.
         foreach (var (url, relative) in new (string Url, string Relative)[]

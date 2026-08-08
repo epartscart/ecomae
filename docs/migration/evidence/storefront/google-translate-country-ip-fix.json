@@ -1,0 +1,45 @@
+{
+  "title": "Google Translate country-IP site language protocol (all chrome areas)",
+  "date": "2026-08-08",
+  "status": "implemented-awaiting-force-live",
+  "php_reference": {
+    "storefront": "content/general_pages/google_translate_top.php",
+    "cp_erp": "content/general_pages/epc_cp_translate.php",
+    "storefront_include": "templates/nero/desktop.php (above header)",
+    "cp_include": "cp/templates/bootstrap_admin/desktop.php → epc_cp_translate_render('cp')",
+    "erp_include": "cp/templates/bootstrap_admin/erp_desktop.php → epc_cp_translate_render('erp')"
+  },
+  "protocol": {
+    "manual": "localStorage epcTranslateManualLanguage + googtrans=/en/{lang} cookie",
+    "cms_locale": "Active CMS langs (en/ar/…) navigate via lang cookie + /{lang}/ URL (storefront)",
+    "auto_country": "CF-IPCountry header hint → ipapi.co/json → ipwho.is fallback → country→lang map → browser/Accept-Language",
+    "tenant_default": "CP/ERP: portal cp_default_lang before geo detect",
+    "google_widget": "Hidden #google_translate_element(+_cp); native <select> drives goog-te-combo"
+  },
+  "aspnet_implementation": {
+    "storefront_component": "aspnet/src/EcomAE.Platform/Components/Shared/PhpGoogleTranslateTop.razor",
+    "compact_component": "aspnet/src/EcomAE.Platform/Components/Shared/PhpCpTranslate.razor",
+    "assets": [
+      "/platform-assets/epc_google_translate_storefront.css",
+      "/platform-assets/epc_google_translate_storefront.js",
+      "/platform-assets/epc_google_translate_cp.css",
+      "/platform-assets/epc_google_translate_cp.js"
+    ],
+    "wired_surfaces": [
+      "PhpStorefrontDesktopChrome (replaces dead .epc-lang-toggle EN stub)",
+      "PhpCpDesktopChrome",
+      "PhpErpDesktopChrome",
+      "PhpBosDesktopChrome",
+      "PhpEcomaeMarketingChrome",
+      "LifeOsSiteChrome"
+    ],
+    "bridge": "PhpLegacyAssetBridge MapGet /platform-assets/epc_google_translate_*"
+  },
+  "tests": [
+    "aspnet/tests/EcomAE.Platform.Tests/GoogleTranslateChromeParityTests.cs"
+  ],
+  "live_notes": [
+    "Merge alone does not republish :5100 — FORCE_LIVE / CloudPanel root SSH required for live prove.",
+    "cutoverAllowed=false; readyForPhpRemoval=false; PHP remains reference under /php-reference/*."
+  ]
+}

@@ -1,0 +1,44 @@
+/* CP/ERP Google Translate (PHP epc_cp_translate.php twin). */
+.epc-cp-translate { position: relative; z-index: 10001; }
+	.epc-cp-translate--cp { display: inline-flex; align-items: center; margin: 0 6px 0 0; }
+	.epc-cp-translate--cp .epc-cp-translate__select {
+		appearance: none;
+		-webkit-appearance: none;
+		background: rgba(255,255,255,0.95) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='7' viewBox='0 0 11 7'%3E%3Cpath fill='%23555' d='M5.5 7 0 0h11z'/%3E%3C/svg%3E") no-repeat right 8px center;
+		border: 1px solid #d7d7d7;
+		border-radius: 4px;
+		color: #333;
+		cursor: pointer;
+		font-size: 12px;
+		height: 30px;
+		line-height: 28px;
+		max-width: 150px;
+		min-width: 110px;
+		padding: 0 26px 0 8px;
+	}
+	.epc-cp-translate--erp { display: inline-flex; align-items: center; margin-right: 10px; }
+	.epc-cp-translate--erp .epc-cp-translate__select {
+		appearance: none;
+		-webkit-appearance: none;
+		background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='7' viewBox='0 0 11 7'%3E%3Cpath fill='%23555' d='M5.5 7 0 0h11z'/%3E%3C/svg%3E") no-repeat right 8px center;
+		border: 1px solid #cbd5e1;
+		border-radius: 4px;
+		color: #334155;
+		cursor: pointer;
+		font-size: 12px;
+		height: 28px;
+		line-height: 26px;
+		max-width: 160px;
+		min-width: 120px;
+		padding: 0 26px 0 8px;
+	}
+	.epc-cp-translate__select:focus { border-color: #5b9dd9; outline: none; }
+	.epc-cp-translate #google_translate_element_cp {
+		height: 0; left: -9999px; overflow: hidden; position: absolute; top: -9999px; width: 0;
+	}
+	body.epc-cp-shell, body.epc-erp-cp-shell { top: 0 !important; position: relative !important; }
+	.goog-te-banner-frame, .skiptranslate.goog-te-banner-frame { display: none !important; height: 0 !important; }
+
+.epc-cp-translate .sr-only, .epc-cp-translate-nav .sr-only {
+	position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0;
+}
