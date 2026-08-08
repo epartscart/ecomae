@@ -1,0 +1,52 @@
+{
+  "title": "All-sites Cloudflare 502 / warmup splash — Kestrel :5100 down",
+  "date": "2026-08-08T08:44:00Z",
+  "status": "still-down-after-operator-ack-2026-08-08T08:46Z",
+  "post_operator_ack_probe": {
+    "note": "Operator marked CloudPanel paste complete, but public probes still BAD. Likely paste did not finish, curl-raw empty-ran, or ecomae-platform failed to start. Re-run git-based paste; require RESULT=PASS lines.",
+    "cp.ecomae.com": "502",
+    "www.ecomae.com": "connect fail",
+    "lifeos/erp/bos/ip/platform": "502",
+    "www.epartscart.com": "200 warmup splash"
+  },
+  "diagnosis": {
+    "root_cause": "Shared origin Kestrel ecomae-platform (:5100) is down. nginx/Cloudflare proxy to dead upstream → 502; epartscart nginx falls through to static warmup splash (Loading — Please wait).",
+    "not_caused_by": "PR merge alone does not republish :5100. Feature PRs (#963 Own Catalog, #965 Google Translate, etc.) cannot restore live without FORCE_LIVE."
+  },
+  "public_probe_2026_08_08": {
+    "cp.ecomae.com": "502 Cloudflare",
+    "erp.ecomae.com": "502 Cloudflare",
+    "bos.ecomae.com": "502 Cloudflare",
+    "ip.ecomae.com": "502 Cloudflare",
+    "lifeos.ecomae.com": "502 Cloudflare",
+    "platform.ecomae.com": "502 Cloudflare",
+    "www.ecomae.com": "connect fail / 502",
+    "www.epartscart.com/": "200 warmup splash (Loading — Please wait) — not ASP.NET chrome",
+    "www.epartscart.com/storefront/app": "200 warmup splash"
+  },
+  "recover": {
+    "script": "scripts/cloudpanel_FORCE_LIVE_502_ALL_RECOVER.sh",
+    "also": [
+      "scripts/cloudpanel_FORCE_LIVE_ALL_SITES.sh",
+      "scripts/cloudpanel_FORCE_LIVE_NOW.sh",
+      "scripts/cloudpanel_fix_warmup_splash_storefront_loop.sh"
+    ],
+    "cloudpanel_root_paste": [
+      "ECOMAE_BRANCH=cursor/all-sites-502-recover-7b3b ECOMAE_SKIP_LIFEOS_MP4=YES \\",
+      "  bash -c \"$(curl -fsSL https://raw.githubusercontent.com/epartscart/ecomae/cursor/all-sites-502-recover-7b3b/scripts/cloudpanel_FORCE_LIVE_502_ALL_RECOVER.sh)\" \\",
+      "  2>&1 | tee /root/force-live-502-all-recover.log",
+      "grep -E 'RESULT=|ERROR|FAIL|local_5100' /root/force-live-502-all-recover.log | tail -40"
+    ]
+  },
+  "pass_criteria": [
+    "cp.ecomae.com / www.ecomae.com / lifeos / erp / bos not HTTP 502",
+    "www.epartscart.com/ is ASP.NET storefront (epc-nero / ecomae-chrome-surface), not Loading — Please wait",
+    "local curl http://127.0.0.1:5100/storefront/app → 200",
+    "systemctl is-active ecomae-platform"
+  ],
+  "locks": {
+    "cutoverAllowed": false,
+    "readyForPhpRemoval": false,
+    "writes": "PHP-authoritative"
+  }
+}
