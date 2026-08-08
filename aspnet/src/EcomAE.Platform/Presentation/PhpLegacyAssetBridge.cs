@@ -145,6 +145,11 @@ public static class PhpLegacyAssetBridge
                          "content/general_pages/epc_ecomae_home_3d.js"),
                      ("/platform-assets/epc_ecomae_marketing_lifeos_film.css",
                          "content/general_pages/epc_ecomae_marketing_lifeos_film.css"),
+                     // ePartsCart accessories marketplace (storefront top-menu Product → Accessories).
+                     ("/platform-assets/epc_accessories.css",
+                         "content/general_pages/epc_accessories.css"),
+                     ("/platform-assets/epc_accessories_marketplace.js",
+                         "content/general_pages/epc_accessories_marketplace.js"),
                  })
         {
             var localRelative = relative;

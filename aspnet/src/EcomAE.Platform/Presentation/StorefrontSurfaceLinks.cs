@@ -68,7 +68,59 @@ public static class StorefrontSurfaceLinks
     }
 
     public static string ForCatalogBrowse(string phpPath)
-        => PreferAspNetApps ? StorefrontAspNetCanonical.ProductFamily : StorefrontPhpCanonical.ForCatalogBrowse(phpPath);
+    {
+        if (!PreferAspNetApps)
+        {
+            return StorefrontPhpCanonical.ForCatalogBrowse(phpPath);
+        }
+
+        // PreferAspNet must not collapse every catalog page onto Product Family —
+        // Accessories is a dedicated marketplace (PHP /en/accessories-spare-parts).
+        var path = (phpPath ?? string.Empty).Trim();
+        var qIndex = path.IndexOf('?', StringComparison.Ordinal);
+        var bare = (qIndex < 0 ? path : path[..qIndex]).TrimEnd('/');
+        var query = qIndex < 0 ? "" : path[qIndex..];
+        bare = StripLangPrefix(bare);
+
+        return bare.ToLowerInvariant() switch
+        {
+            "/accessories-spare-parts" or "/accessories" => StorefrontAspNetCanonical.Accessories + query,
+            "/available-brands" => StorefrontAspNetCanonical.AvailableBrands,
+            "/parts" => StorefrontAspNetCanonical.PartsInStock,
+            "/eparts-cata" => StorefrontAspNetCanonical.EpartsCata,
+            "/eparts-mod" => StorefrontAspNetCanonical.EpartsMod,
+            "/partsapi-catalog" => StorefrontAspNetCanonical.PartsApiCatalog,
+            "/levam-oem" => StorefrontAspNetCanonical.LevamOem,
+            "/umapi_catalog" => StorefrontAspNetCanonical.UmapiCatalog,
+            "/original-catalog" => StorefrontAspNetCanonical.OriginalCatalog,
+            "/demand-intelligence" => StorefrontAspNetCanonical.DemandIntelligence,
+            "/zapros-prodavczu" => StorefrontAspNetCanonical.SellerRequest,
+            "/product-family" => StorefrontAspNetCanonical.ProductFamily,
+            _ when bare.Contains("katalogi-ucats", StringComparison.OrdinalIgnoreCase)
+                => StorefrontAspNetCanonical.UcatsService,
+            _ when bare.Contains("bulk-upload", StringComparison.OrdinalIgnoreCase)
+                => StorefrontAspNetCanonical.BulkUpload,
+            _ => StorefrontAspNetCanonical.ProductFamily,
+        };
+    }
+
+    private static string StripLangPrefix(string path)
+    {
+        foreach (var lang in new[] { "/en", "/me", "/ru" })
+        {
+            if (path.Equals(lang, StringComparison.OrdinalIgnoreCase))
+            {
+                return "/";
+            }
+
+            if (path.StartsWith(lang + "/", StringComparison.OrdinalIgnoreCase))
+            {
+                return path[lang.Length..];
+            }
+        }
+
+        return path.Length == 0 ? "/" : path;
+    }
 
     public static string ForWarehouseSearch(string? originalWithQuery = null)
         => PreferAspNetApps
