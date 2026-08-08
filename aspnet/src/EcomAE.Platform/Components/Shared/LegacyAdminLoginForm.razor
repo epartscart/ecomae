@@ -20,13 +20,27 @@
         </div>
     }
 
+    <PhpOAuthLoginButtons Context="@OAuthContext"
+                          ReturnUrl="@RedirectPath"
+                          Heading="Sign in faster — no password autofill"
+                          ShowDividerBelow="true"
+                          Tone="default" />
+    <LoginAntiAutofill />
+
     @* Post to the same surface login URL (already nginx-proxied). Middleware handles the POST. *@
-    <form method="post" action="@LoginPostHref" class="epc-login-html-form" aria-disabled="@(!LoginService.IsConfigured)">
+    <form method="post" action="@LoginPostHref" class="epc-login-html-form"
+          autocomplete="off" data-lpignore="true" data-1p-ignore="true" data-form-type="other"
+          aria-disabled="@(!LoginService.IsConfigured)">
         <input type="hidden" name="surface" value="@SurfaceKey" />
         <input type="hidden" name="redirect" value="@RedirectPath" />
+        @* Decoy fields absorb browser autofill so real credentials stay blank. *@
+        <div aria-hidden="true" style="position:absolute;left:-10000px;top:auto;width:1px;height:1px;overflow:hidden;">
+            <input type="text" name="epc_autofill_decoy_user" tabindex="-1" autocomplete="username" value="" />
+            <input type="password" name="epc_autofill_decoy_pass" tabindex="-1" autocomplete="current-password" value="" />
+        </div>
         <div class="epc-login-field">
             <label for="auth_contact_select_@SurfaceKey">Log in by</label>
-            <select id="auth_contact_select_@SurfaceKey" name="contact_type" disabled="@(!LoginService.IsConfigured)">
+            <select id="auth_contact_select_@SurfaceKey" name="contact_type" disabled="@(!LoginService.IsConfigured)" autocomplete="off">
                 <option value="email">E-mail</option>
                 <option value="phone">Phone</option>
             </select>
@@ -34,13 +48,18 @@
         <div class="epc-login-field">
             <label for="auth_contact_@SurfaceKey">E-mail</label>
             <input id="auth_contact_@SurfaceKey" class="form-control" name="contact" type="text"
-                   placeholder="Enter your E-mail" autocomplete="username"
+                   placeholder="Enter your E-mail" autocomplete="off"
+                   autocapitalize="none" autocorrect="off" spellcheck="false"
+                   data-lpignore="true" data-1p-ignore="true" data-bwignore="true"
+                   data-epc-anti-autofill="1" readonly="readonly"
                    disabled="@(!LoginService.IsConfigured)" required="@LoginService.IsConfigured" />
         </div>
         <div class="epc-login-field">
             <label for="password_@SurfaceKey">Password</label>
             <input id="password_@SurfaceKey" class="form-control" name="password" type="password"
-                   placeholder="Enter password" autocomplete="current-password"
+                   placeholder="Enter password" autocomplete="new-password"
+                   data-lpignore="true" data-1p-ignore="true" data-bwignore="true"
+                   data-epc-anti-autofill="1" readonly="readonly"
                    disabled="@(!LoginService.IsConfigured)" required="@LoginService.IsConfigured" />
         </div>
         <div class="epc-login-field epc-login-row">
@@ -80,6 +99,8 @@
         LegacyLoginSurface.Storefront => "storefront",
         _ => "cp"
     };
+
+    private string OAuthContext => Surface == LegacyLoginSurface.Storefront ? "storefront" : "cp";
 
     private string LoginPostHref => Surface switch
     {

@@ -50,17 +50,32 @@
           <p>Enter the Intelligence Platform OS desktop</p>
         </div>
       </header>
-      <form method="post" action="@EcomAeRoutes.IpLogin" id="ipLoginForm">
+      <PhpOAuthLoginButtons Context="cp" ReturnUrl="/ip/app" Tone="dark"
+                            Heading="Continue with Google — credentials stay private" />
+      <LoginAntiAutofill />
+      <form method="post" action="@EcomAeRoutes.IpLogin" id="ipLoginForm"
+            autocomplete="off" data-lpignore="true" data-1p-ignore="true" data-form-type="other">
         <input type="hidden" name="surface" value="ip" />
         <input type="hidden" name="redirect" value="/ip/app" />
         <input type="hidden" name="contact_type" value="email" />
+        <div aria-hidden="true" style="position:absolute;left:-10000px;top:auto;width:1px;height:1px;overflow:hidden;">
+          <input type="text" name="epc_autofill_decoy_user" tabindex="-1" autocomplete="username" value="" />
+          <input type="password" name="epc_autofill_decoy_pass" tabindex="-1" autocomplete="current-password" value="" />
+        </div>
         <label>
           <span>Email</span>
-          <input type="email" name="contact" required autocomplete="username" placeholder="operator@ecomae.com" />
+          <input type="email" name="contact" required autocomplete="off"
+                 autocapitalize="none" spellcheck="false"
+                 data-lpignore="true" data-1p-ignore="true" data-bwignore="true"
+                 data-epc-anti-autofill="1" readonly="readonly"
+                 placeholder="operator@ecomae.com" />
         </label>
         <label>
           <span>Password</span>
-          <input type="password" name="password" required autocomplete="current-password" placeholder="Secure password" />
+          <input type="password" name="password" required autocomplete="new-password"
+                 data-lpignore="true" data-1p-ignore="true" data-bwignore="true"
+                 data-epc-anti-autofill="1" readonly="readonly"
+                 placeholder="Secure password" />
         </label>
         @if (!string.IsNullOrEmpty(_error))
         {

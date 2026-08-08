@@ -39,11 +39,13 @@
     <form class="lores-form" method="get" action="@EcomAeRoutes.LifeOsResults" id="lores-form">
       <label>
         <span>Client id</span>
-        <input id="lores-client" name="clientId" value="@ClientId" autocomplete="username" required />
+        <input id="lores-client" name="clientId" value="@ClientId" autocomplete="off"
+               data-lpignore="true" data-1p-ignore="true" required />
       </label>
       <label>
         <span>Join token</span>
-        <input id="lores-token" name="token" value="@Token" autocomplete="current-password" required />
+        <input id="lores-token" name="token" value="@Token" autocomplete="off"
+               data-lpignore="true" data-1p-ignore="true" required />
       </label>
       <label>
         <span>From (UTC date)</span>

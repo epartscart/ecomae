@@ -134,18 +134,34 @@
                     <h2>@_content.FormTitle</h2>
                     <p>@_content.FormLead</p>
                 </div>
-                <form class="bos-login__form" id="cpLoginForm" method="post" action="@EcomAeRoutes.ControlPanelLogin">
+                <PhpOAuthLoginButtons Context="cp" ReturnUrl="/cp" Tone="dark"
+                                      Heading="Continue with Google — credentials stay private"
+                                      TenantKey="@_brand.SiteKey" />
+                <LoginAntiAutofill />
+                <form class="bos-login__form" id="cpLoginForm" method="post" action="@EcomAeRoutes.ControlPanelLogin"
+                      autocomplete="off" data-lpignore="true" data-1p-ignore="true" data-form-type="other">
                     <input type="hidden" name="surface" value="cp" />
                     <input type="hidden" name="redirect" value="/cp" />
                     <input type="hidden" name="contact_type" value="email" />
+                    <div aria-hidden="true" style="position:absolute;left:-10000px;top:auto;width:1px;height:1px;overflow:hidden;">
+                        <input type="text" name="epc_autofill_decoy_user" tabindex="-1" autocomplete="username" value="" />
+                        <input type="password" name="epc_autofill_decoy_pass" tabindex="-1" autocomplete="current-password" value="" />
+                    </div>
                     <div class="bos-login__field">
                         <label for="cpEmail"><i class="fa fa-envelope-o"></i> Email</label>
-                        <input type="email" id="cpEmail" name="contact" required autocomplete="username" placeholder="operator@example.com" />
+                        <input type="email" id="cpEmail" name="contact" required autocomplete="off"
+                               autocapitalize="none" spellcheck="false"
+                               data-lpignore="true" data-1p-ignore="true" data-bwignore="true"
+                               data-epc-anti-autofill="1" readonly="readonly"
+                               placeholder="operator@example.com" />
                         <div class="bos-login__field-line"></div>
                     </div>
                     <div class="bos-login__field">
                         <label for="cpPassword"><i class="fa fa-lock"></i> Password</label>
-                        <input type="password" id="cpPassword" name="password" required autocomplete="current-password" placeholder="Enter secure password" />
+                        <input type="password" id="cpPassword" name="password" required autocomplete="new-password"
+                               data-lpignore="true" data-1p-ignore="true" data-bwignore="true"
+                               data-epc-anti-autofill="1" readonly="readonly"
+                               placeholder="Enter secure password" />
                         <div class="bos-login__field-line"></div>
                     </div>
                     @if (!string.IsNullOrEmpty(_error))

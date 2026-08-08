@@ -1,0 +1,100 @@
+/* ASP.NET twin styles for PhpOAuthLoginButtons (PHP: epc_oauth_buttons.php). */
+.epc-social {
+  margin: 0 0 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.epc-social-heading {
+  font-size: 13px;
+  color: #6b7280;
+  text-align: center;
+  margin: 0 0 2px;
+}
+.epc-social-divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  color: #9ca3af;
+  font-size: 12px;
+  margin: 4px 0;
+  gap: 12px;
+}
+.epc-social-divider::before,
+.epc-social-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: #e5e7eb;
+}
+.epc-social-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  padding: 11px 14px;
+  border: 1px solid #dadce0;
+  border-radius: 10px;
+  background: #fff;
+  color: #3c4043;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background .15s, box-shadow .15s, border-color .15s;
+  box-sizing: border-box;
+}
+.epc-social-btn:hover {
+  background: #f7f8fa;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, .08);
+  text-decoration: none;
+  color: #3c4043;
+}
+.epc-social-btn:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, .15);
+}
+.epc-social-btn svg {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 18px;
+  display: block;
+}
+.epc-social-extra {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.epc-social-btn--compact {
+  flex: 1 1 30%;
+  min-width: 5.5rem;
+  padding: 9px 10px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.epc-social--dark .epc-social-heading,
+.epc-social--dark .epc-social-divider {
+  color: #94a3b8;
+}
+.epc-social--dark .epc-social-divider::before,
+.epc-social--dark .epc-social-divider::after {
+  background: rgba(148, 163, 184, .35);
+}
+.epc-social--dark .epc-social-btn {
+  background: rgba(15, 23, 42, .55);
+  border-color: rgba(148, 163, 184, .35);
+  color: #e2e8f0;
+}
+.epc-social--dark .epc-social-btn:hover {
+  background: rgba(30, 41, 59, .85);
+  color: #f8fafc;
+}
+@media (max-width: 480px) {
+  .epc-social-btn {
+    font-size: 13px;
+    padding: 10px 12px;
+  }
+}

@@ -98,14 +98,28 @@ body.lifeos-body { margin:0; background:var(--lo-paper); color:var(--lo-ink); fo
           New here? <a href="@EcomAeRoutes.LifeOsJoin">Join LifeOS</a> — joining does not require login.
         </p>
       </section>
-      <form class="lo-login-box" method="post" action="@EcomAeRoutes.LifeOsLogin">
+      <PhpOAuthLoginButtons Context="cp" ReturnUrl="@LifeOsLoginRedirect"
+                            Heading="Continue with Google — credentials stay private" />
+      <LoginAntiAutofill />
+      <form class="lo-login-box" method="post" action="@EcomAeRoutes.LifeOsLogin"
+            autocomplete="off" data-lpignore="true" data-1p-ignore="true" data-form-type="other">
         <input type="hidden" name="surface" value="lifeos" />
         <input type="hidden" name="redirect" value="@LifeOsLoginRedirect" />
         <input type="hidden" name="contact_type" value="email" />
+        <div aria-hidden="true" style="position:absolute;left:-10000px;top:auto;width:1px;height:1px;overflow:hidden;">
+          <input type="text" name="epc_autofill_decoy_user" tabindex="-1" autocomplete="username" value="" />
+          <input type="password" name="epc_autofill_decoy_pass" tabindex="-1" autocomplete="current-password" value="" />
+        </div>
         <label for="loEmail">Email</label>
-        <input id="loEmail" type="email" name="contact" required autocomplete="username" placeholder="you@example.com" />
+        <input id="loEmail" type="email" name="contact" required autocomplete="off"
+               autocapitalize="none" spellcheck="false"
+               data-lpignore="true" data-1p-ignore="true" data-bwignore="true"
+               data-epc-anti-autofill="1" readonly="readonly"
+               placeholder="you@example.com" />
         <label for="loPassword">Password</label>
-        <input id="loPassword" type="password" name="password" required autocomplete="current-password" />
+        <input id="loPassword" type="password" name="password" required autocomplete="new-password"
+               data-lpignore="true" data-1p-ignore="true" data-bwignore="true"
+               data-epc-anti-autofill="1" readonly="readonly" />
         <button type="submit">Sign in</button>
       </form>
       <p style="margin-top:1rem;font-size:.9rem;color:#475569;">
