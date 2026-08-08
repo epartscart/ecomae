@@ -21,10 +21,10 @@ public sealed class LifeOsPersonalAuthGateMiddlewareTests
     [InlineData("/lifeos/companion", false)]
     [InlineData("/lifeos/companion/track", false)]
     [InlineData("/lifeos/companion/talk", false)]
-    // Operator / console surfaces still require login.
-    [InlineData("/lifeos/clients-board", true)]
-    [InlineData("/lifeos/clients/cp", true)]
-    [InlineData("/lifeos/directory", true)]
+    // Joined-clients board + JSON are public; console still requires login.
+    [InlineData("/lifeos/clients-board", false)]
+    [InlineData("/lifeos/clients/cp", false)]
+    [InlineData("/lifeos/directory", false)]
     [InlineData("/lifeos/app", true)]
     [InlineData("/lifeos/brain", true)]
     public void Personal_surfaces_require_login(string path, bool required)

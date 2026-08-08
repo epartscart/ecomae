@@ -61,16 +61,51 @@ public sealed class RouteTenantResolver : ITenantResolver
         var mode = registryRecord?.Mode
                    ?? (surface == TenantSurface.Erp ? TenantMode.ErpOnlyTenant : TenantMode.LiveTenant);
 
+        var siteKey = registryRecord?.SiteKey;
+        var databaseName = registryRecord?.DatabaseName;
+        var dbUser = registryRecord?.DbUser;
+        var dbPassword = registryRecord?.DbPassword;
+        var dedicated = registryRecord?.DedicatedDb ?? false;
+
+        // PHP portal parity (epc_portal_resolve_tenant_db_credentials): ePartsCart
+        // storefront/CP uses shared Model C `docpart` when portal db_name is empty.
+        // Without this, CP login returns tenant_db_unbound even though the shop DB exists.
+        if (string.IsNullOrWhiteSpace(databaseName) && IsEpartsCartHost(host, siteKey))
+        {
+            databaseName = "docpart";
+            siteKey ??= "epartscart";
+            // Do not invent db_user/password — TenantRegistry CS credentials open `docpart`.
+            mode = TenantMode.LiveTenant;
+        }
+
         return new TenantContext(
             host,
             path,
             surface,
             mode,
-            registryRecord?.SiteKey,
-            registryRecord?.DatabaseName,
-            registryRecord?.DbUser,
-            registryRecord?.DbPassword,
-            registryRecord?.DedicatedDb ?? false);
+            siteKey,
+            databaseName,
+            dbUser,
+            dbPassword,
+            dedicated);
+    }
+
+    /// <summary>True for epartscart.com / www.epartscart.com or site_key epartscart.</summary>
+    public static bool IsEpartsCartHost(string host, string? siteKey)
+    {
+        if (!string.IsNullOrWhiteSpace(siteKey)
+            && siteKey.StartsWith("epartscart", StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        var h = PlatformHostPolicy.NormalizeHost(host);
+        if (h.StartsWith("www.", StringComparison.Ordinal))
+        {
+            h = h[4..];
+        }
+
+        return string.Equals(h, "epartscart.com", StringComparison.OrdinalIgnoreCase);
     }
 
     private string? PlatformSeedDatabase()

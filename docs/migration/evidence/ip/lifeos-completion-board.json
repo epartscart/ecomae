@@ -1,0 +1,37 @@
+{
+  "id": "lifeos-completion-board",
+  "capturedAtUtc": "2026-08-08T20:15:00Z",
+  "title": "LifeOS completeness board (shell vs Master Spec vision)",
+  "scores": {
+    "productHostAndUxShellPercent": 75,
+    "masterSpecAiOsVisionPercent": 25,
+    "part6OpsChecklistDoneIshPercent": 35,
+    "partsBeyondScaffold": "0/10"
+  },
+  "liveProved": {
+    "host": "https://lifeos.ecomae.com/",
+    "home": "200 /lifeos",
+    "joinPublic": "200 /lifeos/join",
+    "clientsBoardPublic": "fixed-in-code (was 302→login)",
+    "specJsonParts": "part1…part10 present, all status=scaffold"
+  },
+  "completed": [
+    "Host redirect + premium home + redesign",
+    "Cinematic film + routine matrix + demo UI",
+    "Spec UI + /lifeos/spec/json",
+    "Join public / login separate",
+    "Mobile companion PWA UI",
+    "Clients board + directory JSON public (auth gate fix)",
+    "Join directory JSON file persistence (App_Data/lifeos-clients.json)"
+  ],
+  "pendingFor100PercentVision": [
+    "Durable PG/pgvector memory + real event bus",
+    "Live LLM / cognitive / multimodal runtime",
+    "Part 6: mTLS, DR, tracing, alerts, on-call",
+    "Native iOS/Android/desktop clients",
+    "Marketplace commerce + SDK/CLI + payments",
+    "MAU/DAU / GTM production metrics"
+  ],
+  "status": "partial-live",
+  "note": "UI/digest scaffold is live; production ambient AI OS remains scaffold (51 notClaimed across evidence)."
+}
