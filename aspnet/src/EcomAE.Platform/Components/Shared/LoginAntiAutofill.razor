@@ -1,0 +1,26 @@
+@namespace EcomAE.Platform.Components.Shared
+@*
+  Browser password managers must not autofill / leak credentials across
+  Super-CP, CP, ERP, IP, LifeOS, or storefront login screens.
+  readonly-until-focus + non-credential autocomplete tokens defeat Chrome/Safari/1Password.
+*@
+<script>
+(function () {
+  if (window.__epcLoginAntiAutofill) return;
+  window.__epcLoginAntiAutofill = true;
+  function unlock(el) {
+    if (!el || !el.hasAttribute('readonly')) return;
+    el.removeAttribute('readonly');
+  }
+  document.addEventListener('focusin', function (e) {
+    var t = e.target;
+    if (!t || !t.getAttribute) return;
+    if (t.getAttribute('data-epc-anti-autofill') === '1') unlock(t);
+  }, true);
+  document.addEventListener('pointerdown', function (e) {
+    var t = e.target;
+    if (!t || !t.getAttribute) return;
+    if (t.getAttribute('data-epc-anti-autofill') === '1') unlock(t);
+  }, true);
+})();
+</script>
