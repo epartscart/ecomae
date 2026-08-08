@@ -2,6 +2,29 @@
 
 Paste on the **production CloudPanel server** as root. Deploys latest `main` (includes human `RELEASE_OWNER_APPROVAL.md` + exact-route ASP.NET primary execute operator). Keeps PHP as **reference**; does not broad-cut `/api|/cp|/erp|/bos|/storefront`.
 
+## 0☠) ALL SITES 502 / epartscart stuck on “Loading — Please wait”
+
+**Symptom (2026-08-08):** `cp.ecomae.com`, `erp`, `bos`, `ip`, `lifeos`, `platform` → Cloudflare **502**; `www.epartscart.com/` and `/storefront/app` → static warmup splash (**Loading — Please wait**), not ASP.NET chrome.
+
+**Root cause:** shared origin Kestrel `ecomae-platform` **:5100 is down**. Merge alone cannot fix this.
+
+**Paste as root — wait for `RESULT=PASS`:**
+
+```bash
+cd /opt/ecomae-aspnet-source 2>/dev/null || cd /root/ecomae || echo REPO_NOT_FOUND
+git fetch origin cursor/all-sites-502-recover-7b3b
+git checkout -f cursor/all-sites-502-recover-7b3b
+git reset --hard origin/cursor/all-sites-502-recover-7b3b
+export ECOMAE_BRANCH=cursor/all-sites-502-recover-7b3b
+export ECOMAE_SKIP_LIFEOS_MP4=YES
+bash scripts/cloudpanel_FORCE_LIVE_502_ALL_RECOVER.sh 2>&1 | tee /root/force-live-502-all-recover.log
+grep -E 'RESULT=|ERROR|FAIL|local_5100|BAD ' /root/force-live-502-all-recover.log | tail -40
+```
+
+If `RESULT=FAIL`, send `/root/force-live-502-all-probe.txt` + `journalctl -u ecomae-platform -n 200 --no-pager`.
+
+**PASS:** Super-CP hosts not 502; epartscart home shows nero/ASP.NET chrome (not splash); `curl -sS -o /dev/null -w '%{http_code}\n' http://127.0.0.1:5100/storefront/app` → `200`.
+
 ## 0🆕) HOME STILL OLD AFTER #892 MERGE — binary was never republished
 
 **Symptom:** `#892` merged but `https://www.epartscart.com/` is unchanged even after hard refresh — no 4-banner grid, no "Didn't find the part you need?" card, no Family Product / Epart Catalog / Available Brands / Original Catalog sections; top menu links may be invisible (dark-on-dark).
