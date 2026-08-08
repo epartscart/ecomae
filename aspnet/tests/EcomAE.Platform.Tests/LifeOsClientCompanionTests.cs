@@ -27,6 +27,34 @@ public sealed class LifeOsClientCompanionTests
     }
 
     [Fact]
+    public void Anonymous_join_creates_token_client_without_owner()
+    {
+        using var sp = Build();
+        var dir = sp.GetRequiredService<ILifeOsClientDirectory>();
+        var result = dir.Join(new LifeOsJoinRequest(
+            DisplayName: "Layla",
+            Email: null,
+            Country: "United Arab Emirates",
+            CountryCode: "AE",
+            City: "Dubai",
+            TimeZone: "Asia/Dubai",
+            Locale: "en-AE",
+            Platform: "unit-test",
+            UserAgent: "anon-join-test",
+            Referrer: "/lifeos/join",
+            JoinSource: "web",
+            IpCountryHint: "AE",
+            UseTestClient: false,
+            OwnerUserId: null));
+        Assert.True(result.Ok);
+        Assert.Null(result.Client.OwnerUserId);
+        Assert.Equal("Layla", result.Client.CloneName);
+        Assert.StartsWith("/lifeos/mobile?clientId=", result.CompanionUrl);
+        Assert.Contains("token=", result.CompanionUrl, StringComparison.Ordinal);
+        Assert.DoesNotContain("signed-in account", result.Message, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
     public void Join_creates_client_with_same_name_clone_and_country()
     {
         using var sp = Build();
@@ -141,7 +169,8 @@ public sealed class LifeOsClientCompanionTests
         Assert.Contains("/lifeos/join", directoryJson, StringComparison.Ordinal);
         Assert.Contains("/lifeos/mobile", directoryJson, StringComparison.Ordinal);
         Assert.Contains("/lifeos/results", directoryJson, StringComparison.Ordinal);
-        Assert.Contains("\"loginRequired\":true", directoryJson, StringComparison.Ordinal);
+        Assert.Contains("\"joinPublic\":true", directoryJson, StringComparison.Ordinal);
+        Assert.Contains("\"loginRequired\":false", directoryJson, StringComparison.Ordinal);
         Assert.Contains("/lifeos/login", directoryJson, StringComparison.Ordinal);
         Assert.Contains("manifest.webmanifest", directoryJson, StringComparison.Ordinal);
         Assert.Contains("test-amina", directoryJson, StringComparison.Ordinal);

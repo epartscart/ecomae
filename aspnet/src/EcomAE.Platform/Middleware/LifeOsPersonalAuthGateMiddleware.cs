@@ -4,10 +4,10 @@ using EcomAE.Platform.Routing;
 namespace EcomAE.Platform.Middleware;
 
 /// <summary>
-/// Login wall for LifeOS personal surfaces (join, companion, results).
-/// Confidential daily-life tracking requires a platform session first;
-/// join then binds a personal client to that account.
-/// Marketing /home /spec /cinematic stay public.
+/// Login wall for LifeOS operator / account-bound console surfaces.
+/// Join is public for new users (creates a token-bound client).
+/// Login is a separate path for existing ecomae accounts.
+/// Companion/results stay token-gated in the app layer (clientId + joinToken).
 /// </summary>
 public sealed class LifeOsPersonalAuthGateMiddleware
 {
@@ -24,6 +24,12 @@ public sealed class LifeOsPersonalAuthGateMiddleware
     public async Task InvokeAsync(HttpContext context, ILegacySessionValidator sessions)
     {
         var path = context.Request.Path.Value ?? "/";
+        // Deploy prove marker — present only on builds with public join.
+        if (IsJoinPath(path))
+        {
+            context.Response.Headers["X-EcomAE-LifeOs-Join"] = "public";
+        }
+
         if (!RequiresPersonalLogin(path))
         {
             await _next(context);
@@ -53,8 +59,8 @@ public sealed class LifeOsPersonalAuthGateMiddleware
             context.Response.StatusCode = StatusCodes.Status401Unauthorized;
             context.Response.ContentType = "application/json; charset=utf-8";
             await context.Response.WriteAsync(
-                "{\"ok\":false,\"code\":\"lifeos_login_required\",\"message\":\"Sign in to LifeOS before joining or viewing personal results.\",\"login\":\""
-                + EcomAeRoutes.LifeOsLogin + "\"}");
+                "{\"ok\":false,\"code\":\"lifeos_login_required\",\"message\":\"Sign in to open the LifeOS console or operator directory.\",\"login\":\""
+                + EcomAeRoutes.LifeOsLogin + "\",\"join\":\"" + EcomAeRoutes.LifeOsJoin + "\"}");
             return;
         }
 
@@ -75,7 +81,6 @@ public sealed class LifeOsPersonalAuthGateMiddleware
             bare = "/";
         }
 
-        // Public LifeOS marketing + assets + login.
         if (IsPublicLifeOs(bare))
         {
             return false;
@@ -89,6 +94,15 @@ public sealed class LifeOsPersonalAuthGateMiddleware
         if (bare.Equals("/lifeos", StringComparison.OrdinalIgnoreCase)
             || bare.Equals(EcomAeRoutes.LifeOsLogin, StringComparison.OrdinalIgnoreCase)
             || bare.Equals(EcomAeRoutes.LifeOsLogout, StringComparison.OrdinalIgnoreCase)
+            // New users join without signing in first.
+            || bare.Equals(EcomAeRoutes.LifeOsJoin, StringComparison.OrdinalIgnoreCase)
+            || bare.Equals(EcomAeRoutes.LifeOsMobile, StringComparison.OrdinalIgnoreCase)
+            || bare.Equals(EcomAeRoutes.LifeOsResults, StringComparison.OrdinalIgnoreCase)
+            || bare.Equals(EcomAeRoutes.LifeOsResultsJson, StringComparison.OrdinalIgnoreCase)
+            || bare.Equals(EcomAeRoutes.LifeOsCompanion, StringComparison.OrdinalIgnoreCase)
+            || bare.Equals(EcomAeRoutes.LifeOsCompanionTrack, StringComparison.OrdinalIgnoreCase)
+            || bare.Equals(EcomAeRoutes.LifeOsCompanionTalk, StringComparison.OrdinalIgnoreCase)
+            || bare.Equals("/lifeos/companion/digest", StringComparison.OrdinalIgnoreCase)
             || bare.Equals(EcomAeRoutes.LifeOsSpec, StringComparison.OrdinalIgnoreCase)
             || bare.Equals(EcomAeRoutes.LifeOsSpecApp, StringComparison.OrdinalIgnoreCase)
             || bare.Equals(EcomAeRoutes.LifeOsSpecJson, StringComparison.OrdinalIgnoreCase)
@@ -107,17 +121,10 @@ public sealed class LifeOsPersonalAuthGateMiddleware
             || bare.Equals(LifeOs.Clients.LifeOsPwaAssets.ResultsScriptPath, StringComparison.OrdinalIgnoreCase)
             || bare.StartsWith("/lifeos/media/", StringComparison.OrdinalIgnoreCase)
             || bare.StartsWith("/lifeos/icons/", StringComparison.OrdinalIgnoreCase)
-            || bare.StartsWith("/lifeos/cinematic/", StringComparison.OrdinalIgnoreCase))
+            || bare.StartsWith("/lifeos/cinematic/", StringComparison.OrdinalIgnoreCase)
+            || bare.StartsWith("/lifeos/companion", StringComparison.OrdinalIgnoreCase))
         {
             return true;
-        }
-
-        // Operator digests / architecture consoles remain reachable for signed-in operators via
-        // their own pages; marketing digests under /lifeos/* that are not personal stay open.
-        if (bare.Equals(EcomAeRoutes.LifeOsDirectory, StringComparison.OrdinalIgnoreCase))
-        {
-            // Directory lists clients — treat as personal/operator, require login.
-            return false;
         }
 
         return false;
@@ -125,15 +132,8 @@ public sealed class LifeOsPersonalAuthGateMiddleware
 
     internal static bool IsPersonalLifeOs(string bare)
     {
-        if (bare.Equals(EcomAeRoutes.LifeOsJoin, StringComparison.OrdinalIgnoreCase)
-            || bare.Equals(EcomAeRoutes.LifeOsMobile, StringComparison.OrdinalIgnoreCase)
-            || bare.Equals(EcomAeRoutes.LifeOsResults, StringComparison.OrdinalIgnoreCase)
-            || bare.Equals(EcomAeRoutes.LifeOsResultsJson, StringComparison.OrdinalIgnoreCase)
-            || bare.Equals(EcomAeRoutes.LifeOsCompanion, StringComparison.OrdinalIgnoreCase)
-            || bare.Equals(EcomAeRoutes.LifeOsCompanionTrack, StringComparison.OrdinalIgnoreCase)
-            || bare.Equals(EcomAeRoutes.LifeOsCompanionTalk, StringComparison.OrdinalIgnoreCase)
-            || bare.Equals("/lifeos/companion/digest", StringComparison.OrdinalIgnoreCase)
-            || bare.Equals(EcomAeRoutes.LifeOsClientsBoard, StringComparison.OrdinalIgnoreCase)
+        // Account / operator surfaces — not new-user join.
+        if (bare.Equals(EcomAeRoutes.LifeOsClientsBoard, StringComparison.OrdinalIgnoreCase)
             || bare.Equals(EcomAeRoutes.LifeOsClientsCp, StringComparison.OrdinalIgnoreCase)
             || bare.Equals(EcomAeRoutes.LifeOsDirectory, StringComparison.OrdinalIgnoreCase)
             || bare.Equals(EcomAeRoutes.LifeOsApp, StringComparison.OrdinalIgnoreCase)
@@ -142,8 +142,18 @@ public sealed class LifeOsPersonalAuthGateMiddleware
             return true;
         }
 
-        // Any other /lifeos/* personal API-ish path (track/talk aliases).
-        return bare.StartsWith("/lifeos/companion", StringComparison.OrdinalIgnoreCase);
+        return false;
+    }
+
+    public static bool IsJoinPath(string path)
+    {
+        var bare = (path ?? "/").TrimEnd('/');
+        if (bare.Length == 0)
+        {
+            bare = "/";
+        }
+
+        return bare.Equals(EcomAeRoutes.LifeOsJoin, StringComparison.OrdinalIgnoreCase);
     }
 
     private static bool WantsJson(HttpContext context)
@@ -157,9 +167,6 @@ public sealed class LifeOsPersonalAuthGateMiddleware
 
         var path = context.Request.Path.Value ?? "";
         return path.EndsWith("/json", StringComparison.OrdinalIgnoreCase)
-            || path.Contains("/companion", StringComparison.OrdinalIgnoreCase)
-            || path.Equals(EcomAeRoutes.LifeOsJoin, StringComparison.OrdinalIgnoreCase)
-                && HttpMethods.IsPost(context.Request.Method)
             || path.Equals(EcomAeRoutes.LifeOsDirectory, StringComparison.OrdinalIgnoreCase)
             || path.Equals(EcomAeRoutes.LifeOsClientsCp, StringComparison.OrdinalIgnoreCase);
     }

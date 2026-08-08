@@ -371,8 +371,9 @@ public sealed class LifeOsModule : ISurfaceModule
         });
 
         // ── Client join + mobile companion (PWA track/talk/listen/guide) ───
-        // Login required (LifeOsPersonalAuthGateMiddleware). Blazor is SSR-only,
-        // so join/companion UIs call these APIs via fetch (not @onclick).
+        // Join is public for new users. Optional signed-in session binds OwnerUserId.
+        // Companion/results are token-gated in the directory (clientId + joinToken).
+        // Blazor is SSR-only, so join/companion UIs call these APIs via fetch.
         endpoints.MapGet(EcomAeRoutes.LifeOsDirectory, (ILifeOsClientDirectory dir) =>
             Results.Ok(dir.DirectoryDigest()));
 
@@ -386,12 +387,6 @@ public sealed class LifeOsModule : ISurfaceModule
             ILegacySessionValidator sessions) =>
         {
             var session = await sessions.ValidateAsync(http, http.RequestAborted).ConfigureAwait(false);
-            if (!session.IsAuthenticated)
-            {
-                return Results.Json(
-                    new { ok = false, code = "lifeos_login_required", login = EcomAeRoutes.LifeOsLogin },
-                    statusCode: StatusCodes.Status401Unauthorized);
-            }
 
             body ??= new LifeOsJoinRequest(
                 null, null, null, null, null, null, null, null, null, null, null, null, null, null);
@@ -406,8 +401,12 @@ public sealed class LifeOsModule : ISurfaceModule
 
             var enriched = body with
             {
-                OwnerUserId = session.UserId > 0 ? session.UserId : body.OwnerUserId,
-                Email = string.IsNullOrWhiteSpace(body.Email) ? session.Email : body.Email,
+                OwnerUserId = session.IsAuthenticated && session.UserId > 0
+                    ? session.UserId
+                    : body.OwnerUserId,
+                Email = string.IsNullOrWhiteSpace(body.Email) && session.IsAuthenticated
+                    ? session.Email
+                    : body.Email,
                 IpCountryHint = string.IsNullOrWhiteSpace(body.IpCountryHint) ? cfCountry : body.IpCountryHint,
                 UserAgent = string.IsNullOrWhiteSpace(body.UserAgent)
                     ? http.Request.Headers.UserAgent.ToString()
