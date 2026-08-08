@@ -1,0 +1,97 @@
+@namespace EcomAE.Platform.Components.Shared
+@using Microsoft.AspNetCore.Http
+@inject IHttpContextAccessor Http
+@*
+  PHP twin: content/general_pages/epc_cp_translate.php (epc_cp_translate_render).
+  Compact Google Translate for CP / ERP / BOS / marketing chrome.
+  Auto language: tenant default → CF-IPCountry / ipapi → Accept-Language / browser.
+*@
+
+<link rel="stylesheet" href="/platform-assets/epc_google_translate_cp.css?v=20260808a" />
+<div id="epc_cp_translate_root"
+     class="@RootClass"
+     translate="no"
+     data-tenant-default-lang="@_tenantDefault"
+     data-accept-language="@_acceptLang"
+     data-cf-country="@_cfCountry">
+	<label class="sr-only" for="epc_cp_native_translate_select">Language</label>
+	<select id="epc_cp_native_translate_select" class="epc-cp-translate__select notranslate" aria-label="Select language" translate="no">
+		<option value="en">English</option>
+		<option value="ar">العربية</option>
+		<option value="ru">Русский</option>
+		<option value="fr">Français</option>
+		<option value="de">Deutsch</option>
+		<option value="hi">हिन्दी</option>
+		<option value="ur">اردو</option>
+		<option value="es">Español</option>
+		<option value="pt">Português</option>
+		<option value="it">Italiano</option>
+		<option value="tr">Türkçe</option>
+		<option value="zh-CN">中文（简体）</option>
+		<option value="ja">日本語</option>
+		<option value="ko">한국어</option>
+		<option value="nl">Nederlands</option>
+		<option value="pl">Polski</option>
+		<option value="fa">فارسی</option>
+		<option value="bn">বাংলা</option>
+		<option value="ta">தமிழ்</option>
+		<option value="vi">Tiếng Việt</option>
+		<option value="id">Indonesia</option>
+		<option value="th">ไทย</option>
+		<option value="uk">Українська</option>
+		<option value="he">עברית</option>
+		<option value="sv">Svenska</option>
+		<option value="cs">Čeština</option>
+		<option value="ro">Română</option>
+	</select>
+	<div id="google_translate_element_cp"></div>
+</div>
+<script src="/platform-assets/epc_google_translate_cp.js?v=20260808a" defer></script>
+
+@code {
+    /// <summary>cp | erp | bos | marketing — visual shell; protocol matches PHP cp/erp.</summary>
+    [Parameter] public string Context { get; set; } = "cp";
+
+    /// <summary>Optional tenant default (portal cp_default_lang). Falls back to en.</summary>
+    [Parameter] public string TenantDefaultLang { get; set; } = "en";
+
+    private string _tenantDefault = "en";
+    private string _acceptLang = "";
+    private string _cfCountry = "";
+    private string RootClass =>
+        string.Equals(Context, "cp", StringComparison.OrdinalIgnoreCase)
+            ? "epc-cp-translate epc-cp-translate--cp notranslate"
+            : "epc-cp-translate epc-cp-translate--erp notranslate";
+
+    protected override void OnInitialized()
+    {
+        _tenantDefault = string.IsNullOrWhiteSpace(TenantDefaultLang)
+            ? "en"
+            : TenantDefaultLang.Trim().ToLowerInvariant();
+
+        var req = Http.HttpContext?.Request;
+        if (req is null)
+        {
+            return;
+        }
+
+        if (req.Headers.TryGetValue("Accept-Language", out var al))
+        {
+            var raw = al.ToString();
+            _acceptLang = System.Text.RegularExpressions.Regex.Replace(raw, @"[^\w,\-;=.\*]", "");
+            if (_acceptLang.Length > 120)
+            {
+                _acceptLang = _acceptLang[..120];
+            }
+        }
+
+        if (req.Headers.TryGetValue("CF-IPCountry", out var cfc))
+        {
+            var country = cfc.ToString().Trim().ToUpperInvariant();
+            if (country is not ("" or "XX" or "T1"))
+            {
+                _cfCountry = country;
+            }
+        }
+    }
+}

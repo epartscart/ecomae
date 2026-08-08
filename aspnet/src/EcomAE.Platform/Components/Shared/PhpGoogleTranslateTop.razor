@@ -1,0 +1,159 @@
+@namespace EcomAE.Platform.Components.Shared
+@using Microsoft.AspNetCore.Http
+@inject IHttpContextAccessor Http
+@*
+  PHP twin: content/general_pages/google_translate_top.php
+  Country-IP auto language (CF-IPCountry → ipapi.co → ipwho.is) + CMS locale navigate.
+*@
+
+<link rel="stylesheet" href="/platform-assets/epc_google_translate_storefront.css?v=20260808a" />
+<div id="epc_google_translate_root"
+     class="epc-google-translate-top notranslate"
+     translate="no"
+     data-cms-langs="@_cmsLangs"
+     data-cms-lang="@_cmsLang"
+     data-cf-country="@_cfCountry">
+	<div class="epc-google-translate-top__inner">
+		<span class="epc-google-translate-top__label">Language</span>
+		<span id="epc_translate_auto_status" class="epc-google-translate-top__status">Auto language: checking location...</span>
+		<select id="epc_native_translate_select" class="epc-native-translate-select notranslate" aria-label="Select language" translate="no">
+			<option value="af">Afrikaans</option>
+			<option value="sq">Shqip</option>
+			<option value="am">አማርኛ</option>
+			<option value="ar">العربية</option>
+			<option value="hy">Հայերեն</option>
+			<option value="az">Azərbaycanca</option>
+			<option value="eu">Euskara</option>
+			<option value="be">Беларуская</option>
+			<option value="bn">বাংলা</option>
+			<option value="bs">Bosanski</option>
+			<option value="bg">Български</option>
+			<option value="ca">Català</option>
+			<option value="ceb">Cebuano</option>
+			<option value="ny">Chichewa</option>
+			<option value="zh-CN">中文（简体）</option>
+			<option value="zh-TW">中文（繁體）</option>
+			<option value="co">Corsu</option>
+			<option value="hr">Hrvatski</option>
+			<option value="cs">Čeština</option>
+			<option value="da">Dansk</option>
+			<option value="nl">Nederlands</option>
+			<option value="en">English</option>
+			<option value="eo">Esperanto</option>
+			<option value="et">Eesti</option>
+			<option value="tl">Filipino</option>
+			<option value="fi">Suomi</option>
+			<option value="fr">Français</option>
+			<option value="fy">Frysk</option>
+			<option value="gl">Galego</option>
+			<option value="ka">ქართული</option>
+			<option value="de">Deutsch</option>
+			<option value="el">Ελληνικά</option>
+			<option value="gu">ગુજરાતી</option>
+			<option value="ht">Kreyòl Ayisyen</option>
+			<option value="ha">Hausa</option>
+			<option value="haw">ʻŌlelo Hawaiʻi</option>
+			<option value="iw">עברית</option>
+			<option value="hi">हिन्दी</option>
+			<option value="hmn">Hmoob</option>
+			<option value="hu">Magyar</option>
+			<option value="is">Íslenska</option>
+			<option value="ig">Igbo</option>
+			<option value="id">Indonesia</option>
+			<option value="ga">Gaeilge</option>
+			<option value="it">Italiano</option>
+			<option value="ja">日本語</option>
+			<option value="jw">Basa Jawa</option>
+			<option value="kn">ಕನ್ನಡ</option>
+			<option value="kk">Қазақша</option>
+			<option value="km">ខ្មែរ</option>
+			<option value="ko">한국어</option>
+			<option value="ku">Kurdî</option>
+			<option value="ky">Кыргызча</option>
+			<option value="lo">ລາວ</option>
+			<option value="la">Latina</option>
+			<option value="lv">Latviešu</option>
+			<option value="lt">Lietuvių</option>
+			<option value="lb">Lëtzebuergesch</option>
+			<option value="mk">Македонски</option>
+			<option value="mg">Malagasy</option>
+			<option value="ms">Melayu</option>
+			<option value="ml">മലയാളം</option>
+			<option value="mt">Malti</option>
+			<option value="mi">Māori</option>
+			<option value="mr">मराठी</option>
+			<option value="mn">Монгол</option>
+			<option value="my">မြန်မာ</option>
+			<option value="ne">नेपाली</option>
+			<option value="no">Norsk</option>
+			<option value="ps">پښتو</option>
+			<option value="fa">فارسی</option>
+			<option value="pl">Polski</option>
+			<option value="pt">Português</option>
+			<option value="pa">ਪੰਜਾਬੀ</option>
+			<option value="ro">Română</option>
+			<option value="ru">Русский</option>
+			<option value="sm">Gagana Samoa</option>
+			<option value="gd">Gàidhlig</option>
+			<option value="sr">Српски</option>
+			<option value="st">Sesotho</option>
+			<option value="sn">Shona</option>
+			<option value="sd">سنڌي</option>
+			<option value="si">සිංහල</option>
+			<option value="sk">Slovenčina</option>
+			<option value="sl">Slovenščina</option>
+			<option value="so">Soomaali</option>
+			<option value="es">Español</option>
+			<option value="su">Basa Sunda</option>
+			<option value="sw">Kiswahili</option>
+			<option value="sv">Svenska</option>
+			<option value="tg">Тоҷикӣ</option>
+			<option value="ta">தமிழ்</option>
+			<option value="te">తెలుగు</option>
+			<option value="th">ไทย</option>
+			<option value="tr">Türkçe</option>
+			<option value="uk">Українська</option>
+			<option value="ur">اردو</option>
+			<option value="uz">Oʻzbekcha</option>
+			<option value="vi">Tiếng Việt</option>
+			<option value="cy">Cymraeg</option>
+			<option value="xh">IsiXhosa</option>
+			<option value="yi">ייִדיש</option>
+			<option value="yo">Yorùbá</option>
+			<option value="zu">IsiZulu</option>
+		</select>
+		<div id="google_translate_element"></div>
+	</div>
+</div>
+<script src="/platform-assets/epc_google_translate_storefront.js?v=20260808a" defer></script>
+
+@code {
+    private string _cmsLangs = "en,ar";
+    private string _cmsLang = "en";
+    private string _cfCountry = "";
+
+    protected override void OnInitialized()
+    {
+        var req = Http.HttpContext?.Request;
+        if (req is null)
+        {
+            return;
+        }
+
+        var path = req.Path.Value ?? "/";
+        var m = System.Text.RegularExpressions.Regex.Match(path, "^/([a-z]{2})(?:/|$)", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+        if (m.Success)
+        {
+            _cmsLang = m.Groups[1].Value.ToLowerInvariant();
+        }
+
+        if (req.Headers.TryGetValue("CF-IPCountry", out var cfc))
+        {
+            var country = cfc.ToString().Trim().ToUpperInvariant();
+            if (country is not ("" or "XX" or "T1"))
+            {
+                _cfCountry = country;
+            }
+        }
+    }
+}

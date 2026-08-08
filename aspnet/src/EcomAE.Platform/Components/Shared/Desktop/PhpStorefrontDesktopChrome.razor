@@ -224,7 +224,6 @@
     .epc-auth-header-links a { text-decoration:none; font-weight:700; color:inherit !important; }
     .epc-auth-header-links a:hover { color:#fff !important; text-decoration:underline; }
     .epc-auth-header-links__vendor-register, .epc-auth-header-links__signup { color:#fda4af !important; }
-    .epc-lang-toggle { color:#fff !important; font-weight:700 !important; }
     .schearch-line .menu-box {
         display:flex !important; flex-wrap:nowrap; gap:8px; justify-content:flex-end; align-items:center;
     }
@@ -286,6 +285,8 @@
 </style>
 
 <div class="epc-nero-shell epc-php-font-root">
+    @* PHP templates/nero/desktop.php — google_translate_top.php above header *@
+    <PhpGoogleTranslateTop />
     <header class="hidden-xs epc-nero-header">
         <div class="top-menu-line">
             <div class="container">
@@ -358,9 +359,7 @@
                                     </span>
                                 </div>
                             }
-                            <div class="new-header-user-box">
-                                <a href="javascript:void(0)" class="epc-lang-toggle" title="Language">EN <i class="fa fa-chevron-down" aria-hidden="true"></i></a>
-                            </div>
+                            @* Language switcher lives in PhpGoogleTranslateTop (PHP google_translate_top.php). *@
                         </td>
                     </tr>
                 </table>
