@@ -25,6 +25,8 @@ public static class EcomAeRoutes
     public const string LiveSurfaceLinks = "/migration/live-surface-links";
     /// <summary>Named live tenants that must keep PHP presentation identical (no ASP.NET hybrid).</summary>
     public const string LiveTenantPresentationLock = "/migration/live-tenant-presentation-lock";
+    /// <summary>All site classes (Super CP, tenants, industry, LifeOS) ASP.NET-primary; PHP /php-reference/* only.</summary>
+    public const string AllSitesAspNetPrimary = "/migration/all-sites-aspnet-primary";
     /// <summary>Operator board: phases toward 100% ASP.NET Core / 0 PHP (honest; cutoverAllowed=false).</summary>
     public const string AspNetZeroPhpPath = "/migration/aspnet-zero-php-path";
     /// <summary>On-premises ERP product track board (installer ≠ ERP-only SaaS; cutoverAllowed=false).</summary>

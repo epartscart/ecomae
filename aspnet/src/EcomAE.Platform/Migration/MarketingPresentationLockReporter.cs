@@ -2,15 +2,15 @@ namespace EcomAE.Platform.Migration;
 
 /// <summary>
 /// Marketing presentation parity gate for www.ecomae.com.
-/// Target end-state: ASP.NET serves marketing (including animated epm-hub); PHP removed.
-/// Until dual-sample same-to-same, live / stays PHP — not a permanent ban.
+/// Product intent: ASP.NET serves marketing (including animated epm-hub); PHP under /php-reference only.
+/// cutoverAllowed stays false until dual-sample + RELEASE_OWNER_APPROVAL.
 /// </summary>
 public sealed class MarketingPresentationLockReporter : IMarketingPresentationLockReporter
 {
     public MarketingPresentationLockReport BuildReport()
     {
         return new MarketingPresentationLockReport(
-            Status: "parity-gate-php-primary-until-aspnet-same-to-same",
+            Status: "aspnet-primary-parity-gate-php-reference-kept",
             LiveHost: "www.ecomae.com",
             LiveHomeUrl: "https://www.ecomae.com/",
             AspNetPreviewRoute: "/marketing/app",
@@ -27,12 +27,13 @@ public sealed class MarketingPresentationLockReporter : IMarketingPresentationLo
             ],
             ForbiddenLiveMarkersUntilCutover:
             [
-                "blazor",
-                "ecomae-chrome-surface"
+                // Warmup splash / stuck classic-entry — not acceptable as product home.
+                "Loading — Please wait",
+                "x-ecomae-php-serving"
             ],
             AuthoritativePhpSourcesUntilCutover:
             [
-                "index.php → epc_render_ecomae_marketing_home_and_exit()",
+                "index.php → epc_render_ecomae_marketing_home_and_exit() (php-reference only)",
                 "content/general_pages/epc_ecomae_platform_router.php",
                 "content/general_pages/epc_ecomae_platform_layout.php (epc_ecomae_platform_hub)",
                 "content/general_pages/epc_ecomae_platform_marketing.css",
@@ -42,19 +43,19 @@ public sealed class MarketingPresentationLockReporter : IMarketingPresentationLo
             ],
             UnlockCriteria:
             [
-                "ASP.NET /marketing/app dual-sample matches live epm-hub + home sections pixel/structure.",
+                "Classic-entry proxies www / → ASP.NET /marketing/app with epm-hub markers live.",
                 "All marketing routes catalogued in EcomaeMarketingPages have ASP.NET or hybrid parity.",
-                "Exact-route promotion of / and marketing paths (never invent broad location / without approval).",
-                "Human RELEASE_OWNER_APPROVAL.md — never invent this file.",
+                "FORCE_LIVE_ALL_SITES / FORCE_LIVE_WWW_MARKETING republishes :5100 after merge.",
+                "Human RELEASE_OWNER_APPROVAL.md for PHP traffic/fallback removal — never invent this file.",
             ],
             MarketingPageFloor: Presentation.EcomaeMarketingPages.Count,
             Notes:
             [
-                "TARGET: 100% ASP.NET Core / 0 PHP for ecomae.com marketing.",
-                "Live / is PHP-primary only until ASP.NET same-to-same — parity gate, not destination.",
-                "ASP.NET /marketing/app now includes epm-hub + #ehm-home-sections (PhpEcomaeHomeSections) as the replacement scaffold.",
+                "TARGET: 100% ASP.NET Core / 0 PHP product for ecomae.com marketing (PHP reference kept).",
+                "Product stackToday=aspnet via classic-entry; PHP compare under /php-reference/home.",
+                "ASP.NET /marketing/app includes epm-hub + #ehm-home-sections (PhpEcomaeHomeSections).",
                 "cutoverAllowed=false until dual-sample + approval; never invent true.",
-                "Probe: bash scripts/cloudpanel_probe_ecomae_marketing_php_chrome.sh",
+                "Probe: bash scripts/cloudpanel_FORCE_LIVE_WWW_MARKETING.sh (or FORCE_LIVE_ALL_SITES).",
             ]);
     }
 }
