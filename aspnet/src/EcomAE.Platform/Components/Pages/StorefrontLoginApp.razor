@@ -1,4 +1,6 @@
 @page "/storefront/login"
+@page "/en/users/login"
+@page "/users/login"
 @layout Layout.PhpChromeLayout
 @using EcomAE.Platform.Auth
 @using EcomAE.Platform.Presentation
@@ -20,6 +22,8 @@
     .epc-login-sf .epc-login-error { background:#fef2f2; color:#991b1b; border:1px solid #fecaca; border-radius:.4rem; padding:.55rem .7rem; margin-bottom:.75rem; }
     .epc-login-sf .epc-login-bridge-note { color:#64748b; font-size:.78rem; line-height:1.4; margin:.85rem 0 .35rem; }
     .epc-login-sf .epc-login-shell { color:#dc2626; font-weight:700; }
+    .epc-login-sf .epc-login-register { margin-top:1rem; font-size:.9rem; }
+    .epc-login-sf .epc-login-register a { color:#dc2626; font-weight:700; }
 </style>
 </HeadContent>
 
@@ -31,6 +35,7 @@
                 <h1>Customer login</h1>
                 <p class="lead">Sign in to your parts account to view orders, garage, and saved carts.</p>
                 <LegacyAdminLoginForm Surface="LegacyLoginSurface.Storefront" SurfaceLabel="storefront" PhpLoginHref="/php-reference/home" ErrorMessage="@_error" SubmitLabel="Log in" Accent="red" />
+                <p class="epc-login-register">New customer? <a href="@StorefrontSurfaceLinks.Registration">Create an account</a></p>
             </div>
         </div>
     </PhpStorefrontDesktopChrome>

@@ -117,10 +117,14 @@ public sealed class TenantRegistryWwwAliasTests
     }
 
     [Fact]
-    public void PortalTenantSql_SelectActiveTenantByHosts_PrefersExactHost()
+    public void PortalTenantSql_SelectActiveTenantByHosts_PrefersShopDbThenExactHost()
     {
         Assert.Contains("`hostname` IN (@h0, @h1)", PortalTenantSql.SelectActiveTenantByHosts, StringComparison.Ordinal);
+        Assert.Contains("CASE WHEN IFNULL(TRIM(`db_name`), '') <> '' THEN 0 ELSE 1 END", PortalTenantSql.SelectActiveTenantByHosts, StringComparison.Ordinal);
         Assert.Contains("CASE WHEN `hostname` = @h0 THEN 0 ELSE 1 END", PortalTenantSql.SelectActiveTenantByHosts, StringComparison.Ordinal);
+        // erp_only_shared stubs without db_name must not outrank shop tenants.
+        Assert.Contains("`erp_only_shared` ASC", PortalTenantSql.SelectActiveTenantByHosts, StringComparison.Ordinal);
+        Assert.DoesNotContain("`erp_only_shared` DESC", PortalTenantSql.SelectActiveTenantByHosts, StringComparison.Ordinal);
     }
 
     [Fact]

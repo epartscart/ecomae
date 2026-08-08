@@ -38,7 +38,11 @@ public static class StorefrontSurfaceLinks
     public static string Checkout => PreferAspNetApps ? StorefrontAspNetCanonical.Checkout : StorefrontPhpCanonical.Checkout;
     public static string Orders => PreferAspNetApps ? StorefrontAspNetCanonical.Orders : StorefrontPhpCanonical.Orders;
     public static string Login => PreferAspNetApps ? StorefrontAspNetCanonical.Login : StorefrontPhpCanonical.Login;
+    public static string Registration => PreferAspNetApps ? StorefrontAspNetCanonical.Registration : StorefrontPhpCanonical.Registration;
     public static string GarageLogin => PreferAspNetApps ? StorefrontAspNetCanonical.GarageLogin : StorefrontPhpCanonical.GarageLogin;
+    public static string CheckoutHowGet => PreferAspNetApps ? StorefrontAspNetCanonical.CheckoutHowGet : StorefrontPhpCanonical.CheckoutHowGet;
+    public static string CheckoutConfirm => PreferAspNetApps ? StorefrontAspNetCanonical.CheckoutConfirm : StorefrontPhpCanonical.CheckoutConfirm;
+    public static string CheckoutLoginOffer => PreferAspNetApps ? StorefrontAspNetCanonical.CheckoutLoginOffer : StorefrontPhpCanonical.CheckoutLoginOffer;
     public static string Quotes => PreferAspNetApps ? StorefrontAspNetCanonical.Quotes : StorefrontPhpCanonical.Quotes;
     public static string Wishlist => PreferAspNetApps ? StorefrontAspNetCanonical.Wishlist : StorefrontPhpCanonical.Wishlist;
     public static string Compare => PreferAspNetApps ? StorefrontAspNetCanonical.Compare : StorefrontPhpCanonical.Compare;

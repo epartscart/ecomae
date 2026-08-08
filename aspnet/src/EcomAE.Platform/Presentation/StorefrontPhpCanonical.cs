@@ -33,7 +33,12 @@ public static class StorefrontPhpCanonical
     public const string Checkout = LangPrefix + "/shop/checkout";
     public const string Orders = LangPrefix + "/shop/orders";
     public const string Login = LangPrefix + "/users/login";
+    public const string Registration = LangPrefix + "/users/registration";
     public const string GarageLogin = LangPrefix + "/garage/login";
+    public const string CheckoutHowGet = LangPrefix + "/shop/checkout/how_get";
+    public const string CheckoutConfirm = LangPrefix + "/shop/checkout/confirm";
+    public const string CheckoutLoginOffer = LangPrefix + "/shop/checkout/login_offer";
+    public const string OrderDetail = LangPrefix + "/shop/orders/order";
     public const string Quotes = LangPrefix + "/shop/quotes";
     public const string Wishlist = LangPrefix + "/shop/zakladki";
     public const string Compare = LangPrefix + "/shop/sravneniya";
