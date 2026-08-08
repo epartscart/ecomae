@@ -21,7 +21,8 @@ public static class PortalTenantSql
         WHERE `hostname` = @host
           AND `status` IN ('dns_pending', 'live')
           AND COALESCE(`is_active`, 1) = 1
-        ORDER BY `is_demo` ASC, `erp_only_shared` DESC, `site_key` ASC
+        ORDER BY CASE WHEN IFNULL(TRIM(`db_name`), '') <> '' THEN 0 ELSE 1 END,
+                 `is_demo` ASC, `erp_only_shared` ASC, `site_key` ASC
         LIMIT 1
         """;
 
@@ -46,8 +47,11 @@ public static class PortalTenantSql
         WHERE `hostname` IN (@h0, @h1)
           AND `status` IN ('dns_pending', 'live')
           AND COALESCE(`is_active`, 1) = 1
-        ORDER BY CASE WHEN `hostname` = @h0 THEN 0 ELSE 1 END,
-                 `is_demo` ASC, `erp_only_shared` DESC, `site_key` ASC
+        -- Prefer a row with shop db_name (www erp-only/shared stubs must not starve storefront).
+        -- Then prefer exact request host, then non-demo live shop over erp_only_shared.
+        ORDER BY CASE WHEN IFNULL(TRIM(`db_name`), '') <> '' THEN 0 ELSE 1 END,
+                 CASE WHEN `hostname` = @h0 THEN 0 ELSE 1 END,
+                 `is_demo` ASC, `erp_only_shared` ASC, `site_key` ASC
         LIMIT 1
         """;
 

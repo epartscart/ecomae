@@ -463,6 +463,17 @@ public static class PhpSurfaceLinkMap
                 : StorefrontPhpCanonical.LangPrefix + "/users/profile";
         }
 
+        if (value.Contains("/users/registration", StringComparison.OrdinalIgnoreCase)
+            || value.Contains("/users/register", StringComparison.OrdinalIgnoreCase))
+        {
+            return StorefrontSurfaceLinks.Registration;
+        }
+
+        if (value.Contains("/users/login", StringComparison.OrdinalIgnoreCase))
+        {
+            return StorefrontSurfaceLinks.Login;
+        }
+
         if (value.Contains("/users/account", StringComparison.OrdinalIgnoreCase)
             || value.Equals("/users/", StringComparison.OrdinalIgnoreCase)
             || value.Equals("/users", StringComparison.OrdinalIgnoreCase)

@@ -1,0 +1,120 @@
+@page "/storefront/register-app"
+@page "/en/users/registration"
+@page "/users/registration"
+@layout Layout.PhpChromeLayout
+@using EcomAE.Platform.Presentation
+@inject NavigationManager Nav
+@*
+  PHP twin: content/users/regform.php (+ register.php write).
+  Writes remain PHP-authoritative via /php-reference/en/users/register when archive is live.
+*@
+
+<PageTitle>Customer registration · eParts Cart</PageTitle>
+<PhpSurfaceHead Surface="storefront" IncludeStorefrontAnalytics="true" ApplyStorefrontIndustryAttrs="true" />
+<PhpChromeBodyClass Surface="storefront" LoginChrome="true" />
+
+<HeadContent>
+<style>
+    .epc-reg-sf { max-width:720px; margin:0 auto; }
+    .epc-reg-sf h1 { margin:.2rem 0 .35rem; font-size:1.45rem; }
+    .epc-reg-sf .lead { color:#64748b; font-size:.92rem; margin-bottom:1rem; }
+    .epc-reg-panel {
+        background:#fff; border:1px solid #e5e7eb; border-radius:.55rem; padding:1.1rem 1.2rem; margin-bottom:1rem;
+    }
+    .epc-reg-panel h2 { margin:0 0 .75rem; font-size:1rem; color:#0f172a; }
+    .epc-reg-field { margin:0 0 .75rem; }
+    .epc-reg-field label { display:block; font-size:.82rem; font-weight:600; margin-bottom:.25rem; color:#334155; }
+    .epc-reg-field input, .epc-reg-field select {
+        width:100%; padding:.55rem .65rem; border:1px solid #d1d5db; border-radius:.4rem; font-size:.95rem;
+    }
+    .epc-reg-submit {
+        width:100%; margin-top:.35rem; padding:.75rem 1rem; border:0; border-radius:.45rem;
+        background:#dc2626; color:#fff; font-weight:800; cursor:pointer; font-size:.95rem;
+    }
+    .epc-reg-note {
+        margin-top:1rem; padding:.75rem .9rem; background:#fff8e8; border:1px solid #f1d49a;
+        border-radius:.45rem; color:#7a4e00; font-size:.86rem; line-height:1.45;
+    }
+    .epc-reg-login { margin-top:1rem; font-size:.9rem; }
+    .epc-reg-login a { color:#dc2626; font-weight:700; }
+    .epc-reg-iframe {
+        width:100%; min-height:720px; border:1px solid #e5e7eb; border-radius:.55rem; background:#fff;
+    }
+    .epc-reg-tabs { display:flex; gap:.45rem; flex-wrap:wrap; margin-bottom:1rem; }
+    .epc-reg-tabs a {
+        display:inline-flex; padding:.45rem .75rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
+        text-decoration:none; color:#0f172a; background:#f1f5f9; border:1px solid #e2e8f0;
+    }
+    .epc-reg-tabs a.is-active { background:#dc2626; color:#fff; border-color:#b91c1c; }
+</style>
+</HeadContent>
+
+<div class="epc-reg-sf">
+    <PhpStorefrontDesktopChrome>
+        <h1>Create your account</h1>
+        <p class="lead">Register to place orders, save garage vehicles, and track deliveries — same journey as the PHP storefront.</p>
+
+        <div class="epc-reg-tabs" aria-label="Registration options">
+            <a class="@(!_useClassic ? "is-active" : null)" href="@StorefrontAspNetCanonical.Registration">Quick register</a>
+            <a class="@(_useClassic ? "is-active" : null)" href="@StorefrontAspNetCanonical.Registration?classic=1">Full PHP form</a>
+            <a href="@StorefrontSurfaceLinks.Login">Already have an account?</a>
+        </div>
+
+        @if (_useClassic)
+        {
+            <div class="epc-reg-panel">
+                <h2>Full registration (PHP reference)</h2>
+                <p style="margin:0 0 .75rem;color:#64748b;font-size:.88rem">
+                    Loads <code>/php-reference/en/users/registration</code> — restore archive serving if this shows “Archive paused”.
+                </p>
+                <iframe class="epc-reg-iframe" title="PHP registration" src="/php-reference/en/users/registration"></iframe>
+            </div>
+        }
+        else
+        {
+            <form class="epc-reg-panel" method="post" action="/php-reference/en/users/register" id="epc_regform" enctype="multipart/form-data">
+                <h2>Account details</h2>
+                <div class="epc-reg-field">
+                    <label for="epc_reg_email">E-mail</label>
+                    <input id="epc_reg_email" name="email" type="email" autocomplete="email" required />
+                </div>
+                <div class="epc-reg-field">
+                    <label for="epc_reg_phone">Phone</label>
+                    <input id="epc_reg_phone" name="phone" type="tel" autocomplete="tel" required />
+                </div>
+                <div class="epc-reg-field">
+                    <label for="epc_reg_password">Password</label>
+                    <input id="epc_reg_password" name="password" type="password" autocomplete="new-password" required minlength="6" />
+                </div>
+                <div class="epc-reg-field">
+                    <label for="epc_reg_password2">Confirm password</label>
+                    <input id="epc_reg_password2" name="password_confirm" type="password" autocomplete="new-password" required minlength="6" />
+                </div>
+                <div class="epc-reg-field">
+                    <label for="epc_reg_name">Full name</label>
+                    <input id="epc_reg_name" name="name" type="text" autocomplete="name" />
+                </div>
+                <button class="epc-reg-submit" type="submit">Register</button>
+                <p class="epc-reg-note">
+                    Registration writes stay PHP-authoritative (<code>content/users/register.php</code>).
+                    If submit returns “Archive paused”, run the journey recover paste to restore
+                    <code>/php-reference/*</code>, then retry — or use <strong>Full PHP form</strong>.
+                </p>
+            </form>
+        }
+
+        <p class="epc-reg-login">Already registered? <a href="@StorefrontSurfaceLinks.Login">Sign in</a></p>
+    </PhpStorefrontDesktopChrome>
+</div>
+
+@code {
+    private bool _useClassic;
+
+    protected override void OnInitialized()
+    {
+        var uri = Nav.ToAbsoluteUri(Nav.Uri);
+        var q = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query);
+        _useClassic = q.TryGetValue("classic", out var c)
+                      && (c == "1" || c.ToString().Equals("true", StringComparison.OrdinalIgnoreCase));
+    }
+}

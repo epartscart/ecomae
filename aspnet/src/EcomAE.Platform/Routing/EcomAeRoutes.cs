@@ -1727,6 +1727,8 @@ public static class EcomAeRoutes
     public const string StorefrontCart = "/storefront/cart";
     /// <summary>Wave B checkout readiness Blazor scaffold (writes remain PHP).</summary>
     public const string StorefrontCheckoutApp = "/storefront/checkout-app";
+    /// <summary>Customer registration (PHP regform twin; writes remain PHP register.php).</summary>
+    public const string StorefrontRegisterApp = "/storefront/register-app";
     /// <summary>Storefront checkout readiness JSON digest over authenticated cart.</summary>
     public const string StorefrontCheckout = "/storefront/checkout";
     /// <summary>Wave B dry-run cart qty write (PHP ajax_change_count_need.php remains authoritative).</summary>

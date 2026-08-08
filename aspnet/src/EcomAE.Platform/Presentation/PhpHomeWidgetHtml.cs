@@ -145,8 +145,10 @@ public static class PhpHomeWidgetHtml
 
     private static string GuestLoginCtaJson(string langHref)
     {
-        var login = langHref + "/users/login";
-        var signup = langHref + "/users/registration";
+        // PreferAspNet: point at live ASP.NET login/register (PHP /en/users/* 404 when paused).
+        var login = StorefrontSurfaceLinks.Login;
+        var signup = StorefrontSurfaceLinks.Registration;
+        _ = langHref;
         var html = "<span class=\"epc-price-login-cta\">"
                    + "<a href=\"" + login + "\">Log in</a>"
                    + "<span class=\"epc-price-login-cta__sep\"> or </span>"

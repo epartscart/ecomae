@@ -1,4 +1,9 @@
 @page "/storefront/checkout-app"
+@page "/en/shop/checkout"
+@page "/en/shop/checkout/how_get"
+@page "/en/shop/checkout/confirm"
+@page "/en/shop/checkout/login_offer"
+@page "/en/shop/checkout_confirm"
 @layout Layout.PhpChromeLayout
 @using System.Globalization
 @using EcomAE.Platform.Auth
@@ -7,6 +12,7 @@
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
+@inject NavigationManager Nav
 
 <PageTitle>Checkout · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="storefront" />
@@ -53,23 +59,42 @@
 
     <section class="epc-sf-co-hero">
         <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="eparts" style="height:28px;filter:brightness(1.1)" />
-        <h1>Checkout readiness</h1>
-        <p>Review your cart and continue to delivery and payment.</p>
+        <h1>@_heroTitle</h1>
+        <p>@_heroLead</p>
         <div class="epc-sf-co-cta">
-            <a href="@(PhpSurfaceLinkMap.AspNetPrimaryHref("https://epartscart.com/shop/checkout/how_get"))">Delivery options</a>
-            <a class="ghost" href="@(PhpSurfaceLinkMap.AspNetPrimaryHref("https://epartscart.com/shop/checkout/confirm"))">Confirm order</a>
-            <a class="ghost" href="/storefront/cart-app">Cart</a>
-            <a class="ghost" href="/storefront/login">Sign in</a>
+            <a href="@StorefrontSurfaceLinks.CheckoutHowGet">Delivery options</a>
+            <a class="ghost" href="@StorefrontSurfaceLinks.CheckoutConfirm">Confirm order</a>
+            <a class="ghost" href="@StorefrontSurfaceLinks.Cart">Cart</a>
+            <a class="ghost" href="@StorefrontSurfaceLinks.Login">Sign in</a>
         </div>
     </section>
 
+    @if (_step is "how_get" or "confirm" or "login_offer")
+    {
+        <div class="epc-sf-co-gate" style="margin-bottom:1rem">
+            <p style="margin:0 0 .65rem;color:#334155;font-weight:700">@_stepHeading</p>
+            <p style="margin:0 0 .75rem;color:#64748b;font-size:.9rem">@_stepHelp</p>
+            <iframe title="@_stepHeading"
+                    src="@_phpStepSrc"
+                    style="width:100%;min-height:640px;border:1px solid #e5e7eb;border-radius:.45rem;background:#fff"></iframe>
+            <p class="epc-sf-co-note" style="margin-top:.75rem">
+                Checkout writes stay PHP-authoritative. If the frame shows “Archive paused”, restore
+                <code>/php-reference/*</code> with the customer-journey recover paste.
+            </p>
+        </div>
+    }
+
     @if (!_isCustomer)
     {
-        <div class="epc-sf-co-gate">
-            <p style="margin:0 0 .75rem;color:#334155">Sign in to continue checkout with your cart, or continue as a guest.</p>
-            <a href="/storefront/login" style="display:inline-flex;padding:.55rem .9rem;border-radius:.4rem;background:#dc2626;color:#fff;font-weight:700;text-decoration:none">Sign in</a>
-            <a href="@(PhpSurfaceLinkMap.AspNetPrimaryHref("https://epartscart.com/shop/checkout/login_offer"))" style="display:inline-flex;margin-left:.45rem;padding:.55rem .9rem;border-radius:.4rem;border:1px solid #d1d5db;color:#111;font-weight:700;text-decoration:none">Guest checkout</a>
-        </div>
+        @if (_step is not "login_offer")
+        {
+            <div class="epc-sf-co-gate">
+                <p style="margin:0 0 .75rem;color:#334155">Sign in to continue checkout with your cart, or continue as a guest.</p>
+                <a href="@StorefrontSurfaceLinks.Login" style="display:inline-flex;padding:.55rem .9rem;border-radius:.4rem;background:#dc2626;color:#fff;font-weight:700;text-decoration:none">Sign in</a>
+                <a href="@StorefrontSurfaceLinks.CheckoutLoginOffer" style="display:inline-flex;margin-left:.45rem;padding:.55rem .9rem;border-radius:.4rem;border:1px solid #d1d5db;color:#111;font-weight:700;text-decoration:none">Guest checkout</a>
+                <a href="@StorefrontSurfaceLinks.Registration" style="display:inline-flex;margin-left:.45rem;padding:.55rem .9rem;border-radius:.4rem;border:1px solid #d1d5db;color:#111;font-weight:700;text-decoration:none">Register</a>
+            </div>
+        }
     }
     else
     {
@@ -85,15 +110,15 @@
                 <span class="epc-sf-co-step__n">1</span>
                 <div>
                     <h3>Review cart</h3>
-                    <p>@_summary.Count line(s), @_checkedCount checked. <a href="/storefront/cart-app">ASP.NET cart</a> · <a href="@StorefrontPhpCanonical.Cart">Classic cart (writes)</a></p>
+                    <p>@_summary.Count line(s), @_checkedCount checked. <a href="@StorefrontSurfaceLinks.Cart">Cart</a></p>
                 </div>
             </div>
             <div class="epc-sf-co-step">
                 <span class="epc-sf-co-step__n">2</span>
                 <div>
                     <h3>How to obtain</h3>
-                    <p>Choose delivery or pickup on the classic checkout form (PHP-authoritative).</p>
-                    <p style="margin:.35rem 0 0"><a href="@(StorefrontPhpCanonical.Checkout + "/how_get")">Select delivery / pickup</a></p>
+                    <p>Choose delivery or pickup (PHP-authoritative write).</p>
+                    <p style="margin:.35rem 0 0"><a href="@StorefrontSurfaceLinks.CheckoutHowGet">Select delivery / pickup</a></p>
                 </div>
             </div>
             <div class="epc-sf-co-step">
@@ -102,9 +127,9 @@
                     <h3>Confirm &amp; pay</h3>
                     <p>Create order and payment stay on PHP (<code>ajax_checkout_create</code>).</p>
                     <p style="margin:.35rem 0 0">
-                        <a href="@(StorefrontPhpCanonical.Checkout + "/confirm")">Confirm order</a>
+                        <a href="@StorefrontSurfaceLinks.CheckoutConfirm">Confirm order</a>
                         ·
-                        <a href="@(StorefrontPhpCanonical.Checkout + "/login_offer")">Guest / login offer</a>
+                        <a href="@StorefrontSurfaceLinks.CheckoutLoginOffer">Guest / login offer</a>
                     </p>
                 </div>
             </div>
@@ -123,9 +148,16 @@
     private int _checkedCount;
     private string _source = "n/a";
     private string _readiness = "n/a";
+    private string _step = "";
+    private string _heroTitle = "Checkout readiness";
+    private string _heroLead = "Review your cart and continue to delivery and payment.";
+    private string _stepHeading = "";
+    private string _stepHelp = "";
+    private string _phpStepSrc = "/php-reference/en/shop/checkout";
 
     protected override async Task OnInitializedAsync()
     {
+        ResolveStep();
         var ctx = Http.HttpContext;
         if (ctx is null) return;
 
@@ -144,5 +176,42 @@
         _readiness = result.Summary.Count > 0
             ? (result.Lines.Any(l => l.CheckedForOrder) ? "ready-for-php-how-get" : "cart-has-lines")
             : "empty-cart";
+    }
+
+    private void ResolveStep()
+    {
+        var path = Nav.ToAbsoluteUri(Nav.Uri).AbsolutePath.TrimEnd('/').ToLowerInvariant();
+        var q = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(Nav.ToAbsoluteUri(Nav.Uri).Query);
+        if (q.TryGetValue("step", out var stepVal) && !string.IsNullOrWhiteSpace(stepVal))
+        {
+            _step = stepVal.ToString().Trim().ToLowerInvariant();
+        }
+        else if (path.EndsWith("/how_get", StringComparison.Ordinal))
+        {
+            _step = "how_get";
+        }
+        else if (path.EndsWith("/confirm", StringComparison.Ordinal) || path.EndsWith("/checkout_confirm", StringComparison.Ordinal))
+        {
+            _step = "confirm";
+        }
+        else if (path.EndsWith("/login_offer", StringComparison.Ordinal))
+        {
+            _step = "login_offer";
+        }
+
+        (_heroTitle, _heroLead, _stepHeading, _stepHelp, _phpStepSrc) = _step switch
+        {
+            "how_get" => ("Delivery / pickup", "Choose how you want to receive this order.",
+                "How to obtain", "PHP checkout_how_get twin via /php-reference.",
+                "/php-reference/en/shop/checkout/how_get"),
+            "confirm" => ("Confirm order", "Review totals and place the order.",
+                "Confirm & pay", "PHP checkout_confirm twin via /php-reference.",
+                "/php-reference/en/shop/checkout/confirm"),
+            "login_offer" => ("Guest checkout", "Continue without an account, or sign in / register.",
+                "Login offer", "PHP checkout_login_offer twin via /php-reference.",
+                "/php-reference/en/shop/checkout/login_offer"),
+            _ => ("Checkout readiness", "Review your cart and continue to delivery and payment.",
+                "", "", "/php-reference/en/shop/checkout")
+        };
     }
 }
