@@ -50,7 +50,11 @@ grep -q 'tenant_db_unbound' aspnet/src/EcomAE.Platform/Auth/DbLegacyAdminLoginSe
   || die "DbLegacyAdminLoginService tenant_db_unbound guard missing"
 [[ -f scripts/cloudpanel_diagnose_cp_login_user.sh ]] \
   || die "cloudpanel_diagnose_cp_login_user.sh missing"
-printf 'PREFLIGHT_OK SHA=%s (journey+autofill+price+cp-login-db)\n' "$SHA"
+grep -q 'SHOW DATABASES LIKE' scripts/cloudpanel_fix_epartscart_portal_tenant_db.sh \
+  || die "hardened portal tenant db discovery missing"
+[[ -f scripts/cloudpanel_EPARTSCART_BIND_SHOP_DB_NOW.sh ]] \
+  || die "BIND_SHOP_DB_NOW script missing"
+printf 'PREFLIGHT_OK SHA=%s (journey+autofill+price+cp-login-db+bind)\n' "$SHA"
 
 chmod +x scripts/cloudpanel_EPARTSCART_CUSTOMER_JOURNEY_RECOVER.sh \
   scripts/cloudpanel_FORCE_LIVE_NOW.sh \

@@ -53,7 +53,20 @@ chmod +x "$NUCLEAR" \
   "$REPO/scripts/cloudpanel_restore_php_reference_serving.sh" \
   "$REPO/scripts/cloudpanel_fix_epartscart_portal_tenant_db.sh" \
   "$REPO/scripts/cloudpanel_diagnose_cp_login_user.sh" \
-  "$REPO/scripts/cloudpanel_sync_secret_succession_from_php.sh" 2>/dev/null || true
+  "$REPO/scripts/cloudpanel_sync_secret_succession_from_php.sh" \
+  "$REPO/scripts/cloudpanel_EPARTSCART_BIND_SHOP_DB_NOW.sh" 2>/dev/null || true
+
+# Bind shop DB before nuclear prove (prior acks left bunches unbound / CP tenant_db_unbound).
+printf '\n---- bind epartscart shop db_name (hardened) ----\n'
+set +e
+ECOMAE_CONFIRM_FIX_EPARTSCART_PORTAL_TENANT_DB=YES \
+ECOMAE_CONFIRM_RESTART_PLATFORM=YES \
+  bash "$REPO/scripts/cloudpanel_fix_epartscart_portal_tenant_db.sh" 2>&1 | tee /root/epartscart-portal-tenant-bind.log
+BIND_RC=${PIPESTATUS[0]}
+set -e
+printf 'portal_bind_exit=%s\n' "$BIND_RC"
+grep -E 'RESULT=|resolved_shop_db|discovered_' /root/epartscart-portal-tenant-bind.log | tail -20 || true
+[[ "$BIND_RC" -eq 0 ]] || die "portal tenant db bind failed — set ECOMAE_EPARTSCART_SHOP_DB if needed"
 
 # Keep MD5 login parity with PHP when secret is missing/stale (non-fatal if confirm flags unset).
 if [[ "${ECOMAE_CONFIRM_SYNC_SECRET_SUCCESSION:-YES}" == "YES" ]]; then
