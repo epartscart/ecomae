@@ -1,51 +1,47 @@
 {
   "title": "ePartsCart customer journey parity (new customer → order)",
   "date": "2026-08-08",
-  "status": "still-broken-after-operator-ack-2026-08-08T08:57Z",
-  "post_operator_ack_probe": {
-    "register_app": "404 — new binary not live",
+  "status": "code-merged-967-live-binary-stale-2026-08-08T09:14Z",
+  "pr_967": {
+    "state": "MERGED",
+    "mergedAt": "2026-08-08T09:13:39Z",
+    "mergeCommit": "e3ebd313",
+    "note": "Journey code is on main; CloudPanel never republished :5100 after merge."
+  },
+  "post_merge_live_probe": {
+    "at": "2026-08-08T09:14Z",
+    "register_app": "404 — stale Kestrel binary (own-catalog-app 200 proves /storefront/* routes)",
     "en_users_login_registration": "404",
-    "search_bunches": "still unbound tenant shop DB",
-    "php_reference": "still Archive paused (restore script needs ECOMAE_CONFIRM_RESTORE_PHP_REFERENCE_SERVING=YES)",
-    "note": "Recover script hardened: preflight SHA markers, portal tenant db_name sync, local :5100 register prove, restore confirm flag."
+    "chrome_register_href": "/en/users/registration (PreferAspNet false or stale binary)",
+    "search_bunches": "Tenant shop database is not bound for www.epartscart.com",
+    "php_reference": "503 Archive paused",
+    "operator_acks": "prior completed acks did not leave RESULT=PASS — treat as not run"
   },
-  "tenant_complaint": "Website not function and present as per PHP reference — full journey broken.",
-  "live_findings_before_fix": {
-    "home": "ASP.NET nero chrome OK after :5100 recover",
-    "search_bunches": "empty — Tenant shop database is not bound for www.epartscart.com (erp_only/www stub won over shop db_name)",
-    "en_users_login": "404",
-    "en_users_registration": "404 (chrome still linked here)",
-    "php_reference": "503 Archive paused — registration/checkout writes blocked",
-    "own_catalog_app": "200 after #963 merge/republish",
-    "cart_checkout_orders": "shells 200 but empty without session; checkout steps collapsed"
-  },
-  "fixes": {
-    "tenant_sql": "PortalTenantSql SelectActiveTenantByHost(s) prefer non-empty db_name, then exact host; erp_only_shared ASC",
-    "registration": "StorefrontRegisterApp @ /storefront/register-app + /en/users/registration",
-    "login_aliases": "StorefrontLoginApp + /en/users/login + /users/login",
-    "chrome": "register → StorefrontSurfaceLinks.Registration",
-    "checkout_steps": "/en/shop/checkout/{how_get,confirm,login_offer} → checkout-app?step=… with php-reference iframe",
-    "orders_aliases": "/en/shop/orders(+order|items)",
-    "recover_script": "scripts/cloudpanel_EPARTSCART_CUSTOMER_JOURNEY_RECOVER.sh"
-  },
-  "journey_board": [
-    { "step": "Home", "aspnet": "/storefront/app", "php": "templates/nero/desktop.php", "status": "partial-chrome-ok" },
-    { "step": "Register", "aspnet": "/storefront/register-app", "php": "content/users/regform.php", "status": "built-writes-php" },
-    { "step": "Login", "aspnet": "/storefront/login", "php": "content/users/loginform.php", "status": "twin+aliases" },
-    { "step": "Own catalog", "aspnet": "/storefront/own-catalog-app", "php": "dp_menu + catalogue", "status": "app" },
-    { "step": "Part search", "aspnet": "/storefront/search-app", "php": "part_search_page.php", "status": "needs-tenant-db-bind" },
-    { "step": "Cart", "aspnet": "/storefront/cart-app", "php": "cart.php", "status": "read-digest-writes-php" },
-    { "step": "Checkout", "aspnet": "/storefront/checkout-app?step=*", "php": "checkout_*.php", "status": "step-shells+php-ref" },
-    { "step": "Orders", "aspnet": "/storefront/orders-app", "php": "my_orders.php", "status": "list-digest" }
+  "publish_branch": "cursor/epartscart-journey-live-publish-7b3b",
+  "required_script": "scripts/cloudpanel_EPARTSCART_JOURNEY_NUCLEAR.sh",
+  "pass_criteria": [
+    "log contains RESULT=PASS",
+    "GATE_OK register-app + /en/users/registration + /en/users/login",
+    "search-bunches not unbound",
+    "php-reference registration not Archive paused",
+    "home chrome contains register-app when PreferAspNet=true"
   ],
   "cloudpanel_paste": [
     "cd /opt/ecomae-aspnet-source 2>/dev/null || cd /root/ecomae",
-    "git fetch origin cursor/epartscart-customer-journey-parity-7b3b",
-    "git checkout -f cursor/epartscart-customer-journey-parity-7b3b",
-    "git reset --hard origin/cursor/epartscart-customer-journey-parity-7b3b",
-    "export ECOMAE_BRANCH=cursor/epartscart-customer-journey-parity-7b3b ECOMAE_SKIP_LIFEOS_MP4=YES",
-    "bash scripts/cloudpanel_EPARTSCART_CUSTOMER_JOURNEY_RECOVER.sh 2>&1 | tee /root/epartscart-journey-recover.log"
+    "git fetch origin cursor/epartscart-journey-live-publish-7b3b",
+    "git checkout -f cursor/epartscart-journey-live-publish-7b3b",
+    "git reset --hard origin/cursor/epartscart-journey-live-publish-7b3b",
+    "export ECOMAE_BRANCH=cursor/epartscart-journey-live-publish-7b3b ECOMAE_SKIP_LIFEOS_MP4=YES",
+    "bash scripts/cloudpanel_EPARTSCART_JOURNEY_NUCLEAR.sh 2>&1 | tee /root/epartscart-journey-nuclear.log",
+    "grep -E 'RESULT=|PREFLIGHT|GATE_|local_5100|ERROR|SHA=' /root/epartscart-journey-nuclear.log | tail -80"
   ],
+  "fixes_merged_on_main": {
+    "tenant_sql": "PortalTenantSql prefer non-empty db_name; erp_only_shared ASC",
+    "registration": "StorefrontRegisterApp @ /storefront/register-app + /en/users/registration",
+    "login_aliases": "/en/users/login + /users/login",
+    "checkout_steps": "/en/shop/checkout/{how_get,confirm,login_offer}",
+    "recover": "scripts/cloudpanel_EPARTSCART_CUSTOMER_JOURNEY_RECOVER.sh (needs ECOMAE_CONFIRM_RESTORE_PHP_REFERENCE_SERVING=YES)"
+  },
   "locks": {
     "cutoverAllowed": false,
     "readyForPhpRemoval": false,

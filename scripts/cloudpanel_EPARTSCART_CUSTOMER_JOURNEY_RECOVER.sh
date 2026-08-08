@@ -2,13 +2,16 @@
 # Recover ePartsCart customer journey: search (tenant shop DB), register/login,
 # cart→checkout→orders, and PHP reference writes under /php-reference/*.
 #
-# CloudPanel root paste:
-#   ECOMAE_BRANCH=cursor/epartscart-customer-journey-parity-7b3b ECOMAE_SKIP_LIFEOS_MP4=YES \
-#     bash -c "$(curl -fsSL https://raw.githubusercontent.com/epartscart/ecomae/cursor/epartscart-customer-journey-parity-7b3b/scripts/cloudpanel_EPARTSCART_CUSTOMER_JOURNEY_RECOVER.sh)" \
-#     2>&1 | tee /root/epartscart-journey-recover.log
+# CloudPanel root paste (prefer NUCLEAR wrapper — hard GATE_OK / RESULT=PASS):
+#   cd /opt/ecomae-aspnet-source 2>/dev/null || cd /root/ecomae
+#   git fetch origin cursor/epartscart-journey-live-publish-7b3b
+#   git checkout -f cursor/epartscart-journey-live-publish-7b3b
+#   git reset --hard origin/cursor/epartscart-journey-live-publish-7b3b
+#   export ECOMAE_BRANCH=cursor/epartscart-journey-live-publish-7b3b ECOMAE_SKIP_LIFEOS_MP4=YES
+#   bash scripts/cloudpanel_EPARTSCART_JOURNEY_NUCLEAR.sh 2>&1 | tee /root/epartscart-journey-nuclear.log
 set -euo pipefail
 
-ECOMAE_BRANCH="${ECOMAE_BRANCH:-cursor/epartscart-customer-journey-parity-7b3b}"
+ECOMAE_BRANCH="${ECOMAE_BRANCH:-cursor/epartscart-journey-live-publish-7b3b}"
 export ECOMAE_BRANCH
 export ECOMAE_SKIP_LIFEOS_MP4="${ECOMAE_SKIP_LIFEOS_MP4:-YES}"
 
