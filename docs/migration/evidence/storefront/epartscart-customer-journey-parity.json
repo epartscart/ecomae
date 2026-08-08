@@ -1,38 +1,33 @@
 {
   "title": "ePartsCart customer journey parity (new customer → order)",
   "date": "2026-08-08",
-  "status": "still-stale-after-fourth-operator-ack-2026-08-08T09:35Z",
-  "pr_967": {
-    "state": "MERGED",
-    "mergedAt": "2026-08-08T09:13:39Z",
-    "note": "Journey on main; :5100 never republished."
+  "status": "code-on-main-via-968-live-still-stale-2026-08-08T09:35Z",
+  "merged": {
+    "pr_967": "journey code",
+    "pr_968": "publish pack (nuclear + LIVE_PUBLISH_NOW + #969 + #970) merged 2026-08-08T09:36:59Z",
+    "note": "Merge does not republish :5100 — CloudPanel LIVE_PUBLISH_NOW required"
   },
-  "publish_pack": {
-    "pr": 968,
-    "branch": "cursor/epartscart-journey-live-publish-7b3b",
-    "includes": ["#967 journey", "#969 autofill+Google", "#970 guest price visibility"],
-    "entrypoint": "scripts/cloudpanel_EPARTSCART_LIVE_PUBLISH_NOW.sh",
-    "nuclear": "scripts/cloudpanel_EPARTSCART_JOURNEY_NUCLEAR.sh"
-  },
-  "post_operator_ack_probe": {
+  "live_probe": {
     "at": "2026-08-08T09:35Z",
     "register_app": "404",
-    "en_users": "404",
-    "chrome_register": "/en/users/registration",
-    "search_bunches": "Tenant shop database is not bound",
-    "php_reference": "503 Archive paused",
-    "cp_login": "autocomplete=username/current-password (no Google)",
-    "own_catalog_app": "200",
-    "note": "Acks without RESULT=PASS are not publishes — use download-guarded LIVE_PUBLISH_NOW"
+    "search_bunches": "unbound",
+    "php_reference": "Archive paused",
+    "cp_login": "no Google / still autofill tokens"
+  },
+  "required": {
+    "script": "scripts/cloudpanel_EPARTSCART_LIVE_PUBLISH_NOW.sh",
+    "branch": "main",
+    "must_print": "RESULT=PASS",
+    "paste_back": "grep RESULT=/GATE_/RECHECK/SHA=/HOST= lines"
   },
   "cloudpanel_paste": [
     "set -euxo pipefail",
-    "URL='https://raw.githubusercontent.com/epartscart/ecomae/cursor/epartscart-journey-live-publish-7b3b/scripts/cloudpanel_EPARTSCART_LIVE_PUBLISH_NOW.sh'",
+    "URL='https://raw.githubusercontent.com/epartscart/ecomae/main/scripts/cloudpanel_EPARTSCART_LIVE_PUBLISH_NOW.sh'",
     "TMP=/tmp/epartscart-live-publish-now.sh",
     "curl -fsSL \"$URL\" -o \"$TMP\"",
     "wc -c \"$TMP\"",
     "grep -q LIVE_PUBLISH_NOW \"$TMP\" || { echo RESULT=FAIL bad_download; exit 1; }",
-    "export ECOMAE_BRANCH=cursor/epartscart-journey-live-publish-7b3b ECOMAE_SKIP_LIFEOS_MP4=YES",
+    "export ECOMAE_BRANCH=main ECOMAE_SKIP_LIFEOS_MP4=YES",
     "bash \"$TMP\" 2>&1 | tee /root/epartscart-live-publish-now.log",
     "grep -E 'RESULT=|PREFLIGHT|GATE_|RECHECK|ERROR|SHA=|HOST=' /root/epartscart-live-publish-now.log | tail -100"
   ],

@@ -8,16 +8,16 @@ Paste on the **production CloudPanel server** as root. Deploys latest `main` (in
 
 **Do not mark complete** unless the log contains `RESULT=PASS`. Paste the `grep` lines back. Prior “completed” acks did not republish.
 
-**Paste as root — download-guarded (cannot silently no-op):**
+**Paste as root — download-guarded (cannot silently no-op). `#968` is on `main`; merge alone does not republish `:5100`:**
 
 ```bash
 set -euxo pipefail
-URL='https://raw.githubusercontent.com/epartscart/ecomae/cursor/epartscart-journey-live-publish-7b3b/scripts/cloudpanel_EPARTSCART_LIVE_PUBLISH_NOW.sh'
+URL='https://raw.githubusercontent.com/epartscart/ecomae/main/scripts/cloudpanel_EPARTSCART_LIVE_PUBLISH_NOW.sh'
 TMP=/tmp/epartscart-live-publish-now.sh
 curl -fsSL "$URL" -o "$TMP"
 wc -c "$TMP"
 grep -q LIVE_PUBLISH_NOW "$TMP" || { echo RESULT=FAIL bad_download; exit 1; }
-export ECOMAE_BRANCH=cursor/epartscart-journey-live-publish-7b3b ECOMAE_SKIP_LIFEOS_MP4=YES
+export ECOMAE_BRANCH=main ECOMAE_SKIP_LIFEOS_MP4=YES
 bash "$TMP" 2>&1 | tee /root/epartscart-live-publish-now.log
 grep -E 'RESULT=|PREFLIGHT|GATE_|RECHECK|ERROR|SHA=|HOST=' /root/epartscart-live-publish-now.log | tail -100
 ```

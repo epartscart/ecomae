@@ -4,7 +4,8 @@
 # wrapper prints HOST/DATE loudly, refuses empty trees, and delegates to
 # cloudpanel_EPARTSCART_JOURNEY_NUCLEAR.sh (hard GATE_OK / RESULT=PASS).
 #
-# Paste as root:
+# Paste as root (pre-merge of #972: use the PR branch URL + ECOMAE_BRANCH below;
+# after merge: URL .../main/... and ECOMAE_BRANCH=main):
 #   URL='https://raw.githubusercontent.com/epartscart/ecomae/cursor/cp-login-tenant-db-credentials-7b3b/scripts/cloudpanel_EPARTSCART_LIVE_PUBLISH_NOW.sh'
 #   TMP=/tmp/epartscart-live-publish-now.sh
 #   curl -fsSL "$URL" -o "$TMP"
@@ -15,7 +16,7 @@
 #   grep -E 'RESULT=|PREFLIGHT|GATE_|ERROR|SHA=|HOST=|CP_LOGIN_DIAG' /root/epartscart-live-publish-now.log | tail -120
 set -euo pipefail
 
-ECOMAE_BRANCH="${ECOMAE_BRANCH:-cursor/cp-login-tenant-db-credentials-7b3b}"
+ECOMAE_BRANCH="${ECOMAE_BRANCH:-main}"
 export ECOMAE_BRANCH ECOMAE_SKIP_LIFEOS_MP4="${ECOMAE_SKIP_LIFEOS_MP4:-YES}"
 
 die() { printf 'RESULT=FAIL %s\n' "$*" >&2; exit 1; }

@@ -4,17 +4,17 @@
 #
 # Paste as root (git-based — do NOT use curl|bash alone):
 #   cd /opt/ecomae-aspnet-source 2>/dev/null || cd /root/ecomae
-#   git fetch origin cursor/epartscart-journey-live-publish-7b3b
-#   git checkout -f cursor/epartscart-journey-live-publish-7b3b
-#   git reset --hard origin/cursor/epartscart-journey-live-publish-7b3b
-#   export ECOMAE_BRANCH=cursor/epartscart-journey-live-publish-7b3b ECOMAE_SKIP_LIFEOS_MP4=YES
+#   git fetch origin main
+#   git checkout -f main
+#   git reset --hard origin/main
+#   export ECOMAE_BRANCH=main ECOMAE_SKIP_LIFEOS_MP4=YES
 #   bash scripts/cloudpanel_EPARTSCART_JOURNEY_NUCLEAR.sh 2>&1 | tee /root/epartscart-journey-nuclear.log
 #   grep -E 'RESULT=|PREFLIGHT|GATE_|ERROR|SHA=' /root/epartscart-journey-nuclear.log | tail -80
 #
 # #967 merged to main but :5100 was never republished — register-app stays 404 until RESULT=PASS.
 set -euo pipefail
 
-ECOMAE_BRANCH="${ECOMAE_BRANCH:-cursor/cp-login-tenant-db-credentials-7b3b}"
+ECOMAE_BRANCH="${ECOMAE_BRANCH:-main}"
 export ECOMAE_BRANCH ECOMAE_SKIP_LIFEOS_MP4="${ECOMAE_SKIP_LIFEOS_MP4:-YES}"
 
 die() { printf 'RESULT=FAIL %s\n' "$*" >&2; exit 1; }
