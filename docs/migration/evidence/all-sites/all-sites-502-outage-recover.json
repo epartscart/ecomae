@@ -1,7 +1,14 @@
 {
   "title": "All-sites Cloudflare 502 / warmup splash — Kestrel :5100 down",
   "date": "2026-08-08T08:44:00Z",
-  "status": "awaiting-cloudpanel-root-paste",
+  "status": "still-down-after-operator-ack-2026-08-08T08:46Z",
+  "post_operator_ack_probe": {
+    "note": "Operator marked CloudPanel paste complete, but public probes still BAD. Likely paste did not finish, curl-raw empty-ran, or ecomae-platform failed to start. Re-run git-based paste; require RESULT=PASS lines.",
+    "cp.ecomae.com": "502",
+    "www.ecomae.com": "connect fail",
+    "lifeos/erp/bos/ip/platform": "502",
+    "www.epartscart.com": "200 warmup splash"
+  },
   "diagnosis": {
     "root_cause": "Shared origin Kestrel ecomae-platform (:5100) is down. nginx/Cloudflare proxy to dead upstream → 502; epartscart nginx falls through to static warmup splash (Loading — Please wait).",
     "not_caused_by": "PR merge alone does not republish :5100. Feature PRs (#963 Own Catalog, #965 Google Translate, etc.) cannot restore live without FORCE_LIVE."

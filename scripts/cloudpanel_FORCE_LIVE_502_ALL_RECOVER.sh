@@ -93,32 +93,43 @@ printf '\n---- [1] fast bounce ecomae-platform (:5100) ----\n'
 set +e
 systemctl stop ecomae-platform.service || true
 fuser -k 5100/tcp 2>/dev/null || true
+pkill -f 'EcomAE.Platform.dll' 2>/dev/null || true
 sleep 1
 systemctl start ecomae-platform.service || systemctl restart ecomae-platform.service
-sleep 4
-systemctl --no-pager --full status ecomae-platform.service | sed -n '1,25p' || true
+sleep 5
+systemctl --no-pager --full status ecomae-platform.service | sed -n '1,30p' || true
 ss -lntp 2>/dev/null | grep -E ':5100\b' || netstat -lntp 2>/dev/null | grep -E ':5100\b' || true
 LOCAL_CODE="$(curl -sS -o /dev/null -w '%{http_code}' --max-time 12 http://127.0.0.1:5100/storefront/app || echo 000)"
 printf 'local_5100_storefront_app=%s\n' "$LOCAL_CODE"
+if [[ "$LOCAL_CODE" != "200" ]]; then
+  printf 'DIAG: local :5100 not healthy after bounce — journal:\n'
+  journalctl -u ecomae-platform.service -n 80 --no-pager || true
+  ls -la /var/www/ecomae-aspnet/current 2>/dev/null || printf 'DIAG: no /var/www/ecomae-aspnet/current\n'
+  readlink -f /var/www/ecomae-aspnet/current 2>/dev/null || true
+fi
 set -e
 
-NEED_FULL=1
-if [[ "$LOCAL_CODE" == "200" ]]; then
-  # Quick public check — if Super CP recovered, still run full publish for freshness.
-  CP_CODE="$(curl -sS -o /tmp/502-all-probe.body -w '%{http_code}' --max-time 20 -k https://cp.ecomae.com/ || echo 000)"
-  if ! is_splash_or_502 /tmp/502-all-probe.body "$CP_CODE"; then
-    NEED_FULL=0
-    printf 'Fast bounce restored public CP (http=%s) — still running ALL_SITES for classic-entry/prove.\n' "$CP_CODE"
-  fi
-fi
-
-printf '\n---- [2] FORCE_LIVE_ALL_SITES (republish + classic-entry + prove) ----\n'
+printf '\n---- [2a] FORCE_LIVE_NOW (direct republish :5100) ----\n'
 set +e
 ECOMAE_BRANCH="$ECOMAE_BRANCH" ECOMAE_SKIP_LIFEOS_MP4=YES \
-  bash scripts/cloudpanel_FORCE_LIVE_ALL_SITES.sh 2>&1 | tee /root/force-live-502-all-inner.log
+  bash scripts/cloudpanel_FORCE_LIVE_NOW.sh 2>&1 | tee /root/force-live-502-all-inner.log
+FORCE_RC=${PIPESTATUS[0]}
+set -e
+printf 'FORCE_LIVE_NOW exit=%s\n' "$FORCE_RC"
+LOCAL_CODE="$(curl -sS -o /dev/null -w '%{http_code}' --max-time 12 http://127.0.0.1:5100/storefront/app || echo 000)"
+printf 'local_5100_storefront_app_after_publish=%s\n' "$LOCAL_CODE"
+if [[ "$LOCAL_CODE" != "200" ]]; then
+  printf 'DIAG: :5100 still down after FORCE_LIVE_NOW\n' >&2
+  journalctl -u ecomae-platform.service -n 120 --no-pager || true
+fi
+
+printf '\n---- [2b] FORCE_LIVE_ALL_SITES (classic-entry + www + lifeos prove) ----\n'
+set +e
+ECOMAE_BRANCH="$ECOMAE_BRANCH" ECOMAE_SKIP_LIFEOS_MP4=YES \
+  bash scripts/cloudpanel_FORCE_LIVE_ALL_SITES.sh 2>&1 | tee -a /root/force-live-502-all-inner.log
 ALL_RC=${PIPESTATUS[0]}
 set -e
-printf 'FORCE_LIVE_ALL_SITES exit=%s need_full_was=%s\n' "$ALL_RC" "$NEED_FULL"
+printf 'FORCE_LIVE_ALL_SITES exit=%s\n' "$ALL_RC"
 
 # Warmup splash loop can leave epartscart on static splash even after :5100 is up.
 if [[ -x scripts/cloudpanel_fix_warmup_splash_storefront_loop.sh ]]; then
