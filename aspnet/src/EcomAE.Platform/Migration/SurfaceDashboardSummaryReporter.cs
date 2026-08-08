@@ -2475,6 +2475,8 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                 var source = string.Equals(search.Source, "database", StringComparison.Ordinal)
                     ? "aspnet-warehouse"
                     : "php-chpu";
+                // PricesVisible left true here; StorefrontModule applies PHP guest/wholesale gate
+                // (epc_storefront_prices_helpers) so session-aware redaction is not skipped.
                 return new(1, 0, 0, search.Rows, true, source, string.Empty);
             }
         }

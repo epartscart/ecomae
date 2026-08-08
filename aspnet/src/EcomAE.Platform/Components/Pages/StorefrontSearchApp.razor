@@ -7,7 +7,10 @@
 @using System.Globalization
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Storefront
 @inject ISurfaceDashboardSummaryReporter Dashboards
+@inject IStorefrontPriceAccess PriceAccess
+@inject IHttpContextAccessor Http
 @inject NavigationManager Navigation
 
 <PageTitle>@(_brandInput.Length == 0 ? "Part search" : $"{_brandInput} {_normalized}") · eParts Cart</PageTitle>
@@ -78,6 +81,12 @@
             background:#eff6ff; border:1px solid #bfdbfe; color:#1e3a8a; font-size:.84rem;
         }
         .epc-sf-poll-progress[data-done="1"] { background:#f0fdf4; border-color:#bbf7d0; color:#14532d; }
+        .epc-sf-price-gate {
+            margin:0 0 .85rem; padding:.7rem .9rem; border-radius:.5rem; font-size:.86rem; line-height:1.4;
+            background:#fff7ed; border:1px solid #fed7aa; color:#9a3412;
+        }
+        .epc-sf-price-gate a { color:#b91c1c; font-weight:700; }
+        .epc-sf-price-mask { color:#64748b; font-weight:700; letter-spacing:.04em; }
         @@media (max-width:900px){ .epc-sf-search-kpis{grid-template-columns:1fr;} .epc-sf-cross-refs ul{columns:1;} }
     
 </style>
@@ -166,12 +175,20 @@
             <h2>@_brandInput @_normalized — warehouse offers</h2>
             <a href="@ArticleOnlyHref(_articleInput)">Change manufacturer</a>
         </div>
+        @if (!_pricesVisible)
+        {
+            <div class="epc-sf-price-gate" data-access-state="@_accessState">
+                @((MarkupString)_loginCtaHtml)
+            </div>
+        }
         <div id="epcSfPollProgress" class="epc-sf-poll-progress" hidden
              data-article="@_normalized" data-brand="@_brandInput" aria-live="polite">
             Polling suppliers… <span id="epcSfPollCount">0</span> of <span id="epcSfPollTotal">0</span>
         </div>
         <div class="epc-sf-search-table-wrap">
-            <table class="epc-sf-search-table" id="all_table_products">
+            <table class="epc-sf-search-table" id="all_table_products"
+                   data-prices-visible="@(_pricesVisible ? "1" : "0")"
+                   data-access-state="@_accessState">
                 <thead>
                     <tr>
                         <th>Manufacturer</th>
@@ -243,6 +260,8 @@
   var totalEl = document.getElementById('epcSfPollTotal');
   var body = document.getElementById('epcSfOfferBody');
   if (!body) return;
+  var table = document.getElementById('all_table_products');
+  var pricesVisible = !table || table.getAttribute('data-prices-visible') === '1';
   var seen = Object.create(null);
   body.querySelectorAll('tr[data-offer-key]').forEach(function (tr) {
     seen[tr.getAttribute('data-offer-key')] = 1;
@@ -294,15 +313,21 @@
     var show = p.articleShow || p.article || '';
     var search = '/storefront/search-app?article=' + encodeURIComponent(show) + '&brand=' + encodeURIComponent(p.manufacturer || '');
     var exist = Number(p.exist || 0);
+    var mask = '**';
+    var avail = pricesVisible ? String(exist) : mask;
+    var term = pricesVisible ? esc(p.timeToExe || p.time_to_exe || '—') : mask;
+    var price = pricesVisible ? Number(p.price || 0).toFixed(2) : mask;
+    var storage = pricesVisible ? esc(p.storage || '—') : mask;
+    var plist = pricesVisible ? esc(p.priceList || p.price_list || '—') : mask;
     tr.innerHTML =
       '<td><strong>' + esc(p.manufacturer || '') + '</strong></td>' +
       '<td>' + esc(show) + '</td>' +
       '<td>' + esc(p.name || '—') + '</td>' +
-      '<td class="' + (exist > 0 ? 'epc-stock-ok' : 'epc-stock-out') + '">' + exist + '</td>' +
-      '<td>' + esc(p.timeToExe || p.time_to_exe || '—') + '</td>' +
-      '<td>' + Number(p.price || 0).toFixed(2) + '</td>' +
-      '<td>' + esc(p.storage || '—') + '</td>' +
-      '<td>' + esc(p.priceList || p.price_list || '—') + '</td>' +
+      '<td class="' + (pricesVisible && exist > 0 ? 'epc-stock-ok' : 'epc-stock-out') + '">' + avail + '</td>' +
+      '<td>' + term + '</td>' +
+      '<td class="' + (pricesVisible ? '' : 'epc-sf-price-mask') + '">' + price + '</td>' +
+      '<td>' + storage + '</td>' +
+      '<td>' + plist + '</td>' +
       '<td><a href="' + search + '">Open</a> · <a href="/storefront/quotes-app">Quote</a> · <a href="/storefront/cart-app">Cart</a></td>';
     var insertBefore = null;
     var rows = body.querySelectorAll('tr.epc-part-type-row--' + kind);
@@ -344,6 +369,10 @@
     return fetch('/storefront/products-of-bunch', { method: 'POST', body: fd, credentials: 'same-origin' })
       .then(function (r) { return r.json(); })
       .then(function (data) {
+        if (data && data.prices_visible === false) {
+          pricesVisible = false;
+          if (table) table.setAttribute('data-prices-visible', '0');
+        }
         var products = (data && data.products) || [];
         products.forEach(appendProduct);
       })
@@ -468,6 +497,9 @@
     private IReadOnlyList<StorefrontCrossRefDigest> _crossStockRefs = [];
     private string _source = "n/a";
     private string _message = "";
+    private bool _pricesVisible = true;
+    private string _accessState = "ok";
+    private string _loginCtaHtml = string.Empty;
 
     private Microsoft.AspNetCore.Components.MarkupString JsonArticle =>
         (Microsoft.AspNetCore.Components.MarkupString)System.Text.Json.JsonSerializer.Serialize(_normalized);
@@ -526,6 +558,14 @@
 
     protected override async Task OnInitializedAsync()
     {
+        if (Http.HttpContext is not null)
+        {
+            var access = await PriceAccess.ResolveAsync(Http.HttpContext);
+            _pricesVisible = access.PricesVisible;
+            _accessState = access.StateToken;
+            _loginCtaHtml = access.LoginCtaHtml;
+        }
+
         if (Navigation.Uri.Contains("warehouse-search", StringComparison.OrdinalIgnoreCase))
         {
             _mode = "attr";
@@ -643,7 +683,7 @@
 
         var result = await Dashboards.SearchStorefrontPartsAsync(_articleInput, _brandInput, 100);
         _normalized = result.Article;
-        _rows = result.Rows;
+        _rows = _pricesVisible ? result.Rows : PriceAccess.RedactOffers(result.Rows);
         _source = result.Source;
         _message = result.Message;
         _showBrandPicker = false;
@@ -694,15 +734,27 @@
             row.Article ?? "",
             row.Storage ?? "",
             row.Price.ToString(CultureInfo.InvariantCulture));
+        var mask = StorefrontPriceAccess.SensitiveMask;
         <tr class="@($"epc-part-type-row--{kind}")" data-offer-key="@key">
             <td><strong>@row.Manufacturer</strong></td>
             <td>@show</td>
             <td>@(string.IsNullOrWhiteSpace(row.Name) ? "—" : row.Name)</td>
-            <td class="@(row.Exist > 0 ? "epc-stock-ok" : "epc-stock-out")">@(row.Exist > 0 ? row.Exist.ToString(CultureInfo.InvariantCulture) : "0")</td>
-            <td>@term</td>
-            <td>@row.Price.ToString("N2", CultureInfo.InvariantCulture)</td>
-            <td>@(string.IsNullOrWhiteSpace(row.Storage) ? "—" : row.Storage)</td>
-            <td>@(string.IsNullOrWhiteSpace(row.PriceList) ? "—" : row.PriceList)</td>
+            @if (_pricesVisible)
+            {
+                <td class="@(row.Exist > 0 ? "epc-stock-ok" : "epc-stock-out")">@(row.Exist > 0 ? row.Exist.ToString(CultureInfo.InvariantCulture) : "0")</td>
+                <td>@term</td>
+                <td>@row.Price.ToString("N2", CultureInfo.InvariantCulture)</td>
+                <td>@(string.IsNullOrWhiteSpace(row.Storage) ? "—" : row.Storage)</td>
+                <td>@(string.IsNullOrWhiteSpace(row.PriceList) ? "—" : row.PriceList)</td>
+            }
+            else
+            {
+                <td class="epc-sf-price-mask">@mask</td>
+                <td class="epc-sf-price-mask">@mask</td>
+                <td class="epc-sf-price-mask">@mask</td>
+                <td class="epc-sf-price-mask">@mask</td>
+                <td class="epc-sf-price-mask">@mask</td>
+            }
             <td>
                 <a href="@openHref" title="ASP.NET search">Open</a>
                 ·
