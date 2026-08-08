@@ -2142,6 +2142,161 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    public async Task<StorefrontCatalogueTreeResult> ListStorefrontCatalogueTreeAsync(CancellationToken cancellationToken = default)
+    {
+        if (!_connections.IsConfigured)
+        {
+            return new([], 0, "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var command = connection.CreateCommand();
+            command.CommandText = LegacySurfaceDashboardSql.SelectStorefrontCatalogueCategories;
+            var flat = new List<StorefrontCatalogueCategoryRow>();
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                var id = Convert.ToInt32(reader["id"] is DBNull ? 0 : reader["id"], CultureInfo.InvariantCulture);
+                var alias = Convert.ToString(reader["alias"] is DBNull ? string.Empty : reader["alias"], CultureInfo.InvariantCulture) ?? string.Empty;
+                var url = Convert.ToString(reader["url"] is DBNull ? string.Empty : reader["url"], CultureInfo.InvariantCulture) ?? string.Empty;
+                var valueRaw = Convert.ToString(reader["value_lang_id"] is DBNull ? string.Empty : reader["value_lang_id"], CultureInfo.InvariantCulture) ?? string.Empty;
+                // Lang string ids are not resolved here; alias humanization matches PHP empty-label fallback.
+                var value = StorefrontOwnCatalogueTreeBuilder.LabelFor(alias, valueRaw, id);
+                flat.Add(new StorefrontCatalogueCategoryRow(
+                    id,
+                    alias,
+                    url,
+                    Convert.ToInt32(reader["parent"] is DBNull ? 0 : reader["parent"], CultureInfo.InvariantCulture),
+                    Convert.ToInt32(reader["level"] is DBNull ? 0 : reader["level"], CultureInfo.InvariantCulture),
+                    Convert.ToInt32(reader["child_count"] is DBNull ? 0 : reader["child_count"], CultureInfo.InvariantCulture),
+                    Convert.ToInt32(reader["sort_order"] is DBNull ? 0 : reader["sort_order"], CultureInfo.InvariantCulture),
+                    Convert.ToString(reader["image"] is DBNull ? string.Empty : reader["image"], CultureInfo.InvariantCulture) ?? string.Empty,
+                    value));
+            }
+
+            var tree = StorefrontOwnCatalogueTreeBuilder.Build(flat, filterApai: true);
+            return new(tree, CountTreeNodes(tree), "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new([], 0, "database-error", ex.Message);
+        }
+    }
+
+    public async Task<StorefrontCatalogueProductsResult> ListStorefrontCatalogueProductsAsync(
+        int categoryId,
+        string? categoryUrl,
+        string? searchString,
+        int limit,
+        CancellationToken cancellationToken = default)
+    {
+        var search = (searchString ?? string.Empty).Trim().ToLowerInvariant();
+        if (search.Length > 80)
+        {
+            search = search[..80];
+        }
+
+        limit = Math.Clamp(limit <= 0 ? 48 : limit, 1, 200);
+        var url = (categoryUrl ?? string.Empty).Trim().TrimStart('/');
+        var categoryValue = string.Empty;
+
+        if (!_connections.IsConfigured)
+        {
+            return new(categoryId, url, categoryValue, search, [], 0, "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+
+            if (categoryId <= 0 && url.Length > 0)
+            {
+                await using var resolve = connection.CreateCommand();
+                resolve.CommandText = LegacySurfaceDashboardSql.SelectStorefrontCatalogueCategories;
+                await using var resolveReader = await resolve.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await resolveReader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    var rowUrl = Convert.ToString(resolveReader["url"] is DBNull ? string.Empty : resolveReader["url"], CultureInfo.InvariantCulture) ?? string.Empty;
+                    if (!string.Equals(rowUrl.Trim().TrimStart('/'), url, StringComparison.OrdinalIgnoreCase))
+                    {
+                        continue;
+                    }
+
+                    categoryId = Convert.ToInt32(resolveReader["id"] is DBNull ? 0 : resolveReader["id"], CultureInfo.InvariantCulture);
+                    var alias = Convert.ToString(resolveReader["alias"] is DBNull ? string.Empty : resolveReader["alias"], CultureInfo.InvariantCulture) ?? string.Empty;
+                    var valueRaw = Convert.ToString(resolveReader["value_lang_id"] is DBNull ? string.Empty : resolveReader["value_lang_id"], CultureInfo.InvariantCulture) ?? string.Empty;
+                    categoryValue = StorefrontOwnCatalogueTreeBuilder.LabelFor(alias, valueRaw, categoryId);
+                    break;
+                }
+            }
+            else if (categoryId > 0)
+            {
+                await using var resolve = connection.CreateCommand();
+                resolve.CommandText = LegacySurfaceDashboardSql.SelectStorefrontCatalogueCategories;
+                await using var resolveReader = await resolve.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await resolveReader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    var id = Convert.ToInt32(resolveReader["id"] is DBNull ? 0 : resolveReader["id"], CultureInfo.InvariantCulture);
+                    if (id != categoryId)
+                    {
+                        continue;
+                    }
+
+                    url = Convert.ToString(resolveReader["url"] is DBNull ? string.Empty : resolveReader["url"], CultureInfo.InvariantCulture) ?? url;
+                    var alias = Convert.ToString(resolveReader["alias"] is DBNull ? string.Empty : resolveReader["alias"], CultureInfo.InvariantCulture) ?? string.Empty;
+                    var valueRaw = Convert.ToString(resolveReader["value_lang_id"] is DBNull ? string.Empty : resolveReader["value_lang_id"], CultureInfo.InvariantCulture) ?? string.Empty;
+                    categoryValue = StorefrontOwnCatalogueTreeBuilder.LabelFor(alias, valueRaw, categoryId);
+                    break;
+                }
+            }
+
+            await using var command = connection.CreateCommand();
+            if (categoryId > 0)
+            {
+                command.CommandText = LegacySurfaceDashboardSql.SelectStorefrontCatalogueProductsByCategory;
+                AddParameter(command, "@categoryId", categoryId);
+                AddParameter(command, "@search", search);
+                AddParameter(command, "@limit", limit);
+            }
+            else if (search.Length > 0)
+            {
+                command.CommandText = LegacySurfaceDashboardSql.SelectStorefrontCatalogueProductsByName;
+                AddParameter(command, "@search", search);
+                AddParameter(command, "@limit", limit);
+            }
+            else
+            {
+                return new(0, url, categoryValue, search, [], 0, "empty", "Pick a category or enter a name search.");
+            }
+
+            var rows = new List<StorefrontProductDigest>();
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                rows.Add(ReadStorefrontProduct(reader));
+            }
+
+            return new(categoryId, url, categoryValue, search, rows, rows.Count, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(categoryId, url, categoryValue, search, [], 0, "database-error", ex.Message);
+        }
+    }
+
+    private static int CountTreeNodes(IReadOnlyList<StorefrontCatalogueCategoryNode> tree)
+    {
+        var n = 0;
+        foreach (var node in tree)
+        {
+            n += 1 + CountTreeNodes(node.Data);
+        }
+
+        return n;
+    }
+
     public async Task<StorefrontGenuineBrandsResult> ListStorefrontGenuineBrandsAsync(CancellationToken cancellationToken = default)
     {
         if (!_connections.IsConfigured)

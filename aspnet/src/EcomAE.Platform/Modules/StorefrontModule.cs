@@ -329,6 +329,55 @@ public sealed class StorefrontModule : ISurfaceModule
             });
         });
 
+        endpoints.MapGet(EcomAeRoutes.StorefrontCatalogueTree, async (
+            ISurfaceDashboardSummaryReporter dashboards,
+            CancellationToken cancellationToken) =>
+        {
+            var result = await dashboards.ListStorefrontCatalogueTreeAsync(cancellationToken);
+            return Results.Ok(new
+            {
+                ok = result.Source is "database" or "empty",
+                surface = "storefront",
+                tree = result.Tree,
+                count = result.Count,
+                source = result.Source,
+                message = result.Message,
+                note = "Read-only shop_catalogue_categories tree for Catalog of products mega menu (PHP dp_menu). APAI aliases filtered."
+            });
+        });
+
+        endpoints.MapGet(EcomAeRoutes.StorefrontCatalogueProducts, async (
+            int? category_id,
+            string? url,
+            string? search_string,
+            string? q,
+            int? limit,
+            ISurfaceDashboardSummaryReporter dashboards,
+            CancellationToken cancellationToken) =>
+        {
+            var search = !string.IsNullOrWhiteSpace(search_string) ? search_string : q;
+            var result = await dashboards.ListStorefrontCatalogueProductsAsync(
+                category_id ?? 0,
+                url,
+                search,
+                limit ?? 48,
+                cancellationToken);
+            return Results.Ok(new
+            {
+                ok = result.Source is "database" or "empty",
+                surface = "storefront",
+                category_id = result.CategoryId,
+                category_url = result.CategoryUrl,
+                category_value = result.CategoryValue,
+                search = result.Search,
+                products = result.Rows,
+                count = result.Count,
+                source = result.Source,
+                message = result.Message,
+                note = "Read-only own-catalogue products. Cart/writes remain PHP-authoritative."
+            });
+        });
+
         endpoints.MapGet(EcomAeRoutes.StorefrontGenuineBrands, async (
             ISurfaceDashboardSummaryReporter dashboards,
             CancellationToken cancellationToken) =>

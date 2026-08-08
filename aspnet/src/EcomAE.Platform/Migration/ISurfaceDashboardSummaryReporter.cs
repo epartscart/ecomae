@@ -315,6 +315,17 @@ public interface ISurfaceDashboardSummaryReporter
     /// <summary>Catalogue products by ids (wishlist/compare cookies).</summary>
     Task<StorefrontProductListResult> ListStorefrontProductsByIdsAsync(IReadOnlyList<int> productIds, CancellationToken cancellationToken = default);
 
+    /// <summary>Published own-catalogue category tree (PHP <c>dp_menu</c> / Catalog of products).</summary>
+    Task<StorefrontCatalogueTreeResult> ListStorefrontCatalogueTreeAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>Own-catalogue products by category and/or name search.</summary>
+    Task<StorefrontCatalogueProductsResult> ListStorefrontCatalogueProductsAsync(
+        int categoryId,
+        string? categoryUrl,
+        string? searchString,
+        int limit,
+        CancellationToken cancellationToken = default);
+
     /// <summary>Genuine OE brand keys (PHP <c>epc_genuine_build_frontend_index</c>).</summary>
     Task<StorefrontGenuineBrandsResult> ListStorefrontGenuineBrandsAsync(CancellationToken cancellationToken = default);
 

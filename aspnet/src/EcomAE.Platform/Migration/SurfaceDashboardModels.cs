@@ -1483,6 +1483,48 @@ public sealed record StorefrontProductListResult(
     string Source,
     string Message);
 
+/// <summary>Flat own-catalogue category row (PHP <c>shop_catalogue_categories</c>).</summary>
+public sealed record StorefrontCatalogueCategoryRow(
+    int Id,
+    string Alias,
+    string Url,
+    int Parent,
+    int Level,
+    int ChildCount,
+    int SortOrder,
+    string Image,
+    string Value);
+
+/// <summary>Nested own-catalogue tree node for mega menu / own-catalog-app.</summary>
+public sealed record StorefrontCatalogueCategoryNode(
+    int Id,
+    string Alias,
+    string Url,
+    int Parent,
+    int Level,
+    int ChildCount,
+    int SortOrder,
+    string Image,
+    string Value,
+    string Href,
+    IReadOnlyList<StorefrontCatalogueCategoryNode> Data);
+
+public sealed record StorefrontCatalogueTreeResult(
+    IReadOnlyList<StorefrontCatalogueCategoryNode> Tree,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record StorefrontCatalogueProductsResult(
+    int CategoryId,
+    string CategoryUrl,
+    string CategoryValue,
+    string Search,
+    IReadOnlyList<StorefrontProductDigest> Rows,
+    int Count,
+    string Source,
+    string Message);
+
 public sealed record StorefrontGenuineBrandsResult(
     IReadOnlyList<string> Brands,
     int Count,

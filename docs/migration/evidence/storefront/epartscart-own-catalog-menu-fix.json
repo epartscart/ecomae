@@ -1,0 +1,35 @@
+{
+  "role": "epartscart-own-catalog-menu-fix",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "problem": "Catalog of products header button pointed at Product Family hash; PHP twin opens #dp_menu own-catalogue category mega menu (modules/shop/catalogue/dp_menu.php).",
+  "phpReference": {
+    "entry": "templates/nero/desktop.php header-cat-btn → showCatalogMenu() → #dp_menu",
+    "menu": "modules/shop/catalogue/dp_menu.php",
+    "tree": "content/shop/catalogue/get_catalogue_tree.php (published categories)",
+    "filter": "epc_epartscart_filter_menu_tree (hide APAI aliases)",
+    "nameSearchPlaceholder": "In own catalog → /en/shop/search"
+  },
+  "aspNetFix": {
+    "canonical": "/storefront/own-catalog-app",
+    "app": "aspnet/src/EcomAE.Platform/Components/Pages/StorefrontOwnCatalogApp.razor",
+    "digests": [
+      "GET /storefront/catalogue/tree",
+      "GET /storefront/catalogue/products"
+    ],
+    "assets": [
+      "/platform-assets/epc_own_catalog.css",
+      "/platform-assets/epc_own_catalog_menu.js"
+    ],
+    "chrome": "PhpStorefrontDesktopChrome: header-cat-btn → showCatalogMenu + #dp_menu; Product → Own Catalog; mobile Own catalog link"
+  },
+  "liveBefore": {
+    "headerCatBtnHref": "/storefront/app#epc-product-family",
+    "dp_menu": "missing"
+  },
+  "notes": [
+    "Category labels use alias humanization when lang string ids are not resolved in ASP.NET.",
+    "Cart/writes remain PHP-authoritative; digests are read-only.",
+    "CloudPanel FORCE_LIVE / republish :5100 required for public prove after merge."
+  ]
+}

@@ -83,7 +83,34 @@
     .header-cat-btn {
         background:#ef4444 !important; border:1px solid #ef4444 !important; color:#fff !important;
         border-radius:14px !important; font-weight:800; min-height:52px; padding:12px 18px !important;
-        display:inline-flex; align-items:center; gap:.35rem;
+        display:inline-flex; align-items:center; gap:.35rem; cursor:pointer;
+    }
+    .fon-catalog {
+        display:none; position:fixed; inset:0; background:rgba(15,23,42,.62); z-index:80; backdrop-filter:blur(2px);
+    }
+    #dp_menu {
+        display:none; position:absolute; z-index:90; left:0; right:0; background:#fff;
+        border:1px solid #e2e8f0; border-radius:0 0 22px 22px; box-shadow:0 28px 80px rgba(15,23,42,.28);
+        overflow:auto; padding:18px 0;
+    }
+    #dp_menu.is-open { display:block; }
+    #dp_menu .vertical-tabs-right { display:table; width:100%; background:#0f172a; border-radius:18px; overflow:hidden; }
+    #dp_menu .vertical-tab-list { display:table-cell; min-width:240px; vertical-align:top; background:#0f172a; }
+    #dp_menu .vertical-tab-list ul.nav { list-style:none; margin:0; padding:0; }
+    #dp_menu .vertical-tab-list li { border-bottom:1px solid rgba(255,255,255,.08); }
+    #dp_menu .vertical-tab-list a { display:block; color:rgba(255,255,255,.86); font-weight:800; padding:12px 14px; text-decoration:none; }
+    #dp_menu .vertical-tab-list li.active > a, #dp_menu .vertical-tab-list a:hover { background:#ef4444; color:#fff; }
+    #dp_menu .tab-content { display:table-cell; width:100%; background:#fff; padding:24px 28px; vertical-align:top; }
+    #dp_menu .tab-pane { display:none; }
+    #dp_menu .tab-pane.active { display:block; }
+    #dp_menu .column_box_line { display:block; float:left; max-width:30%; margin-right:3%; }
+    #dp_menu .box_line { background:#f8fafc; border:1px solid #e8edf5; border-radius:14px; margin:0 14px 14px 0; padding:14px; }
+    #dp_menu .one_line { display:block; color:#0f172a; font-size:16px; font-weight:900; margin-bottom:9px; }
+    #dp_menu .two_line { display:block; color:#475569; font-size:13px; font-weight:700; margin-left:15px; margin-bottom:8px; }
+    #dp_menu .count_ch { position:relative; }
+    #dp_menu .count_ch:after {
+        content:"\f054"; font-family:FontAwesome; position:absolute; right:10px; top:50%;
+        transform:translateY(-50%); font-size:12px;
     }
     .header-search-box .btn-primary, .header-search-box .btn-ar {
         background:#ef4444 !important; border-color:#ef4444 !important; color:#fff !important; font-weight:800;
@@ -299,6 +326,7 @@
                                         <a href="javascript:void(0)" class="dropdown-toggle" aria-haspopup="true">Product <i class="fa fa-chevron-down" aria-hidden="true"></i></a>
                                         <ul class="dropdown-menu">
                                             <li><a href="@StorefrontSurfaceLinks.ProductFamily">Product Family</a></li>
+                                            <li><a href="@StorefrontSurfaceLinks.OwnCatalog">Own Catalog</a></li>
                                             <li><a href="@StorefrontSurfaceLinks.AvailableBrands">Available brands</a></li>
                                             <li><a href="@StorefrontSurfaceLinks.PartsInStock">Brand in stock</a></li>
                                             <li><a href="@StorefrontSurfaceLinks.Accessories">Accessories</a></li>
@@ -436,7 +464,7 @@
                             <tr>
                                 <td>
                                     <a class="header-home-btn" href="/" aria-label="Home"><i class="fa fa-home" aria-hidden="true"></i></a>
-                                    <a class="header-cat-btn" href="@StorefrontSurfaceLinks.ProductFamily"><i class="fa fa-bars" aria-hidden="true"></i> Catalog <span class="hidden-sm">of products</span></a>
+                                    <a class="header-cat-btn" href="@StorefrontSurfaceLinks.OwnCatalog" onclick="if(typeof showCatalogMenu==='function'){showCatalogMenu();return false;}"><i class="fa fa-bars" aria-hidden="true"></i> Catalog <span class="hidden-sm">of products</span></a>
                                 </td>
                                 <td class="search-table-td">
                                     <div class="header-search-box epc-header-search" data-active-mode="1" id="epc-header-search">
@@ -536,13 +564,27 @@
                 </div>
             </div>
         </div>
+        <div id="dp_menu" aria-label="Catalog of products">
+            <div class="container">
+                <div class="vertical-tabs-right">
+                    <div class="epc-own-cat-empty">
+                        <p>Loading own catalog…</p>
+                        <p><a href="@StorefrontSurfaceLinks.OwnCatalog">Open own catalog</a></p>
+                    </div>
+                </div>
+            </div>
+        </div>
     </header>
+    <div class="fon-catalog" aria-hidden="true"></div>
+    <link rel="stylesheet" href="/platform-assets/epc_own_catalog.css?v=20260808own" />
+    <script src="/platform-assets/epc_own_catalog_menu.js?v=20260808own" defer></script>
 
     <div class="header-box-mobile hidden-sm hidden-md hidden-lg">
         <div class="container">
             <a class="logo_min" href="/"><PhpEpartsCartAnimatedLogo Variant="header" /></a>
             <a class="mobile-box-phone" href="tel:+971567607011">+971-567607011</a>
             <a class="mobile-box-whatsapp" href="https://wa.me/971567607011" target="_blank" rel="noopener noreferrer"><i class="fa fa-whatsapp" aria-hidden="true"></i> WhatsApp</a>
+            <a href="@StorefrontSurfaceLinks.OwnCatalog"><i class="fa fa-cubes" aria-hidden="true"></i> Own catalog</a>
             <a href="@StorefrontSurfaceLinks.PartSearch"><i class="fa fa-search" aria-hidden="true"></i> Search</a>
             <a href="@StorefrontSurfaceLinks.GarageLogin"><i class="fa fa-wrench" aria-hidden="true"></i> Garage</a>
             <a class="mobile-box-erp-login" href="/erp"><i class="fa fa-line-chart" aria-hidden="true"></i> ERP Login</a>

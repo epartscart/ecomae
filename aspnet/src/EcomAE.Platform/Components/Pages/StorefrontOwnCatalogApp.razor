@@ -1,0 +1,199 @@
+@page "/storefront/own-catalog-app"
+@layout Layout.PhpChromeLayout
+@using System.Globalization
+@using EcomAE.Platform.Migration
+@using EcomAE.Platform.Presentation
+@inject ISurfaceDashboardSummaryReporter Dashboards
+@inject NavigationManager Nav
+
+<PageTitle>Own catalog · eParts Cart</PageTitle>
+<PhpChromeStyles Surface="storefront" />
+<HeadContent>
+    <link rel="stylesheet" href="/platform-assets/epc_own_catalog.css?v=20260808own" />
+</HeadContent>
+
+<StorefrontAnalytics Enabled="true" IncludeClarity="true" />
+
+<PhpStorefrontDesktopChrome>
+    <section class="epc-own-cat" id="epc-own-catalog" data-base="/storefront/own-catalog-app">
+        <div class="epc-own-cat__hero">
+            <div class="container">
+                <div class="epc-own-cat__brand">eParts<span>Cart</span></div>
+                <h1>Own catalog</h1>
+                <p>Browse your warehouse catalogue by category — the same Catalog of products tree as the PHP storefront.</p>
+                <form class="epc-own-cat__search" method="get" action="/storefront/own-catalog-app" role="search">
+                    <label class="sr-only" for="epc-own-q">Search in own catalog</label>
+                    <input id="epc-own-q" name="search_string" type="search" value="@_search" placeholder="In own catalog" maxlength="80" />
+                    @if (_categoryId > 0)
+                    {
+                        <input type="hidden" name="category_id" value="@_categoryId" />
+                    }
+                    else if (!string.IsNullOrWhiteSpace(_categoryUrl))
+                    {
+                        <input type="hidden" name="url" value="@_categoryUrl" />
+                    }
+                    <button type="submit"><i class="fa fa-search" aria-hidden="true"></i> Search</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="epc-own-cat__layout">
+                <aside class="epc-own-cat__side" aria-label="Catalogue categories">
+                    <h2>Categories</h2>
+                    @if (!string.IsNullOrEmpty(_treeError))
+                    {
+                        <div class="epc-own-cat__empty">@_treeError</div>
+                    }
+                    else if (_tree.Count == 0)
+                    {
+                        <div class="epc-own-cat__empty">No published categories yet.</div>
+                    }
+                    else
+                    {
+                        <ul class="epc-own-cat__tree">
+                            @foreach (var node in _tree)
+                            {
+                                @RenderNode(node)
+                            }
+                        </ul>
+                    }
+                </aside>
+                <div class="epc-own-cat__main">
+                    <h2>@(string.IsNullOrEmpty(_categoryValue) ? (string.IsNullOrEmpty(_search) ? "Select a category" : "Search results") : _categoryValue)</h2>
+                    <div class="epc-own-cat__meta">
+                        @if (_products.Count > 0)
+                        {
+                            <span>@_products.Count product(s)</span>
+                        }
+                        else if (_loadedProducts)
+                        {
+                            <span>@_productsMessage</span>
+                        }
+                    </div>
+                    @if (_products.Count == 0 && _loadedProducts)
+                    {
+                        <div class="epc-own-cat__empty">
+                            @if (_categoryId <= 0 && string.IsNullOrEmpty(_search))
+                            {
+                                <text>Open Catalog of products in the header, or pick a category on the left.</text>
+                            }
+                            else
+                            {
+                                <text>No products matched. Try another category or name.</text>
+                            }
+                        </div>
+                    }
+                    else if (_products.Count > 0)
+                    {
+                        <div class="epc-own-cat__grid">
+                            @foreach (var p in _products)
+                            {
+                                var href = StorefrontSurfaceLinks.ForProduct(p.Id);
+                                var title = string.IsNullOrWhiteSpace(p.Caption)
+                                    ? (string.IsNullOrWhiteSpace(p.Alias) ? ("#" + p.Id) : p.Alias)
+                                    : p.Caption;
+                                <article class="epc-own-cat__card">
+                                    <strong>@title</strong>
+                                    @if (!string.IsNullOrWhiteSpace(p.Manufacturer) || !string.IsNullOrWhiteSpace(p.Article))
+                                    {
+                                        <span>@p.Manufacturer @(!string.IsNullOrWhiteSpace(p.Article) ? "· " + p.Article : "")</span>
+                                    }
+                                    <a href="@href">View product</a>
+                                </article>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </section>
+</PhpStorefrontDesktopChrome>
+
+@code {
+    private IReadOnlyList<StorefrontCatalogueCategoryNode> _tree = [];
+    private IReadOnlyList<StorefrontProductDigest> _products = [];
+    private string _search = "";
+    private string _categoryUrl = "";
+    private string _categoryValue = "";
+    private string _treeError = "";
+    private string _productsMessage = "";
+    private int _categoryId;
+    private bool _loadedProducts;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var uri = Nav.ToAbsoluteUri(Nav.Uri);
+        var query = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query);
+        if (query.TryGetValue("search_string", out var ss) || query.TryGetValue("q", out ss))
+        {
+            _search = ss.ToString().Trim();
+        }
+
+        if (query.TryGetValue("url", out var url))
+        {
+            _categoryUrl = url.ToString().Trim().TrimStart('/');
+        }
+
+        if (query.TryGetValue("category_id", out var cid)
+            && int.TryParse(cid, NumberStyles.Integer, CultureInfo.InvariantCulture, out var id))
+        {
+            _categoryId = id;
+        }
+
+        var treeResult = await Dashboards.ListStorefrontCatalogueTreeAsync();
+        _tree = treeResult.Tree;
+        if (treeResult.Source is "database-error" or "migration")
+        {
+            _treeError = string.IsNullOrWhiteSpace(treeResult.Message)
+                ? treeResult.Source
+                : treeResult.Message;
+        }
+
+        if (_categoryId > 0 || _categoryUrl.Length > 0 || _search.Length > 0)
+        {
+            var products = await Dashboards.ListStorefrontCatalogueProductsAsync(
+                _categoryId, _categoryUrl, _search, 48);
+            _loadedProducts = true;
+            _products = products.Rows;
+            _categoryId = products.CategoryId;
+            _categoryUrl = products.CategoryUrl;
+            _categoryValue = products.CategoryValue;
+            _productsMessage = string.IsNullOrWhiteSpace(products.Message)
+                ? (products.Count == 0 ? "No products in this category." : "")
+                : products.Message;
+        }
+    }
+
+    private RenderFragment RenderNode(StorefrontCatalogueCategoryNode node) => builder =>
+    {
+        builder.OpenElement(0, "li");
+        builder.OpenElement(1, "a");
+        var href = string.IsNullOrWhiteSpace(node.Href)
+            ? StorefrontSurfaceLinks.ForOwnCatalogCategory(node.Url, node.Id)
+            : node.Href;
+        var active = (_categoryId > 0 && node.Id == _categoryId)
+                     || (_categoryUrl.Length > 0
+                         && string.Equals(_categoryUrl, node.Url.Trim().TrimStart('/'), StringComparison.OrdinalIgnoreCase));
+        builder.AddAttribute(2, "href", href);
+        if (active)
+        {
+            builder.AddAttribute(3, "class", "is-active");
+        }
+
+        builder.AddContent(4, node.Value);
+        builder.CloseElement();
+        if (node.Data.Count > 0)
+        {
+            builder.OpenElement(5, "ul");
+            foreach (var child in node.Data)
+            {
+                builder.AddContent(6, RenderNode(child));
+            }
+
+            builder.CloseElement();
+        }
+
+        builder.CloseElement();
+    };
+}

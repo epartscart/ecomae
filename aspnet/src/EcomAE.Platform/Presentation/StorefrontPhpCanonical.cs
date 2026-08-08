@@ -18,6 +18,8 @@ public static class StorefrontPhpCanonical
     public const string AvailableBrands = LangPrefix + "/available-brands";
     public const string PartsInStock = LangPrefix + "/parts";
     public const string Accessories = LangPrefix + "/accessories-spare-parts";
+    /// <summary>Own catalogue has no single PHP page URL — entry is the header Catalog of products mega menu.</summary>
+    public const string OwnCatalog = LangPrefix + "/shop/search";
     public const string EpartsCata = LangPrefix + "/eparts-cata";
     public const string EpartsMod = LangPrefix + "/eparts-mod";
     public const string PartsApiCatalog = LangPrefix + "/partsapi-catalog";

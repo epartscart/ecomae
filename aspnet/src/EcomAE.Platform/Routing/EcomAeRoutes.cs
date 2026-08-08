@@ -1715,6 +1715,12 @@ public static class EcomAeRoutes
     public const string StorefrontCompareApp = "/storefront/compare-app";
     /// <summary>Catalogue product digest shell (writes remain PHP).</summary>
     public const string StorefrontProductApp = "/storefront/product-app";
+    /// <summary>Own catalogue (PHP Catalog of products / <c>dp_menu</c> + category browse).</summary>
+    public const string StorefrontOwnCatalogApp = "/storefront/own-catalog-app";
+    /// <summary>Published own-catalogue category tree JSON (mega menu).</summary>
+    public const string StorefrontCatalogueTree = "/storefront/catalogue/tree";
+    /// <summary>Own-catalogue products by category / name search.</summary>
+    public const string StorefrontCatalogueProducts = "/storefront/catalogue/products";
     /// <summary>Batch 4: authenticated cart Blazor summary (qty/checkout writes remain PHP /shop/cart).</summary>
     public const string StorefrontCartApp = "/storefront/cart-app";
     /// <summary>Storefront authenticated cart JSON digest (Blazor UI remains <see cref="StorefrontCartApp"/>).</summary>
