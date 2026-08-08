@@ -2361,19 +2361,55 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             return new(string.Empty, brandTrim, [], 0, "empty", "Article required.");
         }
 
-        if (!_connections.IsConfigured)
+        var unbound = TryGetUnboundTenantShopMessage(out _);
+        if (_connections.IsConfigured && !unbound)
         {
-            return new(normalized, brandTrim, [], 0, "migration", "TenantRegistry DB is not configured.");
+            try
+            {
+                await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+                var bunches = await LoadOfficeStorageBunchesFromSqlAsync(connection, cancellationToken)
+                    .ConfigureAwait(false);
+                if (bunches.Count > 0)
+                {
+                    return new(normalized, brandTrim, bunches, bunches.Count, "database", string.Empty);
+                }
+            }
+            catch
+            {
+                // Fall through to PHP bunches twin.
+            }
         }
 
-        try
+        if (_phpWarehouseBridge is not null)
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
-            await using var command = connection.CreateCommand();
-            command.CommandText = LegacySurfaceDashboardSql.SelectStorefrontOfficeStorageBunches;
-            var apiBunches = new List<StorefrontOfficeStorageBunchDigest>();
-            var priceNested = new List<StorefrontOfficeStorageBunchDigest>();
-            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            var phpBunches = await _phpWarehouseBridge
+                .TryLoadBunchesAsync(normalized, brandTrim, cancellationToken)
+                .ConfigureAwait(false);
+            if (phpBunches.Count > 0)
+            {
+                return new(normalized, brandTrim, phpBunches, phpBunches.Count, "php-chpu", string.Empty);
+            }
+        }
+
+        if (unbound)
+        {
+            return new(normalized, brandTrim, [], 0, "migration",
+                "Tenant shop database is not bound for this host — check epc_portal_tenants.hostname (www alias).");
+        }
+
+        return new(normalized, brandTrim, [], 0, "database", string.Empty);
+    }
+
+    private async Task<List<StorefrontOfficeStorageBunchDigest>> LoadOfficeStorageBunchesFromSqlAsync(
+        DbConnection connection,
+        CancellationToken cancellationToken)
+    {
+        await using var command = connection.CreateCommand();
+        command.CommandText = LegacySurfaceDashboardSql.SelectStorefrontOfficeStorageBunches;
+        var apiBunches = new List<StorefrontOfficeStorageBunchDigest>();
+        var priceNested = new List<StorefrontOfficeStorageBunchDigest>();
+        await using (var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false))
+        {
             while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
             {
                 var officeId = Convert.ToInt32(reader["office_id"] is DBNull ? 0 : reader["office_id"], CultureInfo.InvariantCulture);
@@ -2381,8 +2417,6 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                 var handler = Convert.ToString(reader["handler_folder"] is DBNull ? string.Empty : reader["handler_folder"], CultureInfo.InvariantCulture) ?? string.Empty;
                 var isPrices = string.Equals(handler, "prices", StringComparison.OrdinalIgnoreCase);
                 var isTreelax = string.Equals(handler, "treelax_catalogue", StringComparison.OrdinalIgnoreCase);
-                // Protocol: prices nest under protocol-3 aggregate; API handlers use protocol 2
-                // (manufacturer list + products) matching PHP when get_manufacturers.php exists.
                 if (isPrices)
                 {
                     priceNested.Add(new(officeId, storageId, 1, handler, false));
@@ -2392,21 +2426,30 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                     apiBunches.Add(new(officeId, storageId, isTreelax ? 1 : 2, handler, isTreelax));
                 }
             }
-
-            var bunches = new List<StorefrontOfficeStorageBunchDigest>();
-            if (priceNested.Count > 0)
-            {
-                // PHP prepends protocol-3 aggregate (office_id=0, storage_id=0) with nested price bunches.
-                bunches.Add(new(0, 0, 3, "prices", false, priceNested));
-            }
-
-            bunches.AddRange(apiBunches);
-            return new(normalized, brandTrim, bunches, bunches.Count, "database", string.Empty);
         }
-        catch (Exception ex)
+
+        // PHP part_search: when office maps omit price warehouses, still poll all active price lists.
+        if (priceNested.Count == 0)
         {
-            return new(normalized, brandTrim, [], 0, "database-error", ex.Message);
+            await using var fallback = connection.CreateCommand();
+            fallback.CommandText = LegacySurfaceDashboardSql.SelectStorefrontPriceStorageFallback;
+            await using var fallbackReader = await fallback.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            while (await fallbackReader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                var officeId = Convert.ToInt32(fallbackReader["office_id"] is DBNull ? 1 : fallbackReader["office_id"], CultureInfo.InvariantCulture);
+                var storageId = Convert.ToInt32(fallbackReader["storage_id"] is DBNull ? 0 : fallbackReader["storage_id"], CultureInfo.InvariantCulture);
+                priceNested.Add(new(officeId, storageId, 1, "prices", false));
+            }
         }
+
+        var bunches = new List<StorefrontOfficeStorageBunchDigest>();
+        if (priceNested.Count > 0)
+        {
+            bunches.Add(new(0, 0, 3, "prices", false, priceNested));
+        }
+
+        bunches.AddRange(apiBunches);
+        return bunches;
     }
 
     public async Task<StorefrontProductsOfBunchResult> PollStorefrontProductsOfBunchAsync(
@@ -2418,28 +2461,25 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         int geoId = 0,
         CancellationToken cancellationToken = default)
     {
-        // Protocol-3 price aggregate (office_id=0, storage_id=0): ASP.NET warehouse SQL —
-        // product path must not depend on PHP ajax_getProductsOfBunch for price lists.
+        // Protocol-3 price aggregate (office_id=0, storage_id=0): prefer ASP.NET/php-chpu warehouse rows,
+        // then fall through to PHP ajax_getProductsOfBunch (prices enclosure) when empty —
+        // empty SQL must not block supplier/price results the way live PHP part_search shows them.
         if (officeId == 0 && storageId == 0)
         {
             var search = await SearchStorefrontPartsAsync(article, brand, 200, cancellationToken)
                 .ConfigureAwait(false);
-            if (search.Rows.Count > 0 && string.Equals(search.Source, "database", StringComparison.Ordinal))
+            if (search.Rows.Count > 0
+                && (string.Equals(search.Source, "database", StringComparison.Ordinal)
+                    || string.Equals(search.Source, "php-chpu", StringComparison.Ordinal)))
             {
-                return new(1, 0, 0, search.Rows, true, "aspnet-warehouse", string.Empty);
-            }
-
-            // Empty DB still returns aspnet-warehouse (0 rows) so UI does not fall through to PHP
-            // for the common price-list path; API supplier bunches (office/storage > 0) may use bridge.
-            if (string.Equals(search.Source, "database", StringComparison.Ordinal)
-                || string.Equals(search.Source, "empty", StringComparison.Ordinal))
-            {
-                return new(1, 0, 0, search.Rows, true, "aspnet-warehouse", search.Message);
+                var source = string.Equals(search.Source, "database", StringComparison.Ordinal)
+                    ? "aspnet-warehouse"
+                    : "php-chpu";
+                return new(1, 0, 0, search.Rows, true, source, string.Empty);
             }
         }
 
-        // Remaining API-supplier bunches: PHP handlers until native supplier ports land.
-        // PHP project stays as reference; this bridge is an interim runtime dependency only.
+        // Remaining API-supplier bunches + empty protocol-3: PHP handlers until native ports land.
         if (_phpWarehouseBridge is null)
         {
             return new(0, officeId, storageId, [], false, "migration",

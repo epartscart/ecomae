@@ -2936,6 +2936,19 @@ public static class LegacySurfaceDashboardSql
         LIMIT 500
         """;
 
+    /// <summary>
+    /// PHP part_search fallback: all active price-list storages when office maps omit prices.
+    /// </summary>
+    public const string SelectStorefrontPriceStorageFallback = """
+        SELECT 1 AS office_id, s.`id` AS storage_id, 'prices' AS handler_folder
+        FROM `shop_storages` s
+        INNER JOIN `shop_storages_interfaces_types` t ON t.`id` = s.`interface_type`
+        WHERE IFNULL(s.`hidden`,0) = 0
+          AND IFNULL(t.`handler_folder`,'') = 'prices'
+        ORDER BY s.`id` ASC
+        LIMIT 500
+        """;
+
     /// <summary>Customer bulk-upload history (PHP epc_bulk_upload_history).</summary>
     public const string SelectStorefrontBulkUploadHistory = """
         SELECT `id`, IFNULL(`file_name`,'') AS file_name, IFNULL(`priority`,'') AS priority,

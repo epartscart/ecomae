@@ -1,0 +1,38 @@
+{
+  "role": "epartscart-part-search-warehouse-fix",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "problem": "Top part-number search on epartscart.com showed no results: nginx edge 302 /storefront/search-app → /en/shop/part_search looped with PreferAspNet/PHP-paused remap back to search-app; bunches digest empty when tenant shop DB unbound; protocol-3 poll short-circuited empty SQL without PHP ajax_getProductsOfBunch fall-through.",
+  "phpReference": {
+    "entry": "/en/shop/part_search?article=",
+    "page": "content/shop/docpart/part_search_page.php",
+    "bunches": "office_storage_bunches + protocol-3 prices aggregate",
+    "poll": "content/shop/docpart/ajax_getProductsOfBunch.php",
+    "helpers": [
+      "ajax_epc_article_brands.php",
+      "ajax_epc_warehouse_offers.php",
+      "ajax_epc_office_storage_bunches.php (new twin)"
+    ]
+  },
+  "aspNetFix": {
+    "ui": "/storefront/search-app",
+    "digests": [
+      "GET /storefront/search-brands",
+      "GET /storefront/search",
+      "GET /storefront/search-bunches (SQL + price fallback + PHP bunches twin)",
+      "POST /storefront/products-of-bunch (php-chpu accepted; empty protocol-3 → PHP bridge)"
+    ],
+    "edge": "scripts/cloudpanel_FIX_SEARCH_APP_WAREHOUSE.sh + FORCE_LIVE snip proxies search-app to :5100 (no part_search 302)",
+    "timeout": "PhpWarehouseSearchBridge HttpClient 45s"
+  },
+  "liveBefore": {
+    "searchApp": "302 → /en/shop/part_search → 302 → /storefront/search-app (loop)",
+    "searchBunches": "bunches:[], count:0",
+    "searchDigest": "source=migration unbound tenant shop DB"
+  },
+  "notes": [
+    "Brand picker already worked via php-chpu (ajax_epc_article_brands) when digests were reachable.",
+    "CloudPanel must run FIX_SEARCH_APP_WAREHOUSE / FORCE_LIVE republish for public prove.",
+    "Writes/cart remain PHP-authoritative; cutover locks stay false."
+  ]
+}

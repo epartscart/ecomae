@@ -349,11 +349,28 @@
       })
       .catch(function () { /* keep warehouse rows */ });
   }
+  function finishPoll(total) {
+    if (progress) {
+      progress.hidden = false;
+      progress.setAttribute('data-done', '1');
+      if (!body.querySelector('tr.epc-part-type-row--genuine, tr.epc-part-type-row--aftermarket')) {
+        var empty = body.querySelector('tr[data-empty="1"]');
+        if (empty) {
+          empty.querySelector('td').innerHTML =
+            'No warehouse offers for <strong>' + esc(brand) + ' ' + esc(article) +
+            '</strong> after polling ' + total + ' supplier bunch(es). Try another brand or article.';
+        }
+      }
+    }
+  }
   fetch('/storefront/search-bunches?article=' + encodeURIComponent(article) + '&brand=' + encodeURIComponent(brand), { credentials: 'same-origin' })
     .then(function (r) { return r.json(); })
     .then(function (data) {
       var bunches = (data && data.bunches) || [];
-      if (!bunches.length) return;
+      // PHP part_search always polls protocol-3 price aggregate even when maps are thin.
+      if (!bunches.length) {
+        bunches = [{ officeId: 0, storageId: 0, protocolVersion: 3, nestedBunches: [] }];
+      }
       if (progress) { progress.hidden = false; }
       if (totalEl) totalEl.textContent = String(bunches.length);
       var done = 0;
@@ -363,12 +380,22 @@
           return pollOne(bunch).finally(function () {
             done += 1;
             if (countEl) countEl.textContent = String(done);
-            if (done >= bunches.length && progress) progress.setAttribute('data-done', '1');
+            if (done >= bunches.length) finishPoll(bunches.length);
           });
         });
       });
+      return chain;
     })
-    .catch(function () { /* bunches optional */ });
+    .catch(function () {
+      // Last resort: direct protocol-3 poll (PHP ajax_getProductsOfBunch via ASP.NET).
+      if (progress) { progress.hidden = false; }
+      if (totalEl) totalEl.textContent = '1';
+      return pollOne({ officeId: 0, storageId: 0, protocolVersion: 3, nestedBunches: [] })
+        .finally(function () {
+          if (countEl) countEl.textContent = '1';
+          finishPoll(1);
+        });
+    });
 })();
             </script>
         }
