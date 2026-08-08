@@ -5,16 +5,17 @@
 # cloudpanel_EPARTSCART_JOURNEY_NUCLEAR.sh (hard GATE_OK / RESULT=PASS).
 #
 # Paste as root:
-#   URL='https://raw.githubusercontent.com/epartscart/ecomae/cursor/epartscart-journey-live-publish-7b3b/scripts/cloudpanel_EPARTSCART_LIVE_PUBLISH_NOW.sh'
+#   URL='https://raw.githubusercontent.com/epartscart/ecomae/cursor/cp-login-tenant-db-credentials-7b3b/scripts/cloudpanel_EPARTSCART_LIVE_PUBLISH_NOW.sh'
 #   TMP=/tmp/epartscart-live-publish-now.sh
 #   curl -fsSL "$URL" -o "$TMP"
 #   test -s "$TMP" || { echo RESULT=FAIL empty_download; exit 1; }
 #   grep -q LIVE_PUBLISH_NOW "$TMP" || { echo RESULT=FAIL bad_download; exit 1; }
+#   export ECOMAE_BRANCH=cursor/cp-login-tenant-db-credentials-7b3b ECOMAE_SKIP_LIFEOS_MP4=YES
 #   bash "$TMP" 2>&1 | tee /root/epartscart-live-publish-now.log
-#   grep -E 'RESULT=|PREFLIGHT|GATE_|ERROR|SHA=|HOST=' /root/epartscart-live-publish-now.log | tail -100
+#   grep -E 'RESULT=|PREFLIGHT|GATE_|ERROR|SHA=|HOST=|CP_LOGIN_DIAG' /root/epartscart-live-publish-now.log | tail -120
 set -euo pipefail
 
-ECOMAE_BRANCH="${ECOMAE_BRANCH:-cursor/epartscart-journey-live-publish-7b3b}"
+ECOMAE_BRANCH="${ECOMAE_BRANCH:-cursor/cp-login-tenant-db-credentials-7b3b}"
 export ECOMAE_BRANCH ECOMAE_SKIP_LIFEOS_MP4="${ECOMAE_SKIP_LIFEOS_MP4:-YES}"
 
 die() { printf 'RESULT=FAIL %s\n' "$*" >&2; exit 1; }
@@ -49,7 +50,18 @@ chmod +x "$NUCLEAR" \
   "$REPO/scripts/cloudpanel_EPARTSCART_CUSTOMER_JOURNEY_RECOVER.sh" \
   "$REPO/scripts/cloudpanel_FORCE_LIVE_NOW.sh" \
   "$REPO/scripts/cloudpanel_restore_php_reference_serving.sh" \
-  "$REPO/scripts/cloudpanel_fix_epartscart_portal_tenant_db.sh" 2>/dev/null || true
+  "$REPO/scripts/cloudpanel_fix_epartscart_portal_tenant_db.sh" \
+  "$REPO/scripts/cloudpanel_diagnose_cp_login_user.sh" \
+  "$REPO/scripts/cloudpanel_sync_secret_succession_from_php.sh" 2>/dev/null || true
+
+# Keep MD5 login parity with PHP when secret is missing/stale (non-fatal if confirm flags unset).
+if [[ "${ECOMAE_CONFIRM_SYNC_SECRET_SUCCESSION:-YES}" == "YES" ]]; then
+  printf '\n---- sync SecretSuccession from PHP ----\n'
+  set +e
+  ECOMAE_CONFIRM_SYNC_SECRET_SUCCESSION=YES ECOMAE_CONFIRM_RESTART_PLATFORM=YES \
+    bash "$REPO/scripts/cloudpanel_sync_secret_succession_from_php.sh" 2>&1 | tee /root/epartscart-secret-sync.log | tail -40
+  set -e
+fi
 
 printf 'systemctl ecomae-platform: %s\n' "$(systemctl is-active ecomae-platform.service 2>/dev/null || echo unknown)"
 ss -lntp 2>/dev/null | grep -E ':5100\b' || printf 'WARN: nothing listening on :5100 before publish\n'
@@ -75,8 +87,17 @@ do
   printf 'RECHECK %s %s\n' "$code" "$u"
 done
 
+printf '\n---- CP login diagnose (taxofin2025@gmail.com @ www.epartscart.com) ----\n'
+set +e
+ECOMAE_DIAG_EMAIL="${ECOMAE_DIAG_EMAIL:-taxofin2025@gmail.com}" \
+ECOMAE_DIAG_HOST="${ECOMAE_DIAG_HOST:-www.epartscart.com}" \
+  bash "$REPO/scripts/cloudpanel_diagnose_cp_login_user.sh" 2>&1 | tee /root/epartscart-cp-login-diag.log | sed 's/^/CP_LOGIN_DIAG /'
+DIAG_RC=${PIPESTATUS[0]}
+set -e
+printf 'cp_login_diag_exit=%s\n' "$DIAG_RC"
+
 if [[ "$RC" -ne 0 ]]; then
   die "nuclear_exit=$RC — send /root/epartscart-live-publish-now.log (or journey-nuclear.log)"
 fi
-printf 'RESULT=PASS LIVE_PUBLISH_NOW SHA=%s\n' "$SHA"
+printf 'RESULT=PASS LIVE_PUBLISH_NOW SHA=%s cp_login_diag_exit=%s\n' "$SHA" "$DIAG_RC"
 exit 0

@@ -14,7 +14,7 @@
 # #967 merged to main but :5100 was never republished — register-app stays 404 until RESULT=PASS.
 set -euo pipefail
 
-ECOMAE_BRANCH="${ECOMAE_BRANCH:-cursor/epartscart-journey-live-publish-7b3b}"
+ECOMAE_BRANCH="${ECOMAE_BRANCH:-cursor/cp-login-tenant-db-credentials-7b3b}"
 export ECOMAE_BRANCH ECOMAE_SKIP_LIFEOS_MP4="${ECOMAE_SKIP_LIFEOS_MP4:-YES}"
 
 die() { printf 'RESULT=FAIL %s\n' "$*" >&2; exit 1; }
@@ -46,12 +46,17 @@ grep -q "IFNULL(TRIM(\`db_name\`), '') <> ''" aspnet/src/EcomAE.Platform/Data/Po
   || die "PhpOAuthLoginButtons.razor missing — merge #969 not on tree"
 [[ -f aspnet/src/EcomAE.Platform/Storefront/StorefrontPriceAccess.cs ]] \
   || die "StorefrontPriceAccess.cs missing — merge #970 not on tree"
-printf 'PREFLIGHT_OK SHA=%s (journey+autofill+price)\n' "$SHA"
+grep -q 'tenant_db_unbound' aspnet/src/EcomAE.Platform/Auth/DbLegacyAdminLoginService.cs \
+  || die "DbLegacyAdminLoginService tenant_db_unbound guard missing"
+[[ -f scripts/cloudpanel_diagnose_cp_login_user.sh ]] \
+  || die "cloudpanel_diagnose_cp_login_user.sh missing"
+printf 'PREFLIGHT_OK SHA=%s (journey+autofill+price+cp-login-db)\n' "$SHA"
 
 chmod +x scripts/cloudpanel_EPARTSCART_CUSTOMER_JOURNEY_RECOVER.sh \
   scripts/cloudpanel_FORCE_LIVE_NOW.sh \
   scripts/cloudpanel_restore_php_reference_serving.sh \
-  scripts/cloudpanel_fix_epartscart_portal_tenant_db.sh 2>/dev/null || true
+  scripts/cloudpanel_fix_epartscart_portal_tenant_db.sh \
+  scripts/cloudpanel_diagnose_cp_login_user.sh 2>/dev/null || true
 
 # Force PreferAspNet so chrome uses /storefront/register-app after republish.
 ENV_FILE=/etc/ecomae-aspnet/platform.env
