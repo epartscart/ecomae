@@ -108,6 +108,9 @@ gate "https://www.epartscart.com/storefront/register-app" "Create your account"
 gate "https://www.epartscart.com/en/users/registration" "Create your account|Register"
 gate "https://www.epartscart.com/en/users/login" "Customer login"
 gate "https://www.epartscart.com/" "register-app|Create an account"
+gate "https://www.epartscart.com/cp/login" "Continue with Google"
+gate "https://www.epartscart.com/storefront/login" "Continue with Google"
+gate "https://www.epartscart.com/storefront/search-app?article=OC90" "data-prices-visible=\"0\"|epc-sf-price-gate|to see prices"
 
 B="$(mktemp)"
 BC="$(curl -sS -o "$B" -w '%{http_code}' --max-time 30 -k \

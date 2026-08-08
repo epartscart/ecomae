@@ -1,30 +1,35 @@
 {
   "title": "ePartsCart customer journey parity (new customer → order)",
   "date": "2026-08-08",
-  "status": "code-merged-967-live-binary-stale-2026-08-08T09:14Z",
+  "status": "still-stale-after-third-operator-ack-2026-08-08T09:32Z",
   "pr_967": {
     "state": "MERGED",
     "mergedAt": "2026-08-08T09:13:39Z",
     "mergeCommit": "e3ebd313",
     "note": "Journey code is on main; CloudPanel never republished :5100 after merge."
   },
-  "post_merge_live_probe": {
-    "at": "2026-08-08T09:14Z",
-    "register_app": "404 — stale Kestrel binary (own-catalog-app 200 proves /storefront/* routes)",
-    "en_users_login_registration": "404",
-    "chrome_register_href": "/en/users/registration (PreferAspNet false or stale binary)",
-    "search_bunches": "Tenant shop database is not bound for www.epartscart.com",
-    "php_reference": "503 Archive paused",
-    "operator_acks": "prior completed acks did not leave RESULT=PASS — treat as not run"
+  "stacked_on_publish_branch": {
+    "branch": "cursor/epartscart-journey-live-publish-7b3b",
+    "includes": ["#967 journey (main)", "#969 autofill+Google", "#970 guest price visibility"],
+    "script": "scripts/cloudpanel_EPARTSCART_JOURNEY_NUCLEAR.sh"
   },
-  "publish_branch": "cursor/epartscart-journey-live-publish-7b3b",
-  "required_script": "scripts/cloudpanel_EPARTSCART_JOURNEY_NUCLEAR.sh",
+  "post_operator_ack_probe": {
+    "at": "2026-08-08T09:32Z",
+    "register_app": "404 — stale Kestrel binary",
+    "en_users_login_registration": "404",
+    "chrome_register_href": "still /en/users/registration",
+    "search_bunches": "Tenant shop database is not bound",
+    "php_reference": "503 Archive paused",
+    "cp_login": "still autocomplete=username/current-password (no Google CTA) — #969 not live",
+    "own_catalog_app": "200 — /storefront/* reaches Kestrel; new routes missing from binary",
+    "operator_acks": "completed acks without RESULT=PASS — treat as not run / wrong paste"
+  },
   "pass_criteria": [
     "log contains RESULT=PASS",
-    "GATE_OK register-app + /en/users/registration + /en/users/login",
+    "GATE_OK register-app + /en/users/* + Continue with Google on /cp/login",
     "search-bunches not unbound",
     "php-reference registration not Archive paused",
-    "home chrome contains register-app when PreferAspNet=true"
+    "search-app shows data-prices-visible=0 or price gate for guests"
   ],
   "cloudpanel_paste": [
     "cd /opt/ecomae-aspnet-source 2>/dev/null || cd /root/ecomae",
@@ -35,13 +40,6 @@
     "bash scripts/cloudpanel_EPARTSCART_JOURNEY_NUCLEAR.sh 2>&1 | tee /root/epartscart-journey-nuclear.log",
     "grep -E 'RESULT=|PREFLIGHT|GATE_|local_5100|ERROR|SHA=' /root/epartscart-journey-nuclear.log | tail -80"
   ],
-  "fixes_merged_on_main": {
-    "tenant_sql": "PortalTenantSql prefer non-empty db_name; erp_only_shared ASC",
-    "registration": "StorefrontRegisterApp @ /storefront/register-app + /en/users/registration",
-    "login_aliases": "/en/users/login + /users/login",
-    "checkout_steps": "/en/shop/checkout/{how_get,confirm,login_offer}",
-    "recover": "scripts/cloudpanel_EPARTSCART_CUSTOMER_JOURNEY_RECOVER.sh (needs ECOMAE_CONFIRM_RESTORE_PHP_REFERENCE_SERVING=YES)"
-  },
   "locks": {
     "cutoverAllowed": false,
     "readyForPhpRemoval": false,
