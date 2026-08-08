@@ -152,8 +152,13 @@ check_php_reference() {
   fi
 }
 
+PROBE_ALL_HOSTS=0
+if [[ "${1:-}" == "--all-hosts" || "${ECOMAE_PROBE_ALL_HOSTS:-}" == "1" ]]; then
+  PROBE_ALL_HOSTS=1
+fi
+
 say "=== classic-entry probe (ASP.NET primary + PHP style; PHP reference only) ==="
-say "WWW=$WWW TENANT=$TENANT"
+say "WWW=$WWW TENANT=$TENANT ALL_HOSTS=$PROBE_ALL_HOSTS"
 
 for path in /cp /cp/ /erp /erp/ /bos /bos/; do
   check_same_url_aspnet "$WWW" "$path"
@@ -190,11 +195,45 @@ if [[ "$PROBE_TENANT" == "1" ]]; then
   check_php_reference "$TENANT" "/php-reference/cp"
 fi
 
+if [[ "$PROBE_ALL_HOSTS" -eq 1 ]]; then
+  CP_BASE="${ECOMAE_CP_BASE:-https://cp.ecomae.com}"
+  LIFEOS_BASE="${ECOMAE_LIFEOS_BASE:-https://lifeos.ecomae.com}"
+  say "--- Super CP dedicated host ---"
+  for path in /cp /erp /bos /; do
+    check_same_url_aspnet "$CP_BASE" "$path"
+  done
+  say "--- LifeOS ---"
+  check_same_url_aspnet "$LIFEOS_BASE" "/"
+  say "--- Industry sample (ASP.NET /; /bos denied) ---"
+  for ibase in \
+    https://agriculture.ecomae.com \
+    https://healthcare.ecomae.com \
+    https://jewellery.ecomae.com
+  do
+    check_same_url_aspnet "$ibase" "/"
+    check_same_url_aspnet "$ibase" "/cp"
+    check_same_url_aspnet "$ibase" "/erp"
+    check_tenant_bos_denied "$ibase" "/bos"
+  done
+  for thost in \
+    https://www.electronicae.com \
+    https://www.stylenlook.com \
+    https://www.thejewellerytrend.com \
+    https://www.taxofinca.com
+  do
+    say "--- tenant $thost ---"
+    check_same_url_aspnet "$thost" "/cp"
+    check_same_url_aspnet "$thost" "/erp"
+    check_tenant_bos_denied "$thost" "/bos"
+  done
+fi
+
 say ""
 say "PASS=$pass FAIL=$fail"
 if [[ "$fail" -gt 0 ]]; then
   say "RESULT=FAIL — classic-entry probe not green"
   say "Tenant home must be ASP.NET with PHP-style chrome; BOS Super-CP only; PHP via /php-reference/*."
+  say "HINT  CloudPanel: ECOMAE_BRANCH=… bash scripts/cloudpanel_FORCE_LIVE_ALL_SITES.sh"
   exit 1
 fi
 say "RESULT=PASS — www ASP.NET; tenants /cp /erp ASP.NET; /bos Super-CP only; PHP reference-only"

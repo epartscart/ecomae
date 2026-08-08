@@ -1,6 +1,7 @@
 # shellcheck shell=bash
 # Source from cloudpanel_*_shadow installers.
-# Keeps live tenant / industry presentation on PHP unless explicitly overridden.
+# Default refuse tenant / industry / LifeOS / cp unless confirm envs unlock
+# (ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW=YES for all-sites classic-entry).
 #
 # Usage:
 #   # shellcheck source=scripts/lib/ecomae_nginx_site_safety.sh

@@ -794,6 +794,8 @@ app.MapGet(EcomAeRoutes.LiveSurfaceLinks, (ILiveSurfaceLinkReporter reporter) =>
 
 app.MapGet(EcomAeRoutes.LiveTenantPresentationLock, () => Results.Ok(LiveTenantPresentationLock.BuildSummary()));
 
+app.MapGet(EcomAeRoutes.AllSitesAspNetPrimary, () => Results.Ok(AllSitesAspNetPrimaryLock.BuildSummary()));
+
 app.MapGet(EcomAeRoutes.AspNetZeroPhpPath, (IAspNetZeroPhpPathReporter reporter) => Results.Ok(reporter.BuildReport()));
 
 app.MapGet(EcomAeRoutes.MigrationOnPremisesParity, (IOnPremisesParityReporter reporter) => Results.Ok(reporter.BuildReport()));

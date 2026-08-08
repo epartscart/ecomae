@@ -634,6 +634,14 @@ public sealed class LiveSurfaceLinkReporterTests
         Assert.Contains(report.CutoverRules, note => note.Contains("NO HALF-AND-HALF", StringComparison.Ordinal));
         Assert.Contains(report.Links, link => link.HostClass == "tenant" && link.StackToday == "aspnet");
         Assert.DoesNotContain(report.Links, link => link.HostClass == "tenant" && link.StackToday == "php");
+        Assert.Contains(report.Links, link => link.HostClass == "super-cp" && link.StackToday == "aspnet");
+        Assert.DoesNotContain(report.Links, link => link.HostClass == "super-cp" && link.StackToday == "php");
+        Assert.Contains(report.Links, link => link.HostClass == "industry-frontend" && link.StackToday == "aspnet");
+        Assert.DoesNotContain(report.Links, link => link.HostClass == "industry-frontend" && link.StackToday == "php");
+        Assert.Contains(report.Links, link => link.HostClass == "lifeos" && link.StackToday == "aspnet");
+        Assert.Contains(report.Links, link => link.AspNetRouteHint == "/migration/all-sites-aspnet-primary");
+        Assert.Contains(report.NextActions, action => action.Contains("FORCE_LIVE_ALL_SITES", StringComparison.Ordinal)
+            || action.Contains("all-sites-aspnet-primary", StringComparison.Ordinal));
         Assert.Equal("catalogued-aspnet-primary-destination-php-reference-kept", report.Status);
     }
 

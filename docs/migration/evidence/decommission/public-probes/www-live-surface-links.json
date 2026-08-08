@@ -1,86 +1,94 @@
 {
-  "status": "catalogued-php-authoritative-except-allowlisted-aspnet",
+  "status": "catalogued-aspnet-primary-destination-php-reference-kept",
   "platformHost": "www.ecomae.com",
   "links": [
     {
       "hostClass": "super-cp",
       "surface": "Frontend / marketing",
       "url": "https://www.ecomae.com/",
-      "stackToday": "php",
+      "stackToday": "aspnet",
       "aspNetRouteHint": "/",
-      "notes": "Platform marketing home remains PHP."
+      "notes": "ASP.NET-primary marketing (/marketing/app). PHP compare via /php-reference/home."
     },
     {
       "hostClass": "super-cp",
       "surface": "Control Panel",
-      "url": "https://www.ecomae.com/CP/",
-      "stackToday": "php",
+      "url": "https://www.ecomae.com/cp",
+      "stackToday": "aspnet",
       "aspNetRouteHint": "/cp",
-      "notes": "PHP chrome authoritative; ASP.NET shell available on loopback when AdminAspNetEnabled."
+      "notes": "ASP.NET-primary Super CP. PHP compare via /php-reference/cp."
     },
     {
       "hostClass": "super-cp",
-      "surface": "Control Panel (alias)",
-      "url": "https://www.ecomae.com/cp/",
-      "stackToday": "php",
+      "surface": "Control Panel (uppercase alias)",
+      "url": "https://www.ecomae.com/CP/",
+      "stackToday": "aspnet",
       "aspNetRouteHint": "/cp",
-      "notes": "Case-insensitive alias of Super CP."
+      "notes": "Case-insensitive alias \u2192 ASP.NET /cp."
     },
     {
       "hostClass": "super-cp",
       "surface": "ERP",
-      "url": "https://www.ecomae.com/ERP/",
-      "stackToday": "php",
+      "url": "https://www.ecomae.com/erp",
+      "stackToday": "aspnet",
       "aspNetRouteHint": "/erp",
-      "notes": "Platform ERP desktop remains PHP."
+      "notes": "ASP.NET-primary platform ERP. PHP compare via /php-reference/erp."
     },
     {
       "hostClass": "super-cp",
-      "surface": "ERP (alias)",
-      "url": "https://www.ecomae.com/erp/",
-      "stackToday": "php",
+      "surface": "ERP (uppercase alias)",
+      "url": "https://www.ecomae.com/ERP/",
+      "stackToday": "aspnet",
       "aspNetRouteHint": "/erp",
-      "notes": "Case-insensitive alias of Platform ERP."
+      "notes": "Case-insensitive alias \u2192 ASP.NET /erp."
     },
     {
       "hostClass": "super-cp",
       "surface": "BOS",
-      "url": "https://www.ecomae.com/BOS/",
-      "stackToday": "php",
+      "url": "https://www.ecomae.com/bos",
+      "stackToday": "aspnet",
       "aspNetRouteHint": "/bos",
-      "notes": "Super BOS command center remains PHP."
+      "notes": "ASP.NET-primary Super BOS (Super-CP hosts only). PHP compare via /php-reference/bos."
     },
     {
       "hostClass": "super-cp",
-      "surface": "BOS (alias)",
-      "url": "https://www.ecomae.com/bos/",
-      "stackToday": "php",
+      "surface": "BOS (uppercase alias)",
+      "url": "https://www.ecomae.com/BOS/",
+      "stackToday": "aspnet",
       "aspNetRouteHint": "/bos",
-      "notes": "Case-insensitive alias of Super BOS."
+      "notes": "Case-insensitive alias \u2192 ASP.NET /bos."
     },
     {
       "hostClass": "super-cp",
       "surface": "Dedicated Super CP host",
-      "url": "https://cp.ecomae.com/CP/",
-      "stackToday": "php",
+      "url": "https://cp.ecomae.com/cp",
+      "stackToday": "aspnet",
       "aspNetRouteHint": "/cp",
-      "notes": "cp.ecomae.com is the dedicated Super CP hostname."
+      "notes": "cp.ecomae.com dedicated Super CP \u2014 ASP.NET-primary."
     },
     {
       "hostClass": "super-cp",
       "surface": "Dedicated Super CP BOS",
-      "url": "https://cp.ecomae.com/BOS/",
-      "stackToday": "php",
+      "url": "https://cp.ecomae.com/bos",
+      "stackToday": "aspnet",
       "aspNetRouteHint": "/bos",
-      "notes": "BOS on dedicated Super CP host."
+      "notes": "BOS on dedicated Super CP host \u2014 ASP.NET-primary."
     },
     {
       "hostClass": "super-cp",
       "surface": "Dedicated Super CP ERP",
-      "url": "https://cp.ecomae.com/ERP/",
-      "stackToday": "php",
+      "url": "https://cp.ecomae.com/erp",
+      "stackToday": "aspnet",
       "aspNetRouteHint": "/erp",
-      "notes": "ERP on dedicated Super CP host."
+      "notes": "ERP on dedicated Super CP host \u2014 ASP.NET-primary."
+    },
+    {
+      "hostClass": "super-cp",
+      "surface": "All sites ASP.NET-primary lock",
+      "url": "https://www.ecomae.com/migration/all-sites-aspnet-primary",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/migration/all-sites-aspnet-primary",
+      "notes": "Super CP \u002B tenants \u002B industry \u002B LifeOS catalog; cutoverAllowed=false."
     },
     {
       "hostClass": "aspnet-diagnostics",
@@ -115,12 +123,28 @@
       "notes": "Blazor SSR operator console (interim improvement UI). Not product chrome cutover."
     },
     {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "Human compare board",
+      "url": "https://www.ecomae.com/migration/compare",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/migration/compare",
+      "notes": "Side-by-side Super CP \u002B epartscart PHP vs www ASP.NET hybrid links for operator visual compare. Not product chrome cutover."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "PHP reference mode",
+      "url": "https://www.ecomae.com/migration/php-reference-mode",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/migration/php-reference-mode",
+      "notes": "Confirmed model: ASP.NET primary intent \u002B PHP kept as reference for previous results/gaps. cutoverAllowed=false; not PHP deletion."
+    },
+    {
       "hostClass": "aspnet-presentation-preview",
       "surface": "CP Command Centre (Blazor preview)",
       "url": "https://www.ecomae.com/cp/app",
       "stackToday": "aspnet",
       "aspNetRouteHint": "/cp/app",
-      "notes": "Hybrid chrome preview (PHP CSS \u002B PHP-linked nav). Live UI remains https://www.ecomae.com/CP/ (PHP)."
+      "notes": "Hybrid chrome (PHP CSS \u002B remapped nav). Product live UI is ASP.NET /cp; PHP via /php-reference/cp."
     },
     {
       "hostClass": "aspnet-presentation-preview",
@@ -128,7 +152,7 @@
       "url": "https://www.ecomae.com/erp/app",
       "stackToday": "aspnet",
       "aspNetRouteHint": "/erp/app",
-      "notes": "Hybrid chrome preview (PHP CSS \u002B PHP ERP areas). Live UI remains https://www.ecomae.com/ERP/ (PHP)."
+      "notes": "Hybrid chrome (PHP CSS \u002B remapped ERP areas). Product live UI is ASP.NET /erp; PHP via /php-reference/erp."
     },
     {
       "hostClass": "aspnet-presentation-preview",
@@ -136,7 +160,7 @@
       "url": "https://www.ecomae.com/bos/app",
       "stackToday": "aspnet",
       "aspNetRouteHint": "/bos/app",
-      "notes": "Hybrid chrome preview. Live UI remains https://www.ecomae.com/BOS/ (PHP)."
+      "notes": "Hybrid chrome. Product live UI is ASP.NET /bos on Super-CP only; PHP via /php-reference/bos."
     },
     {
       "hostClass": "aspnet-presentation-preview",
@@ -184,7 +208,23 @@
       "url": "https://www.ecomae.com/storefront/app",
       "stackToday": "aspnet",
       "aspNetRouteHint": "/storefront/app",
-      "notes": "Hybrid chrome preview. Live storefront remains https://epartscart.com/ (PHP)."
+      "notes": "Hybrid chrome. Product storefront is ASP.NET-primary on named tenants; PHP via /php-reference/storefront."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "Marketing site (Blazor preview)",
+      "url": "https://www.ecomae.com/marketing/app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/marketing/app",
+      "notes": "Animated epm-hub \u2014 product www home via classic-entry. PHP compare via /php-reference/home."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "Marketing presentation lock",
+      "url": "https://www.ecomae.com/migration/marketing-presentation-lock",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/migration/marketing-presentation-lock",
+      "notes": "JSON lock: www marketing ASP.NET-primary intent; epm-hub markers required; cutoverAllowed=false."
     },
     {
       "hostClass": "aspnet-presentation-preview",
@@ -192,7 +232,7 @@
       "url": "https://www.ecomae.com/cp/dashboard-summary-app",
       "stackToday": "aspnet",
       "aspNetRouteHint": "/cp/dashboard-summary-app",
-      "notes": "Blazor KPIs over /cp/dashboard-summary digest under PhpCpDesktopChrome. Interactive widgets remain PHP /CP/. Tenant chrome stays PHP (same-to-same)."
+      "notes": "Blazor KPIs over /cp/dashboard-summary digest under PhpCpDesktopChrome. Writes remain PHP-authoritative; product chrome ASP.NET."
     },
     {
       "hostClass": "aspnet-presentation-preview",
@@ -200,7 +240,7 @@
       "url": "https://www.ecomae.com/cp/orders",
       "stackToday": "aspnet",
       "aspNetRouteHint": "/cp/orders",
-      "notes": "Batch 4 read-only shop_orders list under PhpCpDesktopChrome. Writes/full console remain PHP /CP/shop/orders/orders."
+      "notes": "Batch 4 read-only shop_orders list under PhpCpDesktopChrome. Writes remain PHP-authoritative under /php-reference compare path."
     },
     {
       "hostClass": "aspnet-presentation-preview",
@@ -480,7 +520,7 @@
       "url": "https://www.ecomae.com/cp/carriers-app",
       "stackToday": "aspnet",
       "aspNetRouteHint": "/cp/carriers-app",
-      "notes": "Blazor list over /cp/carriers digest under PhpCpDesktopChrome. contact PII omitted. PHP /CP/shop/logistics/carriers remains authoritative. Tenant chrome stays PHP (same-to-same)."
+      "notes": "Blazor list over /cp/carriers (epc_carrier_accounts) under PhpCpDesktopChrome. config_json omitted. PHP /CP/shop/logistics/carriers remains authoritative. Same-to-same chrome."
     },
     {
       "hostClass": "aspnet-presentation-preview",
@@ -528,7 +568,7 @@
       "url": "https://www.ecomae.com/cp/integrations-app",
       "stackToday": "aspnet",
       "aspNetRouteHint": "/cp/integrations-app",
-      "notes": "Blazor list over /cp/integrations digest under PhpCpDesktopChrome. secrets/events omitted. PHP epc_integrations_hub remains authoritative. Tenant chrome stays PHP (same-to-same)."
+      "notes": "Blazor list over Integrations Hub catalog (not epc_webhooks) under PhpCpDesktopChrome. PHP epc_integrations_hub remains authoritative. Same-to-same chrome."
     },
     {
       "hostClass": "aspnet-presentation-preview",
@@ -720,7 +760,7 @@
       "url": "https://www.ecomae.com/cp/marketplace-channels-app",
       "stackToday": "aspnet",
       "aspNetRouteHint": "/cp/marketplace-channels-app",
-      "notes": "Blazor list over /cp/marketplace-channels digest under PhpCpDesktopChrome. Config omitted. PHP marketplace/channels remain authoritative. Tenant chrome stays PHP (same-to-same)."
+      "notes": "Blazor list over /cp/marketplace-channels (family/region/api) under PhpCpDesktopChrome. config_json omitted. PHP marketplace/channels remain authoritative. Same-to-same chrome."
     },
     {
       "hostClass": "aspnet-presentation-preview",
@@ -820,6 +860,14 @@
     },
     {
       "hostClass": "aspnet-presentation-preview",
+      "surface": "CP Abandoned carts read UI",
+      "url": "https://www.ecomae.com/cp/abandoned-carts-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/abandoned-carts-app",
+      "notes": "Blazor list over /cp/abandoned-carts digest under PhpCpDesktopChrome. Guest/session lines preferred. Deletes/filters remain PHP. PHP abandoned carts remain authoritative. Tenant chrome stays PHP (same-to-same)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
       "surface": "CP Quote requests read UI",
       "url": "https://www.ecomae.com/cp/quote-requests-app",
       "stackToday": "aspnet",
@@ -889,6 +937,150 @@
       "stackToday": "aspnet",
       "aspNetRouteHint": "/cp/data-migrations-app",
       "notes": "Blazor list over /cp/data-migrations digest under PhpCpDesktopChrome. file_path/mapping/errors/options/raw payloads omitted. PHP data migration remains authoritative. Tenant chrome stays PHP (same-to-same)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "CP Geo / regions read UI",
+      "url": "https://www.ecomae.com/cp/geo-regions-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/geo-regions-app",
+      "notes": "Blazor list over /cp/geo-regions digest under PhpCpDesktopChrome. raw lang string bodies; value stored as lang id. PHP Geo / regions remains authoritative. Tenant chrome stays PHP (same-to-same)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "CP Product filters read UI",
+      "url": "https://www.ecomae.com/cp/product-filters-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/product-filters-app",
+      "notes": "Blazor list over /cp/product-filters digest under PhpCpDesktopChrome. list_storages JSON. PHP Product filters remains authoritative. Tenant chrome stays PHP (same-to-same)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "CP Search tabs read UI",
+      "url": "https://www.ecomae.com/cp/search-tabs-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/search-tabs-app",
+      "notes": "Blazor list over /cp/search-tabs digest under PhpCpDesktopChrome. parameters_values JSON. PHP Search tabs remains authoritative. Tenant chrome stays PHP (same-to-same)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "CP System requests read UI",
+      "url": "https://www.ecomae.com/cp/system-requests-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/system-requests-app",
+      "notes": "Blazor list over /cp/system-requests digest under PhpCpDesktopChrome. VIN request text body (injection-prone PHP cookie filters not ported). PHP System requests remains authoritative. Tenant chrome stays PHP (same-to-same)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "CP Additional texts read UI",
+      "url": "https://www.ecomae.com/cp/additional-texts-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/additional-texts-app",
+      "notes": "Blazor list over /cp/additional-texts digest under PhpCpDesktopChrome. content HTML \u002B description_tag bodies in rows (title/keywords only). PHP Additional texts remains authoritative. Tenant chrome stays PHP (same-to-same)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "CP Slider / banners read UI",
+      "url": "https://www.ecomae.com/cp/slider-banners-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/slider-banners-app",
+      "notes": "Blazor list over /cp/slider-banners digest under PhpCpDesktopChrome. none critical (paths only). PHP Slider / banners remains authoritative. Tenant chrome stays PHP (same-to-same)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "CP Structure dumps read UI",
+      "url": "https://www.ecomae.com/cp/structure-dumps-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/structure-dumps-app",
+      "notes": "Blazor list over /cp/structure-dumps digest under PhpCpDesktopChrome. dump file bodies. PHP Structure dumps remains authoritative. Tenant chrome stays PHP (same-to-same)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "CP Communications test read UI",
+      "url": "https://www.ecomae.com/cp/communications-test-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/communications-test-app",
+      "notes": "Blazor list over /cp/communications-test digest under PhpCpDesktopChrome. debug_result blobs \u002B sms parameters_values secrets. PHP Communications test remains authoritative. Tenant chrome stays PHP (same-to-same)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "CP Languages read UI",
+      "url": "https://www.ecomae.com/cp/languages-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/languages-app",
+      "notes": "Blazor list over /cp/languages digest under PhpCpDesktopChrome. translation string bodies. PHP Languages remains authoritative. Tenant chrome stays PHP (same-to-same)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "CP Plugins manager read UI",
+      "url": "https://www.ecomae.com/cp/plugins-manager-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/plugins-manager-app",
+      "notes": "Blazor list over /cp/plugins-manager digest under PhpCpDesktopChrome. data_value JSON \u002B filesystem delete side-effects. PHP Plugins manager remains authoritative. Tenant chrome stays PHP (same-to-same)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "CP Templates manager read UI",
+      "url": "https://www.ecomae.com/cp/templates-manager-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/templates-manager-app",
+      "notes": "Blazor list over /cp/templates-manager digest under PhpCpDesktopChrome. data_value JSON \u002B FS delete. PHP Templates manager remains authoritative. Tenant chrome stays PHP (same-to-same)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "CP Design tokens read UI",
+      "url": "https://www.ecomae.com/cp/design-tokens-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/design-tokens-app",
+      "notes": "Blazor list over /cp/design-tokens digest under PhpCpDesktopChrome. setting_value (colors/URLs); ASP.NET also tolerates missing site_key via resilient KPIs. PHP Design tokens remains authoritative. Tenant chrome stays PHP (same-to-same)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "CP Failover status read UI",
+      "url": "https://www.ecomae.com/cp/failover-status-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/failover-status-app",
+      "notes": "Blazor list over /cp/failover-status digest under PhpCpDesktopChrome. secrets inside failover config. PHP Failover status remains authoritative. Tenant chrome stays PHP (same-to-same)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "CP Ops guides read UI",
+      "url": "https://www.ecomae.com/cp/ops-guides-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/ops-guides-app",
+      "notes": "Blazor list over /cp/ops-guides digest under PhpCpDesktopChrome. guide HTML bodies. PHP Ops guides remains authoritative. Tenant chrome stays PHP (same-to-same)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "CP LifeOS system guide",
+      "url": "https://www.ecomae.com/cp/lifeos-guide-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/lifeos-guide-app",
+      "notes": "CP visual graphical LifeOS guide: hosts, Parts 1\u201310 chapters, all frontend *-app consoles and backend JSON digests under PhpCpDesktopChrome. No PHP twin."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "CP File manager read UI",
+      "url": "https://www.ecomae.com/cp/file-manager-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/file-manager-app",
+      "notes": "Blazor list over /cp/file-manager digest under PhpCpDesktopChrome. file contents. PHP File manager remains authoritative. Tenant chrome stays PHP (same-to-same)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "CP Server IP read UI",
+      "url": "https://www.ecomae.com/cp/server-ip-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/server-ip-app",
+      "notes": "Blazor list over /cp/server-ip digest under PhpCpDesktopChrome. no outbound ipify. PHP Server IP remains authoritative. Tenant chrome stays PHP (same-to-same)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "CP Sitemap read UI",
+      "url": "https://www.ecomae.com/cp/sitemap-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/sitemap-app",
+      "notes": "Blazor list over /cp/sitemap digest under PhpCpDesktopChrome. sitemap.xml file artifact (generation remains PHP); content HTML omitted. PHP Sitemap remains authoritative. Tenant chrome stays PHP (same-to-same)."
     },
     {
       "hostClass": "aspnet-presentation-preview",
@@ -980,11 +1172,35 @@
     },
     {
       "hostClass": "aspnet-presentation-preview",
-      "surface": "ERP Inventory Stock KPI UI",
+      "surface": "ERP Inventory Stock read UI",
       "url": "https://www.ecomae.com/erp/inventory-stock-app",
       "stackToday": "aspnet",
       "aspNetRouteHint": "/erp/inventory-stock-app",
-      "notes": "Blazor KPIs over /erp/inventory-stock digest under PhpErpDesktopChrome. Stock moves remain PHP inventory tab. Tenant chrome stays PHP (same-to-same)."
+      "notes": "Blazor KPIs \u002B stock[] over /erp/inventory-stock digest under PhpErpDesktopChrome. Stock moves remain PHP inventory tab. Tenant chrome stays PHP (same-to-same)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "ERP Report Center read UI",
+      "url": "https://www.ecomae.com/erp/report-center-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/erp/report-center-app",
+      "notes": "Blazor registry over /erp/report-center digest under PhpErpDesktopChrome. CSV/export remain PHP epc_erp_report_center.php. Tenant chrome stays PHP (same-to-same)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "ERP Aging read UI",
+      "url": "https://www.ecomae.com/erp/aging-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/erp/aging-app",
+      "notes": "Blazor AR/AP/inventory aging over /erp/aging digest under PhpErpDesktopChrome. PHP epc_erp_aging.php remains authoritative. Tenant chrome stays PHP (same-to-same)."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "ERP Stock Movements read UI",
+      "url": "https://www.ecomae.com/erp/stock-movements-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/erp/stock-movements-app",
+      "notes": "Blazor ledger over /erp/stock-movements digest under PhpErpDesktopChrome. PHP inventory ledger writes remain authoritative. Tenant chrome stays PHP (same-to-same)."
     },
     {
       "hostClass": "aspnet-presentation-preview",
@@ -1036,6 +1252,62 @@
     },
     {
       "hostClass": "aspnet-presentation-preview",
+      "surface": "ERP Delivery Notes read UI",
+      "url": "https://www.ecomae.com/erp/delivery-notes-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/erp/delivery-notes-app",
+      "notes": "Blazor list over /erp/delivery-notes digest. PHP epc_erp_delivery_notes remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "ERP RFQ read UI",
+      "url": "https://www.ecomae.com/erp/rfq-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/erp/rfq-app",
+      "notes": "Blazor list over /erp/rfqs digest. PHP epc_erp_rfq remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "ERP Three-Way Match read UI",
+      "url": "https://www.ecomae.com/erp/three-way-match-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/erp/three-way-match-app",
+      "notes": "Blazor list over /erp/three-way-match digest. PHP three_way_match remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "ERP Contacts read UI",
+      "url": "https://www.ecomae.com/erp/contacts-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/erp/contacts-app",
+      "notes": "Blazor list over /erp/contacts digest. PHP epc_erp_contacts remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "ERP Payment Batches read UI",
+      "url": "https://www.ecomae.com/erp/payment-batches-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/erp/payment-batches-app",
+      "notes": "Blazor list over /erp/payment-batches digest. PHP payment_batches remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "ERP Period Close read UI",
+      "url": "https://www.ecomae.com/erp/period-close-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/erp/period-close-app",
+      "notes": "Blazor list over /erp/fiscal-periods digest. PHP year_end / period_list remain authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "ERP tab coverage board",
+      "url": "https://www.ecomae.com/erp/tab-coverage",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/erp/tab-coverage",
+      "notes": "Full PHP erp_tabs_* \u2192 ASP.NET app map. cutoverAllowed=false; PHP authoritative."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
       "surface": "ERP Dashboard Summary KPI UI",
       "url": "https://www.ecomae.com/erp/dashboard-summary-app",
       "stackToday": "aspnet",
@@ -1057,6 +1329,1430 @@
       "stackToday": "aspnet",
       "aspNetRouteHint": "/storefront/cart-app",
       "notes": "Read UI over /storefront/cart digest under PhpStorefrontDesktopChrome. Qty/guest cart/checkout remain PHP on epartscart.com."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "Storefront checkout readiness UI",
+      "url": "https://www.ecomae.com/storefront/checkout-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/storefront/checkout-app",
+      "notes": "Wave B read scaffold over /storefront/checkout digest. how_get/confirm/payment remain PHP on epartscart.com."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "Storefront cart qty write dry-run",
+      "url": "https://www.ecomae.com/storefront/cart/change-count-need",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/storefront/cart/change-count-need",
+      "notes": "POST Wave B dry-run for ajax_change_count_need.php type-2. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "Storefront cart check-for-order dry-run",
+      "url": "https://www.ecomae.com/storefront/cart/check-for-order",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/storefront/cart/check-for-order",
+      "notes": "POST Wave B dry-run for ajax_check_for_order.php toggle. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "Storefront cart delete dry-run",
+      "url": "https://www.ecomae.com/storefront/cart/delete",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/storefront/cart/delete",
+      "notes": "POST Wave B dry-run for ajax_delete_cart_record.php type-2. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "CP OMS set-item-status dry-run",
+      "url": "https://www.ecomae.com/cp/orders/set-item-status",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/orders/set-item-status",
+      "notes": "POST Wave B dry-run for ajax_epc_orders_oms.php set_item_status. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "CP OMS set-items-status dry-run",
+      "url": "https://www.ecomae.com/cp/orders/set-items-status",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/orders/set-items-status",
+      "notes": "POST Wave B dry-run for ajax_epc_orders_oms.php set_items_status bulk. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "ERP cash voucher amend dry-run",
+      "url": "https://www.ecomae.com/erp/cash-entries/amend",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/erp/cash-entries/amend",
+      "notes": "POST Wave B dry-run for PHP cash_voucher_amend (reference/note only). writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "ERP cash voucher void dry-run",
+      "url": "https://www.ecomae.com/erp/cash-entries/void",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/erp/cash-entries/void",
+      "notes": "POST Wave B dry-run for PHP cash_voucher_void soft-void. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "ERP cash entry create dry-run",
+      "url": "https://www.ecomae.com/erp/cash-entries/create",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/erp/cash-entries/create",
+      "notes": "POST Wave B dry-run for PHP cash_entry. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "ERP receipt voucher dry-run",
+      "url": "https://www.ecomae.com/erp/cash-entries/receipt-voucher",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/erp/cash-entries/receipt-voucher",
+      "notes": "POST Wave B dry-run for PHP receipt_voucher. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "ERP payment voucher dry-run",
+      "url": "https://www.ecomae.com/erp/cash-entries/payment-voucher",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/erp/cash-entries/payment-voucher",
+      "notes": "POST Wave B dry-run for PHP payment_voucher. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "ERP supplier create dry-run",
+      "url": "https://www.ecomae.com/erp/suppliers/create",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/erp/suppliers/create",
+      "notes": "POST Wave B dry-run for PHP create_supplier. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "ERP purchase create dry-run",
+      "url": "https://www.ecomae.com/erp/purchases/create",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/erp/purchases/create",
+      "notes": "POST Wave B dry-run for PHP create_purchase. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "ERP purchase delete dry-run",
+      "url": "https://www.ecomae.com/erp/purchases/delete",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/erp/purchases/delete",
+      "notes": "POST Wave B dry-run for PHP purchase_delete (draft). writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "ERP invoice delete dry-run",
+      "url": "https://www.ecomae.com/erp/invoices/delete",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/erp/invoices/delete",
+      "notes": "POST Wave B dry-run for PHP invoice_delete (draft). writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "ERP cash account create dry-run",
+      "url": "https://www.ecomae.com/erp/cash-accounts/create",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/erp/cash-accounts/create",
+      "notes": "POST Wave B dry-run for PHP create_account. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "ERP COA create dry-run",
+      "url": "https://www.ecomae.com/erp/coa-accounts/create",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/erp/coa-accounts/create",
+      "notes": "POST Wave B dry-run for PHP create_coa. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "OMS update-items dry-run",
+      "url": "https://www.ecomae.com/cp/orders/update-items",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/orders/update-items",
+      "notes": "POST Wave B dry-run for OMS update_items bulk. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "ERP GL manual entry dry-run",
+      "url": "https://www.ecomae.com/erp/gl-journals/manual",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/erp/gl-journals/manual",
+      "notes": "POST Wave B dry-run for PHP gl_manual_entry. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "Storefront cart add dry-run",
+      "url": "https://www.ecomae.com/storefront/cart/add",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/storefront/cart/add",
+      "notes": "POST Wave B dry-run for ajax_add_to_basket.php type-2. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "CP OMS send-message dry-run",
+      "url": "https://www.ecomae.com/cp/orders/send-message",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/orders/send-message",
+      "notes": "POST Wave B dry-run for ajax_epc_orders_oms.php send_message. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "CP OMS set-courier dry-run",
+      "url": "https://www.ecomae.com/cp/orders/set-courier",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/orders/set-courier",
+      "notes": "POST Wave B dry-run for ajax_epc_orders_oms.php set_courier. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "ERP GL reverse journal dry-run",
+      "url": "https://www.ecomae.com/erp/gl-journals/reverse",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/erp/gl-journals/reverse",
+      "notes": "POST Wave B dry-run for PHP gl_reverse_journal. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "ERP purchase void dry-run",
+      "url": "https://www.ecomae.com/erp/purchases/void",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/erp/purchases/void",
+      "notes": "POST Wave B dry-run for PHP purchase_void soft-void. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "ERP invoice cancel dry-run",
+      "url": "https://www.ecomae.com/erp/invoices/cancel",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/erp/invoices/cancel",
+      "notes": "POST Wave B dry-run for PHP invoice_cancel. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "Storefront garage notepad-add dry-run",
+      "url": "https://www.ecomae.com/storefront/garage/notepad-add",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/storefront/garage/notepad-add",
+      "notes": "POST Wave B dry-run for ajax_add_to_notepad.php. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "Storefront quote submit dry-run",
+      "url": "https://www.ecomae.com/storefront/quotes/submit",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/storefront/quotes/submit",
+      "notes": "POST Wave B dry-run for ajax_quote_submit.php draft\u2192submitted. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "Storefront quote accept dry-run",
+      "url": "https://www.ecomae.com/storefront/quotes/accept",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/storefront/quotes/accept",
+      "notes": "POST Wave B dry-run for ajax_quote_accept.php quoted\u2192accepted. Cart INSERTs stay PHP. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "Storefront quote add-item dry-run",
+      "url": "https://www.ecomae.com/storefront/quotes/add-item",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/storefront/quotes/add-item",
+      "notes": "POST Wave B dry-run for ajax_add_to_quote.php type-2\u2192draft. check_hash stays PHP. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "Storefront quote add-manual dry-run",
+      "url": "https://www.ecomae.com/storefront/quotes/add-manual",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/storefront/quotes/add-manual",
+      "notes": "POST Wave B dry-run for ajax_add_to_quote_manual.php brand\u002Barticle\u2192draft. Guests denied. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "Storefront garage set-active dry-run",
+      "url": "https://www.ecomae.com/storefront/garage/set-active",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/storefront/garage/set-active",
+      "notes": "POST Wave B dry-run for ajax_operations_cars.php action=active_car. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "Storefront garage delete dry-run",
+      "url": "https://www.ecomae.com/storefront/garage/delete",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/storefront/garage/delete",
+      "notes": "POST Wave B dry-run for ajax_operations_cars.php action=delete_car. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "Storefront garage check-car dry-run",
+      "url": "https://www.ecomae.com/storefront/garage/check-car",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/storefront/garage/check-car",
+      "notes": "POST Wave B dry-run for ajax_operations_cars.php action=check_car garage\u2194order toggle. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "Storefront checkout create dry-run",
+      "url": "https://www.ecomae.com/storefront/checkout/create",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/storefront/checkout/create",
+      "notes": "POST Wave B dry-run for ajax_checkout_create.php. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "OMS update-item dry-run",
+      "url": "https://www.ecomae.com/cp/orders/update-item",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/orders/update-item",
+      "notes": "POST Wave B dry-run for ajax_epc_orders_oms.php action=update_item. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "OMS pay-refund dry-run",
+      "url": "https://www.ecomae.com/cp/orders/pay-refund",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/orders/pay-refund",
+      "notes": "POST Wave B dry-run for ajax_order_pay_refund.php. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "OMS fulfillment-set-stage dry-run",
+      "url": "https://www.ecomae.com/cp/orders/fulfillment-set-stage",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/orders/fulfillment-set-stage",
+      "notes": "POST Wave B dry-run for OMS supplier_fulfillment_set_stage. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "OMS fulfillment-advance dry-run",
+      "url": "https://www.ecomae.com/cp/orders/fulfillment-advance",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/orders/fulfillment-advance",
+      "notes": "POST Wave B dry-run for OMS supplier_fulfillment_advance. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "ERP purchase amend dry-run",
+      "url": "https://www.ecomae.com/erp/purchases/amend",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/erp/purchases/amend",
+      "notes": "POST Wave B dry-run for PHP purchase_amend. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "ERP sales order delete dry-run",
+      "url": "https://www.ecomae.com/erp/sales-orders/delete",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/erp/sales-orders/delete",
+      "notes": "POST Wave B dry-run for PHP so_delete draft-only. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "ERP customer master-save dry-run",
+      "url": "https://www.ecomae.com/erp/customers/master-save",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/erp/customers/master-save",
+      "notes": "POST Wave B dry-run for PHP customer_master_save. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "ERP aftersales RMA create dry-run",
+      "url": "https://www.ecomae.com/erp/aftersales/rma-create",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/erp/aftersales/rma-create",
+      "notes": "POST Wave B dry-run for PHP as_rma_create. Blockchain proof stays PHP. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "OMS refresh-item-cost dry-run",
+      "url": "https://www.ecomae.com/cp/orders/refresh-item-cost",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/orders/refresh-item-cost",
+      "notes": "POST Wave B dry-run for OMS refresh_item_cost. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "ERP purchase from-order dry-run",
+      "url": "https://www.ecomae.com/erp/purchases/from-order",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/erp/purchases/from-order",
+      "notes": "POST Wave B dry-run for PHP purchase_from_order. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "ERP currency set-rate dry-run",
+      "url": "https://www.ecomae.com/erp/currency/set-rate",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/erp/currency/set-rate",
+      "notes": "POST Wave B dry-run for PHP ccy_set_rate. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "ERP period soft-close dry-run",
+      "url": "https://www.ecomae.com/erp/periods/soft-close",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/erp/periods/soft-close",
+      "notes": "POST Wave B dry-run for PHP period_soft_close. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "ERP period lock dry-run",
+      "url": "https://www.ecomae.com/erp/periods/lock",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/erp/periods/lock",
+      "notes": "POST Wave B dry-run for PHP period_lock. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "ERP customer settlement dry-run",
+      "url": "https://www.ecomae.com/erp/customers/settlement",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/erp/customers/settlement",
+      "notes": "POST Wave B dry-run for PHP customer_settlement. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "ERP supplier settlement dry-run",
+      "url": "https://www.ecomae.com/erp/suppliers/settlement",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/erp/suppliers/settlement",
+      "notes": "POST Wave B dry-run for PHP supplier_settlement. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "ERP fiscal set-lock dry-run",
+      "url": "https://www.ecomae.com/erp/fiscal/set-lock",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/erp/fiscal/set-lock",
+      "notes": "POST Wave B dry-run for PHP fiscal_set_lock. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "ERP period reopen dry-run",
+      "url": "https://www.ecomae.com/erp/periods/reopen",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/erp/periods/reopen",
+      "notes": "POST Wave B dry-run for PHP period_reopen. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "ERP purchase adjust dry-run",
+      "url": "https://www.ecomae.com/erp/purchases/adjust",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/erp/purchases/adjust",
+      "notes": "POST Wave B dry-run for PHP purchase_adjustment. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "ERP order settlement dry-run",
+      "url": "https://www.ecomae.com/erp/orders/settlement",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/erp/orders/settlement",
+      "notes": "POST Wave B dry-run for PHP order_settlement. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "ERP suppliers sync dry-run",
+      "url": "https://www.ecomae.com/erp/suppliers/sync",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/erp/suppliers/sync",
+      "notes": "POST Wave B dry-run for PHP sync_suppliers. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "ERP GL post-sales dry-run",
+      "url": "https://www.ecomae.com/erp/gl-journals/post-sales",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/erp/gl-journals/post-sales",
+      "notes": "POST Wave B dry-run for PHP gl_post_sales. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "ERP GL sync-unposted dry-run",
+      "url": "https://www.ecomae.com/erp/gl-journals/sync-unposted",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/erp/gl-journals/sync-unposted",
+      "notes": "POST Wave B dry-run for PHP gl_sync_unposted. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "ERP workflow status dry-run",
+      "url": "https://www.ecomae.com/erp/workflow/status",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/erp/workflow/status",
+      "notes": "POST Wave B dry-run for PHP workflow_status. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "ERP workflow create dry-run",
+      "url": "https://www.ecomae.com/erp/workflow/create",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/erp/workflow/create",
+      "notes": "POST Wave B dry-run for PHP workflow_create. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "ERP marketing create dry-run",
+      "url": "https://www.ecomae.com/erp/marketing/create",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/erp/marketing/create",
+      "notes": "POST Wave B dry-run for PHP marketing_create. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "ERP subscription save dry-run",
+      "url": "https://www.ecomae.com/erp/subscriptions/save",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/erp/subscriptions/save",
+      "notes": "POST Wave B dry-run for PHP sub_save. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "ERP contract save dry-run",
+      "url": "https://www.ecomae.com/erp/contracts/save",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/erp/contracts/save",
+      "notes": "POST Wave B dry-run for PHP ctr_save. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "ERP WMS receive dry-run",
+      "url": "https://www.ecomae.com/erp/wms/receive",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/erp/wms/receive",
+      "notes": "POST Wave B dry-run for PHP wms_receive. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "ERP WMS location save dry-run",
+      "url": "https://www.ecomae.com/erp/wms/locations/save",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/erp/wms/locations/save",
+      "notes": "POST Wave B dry-run for PHP wms_location_save. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "ERP collections case save dry-run",
+      "url": "https://www.ecomae.com/erp/collections/cases/save",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/erp/collections/cases/save",
+      "notes": "POST Wave B dry-run for PHP coll_case_save. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "ERP procurement req save dry-run",
+      "url": "https://www.ecomae.com/erp/procurement/requisitions/save",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/erp/procurement/requisitions/save",
+      "notes": "POST Wave B dry-run for PHP proc_req_save. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "ERP fin period status dry-run",
+      "url": "https://www.ecomae.com/erp/fin/periods/status",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/erp/fin/periods/status",
+      "notes": "POST Wave B dry-run for PHP fin_period_status. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "ERP WMS wave create dry-run",
+      "url": "https://www.ecomae.com/erp/wms/waves/create",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/erp/wms/waves/create",
+      "notes": "POST Wave B dry-run for PHP wms_wave_create. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "ERP WMS wave release dry-run",
+      "url": "https://www.ecomae.com/erp/wms/waves/release",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/erp/wms/waves/release",
+      "notes": "POST Wave B dry-run for PHP wms_wave_release. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "ERP WMS work complete dry-run",
+      "url": "https://www.ecomae.com/erp/wms/work/complete",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/erp/wms/work/complete",
+      "notes": "POST Wave B dry-run for PHP wms_work_complete. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "ERP subscription status dry-run",
+      "url": "https://www.ecomae.com/erp/subscriptions/status",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/erp/subscriptions/status",
+      "notes": "POST Wave B dry-run for PHP sub_status. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "ERP collections case status dry-run",
+      "url": "https://www.ecomae.com/erp/collections/cases/status",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/erp/collections/cases/status",
+      "notes": "POST Wave B dry-run for PHP coll_case_status. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "ERP procurement req submit dry-run",
+      "url": "https://www.ecomae.com/erp/procurement/requisitions/submit",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/erp/procurement/requisitions/submit",
+      "notes": "POST Wave B dry-run for PHP proc_req_submit. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "ERP procurement req decision dry-run",
+      "url": "https://www.ecomae.com/erp/procurement/requisitions/decision",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/erp/procurement/requisitions/decision",
+      "notes": "POST Wave B dry-run for PHP proc_req_decision. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "ERP WMS location delete dry-run",
+      "url": "https://www.ecomae.com/erp/wms/locations/delete",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/erp/wms/locations/delete",
+      "notes": "POST Wave B dry-run for PHP wms_location_delete. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "On-premises health dry-run",
+      "url": "https://www.ecomae.com/erp/on-premises/health-dry-run",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/erp/on-premises/health-dry-run",
+      "notes": "POST Wave B dry-run for api/v1/on-premises/health.php. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "On-premises license activate dry-run",
+      "url": "https://www.ecomae.com/erp/on-premises/license-activate-dry-run",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/erp/on-premises/license-activate-dry-run",
+      "notes": "POST Wave B dry-run for api/v1/licenses/activate.php. writes=0 always; confirm_writes refused; cert signing stays PHP."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "On-premises licenses digest",
+      "url": "https://www.ecomae.com/erp/on-premises/licenses",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/erp/on-premises/licenses",
+      "notes": "GET read-only epc_onprem_licenses digest. notes/fingerprint/ip omitted; license keys masked. Not surface-digest exact-route until dual-sample."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "On-premises ERP parity board",
+      "url": "https://www.ecomae.com/migration/on-premises-parity",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/migration/on-premises-parity",
+      "notes": "Operator board: installer \u2260 SaaS ERP-only. cutoverAllowed=false; PHP pack/APIs authoritative until dual-sample."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "Storefront order send-message dry-run",
+      "url": "https://www.ecomae.com/storefront/orders/send-message",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/storefront/orders/send-message",
+      "notes": "POST Wave B dry-run for ajax_send_message.php customer path. Notify stays PHP. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "ERP sales order cancel dry-run",
+      "url": "https://www.ecomae.com/erp/sales-orders/cancel",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/erp/sales-orders/cancel",
+      "notes": "POST Wave B dry-run for PHP so_cancel. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "CP OMS delete-orders dry-run",
+      "url": "https://www.ecomae.com/cp/orders/delete",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/orders/delete",
+      "notes": "POST Wave B dry-run for ajax_delete_orders.php unpaid only. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "CP OMS add-comment dry-run",
+      "url": "https://www.ecomae.com/cp/orders/add-comment",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/orders/add-comment",
+      "notes": "POST Wave B dry-run for ajax_add_comment_to_log.php. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "CP OMS set-viewed dry-run",
+      "url": "https://www.ecomae.com/cp/orders/set-viewed",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/orders/set-viewed",
+      "notes": "POST Wave B dry-run for ajax_set_orders_viewed.php. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "ERP PO delete dry-run",
+      "url": "https://www.ecomae.com/erp/purchase-orders/delete",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/erp/purchase-orders/delete",
+      "notes": "POST Wave B dry-run for PHP po_delete draft-only. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "ERP inv_sync_warehouses dry-run",
+      "url": "https://www.ecomae.com/erp/ajax/inv-sync-warehouses",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/erp/ajax/inv-sync-warehouses",
+      "notes": "POST Wave B dry-run for PHP inv_sync_warehouses. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "ERP hr_emp_save dry-run",
+      "url": "https://www.ecomae.com/erp/ajax/hr-emp-save",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/erp/ajax/hr-emp-save",
+      "notes": "POST Wave B dry-run for PHP hr_emp_save. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "ERP einvoice_create dry-run",
+      "url": "https://www.ecomae.com/erp/ajax/einvoice-create",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/erp/ajax/einvoice-create",
+      "notes": "POST Wave B dry-run for PHP einvoice_create. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "ERP order_fulfillment_bootstrap dry-run",
+      "url": "https://www.ecomae.com/erp/ajax/order-fulfillment-bootstrap",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/erp/ajax/order-fulfillment-bootstrap",
+      "notes": "POST Wave B dry-run for PHP order_fulfillment_bootstrap. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "ERP mfgr_mrp_run dry-run",
+      "url": "https://www.ecomae.com/erp/ajax/mfgr-mrp-run",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/erp/ajax/mfgr-mrp-run",
+      "notes": "POST Wave B dry-run for PHP mfgr_mrp_run. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "ERP qm_ncr_create dry-run",
+      "url": "https://www.ecomae.com/erp/ajax/qm-ncr-create",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/erp/ajax/qm-ncr-create",
+      "notes": "POST Wave B dry-run for PHP qm_ncr_create. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "ERP rbac_priv_save dry-run",
+      "url": "https://www.ecomae.com/erp/ajax/rbac-priv-save",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/erp/ajax/rbac-priv-save",
+      "notes": "POST Wave B dry-run for PHP rbac_priv_save. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "ERP pm_save dry-run",
+      "url": "https://www.ecomae.com/erp/ajax/pm-save",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/erp/ajax/pm-save",
+      "notes": "POST Wave B dry-run for PHP pm_save. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "StorefrontNewsletterSubscribe dry-run",
+      "url": "https://www.ecomae.com/storefront/newsletter/subscribe",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/storefront/newsletter/subscribe",
+      "notes": "POST Wave B dry-run for PHP ajax_newsletter_subscribe.php. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "StorefrontAddEvaluation dry-run",
+      "url": "https://www.ecomae.com/storefront/evaluations/add",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/storefront/evaluations/add",
+      "notes": "POST Wave B dry-run for PHP content/shop/catalogue/evaluations/ajax_add_evaluation.php. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "StorefrontCreateOperation dry-run",
+      "url": "https://www.ecomae.com/storefront/finance/create-operation",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/storefront/finance/create-operation",
+      "notes": "POST Wave B dry-run for PHP content/shop/finance/ajax_create_operation.php. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "StorefrontCheckOrderNotAuthorized dry-run",
+      "url": "https://www.ecomae.com/storefront/orders/check-not-authorized",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/storefront/orders/check-not-authorized",
+      "notes": "POST Wave B dry-run for PHP content/shop/order_process/ajax_check_order_not_authorized.php. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "StorefrontSetUserOption dry-run",
+      "url": "https://www.ecomae.com/storefront/users/set-option",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/storefront/users/set-option",
+      "notes": "POST Wave B dry-run for PHP content/users/ajax_set_user_option.php. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "StorefrontSetMyCity dry-run",
+      "url": "https://www.ecomae.com/storefront/geo/set-my-city",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/storefront/geo/set-my-city",
+      "notes": "POST Wave B dry-run for PHP modules/shop/geo/ajax_set_my_city.php. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "StorefrontLoginSendCode dry-run",
+      "url": "https://www.ecomae.com/storefront/login/send-code",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/storefront/login/send-code",
+      "notes": "POST Wave B dry-run for PHP modules/login/code/frontAjax/ajax_sendCode.php. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "StorefrontLoginCheckCode dry-run",
+      "url": "https://www.ecomae.com/storefront/login/check-code",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/storefront/login/check-code",
+      "notes": "POST Wave B dry-run for PHP modules/login/code/frontAjax/ajax_checkCode.php. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "CpReturnAction dry-run",
+      "url": "https://www.ecomae.com/cp/returns/action",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/returns/action",
+      "notes": "POST Wave B dry-run for PHP cp/content/shop/returns/ajax/ajax_return_action.php. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "CpSetUsersVinViewed dry-run",
+      "url": "https://www.ecomae.com/cp/requests/set-vin-viewed",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/requests/set-vin-viewed",
+      "notes": "POST Wave B dry-run for PHP cp/content/requests/ajax_set_users_vin_viewed.php. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "CpSetUserComment dry-run",
+      "url": "https://www.ecomae.com/cp/users/set-comment",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/users/set-comment",
+      "notes": "POST Wave B dry-run for PHP cp/content/users/ajax_set_user_comment.php. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "CpPricesImportCsv dry-run",
+      "url": "https://www.ecomae.com/cp/prices/import-csv",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/prices/import-csv",
+      "notes": "POST Wave B dry-run for PHP cp/content/shop/prices_upload/ajax_5_import_csv_to_db.php. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "CpPricesCompleteSession dry-run",
+      "url": "https://www.ecomae.com/cp/prices/complete-session",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/prices/complete-session",
+      "notes": "POST Wave B dry-run for PHP cp/content/shop/prices_upload/ajax_6_complete_session.php. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "ERP ins_save dry-run",
+      "url": "https://www.ecomae.com/erp/ajax/ins-save",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/erp/ajax/ins-save",
+      "notes": "POST Wave B dry-run for PHP ins_save. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "ERP fin_alloc_run dry-run",
+      "url": "https://www.ecomae.com/erp/ajax/fin-alloc-run",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/erp/ajax/fin-alloc-run",
+      "notes": "POST Wave B dry-run for PHP fin_alloc_run. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "ERP docx_save dry-run",
+      "url": "https://www.ecomae.com/erp/ajax/docx-save",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/erp/ajax/docx-save",
+      "notes": "POST Wave B dry-run for PHP docx_save. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "CpCreateSitemap dry-run",
+      "url": "https://www.ecomae.com/cp/content/create-sitemap",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/content/create-sitemap",
+      "notes": "POST Wave B dry-run for PHP cp/content/content/ajax_create_sitemap.php. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "CpLangSaveTranslation dry-run",
+      "url": "https://www.ecomae.com/cp/lang/save-translation",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/lang/save-translation",
+      "notes": "POST Wave B dry-run for PHP cp/content/lang/ajax_save_string_translation.php. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "CpLangSaveDescription dry-run",
+      "url": "https://www.ecomae.com/cp/lang/save-description",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/lang/save-description",
+      "notes": "POST Wave B dry-run for PHP cp/content/lang/ajax_save_string_description.php. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "CpLangCreateString dry-run",
+      "url": "https://www.ecomae.com/cp/lang/create-string",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/lang/create-string",
+      "notes": "POST Wave B dry-run for PHP cp/content/lang/ajax_create_new_string.php. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "CpLangDeleteNotUsed dry-run",
+      "url": "https://www.ecomae.com/cp/lang/delete-not-used",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/lang/delete-not-used",
+      "notes": "POST Wave B dry-run for PHP cp/content/lang/ajax_delete_not_used_found.php. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "CpPacksDelete dry-run",
+      "url": "https://www.ecomae.com/cp/packs/delete",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/packs/delete",
+      "notes": "POST Wave B dry-run for PHP cp/content/packs_control/ajax_delete_pack.php. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "CpChannelsWrite dry-run",
+      "url": "https://www.ecomae.com/cp/channels/write",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/channels/write",
+      "notes": "POST Wave B dry-run for PHP cp/content/shop/channels/ajax_channels.php. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "CpLogisticsWrite dry-run",
+      "url": "https://www.ecomae.com/cp/logistics/write",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/logistics/write",
+      "notes": "POST Wave B dry-run for PHP cp/content/shop/logistics/ajax_logistics.php. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "BOS ajax write catalog",
+      "url": "https://www.ecomae.com/bos/ajax-writes/catalog",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/bos/ajax-writes/catalog",
+      "notes": "Full ajax_epc_bos.php inventory. cutoverAllowed=false; PHP authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "BOS ajax registry dry-run",
+      "url": "https://www.ecomae.com/bos/ajax-writes/dry-run/{action}",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/bos/ajax-writes/dry-run/{action}",
+      "notes": "POST Wave B registry dry-run for BOS ajax. writes=0; PHP authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "CP POS complete-sale dry-run",
+      "url": "https://www.ecomae.com/cp/pos/complete-sale",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/pos/complete-sale",
+      "notes": "POST Wave B dry-run for ajax_pos.php complete_sale. writes=0; PHP authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "CP portal save-settings dry-run",
+      "url": "https://www.ecomae.com/cp/portal/save-settings",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/portal/save-settings",
+      "notes": "POST Wave B dry-run for ajax_portal.php save_settings. writes=0; PHP authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "CP module ajax write catalog",
+      "url": "https://www.ecomae.com/cp/module-ajax/writes/catalog",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/module-ajax/writes/catalog",
+      "notes": "Wave C\u2013F CP/storefront module ajax \u002B classic form inventory (394 actions). cutoverAllowed=false; PHP authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "CP module ajax registry dry-run",
+      "url": "https://www.ecomae.com/cp/module-ajax/dry-run/{module}/{action}",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/module-ajax/dry-run/{module}/{action}",
+      "notes": "POST Wave C registry dry-run for CP module ajax. writes=0; PHP authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "CP module ajax dedicated dry-run",
+      "url": "https://www.ecomae.com/cp/module-ajax/{module}/{action}/dry-run",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/module-ajax/{module}/{action}/dry-run",
+      "notes": "POST Wave C dedicated dry-run for CP module ajax writes. writes=0; PHP authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "On-premises activate-license CLI dry-run",
+      "url": "https://www.ecomae.com/erp/on-premises/activate-license-cli-dry-run",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/erp/on-premises/activate-license-cli-dry-run",
+      "notes": "POST Wave B dry-run for deploy/on-premises/activate-license.php. writes=0; PHP authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "ERP ajax_erp write catalog",
+      "url": "https://www.ecomae.com/erp/ajax-writes/catalog",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/erp/ajax-writes/catalog",
+      "notes": "Full ajax_erp.php inventory (dedicated\u002Bregistry). cutoverAllowed=false; PHP authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "ERP ajax_erp registry dry-run",
+      "url": "https://www.ecomae.com/erp/ajax-writes/dry-run/{action}",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/erp/ajax-writes/dry-run/{action}",
+      "notes": "POST Wave B registry dry-run for any catalogued ajax_erp action. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "On-premises setup-wizard dry-run",
+      "url": "https://www.ecomae.com/erp/on-premises/setup-wizard-dry-run",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/erp/on-premises/setup-wizard-dry-run",
+      "notes": "POST Wave B dry-run for deploy/on-premises/setup-wizard.php. writes=0; scaffold deploy/on-premises-aspnet/; PHP authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "On-premises backup dry-run",
+      "url": "https://www.ecomae.com/erp/on-premises/backup-dry-run",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/erp/on-premises/backup-dry-run",
+      "notes": "POST Wave B dry-run for deploy/on-premises/backup.php. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "ERP edit_lock_acquire dry-run",
+      "url": "https://www.ecomae.com/erp/ajax/edit-lock-acquire",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/erp/ajax/edit-lock-acquire",
+      "notes": "POST Wave B dry-run for PHP edit_lock_acquire. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "ERP bos_wf_decide dry-run",
+      "url": "https://www.ecomae.com/erp/ajax/bos-wf-decide",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/erp/ajax/bos-wf-decide",
+      "notes": "POST Wave B dry-run for PHP bos_wf_decide. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "ERP bos_compliance_file dry-run",
+      "url": "https://www.ecomae.com/erp/ajax/bos-compliance-file",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/erp/ajax/bos-compliance-file",
+      "notes": "POST Wave B dry-run for PHP bos_compliance_file. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "ERP opl_params_save dry-run",
+      "url": "https://www.ecomae.com/erp/ajax/opl-params-save",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/erp/ajax/opl-params-save",
+      "notes": "POST Wave B dry-run for PHP opl_params_save. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "ERP pf_case_start dry-run",
+      "url": "https://www.ecomae.com/erp/ajax/pf-case-start",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/erp/ajax/pf-case-start",
+      "notes": "POST Wave B dry-run for PHP pf_case_start. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "ERP sub_generate dry-run",
+      "url": "https://www.ecomae.com/erp/ajax/sub-generate",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/erp/ajax/sub-generate",
+      "notes": "POST Wave B dry-run for PHP sub_generate. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "ERP coll_dunning_run dry-run",
+      "url": "https://www.ecomae.com/erp/ajax/coll-dunning-run",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/erp/ajax/coll-dunning-run",
+      "notes": "POST Wave B dry-run for PHP coll_dunning_run. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "ERP proc_req_convert dry-run",
+      "url": "https://www.ecomae.com/erp/ajax/proc-req-convert",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/erp/ajax/proc-req-convert",
+      "notes": "POST Wave B dry-run for PHP proc_req_convert. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "ERP bank_reconcile dry-run",
+      "url": "https://www.ecomae.com/erp/ajax/bank-reconcile",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/erp/ajax/bank-reconcile",
+      "notes": "POST Wave B dry-run for PHP bank_reconcile. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "ERP aml_kyc_save dry-run",
+      "url": "https://www.ecomae.com/erp/ajax/aml-kyc-save",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/erp/ajax/aml-kyc-save",
+      "notes": "POST Wave B dry-run for PHP aml_kyc_save. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "ERP bplan_save dry-run",
+      "url": "https://www.ecomae.com/erp/ajax/bplan-save",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/erp/ajax/bplan-save",
+      "notes": "POST Wave B dry-run for PHP bplan_save. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "ERP supplier_payment dry-run",
+      "url": "https://www.ecomae.com/erp/ajax/supplier-payment",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/erp/ajax/supplier-payment",
+      "notes": "POST Wave B dry-run for PHP supplier_payment. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "ERP fx_post_revaluation dry-run",
+      "url": "https://www.ecomae.com/erp/ajax/fx-post-revaluation",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/erp/ajax/fx-post-revaluation",
+      "notes": "POST Wave B dry-run for PHP fx_post_revaluation. writes=0 always; confirm_writes refused; PHP remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "Marketing platform overview",
+      "url": "https://www.ecomae.com/marketing/platform",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/marketing/platform",
+      "notes": "Blazor scaffold of PHP /platform overview (hero \u002B model cards \u002B onboarding). Live /platform stays PHP-primary until dual-sample."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "Marketing about",
+      "url": "https://www.ecomae.com/marketing/about",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/marketing/about",
+      "notes": "Blazor scaffold of PHP /platform/about (hero \u002B who-we-are \u002B EW Group). Live /platform/about stays PHP-primary until dual-sample."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "Marketing FAQ overview",
+      "url": "https://www.ecomae.com/marketing/faq",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/marketing/faq",
+      "notes": "Blazor FAQ overview scaffold of PHP /platform/faq. Full searchable modules stay PHP-primary until dual-sample."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "Marketing pricing overview",
+      "url": "https://www.ecomae.com/marketing/pricing",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/marketing/pricing",
+      "notes": "Blazor pricing overview scaffold of PHP /platform/pricing. Plan grid \u002B benchmarks stay PHP-primary until dual-sample."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "Marketing contact",
+      "url": "https://www.ecomae.com/marketing/contact",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/marketing/contact",
+      "notes": "Blazor contact scaffold of PHP /platform/contact. Enquiry form POST stays PHP-primary until dual-sample."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "Marketing industries overview",
+      "url": "https://www.ecomae.com/marketing/industries",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/marketing/industries",
+      "notes": "Blazor industries overview scaffold of PHP /platform/industries. Full vertical grid stays PHP-primary until dual-sample."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "Marketing capabilities overview",
+      "url": "https://www.ecomae.com/marketing/capabilities",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/marketing/capabilities",
+      "notes": "Blazor capabilities overview scaffold of PHP /platform/capabilities. Full catalog stays PHP-primary until dual-sample."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "Marketing demo overview",
+      "url": "https://www.ecomae.com/marketing/demo",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/marketing/demo",
+      "notes": "Blazor demo overview scaffold of PHP /platform/demo. Layla wizard stays PHP-primary until dual-sample."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "Marketing free-tools hub",
+      "url": "https://www.ecomae.com/marketing/free-tools",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/marketing/free-tools",
+      "notes": "Blazor free-tools hub scaffold of PHP /platform/free-tools. Per-tool UIs stay PHP-primary until dual-sample."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "Marketing platform-guides",
+      "url": "https://www.ecomae.com/marketing/platform-guides",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/marketing/platform-guides",
+      "notes": "Blazor platform-guides overview scaffold of PHP /platform/platform-guides. Area sections stay PHP-primary until dual-sample."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "Marketing customer-results",
+      "url": "https://www.ecomae.com/marketing/customer-results",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/marketing/customer-results",
+      "notes": "Blazor customer-results overview scaffold of PHP /platform/customer-results. Tenant showcase stays PHP-primary until dual-sample."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "Marketing business-continuity",
+      "url": "https://www.ecomae.com/marketing/business-continuity",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/marketing/business-continuity",
+      "notes": "Blazor business-continuity overview scaffold of PHP /platform/business-continuity. Body section stays PHP-primary until dual-sample."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "Marketing API services",
+      "url": "https://www.ecomae.com/marketing/api-services",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/marketing/api-services",
+      "notes": "Blazor API-services overview scaffold of PHP /platform/api-services. Catalog/Price PRO docs stay PHP-primary until dual-sample."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "Marketing API documentation",
+      "url": "https://www.ecomae.com/marketing/api-documentation",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/marketing/api-documentation",
+      "notes": "Blazor API-documentation overview scaffold of PHP /platform/api-documentation. Endpoint table stays PHP-primary until dual-sample."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "Marketing Auto Price AI",
+      "url": "https://www.ecomae.com/marketing/auto-price-ai",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/marketing/auto-price-ai",
+      "notes": "Blazor Auto Price AI overview scaffold of PHP /platform/auto-price-ai. Operator guide stays PHP-primary until dual-sample."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "Marketing compare",
+      "url": "https://www.ecomae.com/marketing/compare",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/marketing/compare",
+      "notes": "Blazor compare overview scaffold of PHP /compare. Competitor tables stay PHP-primary until dual-sample."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "Marketing brochure",
+      "url": "https://www.ecomae.com/marketing/brochure",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/marketing/brochure",
+      "notes": "Blazor brochure overview scaffold of PHP /brochure. Printable PDF body stays PHP-primary until dual-sample."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "Marketing legal",
+      "url": "https://www.ecomae.com/marketing/legal",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/marketing/legal",
+      "notes": "Blazor legal overview scaffold of PHP /legal. Per-policy articles stay PHP-primary until dual-sample."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "Marketing BOS knowledge",
+      "url": "https://www.ecomae.com/marketing/bos",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/marketing/bos",
+      "notes": "Blazor marketing /bos overview scaffold (not product /BOS/). Article pages stay PHP-primary until dual-sample."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "Marketing blockchain",
+      "url": "https://www.ecomae.com/marketing/blockchain",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/marketing/blockchain",
+      "notes": "Blazor blockchain overview scaffold of PHP /blockchain. Layer diagram/verify stay PHP-primary until dual-sample."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "Marketing documentation",
+      "url": "https://www.ecomae.com/marketing/documentation",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/marketing/documentation",
+      "notes": "Blazor documentation overview scaffold of PHP /documentation. Article tree stays PHP-primary until dual-sample."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "Marketing solutions",
+      "url": "https://www.ecomae.com/marketing/solutions",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/marketing/solutions",
+      "notes": "Blazor solutions overview scaffold of PHP /solutions. Per-slug landings stay PHP-primary until dual-sample."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "Marketing privacy",
+      "url": "https://www.ecomae.com/marketing/privacy",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/marketing/privacy",
+      "notes": "Blazor privacy overview scaffold of PHP /privacy. Full policy body stays PHP-primary until dual-sample."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "Marketing terms",
+      "url": "https://www.ecomae.com/marketing/terms",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/marketing/terms",
+      "notes": "Blazor terms overview scaffold of PHP /terms. Full policy body stays PHP-primary until dual-sample."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "Marketing cookie policy",
+      "url": "https://www.ecomae.com/marketing/cookie-policy",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/marketing/cookie-policy",
+      "notes": "Blazor cookie-policy overview scaffold of PHP /cookie-policy. Full policy body stays PHP-primary until dual-sample."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "Marketing security policy",
+      "url": "https://www.ecomae.com/marketing/security-policy",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/marketing/security-policy",
+      "notes": "Blazor security-policy overview scaffold of PHP /security-policy. Full policy body stays PHP-primary until dual-sample."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "Marketing right to use",
+      "url": "https://www.ecomae.com/marketing/right-to-use",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/marketing/right-to-use",
+      "notes": "Blazor right-to-use overview scaffold of PHP /right-to-use. Full policy body stays PHP-primary until dual-sample."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "Marketing trademark",
+      "url": "https://www.ecomae.com/marketing/trademark",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/marketing/trademark",
+      "notes": "Blazor trademark overview scaffold of PHP /trademark. Full policy body stays PHP-primary until dual-sample."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "Marketing copyright",
+      "url": "https://www.ecomae.com/marketing/copyright",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/marketing/copyright",
+      "notes": "Blazor copyright overview scaffold of PHP /copyright. Full policy body stays PHP-primary until dual-sample."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "Marketing data protection",
+      "url": "https://www.ecomae.com/marketing/data-protection",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/marketing/data-protection",
+      "notes": "Blazor data-protection overview scaffold of PHP /data-protection. Full policy body stays PHP-primary until dual-sample."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "Marketing acceptable use",
+      "url": "https://www.ecomae.com/marketing/acceptable-use",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/marketing/acceptable-use",
+      "notes": "Blazor acceptable-use overview scaffold of PHP /acceptable-use. Full policy body stays PHP-primary until dual-sample."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "Marketing confidentiality",
+      "url": "https://www.ecomae.com/marketing/confidentiality",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/marketing/confidentiality",
+      "notes": "Blazor confidentiality overview scaffold of PHP /confidentiality. Full policy body stays PHP-primary until dual-sample."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "Marketing intellectual property",
+      "url": "https://www.ecomae.com/marketing/intellectual-property",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/marketing/intellectual-property",
+      "notes": "Blazor intellectual-property overview scaffold of PHP /intellectual-property. Full policy body stays PHP-primary until dual-sample."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "Marketing blockchain disclaimer",
+      "url": "https://www.ecomae.com/marketing/blockchain-disclaimer",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/marketing/blockchain-disclaimer",
+      "notes": "Blazor blockchain-disclaimer overview scaffold of PHP /blockchain-disclaimer. Full policy body stays PHP-primary until dual-sample."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "Marketing dmca",
+      "url": "https://www.ecomae.com/marketing/dmca",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/marketing/dmca",
+      "notes": "Blazor dmca overview scaffold of PHP /dmca. Full policy body stays PHP-primary until dual-sample."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "Marketing brochure CP",
+      "url": "https://www.ecomae.com/marketing/brochure-cp",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/marketing/brochure-cp",
+      "notes": "Blazor full CP brochure scaffold of PHP /brochure/cp. Full brochure body stays PHP-primary until dual-sample."
+    },
+    {
+      "hostClass": "aspnet-presentation-preview",
+      "surface": "ERP On-Premises overview",
+      "url": "https://www.ecomae.com/erp/on-premises-app",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/erp/on-premises-app",
+      "notes": "Blazor overview of PHP erp_tabs_on_premises.php. Installer pack \u002B license/health APIs stay PHP-primary until dual-sample. \u2260 SaaS ERP-only tenant mode."
     },
     {
       "hostClass": "aspnet-presentation-preview",
@@ -1246,217 +2942,433 @@
       "hostClass": "industry-frontend",
       "surface": "Healthcare frontend",
       "url": "https://healthcare.ecomae.com/",
-      "stackToday": "php",
+      "stackToday": "aspnet",
       "aspNetRouteHint": "/",
-      "notes": "Industry subdomain showcase storefront."
+      "notes": "Industry showcase ASP.NET-primary storefront."
     },
     {
       "hostClass": "industry-frontend",
       "surface": "Healthcare CP",
-      "url": "https://healthcare.ecomae.com/CP/",
-      "stackToday": "php",
+      "url": "https://healthcare.ecomae.com/cp",
+      "stackToday": "aspnet",
       "aspNetRouteHint": "/cp",
-      "notes": "Industry CP chrome (PHP)."
+      "notes": "Industry CP ASP.NET shell; /bos 404."
     },
     {
       "hostClass": "industry-frontend",
       "surface": "Healthcare ERP",
-      "url": "https://healthcare.ecomae.com/ERP/",
-      "stackToday": "php",
+      "url": "https://healthcare.ecomae.com/erp",
+      "stackToday": "aspnet",
       "aspNetRouteHint": "/erp",
-      "notes": "Industry ERP chrome (PHP)."
+      "notes": "Industry ERP ASP.NET shell."
     },
     {
       "hostClass": "industry-frontend",
       "surface": "Home \u0026 living frontend",
       "url": "https://homeliving.ecomae.com/",
-      "stackToday": "php",
+      "stackToday": "aspnet",
       "aspNetRouteHint": "/",
-      "notes": "Industry subdomain showcase storefront."
+      "notes": "Industry showcase ASP.NET-primary storefront."
     },
     {
       "hostClass": "industry-frontend",
       "surface": "Retail frontend",
       "url": "https://retail.ecomae.com/",
-      "stackToday": "php",
+      "stackToday": "aspnet",
       "aspNetRouteHint": "/",
-      "notes": "Industry subdomain showcase storefront."
+      "notes": "Industry showcase ASP.NET-primary storefront."
     },
     {
       "hostClass": "industry-frontend",
       "surface": "Fashion frontend",
       "url": "https://fashion.ecomae.com/",
-      "stackToday": "php",
+      "stackToday": "aspnet",
       "aspNetRouteHint": "/",
-      "notes": "Industry subdomain showcase storefront."
+      "notes": "Industry showcase ASP.NET-primary storefront."
     },
     {
       "hostClass": "industry-frontend",
       "surface": "Jewellery frontend",
       "url": "https://jewellery.ecomae.com/",
-      "stackToday": "php",
+      "stackToday": "aspnet",
       "aspNetRouteHint": "/",
-      "notes": "Industry subdomain showcase storefront."
+      "notes": "Industry showcase ASP.NET-primary storefront."
     },
     {
       "hostClass": "industry-frontend",
       "surface": "Food frontend",
       "url": "https://food.ecomae.com/",
-      "stackToday": "php",
+      "stackToday": "aspnet",
       "aspNetRouteHint": "/",
-      "notes": "Industry subdomain showcase storefront."
+      "notes": "Industry showcase ASP.NET-primary storefront."
     },
     {
       "hostClass": "industry-frontend",
       "surface": "Beauty frontend",
       "url": "https://beauty.ecomae.com/",
-      "stackToday": "php",
+      "stackToday": "aspnet",
       "aspNetRouteHint": "/",
-      "notes": "Industry subdomain showcase storefront."
+      "notes": "Industry showcase ASP.NET-primary storefront."
     },
     {
       "hostClass": "industry-frontend",
       "surface": "Sports frontend",
       "url": "https://sports.ecomae.com/",
-      "stackToday": "php",
+      "stackToday": "aspnet",
       "aspNetRouteHint": "/",
-      "notes": "Industry subdomain showcase storefront."
+      "notes": "Industry showcase ASP.NET-primary storefront."
     },
     {
       "hostClass": "industry-frontend",
       "surface": "Pet frontend",
       "url": "https://pet.ecomae.com/",
-      "stackToday": "php",
+      "stackToday": "aspnet",
       "aspNetRouteHint": "/",
-      "notes": "Industry subdomain showcase storefront."
+      "notes": "Industry showcase ASP.NET-primary storefront."
+    },
+    {
+      "hostClass": "industry-frontend",
+      "surface": "Automotive frontend",
+      "url": "https://automotive.ecomae.com/",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/",
+      "notes": "Industry showcase ASP.NET-primary storefront."
+    },
+    {
+      "hostClass": "industry-frontend",
+      "surface": "Construction frontend",
+      "url": "https://construction.ecomae.com/",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/",
+      "notes": "Industry showcase ASP.NET-primary storefront."
+    },
+    {
+      "hostClass": "industry-frontend",
+      "surface": "Wholesale \u0026 trading frontend",
+      "url": "https://wholesale.ecomae.com/",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/",
+      "notes": "Industry showcase ASP.NET-primary (trading via wholesale)."
+    },
+    {
+      "hostClass": "industry-frontend",
+      "surface": "Electronics frontend",
+      "url": "https://electronics.ecomae.com/",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/",
+      "notes": "Industry showcase ASP.NET-primary storefront."
+    },
+    {
+      "hostClass": "industry-frontend",
+      "surface": "Manufacturing frontend",
+      "url": "https://manufacturing.ecomae.com/",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/",
+      "notes": "Industry showcase ASP.NET-primary storefront."
+    },
+    {
+      "hostClass": "industry-frontend",
+      "surface": "Hospitality frontend",
+      "url": "https://hospitality.ecomae.com/",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/",
+      "notes": "Industry showcase ASP.NET-primary storefront."
+    },
+    {
+      "hostClass": "industry-frontend",
+      "surface": "Education frontend",
+      "url": "https://education.ecomae.com/",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/",
+      "notes": "Industry showcase ASP.NET-primary storefront."
+    },
+    {
+      "hostClass": "industry-frontend",
+      "surface": "Energy frontend",
+      "url": "https://energy.ecomae.com/",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/",
+      "notes": "Industry showcase ASP.NET-primary storefront."
+    },
+    {
+      "hostClass": "industry-frontend",
+      "surface": "Logistics frontend",
+      "url": "https://logistics.ecomae.com/",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/",
+      "notes": "Industry showcase ASP.NET-primary storefront."
+    },
+    {
+      "hostClass": "industry-frontend",
+      "surface": "Finance frontend",
+      "url": "https://finance.ecomae.com/",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/",
+      "notes": "Industry showcase ASP.NET-primary storefront."
+    },
+    {
+      "hostClass": "industry-frontend",
+      "surface": "Technology frontend",
+      "url": "https://technology.ecomae.com/",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/",
+      "notes": "Industry showcase ASP.NET-primary storefront."
+    },
+    {
+      "hostClass": "industry-frontend",
+      "surface": "Media frontend",
+      "url": "https://media.ecomae.com/",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/",
+      "notes": "Industry showcase ASP.NET-primary storefront."
+    },
+    {
+      "hostClass": "industry-frontend",
+      "surface": "Professional frontend",
+      "url": "https://professional.ecomae.com/",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/",
+      "notes": "Industry showcase ASP.NET-primary storefront."
+    },
+    {
+      "hostClass": "industry-frontend",
+      "surface": "Agriculture frontend",
+      "url": "https://agriculture.ecomae.com/",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/",
+      "notes": "Industry showcase ASP.NET-primary storefront."
+    },
+    {
+      "hostClass": "industry-frontend",
+      "surface": "Cleaning frontend",
+      "url": "https://cleaning.ecomae.com/",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/",
+      "notes": "Industry showcase ASP.NET-primary storefront."
+    },
+    {
+      "hostClass": "industry-frontend",
+      "surface": "Nonprofit frontend",
+      "url": "https://nonprofit.ecomae.com/",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/",
+      "notes": "Industry showcase ASP.NET-primary storefront."
+    },
+    {
+      "hostClass": "industry-frontend",
+      "surface": "Printing frontend",
+      "url": "https://printing.ecomae.com/",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/",
+      "notes": "Industry showcase ASP.NET-primary storefront."
+    },
+    {
+      "hostClass": "industry-frontend",
+      "surface": "Rental frontend",
+      "url": "https://rental.ecomae.com/",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/",
+      "notes": "Industry showcase ASP.NET-primary storefront."
+    },
+    {
+      "hostClass": "industry-frontend",
+      "surface": "Security frontend",
+      "url": "https://security.ecomae.com/",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/",
+      "notes": "Industry showcase ASP.NET-primary storefront."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "ASP.NET industries preview",
+      "url": "https://www.ecomae.com/marketing/industries",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/marketing/industries",
+      "notes": "www-only Blazor industries overview. Industry vhosts ASP.NET-primary for / /cp /erp when classic-entry installed."
+    },
+    {
+      "hostClass": "lifeos",
+      "surface": "LifeOS home",
+      "url": "https://lifeos.ecomae.com/",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/",
+      "notes": "LifeOS ASP.NET-primary product host."
+    },
+    {
+      "hostClass": "lifeos",
+      "surface": "LifeOS www alias",
+      "url": "https://www.lifeos.ecomae.com/",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/",
+      "notes": "www alias of LifeOS product host."
+    },
+    {
+      "hostClass": "lifeos",
+      "surface": "LifeOS app shell",
+      "url": "https://lifeos.ecomae.com/lifeos",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/lifeos",
+      "notes": "LifeOS product shell on dedicated host."
+    },
+    {
+      "hostClass": "lifeos",
+      "surface": "LifeOS on Super CP",
+      "url": "https://www.ecomae.com/lifeos",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/lifeos",
+      "notes": "LifeOS entry on Super-CP host (classic-entry)."
     },
     {
       "hostClass": "tenant",
       "surface": "Electronicae frontend",
       "url": "https://www.electronicae.com/",
-      "stackToday": "php",
+      "stackToday": "aspnet",
       "aspNetRouteHint": "/",
-      "notes": "Dedicated tenant storefront."
+      "notes": "ASP.NET-primary storefront. PHP compare only via /php-reference/home."
     },
     {
       "hostClass": "tenant",
       "surface": "Electronicae CP",
-      "url": "https://www.electronicae.com/CP/",
-      "stackToday": "php",
+      "url": "https://www.electronicae.com/cp",
+      "stackToday": "aspnet",
       "aspNetRouteHint": "/cp",
-      "notes": "Tenant CP."
+      "notes": "ASP.NET-primary CP. PHP compare only via /php-reference/cp."
     },
     {
       "hostClass": "tenant",
       "surface": "Electronicae ERP",
-      "url": "https://www.electronicae.com/ERP/",
-      "stackToday": "php",
+      "url": "https://www.electronicae.com/erp",
+      "stackToday": "aspnet",
       "aspNetRouteHint": "/erp",
-      "notes": "Tenant ERP."
+      "notes": "ASP.NET-primary ERP. PHP compare only via /php-reference/erp."
     },
     {
       "hostClass": "tenant",
       "surface": "Style N Look frontend",
       "url": "https://www.stylenlook.com/",
-      "stackToday": "php",
+      "stackToday": "aspnet",
       "aspNetRouteHint": "/",
-      "notes": "Dedicated tenant storefront."
+      "notes": "ASP.NET-primary storefront. PHP compare only via /php-reference/home."
     },
     {
       "hostClass": "tenant",
       "surface": "Style N Look CP",
-      "url": "https://www.stylenlook.com/CP/",
-      "stackToday": "php",
+      "url": "https://www.stylenlook.com/cp",
+      "stackToday": "aspnet",
       "aspNetRouteHint": "/cp",
-      "notes": "Tenant CP."
+      "notes": "ASP.NET-primary CP. PHP compare only via /php-reference/cp."
     },
     {
       "hostClass": "tenant",
       "surface": "Style N Look ERP",
-      "url": "https://www.stylenlook.com/ERP/",
-      "stackToday": "php",
+      "url": "https://www.stylenlook.com/erp",
+      "stackToday": "aspnet",
       "aspNetRouteHint": "/erp",
-      "notes": "Tenant ERP."
+      "notes": "ASP.NET-primary ERP. PHP compare only via /php-reference/erp."
     },
     {
       "hostClass": "tenant",
       "surface": "Jewellery Trend frontend",
       "url": "https://www.thejewellerytrend.com/",
-      "stackToday": "php",
+      "stackToday": "aspnet",
       "aspNetRouteHint": "/",
-      "notes": "Dedicated tenant storefront."
+      "notes": "ASP.NET-primary storefront. PHP compare only via /php-reference/home."
     },
     {
       "hostClass": "tenant",
       "surface": "Jewellery Trend CP",
-      "url": "https://www.thejewellerytrend.com/CP/",
-      "stackToday": "php",
+      "url": "https://www.thejewellerytrend.com/cp",
+      "stackToday": "aspnet",
       "aspNetRouteHint": "/cp",
-      "notes": "Tenant CP."
+      "notes": "ASP.NET-primary CP. PHP compare only via /php-reference/cp."
     },
     {
       "hostClass": "tenant",
       "surface": "Jewellery Trend ERP",
-      "url": "https://www.thejewellerytrend.com/ERP/",
-      "stackToday": "php",
+      "url": "https://www.thejewellerytrend.com/erp",
+      "stackToday": "aspnet",
       "aspNetRouteHint": "/erp",
-      "notes": "Tenant ERP."
+      "notes": "ASP.NET-primary ERP. PHP compare only via /php-reference/erp."
     },
     {
       "hostClass": "tenant",
-      "surface": "Taxofin CA frontend",
+      "surface": "Taxofinca frontend",
       "url": "https://www.taxofinca.com/",
-      "stackToday": "php",
+      "stackToday": "aspnet",
       "aspNetRouteHint": "/",
-      "notes": "Dedicated tenant storefront."
+      "notes": "ASP.NET-primary storefront. PHP compare only via /php-reference/home."
     },
     {
       "hostClass": "tenant",
-      "surface": "Taxofin CA CP",
-      "url": "https://www.taxofinca.com/CP/",
-      "stackToday": "php",
+      "surface": "Taxofinca CP",
+      "url": "https://www.taxofinca.com/cp",
+      "stackToday": "aspnet",
       "aspNetRouteHint": "/cp",
-      "notes": "Tenant CP."
+      "notes": "ASP.NET-primary CP. PHP compare only via /php-reference/cp."
     },
     {
       "hostClass": "tenant",
-      "surface": "Taxofin CA ERP",
-      "url": "https://www.taxofinca.com/ERP/",
-      "stackToday": "php",
+      "surface": "Taxofinca ERP",
+      "url": "https://www.taxofinca.com/erp",
+      "stackToday": "aspnet",
       "aspNetRouteHint": "/erp",
-      "notes": "Tenant ERP."
+      "notes": "ASP.NET-primary ERP. PHP compare only via /php-reference/erp."
     },
     {
       "hostClass": "tenant",
       "surface": "ePartsCart frontend",
       "url": "https://epartscart.com/",
-      "stackToday": "php",
+      "stackToday": "aspnet",
       "aspNetRouteHint": "/",
-      "notes": "Live auto-parts tenant/storefront host."
+      "notes": "ASP.NET-primary storefront. PHP compare only via /php-reference/home."
     },
     {
       "hostClass": "tenant",
       "surface": "ePartsCart CP",
-      "url": "https://epartscart.com/CP/",
-      "stackToday": "php",
+      "url": "https://epartscart.com/cp",
+      "stackToday": "aspnet",
       "aspNetRouteHint": "/cp",
-      "notes": "Tenant CP."
+      "notes": "ASP.NET-primary CP. PHP compare only via /php-reference/cp."
     },
     {
       "hostClass": "tenant",
       "surface": "ePartsCart ERP",
-      "url": "https://epartscart.com/ERP/",
-      "stackToday": "php",
+      "url": "https://epartscart.com/erp",
+      "stackToday": "aspnet",
       "aspNetRouteHint": "/erp",
-      "notes": "Tenant ERP."
+      "notes": "ASP.NET-primary ERP. PHP compare only via /php-reference/erp."
     },
     {
       "hostClass": "tenant",
       "surface": "ePartsCart www frontend",
       "url": "https://www.epartscart.com/",
-      "stackToday": "php",
+      "stackToday": "aspnet",
       "aspNetRouteHint": "/",
-      "notes": "www alias for ePartsCart."
+      "notes": "www alias \u2014 ASP.NET-primary storefront."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "Live tenant presentation lock",
+      "url": "https://www.ecomae.com/migration/live-tenant-presentation-lock",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/migration/live-tenant-presentation-lock",
+      "notes": "ALL named product tenants ASP.NET-primary; PHP only /php-reference/*. cutoverAllowed=false (reference keep)."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "All sites ASP.NET-primary",
+      "url": "https://www.ecomae.com/migration/all-sites-aspnet-primary",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/migration/all-sites-aspnet-primary",
+      "notes": "Super CP \u002B tenants \u002B industry \u002B LifeOS ASP.NET-primary lock. FORCE_LIVE_ALL_SITES on CloudPanel root."
+    },
+    {
+      "hostClass": "aspnet-diagnostics",
+      "surface": "ASP.NET zero-PHP path",
+      "url": "https://www.ecomae.com/migration/aspnet-zero-php-path",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/migration/aspnet-zero-php-path",
+      "notes": "Operator board: ASP.NET product primary; PHP reference retained. cutoverAllowed=false."
     },
     {
       "hostClass": "aspnet-exact-route-shadow-live",
@@ -2060,6 +3972,14 @@
     },
     {
       "hostClass": "aspnet-exact-route-shadow-live",
+      "surface": "CP abandoned-carts digest",
+      "url": "https://www.ecomae.com/cp/abandoned-carts",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/abandoned-carts",
+      "notes": "Wired exact-route nginx shadow (unauth 401 when installed). Part of surface digests 128/128 batch."
+    },
+    {
+      "hostClass": "aspnet-exact-route-shadow-live",
       "surface": "CP quote-requests digest",
       "url": "https://www.ecomae.com/cp/quote-requests",
       "stackToday": "aspnet",
@@ -2120,7 +4040,7 @@
       "url": "https://www.ecomae.com/cp/portal-settings",
       "stackToday": "aspnet",
       "aspNetRouteHint": "/cp/portal-settings",
-      "notes": "Wired exact-route nginx shadow (unauth 401 when installed). Part of surface digests 110/110 batch."
+      "notes": "Wired exact-route nginx shadow (unauth 401 when installed). Part of surface digests 127/127 batch."
     },
     {
       "hostClass": "aspnet-exact-route-shadow-live",
@@ -2128,7 +4048,143 @@
       "url": "https://www.ecomae.com/cp/data-migrations",
       "stackToday": "aspnet",
       "aspNetRouteHint": "/cp/data-migrations",
-      "notes": "Wired exact-route nginx shadow (unauth 401 when installed). Part of surface digests 110/110 batch."
+      "notes": "Wired exact-route nginx shadow (unauth 401 when installed). Part of surface digests 127/127 batch."
+    },
+    {
+      "hostClass": "aspnet-exact-route-shadow-live",
+      "surface": "CP geo-regions digest",
+      "url": "https://www.ecomae.com/cp/geo-regions",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/geo-regions",
+      "notes": "Wired exact-route nginx shadow (unauth 401 when installed). Part of surface digests 127/127 batch."
+    },
+    {
+      "hostClass": "aspnet-exact-route-shadow-live",
+      "surface": "CP product-filters digest",
+      "url": "https://www.ecomae.com/cp/product-filters",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/product-filters",
+      "notes": "Wired exact-route nginx shadow (unauth 401 when installed). Part of surface digests 127/127 batch."
+    },
+    {
+      "hostClass": "aspnet-exact-route-shadow-live",
+      "surface": "CP search-tabs digest",
+      "url": "https://www.ecomae.com/cp/search-tabs",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/search-tabs",
+      "notes": "Wired exact-route nginx shadow (unauth 401 when installed). Part of surface digests 127/127 batch."
+    },
+    {
+      "hostClass": "aspnet-exact-route-shadow-live",
+      "surface": "CP system-requests digest",
+      "url": "https://www.ecomae.com/cp/system-requests",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/system-requests",
+      "notes": "Wired exact-route nginx shadow (unauth 401 when installed). Part of surface digests 127/127 batch."
+    },
+    {
+      "hostClass": "aspnet-exact-route-shadow-live",
+      "surface": "CP additional-texts digest",
+      "url": "https://www.ecomae.com/cp/additional-texts",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/additional-texts",
+      "notes": "Wired exact-route nginx shadow (unauth 401 when installed). Part of surface digests 127/127 batch."
+    },
+    {
+      "hostClass": "aspnet-exact-route-shadow-live",
+      "surface": "CP slider-banners digest",
+      "url": "https://www.ecomae.com/cp/slider-banners",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/slider-banners",
+      "notes": "Wired exact-route nginx shadow (unauth 401 when installed). Part of surface digests 127/127 batch."
+    },
+    {
+      "hostClass": "aspnet-exact-route-shadow-live",
+      "surface": "CP structure-dumps digest",
+      "url": "https://www.ecomae.com/cp/structure-dumps",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/structure-dumps",
+      "notes": "Wired exact-route nginx shadow (unauth 401 when installed). Part of surface digests 127/127 batch."
+    },
+    {
+      "hostClass": "aspnet-exact-route-shadow-live",
+      "surface": "CP communications-test digest",
+      "url": "https://www.ecomae.com/cp/communications-test",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/communications-test",
+      "notes": "Wired exact-route nginx shadow (unauth 401 when installed). Part of surface digests 127/127 batch."
+    },
+    {
+      "hostClass": "aspnet-exact-route-shadow-live",
+      "surface": "CP languages digest",
+      "url": "https://www.ecomae.com/cp/languages",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/languages",
+      "notes": "Wired exact-route nginx shadow (unauth 401 when installed). Part of surface digests 127/127 batch."
+    },
+    {
+      "hostClass": "aspnet-exact-route-shadow-live",
+      "surface": "CP plugins-manager digest",
+      "url": "https://www.ecomae.com/cp/plugins-manager",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/plugins-manager",
+      "notes": "Wired exact-route nginx shadow (unauth 401 when installed). Part of surface digests 127/127 batch."
+    },
+    {
+      "hostClass": "aspnet-exact-route-shadow-live",
+      "surface": "CP templates-manager digest",
+      "url": "https://www.ecomae.com/cp/templates-manager",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/templates-manager",
+      "notes": "Wired exact-route nginx shadow (unauth 401 when installed). Part of surface digests 127/127 batch."
+    },
+    {
+      "hostClass": "aspnet-exact-route-shadow-live",
+      "surface": "CP design-tokens digest",
+      "url": "https://www.ecomae.com/cp/design-tokens",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/design-tokens",
+      "notes": "Wired exact-route nginx shadow (unauth 401 when installed). Part of surface digests 127/127 batch."
+    },
+    {
+      "hostClass": "aspnet-exact-route-shadow-live",
+      "surface": "CP failover-status digest",
+      "url": "https://www.ecomae.com/cp/failover-status",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/failover-status",
+      "notes": "Wired exact-route nginx shadow (unauth 401 when installed). Part of surface digests 127/127 batch."
+    },
+    {
+      "hostClass": "aspnet-exact-route-shadow-live",
+      "surface": "CP ops-guides digest",
+      "url": "https://www.ecomae.com/cp/ops-guides",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/ops-guides",
+      "notes": "Wired exact-route nginx shadow (unauth 401 when installed). Part of surface digests 127/127 batch."
+    },
+    {
+      "hostClass": "aspnet-exact-route-shadow-live",
+      "surface": "CP file-manager digest",
+      "url": "https://www.ecomae.com/cp/file-manager",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/file-manager",
+      "notes": "Wired exact-route nginx shadow (unauth 401 when installed). Part of surface digests 127/127 batch."
+    },
+    {
+      "hostClass": "aspnet-exact-route-shadow-live",
+      "surface": "CP server-ip digest",
+      "url": "https://www.ecomae.com/cp/server-ip",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/server-ip",
+      "notes": "Wired exact-route nginx shadow (unauth 401 when installed). Part of surface digests 127/127 batch."
+    },
+    {
+      "hostClass": "aspnet-exact-route-shadow-live",
+      "surface": "CP sitemap digest",
+      "url": "https://www.ecomae.com/cp/sitemap",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/cp/sitemap",
+      "notes": "Wired exact-route nginx shadow (unauth 401 when installed). Part of surface digests 127/127 batch."
     },
     {
       "hostClass": "aspnet-exact-route-shadow-live",
@@ -2281,6 +4337,30 @@
       "stackToday": "aspnet",
       "aspNetRouteHint": "/erp/inventory-stock",
       "notes": "Live exact-route nginx shadow on www (unauth 401 unauthorized). Part of surface digests 44/44 batch."
+    },
+    {
+      "hostClass": "aspnet-exact-route-shadow-live",
+      "surface": "ERP report-center digest",
+      "url": "https://www.ecomae.com/erp/report-center",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/erp/report-center",
+      "notes": "Wired exact-route nginx shadow (unauth 401 when installed). epc_rc_registry mirror; CSV/export remain PHP."
+    },
+    {
+      "hostClass": "aspnet-exact-route-shadow-live",
+      "surface": "ERP aging digest",
+      "url": "https://www.ecomae.com/erp/aging",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/erp/aging",
+      "notes": "Wired exact-route nginx shadow (unauth 401 when installed). epc_erp_aging.php remains authoritative."
+    },
+    {
+      "hostClass": "aspnet-exact-route-shadow-live",
+      "surface": "ERP stock-movements digest",
+      "url": "https://www.ecomae.com/erp/stock-movements",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/erp/stock-movements",
+      "notes": "Wired exact-route nginx shadow (unauth 401 when installed). epc_erp_inventory_ledger remains PHP for writes."
     },
     {
       "hostClass": "aspnet-exact-route-shadow-live",
@@ -2529,15 +4609,22 @@
       "stackToday": "aspnet",
       "aspNetRouteHint": "/storefront/cart",
       "notes": "JSON digest wired (summary\u002Blines[] item-field floor). Awaiting exact-route nginx shadow install; qty/checkout remain PHP."
+    },
+    {
+      "hostClass": "aspnet-digest-wired-awaiting-shadow",
+      "surface": "Storefront checkout digest",
+      "url": "https://www.ecomae.com/storefront/checkout",
+      "stackToday": "aspnet",
+      "aspNetRouteHint": "/storefront/checkout",
+      "notes": "Wave B readiness digest over shop_carts (readiness \u002B php_steps). how_get/confirm/payment remain PHP."
     }
   ],
   "cutoverRules": [
-    "Live tenant and industry frontend/CP/ERP must remain PHP \u2014 migration shadows default to www.ecomae.com only (see docs/migration/TENANT_MIGRATION_SAFETY.md).",
-    "Broad /, /api, /cp, /erp, /bos, storefront nginx cutover remains forbidden.",
-    "Only approved location = exact-route shadows may be enabled after staging smoke.",
-    "Keep MigrationRouteCutover StorefrontAspNetEnabled=false, AdminAspNetEnabled=false, RequirePhpFallback=true until final gate.",
-    "ReadyToRemovePhp stays false without staging-smoke artifacts \u002B RELEASE_OWNER_APPROVAL.md.",
-    "cutoverAllowed=false and readyForPhpRemoval=false until exact-route shadows \u002B dual-sample parity \u002B human RELEASE_OWNER_APPROVAL.md."
+    "CONFIRMED: ASP.NET Core is product primary for Super CP (www/cp.ecomae.com), ALL named live tenants, 28 industry showcase hosts, and LifeOS. PHP only via /php-reference/*. Board: /migration/all-sites-aspnet-primary.",
+    "NO HALF-AND-HALF: product / /cp /erp (/bos Super-CP only) must proxy to ASP.NET. FORCE_LIVE: bash scripts/cloudpanel_FORCE_LIVE_ALL_SITES.sh; classic-entry --all-hosts with ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW=YES.",
+    "StorefrontAspNetEnabled=true and AdminAspNetEnabled=true in platform.env; RequirePhpFallback=true until dual-sample-green per exact write route.",
+    "PHP project retained as reference (till keep/delete). readyForPhpRemoval=false \u2014 reference keep \u2260 PHP source deletion.",
+    "cutoverAllowed=false always for boards; execute ECOMAE_CONFIRM_ASPNET_PRIMARY_CUTOVER=YES bash scripts/cloudpanel_execute_aspnet_primary_cutover_operator.sh"
   ],
   "nextActions": [
     "Diagnose: bash scripts/cloudpanel_diagnose_smoke_db.sh \u2014 then apply DDL (clpctl) or use_php_dp_config_as_tenant_registry.sh if CREATE denied.",
@@ -2554,7 +4641,9 @@
     "Batch 5 miss dual-sample: bash scripts/cloudpanel_capture_catalog_miss_dual_samples.sh \u0026\u0026 python3 scripts/compare_catalog_miss_dual_samples.py (PHP fill remains authoritative).",
     "Batch 5 miss-fill dry-run: worker job catalog-miss-fill (sample_actions); outbound/writes blocked; see docs/migration/evidence/catalog-miss-umapi/miss-fill-dry-run-report.json.",
     "If engine-search/article auth 403 action_not_allowed: re-issue smoke creds (allowlist now includes engine_search\u002Barticle) via ECOMAE_CONFIRM_ISSUE_SMOKE_CREDS=YES bash scripts/cloudpanel_issue_smoke_credentials.sh",
-    "Wired catalog exact-routes complete (18/18). Surface digests: wired 110 (live until operator installs wave-21a portal-settings/data-migrations digest shadows). Storefront digests: 4/6 live (wired 6; search/cart awaiting shadow; never broad /storefront).",
+    "Wired catalog exact-routes complete (18/18). Surface digests: wired\u002Blive 128/128 (unauth 401). Storefront digests: wired\u002Blive 6/6 (never broad /storefront).",
+    "Presentation apps: wired 144; live www ~142/144 (200). See docs/migration/OVERALL_PROGRESS_REPORT.md.",
+    "Human compare board: /migration/compare \u2014 Super CP \u002B epartscart PHP vs www ASP.NET hybrid.",
     "Storefront batch: ECOMAE_CONFIRM_INSTALL_STOREFRONT_DIGEST_SHADOWS=YES bash scripts/cloudpanel_install_storefront_digest_shadows.sh",
     "Storefront probe: bash scripts/cloudpanel_probe_storefront_digest_shadows.sh",
     "Blazor SSR console live: /migration/console. Digest dual-sample contract compare: pairsChecked=185 failed=0 (cutoverAllowed=false).",
@@ -2562,14 +4651,18 @@
     "Login bridge needs EcomAE__SecretSuccession (= PHP secret_succession) in platform.env; verify with scripts/cloudpanel_verify_secret_succession_configured.sh (never prints secret); without it UI falls back to PHP login.",
     "Login cookie dual-sample: scripts/cloudpanel_capture_login_cookie_dual_samples.sh \u002B compare_login_cookie_dual_samples.py (cutoverAllowed=false).",
     "Hybrid UI dual-sample: bash scripts/cloudpanel_capture_hybrid_ui_dual_samples.sh \u0026\u0026 python3 scripts/compare_hybrid_ui_dual_samples.py (www previews only; cutoverAllowed=false; see docs/migration/evidence/hybrid-ui-dual-samples/).",
-    "Hybrid chrome: ASP.NET shells link PHP modules (see docs/migration/CHROME_PARITY_GAP_MATRIX.md). Product / /CP/ /ERP/ /BOS/ remain PHP.",
-    "Same-to-same tenant verify: bash scripts/cloudpanel_verify_tenant_hosts_still_php.sh (PHP chrome on tenant / /CP/ /ERP/ \u002B BOS spot-check; cutoverAllowed=false).",
-    "Tenant safety probe: bash scripts/cloudpanel_probe_live_tenant_php_chrome.sh (expect PHP HTML on tenant / /CP/ /ERP/).",
-    "Shadow installers refuse tenant vhosts unless ECOMAE_CONFIRM_TENANT_HOST_SHADOW=YES; presentation shadows refuse tenants by default.",
-    "Invisible migration law: docs/migration/TENANT_MIGRATION_SAFETY.md \u2014 digests/previews never replace tenant UX.",
+    "Hybrid chrome: ASP.NET shells remap PHP module hrefs to ASP.NET apps (see docs/migration/CHROME_PARITY_GAP_MATRIX.md). Product / /cp /erp /bos are ASP.NET-primary on all named tenants.",
+    "ALL sites FORCE_LIVE (CloudPanel root): ECOMAE_BRANCH=\u003Cbranch|main\u003E bash scripts/cloudpanel_FORCE_LIVE_ALL_SITES.sh",
+    "ALL tenants ASP.NET classic-entry: ECOMAE_CONFIRM_INSTALL_CLASSIC_ENTRY_ASPNET_PRIMARY=YES ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW=YES bash scripts/cloudpanel_install_classic_entry_aspnet_primary.sh --all-hosts",
+    "Probe ASP.NET classic-entry: bash scripts/cloudpanel_probe_classic_entry_aspnet_primary.sh --all-hosts (expect ASP.NET on www \u002B all 5 named tenants; PHP only via /php-reference/*).",
+    "All sites lock: GET /migration/all-sites-aspnet-primary \u2014 Super CP \u002B tenants \u002B industry \u002B LifeOS stackToday=aspnet.",
+    "Named live tenants: product stack=aspnet; PHP compare only /php-reference/*. Unlock install with ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW=YES.",
+    "Path board: GET /migration/aspnet-zero-php-path \u002B docs/migration/ASPNET_ZERO_PHP_PATH.md (target 100%-aspnet-core-live-php-reference-kept).",
+    "PHP reference mode: GET /migration/php-reference-mode \u2014 keep PHP project for previous-result compares; not mixed into product.",
+    "Tenant safety: docs/migration/TENANT_MIGRATION_SAFETY.md \u2014 all named tenants ASP.NET-primary; digests/previews must not break tenant UX.",
     "PHP-level parity plan: docs/migration/PHP_LEVEL_FULL_PARITY_PLAN.md \u2014 regenerate catalogs via python3 scripts/generate_php_module_catalog.py.",
     "Hybrid module directories on /cp|/erp|/bos|/storefront/app; counts at GET /migration/php-module-catalog.",
-    "Human RELEASE_OWNER_APPROVAL.md is the final ReadyToRemovePhp blocker \u2014 do not remove PHP while chrome is PHP-authoritative."
+    "Human RELEASE_OWNER_APPROVAL.md gates PHP traffic/fallback removal \u2014 keep PHP project as reference unless a separate deletion approval exists."
   ],
   "cutoverAllowed": false,
   "readyForPhpRemoval": false

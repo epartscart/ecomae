@@ -12,12 +12,14 @@
 #   ECOMAE_CONFIRM_INSTALL_CLASSIC_ENTRY_ASPNET_PRIMARY=YES \
 #     bash scripts/cloudpanel_install_classic_entry_aspnet_primary.sh
 #
-# All product hosts (www + every named live tenant):
+# All product hosts (www + cp + named tenants + industry + LifeOS):
 #   ECOMAE_CONFIRM_INSTALL_CLASSIC_ENTRY_ASPNET_PRIMARY=YES \
 #   ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW=YES \
 #     bash scripts/cloudpanel_install_classic_entry_aspnet_primary.sh --all-hosts
 #
 # Named tenants: epartscart, electronicae, stylenlook, thejewellerytrend, taxofinca
+# Industry: 28 *.ecomae.com showcase hosts (or wildcard-ecomae *.ecomae.com block)
+# LifeOS: lifeos.ecomae.com — dedicated pack (not marketing home)
 # PHP product compare stays only under /php-reference/* (not mixed).
 set -euo pipefail
 
@@ -171,9 +173,16 @@ install_one() {
   fi
 
   # Require the target host (or its apex) to appear in a server_name line.
-  # Never install product tenant pack into bare wildcard-ecomae (*.ecomae.com only).
+  # Never install product tenant pack into bare wildcard-ecomae (*.ecomae.com only)
+  # unless the caller explicitly targets *.ecomae.com (industry pack).
   local apex="${target_host#www.}"
-  if ! grep -Ei "^[[:space:]]*server_name[[:space:]].*(${target_host}|${apex})" "$conf" >/dev/null 2>&1; then
+  if [[ "$target_host" == "*.ecomae.com" || "$target_host" == "wildcard-ecomae" ]]; then
+    if ! grep -Eiq '^[[:space:]]*server_name[[:space:]].*\*\.ecomae\.com' "$conf"; then
+      printf 'ERROR: refusing industry wildcard classic-entry on %s — no server_name *.ecomae.com\n' "$conf" >&2
+      grep -nE 'server_name' "$conf" 2>/dev/null | head -n 20 >&2 || true
+      return 1
+    fi
+  elif ! grep -Ei "^[[:space:]]*server_name[[:space:]].*(${target_host}|${apex})" "$conf" >/dev/null 2>&1; then
     printf 'ERROR: refusing classic-entry on %s — server_name does not include %s\n' "$conf" "$target_host" >&2
     if [[ "$apex" == *epartscart* ]]; then
       printf 'ERROR: refusing classic-entry on %s — server_name does not include epartscart.com\n' "$conf" >&2
@@ -296,12 +305,34 @@ PY
 
 WWW_EXAMPLE="$ROOT/deploy/aspnet/nginx-classic-entry-aspnet-primary-shadow-example.conf"
 TENANT_EXAMPLE="$ROOT/deploy/aspnet/nginx-classic-entry-tenant-aspnet-primary-shadow-example.conf"
+INDUSTRY_EXAMPLE="$ROOT/deploy/aspnet/nginx-classic-entry-industry-aspnet-primary-shadow-example.conf"
+LIFEOS_EXAMPLE="$ROOT/deploy/aspnet/nginx-lifeos-host-aspnet-primary-example.conf"
 
 WWW_CONF="$(resolve_site_conf ecomae \
   "${ECOMAE_NGINX_SITE_CONF_WWW:-}" \
   /etc/nginx/sites-enabled/www.ecomae.com.conf \
   /etc/nginx/sites-enabled/ecomae.com.conf \
   /etc/nginx/sites-available/www.ecomae.com.conf \
+  || true)"
+
+CP_CONF="$(resolve_site_conf 'cp\.ecomae' \
+  "${ECOMAE_NGINX_SITE_CONF_CP:-}" \
+  /etc/nginx/sites-enabled/cp.ecomae.com.conf \
+  /etc/nginx/sites-available/cp.ecomae.com.conf \
+  || true)"
+
+LIFEOS_CONF="$(resolve_site_conf 'lifeos\.ecomae' \
+  "${ECOMAE_NGINX_SITE_CONF_LIFEOS:-}" \
+  /etc/nginx/sites-enabled/lifeos.ecomae.com.conf \
+  /etc/nginx/sites-enabled/www.lifeos.ecomae.com.conf \
+  /etc/nginx/sites-available/lifeos.ecomae.com.conf \
+  || true)"
+
+WILDCARD_ECOMAE_CONF="$(resolve_site_conf 'wildcard-ecomae' \
+  "${ECOMAE_NGINX_SITE_CONF_INDUSTRY:-}" \
+  /etc/nginx/sites-enabled/wildcard-ecomae.conf \
+  /etc/nginx/sites-enabled/wildcard-ecomae \
+  /etc/nginx/sites-available/wildcard-ecomae.conf \
   || true)"
 
 # Resolve by server_name containing epartscart.com — NEVER assume wildcard-ecomae
@@ -320,7 +351,10 @@ else
 fi
 
 WWW_OK=0
+CP_OK=0
 TENANT_OK=0
+INDUSTRY_OK=0
+LIFEOS_OK=0
 FAIL=0
 
 # Prefer www. variant as nginx server_name target for each named product tenant.
@@ -330,6 +364,17 @@ PRODUCT_TENANT_HOSTS=(
   www.stylenlook.com
   www.thejewellerytrend.com
   www.taxofinca.com
+)
+
+# 28 industry showcase hosts (EcomaeIndustryShowcaseHosts).
+INDUSTRY_HOSTS=(
+  agriculture.ecomae.com automotive.ecomae.com beauty.ecomae.com cleaning.ecomae.com
+  construction.ecomae.com education.ecomae.com electronics.ecomae.com energy.ecomae.com
+  fashion.ecomae.com finance.ecomae.com food.ecomae.com healthcare.ecomae.com
+  homeliving.ecomae.com hospitality.ecomae.com jewellery.ecomae.com logistics.ecomae.com
+  manufacturing.ecomae.com media.ecomae.com nonprofit.ecomae.com pet.ecomae.com
+  printing.ecomae.com professional.ecomae.com rental.ecomae.com retail.ecomae.com
+  security.ecomae.com sports.ecomae.com technology.ecomae.com wholesale.ecomae.com
 )
 
 resolve_product_tenant_conf() {
@@ -374,6 +419,13 @@ if [[ "$DO_ALL" -eq 1 ]]; then
     printf 'Using www conf: %s (server host www.ecomae.com)\n' "$WWW_CONF"
     if install_one "$WWW_CONF" "$WWW_EXAMPLE" "www.ecomae.com" "www.ecomae.com"; then WWW_OK=1; else FAIL=1; fi
   fi
+  # Dedicated Super CP host (cp.ecomae.com) — same Super-CP pack (includes /bos).
+  if [[ -n "${CP_CONF:-}" ]]; then
+    printf 'Using cp conf: %s (server host cp.ecomae.com)\n' "$CP_CONF"
+    if install_one "$CP_CONF" "$WWW_EXAMPLE" "cp.ecomae.com" "cp.ecomae.com"; then CP_OK=1; else FAIL=1; fi
+  else
+    printf 'NOTE: no dedicated cp.ecomae.com nginx conf — Super CP may share www only\n'
+  fi
   # Install tenant pack on EVERY named product tenant (no half-and-half).
   for thost in "${PRODUCT_TENANT_HOSTS[@]}"; do
     tconf="$(resolve_product_tenant_conf "$thost" || true)"
@@ -389,6 +441,59 @@ if [[ "$DO_ALL" -eq 1 ]]; then
       FAIL=1
     fi
   done
+  # Industry showcase — prefer per-host server blocks; also wildcard *.ecomae.com.
+  if [[ ! -f "$INDUSTRY_EXAMPLE" ]]; then
+    printf 'ERROR: missing industry example %s\n' "$INDUSTRY_EXAMPLE" >&2
+    FAIL=1
+  else
+    for ihost in "${INDUSTRY_HOSTS[@]}"; do
+      iconf="$(resolve_product_tenant_conf "$ihost" || true)"
+      # resolve_product_tenant_conf strips .com frag — also try direct sites-enabled.
+      if [[ -z "${iconf:-}" && -f "/etc/nginx/sites-enabled/${ihost}.conf" ]]; then
+        iconf="/etc/nginx/sites-enabled/${ihost}.conf"
+      fi
+      if [[ -z "${iconf:-}" ]]; then
+        continue
+      fi
+      printf 'Using industry conf: %s (server host %s)\n' "$iconf" "$ihost"
+      if install_one "$iconf" "$INDUSTRY_EXAMPLE" "$ihost" "$ihost"; then
+        INDUSTRY_OK=$((INDUSTRY_OK + 1))
+      else
+        FAIL=1
+      fi
+    done
+    if [[ -n "${WILDCARD_ECOMAE_CONF:-}" ]]; then
+      printf 'Using industry wildcard conf: %s (server_name *.ecomae.com)\n' "$WILDCARD_ECOMAE_CONF"
+      if install_one "$WILDCARD_ECOMAE_CONF" "$INDUSTRY_EXAMPLE" "wildcard-ecomae" "*.ecomae.com"; then
+        INDUSTRY_OK=$((INDUSTRY_OK + 1))
+      else
+        FAIL=1
+      fi
+    elif [[ "$INDUSTRY_OK" -eq 0 ]]; then
+      # Mega-conf may hold *.ecomae.com inside www.ecomae.com.conf
+      if [[ -n "${WWW_CONF:-}" ]] && grep -Eiq '^[[:space:]]*server_name[[:space:]].*\*\.ecomae\.com' "$WWW_CONF"; then
+        printf 'Using www mega-conf industry wildcard block: %s\n' "$WWW_CONF"
+        if install_one "$WWW_CONF" "$INDUSTRY_EXAMPLE" "wildcard-ecomae" "*.ecomae.com"; then
+          INDUSTRY_OK=$((INDUSTRY_OK + 1))
+        else
+          FAIL=1
+        fi
+      else
+        printf 'WARN: no industry nginx server blocks found (28 hosts + wildcard)\n' >&2
+      fi
+    fi
+  fi
+  # LifeOS dedicated product host
+  if [[ -n "${LIFEOS_CONF:-}" && -f "$LIFEOS_EXAMPLE" ]]; then
+    printf 'Using LifeOS conf: %s (server host lifeos.ecomae.com)\n' "$LIFEOS_CONF"
+    if install_one "$LIFEOS_CONF" "$LIFEOS_EXAMPLE" "lifeos.ecomae.com" "lifeos.ecomae.com"; then
+      LIFEOS_OK=1
+    else
+      FAIL=1
+    fi
+  else
+    printf 'NOTE: no lifeos.ecomae.com nginx conf or missing LifeOS example — skip LifeOS pack\n'
+  fi
 elif [[ "$HOST_MODE" == "tenant" ]]; then
   if [[ "${ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW:-}" != "YES" ]]; then
     printf 'Refusing tenant host without ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW=YES\n' >&2
@@ -416,9 +521,12 @@ fi
 
 printf '\nClassic-entry map (ASP.NET-primary — no half-and-half):\n'
 printf '  https://www.ecomae.com/cp  /erp  /bos  /     → ASP.NET Super-CP (www_ok=%s)\n' "$WWW_OK"
+printf '  https://cp.ecomae.com/*                   → ASP.NET Super-CP (cp_ok=%s)\n' "$CP_OK"
 printf '  named product tenants installed_ok=%s / 5\n' "$TENANT_OK"
 printf '  epartscart | electronicae | stylenlook | thejewellerytrend | taxofinca\n'
 printf '  each: / /cp /erp (+ deep trees) → ASP.NET; /bos → 404 (Super-CP only)\n'
+printf '  industry showcase packs installed_ok=%s (28 hosts and/or wildcard)\n' "$INDUSTRY_OK"
+printf '  lifeos.ecomae.com                         → ASP.NET LifeOS (lifeos_ok=%s)\n' "$LIFEOS_OK"
 printf '\nPHP reference ONLY (separate; never product mix):\n'
 printf '  /php-reference/home  /php-reference/cp  /php-reference/erp  /php-reference/bos  /php-reference/storefront\n'
 

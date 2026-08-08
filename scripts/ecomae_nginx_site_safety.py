@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """Classify CloudPanel nginx site conf targets for ASP.NET shadow installs.
 
-Live tenant / industry presentation (frontend, CP, ERP, BOS) must remain PHP.
-Only the platform www host is the default exact-route shadow target.
+Default scaffolding target is platform www. Named tenants / industry / LifeOS
+require explicit confirm envs. All-sites ASP.NET-primary unlock uses
+ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW=YES (classic-entry --all-hosts).
 """
 from __future__ import annotations
 
@@ -24,6 +25,15 @@ PLATFORM_OPTIONAL_BASENAMES = frozenset(
     {
         "cp.ecomae.com.conf",
         "cp.ecomae.com",
+    }
+)
+
+LIFEOS_BASENAMES = frozenset(
+    {
+        "lifeos.ecomae.com.conf",
+        "lifeos.ecomae.com",
+        "www.lifeos.ecomae.com.conf",
+        "www.lifeos.ecomae.com",
     }
 )
 
@@ -116,17 +126,21 @@ def _server_name_tokens(conf_path: str | Path) -> list[str]:
 
 
 def classify_site_conf(conf_path: str | Path) -> str:
-    """Return platform | platform-optional | tenant | industry | unknown."""
+    """Return platform | platform-optional | lifeos | tenant | industry | unknown."""
     name = Path(conf_path).name.lower()
     if name in {n.lower() for n in PLATFORM_BASENAMES}:
         return "platform"
     if name in {n.lower() for n in PLATFORM_OPTIONAL_BASENAMES}:
         return "platform-optional"
+    if name in {n.lower() for n in LIFEOS_BASENAMES} or "lifeos.ecomae.com" in name:
+        return "lifeos"
     for marker in TENANT_BASENAME_MARKERS:
         if marker in name:
             return "tenant"
     # Content-based: dedicated or multi-host conf whose server_name is a live tenant.
     tokens = _server_name_tokens(conf_path)
+    if any(tok in {"lifeos.ecomae.com", "www.lifeos.ecomae.com"} for tok in tokens):
+        return "lifeos"
     for tok in tokens:
         for host in LIVE_PRODUCTION_TENANT_HOSTS:
             if tok == host or tok.endswith("." + host.removeprefix("www.")):
@@ -141,9 +155,9 @@ def classify_site_conf(conf_path: str | Path) -> str:
     if name.startswith("wildcard-ecomae") or any(
         tok == "*.ecomae.com" or tok.endswith(".ecomae.com") for tok in tokens
     ):
-        if name not in {n.lower() for n in PLATFORM_BASENAMES}:
+        if name not in {n.lower() for n in PLATFORM_BASENAMES | PLATFORM_OPTIONAL_BASENAMES | LIFEOS_BASENAMES}:
             # Pure industry wildcard without tenant server_name
-            if not any("epartscart" in t for t in tokens):
+            if not any("epartscart" in t for t in tokens) and not any("lifeos" in t for t in tokens):
                 return "industry"
     # Any other *.ecomae.com site that is not www/cp is treated as industry/showcase.
     if name.endswith(".ecomae.com.conf") or name.endswith(".ecomae.com"):
@@ -201,13 +215,20 @@ def assert_shadow_target_allowed(
                 f"ERROR: refusing presentation/login shadow on live production tenant "
                 f"site conf {conf_path} (parity gate). "
                 "epartscart / electronicae / stylenlook / thejewellerytrend / taxofinca "
-                "stay PHP-primary until ASP.NET same-to-same evidence. "
+                "need ASP.NET same-to-same evidence before fallback removal. "
                 "Unlock ONLY with ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW=YES "
                 "(not ECOMAE_CONFIRM_TENANT_PRESENTATION_SHADOW). "
                 "Default scaffolding host remains www.ecomae.com."
             )
-        if kind in {"tenant", "industry", "unknown", "platform-optional"}:
-            if confirm_tenant_presentation == "YES" and kind in {"tenant", "industry"}:
+        if kind in {"tenant", "industry", "lifeos", "unknown", "platform-optional"}:
+            if confirm_live_parity == "YES" and kind in {"industry", "lifeos", "platform-optional"}:
+                print(
+                    f"WARNING: presentation/all-sites ASP.NET primary on {kind} host {conf_path} "
+                    "(ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW=YES).",
+                    file=sys.stderr,
+                )
+                return
+            if confirm_tenant_presentation == "YES" and kind in {"tenant", "industry", "lifeos"}:
                 print(
                     f"WARNING: presentation shadow on {kind} host {conf_path} "
                     "(ECOMAE_CONFIRM_TENANT_PRESENTATION_SHADOW=YES). "
@@ -219,21 +240,37 @@ def assert_shadow_target_allowed(
                 f"ERROR: refusing presentation/login shadow on {kind} site conf {conf_path}. "
                 "Use default ECOMAE_NGINX_SITE_CONF=/etc/nginx/sites-enabled/www.ecomae.com.conf. "
                 "Override with ECOMAE_CONFIRM_TENANT_PRESENTATION_SHADOW=YES (non-named tenants). "
-                "Named live tenants require ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW=YES."
+                "Named live tenants / industry / LifeOS / cp require "
+                "ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW=YES."
             )
         return
 
     # exact-route purpose
     if kind == "platform-optional":
-        if confirm_tenant == "YES":
+        if confirm_live_parity == "YES" or confirm_tenant == "YES":
             print(
-                f"WARNING: exact-route shadow on optional platform host {conf_path}",
+                f"WARNING: exact-route / classic-entry on optional platform host {conf_path}",
                 file=sys.stderr,
             )
             return
         raise SystemExit(
             f"ERROR: refusing exact-route shadow on {conf_path} without "
-            "ECOMAE_CONFIRM_TENANT_HOST_SHADOW=YES. Default target is www.ecomae.com only."
+            "ECOMAE_CONFIRM_TENANT_HOST_SHADOW=YES or "
+            "ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW=YES. "
+            "Default target is www.ecomae.com only."
+        )
+
+    if kind == "lifeos":
+        if confirm_live_parity == "YES" or confirm_tenant == "YES":
+            print(
+                f"WARNING: exact-route / classic-entry on LifeOS host {conf_path} "
+                "(all-sites ASP.NET-primary unlock).",
+                file=sys.stderr,
+            )
+            return
+        raise SystemExit(
+            f"ERROR: refusing ASP.NET install on LifeOS site conf {conf_path}. "
+            "Unlock with ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW=YES."
         )
 
     if is_named_live:
@@ -249,14 +286,20 @@ def assert_shadow_target_allowed(
         raise SystemExit(
             f"ERROR: refusing ASP.NET exact-route shadow on live production tenant "
             f"site conf {conf_path} (parity gate — not a permanent PHP ban). "
-            "Named live tenants stay PHP-primary until ASP.NET same-to-same evidence. "
-            "Unlock exact-route parity shadows with "
+            "Named live tenants are ASP.NET-primary intent; unlock classic-entry/exact-route with "
             "ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW=YES. "
             "ECOMAE_CONFIRM_TENANT_HOST_SHADOW alone is not enough for named live tenants. "
             "Default scaffolding host remains www.ecomae.com."
         )
 
     if kind in {"tenant", "industry", "unknown"}:
+        if confirm_live_parity == "YES" and kind == "industry":
+            print(
+                f"WARNING: exact-route / classic-entry on industry host {conf_path} "
+                "(ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW=YES — all-sites ASP.NET-primary).",
+                file=sys.stderr,
+            )
+            return
         if confirm_tenant == "YES":
             print(
                 f"WARNING: exact-route shadow on {kind} host {conf_path}. "
@@ -268,7 +311,7 @@ def assert_shadow_target_allowed(
             f"ERROR: refusing ASP.NET shadow install on {kind} site conf {conf_path}. "
             "Shadows default to www.ecomae.com only. "
             "Set ECOMAE_CONFIRM_TENANT_HOST_SHADOW=YES only for an approved exact-route on that host. "
-            "Named live tenants require ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW=YES."
+            "Named live tenants / industry require ECOMAE_CONFIRM_LIVE_TENANT_ASPNET_PARITY_SHADOW=YES."
         )
 
 
