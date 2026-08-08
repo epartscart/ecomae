@@ -1,0 +1,57 @@
+{
+  "role": "full-architecture-php-aspnet-link-remap-board",
+  "branch": "cursor/full-arch-link-remap-audit-7b3b",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "includes": ["#957 ERP tab map", "#958 CP shop/brochure map", "cross-surface steal/host fixes"],
+  "areas": {
+    "superCpAndTenantCp": {
+      "status": "fixed",
+      "fixes": [
+        "users/usergroups before users/user",
+        "shop/statistics/web_tracker before shop/statistics",
+        "control/shop/catalogue/stock before shop/catalogue",
+        "shop/orders hub before ops|guide catch-all",
+        "BocNav holdouts: webhooks, rest_api_v2, dealer_portal, license_trends, role_home, data_policy, boc_product_brochure, isolation_anomaly, server-ip"
+      ]
+    },
+    "industryEcomaeErpHosts": {
+      "status": "fixed",
+      "rootCause": "AspNetPrimaryHref collapsed every *.ecomae.com /ERP/* to host+/erp",
+      "fix": "Mirror CP: MapErpPhpPath(path+query); only bare /erp keeps authority+/erp"
+    },
+    "erpTabsAndAreas": {
+      "status": "fixed",
+      "source": "ErpPhpTabRouteMap (#957) + area hubs gl/payroll/audit/expense/production aliases",
+      "unknownTabs": "/erp/module-app?tab=…"
+    },
+    "bosSuperBos": {
+      "status": "fixed",
+      "fixes": [
+        "Exact m= before Contains (isolation_audit, tenant_email no longer stolen)",
+        "section=tenants → tenants-app",
+        "Unknown m= tried via MapCpPhpPath(/CP/control/portal/{m})"
+      ]
+    },
+    "storefrontFrontend": {
+      "status": "fixed",
+      "fixes": [
+        "/users/profile → profile (ASP.NET or /en/users/profile)",
+        "/users/ → account-summary / balans",
+        "catalog vin_search → katalog-laximo; garage → garage/login",
+        "returns/payments/support placeholders no longer bare /"
+      ]
+    },
+    "freeToolsAndDemo": {
+      "status": "ok",
+      "freeTools": "/CP/.../epc_free_tools → /cp/free-tools-app (Super-only chrome)",
+      "demoTenants": "/cp/demo-tenants-app Super-only filter extended"
+    },
+    "superOnlyTenantChrome": {
+      "status": "fixed",
+      "IsSuperOnlyCpLink": "added tax-toolkits, tenants/tenant_hub, demo-tenants, boc_audit, free-tools, governance, failover, dealer_portal, license_trends"
+    }
+  },
+  "tests": "FullArchitectureLinkRemapTests + CpPhpParityTests + ErpPhpTabRouteMapTests + PhpSurfaceLinkMapTests",
+  "note": "Interactive writes remain PHP-authoritative; cutoverAllowed stays false."
+}

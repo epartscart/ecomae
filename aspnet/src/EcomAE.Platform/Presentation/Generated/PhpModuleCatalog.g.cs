@@ -757,16 +757,16 @@ public static partial class PhpModuleCatalog
     [
         new("home", "Home", "https://epartscart.com/", null, "storefront"),
         new("part_search", "Part search", "https://epartscart.com/shop/part_search", null, "storefront"),
-        new("vin_search", "VIN / vehicle search", "https://epartscart.com/shop/part_search", null, "storefront"),
+        new("vin_search", "VIN / vehicle search", "https://epartscart.com/en/katalog-laximo", null, "storefront"),
         new("catalog", "Catalogue", "https://epartscart.com/", null, "storefront"),
         new("cart", "Cart", "https://epartscart.com/shop/cart", null, "storefront"),
         new("checkout", "Checkout", "https://epartscart.com/shop/checkout", null, "storefront"),
         new("account", "Account", "https://epartscart.com/users/", null, "storefront"),
         new("profile", "Profile", "https://epartscart.com/users/profile", null, "storefront"),
-        new("garage", "Garage", "https://epartscart.com/shop/part_search", null, "storefront"),
+        new("garage", "Garage", "https://epartscart.com/garage/login", null, "storefront"),
         new("orders", "Orders", "https://epartscart.com/shop/orders", null, "storefront"),
-        new("returns", "Returns", "https://epartscart.com/", null, "storefront"),
-        new("payments", "Payments", "https://epartscart.com/", null, "storefront"),
-        new("support", "Support", "https://epartscart.com/", null, "storefront"),
+        new("returns", "Returns", "https://epartscart.com/en/shop/orders", null, "storefront"),
+        new("payments", "Payments", "https://epartscart.com/en/shop/balans", null, "storefront"),
+        new("support", "Support", "https://epartscart.com/en/shop/orders", null, "storefront"),
     ];
 }

@@ -225,7 +225,24 @@ public static class LegacyDesktopChromeCatalog
             || h.Contains("/cp/customer-board-app", StringComparison.OrdinalIgnoreCase)
             || h.Contains("/cp/sso-saml-app", StringComparison.OrdinalIgnoreCase)
             || h.Contains("/cp/event-bus-app", StringComparison.OrdinalIgnoreCase)
-            || h.Contains("/bos/", StringComparison.OrdinalIgnoreCase))
+            || h.Contains("/bos/", StringComparison.OrdinalIgnoreCase)
+            // Super-gated apps / Boc paths that must not appear on tenant chrome.
+            || h.Contains("epc_tax_toolkit", StringComparison.OrdinalIgnoreCase)
+            || h.Contains("/cp/tax-toolkits-app", StringComparison.OrdinalIgnoreCase)
+            || h.Contains("tenant_hub", StringComparison.OrdinalIgnoreCase)
+            || h.Contains("epc_tenant_control", StringComparison.OrdinalIgnoreCase)
+            || h.Contains("/cp/tenants-app", StringComparison.OrdinalIgnoreCase)
+            || h.Contains("/cp/demo-tenants-app", StringComparison.OrdinalIgnoreCase)
+            || h.Contains("epc_demo_tenants", StringComparison.OrdinalIgnoreCase)
+            || h.Contains("epc_boc_audit_log", StringComparison.OrdinalIgnoreCase)
+            || h.Contains("epc_free_tools", StringComparison.OrdinalIgnoreCase)
+            || h.Contains("/cp/free-tools-app", StringComparison.OrdinalIgnoreCase)
+            || h.Contains("epc_platform_governance", StringComparison.OrdinalIgnoreCase)
+            || h.Contains("/cp/platform-governance-app", StringComparison.OrdinalIgnoreCase)
+            || h.Contains("epc_platform_health", StringComparison.OrdinalIgnoreCase)
+            || h.Contains("/cp/failover-status-app", StringComparison.OrdinalIgnoreCase)
+            || h.Contains("epc_dealer_portal", StringComparison.OrdinalIgnoreCase)
+            || h.Contains("epc_industry_license_trends", StringComparison.OrdinalIgnoreCase))
         {
             return true;
         }
