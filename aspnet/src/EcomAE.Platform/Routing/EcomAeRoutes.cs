@@ -390,6 +390,21 @@ public static class EcomAeRoutes
     public const string ControlPanelSearchTabs = "/cp/search-tabs";
     /// <summary>CP Search tabs Blazor list (JSON digest remains <see cref="ControlPanelSearchTabs"/>).</summary>
     public const string ControlPanelSearchTabsApp = "/cp/search-tabs-app";
+    public const string ControlPanelPricesUploadApp = "/cp/prices-upload-app";
+    public const string ControlPanelPricesEditApp = "/cp/prices-edit-app";
+    public const string ControlPanelPricesSendApp = "/cp/prices-send-app";
+    public const string ControlPanelWorkshopApp = "/cp/workshop-app";
+    public const string ControlPanelSaoApp = "/cp/sao-app";
+    public const string ControlPanelPrintDocsApp = "/cp/print-docs-app";
+    public const string ControlPanelDataTransferApp = "/cp/data-transfer-app";
+    public const string ControlPanelBulkUploadApp = "/cp/bulk-upload-app";
+    public const string ControlPanelKktApp = "/cp/kkt-app";
+    /// <summary>CP shop-module coverage board (PHP shop/* → ASP.NET apps).</summary>
+    public const string ControlPanelShopModuleCoverage = "/cp/shop-module-coverage";
+
+    /// <summary>CP top-level content-area coverage board (PHP cp/content/* → ASP.NET apps).</summary>
+    public const string ControlPanelTopLevelAreaCoverage = "/cp/toplevel-area-coverage";
+
     public const string ControlPanelSystemRequests = "/cp/system-requests";
     /// <summary>CP System requests Blazor list (JSON digest remains <see cref="ControlPanelSystemRequests"/>).</summary>
     public const string ControlPanelSystemRequestsApp = "/cp/system-requests-app";

@@ -191,6 +191,15 @@
     <div id="wrapper">
         <div class="content epc-cp-main-pane">
             <div class="epc-cp-content-inner">
+                @if (!_signedIn)
+                {
+                    <div class="epc-cp-guest-banner" role="status" style="margin:0 0 1rem;padding:.75rem .95rem;background:#fff7ed;border:1px solid #fdba74;border-radius:.45rem;color:#9a3412;font-size:.88rem;line-height:1.45;">
+                        <strong>Sign in required for live CP data.</strong>
+                        Guest browse shows module chrome and PHP-reference actions only.
+                        Digests stay empty until an admin session is present.
+                        <a href="/cp/login" style="margin-left:.35rem;font-weight:700;color:#c2410c;">Sign in</a>
+                    </div>
+                }
                 <div class="row">
                     <!--epc-cp-main-begin-->
                     @ChildContent
