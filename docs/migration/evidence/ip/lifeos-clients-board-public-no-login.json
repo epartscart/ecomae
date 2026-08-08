@@ -3,17 +3,20 @@
   "title": "LifeOS joined-clients board public (no login) + FORCE_LIVE note",
   "problem": [
     "https://www.ecomae.com/cp/lifeos-clients-app redirected to CP login (admin auth gate).",
-    "https://lifeos.ecomae.com/lifeos/clients/cp returned 404 — PR #945 merged but :5100 not republished."
+    "https://lifeos.ecomae.com/lifeos/clients/cp returned 404 — PR #945 merged but :5100 not republished.",
+    "Regression: LifeOsPersonalAuthGateMiddleware required login for /lifeos/clients-board (2026-08-08 probe 302→login)."
   ],
   "fix": [
     "Public board at /lifeos/clients-board (same UI as CP console).",
     "Temporary allowlist for /cp/lifeos-clients-app in AdminSurfaceAuthGateMiddleware.",
-    "JSON remains GET /lifeos/clients/cp (no auth)."
+    "JSON remains GET /lifeos/clients/cp (no auth).",
+    "2026-08-08: clients-board + clients/cp + directory moved back to IsPublicLifeOs; join directory persists to App_Data/lifeos-clients.json."
   ],
   "links": {
     "publicBoard": "https://lifeos.ecomae.com/lifeos/clients-board",
     "cpMirror": "https://lifeos.ecomae.com/cp/lifeos-clients-app",
     "json": "https://lifeos.ecomae.com/lifeos/clients/cp"
   },
-  "forceLivePaste": "docs/migration/evidence/ip/LIFEOS_CLIENTS_BOARD_FORCE_LIVE.md"
+  "forceLivePaste": "docs/migration/evidence/ip/LIFEOS_CLIENTS_BOARD_FORCE_LIVE.md",
+  "status": "fixed-in-code"
 }

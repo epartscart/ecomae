@@ -1,0 +1,14 @@
+{
+  "id": "epartscart-docpart-tenant-fallback",
+  "capturedAtUtc": "2026-08-08T20:20:00Z",
+  "problem": "CP login for www.epartscart.com returned tenant_db_unbound when portal db_name empty/unbound even though Model C shop schema docpart exists.",
+  "fix": [
+    "RouteTenantResolver fills DatabaseName=docpart for epartscart hosts/site_key when registry db_name is empty",
+    "SeedTenants in appsettings.json for www.epartscart.com and epartscart.com → docpart",
+    "Does not invent portal db_user/password — TenantRegistry / platform MySql CS opens docpart",
+    "STANDALONE CloudPanel bind still available for portal row status=live + bunches prove"
+  ],
+  "tests": "EpartsCartDocpartTenantFallbackTests",
+  "liveGate": "FORCE_LIVE / LIVE_PUBLISH_NOW required; merge alone does not republish :5100",
+  "status": "fixed-in-code"
+}
