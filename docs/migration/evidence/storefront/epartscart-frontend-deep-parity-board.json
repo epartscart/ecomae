@@ -1,0 +1,63 @@
+{
+  "tenant": "www.epartscart.com",
+  "asOf": "2026-08-09",
+  "productBasedOn": "aspnet-core",
+  "phpRole": "reference-only (/php-reference/* temporary)",
+  "liveProbe": {
+    "home": { "url": "/", "stack": "aspnet-primary", "look": "nero-chrome-ok", "notes": "Dark professional shell; widgets load; catalog mega-menu hashes to #epc-*" },
+    "partSearch": {
+      "url": "/storefront/search-app",
+      "look": "ok",
+      "function": "FAIL-before-fix",
+      "defect": "Brand lookup migration — Tenant shop database unbound (www portal db_name). Fixed in code: ePartsCart unbound → open docpart."
+    },
+    "ownCatalog": {
+      "url": "/storefront/own-catalog-app",
+      "look": "FAIL-before-fix",
+      "defect": "Category labels showed lang ids (1324…). Fixed: LabelFor treats numeric value as unresolved + optional lang_text_strings_translation join."
+    },
+    "cart": {
+      "url": "/storefront/cart-app",
+      "look": "partial-digest",
+      "function": "dry-run-writes",
+      "defect": "CTAs pointed at product /en/shop/cart. Fixed: primary ASP.NET + /php-reference compare only."
+    },
+    "phpReferenceHome": { "url": "/php-reference/home", "status": "404-live", "ops": "restore php-reference archive / LIVE_PUBLISH; TemporarilyDeactivatePhpServing currently on" },
+    "vin": { "url": "/storefront/vin-app", "look": "aspnet-shell", "function": "php-compare-opt-in" },
+    "vehicleCatalog": { "url": "/storefront/vehicle-catalog-app", "look": "widget-parity", "function": "umapi-ajax-still-php" },
+    "accessories": { "url": "/storefront/accessories-app", "look": "ok", "function": "partial-php-ajax" },
+    "checkout": { "url": "/storefront/checkout-app", "look": "aspnet-shell", "function": "dry-run-create" },
+    "login": { "url": "/storefront/login", "look": "ok", "function": "bridge" },
+    "register": { "url": "/storefront/register-app", "look": "ok", "function": "posts-/php-reference-until-cutover" }
+  },
+  "areaMatrix": [
+    { "area": "home", "aspnet": "/", "php": "/php-reference/home", "look": "partial", "function": "partial", "gap": "Widget AJAX still hits /api/umapi_proxy.php + ajax_epc_product_family.php" },
+    { "area": "chrome", "aspnet": "PhpStorefrontDesktopChrome", "php": "templates/nero/desktop.php", "look": "strong", "function": "partial", "gap": "Nav → ASP.NET apps; catalog modules mostly home hashes" },
+    { "area": "part_search", "aspnet": "/storefront/search-app", "php": "/en/shop/part_search", "look": "strong", "function": "partial→fixed-bind", "gap": "API supplier bunches interim bridge; cart/quote writes PHP" },
+    { "area": "name_search", "aspnet": "search-app?mode=name", "php": "/en/shop/search", "look": "stub", "function": "stub", "gap": "Catalogue name search still PHP-depth" },
+    { "area": "warehouse_attr", "aspnet": "search-app?mode=attr", "php": "/en/shop/warehouse-search", "look": "partial", "function": "partial", "gap": "Fielded attr SQL ≠ full PHP" },
+    { "area": "vin", "aspnet": "/storefront/vin-app", "php": "/php-reference/en/katalog-laximo", "look": "shell", "function": "opt-in-compare", "gap": "No native Laximo decode yet" },
+    { "area": "vehicle_catalog", "aspnet": "/storefront/vehicle-catalog-app", "php": "/en/vehicle-catalog", "look": "partial", "function": "partial", "gap": "Tree AJAX still PHP umapi_proxy" },
+    { "area": "own_catalog", "aspnet": "/storefront/own-catalog-app", "php": "dp_menu / catalogue", "look": "fixed-labels", "function": "partial", "gap": "Reads ASP.NET; cart writes PHP" },
+    { "area": "accessories", "aspnet": "/storefront/accessories-app", "php": "/en/accessories-spare-parts", "look": "strong", "function": "partial", "gap": "Browse AJAX PHP" },
+    { "area": "product", "aspnet": "/storefront/product-app", "php": "CMS product", "look": "strong", "function": "partial", "gap": "Cart/bookmark/compare writes PHP" },
+    { "area": "cart", "aspnet": "/storefront/cart-app", "php": "/php-reference/en/shop/cart", "look": "partial", "function": "dry-run", "gap": "Live qty/check/delete PHP-authoritative" },
+    { "area": "checkout", "aspnet": "/storefront/checkout-app", "php": "/php-reference/en/shop/checkout", "look": "partial", "function": "dry-run", "gap": "Create/payment PHP" },
+    { "area": "orders", "aspnet": "/storefront/orders-app", "php": "/en/shop/orders", "look": "partial", "function": "partial", "gap": "Detail/messages PHP" },
+    { "area": "garage", "aspnet": "/storefront/garage-app", "php": "/en/garazh", "look": "partial", "function": "dry-run", "gap": "Car writes PHP" },
+    { "area": "account", "aspnet": "/storefront/account-summary-app", "php": "/en/shop/balans", "look": "partial", "function": "partial", "gap": "Edits PHP" },
+    { "area": "quotes_wishlist_compare_bulk", "aspnet": "*-app", "php": "/en/shop/*", "look": "partial", "function": "partial", "gap": "Writes PHP / bulk process reference" }
+  ],
+  "thisWaveFixes": [
+    "Own catalog LabelFor ignores numeric lang ids; optional translated SQL",
+    "ePartsCart unbound shop DB opens docpart (search/brands/bunches/catalogue)",
+    "Cart CTAs ASP.NET-primary + /php-reference compare only"
+  ],
+  "hardLocks": {
+    "cutoverAllowed": false,
+    "readyForPhpRemoval": false,
+    "preferAspNetStorefrontApps": true,
+    "forceLiveRequired": true
+  },
+  "operator": "After merge: ECOMAE_BRANCH=<this-branch> bash scripts/cloudpanel_EPARTSCART_LIVE_PUBLISH_NOW.sh — paste RESULT=PASS. Also restore /php-reference/* (currently 404 with TemporarilyDeactivatePhpServing)."
+}
