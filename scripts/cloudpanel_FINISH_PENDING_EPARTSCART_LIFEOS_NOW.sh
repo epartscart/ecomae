@@ -20,7 +20,8 @@ printf 'HOST=%s DATE_UTC=%s UID=%s\n' \
 die() { printf 'RESULT=FAIL %s\n' "$*" >&2; exit 1; }
 [[ "$(id -u)" -eq 0 ]] || die "must_run_as_root_on_CloudPanel"
 
-BRANCH="${ECOMAE_BRANCH:-cursor/finish-pending-epartscart-lifeos-7b3b}"
+# #975 merged — default to main.
+BRANCH="${ECOMAE_BRANCH:-main}"
 export ECOMAE_BRANCH="$BRANCH" ECOMAE_SKIP_LIFEOS_MP4="${ECOMAE_SKIP_LIFEOS_MP4:-YES}"
 
 CANDIDATES=("${ECOMAE_REPO:-}" /opt/ecomae-aspnet-source /root/ecomae /opt/ecomae)
