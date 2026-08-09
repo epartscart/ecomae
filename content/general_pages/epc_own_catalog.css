@@ -8,53 +8,58 @@
   color: var(--own-ink);
   padding: 0 0 3rem;
 }
+/* PHP catalogue page header — light panel (not marketing dark hero). */
 .epc-own-cat__hero {
-  background: linear-gradient(135deg, #111827 0%, #0f172a 55%, #1e293b 100%);
-  color: #fff;
-  padding: 2.2rem 0 2rem;
-  margin-bottom: 1.5rem;
+  background: #fff;
+  color: var(--own-ink);
+  padding: .85rem 0 1rem;
+  margin-bottom: 1rem;
+  border: 1px solid var(--own-line);
+  border-radius: 2px;
 }
 .epc-own-cat__hero .container { max-width: 1140px; }
 .epc-own-cat__brand {
-  font-weight: 900;
-  font-size: 1.05rem;
-  letter-spacing: .02em;
-  margin-bottom: .35rem;
+  display: none; /* brand lives in nero chrome, not page body */
 }
 .epc-own-cat__brand span { color: var(--own-red); }
 .epc-own-cat__hero h1 {
-  font-size: clamp(1.6rem, 3vw, 2.2rem);
-  font-weight: 900;
-  margin: 0 0 .5rem;
-  line-height: 1.15;
+  font-size: 22px;
+  font-weight: 700;
+  margin: 0 0 .25rem;
+  line-height: 1.25;
+  color: #111827;
 }
 .epc-own-cat__hero p {
-  margin: 0 0 1rem;
-  color: rgba(255,255,255,.78);
-  max-width: 36rem;
+  margin: 0 0 .75rem;
+  color: var(--own-muted);
+  max-width: 40rem;
+  font-size: 13px;
+  line-height: 1.45;
 }
 .epc-own-cat__search {
   display: flex;
-  gap: .5rem;
+  gap: .45rem;
   flex-wrap: wrap;
   max-width: 32rem;
 }
 .epc-own-cat__search input {
   flex: 1 1 12rem;
-  min-height: 46px;
-  border: 0;
-  border-radius: 10px;
-  padding: 0 14px;
-  font-size: 15px;
+  min-height: 36px;
+  border: 1px solid #cbd5e1;
+  border-radius: 3px;
+  padding: 0 12px;
+  font-size: 14px;
+  background: #fff;
+  color: #111827;
 }
 .epc-own-cat__search button {
-  min-height: 46px;
-  border: 0;
-  border-radius: 10px;
+  min-height: 36px;
+  border: 1px solid #b91c1c;
+  border-radius: 3px;
   background: var(--own-red);
   color: #fff;
-  font-weight: 800;
-  padding: 0 18px;
+  font-weight: 700;
+  padding: 0 14px;
   cursor: pointer;
 }
 .epc-own-cat__layout {

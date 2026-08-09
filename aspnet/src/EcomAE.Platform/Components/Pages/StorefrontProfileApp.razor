@@ -12,12 +12,7 @@
 <PhpChromeStyles Surface="storefront" />
 <HeadContent>
 <style>
-        .epc-sf-pf-hero {
-            margin-bottom:1rem; padding:1.15rem 1.25rem; border-radius:.7rem; color:#fff;
-            background:linear-gradient(135deg,#111827 0%,#7f1d1d 50%,#dc2626 100%);
-        }
-        .epc-sf-pf-hero h1 { margin:.2rem 0 .35rem; font-size:clamp(1.4rem,3vw,1.95rem); }
-        .epc-sf-pf-hero p { margin:0; color:#bae6fd; max-width:40rem; font-size:.92rem; line-height:1.45; }
+        
         .epc-sf-pf-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
         .epc-sf-pf-cta a {
             display:inline-flex; padding:.5rem .85rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
@@ -47,17 +42,13 @@
 
 <PhpStorefrontDesktopChrome>
 
-    <section class="epc-sf-pf-hero">
-        <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="eparts" style="height:28px;filter:brightness(1.1)" />
-        <h1>Profile</h1>
-        <p>Browse parts, manage your garage, and track recent orders.</p>
-        <div class="epc-sf-pf-cta">
-            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpProfile)">Open module</a>
-            <a class="ghost" href="/storefront/garage-app">Garage</a>
-            <a class="ghost" href="/storefront/orders-app">My orders</a>
-            <a class="ghost" href="/storefront/login">Customer login</a>
-        </div>
-    </section>
+    <PhpStorefrontPageHeader Title="Profile"
+                            Subtitle="Browse parts, manage your garage, and track recent orders.">
+        <a class="btn btn-sm btn-primary" href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpProfile)">Open module</a>
+            <a class="btn btn-sm btn-default" href="/storefront/garage-app">Garage</a>
+            <a class="btn btn-sm btn-default" href="/storefront/orders-app">My orders</a>
+            <a class="btn btn-sm btn-default" href="/storefront/login">Customer login</a>
+    </PhpStorefrontPageHeader>
 
     @if (!_isCustomer)
     {

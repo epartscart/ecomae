@@ -15,12 +15,7 @@
 <PhpChromeStyles Surface="storefront" />
 <HeadContent>
 <style>
-        .epc-sf-cart-hero {
-            margin-bottom:1rem; padding:1.15rem 1.25rem; border-radius:.7rem; color:#fff;
-            background:linear-gradient(135deg,#111827 0%,#7f1d1d 50%,#dc2626 100%);
-        }
-        .epc-sf-cart-hero h1 { margin:.2rem 0 .35rem; font-size:clamp(1.4rem,3vw,1.95rem); }
-        .epc-sf-cart-hero p { margin:0; color:#fecaca; max-width:40rem; font-size:.92rem; line-height:1.45; }
+        
         .epc-sf-cart-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
         .epc-sf-cart-cta a, .epc-sf-cart-cta button {
             display:inline-flex; padding:.5rem .85rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
@@ -55,16 +50,12 @@
 
 <PhpStorefrontDesktopChrome>
 
-    <section class="epc-sf-cart-hero">
-        <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="eparts" style="height:28px;filter:brightness(1.1)" />
-        <h1>Cart</h1>
-        <p>ASP.NET Core cart digest. Qty / check / delete dry-run here; live writes remain PHP-authoritative under <code>/php-reference/*</code> until cutover.</p>
-        <div class="epc-sf-cart-cta">
-            <a href="@StorefrontSurfaceLinks.Checkout">Checkout</a>
-            <a class="ghost" href="@StorefrontSurfaceLinks.PartSearch">Search parts</a>
-            <a class="ghost" href="@PhpCartCompareHref" title="Temporary PHP compare only">Compare PHP reference</a>
-        </div>
-    </section>
+    <PhpStorefrontPageHeader Title="Cart"
+                            Subtitle="ASP.NET Core cart digest. Qty / check / delete dry-run here; live writes remain PHP-authoritative under /php-reference/* until cutover.">
+        <a class="btn btn-sm btn-primary" href="@StorefrontSurfaceLinks.Checkout">Checkout</a>
+            <a class="btn btn-sm btn-default" href="@StorefrontSurfaceLinks.PartSearch">Search parts</a>
+            <a class="btn btn-sm btn-default" href="@PhpCartCompareHref" title="Temporary PHP compare only">Compare PHP reference</a>
+    </PhpStorefrontPageHeader>
 
     @if (!_isCustomer)
     {

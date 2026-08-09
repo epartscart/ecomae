@@ -184,6 +184,9 @@ public static class PhpLegacyAssetBridge
                          "content/general_pages/epc_accessories.css"),
                      ("/platform-assets/epc_accessories_marketplace.js",
                          "content/general_pages/epc_accessories_marketplace.js"),
+                     // ASP.NET storefront module look → PHP nero page-header parity
+                     ("/platform-assets/epc_storefront_aspnet_module_parity.css",
+                         "content/general_pages/epc_storefront_aspnet_module_parity.css"),
                  })
         {
             var localRelative = relative;

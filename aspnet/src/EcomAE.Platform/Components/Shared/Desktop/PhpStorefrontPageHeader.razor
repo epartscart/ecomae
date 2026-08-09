@@ -1,0 +1,27 @@
+@namespace EcomAE.Platform.Components.Shared
+@*
+  PHP storefront page chrome — compact title row (not marketing gradient hero).
+  Matches nero / professional-shell content headers: light panel, h1, short sub, Bootstrap btns.
+*@
+
+<div class="epc-sf-page-hd">
+    <div class="epc-sf-page-hd-main">
+        <h1 class="epc-sf-page-title">@Title</h1>
+        @if (!string.IsNullOrWhiteSpace(Subtitle))
+        {
+            <p class="epc-sf-page-sub">@Subtitle</p>
+        }
+    </div>
+    @if (ChildContent is not null)
+    {
+        <div class="epc-sf-page-actions">
+            @ChildContent
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public string Title { get; set; } = "";
+    [Parameter] public string? Subtitle { get; set; }
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+}

@@ -7,12 +7,7 @@
 <PhpChromeStyles Surface="storefront" />
 <HeadContent>
 <style>
-        .epc-sf-vc-hero {
-            margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
-            background:linear-gradient(135deg,#111827 0%,#334155 50%,#64748b 100%);
-        }
-        .epc-sf-vc-hero h1 { margin:.15rem 0 .3rem; font-size:clamp(1.3rem,3vw,1.85rem); }
-        .epc-sf-vc-hero p { margin:0; color:#e2e8f0; max-width:40rem; font-size:.9rem; line-height:1.45; }
+        
         .epc-sf-vc-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.8rem; }
         .epc-sf-vc-cta a {
             display:inline-flex; padding:.48rem .8rem; border-radius:.4rem; font-weight:700; font-size:.8rem;
@@ -29,16 +24,12 @@
 
 <PhpStorefrontDesktopChrome>
 
-    <section class="epc-sf-vc-hero">
-        <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="eparts" style="height:28px;filter:brightness(1.1)" />
-        <h1>Vehicle parts catalog</h1>
-        <p>Year → make → model → engine tree for vehicle-based part selection.</p>
-        <div class="epc-sf-vc-cta">
-            <a href="@StorefrontSurfaceLinks.PartSearch">Part search</a>
-            <a class="ghost" href="@StorefrontSurfaceLinks.LaximoVin">VIN / Frame</a>
-            <a class="ghost" href="@StorefrontPhpCanonical.VehicleCatalog">Open classic module</a>
-        </div>
-    </section>
+    <PhpStorefrontPageHeader Title="Vehicle parts catalog"
+                            Subtitle="Year → make → model → engine tree for vehicle-based part selection.">
+        <a class="btn btn-sm btn-primary" href="@StorefrontSurfaceLinks.PartSearch">Part search</a>
+            <a class="btn btn-sm btn-default" href="@StorefrontSurfaceLinks.LaximoVin">VIN / Frame</a>
+            <a class="btn btn-sm btn-default" href="@StorefrontPhpCanonical.VehicleCatalog">Open classic module</a>
+    </PhpStorefrontPageHeader>
 
     <div class="epc-sf-vc-body" id="epc-vehicle-catalog" aria-label="Vehicle catalog tree">
         @((MarkupString)_html)

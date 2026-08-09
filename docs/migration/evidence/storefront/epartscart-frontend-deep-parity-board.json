@@ -51,8 +51,16 @@
   "thisWaveFixes": [
     "Own catalog LabelFor ignores numeric lang ids; optional translated SQL",
     "ePartsCart unbound shop DB opens docpart (search/brands/bunches/catalogue)",
-    "Cart CTAs ASP.NET-primary + /php-reference compare only"
+    "Cart CTAs ASP.NET-primary + /php-reference compare only",
+    "Presentation: remove invented dark gradient heroes on all Storefront*App digests",
+    "Shared PhpStorefrontPageHeader + epc_storefront_aspnet_module_parity.css (PHP nero page-hd look)",
+    "Own catalog + accessories heroes flattened to light PHP panels"
   ],
+  "presentationParity": {
+    "sharedHeader": "PhpStorefrontPageHeader",
+    "parityCss": "content/general_pages/epc_storefront_aspnet_module_parity.css",
+    "rule": "No linear-gradient(135deg marketing heroes on storefront apps; light panels + Bootstrap btn-sm"
+  },
   "hardLocks": {
     "cutoverAllowed": false,
     "readyForPhpRemoval": false,
