@@ -14,7 +14,7 @@
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Cash Entries" BreadcrumbArea="Cash & Treasury" BreadcrumbTab="Cash ledger">
 
     
-    <PhpErpModulePageHeader Title="Cash Ledger Entries" Subtitle="Read digest with PHP-reference interactive module." PhpTabHref="@_phpTab" />
+    <PhpErpModulePageHeader Title="Cash Ledger Entries" Subtitle="ASP.NET Core digest — PHP compare only under /php-reference/*." PhpTabHref="@_phpTab" />
     <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
 
 
@@ -58,7 +58,7 @@
                             <td>@e.Amount.ToString("N2", CultureInfo.InvariantCulture)</td>
                             <td>@(string.IsNullOrWhiteSpace(e.Reference) ? "—" : e.Reference)</td>
                             <td>@(string.IsNullOrWhiteSpace(e.Note) ? "—" : e.Note)</td>
-                            <td><a href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(phpHref)">Open</a></td>
+                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(phpHref)">Open</a></td>
                         </tr>
                     }
                 }

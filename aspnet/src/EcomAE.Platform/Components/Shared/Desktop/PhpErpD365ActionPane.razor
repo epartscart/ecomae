@@ -1,6 +1,7 @@
 @namespace EcomAE.Platform.Components.Shared
 @*
   Minimal D365 / Suntech action-pane stub matching erp_action_pane_ribbon presentation.
+  Primary actions stay on ASP.NET. PHP reference is secondary compare only.
 *@
 @using EcomAE.Platform.Presentation
 
@@ -15,7 +16,7 @@
                     <div class="epc-d365-ap-buttons">
                         @if (!string.IsNullOrWhiteSpace(PhpTabHref))
                         {
-                            <a class="epc-d365-ap-btn is-primary" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(PhpTabHref)">
+                            <a class="epc-d365-ap-btn is-primary" href="@PhpSurfaceLinkMap.AspNetPrimaryHref(PhpTabHref)">
                                 <i class="fa fa-plus" aria-hidden="true"></i><span>New</span>
                             </a>
                         }
@@ -29,8 +30,8 @@
                         </a>
                         @if (!string.IsNullOrWhiteSpace(PhpTabHref))
                         {
-                            <a class="epc-d365-ap-btn" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(PhpTabHref)">
-                                <i class="fa fa-external-link" aria-hidden="true"></i><span>Full module</span>
+                            <a class="epc-d365-ap-btn" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(PhpTabHref)" title="Temporary PHP compare only">
+                                <i class="fa fa-code" aria-hidden="true"></i><span>Compare PHP</span>
                             </a>
                         }
                     </div>

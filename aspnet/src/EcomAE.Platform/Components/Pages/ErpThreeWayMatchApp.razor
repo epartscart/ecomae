@@ -14,7 +14,7 @@
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Three-Way Match" BreadcrumbArea="Procure to Pay" BreadcrumbTab="Three-way match">
 
     
-    <PhpErpModulePageHeader Title="Three-Way Match" Subtitle="Read digest with PHP-reference interactive module." PhpTabHref="@_phpTab" />
+    <PhpErpModulePageHeader Title="Three-Way Match" Subtitle="ASP.NET Core digest — PHP compare only under /php-reference/*." PhpTabHref="@_phpTab" />
     <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
 
 
@@ -53,7 +53,7 @@
                             <td>@(string.IsNullOrWhiteSpace(row.InvoiceNumber) ? "—" : row.InvoiceNumber)</td>
                             <td>@row.InvoiceTotal.ToString("N2", CultureInfo.InvariantCulture)</td>
                             <td>@(row.ReceiptCount > 0 ? row.ReceiptCount.ToString(CultureInfo.InvariantCulture) : "—")</td>
-                            <td><a href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Open</a></td>
+                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
                         </tr>
                     }
                 }

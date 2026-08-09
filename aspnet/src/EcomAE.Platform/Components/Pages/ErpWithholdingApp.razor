@@ -13,7 +13,7 @@
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Withholding" BreadcrumbArea="Tax" BreadcrumbTab="Withholding">
 
     
-    <PhpErpModulePageHeader Title="Withholding tax" Subtitle="Read digest with PHP-reference interactive module." PhpTabHref="@_phpTab" />
+    <PhpErpModulePageHeader Title="Withholding tax" Subtitle="ASP.NET Core digest — PHP compare only under /php-reference/*." PhpTabHref="@_phpTab" />
 
 
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Withholding KPIs">
@@ -45,7 +45,7 @@
                             <td><strong>@row.Slug</strong></td>
                             <td>@row.Title</td>
                             <td>@row.TaxCategory</td>
-                            <td><a href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Open</a></td>
+                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
                         </tr>
                     }
                 }

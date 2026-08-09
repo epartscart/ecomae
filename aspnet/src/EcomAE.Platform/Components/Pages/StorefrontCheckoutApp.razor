@@ -74,13 +74,21 @@
         <div class="epc-sf-co-gate" style="margin-bottom:1rem">
             <p style="margin:0 0 .65rem;color:#334155;font-weight:700">@_stepHeading</p>
             <p style="margin:0 0 .75rem;color:#64748b;font-size:.9rem">@_stepHelp</p>
-            <iframe title="@_stepHeading"
-                    src="@_phpStepSrc"
-                    style="width:100%;min-height:640px;border:1px solid #e5e7eb;border-radius:.45rem;background:#fff"></iframe>
-            <p class="epc-sf-co-note" style="margin-top:.75rem">
-                Checkout writes stay PHP-authoritative. If the frame shows “Archive paused”, restore
-                <code>/php-reference/*</code> with the customer-journey recover paste.
+            <p style="margin:0 0 .75rem;color:#334155;font-size:.9rem;line-height:1.45">
+                This step is served by <strong>ASP.NET Core</strong>. Live order writes remain gated
+                (<code>POST /storefront/checkout/create</code> dry-run until cutover).
+                PHP is temporary compare only under <code>/php-reference/*</code> — not the product body.
             </p>
+            <p style="margin:0">
+                <a href="@StorefrontSurfaceLinks.Cart" style="display:inline-flex;padding:.5rem .85rem;border-radius:.4rem;background:#dc2626;color:#fff;font-weight:700;text-decoration:none;margin-right:.35rem">Back to cart</a>
+                <a href="@_phpStepSrc" style="display:inline-flex;padding:.5rem .85rem;border-radius:.4rem;border:1px solid #d1d5db;color:#111;font-weight:700;text-decoration:none">Compare PHP reference</a>
+            </p>
+            @if (_showPhpCompare)
+            {
+                <iframe title="@_stepHeading (PHP compare)"
+                        src="@_phpStepSrc"
+                        style="width:100%;min-height:640px;margin-top:.75rem;border:1px solid #e5e7eb;border-radius:.45rem;background:#fff"></iframe>
+            }
         </div>
     }
 
@@ -154,12 +162,19 @@
     private string _stepHeading = "";
     private string _stepHelp = "";
     private string _phpStepSrc = "/php-reference/en/shop/checkout";
+    private bool _showPhpCompare;
 
     protected override async Task OnInitializedAsync()
     {
         ResolveStep();
         var ctx = Http.HttpContext;
         if (ctx is null) return;
+
+        var q = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(Nav.ToAbsoluteUri(Nav.Uri).Query);
+        _showPhpCompare = q.TryGetValue("php", out var phpVal)
+                          && (phpVal == "1"
+                              || phpVal.ToString().Equals("true", StringComparison.OrdinalIgnoreCase)
+                              || phpVal.ToString().StartsWith("/php-reference", StringComparison.OrdinalIgnoreCase));
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         if (session.Kind != LegacySessionKind.Customer || session.UserId <= 0)
@@ -202,13 +217,13 @@
         (_heroTitle, _heroLead, _stepHeading, _stepHelp, _phpStepSrc) = _step switch
         {
             "how_get" => ("Delivery / pickup", "Choose how you want to receive this order.",
-                "How to obtain", "PHP checkout_how_get twin via /php-reference.",
+                "How to obtain", "ASP.NET checkout step — compare PHP reference only if needed (?php=1).",
                 "/php-reference/en/shop/checkout/how_get"),
             "confirm" => ("Confirm order", "Review totals and place the order.",
-                "Confirm & pay", "PHP checkout_confirm twin via /php-reference.",
+                "Confirm & pay", "ASP.NET checkout step — live create stays dry-run gated until cutover.",
                 "/php-reference/en/shop/checkout/confirm"),
             "login_offer" => ("Guest checkout", "Continue without an account, or sign in / register.",
-                "Login offer", "PHP checkout_login_offer twin via /php-reference.",
+                "Login offer", "ASP.NET guest/login offer — PHP compare under /php-reference only.",
                 "/php-reference/en/shop/checkout/login_offer"),
             _ => ("Checkout readiness", "Review your cart and continue to delivery and payment.",
                 "", "", "/php-reference/en/shop/checkout")

@@ -14,7 +14,7 @@
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Bank reconciliation" BreadcrumbArea="Cash & Treasury" BreadcrumbTab="Bank recon">
 
     
-    <PhpErpModulePageHeader Title="Bank reconciliation" Subtitle="Read digest with PHP-reference interactive module." PhpTabHref="@_phpTab" />
+    <PhpErpModulePageHeader Title="Bank reconciliation" Subtitle="ASP.NET Core digest — PHP compare only under /php-reference/*." PhpTabHref="@_phpTab" />
     <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
 
 
@@ -59,7 +59,7 @@
                             <td>@(row.Direction == 1 ? "in" : "out")</td>
                             <td>@(row.MatchedEntryId > 0 ? row.MatchedEntryId.ToString(CultureInfo.InvariantCulture) : "—")</td>
                             <td>@(!string.IsNullOrWhiteSpace(row.ImportBatch) ? row.ImportBatch : "—")</td>
-                            <td><a href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Open</a></td>
+                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
                         </tr>
                     }
                 }

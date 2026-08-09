@@ -14,7 +14,7 @@
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Chart of Accounts" BreadcrumbArea="Record to Report" BreadcrumbTab="Chart of accounts">
 
     
-    <PhpErpModulePageHeader Title="Chart of Accounts" Subtitle="Read digest with PHP-reference interactive module." PhpTabHref="@_phpTab" />
+    <PhpErpModulePageHeader Title="Chart of Accounts" Subtitle="ASP.NET Core digest — PHP compare only under /php-reference/*." PhpTabHref="@_phpTab" />
     <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
 
 
@@ -57,7 +57,7 @@
                             <td>@a.OpeningBalance.ToString("N2", CultureInfo.InvariantCulture)</td>
                             <td>@a.Balance.ToString("N2", CultureInfo.InvariantCulture)</td>
                             <td>@(a.Active ? "yes" : "no")</td>
-                            <td><a href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Open</a></td>
+                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
                         </tr>
                     }
                 }

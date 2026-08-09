@@ -14,7 +14,7 @@
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Cash & Bank" BreadcrumbArea="Cash & Treasury" BreadcrumbTab="Cash & bank">
 
     
-    <PhpErpModulePageHeader Title="Cash & Bank" Subtitle="Read digest with PHP-reference interactive module." PhpTabHref="@_phpTab" />
+    <PhpErpModulePageHeader Title="Cash & Bank" Subtitle="ASP.NET Core digest — PHP compare only under /php-reference/*." PhpTabHref="@_phpTab" />
     <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
 
 
@@ -54,7 +54,7 @@
                                 <td>@(string.IsNullOrWhiteSpace(a.CurrencyCode) ? "—" : a.CurrencyCode)</td>
                                 <td>@a.OpeningBalance.ToString("N2", CultureInfo.InvariantCulture)</td>
                                 <td>@a.Balance.ToString("N2", CultureInfo.InvariantCulture)</td>
-                                <td><a href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(phpHref)">Open</a></td>
+                                <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(phpHref)">Open</a></td>
                             </tr>
                         }
                     }
@@ -95,7 +95,7 @@
                                 <td>@e.Amount.ToString("N2", CultureInfo.InvariantCulture)</td>
                                 <td>@(string.IsNullOrWhiteSpace(e.Reference) ? "—" : e.Reference)</td>
                                 <td>@(string.IsNullOrWhiteSpace(e.Note) ? "—" : e.Note)</td>
-                                <td><a href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(phpHref)">Open</a></td>
+                                <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(phpHref)">Open</a></td>
                             </tr>
                         }
                     }

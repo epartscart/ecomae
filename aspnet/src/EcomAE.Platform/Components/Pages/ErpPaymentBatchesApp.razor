@@ -14,7 +14,7 @@
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Payment Batches" BreadcrumbArea="Treasury" BreadcrumbTab="Payment batches">
 
     
-    <PhpErpModulePageHeader Title="Payment Batches" Subtitle="Read digest with PHP-reference interactive module." PhpTabHref="@_phpTab" />
+    <PhpErpModulePageHeader Title="Payment Batches" Subtitle="ASP.NET Core digest — PHP compare only under /php-reference/*." PhpTabHref="@_phpTab" />
     <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
 
 
@@ -55,7 +55,7 @@
                             <td>@(row.LineCount > 0 ? row.LineCount.ToString(CultureInfo.InvariantCulture) : "—")</td>
                             <td><span class="label label-default">@row.Status</span></td>
                             <td>@FormatTime(row.ExecutionDate)</td>
-                            <td><a href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Open</a></td>
+                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
                         </tr>
                     }
                 }

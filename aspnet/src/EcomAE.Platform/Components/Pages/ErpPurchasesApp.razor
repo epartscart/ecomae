@@ -14,7 +14,7 @@
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Purchases" BreadcrumbArea="Procure to Pay" BreadcrumbTab="Purchases">
 
     
-    <PhpErpModulePageHeader Title="Purchases" Subtitle="Read digest with PHP-reference interactive module." PhpTabHref="@_phpTab" />
+    <PhpErpModulePageHeader Title="Purchases" Subtitle="ASP.NET Core digest — PHP compare only under /php-reference/*." PhpTabHref="@_phpTab" />
     <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
 
 
@@ -54,7 +54,7 @@
                             <td><span class="label label-default">@p.Status</span></td>
                             <td>@p.TotalAmount.ToString("N2", CultureInfo.InvariantCulture)</td>
                             <td>@(p.OrderId > 0 ? p.OrderId.ToString(CultureInfo.InvariantCulture) : "—")</td>
-                            <td><a href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(phpHref)">Open</a></td>
+                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(phpHref)">Open</a></td>
                         </tr>
                     }
                 }

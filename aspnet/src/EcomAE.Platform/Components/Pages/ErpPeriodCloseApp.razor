@@ -14,7 +14,7 @@
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Period Close" BreadcrumbArea="Finance" BreadcrumbTab="Year end">
 
     
-    <PhpErpModulePageHeader Title="Period Close" Subtitle="Read digest with PHP-reference interactive module." PhpTabHref="@_phpTab" />
+    <PhpErpModulePageHeader Title="Period Close" Subtitle="ASP.NET Core digest — PHP compare only under /php-reference/*." PhpTabHref="@_phpTab" />
 
 
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Period Close KPIs">
@@ -50,7 +50,7 @@
                             <td>@(row.SoftClosed ? "yes" : "no")</td>
                             <td>@(row.Locked ? "yes" : "no")</td>
                             <td>@FormatTime(row.TimeUpdated)</td>
-                            <td><a href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Open</a></td>
+                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
                         </tr>
                     }
                 }

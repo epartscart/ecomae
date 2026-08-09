@@ -5,7 +5,6 @@
 @using EcomAE.Platform.Presentation
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
-@inject IErpAjaxWriteCatalog AjaxCatalog
 @inject NavigationManager Nav
 
 <PageTitle>@_title · ERP · eParts Cart</PageTitle>
@@ -14,21 +13,34 @@
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="@_title" BreadcrumbArea="Modules" BreadcrumbTab="@_tab">
 
     <PhpErpModulePageHeader Title="@_title"
-                            Subtitle="Interactive module UI is the PHP reference tab (same look and behaviour as classic ERP)."
+                            Subtitle="ASP.NET-primary module shell. Interactive digests stay on /erp/*; PHP is temporary compare only under /php-reference/*."
                             PhpTabHref="@_phpTab" />
 
     <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
 
-    @* Unported tabs: embed PHP reference so menu clicks match PHP presentation + behaviour. *@
-    <PhpHybridWorkspaceFrame PhpHref="@_phpTab" ClearHref="/erp" />
-
-    <div class="epc-erp-section-card" style="margin-top:12px;">
-        <div class="epc-erp-section-card-hd"><h4><i class="fa fa-info-circle"></i> Module routing</h4></div>
-        <div class="epc-erp-section-card-bd" style="font-size:12px;color:#475569;">
-            <p style="margin:0 0 6px;">ASP.NET route: <code>@_mappedApp</code></p>
-            <p style="margin:0;">PHP tab: <code>@_phpTab</code> · Writes remain PHP-authoritative.</p>
+    <div class="epc-erp-section-card">
+        <div class="epc-erp-section-card-hd"><h4><i class="fa fa-cubes"></i> @_title</h4></div>
+        <div class="epc-erp-section-card-bd" style="font-size:12.5px;color:#475569;line-height:1.45;">
+            <p style="margin:0 0 8px;">
+                Product route: <code>@_mappedApp</code> (ASP.NET Core).
+                Tab key: <code>@_tab</code>.
+            </p>
+            <p style="margin:0 0 8px;">
+                Writes remain PHP-authoritative until cutover; production UI does <strong>not</strong> load PHP by default.
+                Use <em>Compare PHP reference</em> (or <code>?php=</code>) only for temporary side-by-side checks.
+            </p>
+            <p style="margin:0;">
+                <a class="btn btn-sm btn-primary" href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Stay on ASP.NET</a>
+                <a class="btn btn-sm btn-default" href="@_compareHref">Compare PHP reference</a>
+            </p>
         </div>
     </div>
+
+    @* Opt-in only — never the default production body. *@
+    @if (!string.IsNullOrWhiteSpace(_hybridPhp))
+    {
+        <PhpHybridWorkspaceFrame PhpHref="@_hybridPhp" ClearHref="@_clearHref" />
+    }
 </PhpErpDesktopChrome>
 
 @code {
@@ -37,6 +49,9 @@
     private string _title = "ERP Module";
     private string _phpTab = "/ERP/?epc_erp_shell=1";
     private string _mappedApp = "/erp/module-app";
+    private string _compareHref = "/php-reference/erp";
+    private string? _hybridPhp;
+    private string _clearHref = "/erp/module-app";
 
     protected override async Task OnInitializedAsync()
     {
@@ -48,6 +63,18 @@
         _title = ToTitle(_tab);
         _phpTab = $"/ERP/?epc_erp_shell=1&tab={Uri.EscapeDataString(_tab)}";
         _mappedApp = ErpPhpTabRouteMap.MapTabOrModuleApp(_tab);
+        _compareHref = PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab);
+        _clearHref = "/erp/module-app?tab=" + Uri.EscapeDataString(_tab);
+
+        // Opt-in hybrid compare: ?php=/php-reference/... or ?php=1
+        var phpQ = ctx.Request.Query["php"].ToString();
+        if (!string.IsNullOrWhiteSpace(phpQ))
+        {
+            _hybridPhp = string.Equals(phpQ, "1", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(phpQ, "true", StringComparison.OrdinalIgnoreCase)
+                ? _compareHref
+                : phpQ;
+        }
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("erp");

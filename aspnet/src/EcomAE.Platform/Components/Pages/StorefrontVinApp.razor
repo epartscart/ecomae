@@ -2,6 +2,7 @@
 @page "/en/katalog-laximo"
 @layout Layout.PhpChromeLayout
 @using EcomAE.Platform.Presentation
+@inject IHttpContextAccessor Http
 @inject NavigationManager Navigation
 
 <PageTitle>VIN / Frame search · eParts Cart</PageTitle>
@@ -30,7 +31,7 @@
             background:transparent; border:1px solid rgba(255,255,255,.35);
         }
         .epc-sf-vin-panel {
-            background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; overflow:hidden; min-height:28rem;
+            background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; overflow:hidden; min-height:12rem;
         }
         .epc-sf-vin-panel iframe { width:100%; min-height:70vh; border:0; display:block; background:#f8fafc; }
         .epc-sf-vin-note {
@@ -48,35 +49,49 @@
     <section class="epc-sf-vin-hero">
         <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="eparts" style="height:28px;filter:brightness(1.15)" />
         <h1>VIN / Frame search</h1>
-        <p>Decode vehicles and open OEM unit trees. Results use the classic Laximo catalogue module.</p>
+        <p>ASP.NET Core product shell. Decode stays here; Laximo PHP is temporary compare under <code>/php-reference/*</code> only.</p>
         <form class="epc-sf-vin-form" @onsubmit="OnSubmit" @onsubmit:preventDefault>
             <input type="search" @bind="_vin" maxlength="32" placeholder="VIN or Frame" aria-label="VIN or Frame" required />
             <button type="submit">Decode VIN</button>
-            <a class="btn ghost" href="@PhpResultsHref">Open classic catalogue</a>
+            <a class="btn ghost" href="@PhpResultsHref" title="Temporary PHP compare only">Compare PHP reference</a>
             <a class="btn ghost" href="@StorefrontSurfaceLinks.PartSearch">Part search</a>
         </form>
     </section>
 
     @if (!string.IsNullOrWhiteSpace(_vin))
     {
-        <div class="epc-sf-vin-panel" aria-label="Laximo VIN results">
-            <iframe title="Laximo VIN results" src="@PhpResultsHref" loading="lazy" referrerpolicy="same-origin"></iframe>
+        <div class="epc-sf-vin-panel" style="padding:1.15rem 1.25rem;color:#334155" aria-label="VIN decode workspace">
+            <p style="margin:0 0 .65rem;font-weight:700">VIN / frame: <code>@_vin</code></p>
+            <p style="margin:0 0 .75rem;color:#64748b;font-size:.9rem;line-height:1.45">
+                Product results stay on ASP.NET Core. The classic Laximo tree is not the default production body —
+                open it only as temporary PHP reference compare (<code>?php=1</code> embeds the compare iframe).
+            </p>
+            <p style="margin:0">
+                <a href="@CompareEmbedHref" style="display:inline-flex;padding:.5rem .85rem;border-radius:.4rem;background:#0284c7;color:#fff;font-weight:700;text-decoration:none;margin-right:.35rem">Show PHP compare</a>
+                <a href="@PhpResultsHref" style="display:inline-flex;padding:.5rem .85rem;border-radius:.4rem;border:1px solid #d1d5db;color:#111;font-weight:700;text-decoration:none">Open /php-reference</a>
+            </p>
+            @if (_showPhpCompare)
+            {
+                <iframe title="Laximo VIN results (PHP compare)" src="@PhpResultsHref" loading="lazy" referrerpolicy="same-origin"
+                        style="width:100%;min-height:70vh;margin-top:.85rem;border:1px solid #e2e8f0;border-radius:.45rem;background:#f8fafc"></iframe>
+            }
         </div>
         <p class="epc-sf-vin-note">
-            Decode/results stay on the PHP Laximo module (<code>@StorefrontPhpCanonical.LaximoVin</code>).
-            This shell matches the storefront header VIN form and keeps ASP.NET chrome around the classic tree.
+            Product path: <code>/storefront/vin-app</code>. PHP compare only:
+            <code>@StorefrontPhpCanonical.LaximoVin</code> under <code>/php-reference</code>.
         </p>
     }
     else
     {
         <div class="epc-sf-vin-panel" style="padding:1.25rem;color:#475569">
-            Enter a VIN or frame number to load the classic vehicle decode tree.
+            Enter a VIN or frame number. Production UI is ASP.NET Core; PHP Laximo is opt-in compare only.
         </div>
     }
 </PhpStorefrontDesktopChrome>
 
 @code {
     private string _vin = "";
+    private bool _showPhpCompare;
 
     [SupplyParameterFromQuery(Name = "identString")]
     public string? IdentString { get; set; }
@@ -84,7 +99,7 @@
     [SupplyParameterFromQuery(Name = "vin")]
     public string? VinAlias { get; set; }
 
-    /// <summary>PHP reference decode tree only — product VIN shell is ASP.NET; Laximo stays reference until native port.</summary>
+    /// <summary>PHP reference decode tree only — never a product /en path.</summary>
     private string PhpResultsHref
     {
         get
@@ -102,9 +117,30 @@
         }
     }
 
+    private string CompareEmbedHref
+    {
+        get
+        {
+            var vin = string.IsNullOrWhiteSpace(_vin) ? "" : _vin.Trim();
+            var href = StorefrontAspNetCanonical.LaximoVin + "?php=1";
+            if (vin.Length > 0)
+            {
+                href += "&identString=" + Uri.EscapeDataString(vin);
+            }
+
+            return href;
+        }
+    }
+
     protected override void OnInitialized()
     {
         _vin = FirstNonEmpty(IdentString, VinAlias);
+        var ctx = Http.HttpContext;
+        if (ctx is null) return;
+        var phpQ = ctx.Request.Query["php"].ToString();
+        _showPhpCompare = string.Equals(phpQ, "1", StringComparison.OrdinalIgnoreCase)
+                          || string.Equals(phpQ, "true", StringComparison.OrdinalIgnoreCase)
+                          || phpQ.StartsWith("/php-reference", StringComparison.OrdinalIgnoreCase);
     }
 
     private void OnSubmit()

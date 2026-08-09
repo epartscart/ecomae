@@ -1,7 +1,7 @@
 @namespace EcomAE.Platform.Components.Shared
 @*
   PHP erp_page_header parity — compact page chrome (not marketing hero).
-  See content/shop/finance/epc_erp_ui.php :: erp_page_header().
+  Product CTAs stay ASP.NET-primary. PHP reference is a secondary compare link only.
 *@
 @using EcomAE.Platform.Presentation
 
@@ -16,8 +16,11 @@
     <div class="epc-erp-page-actions">
         @if (!string.IsNullOrWhiteSpace(PhpTabHref))
         {
-            <a class="btn btn-sm btn-primary" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(PhpTabHref)">
-                <i class="fa fa-external-link" aria-hidden="true"></i> Open interactive module
+            <a class="btn btn-sm btn-primary" href="@PhpSurfaceLinkMap.AspNetPrimaryHref(PhpTabHref)">
+                <i class="fa fa-refresh" aria-hidden="true"></i> Open module
+            </a>
+            <a class="btn btn-sm btn-default" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(PhpTabHref)" title="Temporary PHP compare only">
+                <i class="fa fa-code" aria-hidden="true"></i> Compare PHP reference
             </a>
         }
         @ChildContent
@@ -28,7 +31,7 @@
 @code {
     [Parameter] public string Title { get; set; } = "";
     [Parameter] public string? Subtitle { get; set; }
-    /// <summary>PHP /ERP/?… tab href — rewritten to /php-reference/erp for same-to-same interactive UI.</summary>
+    /// <summary>PHP-shaped /ERP/?… tab href — primary maps to ASP.NET; compare uses /php-reference only.</summary>
     [Parameter] public string? PhpTabHref { get; set; }
     [Parameter] public RenderFragment? ChildContent { get; set; }
 }

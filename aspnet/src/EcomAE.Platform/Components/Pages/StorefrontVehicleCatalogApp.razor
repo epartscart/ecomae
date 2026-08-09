@@ -36,7 +36,7 @@
         <div class="epc-sf-vc-cta">
             <a href="@StorefrontSurfaceLinks.PartSearch">Part search</a>
             <a class="ghost" href="@StorefrontSurfaceLinks.LaximoVin">VIN / Frame</a>
-            <a class="ghost" href="@StorefrontPhpCanonical.VehicleCatalog">Open classic module</a>
+            <a class="ghost" href="@("/php-reference" + StorefrontPhpCanonical.VehicleCatalog)" title="Temporary PHP compare only">Compare PHP reference</a>
         </div>
     </section>
 
@@ -44,8 +44,8 @@
         @((MarkupString)_html)
     </div>
     <p class="epc-sf-vc-note">
-        Same widget markup as the PHP home / <code>/en/vehicle-catalog</code> page (UMAPI year/make/model tree).
-        Writes into part search remain on classic modules when required.
+        ASP.NET Core product shell with same-to-same widget markup (no PHP page body).
+        PHP compare only under <code>/php-reference@(StorefrontPhpCanonical.VehicleCatalog)</code>.
     </p>
 </PhpStorefrontDesktopChrome>
 

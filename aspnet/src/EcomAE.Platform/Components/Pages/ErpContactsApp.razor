@@ -14,7 +14,7 @@
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Contacts" BreadcrumbArea="Master Data" BreadcrumbTab="Contacts">
 
     
-    <PhpErpModulePageHeader Title="Contacts" Subtitle="Read digest with PHP-reference interactive module." PhpTabHref="@_phpTab" />
+    <PhpErpModulePageHeader Title="Contacts" Subtitle="ASP.NET Core digest — PHP compare only under /php-reference/*." PhpTabHref="@_phpTab" />
 
 
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Contacts KPIs">
@@ -54,7 +54,7 @@
                             <td>@(string.IsNullOrWhiteSpace(row.Phone) ? "—" : row.Phone)</td>
                             <td>@(string.IsNullOrWhiteSpace(row.City) ? "—" : row.City)</td>
                             <td>@(string.IsNullOrWhiteSpace(row.CountryCode) ? "—" : row.CountryCode)</td>
-                            <td><a href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Open</a></td>
+                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
                         </tr>
                     }
                 }

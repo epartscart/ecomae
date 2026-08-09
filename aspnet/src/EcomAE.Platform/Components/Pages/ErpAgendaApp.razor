@@ -14,7 +14,7 @@
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Agenda" BreadcrumbArea="Workspace" BreadcrumbTab="Agenda">
 
     
-    <PhpErpModulePageHeader Title="Agenda" Subtitle="Read digest with PHP-reference interactive module." PhpTabHref="@_phpTab" />
+    <PhpErpModulePageHeader Title="Agenda" Subtitle="ASP.NET Core digest — PHP compare only under /php-reference/*." PhpTabHref="@_phpTab" />
 
 
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Agenda KPIs">
@@ -52,7 +52,7 @@
                             <td>@FormatTime(row.EndAt)</td>
                             <td>@(string.IsNullOrWhiteSpace(row.Location) ? "—" : row.Location)</td>
                             <td><span class="label label-default">@row.EntityType</span></td>
-                            <td><a href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Open</a></td>
+                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
                         </tr>
                     }
                 }
