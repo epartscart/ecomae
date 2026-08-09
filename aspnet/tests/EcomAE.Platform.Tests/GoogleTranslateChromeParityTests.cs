@@ -23,6 +23,9 @@ public sealed class GoogleTranslateChromeParityTests
         Assert.Contains("epcLanguageForCountry", js, StringComparison.Ordinal);
         Assert.Contains("epcCmsLangNavigate", js, StringComparison.Ordinal);
         Assert.Contains("googtrans", js, StringComparison.Ordinal);
+        // After cancel→English, googtrans must clear before CMS navigate or later picks stick.
+        Assert.Contains("epcClearTranslateCookie()", js, StringComparison.Ordinal);
+        Assert.Contains("sessionStorage.removeItem(epcTranslateAutoAppliedKey)", js, StringComparison.Ordinal);
 
         var chrome = File.ReadAllText(Find(
             "aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpStorefrontDesktopChrome.razor"));

@@ -89,8 +89,16 @@ AE:'ar',SA:'ar',QA:'ar',KW:'ar',BH:'ar',OM:'ar',JO:'ar',LB:'ar',EG:'ar',IQ:'ar',
 	}
 
 	function epcApplyNativeTranslate(lang) {
-		try { localStorage.setItem(epcTranslateManualKey, lang || "en"); } catch (e) {}
-		if (lang === "en") { epcClearTranslateCookie(); window.location.reload(); return; }
+		lang = String(lang || "en").toLowerCase();
+		try {
+			localStorage.setItem(epcTranslateManualKey, lang);
+			sessionStorage.removeItem(epcTranslateAutoAppliedKey);
+		} catch (e) {}
+		if (lang === "en") {
+			epcClearTranslateCookie();
+			window.location.reload();
+			return;
+		}
 		epcSetTranslateCookie(lang);
 		var combo = document.querySelector("#google_translate_element_cp select.goog-te-combo");
 		if (combo) { combo.value = lang; combo.dispatchEvent(new Event("change")); }

@@ -1866,6 +1866,20 @@ server {
     add_header Cache-Control "no-store";
     try_files $uri =404;
   }
+  # OAuth start/callback must NOT be rewritten to the warmup splash on 503/422.
+  # Unconfigured Google used to return PHP 503 → splash ("Loading — Please wait").
+  location = /api/epc_oauth_start.php {
+    include fastcgi_params;
+    fastcgi_intercept_errors off;
+    fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+    fastcgi_pass 127.0.0.1:{{php_fpm_port}};
+  }
+  location = /api/epc_oauth_callback.php {
+    include fastcgi_params;
+    fastcgi_intercept_errors off;
+    fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+    fastcgi_pass 127.0.0.1:{{php_fpm_port}};
+  }
   location ~ \.php$ {
     include fastcgi_params;
     fastcgi_intercept_errors on;
