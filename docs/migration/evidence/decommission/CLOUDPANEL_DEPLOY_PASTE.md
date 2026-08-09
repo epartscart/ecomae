@@ -26,6 +26,29 @@ grep -E 'RESULT=|PREFLIGHT|GATE_|RECHECK|ERROR|SHA=|HOST=' /root/epartscart-live
 
 If `RESULT=FAIL`, send `/root/epartscart-live-publish-now.log`.
 
+## 0b) CP login `tenant_db_unbound` / bunches unbound (taxofin2025@gmail.com)
+
+**Symptom:** `/cp/login` → `?error=tenant_db_unbound`; `/storefront/search-bunches` says shop DB not bound; php-reference may still be Archive paused.
+
+**Merging a PR is not a republish.** Do not mark CloudPanel actions complete without pasting the `RESULT=` grep lines back into chat.
+
+ePartsCart shop DB (PHP portal parity) is the shared **`docpart`** schema — no secret required.
+
+**Prefer STANDALONE** (no git checkout; prior git-based pastes were marked complete without changing live):
+
+```bash
+set -euxo pipefail
+URL='https://raw.githubusercontent.com/epartscart/ecomae/cursor/epartscart-portal-dump-bind-7b3b/scripts/cloudpanel_EPARTSCART_BIND_DOCPART_STANDALONE.sh'
+TMP=/tmp/epartscart-bind-docpart-standalone.sh
+curl -fsSL "$URL" -o "$TMP"
+wc -c "$TMP"
+grep -q BIND_DOCPART_STANDALONE "$TMP" || { echo RESULT=FAIL bad_download; exit 1; }
+bash "$TMP" 2>&1 | tee /root/epartscart-bind-docpart-standalone.log
+grep -E 'RESULT=|BOUND_|GATE_|RESOLVER_|POST_LOGIN|ROW_|PASTE_ME_|docpart|ERROR' /root/epartscart-bind-docpart-standalone.log | tail -80
+```
+
+**PASS:** paste includes `RESULT=PASS` + `BOUND_BUNCHES=YES` + `PASTE_ME_*`; login POST is not `tenant_db_unbound`.
+
 ## 0☠) ALL SITES 502 / epartscart stuck on “Loading — Please wait”
 
 **Symptom (2026-08-08):** `cp.ecomae.com`, `erp`, `bos`, `ip`, `lifeos`, `platform` → Cloudflare **502**; `www.epartscart.com/` and `/storefront/app` → static warmup splash (**Loading — Please wait**), not ASP.NET chrome.
