@@ -10,5 +10,13 @@
   ],
   "tests": "EpartsCartDocpartTenantFallbackTests",
   "liveGate": "FORCE_LIVE / LIVE_PUBLISH_NOW required; merge alone does not republish :5100",
-  "status": "fixed-in-code"
+  "liveProbe2026-08-09": {
+    "afterSilentExternalAck": "FAIL",
+    "cpPost": "tenant_db_unbound",
+    "bunches": "unbound",
+    "clientsBoard": "302→login",
+    "operatorPaste": "scripts/cloudpanel_FINISH_PENDING_EPARTSCART_LIFEOS_NOW.sh"
+  },
+  "status": "fixed-in-code-awaiting-RESULT-PASS-paste"
 }
+
