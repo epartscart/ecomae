@@ -1018,14 +1018,18 @@ public static class PhpSurfaceLinkMap
             return ErpPhpTabRouteMap.MapTabOrModuleApp(key);
         }
 
+        // Area-only hubs must land on the module named by that area (not a sibling process).
         return areaKey switch
         {
-            "overview" or "finance" or "common" or "setup" or "enterprise" => "/erp",
-            "gl" or "general_ledger" => "/erp/gl-journals-app",
-            "sales" or "ar" => "/erp/sales-orders-app",
-            "purchasing" or "ap" => "/erp/purchase-orders-app",
-            "banking" or "credit_coll" => "/erp/cash-accounts-app",
-            "inventory_mgmt" or "pim" or "logistics" => "/erp/inventory-stock-app",
+            "overview" or "common" or "setup" or "enterprise" => "/erp",
+            "finance" or "gl" or "general_ledger" => "/erp/gl-journals-app",
+            "ap" => "/erp/module-app?tab=payables",
+            "ar" => "/erp/module-app?tab=receivables",
+            "sales" => "/erp/sales-orders-app",
+            "purchasing" => "/erp/purchase-orders-app",
+            "banking" => "/erp/cash-accounts-app",
+            "credit_coll" => "/cp/collections-dunning-app",
+            "inventory_mgmt" or "inventory" or "pim" or "logistics" => "/erp/inventory-stock-app",
             "warehouse" => "/erp/warehouses-app",
             "people" or "payroll" or "payroll_area" or "leave_abs" => "/cp/hr-overview-app",
             "tax" or "risk" => "/cp/uae-tax-compliance-app",

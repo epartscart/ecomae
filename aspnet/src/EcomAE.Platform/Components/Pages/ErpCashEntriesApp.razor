@@ -11,62 +11,22 @@
 
 <PageTitle>Cash Entries · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
-<HeadContent>
-<style>
-        .epc-ce-hero {
-            margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
-            background:linear-gradient(135deg,#0c4a6e 0%,#1d4ed8 45%,#2563eb 100%);
-        }
-        .epc-ce-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
-        .epc-ce-hero p { margin:0; color:#a5f3fc; max-width:42rem; font-size:.92rem; line-height:1.45; }
-        .epc-ce-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
-        .epc-ce-cta a {
-            display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
-            text-decoration:none; color:#083344; background:#dbeafe;
-        }
-        .epc-ce-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); color:#fff; }
-        .epc-ce-kpis { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
-        .epc-ce-kpi { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; padding:.85rem .9rem; }
-        .epc-ce-kpi strong { display:block; font-size:1.45rem; font-variant-numeric:tabular-nums; }
-        .epc-ce-kpi span { color:#64748b; font-size:.78rem; }
-        .epc-ce-table-wrap { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; overflow:auto; }
-        .epc-ce-table { width:100%; border-collapse:collapse; font-size:.86rem; }
-        .epc-ce-table th, .epc-ce-table td { padding:.55rem .7rem; border-bottom:1px solid #f1f5f9; text-align:left; white-space:nowrap; }
-        .epc-ce-table th { background:#f0f9ff; color:#0e7490; font-size:.75rem; text-transform:uppercase; letter-spacing:.03em; }
-        .epc-ce-table a { color:#0e7490; font-weight:700; text-decoration:none; }
-        .epc-ce-badge { display:inline-flex; padding:.15rem .45rem; border-radius:.3rem; font-size:.72rem; font-weight:700; background:#cffafe; color:#155e75; }
-        .epc-ce-badge.out { background:#fee2e2; color:#991b1b; }
-        .epc-ce-note { margin-top:1rem; padding:.75rem .9rem; background:#ecfeff; border:1px solid #a5f3fc; border-radius:.45rem; color:#155e75; font-size:.86rem; }
-        @@media (max-width:900px){ .epc-ce-kpis{grid-template-columns:1fr 1fr;} }
-        @@media (max-width:560px){ .epc-ce-kpis{grid-template-columns:1fr;} }
-    
-</style>
-</HeadContent>
-
-
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Cash Entries" BreadcrumbArea="Cash & Treasury" BreadcrumbTab="Cash ledger">
 
-    <section class="epc-ce-hero">
-        <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="ECOM AE" style="height:28px;filter:brightness(1.1)" />
-        <h1>Cash Ledger Entries</h1>
-        <p>Operational finance, inventory, and approvals for this company.</p>
-        <div class="epc-ce-cta">
-            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
-            <a class="ghost" href="/erp/cash-accounts-app">Cash accounts</a>
-            <a class="ghost" href="/erp/accounts-summary-app">Accounts summary</a>
-            <a class="ghost" href="/erp/app">ERP dashboard</a>
-        </div>
-    </section>
+    
+    <PhpErpModulePageHeader Title="Cash Ledger Entries" Subtitle="Read digest with PHP-reference interactive module." PhpTabHref="@_phpTab" />
+    <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
 
-    <div class="epc-ce-kpis" aria-label="Cash entry KPIs">
-        <div class="epc-ce-kpi"><strong>@_entries.Count</strong><span>Shown (limit @_limit)</span></div>
-        <div class="epc-ce-kpi"><strong>@_inCount</strong><span>Inflows in page</span></div>
-        <div class="epc-ce-kpi"><strong>@_outCount</strong><span>Outflows in page</span></div>
-        <div class="epc-ce-kpi"><strong>@_net.ToString("N2", CultureInfo.InvariantCulture)</strong><span>Page net amount</span></div>
+
+    <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Cash entry KPIs">
+        <div class="kpi"><div class="lbl">Shown (limit @_limit)</div><div class="val">@_entries.Count</div></div>
+        <div class="kpi"><div class="lbl">Inflows in page</div><div class="val">@_inCount</div></div>
+        <div class="kpi"><div class="lbl">Outflows in page</div><div class="val">@_outCount</div></div>
+        <div class="kpi"><div class="lbl">Page net amount</div><div class="val">@_net.ToString("N2", CultureInfo.InvariantCulture)</div></div>
     </div>
 
-    <div class="epc-ce-table-wrap">
-        <table class="epc-ce-table">
+    <div class="epc-erp-table-wrap">
+        <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
             <thead>
                 <tr>
                     <th>When</th>
@@ -98,7 +58,7 @@
                             <td>@e.Amount.ToString("N2", CultureInfo.InvariantCulture)</td>
                             <td>@(string.IsNullOrWhiteSpace(e.Reference) ? "—" : e.Reference)</td>
                             <td>@(string.IsNullOrWhiteSpace(e.Note) ? "—" : e.Note)</td>
-                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(phpHref)">Open</a></td>
+                            <td><a href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(phpHref)">Open</a></td>
                         </tr>
                     }
                 }

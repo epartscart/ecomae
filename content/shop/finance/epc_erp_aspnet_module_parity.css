@@ -1,0 +1,164 @@
+/**
+ * ASP.NET ERP digest pages → PHP erp_main / erp_ui presentation.
+ * Neutralizes leftover marketing-hero digest chrome so menu destinations
+ * read as PHP module panels (page-hd + kpi + table-epc / D365).
+ */
+body.epc-erp-cp-shell .epc-erp-content-body [class$="-hero"],
+body.epc-erp-cp-shell .epc-erp-content-body [class*="-hero "] {
+	margin: 0 0 14px !important;
+	padding: 0 !important;
+	border: 0 !important;
+	border-radius: 0 !important;
+	background: transparent !important;
+	color: inherit !important;
+	box-shadow: none !important;
+}
+body.epc-erp-cp-shell .epc-erp-content-body [class$="-hero"] > img,
+body.epc-erp-cp-shell .epc-erp-content-body [class*="-hero "] > img {
+	display: none !important;
+}
+body.epc-erp-cp-shell .epc-erp-content-body [class$="-hero"] > h1,
+body.epc-erp-cp-shell .epc-erp-content-body [class*="-hero "] > h1 {
+	display: none !important; /* chrome already paints epc-erp-content-title */
+}
+body.epc-erp-cp-shell .epc-erp-content-body [class$="-hero"] > p,
+body.epc-erp-cp-shell .epc-erp-content-body [class*="-hero "] > p {
+	margin: 0 0 10px !important;
+	max-width: none !important;
+	font-size: 12.5px !important;
+	line-height: 1.45 !important;
+	color: #64748b !important;
+}
+body.epc-erp-cp-shell .epc-erp-content-body [class$="-cta"],
+body.epc-erp-cp-shell .epc-erp-content-body [class*="-cta "] {
+	display: flex !important;
+	flex-wrap: wrap !important;
+	gap: 6px !important;
+	margin: 0 0 14px !important;
+}
+body.epc-erp-cp-shell .epc-erp-content-body [class$="-cta"] a,
+body.epc-erp-cp-shell .epc-erp-content-body [class*="-cta "] a {
+	display: inline-block !important;
+	padding: 4px 10px !important;
+	border-radius: 3px !important;
+	font-size: 12px !important;
+	font-weight: 600 !important;
+	text-decoration: none !important;
+	color: #fff !important;
+	background: #337ab7 !important;
+	border: 1px solid #2e6da4 !important;
+}
+body.epc-erp-cp-shell .epc-erp-content-body [class$="-cta"] a.ghost,
+body.epc-erp-cp-shell .epc-erp-content-body [class*="-cta "] a.ghost {
+	color: #243746 !important;
+	background: #fff !important;
+	border: 1px solid #c5d4de !important;
+}
+
+/* KPI cards → PHP .epc-erp-kpi .kpi shape */
+body.epc-erp-cp-shell .epc-erp-content-body [class$="-kpis"],
+body.epc-erp-cp-shell .epc-erp-content-body [class*="-kpis "] {
+	display: flex !important;
+	flex-wrap: wrap !important;
+	gap: 10px !important;
+	margin: 0 0 14px !important;
+}
+body.epc-erp-cp-shell .epc-erp-content-body [class$="-kpi"],
+body.epc-erp-cp-shell .epc-erp-content-body [class*="-kpi "] {
+	flex: 1 1 140px !important;
+	min-width: 140px !important;
+	background: #fff !important;
+	border: 1px solid #c5d4de !important;
+	border-top: 3px solid #8faabc !important;
+	border-radius: 3px !important;
+	padding: 10px 12px !important;
+	box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04) !important;
+}
+body.epc-erp-cp-shell .epc-erp-content-body [class$="-kpi"] strong,
+body.epc-erp-cp-shell .epc-erp-content-body [class*="-kpi "] strong {
+	display: block !important;
+	font-size: 20px !important;
+	font-weight: 700 !important;
+	color: #243746 !important;
+	font-variant-numeric: tabular-nums;
+}
+body.epc-erp-cp-shell .epc-erp-content-body [class$="-kpi"] span,
+body.epc-erp-cp-shell .epc-erp-content-body [class*="-kpi "] span {
+	display: block !important;
+	margin-top: 2px !important;
+	font-size: 11px !important;
+	font-weight: 600 !important;
+	text-transform: uppercase !important;
+	letter-spacing: 0.04em !important;
+	color: #94a3b8 !important;
+}
+
+/* Tables → PHP table-epc */
+body.epc-erp-cp-shell .epc-erp-content-body [class$="-table-wrap"],
+body.epc-erp-cp-shell .epc-erp-content-body [class*="-table-wrap "] {
+	background: #fff !important;
+	border: 1px solid #c5d4de !important;
+	border-radius: 3px !important;
+	overflow: auto !important;
+}
+body.epc-erp-cp-shell .epc-erp-content-body [class$="-table"],
+body.epc-erp-cp-shell .epc-erp-content-body [class*="-table "] {
+	width: 100% !important;
+	border-collapse: collapse !important;
+	font-size: 12px !important;
+}
+body.epc-erp-cp-shell .epc-erp-content-body [class$="-table"] th,
+body.epc-erp-cp-shell .epc-erp-content-body [class*="-table "] th {
+	background: #f1f5f9 !important;
+	color: #334155 !important;
+	font-size: 11px !important;
+	font-weight: 700 !important;
+	text-transform: none !important;
+	letter-spacing: 0 !important;
+	padding: 7px 8px !important;
+	border-bottom: 1px solid #dbe3ea !important;
+	white-space: nowrap !important;
+}
+body.epc-erp-cp-shell .epc-erp-content-body [class$="-table"] td,
+body.epc-erp-cp-shell .epc-erp-content-body [class*="-table "] td {
+	padding: 7px 8px !important;
+	border-bottom: 1px solid #eef2f6 !important;
+	color: #243746 !important;
+}
+body.epc-erp-cp-shell .epc-erp-content-body [class$="-badge"],
+body.epc-erp-cp-shell .epc-erp-content-body [class*="-badge "] {
+	display: inline-block !important;
+	padding: 1px 6px !important;
+	border-radius: 2px !important;
+	font-size: 11px !important;
+	font-weight: 700 !important;
+	background: #e8f1f8 !important;
+	color: #243746 !important;
+}
+body.epc-erp-cp-shell .epc-erp-content-body [class$="-note"],
+body.epc-erp-cp-shell .epc-erp-content-body [class*="-note "] {
+	margin-top: 12px !important;
+	padding: 8px 10px !important;
+	background: #f8fafc !important;
+	border: 1px solid #c5d4de !important;
+	border-radius: 3px !important;
+	color: #475569 !important;
+	font-size: 12px !important;
+}
+
+/* Guest banners: quieter, PHP-adjacent */
+body.epc-erp-cp-shell .epc-erp-guest-banner {
+	border-radius: 3px !important;
+	font-size: 12px !important;
+}
+
+/* Hybrid frame: less "product" chrome, more workspace */
+body.epc-erp-cp-shell .epc-hybrid-frame {
+	border: 1px solid #c5d4de !important;
+	border-radius: 3px !important;
+}
+body.epc-erp-cp-shell .epc-hybrid-frame-bar {
+	background: #3d5a6c !important;
+	color: #e8f1f8 !important;
+	font-size: 12px !important;
+}

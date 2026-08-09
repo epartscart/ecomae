@@ -11,59 +11,21 @@
 
 <PageTitle>Report center · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
-<HeadContent>
-<style>
-        .epc-rc-hero {
-            margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
-            background:linear-gradient(135deg,#0c4a6e 0%,#1d4ed8 45%,#2563eb 100%);
-        }
-        .epc-rc-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
-        .epc-rc-hero p { margin:0; color:rgba(255,255,255,.88); max-width:46rem; font-size:.92rem; line-height:1.45; }
-        .epc-rc-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
-        .epc-rc-cta a {
-            display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
-            text-decoration:none; color:#134e4a; background:#ccfbf1;
-        }
-        .epc-rc-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); color:#fff; }
-        .epc-rc-kpis { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
-        .epc-rc-kpi { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; padding:.85rem .9rem; }
-        .epc-rc-kpi strong { display:block; font-size:1.2rem; }
-        .epc-rc-kpi span { color:#64748b; font-size:.78rem; }
-        .epc-rc-table-wrap { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; overflow:auto; margin-bottom:1rem; }
-        .epc-rc-table { width:100%; border-collapse:collapse; font-size:.86rem; }
-        .epc-rc-table th, .epc-rc-table td { padding:.55rem .7rem; border-bottom:1px solid #f1f5f9; text-align:left; }
-        .epc-rc-table th { background:#f8fafc; color:#475569; font-size:.75rem; text-transform:uppercase; letter-spacing:.03em; white-space:nowrap; }
-        .epc-rc-table a { color:#0f766e; font-weight:700; text-decoration:none; }
-        .epc-rc-table a:hover { text-decoration:underline; }
-        .epc-rc-note { margin-top:1rem; padding:.75rem .9rem; background:#ecfeff; border:1px solid #67e8f9; border-radius:.45rem; color:#164e63; font-size:.86rem; }
-        @@media (max-width:900px){ .epc-rc-kpis{grid-template-columns:1fr 1fr;} }
-    
-</style>
-</HeadContent>
-
-
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Report center" BreadcrumbArea="Overview" BreadcrumbTab="Reports">
 
-    <section class="epc-rc-hero">
-        <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="ECOM AE" style="height:28px;filter:brightness(1.1)" />
-        <h1>Report center</h1>
-        <p>Report registry for this company (33 inquiries). Select a key for a limited peek.</p>
-        <div class="epc-rc-cta">
-            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open reports</a>
-            <a class="ghost" href="/erp/dashboard-summary-app">ERP dashboard</a>
-            <a class="ghost" href="@DigestHref(null)">Data feed</a>
-        </div>
-    </section>
+    
+    <PhpErpModulePageHeader Title="Report center" Subtitle="Read digest with PHP-reference interactive module." PhpTabHref="@_phpTab" />
 
-    <div class="epc-rc-kpis" aria-label="Report center stats">
-        <div class="epc-rc-kpi"><strong>@_summary.ReportCount.ToString(CultureInfo.InvariantCulture)</strong><span>Reports</span></div>
-        <div class="epc-rc-kpi"><strong>@_summary.AreaCount.ToString(CultureInfo.InvariantCulture)</strong><span>Areas</span></div>
-        <div class="epc-rc-kpi"><strong>@(string.IsNullOrEmpty(_summary.SelectedKey) ? "—" : _summary.SelectedKey)</strong><span>Selected key</span></div>
-        <div class="epc-rc-kpi"><strong>@_summary.SelectedRowCount.ToString(CultureInfo.InvariantCulture)</strong><span>Selected rows</span></div>
+
+    <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Report center stats">
+        <div class="kpi"><div class="lbl">Reports</div><div class="val">@_summary.ReportCount.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Areas</div><div class="val">@_summary.AreaCount.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Selected key</div><div class="val">@(string.IsNullOrEmpty(_summary.SelectedKey) ? "—" : _summary.SelectedKey)</div></div>
+        <div class="kpi"><div class="lbl">Selected rows</div><div class="val">@_summary.SelectedRowCount.ToString(CultureInfo.InvariantCulture)</div></div>
     </div>
 
-    <div class="epc-rc-table-wrap">
-        <table class="epc-rc-table">
+    <div class="epc-erp-table-wrap">
+        <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
             <thead>
                 <tr>
                     <th>Key</th>
@@ -96,8 +58,8 @@
     @if (!string.IsNullOrEmpty(_summary.SelectedKey))
     {
         <h2 style="margin:0 0 .5rem;font-size:1rem;">Peek · @_summary.SelectedKey</h2>
-        <div class="epc-rc-table-wrap">
-            <table class="epc-rc-table">
+        <div class="epc-erp-table-wrap">
+            <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
                 <thead>
                     <tr>
                         @if (_columns.Count == 0)
@@ -136,7 +98,7 @@
         <p style="margin:0 0 1rem;font-size:.85rem;"><a href="@AppHref(null)">Clear selection</a> · <a href="@DigestHref(_summary.SelectedKey)">Data feed</a></p>
     }
 
-    <div class="epc-rc-note">
+    <div class="epc-erp-empty" style="display:block;margin-top:12px;padding:8px 10px;border:1px solid #c5d4de;background:#f8fafc;color:#475569;font-size:12px;">
         Source: @_summary.Source. Worker <code>erp-reports</code> dry-run stays writes=0 (sales|inventory|vat|ar-aging).
         @if (!string.IsNullOrWhiteSpace(_summary.Message)) { <span> @_summary.Message</span> }
     </div>

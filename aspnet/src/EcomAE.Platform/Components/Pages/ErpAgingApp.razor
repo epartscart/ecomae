@@ -11,55 +11,24 @@
 
 <PageTitle>Aging · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
-<HeadContent>
-<style>
-        .epc-ag-hero { margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff; background:linear-gradient(135deg,#0c4a6e 0%,#1d4ed8 45%,#2563eb 100%); }
-        .epc-ag-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
-        .epc-ag-hero p { margin:0; color:rgba(255,255,255,.9); max-width:46rem; font-size:.92rem; }
-        .epc-ag-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
-        .epc-ag-cta a { display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem; text-decoration:none; color:#0c4a6e; background:#dbeafe; }
-        .epc-ag-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); color:#fff; }
-        .epc-ag-kpis { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
-        .epc-ag-kpi { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; padding:.85rem .9rem; }
-        .epc-ag-kpi strong { display:block; font-size:1.2rem; }
-        .epc-ag-kpi span { color:#64748b; font-size:.78rem; }
-        .epc-ag-section { margin-bottom:1.1rem; }
-        .epc-ag-section h2 { margin:0 0 .5rem; font-size:1rem; }
-        .epc-ag-table-wrap { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; overflow:auto; }
-        .epc-ag-table { width:100%; border-collapse:collapse; font-size:.86rem; }
-        .epc-ag-table th, .epc-ag-table td { padding:.55rem .7rem; border-bottom:1px solid #f1f5f9; text-align:right; white-space:nowrap; }
-        .epc-ag-table th:first-child, .epc-ag-table td:first-child { text-align:left; }
-        .epc-ag-table th { background:#f8fafc; color:#475569; font-size:.75rem; text-transform:uppercase; }
-        .epc-ag-note { margin-top:1rem; padding:.75rem .9rem; background:#fff7ed; border:1px solid #fdba74; border-radius:.45rem; color:#9a3412; font-size:.86rem; }
-    
-</style>
-</HeadContent>
-
-
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Aging" BreadcrumbArea="Finance" BreadcrumbTab="Aging">
 
-    <section class="epc-ag-hero">
-        <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="ECOM AE" style="height:28px;filter:brightness(1.1)" />
-        <h1>AR / AP / Inventory aging</h1>
-        <p>AR / AP / inventory aging buckets for this company workspace.</p>
-        <div class="epc-ag-cta">
-            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open aging</a>
-            <a class="ghost" href="/erp/report-center-app">Report center</a>
-            <a class="ghost" href="/erp/aging-app">Refresh view</a>
-        </div>
-    </section>
+    
+    <PhpErpModulePageHeader Title="AR / AP / Inventory aging" Subtitle="Read digest with PHP-reference interactive module." PhpTabHref="@_phpTab" />
+    <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
 
-    <div class="epc-ag-kpis">
-        <div class="epc-ag-kpi"><strong>@_summary.ArGrand.ToString("N2", CultureInfo.InvariantCulture)</strong><span>AR outstanding</span></div>
-        <div class="epc-ag-kpi"><strong>@_summary.ApGrand.ToString("N2", CultureInfo.InvariantCulture)</strong><span>AP outstanding</span></div>
-        <div class="epc-ag-kpi"><strong>@_summary.InventoryGrand.ToString("N2", CultureInfo.InvariantCulture)</strong><span>Inventory aged value</span></div>
+
+    <div class="epc-erp-kpi epc-erp-stat-row">
+        <div class="kpi"><div class="lbl">AR outstanding</div><div class="val">@_summary.ArGrand.ToString("N2", CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">AP outstanding</div><div class="val">@_summary.ApGrand.ToString("N2", CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Inventory aged value</div><div class="val">@_summary.InventoryGrand.ToString("N2", CultureInfo.InvariantCulture)</div></div>
     </div>
 
     @AgingTable("Receivables", _arLabels, _arRows)
     @AgingTable("Payables", _apLabels, _apRows)
     @AgingTable("Inventory", _invLabels, _invRows)
 
-    <div class="epc-ag-note">Source: @_summary.Source. Boundaries @_summary.Boundary1 / @_summary.Boundary2 / @_summary.Boundary3 days.</div>
+    <div class="epc-erp-empty" style="display:block;margin-top:12px;padding:8px 10px;border:1px solid #c5d4de;background:#f8fafc;color:#475569;font-size:12px;">Source: @_summary.Source. Boundaries @_summary.Boundary1 / @_summary.Boundary2 / @_summary.Boundary3 days.</div>
 </PhpErpDesktopChrome>
 
 @code {
@@ -77,8 +46,8 @@
     {
         <div class="epc-ag-section">
             <h2>@title</h2>
-            <div class="epc-ag-table-wrap">
-                <table class="epc-ag-table">
+            <div class="epc-erp-table-wrap">
+                <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
                     <thead>
                         <tr>
                             <th>Name</th>

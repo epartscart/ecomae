@@ -11,57 +11,21 @@
 
 <PageTitle>Sales Orders · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
-<HeadContent>
-<style>
-        .epc-so-hero {
-            margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
-            background:linear-gradient(135deg,#0c4a6e 0%,#1d4ed8 45%,#2563eb 100%);
-        }
-        .epc-so-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
-        .epc-so-hero p { margin:0; color:#fed7aa; max-width:38rem; font-size:.92rem; line-height:1.45; }
-        .epc-so-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
-        .epc-so-cta a {
-            display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
-            text-decoration:none; color:#fff; background:#2563eb;
-        }
-        .epc-so-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); }
-        .epc-so-kpis { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
-        .epc-so-kpi { background:#fff; border:1px solid #e5e7eb; border-radius:.55rem; padding:.85rem .9rem; }
-        .epc-so-kpi strong { display:block; font-size:1.45rem; font-variant-numeric:tabular-nums; }
-        .epc-so-kpi span { color:#64748b; font-size:.78rem; }
-        .epc-so-table-wrap { background:#fff; border:1px solid #e5e7eb; border-radius:.55rem; overflow:auto; }
-        .epc-so-table { width:100%; border-collapse:collapse; font-size:.86rem; }
-        .epc-so-table th, .epc-so-table td { padding:.55rem .7rem; border-bottom:1px solid #f1f5f9; text-align:left; white-space:nowrap; }
-        .epc-so-table th { background:#f8fafc; color:#475569; font-size:.75rem; text-transform:uppercase; letter-spacing:.03em; }
-        .epc-so-table a { color:#c2410c; font-weight:700; text-decoration:none; }
-        .epc-so-badge { display:inline-flex; padding:.15rem .45rem; border-radius:.3rem; font-size:.72rem; font-weight:700; background:#ffedd5; color:#9a3412; }
-        .epc-so-note { margin-top:1rem; padding:.75rem .9rem; background:#fff7ed; border:1px solid #fdba74; border-radius:.45rem; color:#7c2d12; font-size:.86rem; }
-        @@media (max-width:900px){ .epc-so-kpis{grid-template-columns:1fr;} }
-    
-</style>
-</HeadContent>
-
-
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Sales Orders" BreadcrumbArea="Order to Cash" BreadcrumbTab="Sales Orders">
 
-    <section class="epc-so-hero">
-        <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="ECOM AE" style="height:28px;filter:brightness(1.1)" />
-        <h1>Sales Orders</h1>
-        <p>Operational finance, inventory, and approvals for this company.</p>
-        <div class="epc-so-cta">
-            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
-            <a class="ghost" href="/erp/app">ERP dashboard</a>
-        </div>
-    </section>
+    
+    <PhpErpModulePageHeader Title="Sales Orders" Subtitle="Read digest with PHP-reference interactive module." PhpTabHref="@_phpTab" />
+    <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
 
-    <div class="epc-so-kpis" aria-label="Sales order KPIs">
-        <div class="epc-so-kpi"><strong>@_orders.Count</strong><span>Shown (limit @_limit)</span></div>
-        <div class="epc-so-kpi"><strong>@_open</strong><span>Non-closed in page</span></div>
-        <div class="epc-so-kpi"><strong>@_totalAmount.ToString("N2", CultureInfo.InvariantCulture)</strong><span>Page total amount</span></div>
+
+    <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Sales order KPIs">
+        <div class="kpi"><div class="lbl">Shown (limit @_limit)</div><div class="val">@_orders.Count</div></div>
+        <div class="kpi"><div class="lbl">Non-closed in page</div><div class="val">@_open</div></div>
+        <div class="kpi"><div class="lbl">Page total amount</div><div class="val">@_totalAmount.ToString("N2", CultureInfo.InvariantCulture)</div></div>
     </div>
 
-    <div class="epc-so-table-wrap">
-        <table class="epc-so-table">
+    <div class="epc-erp-table-wrap">
+        <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
             <thead>
                 <tr>
                     <th>SO #</th>
@@ -86,9 +50,9 @@
                             <td><strong>@(string.IsNullOrWhiteSpace(o.SoNo) ? $"#{o.Id}" : o.SoNo)</strong></td>
                             <td>@FormatTime(o.TimeCreated)</td>
                             <td>@o.CustomerUserId</td>
-                            <td><span class="epc-so-badge">@o.Status</span></td>
+                            <td><span class="label label-default">@o.Status</span></td>
                             <td>@o.TotalAmount.ToString("N2", CultureInfo.InvariantCulture)</td>
-                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(phpHref)">Open</a></td>
+                            <td><a href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(phpHref)">Open</a></td>
                         </tr>
                     }
                 }

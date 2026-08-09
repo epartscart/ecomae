@@ -1,0 +1,34 @@
+@namespace EcomAE.Platform.Components.Shared
+@*
+  PHP erp_page_header parity — compact page chrome (not marketing hero).
+  See content/shop/finance/epc_erp_ui.php :: erp_page_header().
+*@
+@using EcomAE.Platform.Presentation
+
+<div class="epc-erp-page-hd">
+    <div class="epc-erp-page-hd-main">
+        <h3 class="epc-erp-page-title">@Title</h3>
+        @if (!string.IsNullOrWhiteSpace(Subtitle))
+        {
+            <p class="epc-erp-page-sub">@Subtitle</p>
+        }
+    </div>
+    <div class="epc-erp-page-actions">
+        @if (!string.IsNullOrWhiteSpace(PhpTabHref))
+        {
+            <a class="btn btn-sm btn-primary" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(PhpTabHref)">
+                <i class="fa fa-external-link" aria-hidden="true"></i> Open interactive module
+            </a>
+        }
+        @ChildContent
+        <a class="btn btn-sm btn-default" href="/erp">ERP workspace</a>
+    </div>
+</div>
+
+@code {
+    [Parameter] public string Title { get; set; } = "";
+    [Parameter] public string? Subtitle { get; set; }
+    /// <summary>PHP /ERP/?… tab href — rewritten to /php-reference/erp for same-to-same interactive UI.</summary>
+    [Parameter] public string? PhpTabHref { get; set; }
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+}

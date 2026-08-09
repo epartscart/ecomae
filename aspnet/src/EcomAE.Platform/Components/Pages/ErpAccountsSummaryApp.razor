@@ -11,54 +11,20 @@
 
 <PageTitle>Accounts Summary · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
-<HeadContent>
-<style>
-        .epc-as-hero {
-            margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
-            background:linear-gradient(135deg,#0c4a6e 0%,#1d4ed8 45%,#2563eb 100%);
-        }
-        .epc-as-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
-        .epc-as-hero p { margin:0; color:#d9f99d; max-width:42rem; font-size:.92rem; line-height:1.45; }
-        .epc-as-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
-        .epc-as-cta a {
-            display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
-            text-decoration:none; color:#1a2e05; background:#dbeafe;
-        }
-        .epc-as-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); color:#fff; }
-        .epc-as-kpis { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
-        .epc-as-kpi { background:#fff; border:1px solid #e5e7eb; border-radius:.55rem; padding:.85rem .9rem; }
-        .epc-as-kpi strong { display:block; font-size:1.2rem; font-variant-numeric:tabular-nums; word-break:break-all; }
-        .epc-as-kpi span { color:#64748b; font-size:.78rem; }
-        .epc-as-note { margin-top:1rem; padding:.75rem .9rem; background:#f7fee7; border:1px solid #d9f99d; border-radius:.45rem; color:#3f6212; font-size:.86rem; }
-        @@media (max-width:1100px){ .epc-as-kpis{grid-template-columns:1fr 1fr;} }
-        @@media (max-width:700px){ .epc-as-kpis{grid-template-columns:1fr;} }
-    
-</style>
-</HeadContent>
-
-
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Accounts Summary" BreadcrumbArea="Banking" BreadcrumbTab="Cash KPIs">
 
-    <section class="epc-as-hero">
-        <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="ECOM AE" style="height:28px;filter:brightness(1.1)" />
-        <h1>Accounts Summary</h1>
-        <p>Operational finance, inventory, and approvals for this company.</p>
-        <div class="epc-as-cta">
-            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpCash)">Open module</a>
-            <a class="ghost" href="/erp/cash-accounts-app">Cash accounts</a>
-            <a class="ghost" href="/erp/suppliers-app">Suppliers</a>
-            <a class="ghost" href="/erp/app">ERP dashboard</a>
-        </div>
-    </section>
+    
+    <PhpErpModulePageHeader Title="Accounts Summary" Subtitle="Read digest with PHP-reference interactive module." />
 
-    <div class="epc-as-kpis" aria-label="Accounts summary KPIs">
-        <div class="epc-as-kpi"><strong>@_cashPosition.ToString("N2", CultureInfo.InvariantCulture)</strong><span>Cash position</span></div>
-        <div class="epc-as-kpi"><strong>@_supplierCredit.ToString("N2", CultureInfo.InvariantCulture)</strong><span>Supplier credit</span></div>
-        <div class="epc-as-kpi"><strong>@_supplierDebit.ToString("N2", CultureInfo.InvariantCulture)</strong><span>Supplier debit</span></div>
-        <div class="epc-as-kpi"><strong>@_supplierNet.ToString("N2", CultureInfo.InvariantCulture)</strong><span>Supplier net</span></div>
-        <div class="epc-as-kpi"><strong>@_cashAccounts.ToString(CultureInfo.InvariantCulture)</strong><span>Cash accounts</span></div>
-        <div class="epc-as-kpi"><strong>@_activeSuppliers.ToString(CultureInfo.InvariantCulture)</strong><span>Active suppliers</span></div>
-        <div class="epc-as-kpi"><strong>@_activePurchases.ToString(CultureInfo.InvariantCulture)</strong><span>Active purchases</span></div>
+
+    <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Accounts summary KPIs">
+        <div class="kpi"><div class="lbl">Cash position</div><div class="val">@_cashPosition.ToString("N2", CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Supplier credit</div><div class="val">@_supplierCredit.ToString("N2", CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Supplier debit</div><div class="val">@_supplierDebit.ToString("N2", CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Supplier net</div><div class="val">@_supplierNet.ToString("N2", CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Cash accounts</div><div class="val">@_cashAccounts.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Active suppliers</div><div class="val">@_activeSuppliers.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Active purchases</div><div class="val">@_activePurchases.ToString(CultureInfo.InvariantCulture)</div></div>
 </div>
 
 </PhpErpDesktopChrome>

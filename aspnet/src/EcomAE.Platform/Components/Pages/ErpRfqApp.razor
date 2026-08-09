@@ -11,56 +11,21 @@
 
 <PageTitle>RFQs · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
-<HeadContent>
-<style>
-        .epc-rfq-hero {
-            margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
-            background:linear-gradient(135deg,#0c4a6e 0%,#1d4ed8 45%,#2563eb 100%);
-        }
-        .epc-rfq-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
-        .epc-rfq-hero p { margin:0; color:#bfdbfe; max-width:42rem; font-size:.92rem; line-height:1.45; }
-        .epc-rfq-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
-        .epc-rfq-cta a {
-            display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
-            text-decoration:none; color:#fff; background:#2563eb;
-        }
-        .epc-rfq-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); }
-        .epc-rfq-kpis { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
-        .epc-rfq-kpi { background:#fff; border:1px solid #e5e7eb; border-radius:.55rem; padding:.85rem .9rem; }
-        .epc-rfq-kpi strong { display:block; font-size:1.45rem; font-variant-numeric:tabular-nums; }
-        .epc-rfq-kpi span { color:#64748b; font-size:.78rem; }
-        .epc-rfq-table-wrap { background:#fff; border:1px solid #e5e7eb; border-radius:.55rem; overflow:auto; }
-        .epc-rfq-table { width:100%; border-collapse:collapse; font-size:.86rem; }
-        .epc-rfq-table th, .epc-rfq-table td { padding:.55rem .7rem; border-bottom:1px solid #f1f5f9; text-align:left; white-space:nowrap; }
-        .epc-rfq-table th { background:#f8fafc; color:#475569; font-size:.75rem; text-transform:uppercase; letter-spacing:.03em; }
-        .epc-rfq-table a { color:#1d4ed8; font-weight:700; text-decoration:none; }
-        .epc-rfq-badge { display:inline-flex; padding:.15rem .45rem; border-radius:.3rem; font-size:.72rem; font-weight:700; background:#dbeafe; color:#1e3a8a; }
-        .epc-rfq-note { margin-top:1rem; padding:.75rem .9rem; background:#eff6ff; border:1px solid #bfdbfe; border-radius:.45rem; color:#1e3a8a; font-size:.86rem; }
-        @@media (max-width:900px){ .epc-rfq-kpis{grid-template-columns:1fr;} }
-</style>
-</HeadContent>
-
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="RFQs" BreadcrumbArea="Procure to Pay" BreadcrumbTab="RFQ">
 
-    <section class="epc-rfq-hero">
-        <h1>RFQs</h1>
-        <p>Supplier request-for-quote pipeline (PHP epc_erp_rfq).</p>
-        <div class="epc-rfq-cta">
-            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
-            <a class="ghost" href="/erp/purchase-orders-app">Purchase orders</a>
-            <a class="ghost" href="/erp/suppliers-app">Suppliers</a>
-            <a class="ghost" href="/erp/app">ERP dashboard</a>
-        </div>
-    </section>
+    
+    <PhpErpModulePageHeader Title="RFQs" Subtitle="Read digest with PHP-reference interactive module." PhpTabHref="@_phpTab" />
+    <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
 
-    <div class="epc-rfq-kpis" aria-label="RFQs KPIs">
-        <div class="epc-rfq-kpi"><strong>@_rfqs.Count</strong><span>Shown (limit @_limit)</span></div>
-        <div class="epc-rfq-kpi"><strong>@_source</strong><span>Digest source</span></div>
-        <div class="epc-rfq-kpi"><strong>@(_isAdmin ? "live" : "guest")</strong><span>Session</span></div>
+
+    <div class="epc-erp-kpi epc-erp-stat-row" aria-label="RFQs KPIs">
+        <div class="kpi"><div class="lbl">Shown (limit @_limit)</div><div class="val">@_rfqs.Count</div></div>
+        <div class="kpi"><div class="lbl">Digest source</div><div class="val">@_source</div></div>
+        <div class="kpi"><div class="lbl">Session</div><div class="val">@(_isAdmin ? "live" : "guest")</div></div>
     </div>
 
-    <div class="epc-rfq-table-wrap">
-        <table class="epc-rfq-table">
+    <div class="epc-erp-table-wrap">
+        <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
             <thead>
                 <tr>
                     <th>RFQ #</th>
@@ -88,9 +53,9 @@
                             <td><strong>@(string.IsNullOrWhiteSpace(row.Title) ? $"#{row.Id}" : row.Title)</strong></td>
                             <td>@row.AmountEst.ToString("N2", CultureInfo.InvariantCulture)</td>
                             <td>@(string.IsNullOrWhiteSpace(row.CurrencyCode) ? "—" : row.CurrencyCode)</td>
-                            <td><span class="epc-rfq-badge">@row.Status</span></td>
+                            <td><span class="label label-default">@row.Status</span></td>
                             <td>@FormatTime(row.DueDate)</td>
-                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
+                            <td><a href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Open</a></td>
                         </tr>
                     }
                 }
@@ -100,7 +65,7 @@
 
     @if (!string.IsNullOrWhiteSpace(_message))
     {
-        <div class="epc-rfq-note">@_message</div>
+        <div class="epc-erp-empty" style="display:block;margin-top:12px;padding:8px 10px;border:1px solid #c5d4de;background:#f8fafc;color:#475569;font-size:12px;">@_message</div>
     }
 
 </PhpErpDesktopChrome>

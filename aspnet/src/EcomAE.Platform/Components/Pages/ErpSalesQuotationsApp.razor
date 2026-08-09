@@ -11,57 +11,23 @@
 
 <PageTitle>Sales quotations · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
-<HeadContent>
-<style>
-        .epc-sq-hero {
-            margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
-            background:linear-gradient(135deg,#0c4a6e 0%,#1d4ed8 45%,#2563eb 100%);
-        }
-        .epc-sq-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
-        .epc-sq-hero p { margin:0; color:#f5d0fe; max-width:44rem; font-size:.92rem; line-height:1.45; }
-        .epc-sq-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
-        .epc-sq-cta a {
-            display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
-            text-decoration:none; color:#3b0764; background:#fae8ff;
-        }
-        .epc-sq-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); color:#fff; }
-        .epc-sq-kpis { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
-        .epc-sq-kpi { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; padding:.85rem .9rem; }
-        .epc-sq-kpi strong { display:block; font-size:1.2rem; word-break:break-word; }
-        .epc-sq-kpi span { color:#64748b; font-size:.78rem; }
-        .epc-sq-table-wrap { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; overflow:auto; }
-        .epc-sq-table { width:100%; border-collapse:collapse; font-size:.86rem; }
-        .epc-sq-table th, .epc-sq-table td { padding:.55rem .7rem; border-bottom:1px solid #f1f5f9; text-align:left; white-space:nowrap; }
-        .epc-sq-table th { background:#f8fafc; color:#475569; font-size:.75rem; text-transform:uppercase; letter-spacing:.03em; }
-        .epc-sq-note { margin-top:1rem; padding:.75rem .9rem; background:#fdf4ff; border:1px solid #e879f9; border-radius:.45rem; color:#701a75; font-size:.86rem; }
-        @@media (max-width:900px){ .epc-sq-kpis{grid-template-columns:1fr 1fr;} }
-    
-</style>
-</HeadContent>
-
-
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Sales quotations" BreadcrumbArea="Sales" BreadcrumbTab="Proposals">
 
-    <section class="epc-sq-hero">
-        <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="ECOM AE" style="height:28px;filter:brightness(1.1)" />
-        <h1>Sales quotations</h1>
-        <p>Operational finance, inventory, and approvals for this company.</p>
-        <div class="epc-sq-cta">
-            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
-            <a class="ghost" href="/erp/sales-orders-app">Sales orders</a>
-        </div>
-    </section>
+    
+    <PhpErpModulePageHeader Title="Sales quotations" Subtitle="Read digest with PHP-reference interactive module." PhpTabHref="@_phpTab" />
+    <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
 
-    <div class="epc-sq-kpis" aria-label="Sales quotation stats">
-        <div class="epc-sq-kpi"><strong>@_summary.QuoteCount.ToString(CultureInfo.InvariantCulture)</strong><span>Quotes</span></div>
-        <div class="epc-sq-kpi"><strong>@_summary.DraftCount.ToString(CultureInfo.InvariantCulture)</strong><span>Draft</span></div>
-        <div class="epc-sq-kpi"><strong>@_summary.SentCount.ToString(CultureInfo.InvariantCulture)</strong><span>Sent</span></div>
-        <div class="epc-sq-kpi"><strong>@_summary.AcceptedCount.ToString(CultureInfo.InvariantCulture)</strong><span>Accepted</span></div>
-        <div class="epc-sq-kpi"><strong>@_summary.SubtotalSum.ToString("0.00", CultureInfo.InvariantCulture)</strong><span>Subtotal</span></div>
+
+    <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Sales quotation stats">
+        <div class="kpi"><div class="lbl">Quotes</div><div class="val">@_summary.QuoteCount.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Draft</div><div class="val">@_summary.DraftCount.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Sent</div><div class="val">@_summary.SentCount.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Accepted</div><div class="val">@_summary.AcceptedCount.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Subtotal</div><div class="val">@_summary.SubtotalSum.ToString("0.00", CultureInfo.InvariantCulture)</div></div>
     </div>
 
-    <div class="epc-sq-table-wrap">
-        <table class="epc-sq-table">
+    <div class="epc-erp-table-wrap">
+        <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
             <thead>
                 <tr>
                     <th>Id</th>
@@ -93,7 +59,7 @@
                             <td>@(row.OpportunityId > 0 ? row.OpportunityId.ToString(CultureInfo.InvariantCulture) : "—")</td>
                             <td>@(row.ShopOrderId > 0 ? row.ShopOrderId.ToString(CultureInfo.InvariantCulture) : "—")</td>
                             <td>@(row.Active ? "yes" : "no")</td>
-                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
+                            <td><a href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Open</a></td>
                         </tr>
                     }
                 }

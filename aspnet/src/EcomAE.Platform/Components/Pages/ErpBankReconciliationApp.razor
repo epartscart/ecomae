@@ -11,57 +11,23 @@
 
 <PageTitle>Bank reconciliation · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
-<HeadContent>
-<style>
-        .epc-br-hero {
-            margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
-            background:linear-gradient(135deg,#0c4a6e 0%,#1d4ed8 45%,#2563eb 100%);
-        }
-        .epc-br-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
-        .epc-br-hero p { margin:0; color:rgba(255,255,255,.88); max-width:44rem; font-size:.92rem; line-height:1.45; }
-        .epc-br-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
-        .epc-br-cta a {
-            display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
-            text-decoration:none; color:#0c4a6e; background:#e0f2fe;
-        }
-        .epc-br-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); color:#fff; }
-        .epc-br-kpis { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
-        .epc-br-kpi { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; padding:.85rem .9rem; }
-        .epc-br-kpi strong { display:block; font-size:1.2rem; word-break:break-word; }
-        .epc-br-kpi span { color:#64748b; font-size:.78rem; }
-        .epc-br-table-wrap { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; overflow:auto; }
-        .epc-br-table { width:100%; border-collapse:collapse; font-size:.86rem; }
-        .epc-br-table th, .epc-br-table td { padding:.55rem .7rem; border-bottom:1px solid #f1f5f9; text-align:left; white-space:nowrap; }
-        .epc-br-table th { background:#f8fafc; color:#475569; font-size:.75rem; text-transform:uppercase; letter-spacing:.03em; }
-        .epc-br-note { margin-top:1rem; padding:.75rem .9rem; background:#ecfeff; border:1px solid #67e8f9; border-radius:.45rem; color:#155e75; font-size:.86rem; }
-        @@media (max-width:900px){ .epc-br-kpis{grid-template-columns:1fr 1fr;} }
-    
-</style>
-</HeadContent>
-
-
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Bank reconciliation" BreadcrumbArea="Cash & Treasury" BreadcrumbTab="Bank recon">
 
-    <section class="epc-br-hero">
-        <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="ECOM AE" style="height:28px;filter:brightness(1.1)" />
-        <h1>Bank reconciliation</h1>
-        <p>Operational finance, inventory, and approvals for this company.</p>
-        <div class="epc-br-cta">
-            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
-            <a class="ghost" href="/erp/app">ERP dashboard</a>
-        </div>
-    </section>
+    
+    <PhpErpModulePageHeader Title="Bank reconciliation" Subtitle="Read digest with PHP-reference interactive module." PhpTabHref="@_phpTab" />
+    <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
 
-    <div class="epc-br-kpis" aria-label="Bank reconciliation stats">
-        <div class="epc-br-kpi"><strong>@_summary.LineCount.ToString(CultureInfo.InvariantCulture)</strong><span>Lines</span></div>
-        <div class="epc-br-kpi"><strong>@_summary.UnmatchedCount.ToString(CultureInfo.InvariantCulture)</strong><span>Unmatched</span></div>
-        <div class="epc-br-kpi"><strong>@_summary.MatchedCount.ToString(CultureInfo.InvariantCulture)</strong><span>Matched</span></div>
-        <div class="epc-br-kpi"><strong>@_summary.CreditTotal.ToString("0.00", CultureInfo.InvariantCulture)</strong><span>Credits</span></div>
-        <div class="epc-br-kpi"><strong>@_summary.DebitTotal.ToString("0.00", CultureInfo.InvariantCulture)</strong><span>Debits</span></div>
+
+    <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Bank reconciliation stats">
+        <div class="kpi"><div class="lbl">Lines</div><div class="val">@_summary.LineCount.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Unmatched</div><div class="val">@_summary.UnmatchedCount.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Matched</div><div class="val">@_summary.MatchedCount.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Credits</div><div class="val">@_summary.CreditTotal.ToString("0.00", CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Debits</div><div class="val">@_summary.DebitTotal.ToString("0.00", CultureInfo.InvariantCulture)</div></div>
     </div>
 
-    <div class="epc-br-table-wrap">
-        <table class="epc-br-table">
+    <div class="epc-erp-table-wrap">
+        <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
             <thead>
                 <tr>
                     <th>Id</th>
@@ -93,7 +59,7 @@
                             <td>@(row.Direction == 1 ? "in" : "out")</td>
                             <td>@(row.MatchedEntryId > 0 ? row.MatchedEntryId.ToString(CultureInfo.InvariantCulture) : "—")</td>
                             <td>@(!string.IsNullOrWhiteSpace(row.ImportBatch) ? row.ImportBatch : "—")</td>
-                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
+                            <td><a href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Open</a></td>
                         </tr>
                     }
                 }

@@ -11,58 +11,22 @@
 
 <PageTitle>Process flow · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
-<HeadContent>
-<style>
-        .epc-pf-hero {
-            margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
-            background:linear-gradient(135deg,#0c4a6e 0%,#1d4ed8 45%,#2563eb 100%);
-        }
-        .epc-pf-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
-        .epc-pf-hero p { margin:0; color:rgba(255,255,255,.88); max-width:44rem; font-size:.92rem; line-height:1.45; }
-        .epc-pf-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
-        .epc-pf-cta a {
-            display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
-            text-decoration:none; color:#134e4a; background:#ccfbf1;
-        }
-        .epc-pf-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); color:#fff; }
-        .epc-pf-kpis { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
-        .epc-pf-kpi { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; padding:.85rem .9rem; }
-        .epc-pf-kpi strong { display:block; font-size:1.2rem; }
-        .epc-pf-kpi span { color:#64748b; font-size:.78rem; }
-        .epc-pf-table-wrap { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; overflow:auto; }
-        .epc-pf-table { width:100%; border-collapse:collapse; font-size:.86rem; }
-        .epc-pf-table th, .epc-pf-table td { padding:.55rem .7rem; border-bottom:1px solid #f1f5f9; text-align:left; white-space:nowrap; }
-        .epc-pf-table th { background:#f8fafc; color:#475569; font-size:.75rem; text-transform:uppercase; letter-spacing:.03em; }
-        .epc-pf-note { margin-top:1rem; padding:.75rem .9rem; background:#ecfeff; border:1px solid #67e8f9; border-radius:.45rem; color:#164e63; font-size:.86rem; }
-        @@media (max-width:900px){ .epc-pf-kpis{grid-template-columns:1fr 1fr;} }
-    
-</style>
-</HeadContent>
-
-
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Process flow" BreadcrumbArea="Overview" BreadcrumbTab="Process flow">
 
-    <section class="epc-pf-hero">
-        <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="ECOM AE" style="height:28px;filter:brightness(1.1)" />
-        <h1>Process flow cases</h1>
-        <p>Open, done, and overdue process-flow cases for this company workspace.</p>
-        <div class="epc-pf-cta">
-            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open process flow</a>
-            <a class="ghost" href="/erp/dashboard-summary-app">ERP dashboard</a>
-            <a class="ghost" href="/erp/process-flow-tasks-app">Refresh view</a>
-        </div>
-    </section>
+    
+    <PhpErpModulePageHeader Title="Process flow cases" Subtitle="Read digest with PHP-reference interactive module." PhpTabHref="@_phpTab" />
 
-    <div class="epc-pf-kpis" aria-label="Process flow stats">
-        <div class="epc-pf-kpi"><strong>@_summary.TaskCount.ToString(CultureInfo.InvariantCulture)</strong><span>Cases</span></div>
-        <div class="epc-pf-kpi"><strong>@_summary.OpenCount.ToString(CultureInfo.InvariantCulture)</strong><span>Open</span></div>
-        <div class="epc-pf-kpi"><strong>@_summary.DoneCount.ToString(CultureInfo.InvariantCulture)</strong><span>Done</span></div>
-        <div class="epc-pf-kpi"><strong>@_summary.OverdueCount.ToString(CultureInfo.InvariantCulture)</strong><span>Overdue</span></div>
-        <div class="epc-pf-kpi"><strong>@_summary.CancelledCount.ToString(CultureInfo.InvariantCulture)</strong><span>Cancelled/rejected</span></div>
+
+    <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Process flow stats">
+        <div class="kpi"><div class="lbl">Cases</div><div class="val">@_summary.TaskCount.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Open</div><div class="val">@_summary.OpenCount.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Done</div><div class="val">@_summary.DoneCount.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Overdue</div><div class="val">@_summary.OverdueCount.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Cancelled/rejected</div><div class="val">@_summary.CancelledCount.ToString(CultureInfo.InvariantCulture)</div></div>
     </div>
 
-    <div class="epc-pf-table-wrap">
-        <table class="epc-pf-table">
+    <div class="epc-erp-table-wrap">
+        <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
             <thead>
                 <tr>
                     <th>Id</th>
@@ -100,7 +64,7 @@
         </table>
     </div>
 
-    <div class="epc-pf-note">
+    <div class="epc-erp-empty" style="display:block;margin-top:12px;padding:8px 10px;border:1px solid #c5d4de;background:#f8fafc;color:#475569;font-size:12px;">
         Source: @_summary.Source. PHP <code>epc_erp_processflow.php</code> remains authoritative for case create/approve/reject.
         @if (!string.IsNullOrWhiteSpace(_summary.Message)) { <span> @_summary.Message</span> }
     </div>

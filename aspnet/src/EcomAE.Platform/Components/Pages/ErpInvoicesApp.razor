@@ -11,59 +11,21 @@
 
 <PageTitle>Invoices · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
-<HeadContent>
-<style>
-        .epc-inv-hero {
-            margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
-            background:linear-gradient(135deg,#0c4a6e 0%,#1d4ed8 45%,#2563eb 100%);
-        }
-        .epc-inv-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
-        .epc-inv-hero p { margin:0; color:#bfdbfe; max-width:40rem; font-size:.92rem; line-height:1.45; }
-        .epc-inv-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
-        .epc-inv-cta a {
-            display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
-            text-decoration:none; color:#fff; background:#2563eb;
-        }
-        .epc-inv-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); }
-        .epc-inv-kpis { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
-        .epc-inv-kpi { background:#fff; border:1px solid #e5e7eb; border-radius:.55rem; padding:.85rem .9rem; }
-        .epc-inv-kpi strong { display:block; font-size:1.45rem; font-variant-numeric:tabular-nums; }
-        .epc-inv-kpi span { color:#64748b; font-size:.78rem; }
-        .epc-inv-table-wrap { background:#fff; border:1px solid #e5e7eb; border-radius:.55rem; overflow:auto; }
-        .epc-inv-table { width:100%; border-collapse:collapse; font-size:.86rem; }
-        .epc-inv-table th, .epc-inv-table td { padding:.55rem .7rem; border-bottom:1px solid #f1f5f9; text-align:left; white-space:nowrap; }
-        .epc-inv-table th { background:#f8fafc; color:#475569; font-size:.75rem; text-transform:uppercase; letter-spacing:.03em; }
-        .epc-inv-table a { color:#1d4ed8; font-weight:700; text-decoration:none; }
-        .epc-inv-badge { display:inline-flex; padding:.15rem .45rem; border-radius:.3rem; font-size:.72rem; font-weight:700; background:#dbeafe; color:#1e3a8a; }
-        .epc-inv-note { margin-top:1rem; padding:.75rem .9rem; background:#eff6ff; border:1px solid #bfdbfe; border-radius:.45rem; color:#1e3a8a; font-size:.86rem; }
-        @@media (max-width:900px){ .epc-inv-kpis{grid-template-columns:1fr;} }
-    
-</style>
-</HeadContent>
-
-
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Invoices" BreadcrumbArea="Order to Cash" BreadcrumbTab="Invoices">
 
-    <section class="epc-inv-hero">
-        <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="ECOM AE" style="height:28px;filter:brightness(1.1)" />
-        <h1>Invoices</h1>
-        <p>Operational finance, inventory, and approvals for this company.</p>
-        <div class="epc-inv-cta">
-            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
-            <a class="ghost" href="/erp/sales-orders-app">Sales orders</a>
-            <a class="ghost" href="/erp/purchase-orders-app">Purchase orders</a>
-            <a class="ghost" href="/erp/app">ERP dashboard</a>
-        </div>
-    </section>
+    
+    <PhpErpModulePageHeader Title="Invoices" Subtitle="Read digest with PHP-reference interactive module." PhpTabHref="@_phpTab" />
+    <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
 
-    <div class="epc-inv-kpis" aria-label="Invoice KPIs">
-        <div class="epc-inv-kpi"><strong>@_invoices.Count</strong><span>Shown (limit @_limit)</span></div>
-        <div class="epc-inv-kpi"><strong>@_open</strong><span>Non-closed in page</span></div>
-        <div class="epc-inv-kpi"><strong>@_totalInclVat.ToString("N2", CultureInfo.InvariantCulture)</strong><span>Page total incl. VAT</span></div>
+
+    <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Invoice KPIs">
+        <div class="kpi"><div class="lbl">Shown (limit @_limit)</div><div class="val">@_invoices.Count</div></div>
+        <div class="kpi"><div class="lbl">Non-closed in page</div><div class="val">@_open</div></div>
+        <div class="kpi"><div class="lbl">Page total incl. VAT</div><div class="val">@_totalInclVat.ToString("N2", CultureInfo.InvariantCulture)</div></div>
     </div>
 
-    <div class="epc-inv-table-wrap">
-        <table class="epc-inv-table">
+    <div class="epc-erp-table-wrap">
+        <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
             <thead>
                 <tr>
                     <th>Invoice #</th>
@@ -90,9 +52,9 @@
                             <td>@FormatTime(inv.IssueDate)</td>
                             <td>@(inv.OrderId > 0 ? inv.OrderId.ToString(CultureInfo.InvariantCulture) : "—")</td>
                             <td>@(string.IsNullOrWhiteSpace(inv.CustomerEmail) ? $"user {inv.UserId}" : inv.CustomerEmail)</td>
-                            <td><span class="epc-inv-badge">@inv.Status</span></td>
+                            <td><span class="label label-default">@inv.Status</span></td>
                             <td>@inv.TotalInclVat.ToString("N2", CultureInfo.InvariantCulture)</td>
-                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(phpHref)">Open</a></td>
+                            <td><a href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(phpHref)">Open</a></td>
                         </tr>
                     }
                 }

@@ -1,0 +1,47 @@
+@namespace EcomAE.Platform.Components.Shared
+@*
+  Minimal D365 / Suntech action-pane stub matching erp_action_pane_ribbon presentation.
+*@
+@using EcomAE.Platform.Presentation
+
+<div class="epc-erp-d365" data-epc-aspnet-d365="1">
+    <div class="epc-d365-ribbon" role="toolbar" aria-label="Action pane">
+        <div class="epc-d365-aptabs" role="tablist">
+            <button type="button" class="epc-d365-aptab is-active" data-aptab="home" role="tab" aria-selected="true">Home</button>
+        </div>
+        <div class="epc-d365-ap-row is-active" data-aptab="home">
+            <div class="epc-d365-actionpane" role="toolbar">
+                <div class="epc-d365-ap-group">
+                    <div class="epc-d365-ap-buttons">
+                        @if (!string.IsNullOrWhiteSpace(PhpTabHref))
+                        {
+                            <a class="epc-d365-ap-btn is-primary" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(PhpTabHref)">
+                                <i class="fa fa-plus" aria-hidden="true"></i><span>New</span>
+                            </a>
+                        }
+                    </div>
+                    <div class="epc-d365-ap-label">New</div>
+                </div>
+                <div class="epc-d365-ap-group">
+                    <div class="epc-d365-ap-buttons">
+                        <a class="epc-d365-ap-btn" href="@RefreshHref">
+                            <i class="fa fa-refresh" aria-hidden="true"></i><span>Refresh</span>
+                        </a>
+                        @if (!string.IsNullOrWhiteSpace(PhpTabHref))
+                        {
+                            <a class="epc-d365-ap-btn" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(PhpTabHref)">
+                                <i class="fa fa-external-link" aria-hidden="true"></i><span>Full module</span>
+                            </a>
+                        }
+                    </div>
+                    <div class="epc-d365-ap-label">Maintain</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public string? PhpTabHref { get; set; }
+    [Parameter] public string RefreshHref { get; set; } = "?";
+}

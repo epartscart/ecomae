@@ -11,56 +11,21 @@
 
 <PageTitle>Delivery Notes · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
-<HeadContent>
-<style>
-        .epc-deli-hero {
-            margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
-            background:linear-gradient(135deg,#0c4a6e 0%,#1d4ed8 45%,#2563eb 100%);
-        }
-        .epc-deli-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
-        .epc-deli-hero p { margin:0; color:#bfdbfe; max-width:42rem; font-size:.92rem; line-height:1.45; }
-        .epc-deli-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
-        .epc-deli-cta a {
-            display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
-            text-decoration:none; color:#fff; background:#2563eb;
-        }
-        .epc-deli-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); }
-        .epc-deli-kpis { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
-        .epc-deli-kpi { background:#fff; border:1px solid #e5e7eb; border-radius:.55rem; padding:.85rem .9rem; }
-        .epc-deli-kpi strong { display:block; font-size:1.45rem; font-variant-numeric:tabular-nums; }
-        .epc-deli-kpi span { color:#64748b; font-size:.78rem; }
-        .epc-deli-table-wrap { background:#fff; border:1px solid #e5e7eb; border-radius:.55rem; overflow:auto; }
-        .epc-deli-table { width:100%; border-collapse:collapse; font-size:.86rem; }
-        .epc-deli-table th, .epc-deli-table td { padding:.55rem .7rem; border-bottom:1px solid #f1f5f9; text-align:left; white-space:nowrap; }
-        .epc-deli-table th { background:#f8fafc; color:#475569; font-size:.75rem; text-transform:uppercase; letter-spacing:.03em; }
-        .epc-deli-table a { color:#1d4ed8; font-weight:700; text-decoration:none; }
-        .epc-deli-badge { display:inline-flex; padding:.15rem .45rem; border-radius:.3rem; font-size:.72rem; font-weight:700; background:#dbeafe; color:#1e3a8a; }
-        .epc-deli-note { margin-top:1rem; padding:.75rem .9rem; background:#eff6ff; border:1px solid #bfdbfe; border-radius:.45rem; color:#1e3a8a; font-size:.86rem; }
-        @@media (max-width:900px){ .epc-deli-kpis{grid-template-columns:1fr;} }
-</style>
-</HeadContent>
-
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Delivery Notes" BreadcrumbArea="Order to Cash" BreadcrumbTab="Delivery Notes">
 
-    <section class="epc-deli-hero">
-        <h1>Delivery Notes</h1>
-        <p>Shipments and delivery notes for sales fulfilment (PHP epc_erp_delivery_notes).</p>
-        <div class="epc-deli-cta">
-            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
-            <a class="ghost" href="/erp/sales-orders-app">Sales orders</a>
-            <a class="ghost" href="/erp/invoices-app">Invoices</a>
-            <a class="ghost" href="/erp/app">ERP dashboard</a>
-        </div>
-    </section>
+    
+    <PhpErpModulePageHeader Title="Delivery Notes" Subtitle="Read digest with PHP-reference interactive module." PhpTabHref="@_phpTab" />
+    <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
 
-    <div class="epc-deli-kpis" aria-label="Delivery Notes KPIs">
-        <div class="epc-deli-kpi"><strong>@_notes.Count</strong><span>Shown (limit @_limit)</span></div>
-        <div class="epc-deli-kpi"><strong>@_source</strong><span>Digest source</span></div>
-        <div class="epc-deli-kpi"><strong>@(_isAdmin ? "live" : "guest")</strong><span>Session</span></div>
+
+    <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Delivery Notes KPIs">
+        <div class="kpi"><div class="lbl">Shown (limit @_limit)</div><div class="val">@_notes.Count</div></div>
+        <div class="kpi"><div class="lbl">Digest source</div><div class="val">@_source</div></div>
+        <div class="kpi"><div class="lbl">Session</div><div class="val">@(_isAdmin ? "live" : "guest")</div></div>
     </div>
 
-    <div class="epc-deli-table-wrap">
-        <table class="epc-deli-table">
+    <div class="epc-erp-table-wrap">
+        <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
             <thead>
                 <tr>
                     <th>Note #</th>
@@ -86,9 +51,9 @@
                             <td>@(row.OrderId > 0 ? row.OrderId.ToString(CultureInfo.InvariantCulture) : "—")</td>
                             <td>@(string.IsNullOrWhiteSpace(row.Carrier) ? "—" : row.Carrier)</td>
                             <td>@(string.IsNullOrWhiteSpace(row.TrackingNo) ? "—" : row.TrackingNo)</td>
-                            <td><span class="epc-deli-badge">@row.Status</span></td>
+                            <td><span class="label label-default">@row.Status</span></td>
                             <td>@FormatTime(row.ShippedAt)</td>
-                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
+                            <td><a href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Open</a></td>
                         </tr>
                     }
                 }
@@ -98,7 +63,7 @@
 
     @if (!string.IsNullOrWhiteSpace(_message))
     {
-        <div class="epc-deli-note">@_message</div>
+        <div class="epc-erp-empty" style="display:block;margin-top:12px;padding:8px 10px;border:1px solid #c5d4de;background:#f8fafc;color:#475569;font-size:12px;">@_message</div>
     }
 
 </PhpErpDesktopChrome>
