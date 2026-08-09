@@ -10,7 +10,7 @@ public static class PortalTenantSql
             `hostname`,
             `db_name`,
             IFNULL(`db_user`, '') AS db_user,
-            IFNULL(`db_password`, IFNULL(`db_pass`, '')) AS db_password,
+            IFNULL(`db_password`, '') AS db_password,
             `status`,
             `is_demo`,
             `erp_only_shared`,
@@ -29,6 +29,8 @@ public static class PortalTenantSql
     /// <summary>
     /// Same as <see cref="SelectActiveTenantByHost"/> but matches primary or www-alias hostname.
     /// Prefers exact <c>@h0</c> (request host) over <c>@h1</c> (www stripped/added).
+    /// Do not reference legacy <c>db_pass</c> — MySQL errors if the column is absent and the
+    /// registry catch falls through to seed (false <c>tenant_db_unbound</c> while portal has db_name).
     /// </summary>
     public const string SelectActiveTenantByHosts = """
         SELECT
@@ -36,7 +38,7 @@ public static class PortalTenantSql
             `hostname`,
             `db_name`,
             IFNULL(`db_user`, '') AS db_user,
-            IFNULL(`db_password`, IFNULL(`db_pass`, '')) AS db_password,
+            IFNULL(`db_password`, '') AS db_password,
             `status`,
             `is_demo`,
             `erp_only_shared`,
@@ -55,13 +57,39 @@ public static class PortalTenantSql
         LIMIT 1
         """;
 
+    /// <summary>
+    /// Core columns only — used when <c>dedicated_db</c>/<c>scale_policy</c> migrations are missing.
+    /// </summary>
+    public const string SelectActiveTenantByHostsMinimal = """
+        SELECT
+            `site_key`,
+            `hostname`,
+            `db_name`,
+            IFNULL(`db_user`, '') AS db_user,
+            IFNULL(`db_password`, '') AS db_password,
+            `status`,
+            `is_demo`,
+            `erp_only_shared`,
+            `is_active`,
+            0 AS dedicated_db,
+            '' AS scale_policy
+        FROM `epc_portal_tenants`
+        WHERE `hostname` IN (@h0, @h1)
+          AND `status` IN ('dns_pending', 'live')
+          AND COALESCE(`is_active`, 1) = 1
+        ORDER BY CASE WHEN IFNULL(TRIM(`db_name`), '') <> '' THEN 0 ELSE 1 END,
+                 CASE WHEN `hostname` = @h0 THEN 0 ELSE 1 END,
+                 `is_demo` ASC, `erp_only_shared` ASC, `site_key` ASC
+        LIMIT 1
+        """;
+
     public const string SelectTenantBySiteKey = """
         SELECT
             `site_key`,
             `hostname`,
             `db_name`,
             IFNULL(`db_user`, '') AS db_user,
-            IFNULL(`db_password`, IFNULL(`db_pass`, '')) AS db_password,
+            IFNULL(`db_password`, '') AS db_password,
             `status`,
             `is_demo`,
             `erp_only_shared`,

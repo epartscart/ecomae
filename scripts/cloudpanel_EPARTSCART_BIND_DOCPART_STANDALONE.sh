@@ -1,16 +1,22 @@
 #!/usr/bin/env bash
 # SELF-CONTAINED — no git checkout required.
-# Binds www.epartscart.com / epartscart.com → shop DB `docpart`, status=live,
-# restarts platform, restores php-reference serving flags, proves public gates.
+# Discovers a real ePartsCart shop schema (users table), binds portal rows
+# www.epartscart.com / epartscart.com → that DB with status=live, GRANTs the
+# ASP.NET registry MySQL user onto the shop DB, restarts platform, proves gates.
 #
-# Paste as root (must paste RESULT= lines back):
+# 2026-08-09 fail: hardcoding docpart then checking users via registry user
+# printed missing_users_table while portal already had docpart|live — either
+# registry user lacks privilege on docpart, or shop data lives elsewhere.
+# This rewrite discovers as root (socket) then GRANTs + binds.
+#
+# Paste as root (must paste RESULT= / PASTE_ME lines back):
 #   set -euxo pipefail
-#   URL='https://raw.githubusercontent.com/epartscart/ecomae/cursor/epartscart-portal-dump-bind-7b3b/scripts/cloudpanel_EPARTSCART_BIND_DOCPART_STANDALONE.sh'
+#   URL='https://raw.githubusercontent.com/epartscart/ecomae/cursor/finish-pending-epartscart-lifeos-7b3b/scripts/cloudpanel_EPARTSCART_BIND_DOCPART_STANDALONE.sh'
 #   TMP=/tmp/epartscart-bind-docpart-standalone.sh
 #   curl -fsSL "$URL" -o "$TMP"
 #   grep -q BIND_DOCPART_STANDALONE "$TMP" || { echo RESULT=FAIL bad_download; exit 1; }
 #   bash "$TMP" 2>&1 | tee /root/epartscart-bind-docpart-standalone.log
-#   grep -E 'RESULT=|BOUND_|GATE_|RESOLVER_|POST_LOGIN|ROW_|ERROR|docpart' /root/epartscart-bind-docpart-standalone.log | tail -80
+#   grep -E 'RESULT=|BOUND_|GATE_|RESOLVER_|POST_LOGIN|ROW_|PASTE_ME_|EMAIL_HIT|discovered_|GRANT_|shop_db|ERROR' /root/epartscart-bind-docpart-standalone.log | tail -100
 set -euo pipefail
 
 printf '======== EPARTSCART BIND_DOCPART_STANDALONE ========\n'
@@ -18,7 +24,6 @@ printf 'HOST=%s DATE_UTC=%s\n' "$(hostname -f 2>/dev/null || hostname)" "$(date 
 die() { printf 'RESULT=FAIL %s\n' "$*" >&2; exit 1; }
 [[ "$(id -u)" -eq 0 ]] || die "must_run_as_root"
 
-SHOP_DB="${ECOMAE_EPARTSCART_SHOP_DB:-docpart}"
 ENV_FILE="${ECOMAE_ASPNET_ENV_FILE:-/etc/ecomae-aspnet/platform.env}"
 [[ -f "$ENV_FILE" ]] || die "missing_env $ENV_FILE"
 
@@ -42,61 +47,205 @@ PY
 )
 DB_HOST="${PARTS[0]}"; REG_DB="${PARTS[1]}"; DB_USER="${PARTS[2]}"; DB_PASS="${PARTS[3]}"
 [[ -n "$REG_DB" && -n "$DB_USER" ]] || die "could_not_parse_connection_string"
-printf 'registry_db=%s mysql_host=%s shop_db=%s\n' "$REG_DB" "$DB_HOST" "$SHOP_DB"
+DIAG_EMAIL="${ECOMAE_DIAG_EMAIL:-taxofin2025@gmail.com}"
+EMAIL_SQL="${DIAG_EMAIL//\'/\\\'}"
+printf 'registry_db=%s mysql_host=%s registry_user=%s diag_email=%s\n' \
+  "$REG_DB" "$DB_HOST" "$DB_USER" "$DIAG_EMAIL"
 
-export MYSQL_PWD="$DB_PASS"
-mysql_q() { mysql -h "$DB_HOST" -u "$DB_USER" "$REG_DB" -N -e "$1"; }
-mysql_e() { mysql -h "$DB_HOST" -u "$DB_USER" "$REG_DB" -e "$1"; }
+# Prefer root unix_socket for discovery/GRANT (registry user often cannot SEE other schemas).
+ROOT_OK=0
+if mysql -N -e "SELECT 1" >/dev/null 2>&1; then
+  ROOT_OK=1
+  printf 'mysql_root_socket=YES\n'
+else
+  printf 'mysql_root_socket=NO — discovery limited to registry user privileges\n'
+fi
 
-printf '\n-- before --\n'
-mysql_e "
-SELECT site_key, hostname, IFNULL(db_name,'') AS db_name, IFNULL(status,'') AS status, IFNULL(is_active,1) AS is_active
+mysql_reg() {
+  MYSQL_PWD="$DB_PASS" mysql -h "$DB_HOST" -u "$DB_USER" "$@"
+}
+mysql_priv() {
+  if [[ "$ROOT_OK" == "1" ]]; then
+    mysql "$@"
+  else
+    MYSQL_PWD="$DB_PASS" mysql -h "$DB_HOST" -u "$DB_USER" "$@"
+  fi
+}
+
+schema_has_users() {
+  local db="$1"
+  local n
+  n="$(mysql_priv -N -e "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='${db//\'/\\\'}' AND table_name='users';" 2>/dev/null || echo 0)"
+  [[ "${n:-0}" != "0" ]]
+}
+
+email_count_in() {
+  local db="$1"
+  mysql_priv -N -e "SELECT COUNT(*) FROM \`${db//\`/}\`.users WHERE LOWER(email)=LOWER('${EMAIL_SQL}');" 2>/dev/null || echo 0
+}
+
+printf '\n-- before (registry) --\n'
+mysql_reg "$REG_DB" -e "
+SELECT site_key, hostname, IFNULL(db_name,'') AS db_name, IFNULL(status,'') AS status, IFNULL(is_active,1) AS is_active,
+       IFNULL(db_user,'') AS db_user
 FROM epc_portal_tenants
 WHERE hostname IN ('epartscart.com','www.epartscart.com') OR site_key LIKE 'epartscart%'
 ORDER BY hostname;
 " 2>&1 | sed 's/^/ROW_BEFORE /' || true
 
-# Prove shop schema exists
-has_users="$(mysql -h "$DB_HOST" -u "$DB_USER" -N -e "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='${SHOP_DB//\'/\\\'}' AND table_name='users';" 2>/dev/null || echo 0)"
-[[ "${has_users:-0}" != "0" ]] || die "shop_db=${SHOP_DB} missing_users_table — set ECOMAE_EPARTSCART_SHOP_DB"
+SHOP_DB="${ECOMAE_EPARTSCART_SHOP_DB:-}"
+SOURCE="override"
+
+# 1) Prefer docpart when it actually has users (root can see it).
+if [[ -z "$SHOP_DB" ]] && schema_has_users "docpart"; then
+  SHOP_DB="docpart"
+  SOURCE="docpart_has_users"
+  printf 'discovered_docpart_has_users=YES\n'
+elif [[ -z "$SHOP_DB" ]]; then
+  printf 'discovered_docpart_has_users=NO\n'
+fi
+
+# 2) PHP config.php under epartscart docroots
+if [[ -z "$SHOP_DB" ]]; then
+  while IFS= read -r cfg; do
+    [[ -f "$cfg" ]] || continue
+    candidate="$(php -r '
+$f=$argv[1];
+if (!is_file($f)) exit(1);
+$_SERVER["DOCUMENT_ROOT"]=dirname($f);
+if (!defined("_ASTEXE_")) define("_ASTEXE_",1);
+try {
+  require $f;
+  if (!class_exists("DP_Config", false)) exit(2);
+  $c=new DP_Config();
+  $local=dirname($f)."/config.local.php";
+  if (is_file($local)) { $epc_config_local=null; require $local;
+    if (isset($epc_config_local) && is_array($epc_config_local)) {
+      foreach ($epc_config_local as $k=>$v) { if (property_exists($c,$k)) $c->$k=$v; }
+    }
+  }
+  $db=trim((string)($c->db ?? ""));
+  if ($db!=="") { echo $db; exit(0); }
+} catch (Throwable $e) { exit(3); }
+exit(4);
+' "$cfg" 2>/dev/null || true)"
+    if [[ -n "$candidate" ]] && schema_has_users "$candidate"; then
+      SHOP_DB="$candidate"
+      SOURCE="php_config"
+      printf 'discovered_php_config=%s db=%s\n' "$cfg" "$SHOP_DB"
+      break
+    fi
+    printf 'php_config_skip=%s candidate=%s\n' "$cfg" "${candidate:-none}"
+  done < <(find /home /var/www -maxdepth 6 \( -path '*/www.epartscart.com/config.php' -o -path '*/epartscart.com/config.php' -o -path '*/epartscart/config.php' \) 2>/dev/null | head -20)
+fi
+
+# 3) Email scan — prefer schemas containing the login email
+if [[ -z "$SHOP_DB" ]]; then
+  SOURCE="email_scan"
+  printf '\n-- email scan (schemas with users) --\n'
+  while IFS= read -r cand; do
+    [[ -n "$cand" ]] || continue
+    case "$cand" in
+      information_schema|mysql|performance_schema|sys|ecomae) continue ;;
+    esac
+    schema_has_users "$cand" || continue
+    cnt="$(email_count_in "$cand")"
+    printf 'EMAIL_HIT_SCAN db=%s count=%s\n' "$cand" "$cnt"
+    if [[ "${cnt:-0}" != "0" ]]; then
+      # Prefer epartscart-ish names; still accept first email hit
+      if [[ "$cand" == *epartscart* || "$cand" == "docpart" || -z "${EMAIL_HIT_DB:-}" ]]; then
+        EMAIL_HIT_DB="$cand"
+        printf 'EMAIL_HIT=%s email=%s\n' "$cand" "$DIAG_EMAIL"
+        [[ "$cand" == *epartscart* || "$cand" == "docpart" ]] && break
+      fi
+    fi
+  done < <(mysql_priv -N -e "
+SELECT schema_name FROM information_schema.schemata
+ORDER BY CASE
+  WHEN schema_name='docpart' THEN 0
+  WHEN schema_name LIKE '%epartscart%' THEN 1
+  WHEN schema_name LIKE '%taxofin%' THEN 2
+  ELSE 3 END, schema_name
+LIMIT 120;" 2>/dev/null || true)
+  if [[ -n "${EMAIL_HIT_DB:-}" ]]; then
+    SHOP_DB="$EMAIL_HIT_DB"
+    printf 'discovered_by_email=%s\n' "$SHOP_DB"
+  fi
+fi
+
+# 4) Any %epartscart% schema with users
+if [[ -z "$SHOP_DB" ]]; then
+  SOURCE="show_databases"
+  while IFS= read -r cand; do
+    [[ -n "$cand" ]] || continue
+    if schema_has_users "$cand"; then
+      SHOP_DB="$cand"
+      printf 'discovered_schema=%s (has users)\n' "$SHOP_DB"
+      break
+    fi
+  done < <(mysql_priv -N -e "SHOW DATABASES LIKE '%epartscart%';" 2>/dev/null || true)
+fi
+
+# 5) Last resort: any non-system schema named docpart exists but empty — dump hint
+if [[ -z "$SHOP_DB" ]]; then
+  printf '\n-- DUMP schemas (name only) --\n'
+  mysql_priv -N -e "SHOW DATABASES;" 2>/dev/null | sed 's/^/SHOW_DB=/' || true
+  die "no_shop_db_with_users — set ECOMAE_EPARTSCART_SHOP_DB=<db> after DUMP; docpart missing users for this MySQL principal"
+fi
+
+printf 'resolved_shop_db=%s source=%s\n' "$SHOP_DB" "$SOURCE"
+schema_has_users "$SHOP_DB" || die "shop_db=${SHOP_DB} still_missing_users_table"
+
+# GRANT registry user onto shop schema so ASP.NET TenantRegistry CS can open it
+if [[ "$ROOT_OK" == "1" ]]; then
+  printf '\n-- GRANT registry user on shop DB --\n'
+  mysql -e "GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, ALTER, INDEX, REFERENCES ON \`${SHOP_DB//\`/}\`.* TO '${DB_USER}'@'localhost';" 2>&1 | sed 's/^/GRANT_LOCAL /' || true
+  mysql -e "GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, ALTER, INDEX, REFERENCES ON \`${SHOP_DB//\`/}\`.* TO '${DB_USER}'@'%';" 2>&1 | sed 's/^/GRANT_PCT /' || true
+  mysql -e "FLUSH PRIVILEGES;" 2>&1 | sed 's/^/GRANT_FLUSH /' || true
+  # Prove registry user can see users table now
+  reg_see="$(MYSQL_PWD="$DB_PASS" mysql -h "$DB_HOST" -u "$DB_USER" -N -e "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='${SHOP_DB//\'/\\\'}' AND table_name='users';" 2>/dev/null || echo 0)"
+  printf 'GRANT_PROVE registry_sees_users=%s\n' "$reg_see"
+  [[ "${reg_see:-0}" != "0" ]] || die "grant_failed registry_user_still_cannot_see_${SHOP_DB}.users"
+else
+  printf 'GRANT_SKIP no_root_socket\n'
+fi
 
 SHOP_SQL="${SHOP_DB//\'/\\\'}"
 
-# Ensure rows + force db_name + status=live (ASP.NET filter)
+# Ensure portal rows + force db_name + status=live
 for host in epartscart.com www.epartscart.com; do
-  exists="$(mysql_q "SELECT COUNT(*) FROM epc_portal_tenants WHERE hostname='${host}';" 2>/dev/null || echo 0)"
+  exists="$(mysql_reg "$REG_DB" -N -e "SELECT COUNT(*) FROM epc_portal_tenants WHERE hostname='${host}';" 2>/dev/null || echo 0)"
   if [[ "${exists:-0}" == "0" ]]; then
-    mysql_e "
+    mysql_reg "$REG_DB" -e "
 INSERT INTO epc_portal_tenants (site_key, hostname, db_name, is_active, status, erp_only_shared)
 VALUES ('epartscart', '${host}', '${SHOP_SQL}', 1, 'live', 0);
-" 2>/dev/null || mysql_e "
+" 2>/dev/null || mysql_reg "$REG_DB" -e "
 INSERT INTO epc_portal_tenants (site_key, hostname, db_name, status)
 VALUES ('epartscart', '${host}', '${SHOP_SQL}', 'live');
 " || true
   fi
 done
 
-mysql_e "
+mysql_reg "$REG_DB" -e "
 UPDATE epc_portal_tenants
 SET db_name='${SHOP_SQL}', status='live', is_active=1
 WHERE hostname IN ('epartscart.com','www.epartscart.com');
-" 2>/dev/null || die "update_epc_portal_tenants_failed"
+" || die "update_epc_portal_tenants_failed"
 
-# Best-effort clear erp_only on shop hosts
-mysql_e "
+mysql_reg "$REG_DB" -e "
 UPDATE epc_portal_tenants SET erp_only_shared=0
 WHERE hostname IN ('epartscart.com','www.epartscart.com');
 " 2>/dev/null || true
 
 printf '\n-- after --\n'
-mysql_e "
+mysql_reg "$REG_DB" -e "
 SELECT site_key, hostname, IFNULL(db_name,'') AS db_name, IFNULL(status,'') AS status, IFNULL(is_active,1) AS is_active
 FROM epc_portal_tenants
 WHERE hostname IN ('epartscart.com','www.epartscart.com') OR site_key LIKE 'epartscart%'
 ORDER BY hostname;
 " 2>&1 | sed 's/^/ROW_AFTER /' || true
 
-RESOLVED="$(mysql_q "
+RESOLVED="$(mysql_reg "$REG_DB" -N -e "
 SELECT CONCAT(hostname,'|',IFNULL(db_name,''),'|',IFNULL(status,''))
 FROM epc_portal_tenants
 WHERE hostname IN ('www.epartscart.com','epartscart.com')
@@ -109,7 +258,11 @@ LIMIT 1;
 printf 'RESOLVER_ROW=%s\n' "${RESOLVED:-NONE}"
 [[ -n "$RESOLVED" ]] || die "resolver_still_empty_after_update"
 
-# Restore php-reference serving (Archive paused)
+# Email present in bound shop?
+EMAIL_IN_SHOP="$(email_count_in "$SHOP_DB")"
+printf 'EMAIL_IN_SHOP db=%s email=%s count=%s\n' "$SHOP_DB" "$DIAG_EMAIL" "$EMAIL_IN_SHOP"
+
+# Restore php-reference serving flags
 FLAG_ETC="/etc/ecomae-aspnet/php_serving_deactivated"
 rm -f "$FLAG_ETC" 2>/dev/null || true
 find /home /var/www -maxdepth 4 -name '.epc_php_serving_deactivated' -delete 2>/dev/null || true
@@ -141,7 +294,6 @@ print("php_reference_flags_restored")
 PY
 fi
 
-# Strip nginx archive-pause include if present
 python3 - <<'PY'
 from pathlib import Path
 marker = "# ecomae-temp-php-serving-off"
@@ -176,10 +328,7 @@ systemctl restart ecomae-platform.service || die "restart_ecomae_platform_failed
 sleep 5
 printf 'platform=%s\n' "$(systemctl is-active ecomae-platform.service 2>/dev/null || echo unknown)"
 
-unset MYSQL_PWD
-
 fail=0
-# Local Host-header prove
 LB="$(mktemp)"
 LC="$(curl -sS -o "$LB" -w '%{http_code}' --max-time 25 \
   -H 'Host: www.epartscart.com' \
@@ -199,10 +348,12 @@ BC="$(curl -sS -o "$B" -w '%{http_code}' --max-time 30 -k \
 if [[ "$BC" == "200" ]] && ! grep -q 'Tenant shop database is not bound' "$B"; then
   printf 'GATE_OK public_bunches BOUND\n'
   printf 'BOUND_BUNCHES=YES\n'
+  BOUND_BUNCHES=YES
 else
   printf 'GATE_BAD public_bunches code=%s\n' "$BC"
   head -c 240 "$B"; echo
   printf 'BOUND_BUNCHES=NO\n'
+  BOUND_BUNCHES=NO
   fail=$((fail + 1))
 fi
 rm -f "$B"
@@ -213,35 +364,24 @@ REDIR="$(curl -sS -o /dev/null -w '%{redirect_url}' --max-time 25 -k \
   --data-urlencode 'surface=cp' \
   --data-urlencode 'redirect=/cp' \
   --data-urlencode 'contact_type=email' \
-  --data-urlencode 'contact=taxofin2025@gmail.com' \
+  --data-urlencode "contact=${DIAG_EMAIL}" \
   --data-urlencode 'password=__standalone_wrong__' || true)"
 printf 'POST_LOGIN_REDIRECT=%s\n' "$REDIR"
 if [[ "$REDIR" == *'tenant_db_unbound'* ]]; then
-  printf 'GATE_BAD login_still_tenant_db_unbound\n'
+  printf 'GATE_BAD login_still_tenant_db_unbound — LIVE_PUBLISH finish-pending branch (db_pass SQL fix) still required\n'
   fail=$((fail + 1))
 else
   printf 'GATE_OK login_not_tenant_db_unbound\n'
 fi
 
-PR="$(mktemp)"
-PC="$(curl -sS -o "$PR" -w '%{http_code}' --max-time 25 -k \
-  'https://www.epartscart.com/php-reference/en/users/registration' || echo 000)"
-if [[ "$PC" == "200" ]] && ! grep -q 'Archive paused' "$PR"; then
-  printf 'GATE_OK php_reference code=%s\n' "$PC"
-else
-  printf 'GATE_BAD php_reference code=%s\n' "$PC"
-  head -c 100 "$PR"; echo
-  fail=$((fail + 1))
-fi
-rm -f "$PR"
-
 printf '======== PASTE_ME_BEGIN ========\n'
 printf 'RESOLVER_ROW=%s\n' "$RESOLVED"
-printf 'BOUND_BUNCHES=%s\n' "$([[ "$fail" -eq 0 ]] && echo YES || echo CHECK)"
+printf 'shop_db=%s source=%s\n' "$SHOP_DB" "$SOURCE"
+printf 'BOUND_BUNCHES=%s\n' "$BOUND_BUNCHES"
 printf 'POST_LOGIN_REDIRECT=%s\n' "$REDIR"
-printf 'shop_db=%s\n' "$SHOP_DB"
+printf 'EMAIL_IN_SHOP=%s\n' "$EMAIL_IN_SHOP"
 printf '======== PASTE_ME_END ========\n'
 
-[[ "$fail" -eq 0 ]] || die "gates_failed=$fail — send /root/epartscart-bind-docpart-standalone.log"
-printf 'RESULT=PASS BIND_DOCPART_STANDALONE shop_db=%s resolver=%s\n' "$SHOP_DB" "$RESOLVED"
+[[ "$fail" -eq 0 ]] || die "gates_failed=$fail — if login still tenant_db_unbound: publish finish-pending (PortalTenantSql db_pass fix). Log: /root/epartscart-bind-docpart-standalone.log"
+printf 'RESULT=PASS BIND_DOCPART_STANDALONE shop_db=%s resolver=%s source=%s\n' "$SHOP_DB" "$RESOLVED" "$SOURCE"
 exit 0

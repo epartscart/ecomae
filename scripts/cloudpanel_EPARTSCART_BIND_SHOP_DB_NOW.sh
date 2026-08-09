@@ -42,17 +42,21 @@ chmod +x scripts/cloudpanel_fix_epartscart_portal_tenant_db.sh \
   scripts/cloudpanel_restore_php_reference_serving.sh \
   scripts/cloudpanel_diagnose_cp_login_user.sh 2>/dev/null || true
 
-# Default shop schema for ePartsCart = shared docpart (PHP portal parity).
-# Override with ECOMAE_EPARTSCART_SHOP_DB only when dedicated.
-export ECOMAE_EPARTSCART_SHOP_DB="${ECOMAE_EPARTSCART_SHOP_DB:-docpart}"
-printf 'ECOMAE_EPARTSCART_SHOP_DB=%s\n' "$ECOMAE_EPARTSCART_SHOP_DB"
+# Do NOT force docpart — on 2026-08-09 portal already had docpart|live but the
+# registry MySQL user could not see docpart.users. Let fix_* discover (root socket
+# + email scan). Override only when operator knows the real schema.
+if [[ -n "${ECOMAE_EPARTSCART_SHOP_DB:-}" ]]; then
+  printf 'ECOMAE_EPARTSCART_SHOP_DB=%s (override)\n' "$ECOMAE_EPARTSCART_SHOP_DB"
+else
+  printf 'ECOMAE_EPARTSCART_SHOP_DB=(discover)\n'
+fi
 
 printf '\n---- [1] bind shop db_name + status=live ----\n'
 set +e
 ECOMAE_CONFIRM_FIX_EPARTSCART_PORTAL_TENANT_DB=YES \
 ECOMAE_CONFIRM_RESTART_PLATFORM=YES \
 ECOMAE_DIAG_EMAIL="${ECOMAE_DIAG_EMAIL:-taxofin2025@gmail.com}" \
-ECOMAE_EPARTSCART_SHOP_DB="$ECOMAE_EPARTSCART_SHOP_DB" \
+ECOMAE_EPARTSCART_SHOP_DB="${ECOMAE_EPARTSCART_SHOP_DB:-}" \
   bash scripts/cloudpanel_fix_epartscart_portal_tenant_db.sh 2>&1 | tee /root/epartscart-bind-shop-inner.log
 BIND_RC=${PIPESTATUS[0]}
 set -e

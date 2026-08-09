@@ -49,24 +49,22 @@ public sealed class DbBackedTenantRegistry : ITenantRegistry
         try
         {
             await using var connection = await _connections.OpenRegistryAsync(cancellationToken).ConfigureAwait(false);
-            await using var command = connection.CreateCommand();
-            command.CommandText = PortalTenantSql.SelectActiveTenantByHosts;
+            var record = await TryReadByHostsAsync(
+                    connection,
+                    PortalTenantSql.SelectActiveTenantByHosts,
+                    aliases,
+                    cancellationToken)
+                .ConfigureAwait(false);
+            // Older registries may lack dedicated_db/scale_policy — retry core columns only.
+            record ??= await TryReadByHostsAsync(
+                    connection,
+                    PortalTenantSql.SelectActiveTenantByHostsMinimal,
+                    aliases,
+                    cancellationToken)
+                .ConfigureAwait(false);
 
-            var h0 = command.CreateParameter();
-            h0.ParameterName = "@h0";
-            h0.Value = aliases[0];
-            command.Parameters.Add(h0);
-
-            var h1 = command.CreateParameter();
-            h1.ParameterName = "@h1";
-            h1.Value = aliases.Count > 1 ? aliases[1] : aliases[0];
-            command.Parameters.Add(h1);
-
-            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
-            if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            if (record is not null)
             {
-                var row = ReadRow(reader);
-                var record = row.ToTenantRegistryRecord() with { Host = PlatformHostPolicy.NormalizeHost(row.Hostname) };
                 _cache.Set(cacheKey, record, new MemoryCacheEntryOptions
                 {
                     AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(60)
@@ -80,6 +78,42 @@ public sealed class DbBackedTenantRegistry : ITenantRegistry
         }
 
         return await _seed.FindByHostAsync(normalized, cancellationToken).ConfigureAwait(false);
+    }
+
+    private static async Task<TenantRegistryRecord?> TryReadByHostsAsync(
+        DbConnection connection,
+        string sql,
+        IReadOnlyList<string> aliases,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            await using var command = connection.CreateCommand();
+            command.CommandText = sql;
+
+            var h0 = command.CreateParameter();
+            h0.ParameterName = "@h0";
+            h0.Value = aliases[0];
+            command.Parameters.Add(h0);
+
+            var h1 = command.CreateParameter();
+            h1.ParameterName = "@h1";
+            h1.Value = aliases.Count > 1 ? aliases[1] : aliases[0];
+            command.Parameters.Add(h1);
+
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            if (!await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                return null;
+            }
+
+            var row = ReadRow(reader);
+            return row.ToTenantRegistryRecord() with { Host = PlatformHostPolicy.NormalizeHost(row.Hostname) };
+        }
+        catch
+        {
+            return null;
+        }
     }
 
     private static PortalTenantRow ReadRow(DbDataReader reader)

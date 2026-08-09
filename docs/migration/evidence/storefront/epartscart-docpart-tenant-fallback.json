@@ -15,6 +15,11 @@
     "cpPost": "tenant_db_unbound",
     "bunches": "unbound",
     "clientsBoard": "302→login",
+    "bindStandalonePaste": {
+      "result": "FAIL shop_db=docpart missing_users_table",
+      "portalBefore": "www.epartscart.com|docpart|live",
+      "rootCause": "registry MySQL user cannot see docpart.users; ASP.NET PortalTenantSql referenced missing db_pass → catch → unbound"
+    },
     "operatorPaste": "scripts/cloudpanel_FINISH_PENDING_EPARTSCART_LIFEOS_NOW.sh"
   },
   "status": "fixed-in-code-awaiting-RESULT-PASS-paste"
