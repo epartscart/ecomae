@@ -6,10 +6,11 @@
 #
 # As root on CloudPanel:
 #   set -euxo pipefail
-#   URL='https://raw.githubusercontent.com/epartscart/ecomae/cursor/finish-pending-epartscart-lifeos-7b3b/scripts/cloudpanel_FINISH_PENDING_EPARTSCART_LIFEOS_NOW.sh'
+#   URL='https://raw.githubusercontent.com/epartscart/ecomae/main/scripts/cloudpanel_FINISH_PENDING_EPARTSCART_LIFEOS_NOW.sh'
 #   TMP=/tmp/finish-pending-epartscart-lifeos-now.sh
 #   curl -fsSL "$URL" -o "$TMP"
 #   grep -q FINISH_PENDING_EPARTSCART_LIFEOS_NOW "$TMP" || { echo RESULT=FAIL bad_download; exit 1; }
+#   export ECOMAE_BRANCH=main ECOMAE_SKIP_LIFEOS_MP4=YES
 #   bash "$TMP" 2>&1 | tee /root/finish-pending-epartscart-lifeos-now.log
 #   grep -E 'RESULT=|PASTE_ME_|GATE_|BOUND_|POST_LOGIN|SHA=|clients-board|ERROR' /root/finish-pending-epartscart-lifeos-now.log | tail -120
 set -euo pipefail
@@ -20,7 +21,8 @@ printf 'HOST=%s DATE_UTC=%s UID=%s\n' \
 die() { printf 'RESULT=FAIL %s\n' "$*" >&2; exit 1; }
 [[ "$(id -u)" -eq 0 ]] || die "must_run_as_root_on_CloudPanel"
 
-BRANCH="${ECOMAE_BRANCH:-cursor/finish-pending-epartscart-lifeos-7b3b}"
+# #975 merged — default to main (override with ECOMAE_BRANCH if needed).
+BRANCH="${ECOMAE_BRANCH:-main}"
 export ECOMAE_BRANCH="$BRANCH" ECOMAE_SKIP_LIFEOS_MP4="${ECOMAE_SKIP_LIFEOS_MP4:-YES}"
 
 CANDIDATES=("${ECOMAE_REPO:-}" /opt/ecomae-aspnet-source /root/ecomae /opt/ecomae)

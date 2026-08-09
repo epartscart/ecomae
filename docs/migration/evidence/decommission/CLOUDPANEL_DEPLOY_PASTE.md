@@ -36,29 +36,30 @@ ePartsCart shop DB is **`docpart`**. Finish branch also fills `docpart` in ASP.N
 
 **2026-08-09 bind fail root cause:** portal already `www.epartscart.com|docpart|live`, but STANDALONE used registry MySQL user → `docpart missing_users_table` (no GRANT / invisible schema). Also ASP.NET `PortalTenantSql` referenced legacy `db_pass` column → query exception → false `tenant_db_unbound`. Fixed on finish-pending: discover as root + GRANT + SQL without `db_pass`.
 
-**ONE paste (bind + republish + LifeOS prove) — must paste PASTE_ME block back:**
+**ONE paste (bind + republish + LifeOS prove) — #975 is on `main`. Must paste PASTE_ME block back:**
 
 ```bash
 set -euxo pipefail
-URL='https://raw.githubusercontent.com/epartscart/ecomae/cursor/finish-pending-epartscart-lifeos-7b3b/scripts/cloudpanel_FINISH_PENDING_EPARTSCART_LIFEOS_NOW.sh'
+URL='https://raw.githubusercontent.com/epartscart/ecomae/main/scripts/cloudpanel_FINISH_PENDING_EPARTSCART_LIFEOS_NOW.sh'
 TMP=/tmp/finish-pending-epartscart-lifeos-now.sh
 curl -fsSL "$URL" -o "$TMP"
 wc -c "$TMP"
 grep -q FINISH_PENDING_EPARTSCART_LIFEOS_NOW "$TMP" || { echo RESULT=FAIL bad_download; exit 1; }
+export ECOMAE_BRANCH=main ECOMAE_SKIP_LIFEOS_MP4=YES
 bash "$TMP" 2>&1 | tee /root/finish-pending-epartscart-lifeos-now.log
 grep -E 'RESULT=|PASTE_ME_|GATE_|BOUND_|POST_LOGIN|SHA=|clients-board|EMAIL_HIT|GRANT_|discovered_|ERROR' /root/finish-pending-epartscart-lifeos-now.log | tail -120
 ```
 
 **PASS:** log contains `RESULT=PASS FINISH_PENDING…`, `BOUND_BUNCHES=YES`, `CLIENTS_BOARD=PUBLIC`, and `POST_LOGIN_REDIRECT` is not `tenant_db_unbound`.
 
-**If only bind (no full publish yet)** — use rewritten STANDALONE from finish-pending (not merged #974 URL):
+**If only bind (no full publish yet)** — STANDALONE from `main` (must contain `mysql_root_socket`; reject stale #974 download):
 
 ```bash
 set -euxo pipefail
-URL='https://raw.githubusercontent.com/epartscart/ecomae/cursor/finish-pending-epartscart-lifeos-7b3b/scripts/cloudpanel_EPARTSCART_BIND_DOCPART_STANDALONE.sh'
+URL='https://raw.githubusercontent.com/epartscart/ecomae/main/scripts/cloudpanel_EPARTSCART_BIND_DOCPART_STANDALONE.sh'
 TMP=/tmp/epartscart-bind-docpart-standalone.sh
 curl -fsSL "$URL" -o "$TMP"
-grep -q 'mysql_root_socket' "$TMP" || { echo RESULT=FAIL stale_download_use_finish_pending_branch; exit 1; }
+grep -q 'mysql_root_socket' "$TMP" || { echo RESULT=FAIL stale_download; exit 1; }
 bash "$TMP" 2>&1 | tee /root/epartscart-bind-docpart-standalone.log
 grep -E 'RESULT=|PASTE_ME_|GATE_|BOUND_|GRANT_|EMAIL_HIT|discovered_|POST_LOGIN|ERROR' /root/epartscart-bind-docpart-standalone.log | tail -100
 ```
