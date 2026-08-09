@@ -6,15 +6,20 @@
 # This script: checkout main → BIND_DOCPART_STANDALONE (root+GRANT) →
 # LIVE_PUBLISH_NOW → prove CP POST is NOT tenant_db_unbound.
 #
+# 2026-08-09 fail: unix_socket root missing on CloudPanel; registry user cannot SEE
+# docpart.users. STANDALONE now uses clpctl db:show:master-credentials (TCP root).
+# FIX always fetches that STANDALONE from this branch even when ECOMAE_BRANCH=main.
+#
 # Paste as root (must paste RESULT= / PASTE_ME back — silent UI complete = FAIL):
 #   set -euxo pipefail
 #   URL='https://raw.githubusercontent.com/epartscart/ecomae/cursor/fix-cp-login-unbound-now-7b3b/scripts/cloudpanel_FIX_EPARTSCART_CP_LOGIN_UNBOUND_NOW.sh'
 #   TMP=/tmp/fix-epartscart-cp-login-unbound-now.sh
 #   curl -fsSL "$URL" -o "$TMP"
 #   grep -q FIX_EPARTSCART_CP_LOGIN_UNBOUND_NOW "$TMP" || { echo RESULT=FAIL bad_download; exit 1; }
+#   grep -q 'clpctl db:show:master-credentials' "$TMP" || { echo RESULT=FAIL stale_fix_script; exit 1; }
 #   export ECOMAE_BRANCH=main ECOMAE_SKIP_LIFEOS_MP4=YES
 #   bash "$TMP" 2>&1 | tee /root/fix-epartscart-cp-login-unbound-now.log
-#   grep -E 'RESULT=|PASTE_ME_|GATE_|BOUND_|POST_LOGIN|SHA=|GRANT_|EMAIL_HIT|discovered_|ERROR|FAIL' /root/fix-epartscart-cp-login-unbound-now.log | tail -120
+#   grep -E 'RESULT=|PASTE_ME_|GATE_|BOUND_|POST_LOGIN|SHA=|GRANT_|mysql_elevated|EMAIL_HIT|discovered_|ERROR|FAIL' /root/fix-epartscart-cp-login-unbound-now.log | tail -120
 set -euo pipefail
 
 printf '======== FIX_EPARTSCART_CP_LOGIN_UNBOUND_NOW ========\n'
@@ -43,19 +48,24 @@ SHA="$(git rev-parse --short HEAD)"
 FULL="$(git rev-parse HEAD)"
 printf 'REPO=%s SHA=%s FULL=%s BRANCH=%s\n' "$REPO" "$SHA" "$FULL" "$BRANCH"
 
-# Prefer STANDALONE first (root discover + GRANT). Must contain mysql_root_socket.
-STANDALONE="$REPO/scripts/cloudpanel_EPARTSCART_BIND_DOCPART_STANDALONE.sh"
-[[ -f "$STANDALONE" ]] || die "missing_BIND_DOCPART_STANDALONE"
-grep -q 'mysql_root_socket' "$STANDALONE" || die "stale_STANDALONE_missing_root_discover — pull main/#975+"
+# STANDALONE must come from the fix branch (clpctl master discovery). Checking out
+# ECOMAE_BRANCH=main for LIVE_PUBLISH would otherwise overwrite a hardened local copy.
+STANDALONE_REF="${ECOMAE_STANDALONE_REF:-cursor/fix-cp-login-unbound-now-7b3b}"
+STANDALONE_URL="${ECOMAE_STANDALONE_URL:-https://raw.githubusercontent.com/epartscart/ecomae/${STANDALONE_REF}/scripts/cloudpanel_EPARTSCART_BIND_DOCPART_STANDALONE.sh}"
+STANDALONE=/tmp/cloudpanel_EPARTSCART_BIND_DOCPART_STANDALONE.sh
+printf '\n---- fetch STANDALONE from %s ----\n' "$STANDALONE_REF"
+curl -fsSL "$STANDALONE_URL" -o "$STANDALONE" || die "standalone_download_failed $STANDALONE_URL"
+grep -q 'BIND_DOCPART_STANDALONE' "$STANDALONE" || die "bad_STANDALONE_download"
+grep -q 'clpctl db:show:master-credentials' "$STANDALONE" || die "stale_STANDALONE_missing_clpctl_master — wrong STANDALONE_REF"
 chmod +x "$STANDALONE"
-printf '\n---- BIND_DOCPART_STANDALONE (root discover + GRANT) ----\n'
+printf '\n---- BIND_DOCPART_STANDALONE (clpctl/root discover + GRANT) ----\n'
 set +e
 ECOMAE_DIAG_EMAIL="$DIAG_EMAIL" bash "$STANDALONE" 2>&1 | tee /root/fix-cp-login-bind-standalone.log
 BIND_RC=${PIPESTATUS[0]}
 set -e
 printf 'bind_standalone_exit=%s\n' "$BIND_RC"
-grep -E 'RESULT=|BOUND_|RESOLVER_|POST_LOGIN|GATE_|GRANT_|EMAIL_HIT|discovered_|PASTE_ME_' \
-  /root/fix-cp-login-bind-standalone.log | tail -50 || true
+grep -E 'RESULT=|BOUND_|RESOLVER_|POST_LOGIN|GATE_|GRANT_|EMAIL_HIT|discovered_|mysql_elevated|PASTE_ME_|WARN' \
+  /root/fix-cp-login-bind-standalone.log | tail -60 || true
 [[ "$BIND_RC" -eq 0 ]] || die "bind_standalone_failed — send /root/fix-cp-login-bind-standalone.log"
 
 PUBLISH="$REPO/scripts/cloudpanel_EPARTSCART_LIVE_PUBLISH_NOW.sh"
