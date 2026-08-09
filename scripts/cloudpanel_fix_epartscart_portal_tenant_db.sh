@@ -84,8 +84,19 @@ mysql -h "$DB_HOST" -u "$DB_USER" -N -e "SHOW DATABASES LIKE '%epartscart%';" 2>
 SHOP_DB="${ECOMAE_EPARTSCART_SHOP_DB:-}"
 SOURCE="override"
 
+schema_has_users() {
+  local db="$1"
+  local n
+  n="$(mysql -h "$DB_HOST" -u "$DB_USER" -N -e "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='${db//\'/\\\'}' AND table_name='users';" 2>/dev/null || echo 0)"
+  # Root socket often sees schemas the registry user cannot.
+  if [[ "${n:-0}" == "0" ]] && mysql -N -e "SELECT 1" >/dev/null 2>&1; then
+    n="$(mysql -N -e "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='${db//\'/\\\'}' AND table_name='users';" 2>/dev/null || echo 0)"
+  fi
+  [[ "${n:-0}" != "0" ]]
+}
+
 if [[ -z "$SHOP_DB" ]]; then
-  SHOP_DB="$(mysql_q "
+  CAND="$(mysql_q "
 SELECT db_name FROM epc_portal_tenants
 WHERE (hostname IN ('epartscart.com','www.epartscart.com') OR site_key LIKE 'epartscart%')
   AND IFNULL(TRIM(db_name),'') <> ''
@@ -93,7 +104,24 @@ ORDER BY CASE WHEN hostname='epartscart.com' THEN 0 WHEN hostname='www.epartscar
          IFNULL(erp_only_shared,0) ASC
 LIMIT 1;
 " 2>/dev/null || true)"
-  [[ -n "$SHOP_DB" ]] && SOURCE="sibling_portal_row"
+  if [[ -n "$CAND" ]] && schema_has_users "$CAND"; then
+    SHOP_DB="$CAND"
+    SOURCE="sibling_portal_row"
+  elif [[ -n "$CAND" ]]; then
+    printf 'sibling_portal_row=%s missing_users — continuing discovery (registry may lack GRANT)\n' "$CAND"
+  fi
+fi
+
+# PHP portal parity: ePartsCart storefront shop DB is the shared Model C `docpart`
+# schema (epc_portal_resolve_tenant_db_credentials — never platform `ecomae`).
+if [[ -z "$SHOP_DB" ]]; then
+  if schema_has_users "docpart"; then
+    SHOP_DB="docpart"
+    SOURCE="php_parity_docpart"
+    printf 'discovered_php_parity_default db=docpart (epartscart shared shop)\n'
+  else
+    printf 'docpart_missing_users_or_invisible_to_mysql_principal\n'
+  fi
 fi
 
 # PHP portal parity: ePartsCart storefront shop DB is the shared Model C `docpart`
@@ -178,11 +206,20 @@ if [[ -z "$SHOP_DB" ]]; then
 fi
 printf 'resolved_shop_db=%s source=%s\n' "$SHOP_DB" "$SOURCE"
 
-has_users="$(mysql -h "$DB_HOST" -u "$DB_USER" -N -e "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='${SHOP_DB//\'/\\\'}' AND table_name='users';" 2>/dev/null || echo 0)"
-if [[ "${has_users:-0}" == "0" ]]; then
+if ! schema_has_users "$SHOP_DB"; then
   printf 'RESULT=FAIL shop_db=%s has no users table\n' "$SHOP_DB" >&2
   unset MYSQL_PWD
   exit 1
+fi
+
+# Registry CS user must be able to OPEN the shop DB (ASP.NET OpenForTenantAsync).
+if mysql -N -e "SELECT 1" >/dev/null 2>&1; then
+  printf '\n-- GRANT registry user on shop DB (root socket) --\n'
+  mysql -e "GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, ALTER, INDEX, REFERENCES ON \`${SHOP_DB//\`/}\`.* TO '${DB_USER}'@'localhost';" 2>&1 || true
+  mysql -e "GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, ALTER, INDEX, REFERENCES ON \`${SHOP_DB//\`/}\`.* TO '${DB_USER}'@'%';" 2>&1 || true
+  mysql -e "FLUSH PRIVILEGES;" 2>&1 || true
+  reg_see="$(MYSQL_PWD="$DB_PASS" mysql -h "$DB_HOST" -u "$DB_USER" -N -e "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='${SHOP_DB//\'/\\\'}' AND table_name='users';" 2>/dev/null || echo 0)"
+  printf 'GRANT_PROVE registry_sees_users=%s\n' "$reg_see"
 fi
 
 SHOP_SQL="${SHOP_DB//\'/\\\'}"

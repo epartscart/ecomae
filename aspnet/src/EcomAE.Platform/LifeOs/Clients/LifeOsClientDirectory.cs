@@ -1,4 +1,6 @@
 using System.Collections.Concurrent;
+using System.Text.Json;
+using Microsoft.Extensions.Hosting;
 
 namespace EcomAE.Platform.LifeOs.Clients;
 
@@ -17,10 +19,28 @@ public sealed class LifeOsClientDirectory : ILifeOsClientDirectory
         "results-no-login",
     ];
 
+    private static readonly JsonSerializerOptions JsonOpts = new() { WriteIndented = false };
+
     private readonly ConcurrentDictionary<string, LifeOsClientProfile> _clients = new(StringComparer.OrdinalIgnoreCase);
     private readonly ConcurrentDictionary<string, ConcurrentQueue<LifeOsActivityEvent>> _activities = new(StringComparer.OrdinalIgnoreCase);
+    private readonly string? _persistPath;
+    private readonly object _persistGate = new();
 
-    public LifeOsClientDirectory()
+    public LifeOsClientDirectory(IHostEnvironment? hostEnvironment = null)
+    {
+        _persistPath = ResolvePersistPath(hostEnvironment);
+        if (!TryLoadFromDisk())
+        {
+            SeedTestClient();
+        }
+        else if (!_clients.ContainsKey(TestClientId))
+        {
+            SeedTestClient();
+            Persist();
+        }
+    }
+
+    private void SeedTestClient()
     {
         var test = BuildProfile(
             TestClientId,
@@ -159,6 +179,7 @@ public sealed class LifeOsClientDirectory : ILifeOsClientDirectory
             null,
             null);
 
+        Persist();
         var welcome = profile.OwnerUserId is > 0
             ? $"Welcome, {name}. Your clone {name} is bound to your signed-in account — keep this device session private."
             : $"Welcome, {name}. Your clone {name} is ready — keep your join token private on this device.";
@@ -193,7 +214,7 @@ public sealed class LifeOsClientDirectory : ILifeOsClientDirectory
         ok = true,
         scaffold = true,
         title = "LifeOS joined clients — Control Panel",
-        authNote = "Join is public for new users. Companion/results use join tokens. CP board shows operator view of in-memory joins.",
+        authNote = "Join is public for new users. Companion/results use join tokens. Board/JSON are public; joins persist to local JSON when writable.",
         totalClients = List().Count,
         countries = List()
             .GroupBy(c => c.CountryCode ?? c.Country ?? "unknown")
@@ -383,8 +404,107 @@ public sealed class LifeOsClientDirectory : ILifeOsClientDirectory
         var q = _activities.GetOrAdd(clientId, _ => new ConcurrentQueue<LifeOsActivityEvent>());
         q.Enqueue(evt);
         while (q.Count > 500 && q.TryDequeue(out _)) { }
+        Persist();
         return evt;
     }
+
+    private static string? ResolvePersistPath(IHostEnvironment? env)
+    {
+        var fromEnv = Environment.GetEnvironmentVariable("ECOMAE_LIFEOS_CLIENTS_PATH");
+        if (!string.IsNullOrWhiteSpace(fromEnv))
+        {
+            return fromEnv.Trim();
+        }
+
+        var root = env?.ContentRootPath;
+        if (string.IsNullOrWhiteSpace(root))
+        {
+            root = AppContext.BaseDirectory;
+        }
+
+        return Path.Combine(root, "App_Data", "lifeos-clients.json");
+    }
+
+    private bool TryLoadFromDisk()
+    {
+        if (string.IsNullOrWhiteSpace(_persistPath) || !File.Exists(_persistPath))
+        {
+            return false;
+        }
+
+        try
+        {
+            var json = File.ReadAllText(_persistPath);
+            var snap = JsonSerializer.Deserialize<PersistSnapshot>(json, JsonOpts);
+            if (snap?.Clients is null || snap.Clients.Count == 0)
+            {
+                return false;
+            }
+
+            foreach (var c in snap.Clients)
+            {
+                _clients[c.ClientId] = c;
+            }
+
+            if (snap.Activities is not null)
+            {
+                foreach (var (id, rows) in snap.Activities)
+                {
+                    var q = new ConcurrentQueue<LifeOsActivityEvent>();
+                    foreach (var row in rows ?? [])
+                    {
+                        q.Enqueue(row);
+                    }
+
+                    _activities[id] = q;
+                }
+            }
+
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    private void Persist()
+    {
+        if (string.IsNullOrWhiteSpace(_persistPath))
+        {
+            return;
+        }
+
+        lock (_persistGate)
+        {
+            try
+            {
+                var dir = Path.GetDirectoryName(_persistPath);
+                if (!string.IsNullOrWhiteSpace(dir))
+                {
+                    Directory.CreateDirectory(dir);
+                }
+
+                var snap = new PersistSnapshot(
+                    _clients.Values.OrderBy(c => c.JoinedAtUtc).ToList(),
+                    _activities.ToDictionary(
+                        kv => kv.Key,
+                        kv => kv.Value.ToArray().ToList(),
+                        StringComparer.OrdinalIgnoreCase));
+                var tmp = _persistPath + ".tmp";
+                File.WriteAllText(tmp, JsonSerializer.Serialize(snap, JsonOpts));
+                File.Move(tmp, _persistPath, overwrite: true);
+            }
+            catch
+            {
+                // Best-effort — in-memory directory remains authoritative if disk is read-only.
+            }
+        }
+    }
+
+    private sealed record PersistSnapshot(
+        List<LifeOsClientProfile> Clients,
+        Dictionary<string, List<LifeOsActivityEvent>> Activities);
 
     private IReadOnlyList<LifeOsActivityEvent> Activities(string clientId) =>
         _activities.TryGetValue(clientId, out var q) ? q.ToArray() : [];

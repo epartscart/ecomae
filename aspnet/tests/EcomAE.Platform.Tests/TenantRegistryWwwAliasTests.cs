@@ -125,6 +125,11 @@ public sealed class TenantRegistryWwwAliasTests
         // erp_only_shared stubs without db_name must not outrank shop tenants.
         Assert.Contains("`erp_only_shared` ASC", PortalTenantSql.SelectActiveTenantByHosts, StringComparison.Ordinal);
         Assert.DoesNotContain("`erp_only_shared` DESC", PortalTenantSql.SelectActiveTenantByHosts, StringComparison.Ordinal);
+        // Legacy db_pass column is absent on many registries — referencing it throws and
+        // yields false tenant_db_unbound while portal already has db_name=docpart.
+        Assert.DoesNotContain("`db_pass`", PortalTenantSql.SelectActiveTenantByHosts, StringComparison.Ordinal);
+        Assert.DoesNotContain("`db_pass`", PortalTenantSql.SelectActiveTenantByHostsMinimal, StringComparison.Ordinal);
+        Assert.Contains("0 AS dedicated_db", PortalTenantSql.SelectActiveTenantByHostsMinimal, StringComparison.Ordinal);
     }
 
     [Fact]

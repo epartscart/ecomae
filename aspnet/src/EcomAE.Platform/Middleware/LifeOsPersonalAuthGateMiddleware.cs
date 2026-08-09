@@ -113,6 +113,10 @@ public sealed class LifeOsPersonalAuthGateMiddleware
             || bare.Equals(EcomAeRoutes.LifeOsRoutineJson, StringComparison.OrdinalIgnoreCase)
             || bare.Equals(EcomAeRoutes.LifeOsDemo, StringComparison.OrdinalIgnoreCase)
             || bare.Equals(EcomAeRoutes.LifeOsDemoApp, StringComparison.OrdinalIgnoreCase)
+            // Public joined-clients board + JSON (PR #946 / lifeos-clients-board-public-no-login).
+            || bare.Equals(EcomAeRoutes.LifeOsClientsBoard, StringComparison.OrdinalIgnoreCase)
+            || bare.Equals(EcomAeRoutes.LifeOsClientsCp, StringComparison.OrdinalIgnoreCase)
+            || bare.Equals(EcomAeRoutes.LifeOsDirectory, StringComparison.OrdinalIgnoreCase)
             || bare.Equals(EcomAeRoutes.LifeOsManifest, StringComparison.OrdinalIgnoreCase)
             || bare.Equals(LifeOs.Clients.LifeOsPwaAssets.ManifestPath, StringComparison.OrdinalIgnoreCase)
             || bare.Equals(LifeOs.Clients.LifeOsPwaAssets.ServiceWorkerPath, StringComparison.OrdinalIgnoreCase)
@@ -132,11 +136,8 @@ public sealed class LifeOsPersonalAuthGateMiddleware
 
     internal static bool IsPersonalLifeOs(string bare)
     {
-        // Account / operator surfaces — not new-user join.
-        if (bare.Equals(EcomAeRoutes.LifeOsClientsBoard, StringComparison.OrdinalIgnoreCase)
-            || bare.Equals(EcomAeRoutes.LifeOsClientsCp, StringComparison.OrdinalIgnoreCase)
-            || bare.Equals(EcomAeRoutes.LifeOsDirectory, StringComparison.OrdinalIgnoreCase)
-            || bare.Equals(EcomAeRoutes.LifeOsApp, StringComparison.OrdinalIgnoreCase)
+        // Account / console surfaces — board/directory are public (see IsPublicLifeOs).
+        if (bare.Equals(EcomAeRoutes.LifeOsApp, StringComparison.OrdinalIgnoreCase)
             || bare.Equals(EcomAeRoutes.LifeOsBrain, StringComparison.OrdinalIgnoreCase))
         {
             return true;
