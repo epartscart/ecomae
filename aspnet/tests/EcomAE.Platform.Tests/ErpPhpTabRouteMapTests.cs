@@ -42,6 +42,10 @@ public sealed class ErpPhpTabRouteMapTests
     [InlineData("expense_reports", "/erp/expense-reports-app")]
     [InlineData("vat", "/erp/vat-app")]
     [InlineData("withholding", "/erp/withholding-app")]
+    [InlineData("payables", "/erp/payables-app")]
+    [InlineData("receivables", "/erp/receivables-app")]
+    [InlineData("ap_setup", "/erp/suppliers-app?tab=ap_setup")]
+    [InlineData("ar_setup", "/erp/contacts-app?tab=ar_setup")]
     public void KnownTabsMapToDedicatedApps(string tab, string expected)
     {
         Assert.True(ErpPhpTabRouteMap.TryMapTab(tab, out var href));
@@ -56,6 +60,63 @@ public sealed class ErpPhpTabRouteMapTests
 
         var dn = PhpSurfaceLinkMap.AspNetPrimaryHref("/ERP/?epc_erp_shell=1&tab=delivery_notes");
         Assert.Equal("/erp/delivery-notes-app", dn);
+    }
+
+    [Theory]
+    [InlineData("/ERP/?epc_erp_shell=1&area=ap&tab=payables", "/erp/payables-app")]
+    [InlineData("/ERP/?epc_erp_shell=1&area=ar&tab=receivables", "/erp/receivables-app")]
+    [InlineData("/ERP/?epc_erp_shell=1&area=ap", "/erp/payables-app")]
+    [InlineData("/ERP/?epc_erp_shell=1&area=ar", "/erp/receivables-app")]
+    [InlineData("/ERP/?epc_erp_shell=1&area=purchasing", "/erp/purchase-orders-app")]
+    [InlineData("/ERP/?epc_erp_shell=1&area=sales", "/erp/sales-orders-app")]
+    [InlineData("/ERP/?epc_erp_shell=1&area=credit_coll", "/cp/collections-dunning-app")]
+    [InlineData("/ERP/?epc_erp_shell=1&area=banking", "/erp/cash-accounts-app")]
+    [InlineData("/ERP/?epc_erp_shell=1&area=finance", "/erp/gl-journals-app")]
+    public void AreaAndTabHubsMatchModuleNames(string php, string expected)
+    {
+        Assert.Equal(expected, PhpSurfaceLinkMap.AspNetPrimaryHref(php));
+    }
+
+    [Fact]
+    public void SuperBocErpLinksMatchMenuLabels()
+    {
+        var ap = Assert.Single(PhpSuperCpBocNav.Areas, x => x.Key == "erp_ap");
+        Assert.Equal("Accounts payable", ap.Label);
+        Assert.Equal("/erp/payables-app", ap.Href);
+
+        var ar = Assert.Single(PhpSuperCpBocNav.Areas, x => x.Key == "erp_ar");
+        Assert.Equal("Accounts receivable", ar.Label);
+        Assert.Equal("/erp/receivables-app", ar.Href);
+
+        var sales = Assert.Single(PhpSuperCpBocNav.Areas, x => x.Key == "erp_sales");
+        Assert.Equal("/erp/sales-orders-app", sales.Href);
+
+        var purchasing = Assert.Single(PhpSuperCpBocNav.Areas, x => x.Key == "erp_purchasing");
+        Assert.Equal("/erp/purchase-orders-app", purchasing.Href);
+    }
+
+    [Fact]
+    public void ErpTopnavCategoryLabelsPreferFullNames()
+    {
+        var groups = LegacyDesktopChromeCatalog.ErpTopnav();
+        var r2r = Assert.Single(groups, g => g.Id == "record_to_report");
+        Assert.Equal("Record to Report", r2r.Label);
+        Assert.Equal("R2R", r2r.ShortLabel);
+
+        var p2p = Assert.Single(groups, g => g.Id == "procure_to_pay");
+        Assert.Equal("Procure to Pay", p2p.Label);
+        Assert.Equal("P2P", p2p.ShortLabel);
+
+        // Payables / Receivables menu rows must not remap to Purchases / Invoices.
+        var payables = groups.SelectMany(g => g.Links)
+            .First(l => l.Href.Contains("tab=payables", StringComparison.OrdinalIgnoreCase));
+        Assert.Equal("/erp/payables-app", PhpSurfaceLinkMap.AspNetPrimaryHref(payables.Href));
+        Assert.Contains("Payables", payables.Label, StringComparison.OrdinalIgnoreCase);
+
+        var receivables = groups.SelectMany(g => g.Links)
+            .First(l => l.Href.Contains("tab=receivables", StringComparison.OrdinalIgnoreCase));
+        Assert.Equal("/erp/receivables-app", PhpSurfaceLinkMap.AspNetPrimaryHref(receivables.Href));
+        Assert.Contains("Receivables", receivables.Label, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]

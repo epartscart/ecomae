@@ -42,12 +42,12 @@
 </HeadContent>
 
 
-<PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Suppliers" BreadcrumbArea="Accounts Payable" BreadcrumbTab="Payables">
+<PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Suppliers" BreadcrumbArea="Procure to Pay" BreadcrumbTab="Suppliers">
 
     <section class="epc-sup-hero">
         <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="ECOM AE" style="height:28px;filter:brightness(1.1)" />
         <h1>Suppliers</h1>
-        <p>Operational finance, inventory, and approvals for this company.</p>
+        <p>Vendor master and supplier portal for this company workspace.</p>
         <div class="epc-sup-cta">
             <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
             <a class="ghost" href="/erp/purchase-orders-app">Purchase orders</a>
@@ -97,7 +97,7 @@
 </PhpErpDesktopChrome>
 
 @code {
-    private const string _phpTab = "/ERP/?epc_erp_shell=1&area=ap&tab=payables";
+    private const string _phpTab = "/ERP/?epc_erp_shell=1&area=purchasing&tab=supplier_portal";
     private bool _isAdmin;
     private IReadOnlyList<ErpSupplierDigest> _suppliers = [];
     private int _openBalance;
