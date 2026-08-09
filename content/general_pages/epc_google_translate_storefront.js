@@ -96,15 +96,23 @@
 	}
 
 	function epcApplyNativeTranslate(lang) {
+		lang = String(lang || "en").toLowerCase();
 		try {
-			localStorage.setItem(epcTranslateManualKey, lang || "en");
+			localStorage.setItem(epcTranslateManualKey, lang);
+			// Allow a later pick (or auto) after the user cancelled / chose English.
+			sessionStorage.removeItem(epcTranslateAutoAppliedKey);
 		} catch (e) {}
-		if (epcCmsLangNavigate(lang)) {
-			return;
-		}
+
+		// English must always clear googtrans first. CMS navigate used to return early
+		// and leave /en/<other> cookies stuck — then further picks looked "dead".
 		if (lang === "en") {
 			epcClearTranslateCookie();
+			epcCmsLangNavigate("en");
 			window.location.reload();
+			return;
+		}
+
+		if (epcCmsLangNavigate(lang)) {
 			return;
 		}
 		epcSetTranslateCookie(lang);
@@ -368,11 +376,14 @@ AE: 'ar', SA: 'ar', QA: 'ar', KW: 'ar', BH: 'ar', OM: 'ar', JO: 'ar', LB: 'ar', 
 			epcTranslateStatus("Language: " + select.value);
 		}
 		select.addEventListener("change", function () {
-			try {
-				localStorage.setItem(epcTranslateManualKey, this.value);
-			} catch (e) {}
 			epcApplyNativeTranslate(this.value);
 		});
+		// Empty "auto" sentinel: if manual was English-only cancel, still allow GT cookie restore.
+		var cookieLang = epcTranslateCookieLanguage();
+		if (cookieLang && cookieLang !== "en" && select.querySelector('option[value="' + cookieLang + '"]')) {
+			select.value = cookieLang;
+			epcTranslateStatus("Language: " + cookieLang);
+		}
 		var cmsLang = epcCmsCurrentLang();
 		var active = epcCmsActiveLangs();
 		if (cmsLang && cmsLang !== "en" && active.indexOf(cmsLang) !== -1) {

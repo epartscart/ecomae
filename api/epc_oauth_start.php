@@ -21,9 +21,11 @@ if (!epc_oauth_is_known_provider($provider)) {
 	exit;
 }
 if (!epc_oauth_is_configured($provider)) {
-	http_response_code(503);
+	// Use 422 (not 503): tenant nginx maps 502/503/504 → /epc-platform-splash.html
+	// ("Loading — Please wait"), which hid the real "not configured" error for Google.
+	http_response_code(422);
 	header('Content-Type: text/plain; charset=utf-8');
-	echo ucfirst($provider) . ' sign-in is not configured yet.';
+	echo ucfirst($provider) . ' sign-in is not configured yet. Super CP → Auth settings / epc_oauth_config, or config.epc-oauth.php. Callback URI must be https://www.ecomae.com/api/epc_oauth_callback.php';
 	exit;
 }
 
@@ -44,9 +46,9 @@ $ctx['terms_accepted'] = !empty($_GET['terms']);
 
 $url = epc_oauth_build_auth_url($provider, $ctx);
 if ($url === '') {
-	http_response_code(503);
+	http_response_code(422);
 	header('Content-Type: text/plain; charset=utf-8');
-	echo ucfirst($provider) . ' sign-in is not configured yet.';
+	echo ucfirst($provider) . ' sign-in is not configured yet. Super CP → Auth settings / epc_oauth_config, or config.epc-oauth.php. Callback URI must be https://www.ecomae.com/api/epc_oauth_callback.php';
 	exit;
 }
 
