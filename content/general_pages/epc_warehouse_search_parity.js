@@ -630,7 +630,8 @@
 		wireRowActions(document);
 		bindSearchRowPhotoLoaders(document);
 		var crossNav = document.getElementById("epc-cross-base");
-		if (crossNav) {
+		// Inline CHPU bootstrap already fetches /storefront/cross-search — do not double-hit DB.
+		if (crossNav && !window.__epcChpuCrossBootstrapped) {
 			loadAspNetCrossSearch(
 				crossNav.getAttribute("data-article") || "",
 				crossNav.getAttribute("data-brand") || ""

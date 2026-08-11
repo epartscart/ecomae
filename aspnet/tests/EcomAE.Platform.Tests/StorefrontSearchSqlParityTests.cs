@@ -55,9 +55,12 @@ public sealed class StorefrontSearchSqlParityTests
         Assert.Contains("{ARTICLE_MATCH}", LegacySurfaceDashboardSql.SelectStorefrontPartSearch, StringComparison.Ordinal);
         Assert.Contains("{ARTICLE_MATCH}", LegacySurfaceDashboardSql.SelectStorefrontArticleWarehouseBrands, StringComparison.Ordinal);
         Assert.Contains("{CROSS_MATCH}", LegacySurfaceDashboardSql.SelectStorefrontArticleCrossPairs, StringComparison.Ordinal);
-        // Brand discovery / offers must not require price > 0 (PHP CHPU / prices_enclosure do not).
-        Assert.DoesNotContain("price`, 0) > 0", LegacySurfaceDashboardSql.SelectStorefrontArticleWarehouseBrands, StringComparison.Ordinal);
-        Assert.DoesNotContain("price`, 0) > 0", LegacySurfaceDashboardSql.SelectStorefrontPartSearch, StringComparison.Ordinal);
+        // Brand discovery / offers must not WHERE-filter on price > 0 (PHP CHPU / prices_enclosure do not).
+        // min_price aggregate MAY use CASE WHEN price > 0 — that is not a row filter.
+        Assert.DoesNotContain("AND IFNULL(d.`price`, 0) > 0", LegacySurfaceDashboardSql.SelectStorefrontArticleWarehouseBrands, StringComparison.Ordinal);
+        Assert.DoesNotContain("AND IFNULL(d.`price`, 0) > 0", LegacySurfaceDashboardSql.SelectStorefrontPartSearch, StringComparison.Ordinal);
+        Assert.DoesNotContain("AND d.`price` > 0", LegacySurfaceDashboardSql.SelectStorefrontPartSearch, StringComparison.Ordinal);
+        Assert.Contains("ORDER BY (IFNULL(d.`exist`, 0) > 0) DESC", LegacySurfaceDashboardSql.SelectStorefrontPartSearch, StringComparison.Ordinal);
         Assert.DoesNotContain("storefront_temp_disabled", LegacySurfaceDashboardSql.SelectStorefrontArticleWarehouseBrands, StringComparison.Ordinal);
     }
 

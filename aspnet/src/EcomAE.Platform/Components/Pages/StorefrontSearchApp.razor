@@ -315,7 +315,8 @@
                 <div id="products_area" class="epc-part-search-results" role="region" aria-label="Part search results">
                     <table id="all_table_products" class="epc-ssr-warehouse-table"
                            data-prices-visible="@(_pricesVisible ? "1" : "0")"
-                           data-access-state="@_accessState">
+                           data-access-state="@_accessState"
+                           data-ssr-offers="@(_genuineRows.Count + _aftermarketRows.Count > 0 ? "1" : "0")">
                         <thead>
                             <tr>
                                 <th class="th_photo"></th>
@@ -662,6 +663,7 @@
   }
   function applyCrossSearchPayload(data) {
     if (!data || data.status === false) return false;
+    window.__epcChpuCrossBootstrapped = true;
     var refs = data.references || [];
     var stock = data.stock || [];
     var total = Number(data.unique_reference_count || data.reference_count || refs.length) || refs.length;
@@ -727,20 +729,26 @@
     return true;
   }
   function loadAspNetCrossSearch() {
-    // ASP.NET-only — no .php product URLs (PHP remains reference-only under /php-reference/*).
-    var fastUrl = '/storefront/cross-search?article=' + encodeURIComponent(article) +
-      '&brand=' + encodeURIComponent(brand) + '&limit=600';
-    var fastOpts = { credentials: 'same-origin' };
-    if (typeof AbortSignal !== 'undefined' && typeof AbortSignal.timeout === 'function') {
-      fastOpts.signal = AbortSignal.timeout(1500);
+    // ASP.NET-only — progressive: first 80 refs for instant cross nav, then full 600.
+    // No .php product URLs (PHP remains reference-only under /php-reference/*).
+    function fetchCross(limit, ms) {
+      var url = '/storefront/cross-search?article=' + encodeURIComponent(article) +
+        '&brand=' + encodeURIComponent(brand) + '&limit=' + limit;
+      var opts = { credentials: 'same-origin' };
+      if (typeof AbortSignal !== 'undefined' && typeof AbortSignal.timeout === 'function') {
+        opts.signal = AbortSignal.timeout(ms);
+      }
+      return fetch(url, opts).then(function (r) { return r.json(); });
     }
-    return fetch(fastUrl, fastOpts)
-      .then(function (r) { return r.json(); })
+    return fetchCross(80, 1200)
       .then(function (data) {
         if (!applyCrossSearchPayload(data)) {
           var loading = document.getElementById('epc-cross-loading');
           if (loading) loading.textContent = 'Cross search unavailable — showing local manufacturer aliases only.';
+          return;
         }
+        // Background expand to full local CP network (does not block first paint).
+        fetchCross(600, 2500).then(function (full) { applyCrossSearchPayload(full); }).catch(function () {});
       })
       .catch(function () {
         var loading = document.getElementById('epc-cross-loading');
@@ -750,13 +758,7 @@
   // Parity with PHP epcRunChpuPriceSearch model: ONE protocol-3 products-of-bunch + parallel cross,
   // but every live URL is ASP.NET (/storefront/*) — zero product .php links.
   // First warehouse paint must NOT wait on search-bunches (extra RTT) — fire protocol-3 immediately.
-  function pickProtocol3Bunch(bunches) {
-    for (var i = 0; i < bunches.length; i++) {
-      var b = bunches[i];
-      if (Number(b.protocolVersion || b.protocol_version || 0) === 3) return b;
-    }
-    return null;
-  }
+  // When SSR already seeded offers (data-ssr-offers=1), enrich quietly — rows are already visible.
   function loadGenuineBrandsBackground() {
     fetch('/storefront/genuine-brands', { credentials: 'same-origin' })
       .then(function (r) { return r.json(); })
@@ -766,31 +768,29 @@
       .catch(function () {});
   }
   function runChpuPriceSearch() {
-    if (progress) progress.hidden = false;
+    var ssrOffers = table && table.getAttribute('data-ssr-offers') === '1';
+    if (progress) {
+      progress.hidden = ssrOffers;
+      if (ssrOffers) {
+        progress.setAttribute('data-done', '1');
+      }
+    }
     if (totalEl) totalEl.textContent = '1';
-    if (countEl) countEl.textContent = '0';
+    if (countEl) countEl.textContent = ssrOffers ? '1' : '0';
     loadGenuineBrandsBackground();
     var crossPromise = loadAspNetCrossSearch();
-    // Immediate protocol-3 poll — target first warehouse rows in ~1s.
+    // Immediate protocol-3 poll — target first warehouse rows in ~1s (or enrich SSR seed).
     var pricePromise = pollOne({ officeId: 0, storageId: 0, protocolVersion: 3, nestedBunches: [] })
       .finally(function () {
         if (countEl) countEl.textContent = '1';
         finishPoll(1);
       });
-    // Background nested-bunch enrichment only (never blocks first paint).
+    // search-bunches is diagnostic/enrichment only — do NOT re-fire protocol-3 (duplicate RTT).
+    // Nested supplier bunches await native ASP.NET handlers; empty polls only slow the page.
     fetch(
       '/storefront/search-bunches?article=' + encodeURIComponent(article) + '&brand=' + encodeURIComponent(brand),
       { credentials: 'same-origin' }
-    )
-      .then(function (r) { return r.json(); })
-      .then(function (data) {
-        var p3 = pickProtocol3Bunch((data && data.bunches) || []);
-        var nested = p3 && (p3.nestedBunches || p3.nested_bunches || []);
-        if (nested && nested.length) {
-          return pollOne(p3);
-        }
-      })
-      .catch(function () {});
+    ).catch(function () {});
     return Promise.all([pricePromise, crossPromise]);
   }
   // Full page loads + Blazor enhanced nav both need a bootstrap (inline scripts may not re-run).
@@ -806,7 +806,7 @@
   }
 })();
             </script>
-            <script src="/platform-assets/epc_warehouse_search_parity.js?v=20260811-no-php" defer></script>
+            <script src="/platform-assets/epc_warehouse_search_parity.js?v=20260811-ssr-fast" defer></script>
         }
     }
 
@@ -1048,11 +1048,9 @@
             return;
         }
 
-        // PHP skip_ssr_use_ajax_fast_path (brand+article CHPU): do NOT await warehouse/cross/genuine SSR
-        // beyond a 250ms local CP seed (PHP epc_cross_fallback_rows). Full crossbase stays AJAX.
-        // Paint shell immediately; warehouse fills via immediate protocol-3 products-of-bunch +
-        // parallel /storefront/cross-search (see epcRunChpuPriceSearch / Promise.all below).
-        // Genuine-brand map loads in the browser (/storefront/genuine-brands) so TTFB stays sub-second.
+        // Beat PHP display speed: SSR-seed local warehouse rows (≤350ms) so HTML already has offers.
+        // Client still enriches via protocol-3 products-of-bunch + progressive /storefront/cross-search.
+        // Genuine-brand map loads in the browser (/storefront/genuine-brands).
         _normalized = EcomAE.Platform.Api.Catalog.PriceLookupRequest.NormalizeArticle(_articleInput);
         _rows = [];
         _genuineRows = [];
@@ -1061,26 +1059,48 @@
         _crossStockRefs = [];
         _relatedBrandCross = [];
         _showBrandPicker = false;
-        _source = "ajax-fast-path";
+        _source = "ssr-seed-fast-path";
         _message = string.Empty;
         _genuineKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-        // Optional micro stock probe + local CP cross seed (PHP epc_cross_fallback_rows) — hard-capped.
         try
         {
-            using var seoCts = new CancellationTokenSource(TimeSpan.FromMilliseconds(250));
-            var stockTask = Dashboards.ProbeStorefrontPartStockAsync(_articleInput, _brandInput, seoCts.Token);
-            var crossSeedTask = Dashboards.BuildStorefrontCrossSearchAsync(_articleInput, _brandInput, 40, seoCts.Token);
-            await Task.WhenAll(stockTask, crossSeedTask);
-            var stock = await stockTask;
-            if (!string.IsNullOrWhiteSpace(stock.Article))
+            using var seedCts = new CancellationTokenSource(TimeSpan.FromMilliseconds(350));
+            var offersTask = Dashboards.SearchStorefrontPartsAsync(_articleInput, _brandInput, 40, seedCts.Token);
+            var crossSeedTask = Dashboards.BuildStorefrontCrossSearchAsync(_articleInput, _brandInput, 40, seedCts.Token);
+            await Task.WhenAll(offersTask, crossSeedTask);
+
+            var offers = await offersTask;
+            if (!string.IsNullOrWhiteSpace(offers.Article))
             {
-                _normalized = stock.Article;
+                _normalized = offers.Article;
             }
 
-            _chpuSeoInStock = stock.InStock;
-            _chpuSeoProductName = stock.ProductName ?? string.Empty;
-            _chpuSeoMinPrice = stock.MinPrice;
+            if (offers.Rows.Count > 0)
+            {
+                var rows = _pricesVisible ? offers.Rows : PriceAccess.RedactOffers(offers.Rows);
+                _rows = rows;
+                SplitOfferRows(rows);
+                _source = "ssr-seed";
+                _chpuSeoInStock = rows.Any(static r => r.Exist > 0);
+                _chpuSeoProductName = rows.Select(static r => r.Name)
+                    .FirstOrDefault(static n => !string.IsNullOrWhiteSpace(n)) ?? string.Empty;
+                _chpuSeoMinPrice = rows.Where(static r => r.Price > 0m).Select(static r => r.Price).DefaultIfEmpty(0m).Min();
+            }
+            else
+            {
+                // Fallback micro stock probe for SEO when offer seed empty/timed out.
+                var stock = await Dashboards.ProbeStorefrontPartStockAsync(_articleInput, _brandInput, seedCts.Token);
+                if (!string.IsNullOrWhiteSpace(stock.Article))
+                {
+                    _normalized = stock.Article;
+                }
+
+                _chpuSeoInStock = stock.InStock;
+                _chpuSeoProductName = stock.ProductName ?? string.Empty;
+                _chpuSeoMinPrice = stock.MinPrice;
+            }
+
             var crossSeed = await crossSeedTask;
             if (crossSeed.References.Count > 0)
             {

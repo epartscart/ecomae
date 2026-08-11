@@ -1329,7 +1329,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                     : await CollectStorefrontArticleCandidatesAsync(connection, normalized, cancellationToken).ConfigureAwait(false);
 
                 // PHP CHPU: article-only warehouse SQL, then brand/synonym filter in UI.
-                // Keep branded SQL first for index friendliness; retry article-only when empty.
+                // Keep branded SQL first for index friendliness; resolve aliases before heavy miss path.
                 var rows = brandedFastPath
                     ? await QueryStorefrontPartOffersBrandedFastAsync(
                         connection,
@@ -1350,21 +1350,42 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
                 if (rows.Count == 0 && brandTrim.Length > 0)
                 {
-                    // Alias miss: still stay on primary article (no cross expansion) + skip REPLACE.
-                    var unfiltered = await QueryStorefrontPartOffersBrandedFastAsync(
-                        connection,
-                        candidates,
-                        brandUpper: string.Empty,
-                        brandCompact: string.Empty,
-                        Math.Min(safeLimit * 4, 500),
-                        hasSearchCol,
-                        cancellationToken).ConfigureAwait(false);
+                    // 1) Manufacturer synonym aliases (JA ASHIKA → JS ASAKASHI etc.) — ArticleSearch only.
                     var aliases = await LoadManufacturerBrandAliasesAsync(connection, brandTrim, cancellationToken)
                         .ConfigureAwait(false);
-                    rows = unfiltered
-                        .Where(r => ManufacturerMatchesBrand(r.Manufacturer, brandTrim, brandCompact, aliases))
-                        .Take(safeLimit)
-                        .ToList();
+                    rows = await QueryStorefrontPartOffersForBrandAliasesAsync(
+                        connection,
+                        candidates,
+                        brandTrim,
+                        brandCompact,
+                        aliases,
+                        safeLimit,
+                        hasSearchCol,
+                        cancellationToken).ConfigureAwait(false);
+
+                    // 2) Fuzzy pick from article warehouse brands (spoken "ja ashika" vs "JS ASAKASHI").
+                    if (rows.Count == 0)
+                    {
+                        var resolved = await ResolveWarehouseBrandForArticleAsync(
+                            connection,
+                            candidates,
+                            brandTrim,
+                            brandCompact,
+                            hasSearchCol,
+                            cancellationToken).ConfigureAwait(false);
+                        if (!string.IsNullOrWhiteSpace(resolved)
+                            && !string.Equals(resolved, brandUpper, StringComparison.OrdinalIgnoreCase))
+                        {
+                            rows = await QueryStorefrontPartOffersBrandedFastAsync(
+                                connection,
+                                candidates,
+                                resolved.ToUpperInvariant(),
+                                CompactStorefrontBrand(resolved),
+                                safeLimit,
+                                hasSearchCol,
+                                cancellationToken).ConfigureAwait(false);
+                        }
+                    }
                 }
 
                 if (rows.Count > 0)
@@ -2038,7 +2059,9 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
     }
 
     /// <summary>
-    /// Brand+article / protocol-3 AJAX path: indexed <c>article_search</c> first, then light exacts.
+    /// Brand+article / protocol-3 AJAX path: indexed <c>article_search</c> first.
+    /// When the search column exists, skip SimpleEquality/ExactTrim miss cascades (they burn 200–600ms
+    /// on wrong brands like JA ASHIKA). Fall back to light exacts only when article_search is absent.
     /// Never runs REPLACE()-normalize (PHP CHPU stock/prices path avoids that CPU spike).
     /// </summary>
     private async Task<List<StorefrontPartOfferDigest>> QueryStorefrontPartOffersBrandedFastAsync(
@@ -2050,12 +2073,15 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         bool hasSearchCol,
         CancellationToken cancellationToken)
     {
-        foreach (var mode in new[]
-                 {
-                     StorefrontArticleMatchMode.ArticleSearch,
-                     StorefrontArticleMatchMode.SimpleEquality,
-                     StorefrontArticleMatchMode.ExactTrim
-                 })
+        IEnumerable<StorefrontArticleMatchMode> modes = hasSearchCol
+            ? [StorefrontArticleMatchMode.ArticleSearch]
+            :
+            [
+                StorefrontArticleMatchMode.SimpleEquality,
+                StorefrontArticleMatchMode.ExactTrim
+            ];
+
+        foreach (var mode in modes)
         {
             var rows = await QueryStorefrontPartOffersAsync(
                 connection,
@@ -2073,6 +2099,157 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
 
         return [];
+    }
+
+    /// <summary>
+    /// Retry branded ArticleSearch for manufacturer synonym aliases (stops on first hit).
+    /// </summary>
+    private async Task<List<StorefrontPartOfferDigest>> QueryStorefrontPartOffersForBrandAliasesAsync(
+        DbConnection connection,
+        IReadOnlyList<string> candidates,
+        string brandTrim,
+        string brandCompact,
+        IReadOnlySet<string> aliases,
+        int safeLimit,
+        bool hasSearchCol,
+        CancellationToken cancellationToken)
+    {
+        var tried = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { brandTrim };
+        var attempts = 0;
+        foreach (var alias in aliases)
+        {
+            var a = (alias ?? string.Empty).Trim();
+            if (a.Length == 0 || !tried.Add(a))
+            {
+                continue;
+            }
+
+            attempts++;
+            if (attempts > 6)
+            {
+                break;
+            }
+
+            var rows = await QueryStorefrontPartOffersBrandedFastAsync(
+                connection,
+                candidates,
+                a.ToUpperInvariant(),
+                CompactStorefrontBrand(a),
+                safeLimit,
+                hasSearchCol,
+                cancellationToken).ConfigureAwait(false);
+            if (rows.Count > 0)
+            {
+                return rows;
+            }
+        }
+
+        return [];
+    }
+
+    /// <summary>
+    /// When the requested brand is a spoken/near miss (JA ASHIKA vs JS ASAKASHI), pick the best
+    /// warehouse manufacturer for this article via compact / substring score — one brand list query.
+    /// </summary>
+    private async Task<string?> ResolveWarehouseBrandForArticleAsync(
+        DbConnection connection,
+        IReadOnlyList<string> candidates,
+        string brandTrim,
+        string brandCompact,
+        bool hasSearchCol,
+        CancellationToken cancellationToken)
+    {
+        if (brandCompact.Length < 3)
+        {
+            return null;
+        }
+
+        var brands = await QueryStorefrontWarehouseBrandsAsync(
+            connection,
+            candidates,
+            40,
+            hasSearchCol ? StorefrontArticleMatchMode.ArticleSearch : StorefrontArticleMatchMode.SimpleEquality,
+            hasSearchCol,
+            cancellationToken).ConfigureAwait(false);
+        if (brands.Count == 0)
+        {
+            return null;
+        }
+
+        string? best = null;
+        var bestScore = 0;
+        foreach (var b in brands)
+        {
+            var name = (b.Brand ?? string.Empty).Trim();
+            if (name.Length == 0)
+            {
+                continue;
+            }
+
+            var compact = CompactStorefrontBrand(name);
+            var score = 0;
+            if (compact == brandCompact)
+            {
+                score = 1000 + b.Exist;
+            }
+            else if (compact.Contains(brandCompact, StringComparison.Ordinal)
+                     || brandCompact.Contains(compact, StringComparison.Ordinal))
+            {
+                score = 500 + Math.Min(compact.Length, brandCompact.Length) + Math.Min(b.Exist, 100);
+            }
+            else
+            {
+                // Shared significant suffix (ASHIKA / ASAKASHI) — prefer in-stock warehouse brands.
+                var shared = LongestCommonSubstringLength(compact, brandCompact);
+                if (shared >= 5)
+                {
+                    score = 200 + shared + Math.Min(b.Exist, 50);
+                }
+            }
+
+            if (score > bestScore)
+            {
+                bestScore = score;
+                best = name;
+            }
+        }
+
+        return bestScore >= 200 ? best : null;
+    }
+
+    private static int LongestCommonSubstringLength(string a, string b)
+    {
+        if (a.Length == 0 || b.Length == 0)
+        {
+            return 0;
+        }
+
+        var prev = new int[b.Length + 1];
+        var cur = new int[b.Length + 1];
+        var max = 0;
+        for (var i = 1; i <= a.Length; i++)
+        {
+            for (var j = 1; j <= b.Length; j++)
+            {
+                if (a[i - 1] == b[j - 1])
+                {
+                    cur[j] = prev[j - 1] + 1;
+                    if (cur[j] > max)
+                    {
+                        max = cur[j];
+                    }
+                }
+                else
+                {
+                    cur[j] = 0;
+                }
+            }
+
+            (prev, cur) = (cur, prev);
+            Array.Clear(cur);
+        }
+
+        return max;
     }
 
     private static bool ManufacturerMatchesBrand(
@@ -3053,7 +3230,8 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             using var budgetCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             budgetCts.CancelAfter(TimeSpan.FromMilliseconds(2500));
 
-            var searchTask = SearchStorefrontPartsAsync(article, brand, 200, budgetCts.Token);
+            // Cap at 80 for first paint — full 200-row ORDER BY is slower and not needed for CHPU shell.
+            var searchTask = SearchStorefrontPartsAsync(article, brand, 80, budgetCts.Token);
             Task<StorefrontProductsOfBunchResult>? phpTask =
                 AllowPhpWarehouseBridge && _phpWarehouseBridge is not null
                     ? _phpWarehouseBridge.TryLoadProductsOfBunchAsync(

@@ -13,12 +13,15 @@ public sealed class PartsChpuOffersLatencyTests
     {
         var text = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/StorefrontSearchApp.razor"));
         var immediate = text.IndexOf("Immediate protocol-3 poll", StringComparison.Ordinal);
-        var bunches = text.IndexOf("Background nested-bunch enrichment", StringComparison.Ordinal);
+        var bunches = text.IndexOf("search-bunches is diagnostic/enrichment only", StringComparison.Ordinal);
         Assert.True(immediate >= 0, "missing immediate protocol-3 poll marker");
         Assert.True(bunches > immediate, "search-bunches enrichment must come after immediate poll");
         Assert.Contains("AbortSignal.timeout(3000)", text, StringComparison.Ordinal);
         Assert.Contains("data-enhance-nav=\"false\"", text, StringComparison.Ordinal);
         Assert.Contains("epcRunChpuPriceSearchBootstrap", text, StringComparison.Ordinal);
+        Assert.Contains("data-ssr-offers", text, StringComparison.Ordinal);
+        Assert.Contains("fetchCross(80,", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("return pollOne(p3);", text, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -27,7 +30,7 @@ public sealed class PartsChpuOffersLatencyTests
         var text = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/StorefrontSearchApp.razor"));
         Assert.Contains("/storefront/cross-search?", text, StringComparison.Ordinal);
         Assert.Contains("loadAspNetCrossSearch", text, StringComparison.Ordinal);
-        Assert.Contains("AbortSignal.timeout(1500)", text, StringComparison.Ordinal);
+        Assert.Contains("AbortSignal.timeout(ms)", text, StringComparison.Ordinal);
         Assert.DoesNotContain("ajax_epc_cross_search.php", text, StringComparison.Ordinal);
         Assert.DoesNotContain("ajax_getProductsOfBunch.php", text, StringComparison.Ordinal);
         Assert.DoesNotContain("/content/shop/", text, StringComparison.Ordinal);
@@ -40,11 +43,23 @@ public sealed class PartsChpuOffersLatencyTests
         Assert.Contains("/storefront/cross-search?", text, StringComparison.Ordinal);
         Assert.Contains("/storefront/cart/add", text, StringComparison.Ordinal);
         Assert.Contains("/storefront/quotes/add-item", text, StringComparison.Ordinal);
+        Assert.Contains("__epcChpuCrossBootstrapped", text, StringComparison.Ordinal);
         Assert.DoesNotContain(".php?", text, StringComparison.Ordinal);
         Assert.DoesNotContain(".php\"", text, StringComparison.Ordinal);
         Assert.DoesNotContain(".php'", text, StringComparison.Ordinal);
         Assert.DoesNotContain("umapi_proxy", text, StringComparison.Ordinal);
         Assert.DoesNotContain("/content/shop/", text, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Reporter_BrandedFastPath_SkipsMissCascadeWhenArticleSearchExists()
+    {
+        var text = File.ReadAllText(FindRepoFile(
+            "aspnet/src/EcomAE.Platform/Migration/SurfaceDashboardSummaryReporter.cs"));
+        Assert.Contains("skip SimpleEquality/ExactTrim miss cascades", text, StringComparison.Ordinal);
+        Assert.Contains("ResolveWarehouseBrandForArticleAsync", text, StringComparison.Ordinal);
+        Assert.Contains("QueryStorefrontPartOffersForBrandAliasesAsync", text, StringComparison.Ordinal);
+        Assert.Contains("SearchStorefrontPartsAsync(article, brand, 80,", text, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -58,11 +73,12 @@ public sealed class PartsChpuOffersLatencyTests
     }
 
     [Fact]
-    public void ChpuSsr_DoesNotAwaitGenuineBrands()
+    public void ChpuSsr_SeedsOffersAndDoesNotAwaitGenuineBrands()
     {
         var text = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/StorefrontSearchApp.razor"));
-        Assert.Contains("do NOT await warehouse/cross/genuine SSR", text, StringComparison.Ordinal);
-        Assert.Contains("CancellationTokenSource(TimeSpan.FromMilliseconds(250))", text, StringComparison.Ordinal);
+        Assert.Contains("SSR-seed local warehouse rows", text, StringComparison.Ordinal);
+        Assert.Contains("CancellationTokenSource(TimeSpan.FromMilliseconds(350))", text, StringComparison.Ordinal);
+        Assert.Contains("SearchStorefrontPartsAsync(_articleInput, _brandInput, 40", text, StringComparison.Ordinal);
         Assert.Contains("BuildStorefrontCrossSearchAsync", text, StringComparison.Ordinal);
         Assert.DoesNotContain("ListStorefrontGenuineBrandsAsync()", text, StringComparison.Ordinal);
     }
