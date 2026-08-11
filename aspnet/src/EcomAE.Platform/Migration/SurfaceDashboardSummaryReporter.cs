@@ -1390,17 +1390,18 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
     private bool TryGetUnboundTenantShopMessage(out string message)
     {
         message = string.Empty;
+        // ePartsCart always recovers via shared Model C docpart (PHP portal parity) —
+        // never surface the unbound migration gate on www.epartscart.com search digests.
+        if (IsEpartsCartRequest())
+        {
+            return false;
+        }
+
         var tenant = _httpContextAccessor?.HttpContext?.Items[TenantResolutionMiddleware.HttpContextItemKey] as TenantContext;
         if (tenant is null
             || tenant.Surface != TenantSurface.Storefront
             || tenant.Mode is not (TenantMode.LiveTenant or TenantMode.ErpOnlyTenant)
             || tenant.HasTenantDatabase)
-        {
-            return false;
-        }
-
-        // Portal row missing db_name — still open shared docpart for ePartsCart (PHP parity).
-        if (RouteTenantResolver.IsEpartsCartHost(tenant.Host, tenant.SiteKey))
         {
             return false;
         }
@@ -1416,14 +1417,24 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
     private Task<DbConnection> OpenStorefrontShopAsync(CancellationToken cancellationToken)
     {
         var tenant = _httpContextAccessor?.HttpContext?.Items[TenantResolutionMiddleware.HttpContextItemKey] as TenantContext;
-        if (tenant is not null
-            && !tenant.HasTenantDatabase
-            && RouteTenantResolver.IsEpartsCartHost(tenant.Host, tenant.SiteKey))
+        if (IsEpartsCartRequest() && (tenant is null || !tenant.HasTenantDatabase))
         {
             return _connections.OpenAsync("docpart", cancellationToken);
         }
 
         return _connections.OpenAsync(null, cancellationToken);
+    }
+
+    private bool IsEpartsCartRequest()
+    {
+        var tenant = _httpContextAccessor?.HttpContext?.Items[TenantResolutionMiddleware.HttpContextItemKey] as TenantContext;
+        if (tenant is not null && RouteTenantResolver.IsEpartsCartHost(tenant.Host, tenant.SiteKey))
+        {
+            return true;
+        }
+
+        var host = _httpContextAccessor?.HttpContext?.Request.Host.Host ?? string.Empty;
+        return RouteTenantResolver.IsEpartsCartHost(host, siteKey: null);
     }
 
     private enum StorefrontArticleMatchMode

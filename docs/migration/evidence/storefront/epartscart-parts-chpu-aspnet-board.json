@@ -1,0 +1,53 @@
+{
+  "role": "epartscart-parts-chpu-aspnet",
+  "generatedAtUnix": 1786432800,
+  "ok": true,
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "phpAuthoritativeWrites": true,
+  "whyTwoUrlsDifferedLive": {
+    "chpu": "https://www.epartscart.com/en/parts/TOYOTA/1310154101 → full PHP nero with live ajax bunches",
+    "searchApp": "https://www.epartscart.com/storefront/search-app?article=1310154101&brand=TOYOTA → ASP.NET chrome but digests source=migration unbound shop DB (empty offers)",
+    "fix": "One ASP.NET product path: CHPU is canonical; search-app remaps into /en/parts/{BRAND}/{ARTICLE}; ePartsCart always opens docpart (never unbound gate)"
+  },
+  "probeUrl": "https://www.epartscart.com/en/parts/TOYOTA/1310154101",
+  "searchAppProbe": "https://www.epartscart.com/storefront/search-app?article=1310154101&brand=TOYOTA",
+  "liveBefore": {
+    "backend": "php-nero vs aspnet-unbound",
+    "xEcomaePlatform": null,
+    "markers": [
+      "base href=/templates/nero/",
+      "ajax_getProductsOfBunch.php",
+      "Tenant shop database is not bound"
+    ]
+  },
+  "aspNetOwnership": {
+    "canonicalResultUrl": "/en/parts/{BRAND}/{ARTICLE}",
+    "brandPickerUrl": "/en/parts/brands/{ARTICLE}",
+    "queryAlias": "/storefront/search-app?article=&brand= → NavigateTo CHPU (replace)",
+    "blazorRoutes": [
+      "/storefront/search-app",
+      "/en/shop/part_search",
+      "/en/shop/warehouse-search",
+      "/parts/{PathBrand}/{PathArticle}",
+      "/en/parts/{PathBrand}/{PathArticle}"
+    ],
+    "nginxClassicEntry": [
+      "location ^~ /en/parts/ → :5100",
+      "location ^~ /parts/ → :5100",
+      "location = /en/shop/part_search → :5100",
+      "location = /en/shop/warehouse-search → :5100"
+    ],
+    "pageTitleParity": "Pricing and availability for {BRAND} {ARTICLE} - eParts Cart (Autoparts)",
+    "docpartBind": "IsEpartsCartRequest → OpenStorefrontShopAsync(docpart); TryGetUnboundTenantShopMessage always false on ePartsCart"
+  },
+  "operator": {
+    "install": "scripts/cloudpanel_EPARTSCART_PARTS_CHPU_ASPNET_NOW.sh",
+    "prove": "scripts/cloudpanel_EPARTSCART_PARTS_CHPU_PROVE.sh",
+    "branch": "cursor/epartscart-parts-chpu-aspnet-7b3b",
+    "passLine": "RESULT=PASS PARTS_CHPU_ASPNET=YES SEARCH_APP_SAME=YES UNBOUND=NO",
+    "silentExternalActionWithoutPaste": "FAIL"
+  },
+  "phpReferenceKept": true,
+  "phpReferencePath": "/php-reference/*"
+}

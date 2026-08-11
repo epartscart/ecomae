@@ -13,7 +13,7 @@
 @inject IHttpContextAccessor Http
 @inject NavigationManager Navigation
 
-<PageTitle>@(_brandInput.Length == 0 ? "Part search" : $"{_brandInput} {_normalized}") · eParts Cart</PageTitle>
+<PageTitle>@PageTitleText</PageTitle>
 <PhpChromeStyles Surface="storefront" />
 <HeadContent>
 <style>
@@ -499,7 +499,27 @@
     /// <summary>PHP <c>$initial_position_search = 0</c> on CHPU brand/warehouse results — header search only.</summary>
     private bool _hideInPageSearch =>
         !string.IsNullOrWhiteSpace(_articleInput)
+        && !string.IsNullOrWhiteSpace(_brandInput)
         && _mode is not ("attr" or "vin" or "engine" or "car");
+
+    /// <summary>PHP nero title: <c>Pricing and availability for {BRAND} {ARTICLE} - eParts Cart</c>.</summary>
+    private string PageTitleText
+    {
+        get
+        {
+            if (!string.IsNullOrWhiteSpace(_brandInput) && !string.IsNullOrWhiteSpace(_normalized))
+            {
+                return $"Pricing and availability for {_brandInput.ToUpperInvariant()} {_normalized} - eParts Cart (Autoparts)";
+            }
+
+            if (!string.IsNullOrWhiteSpace(_normalized))
+            {
+                return $"Part search {_normalized} · eParts Cart";
+            }
+
+            return "Part search · eParts Cart";
+        }
+    }
 
     private string SearchFormAction => _mode switch
     {
@@ -632,10 +652,16 @@
             return;
         }
 
-        // Canonical query URL: /storefront/search-app?article=&brand=
-        if (!string.IsNullOrWhiteSpace(PathArticle)
+        // PHP canonical result URL is CHPU /en/parts/{BRAND}/{ARTICLE}.
+        // Keep that sticky: query-param search-app remaps into CHPU; CHPU loads digests in place
+        // (never bounce CHPU → search-app — that made two different live results).
+        var onChpuBrandArticle = !string.IsNullOrWhiteSpace(PathArticle)
             && !string.IsNullOrWhiteSpace(PathBrand)
-            && !string.Equals(PathBrand, "brands", StringComparison.OrdinalIgnoreCase))
+            && !string.Equals(PathBrand, "brands", StringComparison.OrdinalIgnoreCase);
+        if (!onChpuBrandArticle
+            && !string.IsNullOrWhiteSpace(_articleInput)
+            && !string.IsNullOrWhiteSpace(_brandInput)
+            && _mode is not ("attr" or "vin" or "engine" or "car"))
         {
             Navigation.NavigateTo(BrandArticleHref(_articleInput, _brandInput), replace: true);
             return;
@@ -747,19 +773,33 @@
         </tr>
     };
 
+    /// <summary>PHP CHPU <c>/en/parts/{BRAND}/{ARTICLE}</c> — ASP.NET owns the same URL.</summary>
     private static string BrandArticleHref(string article, string? brand)
     {
-        var href = "/storefront/search-app?article=" + Uri.EscapeDataString(article ?? string.Empty);
-        if (!string.IsNullOrWhiteSpace(brand))
+        var art = (article ?? string.Empty).Trim();
+        var br = (brand ?? string.Empty).Trim();
+        if (br.Length > 0 && art.Length > 0)
         {
-            href += "&brand=" + Uri.EscapeDataString(brand.Trim());
+            return "/en/parts/"
+                   + Uri.EscapeDataString(br.ToUpperInvariant())
+                   + "/"
+                   + Uri.EscapeDataString(art);
         }
 
-        return href;
+        return ArticleOnlyHref(art);
     }
 
+    /// <summary>PHP brand picker <c>/en/parts/brands/{ARTICLE}</c>.</summary>
     private static string ArticleOnlyHref(string article)
-        => "/storefront/search-app?article=" + Uri.EscapeDataString(article ?? string.Empty);
+    {
+        var art = (article ?? string.Empty).Trim();
+        if (art.Length == 0)
+        {
+            return "/storefront/search-app";
+        }
+
+        return "/en/parts/brands/" + Uri.EscapeDataString(art);
+    }
 
     private static string FirstNonEmpty(params string?[] values)
     {

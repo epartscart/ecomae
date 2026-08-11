@@ -634,7 +634,8 @@ public static class PhpSurfaceLinkMap
                 return false;
             }
 
-            href = StorefrontAspNetCanonical.PartSearch + "?article=" + Uri.EscapeDataString(articleOnly);
+            // Same-URL ASP.NET brand picker (PHP /en/parts/brands/{ARTICLE}).
+            href = "/en/parts/brands/" + Uri.EscapeDataString(articleOnly);
             return true;
         }
 
@@ -647,9 +648,11 @@ public static class PhpSurfaceLinkMap
                 return false;
             }
 
-            href = StorefrontAspNetCanonical.PartSearch
-                   + "?article=" + Uri.EscapeDataString(article)
-                   + "&brand=" + Uri.EscapeDataString(brand);
+            // Same-URL ASP.NET CHPU result (PHP /en/parts/{BRAND}/{ARTICLE}).
+            href = "/en/parts/"
+                   + Uri.EscapeDataString(brand.ToUpperInvariant())
+                   + "/"
+                   + Uri.EscapeDataString(article);
             return true;
         }
 
@@ -834,6 +837,13 @@ public static class PhpSurfaceLinkMap
 
         var value = pathAndQuery.Trim();
         var stripped = StripStorefrontLangPrefix(value);
+        // Blazor already owns same-URL CHPU / search aliases — leave the browser path alone
+        // (otherwise nginx→:5100 would 302 /en/parts/TOYOTA/… → /storefront/search-app).
+        if (IsBlazorOwnedStorefrontSameUrlPath(stripped))
+        {
+            return false;
+        }
+
         if (!(IsUpperPhpShell(value, "CP")
             || IsUpperPhpShell(value, "ERP")
             || IsUpperPhpShell(value, "BOS")
@@ -869,6 +879,36 @@ public static class PhpSurfaceLinkMap
 
         aspNetHref = AspNetPrimaryHref(value);
         return true;
+    }
+
+    /// <summary>
+    /// Paths that <c>StorefrontSearchApp</c> (and peers) already serve at the PHP-canonical URL.
+    /// Incoming remap must not 302 these away after classic-entry proxies them to Kestrel.
+    /// </summary>
+    private static bool IsBlazorOwnedStorefrontSameUrlPath(string strippedPathAndQuery)
+    {
+        var qIndex = strippedPathAndQuery.IndexOf('?', StringComparison.Ordinal);
+        var path = (qIndex < 0 ? strippedPathAndQuery : strippedPathAndQuery[..qIndex]).TrimEnd('/');
+        if (path.Equals("/shop/part_search", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/shop/warehouse-search", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/shop/orders", StringComparison.OrdinalIgnoreCase)
+            || path.StartsWith("/shop/orders/", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/shop/checkout", StringComparison.OrdinalIgnoreCase)
+            || path.StartsWith("/shop/checkout/", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/shop/checkout_confirm", StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        if (!path.StartsWith("/parts/", StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        var rest = path["/parts/".Length..];
+        var segments = rest.Split('/', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        // /parts/{brand}/{article} and /parts/brands/{article} — Blazor @page aliases.
+        return segments.Length >= 2;
     }
 
     private static bool IsUpperPhpShell(string value, string shell)
