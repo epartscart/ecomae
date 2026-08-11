@@ -294,6 +294,12 @@ public interface ISurfaceDashboardSummaryReporter
     /// <summary>Batch 4: read-only warehouse part search filtered by brand (query <c>brand</c> / PHP <c>brend</c>).</summary>
     Task<StorefrontPartSearchResult> SearchStorefrontPartsAsync(string article, string? brand, int limit, CancellationToken cancellationToken = default);
 
+    /// <summary>
+    /// PHP CHPU stock probe: <c>LIMIT 1</c> indexed <c>article_search</c> hit for robots/JSON-LD.
+    /// Must stay fast — brand+article pages skip blocking warehouse SSR and fill via AJAX.
+    /// </summary>
+    Task<StorefrontPartStockProbeResult> ProbeStorefrontPartStockAsync(string article, string? brand, CancellationToken cancellationToken = default);
+
     /// <summary>Article-only search: warehouse manufacturers for normalized article (PHP brand picker).</summary>
     Task<StorefrontArticleBrandsResult> ListStorefrontArticleBrandsAsync(string article, int limit, CancellationToken cancellationToken = default);
 

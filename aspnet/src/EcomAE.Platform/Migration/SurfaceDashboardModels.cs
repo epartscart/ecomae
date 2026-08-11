@@ -1450,6 +1450,18 @@ public sealed record StorefrontPartSearchResult(
     string Message);
 
 /// <summary>
+/// Lightweight CHPU SEO stock probe (PHP <c>$epc_chpu_anchor_has_stock</c> LIMIT 1).
+/// Does not load full warehouse offer rows — those arrive via protocol-3 AJAX.
+/// </summary>
+public sealed record StorefrontPartStockProbeResult(
+    string Article,
+    bool InStock,
+    string ProductName,
+    decimal MinPrice,
+    string Source,
+    string Message);
+
+/// <summary>
 /// PHP brand-picker row (Manufacturer / Article / Name / Availability / Term / Price).
 /// Cross-only brands may have empty stock fields until the warehouse CHPU is opened.
 /// </summary>

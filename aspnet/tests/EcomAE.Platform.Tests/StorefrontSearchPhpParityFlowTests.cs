@@ -25,8 +25,14 @@ public sealed class StorefrontSearchPhpParityFlowTests
         Assert.Contains("ListStorefrontArticleBrandsAsync", text, StringComparison.Ordinal);
         Assert.Contains("epc-brand-picker-table", text, StringComparison.Ordinal);
         Assert.Contains("epc-brand-picker-mode", text, StringComparison.Ordinal);
-        Assert.Contains("SearchStorefrontPartsAsync(_articleInput, _brandInput", text, StringComparison.Ordinal);
-        Assert.Contains("ListStorefrontCrossRefsAsync(_articleInput, _brandInput", text, StringComparison.Ordinal);
+        // PHP skip_ssr_use_ajax_fast_path: brand+article CHPU does not block on warehouse/cross SSR.
+        Assert.Contains("ProbeStorefrontPartStockAsync", text, StringComparison.Ordinal);
+        Assert.Contains("ajax-fast-path", text, StringComparison.Ordinal);
+        Assert.Contains("skip_ssr_use_ajax_fast_path", text, StringComparison.Ordinal);
+        Assert.Contains("runChpuPriceSearch", text, StringComparison.Ordinal);
+        Assert.Contains("Promise.all([pricePromise, crossPromise])", text, StringComparison.Ordinal);
+        Assert.Contains("pickProtocol3Bunch", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("chain = chain.then", text, StringComparison.Ordinal);
         Assert.Contains("epc-seo-cross-refs", text, StringComparison.Ordinal);
         Assert.Contains("all_table_products", text, StringComparison.Ordinal);
         Assert.Contains("Availability", text, StringComparison.Ordinal);
@@ -66,8 +72,9 @@ public sealed class StorefrontSearchPhpParityFlowTests
         Assert.Contains("{ARTICLE_MATCH}", LegacySurfaceDashboardSql.SelectStorefrontPartSearch, StringComparison.Ordinal);
         Assert.Contains("@brand", LegacySurfaceDashboardSql.SelectStorefrontPartSearch, StringComparison.Ordinal);
         Assert.Contains("time_to_exe", LegacySurfaceDashboardSql.SelectStorefrontPartSearch, StringComparison.Ordinal);
-        // PHP prices_enclosure / CHPU brand query do not require price>0 or storefront_temp_disabled.
-        Assert.DoesNotContain("price`, 0) > 0", LegacySurfaceDashboardSql.SelectStorefrontPartSearch, StringComparison.Ordinal);
+        // PHP prices_enclosure / CHPU brand query do not require price>0 or storefront_temp_disabled on WHERE.
+        Assert.DoesNotContain("AND IFNULL(d.`price`, 0) > 0", LegacySurfaceDashboardSql.SelectStorefrontPartSearch, StringComparison.Ordinal);
+        Assert.DoesNotContain("AND IFNULL(`price`, 0) > 0", LegacySurfaceDashboardSql.SelectStorefrontPartSearch, StringComparison.Ordinal);
         Assert.DoesNotContain("storefront_temp_disabled", LegacySurfaceDashboardSql.SelectStorefrontPartSearch, StringComparison.Ordinal);
         Assert.Contains("shop_docpart_prices_data", LegacySurfaceDashboardSql.SelectStorefrontArticleWarehouseBrands, StringComparison.Ordinal);
         Assert.Contains("{ARTICLE_MATCH}", LegacySurfaceDashboardSql.SelectStorefrontArticleWarehouseBrands, StringComparison.Ordinal);
@@ -79,7 +86,8 @@ public sealed class StorefrontSearchPhpParityFlowTests
         Assert.DoesNotContain("LEFT JOIN", LegacySurfaceDashboardSql.SelectStorefrontArticleWarehouseBrands, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("shop_docpart_articles_analogs_list", LegacySurfaceDashboardSql.SelectStorefrontArticleCrossPairs, StringComparison.Ordinal);
         Assert.Contains("{CROSS_MATCH}", LegacySurfaceDashboardSql.SelectStorefrontArticleCrossPairs, StringComparison.Ordinal);
-        Assert.DoesNotContain("price`, 0) > 0", LegacySurfaceDashboardSql.SelectStorefrontArticleWarehouseBrands, StringComparison.Ordinal);
+        // min_price may use CASE WHEN price>0; that is not a WHERE filter excluding free rows.
+        Assert.DoesNotContain("AND IFNULL(d.`price`, 0) > 0", LegacySurfaceDashboardSql.SelectStorefrontArticleWarehouseBrands, StringComparison.Ordinal);
         Assert.Contains("UPPER(TRIM(IFNULL(d.`article`", LegacySurfaceDashboardSql.StorefrontPriceArticleExactInSql(1), StringComparison.Ordinal);
     }
 
@@ -134,6 +142,7 @@ public sealed class StorefrontSearchPhpParityFlowTests
         Assert.Contains("ListStorefrontArticleBrandsAsync", text, StringComparison.Ordinal);
         Assert.Contains("ListStorefrontCrossRefsAsync", text, StringComparison.Ordinal);
         Assert.Contains("SearchStorefrontPartsAsync(string article, string? brand, int limit", text, StringComparison.Ordinal);
+        Assert.Contains("ProbeStorefrontPartStockAsync", text, StringComparison.Ordinal);
         Assert.Contains("ListStorefrontCrossRefsAsync(string article, string? brand, int limit", text, StringComparison.Ordinal);
     }
 
@@ -145,14 +154,35 @@ public sealed class StorefrontSearchPhpParityFlowTests
 
         Assert.Contains("ListStorefrontArticleBrandsAsync", text, StringComparison.Ordinal);
         Assert.Contains("ListStorefrontCrossRefsAsync", text, StringComparison.Ordinal);
+        Assert.Contains("ProbeStorefrontPartStockAsync", text, StringComparison.Ordinal);
         Assert.Contains("TryLoadCrossSearchAsync", text, StringComparison.Ordinal);
         Assert.Contains("ECOMAE_SSR_PHP_CROSS", text, StringComparison.Ordinal);
         Assert.Contains("SelectStorefrontArticleWarehouseBrands", text, StringComparison.Ordinal);
         Assert.Contains("SelectStorefrontArticleCrossPairs", text, StringComparison.Ordinal);
         Assert.Contains("StorefrontArticleMatchMode.ExactTrim", text, StringComparison.Ordinal);
         Assert.Contains("QueryStorefrontPartOffersCascadeAsync", text, StringComparison.Ordinal);
+        Assert.Contains("QueryStorefrontPartOffersBrandedFastAsync", text, StringComparison.Ordinal);
+        Assert.Contains("brandedFastPath", text, StringComparison.Ordinal);
         Assert.Contains("LoadManufacturerBrandAliasesAsync", text, StringComparison.Ordinal);
         Assert.Contains("ManufacturerMatchesBrand", text, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void SearchApp_BrandArticleChpuSkipsBlockingWarehouseSsr()
+    {
+        var text = File.ReadAllText(FindRepoFile(
+            "aspnet/src/EcomAE.Platform/Components/Pages/StorefrontSearchApp.razor"));
+
+        Assert.Contains("ProbeStorefrontPartStockAsync(_articleInput, _brandInput)", text, StringComparison.Ordinal);
+        Assert.DoesNotContain(
+            "SearchStorefrontPartsAsync(_articleInput, _brandInput, ssrOfferLimit)",
+            text,
+            StringComparison.Ordinal);
+        Assert.DoesNotContain(
+            "ListStorefrontCrossRefsAsync(_articleInput, _brandInput, ssrCrossLimit)",
+            text,
+            StringComparison.Ordinal);
+        Assert.Contains("ONE protocol-3", text, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]

@@ -731,37 +731,45 @@
         if (loading) loading.textContent = 'Cross search unavailable — showing local manufacturer aliases only.';
       });
   }
-  // PHP part_search: deep cross network loads beside warehouse polling (not brand-sibling aliases only).
-  loadPhpCrossSearch();
-  fetch('/storefront/search-bunches?article=' + encodeURIComponent(article) + '&brand=' + encodeURIComponent(brand), { credentials: 'same-origin' })
-    .then(function (r) { return r.json(); })
-    .then(function (data) {
-      var bunches = (data && data.bunches) || [];
-      if (!bunches.length) bunches = [{ officeId: 0, storageId: 0, protocolVersion: 3, nestedBunches: [] }];
-      if (progress) progress.hidden = false;
-      if (totalEl) totalEl.textContent = String(bunches.length);
-      var done = 0;
-      var chain = Promise.resolve();
-      bunches.forEach(function (bunch) {
-        chain = chain.then(function () {
-          return pollOne(bunch).finally(function () {
-            done += 1;
-            if (countEl) countEl.textContent = String(done);
-            if (done >= bunches.length) finishPoll(bunches.length);
-          });
-        });
-      });
-      return chain;
-    })
-    .catch(function () {
-      if (progress) progress.hidden = false;
-      if (totalEl) totalEl.textContent = '1';
-      return pollOne({ officeId: 0, storageId: 0, protocolVersion: 3, nestedBunches: [] })
-        .finally(function () {
+  // PHP epcRunChpuPriceSearch: ONE protocol-3 ajax_getProductsOfBunch + Promise.all with cross.
+  // Do not chain sequential bunches — that is the ASP.NET latency gap vs PHP warehouse paint.
+  function pickProtocol3Bunch(bunches) {
+    for (var i = 0; i < bunches.length; i++) {
+      var b = bunches[i];
+      if (Number(b.protocolVersion || b.protocol_version || 0) === 3) return b;
+    }
+    return null;
+  }
+  function runChpuPriceSearch() {
+    if (progress) progress.hidden = false;
+    var crossPromise = loadPhpCrossSearch();
+    var pricePromise = fetch(
+      '/storefront/search-bunches?article=' + encodeURIComponent(article) + '&brand=' + encodeURIComponent(brand),
+      { credentials: 'same-origin' }
+    )
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        var bunches = (data && data.bunches) || [];
+        var p3 = pickProtocol3Bunch(bunches);
+        var target = p3 || { officeId: 0, storageId: 0, protocolVersion: 3, nestedBunches: [] };
+        if (totalEl) totalEl.textContent = '1';
+        if (countEl) countEl.textContent = '0';
+        return pollOne(target).finally(function () {
           if (countEl) countEl.textContent = '1';
           finishPoll(1);
         });
-    });
+      })
+      .catch(function () {
+        if (totalEl) totalEl.textContent = '1';
+        return pollOne({ officeId: 0, storageId: 0, protocolVersion: 3, nestedBunches: [] })
+          .finally(function () {
+            if (countEl) countEl.textContent = '1';
+            finishPoll(1);
+          });
+      });
+    return Promise.all([pricePromise, crossPromise]);
+  }
+  runChpuPriceSearch();
 })();
             </script>
             <script src="/platform-assets/epc_warehouse_search_parity.js?v=20260811z" defer></script>
@@ -794,6 +802,9 @@
     private string _accessState = "ok";
     private string _loginCtaHtml = string.Empty;
     private bool _emitChpuSeo;
+    private bool _chpuSeoInStock;
+    private string _chpuSeoProductName = "";
+    private decimal _chpuSeoMinPrice;
     private string _chpuCanonical = "";
     private string _chpuDescription = "";
     private string _chpuRobots = "noindex,follow";
@@ -1003,44 +1014,36 @@
             return;
         }
 
-        // Fast first paint (~1s): parallel local digests only. Full OE cross network + extra
-        // supplier rows load client-side (ajax_epc_cross_search + products-of-bunch poll).
-        const int ssrOfferLimit = 48;
-        const int ssrCrossLimit = 40;
+        // PHP skip_ssr_use_ajax_fast_path (brand+article CHPU): do NOT await warehouse/cross SSR.
+        // Paint shell + SEO stock probe; warehouse fills via one protocol-3 products-of-bunch +
+        // parallel ajax_epc_cross_search (see epcRunChpuPriceSearch / Promise.all below).
+        _normalized = EcomAE.Platform.Api.Catalog.PriceLookupRequest.NormalizeArticle(_articleInput);
+        _rows = [];
+        _genuineRows = [];
+        _aftermarketRows = [];
+        _crossRefs = [];
+        _crossStockRefs = [];
+        _relatedBrandCross = [];
+        _showBrandPicker = false;
+        _source = "ajax-fast-path";
+        _message = string.Empty;
+
         var genuineTask = Dashboards.ListStorefrontGenuineBrandsAsync();
-        var searchTask = Dashboards.SearchStorefrontPartsAsync(_articleInput, _brandInput, ssrOfferLimit);
-        var crossTask = Dashboards.ListStorefrontCrossRefsAsync(_articleInput, _brandInput, ssrCrossLimit);
-        var brandsTask = Dashboards.ListStorefrontArticleBrandsAsync(_articleInput, 24);
-        await Task.WhenAll(genuineTask, searchTask, crossTask, brandsTask);
+        var stockTask = Dashboards.ProbeStorefrontPartStockAsync(_articleInput, _brandInput);
+        await Task.WhenAll(genuineTask, stockTask);
 
         var genuine = await genuineTask;
         _genuineKeys = new HashSet<string>(genuine.Brands, StringComparer.OrdinalIgnoreCase);
 
-        var result = await searchTask;
-        _normalized = result.Article;
-        _rows = _pricesVisible ? result.Rows : PriceAccess.RedactOffers(result.Rows);
-        _source = result.Source;
-        _message = result.Message;
-        _showBrandPicker = false;
-        SplitOfferRows(_rows);
-
-        var crossResult = await crossTask;
-        _crossRefs = crossResult.Rows;
-        _crossStockRefs = crossResult.Rows.Where(static r => r.InStock).ToList();
-        if (_crossRefs.Count == 0)
+        var stock = await stockTask;
+        if (!string.IsNullOrWhiteSpace(stock.Article))
         {
-            // Broader article-level crosses (local analogs only — no PHP crossbase on SSR).
-            var anyBrand = await Dashboards.ListStorefrontCrossRefsAsync(_articleInput, brand: null, ssrCrossLimit);
-            _crossRefs = anyBrand.Rows;
-            _crossStockRefs = anyBrand.Rows.Where(static r => r.InStock).ToList();
+            _normalized = stock.Article;
         }
 
-        var brandSiblings = await brandsTask;
-        _relatedBrandCross = brandSiblings.Brands
-            .Select(b => b.Brand)
-            .Where(b => !string.Equals(b, _brandInput, StringComparison.OrdinalIgnoreCase))
-            .Take(24)
-            .ToList();
+        _chpuSeoInStock = stock.InStock;
+        _chpuSeoProductName = stock.ProductName ?? string.Empty;
+        _chpuSeoMinPrice = stock.MinPrice;
 
         ApplyChpuSeo();
     }
@@ -1060,9 +1063,15 @@
             return;
         }
 
-        var inStock = _rows.Any(static r => r.Exist > 0);
-        var productName = _rows.Select(static r => r.Name).FirstOrDefault(static n => !string.IsNullOrWhiteSpace(n));
+        var inStock = _rows.Any(static r => r.Exist > 0) || _chpuSeoInStock;
+        var productName = _rows.Select(static r => r.Name).FirstOrDefault(static n => !string.IsNullOrWhiteSpace(n))
+            ?? (_chpuSeoProductName.Length > 0 ? _chpuSeoProductName : null);
         var minPrice = _rows.Where(static r => r.Price > 0m).Select(static r => r.Price).DefaultIfEmpty(0m).Min();
+        if (minPrice <= 0m && _chpuSeoMinPrice > 0m)
+        {
+            minPrice = _chpuSeoMinPrice;
+        }
+
         _chpuCanonical = StorefrontPublicSeo.CanonicalForPartsChpu(req, _brandInput, _normalized);
         _chpuDescription = StorefrontPublicSeo.PartsChpuDescription(_brandInput, _normalized, productName, inStock);
         _chpuRobots = StorefrontPublicSeo.PartsChpuRobots(inStock);
