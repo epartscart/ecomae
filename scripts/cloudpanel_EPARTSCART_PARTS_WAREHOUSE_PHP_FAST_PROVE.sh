@@ -51,6 +51,13 @@ rg -qi 'Immediate protocol-3 poll' /tmp/epc_wh_fast.html && ok "CHPU_IMMEDIATE_P
 rg -qi 'AbortSignal\.timeout\(3000\)' /tmp/epc_wh_fast.html && ok "CHPU_ABORT_3S=YES" || fail "CHPU_ABORT_3S=NO"
 rg -qi '/storefront/cross-search' /tmp/epc_wh_fast.html && ok "CHPU_ASPNET_CROSS=YES" || fail "CHPU_ASPNET_CROSS=NO"
 rg -qi 'data-enhance-nav="false"' /tmp/epc_wh_fast.html && ok "CHPU_FULL_NAV=YES" || fail "CHPU_FULL_NAV=NO"
+# Product CHPU HTML must not embed live .php product URLs (PHP deletion-ready).
+if rg -qi 'ajax_epc_cross_search\.php|ajax_getProductsOfBunch\.php|ajax_add_to_basket\.php|umapi_proxy\.php|/content/shop/.*\.php' /tmp/epc_wh_fast.html 2>/dev/null; then
+  fail "CHPU_NO_PRODUCT_PHP=NO (product .php URL still in HTML)"
+else
+  ok "CHPU_NO_PRODUCT_PHP=YES"
+fi
+rg -qi 'loadAspNetCrossSearch' /tmp/epc_wh_fast.html && ok "CHPU_ASPNET_CROSS_FN=YES" || fail "CHPU_ASPNET_CROSS_FN=NO"
 rg -qi 'pickProtocol3Bunch' /tmp/epc_wh_fast.html && ok "CHPU_PROTOCOL3_PICK=YES" || fail "CHPU_PROTOCOL3_PICK=NO"
 rg -qi 'Promise\.all' /tmp/epc_wh_fast.html && ok "CHPU_PROMISE_ALL=YES" || fail "CHPU_PROMISE_ALL=NO"
 rg -qi '/storefront/products-of-bunch' /tmp/epc_wh_fast.html && ok "CHPU_PRODUCTS_OF_BUNCH=YES" || fail "CHPU_PRODUCTS_OF_BUNCH=NO"

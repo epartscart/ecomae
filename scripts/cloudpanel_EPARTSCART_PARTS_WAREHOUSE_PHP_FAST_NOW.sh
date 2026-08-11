@@ -83,6 +83,14 @@ if ! grep -q '/storefront/cross-search' \
   aspnet/src/EcomAE.Platform/Components/Pages/StorefrontSearchApp.razor; then
   die "StorefrontSearchApp missing ASP.NET /storefront/cross-search fast path"
 fi
+if grep -qE 'ajax_epc_cross_search\.php|ajax_getProductsOfBunch\.php' \
+  aspnet/src/EcomAE.Platform/Components/Pages/StorefrontSearchApp.razor; then
+  die "StorefrontSearchApp still links product .php URLs"
+fi
+if grep -qE '\.php["'\''?]|/content/shop/|umapi_proxy\.php|ajax_.*\.php' \
+  content/general_pages/epc_warehouse_search_parity.js; then
+  die "epc_warehouse_search_parity.js still contains product .php URLs"
+fi
 if ! grep -q 'data-enhance-nav="false"' \
   aspnet/src/EcomAE.Platform/Components/Pages/StorefrontSearchApp.razor; then
   die "StorefrontSearchApp missing data-enhance-nav=false (click sleep fix)"

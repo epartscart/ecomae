@@ -29,6 +29,15 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         _phpWarehouseBridge = phpWarehouseBridge;
     }
 
+    /// <summary>
+    /// Product paths must not call PHP files (deletion-ready). Opt-in only for emergency parity probes.
+    /// </summary>
+    private static bool AllowPhpWarehouseBridge =>
+        string.Equals(
+            Environment.GetEnvironmentVariable("ECOMAE_ALLOW_PHP_WAREHOUSE_BRIDGE"),
+            "YES",
+            StringComparison.OrdinalIgnoreCase);
+
     public async Task<ControlPanelDashboardSummary> BuildControlPanelAsync(CancellationToken cancellationToken = default)
     {
         if (!_connections.IsConfigured)
@@ -1365,14 +1374,15 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             }
             catch (Exception ex)
             {
-                if (_phpWarehouseBridge is null)
+                if (_phpWarehouseBridge is null || !AllowPhpWarehouseBridge)
                 {
                     return new(normalized, [], 0, "database-error", ex.Message);
                 }
             }
         }
 
-        if (_phpWarehouseBridge is not null)
+        // Default: ASP.NET SQL only — no product .php HTTP twin (PHP deletion-ready).
+        if (AllowPhpWarehouseBridge && _phpWarehouseBridge is not null)
         {
             var phpRows = await _phpWarehouseBridge
                 .TryLoadOffersAsync(normalized, brandTrim, safeLimit, cancellationToken)
@@ -1584,14 +1594,14 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             }
             catch (Exception ex)
             {
-                if (_phpWarehouseBridge is null)
+                if (_phpWarehouseBridge is null || !AllowPhpWarehouseBridge)
                 {
                     return new(normalized, [], 0, "database-error", ex.Message);
                 }
             }
         }
 
-        if (_phpWarehouseBridge is not null)
+        if (AllowPhpWarehouseBridge && _phpWarehouseBridge is not null)
         {
             var phpBrands = await _phpWarehouseBridge
                 .TryLoadBrandsAsync(normalized, safeLimit, cancellationToken)
@@ -1690,10 +1700,10 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
             await EnrichStorefrontCrossStockAsync(connection, rows, cancellationToken).ConfigureAwait(false);
 
-            // Do NOT block CHPU SSR on PHP ajax_epc_cross_search (often 3s+).
-            // StorefrontSearchApp loads the full crossbase network client-side after first paint.
-            // Opt-in only for digests/tools that set ECOMAE_SSR_PHP_CROSS=YES.
+            // Product path is ASP.NET-only. PHP ajax_epc_cross_search is never called unless both
+            // ECOMAE_ALLOW_PHP_WAREHOUSE_BRIDGE=YES and ECOMAE_SSR_PHP_CROSS=YES (emergency probe).
             if (rows.Count < 8
+                && AllowPhpWarehouseBridge
                 && _phpWarehouseBridge is not null
                 && string.Equals(
                     Environment.GetEnvironmentVariable("ECOMAE_SSR_PHP_CROSS"),
@@ -2951,11 +2961,11 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             }
             catch
             {
-                // Fall through to PHP bunches twin.
+                // ASP.NET-only: do not fall through to PHP bunches twin.
             }
         }
 
-        if (_phpWarehouseBridge is not null)
+        if (AllowPhpWarehouseBridge && _phpWarehouseBridge is not null)
         {
             var phpBunches = await _phpWarehouseBridge
                 .TryLoadBunchesAsync(normalized, brandTrim, cancellationToken)
@@ -3036,18 +3046,19 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         int geoId = 0,
         CancellationToken cancellationToken = default)
     {
-        // Protocol-3 price aggregate (office_id=0, storage_id=0): race ASP.NET SQL vs PHP
-        // ajax_getProductsOfBunch under a hard 2.5s budget so CHPU first paint stays 1–3s.
+        // Protocol-3 price aggregate (office_id=0, storage_id=0): ASP.NET SQL under a hard 2.5s budget.
+        // No product .php twin by default (PHP deletion-ready).
         if (officeId == 0 && storageId == 0)
         {
             using var budgetCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             budgetCts.CancelAfter(TimeSpan.FromMilliseconds(2500));
 
             var searchTask = SearchStorefrontPartsAsync(article, brand, 200, budgetCts.Token);
-            Task<StorefrontProductsOfBunchResult>? phpTask = _phpWarehouseBridge is null
-                ? null
-                : _phpWarehouseBridge.TryLoadProductsOfBunchAsync(
-                    article, brand, officeId, storageId, queryJson, geoId, budgetCts.Token, timeoutSeconds: 2);
+            Task<StorefrontProductsOfBunchResult>? phpTask =
+                AllowPhpWarehouseBridge && _phpWarehouseBridge is not null
+                    ? _phpWarehouseBridge.TryLoadProductsOfBunchAsync(
+                        article, brand, officeId, storageId, queryJson, geoId, budgetCts.Token, timeoutSeconds: 2)
+                    : null;
 
             StorefrontPartSearchResult? search = null;
             try
@@ -3056,7 +3067,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             }
             catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
             {
-                // budget elapsed — fall through to PHP / empty
+                // budget elapsed
             }
 
             if (search is not null
@@ -3068,7 +3079,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                 var source = string.Equals(search.Source, "database", StringComparison.Ordinal)
                     ? "aspnet-warehouse"
                     : "php-chpu";
-                // PricesVisible left true here; StorefrontModule applies PHP guest/wholesale gate.
+                // PricesVisible left true here; StorefrontModule applies guest/wholesale gate.
                 return new(1, 0, 0, search.Rows, true, source, string.Empty);
             }
 
@@ -3096,13 +3107,17 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                     : search.Source;
                 return new(1, 0, 0, search.Rows, true, source, string.Empty);
             }
+
+            return new(0, 0, 0, [], false, "aspnet-warehouse-empty",
+                "No ASP.NET warehouse offers for this brand/article yet.");
         }
 
-        // Remaining API-supplier bunches + empty protocol-3: PHP handlers until native ports land.
-        if (_phpWarehouseBridge is null)
+        // Nested API-supplier bunches: ASP.NET has no native handlers yet — return empty unless
+        // emergency PHP bridge is explicitly re-enabled.
+        if (!AllowPhpWarehouseBridge || _phpWarehouseBridge is null)
         {
-            return new(0, officeId, storageId, [], false, "migration",
-                "ASP.NET warehouse empty and PHP bunch bridge is not registered.");
+            return new(0, officeId, storageId, [], false, "aspnet-only",
+                "Nested supplier bunches await native ASP.NET handlers (PHP product URLs disabled).");
         }
 
         return await _phpWarehouseBridge

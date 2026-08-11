@@ -22,15 +22,39 @@ public sealed class PartsChpuOffersLatencyTests
     }
 
     [Fact]
-    public void ChpuClient_UsesAspNetCrossSearchBeforePhpCrossbase()
+    public void ChpuClient_UsesAspNetCrossSearchOnly_NoProductPhpUrls()
     {
         var text = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/StorefrontSearchApp.razor"));
-        var asp = text.IndexOf("/storefront/cross-search?", StringComparison.Ordinal);
-        var php = text.IndexOf("ajax_epc_cross_search.php", StringComparison.Ordinal);
-        Assert.True(asp >= 0, "missing ASP.NET /storefront/cross-search fast path");
-        Assert.True(php > asp, "PHP crossbase enrich must come after ASP.NET local crosses");
+        Assert.Contains("/storefront/cross-search?", text, StringComparison.Ordinal);
+        Assert.Contains("loadAspNetCrossSearch", text, StringComparison.Ordinal);
         Assert.Contains("AbortSignal.timeout(1500)", text, StringComparison.Ordinal);
-        Assert.Contains("Local crosses ready — expanding crossbase network", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("ajax_epc_cross_search.php", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("ajax_getProductsOfBunch.php", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("/content/shop/", text, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void WarehouseParityJs_HasNoProductPhpUrls()
+    {
+        var text = File.ReadAllText(FindRepoFile("content/general_pages/epc_warehouse_search_parity.js"));
+        Assert.Contains("/storefront/cross-search?", text, StringComparison.Ordinal);
+        Assert.Contains("/storefront/cart/add", text, StringComparison.Ordinal);
+        Assert.Contains("/storefront/quotes/add-item", text, StringComparison.Ordinal);
+        Assert.DoesNotContain(".php?", text, StringComparison.Ordinal);
+        Assert.DoesNotContain(".php\"", text, StringComparison.Ordinal);
+        Assert.DoesNotContain(".php'", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("umapi_proxy", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("/content/shop/", text, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Reporter_DefaultsToAspNetOnly_NoPhpBridgeUnlessOptIn()
+    {
+        var text = File.ReadAllText(FindRepoFile(
+            "aspnet/src/EcomAE.Platform/Migration/SurfaceDashboardSummaryReporter.cs"));
+        Assert.Contains("ECOMAE_ALLOW_PHP_WAREHOUSE_BRIDGE", text, StringComparison.Ordinal);
+        Assert.Contains("AllowPhpWarehouseBridge", text, StringComparison.Ordinal);
+        Assert.Contains("aspnet-warehouse-empty", text, StringComparison.Ordinal);
     }
 
     [Fact]

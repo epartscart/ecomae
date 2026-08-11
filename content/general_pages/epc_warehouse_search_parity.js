@@ -138,16 +138,31 @@
 	}
 
 	function umapi(action, params) {
-		var query = Object.keys(params || {}).map(function (key) {
-			return encodeURIComponent(key) + "=" + encodeURIComponent(params[key]);
-		}).join("&");
-		var url = "/api/umapi_proxy.php?action=" + encodeURIComponent(action) + (query ? "&" + query : "") + "&language=en&vehicle_type=PC";
-		return fetch(url, { cache: "no-store", credentials: "same-origin" }).then(function (r) {
-			return r.json().catch(function () { return {}; }).then(function (data) {
-				if (r.ok || (data && (data.data || data.PC || data.CV || data.Motorcycle))) return data;
-				return Promise.reject(new Error((data && data.message) || ("HTTP " + r.status)));
+		// ASP.NET-only fitment/catalog — no product .php proxies (PHP deletion-ready).
+		var art = (params && (params.article || params.Article)) || "";
+		if (String(action || "") === "brands") {
+			return fetch("/storefront/search-brands?article=" + encodeURIComponent(art) + "&limit=100", {
+				cache: "no-store",
+				credentials: "same-origin"
+			}).then(function (r) {
+				return r.json().catch(function () { return {}; }).then(function (data) {
+					if (!r.ok) {
+						return Promise.reject(new Error((data && data.message) || ("HTTP " + r.status)));
+					}
+					var brands = (data && data.brands) || [];
+					var rows = brands.map(function (b) {
+						return {
+							brand: b.brand || b.Brand || "",
+							manufacturer: b.brand || b.Brand || "",
+							article: art,
+							name: b.name || b.Name || ""
+						};
+					});
+					return { data: rows };
+				});
 			});
-		});
+		}
+		return Promise.reject(new Error("Fitment action requires ASP.NET catalog route (product PHP proxies disabled)."));
 	}
 
 	function openFitment(article, brand) {
@@ -293,11 +308,15 @@
 		};
 	}
 
-	function postForm(url, fields) {
-		var fd = new FormData();
-		Object.keys(fields).forEach(function (k) { fd.append(k, fields[k]); });
-		return fetch(url, { method: "POST", body: fd, credentials: "same-origin" })
-			.then(function (r) { return r.json().catch(function () { return { status: false, message: "Bad response" }; }); });
+	function postJson(url, body) {
+		return fetch(url, {
+			method: "POST",
+			credentials: "same-origin",
+			headers: { "Content-Type": "application/json", "Accept": "application/json" },
+			body: JSON.stringify(body || {})
+		}).then(function (r) {
+			return r.json().catch(function () { return { ok: false, status: false, message: "Bad response" }; });
+		});
 	}
 
 	function addToCartFromRow(tr) {
@@ -306,20 +325,26 @@
 			return;
 		}
 		var p = productFromRow(tr);
-		if (!p.check_hash) {
-			alert("This offer is still loading supplier checksum. Wait for polling to finish, or use Add to Quote.");
-			return;
-		}
 		var aid = tr.getAttribute("data-aid") || "0";
-		postForm("/content/shop/order_process/ajax_add_to_basket.php", {
-			product_type: String(p.product_type || 2),
-			product: JSON.stringify(Object.assign({}, p, { count_need: qtyValue(aid) }))
+		postJson("/storefront/cart/add", {
+			productType: Number(p.product_type || 2),
+			manufacturer: p.manufacturer || "",
+			article: p.article_show || p.article || "",
+			countNeed: qtyValue(aid),
+			price: Number(p.price || 0),
+			minOrder: Number(p.min_order || 1),
+			exist: Number(tr.getAttribute("data-exist") || "0"),
+			confirmWrites: true
 		}).then(function (data) {
-			if (data && (data.status === true || data.result === 1 || data.ok === true)) {
+			if (data && data.ok === true && (data.writesBlocked === false || data.status === "written" || data.would_write === true)) {
+				if (data.writesBlocked) {
+					alert((data && (data.detail || data.message)) || "Cart write is ASP.NET dry-run only for this session.");
+					return;
+				}
 				window.location.href = "/storefront/cart-app";
 				return;
 			}
-			alert((data && (data.message || data.error)) || "Could not add to cart. Please log in and try again.");
+			alert((data && (data.detail || data.message || data.error)) || "Could not add to cart. Please log in and try again.");
 		}).catch(function () { alert("Could not add to cart."); });
 	}
 
@@ -329,29 +354,20 @@
 			return;
 		}
 		var p = productFromRow(tr);
-		if (p.check_hash) {
-			postForm("/content/shop/order_process/ajax_add_to_quote.php", {
-				product_type: String(p.product_type || 2),
-				product: JSON.stringify(p)
-			}).then(function (data) {
-				if (data && (data.status === true || data.result === 1 || data.ok === true)) {
-					window.location.href = "/storefront/quotes-app";
-					return;
-				}
-				alert((data && (data.message || data.error)) || "Could not add to quote.");
-			}).catch(function () { alert("Could not add to quote."); });
-			return;
-		}
-		postForm("/content/shop/order_process/ajax_add_to_quote_manual.php", {
-			brand: p.manufacturer,
-			article: p.article_show || p.article,
-			name: p.name || ""
-		}).then(function (data) {
-			if (data && (data.status === true || data.result === 1 || data.ok === true)) {
+		var body = {
+			productType: Number(p.product_type || 2),
+			manufacturer: p.manufacturer || "",
+			article: p.article_show || p.article || "",
+			countNeed: 1,
+			confirmWrites: true
+		};
+		var url = p.check_hash ? "/storefront/quotes/add-item" : "/storefront/quotes/add-manual";
+		postJson(url, body).then(function (data) {
+			if (data && data.ok === true && !data.writesBlocked) {
 				window.location.href = "/storefront/quotes-app";
 				return;
 			}
-			alert((data && (data.message || data.error)) || "Could not add to quote. Please log in.");
+			alert((data && (data.detail || data.message || data.error)) || "Could not add to quote. Please log in.");
 		}).catch(function () { alert("Could not add to quote."); });
 	}
 
@@ -463,9 +479,10 @@
 	}
 
 	/**
-	 * PHP ajax_epc_cross_search — fill SEO cross nav + count (not brand-sibling aliases only).
+	 * ASP.NET /storefront/cross-search — fill SEO cross nav + count (local CP analogs).
+	 * No product .php URLs (PHP remains reference-only under /php-reference/*).
 	 */
-	function loadPhpCrossSearch(article, brand) {
+	function loadAspNetCrossSearch(article, brand) {
 		var art = String(article || "").trim();
 		var br = String(brand || "").trim();
 		if (!art) return Promise.resolve();
@@ -474,7 +491,7 @@
 			art = nav.getAttribute("data-article") || art;
 			br = nav.getAttribute("data-brand") || br;
 		}
-		var url = "/content/shop/docpart/ajax_epc_cross_search.php?article=" + encodeURIComponent(art);
+		var url = "/storefront/cross-search?article=" + encodeURIComponent(art) + "&limit=600";
 		if (br) url += "&brand=" + encodeURIComponent(br);
 		return fetch(url, { credentials: "same-origin" })
 			.then(function (r) { return r.json(); })
@@ -555,7 +572,7 @@
 			});
 	}
 
-	window.epcLoadPhpCrossSearch = loadPhpCrossSearch;
+	window.epcLoadAspNetCrossSearch = loadAspNetCrossSearch;
 
 	window.epcWarehouseParity = {
 		rebuildFilterOptions: rebuildFilterOptions,
@@ -563,7 +580,7 @@
 		wireRowActions: wireRowActions,
 		openFitment: openFitment,
 		bindSearchRowPhotoLoaders: bindSearchRowPhotoLoaders,
-		loadPhpCrossSearch: loadPhpCrossSearch
+		loadAspNetCrossSearch: loadAspNetCrossSearch
 	};
 
 	function boot() {
@@ -602,7 +619,7 @@
 			crossBtn.addEventListener("click", function () {
 				focusCross();
 				var nav = document.getElementById("epc-cross-base");
-				loadPhpCrossSearch(
+				loadAspNetCrossSearch(
 					(nav && nav.getAttribute("data-article")) || "",
 					(nav && nav.getAttribute("data-brand")) || ""
 				);
@@ -614,7 +631,7 @@
 		bindSearchRowPhotoLoaders(document);
 		var crossNav = document.getElementById("epc-cross-base");
 		if (crossNav) {
-			loadPhpCrossSearch(
+			loadAspNetCrossSearch(
 				crossNav.getAttribute("data-article") || "",
 				crossNav.getAttribute("data-brand") || ""
 			);

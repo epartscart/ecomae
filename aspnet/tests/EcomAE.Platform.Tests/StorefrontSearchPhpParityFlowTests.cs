@@ -55,8 +55,9 @@ public sealed class StorefrontSearchPhpParityFlowTests
         Assert.Contains("bread_crumbs_a", text, StringComparison.Ordinal);
         Assert.Contains("epc-ssr-warehouse-banner", text, StringComparison.Ordinal);
         Assert.Contains("data-epc-base-price", text, StringComparison.Ordinal);
-        Assert.Contains("ajax_epc_cross_search.php", text, StringComparison.Ordinal);
-        Assert.Contains("loadPhpCrossSearch", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("ajax_epc_cross_search.php", text, StringComparison.Ordinal);
+        Assert.Contains("loadAspNetCrossSearch", text, StringComparison.Ordinal);
+        Assert.Contains("/storefront/cross-search?", text, StringComparison.Ordinal);
         Assert.Contains("epc-cross-ref-list", text, StringComparison.Ordinal);
         Assert.Contains("/en/parts/", text, StringComparison.Ordinal);
         Assert.Contains("/en/parts/brands/", text, StringComparison.Ordinal);

@@ -723,25 +723,13 @@
         }
       }
     }
-    if (loading) {
-      if (String(data.source || '').indexOf('crossbase') >= 0 || Number(data.crossbase_count || 0) > 0) {
-        loading.style.display = 'none';
-      } else {
-        loading.textContent = 'Local crosses ready — expanding crossbase network…';
-        loading.style.display = '';
-      }
-    }
+    if (loading) loading.style.display = 'none';
     return true;
   }
-  function loadPhpCrossSearch() {
-    if (typeof window.epcLoadPhpCrossSearch === 'function') {
-      return window.epcLoadPhpCrossSearch(article, brand);
-    }
-    // Fast ASP.NET CP analogs first (~1s). PHP crossbase enrich is background-only (often 5s+).
+  function loadAspNetCrossSearch() {
+    // ASP.NET-only — no .php product URLs (PHP remains reference-only under /php-reference/*).
     var fastUrl = '/storefront/cross-search?article=' + encodeURIComponent(article) +
       '&brand=' + encodeURIComponent(brand) + '&limit=600';
-    var phpUrl = '/content/shop/docpart/ajax_epc_cross_search.php?article=' + encodeURIComponent(article) +
-      '&brand=' + encodeURIComponent(brand);
     var fastOpts = { credentials: 'same-origin' };
     if (typeof AbortSignal !== 'undefined' && typeof AbortSignal.timeout === 'function') {
       fastOpts.signal = AbortSignal.timeout(1500);
@@ -749,42 +737,18 @@
     return fetch(fastUrl, fastOpts)
       .then(function (r) { return r.json(); })
       .then(function (data) {
-        applyCrossSearchPayload(data);
-        // Background crossbase enrich — never blocks warehouse paint.
-        var phpOpts = { credentials: 'same-origin' };
-        if (typeof AbortSignal !== 'undefined' && typeof AbortSignal.timeout === 'function') {
-          phpOpts.signal = AbortSignal.timeout(8000);
+        if (!applyCrossSearchPayload(data)) {
+          var loading = document.getElementById('epc-cross-loading');
+          if (loading) loading.textContent = 'Cross search unavailable — showing local manufacturer aliases only.';
         }
-        return fetch(phpUrl, phpOpts)
-          .then(function (r) { return r.json(); })
-          .then(function (phpData) {
-            if (phpData && phpData.status !== false) {
-              applyCrossSearchPayload(phpData);
-              var loading = document.getElementById('epc-cross-loading');
-              if (loading) loading.style.display = 'none';
-            }
-          })
-          .catch(function () {
-            var loading = document.getElementById('epc-cross-loading');
-            if (loading) loading.style.display = 'none';
-          });
       })
       .catch(function () {
-        // Fallback to PHP if ASP.NET fast path failed.
-        return fetch(phpUrl, { credentials: 'same-origin' })
-          .then(function (r) { return r.json(); })
-          .then(function (data) {
-            applyCrossSearchPayload(data);
-            var loading = document.getElementById('epc-cross-loading');
-            if (loading) loading.style.display = 'none';
-          })
-          .catch(function () {
-            var loading = document.getElementById('epc-cross-loading');
-            if (loading) loading.textContent = 'Cross search unavailable — showing local manufacturer aliases only.';
-          });
+        var loading = document.getElementById('epc-cross-loading');
+        if (loading) loading.textContent = 'Cross search unavailable — showing local manufacturer aliases only.';
       });
   }
-  // PHP epcRunChpuPriceSearch: ONE protocol-3 ajax_getProductsOfBunch + Promise.all with cross.
+  // Parity with PHP epcRunChpuPriceSearch model: ONE protocol-3 products-of-bunch + parallel cross,
+  // but every live URL is ASP.NET (/storefront/*) — zero product .php links.
   // First warehouse paint must NOT wait on search-bunches (extra RTT) — fire protocol-3 immediately.
   function pickProtocol3Bunch(bunches) {
     for (var i = 0; i < bunches.length; i++) {
@@ -806,7 +770,7 @@
     if (totalEl) totalEl.textContent = '1';
     if (countEl) countEl.textContent = '0';
     loadGenuineBrandsBackground();
-    var crossPromise = loadPhpCrossSearch();
+    var crossPromise = loadAspNetCrossSearch();
     // Immediate protocol-3 poll — target first warehouse rows in ~1s.
     var pricePromise = pollOne({ officeId: 0, storageId: 0, protocolVersion: 3, nestedBunches: [] })
       .finally(function () {
@@ -842,7 +806,7 @@
   }
 })();
             </script>
-            <script src="/platform-assets/epc_warehouse_search_parity.js?v=20260811z" defer></script>
+            <script src="/platform-assets/epc_warehouse_search_parity.js?v=20260811-no-php" defer></script>
         }
     }
 
