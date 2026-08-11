@@ -112,12 +112,18 @@ do
 done
 
 printf '\n---- CP login diagnose (taxofin2025@gmail.com @ www.epartscart.com) ----\n'
-set +e
-ECOMAE_DIAG_EMAIL="${ECOMAE_DIAG_EMAIL:-taxofin2025@gmail.com}" \
-ECOMAE_DIAG_HOST="${ECOMAE_DIAG_HOST:-www.epartscart.com}" \
-  bash "$REPO/scripts/cloudpanel_diagnose_cp_login_user.sh" 2>&1 | tee /root/epartscart-cp-login-diag.log | sed 's/^/CP_LOGIN_DIAG /'
-DIAG_RC=${PIPESTATUS[0]}
-set -e
+DIAG_RC=0
+if [[ "${ECOMAE_SKIP_CP_LOGIN_DIAG:-}" == "YES" ]]; then
+  printf 'CP_LOGIN_DIAG SKIPPED ECOMAE_SKIP_CP_LOGIN_DIAG=YES (CHPU/warehouse publish path)\n'
+  DIAG_RC=0
+else
+  set +e
+  ECOMAE_DIAG_EMAIL="${ECOMAE_DIAG_EMAIL:-taxofin2025@gmail.com}" \
+  ECOMAE_DIAG_HOST="${ECOMAE_DIAG_HOST:-www.epartscart.com}" \
+    bash "$REPO/scripts/cloudpanel_diagnose_cp_login_user.sh" 2>&1 | tee /root/epartscart-cp-login-diag.log | sed 's/^/CP_LOGIN_DIAG /'
+  DIAG_RC=${PIPESTATUS[0]}
+  set -e
+fi
 printf 'cp_login_diag_exit=%s\n' "$DIAG_RC"
 
 # Hard refuse RESULT=PASS while shop DB still unbound (silent acks left this stale).
