@@ -191,6 +191,11 @@ public static class PhpLegacyAssetBridge
                      // ASP.NET storefront module look → PHP nero page-header parity
                      ("/platform-assets/epc_storefront_aspnet_module_parity.css",
                          "content/general_pages/epc_storefront_aspnet_module_parity.css"),
+                     // CP OMS console (PHP epc_orders_cp.css / statuses) — HeadOutlet-safe
+                     ("/platform-assets/epc_orders_cp.css",
+                         "cp/content/shop/order_process/epc_orders_cp.css"),
+                     ("/platform-assets/epc_statuses_cp.css",
+                         "cp/content/shop/order_process/epc_statuses_cp.css"),
                  })
         {
             var localRelative = relative;

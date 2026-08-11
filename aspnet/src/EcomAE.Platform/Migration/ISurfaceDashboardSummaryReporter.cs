@@ -23,6 +23,9 @@ public interface ISurfaceDashboardSummaryReporter
     /// <summary>Batch 4: read-only CP shop_orders list + KPI (writes remain PHP OMS).</summary>
     Task<CpOrdersListResult> ListCpOrdersAsync(int limit, CancellationToken cancellationToken = default);
 
+    /// <summary>Read-only OMS detail console payload (PHP epc_orders_detail_pane). Writes remain PHP.</summary>
+    Task<CpOrderDetailDigest?> GetCpOrderDetailAsync(long orderId, CancellationToken cancellationToken = default);
+
     Task<CpGroupListResult> ListCpGroupsAsync(int limit, CancellationToken cancellationToken = default);
 
     Task<ErpSupplierListResult> ListErpSuppliersAsync(int limit, CancellationToken cancellationToken = default);

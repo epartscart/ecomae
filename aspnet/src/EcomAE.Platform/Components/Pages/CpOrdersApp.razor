@@ -1,4 +1,5 @@
 @page "/cp/orders"
+@page "/cp/orders-app"
 @layout Layout.PhpChromeLayout
 @using System.Globalization
 @using EcomAE.Platform.Auth
@@ -11,114 +12,344 @@
 
 <PageTitle>Orders · OMS · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="cp" />
-<HeadContent>
-<style>
-        .epc-oms-hero {
-            display:grid; grid-template-columns:1.2fr auto; gap:1rem; align-items:center;
-            margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
-            background:linear-gradient(135deg,#0c4a6e 0%,#2563eb 45%,#0ea5e9 100%);
-        }
-        .epc-oms-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
-        .epc-oms-hero p { margin:0; color:#d4d4d4; max-width:36rem; font-size:.92rem; line-height:1.45; }
-        .epc-oms-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
-        .epc-oms-cta a {
-            display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
-            text-decoration:none; color:#fff; background:#2563eb;
-        }
-        .epc-oms-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); }
-        .epc-oms-kpis { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
-        .epc-oms-kpi { background:#fff; border:1px solid #e5e7eb; border-radius:.55rem; padding:.85rem .9rem; }
-        .epc-oms-kpi strong { display:block; font-size:1.45rem; font-variant-numeric:tabular-nums; }
-        .epc-oms-kpi span { color:#64748b; font-size:.78rem; }
-        .epc-oms-table-wrap { background:#fff; border:1px solid #e5e7eb; border-radius:.55rem; overflow:auto; }
-        .epc-oms-table { width:100%; border-collapse:collapse; font-size:.86rem; }
-        .epc-oms-table th, .epc-oms-table td { padding:.55rem .7rem; border-bottom:1px solid #f1f5f9; text-align:left; white-space:nowrap; }
-        .epc-oms-table th { background:#f8fafc; color:#475569; font-size:.75rem; text-transform:uppercase; letter-spacing:.03em; }
-        .epc-oms-table a { color:#1d4ed8; font-weight:700; text-decoration:none; }
-        .epc-oms-note { margin-top:1rem; padding:.75rem .9rem; background:#fff8e8; border:1px solid #f1d49a; border-radius:.45rem; color:#7a4e00; font-size:.86rem; }
-        @@media (max-width:900px){ .epc-oms-hero,.epc-oms-kpis{grid-template-columns:1fr;} }
-    
-</style>
-
-    <link rel="stylesheet" href="/epc-static.php?f=cp/content/shop/order_process/epc_orders_cp.css" />
-</HeadContent>
+@foreach (var href in LegacyPresentationAssets.CpOrdersOmsStylesheets)
+{
+    <link rel="stylesheet" href="@href" />
+}
 
 <PhpCpDesktopChrome IsAdmin="_isAdmin">
 
-    <section class="epc-orders-page epc-oms-hero">
+<div class="col-lg-12 epc-scp-panel epc-scp-orders-page epc-orders-page">
+    <div class="epc-orders-page__hero">
         <div>
-            <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="eparts" style="height:28px;filter:brightness(1.1)" />
-            <h1>Orders · OMS</h1>
-            <p>Open orders, track payment status, and move paid lines to ship.</p>
-            <div class="epc-oms-cta">
-                <a href="@(PhpSurfaceLinkMap.AspNetPrimaryHref("/CP/shop/order_process/orders"))">Open PHP reference OMS</a>
-                <a class="ghost" href="@(PhpSurfaceLinkMap.AspNetPrimaryHref("/CP/shop/orders/statuses"))">Statuses</a>
-                <a class="ghost" href="@(PhpSurfaceLinkMap.AspNetPrimaryHref("/CP/shop/orders/items"))">Items</a>
-                <a class="ghost" href="/cp/sao-app">SAO links</a>
-                <a class="ghost" href="/cp/returns-rma-app">Returns</a>
-                <a class="ghost" href="/cp/fulfillment-queue-app">Fulfillment queue</a>
-            </div>
+            <h2><i class="fa fa-shopping-basket"></i> Orders · OMS</h2>
+            <p>One-window order management: list on the left, full console on the right — items, fulfillment, payment, documents, and messages. Click KPI cards to filter.</p>
         </div>
-    </section>
+        <div class="epc-orders-page__hero-actions">
+            <a class="btn btn-primary btn-sm" href="/cp/fulfillment-queue-app"><i class="fa fa-truck"></i> Fulfilment queue</a>
+            <a class="btn btn-default btn-sm" href="/cp/returns-rma-app"><i class="fa fa-undo"></i> Returns</a>
+            <a class="btn btn-default btn-sm" href="/cp/sao-app"><i class="fa fa-cogs"></i> SAO</a>
+            <button type="button" class="btn btn-default btn-sm" @onclick='() => SetSort("id")'><i class="fa fa-sort-numeric-desc"></i> By order #</button>
+            <button type="button" class="btn btn-default btn-sm" @onclick='() => SetSort("last_modified")'><i class="fa fa-clock-o"></i> By last modified</button>
+        </div>
+    </div>
+
+    <div class="epc-scp-kpi epc-scp-orders-kpi" aria-label="OMS KPIs">
+        <div class="epc-scp-kpi__card is-clickable" role="button" tabindex="0" @onclick='() => SetTab("open")' title="Show open orders">
+            <div class="epc-scp-kpi__label">Open orders</div>
+            <div class="epc-scp-kpi__val">@_summary.Open</div>
+            <div class="epc-scp-kpi__hint">Click to filter · active pipeline</div>
+        </div>
+        <div class="epc-scp-kpi__card is-clickable" role="button" tabindex="0" @onclick='() => SetTab("today")' title="Orders created today">
+            <div class="epc-scp-kpi__label">Today</div>
+            <div class="epc-scp-kpi__val">@_summary.Today</div>
+            <div class="epc-scp-kpi__hint">Click to filter · new today</div>
+        </div>
+        <div class="epc-scp-kpi__card is-clickable" role="button" tabindex="0" @onclick='() => SetTab("pending")' title="Paid orders not finished">
+            <div class="epc-scp-kpi__label">Pending ship</div>
+            <div class="epc-scp-kpi__val">@_summary.PendingShip</div>
+            <div class="epc-scp-kpi__hint">Click to filter · paid, not finished</div>
+        </div>
+    </div>
+
+    <p class="epc-oms-keys-hint"><i class="fa fa-keyboard-o"></i> Shortcuts: click a row for OMS console · tabs Manage → Messages · writes stay on PHP OMS until cutover</p>
+
+    <div class="epc-orders-tabs" role="tablist" aria-label="Orders tabs">
+        <button type="button" class="epc-orders-tab @(_tab == "open" ? "is-active" : null)" @onclick='() => SetTab("open")'>Open <span class="epc-tab-count">@_summary.Open</span></button>
+        <button type="button" class="epc-orders-tab is-completed @(_tab == "completed" ? "is-active" : null)" @onclick='() => SetTab("completed")'>Completed <span class="epc-tab-count">@_summary.Completed</span></button>
+        <button type="button" class="epc-orders-tab @(_tab == "all" || _tab == "today" || _tab == "pending" ? "is-active" : null)" @onclick='() => SetTab("all")'>All</button>
+    </div>
+
+    <div class="epc-orders-toolbar">
+        <span class="epc-scp-badge epc-scp-badge--high">Paid @_orders.Count(o => o.Paid is 1 or 2)</span>
+        <span class="epc-scp-badge epc-scp-badge--urgent">Unpaid @_orders.Count(o => o.Paid == 0)</span>
+        <span class="epc-orders-toolbar__hint"><i class="fa fa-columns"></i> Click a row to open OMS on the right</span>
+    </div>
 
     @if (!_isAdmin)
     {
-        <div class="epc-oms-note" role="status">Sign in with a Control Panel admin session to load live OMS digests. Guest browse shows the ASP.NET shell only.</div>
+        <div class="alert alert-info" role="status">Sign in with a Control Panel admin session to load live OMS digests. Guest browse shows the PHP-parity shell.</div>
     }
 
-    <div class="epc-scp-orders-kpi epc-oms-kpis" aria-label="OMS KPIs">
-        <div class="epc-oms-kpi"><strong>@_summary.Open</strong><span>Open orders</span></div>
-        <div class="epc-oms-kpi"><strong>@_summary.Today</strong><span>Orders today</span></div>
-        <div class="epc-oms-kpi"><strong>@_summary.PendingShip</strong><span>Pending ship (paid)</span></div>
-    </div>
+    <div class="epc-scp-orders-workspace @(_selectedId > 0 ? "is-oms-active" : null)">
+        <div class="epc-scp-orders-workspace__list">
+            <div class="epc-scp-table-card">
+                <div class="epc-scp-table-card__head epc-orders-workspace-head">
+                    <div>
+                        <h3>@ListHeading</h3>
+                        <p class="epc-oms-hint">Select a row — OMS console opens on the right</p>
+                    </div>
+                    <span>
+                        <a class="btn btn-default btn-xs" href="/cp/fulfillment-queue-app"><i class="fa fa-truck"></i> Fulfilment</a>
+                        <a class="btn btn-default btn-xs" href="/cp/returns-rma-app"><i class="fa fa-undo"></i> Returns</a>
+                    </span>
+                </div>
+                <div class="table-responsive">
+                    <table id="orders_table" class="footable table table-hover toggle-arrow epc-scp-data-table" data-sort="false">
+                        <thead>
+                            <tr>
+                                <th></th>
+                                <th><a href="javascript:void(0);" @onclick='() => SetSort("id")' @onclick:preventDefault>Order #</a></th>
+                                <th><a href="javascript:void(0);" @onclick='() => SetSort("time")' @onclick:preventDefault>Created</a></th>
+                                <th data-hide="phone"><a href="javascript:void(0);" @onclick='() => SetSort("last_modified")' @onclick:preventDefault>Modified</a></th>
+                                <th>Items</th>
+                                <th>Sum</th>
+                                <th data-hide="phone,tablet">Purchase</th>
+                                <th data-hide="phone,tablet">Margin</th>
+                                <th data-hide="phone,tablet">Paid</th>
+                                <th data-hide="phone,tablet">Status</th>
+                                <th data-hide="phone,tablet">Obtain</th>
+                                <th data-hide="phone,tablet">Customer</th>
+                                <th data-hide="phone,tablet">Office</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (_visibleOrders.Count == 0)
+                            {
+                                <tr><td colspan="13">Nothing to show yet.</td></tr>
+                            }
+                            else
+                            {
+                                @foreach (var o in _visibleOrders)
+                                {
+                                    var rowClass = "epc-scp-orders-row"
+                                        + (o.ViewedFlag == 0 ? " not_viewed" : "")
+                                        + (_selectedId == o.Id ? " is-selected" : "");
+                                    var margin = o.OrderSum - o.PurchaseSum;
+                                    <tr class="@rowClass" data-order-id="@o.Id" @onclick="() => SelectOrderAsync(o.Id)">
+                                        <td></td>
+                                        <td><a class="epc-scp-orders-link" href="javascript:void(0);"><strong>#@o.Id</strong></a></td>
+                                        <td>@FormatTime(o.TimeUnix)</td>
+                                        <td>@FormatTime(o.LastModifiedUnix > 0 ? o.LastModifiedUnix : o.TimeUnix)</td>
+                                        <td>@o.CountItems</td>
+                                        <td>@o.OrderSum.ToString("N2", CultureInfo.InvariantCulture)</td>
+                                        <td>@o.PurchaseSum.ToString("N2", CultureInfo.InvariantCulture)</td>
+                                        <td>@margin.ToString("N2", CultureInfo.InvariantCulture)</td>
+                                        <td>@((MarkupString)PaidBadgeHtml(o.Paid))</td>
+                                        <td><span class="epc-scp-badge @o.StatusBadgeClass">@(string.IsNullOrWhiteSpace(o.StatusName) ? $"#{o.Status}" : o.StatusName)</span></td>
+                                        <td>@(string.IsNullOrWhiteSpace(o.ObtainCaption) ? "—" : o.ObtainCaption)</td>
+                                        <td>@(string.IsNullOrWhiteSpace(o.CustomerLabel) ? o.UserId.ToString(CultureInfo.InvariantCulture) : o.CustomerLabel)</td>
+                                        <td>@o.OfficeId</td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
 
-    <div class="epc-oms-note" style="background:#eff6ff;border-color:#93c5fd;color:#1e3a8a;">
-        ASP.NET OMS dry-runs (writes=0): set-item-status, send-message, fulfillment-*, pay-refund, delete, plus registry reads
-        <code>list_messages</code>, <code>lookup_warehouse_price</code>, <code>erp_document_map</code>, <code>supplier_fulfillment_status</code>.
-        Live writes stay on PHP reference.
-    </div>
+        <div class="epc-scp-orders-workspace__detail" id="epc_orders_detail_pane">
+            @if (_detail is null)
+            {
+                <div class="epc-scp-orders-detail__empty">
+                    <i class="fa fa-hand-pointer-o"></i>
+                    <p>Select an order to manage</p>
+                    <span class="text-muted small">One-window OMS: summary, items, customer, payment, invoices &amp; documents</span>
+                </div>
+            }
+            else
+            {
+                var d = _detail;
+                var o = d.Order;
+                <div class="epc-od epc-od--oms" data-order-id="@o.Id">
+                    <div class="epc-od__head">
+                        <div class="epc-od__title-row">
+                            <h3 class="epc-od__title">Order #@o.Id <span class="epc-od__oms-tag">OMS</span></h3>
+                            <span class="epc-scp-badge @o.StatusBadgeClass">@(string.IsNullOrWhiteSpace(o.StatusName) ? $"#{o.Status}" : o.StatusName)</span>
+                        </div>
+                        <div class="epc-od__meta">
+                            <span><i class="fa fa-clock-o"></i> Created @FormatTime(o.TimeUnix)</span>
+                            <span><i class="fa fa-refresh"></i> Modified @FormatTime(o.LastModifiedUnix > 0 ? o.LastModifiedUnix : o.TimeUnix)</span>
+                            <span><i class="fa fa-building-o"></i> Office @o.OfficeId</span>
+                            <span><i class="fa fa-truck"></i> @(string.IsNullOrWhiteSpace(o.ObtainCaption) ? "—" : o.ObtainCaption)</span>
+                        </div>
+                        <div class="epc-od__chips">
+                            @((MarkupString)PaidBadgeHtml(o.Paid))
+                            <span class="epc-scp-badge epc-scp-badge--normal">@d.Items.Count items</span>
+                        </div>
+                        <div class="epc-od__customer">
+                            @if (!string.IsNullOrWhiteSpace(d.CustomerName))
+                            {
+                                <strong>@d.CustomerName</strong>
+                                <text> · </text>
+                            }
+                            user #@o.UserId
+                            @if (!string.IsNullOrWhiteSpace(d.CustomerPhone))
+                            {
+                                <text> · @d.CustomerPhone</text>
+                            }
+                        </div>
+                        <div class="epc-od__totals epc-od__totals--primary">
+                            <div><span>Amount due</span><strong>@d.PriceSum.ToString("N2", CultureInfo.InvariantCulture)</strong></div>
+                            <div><span>Paid</span><strong class="is-ok">@d.PaidSum.ToString("N2", CultureInfo.InvariantCulture)</strong></div>
+                            <div><span>Balance</span><strong class="@(d.PaidLeft > 0 ? "is-bad" : "is-ok")">@d.PaidLeft.ToString("N2", CultureInfo.InvariantCulture)</strong></div>
+                        </div>
+                        <div class="epc-od__totals epc-od__totals--secondary">
+                            <div><span>Purchase</span><strong>@d.PurchaseSum.ToString("N2", CultureInfo.InvariantCulture)</strong></div>
+                            <div><span>Margin</span><strong class="@(d.Margin >= 0 ? "is-ok" : "is-bad")">@d.Margin.ToString("N2", CultureInfo.InvariantCulture)</strong></div>
+                        </div>
+                    </div>
 
-    <div class="epc-oms-table-wrap">
-        <table class="epc-oms-table">
-            <thead>
-                <tr>
-                    <th>Order</th>
-                    <th>When</th>
-                    <th>Customer</th>
-                    <th>Status</th>
-                    <th>Paid</th>
-                    <th>Office</th>
-                    <th>Items</th>
-                    <th>Sum</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody>
-                @if (_orders.Count == 0)
-                {
-                    <tr><td colspan="9">Nothing to show yet.</td></tr>
-                }
-                else
-                {
-                    @foreach (var o in _orders)
-                    {
-                        var phpHref = $"/CP/shop/orders/orders?order_id={o.Id.ToString(CultureInfo.InvariantCulture)}";
-                        <tr>
-                            <td><strong>#@o.Id</strong></td>
-                            <td>@FormatTime(o.TimeUnix)</td>
-                            <td>@o.UserId</td>
-                            <td>@o.Status</td>
-                            <td>@o.Paid</td>
-                            <td>@o.OfficeId</td>
-                            <td>@o.CountItems</td>
-                            <td>@o.OrderSum.ToString("N2", CultureInfo.InvariantCulture)</td>
-                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(phpHref)">Open module</a></td>
-                        </tr>
-                    }
-                }
-            </tbody>
-        </table>
+                    <nav class="epc-od__tabs" role="tablist">
+                        @foreach (var tab in DetailTabs)
+                        {
+                            var key = tab.Key;
+                            var label = tab.Label;
+                            <button type="button" class="@(_detailTab == key ? "is-active" : null)" data-epc-od-tab="@key" @onclick="() => _detailTab = key">@label</button>
+                        }
+                    </nav>
+
+                    <section class="epc-od__panel @(_detailTab == "manage" ? "is-active" : null)" data-epc-od-panel="manage" style="@(_detailTab == "manage" ? null : "display:none")">
+                        <div class="epc-od__edit">
+                            <div class="epc-od__edit-title">Update order</div>
+                            <p class="text-muted small">Status / notes / fulfillment writes remain on the PHP OMS console until cutover. This pane is the same graphical shell.</p>
+                            <div class="epc-od__actions">
+                                <button type="button" class="btn btn-primary btn-sm" @onclick='() => _detailTab = "fulfillment"'><i class="fa fa-random"></i> Fulfillment</button>
+                                <button type="button" class="btn btn-default btn-sm" @onclick='() => _detailTab = "payment"'><i class="fa fa-credit-card"></i> Payment</button>
+                                <button type="button" class="btn btn-default btn-sm" @onclick='() => _detailTab = "docs"'><i class="fa fa-file-text-o"></i> Invoice / docs</button>
+                                <button type="button" class="btn btn-default btn-sm" @onclick='() => _detailTab = "customer"'><i class="fa fa-user"></i> Customer</button>
+                                <a class="btn btn-default btn-sm" href="@ClassicCardHref(o.Id)"><i class="fa fa-external-link"></i> Classic full card</a>
+                            </div>
+                        </div>
+                        <div class="epc-scp-orders-detail__erp-fulfillment">
+                            <div class="epc-od__edit-title">ERP document map</div>
+                            <ol class="epc-od__erp-chain">
+                                <li><strong>Shop order</strong> #@o.Id</li>
+                                <li><strong>ERP sales order</strong> — linked via fulfillment</li>
+                                <li><strong>Supplier POs / AP bills</strong> — cost side</li>
+                                <li><strong>AR tax invoice</strong> — goods + courier + VAT</li>
+                            </ol>
+                        </div>
+                    </section>
+
+                    <section class="epc-od__panel @(_detailTab == "items" ? "is-active" : null)" data-epc-od-panel="items" style="@(_detailTab == "items" ? null : "display:none")">
+                        <div class="epc-od__items">
+                            <table class="table table-condensed epc-od__lines">
+                                <thead>
+                                    <tr>
+                                        <th>Brand</th>
+                                        <th>Article</th>
+                                        <th>Name</th>
+                                        <th>Qty</th>
+                                        <th>Sell</th>
+                                        <th>Buy</th>
+                                        <th>Margin</th>
+                                        <th>Wh</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @if (d.Items.Count == 0)
+                                    {
+                                        <tr><td colspan="9">No line items.</td></tr>
+                                    }
+                                    else
+                                    {
+                                        @foreach (var line in d.Items)
+                                        {
+                                            var lineMargin = (line.Price - line.Purchase) * line.CountNeed;
+                                            <tr class="epc-od__line">
+                                                <td>@line.Brand</td>
+                                                <td>@line.Article</td>
+                                                <td>@line.Name</td>
+                                                <td>@line.CountNeed.ToString("0.##", CultureInfo.InvariantCulture)</td>
+                                                <td>@line.Price.ToString("N2", CultureInfo.InvariantCulture)</td>
+                                                <td>@line.Purchase.ToString("N2", CultureInfo.InvariantCulture)</td>
+                                                <td>@lineMargin.ToString("N2", CultureInfo.InvariantCulture)</td>
+                                                <td>@(string.IsNullOrWhiteSpace(line.StorageLabel) ? "—" : line.StorageLabel)</td>
+                                                <td>@(string.IsNullOrWhiteSpace(line.StatusName) ? $"#{line.Status}" : line.StatusName)</td>
+                                            </tr>
+                                        }
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </section>
+
+                    <section class="epc-od__panel @(_detailTab == "fulfillment" ? "is-active" : null)" data-epc-od-panel="fulfillment" style="@(_detailTab == "fulfillment" ? null : "display:none")">
+                        <div class="epc-of-panel">
+                            <div class="epc-od__edit-title">Fulfillment</div>
+                            <p class="text-muted small">Pick / pack / ship stage writes stay on PHP OMS. Open the fulfilment queue for warehouse ops.</p>
+                            <a class="btn btn-primary btn-sm" href="/cp/fulfillment-queue-app"><i class="fa fa-truck"></i> Open fulfilment queue</a>
+                            <div id="epc-order-fulfillment-panel-@o.Id" class="epc-scp-orders-detail__erp-fulfillment" style="margin-top:12px"></div>
+                            <div class="epc-od__supplier-fulfillment" style="margin-top:8px"></div>
+                        </div>
+                    </section>
+
+                    <section class="epc-od__panel @(_detailTab == "customer" ? "is-active" : null)" data-epc-od-panel="customer" style="@(_detailTab == "customer" ? null : "display:none")">
+                        <div class="epc-od__edit-title">Customer</div>
+                        <p><strong>@(string.IsNullOrWhiteSpace(d.CustomerName) ? "—" : d.CustomerName)</strong></p>
+                        <p>User #@o.UserId</p>
+                        <p>Email: @(string.IsNullOrWhiteSpace(d.CustomerEmail) ? "—" : d.CustomerEmail)</p>
+                        <p>Phone: @(string.IsNullOrWhiteSpace(d.CustomerPhone) ? "—" : d.CustomerPhone)</p>
+                    </section>
+
+                    <section class="epc-od__panel @(_detailTab == "payment" ? "is-active" : null)" data-epc-od-panel="payment" style="@(_detailTab == "payment" ? null : "display:none")">
+                        <div class="epc-od__edit-title">Payment</div>
+                        <div class="epc-od__totals epc-od__totals--primary">
+                            <div><span>Amount due</span><strong>@d.PriceSum.ToString("N2", CultureInfo.InvariantCulture)</strong></div>
+                            <div><span>Paid</span><strong class="is-ok">@d.PaidSum.ToString("N2", CultureInfo.InvariantCulture)</strong></div>
+                            <div><span>Balance</span><strong class="@(d.PaidLeft > 0 ? "is-bad" : "is-ok")">@d.PaidLeft.ToString("N2", CultureInfo.InvariantCulture)</strong></div>
+                        </div>
+                        <p class="text-muted small">Pay / refund dry-runs: <code>/cp/orders/pay-refund</code>. Live writes remain PHP.</p>
+                    </section>
+
+                    <section class="epc-od__panel @(_detailTab == "docs" ? "is-active" : null)" data-epc-od-panel="docs" style="@(_detailTab == "docs" ? null : "display:none")">
+                        <div class="epc-od__edit-title">Invoice / docs</div>
+                        <div class="epc-od__doc-grid">
+                            <a class="epc-od__doc-btn" href="/cp/print-docs-app"><i class="fa fa-file-text-o"></i> Print docs</a>
+                            <a class="epc-od__doc-btn" href="@ClassicCardHref(o.Id)"><i class="fa fa-external-link"></i> Classic card docs</a>
+                        </div>
+                    </section>
+
+                    <section class="epc-od__panel @(_detailTab == "timeline" ? "is-active" : null)" data-epc-od-panel="timeline" style="@(_detailTab == "timeline" ? null : "display:none")">
+                        <div class="epc-od__edit-title">Status / time</div>
+                        @if (d.Logs.Count == 0)
+                        {
+                            <p class="text-muted">No status log entries.</p>
+                        }
+                        else
+                        {
+                            <ul class="list-unstyled">
+                                @foreach (var log in d.Logs)
+                                {
+                                    <li style="margin-bottom:8px">
+                                        <small class="text-muted">@FormatTime(log.TimeUnix)</small>
+                                        @if (log.IsRobot == 1) { <span class="epc-scp-badge epc-scp-badge--normal">robot</span> }
+                                        else if (log.IsManager == 1) { <span class="epc-scp-badge epc-scp-badge--high">staff</span> }
+                                        <div>@log.Text</div>
+                                    </li>
+                                }
+                            </ul>
+                        }
+                    </section>
+
+                    <section class="epc-od__panel @(_detailTab == "messages" ? "is-active" : null)" data-epc-od-panel="messages" style="@(_detailTab == "messages" ? null : "display:none")">
+                        <div class="epc-od__edit-title">Messages (@d.Messages.Count)</div>
+                        @if (d.Messages.Count == 0)
+                        {
+                            <p class="text-muted">No messages.</p>
+                        }
+                        else
+                        {
+                            <ul class="list-unstyled">
+                                @foreach (var msg in d.Messages)
+                                {
+                                    <li style="margin-bottom:8px">
+                                        <small class="text-muted">@FormatTime(msg.TimeUnix) · @(msg.IsCustomer == 1 ? "customer" : "staff")</small>
+                                        <div>@msg.Text</div>
+                                    </li>
+                                }
+                            </ul>
+                        }
+                        <p class="text-muted small">Send-message dry-run: <code>/cp/orders/send-message</code>. Live WhatsApp / chat writes remain PHP.</p>
+                    </section>
+                </div>
+            }
+        </div>
     </div>
+</div>
 
 </PhpCpDesktopChrome>
 
@@ -126,8 +357,55 @@
     private bool _isAdmin;
     private CpOrdersSummary _summary = new(0, 0, 0, "n/a", "");
     private IReadOnlyList<CpShopOrderDigest> _orders = [];
-    private string _source = "n/a";
-    private string _message = "";
+    private long _selectedId;
+    private CpOrderDetailDigest? _detail;
+    private string _tab = "open";
+    private string _sort = "id";
+    private string _detailTab = "manage";
+
+    private static readonly (string Key, string Label)[] DetailTabs =
+    [
+        ("manage", "Manage"),
+        ("items", "Items"),
+        ("fulfillment", "Fulfillment"),
+        ("customer", "Customer"),
+        ("payment", "Payment"),
+        ("docs", "Invoice / docs"),
+        ("timeline", "Status / time"),
+        ("messages", "Messages"),
+    ];
+
+    private string ListHeading => _tab switch
+    {
+        "completed" => "Completed orders",
+        "all" or "today" or "pending" => "All orders",
+        _ => "Open orders",
+    };
+
+    private IReadOnlyList<CpShopOrderDigest> _visibleOrders
+    {
+        get
+        {
+            IEnumerable<CpShopOrderDigest> q = _orders;
+            var todayStart = new DateTimeOffset(DateTime.UtcNow.Date, TimeSpan.Zero).ToUnixTimeSeconds();
+            q = _tab switch
+            {
+                "completed" => q.Where(o => o.StatusBadgeClass.Contains("tenant", StringComparison.Ordinal)),
+                "today" => q.Where(o => o.TimeUnix >= todayStart),
+                "pending" => q.Where(o => o.Paid is 1 or 2 && !o.StatusBadgeClass.Contains("tenant", StringComparison.Ordinal)),
+                "all" => q,
+                _ => q.Where(o => !o.StatusBadgeClass.Contains("tenant", StringComparison.Ordinal)
+                                  && !o.StatusBadgeClass.Contains("urgent", StringComparison.Ordinal)),
+            };
+            q = _sort switch
+            {
+                "time" => q.OrderByDescending(o => o.TimeUnix),
+                "last_modified" => q.OrderByDescending(o => o.LastModifiedUnix > 0 ? o.LastModifiedUnix : o.TimeUnix),
+                _ => q.OrderByDescending(o => o.Id),
+            };
+            return q.ToList();
+        }
+    }
 
     protected override async Task OnInitializedAsync()
     {
@@ -139,17 +417,67 @@
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
-        if (!_isAdmin)
+
+        if (Uri.TryCreate(Nav.Uri, UriKind.Absolute, out var uri))
         {
-            return; // guest browse — Sign in for live data
+            var qs = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query);
+            if (qs.TryGetValue("order_id", out var raw) && long.TryParse(raw, out var oid) && oid > 0)
+            {
+                _selectedId = oid;
+            }
         }
 
-        var result = await Dashboards.ListCpOrdersAsync(50, ctx.RequestAborted);
+        if (!_isAdmin)
+        {
+            return;
+        }
+
+        var result = await Dashboards.ListCpOrdersAsync(100, ctx.RequestAborted);
         _summary = result.Summary;
         _orders = result.Orders;
-        _source = result.Source;
-        _message = result.Message;
+
+        if (_selectedId > 0)
+        {
+            await SelectOrderAsync(_selectedId);
+        }
     }
+
+    private async Task SelectOrderAsync(long orderId)
+    {
+        _selectedId = orderId;
+        _detailTab = "manage";
+        if (!_isAdmin)
+        {
+            _detail = null;
+            return;
+        }
+
+        _detail = await Dashboards.GetCpOrderDetailAsync(orderId);
+        if (_detail is null)
+        {
+            var row = _orders.FirstOrDefault(o => o.Id == orderId);
+            if (row is not null)
+            {
+                _detail = new CpOrderDetailDigest(
+                    row, row.OrderSum, row.PurchaseSum, 0m, row.OrderSum, row.OrderSum - row.PurchaseSum,
+                    row.CustomerLabel, row.CustomerLabel, "", [], [], [], "list", "Detail unavailable — showing list row.");
+            }
+        }
+    }
+
+    private void SetTab(string tab) => _tab = tab;
+
+    private void SetSort(string sort) => _sort = sort;
+
+    private static string ClassicCardHref(long orderId)
+        => PhpSurfaceLinkMap.AspNetPrimaryHref($"/CP/shop/orders/order?order_id={orderId.ToString(CultureInfo.InvariantCulture)}");
+
+    private static string PaidBadgeHtml(int paid) => paid switch
+    {
+        1 => "<span class=\"epc-scp-badge epc-scp-badge--tenant\">Paid</span>",
+        2 => "<span class=\"epc-scp-badge epc-scp-badge--high\">Partial</span>",
+        _ => "<span class=\"epc-scp-badge epc-scp-badge--urgent\">Unpaid</span>",
+    };
 
     private static string FormatTime(long unix)
     {
@@ -158,6 +486,6 @@
             return "—";
         }
 
-        return DateTimeOffset.FromUnixTimeSeconds(unix).ToLocalTime().ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture);
+        return DateTimeOffset.FromUnixTimeSeconds(unix).ToLocalTime().ToString("dd.MM.yyyy HH:mm", CultureInfo.InvariantCulture);
     }
 }

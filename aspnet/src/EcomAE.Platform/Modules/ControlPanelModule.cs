@@ -101,6 +101,48 @@ public sealed class ControlPanelModule : ISurfaceModule
             });
         });
 
+        endpoints.MapGet(EcomAeRoutes.ControlPanelOrdersDetailDigest, async (
+            HttpContext context,
+            long orderId,
+            ILegacySessionValidator validator,
+            ISurfaceDashboardSummaryReporter dashboards,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return Unauthorized("Admin CP capability required for order detail digest.");
+            }
+
+            var detail = await dashboards.GetCpOrderDetailAsync(orderId, cancellationToken);
+            if (detail is null)
+            {
+                return Results.NotFound(new { ok = false, message = "Order not found." });
+            }
+
+            return Results.Ok(new
+            {
+                ok = true,
+                surface = "cp",
+                order = detail.Order,
+                priceSum = detail.PriceSum,
+                purchaseSum = detail.PurchaseSum,
+                paidSum = detail.PaidSum,
+                paidLeft = detail.PaidLeft,
+                margin = detail.Margin,
+                customerName = detail.CustomerName,
+                customerEmail = detail.CustomerEmail,
+                customerPhone = detail.CustomerPhone,
+                items = detail.Items,
+                logs = detail.Logs,
+                messages = detail.Messages,
+                source = detail.Source,
+                message = detail.Message,
+                session = SessionPayload(session),
+                note = "Read-only OMS detail digest (PHP epc_orders_detail_pane markers). Writes remain PHP-authoritative."
+            });
+        });
+
         endpoints.MapPost(EcomAeRoutes.ControlPanelOmsSetItemStatus, async (
             HttpContext context,
             CpOmsSetItemStatusBody? body,

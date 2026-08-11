@@ -146,19 +146,61 @@ public sealed record CpShopOrderDigest(
     int OfficeId,
     int SuccessfullyCreated,
     int CountItems,
-    decimal OrderSum);
+    decimal OrderSum,
+    decimal PurchaseSum = 0m,
+    long LastModifiedUnix = 0,
+    int ViewedFlag = 1,
+    string CustomerLabel = "",
+    string StatusName = "",
+    string StatusBadgeClass = "epc-scp-badge--normal",
+    string ObtainCaption = "");
 
 public sealed record CpOrdersSummary(
     int Open,
     int Today,
     int PendingShip,
     string Source,
-    string Message);
+    string Message,
+    int Completed = 0);
 
 public sealed record CpOrdersListResult(
     CpOrdersSummary Summary,
     IReadOnlyList<CpShopOrderDigest> Orders,
     int Count,
+    string Source,
+    string Message);
+
+/// <summary>Read-only OMS console detail (PHP epc_orders_detail_pane markers). Writes stay PHP.</summary>
+public sealed record CpOrderItemDigest(
+    long Id,
+    long OrderId,
+    string Brand,
+    string Article,
+    string Name,
+    decimal Price,
+    decimal CountNeed,
+    decimal Purchase,
+    int Status,
+    string StatusName,
+    string StorageLabel);
+
+public sealed record CpOrderLogDigest(long TimeUnix, string Text, int IsManager, int IsRobot);
+
+public sealed record CpOrderMessageDigest(long Id, long TimeUnix, string Text, int IsCustomer);
+
+public sealed record CpOrderDetailDigest(
+    CpShopOrderDigest Order,
+    decimal PriceSum,
+    decimal PurchaseSum,
+    decimal PaidSum,
+    decimal PaidLeft,
+    decimal Margin,
+    string CustomerName,
+    string CustomerEmail,
+    string CustomerPhone,
+    IReadOnlyList<CpOrderItemDigest> Items,
+    IReadOnlyList<CpOrderLogDigest> Logs,
+    IReadOnlyList<CpOrderMessageDigest> Messages,
     string Source,
     string Message);
 
