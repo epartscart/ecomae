@@ -1700,6 +1700,8 @@ public static class EcomAeRoutes
     public const string StorefrontSearchBunches = "/storefront/search-bunches";
     /// <summary>Progressive supplier poll proxy (PHP <c>ajax_getProductsOfBunch</c>).</summary>
     public const string StorefrontProductsOfBunch = "/storefront/products-of-bunch";
+    /// <summary>Fast CP cross network (PHP <c>ajax_epc_cross_search</c> local path; crossbase enrich optional).</summary>
+    public const string StorefrontCrossSearch = "/storefront/cross-search";
     /// <summary>Excel bulk-upload shell (process writes remain PHP ajax_process).</summary>
     public const string StorefrontBulkUploadApp = "/storefront/bulk-upload-app";
     /// <summary>Customer bulk-upload history digest.</summary>

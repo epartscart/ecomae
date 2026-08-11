@@ -8,13 +8,13 @@
 #
 # Do NOT run from ~ as `bash scripts/...` — that path only exists inside the git repo.
 # CloudPanel root paste:
-#   URL='https://raw.githubusercontent.com/epartscart/ecomae/cursor/parts-chpu-offers-1to3s-7b3b/scripts/cloudpanel_EPARTSCART_PARTS_WAREHOUSE_PHP_FAST_NOW.sh'
+#   URL='https://raw.githubusercontent.com/epartscart/ecomae/cursor/parts-chpu-cross-1s-7b3b/scripts/cloudpanel_EPARTSCART_PARTS_WAREHOUSE_PHP_FAST_NOW.sh'
 #   TMP=/tmp/epartscart-parts-warehouse-php-fast-now.sh
 #   curl -fsSL "$URL" -o "$TMP" && test -s "$TMP"
-#   export ECOMAE_BRANCH=cursor/parts-chpu-offers-1to3s-7b3b
+#   export ECOMAE_BRANCH=cursor/parts-chpu-cross-1s-7b3b
 #   export ECOMAE_EPARTSCART_SHOP_DB=docpart
-#   bash "$TMP" 2>&1 | tee /root/epartscart-parts-chpu-1to3s.log
-#   grep -E 'RESULT=|GATE_|SHA=|TTFB_|BUNCH_|HOST=' /root/epartscart-parts-chpu-1to3s.log | tail -80
+#   bash "$TMP" 2>&1 | tee /root/epartscart-parts-chpu-1s.log
+#   grep -E 'RESULT=|GATE_|SHA=|TTFB_|BUNCH_|CROSS_|HOST=' /root/epartscart-parts-chpu-1s.log | tail -80
 #
 # Silent "External action completed" without RESULT=PASS paste-back = FAIL.
 set -euo pipefail
@@ -28,7 +28,10 @@ ECOMAE_GIT_URL="${ECOMAE_GIT_URL:-https://github.com/epartscart/ecomae.git}"
 ECOMAE_BRANCH="${ECOMAE_BRANCH:-cursor/parts-chpu-offers-1to3s-7b3b}"
 PUBLIC_BASE="${ECOMAE_PUBLIC_BASE:-https://www.epartscart.com}"
 export ECOMAE_EPARTSCART_SHOP_DB="${ECOMAE_EPARTSCART_SHOP_DB:-docpart}"
-PARTS_PATH="${ECOMAE_PARTS_PROBE:-/en/parts/AISIN/DT068}"
+# Prefer the user-reported slow CHPU; AISIN/DT068 also works via ECOMAE_PARTS_PROBE.
+PARTS_PATH="${ECOMAE_PARTS_PROBE:-/en/parts/JS%20ASAKASHI/C110J}"
+export ECOMAE_ARTICLE_PLAIN="${ECOMAE_ARTICLE_PLAIN:-C110J}"
+export ECOMAE_BRAND_PLAIN="${ECOMAE_BRAND_PLAIN:-JS ASAKASHI}"
 CANDIDATES=("${ECOMAE_REPO:-}" /opt/ecomae-aspnet-source /root/ecomae /opt/ecomae)
 
 note() { printf '%s\n' "$*"; }
@@ -75,6 +78,26 @@ fi
 if ! grep -q 'AbortSignal.timeout(3000)' \
   aspnet/src/EcomAE.Platform/Components/Pages/StorefrontSearchApp.razor; then
   die "StorefrontSearchApp missing AbortSignal 3s budget"
+fi
+if ! grep -q '/storefront/cross-search' \
+  aspnet/src/EcomAE.Platform/Components/Pages/StorefrontSearchApp.razor; then
+  die "StorefrontSearchApp missing ASP.NET /storefront/cross-search fast path"
+fi
+if grep -qE 'ajax_epc_cross_search\.php|ajax_getProductsOfBunch\.php' \
+  aspnet/src/EcomAE.Platform/Components/Pages/StorefrontSearchApp.razor; then
+  die "StorefrontSearchApp still links product .php URLs"
+fi
+if grep -qE '\.php["'\''?]|/content/shop/|umapi_proxy\.php|ajax_.*\.php' \
+  content/general_pages/epc_warehouse_search_parity.js; then
+  die "epc_warehouse_search_parity.js still contains product .php URLs"
+fi
+if ! grep -q 'data-enhance-nav="false"' \
+  aspnet/src/EcomAE.Platform/Components/Pages/StorefrontSearchApp.razor; then
+  die "StorefrontSearchApp missing data-enhance-nav=false (click sleep fix)"
+fi
+if ! grep -q 'BuildStorefrontCrossSearchAsync' \
+  aspnet/src/EcomAE.Platform/Migration/SurfaceDashboardSummaryReporter.cs; then
+  die "Reporter missing BuildStorefrontCrossSearchAsync"
 fi
 if ! grep -q 'ProbeStorefrontPartStockAsync' \
   aspnet/src/EcomAE.Platform/Migration/SurfaceDashboardSummaryReporter.cs; then

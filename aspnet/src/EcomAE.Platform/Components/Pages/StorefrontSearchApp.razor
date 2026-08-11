@@ -156,9 +156,9 @@
                                                 var nameCell = string.IsNullOrWhiteSpace(brand.Name) ? "—" : brand.Name;
                                                 var termCell = BrandPickerTerm(brand);
                                                 <tr class="epc-brand-picker-row">
-                                                    <td><a href="@href">@brand.Brand</a></td>
-                                                    <td><a href="@href">@_normalized</a></td>
-                                                    <td><a href="@href">@nameCell</a></td>
+                                                    <td><a href="@href" data-enhance-nav="false">@brand.Brand</a></td>
+                                                    <td><a href="@href" data-enhance-nav="false">@_normalized</a></td>
+                                                    <td><a href="@href" data-enhance-nav="false">@nameCell</a></td>
                                                     @if (!_pricesVisible)
                                                     {
                                                         <td class="text-center"><a href="@href">@mask</a></td>
@@ -396,7 +396,9 @@
                          aria-label="Cross references and OE numbers">
                         <h2>@_brandInput @_normalized — cross references &amp; OE numbers</h2>
                         <p style="margin:0 0 10px;font-size:13px;color:#475569">Part number / article <strong>@_normalized</strong> interchanges with:</p>
-                        <p id="epc-cross-loading" class="epc-fitment-message" style="margin:0 0 10px;">Loading OE / aftermarket cross network…</p>
+                        <p id="epc-cross-loading" class="epc-fitment-message" style="margin:0 0 10px;@(_crossRefs.Count > 0 ? "display:none" : null)">
+                            @(_crossRefs.Count > 0 ? "Expanding OE / aftermarket cross network…" : "Loading OE / aftermarket cross network…")
+                        </p>
                         <div id="epc-sf-cross-stock" class="epc-sf-cross-stock" hidden></div>
                         <ul id="epc-cross-ref-list">
                             @if (_crossRefs.Count == 0 && _relatedBrandCross.Count == 0)
@@ -409,7 +411,7 @@
                                 {
                                     var label = string.IsNullOrWhiteSpace(cross.Brand) ? cross.Article : $"{cross.Brand} {cross.Article}";
                                     <li data-cross-key="@($"{cross.Brand}|{cross.Article}")">
-                                        <a href="@BrandArticleHref(cross.Article, cross.Brand)">@label</a>
+                                        <a href="@BrandArticleHref(cross.Article, cross.Brand)" data-enhance-nav="false">@label</a>
                                         <span style="color:#64748b">(part number @cross.Article)</span>
                                         @if (cross.InStock)
                                         {
@@ -424,7 +426,7 @@
                                 @foreach (var brand in _relatedBrandCross)
                                 {
                                     <li data-related-mfr="1">
-                                        <a href="@BrandArticleHref(_normalized, brand)">@brand @_normalized</a>
+                                        <a href="@BrandArticleHref(_normalized, brand)" data-enhance-nav="false">@brand @_normalized</a>
                                         <span style="color:#64748b">(related manufacturer)</span>
                                     </li>
                                 }
@@ -559,6 +561,7 @@
     var priceRaw = Number(p.price || 0);
     var aid = aidSeq;
     var href = '/en/parts/' + encodeURIComponent(String(p.manufacturer || '').toUpperCase()) + '/' + encodeURIComponent(show || article);
+    // Full navigation — Blazor enhanced nav skips re-running warehouse bootstrap ("sleeping" click).
     var pk = photoKey(p.manufacturer, show || p.article);
     tr.className = 'epc-part-type-row epc-part-type-row--' + kind + ' epc-ssr-warehouse-row';
     tr.setAttribute('data-offer-key', key);
@@ -592,7 +595,7 @@
     tr.innerHTML =
       photoHtml +
       '<td class="td_manufacturer"><strong>' + esc(p.manufacturer || '') + '</strong></td>' +
-      '<td class="td_article"><a class="bread_crumbs_a" href="' + href + '">' + esc(show) + '</a></td>' +
+      '<td class="td_article"><a class="bread_crumbs_a" href="' + href + '" data-enhance-nav="false">' + esc(show) + '</a></td>' +
       '<td class="td_name">' + esc(p.name || '—') + '</td>' +
       '<td class="td_exist ' + (pricesVisible && exist > 0 ? 'epc-stock-ok' : 'epc-stock-out') + '">' + avail + '</td>' +
       '<td class="td_time_to_exe"><span class="epc-warehouse-term">' + term + '</span></td>' +
@@ -657,86 +660,95 @@
   function partsHref(b, a) {
     return '/en/parts/' + encodeURIComponent(String(b || '').toUpperCase()) + '/' + encodeURIComponent(String(a || ''));
   }
-  function loadPhpCrossSearch() {
-    if (typeof window.epcLoadPhpCrossSearch === 'function') {
-      return window.epcLoadPhpCrossSearch(article, brand);
+  function applyCrossSearchPayload(data) {
+    if (!data || data.status === false) return false;
+    var refs = data.references || [];
+    var stock = data.stock || [];
+    var total = Number(data.unique_reference_count || data.reference_count || refs.length) || refs.length;
+    var countEl = document.getElementById('epc-cross-search-count');
+    if (countEl) countEl.textContent = total + ' references';
+    var btn = document.getElementById('epc-cross-search-btn');
+    if (btn) btn.setAttribute('title', 'Open ' + total + ' cross references');
+    var list = document.getElementById('epc-cross-ref-list');
+    var loading = document.getElementById('epc-cross-loading');
+    var more = document.getElementById('epc-cross-more');
+    var stockBox = document.getElementById('epc-sf-cross-stock');
+    var selfA = compactArt(article);
+    var selfB = compactBrand(brand);
+    var stockKeys = Object.create(null);
+    stock.forEach(function (s) {
+      stockKeys[compactBrand(s.brand) + '|' + compactArt(s.article_norm || s.article)] = 1;
+    });
+    if (stockBox) {
+      var stockHtml = stock.slice(0, 40).map(function (s) {
+        var b = s.brand || '';
+        var a = s.article || s.article_norm || '';
+        return '<li><a href="' + partsHref(b, a) + '" data-enhance-nav="false">' + esc(b) + ' ' + esc(a) + '</a>' +
+          (s.name ? ' <span style="color:#64748b">' + esc(s.name) + '</span>' : '') + '</li>';
+      }).join('');
+      if (stockHtml) {
+        stockBox.hidden = false;
+        stockBox.innerHTML = '<strong>Cross references in stock (' + stock.length + ')</strong><ul>' + stockHtml + '</ul>';
+      }
     }
-    var url = '/content/shop/docpart/ajax_epc_cross_search.php?article=' + encodeURIComponent(article) +
-      '&brand=' + encodeURIComponent(brand);
-    return fetch(url, { credentials: 'same-origin' })
+    if (list) {
+      var shown = 0;
+      var html = [];
+      var limit = 120;
+      for (var i = 0; i < refs.length && shown < limit; i++) {
+        var ref = refs[i];
+        var rb = ref.brand || '';
+        var ra = ref.article || ref.article_norm || '';
+        var rn = compactArt(ref.article_norm || ra);
+        if (!rb || !rn) continue;
+        if (rn === selfA && compactBrand(rb) === selfB) continue;
+        var sameArticleAlias = rn === selfA;
+        var key = compactBrand(rb) + '|' + rn;
+        var inStock = !!stockKeys[key];
+        html.push('<li data-cross-key="' + esc(rb + '|' + ra) + '"' + (sameArticleAlias ? ' data-related-mfr="1"' : '') + '>' +
+          '<a href="' + partsHref(rb, ra) + '" data-enhance-nav="false">' + esc(rb) + ' ' + esc(ra) + '</a> ' +
+          '<span style="color:#64748b">(' + (sameArticleAlias ? 'related manufacturer' : ('part number ' + esc(ra))) + ')</span> ' +
+          (inStock ? '<span class="epc-avail-yes">In stock</span>' : '<span class="epc-avail-no">Not in stock</span>') +
+          '</li>');
+        shown++;
+      }
+      if (html.length) list.innerHTML = html.join('');
+      else list.innerHTML = '<li style="list-style:none;color:#64748b;">No cross references found for this article.</li>';
+      if (more) {
+        if (total > shown) {
+          more.style.display = 'block';
+          more.textContent = 'Showing ' + shown + ' of ' + total.toLocaleString() + ' unique crosses (full network via cross search).';
+        } else {
+          more.style.display = 'none';
+        }
+      }
+    }
+    if (loading) loading.style.display = 'none';
+    return true;
+  }
+  function loadAspNetCrossSearch() {
+    // ASP.NET-only — no .php product URLs (PHP remains reference-only under /php-reference/*).
+    var fastUrl = '/storefront/cross-search?article=' + encodeURIComponent(article) +
+      '&brand=' + encodeURIComponent(brand) + '&limit=600';
+    var fastOpts = { credentials: 'same-origin' };
+    if (typeof AbortSignal !== 'undefined' && typeof AbortSignal.timeout === 'function') {
+      fastOpts.signal = AbortSignal.timeout(1500);
+    }
+    return fetch(fastUrl, fastOpts)
       .then(function (r) { return r.json(); })
       .then(function (data) {
-        if (!data || data.status === false) return;
-        var refs = data.references || [];
-        var stock = data.stock || [];
-        var total = Number(data.unique_reference_count || data.reference_count || refs.length) || refs.length;
-        var countEl = document.getElementById('epc-cross-search-count');
-        if (countEl) countEl.textContent = total + ' references';
-        var btn = document.getElementById('epc-cross-search-btn');
-        if (btn) btn.setAttribute('title', 'Open ' + total + ' cross references');
-        var list = document.getElementById('epc-cross-ref-list');
-        var loading = document.getElementById('epc-cross-loading');
-        var more = document.getElementById('epc-cross-more');
-        var stockBox = document.getElementById('epc-sf-cross-stock');
-        var selfA = compactArt(article);
-        var selfB = compactBrand(brand);
-        var stockKeys = Object.create(null);
-        stock.forEach(function (s) {
-          stockKeys[compactBrand(s.brand) + '|' + compactArt(s.article_norm || s.article)] = 1;
-        });
-        if (stockBox) {
-          var stockHtml = stock.slice(0, 40).map(function (s) {
-            var b = s.brand || '';
-            var a = s.article || s.article_norm || '';
-            return '<li><a href="' + partsHref(b, a) + '">' + esc(b) + ' ' + esc(a) + '</a>' +
-              (s.name ? ' <span style="color:#64748b">' + esc(s.name) + '</span>' : '') + '</li>';
-          }).join('');
-          if (stockHtml) {
-            stockBox.hidden = false;
-            stockBox.innerHTML = '<strong>Cross references in stock (' + stock.length + ')</strong><ul>' + stockHtml + '</ul>';
-          }
+        if (!applyCrossSearchPayload(data)) {
+          var loading = document.getElementById('epc-cross-loading');
+          if (loading) loading.textContent = 'Cross search unavailable — showing local manufacturer aliases only.';
         }
-        if (list) {
-          var shown = 0;
-          var html = [];
-          var limit = 80;
-          for (var i = 0; i < refs.length && shown < limit; i++) {
-            var ref = refs[i];
-            var rb = ref.brand || '';
-            var ra = ref.article || ref.article_norm || '';
-            var rn = compactArt(ref.article_norm || ra);
-            if (!rb || !rn) continue;
-            if (rn === selfA && compactBrand(rb) === selfB) continue;
-            // Prefer real OE/AM article changes over same-article brand aliases.
-            var sameArticleAlias = rn === selfA;
-            var key = compactBrand(rb) + '|' + rn;
-            var inStock = !!stockKeys[key];
-            html.push('<li data-cross-key="' + esc(rb + '|' + ra) + '"' + (sameArticleAlias ? ' data-related-mfr="1"' : '') + '>' +
-              '<a href="' + partsHref(rb, ra) + '">' + esc(rb) + ' ' + esc(ra) + '</a> ' +
-              '<span style="color:#64748b">(' + (sameArticleAlias ? 'related manufacturer' : ('part number ' + esc(ra))) + ')</span> ' +
-              (inStock ? '<span class="epc-avail-yes">In stock</span>' : '<span class="epc-avail-no">Not in stock</span>') +
-              '</li>');
-            shown++;
-          }
-          if (html.length) list.innerHTML = html.join('');
-          else list.innerHTML = '<li style="list-style:none;color:#64748b;">No cross references found for this article.</li>';
-          if (more) {
-            if (total > shown) {
-              more.style.display = 'block';
-              more.textContent = 'Showing ' + shown + ' of ' + total.toLocaleString() + ' unique crosses (full network via cross search).';
-            } else {
-              more.style.display = 'none';
-            }
-          }
-        }
-        if (loading) loading.style.display = 'none';
       })
       .catch(function () {
         var loading = document.getElementById('epc-cross-loading');
         if (loading) loading.textContent = 'Cross search unavailable — showing local manufacturer aliases only.';
       });
   }
-  // PHP epcRunChpuPriceSearch: ONE protocol-3 ajax_getProductsOfBunch + Promise.all with cross.
+  // Parity with PHP epcRunChpuPriceSearch model: ONE protocol-3 products-of-bunch + parallel cross,
+  // but every live URL is ASP.NET (/storefront/*) — zero product .php links.
   // First warehouse paint must NOT wait on search-bunches (extra RTT) — fire protocol-3 immediately.
   function pickProtocol3Bunch(bunches) {
     for (var i = 0; i < bunches.length; i++) {
@@ -758,8 +770,8 @@
     if (totalEl) totalEl.textContent = '1';
     if (countEl) countEl.textContent = '0';
     loadGenuineBrandsBackground();
-    var crossPromise = loadPhpCrossSearch();
-    // Immediate protocol-3 poll — target first warehouse rows in 1–3s.
+    var crossPromise = loadAspNetCrossSearch();
+    // Immediate protocol-3 poll — target first warehouse rows in ~1s.
     var pricePromise = pollOne({ officeId: 0, storageId: 0, protocolVersion: 3, nestedBunches: [] })
       .finally(function () {
         if (countEl) countEl.textContent = '1';
@@ -781,10 +793,20 @@
       .catch(function () {});
     return Promise.all([pricePromise, crossPromise]);
   }
+  // Full page loads + Blazor enhanced nav both need a bootstrap (inline scripts may not re-run).
+  window.epcRunChpuPriceSearchBootstrap = runChpuPriceSearch;
   runChpuPriceSearch();
+  if (!window.__epcChpuEnhancedNavHooked) {
+    window.__epcChpuEnhancedNavHooked = true;
+    document.addEventListener('enhancedload', function () {
+      if (typeof window.epcRunChpuPriceSearchBootstrap === 'function') {
+        window.epcRunChpuPriceSearchBootstrap();
+      }
+    });
+  }
 })();
             </script>
-            <script src="/platform-assets/epc_warehouse_search_parity.js?v=20260811z" defer></script>
+            <script src="/platform-assets/epc_warehouse_search_parity.js?v=20260811-no-php" defer></script>
         }
     }
 
@@ -1003,7 +1025,7 @@
             && !string.IsNullOrWhiteSpace(_brandInput)
             && _mode is not ("attr" or "vin" or "engine" or "car"))
         {
-            Navigation.NavigateTo(BrandArticleHref(_articleInput, _brandInput), replace: true);
+            Navigation.NavigateTo(BrandArticleHref(_articleInput, _brandInput), forceLoad: true, replace: true);
             return;
         }
 
@@ -1026,9 +1048,10 @@
             return;
         }
 
-        // PHP skip_ssr_use_ajax_fast_path (brand+article CHPU): do NOT await warehouse/cross/genuine SSR.
+        // PHP skip_ssr_use_ajax_fast_path (brand+article CHPU): do NOT await warehouse/cross/genuine SSR
+        // beyond a 250ms local CP seed (PHP epc_cross_fallback_rows). Full crossbase stays AJAX.
         // Paint shell immediately; warehouse fills via immediate protocol-3 products-of-bunch +
-        // parallel ajax_epc_cross_search (see epcRunChpuPriceSearch / Promise.all below).
+        // parallel /storefront/cross-search (see epcRunChpuPriceSearch / Promise.all below).
         // Genuine-brand map loads in the browser (/storefront/genuine-brands) so TTFB stays sub-second.
         _normalized = EcomAE.Platform.Api.Catalog.PriceLookupRequest.NormalizeArticle(_articleInput);
         _rows = [];
@@ -1042,11 +1065,14 @@
         _message = string.Empty;
         _genuineKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-        // Optional micro stock probe for SEO only — hard-capped so it cannot push first paint past 1–3s.
+        // Optional micro stock probe + local CP cross seed (PHP epc_cross_fallback_rows) — hard-capped.
         try
         {
             using var seoCts = new CancellationTokenSource(TimeSpan.FromMilliseconds(250));
-            var stock = await Dashboards.ProbeStorefrontPartStockAsync(_articleInput, _brandInput, seoCts.Token);
+            var stockTask = Dashboards.ProbeStorefrontPartStockAsync(_articleInput, _brandInput, seoCts.Token);
+            var crossSeedTask = Dashboards.BuildStorefrontCrossSearchAsync(_articleInput, _brandInput, 40, seoCts.Token);
+            await Task.WhenAll(stockTask, crossSeedTask);
+            var stock = await stockTask;
             if (!string.IsNullOrWhiteSpace(stock.Article))
             {
                 _normalized = stock.Article;
@@ -1055,6 +1081,11 @@
             _chpuSeoInStock = stock.InStock;
             _chpuSeoProductName = stock.ProductName ?? string.Empty;
             _chpuSeoMinPrice = stock.MinPrice;
+            var crossSeed = await crossSeedTask;
+            if (crossSeed.References.Count > 0)
+            {
+                _crossRefs = crossSeed.References;
+            }
         }
         catch (OperationCanceledException)
         {

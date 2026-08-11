@@ -175,7 +175,8 @@ public sealed class PhpWarehouseSearchBridge
         string article,
         string? brand,
         int limit,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default,
+        int timeoutSeconds = 60)
     {
         var normalized = (article ?? string.Empty).Trim();
         if (normalized.Length == 0)
@@ -193,11 +194,12 @@ public sealed class PhpWarehouseSearchBridge
         }
 
         // Live crossbase expansion regularly exceeds the short warehouse-offer timeout.
+        // Callers that only need a best-effort merge should pass a short timeoutSeconds.
         var payload = await GetJsonAsync<PhpCrossSearchPayload>(
                 "/content/shop/docpart/ajax_epc_cross_search.php",
                 query,
                 cancellationToken,
-                timeoutSeconds: 60)
+                timeoutSeconds: Math.Clamp(timeoutSeconds, 1, 60))
             .ConfigureAwait(false);
 
         if (payload is null || payload.Status == false)

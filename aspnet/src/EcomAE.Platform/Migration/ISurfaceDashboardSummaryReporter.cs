@@ -309,6 +309,12 @@ public interface ISurfaceDashboardSummaryReporter
     /// <summary>Cross references for brand+article (PHP part_search result crosses).</summary>
     Task<StorefrontCrossRefsResult> ListStorefrontCrossRefsAsync(string article, string? brand, int limit, CancellationToken cancellationToken = default);
 
+    /// <summary>
+    /// Fast storefront cross search for CHPU (local CP analogs, no N+1 stock probe).
+    /// Mirrors PHP <c>ajax_epc_cross_search</c> local path so the UI can paint in ~1s.
+    /// </summary>
+    Task<StorefrontCrossSearchResult> BuildStorefrontCrossSearchAsync(string article, string? brand, int limit, CancellationToken cancellationToken = default);
+
     /// <summary>Batch 4: read-only authenticated customer cart (qty/checkout writes remain PHP).</summary>
     Task<StorefrontCartListResult> ListStorefrontCartAsync(int userId, int limit, CancellationToken cancellationToken = default);
 
