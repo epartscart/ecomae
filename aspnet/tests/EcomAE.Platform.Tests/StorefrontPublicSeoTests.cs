@@ -12,6 +12,9 @@ public sealed class StorefrontPublicSeoTests
     [InlineData("/storefront", true)]
     [InlineData("/marketing/app", true)]
     [InlineData("/marketing/platform", true)]
+    [InlineData("/en/parts/MITSUBISHI/MD191472", true)]
+    [InlineData("/parts/MITSUBISHI/MD191472", true)]
+    [InlineData("/en/parts/brands/MD191472", false)]
     [InlineData("/cp/app", false)]
     [InlineData("/erp/app", false)]
     [InlineData("/bos/app", false)]
@@ -24,11 +27,15 @@ public sealed class StorefrontPublicSeoTests
     }
 
     [Fact]
-    public void RobotsContent_IndexesStorefrontHome_NotCp()
+    public void RobotsContent_IndexesStorefrontHomeAndChpu_NotCp()
     {
         var home = new DefaultHttpContext();
         home.Request.Path = "/storefront/app";
         Assert.Equal("index,follow", StorefrontPublicSeo.RobotsContentFor(home));
+
+        var chpu = new DefaultHttpContext();
+        chpu.Request.Path = "/en/parts/MITSUBISHI/MD191472";
+        Assert.Equal("index,follow", StorefrontPublicSeo.RobotsContentFor(chpu));
 
         var cp = new DefaultHttpContext();
         cp.Request.Path = "/cp/app";
@@ -57,6 +64,42 @@ public sealed class StorefrontPublicSeoTests
     }
 
     [Fact]
+    public void PartsChpuSeoMatchesPhpProductSignals()
+    {
+        var ctx = new DefaultHttpContext();
+        ctx.Request.Scheme = "https";
+        ctx.Request.Host = new HostString("www.epartscart.com");
+
+        Assert.True(StorefrontPublicSeo.TryParsePartsChpu("/en/parts/MITSUBISHI/MD191472", out var brand, out var article));
+        Assert.Equal("MITSUBISHI", brand);
+        Assert.Equal("MD191472", article);
+
+        var canonical = StorefrontPublicSeo.CanonicalForPartsChpu(ctx.Request, brand, article);
+        Assert.Equal("https://www.epartscart.com/en/parts/MITSUBISHI/MD191472", canonical);
+
+        Assert.Equal("index,follow", StorefrontPublicSeo.PartsChpuRobots(inStock: true));
+        Assert.Equal("noindex,follow", StorefrontPublicSeo.PartsChpuRobots(inStock: false));
+
+        var desc = StorefrontPublicSeo.PartsChpuDescription(brand, article, "OIL FILTER", inStock: true);
+        Assert.Contains("MITSUBISHI MD191472", desc, StringComparison.Ordinal);
+        Assert.Contains("In stock", desc, StringComparison.Ordinal);
+
+        var productLd = StorefrontPublicSeo.ProductJsonLdBlock(
+            ctx.Request,
+            brand,
+            article,
+            "OIL FILTER",
+            12.50m,
+            inStock: true,
+            "AED",
+            [("TOYOTA", "90915YZZD1")]);
+        Assert.Contains("\"@type\":\"Product\"", productLd, StringComparison.Ordinal);
+        Assert.Contains("InStock", productLd, StringComparison.Ordinal);
+        Assert.Contains("90915YZZD1", productLd, StringComparison.Ordinal);
+        Assert.Contains("\"price\":\"12.50\"", productLd, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void AppRazorUsesPathAwareRobots()
     {
         var path = Find("aspnet/src/EcomAE.Platform/Components/App.razor");
@@ -71,6 +114,16 @@ public sealed class StorefrontPublicSeoTests
         var path = Find("aspnet/src/EcomAE.Platform/Components/Pages/StorefrontPreviewApp.razor");
         var text = File.ReadAllText(path);
         Assert.Contains("IncludePublicSeo=\"true\"", text, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void SearchAppEmitsChpuSeoAndParallelDigests()
+    {
+        var text = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/StorefrontSearchApp.razor"));
+        Assert.Contains("ApplyChpuSeo", text, StringComparison.Ordinal);
+        Assert.Contains("ProductJsonLdBlock", text, StringComparison.Ordinal);
+        Assert.Contains("Task.WhenAll", text, StringComparison.Ordinal);
+        Assert.Contains("ssrOfferLimit", text, StringComparison.Ordinal);
     }
 
     private static string Find(string relative)

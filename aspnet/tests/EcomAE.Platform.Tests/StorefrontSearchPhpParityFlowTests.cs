@@ -146,7 +146,7 @@ public sealed class StorefrontSearchPhpParityFlowTests
         Assert.Contains("ListStorefrontArticleBrandsAsync", text, StringComparison.Ordinal);
         Assert.Contains("ListStorefrontCrossRefsAsync", text, StringComparison.Ordinal);
         Assert.Contains("TryLoadCrossSearchAsync", text, StringComparison.Ordinal);
-        Assert.Contains("php-cross-search", text, StringComparison.Ordinal);
+        Assert.Contains("ECOMAE_SSR_PHP_CROSS", text, StringComparison.Ordinal);
         Assert.Contains("SelectStorefrontArticleWarehouseBrands", text, StringComparison.Ordinal);
         Assert.Contains("SelectStorefrontArticleCrossPairs", text, StringComparison.Ordinal);
         Assert.Contains("StorefrontArticleMatchMode.ExactTrim", text, StringComparison.Ordinal);

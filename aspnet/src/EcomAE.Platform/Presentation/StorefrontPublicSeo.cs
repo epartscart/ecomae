@@ -1,11 +1,13 @@
 using System.Text.Json;
+using System.Text.RegularExpressions;
 
 namespace EcomAE.Platform.Presentation;
 
 /// <summary>
-/// Public storefront SEO for ASP.NET-primary tenant homes (epartscart, …).
-/// Matches PHP nero head signals: indexable home, canonical, Open Graph, hreflang, JSON-LD.
-/// CP/ERP/BOS and private storefront apps stay noindex.
+/// Public storefront SEO for ASP.NET-primary tenant homes + CHPU part pages (epartscart, …).
+/// Matches PHP nero / epc_seo_indexing signals: indexable home + in-stock brand/article CHPU,
+/// canonical, Open Graph, hreflang, JSON-LD Product schema.
+/// CP/ERP/BOS, private storefront apps, and brand-picker hubs stay noindex.
 /// </summary>
 public static class StorefrontPublicSeo
 {
@@ -19,6 +21,14 @@ public static class StorefrontPublicSeo
         PropertyNamingPolicy = null,
         WriteIndented = false
     };
+
+    private static readonly Regex PartsBrandArticlePath = new(
+        @"^/(?:en|ar|ru)/parts/(?!brands(?:/|$))(?<brand>[^/]+)/(?<article>[^/]+)/?$",
+        RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.Compiled);
+
+    private static readonly Regex PartsBrandArticlePathNoLang = new(
+        @"^/parts/(?!brands(?:/|$))(?<brand>[^/]+)/(?<article>[^/]+)/?$",
+        RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.Compiled);
 
     public static string RobotsContentFor(HttpContext? http)
     {
@@ -59,11 +69,57 @@ public static class StorefrontPublicSeo
             || value.Equals("/marketing/app", StringComparison.OrdinalIgnoreCase)
             || value.StartsWith("/marketing/", StringComparison.OrdinalIgnoreCase))
         {
-            // Legal/policy pages may still be indexed; admin digests are not under /marketing.
+            return true;
+        }
+
+        // PHP prices_by_article_and_manufacturer CHPU — indexable warehouse product URLs.
+        // Brand-picker hubs (/en/parts/brands/{article}) stay noindex (PHP all_brands_by_article).
+        if (TryParsePartsChpu(value, out _, out _))
+        {
             return true;
         }
 
         return false;
+    }
+
+    public static bool TryParsePartsChpu(string? path, out string brand, out string article)
+    {
+        brand = string.Empty;
+        article = string.Empty;
+        if (string.IsNullOrWhiteSpace(path))
+        {
+            return false;
+        }
+
+        var value = path.Trim();
+        var q = value.IndexOf('?', StringComparison.Ordinal);
+        if (q >= 0)
+        {
+            value = value[..q];
+        }
+
+        value = value.TrimEnd('/');
+        var m = PartsBrandArticlePath.Match(value);
+        if (!m.Success)
+        {
+            m = PartsBrandArticlePathNoLang.Match(value);
+        }
+
+        if (!m.Success)
+        {
+            return false;
+        }
+
+        brand = Uri.UnescapeDataString(m.Groups["brand"].Value.Replace('+', ' ')).Trim();
+        article = Uri.UnescapeDataString(m.Groups["article"].Value.Replace('+', ' ')).Trim();
+        if (brand.Length == 0
+            || article.Length == 0
+            || brand.Equals("brands", StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        return true;
     }
 
     public static string AbsoluteUrl(HttpRequest request, string pathAndQuery)
@@ -90,6 +146,31 @@ public static class StorefrontPublicSeo
     public static string CanonicalForStorefrontHome(HttpRequest request)
         => AbsoluteUrl(request, "/");
 
+    public static string CanonicalForPartsChpu(HttpRequest request, string brand, string article)
+    {
+        var br = (brand ?? string.Empty).Trim().ToUpperInvariant();
+        var art = (article ?? string.Empty).Trim();
+        var path = "/en/parts/" + Uri.EscapeDataString(br) + "/" + Uri.EscapeDataString(art);
+        return AbsoluteUrl(request, path);
+    }
+
+    public static string PartsChpuDescription(string brand, string article, string? productName = null, bool inStock = true)
+    {
+        var br = (brand ?? string.Empty).Trim().ToUpperInvariant();
+        var art = (article ?? string.Empty).Trim();
+        var name = string.IsNullOrWhiteSpace(productName) ? string.Empty : productName.Trim();
+        var stock = inStock ? "In stock" : "Check availability";
+        if (name.Length > 0)
+        {
+            return $"{br} {art} {name} — {stock}. Buy genuine and aftermarket auto parts online at eParts Cart (Autoparts). UAE warehouse shipping across GCC.";
+        }
+
+        return $"Pricing and availability for {br} {art} — {stock}. Genuine and aftermarket auto parts at eParts Cart (Autoparts). UAE warehouse shipping across GCC.";
+    }
+
+    public static string PartsChpuRobots(bool inStock)
+        => inStock ? "index,follow" : "noindex,follow";
+
     public static IReadOnlyList<(string Hreflang, string Href)> HreflangAlternates(HttpRequest request)
     {
         var origin = AbsoluteUrl(request, "/").TrimEnd('/');
@@ -104,6 +185,26 @@ public static class StorefrontPublicSeo
             ("en-OM", origin + "/en/"),
             ("en-PK", origin + "/en/"),
             ("x-default", origin + "/en/"),
+        ];
+    }
+
+    public static IReadOnlyList<(string Hreflang, string Href)> HreflangAlternatesForParts(
+        HttpRequest request,
+        string brand,
+        string article)
+    {
+        var br = Uri.EscapeDataString((brand ?? string.Empty).Trim().ToUpperInvariant());
+        var art = Uri.EscapeDataString((article ?? string.Empty).Trim());
+        var origin = AbsoluteUrl(request, "/").TrimEnd('/');
+        string PathFor(string lang) => $"{origin}/{lang}/parts/{br}/{art}";
+        return
+        [
+            ("en", PathFor("en")),
+            ("ar", PathFor("ar")),
+            ("ru", PathFor("ru")),
+            ("en-AE", PathFor("en")),
+            ("ar-AE", PathFor("ar")),
+            ("x-default", PathFor("en")),
         ];
     }
 
@@ -171,5 +272,101 @@ public static class StorefrontPublicSeo
                 "<script type=\"application/ld+json\">"
                 + JsonSerializer.Serialize(p, JsonLdOptions)
                 + "</script>"));
+    }
+
+    /// <summary>PHP <c>epc_seo_build_product_schema_array</c> subset for CHPU brand+article pages.</summary>
+    public static string ProductJsonLdBlock(
+        HttpRequest request,
+        string brand,
+        string article,
+        string? productName,
+        decimal price,
+        bool inStock,
+        string currencyCode = "AED",
+        IReadOnlyList<(string Brand, string Article)>? crossRefs = null)
+    {
+        var br = (brand ?? string.Empty).Trim().ToUpperInvariant();
+        var art = (article ?? string.Empty).Trim();
+        var artNorm = new string(art.Where(char.IsLetterOrDigit).Select(char.ToUpperInvariant).ToArray());
+        var pageUrl = CanonicalForPartsChpu(request, br, art);
+        var name = string.IsNullOrWhiteSpace(productName)
+            ? $"{br} {art}"
+            : $"{br} {art} {productName.Trim()}";
+        var offer = new Dictionary<string, object?>
+        {
+            ["@type"] = "Offer",
+            ["url"] = pageUrl,
+            ["availability"] = inStock
+                ? "https://schema.org/InStock"
+                : "https://schema.org/OutOfStock",
+            ["itemCondition"] = "https://schema.org/NewCondition",
+            ["seller"] = new Dictionary<string, object?>
+            {
+                ["@type"] = "Organization",
+                ["name"] = DefaultDescription,
+            },
+        };
+        if (price > 0m)
+        {
+            offer["priceCurrency"] = string.IsNullOrWhiteSpace(currencyCode) ? "AED" : currencyCode;
+            offer["price"] = price.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture);
+        }
+
+        var props = new List<object>
+        {
+            new Dictionary<string, object?> { ["@type"] = "PropertyValue", ["name"] = "Part number", ["value"] = art },
+            new Dictionary<string, object?> { ["@type"] = "PropertyValue", ["name"] = "Article number", ["value"] = artNorm },
+            new Dictionary<string, object?> { ["@type"] = "PropertyValue", ["name"] = "Brand", ["value"] = br },
+        };
+        var related = new List<object>();
+        foreach (var cr in (crossRefs ?? Array.Empty<(string, string)>()).Take(25))
+        {
+            var cb = (cr.Brand ?? string.Empty).Trim();
+            var ca = (cr.Article ?? string.Empty).Trim();
+            if (ca.Length == 0)
+            {
+                continue;
+            }
+
+            props.Add(new Dictionary<string, object?>
+            {
+                ["@type"] = "PropertyValue",
+                ["name"] = "Cross reference / OE",
+                ["value"] = string.IsNullOrWhiteSpace(cb) ? ca : $"{cb} {ca}",
+            });
+            related.Add(new Dictionary<string, object?>
+            {
+                ["@type"] = "Product",
+                ["name"] = string.IsNullOrWhiteSpace(cb) ? ca : $"{cb} {ca}",
+                ["sku"] = new string(ca.Where(char.IsLetterOrDigit).Select(char.ToUpperInvariant).ToArray()),
+                ["brand"] = new Dictionary<string, object?>
+                {
+                    ["@type"] = "Brand",
+                    ["name"] = string.IsNullOrWhiteSpace(cb) ? "OE" : cb,
+                },
+            });
+        }
+
+        var schema = new Dictionary<string, object?>
+        {
+            ["@context"] = "https://schema.org",
+            ["@type"] = "Product",
+            ["name"] = name,
+            ["sku"] = artNorm.Length > 0 ? artNorm : art,
+            ["mpn"] = artNorm.Length > 0 ? artNorm : art,
+            ["productID"] = artNorm.Length > 0 ? artNorm : art,
+            ["brand"] = new Dictionary<string, object?> { ["@type"] = "Brand", ["name"] = br },
+            ["additionalProperty"] = props,
+            ["offers"] = offer,
+            ["url"] = pageUrl,
+        };
+        if (related.Count > 0)
+        {
+            schema["isRelatedTo"] = related;
+        }
+
+        return "<script type=\"application/ld+json\">"
+               + JsonSerializer.Serialize(schema, JsonLdOptions)
+               + "</script>";
     }
 }
