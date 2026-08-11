@@ -5,8 +5,12 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    @* Public storefront/marketing: index,follow. CP/ERP/BOS and private apps: noindex. *@
-    <meta name="robots" content="@StorefrontPublicSeo.RobotsContentFor(Http.HttpContext)" />
+    @* Public storefront/marketing: index,follow. CP/ERP/BOS and private apps: noindex.
+       CHPU brand+article pages own stock-aware robots in StorefrontSearchApp (avoid dual tags). *@
+    @if (!StorefrontPublicSeo.PageOwnsRobotsMeta(Http.HttpContext?.Request.Path.Value))
+    {
+        <meta name="robots" content="@StorefrontPublicSeo.RobotsContentFor(Http.HttpContext)" />
+    }
     <base href="/" />
     <link rel="icon" type="image/svg+xml" href="/assets/media/logos/ecomae_mark.svg" />
     <HeadOutlet />

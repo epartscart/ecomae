@@ -20,7 +20,7 @@
 {
     <meta name="robots" content="@_chpuRobots" />
     <meta name="description" content="@_chpuDescription" />
-    <meta name="keywords" content="@StorefrontPublicSeo.DefaultKeywords" />
+    <meta name="keywords" content="@_chpuKeywords" />
     <link rel="canonical" href="@_chpuCanonical" />
     <meta property="og:type" content="product" />
     <meta property="og:url" content="@_chpuCanonical" />
@@ -30,6 +30,7 @@
     {
         <link rel="alternate" hreflang="@alt.Hreflang" href="@alt.Href" />
     }
+    @((MarkupString)_chpuHeadExtras)
     @((MarkupString)_chpuJsonLd)
 }
 <link rel="stylesheet" href="/platform-assets/epc_warehouse_search_parity.css?v=20260811z" />
@@ -66,11 +67,17 @@
 {
     <meta name="robots" content="@_chpuRobots" />
     <meta name="description" content="@_chpuDescription" />
+    <meta name="keywords" content="@_chpuKeywords" />
     <link rel="canonical" href="@_chpuCanonical" />
     <meta property="og:type" content="product" />
     <meta property="og:url" content="@_chpuCanonical" />
     <meta property="og:title" content="@PageTitleText" />
     <meta property="og:description" content="@_chpuDescription" />
+    @foreach (var alt in _chpuHreflang)
+    {
+        <link rel="alternate" hreflang="@alt.Hreflang" href="@alt.Href" />
+    }
+    @((MarkupString)_chpuHeadExtras)
     @((MarkupString)_chpuJsonLd)
 }
 
@@ -839,6 +846,8 @@
     private bool _chpuSeoInStock;
     private string _chpuSeoProductName = "";
     private decimal _chpuSeoMinPrice;
+    private string _chpuKeywords = StorefrontPublicSeo.DefaultKeywords;
+    private string _chpuHeadExtras = "";
     private string _chpuCanonical = "";
     private string _chpuDescription = "";
     private string _chpuRobots = "noindex,follow";
@@ -864,14 +873,15 @@
         && !string.IsNullOrWhiteSpace(_brandInput)
         && _mode is not ("attr" or "vin" or "engine" or "car");
 
-    /// <summary>PHP nero title: <c>Pricing and availability for {BRAND} {ARTICLE} - eParts Cart</c>.</summary>
+    /// <summary>PHP <c>epc_seo_format_part_title</c> for CHPU; brand-picker keeps search title.</summary>
     private string PageTitleText
     {
         get
         {
-            if (!string.IsNullOrWhiteSpace(_brandInput) && !string.IsNullOrWhiteSpace(_normalized))
+            if (!string.IsNullOrWhiteSpace(_brandInput) && !string.IsNullOrWhiteSpace(_normalized)
+                && !string.Equals(_brandInput, "brands", StringComparison.OrdinalIgnoreCase))
             {
-                return $"Pricing and availability for {_brandInput.ToUpperInvariant()} {_normalized} - eParts Cart (Autoparts)";
+                return StorefrontPublicSeo.PartsChpuTitle(_brandInput, _normalized);
             }
 
             if (!string.IsNullOrWhiteSpace(_normalized))
@@ -1089,7 +1099,8 @@
         }
         catch (OperationCanceledException)
         {
-            _chpuSeoInStock = true; // optimistic index; client still shows live stock
+            // PHP skips enrichment when stock unknown — prefer noindex over false index.
+            _chpuSeoInStock = false;
         }
 
         ApplyChpuSeo();
@@ -1121,8 +1132,10 @@
 
         _chpuCanonical = StorefrontPublicSeo.CanonicalForPartsChpu(req, _brandInput, _normalized);
         _chpuDescription = StorefrontPublicSeo.PartsChpuDescription(_brandInput, _normalized, productName, inStock);
+        _chpuKeywords = StorefrontPublicSeo.PartsChpuKeywords(_brandInput, _normalized);
         _chpuRobots = StorefrontPublicSeo.PartsChpuRobots(inStock);
         _chpuHreflang = StorefrontPublicSeo.HreflangAlternatesForParts(req, _brandInput, _normalized);
+        _chpuHeadExtras = StorefrontPublicSeo.HeadExtrasHtml(req);
         var crossPairs = _crossRefs
             .Select(c => (c.Brand, c.Article))
             .Take(25)

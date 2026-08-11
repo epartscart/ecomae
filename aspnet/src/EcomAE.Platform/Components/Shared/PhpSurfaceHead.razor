@@ -65,6 +65,7 @@
         {
             <link rel="alternate" hreflang="@alt.Hreflang" href="@alt.Href" />
         }
+        @((MarkupString)StorefrontPublicSeo.HeadExtrasHtml(_request))
         @((MarkupString)StorefrontPublicSeo.JsonLdBlock(_request, _seoTitle))
     }
     @if (IncludeBosLoginScripts)
@@ -140,6 +141,24 @@
         })();
     </script>
 }
+@* Body-stream public SEO — live SSR often drops late HeadContent on / and /storefront/app.
+   Robots stay in App.razor only (avoid dual tags); description/canonical/JSON-LD must survive in body. *@
+@if (IncludePublicSeo && _request is not null)
+{
+    <meta name="description" content="@_seoDescription" />
+    <meta name="keywords" content="@StorefrontPublicSeo.DefaultKeywords" />
+    <link rel="canonical" href="@_canonical" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="@_canonical" />
+    <meta property="og:title" content="@_seoTitle" />
+    <meta property="og:description" content="@_seoDescription" />
+    @foreach (var alt in StorefrontPublicSeo.HreflangAlternates(_request))
+    {
+        <link rel="alternate" hreflang="@alt.Hreflang" href="@alt.Href" />
+    }
+    @((MarkupString)StorefrontPublicSeo.HeadExtrasHtml(_request))
+    @((MarkupString)StorefrontPublicSeo.JsonLdBlock(_request, _seoTitle))
+}
 
 @code {
     [Parameter, EditorRequired] public string Surface { get; set; } = "cp";
@@ -171,7 +190,7 @@
         {
             var host = _request.Host.Host;
             _seoTitle = StorefrontIndustryHostResolver.ResolveStorefrontTitle(host);
-            _seoDescription = StorefrontPublicSeo.DefaultDescription;
+            _seoDescription = StorefrontPublicSeo.HomeMetaDescription;
             _canonical = StorefrontPublicSeo.CanonicalForStorefrontHome(_request);
         }
 
