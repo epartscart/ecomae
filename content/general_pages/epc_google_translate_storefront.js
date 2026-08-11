@@ -1,6 +1,7 @@
 (function () {
 	"use strict";
 
+	// Sticky manual choice (localStorage + epc_lang cookie). Auto IP language only when unset.
 	var epcTranslateManualKey = "epcTranslateManualLanguage";
 	var epcTranslateAutoKey = "epcTranslateAutoLanguage";
 	var epcTranslateAutoAppliedKey = "epcTranslateAutoAppliedLanguage";
@@ -12,6 +13,9 @@
 	function epcCmsActiveLangs() {
 		var root = epcRoot();
 		var raw = root ? (root.getAttribute("data-cms-langs") || "en") : "en";
+		if (window.epcCmsActiveLangs && window.epcCmsActiveLangs.length) {
+			return window.epcCmsActiveLangs.map(function (s) { return String(s).toLowerCase(); });
+		}
 		return raw.split(",").map(function (s) { return s.trim().toLowerCase(); }).filter(Boolean);
 	}
 
@@ -19,6 +23,9 @@
 		var root = epcRoot();
 		if (root && root.getAttribute("data-cms-lang")) {
 			return String(root.getAttribute("data-cms-lang")).toLowerCase();
+		}
+		if (typeof window.epcCmsCurrentLang === "string" && window.epcCmsCurrentLang) {
+			return String(window.epcCmsCurrentLang).toLowerCase();
 		}
 		var m = (window.location.pathname || "").match(/^\/([a-z]{2})(?:\/|$)/i);
 		return m ? m[1].toLowerCase() : "en";
@@ -39,10 +46,99 @@
 		}
 	}
 
+	function epcCookieDomains() {
+		var hostParts = window.location.hostname.split(".");
+		var domains = ["", window.location.hostname];
+		if (hostParts.length > 2) {
+			domains.push("." + hostParts.slice(-2).join("."));
+		}
+		return domains;
+	}
+
+	function epcClearTranslateCookie() {
+		var domains = epcCookieDomains();
+		for (var i = 0; i < domains.length; i++) {
+			var d = domains[i] ? "; domain=" + domains[i] : "";
+			document.cookie = "googtrans=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/" + d;
+		}
+	}
+
+	function epcClearManualLanguageCookie() {
+		var domains = epcCookieDomains();
+		for (var i = 0; i < domains.length; i++) {
+			var d = domains[i] ? "; domain=" + domains[i] : "";
+			document.cookie = "epc_lang=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/" + d;
+		}
+	}
+
+	/** Google Translate cookie only — never marks a language as user-chosen. */
+	function epcSetTranslateCookie(lang) {
+		lang = String(lang || "en").toLowerCase();
+		var domains = epcCookieDomains();
+		for (var i = 0; i < domains.length; i++) {
+			var d = domains[i] ? "; domain=" + domains[i] : "";
+			if (lang === "en") {
+				document.cookie = "googtrans=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/" + d;
+			} else {
+				document.cookie = "googtrans=/en/" + lang + "; path=/; max-age=31536000; SameSite=Lax" + d;
+			}
+		}
+	}
+
+	function epcTranslateCookieLanguage() {
+		var match = document.cookie.match(/(?:^|;\s*)googtrans=([^;]+)/);
+		if (match) {
+			var parts = decodeURIComponent(match[1]).split("/");
+			if (parts.length >= 3 && parts[2]) {
+				return parts[2];
+			}
+		}
+		return "";
+	}
+
+	function epcReadManualLanguage() {
+		try {
+			var stored = localStorage.getItem(epcTranslateManualKey) || "";
+			if (stored) {
+				return String(stored).toLowerCase();
+			}
+		} catch (e) {}
+		// epc_lang is written only by manual picks (survives when localStorage is blocked).
+		var epcMatch = document.cookie.match(/(?:^|;\s*)epc_lang=([^;]+)/);
+		if (epcMatch) {
+			return decodeURIComponent(epcMatch[1] || "").toLowerCase();
+		}
+		return "";
+	}
+
+	function epcWriteManualLanguage(lang) {
+		lang = String(lang || "en").toLowerCase();
+		try {
+			localStorage.setItem(epcTranslateManualKey, lang);
+			sessionStorage.removeItem(epcTranslateAutoAppliedKey);
+		} catch (e) {}
+		var domains = epcCookieDomains();
+		for (var i = 0; i < domains.length; i++) {
+			var d = domains[i] ? "; domain=" + domains[i] : "";
+			document.cookie = "epc_lang=" + encodeURIComponent(lang) + "; path=/; max-age=31536000; SameSite=Lax" + d;
+		}
+		epcSetTranslateCookie(lang);
+	}
+
+	/** ASP.NET app paths must not be rewritten to /en/storefront/... */
+	function epcIsAspNetAppPath(path) {
+		path = String(path || "/");
+		return /^\/(storefront|cp|erp|bos|marketing|platform-assets|_framework|auth)\b/i.test(path);
+	}
+
 	function epcCmsLangNavigate(lang) {
 		lang = String(lang || "").toLowerCase();
 		var active = epcCmsActiveLangs();
 		if (!lang || active.indexOf(lang) === -1) {
+			return false;
+		}
+		var path = window.location.pathname || "/";
+		if (epcIsAspNetAppPath(path)) {
 			return false;
 		}
 		if (typeof window.lang_selected === "function") {
@@ -51,7 +147,6 @@
 		}
 		var date = new Date(new Date().getTime() + 15552000 * 1000);
 		document.cookie = "lang=" + lang + "; path=/; expires=" + date.toUTCString();
-		var path = window.location.pathname || "/";
 		var search = window.location.search || "";
 		var hash = window.location.hash || "";
 		var parts = path.split("/");
@@ -60,62 +155,32 @@
 			window.location.assign(parts.join("/") + search + hash);
 			return true;
 		}
-		window.location.assign("/" + lang + (path === "/" ? "/" : path) + search + hash);
-		return true;
-	}
-
-	function epcTranslateCookieLanguage() {
-		var match = document.cookie.match(/(?:^|;\s*)googtrans=([^;]+)/);
-		if (!match) {
-			return "en";
+		// Only prepend /{lang} for classic PHP multilang roots — never for /storefront/*.
+		if (path === "/" || path === "") {
+			window.location.assign("/" + lang + "/" + search + hash);
+			return true;
 		}
-		var parts = decodeURIComponent(match[1]).split("/");
-		return parts.length >= 3 && parts[2] ? parts[2] : "en";
-	}
-
-	function epcClearTranslateCookie() {
-		var hostParts = window.location.hostname.split(".");
-		var domains = ["", window.location.hostname];
-		if (hostParts.length > 2) {
-			domains.push("." + hostParts.slice(-2).join("."));
-		}
-		for (var i = 0; i < domains.length; i++) {
-			document.cookie = "googtrans=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/" + (domains[i] ? "; domain=" + domains[i] : "");
-		}
-	}
-
-	function epcSetTranslateCookie(lang) {
-		var hostParts = window.location.hostname.split(".");
-		var domains = ["", window.location.hostname];
-		if (hostParts.length > 2) {
-			domains.push("." + hostParts.slice(-2).join("."));
-		}
-		for (var i = 0; i < domains.length; i++) {
-			document.cookie = "googtrans=/en/" + lang + "; path=/; max-age=31536000; SameSite=Lax" + (domains[i] ? "; domain=" + domains[i] : "");
-		}
+		return false;
 	}
 
 	function epcApplyNativeTranslate(lang) {
 		lang = String(lang || "en").toLowerCase();
-		try {
-			localStorage.setItem(epcTranslateManualKey, lang);
-			// Allow a later pick (or auto) after the user cancelled / chose English.
-			sessionStorage.removeItem(epcTranslateAutoAppliedKey);
-		} catch (e) {}
+		epcWriteManualLanguage(lang);
+		epcTranslateStatus("Language set manually: " + lang);
 
-		// English must always clear googtrans first. CMS navigate used to return early
-		// and leave /en/<other> cookies stuck — then further picks looked "dead".
 		if (lang === "en") {
 			epcClearTranslateCookie();
-			epcCmsLangNavigate("en");
-			window.location.reload();
+			epcSetTranslateCookie("en");
+			// Stay on the same ASP.NET URL (e.g. /storefront/login).
+			if (!epcCmsLangNavigate("en")) {
+				window.location.reload();
+			}
 			return;
 		}
 
 		if (epcCmsLangNavigate(lang)) {
 			return;
 		}
-		epcSetTranslateCookie(lang);
 		var combo = document.querySelector("#google_translate_element select.goog-te-combo");
 		if (combo) {
 			combo.value = lang;
@@ -123,11 +188,15 @@
 		}
 		window.setTimeout(function () {
 			window.location.reload();
-		}, 500);
+		}, 400);
 	}
 
 	function epcApplyAutoTranslate(lang) {
 		if (!lang || lang === "en") {
+			return;
+		}
+		// Never auto-override a sticky manual choice (including manual English).
+		if (epcReadManualLanguage()) {
 			return;
 		}
 		try {
@@ -136,13 +205,13 @@
 			}
 			sessionStorage.setItem(epcTranslateAutoAppliedKey, lang);
 		} catch (e) {}
-		if (epcCmsLangNavigate(lang)) {
-			return;
-		}
 		epcSetTranslateCookie(lang);
 		var select = document.getElementById("epc_native_translate_select");
 		if (select) {
 			select.value = lang;
+		}
+		if (epcCmsLangNavigate(lang)) {
+			return;
 		}
 		var attempts = 0;
 		(function applyWhenReady() {
@@ -152,7 +221,7 @@
 				combo.dispatchEvent(new Event("change"));
 				window.setTimeout(function () {
 					window.location.reload();
-				}, 600);
+				}, 500);
 				return;
 			}
 			attempts++;
@@ -175,9 +244,7 @@
 			return;
 		}
 		combo.addEventListener("change", function () {
-			try {
-				localStorage.setItem(epcTranslateManualKey, this.value || "en");
-			} catch (e) {}
+			epcWriteManualLanguage(this.value || "en");
 		});
 	}
 
@@ -186,17 +253,12 @@
 		if (!select || !lang) {
 			return "";
 		}
-		var normalized = String(lang).trim();
+		var normalized = String(lang).trim().replace("_", "-");
 		if (!normalized) {
 			return "";
 		}
-		normalized = normalized.replace("_", "-");
 		var base = normalized.split("-")[0].toLowerCase();
-		var aliases = {
-			he: "iw",
-			jv: "jw",
-			zh: "zh-CN"
-		};
+		var aliases = { he: "iw", jv: "jw", zh: "zh-CN" };
 		var candidates = [normalized, base, aliases[base]];
 		for (var i = 0; i < candidates.length; i++) {
 			if (candidates[i] && select.querySelector('option[value="' + candidates[i] + '"]')) {
@@ -220,28 +282,39 @@
 	function epcLanguageForCountry(countryCode, languages) {
 		var country = String(countryCode || "").toUpperCase();
 		var map = {
-AE: 'ar', SA: 'ar', QA: 'ar', KW: 'ar', BH: 'ar', OM: 'ar', JO: 'ar', LB: 'ar', EG: 'ar', IQ: 'ar', MA: 'ar', DZ: 'ar', TN: 'ar',
-			FR: 'fr', BE: 'fr', CH: 'fr', LU: 'fr', MC: 'fr',
-			DE: 'de', AT: 'de', LI: 'de',
-			ES: 'es', MX: 'es', AR: 'es', CL: 'es', CO: 'es', PE: 'es', VE: 'es', UY: 'es', PY: 'es', BO: 'es', EC: 'es',
-			IT: 'it', SM: 'it', VA: 'it',
-			PT: 'pt', BR: 'pt',
-			RU: 'ru', BY: 'ru', KZ: 'ru', KG: 'ru', TJ: 'ru',
-			TR: 'tr', CY: 'tr',
-			IN: 'hi',
-			PK: 'ur',
-			CN: 'zh-CN', HK: 'zh-CN', MO: 'zh-CN', SG: 'zh-CN', TW: 'zh-CN',
-			NL: 'nl', DK: 'da', SE: 'sv', NO: 'no', FI: 'fi',
-			PL: 'pl', CZ: 'cs', SK: 'sk', HU: 'hu', RO: 'ro', BG: 'bg',
-			GR: 'el', RS: 'sr', HR: 'hr', SI: 'sl', UA: 'uk',
-			TH: 'th', VN: 'vi', ID: 'id', MY: 'ms', KR: 'ko', JP: 'ja',
-			IR: 'fa', IL: 'iw', BD: 'bn', LK: 'si', NP: 'ne'
+			// Explicit English markets — do NOT fall through to browser (fixes US→Afrikaans).
+			US: "en", GB: "en", AU: "en", NZ: "en", IE: "en", CA: "en",
+			// Arabic / GCC
+			AE: "ar", SA: "ar", QA: "ar", KW: "ar", BH: "ar", OM: "ar", JO: "ar", LB: "ar",
+			EG: "ar", IQ: "ar", MA: "ar", DZ: "ar", TN: "ar", LY: "ar", YE: "ar", SY: "ar",
+			// South Africa → Afrikaans only when IP is ZA (not US browser quirk)
+			ZA: "af",
+			FR: "fr", BE: "fr", CH: "fr", LU: "fr", MC: "fr",
+			DE: "de", AT: "de", LI: "de",
+			ES: "es", MX: "es", AR: "es", CL: "es", CO: "es", PE: "es", VE: "es", UY: "es", PY: "es", BO: "es", EC: "es",
+			IT: "it", SM: "it", VA: "it",
+			PT: "pt", BR: "pt",
+			RU: "ru", BY: "ru", KZ: "ru", KG: "ru", TJ: "ru",
+			TR: "tr", CY: "tr",
+			IN: "hi",
+			PK: "ur",
+			CN: "zh-CN", HK: "zh-CN", MO: "zh-CN", SG: "zh-CN", TW: "zh-CN",
+			NL: "nl", DK: "da", SE: "sv", NO: "no", FI: "fi",
+			PL: "pl", CZ: "cs", SK: "sk", HU: "hu", RO: "ro", BG: "bg",
+			GR: "el", RS: "sr", HR: "hr", SI: "sl", UA: "uk",
+			TH: "th", VN: "vi", ID: "id", MY: "ms", KR: "ko", JP: "ja",
+			IR: "fa", IL: "iw", BD: "bn", LK: "si", NP: "ne"
 		};
-		return map[country] || epcLanguageFromIpApiLanguages(languages) || "en";
+		if (Object.prototype.hasOwnProperty.call(map, country)) {
+			return map[country];
+		}
+		return epcLanguageFromIpApiLanguages(languages) || "";
 	}
 
 	function epcBrowserLanguage() {
-		var list = navigator.languages && navigator.languages.length ? navigator.languages : [navigator.language || navigator.userLanguage || ""];
+		var list = navigator.languages && navigator.languages.length
+			? navigator.languages
+			: [navigator.language || navigator.userLanguage || ""];
 		for (var i = 0; i < list.length; i++) {
 			var lang = epcSupportedTranslateLanguage(list[i]);
 			if (lang) {
@@ -249,14 +322,6 @@ AE: 'ar', SA: 'ar', QA: 'ar', KW: 'ar', BH: 'ar', OM: 'ar', JO: 'ar', LB: 'ar', 
 			}
 		}
 		return "";
-	}
-
-	function epcReadManualLanguage() {
-		try {
-			return localStorage.getItem(epcTranslateManualKey) || "";
-		} catch (e) {
-			return "";
-		}
 	}
 
 	function epcSaveAutoLanguage(country, lang) {
@@ -317,26 +382,56 @@ AE: 'ar', SA: 'ar', QA: 'ar', KW: 'ar', BH: 'ar', OM: 'ar', JO: 'ar', LB: 'ar', 
 	}
 
 	function epcAutoTranslateByCountry() {
-		var currentLanguage = epcTranslateCookieLanguage();
 		var manualLanguage = epcReadManualLanguage();
 		if (manualLanguage) {
+			var select = document.getElementById("epc_native_translate_select");
+			if (select && select.querySelector('option[value="' + manualLanguage + '"]')) {
+				select.value = manualLanguage;
+			}
 			epcTranslateStatus("Language set manually: " + manualLanguage);
+			// Re-apply non-English manual GT if cookie was cleared.
+			if (manualLanguage !== "en" && epcTranslateCookieLanguage() !== manualLanguage) {
+				epcApplyNativeTranslate(manualLanguage);
+			}
 			return;
 		}
-		if (currentLanguage !== "en") {
-			epcTranslateStatus("Auto language active: " + currentLanguage);
-			return;
-		}
+
+		var currentLanguage = epcTranslateCookieLanguage();
+		// Keep a prior auto language only until geo can confirm; EN markets clear stale af/etc.
+		var stickyAutoCookie = currentLanguage && currentLanguage !== "en";
+
 		epcDetectVisitorCountryWithRetry(0)
 			.then(function (data) {
+				// Bail if user picked a language while the geo lookup was in flight.
+				if (epcReadManualLanguage()) {
+					epcTranslateStatus("Language set manually: " + epcReadManualLanguage());
+					return;
+				}
 				var lang = "";
 				var country = "";
+				var countryMapped = false;
 				if (data && data.country) {
 					country = String(data.country).toUpperCase();
 					lang = epcLanguageForCountry(country, data.languages);
+					countryMapped = true;
 				}
-				if (!lang || lang === "en") {
-					lang = epcBrowserLanguage() || "en";
+				// Only use browser language when country is unknown — never override EN markets.
+				if (!countryMapped) {
+					lang = stickyAutoCookie ? currentLanguage : (epcBrowserLanguage() || "en");
+				} else if (!lang) {
+					lang = "en";
+				}
+				// Country says English → drop leftover googtrans (common US→Afrikaans leftover).
+				if (lang === "en" && stickyAutoCookie) {
+					epcClearTranslateCookie();
+					epcSetTranslateCookie("en");
+					var selectEn = document.getElementById("epc_native_translate_select");
+					if (selectEn) {
+						selectEn.value = "en";
+					}
+					epcTranslateStatus("Auto language: English" + (country ? " (" + country + ")" : ""));
+					window.location.reload();
+					return;
 				}
 				epcSaveAutoLanguage(country, lang);
 				if (lang && lang !== "en") {
@@ -344,13 +439,18 @@ AE: 'ar', SA: 'ar', QA: 'ar', KW: 'ar', BH: 'ar', OM: 'ar', JO: 'ar', LB: 'ar', 
 					if (select) {
 						select.value = lang;
 					}
-					epcTranslateStatus("Auto language: " + (country ? country + " -> " : "") + lang);
-					epcApplyAutoTranslate(lang);
+					epcTranslateStatus("Auto language: " + (country ? country + " → " : "") + lang);
+					if (!stickyAutoCookie || currentLanguage !== lang) {
+						epcApplyAutoTranslate(lang);
+					}
 				} else {
-					epcTranslateStatus("Auto language: English");
+					epcTranslateStatus("Auto language: English" + (country ? " (" + country + ")" : ""));
 				}
 			})
 			.catch(function () {
+				if (epcReadManualLanguage()) {
+					return;
+				}
 				var lang = epcBrowserLanguage() || "en";
 				if (lang !== "en") {
 					epcTranslateStatus("Auto language from browser: " + lang);
@@ -366,30 +466,24 @@ AE: 'ar', SA: 'ar', QA: 'ar', KW: 'ar', BH: 'ar', OM: 'ar', JO: 'ar', LB: 'ar', 
 		if (!select) {
 			return;
 		}
-		var preferred = epcCmsCurrentLang() || epcTranslateCookieLanguage() || "en";
+
+		var manual = epcReadManualLanguage();
+		var preferred = manual || epcTranslateCookieLanguage() || epcCmsCurrentLang() || "en";
 		if (select.querySelector('option[value="' + preferred + '"]')) {
 			select.value = preferred;
 		} else {
-			select.value = epcTranslateCookieLanguage() || "en";
+			select.value = "en";
 		}
-		if (select.value && select.value !== "en") {
-			epcTranslateStatus("Language: " + select.value);
-		}
+
 		select.addEventListener("change", function () {
-			epcApplyNativeTranslate(this.value);
+			epcApplyNativeTranslate(this.value || "en");
 		});
-		// Empty "auto" sentinel: if manual was English-only cancel, still allow GT cookie restore.
-		var cookieLang = epcTranslateCookieLanguage();
-		if (cookieLang && cookieLang !== "en" && select.querySelector('option[value="' + cookieLang + '"]')) {
-			select.value = cookieLang;
-			epcTranslateStatus("Language: " + cookieLang);
-		}
-		var cmsLang = epcCmsCurrentLang();
-		var active = epcCmsActiveLangs();
-		if (cmsLang && cmsLang !== "en" && active.indexOf(cmsLang) !== -1) {
-			epcTranslateStatus("Language: " + cmsLang);
+
+		if (manual) {
+			epcTranslateStatus("Language set manually: " + manual);
 			return;
 		}
+
 		epcAutoTranslateByCountry();
 	}
 
