@@ -16,6 +16,22 @@
 <PageTitle>@PageTitleText</PageTitle>
 <PhpChromeStyles Surface="storefront" />
 <HeadContent>
+@if (_emitChpuSeo)
+{
+    <meta name="robots" content="@_chpuRobots" />
+    <meta name="description" content="@_chpuDescription" />
+    <meta name="keywords" content="@StorefrontPublicSeo.DefaultKeywords" />
+    <link rel="canonical" href="@_chpuCanonical" />
+    <meta property="og:type" content="product" />
+    <meta property="og:url" content="@_chpuCanonical" />
+    <meta property="og:title" content="@PageTitleText" />
+    <meta property="og:description" content="@_chpuDescription" />
+    @foreach (var alt in _chpuHreflang)
+    {
+        <link rel="alternate" hreflang="@alt.Hreflang" href="@alt.Href" />
+    }
+    @((MarkupString)_chpuJsonLd)
+}
 <link rel="stylesheet" href="/platform-assets/epc_warehouse_search_parity.css?v=20260811z" />
 <style>
         /* Keep PHP professional-shell look; only hide inventing ASP.NET chrome on CHPU/picker. */
@@ -44,6 +60,19 @@
 </HeadContent>
 
 <StorefrontAnalytics Enabled="true" IncludeClarity="true" />
+
+@* Body-stream SEO fallback — live SSR often drops late HeadContent while body chrome survives. *@
+@if (_emitChpuSeo)
+{
+    <meta name="robots" content="@_chpuRobots" />
+    <meta name="description" content="@_chpuDescription" />
+    <link rel="canonical" href="@_chpuCanonical" />
+    <meta property="og:type" content="product" />
+    <meta property="og:url" content="@_chpuCanonical" />
+    <meta property="og:title" content="@PageTitleText" />
+    <meta property="og:description" content="@_chpuDescription" />
+    @((MarkupString)_chpuJsonLd)
+}
 
 <PhpStorefrontDesktopChrome>
 
@@ -764,6 +793,12 @@
     private bool _pricesVisible = true;
     private string _accessState = "ok";
     private string _loginCtaHtml = string.Empty;
+    private bool _emitChpuSeo;
+    private string _chpuCanonical = "";
+    private string _chpuDescription = "";
+    private string _chpuRobots = "noindex,follow";
+    private string _chpuJsonLd = "";
+    private IReadOnlyList<(string Hreflang, string Href)> _chpuHreflang = [];
 
     private Microsoft.AspNetCore.Components.MarkupString JsonArticle =>
         (Microsoft.AspNetCore.Components.MarkupString)System.Text.Json.JsonSerializer.Serialize(_normalized);
@@ -968,10 +1003,20 @@
             return;
         }
 
-        var genuine = await Dashboards.ListStorefrontGenuineBrandsAsync();
+        // Fast first paint (~1s): parallel local digests only. Full OE cross network + extra
+        // supplier rows load client-side (ajax_epc_cross_search + products-of-bunch poll).
+        const int ssrOfferLimit = 48;
+        const int ssrCrossLimit = 40;
+        var genuineTask = Dashboards.ListStorefrontGenuineBrandsAsync();
+        var searchTask = Dashboards.SearchStorefrontPartsAsync(_articleInput, _brandInput, ssrOfferLimit);
+        var crossTask = Dashboards.ListStorefrontCrossRefsAsync(_articleInput, _brandInput, ssrCrossLimit);
+        var brandsTask = Dashboards.ListStorefrontArticleBrandsAsync(_articleInput, 24);
+        await Task.WhenAll(genuineTask, searchTask, crossTask, brandsTask);
+
+        var genuine = await genuineTask;
         _genuineKeys = new HashSet<string>(genuine.Brands, StringComparer.OrdinalIgnoreCase);
 
-        var result = await Dashboards.SearchStorefrontPartsAsync(_articleInput, _brandInput, 100);
+        var result = await searchTask;
         _normalized = result.Article;
         _rows = _pricesVisible ? result.Rows : PriceAccess.RedactOffers(result.Rows);
         _source = result.Source;
@@ -979,23 +1024,63 @@
         _showBrandPicker = false;
         SplitOfferRows(_rows);
 
-        var crossResult = await Dashboards.ListStorefrontCrossRefsAsync(_articleInput, _brandInput, 80);
+        var crossResult = await crossTask;
         _crossRefs = crossResult.Rows;
         _crossStockRefs = crossResult.Rows.Where(static r => r.InStock).ToList();
         if (_crossRefs.Count == 0)
         {
-            // Broader article-level crosses (no brand filter), then manufacturer picker siblings.
-            var anyBrand = await Dashboards.ListStorefrontCrossRefsAsync(_articleInput, brand: null, 80);
+            // Broader article-level crosses (local analogs only — no PHP crossbase on SSR).
+            var anyBrand = await Dashboards.ListStorefrontCrossRefsAsync(_articleInput, brand: null, ssrCrossLimit);
             _crossRefs = anyBrand.Rows;
             _crossStockRefs = anyBrand.Rows.Where(static r => r.InStock).ToList();
         }
 
-        var brandSiblings = await Dashboards.ListStorefrontArticleBrandsAsync(_articleInput, 40);
+        var brandSiblings = await brandsTask;
         _relatedBrandCross = brandSiblings.Brands
             .Select(b => b.Brand)
             .Where(b => !string.Equals(b, _brandInput, StringComparison.OrdinalIgnoreCase))
             .Take(24)
             .ToList();
+
+        ApplyChpuSeo();
+    }
+
+    private void ApplyChpuSeo()
+    {
+        if (string.IsNullOrWhiteSpace(_brandInput) || string.IsNullOrWhiteSpace(_normalized))
+        {
+            _emitChpuSeo = false;
+            return;
+        }
+
+        var req = Http.HttpContext?.Request;
+        if (req is null)
+        {
+            _emitChpuSeo = false;
+            return;
+        }
+
+        var inStock = _rows.Any(static r => r.Exist > 0);
+        var productName = _rows.Select(static r => r.Name).FirstOrDefault(static n => !string.IsNullOrWhiteSpace(n));
+        var minPrice = _rows.Where(static r => r.Price > 0m).Select(static r => r.Price).DefaultIfEmpty(0m).Min();
+        _chpuCanonical = StorefrontPublicSeo.CanonicalForPartsChpu(req, _brandInput, _normalized);
+        _chpuDescription = StorefrontPublicSeo.PartsChpuDescription(_brandInput, _normalized, productName, inStock);
+        _chpuRobots = StorefrontPublicSeo.PartsChpuRobots(inStock);
+        _chpuHreflang = StorefrontPublicSeo.HreflangAlternatesForParts(req, _brandInput, _normalized);
+        var crossPairs = _crossRefs
+            .Select(c => (c.Brand, c.Article))
+            .Take(25)
+            .ToList();
+        _chpuJsonLd = StorefrontPublicSeo.ProductJsonLdBlock(
+            req,
+            _brandInput,
+            _normalized,
+            productName,
+            _pricesVisible ? minPrice : 0m,
+            inStock,
+            "AED",
+            crossPairs);
+        _emitChpuSeo = true;
     }
 
     private void SplitOfferRows(IReadOnlyList<StorefrontPartOfferDigest> rows)

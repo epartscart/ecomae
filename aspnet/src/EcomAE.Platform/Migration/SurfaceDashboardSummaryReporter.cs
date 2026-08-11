@@ -1377,9 +1377,15 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
             await EnrichStorefrontCrossStockAsync(connection, rows, cancellationToken).ConfigureAwait(false);
 
-            // Local analogs table is a thin subset; PHP ajax_epc_cross_search also pulls crossbase.
-            // e.g. JSASAKASHI/C110J has ~600 OE network refs that never appear in analogs_list alone.
-            if (rows.Count < 8 && _phpWarehouseBridge is not null)
+            // Do NOT block CHPU SSR on PHP ajax_epc_cross_search (often 3s+).
+            // StorefrontSearchApp loads the full crossbase network client-side after first paint.
+            // Opt-in only for digests/tools that set ECOMAE_SSR_PHP_CROSS=YES.
+            if (rows.Count < 8
+                && _phpWarehouseBridge is not null
+                && string.Equals(
+                    Environment.GetEnvironmentVariable("ECOMAE_SSR_PHP_CROSS"),
+                    "YES",
+                    StringComparison.OrdinalIgnoreCase))
             {
                 var phpRows = await _phpWarehouseBridge
                     .TryLoadCrossSearchAsync(normalized, brandNorm.Length > 0 ? brandNorm : null, safeLimit, cancellationToken)
@@ -1394,24 +1400,6 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
         catch (Exception ex)
         {
-            if (_phpWarehouseBridge is not null)
-            {
-                try
-                {
-                    var phpRows = await _phpWarehouseBridge
-                        .TryLoadCrossSearchAsync(normalized, brandNorm.Length > 0 ? brandNorm : null, safeLimit, cancellationToken)
-                        .ConfigureAwait(false);
-                    if (phpRows.Count > 0)
-                    {
-                        return new(normalized, phpRows, phpRows.Count, "php-cross-search", string.Empty);
-                    }
-                }
-                catch
-                {
-                    // fall through to database-error
-                }
-            }
-
             return new(normalized, [], 0, "database-error", ex.Message);
         }
     }
