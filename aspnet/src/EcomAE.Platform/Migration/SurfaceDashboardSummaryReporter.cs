@@ -1753,7 +1753,8 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         string article,
         string? brand,
         int limit,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default,
+        bool includeCrossbase = false)
     {
         // PHP local path loads hundreds of CP analogs in one indexed query — keep that shape for ~1s paint.
         var safeLimit = Math.Clamp(limit, 1, 600);
@@ -1761,12 +1762,12 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         var brandNorm = (brand ?? string.Empty).Trim().ToUpperInvariant();
         if (string.IsNullOrWhiteSpace(normalized))
         {
-            return new(string.Empty, brandNorm, [], [], 0, 0, "empty", "Enter a part number or OE code.");
+            return new(string.Empty, brandNorm, [], [], 0, 0, 0, "empty", "Enter a part number or OE code.");
         }
 
         if (!_connections.IsConfigured)
         {
-            return new(normalized, brandNorm, [], [], 0, 0, "migration", "TenantRegistry DB is not configured.");
+            return new(normalized, brandNorm, [], [], 0, 0, 0, "migration", "TenantRegistry DB is not configured.");
         }
 
         try
@@ -1824,24 +1825,63 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                     continue;
                 }
 
-                rows.Add(new StorefrontCrossRefDigest(partnerBrand.Trim(), partnerArticle.Trim(), false));
+                rows.Add(new StorefrontCrossRefDigest(partnerBrand.Trim(), partnerArticle.Trim(), false, "cp"));
+            }
+
+            var localCount = rows.Count;
+            var crossbaseCount = 0;
+            var source = "aspnet-cross-local";
+
+            // PHP ajax_epc_cross_search merges crossbase.ru after local CP — opt-in so first paint stays fast.
+            if (includeCrossbase && rows.Count < safeLimit)
+            {
+                var (crossbaseRefs, reported) = await CrossbaseReferenceLoader
+                    .LoadAsync(normalized, safeLimit - rows.Count, cancellationToken)
+                    .ConfigureAwait(false);
+                foreach (var xref in crossbaseRefs)
+                {
+                    var partnerNorm = PriceLookupRequest.NormalizeArticle(xref.Article);
+                    var key = xref.Brand.Trim().ToUpperInvariant() + "|" + partnerNorm;
+                    if (!seen.Add(key))
+                    {
+                        continue;
+                    }
+
+                    rows.Add(xref);
+                    crossbaseCount++;
+                    if (rows.Count >= safeLimit)
+                    {
+                        break;
+                    }
+                }
+
+                if (crossbaseCount > 0)
+                {
+                    source = "aspnet-cross-local+crossbase";
+                }
+
+                if (reported > crossbaseCount)
+                {
+                    // Prefer provider total when HTML reports more than we parsed into the window.
+                    crossbaseCount = Math.Max(crossbaseCount, reported);
+                }
             }
 
             // No N+1 stock probes here — that is what made PHP-shaped cross feel "asleep".
-            // Client paints the full local network immediately; stock badges enrich later if needed.
             return new(
                 normalized,
                 brandNorm,
                 rows,
                 [],
+                localCount,
+                crossbaseCount,
                 rows.Count,
-                rows.Count,
-                "aspnet-cross-local",
+                source,
                 string.Empty);
         }
         catch (Exception ex)
         {
-            return new(normalized, brandNorm, [], [], 0, 0, "database-error", ex.Message);
+            return new(normalized, brandNorm, [], [], 0, 0, 0, "database-error", ex.Message);
         }
     }
 

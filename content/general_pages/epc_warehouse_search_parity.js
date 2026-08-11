@@ -639,13 +639,19 @@
 		}
 		var body = document.getElementById("epcSfOfferBody");
 		if (body && window.MutationObserver) {
+			var moTimer = 0;
 			var mo = new MutationObserver(function () {
-				rebuildFilterOptions();
-				applyFilters();
-				wireRowActions(body);
-				bindSearchRowPhotoLoaders(body);
+				// Debounce — bulk appendProduct / translate mutations were freezing the tab.
+				if (moTimer) window.clearTimeout(moTimer);
+				moTimer = window.setTimeout(function () {
+					moTimer = 0;
+					rebuildFilterOptions();
+					applyFilters();
+					wireRowActions(body);
+					bindSearchRowPhotoLoaders(body);
+				}, 120);
 			});
-			mo.observe(body, { childList: true, subtree: true });
+			mo.observe(body, { childList: true, subtree: false });
 		}
 	}
 
