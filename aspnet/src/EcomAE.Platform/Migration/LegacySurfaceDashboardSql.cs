@@ -327,13 +327,39 @@ public static class LegacySurfaceDashboardSql
     /// CP OMS recent orders (platform-wide read digest).
     /// Office-manager ACL filtering remains PHP-authoritative.
     /// </summary>
-    public const string SelectCpShopOrders = """
+    /// <summary>Core columns only — fallback when OMS enrichment joins are missing on a tenant.</summary>
+    public const string SelectCpShopOrdersCore = """
         SELECT o.`id`, o.`time`, o.`user_id`, o.`status`, o.`paid`,
                IFNULL(o.`paid_type`, 0) AS paid_type,
                IFNULL(o.`office_id`, 0) AS office_id,
                IFNULL(o.`successfully_created`, 0) AS successfully_created,
                IFNULL((SELECT COUNT(*) FROM `shop_orders_items` i WHERE i.`order_id` = o.`id`), 0) AS count_items,
                IFNULL((SELECT SUM(i.`price` * i.`count_need`) FROM `shop_orders_items` i WHERE i.`order_id` = o.`id`), 0) AS order_sum
+        FROM `shop_orders` o
+        ORDER BY o.`id` DESC
+        LIMIT @limit
+        """;
+
+    public const string SelectCpShopOrders = """
+        SELECT o.`id`, o.`time`, o.`user_id`, o.`status`, o.`paid`,
+               IFNULL(o.`paid_type`, 0) AS paid_type,
+               IFNULL(o.`office_id`, 0) AS office_id,
+               IFNULL(o.`successfully_created`, 0) AS successfully_created,
+               IFNULL((SELECT COUNT(*) FROM `shop_orders_items` i WHERE i.`order_id` = o.`id`), 0) AS count_items,
+               IFNULL((SELECT SUM(i.`price` * i.`count_need`) FROM `shop_orders_items` i WHERE i.`order_id` = o.`id`), 0) AS order_sum,
+               IFNULL((SELECT SUM(i.`t2_price_purchase` * i.`count_need`) FROM `shop_orders_items` i WHERE i.`order_id` = o.`id`), 0) AS purchase_sum,
+               GREATEST(
+                   IFNULL((SELECT MAX(l.`time`) FROM `shop_orders_logs` l WHERE l.`order_id` = o.`id`), 0),
+                   IFNULL((SELECT MAX(m.`time`) FROM `shop_orders_messages` m WHERE m.`order_id` = o.`id`), 0),
+                   IFNULL(o.`time`, 0)
+               ) AS last_modified,
+               IFNULL((SELECT v.`viewed_flag` FROM `shop_orders_viewed` v WHERE v.`order_id` = o.`id` LIMIT 1), 1) AS viewed_flag,
+               IFNULL((SELECT u.`email` FROM `users` u WHERE u.`user_id` = o.`user_id` LIMIT 1), '') AS customer_label,
+               IFNULL((SELECT s.`name` FROM `shop_orders_statuses_ref` s WHERE s.`id` = o.`status` LIMIT 1), '') AS status_name,
+               IFNULL((SELECT s.`for_finish` FROM `shop_orders_statuses_ref` s WHERE s.`id` = o.`status` LIMIT 1), 0) AS status_for_finish,
+               IFNULL((SELECT s.`for_inverse` FROM `shop_orders_statuses_ref` s WHERE s.`id` = o.`status` LIMIT 1), 0) AS status_for_inverse,
+               IFNULL((SELECT s.`for_created` FROM `shop_orders_statuses_ref` s WHERE s.`id` = o.`status` LIMIT 1), 0) AS status_for_created,
+               IFNULL((SELECT om.`caption` FROM `shop_obtaining_modes` om WHERE om.`id` = o.`how_get` LIMIT 1), '') AS obtain_caption
         FROM `shop_orders` o
         ORDER BY o.`id` DESC
         LIMIT @limit
@@ -360,6 +386,80 @@ public static class LegacySurfaceDashboardSql
               SELECT `id` FROM `shop_orders_statuses_ref`
               WHERE `for_finish` != 1 AND `for_inverse` != 1
           )
+        """;
+
+    public const string CountCpOrdersCompleted = """
+        SELECT COUNT(*) FROM `shop_orders`
+        WHERE `status` IN (
+            SELECT `id` FROM `shop_orders_statuses_ref` WHERE `for_finish` = 1
+        )
+        """;
+
+    public const string SelectCpShopOrderById = """
+        SELECT o.`id`, o.`time`, o.`user_id`, o.`status`, o.`paid`,
+               IFNULL(o.`paid_type`, 0) AS paid_type,
+               IFNULL(o.`office_id`, 0) AS office_id,
+               IFNULL(o.`successfully_created`, 0) AS successfully_created,
+               IFNULL((SELECT COUNT(*) FROM `shop_orders_items` i WHERE i.`order_id` = o.`id`), 0) AS count_items,
+               IFNULL((SELECT SUM(i.`price` * i.`count_need`) FROM `shop_orders_items` i WHERE i.`order_id` = o.`id`), 0) AS order_sum,
+               IFNULL((SELECT SUM(i.`t2_price_purchase` * i.`count_need`) FROM `shop_orders_items` i WHERE i.`order_id` = o.`id`), 0) AS purchase_sum,
+               GREATEST(
+                   IFNULL((SELECT MAX(l.`time`) FROM `shop_orders_logs` l WHERE l.`order_id` = o.`id`), 0),
+                   IFNULL((SELECT MAX(m.`time`) FROM `shop_orders_messages` m WHERE m.`order_id` = o.`id`), 0),
+                   IFNULL(o.`time`, 0)
+               ) AS last_modified,
+               1 AS viewed_flag,
+               IFNULL((SELECT u.`email` FROM `users` u WHERE u.`user_id` = o.`user_id` LIMIT 1), '') AS customer_label,
+               IFNULL((SELECT s.`name` FROM `shop_orders_statuses_ref` s WHERE s.`id` = o.`status` LIMIT 1), '') AS status_name,
+               IFNULL((SELECT s.`for_finish` FROM `shop_orders_statuses_ref` s WHERE s.`id` = o.`status` LIMIT 1), 0) AS status_for_finish,
+               IFNULL((SELECT s.`for_inverse` FROM `shop_orders_statuses_ref` s WHERE s.`id` = o.`status` LIMIT 1), 0) AS status_for_inverse,
+               IFNULL((SELECT s.`for_created` FROM `shop_orders_statuses_ref` s WHERE s.`id` = o.`status` LIMIT 1), 0) AS status_for_created,
+               IFNULL((SELECT om.`caption` FROM `shop_obtaining_modes` om WHERE om.`id` = o.`how_get` LIMIT 1), '') AS obtain_caption,
+               IFNULL((SELECT u.`phone` FROM `users` u WHERE u.`user_id` = o.`user_id` LIMIT 1), '') AS customer_phone,
+               IFNULL((
+                   SELECT SUM(`amount`) FROM `shop_users_accounting`
+                   WHERE `active` = 1 AND `income` = 0 AND `order_id` = o.`id`
+               ), 0) -
+               IFNULL((
+                   SELECT SUM(`amount`) FROM `shop_users_accounting`
+                   WHERE `active` = 1 AND `income` = 1 AND `order_id` = o.`id`
+               ), 0) AS paid_sum
+        FROM `shop_orders` o
+        WHERE o.`id` = @orderId
+        LIMIT 1
+        """;
+
+    public const string SelectCpShopOrderItems = """
+        SELECT i.`id`, i.`order_id`,
+               IFNULL(i.`t2_manufacturer`, '') AS brand,
+               IFNULL(i.`t2_article`, '') AS article,
+               IFNULL(i.`t2_name`, '') AS name,
+               IFNULL(i.`price`, 0) AS price,
+               IFNULL(i.`count_need`, 0) AS count_need,
+               IFNULL(i.`t2_price_purchase`, 0) AS purchase,
+               IFNULL(i.`status`, 0) AS status,
+               '' AS status_name,
+               '' AS storage_label
+        FROM `shop_orders_items` i
+        WHERE i.`order_id` = @orderId
+        ORDER BY i.`id` ASC
+        """;
+
+    public const string SelectCpShopOrderLogs = """
+        SELECT IFNULL(`time`, 0) AS time, IFNULL(`text`, '') AS text,
+               IFNULL(`is_manager`, 0) AS is_manager, IFNULL(`is_robot`, 0) AS is_robot
+        FROM `shop_orders_logs`
+        WHERE `order_id` = @orderId
+        ORDER BY `id` DESC
+        LIMIT 40
+        """;
+
+    public const string SelectCpShopOrderMessages = """
+        SELECT `id`, IFNULL(`time`, 0) AS time, IFNULL(`text`, '') AS text, IFNULL(`is_customer`, 0) AS is_customer
+        FROM `shop_orders_messages`
+        WHERE `order_id` = @orderId AND IFNULL(`return_id`, 0) = 0
+        ORDER BY `id` ASC
+        LIMIT 80
         """;
 
     public const string SelectCpUsers = """

@@ -402,6 +402,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             var todayStart = new DateTimeOffset(DateTime.UtcNow.Date, TimeSpan.Zero).ToUnixTimeSeconds();
             var open = await ScalarIntSafeAsync(connection, LegacySurfaceDashboardSql.CountCpOrdersOpen, cancellationToken).ConfigureAwait(false);
             var pendingShip = await ScalarIntSafeAsync(connection, LegacySurfaceDashboardSql.CountCpOrdersPendingShip, cancellationToken).ConfigureAwait(false);
+            var completed = await ScalarIntSafeAsync(connection, LegacySurfaceDashboardSql.CountCpOrdersCompleted, cancellationToken).ConfigureAwait(false);
             var today = 0;
             try
             {
@@ -416,26 +417,19 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                 today = 0;
             }
 
-            var summary = new CpOrdersSummary(open, today, pendingShip, "database", string.Empty);
+            var summary = new CpOrdersSummary(open, today, pendingShip, "database", string.Empty, completed);
 
-            await using var command = connection.CreateCommand();
-            command.CommandText = LegacySurfaceDashboardSql.SelectCpShopOrders;
-            AddParameter(command, "@limit", safeLimit);
-            var rows = new List<CpShopOrderDigest>();
-            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
-            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            List<CpShopOrderDigest> rows;
+            try
             {
-                rows.Add(new CpShopOrderDigest(
-                    Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
-                    Convert.ToInt64(reader["time"] is DBNull ? 0 : reader["time"], CultureInfo.InvariantCulture),
-                    Convert.ToInt32(reader["user_id"] is DBNull ? 0 : reader["user_id"], CultureInfo.InvariantCulture),
-                    Convert.ToInt32(reader["status"] is DBNull ? 0 : reader["status"], CultureInfo.InvariantCulture),
-                    Convert.ToInt32(reader["paid"] is DBNull ? 0 : reader["paid"], CultureInfo.InvariantCulture),
-                    Convert.ToInt32(reader["paid_type"] is DBNull ? 0 : reader["paid_type"], CultureInfo.InvariantCulture),
-                    Convert.ToInt32(reader["office_id"] is DBNull ? 0 : reader["office_id"], CultureInfo.InvariantCulture),
-                    Convert.ToInt32(reader["successfully_created"] is DBNull ? 0 : reader["successfully_created"], CultureInfo.InvariantCulture),
-                    Convert.ToInt32(reader["count_items"] is DBNull ? 0 : reader["count_items"], CultureInfo.InvariantCulture),
-                    Convert.ToDecimal(reader["order_sum"] is DBNull ? 0m : reader["order_sum"], CultureInfo.InvariantCulture)));
+                rows = await ReadCpShopOrdersAsync(connection, LegacySurfaceDashboardSql.SelectCpShopOrders, safeLimit, cancellationToken)
+                    .ConfigureAwait(false);
+            }
+            catch
+            {
+                // Tenant schemas may lack viewed/logs/obtaining joins — fall back to core columns.
+                rows = await ReadCpShopOrdersAsync(connection, LegacySurfaceDashboardSql.SelectCpShopOrdersCore, safeLimit, cancellationToken)
+                    .ConfigureAwait(false);
             }
 
             return new(summary, rows, rows.Count, "database", string.Empty);
@@ -444,6 +438,206 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         {
             return new(new CpOrdersSummary(0, 0, 0, "database-error", ex.Message), [], 0, "database-error", ex.Message);
         }
+    }
+
+    private async Task<List<CpShopOrderDigest>> ReadCpShopOrdersAsync(
+        System.Data.Common.DbConnection connection,
+        string sql,
+        int safeLimit,
+        CancellationToken cancellationToken)
+    {
+        await using var command = connection.CreateCommand();
+        command.CommandText = sql;
+        AddParameter(command, "@limit", safeLimit);
+        var rows = new List<CpShopOrderDigest>();
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+        while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+        {
+            rows.Add(ReadCpShopOrderDigest(reader));
+        }
+
+        return rows;
+    }
+
+    public async Task<CpOrderDetailDigest?> GetCpOrderDetailAsync(long orderId, CancellationToken cancellationToken = default)
+    {
+        if (orderId <= 0 || !_connections.IsConfigured)
+        {
+            return null;
+        }
+
+        try
+        {
+            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var orderCmd = connection.CreateCommand();
+            orderCmd.CommandText = LegacySurfaceDashboardSql.SelectCpShopOrderById;
+            AddParameter(orderCmd, "@orderId", orderId);
+            await using var orderReader = await orderCmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            if (!await orderReader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                return null;
+            }
+
+            var order = ReadCpShopOrderDigest(orderReader);
+            var paidSum = Convert.ToDecimal(orderReader["paid_sum"] is DBNull ? 0m : orderReader["paid_sum"], CultureInfo.InvariantCulture);
+            var customerPhone = Convert.ToString(orderReader["customer_phone"] is DBNull ? "" : orderReader["customer_phone"], CultureInfo.InvariantCulture) ?? "";
+            await orderReader.DisposeAsync().ConfigureAwait(false);
+
+            var items = new List<CpOrderItemDigest>();
+            try
+            {
+                await using var itemsCmd = connection.CreateCommand();
+                itemsCmd.CommandText = LegacySurfaceDashboardSql.SelectCpShopOrderItems;
+                AddParameter(itemsCmd, "@orderId", orderId);
+                await using var itemsReader = await itemsCmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await itemsReader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    items.Add(new CpOrderItemDigest(
+                        Convert.ToInt64(itemsReader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(itemsReader["order_id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(itemsReader["brand"] is DBNull ? "" : itemsReader["brand"], CultureInfo.InvariantCulture) ?? "",
+                        Convert.ToString(itemsReader["article"] is DBNull ? "" : itemsReader["article"], CultureInfo.InvariantCulture) ?? "",
+                        Convert.ToString(itemsReader["name"] is DBNull ? "" : itemsReader["name"], CultureInfo.InvariantCulture) ?? "",
+                        Convert.ToDecimal(itemsReader["price"] is DBNull ? 0m : itemsReader["price"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(itemsReader["count_need"] is DBNull ? 0m : itemsReader["count_need"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(itemsReader["purchase"] is DBNull ? 0m : itemsReader["purchase"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(itemsReader["status"] is DBNull ? 0 : itemsReader["status"], CultureInfo.InvariantCulture),
+                        Convert.ToString(itemsReader["status_name"] is DBNull ? "" : itemsReader["status_name"], CultureInfo.InvariantCulture) ?? "",
+                        Convert.ToString(itemsReader["storage_label"] is DBNull ? "" : itemsReader["storage_label"], CultureInfo.InvariantCulture) ?? ""));
+                }
+            }
+            catch
+            {
+                // Item detail columns vary by tenant schema — list shell still works.
+            }
+
+            var logs = new List<CpOrderLogDigest>();
+            try
+            {
+                await using var logsCmd = connection.CreateCommand();
+                logsCmd.CommandText = LegacySurfaceDashboardSql.SelectCpShopOrderLogs;
+                AddParameter(logsCmd, "@orderId", orderId);
+                await using var logsReader = await logsCmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await logsReader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    logs.Add(new CpOrderLogDigest(
+                        Convert.ToInt64(logsReader["time"] is DBNull ? 0 : logsReader["time"], CultureInfo.InvariantCulture),
+                        Convert.ToString(logsReader["text"] is DBNull ? "" : logsReader["text"], CultureInfo.InvariantCulture) ?? "",
+                        Convert.ToInt32(logsReader["is_manager"] is DBNull ? 0 : logsReader["is_manager"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(logsReader["is_robot"] is DBNull ? 0 : logsReader["is_robot"], CultureInfo.InvariantCulture)));
+                }
+            }
+            catch
+            {
+            }
+
+            var messages = new List<CpOrderMessageDigest>();
+            try
+            {
+                await using var msgCmd = connection.CreateCommand();
+                msgCmd.CommandText = LegacySurfaceDashboardSql.SelectCpShopOrderMessages;
+                AddParameter(msgCmd, "@orderId", orderId);
+                await using var msgReader = await msgCmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await msgReader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    messages.Add(new CpOrderMessageDigest(
+                        Convert.ToInt64(msgReader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(msgReader["time"] is DBNull ? 0 : msgReader["time"], CultureInfo.InvariantCulture),
+                        Convert.ToString(msgReader["text"] is DBNull ? "" : msgReader["text"], CultureInfo.InvariantCulture) ?? "",
+                        Convert.ToInt32(msgReader["is_customer"] is DBNull ? 0 : msgReader["is_customer"], CultureInfo.InvariantCulture)));
+                }
+            }
+            catch
+            {
+            }
+
+            var priceSum = order.OrderSum;
+            var purchaseSum = order.PurchaseSum;
+            var paidLeft = Math.Max(0m, priceSum - Math.Abs(paidSum));
+            return new CpOrderDetailDigest(
+                order,
+                priceSum,
+                purchaseSum,
+                Math.Abs(paidSum),
+                paidLeft,
+                priceSum - purchaseSum,
+                order.CustomerLabel,
+                order.CustomerLabel,
+                customerPhone,
+                items,
+                logs,
+                messages,
+                "database",
+                string.Empty);
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    private static CpShopOrderDigest ReadCpShopOrderDigest(System.Data.Common.DbDataReader reader)
+    {
+        var forInverse = HasColumn(reader, "status_for_inverse")
+            ? Convert.ToInt32(reader["status_for_inverse"] is DBNull ? 0 : reader["status_for_inverse"], CultureInfo.InvariantCulture)
+            : 0;
+        var forFinish = HasColumn(reader, "status_for_finish")
+            ? Convert.ToInt32(reader["status_for_finish"] is DBNull ? 0 : reader["status_for_finish"], CultureInfo.InvariantCulture)
+            : 0;
+        var forCreated = HasColumn(reader, "status_for_created")
+            ? Convert.ToInt32(reader["status_for_created"] is DBNull ? 0 : reader["status_for_created"], CultureInfo.InvariantCulture)
+            : 0;
+        var badge = forInverse == 1
+            ? "epc-scp-badge--urgent"
+            : forFinish == 1
+                ? "epc-scp-badge--tenant"
+                : forCreated == 1
+                    ? "epc-scp-badge--high"
+                    : "epc-scp-badge--normal";
+
+        return new CpShopOrderDigest(
+            Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+            Convert.ToInt64(reader["time"] is DBNull ? 0 : reader["time"], CultureInfo.InvariantCulture),
+            Convert.ToInt32(reader["user_id"] is DBNull ? 0 : reader["user_id"], CultureInfo.InvariantCulture),
+            Convert.ToInt32(reader["status"] is DBNull ? 0 : reader["status"], CultureInfo.InvariantCulture),
+            Convert.ToInt32(reader["paid"] is DBNull ? 0 : reader["paid"], CultureInfo.InvariantCulture),
+            Convert.ToInt32(reader["paid_type"] is DBNull ? 0 : reader["paid_type"], CultureInfo.InvariantCulture),
+            Convert.ToInt32(reader["office_id"] is DBNull ? 0 : reader["office_id"], CultureInfo.InvariantCulture),
+            Convert.ToInt32(reader["successfully_created"] is DBNull ? 0 : reader["successfully_created"], CultureInfo.InvariantCulture),
+            Convert.ToInt32(reader["count_items"] is DBNull ? 0 : reader["count_items"], CultureInfo.InvariantCulture),
+            Convert.ToDecimal(reader["order_sum"] is DBNull ? 0m : reader["order_sum"], CultureInfo.InvariantCulture),
+            HasColumn(reader, "purchase_sum")
+                ? Convert.ToDecimal(reader["purchase_sum"] is DBNull ? 0m : reader["purchase_sum"], CultureInfo.InvariantCulture)
+                : 0m,
+            HasColumn(reader, "last_modified")
+                ? Convert.ToInt64(reader["last_modified"] is DBNull ? 0 : reader["last_modified"], CultureInfo.InvariantCulture)
+                : 0,
+            HasColumn(reader, "viewed_flag")
+                ? Convert.ToInt32(reader["viewed_flag"] is DBNull ? 1 : reader["viewed_flag"], CultureInfo.InvariantCulture)
+                : 1,
+            HasColumn(reader, "customer_label")
+                ? Convert.ToString(reader["customer_label"] is DBNull ? "" : reader["customer_label"], CultureInfo.InvariantCulture) ?? ""
+                : "",
+            HasColumn(reader, "status_name")
+                ? Convert.ToString(reader["status_name"] is DBNull ? "" : reader["status_name"], CultureInfo.InvariantCulture) ?? ""
+                : "",
+            badge,
+            HasColumn(reader, "obtain_caption")
+                ? Convert.ToString(reader["obtain_caption"] is DBNull ? "" : reader["obtain_caption"], CultureInfo.InvariantCulture) ?? ""
+                : "");
+    }
+
+    private static bool HasColumn(System.Data.Common.DbDataReader reader, string name)
+    {
+        for (var i = 0; i < reader.FieldCount; i++)
+        {
+            if (string.Equals(reader.GetName(i), name, StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public async Task<CpUserListResult> ListCpUsersAsync(int limit, CancellationToken cancellationToken = default)

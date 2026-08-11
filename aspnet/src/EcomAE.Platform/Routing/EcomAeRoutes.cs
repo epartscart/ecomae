@@ -483,6 +483,9 @@ public static class EcomAeRoutes
     public const string ControlPanelOrders = "/cp/orders";
     /// <summary>Batch 4: read-only shop_orders digest + KPI summary.</summary>
     public const string ControlPanelOrdersDigest = "/cp/orders-digest";
+
+    /// <summary>Read-only OMS detail console digest for one order (PHP epc_orders_detail_pane).</summary>
+    public const string ControlPanelOrdersDetailDigest = "/cp/orders-detail-digest/{orderId:long}";
     /// <summary>Wave B dry-run OMS set_item_status (PHP ajax_epc_orders_oms.php remains authoritative).</summary>
     public const string ControlPanelOmsSetItemStatus = "/cp/orders/set-item-status";
     /// <summary>Wave B dry-run OMS set_items_status bulk (PHP ajax_epc_orders_oms.php remains authoritative).</summary>

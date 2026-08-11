@@ -148,6 +148,13 @@ public static class LegacyPresentationAssets
         "/platform-assets/epc_ecomae_home_3d.js?v=20260807a"
     ];
 
+    /// <summary>CP OMS (/cp/orders) — PHP epc_orders_cp.css markers via platform-assets.</summary>
+    public static readonly IReadOnlyList<string> CpOrdersOmsStylesheets =
+    [
+        "/platform-assets/epc_orders_cp.css?v=20260811oms",
+        "/platform-assets/epc_statuses_cp.css?v=20260811oms"
+    ];
+
     /// <summary>Structural selectors / class markers for graphical presentation probes.</summary>
     public static IReadOnlyList<string> RequiredGraphicalMarkers(string surface)
         => surface.Trim().ToLowerInvariant() switch
