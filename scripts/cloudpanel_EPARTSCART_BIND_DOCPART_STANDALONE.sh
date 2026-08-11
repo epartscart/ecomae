@@ -7,7 +7,8 @@
 # 2026-08-09 fail: hardcoding docpart then checking users via registry user
 # printed missing_users_table while portal already had docpart|live — either
 # registry user lacks privilege on docpart, or shop data lives elsewhere.
-# This rewrite discovers as root (socket) then GRANTs + binds.
+# CloudPanel: discover via clpctl db:show:master-credentials (TCP root), GRANT, bind.
+# unix_socket `mysql` as OS root often fails on this host.
 #
 # Paste as root (must paste RESULT= / PASTE_ME lines back):
 #   set -euxo pipefail
@@ -52,13 +53,145 @@ EMAIL_SQL="${DIAG_EMAIL//\'/\\\'}"
 printf 'registry_db=%s mysql_host=%s registry_user=%s diag_email=%s\n' \
   "$REG_DB" "$DB_HOST" "$DB_USER" "$DIAG_EMAIL"
 
-# Prefer root unix_socket for discovery/GRANT (registry user often cannot SEE other schemas).
+# Elevated MySQL for discovery/GRANT.
+# CloudPanel master is usually root@127.0.0.1 via `clpctl db:show:master-credentials`
+# — unix_socket `mysql` as OS root often fails (this host: mysql_root_socket=NO).
 ROOT_OK=0
-if mysql -N -e "SELECT 1" >/dev/null 2>&1; then
-  ROOT_OK=1
-  printf 'mysql_root_socket=YES\n'
+ROOT_LABEL=""
+ROOT_MYSQL_PWD=""
+# shellcheck disable=SC2034
+declare -a ROOT_MYSQL=()
+
+try_elevated_mysql() {
+  local label="$1"; shift
+  local saved_pwd="${MYSQL_PWD-}"
+  if [[ -n "${ROOT_MYSQL_PWD}" ]]; then
+    export MYSQL_PWD="$ROOT_MYSQL_PWD"
+  else
+    unset MYSQL_PWD 2>/dev/null || true
+  fi
+  if "$@" -N -e "SELECT 1" >/dev/null 2>&1; then
+    ROOT_OK=1
+    ROOT_LABEL="$label"
+    ROOT_MYSQL=("$@")
+    printf 'mysql_elevated=YES via=%s\n' "$label"
+    if [[ -n "$saved_pwd" ]]; then export MYSQL_PWD="$saved_pwd"; else unset MYSQL_PWD 2>/dev/null || true; fi
+    return 0
+  fi
+  if [[ -n "$saved_pwd" ]]; then export MYSQL_PWD="$saved_pwd"; else unset MYSQL_PWD 2>/dev/null || true; fi
+  return 1
+}
+
+if try_elevated_mysql "unix_socket" mysql; then
+  :
+elif try_elevated_mysql "unix_socket_protocol" mysql --protocol=socket; then
+  :
+fi
+
+if [[ "$ROOT_OK" != "1" ]] && command -v clpctl >/dev/null 2>&1; then
+  printf 'trying_clpctl_db_show_master_credentials\n'
+  set +e
+  clp_out="$(clpctl db:show:master-credentials 2>/dev/null)"
+  clp_rc=$?
+  set -e
+  if [[ "$clp_rc" -eq 0 && -n "$clp_out" ]]; then
+    set +e
+    mapfile -t clp_vars < <(
+      ECOMAE_CLPCTL_MASTER_TEXT="$clp_out" python3 <<'PY'
+import os, re, sys
+text = os.environ.get("ECOMAE_CLPCTL_MASTER_TEXT", "")
+host, user, password, port = "127.0.0.1", "root", "", "3306"
+
+def grab(label: str) -> str:
+    m = re.search(rf"(?im)^\s*\|?\s*{re.escape(label)}\s*\|?\s*[|:]\s*\|?\s*([^\s|]+)", text)
+    if m:
+        return m.group(1).strip()
+    m = re.search(rf"(?i){re.escape(label)}\s*[:=]\s*(\S+)", text)
+    return m.group(1).strip() if m else ""
+
+h = grab("Host")
+u = grab("User Name") or grab("Username") or grab("User")
+p = grab("Password")
+po = grab("Port")
+if h:
+    host = h
+if u:
+    user = u
+if p:
+    password = p
+if po and po.isdigit():
+    port = po
+m5 = re.search(r"-p'([^']+)'", text) or re.search(r'-p"([^"]+)"', text)
+m3 = re.search(r"-h['\"]?([^'\"\s]+)", text)
+m4 = re.search(r"-u['\"]?([^'\"\s]+)", text)
+if m3:
+    host = m3.group(1)
+if m4:
+    user = m4.group(1)
+if m5:
+    password = m5.group(1)
+if not password:
+    sys.exit(1)
+print(host)
+print(user)
+print(port)
+print(password)
+PY
+    )
+    parse_rc=$?
+    set -e
+    if [[ "$parse_rc" -eq 0 && "${#clp_vars[@]}" -ge 4 && -n "${clp_vars[3]:-}" ]]; then
+      ROOT_MYSQL_PWD="${clp_vars[3]}"
+      try_elevated_mysql "clpctl_master(${clp_vars[1]}@${clp_vars[0]}:${clp_vars[2]})" \
+        mysql -h"${clp_vars[0]}" -P"${clp_vars[2]}" -u"${clp_vars[1]}" || true
+      if [[ "$ROOT_OK" != "1" ]]; then
+        ROOT_MYSQL_PWD=""
+        printf 'WARN clpctl_master_auth_failed\n'
+      fi
+    else
+      printf 'WARN clpctl_master_parse_failed\n'
+    fi
+  else
+    printf 'WARN clpctl_db_show_master_credentials_failed rc=%s\n' "${clp_rc:-na}"
+  fi
+fi
+
+if [[ "$ROOT_OK" != "1" ]]; then
+  for defaults in \
+    /etc/mysql/debian.cnf \
+    /etc/mysql/mariadb.conf.d/debian.cnf \
+    /root/.my.cnf \
+    /etc/mysql/conf.d/root.cnf
+  do
+    [[ -r "$defaults" ]] || continue
+    try_elevated_mysql "defaults-file:${defaults}" mysql --defaults-file="$defaults" && break
+  done
+fi
+
+if [[ "$ROOT_OK" != "1" ]]; then
+  try_elevated_mysql "root_tcp" mysql -uroot -h127.0.0.1 || true
+fi
+if [[ "$ROOT_OK" != "1" ]]; then
+  try_elevated_mysql "root_local" mysql -uroot || true
+fi
+if [[ "$ROOT_OK" != "1" && -n "${ECOMAE_MYSQL_ROOT_PASSWORD:-}" ]]; then
+  ROOT_MYSQL_PWD="$ECOMAE_MYSQL_ROOT_PASSWORD"
+  try_elevated_mysql "env_ECOMAE_MYSQL_ROOT_PASSWORD" mysql -uroot -h127.0.0.1 || true
+  [[ "$ROOT_OK" == "1" ]] || ROOT_MYSQL_PWD=""
+fi
+if [[ "$ROOT_OK" != "1" && -n "${ECOMAE_MYSQL_ADMIN_USER:-}" ]]; then
+  ROOT_MYSQL_PWD="${ECOMAE_MYSQL_ADMIN_PASSWORD:-${ECOMAE_MYSQL_ROOT_PASSWORD:-}}"
+  try_elevated_mysql "env_admin_${ECOMAE_MYSQL_ADMIN_USER}" \
+    mysql -u"${ECOMAE_MYSQL_ADMIN_USER}" -h127.0.0.1 || true
+  [[ "$ROOT_OK" == "1" ]] || ROOT_MYSQL_PWD=""
+fi
+
+if [[ "$ROOT_OK" == "1" ]]; then
+  printf 'mysql_root_socket=%s\n' "$([[ "$ROOT_LABEL" == unix_socket* ]] && echo YES || echo NO)"
+  printf 'mysql_elevated_label=%s\n' "$ROOT_LABEL"
 else
-  printf 'mysql_root_socket=NO — discovery limited to registry user privileges\n'
+  printf 'mysql_root_socket=NO\n'
+  printf 'mysql_elevated=NO — discovery limited; GRANT impossible without clpctl/root\n'
 fi
 
 mysql_reg() {
@@ -66,7 +199,16 @@ mysql_reg() {
 }
 mysql_priv() {
   if [[ "$ROOT_OK" == "1" ]]; then
-    mysql "$@"
+    local saved_pwd="${MYSQL_PWD-}"
+    if [[ -n "${ROOT_MYSQL_PWD}" ]]; then
+      export MYSQL_PWD="$ROOT_MYSQL_PWD"
+    else
+      unset MYSQL_PWD 2>/dev/null || true
+    fi
+    "${ROOT_MYSQL[@]}" "$@"
+    local rc=$?
+    if [[ -n "$saved_pwd" ]]; then export MYSQL_PWD="$saved_pwd"; else unset MYSQL_PWD 2>/dev/null || true; fi
+    return "$rc"
   else
     MYSQL_PWD="$DB_PASS" mysql -h "$DB_HOST" -u "$DB_USER" "$@"
   fi
@@ -186,11 +328,14 @@ if [[ -z "$SHOP_DB" ]]; then
   done < <(mysql_priv -N -e "SHOW DATABASES LIKE '%epartscart%';" 2>/dev/null || true)
 fi
 
-# 5) Last resort: any non-system schema named docpart exists but empty — dump hint
+# 5) Last resort: dump + actionable fail (elevated MySQL usually missing)
 if [[ -z "$SHOP_DB" ]]; then
   printf '\n-- DUMP schemas (name only) --\n'
   mysql_priv -N -e "SHOW DATABASES;" 2>/dev/null | sed 's/^/SHOW_DB=/' || true
-  die "no_shop_db_with_users — set ECOMAE_EPARTSCART_SHOP_DB=<db> after DUMP; docpart missing users for this MySQL principal"
+  if [[ "$ROOT_OK" != "1" ]]; then
+    die "no_shop_db_with_users + no_elevated_mysql — CloudPanel needs clpctl master (not unix_socket). Re-run after: clpctl db:show:master-credentials works; or export ECOMAE_MYSQL_ROOT_PASSWORD=...; or ECOMAE_EPARTSCART_SHOP_DB=docpart once GRANT is possible"
+  fi
+  die "no_shop_db_with_users — set ECOMAE_EPARTSCART_SHOP_DB=<db> after DUMP; docpart missing users"
 fi
 
 printf 'resolved_shop_db=%s source=%s\n' "$SHOP_DB" "$SOURCE"
@@ -198,16 +343,22 @@ schema_has_users "$SHOP_DB" || die "shop_db=${SHOP_DB} still_missing_users_table
 
 # GRANT registry user onto shop schema so ASP.NET TenantRegistry CS can open it
 if [[ "$ROOT_OK" == "1" ]]; then
-  printf '\n-- GRANT registry user on shop DB --\n'
-  mysql -e "GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, ALTER, INDEX, REFERENCES ON \`${SHOP_DB//\`/}\`.* TO '${DB_USER}'@'localhost';" 2>&1 | sed 's/^/GRANT_LOCAL /' || true
-  mysql -e "GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, ALTER, INDEX, REFERENCES ON \`${SHOP_DB//\`/}\`.* TO '${DB_USER}'@'%';" 2>&1 | sed 's/^/GRANT_PCT /' || true
-  mysql -e "FLUSH PRIVILEGES;" 2>&1 | sed 's/^/GRANT_FLUSH /' || true
+  printf '\n-- GRANT registry user on shop DB (via %s) --\n' "$ROOT_LABEL"
+  mysql_priv -e "GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, ALTER, INDEX, REFERENCES ON \`${SHOP_DB//\`/}\`.* TO '${DB_USER}'@'localhost';" 2>&1 | sed 's/^/GRANT_LOCAL /' || true
+  mysql_priv -e "GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, ALTER, INDEX, REFERENCES ON \`${SHOP_DB//\`/}\`.* TO '${DB_USER}'@'%';" 2>&1 | sed 's/^/GRANT_PCT /' || true
+  mysql_priv -e "FLUSH PRIVILEGES;" 2>&1 | sed 's/^/GRANT_FLUSH /' || true
   # Prove registry user can see users table now
   reg_see="$(MYSQL_PWD="$DB_PASS" mysql -h "$DB_HOST" -u "$DB_USER" -N -e "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='${SHOP_DB//\'/\\\'}' AND table_name='users';" 2>/dev/null || echo 0)"
   printf 'GRANT_PROVE registry_sees_users=%s\n' "$reg_see"
   [[ "${reg_see:-0}" != "0" ]] || die "grant_failed registry_user_still_cannot_see_${SHOP_DB}.users"
 else
-  printf 'GRANT_SKIP no_root_socket\n'
+  printf 'GRANT_SKIP no_elevated_mysql — need clpctl db:show:master-credentials or ECOMAE_MYSQL_ROOT_PASSWORD\n'
+  # If registry still cannot see shop.users, bind alone cannot fix CP login.
+  reg_see="$(MYSQL_PWD="$DB_PASS" mysql -h "$DB_HOST" -u "$DB_USER" -N -e "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='${SHOP_DB//\'/\\\'}' AND table_name='users';" 2>/dev/null || echo 0)"
+  printf 'GRANT_PROVE registry_sees_users=%s (no_grant)\n' "$reg_see"
+  if [[ "${reg_see:-0}" == "0" ]]; then
+    die "no_elevated_mysql_for_grant — clpctl db:show:master-credentials required; registry_user=${DB_USER} cannot SEE ${SHOP_DB}.users"
+  fi
 fi
 
 SHOP_SQL="${SHOP_DB//\'/\\\'}"
