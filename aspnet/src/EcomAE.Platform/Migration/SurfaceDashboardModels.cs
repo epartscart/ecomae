@@ -1407,7 +1407,16 @@ public sealed record StorefrontPartSearchResult(
     string Source,
     string Message);
 
-public sealed record StorefrontArticleBrandDigest(string Brand);
+/// <summary>
+/// PHP brand-picker row (Manufacturer / Article / Name / Availability / Term / Price).
+/// Cross-only brands may have empty stock fields until the warehouse CHPU is opened.
+/// </summary>
+public sealed record StorefrontArticleBrandDigest(
+    string Brand,
+    string Name = "",
+    int Exist = 0,
+    decimal? MinPrice = null,
+    string Warehouse = "");
 
 public sealed record StorefrontArticleBrandsResult(
     string Article,

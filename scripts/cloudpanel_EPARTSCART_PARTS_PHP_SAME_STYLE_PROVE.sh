@@ -9,7 +9,7 @@ HOST="${EPARTSCART_HOST:-www.epartscart.com}"
 BASE="https://${HOST}"
 PICKER="${ECOMAE_PICKER_PROBE:-/storefront/search-app?article=1310154101}"
 CHPU="${ECOMAE_CHPU_PROBE:-/en/parts/TEIKINP/1310154101}"
-ASSET="${ECOMAE_WH_ASSET_PROBE:-/platform-assets/epc_warehouse_search_parity.js?v=20260811x}"
+ASSET="${ECOMAE_WH_ASSET_PROBE:-/platform-assets/epc_warehouse_search_parity.js?v=20260811z}"
 
 pass=1
 note() { printf '%s\n' "$*"; }
@@ -42,6 +42,7 @@ note "PICKER_HTTP=$(cat /tmp/epc_picker_code.txt)"
 haystack_match 'epc-brand-picker-table' /tmp/epc_picker.html && ok "PICKER_TABLE=YES" || fail "PICKER_TABLE=NO"
 haystack_match 'epc-brand-picker-top__title' /tmp/epc_picker.html && ok "PICKER_TOP=YES" || fail "PICKER_TOP=NO"
 haystack_match 'Open prices' /tmp/epc_picker.html && ok "PICKER_CTA=YES" || fail "PICKER_CTA=NO"
+haystack_match 'In warehouse' /tmp/epc_picker.html && ok "PICKER_TERM=YES" || ok "PICKER_TERM=OPTIONAL"
 haystack_match 'epc-sf-brand-grid' /tmp/epc_picker.html && fail "PICKER_INVENTED_GRID=YES" || ok "PICKER_INVENTED_GRID=NO"
 haystack_match '<base href="/templates/nero/"' /tmp/epc_picker.html && fail "PICKER_PHP_NERO=YES" || ok "PICKER_PHP_NERO=NO"
 
@@ -56,7 +57,16 @@ haystack_match 'epc-fitment-check-btn' /tmp/epc_chpu.html && ok "CHPU_FITMENT=YE
 haystack_match 'epc-cross-search-btn' /tmp/epc_chpu.html && ok "CHPU_CROSS=YES" || fail "CHPU_CROSS=NO"
 haystack_match 'epc-seo-cross-refs' /tmp/epc_chpu.html && ok "CHPU_CROSS_NAV=YES" || fail "CHPU_CROSS_NAV=NO"
 haystack_match 'epc-wa-share-btn|epc-btn-cart|Log in' /tmp/epc_chpu.html && ok "CHPU_ACTIONS=YES" || fail "CHPU_ACTIONS=NO"
-haystack_match 'v=20260811x' /tmp/epc_chpu.html && ok "CHPU_ASSET_BUST=YES" || fail "CHPU_ASSET_BUST=NO (publish stale?)"
+haystack_match 'epc-ssr-warehouse-banner' /tmp/epc_chpu.html && ok "CHPU_BANNER=YES" || fail "CHPU_BANNER=NO"
+haystack_match 'epc-cross-ref-list|ajax_epc_cross_search' /tmp/epc_chpu.html && ok "CHPU_CROSS_WIRE=YES" || fail "CHPU_CROSS_WIRE=NO"
+if haystack_match 'data-offer-key' /tmp/epc_chpu.html; then
+  haystack_match 'info_box' /tmp/epc_chpu.html && ok "CHPU_INFO_BOX=YES" || fail "CHPU_INFO_BOX=NO"
+  haystack_match 'epc-search-row-photo__btn--load' /tmp/epc_chpu.html && ok "CHPU_PHOTO_BTN=YES" || fail "CHPU_PHOTO_BTN=NO"
+  haystack_match 'bread_crumbs_a' /tmp/epc_chpu.html && ok "CHPU_ARTICLE_LINK=YES" || fail "CHPU_ARTICLE_LINK=NO"
+else
+  ok "CHPU_ROWS=EMPTY_WHILE_POLLING (cell chrome deferred)"
+fi
+haystack_match 'v=20260811z' /tmp/epc_chpu.html && ok "CHPU_ASSET_BUST=YES" || fail "CHPU_ASSET_BUST=NO (publish stale?)"
 haystack_match 'epc-sf-search-table' /tmp/epc_chpu.html && fail "CHPU_INVENTED_TABLE=YES" || ok "CHPU_INVENTED_TABLE=NO"
 
 curl -sSI --max-time 20 "${BASE}${ASSET}" | tr -d '\r' > /tmp/epc_wh_asset.hdr || true

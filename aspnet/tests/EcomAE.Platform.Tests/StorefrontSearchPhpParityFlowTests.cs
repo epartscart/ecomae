@@ -36,6 +36,15 @@ public sealed class StorefrontSearchPhpParityFlowTests
         Assert.Contains("Add to Cart", text, StringComparison.Ordinal);
         Assert.Contains("Add to Quote", text, StringComparison.Ordinal);
         Assert.Contains("Open prices", text, StringComparison.Ordinal);
+        Assert.Contains("In warehouse", text, StringComparison.Ordinal);
+        Assert.Contains("info_box", text, StringComparison.Ordinal);
+        Assert.Contains("epc-search-row-photo__btn--load", text, StringComparison.Ordinal);
+        Assert.Contains("bread_crumbs_a", text, StringComparison.Ordinal);
+        Assert.Contains("epc-ssr-warehouse-banner", text, StringComparison.Ordinal);
+        Assert.Contains("data-epc-base-price", text, StringComparison.Ordinal);
+        Assert.Contains("ajax_epc_cross_search.php", text, StringComparison.Ordinal);
+        Assert.Contains("loadPhpCrossSearch", text, StringComparison.Ordinal);
+        Assert.Contains("epc-cross-ref-list", text, StringComparison.Ordinal);
         Assert.Contains("/en/parts/", text, StringComparison.Ordinal);
         Assert.Contains("/en/parts/brands/", text, StringComparison.Ordinal);
         Assert.Contains("Pricing and availability for", text, StringComparison.Ordinal);
@@ -62,6 +71,10 @@ public sealed class StorefrontSearchPhpParityFlowTests
         Assert.DoesNotContain("storefront_temp_disabled", LegacySurfaceDashboardSql.SelectStorefrontPartSearch, StringComparison.Ordinal);
         Assert.Contains("shop_docpart_prices_data", LegacySurfaceDashboardSql.SelectStorefrontArticleWarehouseBrands, StringComparison.Ordinal);
         Assert.Contains("{ARTICLE_MATCH}", LegacySurfaceDashboardSql.SelectStorefrontArticleWarehouseBrands, StringComparison.Ordinal);
+        Assert.Contains("exist_sum", LegacySurfaceDashboardSql.SelectStorefrontArticleWarehouseBrands, StringComparison.Ordinal);
+        Assert.Contains("part_name", LegacySurfaceDashboardSql.SelectStorefrontArticleWarehouseBrands, StringComparison.Ordinal);
+        Assert.Contains("min_price", LegacySurfaceDashboardSql.SelectStorefrontArticleWarehouseBrands, StringComparison.Ordinal);
+        Assert.Contains("HAVING SUM", LegacySurfaceDashboardSql.SelectStorefrontArticleWarehouseBrands, StringComparison.Ordinal);
         Assert.DoesNotContain("storefront_temp_disabled", LegacySurfaceDashboardSql.SelectStorefrontArticleWarehouseBrands, StringComparison.Ordinal);
         Assert.DoesNotContain("LEFT JOIN", LegacySurfaceDashboardSql.SelectStorefrontArticleWarehouseBrands, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("shop_docpart_articles_analogs_list", LegacySurfaceDashboardSql.SelectStorefrontArticleCrossPairs, StringComparison.Ordinal);
@@ -132,6 +145,8 @@ public sealed class StorefrontSearchPhpParityFlowTests
 
         Assert.Contains("ListStorefrontArticleBrandsAsync", text, StringComparison.Ordinal);
         Assert.Contains("ListStorefrontCrossRefsAsync", text, StringComparison.Ordinal);
+        Assert.Contains("TryLoadCrossSearchAsync", text, StringComparison.Ordinal);
+        Assert.Contains("php-cross-search", text, StringComparison.Ordinal);
         Assert.Contains("SelectStorefrontArticleWarehouseBrands", text, StringComparison.Ordinal);
         Assert.Contains("SelectStorefrontArticleCrossPairs", text, StringComparison.Ordinal);
         Assert.Contains("StorefrontArticleMatchMode.ExactTrim", text, StringComparison.Ordinal);

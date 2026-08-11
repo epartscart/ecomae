@@ -379,11 +379,191 @@
 		});
 	}
 
+	function photoKey(brand, article) {
+		return String(brand || "").replace(/[^A-Za-z0-9]/g, "").toUpperCase() + "|" +
+			String(article || "").replace(/[^A-Za-z0-9]/g, "").toUpperCase();
+	}
+
+	function applySearchRowPhoto(brand, article, url) {
+		if (!url) return;
+		var key = photoKey(brand, article);
+		document.querySelectorAll('[data-epc-row-photo="' + key + '"]').forEach(function (cell) {
+			if (cell.getAttribute("data-epc-row-photo-loaded") === "1") return;
+			cell.setAttribute("data-epc-row-photo-loaded", "1");
+			cell.innerHTML = '<button type="button" class="epc-search-row-photo__btn" aria-label="View product photo">' +
+				'<img src="' + esc(url) + '" alt="" loading="lazy"></button>';
+			var btn = cell.querySelector("button");
+			if (btn) {
+				btn.style.cursor = "zoom-in";
+				btn.onclick = function (ev) {
+					ev.preventDefault();
+					ev.stopPropagation();
+					window.open(url, "_blank", "noopener");
+				};
+			}
+		});
+	}
+
+	function loadSearchRowPhotoOnClick(brand, article, triggerEl) {
+		if (!brand || !article) return;
+		if (triggerEl) {
+			if (triggerEl.getAttribute("data-epc-photo-loading") === "1") return;
+			triggerEl.setAttribute("data-epc-photo-loading", "1");
+			triggerEl.innerHTML = '<i class="fa fa-spinner fa-spin"></i>';
+		}
+		function finishEmpty() {
+			if (!triggerEl) return;
+			triggerEl.removeAttribute("data-epc-photo-loading");
+			triggerEl.innerHTML = '<i class="fa fa-ban"></i>';
+			triggerEl.title = "No photo available";
+		}
+		var endpoint = "/storefront/product-image?brand=" + encodeURIComponent(brand) +
+			"&article=" + encodeURIComponent(article);
+		fetch(endpoint, { credentials: "same-origin" })
+			.then(function (r) { return r.ok ? r.json() : null; })
+			.then(function (data) {
+				var url = data && (data.url || data.imageUrl || (data.images && data.images[0] && (data.images[0].url || data.images[0])));
+				if (triggerEl) triggerEl.removeAttribute("data-epc-photo-loading");
+				if (!url) {
+					finishEmpty();
+					return;
+				}
+				applySearchRowPhoto(brand, article, url);
+			})
+			.catch(function () { finishEmpty(); });
+	}
+
+	function bindSearchRowPhotoLoaders(root) {
+		var scope = root || document;
+		scope.querySelectorAll(".epc-search-row-photo__btn--load").forEach(function (btn) {
+			if (btn.getAttribute("data-epc-photo-bound") === "1") return;
+			btn.setAttribute("data-epc-photo-bound", "1");
+			btn.addEventListener("click", function (ev) {
+				ev.preventDefault();
+				ev.stopPropagation();
+				loadSearchRowPhotoOnClick(
+					btn.getAttribute("data-epc-photo-brand") || "",
+					btn.getAttribute("data-epc-photo-article") || "",
+					btn
+				);
+			});
+		});
+	}
+
+	window.epcBindSearchRowPhotoLoaders = bindSearchRowPhotoLoaders;
+	window.epcLoadSearchRowPhotoOnClick = loadSearchRowPhotoOnClick;
+
+	function compactToken(s) {
+		return String(s || "").replace(/[^A-Za-z0-9]/g, "").toUpperCase();
+	}
+
+	function partsHref(brand, article) {
+		return "/en/parts/" + encodeURIComponent(String(brand || "").toUpperCase()) + "/" +
+			encodeURIComponent(String(article || ""));
+	}
+
+	/**
+	 * PHP ajax_epc_cross_search — fill SEO cross nav + count (not brand-sibling aliases only).
+	 */
+	function loadPhpCrossSearch(article, brand) {
+		var art = String(article || "").trim();
+		var br = String(brand || "").trim();
+		if (!art) return Promise.resolve();
+		var nav = document.getElementById("epc-cross-base");
+		if (nav) {
+			art = nav.getAttribute("data-article") || art;
+			br = nav.getAttribute("data-brand") || br;
+		}
+		var url = "/content/shop/docpart/ajax_epc_cross_search.php?article=" + encodeURIComponent(art);
+		if (br) url += "&brand=" + encodeURIComponent(br);
+		return fetch(url, { credentials: "same-origin" })
+			.then(function (r) { return r.json(); })
+			.then(function (data) {
+				if (!data || data.status === false) return data;
+				var refs = data.references || [];
+				var stock = data.stock || [];
+				var total = Number(data.unique_reference_count || data.reference_count || refs.length) || refs.length;
+				var countEl = document.getElementById("epc-cross-search-count");
+				if (countEl) countEl.textContent = total + " references";
+				var btn = document.getElementById("epc-cross-search-btn");
+				if (btn) btn.setAttribute("title", "Open " + total + " cross references");
+				var list = document.getElementById("epc-cross-ref-list");
+				var loading = document.getElementById("epc-cross-loading");
+				var more = document.getElementById("epc-cross-more");
+				var stockBox = document.getElementById("epc-sf-cross-stock");
+				var selfA = compactToken(art);
+				var selfB = compactToken(br);
+				var stockKeys = Object.create(null);
+				stock.forEach(function (s) {
+					stockKeys[compactToken(s.brand) + "|" + compactToken(s.article_norm || s.article)] = 1;
+				});
+				if (stockBox && stock.length) {
+					stockBox.hidden = false;
+					stockBox.innerHTML = "<strong>Cross references in stock (" + stock.length + ")</strong><ul>" +
+						stock.slice(0, 40).map(function (s) {
+							var b = s.brand || "";
+							var a = s.article || s.article_norm || "";
+							return "<li><a href=\"" + partsHref(b, a) + "\">" + esc(b) + " " + esc(a) + "</a>" +
+								(s.name ? " <span style=\"color:#64748b\">" + esc(s.name) + "</span>" : "") + "</li>";
+						}).join("") + "</ul>";
+				}
+				if (list) {
+					var shown = 0;
+					var html = [];
+					for (var i = 0; i < refs.length && shown < 80; i++) {
+						var ref = refs[i];
+						var rb = ref.brand || "";
+						var ra = ref.article || ref.article_norm || "";
+						var rn = compactToken(ref.article_norm || ra);
+						if (!rb || !rn) continue;
+						if (rn === selfA && compactToken(rb) === selfB) continue;
+						var sameArticleAlias = rn === selfA;
+						var key = compactToken(rb) + "|" + rn;
+						var inStock = !!stockKeys[key];
+						html.push("<li>" +
+							"<a href=\"" + partsHref(rb, ra) + "\">" + esc(rb) + " " + esc(ra) + "</a> " +
+							"<span style=\"color:#64748b\">(" +
+							(sameArticleAlias ? "related manufacturer" : ("part number " + esc(ra))) +
+							")</span> " +
+							(inStock
+								? "<span class=\"epc-avail-yes\">In stock</span>"
+								: "<span class=\"epc-avail-no\">Not in stock</span>") +
+							"</li>");
+						shown++;
+					}
+					list.innerHTML = html.length
+						? html.join("")
+						: "<li style=\"list-style:none;color:#64748b;\">No cross references found for this article.</li>";
+					if (more) {
+						if (total > shown) {
+							more.style.display = "block";
+							more.textContent = "Showing " + shown + " of " + total.toLocaleString() +
+								" unique crosses (full network via cross search).";
+						} else {
+							more.style.display = "none";
+						}
+					}
+				}
+				if (loading) loading.style.display = "none";
+				return data;
+			})
+			.catch(function () {
+				var loading = document.getElementById("epc-cross-loading");
+				if (loading) {
+					loading.textContent = "Cross search unavailable — showing local manufacturer aliases only.";
+				}
+			});
+	}
+
+	window.epcLoadPhpCrossSearch = loadPhpCrossSearch;
+
 	window.epcWarehouseParity = {
 		rebuildFilterOptions: rebuildFilterOptions,
 		applyFilters: applyFilters,
 		wireRowActions: wireRowActions,
-		openFitment: openFitment
+		openFitment: openFitment,
+		bindSearchRowPhotoLoaders: bindSearchRowPhotoLoaders,
+		loadPhpCrossSearch: loadPhpCrossSearch
 	};
 
 	function boot() {
@@ -418,16 +598,34 @@
 			});
 		}
 		var crossBtn = document.getElementById("epc-cross-search-btn");
-		if (crossBtn) crossBtn.addEventListener("click", focusCross);
+		if (crossBtn) {
+			crossBtn.addEventListener("click", function () {
+				focusCross();
+				var nav = document.getElementById("epc-cross-base");
+				loadPhpCrossSearch(
+					(nav && nav.getAttribute("data-article")) || "",
+					(nav && nav.getAttribute("data-brand")) || ""
+				);
+			});
+		}
 		rebuildFilterOptions();
 		applyFilters();
 		wireRowActions(document);
+		bindSearchRowPhotoLoaders(document);
+		var crossNav = document.getElementById("epc-cross-base");
+		if (crossNav) {
+			loadPhpCrossSearch(
+				crossNav.getAttribute("data-article") || "",
+				crossNav.getAttribute("data-brand") || ""
+			);
+		}
 		var body = document.getElementById("epcSfOfferBody");
 		if (body && window.MutationObserver) {
 			var mo = new MutationObserver(function () {
 				rebuildFilterOptions();
 				applyFilters();
 				wireRowActions(body);
+				bindSearchRowPhotoLoaders(body);
 			});
 			mo.observe(body, { childList: true, subtree: true });
 		}

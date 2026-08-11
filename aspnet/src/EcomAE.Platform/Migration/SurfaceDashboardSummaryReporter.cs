@@ -1257,8 +1257,10 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                 await MergeCpCrossBrandsAsync(connection, normalized, byBrand, hasAnalogsSearch, cancellationToken)
                     .ConfigureAwait(false);
 
+                // Warehouse stock brands first (PHP SSR), then cross-only siblings.
                 var brands = byBrand.Values
-                    .OrderBy(b => b.Brand, StringComparer.OrdinalIgnoreCase)
+                    .OrderByDescending(b => b.Exist > 0)
+                    .ThenBy(b => b.Brand, StringComparer.OrdinalIgnoreCase)
                     .Take(safeLimit)
                     .ToList();
 
@@ -1375,10 +1377,41 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
             await EnrichStorefrontCrossStockAsync(connection, rows, cancellationToken).ConfigureAwait(false);
 
+            // Local analogs table is a thin subset; PHP ajax_epc_cross_search also pulls crossbase.
+            // e.g. JSASAKASHI/C110J has ~600 OE network refs that never appear in analogs_list alone.
+            if (rows.Count < 8 && _phpWarehouseBridge is not null)
+            {
+                var phpRows = await _phpWarehouseBridge
+                    .TryLoadCrossSearchAsync(normalized, brandNorm.Length > 0 ? brandNorm : null, safeLimit, cancellationToken)
+                    .ConfigureAwait(false);
+                if (phpRows.Count > rows.Count)
+                {
+                    return new(normalized, phpRows, phpRows.Count, "php-cross-search", string.Empty);
+                }
+            }
+
             return new(normalized, rows, rows.Count, "database", string.Empty);
         }
         catch (Exception ex)
         {
+            if (_phpWarehouseBridge is not null)
+            {
+                try
+                {
+                    var phpRows = await _phpWarehouseBridge
+                        .TryLoadCrossSearchAsync(normalized, brandNorm.Length > 0 ? brandNorm : null, safeLimit, cancellationToken)
+                        .ConfigureAwait(false);
+                    if (phpRows.Count > 0)
+                    {
+                        return new(normalized, phpRows, phpRows.Count, "php-cross-search", string.Empty);
+                    }
+                }
+                catch
+                {
+                    // fall through to database-error
+                }
+            }
+
             return new(normalized, [], 0, "database-error", ex.Message);
         }
     }
@@ -1785,7 +1818,21 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                 continue;
             }
 
-            brands.Add(new StorefrontArticleBrandDigest(name.Trim()));
+            var partName = Convert.ToString(reader["part_name"] is DBNull ? string.Empty : reader["part_name"], CultureInfo.InvariantCulture) ?? string.Empty;
+            var exist = Convert.ToInt32(reader["exist_sum"] is DBNull ? 0 : reader["exist_sum"], CultureInfo.InvariantCulture);
+            decimal? minPrice = null;
+            if (reader["min_price"] is not DBNull and not null)
+            {
+                minPrice = Convert.ToDecimal(reader["min_price"], CultureInfo.InvariantCulture);
+            }
+
+            var warehouse = Convert.ToString(reader["warehouse"] is DBNull ? string.Empty : reader["warehouse"], CultureInfo.InvariantCulture) ?? string.Empty;
+            brands.Add(new StorefrontArticleBrandDigest(
+                name.Trim(),
+                partName.Trim(),
+                exist,
+                minPrice,
+                warehouse.Trim()));
         }
 
         return brands;

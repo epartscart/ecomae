@@ -16,13 +16,16 @@
 <PageTitle>@PageTitleText</PageTitle>
 <PhpChromeStyles Surface="storefront" />
 <HeadContent>
-<link rel="stylesheet" href="/platform-assets/epc_warehouse_search_parity.css?v=20260811x" />
+<link rel="stylesheet" href="/platform-assets/epc_warehouse_search_parity.css?v=20260811z" />
 <style>
         /* Keep PHP professional-shell look; only hide inventing ASP.NET chrome on CHPU/picker. */
         .epc-chpu-direct-part-search .epc-sf-search-form,
         .epc-chpu-direct-part-search .epc-sf-page-actions .btn-default,
         .epc-brand-picker-mode .epc-sf-search-kpis,
         .epc-chpu-direct-part-search .epc-sf-search-kpis { display:none !important; }
+        /* PHP CHPU hides storages filter block on brand+article warehouse results. */
+        .epc-chpu-direct-part-search #storages_blok,
+        .epc-chpu-direct-part-search #storages_blok + hr { display:none !important; }
         .epc-sf-search-form { display:flex; gap:.45rem; flex-wrap:wrap; align-items:center; }
         .epc-sf-search-form input {
             flex:1; min-width:140px; padding:.4rem .65rem; border:1px solid #cbd5e1; border-radius:3px; font-size:.9rem; background:#fff; color:#111;
@@ -86,7 +89,10 @@
                         <h2 class="epc-brand-picker-top__title">@_normalized</h2>
                         <p class="epc-brand-picker-top__hint">Several manufacturers use this part number. Choose a brand, then open warehouse prices and stock.</p>
                     </div>
-                    <div id="work_area" class="epc-brand-picker-work-area">
+                    <div id="work_area" class="epc-brand-picker-work-area" align="center">
+                        <div id="processing_indicator" style="display:none;" aria-hidden="true">
+                            <img src="/templates/nero/img/ajax-loader.gif" alt="" width="32" height="32" />
+                        </div>
                         <div id="products_area" class="epc-part-search-results" role="region" aria-label="Part search results">
                             @if (_brands.Count == 0)
                             {
@@ -118,13 +124,41 @@
                                             @foreach (var brand in _brands)
                                             {
                                                 var href = BrandArticleHref(_normalized, brand.Brand);
+                                                var nameCell = string.IsNullOrWhiteSpace(brand.Name) ? "—" : brand.Name;
+                                                var termCell = BrandPickerTerm(brand);
                                                 <tr class="epc-brand-picker-row">
                                                     <td><a href="@href">@brand.Brand</a></td>
                                                     <td><a href="@href">@_normalized</a></td>
-                                                    <td><a href="@href">—</a></td>
-                                                    <td class="text-center"><a href="@href">@(_pricesVisible ? "—" : mask)</a></td>
-                                                    <td><a href="@href">@(_pricesVisible ? "Open brand for stock" : mask)</a></td>
-                                                    <td class="text-right"><a href="@href">@(_pricesVisible ? "—" : mask)</a></td>
+                                                    <td><a href="@href">@nameCell</a></td>
+                                                    @if (!_pricesVisible)
+                                                    {
+                                                        <td class="text-center"><a href="@href">@mask</a></td>
+                                                        <td><a href="@href">@mask</a></td>
+                                                        <td class="text-right"><a href="@href">@mask</a></td>
+                                                    }
+                                                    else if (brand.Exist > 0)
+                                                    {
+                                                        <td class="text-center"><a href="@href">@brand.Exist.ToString(CultureInfo.InvariantCulture)</a></td>
+                                                        <td><a href="@href">@termCell</a></td>
+                                                        <td class="text-right">
+                                                            <a href="@href">
+                                                                @if (brand.MinPrice is decimal mp)
+                                                                {
+                                                                    <span class="epc-price-value" data-epc-base-price="@mp.ToString("0.00", CultureInfo.InvariantCulture)">@mp.ToString("N2", CultureInfo.InvariantCulture)</span>
+                                                                }
+                                                                else
+                                                                {
+                                                                    <text>—</text>
+                                                                }
+                                                            </a>
+                                                        </td>
+                                                    }
+                                                    else
+                                                    {
+                                                        <td class="text-center"><a href="@href">—</a></td>
+                                                        <td><a href="@href">Open brand for stock</a></td>
+                                                        <td class="text-right"><a href="@href">—</a></td>
+                                                    }
                                                     <td class="text-right"><a class="btn btn-ar btn-primary btn-sm" href="@href">Open prices</a></td>
                                                 </tr>
                                             }
@@ -244,6 +278,11 @@
                     Polling suppliers… <span id="epcSfPollCount">0</span> of <span id="epcSfPollTotal">0</span>
                 </div>
 
+                <div id="work_area" class="epc-chpu-work-area">
+                <div class="epc-ssr-warehouse-banner" role="status">
+                    <strong>@_brandInput.ToUpperInvariant() @_normalized</strong>
+                    <span> — warehouse prices &amp; stock (Genuine / Aftermarket)</span>
+                </div>
                 <div id="products_area" class="epc-part-search-results" role="region" aria-label="Part search results">
                     <table id="all_table_products" class="epc-ssr-warehouse-table"
                            data-prices-visible="@(_pricesVisible ? "1" : "0")"
@@ -319,23 +358,28 @@
                         </tbody>
                     </table>
                 </div>
+                </div>
 
                 @if (!string.IsNullOrWhiteSpace(_brandInput))
                 {
-                    <nav class="epc-seo-cross-refs" id="epc-cross-base" aria-label="Cross references and OE numbers">
+                    <nav class="epc-seo-cross-refs" id="epc-cross-base"
+                         data-article="@_normalized" data-brand="@_brandInput"
+                         aria-label="Cross references and OE numbers">
                         <h2>@_brandInput @_normalized — cross references &amp; OE numbers</h2>
                         <p style="margin:0 0 10px;font-size:13px;color:#475569">Part number / article <strong>@_normalized</strong> interchanges with:</p>
-                        @if (_crossRefs.Count == 0 && _relatedBrandCross.Count == 0)
-                        {
-                            <p style="margin:0;font-size:13px;color:#64748b;">No local cross references for this brand + article.</p>
-                        }
-                        else
-                        {
-                            <ul>
+                        <p id="epc-cross-loading" class="epc-fitment-message" style="margin:0 0 10px;">Loading OE / aftermarket cross network…</p>
+                        <div id="epc-sf-cross-stock" class="epc-sf-cross-stock" hidden></div>
+                        <ul id="epc-cross-ref-list">
+                            @if (_crossRefs.Count == 0 && _relatedBrandCross.Count == 0)
+                            {
+                                <li class="epc-cross-placeholder" style="list-style:none;color:#64748b;">Waiting for cross search…</li>
+                            }
+                            else
+                            {
                                 @foreach (var cross in _crossRefs)
                                 {
                                     var label = string.IsNullOrWhiteSpace(cross.Brand) ? cross.Article : $"{cross.Brand} {cross.Article}";
-                                    <li>
+                                    <li data-cross-key="@($"{cross.Brand}|{cross.Article}")">
                                         <a href="@BrandArticleHref(cross.Article, cross.Brand)">@label</a>
                                         <span style="color:#64748b">(part number @cross.Article)</span>
                                         @if (cross.InStock)
@@ -350,27 +394,14 @@
                                 }
                                 @foreach (var brand in _relatedBrandCross)
                                 {
-                                    <li>
+                                    <li data-related-mfr="1">
                                         <a href="@BrandArticleHref(_normalized, brand)">@brand @_normalized</a>
                                         <span style="color:#64748b">(related manufacturer)</span>
                                     </li>
                                 }
-                            </ul>
-                        }
-                        @if (_crossStockRefs.Count > 0)
-                        {
-                            <div class="epc-sf-cross-stock">
-                                <strong>In stock on warehouse price lists (@_crossStockRefs.Count)</strong>
-                                <ul>
-                                    @foreach (var cross in _crossStockRefs)
-                                    {
-                                        <li>
-                                            <a href="@BrandArticleHref(cross.Article, cross.Brand)">@cross.Brand @cross.Article</a>
-                                        </li>
-                                    }
-                                </ul>
-                            </div>
-                        }
+                            }
+                        </ul>
+                        <p id="epc-cross-more" class="epc-fitment-message" style="margin:8px 0 0;display:none;"></p>
                     </nav>
                 }
             </div>
@@ -430,15 +461,46 @@
     cell.closest('tr').style.display = n === 0 ? 'none' : '';
   }
   var aidSeq = 1000;
+  function photoKey(brand, article) {
+    return String(brand || '').replace(/[^A-Za-z0-9]/g, '').toUpperCase() + '|' + String(article || '').replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+  }
+  function formatTerm(termRaw, storageRaw) {
+    var t = String(termRaw == null ? '' : termRaw).trim();
+    var stor = String(storageRaw == null ? '' : storageRaw).trim();
+    if (!t || t === '0' || t === '—') {
+      return stor && stor !== '—' ? ('In warehouse · ' + stor) : 'In warehouse';
+    }
+    if (/^\d+$/.test(t)) return t + (Number(t) === 1 ? ' day' : ' days');
+    return t;
+  }
+  function infoCellHtml(p, show, storageRaw, pricesOn) {
+    if (!pricesOn) return '**';
+    var mfr = p.manufacturer || '';
+    var art = show || p.article || '';
+    var gq = 'https://www.google.com/search?tbm=isch&q=' + encodeURIComponent(mfr + ' ' + art);
+    var wh = (p.priceList || p.price_list || storageRaw || 'Warehouse');
+    if (wh === '—') wh = 'Warehouse';
+    return '<div style="margin:3px 0;">' +
+      '<span class="info_box">' +
+      '<a title="Product photos" href="' + gq + '" target="_blank" rel="noopener"><span><i style="font-size:.8em;" class="fa fa-camera"></i></span></a>' +
+      '<a title="Warehouse" href="javascript:void(0);"><span><i class="fa fa-home"></i></span></a>' +
+      '<a title="Fitment" href="javascript:void(0);" class="epc-fitment-check-btn epc-fitment-check-btn--row" data-epc-fitment-article="' + esc(art) + '" data-epc-fitment-brand="' + esc(mfr) + '"><span><i style="font-size:.9em;" class="fa fa-car"></i></span></a>' +
+      '<br/></span>' +
+      '<div class="show_data_class epc-warehouse-label" style="margin:3px 0;white-space:nowrap;max-width:110px;font-size:11px;font-weight:600;" title="Warehouse"><span class="info_box">' + esc(wh) + '</span></div>' +
+      '</div>';
+  }
   function actionsHtml(p, exist, show) {
     var aid = aidSeq++;
     var minOrder = Math.max(1, Number(p.minOrder || p.min_order || 1));
-    var fit = '<button type="button" class="btn btn-sm epc-btn-fitment epc-fitment-check-btn epc-fitment-check-btn--row">Fitment</button>';
+    var mfr = p.manufacturer || '';
+    var fit = '<button type="button" class="btn btn-sm epc-btn-fitment epc-fitment-check-btn epc-fitment-check-btn--row"' +
+      ' data-epc-fitment-article="' + esc(show) + '" data-epc-fitment-brand="' + esc(mfr) + '"' +
+      ' title="Fitment check"><i class="fa fa-car" aria-hidden="true"></i> Fitment</button>';
     if (!pricesVisible) {
       return '<div class="epc-product-actions epc-product-actions--guest"><div class="epc-product-actions__tools epc-product-actions__tools--guest">' +
         fit + ' <a href="/storefront/login">Log in</a> or <a href="/storefront/register-app">register</a></div></div>';
     }
-    var wa = 'https://wa.me/?text=' + encodeURIComponent((p.manufacturer || '') + ' ' + show + ' ' + (p.name || '') + ' ' + (p.price != null ? p.price : ''));
+    var wa = 'https://wa.me/?text=' + encodeURIComponent(mfr + ' ' + show + ' ' + (p.name || '') + ' ' + (p.price != null ? p.price : ''));
     var tools = '<div class="epc-product-actions__tools">' + fit +
       ' <a class="epc-wa-share-btn" href="' + wa + '" target="_blank" rel="noopener" title="WhatsApp"><i class="fa fa-whatsapp"></i></a></div>';
     if (exist > 0) {
@@ -465,11 +527,11 @@
     var exist = Number(p.exist || 0);
     var termRaw = p.timeToExe || p.time_to_exe || '0';
     var storageRaw = p.storage || '—';
-    var plist = p.priceList || p.price_list || '';
-    var info = plist || storageRaw || 'Warehouse';
     var priceRaw = Number(p.price || 0);
     var aid = aidSeq;
-    tr.className = 'epc-part-type-row--' + kind;
+    var href = '/en/parts/' + encodeURIComponent(String(p.manufacturer || '').toUpperCase()) + '/' + encodeURIComponent(show || article);
+    var pk = photoKey(p.manufacturer, show || p.article);
+    tr.className = 'epc-part-type-row epc-part-type-row--' + kind + ' epc-ssr-warehouse-row';
     tr.setAttribute('data-offer-key', key);
     tr.setAttribute('data-aid', String(aid));
     tr.setAttribute('data-manufacturer', p.manufacturer || '');
@@ -492,24 +554,28 @@
     tr.setAttribute('data-check-hash', p.checkHash || p.check_hash || '');
     var mask = '**';
     var avail = pricesVisible ? String(exist) : mask;
-    var term = pricesVisible ? esc(termRaw || '—') : mask;
+    var term = pricesVisible ? esc(formatTerm(termRaw, storageRaw)) : mask;
     var price = pricesVisible ? priceRaw.toFixed(2) : mask;
-    var infoHtml = pricesVisible ? ('<span class="show_data_class epc-warehouse-label">' + esc(info) + '</span>') : mask;
+    var photoHtml = '<td class="td_photo" data-epc-row-photo="' + esc(pk) + '">' +
+      '<button type="button" class="epc-search-row-photo__btn epc-search-row-photo__btn--load" ' +
+      'data-epc-photo-brand="' + esc(p.manufacturer || '') + '" data-epc-photo-article="' + esc(show || p.article || '') + '" ' +
+      'title="Click to load product photo" aria-label="Load product photo"><i class="fa fa-image"></i></button></td>';
     tr.innerHTML =
-      '<td class="td_photo"><div class="epc-search-row-photo epc-search-row-photo--placeholder"><i class="fa fa-image"></i></div></td>' +
+      photoHtml +
       '<td class="td_manufacturer"><strong>' + esc(p.manufacturer || '') + '</strong></td>' +
-      '<td class="td_article">' + esc(show) + '</td>' +
+      '<td class="td_article"><a class="bread_crumbs_a" href="' + href + '">' + esc(show) + '</a></td>' +
       '<td class="td_name">' + esc(p.name || '—') + '</td>' +
       '<td class="td_exist ' + (pricesVisible && exist > 0 ? 'epc-stock-ok' : 'epc-stock-out') + '">' + avail + '</td>' +
       '<td class="td_time_to_exe"><span class="epc-warehouse-term">' + term + '</span></td>' +
-      '<td class="td_info">' + infoHtml + '</td>' +
-      '<td class="td_price product_price">' + (pricesVisible ? ('<span class="epc-price-value">' + price + '</span>') : price) + '</td>' +
+      '<td class="td_info">' + infoCellHtml(p, show, storageRaw, pricesVisible) + '</td>' +
+      '<td class="td_price product_price">' + (pricesVisible ? ('<span class="epc-price-value" data-epc-base-price="' + price + '">' + price + '</span>') : price) + '</td>' +
       '<td class="td_add_to_cart">' + actionsHtml(p, exist, show) + '</td>' +
       '<td class="td_color"></td>';
     var rows = body.querySelectorAll('tr.epc-part-type-row--' + kind);
     if (rows.length) body.insertBefore(tr, rows[rows.length - 1].nextSibling);
     else body.insertBefore(tr, cap.nextSibling);
     bumpCaption(kind);
+    if (typeof window.epcBindSearchRowPhotoLoaders === 'function') window.epcBindSearchRowPhotoLoaders(tr);
   }
   function buildQuery(bunch) {
     var q = { article: article, searsch_str: article, manufacturer: brand, manufacturers: [], analogs: [] };
@@ -552,6 +618,92 @@
       }
     }
   }
+  function compactArt(a) { return String(a || '').replace(/[^A-Za-z0-9]/g, '').toUpperCase(); }
+  function compactBrand(b) { return String(b || '').replace(/[^A-Za-z0-9]/g, '').toUpperCase(); }
+  function partsHref(b, a) {
+    return '/en/parts/' + encodeURIComponent(String(b || '').toUpperCase()) + '/' + encodeURIComponent(String(a || ''));
+  }
+  function loadPhpCrossSearch() {
+    if (typeof window.epcLoadPhpCrossSearch === 'function') {
+      return window.epcLoadPhpCrossSearch(article, brand);
+    }
+    var url = '/content/shop/docpart/ajax_epc_cross_search.php?article=' + encodeURIComponent(article) +
+      '&brand=' + encodeURIComponent(brand);
+    return fetch(url, { credentials: 'same-origin' })
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        if (!data || data.status === false) return;
+        var refs = data.references || [];
+        var stock = data.stock || [];
+        var total = Number(data.unique_reference_count || data.reference_count || refs.length) || refs.length;
+        var countEl = document.getElementById('epc-cross-search-count');
+        if (countEl) countEl.textContent = total + ' references';
+        var btn = document.getElementById('epc-cross-search-btn');
+        if (btn) btn.setAttribute('title', 'Open ' + total + ' cross references');
+        var list = document.getElementById('epc-cross-ref-list');
+        var loading = document.getElementById('epc-cross-loading');
+        var more = document.getElementById('epc-cross-more');
+        var stockBox = document.getElementById('epc-sf-cross-stock');
+        var selfA = compactArt(article);
+        var selfB = compactBrand(brand);
+        var stockKeys = Object.create(null);
+        stock.forEach(function (s) {
+          stockKeys[compactBrand(s.brand) + '|' + compactArt(s.article_norm || s.article)] = 1;
+        });
+        if (stockBox) {
+          var stockHtml = stock.slice(0, 40).map(function (s) {
+            var b = s.brand || '';
+            var a = s.article || s.article_norm || '';
+            return '<li><a href="' + partsHref(b, a) + '">' + esc(b) + ' ' + esc(a) + '</a>' +
+              (s.name ? ' <span style="color:#64748b">' + esc(s.name) + '</span>' : '') + '</li>';
+          }).join('');
+          if (stockHtml) {
+            stockBox.hidden = false;
+            stockBox.innerHTML = '<strong>Cross references in stock (' + stock.length + ')</strong><ul>' + stockHtml + '</ul>';
+          }
+        }
+        if (list) {
+          var shown = 0;
+          var html = [];
+          var limit = 80;
+          for (var i = 0; i < refs.length && shown < limit; i++) {
+            var ref = refs[i];
+            var rb = ref.brand || '';
+            var ra = ref.article || ref.article_norm || '';
+            var rn = compactArt(ref.article_norm || ra);
+            if (!rb || !rn) continue;
+            if (rn === selfA && compactBrand(rb) === selfB) continue;
+            // Prefer real OE/AM article changes over same-article brand aliases.
+            var sameArticleAlias = rn === selfA;
+            var key = compactBrand(rb) + '|' + rn;
+            var inStock = !!stockKeys[key];
+            html.push('<li data-cross-key="' + esc(rb + '|' + ra) + '"' + (sameArticleAlias ? ' data-related-mfr="1"' : '') + '>' +
+              '<a href="' + partsHref(rb, ra) + '">' + esc(rb) + ' ' + esc(ra) + '</a> ' +
+              '<span style="color:#64748b">(' + (sameArticleAlias ? 'related manufacturer' : ('part number ' + esc(ra))) + ')</span> ' +
+              (inStock ? '<span class="epc-avail-yes">In stock</span>' : '<span class="epc-avail-no">Not in stock</span>') +
+              '</li>');
+            shown++;
+          }
+          if (html.length) list.innerHTML = html.join('');
+          else list.innerHTML = '<li style="list-style:none;color:#64748b;">No cross references found for this article.</li>';
+          if (more) {
+            if (total > shown) {
+              more.style.display = 'block';
+              more.textContent = 'Showing ' + shown + ' of ' + total.toLocaleString() + ' unique crosses (full network via cross search).';
+            } else {
+              more.style.display = 'none';
+            }
+          }
+        }
+        if (loading) loading.style.display = 'none';
+      })
+      .catch(function () {
+        var loading = document.getElementById('epc-cross-loading');
+        if (loading) loading.textContent = 'Cross search unavailable — showing local manufacturer aliases only.';
+      });
+  }
+  // PHP part_search: deep cross network loads beside warehouse polling (not brand-sibling aliases only).
+  loadPhpCrossSearch();
   fetch('/storefront/search-bunches?article=' + encodeURIComponent(article) + '&brand=' + encodeURIComponent(brand), { credentials: 'same-origin' })
     .then(function (r) { return r.json(); })
     .then(function (data) {
@@ -583,7 +735,7 @@
     });
 })();
             </script>
-            <script src="/platform-assets/epc_warehouse_search_parity.js?v=20260811x" defer></script>
+            <script src="/platform-assets/epc_warehouse_search_parity.js?v=20260811z" defer></script>
         }
     }
 
@@ -876,12 +1028,66 @@
         return _genuineKeys.Contains(brand.Trim().ToUpperInvariant());
     }
 
+    private static string BrandPickerTerm(StorefrontArticleBrandDigest brand)
+    {
+        if (brand.Exist <= 0)
+        {
+            return "Open brand for stock";
+        }
+
+        var wh = (brand.Warehouse ?? string.Empty).Trim();
+        return string.IsNullOrWhiteSpace(wh) ? "In warehouse" : $"In warehouse · {wh}";
+    }
+
+    private static string FormatWarehouseTerm(string? timeToExe, string? storage)
+    {
+        var t = (timeToExe ?? string.Empty).Trim();
+        var stor = (storage ?? string.Empty).Trim();
+        if (string.IsNullOrWhiteSpace(t) || t is "0" or "—")
+        {
+            return string.IsNullOrWhiteSpace(stor) || stor == "—"
+                ? "In warehouse"
+                : $"In warehouse · {stor}";
+        }
+
+        if (int.TryParse(t, NumberStyles.Integer, CultureInfo.InvariantCulture, out var days))
+        {
+            return days == 1 ? "1 day" : $"{days} days";
+        }
+
+        return t;
+    }
+
+    private static string PhotoRowKey(string? brand, string? article)
+    {
+        static string Compact(string? s)
+        {
+            if (string.IsNullOrEmpty(s))
+            {
+                return string.Empty;
+            }
+
+            var sb = new System.Text.StringBuilder(s.Length);
+            foreach (var ch in s)
+            {
+                if (char.IsLetterOrDigit(ch))
+                {
+                    sb.Append(char.ToUpperInvariant(ch));
+                }
+            }
+
+            return sb.ToString();
+        }
+
+        return Compact(brand) + "|" + Compact(article);
+    }
+
     private RenderFragment OfferRow(StorefrontPartOfferDigest row, string kind) => __builder =>
     {
         var show = string.IsNullOrWhiteSpace(row.ArticleShow) ? row.Article : row.ArticleShow;
-        var term = string.IsNullOrWhiteSpace(row.TimeToExe) ? "—" : row.TimeToExe;
         var storage = string.IsNullOrWhiteSpace(row.Storage) ? "—" : row.Storage;
         var priceList = string.IsNullOrWhiteSpace(row.PriceList) ? "" : row.PriceList;
+        var term = FormatWarehouseTerm(row.TimeToExe, storage);
         var key = string.Join('|',
             (row.Manufacturer ?? "").Trim().ToUpperInvariant(),
             row.Article ?? "",
@@ -892,7 +1098,17 @@
         var minOrder = row.MinOrder > 0 ? row.MinOrder : 1;
         var waText = Uri.EscapeDataString($"{row.Manufacturer} {show} {row.Name} {row.Price}");
         var infoLabel = !string.IsNullOrWhiteSpace(priceList) ? priceList : storage;
-        <tr class="@($"epc-part-type-row--{kind}")"
+        if (string.IsNullOrWhiteSpace(infoLabel) || infoLabel == "—")
+        {
+            infoLabel = "Warehouse";
+        }
+
+        var articleHref = BrandArticleHref(show, row.Manufacturer);
+        var photoKey = PhotoRowKey(row.Manufacturer, show);
+        var googleImg = "https://www.google.com/search?tbm=isch&q="
+                        + Uri.EscapeDataString($"{row.Manufacturer} {show}");
+        var priceBase = row.Price.ToString("0.00", CultureInfo.InvariantCulture);
+        <tr class="@($"epc-part-type-row epc-part-type-row--{kind} epc-ssr-warehouse-row")"
             data-offer-key="@key"
             data-aid="@aid"
             data-manufacturer="@row.Manufacturer"
@@ -913,11 +1129,18 @@
             data-json-params="@row.JsonParams"
             data-product-type="@row.ProductType"
             data-check-hash="@row.CheckHash">
-            <td class="td_photo">
-                <div class="epc-search-row-photo epc-search-row-photo--placeholder" aria-hidden="true"><i class="fa fa-image"></i></div>
+            <td class="td_photo" data-epc-row-photo="@photoKey">
+                <button type="button"
+                        class="epc-search-row-photo__btn epc-search-row-photo__btn--load"
+                        data-epc-photo-brand="@row.Manufacturer"
+                        data-epc-photo-article="@show"
+                        title="Click to load product photo"
+                        aria-label="Load product photo">
+                    <i class="fa fa-image"></i>
+                </button>
             </td>
             <td class="td_manufacturer"><strong>@row.Manufacturer</strong></td>
-            <td class="td_article">@show</td>
+            <td class="td_article"><a class="bread_crumbs_a" href="@articleHref">@show</a></td>
             <td class="td_name">@(string.IsNullOrWhiteSpace(row.Name) ? "—" : row.Name)</td>
             @if (_pricesVisible)
             {
@@ -926,10 +1149,23 @@
                 </td>
                 <td class="td_time_to_exe"><span class="epc-warehouse-term">@term</span></td>
                 <td class="td_info">
-                    <span class="show_data_class epc-warehouse-label">@(string.IsNullOrWhiteSpace(infoLabel) || infoLabel == "—" ? "Warehouse" : infoLabel)</span>
+                    <div style="margin:3px 0;">
+                        <span class="info_box">
+                            <a title="Product photos" href="@googleImg" target="_blank" rel="noopener"><span><i style="font-size:.8em;" class="fa fa-camera"></i></span></a>
+                            <a title="Warehouse" href="javascript:void(0);"><span><i class="fa fa-home"></i></span></a>
+                            <a title="Fitment" href="javascript:void(0);" class="epc-fitment-check-btn epc-fitment-check-btn--row"
+                               data-epc-fitment-article="@show" data-epc-fitment-brand="@row.Manufacturer">
+                                <span><i style="font-size:.9em;" class="fa fa-car"></i></span>
+                            </a>
+                            <br />
+                        </span>
+                        <div class="show_data_class epc-warehouse-label" style="margin:3px 0;white-space:nowrap;max-width:110px;font-size:11px;font-weight:600;" title="Warehouse">
+                            <span class="info_box">@infoLabel</span>
+                        </div>
+                    </div>
                 </td>
                 <td class="td_price product_price">
-                    <span class="epc-price-value">@row.Price.ToString("N2", CultureInfo.InvariantCulture)</span>
+                    <span class="epc-price-value" data-epc-base-price="@priceBase">@row.Price.ToString("N2", CultureInfo.InvariantCulture)</span>
                 </td>
             }
             else
@@ -944,7 +1180,9 @@
                 {
                     <div class="epc-product-actions epc-product-actions--guest">
                         <div class="epc-product-actions__tools epc-product-actions__tools--guest">
-                            <button type="button" class="btn btn-sm epc-btn-fitment epc-fitment-check-btn epc-fitment-check-btn--row">Fitment</button>
+                            <button type="button" class="btn btn-sm epc-btn-fitment epc-fitment-check-btn epc-fitment-check-btn--row"
+                                    data-epc-fitment-article="@show" data-epc-fitment-brand="@row.Manufacturer"
+                                    title="Fitment check"><i class="fa fa-car" aria-hidden="true"></i> Fitment</button>
                             @((MarkupString)_loginCtaHtml)
                         </div>
                     </div>
@@ -953,7 +1191,9 @@
                 {
                     <div class="epc-product-actions">
                         <div class="epc-product-actions__tools">
-                            <button type="button" class="btn btn-sm epc-btn-fitment epc-fitment-check-btn epc-fitment-check-btn--row">Fitment</button>
+                            <button type="button" class="btn btn-sm epc-btn-fitment epc-fitment-check-btn epc-fitment-check-btn--row"
+                                    data-epc-fitment-article="@show" data-epc-fitment-brand="@row.Manufacturer"
+                                    title="Fitment check"><i class="fa fa-car" aria-hidden="true"></i> Fitment</button>
                             <a class="epc-wa-share-btn" href="@($"https://wa.me/?text={waText}")" target="_blank" rel="noopener" title="WhatsApp"><i class="fa fa-whatsapp"></i></a>
                         </div>
                         <div class="epc-product-actions__buy">
@@ -970,7 +1210,9 @@
                 {
                     <div class="epc-product-actions epc-product-actions--quote-only">
                         <div class="epc-product-actions__tools">
-                            <button type="button" class="btn btn-sm epc-btn-fitment epc-fitment-check-btn epc-fitment-check-btn--row">Fitment</button>
+                            <button type="button" class="btn btn-sm epc-btn-fitment epc-fitment-check-btn epc-fitment-check-btn--row"
+                                    data-epc-fitment-article="@show" data-epc-fitment-brand="@row.Manufacturer"
+                                    title="Fitment check"><i class="fa fa-car" aria-hidden="true"></i> Fitment</button>
                             <a class="epc-wa-share-btn" href="@($"https://wa.me/?text={waText}")" target="_blank" rel="noopener" title="WhatsApp"><i class="fa fa-whatsapp"></i></a>
                         </div>
                         <button type="button" class="btn btn-sm btn-primary epc-btn-quote">Add to Quote</button>

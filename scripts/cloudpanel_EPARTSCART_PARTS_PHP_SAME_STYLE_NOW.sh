@@ -2,14 +2,14 @@
 # Force-live publish ePartsCart so PHP same-style parts UI reaches public :5100.
 #
 # Do NOT run from ~ as `bash scripts/...` — that path only exists inside the git repo.
-# CloudPanel root paste (after this fix lands on main / this PR branch):
-#   URL='https://raw.githubusercontent.com/epartscart/ecomae/cursor/parts-same-style-cloudpanel-fix-7b3b/scripts/cloudpanel_EPARTSCART_PARTS_PHP_SAME_STYLE_NOW.sh'
+# CloudPanel root paste:
+#   URL='https://raw.githubusercontent.com/epartscart/ecomae/cursor/parts-warehouse-php-ui-parity-7b3b/scripts/cloudpanel_EPARTSCART_PARTS_PHP_SAME_STYLE_NOW.sh'
 #   TMP=/tmp/epartscart-parts-php-same-style-now.sh
 #   curl -fsSL "$URL" -o "$TMP" && test -s "$TMP"
-#   export ECOMAE_BRANCH=cursor/parts-same-style-cloudpanel-fix-7b3b
+#   export ECOMAE_BRANCH=cursor/parts-warehouse-php-ui-parity-7b3b
 #   export ECOMAE_EPARTSCART_SHOP_DB=docpart
 #   bash "$TMP" 2>&1 | tee /root/epartscart-parts-php-same-style.log
-#   grep -E 'RESULT=|GATE_|SHA=|HOST=' /root/epartscart-parts-php-same-style.log | tail -80
+#   grep -E 'RESULT=|GATE_|SHA=|HOST=|MATCHER=' /root/epartscart-parts-php-same-style.log | tail -80
 #
 # Silent "External action completed" without RESULT=PASS paste-back = FAIL.
 set -euo pipefail
@@ -34,7 +34,7 @@ note "HOST=$(hostname -f 2>/dev/null || hostname || echo unknown)"
 note "DATE_UTC=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 note "ECOMAE_BRANCH=${ECOMAE_BRANCH}"
 note "ECOMAE_EPARTSCART_SHOP_DB=${ECOMAE_EPARTSCART_SHOP_DB}"
-note "Expect: epc-brand-picker-table + epc-part-type-split + ?v=20260811x"
+note "Expect: epc-brand-picker-table + epc-part-type-split + php cross search + ?v=20260811z"
 
 REPO=""
 for d in "${CANDIDATES[@]}"; do
@@ -68,6 +68,10 @@ fi
 if ! grep -Eq 'haystack_match|MATCHER=grep' \
   scripts/cloudpanel_EPARTSCART_PARTS_PHP_SAME_STYLE_PROVE.sh; then
   die "prove script missing grep fallback (wrong SHA / branch)"
+fi
+if ! grep -q 'ajax_epc_cross_search.php' \
+  aspnet/src/EcomAE.Platform/Components/Pages/StorefrontSearchApp.razor; then
+  die "StorefrontSearchApp missing ajax_epc_cross_search wiring (wrong SHA / branch)"
 fi
 
 publish_via_live_publish() {
