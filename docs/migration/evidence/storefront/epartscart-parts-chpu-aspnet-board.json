@@ -1,0 +1,45 @@
+{
+  "role": "epartscart-parts-chpu-aspnet",
+  "generatedAtUnix": 1786432260,
+  "ok": true,
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "phpAuthoritativeWrites": true,
+  "probeUrl": "https://www.epartscart.com/en/parts/TOYOTA/1310154101",
+  "liveBefore": {
+    "backend": "php-nero",
+    "xEcomaePlatform": null,
+    "markers": [
+      "base href=/templates/nero/",
+      "set-cookie: lang=",
+      "ajax_getProductsOfBunch.php",
+      "Pricing and availability for TOYOTA 1310154101"
+    ],
+    "note": "Tenant reported receiving an order — PHP write path still works. Product UI for this CHPU URL was still PHP, not ASP.NET primary."
+  },
+  "aspNetOwnership": {
+    "blazorRoutes": [
+      "/storefront/search-app",
+      "/en/shop/part_search",
+      "/en/shop/warehouse-search",
+      "/parts/{PathBrand}/{PathArticle}",
+      "/en/parts/{PathBrand}/{PathArticle}"
+    ],
+    "nginxClassicEntry": [
+      "location ^~ /en/parts/ → :5100",
+      "location ^~ /parts/ → :5100",
+      "location = /en/shop/part_search → :5100",
+      "location = /en/shop/warehouse-search → :5100"
+    ],
+    "noIncomingRedirect": "PhpSurfaceLinkMap.TryMapIncomingPhpProductPath returns false for Blazor-owned CHPU/search same-URL paths so Kestrel does not 302 to /storefront/search-app"
+  },
+  "operator": {
+    "install": "scripts/cloudpanel_EPARTSCART_PARTS_CHPU_ASPNET_NOW.sh",
+    "prove": "scripts/cloudpanel_EPARTSCART_PARTS_CHPU_PROVE.sh",
+    "branch": "cursor/epartscart-parts-chpu-aspnet-7b3b",
+    "passLine": "RESULT=PASS PARTS_CHPU_ASPNET=YES",
+    "silentExternalActionWithoutPaste": "FAIL"
+  },
+  "phpReferenceKept": true,
+  "phpReferencePath": "/php-reference/*"
+}

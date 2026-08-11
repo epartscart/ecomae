@@ -95,6 +95,15 @@ public sealed class StorefrontSearchPhpParityFlowTests
     }
 
     [Fact]
+    public void PhpSurfaceLinkMap_DoesNotRedirectIncomingPartsChpuAwayFromBlazor()
+    {
+        Assert.False(PhpSurfaceLinkMap.TryMapIncomingPhpProductPath("/en/parts/TOYOTA/1310154101", out _));
+        Assert.False(PhpSurfaceLinkMap.TryMapIncomingPhpProductPath("/parts/ROCKY/DA320", out _));
+        Assert.False(PhpSurfaceLinkMap.TryMapIncomingPhpProductPath("/en/shop/part_search?article=DA320", out _));
+        Assert.False(PhpSurfaceLinkMap.TryMapIncomingPhpProductPath("/en/shop/warehouse-search", out _));
+    }
+
+    [Fact]
     public void ReporterInterface_HasBrandWarehouseCrossApis()
     {
         var path = FindRepoFile("aspnet/src/EcomAE.Platform/Migration/ISurfaceDashboardSummaryReporter.cs");

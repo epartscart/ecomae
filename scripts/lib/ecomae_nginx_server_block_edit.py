@@ -126,27 +126,42 @@ def _is_php_rewrite(block_raw: str) -> bool:
 
 
 def _validate_exact_block(route: str, block_raw: str) -> None:
-    bos_super_cp_only = {
+    # Super-CP-only product shells: tenants must return 404 (never proxy BOS/IP/LifeOS).
+    super_cp_only_deny = {
         "/bos",
         "/bos/",
         "/BOS",
         "/BOS/",
         "/bos/login",
         "/bos/login/",
+        "/BOS/login",
+        "/BOS/login/",
         "/php-reference/bos",
+        "/ip",
+        "/ip/",
+        "/IP",
+        "/IP/",
+        "/ip/login",
+        "/ip/login/",
+        "/IP/login",
+        "/IP/login/",
+        "/lifeos",
+        "/lifeos/",
+        "/lifeos/login",
+        "/lifeos/login/",
     }
     is_proxy = _is_proxy_5100(block_raw)
     is_php_ref = route.startswith("/php-reference/") and (
         _is_php_rewrite(block_raw) or "return 302" in block_raw or "alias " in block_raw
     )
-    is_bos_deny = route in bos_super_cp_only and bool(
+    is_super_cp_deny = route in super_cp_only_deny and bool(
         re.search(r"(?m)^\s*return\s+404\s*;", block_raw)
     )
     is_sitemap = route == "/sitemap.xml" and _is_php_rewrite(block_raw)
-    if not is_proxy and not is_php_ref and not is_bos_deny and not is_sitemap:
+    if not is_proxy and not is_php_ref and not is_super_cp_deny and not is_sitemap:
         raise SystemExit(
             f"ERROR: block must proxy_pass ASP.NET, php-reference, sitemap rewrite, "
-            f"or bos-deny 404 ({route})"
+            f"or super-cp-deny 404 ({route})"
         )
     if route in {
         "/",
@@ -191,11 +206,16 @@ def parse_example(
     # Prefix ^~ locations (storefront / framework / cp tree / …)
     for m in re.finditer(r"(?m)^(location \^~ (/[^\s{]*)\s*\{.*?\n\})", example, flags=re.S):
         block_raw, route = m.group(1), m.group(2)
-        # Tenant bos tree is return 404; everything else must hit Kestrel
+        # Tenant Super-CP-only trees return 404; everything else must hit Kestrel
         is_proxy = _is_proxy_5100(block_raw)
-        is_bos_deny = route.rstrip("/").lower() in {"/bos"} or route.startswith("/bos/")
-        is_bos_deny = is_bos_deny and bool(re.search(r"(?m)^\s*return\s+404\s*;", block_raw))
-        if not is_proxy and not is_bos_deny:
+        route_l = route.lower()
+        is_super_cp_prefix_deny = (
+            route_l.rstrip("/") in {"/bos", "/ip", "/lifeos"}
+            or route_l.startswith("/bos/")
+            or route_l.startswith("/ip/")
+            or route_l.startswith("/lifeos/")
+        ) and bool(re.search(r"(?m)^\s*return\s+404\s*;", block_raw))
+        if not is_proxy and not is_super_cp_prefix_deny:
             raise SystemExit(f"ERROR: prefix location {route} must proxy_pass :5100 or return 404")
         # Never allow stub→/en redirects to sneak back in as exact overrides — those are gone.
         if "return 302 /en/" in block_raw:
@@ -350,6 +370,7 @@ def install_into_host_servers(conf_text: str, example: str, host: str) -> tuple[
         "inserted": [],
         "serverNames": [],
         "prefixStorefront": any(k == "prefix" and m == "/storefront/" for (k, m), _ in blocks),
+        "prefixEnParts": any(k == "prefix" and m == "/en/parts/" for (k, m), _ in blocks),
     }
     for start, end, body, names in sorted(targets, key=lambda t: t[0], reverse=True):
         new_body, inserted, replaced = apply_blocks_to_server_body(body, named_blocks, blocks)
@@ -404,6 +425,8 @@ def strip_classic_entry_from_host_servers(conf_text: str, host: str | None = Non
         "/erp/",
         "/bos/",
         "/storefront/",
+        "/en/parts/",
+        "/parts/",
         "/marketing/",
         "/CP/",
         "/ERP/",
@@ -413,6 +436,10 @@ def strip_classic_entry_from_host_servers(conf_text: str, host: str | None = Non
         "/bos/login",
         "/bos/logout",
         "/bos/ajax-writes",
+    ]
+    exact_routes_extra = [
+        "/en/shop/part_search",
+        "/en/shop/warehouse-search",
     ]
     named = ["epc_classic_php_passthrough"]
     server_blocks = find_server_blocks(conf_text)
@@ -445,7 +472,7 @@ def strip_classic_entry_from_host_servers(conf_text: str, host: str | None = Non
                 return ""
             return blk
 
-        for route in exact_routes:
+        for route in exact_routes + exact_routes_extra:
             pattern = re.compile(
                 rf"(?m)^[ \t]*location\s*=\s*{re.escape(route)}\s*\{{.*?\n[ \t]*\}}\n?", re.S
             )
@@ -484,6 +511,7 @@ def main(argv: list[str] | None = None) -> int:
         print(f"HOST={summary['host']}")
         print(f"SERVER_BLOCKS_EDITED={summary['serverBlocksEdited']}")
         print(f"PREFIX_STOREFRONT={summary['prefixStorefront']}")
+        print(f"PREFIX_EN_PARTS={summary['prefixEnParts']}")
         for names in summary["serverNames"]:
             print(f"  server_name={names[:12]}")
         print(f"REPLACED: {len(summary['replaced'])}")
@@ -495,6 +523,12 @@ def main(argv: list[str] | None = None) -> int:
         if not summary["prefixStorefront"]:
             print("ERROR: storefront prefix missing from example", file=sys.stderr)
             return 2
+        # Tenant + industry examples must own CHPU /en/parts/ (www Super-CP may omit).
+        example_name = Path(args.example).name
+        if "tenant" in example_name or "industry" in example_name:
+            if not summary["prefixEnParts"]:
+                print("ERROR: /en/parts/ prefix missing from tenant/industry classic-entry", file=sys.stderr)
+                return 2
         return 0
 
     if args.cmd == "strip":

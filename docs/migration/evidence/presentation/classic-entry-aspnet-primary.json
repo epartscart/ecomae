@@ -41,6 +41,13 @@
         "/bos"
       ],
       "sharedEntriesPhp": [],
+      "storefrontChpuAspNet": [
+        "/en/parts/",
+        "/parts/",
+        "/en/shop/part_search",
+        "/en/shop/warehouse-search"
+      ],
+      "storefrontChpuNote": "Classic-entry proxies CHPU part pages + PHP-canonical search to StorefrontSearchApp at the same URL. Live 2026-08-11 defect: /en/parts/TOYOTA/1310154101 was still full PHP nero while / was ASP.NET primary. Orders via PHP writes remain expected until cutoverAllowed=true.",
       "loginBridges": [
         "/cp/login",
         "/erp/login",

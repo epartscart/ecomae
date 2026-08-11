@@ -52,6 +52,27 @@ public sealed class IpLifeOsClassicEntryNginxParityTests
         Assert.Contains("\"cutoverAllowed\": false", text, StringComparison.Ordinal);
     }
 
+    [Theory]
+    [InlineData("location ^~ /en/parts/")]
+    [InlineData("location ^~ /parts/")]
+    [InlineData("location = /en/shop/part_search")]
+    [InlineData("location = /en/shop/warehouse-search")]
+    [InlineData("classic-entry-en-parts-chpu")]
+    public void TenantClassicEntry_ProxiesPartsChpuToAspNet(string needle)
+    {
+        var text = Read("deploy/aspnet/nginx-classic-entry-tenant-aspnet-primary-shadow-example.conf");
+        Assert.Contains(needle, text, StringComparison.Ordinal);
+        Assert.Contains("proxy_pass http://127.0.0.1:5100", text, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void ClassicEntryEvidence_ListsEpartscartPartsChpuAspNet()
+    {
+        var text = Read("docs/migration/evidence/presentation/classic-entry-aspnet-primary.json");
+        Assert.Contains("\"/en/parts/\"", text, StringComparison.Ordinal);
+        Assert.Contains("storefrontChpuAspNet", text, StringComparison.Ordinal);
+    }
+
     private static string Read(string relative)
     {
         var dir = new DirectoryInfo(AppContext.BaseDirectory);
