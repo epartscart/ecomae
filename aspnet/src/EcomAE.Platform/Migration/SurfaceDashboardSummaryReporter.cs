@@ -2086,6 +2086,8 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         var articleMatch = ResolveStorefrontArticleMatchSql(candidates, mode, hasSearchCol, out var bindIndexed);
         await using var command = connection.CreateCommand();
+        // Protocol-3 / CHPU first paint budget is 1–3s — never wait on the 30s pool default.
+        command.CommandTimeout = 2;
         command.CommandText = LegacySurfaceDashboardSql.SelectStorefrontPartSearch.Replace(
             "{ARTICLE_MATCH}",
             articleMatch,
@@ -2937,22 +2939,64 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         int geoId = 0,
         CancellationToken cancellationToken = default)
     {
-        // Protocol-3 price aggregate (office_id=0, storage_id=0): prefer ASP.NET/php-chpu warehouse rows,
-        // then fall through to PHP ajax_getProductsOfBunch (prices enclosure) when empty —
-        // empty SQL must not block supplier/price results the way live PHP part_search shows them.
+        // Protocol-3 price aggregate (office_id=0, storage_id=0): race ASP.NET SQL vs PHP
+        // ajax_getProductsOfBunch under a hard 2.5s budget so CHPU first paint stays 1–3s.
         if (officeId == 0 && storageId == 0)
         {
-            var search = await SearchStorefrontPartsAsync(article, brand, 200, cancellationToken)
-                .ConfigureAwait(false);
-            if (search.Rows.Count > 0
+            using var budgetCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            budgetCts.CancelAfter(TimeSpan.FromMilliseconds(2500));
+
+            var searchTask = SearchStorefrontPartsAsync(article, brand, 200, budgetCts.Token);
+            Task<StorefrontProductsOfBunchResult>? phpTask = _phpWarehouseBridge is null
+                ? null
+                : _phpWarehouseBridge.TryLoadProductsOfBunchAsync(
+                    article, brand, officeId, storageId, queryJson, geoId, budgetCts.Token, timeoutSeconds: 2);
+
+            StorefrontPartSearchResult? search = null;
+            try
+            {
+                search = await searchTask.ConfigureAwait(false);
+            }
+            catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+            {
+                // budget elapsed — fall through to PHP / empty
+            }
+
+            if (search is not null
+                && search.Rows.Count > 0
                 && (string.Equals(search.Source, "database", StringComparison.Ordinal)
-                    || string.Equals(search.Source, "php-chpu", StringComparison.Ordinal)))
+                    || string.Equals(search.Source, "php-chpu", StringComparison.Ordinal))
+                && search.Rows.Any(static r => r.Price > 0m || r.Exist > 0))
             {
                 var source = string.Equals(search.Source, "database", StringComparison.Ordinal)
                     ? "aspnet-warehouse"
                     : "php-chpu";
-                // PricesVisible left true here; StorefrontModule applies PHP guest/wholesale gate
-                // (epc_storefront_prices_helpers) so session-aware redaction is not skipped.
+                // PricesVisible left true here; StorefrontModule applies PHP guest/wholesale gate.
+                return new(1, 0, 0, search.Rows, true, source, string.Empty);
+            }
+
+            if (phpTask is not null)
+            {
+                try
+                {
+                    var php = await phpTask.ConfigureAwait(false);
+                    if (php.Products.Count > 0)
+                    {
+                        return php;
+                    }
+                }
+                catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+                {
+                    // budget elapsed
+                }
+            }
+
+            // Catalog-only SQL rows (price 0) still beat an empty table for first paint.
+            if (search is not null && search.Rows.Count > 0)
+            {
+                var source = string.Equals(search.Source, "database", StringComparison.Ordinal)
+                    ? "aspnet-warehouse"
+                    : search.Source;
                 return new(1, 0, 0, search.Rows, true, source, string.Empty);
             }
         }

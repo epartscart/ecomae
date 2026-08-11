@@ -2,19 +2,19 @@
 # Force-live publish ePartsCart brand+article CHPU warehouse fast path (PHP skip-SSR parity).
 #
 # Target:
-#   https://www.epartscart.com/en/parts/JS%20ASAKASHI/C110J
+#   https://www.epartscart.com/en/parts/AISIN/DT068  (1–3s warehouse first paint)
 # PHP reference paints warehouse via one protocol-3 ajax_getProductsOfBunch + cross Promise.all
 # (skip_ssr_use_ajax_fast_path). ASP.NET must match that model on :5100.
 #
 # Do NOT run from ~ as `bash scripts/...` — that path only exists inside the git repo.
 # CloudPanel root paste:
-#   URL='https://raw.githubusercontent.com/epartscart/ecomae/cursor/parts-warehouse-php-fast-7b3b/scripts/cloudpanel_EPARTSCART_PARTS_WAREHOUSE_PHP_FAST_NOW.sh'
+#   URL='https://raw.githubusercontent.com/epartscart/ecomae/cursor/parts-chpu-offers-1to3s-7b3b/scripts/cloudpanel_EPARTSCART_PARTS_WAREHOUSE_PHP_FAST_NOW.sh'
 #   TMP=/tmp/epartscart-parts-warehouse-php-fast-now.sh
 #   curl -fsSL "$URL" -o "$TMP" && test -s "$TMP"
-#   export ECOMAE_BRANCH=cursor/parts-warehouse-php-fast-7b3b
+#   export ECOMAE_BRANCH=cursor/parts-chpu-offers-1to3s-7b3b
 #   export ECOMAE_EPARTSCART_SHOP_DB=docpart
-#   bash "$TMP" 2>&1 | tee /root/epartscart-parts-warehouse-php-fast.log
-#   grep -E 'RESULT=|GATE_|SHA=|TTFB_|HOST=' /root/epartscart-parts-warehouse-php-fast.log | tail -80
+#   bash "$TMP" 2>&1 | tee /root/epartscart-parts-chpu-1to3s.log
+#   grep -E 'RESULT=|GATE_|SHA=|TTFB_|BUNCH_|HOST=' /root/epartscart-parts-chpu-1to3s.log | tail -80
 #
 # Silent "External action completed" without RESULT=PASS paste-back = FAIL.
 set -euo pipefail
@@ -25,22 +25,22 @@ if [[ "$(id -u)" -ne 0 ]]; then
 fi
 
 ECOMAE_GIT_URL="${ECOMAE_GIT_URL:-https://github.com/epartscart/ecomae.git}"
-ECOMAE_BRANCH="${ECOMAE_BRANCH:-cursor/parts-warehouse-php-fast-7b3b}"
+ECOMAE_BRANCH="${ECOMAE_BRANCH:-cursor/parts-chpu-offers-1to3s-7b3b}"
 PUBLIC_BASE="${ECOMAE_PUBLIC_BASE:-https://www.epartscart.com}"
 export ECOMAE_EPARTSCART_SHOP_DB="${ECOMAE_EPARTSCART_SHOP_DB:-docpart}"
-PARTS_PATH="${ECOMAE_PARTS_PROBE:-/en/parts/JS%20ASAKASHI/C110J}"
+PARTS_PATH="${ECOMAE_PARTS_PROBE:-/en/parts/AISIN/DT068}"
 CANDIDATES=("${ECOMAE_REPO:-}" /opt/ecomae-aspnet-source /root/ecomae /opt/ecomae)
 
 note() { printf '%s\n' "$*"; }
 die() { note "RESULT=FAIL $*"; exit 1; }
 
-note "======== EPARTSCART PARTS WAREHOUSE PHP-FAST FORCE LIVE ========"
+note "======== EPARTSCART PARTS CHPU OFFERS 1–3s FORCE LIVE ========"
 note "HOST=$(hostname -f 2>/dev/null || hostname || echo unknown)"
 note "DATE_UTC=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 note "ECOMAE_BRANCH=${ECOMAE_BRANCH}"
 note "ECOMAE_EPARTSCART_SHOP_DB=${ECOMAE_EPARTSCART_SHOP_DB}"
 note "PROBE=${PUBLIC_BASE}${PARTS_PATH}"
-note "Expect: ajax-fast-path + runChpuPriceSearch + ProbeStorefrontPartStockAsync"
+note "Expect: immediate protocol-3 poll + AbortSignal 3s + BUNCH_MS<=3000"
 
 REPO=""
 for d in "${CANDIDATES[@]}"; do
@@ -68,6 +68,14 @@ if ! grep -q 'runChpuPriceSearch' \
   aspnet/src/EcomAE.Platform/Components/Pages/StorefrontSearchApp.razor; then
   die "StorefrontSearchApp missing runChpuPriceSearch"
 fi
+if ! grep -q 'Immediate protocol-3 poll' \
+  aspnet/src/EcomAE.Platform/Components/Pages/StorefrontSearchApp.razor; then
+  die "StorefrontSearchApp missing immediate protocol-3 poll (1–3s path)"
+fi
+if ! grep -q 'AbortSignal.timeout(3000)' \
+  aspnet/src/EcomAE.Platform/Components/Pages/StorefrontSearchApp.razor; then
+  die "StorefrontSearchApp missing AbortSignal 3s budget"
+fi
 if ! grep -q 'ProbeStorefrontPartStockAsync' \
   aspnet/src/EcomAE.Platform/Migration/SurfaceDashboardSummaryReporter.cs; then
   die "Reporter missing ProbeStorefrontPartStockAsync"
@@ -75,6 +83,10 @@ fi
 if ! grep -q 'QueryStorefrontPartOffersBrandedFastAsync' \
   aspnet/src/EcomAE.Platform/Migration/SurfaceDashboardSummaryReporter.cs; then
   die "Reporter missing branded fast warehouse cascade"
+fi
+if ! grep -q 'CancelAfter(TimeSpan.FromMilliseconds(2500))' \
+  aspnet/src/EcomAE.Platform/Migration/SurfaceDashboardSummaryReporter.cs; then
+  die "Reporter missing 2.5s protocol-3 budget"
 fi
 if [[ ! -f scripts/cloudpanel_EPARTSCART_PARTS_WAREHOUSE_PHP_FAST_PROVE.sh ]]; then
   die "prove script missing in repo"

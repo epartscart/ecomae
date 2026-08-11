@@ -32,6 +32,11 @@ public sealed class StorefrontSearchPhpParityFlowTests
         Assert.Contains("runChpuPriceSearch", text, StringComparison.Ordinal);
         Assert.Contains("Promise.all([pricePromise, crossPromise])", text, StringComparison.Ordinal);
         Assert.Contains("pickProtocol3Bunch", text, StringComparison.Ordinal);
+        // First paint: protocol-3 poll fires immediately (no search-bunches RTT before rows).
+        Assert.Contains("Immediate protocol-3 poll", text, StringComparison.Ordinal);
+        Assert.Contains("AbortSignal.timeout(3000)", text, StringComparison.Ordinal);
+        Assert.Contains("loadGenuineBrandsBackground", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("await Task.WhenAll(genuineTask, stockTask)", text, StringComparison.Ordinal);
         Assert.DoesNotContain("chain = chain.then", text, StringComparison.Ordinal);
         Assert.Contains("epc-seo-cross-refs", text, StringComparison.Ordinal);
         Assert.Contains("all_table_products", text, StringComparison.Ordinal);
@@ -173,7 +178,9 @@ public sealed class StorefrontSearchPhpParityFlowTests
         var text = File.ReadAllText(FindRepoFile(
             "aspnet/src/EcomAE.Platform/Components/Pages/StorefrontSearchApp.razor"));
 
-        Assert.Contains("ProbeStorefrontPartStockAsync(_articleInput, _brandInput)", text, StringComparison.Ordinal);
+        // Cap SEO stock probe so first paint stays in the 1–3s budget.
+        Assert.Contains("CancellationTokenSource(TimeSpan.FromMilliseconds(250))", text, StringComparison.Ordinal);
+        Assert.Contains("ProbeStorefrontPartStockAsync(_articleInput, _brandInput, seoCts.Token)", text, StringComparison.Ordinal);
         Assert.DoesNotContain(
             "SearchStorefrontPartsAsync(_articleInput, _brandInput, ssrOfferLimit)",
             text,
@@ -182,6 +189,7 @@ public sealed class StorefrontSearchPhpParityFlowTests
             "ListStorefrontCrossRefsAsync(_articleInput, _brandInput, ssrCrossLimit)",
             text,
             StringComparison.Ordinal);
+        Assert.DoesNotContain("ListStorefrontGenuineBrandsAsync()", text, StringComparison.Ordinal);
         Assert.Contains("ONE protocol-3", text, StringComparison.OrdinalIgnoreCase);
     }
 
