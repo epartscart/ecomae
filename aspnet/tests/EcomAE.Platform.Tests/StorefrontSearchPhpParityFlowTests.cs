@@ -25,13 +25,12 @@ public sealed class StorefrontSearchPhpParityFlowTests
         Assert.Contains("ListStorefrontArticleBrandsAsync", text, StringComparison.Ordinal);
         Assert.Contains("epc-brand-picker-table", text, StringComparison.Ordinal);
         Assert.Contains("epc-brand-picker-mode", text, StringComparison.Ordinal);
-        // PHP skip_ssr_use_ajax_fast_path: brand+article CHPU does not block on warehouse/cross SSR.
+        // SSR-seed local warehouse rows (≤350ms) so first HTML already shows offers (faster than PHP AJAX-only).
         Assert.Contains("ProbeStorefrontPartStockAsync", text, StringComparison.Ordinal);
-        Assert.Contains("ajax-fast-path", text, StringComparison.Ordinal);
-        Assert.Contains("skip_ssr_use_ajax_fast_path", text, StringComparison.Ordinal);
+        Assert.Contains("ssr-seed-fast-path", text, StringComparison.Ordinal);
+        Assert.Contains("SSR-seed local warehouse rows", text, StringComparison.Ordinal);
         Assert.Contains("runChpuPriceSearch", text, StringComparison.Ordinal);
         Assert.Contains("Promise.all([pricePromise, crossPromise])", text, StringComparison.Ordinal);
-        Assert.Contains("pickProtocol3Bunch", text, StringComparison.Ordinal);
         // First paint: protocol-3 poll fires immediately (no search-bunches RTT before rows).
         Assert.Contains("Immediate protocol-3 poll", text, StringComparison.Ordinal);
         Assert.Contains("AbortSignal.timeout(3000)", text, StringComparison.Ordinal);
@@ -181,19 +180,16 @@ public sealed class StorefrontSearchPhpParityFlowTests
         var text = File.ReadAllText(FindRepoFile(
             "aspnet/src/EcomAE.Platform/Components/Pages/StorefrontSearchApp.razor"));
 
-        // Cap SEO stock probe so first paint stays in the 1–3s budget.
-        Assert.Contains("CancellationTokenSource(TimeSpan.FromMilliseconds(250))", text, StringComparison.Ordinal);
-        Assert.Contains("ProbeStorefrontPartStockAsync(_articleInput, _brandInput, seoCts.Token)", text, StringComparison.Ordinal);
-        Assert.DoesNotContain(
-            "SearchStorefrontPartsAsync(_articleInput, _brandInput, ssrOfferLimit)",
-            text,
-            StringComparison.Ordinal);
+        // Cap SSR offer seed so first paint stays in the 1–3s budget (rows visible in HTML).
+        Assert.Contains("CancellationTokenSource(TimeSpan.FromMilliseconds(350))", text, StringComparison.Ordinal);
+        Assert.Contains("SearchStorefrontPartsAsync(_articleInput, _brandInput, 40, seedCts.Token)", text, StringComparison.Ordinal);
         Assert.DoesNotContain(
             "ListStorefrontCrossRefsAsync(_articleInput, _brandInput, ssrCrossLimit)",
             text,
             StringComparison.Ordinal);
         Assert.DoesNotContain("ListStorefrontGenuineBrandsAsync()", text, StringComparison.Ordinal);
         Assert.Contains("ONE protocol-3", text, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("search-bunches is diagnostic/enrichment only", text, StringComparison.Ordinal);
     }
 
     [Fact]

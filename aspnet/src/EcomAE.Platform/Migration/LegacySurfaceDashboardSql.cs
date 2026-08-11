@@ -1889,7 +1889,7 @@ public static class LegacySurfaceDashboardSql
         WHERE {ARTICLE_MATCH}
           AND (@brand = '' OR UPPER(TRIM(d.`manufacturer`)) = @brand
                OR REPLACE(REPLACE(REPLACE(UPPER(TRIM(d.`manufacturer`)), ' ', ''), '-', ''), '.', '') = @brandCompact)
-        ORDER BY d.`price` ASC
+        ORDER BY (IFNULL(d.`exist`, 0) > 0) DESC, d.`price` ASC
         LIMIT @limit
         """;
 
