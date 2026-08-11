@@ -178,6 +178,12 @@ public static class PhpLegacyAssetBridge
                          "content/general_pages/epc_ecomae_home_3d.js"),
                      ("/platform-assets/epc_ecomae_marketing_lifeos_film.css",
                          "content/general_pages/epc_ecomae_marketing_lifeos_film.css"),
+                     ("/platform-assets/epc_ecomae_layla_widget.css",
+                         "content/general_pages/epc_ecomae_layla_widget.css"),
+                     ("/platform-assets/epc_ecomae_demo_portal.css",
+                         "content/general_pages/epc_ecomae_demo_portal.css"),
+                     ("/platform-assets/layla-avatar.svg",
+                         "content/files/images/ecomae-platform/layla-avatar.svg"),
                      // ePartsCart own catalogue (Catalog of products mega menu + browse app).
                      ("/platform-assets/epc_own_catalog.css",
                          "content/general_pages/epc_own_catalog.css"),

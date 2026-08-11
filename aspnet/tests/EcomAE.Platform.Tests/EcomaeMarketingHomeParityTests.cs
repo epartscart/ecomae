@@ -27,6 +27,10 @@ public sealed class EcomaeMarketingHomeParityTests
             < text.IndexOf("PhpEcomaeLifeOsFilmBand", StringComparison.Ordinal));
         Assert.True(text.IndexOf("PhpEcomaeLifeOsFilmBand", StringComparison.Ordinal)
             < text.IndexOf("PhpEcomaeHomeSections", StringComparison.Ordinal));
+        Assert.True(text.IndexOf("PhpEcomaeHomeSections", StringComparison.Ordinal)
+            < text.IndexOf("PhpEcomaeLaylaWidget", StringComparison.Ordinal));
+        Assert.True(text.IndexOf("</PhpEcomaeMarketingChrome>", StringComparison.Ordinal)
+            < text.IndexOf("PhpEcomaeLaylaWidget", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -64,7 +68,29 @@ public sealed class EcomaeMarketingHomeParityTests
         var layla = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpEcomaeLaylaWidget.razor"));
         Assert.Contains("epc-layla-splash", layla, StringComparison.Ordinal);
         Assert.Contains("epc-layla-footer-widget", layla, StringComparison.Ordinal);
-        Assert.Contains("layla-avatar.svg", layla, StringComparison.Ordinal);
+        Assert.Contains("/platform-assets/layla-avatar.svg", layla, StringComparison.Ordinal);
+        Assert.DoesNotContain("<HeadContent>", layla, StringComparison.Ordinal);
+        Assert.Contains("splashIsModal", layla, StringComparison.Ordinal);
+        Assert.Contains("unlockScroll", layla, StringComparison.Ordinal);
+        Assert.DoesNotContain("<HeadContent>", demo, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void MarketingStylesIncludeLaylaAndDemoPortalCss()
+    {
+        Assert.Contains(LegacyPresentationAssets.MarketingStylesheets, href => href.Contains("epc_ecomae_layla_widget.css", StringComparison.Ordinal));
+        Assert.Contains(LegacyPresentationAssets.MarketingStylesheets, href => href.Contains("epc_ecomae_demo_portal.css", StringComparison.Ordinal));
+        Assert.True(File.Exists(FindRepoFile("content/general_pages/epc_ecomae_layla_widget.css")));
+        Assert.True(File.Exists(FindRepoFile("content/general_pages/epc_ecomae_demo_portal.css")));
+        Assert.True(File.Exists(FindRepoFile("content/files/images/ecomae-platform/layla-avatar.svg")));
+    }
+
+    [Fact]
+    public void HomeSections_VerifyProofUsesPhpBlockchainVerify()
+    {
+        var text = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpEcomaeHomeSections.razor"));
+        Assert.Contains("/epc-blockchain-verify.php", text, StringComparison.Ordinal);
+        Assert.Contains("epc-ehm-rev-fallback", text, StringComparison.Ordinal);
     }
 
     [Fact]
