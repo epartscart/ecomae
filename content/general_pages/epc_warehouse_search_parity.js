@@ -1,0 +1,446 @@
+/**
+ * PHP part_search warehouse parity helpers for ASP.NET StorefrontSearchApp:
+ * filter panel, fitment check, cross toolbar, add-to-cart / add-to-quote.
+ */
+(function () {
+	"use strict";
+
+	function esc(s) {
+		return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
+			return ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c];
+		});
+	}
+
+	function table() {
+		return document.getElementById("all_table_products");
+	}
+
+	function offerRows() {
+		var t = table();
+		if (!t) return [];
+		return Array.prototype.slice.call(t.querySelectorAll("tbody tr.epc-part-type-row--genuine, tbody tr.epc-part-type-row--aftermarket, tbody tr[data-offer-key]"));
+	}
+
+	function pricesVisible() {
+		var t = table();
+		return !t || t.getAttribute("data-prices-visible") === "1";
+	}
+
+	function uniqueSorted(values) {
+		var map = Object.create(null);
+		values.forEach(function (v) {
+			var s = String(v || "").trim();
+			if (s) map[s] = 1;
+		});
+		return Object.keys(map).sort(function (a, b) {
+			return a.localeCompare(b);
+		});
+	}
+
+	function rebuildFilterOptions() {
+		var mfrBox = document.getElementById("epc_filter_manufacturer_options");
+		var storBox = document.getElementById("epc_filter_storage_options");
+		if (!mfrBox || !storBox) return;
+		var rows = offerRows();
+		var mfrs = uniqueSorted(rows.map(function (tr) { return tr.getAttribute("data-manufacturer") || ""; }));
+		var storages = uniqueSorted(rows.map(function (tr) { return tr.getAttribute("data-storage") || ""; }));
+		function fill(box, values, prefix) {
+			var checked = Object.create(null);
+			box.querySelectorAll('input[type="checkbox"]:checked').forEach(function (cb) {
+				checked[cb.value] = 1;
+			});
+			if (!values.length) {
+				box.innerHTML = '<span class="epc-fitment-message">Waiting for offers…</span>';
+				return;
+			}
+			box.innerHTML = values.map(function (v, i) {
+				var id = prefix + "_" + i;
+				var isChecked = Object.keys(checked).length === 0 || checked[v];
+				return '<label for="' + id + '"><input type="checkbox" id="' + id + '" value="' + esc(v) + '"' +
+					(isChecked ? " checked" : "") + '> <span>' + esc(v) + '</span></label>';
+			}).join("");
+			box.querySelectorAll('input[type="checkbox"]').forEach(function (cb) {
+				cb.addEventListener("change", applyFilters);
+			});
+		}
+		fill(mfrBox, mfrs, "epc_mfr");
+		fill(storBox, storages.length ? storages : ["—"], "epc_stor");
+	}
+
+	function selectedValues(boxId) {
+		var box = document.getElementById(boxId);
+		if (!box) return [];
+		return Array.prototype.slice.call(box.querySelectorAll('input[type="checkbox"]:checked')).map(function (cb) {
+			return cb.value;
+		});
+	}
+
+	function applyFilters() {
+		var mfrs = selectedValues("epc_filter_manufacturer_options");
+		var storages = selectedValues("epc_filter_storage_options");
+		var minPrice = parseFloat((document.getElementById("epc_filter_price_min") || {}).value);
+		var maxPrice = parseFloat((document.getElementById("epc_filter_price_max") || {}).value);
+		var minTerm = parseFloat((document.getElementById("epc_filter_term_min") || {}).value);
+		var maxTerm = parseFloat((document.getElementById("epc_filter_term_max") || {}).value);
+		var inStockOnly = !!(document.getElementById("epc_filter_instock") || {}).checked;
+		var visible = 0;
+		offerRows().forEach(function (tr) {
+			var mfr = tr.getAttribute("data-manufacturer") || "";
+			var stor = tr.getAttribute("data-storage") || "—";
+			var price = parseFloat(tr.getAttribute("data-price") || "0");
+			var term = parseFloat(tr.getAttribute("data-term") || "0");
+			var exist = parseInt(tr.getAttribute("data-exist") || "0", 10);
+			var ok = true;
+			if (mfrs.length && mfrs.indexOf(mfr) === -1) ok = false;
+			if (storages.length && storages.indexOf(stor) === -1 && storages.indexOf("—") === -1) ok = false;
+			if (!isNaN(minPrice) && price < minPrice) ok = false;
+			if (!isNaN(maxPrice) && price > maxPrice) ok = false;
+			if (!isNaN(minTerm) && term < minTerm) ok = false;
+			if (!isNaN(maxTerm) && term > maxTerm) ok = false;
+			if (inStockOnly && !(exist > 0)) ok = false;
+			tr.setAttribute("data-filtered-out", ok ? "0" : "1");
+			if (ok) visible += 1;
+		});
+		var status = document.getElementById("epc_filter_status");
+		if (status) {
+			status.textContent = visible + " offer(s) visible";
+		}
+		["genuine", "aftermarket"].forEach(function (kind) {
+			var cap = document.querySelector('tr.epc-part-type-caption[data-section="' + kind + '"]');
+			if (!cap) return;
+			var n = document.querySelectorAll('tr.epc-part-type-row--' + kind + ':not([data-filtered-out="1"])').length;
+			cap.firstChild.textContent = (kind === "genuine" ? "Genuine (OE)" : "Aftermarket") + " (" + n + ")";
+			cap.style.display = n === 0 ? "none" : "";
+		});
+	}
+
+	function resetFilters() {
+		["epc_filter_price_min", "epc_filter_price_max", "epc_filter_term_min", "epc_filter_term_max"].forEach(function (id) {
+			var el = document.getElementById(id);
+			if (el) el.value = "";
+		});
+		var instock = document.getElementById("epc_filter_instock");
+		if (instock) instock.checked = false;
+		rebuildFilterOptions();
+		applyFilters();
+	}
+
+	function toggleFilter() {
+		var body = document.getElementById("filter_div_style_body");
+		var pos = document.getElementById("filter_position");
+		var link = document.getElementById("filter_div_a_text");
+		if (!body) return;
+		var open = body.getAttribute("data-open") !== "0";
+		body.style.display = open ? "none" : "block";
+		if (pos) pos.style.display = open ? "none" : "block";
+		body.setAttribute("data-open", open ? "0" : "1");
+		if (link) {
+			link.innerHTML = open
+				? '<i class="fa fa-arrow-circle-down" aria-hidden="true"></i> Show filter'
+				: '<i class="fa fa-arrow-circle-up" aria-hidden="true"></i> Hide filter';
+		}
+	}
+
+	function umapi(action, params) {
+		var query = Object.keys(params || {}).map(function (key) {
+			return encodeURIComponent(key) + "=" + encodeURIComponent(params[key]);
+		}).join("&");
+		var url = "/api/umapi_proxy.php?action=" + encodeURIComponent(action) + (query ? "&" + query : "") + "&language=en&vehicle_type=PC";
+		return fetch(url, { cache: "no-store", credentials: "same-origin" }).then(function (r) {
+			return r.json().catch(function () { return {}; }).then(function (data) {
+				if (r.ok || (data && (data.data || data.PC || data.CV || data.Motorcycle))) return data;
+				return Promise.reject(new Error((data && data.message) || ("HTTP " + r.status)));
+			});
+		});
+	}
+
+	function openFitment(article, brand) {
+		var panel = document.getElementById("epc-fitment-panel");
+		var brandsBox = document.getElementById("epc-fitment-brands");
+		var typesBox = document.getElementById("epc-fitment-types");
+		var widget = document.getElementById("applicability_widget");
+		if (!panel || !brandsBox) return;
+		panel.classList.add("is-open");
+		brandsBox.className = "epc-fitment-message";
+		brandsBox.textContent = "Loading matching brands from eparts catalog…";
+		if (typesBox) typesBox.style.display = "none";
+		if (widget) {
+			widget.className = "epc-fitment-message";
+			widget.textContent = "Select a brand/part box to load fitment.";
+		}
+		umapi("brands", { article: article || "", source: "fitment" })
+			.then(function (data) {
+				var rows = Array.isArray(data) ? data : (data && data.data) || [];
+				if (!rows.length) {
+					brandsBox.textContent = "No catalog brands found for this article. Try Fitment on a row brand/number.";
+					return;
+				}
+				brandsBox.className = "epc-fitment-brand-grid";
+				brandsBox.innerHTML = rows.slice(0, 40).map(function (row) {
+					var b = row.BRAND || row.brand || row.MANUFACTURER || "";
+					var a = row.DISPLAY_NR || row.SEARCH_NUMBER || row.ARTICLE || article || "";
+					return '<button type="button" data-brand="' + esc(b) + '" data-article="' + esc(a) + '">' +
+						esc(b) + "<br><span style=\"font-weight:500;color:#64748b\">" + esc(a) + "</span></button>";
+				}).join("");
+				brandsBox.querySelectorAll("button").forEach(function (btn) {
+					btn.addEventListener("click", function () {
+						brandsBox.querySelectorAll("button").forEach(function (b) { b.classList.remove("active"); });
+						btn.classList.add("active");
+						loadFitmentFor(btn.getAttribute("data-article"), btn.getAttribute("data-brand"));
+					});
+				});
+				var preferred = brand || "";
+				var match = Array.prototype.slice.call(brandsBox.querySelectorAll("button")).find(function (btn) {
+					return String(btn.getAttribute("data-brand") || "").toUpperCase() === String(preferred).toUpperCase();
+				}) || brandsBox.querySelector("button");
+				if (match) match.click();
+			})
+			.catch(function (err) {
+				brandsBox.textContent = (err && err.message) || "Fitment lookup is temporarily unavailable.";
+			});
+	}
+
+	function loadFitmentFor(article, brand) {
+		var typesBox = document.getElementById("epc-fitment-types");
+		var shell = document.getElementById("epc-fitment-widget-shell");
+		var widget = document.getElementById("applicability_widget");
+		if (typesBox) typesBox.style.display = "flex";
+		if (shell) shell.style.display = "block";
+		if (!widget) return;
+		widget.className = "epc-fitment-message";
+		widget.textContent = "Loading vehicle applicability…";
+		umapi("analogs", { article: article || "", brand: brand || "", limit: 30, offset: 0, source: "fitment" })
+			.then(function (data) {
+				var fitment = data && (data.PC || data.CV || data.Motorcycle) ? data : { PC: (data && data.data) || [], CV: [], Motorcycle: [] };
+				window.__epcFitmentPayload = fitment;
+				renderFitmentSection("PC");
+			})
+			.catch(function (err) {
+				widget.textContent = (err && err.message) || "No vehicle fitment found.";
+			});
+	}
+
+	function renderFitmentSection(section) {
+		var widget = document.getElementById("applicability_widget");
+		var typesBox = document.getElementById("epc-fitment-types");
+		var fitment = window.__epcFitmentPayload || {};
+		if (typesBox) {
+			typesBox.querySelectorAll("button").forEach(function (btn) {
+				btn.classList.toggle("active", btn.getAttribute("data-section") === section);
+			});
+		}
+		if (!widget) return;
+		var rows = section === "ALL"
+			? [].concat(fitment.PC || [], fitment.CV || [], fitment.Motorcycle || [])
+			: (fitment[section] || []);
+		if (!rows.length) {
+			widget.className = "epc-fitment-message";
+			widget.textContent = "No vehicle fitment was found in Epart catalog for this part.";
+			return;
+		}
+		widget.className = "";
+		widget.innerHTML = '<div style="overflow:auto"><table class="epc-fitment-vehicles"><thead><tr>' +
+			"<th>Make</th><th>Model</th><th>Years</th><th>Engine / body</th></tr></thead><tbody>" +
+			rows.slice(0, 200).map(function (row) {
+				var make = row.MAKE || row.MANUFACTURER || "";
+				var model = row.MODEL || row.PASSENGER_CAR || row.COMMERCIAL_VEHICLE || row.MOTORBIKE || "";
+				var years = [row.CI_FROM || "", row.CI_TO || ""].filter(Boolean).join(" - ") || "—";
+				var engine = [row.CAPACITY_TECH || row.CAPACITY_LT || "", row.FUEL_TYPE || "", row.BODY_TYPE || ""].filter(Boolean).join(" / ") || "—";
+				return "<tr><td>" + esc(make) + "</td><td>" + esc(model) + "</td><td>" + esc(years) + "</td><td>" + esc(engine) + "</td></tr>";
+			}).join("") + "</tbody></table></div>";
+	}
+
+	function focusCross() {
+		var nav = document.querySelector(".epc-sf-cross-refs");
+		if (!nav) return;
+		nav.classList.add("is-highlight");
+		nav.scrollIntoView({ behavior: "smooth", block: "start" });
+		window.setTimeout(function () { nav.classList.remove("is-highlight"); }, 2400);
+	}
+
+	function qtyValue(aid) {
+		var input = document.getElementById("count_need_" + aid);
+		var n = input ? parseInt(input.value, 10) : 1;
+		return isNaN(n) || n < 1 ? 1 : n;
+	}
+
+	function bumpQty(aid, delta, max, min) {
+		var input = document.getElementById("count_need_" + aid);
+		if (!input) return;
+		var n = qtyValue(aid) + delta;
+		if (n < (min || 1)) n = min || 1;
+		if (max > 0 && n > max) n = max;
+		input.value = String(n);
+	}
+
+	function productFromRow(tr) {
+		return {
+			manufacturer: tr.getAttribute("data-manufacturer") || "",
+			article: tr.getAttribute("data-article") || "",
+			article_show: tr.getAttribute("data-article-show") || "",
+			name: tr.getAttribute("data-name") || "",
+			exist: parseInt(tr.getAttribute("data-exist") || "0", 10),
+			price: parseFloat(tr.getAttribute("data-price") || "0"),
+			time_to_exe: tr.getAttribute("data-term") || "0",
+			time_to_exe_guaranteed: tr.getAttribute("data-term-g") || tr.getAttribute("data-term") || "0",
+			storage: tr.getAttribute("data-storage") || "",
+			min_order: parseInt(tr.getAttribute("data-min-order") || "1", 10),
+			probability: parseInt(tr.getAttribute("data-probability") || "100", 10),
+			office_id: parseInt(tr.getAttribute("data-office-id") || "0", 10),
+			storage_id: parseInt(tr.getAttribute("data-storage-id") || "0", 10),
+			price_purchase: parseFloat(tr.getAttribute("data-price-purchase") || "0"),
+			markup: parseInt(tr.getAttribute("data-markup") || "0", 10),
+			json_params: tr.getAttribute("data-json-params") || "",
+			product_type: parseInt(tr.getAttribute("data-product-type") || "2", 10),
+			check_hash: tr.getAttribute("data-check-hash") || ""
+		};
+	}
+
+	function postForm(url, fields) {
+		var fd = new FormData();
+		Object.keys(fields).forEach(function (k) { fd.append(k, fields[k]); });
+		return fetch(url, { method: "POST", body: fd, credentials: "same-origin" })
+			.then(function (r) { return r.json().catch(function () { return { status: false, message: "Bad response" }; }); });
+	}
+
+	function addToCartFromRow(tr) {
+		if (!pricesVisible()) {
+			window.location.href = "/storefront/login?returnUrl=" + encodeURIComponent(window.location.pathname + window.location.search);
+			return;
+		}
+		var p = productFromRow(tr);
+		if (!p.check_hash) {
+			alert("This offer is still loading supplier checksum. Wait for polling to finish, or use Add to Quote.");
+			return;
+		}
+		var aid = tr.getAttribute("data-aid") || "0";
+		postForm("/content/shop/order_process/ajax_add_to_basket.php", {
+			product_type: String(p.product_type || 2),
+			product: JSON.stringify(Object.assign({}, p, { count_need: qtyValue(aid) }))
+		}).then(function (data) {
+			if (data && (data.status === true || data.result === 1 || data.ok === true)) {
+				window.location.href = "/storefront/cart-app";
+				return;
+			}
+			alert((data && (data.message || data.error)) || "Could not add to cart. Please log in and try again.");
+		}).catch(function () {
+			alert("Could not add to cart.");
+		});
+	}
+
+	function addToQuoteFromRow(tr) {
+		if (!pricesVisible()) {
+			window.location.href = "/storefront/login?returnUrl=" + encodeURIComponent(window.location.pathname + window.location.search);
+			return;
+		}
+		var p = productFromRow(tr);
+		if (p.check_hash) {
+			postForm("/content/shop/order_process/ajax_add_to_quote.php", {
+				product_type: String(p.product_type || 2),
+				product: JSON.stringify(p)
+			}).then(function (data) {
+				if (data && (data.status === true || data.result === 1 || data.ok === true)) {
+					window.location.href = "/storefront/quotes-app";
+					return;
+				}
+				alert((data && (data.message || data.error)) || "Could not add to quote.");
+			}).catch(function () { alert("Could not add to quote."); });
+			return;
+		}
+		postForm("/content/shop/order_process/ajax_add_to_quote_manual.php", {
+			brand: p.manufacturer,
+			article: p.article_show || p.article,
+			name: p.name || ""
+		}).then(function (data) {
+			if (data && (data.status === true || data.result === 1 || data.ok === true)) {
+				window.location.href = "/storefront/quotes-app";
+				return;
+			}
+			alert((data && (data.message || data.error)) || "Could not add to quote. Please log in.");
+		}).catch(function () { alert("Could not add to quote."); });
+	}
+
+	function wireRowActions(root) {
+		(root || document).querySelectorAll("tr[data-offer-key]").forEach(function (tr) {
+			if (tr.getAttribute("data-actions-wired") === "1") return;
+			tr.setAttribute("data-actions-wired", "1");
+			var aid = tr.getAttribute("data-aid") || "0";
+			var fit = tr.querySelector(".epc-btn-fitment");
+			if (fit) {
+				fit.addEventListener("click", function () {
+					openFitment(tr.getAttribute("data-article-show") || tr.getAttribute("data-article"), tr.getAttribute("data-manufacturer"));
+				});
+			}
+			var minus = tr.querySelector(".count_need_minus");
+			var plus = tr.querySelector(".count_need_plus");
+			var max = parseInt(tr.getAttribute("data-exist") || "0", 10);
+			var min = parseInt(tr.getAttribute("data-min-order") || "1", 10);
+			if (minus) minus.addEventListener("click", function (e) { e.preventDefault(); bumpQty(aid, -1, max, min); });
+			if (plus) plus.addEventListener("click", function (e) { e.preventDefault(); bumpQty(aid, 1, max, min); });
+			var cart = tr.querySelector(".epc-btn-cart");
+			if (cart) cart.addEventListener("click", function () { addToCartFromRow(tr); });
+			var quote = tr.querySelector(".epc-btn-quote");
+			if (quote) quote.addEventListener("click", function () { addToQuoteFromRow(tr); });
+		});
+	}
+
+	window.epcWarehouseParity = {
+		rebuildFilterOptions: rebuildFilterOptions,
+		applyFilters: applyFilters,
+		wireRowActions: wireRowActions,
+		openFitment: openFitment
+	};
+
+	function boot() {
+		var toggle = document.getElementById("filter_div_a_text");
+		if (toggle) toggle.addEventListener("click", function (e) { e.preventDefault(); toggleFilter(); });
+		var reset = document.getElementById("epc_filter_reset");
+		if (reset) reset.addEventListener("click", function (e) { e.preventDefault(); resetFilters(); });
+		["epc_filter_price_min", "epc_filter_price_max", "epc_filter_term_min", "epc_filter_term_max", "epc_filter_instock"].forEach(function (id) {
+			var el = document.getElementById(id);
+			if (el) el.addEventListener("change", applyFilters);
+			if (el && el.tagName === "INPUT" && el.type !== "checkbox") el.addEventListener("input", applyFilters);
+		});
+		var fitBtn = document.getElementById("epc-fitment-check-btn");
+		if (fitBtn) {
+			fitBtn.addEventListener("click", function () {
+				openFitment(fitBtn.getAttribute("data-article") || "", fitBtn.getAttribute("data-brand") || "");
+			});
+		}
+		var fitClose = document.getElementById("epc-fitment-close");
+		if (fitClose) {
+			fitClose.addEventListener("click", function () {
+				var panel = document.getElementById("epc-fitment-panel");
+				if (panel) panel.classList.remove("is-open");
+			});
+		}
+		var typesBox = document.getElementById("epc-fitment-types");
+		if (typesBox) {
+			typesBox.querySelectorAll("button").forEach(function (btn) {
+				btn.addEventListener("click", function () {
+					renderFitmentSection(btn.getAttribute("data-section") || "PC");
+				});
+			});
+		}
+		var crossBtn = document.getElementById("epc-cross-search-btn");
+		if (crossBtn) crossBtn.addEventListener("click", focusCross);
+		rebuildFilterOptions();
+		applyFilters();
+		wireRowActions(document);
+		var body = document.getElementById("epcSfOfferBody");
+		if (body && window.MutationObserver) {
+			var mo = new MutationObserver(function () {
+				rebuildFilterOptions();
+				applyFilters();
+				wireRowActions(body);
+			});
+			mo.observe(body, { childList: true, subtree: true });
+		}
+	}
+
+	if (document.readyState === "loading") {
+		document.addEventListener("DOMContentLoaded", boot);
+	} else {
+		boot();
+	}
+})();

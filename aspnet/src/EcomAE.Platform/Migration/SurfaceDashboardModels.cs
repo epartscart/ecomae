@@ -1388,7 +1388,17 @@ public sealed record StorefrontPartOfferDigest(
     decimal Price,
     int Exist,
     string Storage,
-    string TimeToExe = "");
+    string TimeToExe = "",
+    string CheckHash = "",
+    int MinOrder = 1,
+    int ProductType = 2,
+    int OfficeId = 0,
+    int StorageId = 0,
+    string JsonParams = "",
+    decimal PricePurchase = 0m,
+    int Markup = 0,
+    int Probability = 100,
+    string TimeToExeGuaranteed = "");
 
 public sealed record StorefrontPartSearchResult(
     string Article,

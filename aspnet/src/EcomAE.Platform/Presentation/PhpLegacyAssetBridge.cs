@@ -145,6 +145,10 @@ public static class PhpLegacyAssetBridge
                          "content/general_pages/epc_google_translate_cp.js"),
                      ("/platform-assets/epc_oauth_login_buttons.css",
                          "content/general_pages/epc_oauth_login_buttons.css"),
+                     ("/platform-assets/epc_warehouse_search_parity.css",
+                         "content/general_pages/epc_warehouse_search_parity.css"),
+                     ("/platform-assets/epc_warehouse_search_parity.js",
+                         "content/general_pages/epc_warehouse_search_parity.js"),
                  })
         {
             var localRelative = relative;

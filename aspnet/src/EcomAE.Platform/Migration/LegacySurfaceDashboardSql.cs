@@ -2929,10 +2929,10 @@ public static class LegacySurfaceDashboardSql
 
     /// <summary>Genuine OE manufacturer keys from UMAPI passenger/commercial/motorbike sections.</summary>
     public const string SelectStorefrontGenuineManufacturerNames = """
-        SELECT DISTINCT IFNULL(`name`,'') AS name
+        SELECT DISTINCT IFNULL(`manufacturer`,'') AS name
         FROM `epc_umapi_manufacturers`
         WHERE `section` IN ('passenger','commercial','motorbike')
-          AND IFNULL(`name`,'') <> ''
+          AND IFNULL(`manufacturer`,'') <> ''
         LIMIT 5000
         """;
 

@@ -16,8 +16,8 @@
 <PageTitle>@PageTitleText</PageTitle>
 <PhpChromeStyles Surface="storefront" />
 <HeadContent>
+<link rel="stylesheet" href="/platform-assets/epc_warehouse_search_parity.css?v=20260811w" />
 <style>
-        
         .epc-sf-search-form { display:flex; gap:.45rem; flex-wrap:wrap; align-items:center; }
         .epc-sf-search-form input {
             flex:1; min-width:140px; padding:.4rem .65rem; border:1px solid #cbd5e1; border-radius:3px; font-size:.9rem; background:#fff; color:#111;
@@ -46,7 +46,7 @@
         .epc-sf-result-head h2 { margin:0; font-size:1.1rem; color:#0f172a; }
         .epc-sf-result-head a { color:#b91c1c; font-weight:700; font-size:.82rem; text-decoration:none; }
         .epc-sf-cross-refs {
-            max-width:1100px; margin:1rem 0; padding:14px 18px; border:1px solid #e2e8f0; border-radius:10px; background:#f8fafc;
+            margin:1rem 0; padding:14px 18px; border:1px solid #e2e8f0; border-radius:10px; background:#f8fafc;
         }
         .epc-sf-cross-refs h2 { margin:0 0 8px; font-size:18px; color:#0f172a; }
         .epc-sf-cross-refs ul { margin:0; padding-left:18px; columns:2; column-gap:24px; font-size:13px; line-height:1.55; }
@@ -75,7 +75,6 @@
         .epc-sf-price-gate a { color:#b91c1c; font-weight:700; }
         .epc-sf-price-mask { color:#64748b; font-weight:700; letter-spacing:.04em; }
         @@media (max-width:900px){ .epc-sf-search-kpis{grid-template-columns:1fr;} .epc-sf-cross-refs ul{columns:1;} }
-    
 </style>
 </HeadContent>
 
@@ -153,82 +152,167 @@
     }
     else
     {
-        <div class="epc-sf-result-head">
-            <h2>@_brandInput @_normalized — warehouse offers</h2>
-            <a href="@ArticleOnlyHref(_articleInput)">Change manufacturer</a>
-        </div>
-        @if (!_pricesVisible)
-        {
-            <div class="epc-sf-price-gate" data-access-state="@_accessState">
-                @((MarkupString)_loginCtaHtml)
+        <div class="row epc-part-search-layout epc-chpu-direct-part-search">
+            <div id="filter_div" class="col-md-3">
+                <div class="panel panel-primary epc-wh-filter">
+                    <div class="panel-heading" style="position:relative;">
+                        <a id="filter_div_a_text" href="javascript:void(0);"><i class="fa fa-arrow-circle-up" aria-hidden="true"></i> Hide filter</a>
+                    </div>
+                    <div id="filter_div_style_body" class="panel-body" data-open="1">
+                        <div id="filter_position">
+                            <div class="epc-wh-filter-block" id="manufacturer_blok">
+                                <div class="epc-wh-filter-block__title">Manufacturer</div>
+                                <div class="epc-wh-filter-options" id="epc_filter_manufacturer_options">
+                                    <span class="epc-fitment-message">Waiting for offers…</span>
+                                </div>
+                            </div>
+                            <div class="epc-wh-filter-block" id="storages_blok">
+                                <div class="epc-wh-filter-block__title">Storage / warehouse</div>
+                                <div class="epc-wh-filter-options" id="epc_filter_storage_options">
+                                    <span class="epc-fitment-message">Waiting for offers…</span>
+                                </div>
+                            </div>
+                            <div class="epc-wh-filter-block" id="price_blok">
+                                <div class="epc-wh-filter-block__title">Price</div>
+                                <div class="epc-wh-filter-range">
+                                    <input id="epc_filter_price_min" type="number" min="0" step="0.01" placeholder="Min" aria-label="Min price" />
+                                    <input id="epc_filter_price_max" type="number" min="0" step="0.01" placeholder="Max" aria-label="Max price" />
+                                </div>
+                            </div>
+                            <div class="epc-wh-filter-block" id="time_to_exe_blok">
+                                <div class="epc-wh-filter-block__title">Delivery term (days)</div>
+                                <div class="epc-wh-filter-range">
+                                    <input id="epc_filter_term_min" type="number" min="0" step="1" placeholder="Min" aria-label="Min term" />
+                                    <input id="epc_filter_term_max" type="number" min="0" step="1" placeholder="Max" aria-label="Max term" />
+                                </div>
+                            </div>
+                            <div class="epc-wh-filter-block" id="exist_blok">
+                                <div class="epc-wh-filter-block__title">Availability</div>
+                                <div class="epc-wh-filter-toggles">
+                                    <label><input id="epc_filter_instock" type="checkbox" /> In stock only</label>
+                                </div>
+                            </div>
+                            <div id="epc_filter_status" class="epc-fitment-message">Filter ready</div>
+                        </div>
+                    </div>
+                    <div class="epc-wh-filter-footer" id="footer_filter_reset">
+                        <button type="button" class="btn btn-default btn-sm" id="epc_filter_reset">Reset filter</button>
+                    </div>
+                </div>
             </div>
-        }
-        <div id="epcSfPollProgress" class="epc-sf-poll-progress" hidden
-             data-article="@_normalized" data-brand="@_brandInput" aria-live="polite">
-            Polling suppliers… <span id="epcSfPollCount">0</span> of <span id="epcSfPollTotal">0</span>
-        </div>
-        <div class="epc-sf-search-table-wrap">
-            <table class="epc-sf-search-table" id="all_table_products"
-                   data-prices-visible="@(_pricesVisible ? "1" : "0")"
-                   data-access-state="@_accessState">
-                <thead>
-                    <tr>
-                        <th>Manufacturer</th>
-                        <th>Article</th>
-                        <th>Name</th>
-                        <th>Availability</th>
-                        <th>Term</th>
-                        <th>Price</th>
-                        <th>Storage</th>
-                        <th>Price list</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="epcSfOfferBody">
-                    @if (string.IsNullOrWhiteSpace(_normalized))
-                    {
-                        <tr data-empty="1"><td colspan="9">Enter article and brand to load warehouse offers.</td></tr>
-                    }
-                    else if (_genuineRows.Count == 0 && _aftermarketRows.Count == 0)
-                    {
-                        <tr data-empty="1">
-                            <td colspan="9">
-                                No warehouse offers yet for <strong>@_brandInput @_normalized</strong> — polling suppliers…
-                                @if (!string.IsNullOrWhiteSpace(_message))
+
+            <div class="epc-part-search-main col-md-9" id="products_area">
+                <div class="epc-sf-result-head">
+                    <h2>@_brandInput @_normalized — warehouse offers</h2>
+                    <a href="@ArticleOnlyHref(_articleInput)">Change manufacturer</a>
+                </div>
+                <div class="epc-parts-result-tools">
+                    <button type="button" class="btn btn-default btn-sm epc-fitment-check-btn" id="epc-fitment-check-btn"
+                            data-article="@_normalized" data-brand="@_brandInput">
+                        <i class="fa fa-car" aria-hidden="true"></i> Fitment check
+                    </button>
+                    <button type="button" class="btn btn-default btn-sm epc-cross-search-btn" id="epc-cross-search-btn"
+                            data-article="@_normalized" title="Open all cross references">
+                        <i class="fa fa-random" aria-hidden="true"></i>
+                        <span id="epc-cross-search-count">@(_crossRefs.Count + _relatedBrandCross.Count) references</span>
+                    </button>
+                </div>
+                <div class="epc-fitment-panel" id="epc-fitment-panel" aria-live="polite">
+                    <div class="epc-fitment-panel__head">
+                        <div>
+                            <div class="epc-fitment-panel__title">Part Fitment</div>
+                            <div class="epc-fitment-panel__hint">Choose the matching brand/number — vehicle fitment loads automatically.</div>
+                        </div>
+                        <button type="button" class="epc-fitment-panel__close" id="epc-fitment-close" aria-label="Close fitment check">&times;</button>
+                    </div>
+                    <div class="epc-fitment-panel__body">
+                        <div id="epc-fitment-brands" class="epc-fitment-message">Click Fitment check to load matching brands from eparts catalog.</div>
+                        <div class="epc-fitment-type-tabs" id="epc-fitment-types" style="display:none;">
+                            <button type="button" data-section="PC" class="active">Passenger</button>
+                            <button type="button" data-section="CV">Commercial</button>
+                            <button type="button" data-section="Motorcycle">Motorbike</button>
+                            <button type="button" data-section="ALL">All vehicles</button>
+                        </div>
+                        <div class="epc-fitment-widget-shell" id="epc-fitment-widget-shell" style="display:none;">
+                            <div id="epc-fitment-part" class="epc-fitment-part" style="display:none;" aria-live="polite"></div>
+                            <div id="applicability_widget" class="epc-fitment-message">Select a brand/part box to load fitment.</div>
+                        </div>
+                    </div>
+                </div>
+                @if (!_pricesVisible)
+                {
+                    <div class="epc-sf-price-gate" data-access-state="@_accessState">
+                        @((MarkupString)_loginCtaHtml)
+                    </div>
+                }
+                <div id="epcSfPollProgress" class="epc-sf-poll-progress" hidden
+                     data-article="@_normalized" data-brand="@_brandInput" aria-live="polite">
+                    Polling suppliers… <span id="epcSfPollCount">0</span> of <span id="epcSfPollTotal">0</span>
+                </div>
+                <div class="epc-sf-search-table-wrap">
+                    <table class="epc-sf-search-table" id="all_table_products"
+                           data-prices-visible="@(_pricesVisible ? "1" : "0")"
+                           data-access-state="@_accessState">
+                        <thead>
+                            <tr>
+                                <th class="th_manufacturer">Manufacturer</th>
+                                <th class="th_article">Article</th>
+                                <th class="th_name">Name</th>
+                                <th class="th_exist">Availability</th>
+                                <th class="th_time_to_exe">Term</th>
+                                <th class="th_price">Price</th>
+                                <th class="th_storage">Storage</th>
+                                <th class="th_price_list">Price list</th>
+                                <th class="th_add_to_cart">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="epcSfOfferBody">
+                            @if (string.IsNullOrWhiteSpace(_normalized))
+                            {
+                                <tr data-empty="1"><td colspan="9">Enter article and brand to load warehouse offers.</td></tr>
+                            }
+                            else if (_genuineRows.Count == 0 && _aftermarketRows.Count == 0)
+                            {
+                                <tr data-empty="1">
+                                    <td colspan="9">
+                                        No warehouse offers yet for <strong>@_brandInput @_normalized</strong> — polling suppliers…
+                                        @if (!string.IsNullOrWhiteSpace(_message))
+                                        {
+                                            <div style="margin-top:.5rem;color:#92400e;background:#fffbeb;border:1px solid #fde68a;border-radius:.4rem;padding:.5rem .7rem;font-size:12px;">
+                                                Offer lookup: <strong>@_source</strong> — @_message
+                                            </div>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                            else
+                            {
+                                @if (_genuineRows.Count > 0)
                                 {
-                                    <div style="margin-top:.5rem;color:#92400e;background:#fffbeb;border:1px solid #fde68a;border-radius:.4rem;padding:.5rem .7rem;font-size:12px;">
-                                        Offer lookup: <strong>@_source</strong> — @_message
-                                    </div>
+                                    <tr class="epc-part-type-caption" data-section="genuine"><td colspan="9">Genuine (OE) (@_genuineRows.Count)</td></tr>
+                                    @foreach (var row in _genuineRows)
+                                    {
+                                        @OfferRow(row, "genuine")
+                                    }
                                 }
-                            </td>
-                        </tr>
-                    }
-                    else
-                    {
-                        @if (_genuineRows.Count > 0)
-                        {
-                            <tr class="epc-part-type-caption" data-section="genuine"><td colspan="9">Genuine (OE) (@_genuineRows.Count)</td></tr>
-                            @foreach (var row in _genuineRows)
-                            {
-                                @OfferRow(row, "genuine")
+                                @if (_aftermarketRows.Count > 0)
+                                {
+                                    <tr class="epc-part-type-caption epc-part-type-caption--aftermarket" data-section="aftermarket"><td colspan="9">Aftermarket (@_aftermarketRows.Count)</td></tr>
+                                    @foreach (var row in _aftermarketRows)
+                                    {
+                                        @OfferRow(row, "aftermarket")
+                                    }
+                                }
                             }
-                        }
-                        @if (_aftermarketRows.Count > 0)
-                        {
-                            <tr class="epc-part-type-caption epc-part-type-caption--aftermarket" data-section="aftermarket"><td colspan="9">Aftermarket (@_aftermarketRows.Count)</td></tr>
-                            @foreach (var row in _aftermarketRows)
-                            {
-                                @OfferRow(row, "aftermarket")
-                            }
-                        }
-                    }
-                </tbody>
-            </table>
+                        </tbody>
+                    </table>
+                </div>
+                <p class="epc-sf-search-note">
+                    PHP warehouse parity: Genuine / Aftermarket sections, filter panel, Fitment, Cross base,
+                    In stock gating, Add to Cart / Add to Quote (PHP write modules; guests see login CTA).
+                </p>
+            </div>
         </div>
-        <p class="epc-sf-search-note">
-            Warehouse rows load first; progressive supplier poll merges live <code>ajax_getProductsOfBunch</code>
-            results into Genuine (OE) / Aftermarket sections. Cart / quote writes stay on classic PHP modules.
-        </p>
         @if (!_showBrandPicker && !string.IsNullOrWhiteSpace(_normalized) && !string.IsNullOrWhiteSpace(_brandInput))
         {
             <script>
@@ -281,6 +365,29 @@
     var n = body.querySelectorAll('tr.epc-part-type-row--' + kind).length;
     cap.firstChild.textContent = (kind === 'genuine' ? 'Genuine (OE)' : 'Aftermarket') + ' (' + n + ')';
   }
+  var aidSeq = 1000;
+  function actionsHtml(p, exist, show) {
+    var aid = aidSeq++;
+    var minOrder = Math.max(1, Number(p.minOrder || p.min_order || 1));
+    var fit = '<button type="button" class="btn btn-sm epc-btn-fitment">Fitment</button>';
+    if (!pricesVisible) {
+      return '<div class="epc-product-actions epc-product-actions--guest"><div class="epc-product-actions__tools epc-product-actions__tools--guest">' +
+        fit + ' <a href="/storefront/login">Log in</a> or <a href="/storefront/register-app">register</a></div></div>';
+    }
+    var wa = 'https://wa.me/?text=' + encodeURIComponent((p.manufacturer || '') + ' ' + show + ' ' + (p.name || '') + ' ' + (p.price != null ? p.price : ''));
+    var tools = '<div class="epc-product-actions__tools">' + fit +
+      ' <a class="epc-wa-share" href="' + wa + '" target="_blank" rel="noopener" title="WhatsApp"><i class="fa fa-whatsapp"></i></a></div>';
+    if (exist > 0) {
+      return '<div class="epc-product-actions" data-aid="' + aid + '">' + tools +
+        '<div class="epc-product-actions__buy"><div class="epc-product-actions__qty">' +
+        '<a class="count_need_minus" href="#"><i class="fa fa-minus"></i></a>' +
+        '<input class="epc-qty-input" id="count_need_' + aid + '" value="' + minOrder + '" />' +
+        '<a class="count_need_plus" href="#"><i class="fa fa-plus"></i></a></div>' +
+        '<button type="button" class="btn btn-sm btn-danger epc-btn-cart">Add to Cart</button></div></div>';
+    }
+    return '<div class="epc-product-actions epc-product-actions--quote-only" data-aid="' + aid + '">' + tools +
+      '<button type="button" class="btn btn-sm btn-primary epc-btn-quote">Add to Quote</button></div>';
+  }
   function appendProduct(p) {
     var key = offerKey(p);
     if (seen[key]) return;
@@ -291,26 +398,48 @@
     var cap = ensureSection(kind);
     var tr = document.createElement('tr');
     tr.className = 'epc-part-type-row--' + kind;
-    tr.setAttribute('data-offer-key', key);
     var show = p.articleShow || p.article || '';
-    var search = '/storefront/search-app?article=' + encodeURIComponent(show) + '&brand=' + encodeURIComponent(p.manufacturer || '');
     var exist = Number(p.exist || 0);
+    var termRaw = p.timeToExe || p.time_to_exe || '0';
+    var storageRaw = p.storage || p.priceList || p.price_list || '—';
+    var priceRaw = Number(p.price || 0);
+    var aid = aidSeq;
+    tr.setAttribute('data-offer-key', key);
+    tr.setAttribute('data-aid', String(aid));
+    tr.setAttribute('data-manufacturer', p.manufacturer || '');
+    tr.setAttribute('data-article', p.article || show);
+    tr.setAttribute('data-article-show', show);
+    tr.setAttribute('data-name', p.name || '');
+    tr.setAttribute('data-exist', String(exist));
+    tr.setAttribute('data-price', String(priceRaw));
+    tr.setAttribute('data-term', String(termRaw));
+    tr.setAttribute('data-term-g', String(p.timeToExeGuaranteed || p.time_to_exe_guaranteed || termRaw));
+    tr.setAttribute('data-storage', storageRaw);
+    tr.setAttribute('data-min-order', String(p.minOrder || p.min_order || 1));
+    tr.setAttribute('data-probability', String(p.probability || 100));
+    tr.setAttribute('data-office-id', String(p.officeId || p.office_id || 0));
+    tr.setAttribute('data-storage-id', String(p.storageId || p.storage_id || 0));
+    tr.setAttribute('data-price-purchase', String(p.pricePurchase || p.price_purchase || 0));
+    tr.setAttribute('data-markup', String(p.markup || 0));
+    tr.setAttribute('data-json-params', p.jsonParams || p.json_params || '');
+    tr.setAttribute('data-product-type', String(p.productType || p.product_type || 2));
+    tr.setAttribute('data-check-hash', p.checkHash || p.check_hash || '');
     var mask = '**';
-    var avail = pricesVisible ? String(exist) : mask;
-    var term = pricesVisible ? esc(p.timeToExe || p.time_to_exe || '—') : mask;
-    var price = pricesVisible ? Number(p.price || 0).toFixed(2) : mask;
-    var storage = pricesVisible ? esc(p.storage || '—') : mask;
+    var avail = pricesVisible ? (String(exist) + (exist > 0 ? ' <span class="epc-instock-badge">In stock</span>' : '')) : mask;
+    var term = pricesVisible ? esc(termRaw || '—') : mask;
+    var price = pricesVisible ? priceRaw.toFixed(2) : mask;
+    var storage = pricesVisible ? esc(storageRaw || '—') : mask;
     var plist = pricesVisible ? esc(p.priceList || p.price_list || '—') : mask;
     tr.innerHTML =
-      '<td><strong>' + esc(p.manufacturer || '') + '</strong></td>' +
-      '<td>' + esc(show) + '</td>' +
-      '<td>' + esc(p.name || '—') + '</td>' +
-      '<td class="' + (pricesVisible && exist > 0 ? 'epc-stock-ok' : 'epc-stock-out') + '">' + avail + '</td>' +
-      '<td>' + term + '</td>' +
-      '<td class="' + (pricesVisible ? '' : 'epc-sf-price-mask') + '">' + price + '</td>' +
-      '<td>' + storage + '</td>' +
-      '<td>' + plist + '</td>' +
-      '<td><a href="' + search + '">Open</a> · <a href="/storefront/quotes-app">Quote</a> · <a href="/storefront/cart-app">Cart</a></td>';
+      '<td class="td_manufacturer"><strong>' + esc(p.manufacturer || '') + '</strong></td>' +
+      '<td class="td_article">' + esc(show) + '</td>' +
+      '<td class="td_name">' + esc(p.name || '—') + '</td>' +
+      '<td class="td_exist ' + (pricesVisible && exist > 0 ? 'epc-stock-ok' : 'epc-stock-out') + '">' + avail + '</td>' +
+      '<td class="td_time_to_exe">' + term + '</td>' +
+      '<td class="td_price ' + (pricesVisible ? '' : 'epc-sf-price-mask') + '">' + price + '</td>' +
+      '<td class="td_storage">' + storage + '</td>' +
+      '<td class="td_price_list">' + plist + '</td>' +
+      '<td class="td_add_to_cart">' + actionsHtml(p, exist, show) + '</td>';
     var insertBefore = null;
     var rows = body.querySelectorAll('tr.epc-part-type-row--' + kind);
     if (rows.length) {
@@ -409,15 +538,16 @@
     });
 })();
             </script>
+            <script src="/platform-assets/epc_warehouse_search_parity.js?v=20260811w" defer></script>
         }
     }
 
-    @if (!string.IsNullOrWhiteSpace(_brandInput) && (_crossRefs.Count > 0 || !_showBrandPicker))
+    @if (!string.IsNullOrWhiteSpace(_brandInput) && !_showBrandPicker)
     {
-        <nav class="epc-sf-cross-refs" aria-label="Cross references and OE numbers">
+        <nav class="epc-sf-cross-refs" id="epc-cross-base" aria-label="Cross references and OE numbers">
             <h2>@_brandInput @_normalized — cross references &amp; OE numbers</h2>
             <p style="margin:0 0 10px;font-size:13px;color:#475569">Part number / article <strong>@_normalized</strong> interchanges with:</p>
-            @if (_crossRefs.Count == 0)
+            @if (_crossRefs.Count == 0 && _relatedBrandCross.Count == 0)
             {
                 <p style="margin:0;font-size:13px;color:#64748b;">No local cross references for this brand + article.</p>
             }
@@ -438,6 +568,13 @@
                             {
                                 <span class="epc-avail-no">Not in stock</span>
                             }
+                        </li>
+                    }
+                    @foreach (var brand in _relatedBrandCross)
+                    {
+                        <li>
+                            <a href="@BrandArticleHref(_normalized, brand)">@brand @_normalized</a>
+                            <span style="color:#64748b">(related manufacturer)</span>
                         </li>
                     }
                 </ul>
@@ -477,6 +614,8 @@
     private HashSet<string> _genuineKeys = new(StringComparer.OrdinalIgnoreCase);
     private IReadOnlyList<StorefrontCrossRefDigest> _crossRefs = [];
     private IReadOnlyList<StorefrontCrossRefDigest> _crossStockRefs = [];
+    private IReadOnlyList<string> _relatedBrandCross = [];
+    private int _offerAidSeq = 1;
     private string _source = "n/a";
     private string _message = "";
     private bool _pricesVisible = true;
@@ -700,6 +839,20 @@
         var crossResult = await Dashboards.ListStorefrontCrossRefsAsync(_articleInput, _brandInput, 80);
         _crossRefs = crossResult.Rows;
         _crossStockRefs = crossResult.Rows.Where(static r => r.InStock).ToList();
+        if (_crossRefs.Count == 0)
+        {
+            // Broader article-level crosses (no brand filter), then manufacturer picker siblings.
+            var anyBrand = await Dashboards.ListStorefrontCrossRefsAsync(_articleInput, brand: null, 80);
+            _crossRefs = anyBrand.Rows;
+            _crossStockRefs = anyBrand.Rows.Where(static r => r.InStock).ToList();
+        }
+
+        var brandSiblings = await Dashboards.ListStorefrontArticleBrandsAsync(_articleInput, 40);
+        _relatedBrandCross = brandSiblings.Brands
+            .Select(b => b.Brand)
+            .Where(b => !string.Equals(b, _brandInput, StringComparison.OrdinalIgnoreCase))
+            .Take(24)
+            .ToList();
     }
 
     private void SplitOfferRows(IReadOnlyList<StorefrontPartOfferDigest> rows)
@@ -736,39 +889,99 @@
     {
         var show = string.IsNullOrWhiteSpace(row.ArticleShow) ? row.Article : row.ArticleShow;
         var term = string.IsNullOrWhiteSpace(row.TimeToExe) ? "—" : row.TimeToExe;
-        var openHref = BrandArticleHref(show, row.Manufacturer);
+        var storage = string.IsNullOrWhiteSpace(row.Storage) ? "—" : row.Storage;
         var key = string.Join('|',
             (row.Manufacturer ?? "").Trim().ToUpperInvariant(),
             row.Article ?? "",
             row.Storage ?? "",
             row.Price.ToString(CultureInfo.InvariantCulture));
         var mask = StorefrontPriceAccess.SensitiveMask;
-        <tr class="@($"epc-part-type-row--{kind}")" data-offer-key="@key">
-            <td><strong>@row.Manufacturer</strong></td>
-            <td>@show</td>
-            <td>@(string.IsNullOrWhiteSpace(row.Name) ? "—" : row.Name)</td>
+        var aid = _offerAidSeq++;
+        var minOrder = row.MinOrder > 0 ? row.MinOrder : 1;
+        var waText = Uri.EscapeDataString($"{row.Manufacturer} {show} {row.Name} {row.Price}");
+        <tr class="@($"epc-part-type-row--{kind}")"
+            data-offer-key="@key"
+            data-aid="@aid"
+            data-manufacturer="@row.Manufacturer"
+            data-article="@row.Article"
+            data-article-show="@show"
+            data-name="@row.Name"
+            data-exist="@row.Exist"
+            data-price="@row.Price.ToString(CultureInfo.InvariantCulture)"
+            data-term="@row.TimeToExe"
+            data-term-g="@row.TimeToExeGuaranteed"
+            data-storage="@storage"
+            data-min-order="@minOrder"
+            data-probability="@row.Probability"
+            data-office-id="@row.OfficeId"
+            data-storage-id="@row.StorageId"
+            data-price-purchase="@row.PricePurchase.ToString(CultureInfo.InvariantCulture)"
+            data-markup="@row.Markup"
+            data-json-params="@row.JsonParams"
+            data-product-type="@row.ProductType"
+            data-check-hash="@row.CheckHash">
+            <td class="td_manufacturer"><strong>@row.Manufacturer</strong></td>
+            <td class="td_article">@show</td>
+            <td class="td_name">@(string.IsNullOrWhiteSpace(row.Name) ? "—" : row.Name)</td>
             @if (_pricesVisible)
             {
-                <td class="@(row.Exist > 0 ? "epc-stock-ok" : "epc-stock-out")">@(row.Exist > 0 ? row.Exist.ToString(CultureInfo.InvariantCulture) : "0")</td>
-                <td>@term</td>
-                <td>@row.Price.ToString("N2", CultureInfo.InvariantCulture)</td>
-                <td>@(string.IsNullOrWhiteSpace(row.Storage) ? "—" : row.Storage)</td>
-                <td>@(string.IsNullOrWhiteSpace(row.PriceList) ? "—" : row.PriceList)</td>
+                <td class="td_exist @(row.Exist > 0 ? "epc-stock-ok" : "epc-stock-out")">
+                    @(row.Exist > 0 ? row.Exist.ToString(CultureInfo.InvariantCulture) : "0")
+                    @if (row.Exist > 0)
+                    {
+                        <span class="epc-instock-badge">In stock</span>
+                    }
+                </td>
+                <td class="td_time_to_exe">@term</td>
+                <td class="td_price">@row.Price.ToString("N2", CultureInfo.InvariantCulture)</td>
+                <td class="td_storage">@storage</td>
+                <td class="td_price_list">@(string.IsNullOrWhiteSpace(row.PriceList) ? "—" : row.PriceList)</td>
             }
             else
             {
-                <td class="epc-sf-price-mask">@mask</td>
-                <td class="epc-sf-price-mask">@mask</td>
-                <td class="epc-sf-price-mask">@mask</td>
-                <td class="epc-sf-price-mask">@mask</td>
-                <td class="epc-sf-price-mask">@mask</td>
+                <td class="td_exist epc-sf-price-mask">@mask</td>
+                <td class="td_time_to_exe epc-sf-price-mask">@mask</td>
+                <td class="td_price epc-sf-price-mask">@mask</td>
+                <td class="td_storage epc-sf-price-mask">@mask</td>
+                <td class="td_price_list epc-sf-price-mask">@mask</td>
             }
-            <td>
-                <a href="@openHref" title="ASP.NET search">Open</a>
-                ·
-                <a href="@StorefrontSurfaceLinks.Quotes" title="Quotes app">Quote</a>
-                ·
-                <a href="@StorefrontSurfaceLinks.Cart" title="Cart app">Cart</a>
+            <td class="td_add_to_cart">
+                @if (!_pricesVisible)
+                {
+                    <div class="epc-product-actions epc-product-actions--guest">
+                        <div class="epc-product-actions__tools epc-product-actions__tools--guest">
+                            <button type="button" class="btn btn-sm epc-btn-fitment">Fitment</button>
+                            @((MarkupString)_loginCtaHtml)
+                        </div>
+                    </div>
+                }
+                else if (row.Exist > 0)
+                {
+                    <div class="epc-product-actions">
+                        <div class="epc-product-actions__tools">
+                            <button type="button" class="btn btn-sm epc-btn-fitment">Fitment</button>
+                            <a class="epc-wa-share" href="@($"https://wa.me/?text={waText}")" target="_blank" rel="noopener" title="WhatsApp"><i class="fa fa-whatsapp"></i></a>
+                        </div>
+                        <div class="epc-product-actions__buy">
+                            <div class="epc-product-actions__qty">
+                                <a class="count_need_minus" href="#"><i class="fa fa-minus"></i></a>
+                                <input class="epc-qty-input" id="@($"count_need_{aid}")" value="@minOrder" />
+                                <a class="count_need_plus" href="#"><i class="fa fa-plus"></i></a>
+                            </div>
+                            <button type="button" class="btn btn-sm btn-danger epc-btn-cart">Add to Cart</button>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <div class="epc-product-actions epc-product-actions--quote-only">
+                        <div class="epc-product-actions__tools">
+                            <button type="button" class="btn btn-sm epc-btn-fitment">Fitment</button>
+                            <a class="epc-wa-share" href="@($"https://wa.me/?text={waText}")" target="_blank" rel="noopener" title="WhatsApp"><i class="fa fa-whatsapp"></i></a>
+                        </div>
+                        <button type="button" class="btn btn-sm btn-primary epc-btn-quote">Add to Quote</button>
+                    </div>
+                }
             </td>
         </tr>
     };

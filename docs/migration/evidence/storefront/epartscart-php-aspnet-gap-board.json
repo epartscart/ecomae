@@ -25,13 +25,14 @@
     {
       "id": "part_search",
       "php": "/en/shop/part_search?article=&brend= or /en/parts/{BRAND}/{ARTICLE}",
-      "aspnet": "/storefront/search-app?article=&brand=",
+      "aspnet": "/en/parts/{BRAND}/{ARTICLE} (search-app remaps into CHPU)",
       "status": "complete",
-      "notes": "Brand picker + warehouse offers + Genuine/Aftermarket + progressive poll. Protocol-3 price lists = aspnet-warehouse SQL; API supplier bunches still interim PHP bridge. Cart/quote writes remain PHP until dual-sample.",
+      "notes": "Warehouse UI parity wave 2026-08-11: filter panel, Fitment, Cross base, In stock, Add to Cart/Quote actions, Genuine/Aftermarket. Cart/quote POSTs still PHP-authoritative. Genuine brands SQL + shop-DB cross open fixed.",
       "gapsRemaining": [
-        "API supplier handler ports (office/storage > 0 bunches)",
-        "cart/quote live writes (dry-run only today)"
-      ]
+        "API supplier handler ports (office/storage > 0 bunches; some return HTTP 500 live)",
+        "cart/quote live ASP.NET writes (PHP ajax remains authoritative; UI posts to PHP)"
+      ],
+      "evidence": "docs/migration/evidence/storefront/epartscart-parts-warehouse-ui-parity.json"
     },
     {
       "id": "name_search",

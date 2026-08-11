@@ -1,0 +1,37 @@
+{
+  "tenant": "epartscart.com",
+  "asOf": "2026-08-11",
+  "route": "/en/parts/{BRAND}/{ARTICLE}",
+  "aspnetPage": "aspnet/src/EcomAE.Platform/Components/Pages/StorefrontSearchApp.razor",
+  "phpTwin": "content/shop/docpart/part_search_page.php",
+  "assets": [
+    "/platform-assets/epc_warehouse_search_parity.css?v=20260811w",
+    "/platform-assets/epc_warehouse_search_parity.js?v=20260811w"
+  ],
+  "restoredUi": [
+    "filter panel (manufacturer, storage, price, term, in-stock)",
+    "Genuine (OE) / Aftermarket section captions",
+    "Fitment check panel (UMAPI brands/analogs)",
+    "Cross base toolbar + related manufacturers fallback",
+    "In stock badge",
+    "Add to Cart (in-stock, logged-in) via PHP ajax_add_to_basket",
+    "Add to Quote (OOS / no hash) via PHP ajax_add_to_quote(_manual)",
+    "WhatsApp share (logged-in)",
+    "Guest login CTA instead of commerce buttons"
+  ],
+  "dataFixes": [
+    "Genuine brands SQL uses epc_umapi_manufacturers.manufacturer (not name)",
+    "Genuine + cross digests open shop DB via OpenStorefrontShopAsync (docpart on ePartsCart)",
+    "Poll products preserve check_hash / min_order / office/storage ids for cart writes"
+  ],
+  "notes": [
+    "Warehouse SQL may be empty for OE-only articles that only exist in CP crosses — progressive poll still runs.",
+    "Live PHP ajax_getProductsOfBunch returns HTTP 500 for some office/storage pairs; protocol-3 aggregate still used.",
+    "Merge alone does not republish :5100 — CloudPanel FORCE_LIVE / LIVE_PUBLISH required."
+  ],
+  "hardLocks": {
+    "cutoverAllowed": false,
+    "readyForPhpRemoval": false,
+    "phpAuthoritativeWrites": ["cart", "quote"]
+  }
+}

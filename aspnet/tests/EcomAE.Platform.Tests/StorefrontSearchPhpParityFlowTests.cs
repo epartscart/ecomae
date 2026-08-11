@@ -29,6 +29,11 @@ public sealed class StorefrontSearchPhpParityFlowTests
         Assert.Contains("epc-sf-cross-refs", text, StringComparison.Ordinal);
         Assert.Contains("all_table_products", text, StringComparison.Ordinal);
         Assert.Contains("Availability", text, StringComparison.Ordinal);
+        Assert.Contains("filter_div", text, StringComparison.Ordinal);
+        Assert.Contains("epc-fitment-panel", text, StringComparison.Ordinal);
+        Assert.Contains("epc-cross-search-btn", text, StringComparison.Ordinal);
+        Assert.Contains("Add to Cart", text, StringComparison.Ordinal);
+        Assert.Contains("Add to Quote", text, StringComparison.Ordinal);
         Assert.Contains("/en/parts/", text, StringComparison.Ordinal);
         Assert.Contains("/en/parts/brands/", text, StringComparison.Ordinal);
         Assert.Contains("Pricing and availability for", text, StringComparison.Ordinal);
