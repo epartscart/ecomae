@@ -36,6 +36,14 @@ public sealed class LegacyPresentationAssetsLookParityTests
     }
 
     [Fact]
+    public void CpModuleParityCssIsInCpStylesheetList()
+    {
+        Assert.Contains(
+            LegacyPresentationAssets.ControlPanelStylesheets,
+            href => href.Contains("epc_cp_aspnet_module_parity", StringComparison.OrdinalIgnoreCase));
+    }
+
+    [Fact]
     public void ErpDashboardPremiumCssIsInErpStylesheetList()
     {
         Assert.Contains(

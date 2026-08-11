@@ -11,65 +11,40 @@
 
 <PageTitle>Tenants · Control Panel · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="cp" />
-<HeadContent>
-<style>
-            .epc-tn-hero {
-                margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
-                background:linear-gradient(135deg,#0c4a6e 0%,#2563eb 45%,#0ea5e9 100%);
-            }
-            .epc-tn-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
-            .epc-tn-hero p { margin:0; color:#bbf7d0; max-width:42rem; font-size:.92rem; line-height:1.45; }
-            .epc-tn-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
-            .epc-tn-cta a {
-                display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
-                text-decoration:none; color:#052e16; background:#e0f2fe;
-            }
-            .epc-tn-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); color:#fff; }
-            .epc-tn-kpis { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
-            .epc-tn-kpi { background:#fff; border:1px solid #e5e7eb; border-radius:.55rem; padding:.85rem .9rem; }
-            .epc-tn-kpi strong { display:block; font-size:1.45rem; font-variant-numeric:tabular-nums; }
-            .epc-tn-kpi span { color:#64748b; font-size:.78rem; }
-            .epc-tn-table-wrap { background:#fff; border:1px solid #e5e7eb; border-radius:.55rem; overflow:auto; }
-            .epc-tn-table { width:100%; border-collapse:collapse; font-size:.86rem; }
-            .epc-tn-table th, .epc-tn-table td { padding:.55rem .7rem; border-bottom:1px solid #f1f5f9; text-align:left; white-space:nowrap; }
-            .epc-tn-table th { background:#f8fafc; color:#475569; font-size:.75rem; text-transform:uppercase; letter-spacing:.03em; }
-            .epc-tn-table a { color:#15803d; font-weight:700; text-decoration:none; }
-            .epc-tn-badge { display:inline-flex; padding:.15rem .45rem; border-radius:.3rem; font-size:.72rem; font-weight:700; }
-            .epc-tn-badge--ok { background:#dcfce7; color:#14532d; }
-            .epc-tn-badge--off { background:#fee2e2; color:#991b1b; }
-            .epc-tn-badge--info { background:#e2e8f0; color:#334155; }
-            .epc-tn-note { margin-top:1rem; padding:.75rem .9rem; background:#f0fdf4; border:1px solid #bbf7d0; border-radius:.45rem; color:#14532d; font-size:.86rem; }
-            @@media (max-width:1100px){ .epc-tn-kpis{grid-template-columns:1fr 1fr;} }
-            @@media (max-width:700px){ .epc-tn-kpis{grid-template-columns:1fr;} }
-        
-</style>
-</HeadContent>
-
 
 @if (_allowed)
 {
     <PhpCpDesktopChrome IsAdmin="_isAdmin">
 
-        <section class="epc-tn-hero">
-            <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
-            <h1>Portal Tenants</h1>
-            <p>Manage store operations, catalogue, and partner integrations from one control panel.</p>
-            <div class="epc-tn-cta">
-                <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
-                <a class="ghost" href="/cp/menus-app">Menus list</a>
-                <a class="ghost" href="/bos/app">BOS fleet</a>
-            </div>
-        </section>
+        <PhpCpModulePageHeader Title="Portal Tenants"
+                               Subtitle="Super CP tenant fleet control (PHP tenant control centre presentation)."
+                               PhpTabHref="@_phpTab"
+                               ExtraPanelClass="epc-scp-panel--tenants">
+            <a class="ghost" href="/cp/menus-app">Menus list</a>
+            <a class="ghost" href="/bos/app">BOS fleet</a>
+        </PhpCpModulePageHeader>
 
-        <div class="epc-tn-kpis" aria-label="Tenants KPIs">
-            <div class="epc-tn-kpi"><strong>@_tenants.Count</strong><span>Shown (limit @_limit)</span></div>
-            <div class="epc-tn-kpi"><strong>@_active</strong><span>Active</span></div>
-            <div class="epc-tn-kpi"><strong>@_withDb</strong><span>With database</span></div>
-            <div class="epc-tn-kpi"><strong>@_erpOnly</strong><span>ERP-only</span></div>
+        <div class="epc-scp-kpi" aria-label="Tenants KPIs">
+            <div class="epc-scp-kpi__card">
+                <div class="epc-scp-kpi__label">Shown (limit @_limit)</div>
+                <div class="epc-scp-kpi__val">@_tenants.Count</div>
+            </div>
+            <div class="epc-scp-kpi__card">
+                <div class="epc-scp-kpi__label">Active</div>
+                <div class="epc-scp-kpi__val">@_active</div>
+            </div>
+            <div class="epc-scp-kpi__card">
+                <div class="epc-scp-kpi__label">With database</div>
+                <div class="epc-scp-kpi__val">@_withDb</div>
+            </div>
+            <div class="epc-scp-kpi__card">
+                <div class="epc-scp-kpi__label">ERP-only</div>
+                <div class="epc-scp-kpi__val">@_erpOnly</div>
+            </div>
         </div>
 
-        <div class="epc-tn-table-wrap">
-            <table class="epc-tn-table">
+        <div class="epc-scp-table-card">
+            <table class="epc-scp-data-table table table-epc-pro">
                 <thead>
                     <tr>
                         <th>Site key</th>
@@ -99,13 +74,13 @@
                                 <td>@(string.IsNullOrWhiteSpace(t.Hostname) ? "—" : t.Hostname)</td>
                                 <td>@(string.IsNullOrWhiteSpace(t.TradeName) ? "—" : t.TradeName)</td>
                                 <td>@(string.IsNullOrWhiteSpace(t.IndustryCode) ? "—" : t.IndustryCode)</td>
-                                <td><span class="epc-tn-badge epc-tn-badge--info">@(string.IsNullOrWhiteSpace(t.Status) ? "—" : t.Status)</span></td>
+                                <td><span class="epc-scp-badge epc-scp-badge--tenant">@(string.IsNullOrWhiteSpace(t.Status) ? "—" : t.Status)</span></td>
                                 <td>@(string.IsNullOrWhiteSpace(t.HubName) ? "—" : t.HubName)</td>
                                 <td>@(string.IsNullOrWhiteSpace(t.HostedOn) ? "—" : t.HostedOn)</td>
-                                <td><span class="epc-tn-badge @(t.IsActive ? "epc-tn-badge--ok" : "epc-tn-badge--off")">@(t.IsActive ? "yes" : "no")</span></td>
-                                <td><span class="epc-tn-badge @(t.HasDb ? "epc-tn-badge--ok" : "epc-tn-badge--off")">@(t.HasDb ? "yes" : "no")</span></td>
-                                <td><span class="epc-tn-badge epc-tn-badge--info">@(t.ErpOnly ? "yes" : "no")</span></td>
-                                <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
+                                <td><span class="epc-scp-badge @(t.IsActive ? "epc-scp-badge--ok" : "epc-scp-badge--off")">@(t.IsActive ? "yes" : "no")</span></td>
+                                <td><span class="epc-scp-badge @(t.HasDb ? "epc-scp-badge--ok" : "epc-scp-badge--off")">@(t.HasDb ? "yes" : "no")</span></td>
+                                <td><span class="epc-scp-badge">@(t.ErpOnly ? "yes" : "no")</span></td>
+                                <td class="epc-scp-actions-cell"><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
                             </tr>
                         }
                     }

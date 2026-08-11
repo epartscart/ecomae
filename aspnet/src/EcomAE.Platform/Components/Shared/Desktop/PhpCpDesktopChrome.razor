@@ -78,7 +78,7 @@
     .epc-cp-shell .footer { padding:1rem; border-top:1px solid var(--cp-line); color:#64748b; font-size:13px; background:#fff; }
 </style>
 
-<div class="fixed-navbar fixed-sidebar epc-cp epc-cp-shell epc-cp-topnav-only epc-cp--blue-theme epc-cp-modern epc-php-font-root">
+<div class="fixed-navbar fixed-sidebar epc-cp epc-cp-shell epc-cp-topnav-only epc-cp--blue-theme epc-cp-modern epc-php-font-root@(_showBos ? " epc-cp-bos-host epc-boc-mode" : "")">
     <div id="header">
         <div class="color-line"></div>
         <div class="epc-cp-header-bar">
@@ -86,9 +86,21 @@
                 <PhpEpartsCartAnimatedLogo Variant="header" />
             </a>
             <div class="epc-cp-topbar-strip hidden-xs">
-                <nav class="epc-cp-topbar-ctas" aria-label="CP topbar CTAs">
-                    <a class="epc-cp-topbar-cta epc-cp-topbar-cta--erp" href="/erp">ERP Operations</a>
-                    <a class="epc-cp-topbar-cta epc-cp-topbar-cta--storefront" href="/">STOREFRONT</a>
+                <nav class="epc-cp-topbar-ctas" aria-label="Quick destinations">
+                    <a class="epc-cp-topbar-cta epc-cp-topbar-cta--erp" href="/erp" title="Open ERP">
+                        <span class="epc-cp-topbar-cta__glyph" aria-hidden="true"><i class="fa fa-briefcase"></i></span>
+                        <span class="epc-cp-topbar-cta__text">
+                            <span class="epc-cp-topbar-cta__label">ERP</span>
+                            <span class="epc-cp-topbar-cta__host">Operations</span>
+                        </span>
+                    </a>
+                    <a class="epc-cp-topbar-cta epc-cp-topbar-cta--storefront" href="/" title="Open public storefront">
+                        <span class="epc-cp-topbar-cta__glyph" aria-hidden="true"><i class="fa fa-shopping-bag"></i></span>
+                        <span class="epc-cp-topbar-cta__text">
+                            <span class="epc-cp-topbar-cta__label">Storefront</span>
+                        </span>
+                        <span class="epc-cp-topbar-cta__go" aria-hidden="true"><i class="fa fa-external-link"></i></span>
+                    </a>
                 </nav>
             </div>
             <nav class="epc-cp-header-actions" aria-label="CP header actions">

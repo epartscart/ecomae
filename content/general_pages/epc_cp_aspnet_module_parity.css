@@ -1,0 +1,313 @@
+/**
+ * ASP.NET Super-CP / Tenant-CP digest pages → PHP epc-scp-* presentation.
+ *
+ * Neutralizes invented per-module heroes / KPIs / tables (epc-users-*, epc-oms-*,
+ * epc-mod-*, …) so every /cp/*-app reads like PHP Control Panel modules:
+ *   .epc-scp-panel__hero + .epc-scp-kpi__card + .epc-scp-table-card / .epc-scp-data-table
+ *
+ * Loaded last in LegacyPresentationAssets.ControlPanelStylesheets (and via
+ * /platform-assets so it survives PHP pause).
+ */
+
+/* Scope: CP main pane (body class and/or shell wrapper). */
+.epc-cp-shell .epc-cp-main-pane,
+.epc-cp-shell .epc-cp-content-inner,
+body.epc-cp-shell .content {
+	--epc-cp-parity-ink: #0f172a;
+	--epc-cp-parity-muted: #64748b;
+	--epc-cp-parity-line: #e2e8f0;
+	--epc-cp-parity-panel: #fff;
+	--epc-cp-parity-accent: #0ea5e9;
+}
+
+/* ---- Invented digest heroes → PHP .epc-scp-panel__hero ---- */
+.epc-cp-shell .epc-cp-main-pane [class$="-hero"],
+.epc-cp-shell .epc-cp-main-pane [class*="-hero "],
+.epc-cp-shell .epc-cp-content-inner [class$="-hero"],
+.epc-cp-shell .epc-cp-content-inner [class*="-hero "] {
+	display: flex !important;
+	flex-wrap: wrap !important;
+	align-items: flex-start !important;
+	justify-content: space-between !important;
+	gap: 10px 16px !important;
+	margin: 0 0 12px !important;
+	padding: 14px 16px !important;
+	border: 0 !important;
+	border-radius: 14px !important;
+	background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 45%, #0369a1 100%) !important;
+	background-image: linear-gradient(135deg, #0f172a 0%, #1e3a5f 45%, #0369a1 100%) !important;
+	color: #fff !important;
+	box-shadow: 0 10px 28px rgba(15, 23, 42, 0.18) !important;
+}
+
+.epc-cp-shell .epc-cp-main-pane [class$="-hero"] > img,
+.epc-cp-shell .epc-cp-content-inner [class$="-hero"] > img {
+	display: none !important; /* brand lives in CP chrome header */
+}
+
+.epc-cp-shell .epc-cp-main-pane [class$="-hero"] h1,
+.epc-cp-shell .epc-cp-main-pane [class$="-hero"] h2,
+.epc-cp-shell .epc-cp-content-inner [class$="-hero"] h1,
+.epc-cp-shell .epc-cp-content-inner [class$="-hero"] h2 {
+	margin: 0 0 4px !important;
+	padding: 0 !important;
+	font-size: 20px !important;
+	font-weight: 800 !important;
+	line-height: 1.25 !important;
+	color: #fff !important;
+	letter-spacing: 0 !important;
+}
+
+.epc-cp-shell .epc-cp-main-pane [class$="-hero"] > p,
+.epc-cp-shell .epc-cp-main-pane [class$="-hero"] p,
+.epc-cp-shell .epc-cp-content-inner [class$="-hero"] > p,
+.epc-cp-shell .epc-cp-content-inner [class$="-hero"] p {
+	margin: 0 !important;
+	max-width: 46rem !important;
+	font-size: 13px !important;
+	line-height: 1.45 !important;
+	color: rgba(255, 255, 255, 0.9) !important;
+	font-weight: 400 !important;
+}
+
+/* CTA row inside invented heroes / beside header */
+.epc-cp-shell .epc-cp-main-pane [class$="-cta"],
+.epc-cp-shell .epc-cp-main-pane [class*="-cta "],
+.epc-cp-shell .epc-cp-content-inner [class$="-cta"],
+.epc-cp-shell .epc-cp-content-inner [class*="-cta "],
+.epc-cp-shell .epc-scp-panel__actions {
+	display: flex !important;
+	flex-wrap: wrap !important;
+	gap: 6px !important;
+	margin: 8px 0 0 !important;
+	align-items: center !important;
+}
+
+.epc-cp-shell .epc-cp-main-pane [class$="-cta"] a,
+.epc-cp-shell .epc-cp-main-pane [class*="-cta "] a,
+.epc-cp-shell .epc-cp-content-inner [class$="-cta"] a,
+.epc-cp-shell .epc-scp-panel__actions a,
+.epc-cp-shell .epc-scp-panel__actions .btn {
+	display: inline-flex !important;
+	align-items: center !important;
+	gap: 5px !important;
+	padding: 5px 11px !important;
+	border-radius: 8px !important;
+	font-size: 12px !important;
+	font-weight: 700 !important;
+	text-decoration: none !important;
+	color: #fff !important;
+	background: rgba(255, 255, 255, 0.16) !important;
+	border: 1px solid rgba(255, 255, 255, 0.32) !important;
+	box-shadow: none !important;
+}
+
+.epc-cp-shell .epc-cp-main-pane [class$="-cta"] a.ghost,
+.epc-cp-shell .epc-cp-main-pane [class*="-cta "] a.ghost,
+.epc-cp-shell .epc-scp-panel__actions a.ghost {
+	background: transparent !important;
+	border: 1px solid rgba(255, 255, 255, 0.35) !important;
+	color: #fff !important;
+}
+
+/* Shared PHP header component */
+.epc-cp-shell .epc-scp-panel {
+	margin-bottom: 12px !important;
+}
+
+.epc-cp-shell .epc-scp-panel__hero {
+	display: flex !important;
+	flex-wrap: wrap !important;
+	align-items: flex-start !important;
+	justify-content: space-between !important;
+	gap: 10px 16px !important;
+	padding: 14px 16px !important;
+	margin-bottom: 12px !important;
+	border-radius: 14px !important;
+	background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 45%, #0369a1 100%) !important;
+	color: #fff !important;
+	box-shadow: 0 10px 28px rgba(15, 23, 42, 0.18) !important;
+}
+
+.epc-cp-shell .epc-scp-panel__hero .epc-scp-dashboard__title {
+	margin: 0 0 4px !important;
+	font-size: 20px !important;
+	font-weight: 800 !important;
+	color: #fff !important;
+}
+
+.epc-cp-shell .epc-scp-panel__hero .epc-scp-dashboard__sub {
+	margin: 0 !important;
+	font-size: 13px !important;
+	line-height: 1.45 !important;
+	color: rgba(255, 255, 255, 0.9) !important;
+}
+
+/* ---- Invented KPI grids → PHP .epc-scp-kpi ---- */
+.epc-cp-shell .epc-cp-main-pane [class$="-kpis"],
+.epc-cp-shell .epc-cp-main-pane [class*="-kpis "],
+.epc-cp-shell .epc-cp-content-inner [class$="-kpis"],
+.epc-cp-shell .epc-scp-kpi {
+	display: grid !important;
+	grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)) !important;
+	gap: 12px !important;
+	margin: 0 0 14px !important;
+}
+
+.epc-cp-shell .epc-cp-main-pane [class$="-kpi"],
+.epc-cp-shell .epc-cp-main-pane [class*="-kpi "],
+.epc-cp-shell .epc-cp-content-inner [class$="-kpi"],
+.epc-cp-shell .epc-scp-kpi__card {
+	position: relative !important;
+	background: var(--epc-cp-parity-panel) !important;
+	border: 1px solid var(--epc-cp-parity-line) !important;
+	border-top: 3px solid var(--epc-cp-parity-accent) !important;
+	border-radius: 12px !important;
+	padding: 14px 16px !important;
+	box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06) !important;
+	min-width: 0 !important;
+}
+
+.epc-cp-shell .epc-cp-main-pane [class$="-kpis"] > :nth-child(2),
+.epc-cp-shell .epc-scp-kpi > :nth-child(2) { border-top-color: #6366f1 !important; }
+.epc-cp-shell .epc-cp-main-pane [class$="-kpis"] > :nth-child(3),
+.epc-cp-shell .epc-scp-kpi > :nth-child(3) { border-top-color: #f59e0b !important; }
+.epc-cp-shell .epc-cp-main-pane [class$="-kpis"] > :nth-child(4),
+.epc-cp-shell .epc-scp-kpi > :nth-child(4) { border-top-color: #10b981 !important; }
+
+.epc-cp-shell .epc-cp-main-pane [class$="-kpi"] strong,
+.epc-cp-shell .epc-scp-kpi__val {
+	display: block !important;
+	font-size: 26px !important;
+	font-weight: 800 !important;
+	line-height: 1.1 !important;
+	color: #0369a1 !important;
+	font-variant-numeric: tabular-nums;
+}
+
+.epc-cp-shell .epc-cp-main-pane [class$="-kpi"] span,
+.epc-cp-shell .epc-scp-kpi__label {
+	display: block !important;
+	margin-top: 4px !important;
+	font-size: 11px !important;
+	font-weight: 700 !important;
+	text-transform: uppercase !important;
+	letter-spacing: 0.05em !important;
+	color: var(--epc-cp-parity-muted) !important;
+}
+
+/* ---- Invented tables → PHP .epc-scp-table-card / .epc-scp-data-table ---- */
+.epc-cp-shell .epc-cp-main-pane [class$="-table-wrap"],
+.epc-cp-shell .epc-cp-main-pane [class*="-table-wrap "],
+.epc-cp-shell .epc-cp-content-inner [class$="-table-wrap"],
+.epc-cp-shell .epc-scp-table-card {
+	background: var(--epc-cp-parity-panel) !important;
+	border: 1px solid var(--epc-cp-parity-line) !important;
+	border-radius: 12px !important;
+	padding: 0 !important;
+	margin: 0 0 14px !important;
+	overflow: auto !important;
+	box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05) !important;
+}
+
+.epc-cp-shell .epc-cp-main-pane [class$="-table"],
+.epc-cp-shell .epc-cp-main-pane [class*="-table "],
+.epc-cp-shell .epc-scp-data-table,
+.epc-cp-shell .table-epc-pro {
+	width: 100% !important;
+	border-collapse: collapse !important;
+	font-size: 13px !important;
+	margin: 0 !important;
+}
+
+.epc-cp-shell .epc-cp-main-pane [class$="-table"] th,
+.epc-cp-shell .epc-scp-data-table thead th,
+.epc-cp-shell .table-epc-pro thead th {
+	background: #f1f5f9 !important;
+	color: #475569 !important;
+	font-size: 11px !important;
+	font-weight: 700 !important;
+	text-transform: uppercase !important;
+	letter-spacing: 0.04em !important;
+	padding: 8px 10px !important;
+	border-bottom: 1px solid #dbe3ea !important;
+	white-space: nowrap !important;
+}
+
+.epc-cp-shell .epc-cp-main-pane [class$="-table"] td,
+.epc-cp-shell .epc-scp-data-table tbody td,
+.epc-cp-shell .table-epc-pro tbody td {
+	padding: 8px 10px !important;
+	border-bottom: 1px solid #eef2f6 !important;
+	color: var(--epc-cp-parity-ink) !important;
+	vertical-align: middle !important;
+}
+
+.epc-cp-shell .epc-cp-main-pane [class$="-table"] tbody tr:hover,
+.epc-cp-shell .epc-scp-data-table tbody tr:hover {
+	background: #f8fafc !important;
+}
+
+.epc-cp-shell .epc-cp-main-pane [class$="-table"] a,
+.epc-cp-shell .epc-scp-data-table a {
+	color: #2563eb !important;
+	font-weight: 700 !important;
+	text-decoration: none !important;
+}
+
+/* Badges / notes */
+.epc-cp-shell .epc-cp-main-pane [class$="-badge"],
+.epc-cp-shell .epc-cp-main-pane [class*="-badge "],
+.epc-cp-shell .epc-scp-badge {
+	display: inline-block !important;
+	padding: 2px 8px !important;
+	border-radius: 999px !important;
+	font-size: 10px !important;
+	font-weight: 700 !important;
+	background: #e0f2fe !important;
+	color: #0369a1 !important;
+}
+
+.epc-cp-shell .epc-cp-main-pane [class*="-badge--ok"],
+.epc-cp-shell .epc-scp-badge--ok {
+	background: #dcfce7 !important;
+	color: #166534 !important;
+}
+
+.epc-cp-shell .epc-cp-main-pane [class*="-badge--off"],
+.epc-cp-shell .epc-scp-badge--off {
+	background: #fee2e2 !important;
+	color: #b91c1c !important;
+}
+
+.epc-cp-shell .epc-cp-main-pane [class$="-note"],
+.epc-cp-shell .epc-cp-main-pane [class*="-note "],
+.epc-cp-shell .epc-scp-note {
+	margin: 0 0 12px !important;
+	padding: 10px 12px !important;
+	background: #f8fafc !important;
+	border: 1px solid var(--epc-cp-parity-line) !important;
+	border-radius: 10px !important;
+	color: #334155 !important;
+	font-size: 12.5px !important;
+	line-height: 1.45 !important;
+}
+
+/* Guest banner quieter PHP-adjacent */
+.epc-cp-shell .epc-cp-guest-banner {
+	border-radius: 10px !important;
+	font-size: 12.5px !important;
+}
+
+/* Orders OMS page uses both invented oms-* and PHP orders markers */
+.epc-cp-shell .epc-orders-page.epc-oms-hero,
+.epc-cp-shell .epc-scp-panel.epc-orders-page .epc-scp-panel__hero {
+	align-items: center !important;
+}
+
+@media (max-width: 900px) {
+	.epc-cp-shell .epc-cp-main-pane [class$="-kpis"],
+	.epc-cp-shell .epc-scp-kpi {
+		grid-template-columns: 1fr !important;
+	}
+}

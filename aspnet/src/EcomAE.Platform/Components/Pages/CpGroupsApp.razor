@@ -10,56 +10,28 @@
 
 <PageTitle>Groups · Control Panel · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="cp" />
-<HeadContent>
-<style>
-        .epc-groups-hero {
-            margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
-            background:linear-gradient(135deg,#0c4a6e 0%,#2563eb 45%,#0ea5e9 100%);
-        }
-        .epc-groups-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
-        .epc-groups-hero p { margin:0; color:#99f6e4; max-width:36rem; font-size:.92rem; line-height:1.45; }
-        .epc-groups-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
-        .epc-groups-cta a {
-            display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
-            text-decoration:none; color:#fff; background:#2563eb;
-        }
-        .epc-groups-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); }
-        .epc-groups-kpis { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
-        .epc-groups-kpi { background:#fff; border:1px solid #e5e7eb; border-radius:.55rem; padding:.85rem .9rem; }
-        .epc-groups-kpi strong { display:block; font-size:1.45rem; font-variant-numeric:tabular-nums; }
-        .epc-groups-kpi span { color:#64748b; font-size:.78rem; }
-        .epc-groups-table-wrap { background:#fff; border:1px solid #e5e7eb; border-radius:.55rem; overflow:auto; }
-        .epc-groups-table { width:100%; border-collapse:collapse; font-size:.86rem; }
-        .epc-groups-table th, .epc-groups-table td { padding:.55rem .7rem; border-bottom:1px solid #f1f5f9; text-align:left; white-space:nowrap; }
-        .epc-groups-table th { background:#f8fafc; color:#475569; font-size:.75rem; text-transform:uppercase; letter-spacing:.03em; }
-        .epc-groups-table a { color:#0f766e; font-weight:700; text-decoration:none; }
-        .epc-groups-badge { display:inline-flex; padding:.15rem .45rem; border-radius:.3rem; font-size:.72rem; font-weight:700; background:#e0f2fe; color:#115e59; }
-        .epc-groups-note { margin-top:1rem; padding:.75rem .9rem; background:#f0fdfa; border:1px solid #99f6e4; border-radius:.45rem; color:#134e4a; font-size:.86rem; }
-        @@media (max-width:900px){ .epc-groups-kpis{grid-template-columns:1fr;} }
-    
-</style>
-</HeadContent>
-
 
 <PhpCpDesktopChrome IsAdmin="_isAdmin">
 
-    <section class="epc-groups-hero">
-        <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
-        <h1>Groups &amp; roles</h1>
-        <p>Manage store operations, catalogue, and partner integrations from one control panel.</p>
-        <div class="epc-groups-cta">
-            <a href="@(PhpSurfaceLinkMap.AspNetPrimaryHref("/CP/users/usergroups"))">Open module</a>
-            <a class="ghost" href="/cp/users-app">Users list</a>
+    <PhpCpModulePageHeader Title="Groups & roles"
+                           Subtitle="Role groups for storefront and backend access (PHP usergroups presentation)."
+                           PhpTabHref="/CP/users/usergroups">
+        <a class="ghost" href="/cp/users-app">Users list</a>
+    </PhpCpModulePageHeader>
+
+    <div class="epc-scp-kpi" aria-label="Groups KPIs">
+        <div class="epc-scp-kpi__card">
+            <div class="epc-scp-kpi__label">Shown</div>
+            <div class="epc-scp-kpi__val">@_groups.Count</div>
         </div>
-    </section>
+        <div class="epc-scp-kpi__card">
+            <div class="epc-scp-kpi__label">Backend groups</div>
+            <div class="epc-scp-kpi__val">@_backend</div>
+        </div>
+    </div>
 
-    <div class="epc-groups-kpis" aria-label="Groups KPIs">
-        <div class="epc-groups-kpi"><strong>@_groups.Count</strong><span>Shown</span></div>
-        <div class="epc-groups-kpi"><strong>@_backend</strong><span>Backend groups</span></div>
-</div>
-
-    <div class="epc-groups-table-wrap">
-        <table class="epc-groups-table">
+    <div class="epc-scp-table-card">
+        <table class="epc-scp-data-table table table-epc-pro">
             <thead>
                 <tr>
                     <th>ID</th>
@@ -90,8 +62,8 @@
                             <td>@(g.ForRegistrated ? "yes" : "—")</td>
                             <td>@(g.Unblocked ? "yes" : "no")</td>
                             <td>@g.Parent</td>
-                            <td><span class="epc-groups-badge">L@g.Level</span></td>
-                            <td><a href="@(PhpSurfaceLinkMap.AspNetPrimaryHref("/CP/users/usergroups"))">Open</a></td>
+                            <td><span class="epc-scp-badge">L@g.Level</span></td>
+                            <td class="epc-scp-actions-cell"><a href="@(PhpSurfaceLinkMap.AspNetPrimaryHref("/CP/users/usergroups"))">Open</a></td>
                         </tr>
                     }
                 }
