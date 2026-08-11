@@ -11,57 +11,23 @@
 
 <PageTitle>Stock transfers · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
-<HeadContent>
-<style>
-        .epc-st-hero {
-            margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
-            background:linear-gradient(135deg,#0c4a6e 0%,#1d4ed8 45%,#2563eb 100%);
-        }
-        .epc-st-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
-        .epc-st-hero p { margin:0; color:#d9f99d; max-width:44rem; font-size:.92rem; line-height:1.45; }
-        .epc-st-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
-        .epc-st-cta a {
-            display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
-            text-decoration:none; color:#14532d; background:#ecfccb;
-        }
-        .epc-st-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); color:#fff; }
-        .epc-st-kpis { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
-        .epc-st-kpi { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; padding:.85rem .9rem; }
-        .epc-st-kpi strong { display:block; font-size:1.2rem; word-break:break-word; }
-        .epc-st-kpi span { color:#64748b; font-size:.78rem; }
-        .epc-st-table-wrap { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; overflow:auto; }
-        .epc-st-table { width:100%; border-collapse:collapse; font-size:.86rem; }
-        .epc-st-table th, .epc-st-table td { padding:.55rem .7rem; border-bottom:1px solid #f1f5f9; text-align:left; white-space:nowrap; }
-        .epc-st-table th { background:#f8fafc; color:#475569; font-size:.75rem; text-transform:uppercase; letter-spacing:.03em; }
-        .epc-st-note { margin-top:1rem; padding:.75rem .9rem; background:#f7fee7; border:1px solid #bef264; border-radius:.45rem; color:#365314; font-size:.86rem; }
-        @@media (max-width:900px){ .epc-st-kpis{grid-template-columns:1fr 1fr;} }
-    
-</style>
-</HeadContent>
-
-
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Stock transfers" BreadcrumbArea="Inventory" BreadcrumbTab="Stock groups">
 
-    <section class="epc-st-hero">
-        <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="ECOM AE" style="height:28px;filter:brightness(1.1)" />
-        <h1>Stock transfers</h1>
-        <p>Operational finance, inventory, and approvals for this company.</p>
-        <div class="epc-st-cta">
-            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
-            <a class="ghost" href="/erp/inventory-stock-app">Inventory stock</a>
-        </div>
-    </section>
+    
+    <PhpErpModulePageHeader Title="Stock transfers" Subtitle="ASP.NET Core digest — PHP compare only under /php-reference/*." PhpTabHref="@_phpTab" />
+    <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
 
-    <div class="epc-st-kpis" aria-label="Stock transfer stats">
-        <div class="epc-st-kpi"><strong>@_summary.TransferCount.ToString(CultureInfo.InvariantCulture)</strong><span>Transfers</span></div>
-        <div class="epc-st-kpi"><strong>@_summary.DraftCount.ToString(CultureInfo.InvariantCulture)</strong><span>Draft</span></div>
-        <div class="epc-st-kpi"><strong>@_summary.InTransitCount.ToString(CultureInfo.InvariantCulture)</strong><span>In transit</span></div>
-        <div class="epc-st-kpi"><strong>@_summary.ReceivedCount.ToString(CultureInfo.InvariantCulture)</strong><span>Received</span></div>
-        <div class="epc-st-kpi"><strong>@_summary.TotalQty.ToString("0.###", CultureInfo.InvariantCulture)</strong><span>Total qty</span></div>
+
+    <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Stock transfer stats">
+        <div class="kpi"><div class="lbl">Transfers</div><div class="val">@_summary.TransferCount.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Draft</div><div class="val">@_summary.DraftCount.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">In transit</div><div class="val">@_summary.InTransitCount.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Received</div><div class="val">@_summary.ReceivedCount.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Total qty</div><div class="val">@_summary.TotalQty.ToString("0.###", CultureInfo.InvariantCulture)</div></div>
     </div>
 
-    <div class="epc-st-table-wrap">
-        <table class="epc-st-table">
+    <div class="epc-erp-table-wrap">
+        <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
             <thead>
                 <tr>
                     <th>Id</th>

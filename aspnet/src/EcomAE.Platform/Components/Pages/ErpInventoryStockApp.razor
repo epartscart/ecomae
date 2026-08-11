@@ -11,60 +11,23 @@
 
 <PageTitle>Inventory Stock · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
-<HeadContent>
-<style>
-        .epc-inv-hero {
-            margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
-            background:linear-gradient(135deg,#0c4a6e 0%,#1d4ed8 45%,#2563eb 100%);
-        }
-        .epc-inv-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
-        .epc-inv-hero p { margin:0; color:#bbf7d0; max-width:44rem; font-size:.92rem; line-height:1.45; }
-        .epc-inv-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
-        .epc-inv-cta a {
-            display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
-            text-decoration:none; color:#14532d; background:#dbeafe;
-        }
-        .epc-inv-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); color:#fff; }
-        .epc-inv-kpis { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
-        .epc-inv-kpi { background:#fff; border:1px solid #e5e7eb; border-radius:.55rem; padding:.85rem .9rem; }
-        .epc-inv-kpi strong { display:block; font-size:1.25rem; font-variant-numeric:tabular-nums; word-break:break-all; }
-        .epc-inv-kpi span { color:#64748b; font-size:.78rem; }
-        .epc-inv-table-wrap { background:#fff; border:1px solid #e5e7eb; border-radius:.55rem; overflow:auto; }
-        .epc-inv-table { width:100%; border-collapse:collapse; font-size:.86rem; }
-        .epc-inv-table th, .epc-inv-table td { padding:.55rem .7rem; border-bottom:1px solid #f1f5f9; text-align:left; white-space:nowrap; }
-        .epc-inv-table th { background:#f8fafc; color:#475569; font-size:.75rem; text-transform:uppercase; letter-spacing:.03em; }
-        .epc-inv-note { margin-top:1rem; padding:.75rem .9rem; background:#f0fdf4; border:1px solid #bbf7d0; border-radius:.45rem; color:#14532d; font-size:.86rem; }
-        @@media (max-width:1100px){ .epc-inv-kpis{grid-template-columns:1fr 1fr;} }
-        @@media (max-width:700px){ .epc-inv-kpis{grid-template-columns:1fr;} }
-    
-</style>
-</HeadContent>
-
-
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Inventory Stock" BreadcrumbArea="Inventory & Fulfilment" BreadcrumbTab="Stock">
 
-    <section class="epc-inv-hero">
-        <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="ECOM AE" style="height:28px;filter:brightness(1.1)" />
-        <h1>Inventory Stock</h1>
-        <p>On-hand stock by warehouse for this company. Open movements for ledger detail.</p>
-        <div class="epc-inv-cta">
-            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open inventory</a>
-            <a class="ghost" href="/erp/warehouses-app">Warehouses</a>
-            <a class="ghost" href="/erp/stock-movements-app">Stock movements</a>
-            <a class="ghost" href="/erp/app">ERP dashboard</a>
-        </div>
-    </section>
+    
+    <PhpErpModulePageHeader Title="Inventory Stock" Subtitle="ASP.NET Core digest — PHP compare only under /php-reference/*." PhpTabHref="@_phpTab" />
+    <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
 
-    <div class="epc-inv-kpis" aria-label="Inventory stock KPIs">
-        <div class="epc-inv-kpi"><strong>@_summary.RowCount.ToString("N0", CultureInfo.InvariantCulture)</strong><span>Stock rows</span></div>
-        <div class="epc-inv-kpi"><strong>@_summary.QtyOnHand.ToString("N2", CultureInfo.InvariantCulture)</strong><span>Qty on hand</span></div>
-        <div class="epc-inv-kpi"><strong>@_summary.StockValue.ToString("N2", CultureInfo.InvariantCulture)</strong><span>Stock value</span></div>
-        <div class="epc-inv-kpi"><strong>@_summary.WarehouseCount.ToString(CultureInfo.InvariantCulture)</strong><span>Warehouses</span></div>
-        <div class="epc-inv-kpi"><strong>@_summary.ItemCount.ToString(CultureInfo.InvariantCulture)</strong><span>Items</span></div>
+
+    <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Inventory stock KPIs">
+        <div class="kpi"><div class="lbl">Stock rows</div><div class="val">@_summary.RowCount.ToString("N0", CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Qty on hand</div><div class="val">@_summary.QtyOnHand.ToString("N2", CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Stock value</div><div class="val">@_summary.StockValue.ToString("N2", CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Warehouses</div><div class="val">@_summary.WarehouseCount.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Items</div><div class="val">@_summary.ItemCount.ToString(CultureInfo.InvariantCulture)</div></div>
     </div>
 
-    <div class="epc-inv-table-wrap">
-        <table class="epc-inv-table">
+    <div class="epc-erp-table-wrap">
+        <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
             <thead>
                 <tr>
                     <th>Warehouse</th>
@@ -107,8 +70,8 @@
     </div>
 
     <h2 style="margin:1.2rem 0 .5rem;font-size:1rem;">Low stock (reorder)</h2>
-    <div class="epc-inv-table-wrap">
-        <table class="epc-inv-table">
+    <div class="epc-erp-table-wrap">
+        <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
             <thead>
                 <tr>
                     <th>Warehouse</th><th>SKU</th><th>Name</th><th>Qty</th><th>Reorder</th><th>Avg cost</th>
@@ -137,7 +100,7 @@
         </table>
     </div>
 
-    <div class="epc-inv-note">
+    <div class="epc-erp-empty" style="display:block;margin-top:12px;padding:8px 10px;border:1px solid #c5d4de;background:#f8fafc;color:#475569;font-size:12px;">
         Source: @_summary.Source. Showing @_stock.Count.ToString(CultureInfo.InvariantCulture) of @_summary.RowCount.ToString(CultureInfo.InvariantCulture) rows;
         @_lowStock.Count.ToString(CultureInfo.InvariantCulture) low-stock alerts.
         PHP <code>epc_erp_inventory.php</code> remains authoritative for movements, transfers, and closing.

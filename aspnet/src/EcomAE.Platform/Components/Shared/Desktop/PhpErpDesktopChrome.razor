@@ -202,18 +202,15 @@
                     <PhpErpCompanyIndustryBar Variant="Panel" />
                     @if (!_signedIn)
                     {
-                        <div class="epc-erp-guest-banner" role="status" style="margin:0 0 1rem;padding:.75rem .95rem;background:#fff7ed;border:1px solid #fdba74;border-radius:.45rem;color:#9a3412;font-size:.88rem;line-height:1.45;">
-                            <strong>Sign in required for live ERP data.</strong>
-                            Guest browse shows module chrome and PHP-reference actions only.
-                            Digests stay empty until an admin session with ERP capability is present.
-                            <a href="/erp/login" style="margin-left:.35rem;font-weight:700;color:#c2410c;">Sign in</a>
+                        <div class="epc-erp-guest-banner alert alert-warning" role="status" style="margin:0 0 12px;padding:8px 10px;">
+                            Sign in required for live ERP data.
+                            <a href="/erp/login">Sign in</a>
                         </div>
                     }
                     else if (!IsAdmin)
                     {
-                        <div class="epc-erp-guest-banner" role="status" style="margin:0 0 1rem;padding:.75rem .95rem;background:#eff6ff;border:1px solid #93c5fd;border-radius:.45rem;color:#1e3a8a;font-size:.88rem;line-height:1.45;">
-                            Admin session is signed in but lacks the <code>erp</code> capability for this module’s live digest.
-                            Opens stay on ASP.NET-primary surfaces; interactive writes remain PHP-authoritative.
+                        <div class="epc-erp-guest-banner alert alert-info" role="status" style="margin:0 0 12px;padding:8px 10px;">
+                            Session lacks <code>erp</code> capability for live digests. Interactive writes remain on the PHP reference module.
                         </div>
                     }
                     <div class="epc-erp-content-body">

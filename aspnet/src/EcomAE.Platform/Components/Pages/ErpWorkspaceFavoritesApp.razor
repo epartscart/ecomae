@@ -11,56 +11,21 @@
 
 <PageTitle>Workspace favorites · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
-<HeadContent>
-<style>
-        .epc-wf-hero {
-            margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
-            background:linear-gradient(135deg,#0c4a6e 0%,#1d4ed8 45%,#2563eb 100%);
-        }
-        .epc-wf-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
-        .epc-wf-hero p { margin:0; color:#cbd5e1; max-width:44rem; font-size:.92rem; line-height:1.45; }
-        .epc-wf-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
-        .epc-wf-cta a {
-            display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
-            text-decoration:none; color:#1e3a5f; background:#e2e8f0;
-        }
-        .epc-wf-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); color:#fff; }
-        .epc-wf-kpis { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
-        .epc-wf-kpi { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; padding:.85rem .9rem; }
-        .epc-wf-kpi strong { display:block; font-size:1.2rem; word-break:break-word; }
-        .epc-wf-kpi span { color:#64748b; font-size:.78rem; }
-        .epc-wf-table-wrap { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; overflow:auto; }
-        .epc-wf-table { width:100%; border-collapse:collapse; font-size:.86rem; }
-        .epc-wf-table th, .epc-wf-table td { padding:.55rem .7rem; border-bottom:1px solid #f1f5f9; text-align:left; white-space:nowrap; }
-        .epc-wf-table th { background:#f8fafc; color:#475569; font-size:.75rem; text-transform:uppercase; letter-spacing:.03em; }
-        .epc-wf-note { margin-top:1rem; padding:.75rem .9rem; background:#f8fafc; border:1px solid #cbd5e1; border-radius:.45rem; color:#334155; font-size:.86rem; }
-        @@media (max-width:900px){ .epc-wf-kpis{grid-template-columns:1fr 1fr;} }
-    
-</style>
-</HeadContent>
-
-
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Workspace favorites" BreadcrumbArea="Home" BreadcrumbTab="Dashboard">
 
-    <section class="epc-wf-hero">
-        <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="ECOM AE" style="height:28px;filter:brightness(1.1)" />
-        <h1>Workspace favorites</h1>
-        <p>Operational finance, inventory, and approvals for this company.</p>
-        <div class="epc-wf-cta">
-            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
-            <a class="ghost" href="/erp/dashboard-summary-app">Dashboard summary</a>
-        </div>
-    </section>
+    
+    <PhpErpModulePageHeader Title="Workspace favorites" Subtitle="ASP.NET Core digest — PHP compare only under /php-reference/*." PhpTabHref="@_phpTab" />
 
-    <div class="epc-wf-kpis" aria-label="Workspace favorites stats">
-        <div class="epc-wf-kpi"><strong>@_summary.ShortcutCount.ToString(CultureInfo.InvariantCulture)</strong><span>Shortcuts</span></div>
-        <div class="epc-wf-kpi"><strong>@_summary.PinnedCount.ToString(CultureInfo.InvariantCulture)</strong><span>Pinned</span></div>
-        <div class="epc-wf-kpi"><strong>@_summary.UserCount.ToString(CultureInfo.InvariantCulture)</strong><span>Users</span></div>
-        <div class="epc-wf-kpi"><strong>@_summary.ErpSurfaceCount.ToString(CultureInfo.InvariantCulture)</strong><span>ERP/both</span></div>
+
+    <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Workspace favorites stats">
+        <div class="kpi"><div class="lbl">Shortcuts</div><div class="val">@_summary.ShortcutCount.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Pinned</div><div class="val">@_summary.PinnedCount.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Users</div><div class="val">@_summary.UserCount.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">ERP/both</div><div class="val">@_summary.ErpSurfaceCount.ToString(CultureInfo.InvariantCulture)</div></div>
     </div>
 
-    <div class="epc-wf-table-wrap">
-        <table class="epc-wf-table">
+    <div class="epc-erp-table-wrap">
+        <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
             <thead>
                 <tr>
                     <th>Id</th>

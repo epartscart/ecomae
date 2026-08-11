@@ -86,9 +86,12 @@ public sealed class StorefrontFrontendParityWaveTests
         var text = Read("aspnet/src/EcomAE.Platform/Components/Pages/StorefrontBulkUploadApp.razor");
         Assert.Contains("@page \"/storefront/bulk-upload-app\"", text, StringComparison.Ordinal);
         Assert.Contains("ListStorefrontBulkUploadHistoryAsync", text, StringComparison.Ordinal);
-        Assert.Contains("ajax_process", text, StringComparison.Ordinal);
         Assert.Contains("/php-reference", text, StringComparison.Ordinal);
         Assert.Contains("StorefrontPhpCanonical.BulkUpload", text, StringComparison.Ordinal);
+        Assert.Contains("_showPhpCompare", text, StringComparison.Ordinal);
+        Assert.Contains("Compare PHP reference", text, StringComparison.Ordinal);
+        // PHP iframe must be opt-in (?php=1), never the default production body.
+        Assert.Contains("@if (_showPhpCompare)", text, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -141,6 +144,8 @@ public sealed class StorefrontFrontendParityWaveTests
         var text = Read("aspnet/src/EcomAE.Platform/Components/Pages/StorefrontVehicleCatalogApp.razor");
         Assert.Contains("PhpHomeWidgetHtml.VehicleCatalog()", text, StringComparison.Ordinal);
         Assert.Contains("@page \"/en/vehicle-catalog\"", text, StringComparison.Ordinal);
+        Assert.Contains("/php-reference", text, StringComparison.Ordinal);
+        Assert.Contains("Compare PHP reference", text, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -151,6 +156,19 @@ public sealed class StorefrontFrontendParityWaveTests
         Assert.Contains("StorefrontPhpCanonical.LaximoVin", text, StringComparison.Ordinal);
         Assert.Contains("/php-reference", text, StringComparison.Ordinal);
         Assert.Contains("@page \"/en/katalog-laximo\"", text, StringComparison.Ordinal);
+        Assert.Contains("_showPhpCompare", text, StringComparison.Ordinal);
+        Assert.Contains("Compare PHP reference", text, StringComparison.Ordinal);
+        // Default product body is ASP.NET; Laximo iframe only with ?php=
+        Assert.Contains("@if (_showPhpCompare)", text, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void VehicleCatalogApp_ClassicLinkIsPhpReferenceOnly()
+    {
+        var text = Read("aspnet/src/EcomAE.Platform/Components/Pages/StorefrontVehicleCatalogApp.razor");
+        Assert.Contains("/php-reference", text, StringComparison.Ordinal);
+        Assert.Contains("Compare PHP reference", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("href=\"@StorefrontPhpCanonical.VehicleCatalog\"", text, StringComparison.Ordinal);
     }
 
     [Fact]

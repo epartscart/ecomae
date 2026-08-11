@@ -8,45 +8,11 @@
 
 <PageTitle>On-Premises · ERP · ECOM AE</PageTitle>
 <PhpChromeStyles Surface="erp" />
-<HeadContent>
-<style>
-        .epc-op-hero {
-            margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
-            background:linear-gradient(135deg,#0f172a 0%,#1e3a5f 45%,#0ea5e9 100%);
-        }
-        .epc-op-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
-        .epc-op-hero p { margin:0; color:rgba(255,255,255,.88); max-width:48rem; font-size:.92rem; line-height:1.45; }
-        .epc-op-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
-        .epc-op-cta a {
-            display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
-            text-decoration:none; color:#0f172a; background:#e0f2fe;
-        }
-        .epc-op-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); color:#fff; }
-        .epc-op-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.75rem; margin-bottom:1rem; }
-        .epc-op-card { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; padding:1rem; }
-        .epc-op-card h3 { margin:0 0 .4rem; font-size:1rem; }
-        .epc-op-card p { margin:0; color:#64748b; font-size:.86rem; line-height:1.45; }
-        .epc-op-note { margin-top:1rem; padding:.75rem .9rem; background:#eff6ff; border:1px solid #93c5fd; border-radius:.45rem; color:#1e3a5f; font-size:.86rem; }
-        .epc-op-mandate { margin-top:.75rem; font-size:.8rem; color:#64748b; }
-        @@media (max-width:900px){ .epc-op-grid{grid-template-columns:1fr;} }
-    
-</style>
-</HeadContent>
-
-
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="On-Premises" BreadcrumbArea="Platform" BreadcrumbTab="On-Premises">
 
-    <section class="epc-op-hero">
-        <h1>On-Premises Deployment</h1>
-        <p>Self-hosted ERP for clients who want local installation — Docker or bare-metal, license manager, offline activation, optional BOS connector. Live PHP tab + installer pack remain authoritative until dual-sample.</p>
-        <div class="epc-op-cta">
-            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open On-Premises tab</a>
-            <a class="ghost" href="/erp">ERP workspace</a>
-            <a class="ghost" href="/migration/on-premises-parity">Parity board</a>
-            <a class="ghost" href="/erp/on-premises/licenses">Licenses digest</a>
-            <a class="ghost" href="/erp/app">ERP dashboard</a>
-        </div>
-    </section>
+    
+    <PhpErpModulePageHeader Title="On-Premises Deployment" Subtitle="ASP.NET Core digest — PHP compare only under /php-reference/*." PhpTabHref="@_phpTab" />
+
 
     <div class="epc-op-grid" aria-label="On-premises tracks">
         <div class="epc-op-card">
@@ -63,7 +29,7 @@
         </div>
     </div>
 
-    <div class="epc-op-note">
+    <div class="epc-erp-empty" style="display:block;margin-top:12px;padding:8px 10px;border:1px solid #c5d4de;background:#f8fafc;color:#475569;font-size:12px;">
         Platform mandate locks remain in force until release-owner approval. Use the dual-sample compare board before any exact-route promotion.
     </div>
     <p class="epc-op-mandate">

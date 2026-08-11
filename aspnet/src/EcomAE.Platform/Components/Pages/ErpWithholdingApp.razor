@@ -10,54 +10,20 @@
 
 <PageTitle>Withholding · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
-<HeadContent>
-<style>
-    .epc-wht-hero {
-        margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
-        background:linear-gradient(135deg,#0c4a6e 0%,#7c2d12 50%,#ea580c 100%);
-    }
-    .epc-wht-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
-    .epc-wht-hero p { margin:0; color:#ffedd5; max-width:44rem; font-size:.92rem; line-height:1.45; }
-    .epc-wht-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
-    .epc-wht-cta a {
-        display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
-        text-decoration:none; color:#0f172a; background:#fff;
-    }
-    .epc-wht-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.4); color:#fff; }
-    .epc-wht-kpis { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
-    .epc-wht-kpi { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; padding:.85rem .9rem; }
-    .epc-wht-kpi strong { display:block; font-size:1.2rem; }
-    .epc-wht-kpi span { color:#64748b; font-size:.78rem; }
-    .epc-wht-table-wrap { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; overflow:auto; }
-    .epc-wht-table { width:100%; border-collapse:collapse; font-size:.86rem; }
-    .epc-wht-table th, .epc-wht-table td { padding:.55rem .7rem; border-bottom:1px solid #f1f5f9; text-align:left; white-space:nowrap; }
-    .epc-wht-table th { background:#f8fafc; color:#475569; font-size:.75rem; text-transform:uppercase; }
-    .epc-wht-note { margin-top:1rem; padding:.75rem .9rem; background:#fff7ed; border:1px solid #fdba74; border-radius:.45rem; color:#9a3412; font-size:.86rem; }
-    @@media (max-width:900px){ .epc-wht-kpis{grid-template-columns:1fr;} }
-</style>
-</HeadContent>
-
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Withholding" BreadcrumbArea="Tax" BreadcrumbTab="Withholding">
 
-    <section class="epc-wht-hero">
-        <h1>Withholding tax</h1>
-        <p>ERP withholding surface over the UAE tax compliance digest. Certificates, codes, and settlements remain PHP-authoritative.</p>
-        <div class="epc-wht-cta">
-            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open PHP WHT tab</a>
-            <a class="ghost" href="/erp/vat-app">VAT</a>
-            <a class="ghost" href="/cp/uae-tax-compliance-app">UAE tax hub</a>
-            <a class="ghost" href="/erp/ajax-writes/catalog">Ajax dry-runs</a>
-        </div>
-    </section>
+    
+    <PhpErpModulePageHeader Title="Withholding tax" Subtitle="ASP.NET Core digest — PHP compare only under /php-reference/*." PhpTabHref="@_phpTab" />
 
-    <div class="epc-wht-kpis" aria-label="Withholding KPIs">
-        <div class="epc-wht-kpi"><strong>@_items.Count.ToString(CultureInfo.InvariantCulture)</strong><span>Tax items shown</span></div>
-        <div class="epc-wht-kpi"><strong>@_source</strong><span>Digest source</span></div>
-        <div class="epc-wht-kpi"><strong>@(_isAdmin ? "live" : "guest")</strong><span>Session</span></div>
+
+    <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Withholding KPIs">
+        <div class="kpi"><div class="lbl">Tax items shown</div><div class="val">@_items.Count.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Digest source</div><div class="val">@_source</div></div>
+        <div class="kpi"><div class="lbl">Session</div><div class="val">@(_isAdmin ? "live" : "guest")</div></div>
     </div>
 
-    <div class="epc-wht-table-wrap">
-        <table class="epc-wht-table">
+    <div class="epc-erp-table-wrap">
+        <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
             <thead>
                 <tr>
                     <th>Slug</th>
@@ -87,7 +53,7 @@
         </table>
     </div>
 
-    <div class="epc-wht-note">
+    <div class="epc-erp-empty" style="display:block;margin-top:12px;padding:8px 10px;border:1px solid #c5d4de;background:#f8fafc;color:#475569;font-size:12px;">
         Dry-runs: <code>wht_code_save</code>, <code>wht_record</code>, <code>wht_certificate</code>, <code>wht_settle</code> — writes=0.
     </div>
 </PhpErpDesktopChrome>

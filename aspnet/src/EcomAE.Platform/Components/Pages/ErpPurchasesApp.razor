@@ -11,59 +11,21 @@
 
 <PageTitle>Purchases · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
-<HeadContent>
-<style>
-        .epc-pur-hero {
-            margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
-            background:linear-gradient(135deg,#0c4a6e 0%,#1d4ed8 45%,#2563eb 100%);
-        }
-        .epc-pur-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
-        .epc-pur-hero p { margin:0; color:#d9f99d; max-width:42rem; font-size:.92rem; line-height:1.45; }
-        .epc-pur-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
-        .epc-pur-cta a {
-            display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
-            text-decoration:none; color:#fff; background:#2563eb;
-        }
-        .epc-pur-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); }
-        .epc-pur-kpis { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
-        .epc-pur-kpi { background:#fff; border:1px solid #e5e7eb; border-radius:.55rem; padding:.85rem .9rem; }
-        .epc-pur-kpi strong { display:block; font-size:1.45rem; font-variant-numeric:tabular-nums; }
-        .epc-pur-kpi span { color:#64748b; font-size:.78rem; }
-        .epc-pur-table-wrap { background:#fff; border:1px solid #e5e7eb; border-radius:.55rem; overflow:auto; }
-        .epc-pur-table { width:100%; border-collapse:collapse; font-size:.86rem; }
-        .epc-pur-table th, .epc-pur-table td { padding:.55rem .7rem; border-bottom:1px solid #f1f5f9; text-align:left; white-space:nowrap; }
-        .epc-pur-table th { background:#f8fafc; color:#475569; font-size:.75rem; text-transform:uppercase; letter-spacing:.03em; }
-        .epc-pur-table a { color:#4d7c0f; font-weight:700; text-decoration:none; }
-        .epc-pur-badge { display:inline-flex; padding:.15rem .45rem; border-radius:.3rem; font-size:.72rem; font-weight:700; background:#ecfccb; color:#3f6212; }
-        .epc-pur-note { margin-top:1rem; padding:.75rem .9rem; background:#f7fee7; border:1px solid #bef264; border-radius:.45rem; color:#365314; font-size:.86rem; }
-        @@media (max-width:900px){ .epc-pur-kpis{grid-template-columns:1fr;} }
-    
-</style>
-</HeadContent>
-
-
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Purchases" BreadcrumbArea="Procure to Pay" BreadcrumbTab="Purchases">
 
-    <section class="epc-pur-hero">
-        <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="ECOM AE" style="height:28px;filter:brightness(1.1)" />
-        <h1>Purchases</h1>
-        <p>Purchase documents and supplier intake for this company.</p>
-        <div class="epc-pur-cta">
-            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
-            <a class="ghost" href="/erp/purchase-orders-app">Purchase orders</a>
-            <a class="ghost" href="/erp/suppliers-app">Suppliers</a>
-            <a class="ghost" href="/erp/app">ERP dashboard</a>
-        </div>
-    </section>
+    
+    <PhpErpModulePageHeader Title="Purchases" Subtitle="ASP.NET Core digest — PHP compare only under /php-reference/*." PhpTabHref="@_phpTab" />
+    <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
 
-    <div class="epc-pur-kpis" aria-label="Purchase KPIs">
-        <div class="epc-pur-kpi"><strong>@_purchases.Count</strong><span>Shown (limit @_limit)</span></div>
-        <div class="epc-pur-kpi"><strong>@_open</strong><span>Non-closed in page</span></div>
-        <div class="epc-pur-kpi"><strong>@_totalAmount.ToString("N2", CultureInfo.InvariantCulture)</strong><span>Page total amount</span></div>
+
+    <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Purchase KPIs">
+        <div class="kpi"><div class="lbl">Shown (limit @_limit)</div><div class="val">@_purchases.Count</div></div>
+        <div class="kpi"><div class="lbl">Non-closed in page</div><div class="val">@_open</div></div>
+        <div class="kpi"><div class="lbl">Page total amount</div><div class="val">@_totalAmount.ToString("N2", CultureInfo.InvariantCulture)</div></div>
     </div>
 
-    <div class="epc-pur-table-wrap">
-        <table class="epc-pur-table">
+    <div class="epc-erp-table-wrap">
+        <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
             <thead>
                 <tr>
                     <th>Invoice #</th>
@@ -89,7 +51,7 @@
                             <td><strong>@(string.IsNullOrWhiteSpace(p.InvoiceNumber) ? $"#{p.Id}" : p.InvoiceNumber)</strong></td>
                             <td>@FormatTime(p.PurchaseDate)</td>
                             <td>@(string.IsNullOrWhiteSpace(p.SupplierName) ? $"#{p.SupplierId}" : p.SupplierName)</td>
-                            <td><span class="epc-pur-badge">@p.Status</span></td>
+                            <td><span class="label label-default">@p.Status</span></td>
                             <td>@p.TotalAmount.ToString("N2", CultureInfo.InvariantCulture)</td>
                             <td>@(p.OrderId > 0 ? p.OrderId.ToString(CultureInfo.InvariantCulture) : "—")</td>
                             <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(phpHref)">Open</a></td>

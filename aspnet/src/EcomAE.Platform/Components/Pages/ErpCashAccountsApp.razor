@@ -11,64 +11,23 @@
 
 <PageTitle>Cash &amp; Bank · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
-<HeadContent>
-<style>
-        .epc-cash-hero {
-            margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
-            background:linear-gradient(135deg,#0c4a6e 0%,#1d4ed8 45%,#2563eb 100%);
-        }
-        .epc-cash-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
-        .epc-cash-hero p { margin:0; color:#fde68a; max-width:42rem; font-size:.92rem; line-height:1.45; }
-        .epc-cash-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
-        .epc-cash-cta a {
-            display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
-            text-decoration:none; color:#fff; background:#2563eb;
-        }
-        .epc-cash-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); }
-        .epc-cash-kpis { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
-        .epc-cash-kpi { background:#fff; border:1px solid #e5e7eb; border-radius:.55rem; padding:.85rem .9rem; }
-        .epc-cash-kpi strong { display:block; font-size:1.45rem; font-variant-numeric:tabular-nums; }
-        .epc-cash-kpi span { color:#64748b; font-size:.78rem; }
-        .epc-cash-section { margin-bottom:1rem; }
-        .epc-cash-section h2 { margin:0 0 .55rem; font-size:1rem; color:#14532d; }
-        .epc-cash-table-wrap { background:#fff; border:1px solid #e5e7eb; border-radius:.55rem; overflow:auto; }
-        .epc-cash-table { width:100%; border-collapse:collapse; font-size:.86rem; }
-        .epc-cash-table th, .epc-cash-table td { padding:.55rem .7rem; border-bottom:1px solid #f1f5f9; text-align:left; white-space:nowrap; }
-        .epc-cash-table th { background:#f8fafc; color:#475569; font-size:.75rem; text-transform:uppercase; letter-spacing:.03em; }
-        .epc-cash-table a { color:#854d0e; font-weight:700; text-decoration:none; }
-        .epc-cash-badge { display:inline-flex; padding:.15rem .45rem; border-radius:.3rem; font-size:.72rem; font-weight:700; background:#dbeafe; color:#713f12; }
-        .epc-cash-note { margin-top:1rem; padding:.75rem .9rem; background:#f7fee7; border:1px solid #bef264; border-radius:.45rem; color:#365314; font-size:.86rem; }
-        @@media (max-width:900px){ .epc-cash-kpis{grid-template-columns:1fr;} }
-    
-</style>
-</HeadContent>
-
-
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Cash & Bank" BreadcrumbArea="Cash & Treasury" BreadcrumbTab="Cash & bank">
 
-    <section class="epc-cash-hero">
-        <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="ECOM AE" style="height:28px;filter:brightness(1.1)" />
-        <h1>Cash &amp; Bank</h1>
-        <p>Operational finance, inventory, and approvals for this company.</p>
-        <div class="epc-cash-cta">
-            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
-            <a class="ghost" href="/erp/cash-entries-app">Cash ledger</a>
-            <a class="ghost" href="/erp/invoices-app">Invoices</a>
-            <a class="ghost" href="/erp/sales-orders-app">Sales orders</a>
-            <a class="ghost" href="/erp/app">ERP dashboard</a>
-        </div>
-    </section>
+    
+    <PhpErpModulePageHeader Title="Cash & Bank" Subtitle="ASP.NET Core digest — PHP compare only under /php-reference/*." PhpTabHref="@_phpTab" />
+    <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
 
-    <div class="epc-cash-kpis" aria-label="Cash KPIs">
-        <div class="epc-cash-kpi"><strong>@_accounts.Count</strong><span>Accounts (limit @_limit)</span></div>
-        <div class="epc-cash-kpi"><strong>@_totalBalance.ToString("N2", CultureInfo.InvariantCulture)</strong><span>Sum of balances</span></div>
-        <div class="epc-cash-kpi"><strong>@_entries.Count</strong><span>Recent entries shown</span></div>
+
+    <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Cash KPIs">
+        <div class="kpi"><div class="lbl">Accounts (limit @_limit)</div><div class="val">@_accounts.Count</div></div>
+        <div class="kpi"><div class="lbl">Sum of balances</div><div class="val">@_totalBalance.ToString("N2", CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Recent entries shown</div><div class="val">@_entries.Count</div></div>
     </div>
 
     <div class="epc-cash-section">
         <h2>Cash accounts</h2>
-        <div class="epc-cash-table-wrap">
-            <table class="epc-cash-table">
+        <div class="epc-erp-table-wrap">
+            <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
                 <thead>
                     <tr>
                         <th>Account</th>
@@ -91,7 +50,7 @@
                             var phpHref = $"{_phpTab}&account_id={a.Id.ToString(CultureInfo.InvariantCulture)}";
                             <tr>
                                 <td><strong>@(string.IsNullOrWhiteSpace(a.Name) ? $"#{a.Id}" : a.Name)</strong></td>
-                                <td><span class="epc-cash-badge">@a.AccountType</span></td>
+                                <td><span class="label label-default">@a.AccountType</span></td>
                                 <td>@(string.IsNullOrWhiteSpace(a.CurrencyCode) ? "—" : a.CurrencyCode)</td>
                                 <td>@a.OpeningBalance.ToString("N2", CultureInfo.InvariantCulture)</td>
                                 <td>@a.Balance.ToString("N2", CultureInfo.InvariantCulture)</td>
@@ -106,8 +65,8 @@
 
     <div class="epc-cash-section">
         <h2>Recent cash entries</h2>
-        <div class="epc-cash-table-wrap">
-            <table class="epc-cash-table">
+        <div class="epc-erp-table-wrap">
+            <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
                 <thead>
                     <tr>
                         <th>When</th>
@@ -132,7 +91,7 @@
                             <tr>
                                 <td>@FormatTime(e.TimeUnix)</td>
                                 <td>@(string.IsNullOrWhiteSpace(e.AccountName) ? $"#{e.AccountId}" : e.AccountName)</td>
-                                <td><span class="epc-cash-badge">@FormatDirection(e.Direction)</span></td>
+                                <td><span class="label label-default">@FormatDirection(e.Direction)</span></td>
                                 <td>@e.Amount.ToString("N2", CultureInfo.InvariantCulture)</td>
                                 <td>@(string.IsNullOrWhiteSpace(e.Reference) ? "—" : e.Reference)</td>
                                 <td>@(string.IsNullOrWhiteSpace(e.Note) ? "—" : e.Note)</td>

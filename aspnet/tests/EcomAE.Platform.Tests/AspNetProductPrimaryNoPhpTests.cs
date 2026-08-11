@@ -1,6 +1,7 @@
 using EcomAE.Platform.Configuration;
 using EcomAE.Platform.Migration;
 using EcomAE.Platform.Presentation;
+using Microsoft.Extensions.Options;
 using Xunit;
 
 namespace EcomAE.Platform.Tests;
@@ -59,8 +60,8 @@ public sealed class AspNetProductPrimaryNoPhpTests
     public void Reporter_StatusIsProductPrimaryPhpReferenceOnly()
     {
         var reporter = new PhpReferenceModeReporter(
-            Microsoft.Extensions.Options.Options.Create(new PhpReferenceOptions()),
-            Microsoft.Extensions.Options.Options.Create(new MigrationRouteCutoverOptions
+            Options.Create(new PhpReferenceOptions()),
+            Options.Create(new MigrationRouteCutoverOptions
             {
                 RequirePhpFallback = true,
                 StorefrontAspNetEnabled = true,
@@ -74,6 +75,30 @@ public sealed class AspNetProductPrimaryNoPhpTests
         Assert.True(report.KeepPhpProjectAvailable);
         Assert.Contains(report.HardLocks, l => l.Contains("PreferAspNetStorefrontApps=true", StringComparison.Ordinal));
         Assert.Contains(report.HardLocks, l => l.Contains("never invent", StringComparison.OrdinalIgnoreCase));
+    }
+
+    [Theory]
+    [InlineData("ErpModuleApp.razor")]
+    [InlineData("StorefrontCheckoutApp.razor")]
+    [InlineData("StorefrontVinApp.razor")]
+    [InlineData("StorefrontBulkUploadApp.razor")]
+    [InlineData("StorefrontRegisterApp.razor")]
+    public void ProductApps_PhpIframesAreOptInOnly(string fileName)
+    {
+        var text = File.ReadAllText(Find($"aspnet/src/EcomAE.Platform/Components/Pages/{fileName}"));
+        if (!text.Contains("<iframe", StringComparison.OrdinalIgnoreCase)
+            && !text.Contains("PhpHybridWorkspaceFrame", StringComparison.Ordinal))
+        {
+            return;
+        }
+
+        // PHP hybrid / iframe hosts must gate on an explicit opt-in (php= / classic=).
+        Assert.True(
+            text.Contains("_showPhpCompare", StringComparison.Ordinal)
+            || text.Contains("_useClassic", StringComparison.Ordinal)
+            || text.Contains("_hybridPhp", StringComparison.Ordinal)
+            || text.Contains("Query[\"php\"]", StringComparison.Ordinal),
+            $"{fileName} embeds PHP without an opt-in gate");
     }
 
     private static string Find(string relative)

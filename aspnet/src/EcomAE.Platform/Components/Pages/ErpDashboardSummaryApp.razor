@@ -14,91 +14,59 @@
 <PhpChromeStyles Surface="erp" />
 <HeadContent>
 <style>
-        .epc-eds-hero {
-            margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
-            background:linear-gradient(135deg,#0c4a6e 0%,#1d4ed8 45%,#2563eb 100%);
-        }
-        .epc-eds-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
-        .epc-eds-hero p { margin:0; color:#bae6fd; max-width:42rem; font-size:.92rem; line-height:1.45; }
-        .epc-eds-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
-        .epc-eds-cta a {
-            display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
-            text-decoration:none; color:#0f172a; background:#dbeafe;
-        }
-        .epc-eds-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); color:#fff; }
-        .epc-eds-sec { margin:0 0 .45rem; font-size:.95rem; color:#0f172a; }
-        .epc-eds-kpis { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
-        .epc-eds-kpi { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; padding:.85rem .9rem; }
-        .epc-eds-kpi strong { display:block; font-size:1.2rem; font-variant-numeric:tabular-nums; word-break:break-all; }
-        .epc-eds-kpi span { color:#64748b; font-size:.78rem; }
-        .epc-eds-note { margin-top:1rem; padding:.75rem .9rem; background:#f0f9ff; border:1px solid #bae6fd; border-radius:.45rem; color:#0c4a6e; font-size:.86rem; }
-        .epc-eds-table-wrap { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; overflow:auto; margin-bottom:1rem; }
-        .epc-eds-table { width:100%; border-collapse:collapse; font-size:.86rem; }
-        .epc-eds-table th, .epc-eds-table td { padding:.55rem .7rem; border-bottom:1px solid #f1f5f9; text-align:left; }
-        .epc-eds-table th { background:#f8fafc; color:#475569; font-size:.75rem; text-transform:uppercase; }
-        @@media (max-width:1100px){ .epc-eds-kpis{grid-template-columns:1fr 1fr;} }
-        @@media (max-width:700px){ .epc-eds-kpis{grid-template-columns:1fr;} }
-    
+    .epc-eds-sec { margin:14px 0 6px; font-size:13px; font-weight:700; color:#243746; }
 </style>
 </HeadContent>
 
-
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Dashboard Summary" BreadcrumbArea="Home" BreadcrumbTab="Dashboard KPIs">
 
-    <section class="epc-eds-hero">
-        <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="ECOM AE" style="height:28px;filter:brightness(1.1)" />
-        <h1>ERP Dashboard Summary</h1>
-        <p>Cash, receivables, payables, stock, and approval queues for this company.</p>
-        <div class="epc-eds-cta">
-            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open dashboard</a>
-            <a class="ghost" href="/erp/accounts-summary-app">Accounts summary</a>
-            <a class="ghost" href="/erp/cash-accounts-app">Cash accounts</a>
-        </div>
-    </section>
+    <PhpErpModulePageHeader Title="ERP Dashboard"
+                            Subtitle="Executive KPIs on ASP.NET Core. PHP reference remains temporary compare only."
+                            PhpTabHref="@_phpTab" />
 
     <h2 class="epc-eds-sec">Executive tiles</h2>
-    <div class="epc-eds-kpis" aria-label="ERP executive KPIs">
-        <div class="epc-eds-kpi"><strong>@_s.CashPosition.ToString("N2", CultureInfo.InvariantCulture)</strong><span>Cash position</span></div>
-        <div class="epc-eds-kpi"><strong>@_s.Receivables.ToString("N2", CultureInfo.InvariantCulture)</strong><span>Receivables</span></div>
-        <div class="epc-eds-kpi"><strong>@_s.Payables.ToString("N2", CultureInfo.InvariantCulture)</strong><span>Payables</span></div>
-        <div class="epc-eds-kpi"><strong>@_s.StockValue.ToString("N2", CultureInfo.InvariantCulture)</strong><span>Stock value</span></div>
+    <div class="epc-erp-kpi epc-erp-stat-row" aria-label="ERP executive KPIs">
+        <div class="kpi"><div class="lbl">Cash position</div><div class="val">@_s.CashPosition.ToString("N2", CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Receivables</div><div class="val">@_s.Receivables.ToString("N2", CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Payables</div><div class="val">@_s.Payables.ToString("N2", CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Stock value</div><div class="val">@_s.StockValue.ToString("N2", CultureInfo.InvariantCulture)</div></div>
     </div>
 
     <h2 class="epc-eds-sec">Command center tiles</h2>
-    <div class="epc-eds-kpis" aria-label="ERP command center KPIs">
-        <div class="epc-eds-kpi"><strong>@_s.RevenueExVat.ToString("N2", CultureInfo.InvariantCulture)</strong><span>Revenue (ex. VAT)</span></div>
-        <div class="epc-eds-kpi"><strong>@_s.OrdersCount.ToString(CultureInfo.InvariantCulture)</strong><span>Orders</span></div>
-        <div class="epc-eds-kpi"><strong>@_s.ArBalance.ToString("N2", CultureInfo.InvariantCulture)</strong><span>AR balance</span></div>
-        <div class="epc-eds-kpi"><strong>@_s.ApBalance.ToString("N2", CultureInfo.InvariantCulture)</strong><span>AP balance</span></div>
-        <div class="epc-eds-kpi"><strong>@_s.CashPosition.ToString("N2", CultureInfo.InvariantCulture)</strong><span>Cash &amp; bank</span></div>
-        <div class="epc-eds-kpi"><strong>@_s.VatNetPayable.ToString("N2", CultureInfo.InvariantCulture)</strong><span>VAT net payable</span></div>
-        <div class="epc-eds-kpi"><strong>@_s.PeriodStatus</strong><span>Period status</span></div>
-        <div class="epc-eds-kpi"><strong>@_s.InventoryItems.ToString(CultureInfo.InvariantCulture)</strong><span>Active items</span></div>
+    <div class="epc-erp-kpi epc-erp-stat-row" aria-label="ERP command center KPIs">
+        <div class="kpi"><div class="lbl">Revenue (ex. VAT)</div><div class="val">@_s.RevenueExVat.ToString("N2", CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Orders</div><div class="val">@_s.OrdersCount.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">AR balance</div><div class="val">@_s.ArBalance.ToString("N2", CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">AP balance</div><div class="val">@_s.ApBalance.ToString("N2", CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Cash &amp; bank</div><div class="val">@_s.CashPosition.ToString("N2", CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">VAT net payable</div><div class="val">@_s.VatNetPayable.ToString("N2", CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Period status</div><div class="val">@_s.PeriodStatus</div></div>
+        <div class="kpi"><div class="lbl">Active items</div><div class="val">@_s.InventoryItems.ToString(CultureInfo.InvariantCulture)</div></div>
     </div>
 
     <h2 class="epc-eds-sec">Cash / supplier ledger</h2>
-    <div class="epc-eds-kpis" aria-label="ERP cash supplier KPIs">
-        <div class="epc-eds-kpi"><strong>@_s.SupplierCredit.ToString("N2", CultureInfo.InvariantCulture)</strong><span>Supplier credit</span></div>
-        <div class="epc-eds-kpi"><strong>@_s.SupplierDebit.ToString("N2", CultureInfo.InvariantCulture)</strong><span>Supplier debit</span></div>
-        <div class="epc-eds-kpi"><strong>@_s.SupplierNet.ToString("N2", CultureInfo.InvariantCulture)</strong><span>Supplier net</span></div>
-        <div class="epc-eds-kpi"><strong>@_s.CashAccounts.ToString(CultureInfo.InvariantCulture)</strong><span>Cash accounts</span></div>
-        <div class="epc-eds-kpi"><strong>@_s.ActiveSuppliers.ToString(CultureInfo.InvariantCulture)</strong><span>Active suppliers</span></div>
-        <div class="epc-eds-kpi"><strong>@_s.ActivePurchases.ToString(CultureInfo.InvariantCulture)</strong><span>Active purchases</span></div>
+    <div class="epc-erp-kpi epc-erp-stat-row" aria-label="ERP cash supplier KPIs">
+        <div class="kpi"><div class="lbl">Supplier credit</div><div class="val">@_s.SupplierCredit.ToString("N2", CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Supplier debit</div><div class="val">@_s.SupplierDebit.ToString("N2", CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Supplier net</div><div class="val">@_s.SupplierNet.ToString("N2", CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Cash accounts</div><div class="val">@_s.CashAccounts.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Active suppliers</div><div class="val">@_s.ActiveSuppliers.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Active purchases</div><div class="val">@_s.ActivePurchases.ToString(CultureInfo.InvariantCulture)</div></div>
 </div>
 
     <h2 class="epc-eds-sec">Approval queue counts</h2>
-    <div class="epc-eds-kpis" aria-label="ERP approval queue">
-        <div class="epc-eds-kpi"><strong>@_s.DraftSalesOrders.ToString(CultureInfo.InvariantCulture)</strong><span>Draft sales orders</span></div>
-        <div class="epc-eds-kpi"><strong>@_s.PendingPurchaseOrders.ToString(CultureInfo.InvariantCulture)</strong><span>Pending POs</span></div>
-        <div class="epc-eds-kpi"><strong>@_s.UnpostedGlJournals.ToString(CultureInfo.InvariantCulture)</strong><span>Unposted GL journals</span></div>
-        <div class="epc-eds-kpi"><strong>@_s.OverdueInvoices.ToString(CultureInfo.InvariantCulture)</strong><span>Overdue invoices (30+)</span></div>
-        <div class="epc-eds-kpi"><strong>@_s.LowStockItems.ToString(CultureInfo.InvariantCulture)</strong><span>Low stock items</span></div>
-        <div class="epc-eds-kpi"><strong>@_s.PendingEinvoices.ToString(CultureInfo.InvariantCulture)</strong><span>Pending e-invoices</span></div>
+    <div class="epc-erp-kpi epc-erp-stat-row" aria-label="ERP approval queue">
+        <div class="kpi"><div class="lbl">Draft sales orders</div><div class="val">@_s.DraftSalesOrders.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Pending POs</div><div class="val">@_s.PendingPurchaseOrders.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Unposted GL journals</div><div class="val">@_s.UnpostedGlJournals.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Overdue invoices (30+)</div><div class="val">@_s.OverdueInvoices.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Low stock items</div><div class="val">@_s.LowStockItems.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Pending e-invoices</div><div class="val">@_s.PendingEinvoices.ToString(CultureInfo.InvariantCulture)</div></div>
     </div>
 
     <h2 class="epc-eds-sec">Approval queue</h2>
-    <div class="epc-eds-table-wrap">
-        <table class="epc-eds-table">
+    <div class="epc-erp-table-wrap">
+        <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
             <thead>
                 <tr><th>Category</th><th>Label</th><th>Count</th><th>Action</th><th>Severity</th></tr>
             </thead>
@@ -125,10 +93,10 @@
     </div>
 
     <h2 class="epc-eds-sec">Process flow</h2>
-    <div class="epc-eds-kpis" aria-label="ERP process flow">
-        <div class="epc-eds-kpi"><strong>@_s.ProcessOpen.ToString(CultureInfo.InvariantCulture)</strong><span>Open tasks</span></div>
-        <div class="epc-eds-kpi"><strong>@_s.ProcessDone.ToString(CultureInfo.InvariantCulture)</strong><span>Done tasks</span></div>
-        <div class="epc-eds-kpi"><strong>@_s.ProcessOverdue.ToString(CultureInfo.InvariantCulture)</strong><span>Overdue tasks</span></div>
+    <div class="epc-erp-kpi epc-erp-stat-row" aria-label="ERP process flow">
+        <div class="kpi"><div class="lbl">Open tasks</div><div class="val">@_s.ProcessOpen.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Done tasks</div><div class="val">@_s.ProcessDone.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Overdue tasks</div><div class="val">@_s.ProcessOverdue.ToString(CultureInfo.InvariantCulture)</div></div>
     </div>
 
 </PhpErpDesktopChrome>

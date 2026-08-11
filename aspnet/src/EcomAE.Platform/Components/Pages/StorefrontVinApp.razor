@@ -36,7 +36,7 @@
 <PhpStorefrontDesktopChrome>
 
     <PhpStorefrontPageHeader Title="VIN / Frame search"
-                            Subtitle="Decode vehicles and open OEM unit trees. Laximo decode is temporary compare under /php-reference/*.">
+                            Subtitle="ASP.NET Core product shell. Decode stays here; Laximo PHP is temporary compare under /php-reference/* only.">
         <form class="epc-sf-vin-form" @onsubmit="OnSubmit" @onsubmit:preventDefault>
             <input type="search" @bind="_vin" maxlength="32" placeholder="VIN or Frame" aria-label="VIN or Frame" required />
             <button type="submit">Decode VIN</button>
@@ -50,7 +50,8 @@
         <div class="epc-sf-vin-panel" style="padding:1.1rem 1.2rem;color:#334155" aria-label="VIN decode workspace">
             <p style="margin:0 0 .65rem;font-weight:700">VIN / frame: <code>@_vin</code></p>
             <p style="margin:0 0 .75rem;color:#64748b;font-size:.9rem;line-height:1.45">
-                Product shell is ASP.NET Core. Open Laximo only as temporary PHP reference compare.
+                Product results stay on ASP.NET Core. The classic Laximo tree is not the default production body —
+                open it only as temporary PHP reference compare (<code>?php=1</code> embeds the compare iframe).
             </p>
             <p style="margin:0">
                 <a class="btn btn-sm btn-primary" href="@CompareEmbedHref">Show PHP compare</a>
@@ -63,7 +64,8 @@
             }
         </div>
         <p class="epc-sf-vin-note">
-            Product path: <code>/storefront/vin-app</code>. PHP compare only under <code>/php-reference</code>.
+            Product path: <code>/storefront/vin-app</code>. PHP compare only:
+            <code>@StorefrontPhpCanonical.LaximoVin</code> under <code>/php-reference</code>.
         </p>
     }
     else
@@ -84,6 +86,7 @@
     [SupplyParameterFromQuery(Name = "vin")]
     public string? VinAlias { get; set; }
 
+    /// <summary>PHP reference decode tree only — never a product /en path.</summary>
     private string PhpResultsHref
     {
         get

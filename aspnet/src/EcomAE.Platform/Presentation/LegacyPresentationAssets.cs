@@ -87,6 +87,8 @@ public static class LegacyPresentationAssets
         "/content/shop/finance/epc_erp_professional_css.php",
         "/epc-static.php?f=cp/content/shop/finance/erp/theme/erp_theme.css",
         "/epc-static.php?f=cp/content/shop/finance/erp/theme/erp_dashboard_premium.css",
+        // After professional: neutralize ASP.NET digest heroes → PHP page-hd / kpi / table-epc look.
+        "/content/shop/finance/epc_erp_aspnet_module_parity_css.php",
         "/content/general_pages/epc_cp_ui_css.php",
         "/content/general_pages/epc_cp_professional_css.php"
     ];

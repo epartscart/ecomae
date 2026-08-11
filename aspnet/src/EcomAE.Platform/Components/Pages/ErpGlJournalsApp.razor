@@ -11,59 +11,21 @@
 
 <PageTitle>General Ledger · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
-<HeadContent>
-<style>
-        .epc-gl-hero {
-            margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
-            background:linear-gradient(135deg,#0c4a6e 0%,#1d4ed8 45%,#2563eb 100%);
-        }
-        .epc-gl-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
-        .epc-gl-hero p { margin:0; color:#d6d3d1; max-width:42rem; font-size:.92rem; line-height:1.45; }
-        .epc-gl-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
-        .epc-gl-cta a {
-            display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
-            text-decoration:none; color:#1c1917; background:#dbeafe;
-        }
-        .epc-gl-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); color:#fff; }
-        .epc-gl-kpis { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
-        .epc-gl-kpi { background:#fff; border:1px solid #e5e7eb; border-radius:.55rem; padding:.85rem .9rem; }
-        .epc-gl-kpi strong { display:block; font-size:1.45rem; font-variant-numeric:tabular-nums; }
-        .epc-gl-kpi span { color:#64748b; font-size:.78rem; }
-        .epc-gl-table-wrap { background:#fff; border:1px solid #e5e7eb; border-radius:.55rem; overflow:auto; }
-        .epc-gl-table { width:100%; border-collapse:collapse; font-size:.86rem; }
-        .epc-gl-table th, .epc-gl-table td { padding:.55rem .7rem; border-bottom:1px solid #f1f5f9; text-align:left; white-space:nowrap; }
-        .epc-gl-table th { background:#f8fafc; color:#475569; font-size:.75rem; text-transform:uppercase; letter-spacing:.03em; }
-        .epc-gl-table a { color:#44403c; font-weight:700; text-decoration:none; }
-        .epc-gl-badge { display:inline-flex; padding:.15rem .45rem; border-radius:.3rem; font-size:.72rem; font-weight:700; background:#dbeafe; color:#292524; }
-        .epc-gl-note { margin-top:1rem; padding:.75rem .9rem; background:#fafaf9; border:1px solid #d6d3d1; border-radius:.45rem; color:#44403c; font-size:.86rem; }
-        @@media (max-width:900px){ .epc-gl-kpis{grid-template-columns:1fr;} }
-    
-</style>
-</HeadContent>
-
-
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="General Ledger" BreadcrumbArea="Record to Report" BreadcrumbTab="General ledger">
 
-    <section class="epc-gl-hero">
-        <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="ECOM AE" style="height:28px;filter:brightness(1.1)" />
-        <h1>General Ledger Journals</h1>
-        <p>Operational finance, inventory, and approvals for this company.</p>
-        <div class="epc-gl-cta">
-            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
-            <a class="ghost" href="/erp/coa-accounts-app">Chart of accounts</a>
-            <a class="ghost" href="/erp/cash-accounts-app">Cash &amp; bank</a>
-            <a class="ghost" href="/erp/app">ERP dashboard</a>
-        </div>
-    </section>
+    
+    <PhpErpModulePageHeader Title="General Ledger Journals" Subtitle="ASP.NET Core digest — PHP compare only under /php-reference/*." PhpTabHref="@_phpTab" />
+    <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
 
-    <div class="epc-gl-kpis" aria-label="GL KPIs">
-        <div class="epc-gl-kpi"><strong>@_journals.Count</strong><span>Shown (limit @_limit)</span></div>
-        <div class="epc-gl-kpi"><strong>@_posted</strong><span>Posted in page</span></div>
-        <div class="epc-gl-kpi"><strong>@_totalDebit.ToString("N2", CultureInfo.InvariantCulture)</strong><span>Page total debit</span></div>
+
+    <div class="epc-erp-kpi epc-erp-stat-row" aria-label="GL KPIs">
+        <div class="kpi"><div class="lbl">Shown (limit @_limit)</div><div class="val">@_journals.Count</div></div>
+        <div class="kpi"><div class="lbl">Posted in page</div><div class="val">@_posted</div></div>
+        <div class="kpi"><div class="lbl">Page total debit</div><div class="val">@_totalDebit.ToString("N2", CultureInfo.InvariantCulture)</div></div>
     </div>
 
-    <div class="epc-gl-table-wrap">
-        <table class="epc-gl-table">
+    <div class="epc-erp-table-wrap">
+        <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
             <thead>
                 <tr>
                     <th>Journal #</th>
@@ -88,7 +50,7 @@
                             <td><strong>@(string.IsNullOrWhiteSpace(j.JournalNo) ? $"#{j.Id}" : j.JournalNo)</strong></td>
                             <td>@FormatTime(j.JournalDate)</td>
                             <td>@(string.IsNullOrWhiteSpace(j.SourceType) ? "—" : j.SourceType)@(j.SourceId > 0 ? $" #{j.SourceId}" : "")</td>
-                            <td><span class="epc-gl-badge">@j.Status</span></td>
+                            <td><span class="label label-default">@j.Status</span></td>
                             <td>@j.TotalDebit.ToString("N2", CultureInfo.InvariantCulture)</td>
                             <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(phpHref)">Open</a></td>
                         </tr>

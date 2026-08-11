@@ -56,18 +56,19 @@
 
         <div class="epc-reg-tabs" aria-label="Registration options">
             <a class="@(!_useClassic ? "is-active" : null)" href="@StorefrontAspNetCanonical.Registration">Quick register</a>
-            <a class="@(_useClassic ? "is-active" : null)" href="@StorefrontAspNetCanonical.Registration?classic=1">Full PHP form</a>
+            <a class="@(_useClassic ? "is-active" : null)" href="@StorefrontAspNetCanonical.Registration?classic=1">Compare PHP reference</a>
             <a href="@StorefrontSurfaceLinks.Login">Already have an account?</a>
         </div>
 
         @if (_useClassic)
         {
             <div class="epc-reg-panel">
-                <h2>Full registration (PHP reference)</h2>
+                <h2>Compare PHP reference (temporary)</h2>
                 <p style="margin:0 0 .75rem;color:#64748b;font-size:.88rem">
-                    Loads <code>/php-reference/en/users/registration</code> — restore archive serving if this shows “Archive paused”.
+                    Opt-in only. Product registration stays on ASP.NET; this loads
+                    <code>/php-reference/en/users/registration</code> for side-by-side compare.
                 </p>
-                <iframe class="epc-reg-iframe" title="PHP registration" src="/php-reference/en/users/registration"></iframe>
+                <iframe class="epc-reg-iframe" title="PHP registration compare" src="/php-reference/en/users/registration"></iframe>
             </div>
         }
         else
@@ -96,9 +97,10 @@
                 </div>
                 <button class="epc-reg-submit" type="submit">Register</button>
                 <p class="epc-reg-note">
-                    Registration writes stay PHP-authoritative (<code>content/users/register.php</code>).
-                    If submit returns “Archive paused”, run the journey recover paste to restore
-                    <code>/php-reference/*</code>, then retry — or use <strong>Full PHP form</strong>.
+                    Product UI is ASP.NET Core. Until cutover, the form posts to
+                    <code>/php-reference/en/users/register</code> for authoritative writes only
+                    (not the product presentation path). Prefer <strong>Compare PHP reference</strong>
+                    when you need a side-by-side check.
                 </p>
             </form>
         }

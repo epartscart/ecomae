@@ -11,59 +11,19 @@
 
 <PageTitle>Suppliers · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
-<HeadContent>
-<style>
-        .epc-sup-hero {
-            margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
-            background:linear-gradient(135deg,#0c4a6e 0%,#1d4ed8 45%,#2563eb 100%);
-        }
-        .epc-sup-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
-        .epc-sup-hero p { margin:0; color:#fed7aa; max-width:42rem; font-size:.92rem; line-height:1.45; }
-        .epc-sup-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
-        .epc-sup-cta a {
-            display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
-            text-decoration:none; color:#fff; background:#2563eb;
-        }
-        .epc-sup-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); }
-        .epc-sup-kpis { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
-        .epc-sup-kpi { background:#fff; border:1px solid #e5e7eb; border-radius:.55rem; padding:.85rem .9rem; }
-        .epc-sup-kpi strong { display:block; font-size:1.45rem; font-variant-numeric:tabular-nums; }
-        .epc-sup-kpi span { color:#64748b; font-size:.78rem; }
-        .epc-sup-table-wrap { background:#fff; border:1px solid #e5e7eb; border-radius:.55rem; overflow:auto; }
-        .epc-sup-table { width:100%; border-collapse:collapse; font-size:.86rem; }
-        .epc-sup-table th, .epc-sup-table td { padding:.55rem .7rem; border-bottom:1px solid #f1f5f9; text-align:left; white-space:nowrap; }
-        .epc-sup-table th { background:#f8fafc; color:#475569; font-size:.75rem; text-transform:uppercase; letter-spacing:.03em; }
-        .epc-sup-table a { color:#c2410c; font-weight:700; text-decoration:none; }
-        .epc-sup-badge { display:inline-flex; padding:.15rem .45rem; border-radius:.3rem; font-size:.72rem; font-weight:700; background:#ffedd5; color:#9a3412; }
-        .epc-sup-note { margin-top:1rem; padding:.75rem .9rem; background:#fff7ed; border:1px solid #fdba74; border-radius:.45rem; color:#7c2d12; font-size:.86rem; }
-        @@media (max-width:900px){ .epc-sup-kpis{grid-template-columns:1fr;} }
-    
-</style>
-</HeadContent>
-
-
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Suppliers" BreadcrumbArea="Procure to Pay" BreadcrumbTab="Suppliers">
 
-    <section class="epc-sup-hero">
-        <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="ECOM AE" style="height:28px;filter:brightness(1.1)" />
-        <h1>Suppliers</h1>
-        <p>Vendor master and supplier portal for this company workspace.</p>
-        <div class="epc-sup-cta">
-            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
-            <a class="ghost" href="/erp/purchase-orders-app">Purchase orders</a>
-            <a class="ghost" href="/erp/warehouses-app">Warehouses</a>
-            <a class="ghost" href="/erp/app">ERP dashboard</a>
-        </div>
-    </section>
+    <PhpErpModulePageHeader Title="Suppliers" Subtitle="ASP.NET Core digest — PHP compare only under /php-reference/*." PhpTabHref="@_phpTab" />
+    <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
 
-    <div class="epc-sup-kpis" aria-label="Supplier KPIs">
-        <div class="epc-sup-kpi"><strong>@_suppliers.Count</strong><span>Shown (limit @_limit)</span></div>
-        <div class="epc-sup-kpi"><strong>@_openBalance</strong><span>With non-zero balance</span></div>
-        <div class="epc-sup-kpi"><strong>@_totalBalance.ToString("N2", CultureInfo.InvariantCulture)</strong><span>Sum of balances</span></div>
+    <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Supplier KPIs">
+        <div class="kpi"><div class="lbl">Shown (limit @_limit)</div><div class="val">@_suppliers.Count</div></div>
+        <div class="kpi"><div class="lbl">With non-zero balance</div><div class="val">@_openBalance</div></div>
+        <div class="kpi"><div class="lbl">Sum of balances</div><div class="val">@_totalBalance.ToString("N2", CultureInfo.InvariantCulture)</div></div>
     </div>
 
-    <div class="epc-sup-table-wrap">
-        <table class="epc-sup-table">
+    <div class="epc-erp-table-wrap">
+        <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
             <thead>
                 <tr>
                     <th>Supplier</th>
@@ -85,7 +45,7 @@
                         <tr>
                             <td><strong>@(string.IsNullOrWhiteSpace(s.Name) ? $"#{s.Id}" : s.Name)</strong></td>
                             <td>@(s.StorageId > 0 ? s.StorageId.ToString(CultureInfo.InvariantCulture) : "—")</td>
-                            <td><span class="epc-sup-badge">@s.Balance.ToString("N2", CultureInfo.InvariantCulture)</span></td>
+                            <td><span class="label label-default">@s.Balance.ToString("N2", CultureInfo.InvariantCulture)</span></td>
                             <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(phpHref)">Open</a></td>
                         </tr>
                     }

@@ -11,56 +11,20 @@
 
 <PageTitle>Documents · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
-<HeadContent>
-<style>
-        .epc-docu-hero {
-            margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
-            background:linear-gradient(135deg,#0c4a6e 0%,#1d4ed8 45%,#2563eb 100%);
-        }
-        .epc-docu-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
-        .epc-docu-hero p { margin:0; color:#bfdbfe; max-width:42rem; font-size:.92rem; line-height:1.45; }
-        .epc-docu-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
-        .epc-docu-cta a {
-            display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
-            text-decoration:none; color:#fff; background:#2563eb;
-        }
-        .epc-docu-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); }
-        .epc-docu-kpis { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
-        .epc-docu-kpi { background:#fff; border:1px solid #e5e7eb; border-radius:.55rem; padding:.85rem .9rem; }
-        .epc-docu-kpi strong { display:block; font-size:1.45rem; font-variant-numeric:tabular-nums; }
-        .epc-docu-kpi span { color:#64748b; font-size:.78rem; }
-        .epc-docu-table-wrap { background:#fff; border:1px solid #e5e7eb; border-radius:.55rem; overflow:auto; }
-        .epc-docu-table { width:100%; border-collapse:collapse; font-size:.86rem; }
-        .epc-docu-table th, .epc-docu-table td { padding:.55rem .7rem; border-bottom:1px solid #f1f5f9; text-align:left; white-space:nowrap; }
-        .epc-docu-table th { background:#f8fafc; color:#475569; font-size:.75rem; text-transform:uppercase; letter-spacing:.03em; }
-        .epc-docu-table a { color:#1d4ed8; font-weight:700; text-decoration:none; }
-        .epc-docu-badge { display:inline-flex; padding:.15rem .45rem; border-radius:.3rem; font-size:.72rem; font-weight:700; background:#dbeafe; color:#1e3a8a; }
-        .epc-docu-note { margin-top:1rem; padding:.75rem .9rem; background:#eff6ff; border:1px solid #bfdbfe; border-radius:.45rem; color:#1e3a8a; font-size:.86rem; }
-        @@media (max-width:900px){ .epc-docu-kpis{grid-template-columns:1fr;} }
-</style>
-</HeadContent>
-
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Documents" BreadcrumbArea="Document Control" BreadcrumbTab="Documents">
 
-    <section class="epc-docu-hero">
-        <h1>Documents</h1>
-        <p>ECM attachment library linked to invoices, POs, orders, and CRM (PHP epc_erp_documents).</p>
-        <div class="epc-docu-cta">
-            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
-            <a class="ghost" href="/cp/doc-expiry-app">Doc expiry</a>
-            <a class="ghost" href="/erp/invoices-app">Invoices</a>
-            <a class="ghost" href="/erp/app">ERP dashboard</a>
-        </div>
-    </section>
+    
+    <PhpErpModulePageHeader Title="Documents" Subtitle="ASP.NET Core digest — PHP compare only under /php-reference/*." PhpTabHref="@_phpTab" />
 
-    <div class="epc-docu-kpis" aria-label="Documents KPIs">
-        <div class="epc-docu-kpi"><strong>@_docs.Count</strong><span>Shown (limit @_limit)</span></div>
-        <div class="epc-docu-kpi"><strong>@_source</strong><span>Digest source</span></div>
-        <div class="epc-docu-kpi"><strong>@(_isAdmin ? "live" : "guest")</strong><span>Session</span></div>
+
+    <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Documents KPIs">
+        <div class="kpi"><div class="lbl">Shown (limit @_limit)</div><div class="val">@_docs.Count</div></div>
+        <div class="kpi"><div class="lbl">Digest source</div><div class="val">@_source</div></div>
+        <div class="kpi"><div class="lbl">Session</div><div class="val">@(_isAdmin ? "live" : "guest")</div></div>
     </div>
 
-    <div class="epc-docu-table-wrap">
-        <table class="epc-docu-table">
+    <div class="epc-erp-table-wrap">
+        <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
             <thead>
                 <tr>
                     <th>File</th>
@@ -83,8 +47,8 @@
                     {
                         <tr>
                             <td><strong>@(string.IsNullOrWhiteSpace(row.FileName) ? $"#{row.Id}" : row.FileName)</strong></td>
-                            <td><span class="epc-docu-badge">@row.DocCategory</span></td>
-                            <td><span class="epc-docu-badge">@row.EntityType</span></td>
+                            <td><span class="label label-default">@row.DocCategory</span></td>
+                            <td><span class="label label-default">@row.EntityType</span></td>
                             <td>@(row.EntityId > 0 ? row.EntityId.ToString(CultureInfo.InvariantCulture) : "—")</td>
                             <td>@(row.FileSize > 0 ? row.FileSize.ToString(CultureInfo.InvariantCulture) : "—")</td>
                             <td>@FormatTime(row.TimeCreated)</td>
@@ -98,7 +62,7 @@
 
     @if (!string.IsNullOrWhiteSpace(_message))
     {
-        <div class="epc-docu-note">@_message</div>
+        <div class="epc-erp-empty" style="display:block;margin-top:12px;padding:8px 10px;border:1px solid #c5d4de;background:#f8fafc;color:#475569;font-size:12px;">@_message</div>
     }
 
 </PhpErpDesktopChrome>
