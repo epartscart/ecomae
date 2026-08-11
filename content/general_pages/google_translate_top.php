@@ -22,6 +22,10 @@ if (isset($db_link) && $db_link instanceof PDO) {
 	}
 }
 $epc_cms_current_lang = isset($multilang_params['lang']) ? strtolower((string) $multilang_params['lang']) : 'en';
+$epc_cf_country = strtoupper(trim((string) ($_SERVER['HTTP_CF_IPCOUNTRY'] ?? '')));
+if ($epc_cf_country === 'XX' || $epc_cf_country === 'T1') {
+	$epc_cf_country = '';
+}
 ?>
 <style>
 	.epc-google-translate-top {
@@ -121,11 +125,17 @@ $epc_cms_current_lang = isset($multilang_params['lang']) ? strtolower((string) $
 		}
 	}
 </style>
-<div class="epc-google-translate-top notranslate" translate="no">
+<div id="epc_google_translate_root"
+	 class="epc-google-translate-top notranslate"
+	 translate="no"
+	 data-cms-langs="<?php echo htmlspecialchars(implode(',', $epc_cms_active_langs), ENT_QUOTES, 'UTF-8'); ?>"
+	 data-cms-lang="<?php echo htmlspecialchars($epc_cms_current_lang, ENT_QUOTES, 'UTF-8'); ?>"
+	 data-cf-country="<?php echo htmlspecialchars($epc_cf_country, ENT_QUOTES, 'UTF-8'); ?>">
 	<div class="epc-google-translate-top__inner">
 		<span class="epc-google-translate-top__label">Language</span>
 		<span id="epc_translate_auto_status" class="epc-google-translate-top__status">Auto language: checking location...</span>
 		<select id="epc_native_translate_select" class="epc-native-translate-select notranslate" aria-label="Select language" translate="no">
+			<option value="en" selected>English</option>
 			<option value="af">Afrikaans</option>
 			<option value="sq">Shqip</option>
 			<option value="am">አማርኛ</option>
@@ -147,7 +157,6 @@ $epc_cms_current_lang = isset($multilang_params['lang']) ? strtolower((string) $
 			<option value="cs">Čeština</option>
 			<option value="da">Dansk</option>
 			<option value="nl">Nederlands</option>
-			<option value="en">English</option>
 			<option value="eo">Esperanto</option>
 			<option value="et">Eesti</option>
 			<option value="tl">Filipino</option>
@@ -235,379 +244,7 @@ $epc_cms_current_lang = isset($multilang_params['lang']) ? strtolower((string) $
 	</div>
 </div>
 <script>
-	var epcTranslateManualKey = 'epcTranslateManualLanguage';
-	var epcTranslateAutoKey = 'epcTranslateAutoLanguage';
-	var epcTranslateAutoAppliedKey = 'epcTranslateAutoAppliedLanguage';
-	var epcCmsActiveLangs = <?php echo json_encode(array_values($epc_cms_active_langs), JSON_UNESCAPED_UNICODE); ?>;
-	var epcCmsCurrentLang = <?php echo json_encode($epc_cms_current_lang, JSON_UNESCAPED_UNICODE); ?>;
-
-	function epcTranslateStatus(message) {
-		var status = document.getElementById('epc_translate_auto_status');
-		if (status) {
-			status.textContent = message || '';
-			status.title = message || '';
-		}
-	}
-
-	function epcCmsLangNavigate(lang) {
-		lang = String(lang || '').toLowerCase();
-		if (!lang || !epcCmsActiveLangs || epcCmsActiveLangs.indexOf(lang) === -1) {
-			return false;
-		}
-		if (typeof window.lang_selected === 'function') {
-			window.lang_selected(lang);
-			return true;
-		}
-		var date = new Date(new Date().getTime() + 15552000 * 1000);
-		document.cookie = 'lang=' + lang + '; path=/; expires=' + date.toUTCString();
-		var path = window.location.pathname || '/';
-		var search = window.location.search || '';
-		var hash = window.location.hash || '';
-		var parts = path.split('/');
-		if (parts.length > 1 && /^[a-z]{2}(?:-[a-zA-Z]+)?$/i.test(parts[1] || '')) {
-			parts[1] = lang;
-			window.location.assign(parts.join('/') + search + hash);
-			return true;
-		}
-		window.location.assign('/' + lang + (path === '/' ? '/' : path) + search + hash);
-		return true;
-	}
-
-	function epcTranslateCookieLanguage() {
-		var match = document.cookie.match(/(?:^|;\s*)googtrans=([^;]+)/);
-		if (!match) {
-			return 'en';
-		}
-		var parts = decodeURIComponent(match[1]).split('/');
-		return parts.length >= 3 && parts[2] ? parts[2] : 'en';
-	}
-
-	function epcClearTranslateCookie() {
-		var hostParts = window.location.hostname.split('.');
-		var domains = ['', window.location.hostname];
-		if (hostParts.length > 2) {
-			domains.push('.' + hostParts.slice(-2).join('.'));
-		}
-		for (var i = 0; i < domains.length; i++) {
-			document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/' + (domains[i] ? '; domain=' + domains[i] : '');
-		}
-	}
-
-	function epcSetTranslateCookie(lang) {
-		var hostParts = window.location.hostname.split('.');
-		var domains = ['', window.location.hostname];
-		if (hostParts.length > 2) {
-			domains.push('.' + hostParts.slice(-2).join('.'));
-		}
-		for (var i = 0; i < domains.length; i++) {
-			document.cookie = 'googtrans=/en/' + lang + '; path=/; max-age=31536000; SameSite=Lax' + (domains[i] ? '; domain=' + domains[i] : '');
-		}
-	}
-
-	function epcApplyNativeTranslate(lang) {
-		try {
-			localStorage.setItem(epcTranslateManualKey, lang || 'en');
-		} catch (e) {}
-		// CMS languages (en/ar/…): switch storefront locale via URL so parts pages keep working.
-		if (epcCmsLangNavigate(lang)) {
-			return;
-		}
-		if (lang === 'en') {
-			epcClearTranslateCookie();
-			window.location.reload();
-			return;
-		}
-		epcSetTranslateCookie(lang);
-		var combo = document.querySelector('#google_translate_element select.goog-te-combo');
-		if (combo) {
-			combo.value = lang;
-			combo.dispatchEvent(new Event('change'));
-		}
-		window.setTimeout(function() {
-			window.location.reload();
-		}, 500);
-	}
-
-	function epcApplyAutoTranslate(lang) {
-		if (!lang || lang === 'en') {
-			return;
-		}
-		try {
-			if (sessionStorage.getItem(epcTranslateAutoAppliedKey) === lang) {
-				return;
-			}
-			sessionStorage.setItem(epcTranslateAutoAppliedKey, lang);
-		} catch (e) {}
-		if (epcCmsLangNavigate(lang)) {
-			return;
-		}
-		epcSetTranslateCookie(lang);
-		var select = document.getElementById('epc_native_translate_select');
-		if (select) {
-			select.value = lang;
-		}
-		var attempts = 0;
-		(function applyWhenReady() {
-			var combo = document.querySelector('#google_translate_element select.goog-te-combo');
-			if (combo) {
-				combo.value = lang;
-				combo.dispatchEvent(new Event('change'));
-				window.setTimeout(function() {
-					window.location.reload();
-				}, 600);
-				return;
-			}
-			attempts++;
-			if (attempts < 24) {
-				window.setTimeout(applyWhenReady, 250);
-				return;
-			}
-			window.location.reload();
-		})();
-	}
-
-	function epcAttachGoogleTranslateChange(attempts) {
-		var combo = document.querySelector('#google_translate_element select.goog-te-combo');
-		if (!combo) {
-			if ((attempts || 0) < 30) {
-				setTimeout(function() {
-					epcAttachGoogleTranslateChange((attempts || 0) + 1);
-				}, 250);
-			}
-			return;
-		}
-		combo.addEventListener('change', function() {
-			try {
-				localStorage.setItem(epcTranslateManualKey, this.value || 'en');
-			} catch (e) {}
-		});
-	}
-
-	function epcSupportedTranslateLanguage(lang) {
-		var select = document.getElementById('epc_native_translate_select');
-		if (!select || !lang) {
-			return '';
-		}
-		var normalized = String(lang).trim();
-		if (!normalized) {
-			return '';
-		}
-		normalized = normalized.replace('_', '-');
-		var base = normalized.split('-')[0].toLowerCase();
-		var aliases = {
-			he: 'iw',
-			jv: 'jw',
-			zh: 'zh-CN'
-		};
-		var candidates = [normalized, base, aliases[base]];
-		for (var i = 0; i < candidates.length; i++) {
-			if (candidates[i] && select.querySelector('option[value="' + candidates[i] + '"]')) {
-				return candidates[i];
-			}
-		}
-		return '';
-	}
-
-	function epcLanguageFromIpApiLanguages(languages) {
-		var parts = String(languages || '').split(',');
-		for (var i = 0; i < parts.length; i++) {
-			var lang = epcSupportedTranslateLanguage(parts[i]);
-			if (lang) {
-				return lang;
-			}
-		}
-		return '';
-	}
-
-	function epcLanguageForCountry(countryCode, languages) {
-		var country = String(countryCode || '').toUpperCase();
-		var map = {
-			AE: 'ar', SA: 'ar', QA: 'ar', KW: 'ar', BH: 'ar', OM: 'ar', JO: 'ar', LB: 'ar', EG: 'ar', IQ: 'ar', MA: 'ar', DZ: 'ar', TN: 'ar',
-			FR: 'fr', BE: 'fr', CH: 'fr', LU: 'fr', MC: 'fr',
-			DE: 'de', AT: 'de', LI: 'de',
-			ES: 'es', MX: 'es', AR: 'es', CL: 'es', CO: 'es', PE: 'es', VE: 'es', UY: 'es', PY: 'es', BO: 'es', EC: 'es',
-			IT: 'it', SM: 'it', VA: 'it',
-			PT: 'pt', BR: 'pt',
-			RU: 'ru', BY: 'ru', KZ: 'ru', KG: 'ru', TJ: 'ru',
-			TR: 'tr', CY: 'tr',
-			IN: 'hi',
-			PK: 'ur',
-			CN: 'zh-CN', HK: 'zh-CN', MO: 'zh-CN', SG: 'zh-CN', TW: 'zh-CN',
-			NL: 'nl', DK: 'da', SE: 'sv', NO: 'no', FI: 'fi',
-			PL: 'pl', CZ: 'cs', SK: 'sk', HU: 'hu', RO: 'ro', BG: 'bg',
-			GR: 'el', RS: 'sr', HR: 'hr', SI: 'sl', UA: 'uk',
-			TH: 'th', VN: 'vi', ID: 'id', MY: 'ms', KR: 'ko', JP: 'ja',
-			IR: 'fa', IL: 'iw', BD: 'bn', LK: 'si', NP: 'ne'
-		};
-		return map[country] || epcLanguageFromIpApiLanguages(languages) || 'en';
-	}
-
-	function epcBrowserLanguage() {
-		var list = navigator.languages && navigator.languages.length ? navigator.languages : [navigator.language || navigator.userLanguage || ''];
-		for (var i = 0; i < list.length; i++) {
-			var lang = epcSupportedTranslateLanguage(list[i]);
-			if (lang) {
-				return lang;
-			}
-		}
-		return '';
-	}
-
-	function epcReadManualLanguage() {
-		try {
-			return localStorage.getItem(epcTranslateManualKey) || '';
-		} catch (e) {
-			return '';
-		}
-	}
-
-	function epcSaveAutoLanguage(country, lang) {
-		try {
-			localStorage.setItem(epcTranslateAutoKey, JSON.stringify({
-				country: country || '',
-				lang: lang || '',
-				time: Date.now()
-			}));
-		} catch (e) {}
-	}
-
-	function epcFetchJson(url) {
-		return fetch(url, {cache: 'no-store'}).then(function(response) {
-			return response.ok ? response.json() : null;
-		});
-	}
-
-	function epcDetectVisitorCountry() {
-		return epcFetchJson('https://ipapi.co/json/')
-			.then(function(data) {
-				if (data && data.country_code) {
-					return {
-						country: data.country_code,
-						languages: data.languages || '',
-						source: 'ipapi'
-					};
-				}
-				return epcFetchJson('https://ipwho.is/')
-					.then(function(fallback) {
-						return fallback && fallback.country_code ? {
-							country: fallback.country_code,
-							languages: '',
-							source: 'ipwhois'
-						} : null;
-					});
-			});
-	}
-
-	function epcDetectVisitorCountryWithRetry(attempts) {
-		return epcDetectVisitorCountry().then(function(data) {
-			if (data && data.country) {
-				return data;
-			}
-			if ((attempts || 0) < 2) {
-				return new Promise(function(resolve) {
-					window.setTimeout(resolve, 700);
-				}).then(function() {
-					return epcDetectVisitorCountryWithRetry((attempts || 0) + 1);
-				});
-			}
-			return null;
-		});
-	}
-
-	function epcAutoTranslateByCountry() {
-		var currentLanguage = epcTranslateCookieLanguage();
-		var manualLanguage = epcReadManualLanguage();
-		if (manualLanguage) {
-			epcTranslateStatus('Language set manually: ' + manualLanguage);
-			return;
-		}
-		if (currentLanguage !== 'en') {
-			epcTranslateStatus('Auto language active: ' + currentLanguage);
-			return;
-		}
-		epcDetectVisitorCountryWithRetry(0)
-			.then(function(data) {
-				var lang = '';
-				var country = '';
-				if (data && data.country) {
-					country = String(data.country).toUpperCase();
-					lang = epcLanguageForCountry(country, data.languages);
-				}
-				if (!lang || lang === 'en') {
-					lang = epcBrowserLanguage() || 'en';
-				}
-				epcSaveAutoLanguage(country, lang);
-				if (lang && lang !== 'en') {
-					var select = document.getElementById('epc_native_translate_select');
-					if (select) {
-						select.value = lang;
-					}
-					epcTranslateStatus('Auto language: ' + (country ? country + ' -> ' : '') + lang);
-					epcApplyAutoTranslate(lang);
-				} else {
-					epcTranslateStatus('Auto language: English');
-				}
-			})
-			.catch(function() {
-				var lang = epcBrowserLanguage() || 'en';
-				if (lang !== 'en') {
-					epcTranslateStatus('Auto language from browser: ' + lang);
-					epcApplyAutoTranslate(lang);
-				} else {
-					epcTranslateStatus('Auto language: English');
-				}
-			});
-	}
-
-	function epcInitNativeTranslateSelect() {
-		var select = document.getElementById('epc_native_translate_select');
-		if (!select) {
-			return;
-		}
-		var preferred = epcCmsCurrentLang || epcTranslateCookieLanguage() || 'en';
-		if (select.querySelector('option[value="' + preferred + '"]')) {
-			select.value = preferred;
-		} else {
-			select.value = epcTranslateCookieLanguage() || 'en';
-		}
-		if (select.value && select.value !== 'en') {
-			epcTranslateStatus('Language: ' + select.value);
-		}
-		select.addEventListener('change', function() {
-			try {
-				localStorage.setItem(epcTranslateManualKey, this.value);
-			} catch (e) {}
-			epcApplyNativeTranslate(this.value);
-		});
-		// Do not auto-redirect away from an explicit CMS locale URL (e.g. /ar/parts/...).
-		if (epcCmsCurrentLang && epcCmsCurrentLang !== 'en' && epcCmsActiveLangs.indexOf(epcCmsCurrentLang) !== -1) {
-			epcTranslateStatus('Language: ' + epcCmsCurrentLang);
-			return;
-		}
-		epcAutoTranslateByCountry();
-	}
-
-	function googleTranslateElementInit() {
-		new google.translate.TranslateElement({
-			pageLanguage: 'en',
-			layout: google.translate.TranslateElement.inlineLayout.HORIZONTAL,
-			autoDisplay: false
-		}, 'google_translate_element');
-		epcInitNativeTranslateSelect();
-		epcAttachGoogleTranslateChange(0);
-	}
-	// Load Google Translate after first paint — sync head script blocked every navigation.
-	function epcLoadGoogleTranslate() {
-		if (window.__epcGoogleTranslateLoading) { return; }
-		window.__epcGoogleTranslateLoading = true;
-		var s = document.createElement('script');
-		s.async = true;
-		s.src = '//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit';
-		document.head.appendChild(s);
-	}
-	if (window.requestIdleCallback) {
-		requestIdleCallback(epcLoadGoogleTranslate, { timeout: 3500 });
-	} else {
-		window.addEventListener('load', function () { setTimeout(epcLoadGoogleTranslate, 800); }, { once: true });
-	}
+	window.epcCmsActiveLangs = <?php echo json_encode(array_values($epc_cms_active_langs), JSON_UNESCAPED_UNICODE); ?>;
+	window.epcCmsCurrentLang = <?php echo json_encode($epc_cms_current_lang, JSON_UNESCAPED_UNICODE); ?>;
 </script>
+<script src="/content/general_pages/epc_google_translate_storefront.js?v=20260811a" defer></script>

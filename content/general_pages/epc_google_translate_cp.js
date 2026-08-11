@@ -68,11 +68,13 @@
 	function epcLanguageForCountry(countryCode, languages) {
 		var country = String(countryCode || "").toUpperCase();
 		var map = {
+			US:'en',GB:'en',AU:'en',NZ:'en',IE:'en',CA:'en',ZA:'af',
 AE:'ar',SA:'ar',QA:'ar',KW:'ar',BH:'ar',OM:'ar',JO:'ar',LB:'ar',EG:'ar',IQ:'ar',MA:'ar',DZ:'ar',TN:'ar',
 			FR:'fr',BE:'fr',CH:'fr',DE:'de',AT:'de',ES:'es',MX:'es',IT:'it',PT:'pt',BR:'pt',RU:'ru',TR:'tr',
 			IN:'hi',PK:'ur',CN:'zh-CN',HK:'zh-CN',TW:'zh-CN',NL:'nl',PL:'pl',UA:'uk',IR:'fa',IL:'he',BD:'bn'
 		};
-		return map[country] || epcLanguageFromHint(languages) || "";
+		if (Object.prototype.hasOwnProperty.call(map, country)) return map[country];
+		return epcLanguageFromHint(languages) || "";
 	}
 
 	function epcBrowserLanguage() {
@@ -156,7 +158,8 @@ AE:'ar',SA:'ar',QA:'ar',KW:'ar',BH:'ar',OM:'ar',JO:'ar',LB:'ar',EG:'ar',IQ:'ar',
 		var currentLanguage = epcTranslateCookieLanguage();
 		var manualLanguage = epcReadManualLanguage();
 		var select = document.getElementById("epc_cp_native_translate_select");
-		if (select) select.value = currentLanguage || "en";
+		if (select) select.value = manualLanguage || currentLanguage || "en";
+		// Manual choice (including English) always wins over IP / browser auto.
 		if (manualLanguage) return;
 		if (currentLanguage !== "en") return;
 
@@ -167,11 +170,19 @@ AE:'ar',SA:'ar',QA:'ar',KW:'ar',BH:'ar',OM:'ar',JO:'ar',LB:'ar',EG:'ar',IQ:'ar',
 		}
 
 		epcDetectVisitorCountry().then(function (data) {
+			if (epcReadManualLanguage()) return;
 			var lang = "";
-			if (data && data.country) lang = epcLanguageForCountry(data.country, data.languages);
-			if (!lang || lang === "en") lang = epcBrowserLanguage() || "en";
+			var mapped = false;
+			if (data && data.country) {
+				lang = epcLanguageForCountry(data.country, data.languages);
+				mapped = true;
+			}
+			// Browser language only when country unknown — never override EN markets (US/GB/…).
+			if (!mapped) lang = epcBrowserLanguage() || "en";
+			else if (!lang) lang = "en";
 			if (lang && lang !== "en") epcApplyAutoTranslate(lang);
 		}).catch(function () {
+			if (epcReadManualLanguage()) return;
 			var lang = epcBrowserLanguage() || "en";
 			if (lang !== "en") epcApplyAutoTranslate(lang);
 		});
