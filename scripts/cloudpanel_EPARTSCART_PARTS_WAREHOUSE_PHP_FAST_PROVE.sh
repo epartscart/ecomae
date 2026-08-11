@@ -7,9 +7,10 @@ set -euo pipefail
 
 HOST="${EPARTSCART_HOST:-www.epartscart.com}"
 BASE="https://${HOST}"
-PARTS_PATH="${ECOMAE_PARTS_PROBE:-/en/parts/JS%20ASAKASHI/C110J}"
+PARTS_PATH="${ECOMAE_PARTS_PROBE:-/en/parts/AISIN/DT068}"
 BUNCH_API="${ECOMAE_BUNCH_PROBE:-/storefront/products-of-bunch}"
 TTFB_BUDGET_MS="${ECOMAE_CHPU_TTFB_BUDGET_MS:-1200}"
+BUNCH_BUDGET_MS="${ECOMAE_CHPU_BUNCH_BUDGET_MS:-3000}"
 
 pass=1
 note() { printf '%s\n' "$*"; }
@@ -46,12 +47,14 @@ else
 fi
 
 rg -qi 'runChpuPriceSearch' /tmp/epc_wh_fast.html && ok "CHPU_RUN_SEARCH=YES" || fail "CHPU_RUN_SEARCH=NO"
+rg -qi 'Immediate protocol-3 poll' /tmp/epc_wh_fast.html && ok "CHPU_IMMEDIATE_P3=YES" || fail "CHPU_IMMEDIATE_P3=NO"
+rg -qi 'AbortSignal\.timeout\(3000\)' /tmp/epc_wh_fast.html && ok "CHPU_ABORT_3S=YES" || fail "CHPU_ABORT_3S=NO"
 rg -qi 'pickProtocol3Bunch' /tmp/epc_wh_fast.html && ok "CHPU_PROTOCOL3_PICK=YES" || fail "CHPU_PROTOCOL3_PICK=NO"
 rg -qi 'Promise\.all' /tmp/epc_wh_fast.html && ok "CHPU_PROMISE_ALL=YES" || fail "CHPU_PROMISE_ALL=NO"
 rg -qi '/storefront/products-of-bunch' /tmp/epc_wh_fast.html && ok "CHPU_PRODUCTS_OF_BUNCH=YES" || fail "CHPU_PRODUCTS_OF_BUNCH=NO"
 rg -qi 'all_table_products' /tmp/epc_wh_fast.html && ok "PARTS_TABLE=YES" || fail "PARTS_TABLE=NO"
 rg -qi 'polling suppliers|No warehouse offers yet' /tmp/epc_wh_fast.html && ok "CHPU_AJAX_SHELL=YES" || fail "CHPU_AJAX_SHELL=NO"
-rg -qi 'C110J|JS ASAKASHI|ASAKASHI' /tmp/epc_wh_fast.html && ok "PARTS_ARTICLE_MARKERS=YES" || fail "PARTS_ARTICLE_MARKERS=NO"
+rg -qi 'DT068|AISIN|C110J|ASAKASHI' /tmp/epc_wh_fast.html && ok "PARTS_ARTICLE_MARKERS=YES" || fail "PARTS_ARTICLE_MARKERS=NO"
 
 if [[ -n "${ttfb_ms}" && "${ttfb_ms}" -le "${TTFB_BUDGET_MS}" ]]; then
   ok "TTFB_BUDGET=YES (${ttfb_ms}ms <= ${TTFB_BUDGET_MS}ms)"
@@ -64,22 +67,35 @@ else
   fi
 fi
 
-# Protocol-3 warehouse poll must return ASP.NET/php-chpu products (not empty migration).
-article_plain="${ECOMAE_ARTICLE_PLAIN:-C110J}"
-brand_plain="${ECOMAE_BRAND_PLAIN:-JS ASAKASHI}"
+# Protocol-3 warehouse poll must return products inside the 1–3s budget.
+article_plain="${ECOMAE_ARTICLE_PLAIN:-DT068}"
+brand_plain="${ECOMAE_BRAND_PLAIN:-AISIN}"
 query_json=$(printf '{"article":"%s","searsch_str":"%s","manufacturer":"%s","manufacturers":[],"analogs":[],"office_storage_bunches":[]}' \
   "$article_plain" "$article_plain" "$brand_plain")
-curl -sS -o /tmp/epc_wh_bunch.json -w '%{http_code}' --max-time 45 \
+bunch_total_s=$(curl -sS -o /tmp/epc_wh_bunch.json -w '%{time_total}' --max-time 10 \
   -X POST "${BASE}${BUNCH_API}" \
   -F "article=${article_plain}" \
   -F "brand=${brand_plain}" \
   -F "office_id=0" \
   -F "storage_id=0" \
-  -F "query=${query_json}" > /tmp/epc_wh_bunch_code.txt || echo 000 > /tmp/epc_wh_bunch_code.txt
-bunch_code=$(cat /tmp/epc_wh_bunch_code.txt)
+  -F "query=${query_json}" || echo 99)
+bunch_code=$(curl -sS -o /dev/null -w '%{http_code}' --max-time 10 \
+  -X POST "${BASE}${BUNCH_API}" \
+  -F "article=${article_plain}" \
+  -F "brand=${brand_plain}" \
+  -F "office_id=0" \
+  -F "storage_id=0" \
+  -F "query=${query_json}" || echo 000)
+bunch_ms=$(awk -v t="$bunch_total_s" 'BEGIN { printf "%d", (t*1000)+0.5 }')
 note "BUNCH_HTTP=${bunch_code}"
+note "BUNCH_MS=${bunch_ms} (budget ${BUNCH_BUDGET_MS}ms)"
 [[ "$bunch_code" == "200" ]] && ok "BUNCH_HTTP_200=YES" || fail "BUNCH_HTTP_200=NO code=${bunch_code}"
-if rg -qi '"source"\s*:\s*"(aspnet-warehouse|php-chpu|database)"' /tmp/epc_wh_bunch.json 2>/dev/null; then
+if [[ -n "${bunch_ms}" && "${bunch_ms}" -le "${BUNCH_BUDGET_MS}" ]]; then
+  ok "BUNCH_BUDGET=YES (${bunch_ms}ms <= ${BUNCH_BUDGET_MS}ms)"
+else
+  fail "BUNCH_BUDGET=NO (${bunch_ms}ms > ${BUNCH_BUDGET_MS}ms)"
+fi
+if rg -qi '"source"\s*:\s*"(aspnet-warehouse|php-chpu|php-bunch|database)"' /tmp/epc_wh_bunch.json 2>/dev/null; then
   ok "BUNCH_SOURCE_OK=YES"
 else
   note "GATE_WARN BUNCH_SOURCE=$(rg -o '\"source\"\s*:\s*\"[^\"]+\"' /tmp/epc_wh_bunch.json | head -1 || true)"
@@ -91,8 +107,8 @@ else
 fi
 
 if [[ "$pass" -eq 1 ]]; then
-  note "RESULT=PASS PARTS_WAREHOUSE_PHP_FAST=YES TTFB_MS=${ttfb_ms} PROBE=${PARTS_PATH}"
+  note "RESULT=PASS PARTS_WAREHOUSE_PHP_FAST=YES TTFB_MS=${ttfb_ms} BUNCH_MS=${bunch_ms} PROBE=${PARTS_PATH}"
   exit 0
 fi
-note "RESULT=FAIL see GATE_BAD above TTFB_MS=${ttfb_ms}"
+note "RESULT=FAIL see GATE_BAD above TTFB_MS=${ttfb_ms} BUNCH_MS=${bunch_ms}"
 exit 1

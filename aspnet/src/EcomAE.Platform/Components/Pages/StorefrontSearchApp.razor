@@ -622,7 +622,12 @@
     fd.append('office_id', String(bunch.officeId != null ? bunch.officeId : bunch.office_id || 0));
     fd.append('storage_id', String(bunch.storageId != null ? bunch.storageId : bunch.storage_id || 0));
     fd.append('query', buildQuery(bunch));
-    return fetch('/storefront/products-of-bunch', { method: 'POST', body: fd, credentials: 'same-origin' })
+    var opts = { method: 'POST', body: fd, credentials: 'same-origin' };
+    // Hard 3s wall clock — warehouse rows must paint inside the 1–3s budget.
+    if (typeof AbortSignal !== 'undefined' && typeof AbortSignal.timeout === 'function') {
+      opts.signal = AbortSignal.timeout(3000);
+    }
+    return fetch('/storefront/products-of-bunch', opts)
       .then(function (r) { return r.json(); })
       .then(function (data) {
         if (data && data.prices_visible === false) {
@@ -732,7 +737,7 @@
       });
   }
   // PHP epcRunChpuPriceSearch: ONE protocol-3 ajax_getProductsOfBunch + Promise.all with cross.
-  // Do not chain sequential bunches — that is the ASP.NET latency gap vs PHP warehouse paint.
+  // First warehouse paint must NOT wait on search-bunches (extra RTT) — fire protocol-3 immediately.
   function pickProtocol3Bunch(bunches) {
     for (var i = 0; i < bunches.length; i++) {
       var b = bunches[i];
@@ -740,33 +745,40 @@
     }
     return null;
   }
+  function loadGenuineBrandsBackground() {
+    fetch('/storefront/genuine-brands', { credentials: 'same-origin' })
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        ((data && data.brands) || []).forEach(function (b) { genuine[normBrand(b)] = 1; });
+      })
+      .catch(function () {});
+  }
   function runChpuPriceSearch() {
     if (progress) progress.hidden = false;
+    if (totalEl) totalEl.textContent = '1';
+    if (countEl) countEl.textContent = '0';
+    loadGenuineBrandsBackground();
     var crossPromise = loadPhpCrossSearch();
-    var pricePromise = fetch(
+    // Immediate protocol-3 poll — target first warehouse rows in 1–3s.
+    var pricePromise = pollOne({ officeId: 0, storageId: 0, protocolVersion: 3, nestedBunches: [] })
+      .finally(function () {
+        if (countEl) countEl.textContent = '1';
+        finishPoll(1);
+      });
+    // Background nested-bunch enrichment only (never blocks first paint).
+    fetch(
       '/storefront/search-bunches?article=' + encodeURIComponent(article) + '&brand=' + encodeURIComponent(brand),
       { credentials: 'same-origin' }
     )
       .then(function (r) { return r.json(); })
       .then(function (data) {
-        var bunches = (data && data.bunches) || [];
-        var p3 = pickProtocol3Bunch(bunches);
-        var target = p3 || { officeId: 0, storageId: 0, protocolVersion: 3, nestedBunches: [] };
-        if (totalEl) totalEl.textContent = '1';
-        if (countEl) countEl.textContent = '0';
-        return pollOne(target).finally(function () {
-          if (countEl) countEl.textContent = '1';
-          finishPoll(1);
-        });
+        var p3 = pickProtocol3Bunch((data && data.bunches) || []);
+        var nested = p3 && (p3.nestedBunches || p3.nested_bunches || []);
+        if (nested && nested.length) {
+          return pollOne(p3);
+        }
       })
-      .catch(function () {
-        if (totalEl) totalEl.textContent = '1';
-        return pollOne({ officeId: 0, storageId: 0, protocolVersion: 3, nestedBunches: [] })
-          .finally(function () {
-            if (countEl) countEl.textContent = '1';
-            finishPoll(1);
-          });
-      });
+      .catch(function () {});
     return Promise.all([pricePromise, crossPromise]);
   }
   runChpuPriceSearch();
@@ -1014,9 +1026,10 @@
             return;
         }
 
-        // PHP skip_ssr_use_ajax_fast_path (brand+article CHPU): do NOT await warehouse/cross SSR.
-        // Paint shell + SEO stock probe; warehouse fills via one protocol-3 products-of-bunch +
+        // PHP skip_ssr_use_ajax_fast_path (brand+article CHPU): do NOT await warehouse/cross/genuine SSR.
+        // Paint shell immediately; warehouse fills via immediate protocol-3 products-of-bunch +
         // parallel ajax_epc_cross_search (see epcRunChpuPriceSearch / Promise.all below).
+        // Genuine-brand map loads in the browser (/storefront/genuine-brands) so TTFB stays sub-second.
         _normalized = EcomAE.Platform.Api.Catalog.PriceLookupRequest.NormalizeArticle(_articleInput);
         _rows = [];
         _genuineRows = [];
@@ -1027,23 +1040,26 @@
         _showBrandPicker = false;
         _source = "ajax-fast-path";
         _message = string.Empty;
+        _genuineKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-        var genuineTask = Dashboards.ListStorefrontGenuineBrandsAsync();
-        var stockTask = Dashboards.ProbeStorefrontPartStockAsync(_articleInput, _brandInput);
-        await Task.WhenAll(genuineTask, stockTask);
-
-        var genuine = await genuineTask;
-        _genuineKeys = new HashSet<string>(genuine.Brands, StringComparer.OrdinalIgnoreCase);
-
-        var stock = await stockTask;
-        if (!string.IsNullOrWhiteSpace(stock.Article))
+        // Optional micro stock probe for SEO only — hard-capped so it cannot push first paint past 1–3s.
+        try
         {
-            _normalized = stock.Article;
-        }
+            using var seoCts = new CancellationTokenSource(TimeSpan.FromMilliseconds(250));
+            var stock = await Dashboards.ProbeStorefrontPartStockAsync(_articleInput, _brandInput, seoCts.Token);
+            if (!string.IsNullOrWhiteSpace(stock.Article))
+            {
+                _normalized = stock.Article;
+            }
 
-        _chpuSeoInStock = stock.InStock;
-        _chpuSeoProductName = stock.ProductName ?? string.Empty;
-        _chpuSeoMinPrice = stock.MinPrice;
+            _chpuSeoInStock = stock.InStock;
+            _chpuSeoProductName = stock.ProductName ?? string.Empty;
+            _chpuSeoMinPrice = stock.MinPrice;
+        }
+        catch (OperationCanceledException)
+        {
+            _chpuSeoInStock = true; // optimistic index; client still shows live stock
+        }
 
         ApplyChpuSeo();
     }

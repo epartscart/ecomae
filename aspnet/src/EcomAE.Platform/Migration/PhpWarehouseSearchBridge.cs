@@ -283,7 +283,8 @@ public sealed class PhpWarehouseSearchBridge
         int storageId,
         string? queryJson,
         int geoId = 0,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default,
+        int timeoutSeconds = 45)
     {
         var normalized = (article ?? string.Empty).Trim();
         if (normalized.Length == 0)
@@ -313,7 +314,8 @@ public sealed class PhpWarehouseSearchBridge
         var payload = await PostFormJsonAsync<PhpProductsOfBunchPayload>(
                 "/content/shop/docpart/ajax_getProductsOfBunch.php",
                 form,
-                cancellationToken)
+                cancellationToken,
+                timeoutSeconds: Math.Clamp(timeoutSeconds, 1, 45))
             .ConfigureAwait(false);
 
         if (payload is null)
@@ -418,7 +420,8 @@ public sealed class PhpWarehouseSearchBridge
     private async Task<T?> PostFormJsonAsync<T>(
         string path,
         IReadOnlyDictionary<string, string> form,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        int timeoutSeconds = 45)
         where T : class
     {
         var targets = BuildRequestTargets(path, new Dictionary<string, string?>());
@@ -427,9 +430,14 @@ public sealed class PhpWarehouseSearchBridge
             return null;
         }
 
-        var (client, dispose) = CreateClient(timeoutSeconds: 45);
+        var (client, dispose) = CreateClient(timeoutSeconds);
         try
         {
+            if (!dispose && client.Timeout < TimeSpan.FromSeconds(timeoutSeconds))
+            {
+                client.Timeout = TimeSpan.FromSeconds(timeoutSeconds);
+            }
+
             foreach (var target in targets)
             {
                 try

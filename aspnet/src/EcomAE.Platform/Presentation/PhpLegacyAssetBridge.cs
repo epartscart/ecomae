@@ -197,7 +197,6 @@ public static class PhpLegacyAssetBridge
                      // ASP.NET storefront module look → PHP nero page-header parity
                      ("/platform-assets/epc_storefront_aspnet_module_parity.css",
                          "content/general_pages/epc_storefront_aspnet_module_parity.css"),
-<<<<<<< HEAD
                      // CP OMS console (PHP epc_orders_cp.css / statuses) — HeadOutlet-safe
                      ("/platform-assets/epc_orders_cp.css",
                          "cp/content/shop/order_process/epc_orders_cp.css"),
@@ -206,11 +205,9 @@ public static class PhpLegacyAssetBridge
                      // ASP.NET Super/Tenant CP digests → PHP epc-scp-* module look
                      ("/platform-assets/epc_cp_aspnet_module_parity.css",
                          "content/general_pages/epc_cp_aspnet_module_parity.css"),
-=======
                      // ASP.NET Super/Tenant/ERP-only digests → PHP erp_ui page-hd / kpi / table-epc
                      ("/platform-assets/epc_erp_aspnet_module_parity.css",
                          "content/shop/finance/epc_erp_aspnet_module_parity.css"),
->>>>>>> 84babdee (fix(erp): PHP erp_ui module look for Super, Tenant, and ERP-only)
                  })
         {
             var localRelative = relative;
