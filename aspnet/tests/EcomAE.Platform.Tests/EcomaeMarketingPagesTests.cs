@@ -60,6 +60,8 @@ public sealed class EcomaeMarketingPagesTests
         Assert.Contains(LegacyPresentationAssets.MarketingStylesheets, href => href.Contains("/platform-assets/epc_ecomae_platform_marketing.css", StringComparison.Ordinal));
         Assert.Contains(LegacyPresentationAssets.MarketingStylesheets, href => href.Contains("/platform-assets/epc_ecomae_home_sections.css", StringComparison.Ordinal));
         Assert.Contains(LegacyPresentationAssets.MarketingStylesheets, href => href.Contains("/platform-assets/epc_ecomae_marketing_lifeos_film.css", StringComparison.Ordinal));
+        Assert.Contains(LegacyPresentationAssets.MarketingStylesheets, href => href.Contains("/platform-assets/epc_ecomae_layla_widget.css", StringComparison.Ordinal));
+        Assert.Contains(LegacyPresentationAssets.MarketingStylesheets, href => href.Contains("/platform-assets/epc_ecomae_demo_portal.css", StringComparison.Ordinal));
         Assert.Contains(LegacyPresentationAssets.MarketingScripts, href => href.Contains("/platform-assets/epc_ecomae_home_3d.js", StringComparison.Ordinal));
         Assert.Equal("/platform-assets/ecomae-mark.svg", LegacyPresentationAssets.BrandMarkUrl);
         var home = File.ReadAllText(Path.Combine(FindRepoRoot(), "aspnet/src/EcomAE.Platform/Components/Pages/MarketingPreviewApp.razor"));

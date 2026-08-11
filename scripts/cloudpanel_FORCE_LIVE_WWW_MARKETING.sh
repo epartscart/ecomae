@@ -9,7 +9,7 @@
 #   ECOMAE_BRANCH=main bash -c "$(curl -fsSL https://raw.githubusercontent.com/epartscart/ecomae/main/scripts/cloudpanel_FORCE_LIVE_WWW_MARKETING.sh)" 2>&1 | tee /root/force-live-www-marketing.log
 set -euo pipefail
 
-ECOMAE_BRANCH="${ECOMAE_BRANCH:-cursor/www-lifeos-film-frontpage-7b3b}"
+ECOMAE_BRANCH="${ECOMAE_BRANCH:-cursor/ecomae-home-footer-parity-7b3b}"
 export ECOMAE_BRANCH
 export ECOMAE_SKIP_LIFEOS_MP4="${ECOMAE_SKIP_LIFEOS_MP4:-YES}"
 
@@ -197,6 +197,12 @@ prove home-lifeos-film "$WWW_BASE/" 'epm-lofilm'
 prove home-lifeos-title "$WWW_BASE/" 'Understand the LifeOS platform'
 prove home-lifeos-video "$WWW_BASE/" '/lifeos/media/lifeos-daily-clone-routine.mp4'
 prove home-sections "$WWW_BASE/" 'ehm-home-sections'
+prove home-footer "$WWW_BASE/" 'epm-footer'
+prove home-footer-legal "$WWW_BASE/" 'epm-footer__legal'
+prove home-trust "$WWW_BASE/" 'id="trust"'
+prove home-layla-css-link "$WWW_BASE/" '/platform-assets/epc_ecomae_layla_widget.css'
+prove home-demo-css-link "$WWW_BASE/" '/platform-assets/epc_ecomae_demo_portal.css'
+prove home-layla-avatar-link "$WWW_BASE/" '/platform-assets/layla-avatar.svg'
 prove home-not-storefront "$WWW_BASE/" 'ehm-'
 # Negative: storefront nero marker must not dominate home
 tmpn="$(mktemp)"
@@ -207,12 +213,22 @@ if grep -qi 'content="storefront"' "$tmpn" && ! grep -qi 'content="marketing"' "
 else
   printf 'PASS home-not-chrome-storefront\n'
 fi
+# Home sections must contain real PHP-parity body (not an empty shell).
+if ! grep -Fq 'Prove every critical' "$tmpn"; then
+  printf 'FAIL home-sections body thin (missing blockchain proof copy)\n'
+  fail=1
+else
+  printf 'PASS home-sections-body\n'
+fi
 rm -f "$tmpn"
 
 prove css-marketing "$WWW_BASE/platform-assets/epc_ecomae_platform_marketing.css" 'epm-hub' 'text/css'
-prove css-sections "$WWW_BASE/platform-assets/epc_ecomae_home_sections.css" '' 'text/css'
+prove css-sections "$WWW_BASE/platform-assets/epc_ecomae_home_sections.css" 'epc-ehm-rev-fallback' 'text/css'
 prove css-lifeos-film "$WWW_BASE/platform-assets/epc_ecomae_marketing_lifeos_film.css" 'epm-lofilm' 'text/css'
+prove css-layla "$WWW_BASE/platform-assets/epc_ecomae_layla_widget.css" 'epc-layla-splash--hidden' 'text/css'
+prove css-demo-portal "$WWW_BASE/platform-assets/epc_ecomae_demo_portal.css" 'epc-demo-portal' 'text/css'
 prove mark-svg "$WWW_BASE/platform-assets/ecomae-mark.svg" '' 'image/svg'
+prove layla-avatar "$WWW_BASE/platform-assets/layla-avatar.svg" '' 'image/svg'
 
 # Full-site PHP snapshot pages must be styled (rewritten to platform-assets).
 for path in /platform /platform/about /platform/pricing /platform/industries /documentation /compare /blockchain /solutions /legal /privacy /about /contact /industries; do
