@@ -22,7 +22,7 @@ public sealed class PhpSurfaceLinkMapTests
     [InlineData("/CP/shop/prices", "/cp/price-lists-app")]
     [InlineData("/CP/shop/payments/payments", "/cp/payment-gateways-app")]
     [InlineData("/ERP/?epc_erp_shell=1&area=sales&tab=sales_orders", "/erp/sales-orders-app")]
-    [InlineData("/ERP/?epc_erp_shell=1&area=finance", "/erp")]
+    [InlineData("/ERP/?epc_erp_shell=1&area=finance", "/erp/gl-journals-app")]
     [InlineData("/ERP/?epc_erp_shell=1&area=tax&tab=einvoice", "/cp/einvoice-documents-app")]
     [InlineData("/BOS/?m=command_center", "/bos/app")]
     [InlineData("/BOS/?m=fleet_cp", "/bos/tenants-app")]

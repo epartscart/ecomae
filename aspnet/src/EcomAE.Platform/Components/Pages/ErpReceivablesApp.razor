@@ -1,0 +1,129 @@
+@page "/erp/receivables-app"
+@layout Layout.PhpChromeLayout
+@using System.Globalization
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Migration
+@using EcomAE.Platform.Presentation
+@inject ISurfaceDashboardSummaryReporter Dashboards
+@inject ILegacySessionValidator Sessions
+@inject IHttpContextAccessor Http
+@inject NavigationManager Nav
+
+<PageTitle>Receivables · ERP · eParts Cart</PageTitle>
+<PhpChromeStyles Surface="erp" />
+<HeadContent>
+<style>
+        .epc-ar-hero {
+            margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
+            background:linear-gradient(135deg,#0c4a6e 0%,#1d4ed8 45%,#2563eb 100%);
+        }
+        .epc-ar-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
+        .epc-ar-hero p { margin:0; color:#bfdbfe; max-width:42rem; font-size:.92rem; line-height:1.45; }
+        .epc-ar-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
+        .epc-ar-cta a {
+            display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
+            text-decoration:none; color:#fff; background:#2563eb;
+        }
+        .epc-ar-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); }
+        .epc-ar-kpis { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
+        .epc-ar-kpi { background:#fff; border:1px solid #e5e7eb; border-radius:.55rem; padding:.85rem .9rem; }
+        .epc-ar-kpi strong { display:block; font-size:1.45rem; font-variant-numeric:tabular-nums; }
+        .epc-ar-kpi span { color:#64748b; font-size:.78rem; }
+        .epc-ar-section { margin-bottom:1.1rem; }
+        .epc-ar-section h2 { margin:0 0 .5rem; font-size:1rem; }
+        .epc-ar-table-wrap { background:#fff; border:1px solid #e5e7eb; border-radius:.55rem; overflow:auto; }
+        .epc-ar-table { width:100%; border-collapse:collapse; font-size:.86rem; }
+        .epc-ar-table th, .epc-ar-table td { padding:.55rem .7rem; border-bottom:1px solid #f1f5f9; text-align:right; white-space:nowrap; }
+        .epc-ar-table th:first-child, .epc-ar-table td:first-child { text-align:left; }
+        .epc-ar-table th { background:#f8fafc; color:#475569; font-size:.75rem; text-transform:uppercase; }
+        .epc-ar-note { margin-top:1rem; padding:.75rem .9rem; background:#eff6ff; border:1px solid #bfdbfe; border-radius:.45rem; color:#1e3a8a; font-size:.86rem; }
+        @@media (max-width:900px){ .epc-ar-kpis{grid-template-columns:1fr;} }
+</style>
+</HeadContent>
+
+<PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Receivables" BreadcrumbArea="Accounts receivable" BreadcrumbTab="Receivables">
+
+    <section class="epc-ar-hero">
+        <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="ECOM AE" style="height:28px;filter:brightness(1.1)" />
+        <h1>Receivables</h1>
+        <p>Customer receivable balances — amounts owed on completed orders for this company.</p>
+        <div class="epc-ar-cta">
+            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
+            <a class="ghost" href="/erp/invoices-app">Invoices</a>
+            <a class="ghost" href="/cp/collections-dunning-app">Collections</a>
+            <a class="ghost" href="/erp/aging-app">Aging</a>
+        </div>
+    </section>
+
+    <div class="epc-ar-kpis" aria-label="Receivables KPIs">
+        <div class="epc-ar-kpi"><strong>@_rows.Count</strong><span>Customers shown</span></div>
+        <div class="epc-ar-kpi"><strong>@_openCount</strong><span>With open balance</span></div>
+        <div class="epc-ar-kpi"><strong>@_summary.ArGrand.ToString("N2", CultureInfo.InvariantCulture)</strong><span>Receivable total</span></div>
+    </div>
+
+    <div class="epc-ar-section">
+        <h2>Customer receivable balances</h2>
+        <div class="epc-ar-table-wrap">
+            <table class="epc-ar-table">
+                <thead>
+                    <tr>
+                        <th>Customer</th>
+                        @foreach (var l in _labels) { <th>@l</th> }
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (_rows.Count == 0)
+                    {
+                        <tr><td colspan="@(_labels.Count + 2)">@(_isAdmin ? "Nothing to show yet." : "Sign in with ERP capability for live rows.")</td></tr>
+                    }
+                    else
+                    {
+                        @foreach (var r in _rows)
+                        {
+                            <tr>
+                                <td>@r.Name</td>
+                                <td>@r.Bucket0.ToString("N2", CultureInfo.InvariantCulture)</td>
+                                <td>@r.Bucket1.ToString("N2", CultureInfo.InvariantCulture)</td>
+                                <td>@r.Bucket2.ToString("N2", CultureInfo.InvariantCulture)</td>
+                                <td>@r.Bucket3.ToString("N2", CultureInfo.InvariantCulture)</td>
+                                <td>@r.Bucket4.ToString("N2", CultureInfo.InvariantCulture)</td>
+                                <td>@r.Total.ToString("N2", CultureInfo.InvariantCulture)</td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="epc-ar-note">Matches ERP menu <strong>Receivables</strong> (Accounts receivable). Source: @_summary.Source.</div>
+</PhpErpDesktopChrome>
+
+@code {
+    private const string _phpTab = "/ERP/?epc_erp_shell=1&area=ar&tab=receivables";
+    private bool _isAdmin;
+    private ErpAgingSummary _summary = new(30, 60, 90, 0, 0, 0, "migration", string.Empty);
+    private IReadOnlyList<string> _labels = [];
+    private IReadOnlyList<ErpAgingPartyDigest> _rows = [];
+    private int _openCount;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null) return;
+
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("erp");
+        if (!_isAdmin)
+        {
+            return;
+        }
+
+        var result = await Dashboards.BuildErpAgingDigestAsync(100, ctx.RequestAborted);
+        _summary = result.Summary;
+        _labels = result.ArLabels;
+        _rows = result.ArRows;
+        _openCount = _rows.Count(r => r.Total != 0m);
+    }
+}

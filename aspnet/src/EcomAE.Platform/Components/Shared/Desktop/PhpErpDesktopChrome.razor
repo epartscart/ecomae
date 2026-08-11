@@ -129,7 +129,8 @@
                                     {
                                         <i class="fa @group.Icon" aria-hidden="true"></i>
                                     }
-                                    <span class="epc-erp-topnav-label" data-full="@group.Label" data-short="@shortLabel">@shortLabel</span>
+                                    @* PHP erp_nav_areas paints the full category label; CSS swaps to data-short under 1280px. *@
+                                    <span class="epc-erp-topnav-label" data-full="@group.Label" data-short="@shortLabel">@group.Label</span>
                                     <i class="fa fa-angle-down epc-erp-topnav-caret" aria-hidden="true"></i>
                                 </button>
                                 <div class="epc-erp-topnav-panel" role="menu" hidden data-topnav-panel="@group.Id">
