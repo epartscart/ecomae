@@ -1,8 +1,15 @@
 /**
- * ASP.NET ERP digest pages → PHP erp_main / erp_ui presentation.
+ * ASP.NET Super ERP / Tenant ERP / ERP-only digest pages → PHP erp_ui presentation.
  * Neutralizes leftover marketing-hero digest chrome so menu destinations
  * read as PHP module panels (page-hd + kpi + table-epc / D365).
+ *
+ * Scope: body.epc-erp-cp-shell AND shell wrapper .epc-erp-cp-shell (SSR may apply
+ * body class via JS after first paint). Loaded last in ErpStylesheets + /platform-assets.
  */
+
+/* ---- Invented digest heroes → collapse into PHP page-hd density ---- */
+.epc-erp-cp-shell .epc-erp-content-body [class$="-hero"],
+.epc-erp-cp-shell .epc-erp-content-body [class*="-hero "],
 body.epc-erp-cp-shell .epc-erp-content-body [class$="-hero"],
 body.epc-erp-cp-shell .epc-erp-content-body [class*="-hero "] {
 	margin: 0 0 14px !important;
@@ -10,34 +17,40 @@ body.epc-erp-cp-shell .epc-erp-content-body [class*="-hero "] {
 	border: 0 !important;
 	border-radius: 0 !important;
 	background: transparent !important;
+	background-image: none !important;
 	color: inherit !important;
 	box-shadow: none !important;
 }
-body.epc-erp-cp-shell .epc-erp-content-body [class$="-hero"] > img,
-body.epc-erp-cp-shell .epc-erp-content-body [class*="-hero "] > img {
+.epc-erp-cp-shell .epc-erp-content-body [class$="-hero"] > img,
+.epc-erp-cp-shell .epc-erp-content-body [class*="-hero "] > img,
+body.epc-erp-cp-shell .epc-erp-content-body [class$="-hero"] > img {
 	display: none !important;
 }
-body.epc-erp-cp-shell .epc-erp-content-body [class$="-hero"] > h1,
-body.epc-erp-cp-shell .epc-erp-content-body [class*="-hero "] > h1 {
+.epc-erp-cp-shell .epc-erp-content-body [class$="-hero"] > h1,
+.epc-erp-cp-shell .epc-erp-content-body [class*="-hero "] > h1,
+body.epc-erp-cp-shell .epc-erp-content-body [class$="-hero"] > h1 {
 	display: none !important; /* chrome already paints epc-erp-content-title */
 }
-body.epc-erp-cp-shell .epc-erp-content-body [class$="-hero"] > p,
-body.epc-erp-cp-shell .epc-erp-content-body [class*="-hero "] > p {
+.epc-erp-cp-shell .epc-erp-content-body [class$="-hero"] > p,
+.epc-erp-cp-shell .epc-erp-content-body [class*="-hero "] > p,
+body.epc-erp-cp-shell .epc-erp-content-body [class$="-hero"] > p {
 	margin: 0 0 10px !important;
 	max-width: none !important;
 	font-size: 12.5px !important;
 	line-height: 1.45 !important;
 	color: #64748b !important;
 }
-body.epc-erp-cp-shell .epc-erp-content-body [class$="-cta"],
-body.epc-erp-cp-shell .epc-erp-content-body [class*="-cta "] {
+.epc-erp-cp-shell .epc-erp-content-body [class$="-cta"],
+.epc-erp-cp-shell .epc-erp-content-body [class*="-cta "],
+body.epc-erp-cp-shell .epc-erp-content-body [class$="-cta"] {
 	display: flex !important;
 	flex-wrap: wrap !important;
 	gap: 6px !important;
 	margin: 0 0 14px !important;
 }
-body.epc-erp-cp-shell .epc-erp-content-body [class$="-cta"] a,
-body.epc-erp-cp-shell .epc-erp-content-body [class*="-cta "] a {
+.epc-erp-cp-shell .epc-erp-content-body [class$="-cta"] a,
+.epc-erp-cp-shell .epc-erp-content-body [class*="-cta "] a,
+body.epc-erp-cp-shell .epc-erp-content-body [class$="-cta"] a {
 	display: inline-block !important;
 	padding: 4px 10px !important;
 	border-radius: 3px !important;
@@ -48,23 +61,56 @@ body.epc-erp-cp-shell .epc-erp-content-body [class*="-cta "] a {
 	background: #337ab7 !important;
 	border: 1px solid #2e6da4 !important;
 }
-body.epc-erp-cp-shell .epc-erp-content-body [class$="-cta"] a.ghost,
-body.epc-erp-cp-shell .epc-erp-content-body [class*="-cta "] a.ghost {
+.epc-erp-cp-shell .epc-erp-content-body [class$="-cta"] a.ghost,
+.epc-erp-cp-shell .epc-erp-content-body [class*="-cta "] a.ghost {
 	color: #243746 !important;
 	background: #fff !important;
 	border: 1px solid #c5d4de !important;
 }
 
-/* KPI cards → PHP .epc-erp-kpi .kpi shape */
-body.epc-erp-cp-shell .epc-erp-content-body [class$="-kpis"],
-body.epc-erp-cp-shell .epc-erp-content-body [class*="-kpis "] {
+/* Shared PHP page header */
+.epc-erp-cp-shell .epc-erp-page-hd {
+	display: flex !important;
+	flex-wrap: wrap !important;
+	align-items: flex-start !important;
+	justify-content: space-between !important;
+	gap: 10px 16px !important;
+	margin: 0 0 14px !important;
+	padding: 0 0 10px !important;
+	border-bottom: 1px solid #c5d4de !important;
+}
+.epc-erp-cp-shell .epc-erp-page-title {
+	margin: 0 0 4px !important;
+	font-size: 18px !important;
+	font-weight: 700 !important;
+	color: #243746 !important;
+}
+.epc-erp-cp-shell .epc-erp-page-sub {
+	margin: 0 !important;
+	font-size: 12.5px !important;
+	color: #64748b !important;
+}
+.epc-erp-cp-shell .epc-erp-page-actions {
+	display: flex !important;
+	flex-wrap: wrap !important;
+	gap: 6px !important;
+}
+
+/* ---- Invented KPI grids → PHP .epc-erp-kpi .kpi ---- */
+.epc-erp-cp-shell .epc-erp-content-body [class$="-kpis"],
+.epc-erp-cp-shell .epc-erp-content-body [class*="-kpis "],
+.epc-erp-cp-shell .epc-erp-kpi,
+.epc-erp-cp-shell .epc-erp-stat-row,
+body.epc-erp-cp-shell .epc-erp-content-body [class$="-kpis"] {
 	display: flex !important;
 	flex-wrap: wrap !important;
 	gap: 10px !important;
 	margin: 0 0 14px !important;
 }
-body.epc-erp-cp-shell .epc-erp-content-body [class$="-kpi"],
-body.epc-erp-cp-shell .epc-erp-content-body [class*="-kpi "] {
+.epc-erp-cp-shell .epc-erp-content-body [class$="-kpi"],
+.epc-erp-cp-shell .epc-erp-content-body [class*="-kpi "],
+.epc-erp-cp-shell .epc-erp-kpi .kpi,
+body.epc-erp-cp-shell .epc-erp-content-body [class$="-kpi"] {
 	flex: 1 1 140px !important;
 	min-width: 140px !important;
 	background: #fff !important;
@@ -74,16 +120,25 @@ body.epc-erp-cp-shell .epc-erp-content-body [class*="-kpi "] {
 	padding: 10px 12px !important;
 	box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04) !important;
 }
-body.epc-erp-cp-shell .epc-erp-content-body [class$="-kpi"] strong,
-body.epc-erp-cp-shell .epc-erp-content-body [class*="-kpi "] strong {
+.epc-erp-cp-shell .epc-erp-kpi .kpi:nth-child(2),
+.epc-erp-cp-shell .epc-erp-content-body [class$="-kpis"] > :nth-child(2) { border-top-color: #6366f1 !important; }
+.epc-erp-cp-shell .epc-erp-kpi .kpi:nth-child(3),
+.epc-erp-cp-shell .epc-erp-content-body [class$="-kpis"] > :nth-child(3) { border-top-color: #f59e0b !important; }
+.epc-erp-cp-shell .epc-erp-kpi .kpi:nth-child(4),
+.epc-erp-cp-shell .epc-erp-content-body [class$="-kpis"] > :nth-child(4) { border-top-color: #10b981 !important; }
+
+.epc-erp-cp-shell .epc-erp-content-body [class$="-kpi"] strong,
+.epc-erp-cp-shell .epc-erp-kpi .kpi .val,
+body.epc-erp-cp-shell .epc-erp-content-body [class$="-kpi"] strong {
 	display: block !important;
 	font-size: 20px !important;
 	font-weight: 700 !important;
 	color: #243746 !important;
 	font-variant-numeric: tabular-nums;
 }
-body.epc-erp-cp-shell .epc-erp-content-body [class$="-kpi"] span,
-body.epc-erp-cp-shell .epc-erp-content-body [class*="-kpi "] span {
+.epc-erp-cp-shell .epc-erp-content-body [class$="-kpi"] span,
+.epc-erp-cp-shell .epc-erp-kpi .kpi .lbl,
+body.epc-erp-cp-shell .epc-erp-content-body [class$="-kpi"] span {
 	display: block !important;
 	margin-top: 2px !important;
 	font-size: 11px !important;
@@ -93,22 +148,30 @@ body.epc-erp-cp-shell .epc-erp-content-body [class*="-kpi "] span {
 	color: #94a3b8 !important;
 }
 
-/* Tables → PHP table-epc */
-body.epc-erp-cp-shell .epc-erp-content-body [class$="-table-wrap"],
-body.epc-erp-cp-shell .epc-erp-content-body [class*="-table-wrap "] {
+/* ---- Invented tables → PHP table-epc ---- */
+.epc-erp-cp-shell .epc-erp-content-body [class$="-table-wrap"],
+.epc-erp-cp-shell .epc-erp-content-body [class*="-table-wrap "],
+.epc-erp-cp-shell .epc-erp-table-wrap,
+body.epc-erp-cp-shell .epc-erp-content-body [class$="-table-wrap"] {
 	background: #fff !important;
 	border: 1px solid #c5d4de !important;
 	border-radius: 3px !important;
 	overflow: auto !important;
+	margin: 0 0 14px !important;
 }
-body.epc-erp-cp-shell .epc-erp-content-body [class$="-table"],
-body.epc-erp-cp-shell .epc-erp-content-body [class*="-table "] {
+.epc-erp-cp-shell .epc-erp-content-body [class$="-table"],
+.epc-erp-cp-shell .epc-erp-content-body [class*="-table "],
+.epc-erp-cp-shell .table-epc,
+.epc-erp-cp-shell .epc-erp-table,
+body.epc-erp-cp-shell .epc-erp-content-body [class$="-table"] {
 	width: 100% !important;
 	border-collapse: collapse !important;
 	font-size: 12px !important;
+	margin: 0 !important;
 }
-body.epc-erp-cp-shell .epc-erp-content-body [class$="-table"] th,
-body.epc-erp-cp-shell .epc-erp-content-body [class*="-table "] th {
+.epc-erp-cp-shell .epc-erp-content-body [class$="-table"] th,
+.epc-erp-cp-shell .table-epc th,
+.epc-erp-cp-shell .epc-erp-table th {
 	background: #f1f5f9 !important;
 	color: #334155 !important;
 	font-size: 11px !important;
@@ -119,14 +182,15 @@ body.epc-erp-cp-shell .epc-erp-content-body [class*="-table "] th {
 	border-bottom: 1px solid #dbe3ea !important;
 	white-space: nowrap !important;
 }
-body.epc-erp-cp-shell .epc-erp-content-body [class$="-table"] td,
-body.epc-erp-cp-shell .epc-erp-content-body [class*="-table "] td {
+.epc-erp-cp-shell .epc-erp-content-body [class$="-table"] td,
+.epc-erp-cp-shell .table-epc td,
+.epc-erp-cp-shell .epc-erp-table td {
 	padding: 7px 8px !important;
 	border-bottom: 1px solid #eef2f6 !important;
 	color: #243746 !important;
 }
-body.epc-erp-cp-shell .epc-erp-content-body [class$="-badge"],
-body.epc-erp-cp-shell .epc-erp-content-body [class*="-badge "] {
+.epc-erp-cp-shell .epc-erp-content-body [class$="-badge"],
+.epc-erp-cp-shell .epc-erp-content-body [class*="-badge "] {
 	display: inline-block !important;
 	padding: 1px 6px !important;
 	border-radius: 2px !important;
@@ -135,8 +199,8 @@ body.epc-erp-cp-shell .epc-erp-content-body [class*="-badge "] {
 	background: #e8f1f8 !important;
 	color: #243746 !important;
 }
-body.epc-erp-cp-shell .epc-erp-content-body [class$="-note"],
-body.epc-erp-cp-shell .epc-erp-content-body [class*="-note "] {
+.epc-erp-cp-shell .epc-erp-content-body [class$="-note"],
+.epc-erp-cp-shell .epc-erp-content-body [class*="-note "] {
 	margin-top: 12px !important;
 	padding: 8px 10px !important;
 	background: #f8fafc !important;
@@ -147,18 +211,30 @@ body.epc-erp-cp-shell .epc-erp-content-body [class*="-note "] {
 }
 
 /* Guest banners: quieter, PHP-adjacent */
-body.epc-erp-cp-shell .epc-erp-guest-banner {
+.epc-erp-cp-shell .epc-erp-guest-banner {
 	border-radius: 3px !important;
 	font-size: 12px !important;
 }
 
 /* Hybrid frame: less "product" chrome, more workspace */
-body.epc-erp-cp-shell .epc-hybrid-frame {
+.epc-erp-cp-shell .epc-hybrid-frame {
 	border: 1px solid #c5d4de !important;
 	border-radius: 3px !important;
 }
-body.epc-erp-cp-shell .epc-hybrid-frame-bar {
+.epc-erp-cp-shell .epc-hybrid-frame-bar {
 	background: #3d5a6c !important;
 	color: #e8f1f8 !important;
 	font-size: 12px !important;
+}
+
+/* D365 action pane density (PHP erp_ui) */
+.epc-erp-cp-shell .epc-erp-d365 {
+	margin: 0 0 12px !important;
+}
+
+@media (max-width: 900px) {
+	.epc-erp-cp-shell .epc-erp-kpi,
+	.epc-erp-cp-shell .epc-erp-content-body [class$="-kpis"] {
+		flex-direction: column !important;
+	}
 }

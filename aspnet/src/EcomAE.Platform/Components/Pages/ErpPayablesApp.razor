@@ -11,57 +11,25 @@
 
 <PageTitle>Payables · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
-<HeadContent>
-<style>
-        .epc-ap-hero {
-            margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
-            background:linear-gradient(135deg,#0c4a6e 0%,#1d4ed8 45%,#2563eb 100%);
-        }
-        .epc-ap-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
-        .epc-ap-hero p { margin:0; color:#fed7aa; max-width:42rem; font-size:.92rem; line-height:1.45; }
-        .epc-ap-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
-        .epc-ap-cta a {
-            display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
-            text-decoration:none; color:#fff; background:#2563eb;
-        }
-        .epc-ap-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); }
-        .epc-ap-kpis { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
-        .epc-ap-kpi { background:#fff; border:1px solid #e5e7eb; border-radius:.55rem; padding:.85rem .9rem; }
-        .epc-ap-kpi strong { display:block; font-size:1.45rem; font-variant-numeric:tabular-nums; }
-        .epc-ap-kpi span { color:#64748b; font-size:.78rem; }
-        .epc-ap-table-wrap { background:#fff; border:1px solid #e5e7eb; border-radius:.55rem; overflow:auto; }
-        .epc-ap-table { width:100%; border-collapse:collapse; font-size:.86rem; }
-        .epc-ap-table th, .epc-ap-table td { padding:.55rem .7rem; border-bottom:1px solid #f1f5f9; text-align:left; white-space:nowrap; }
-        .epc-ap-table th { background:#f8fafc; color:#475569; font-size:.75rem; text-transform:uppercase; letter-spacing:.03em; }
-        .epc-ap-table a { color:#c2410c; font-weight:700; text-decoration:none; }
-        .epc-ap-badge { display:inline-flex; padding:.15rem .45rem; border-radius:.3rem; font-size:.72rem; font-weight:700; background:#ffedd5; color:#9a3412; }
-        .epc-ap-note { margin-top:1rem; padding:.75rem .9rem; background:#fff7ed; border:1px solid #fdba74; border-radius:.45rem; color:#7c2d12; font-size:.86rem; }
-        @@media (max-width:900px){ .epc-ap-kpis{grid-template-columns:1fr;} }
-</style>
-</HeadContent>
-
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Payables" BreadcrumbArea="Accounts payable" BreadcrumbTab="Payables">
 
-    <section class="epc-ap-hero">
-        <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="ECOM AE" style="height:28px;filter:brightness(1.1)" />
-        <h1>Payables</h1>
-        <p>Supplier payable balances — vendor invoices owed for this company workspace.</p>
-        <div class="epc-ap-cta">
-            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
-            <a class="ghost" href="/erp/purchases-app">Purchases</a>
-            <a class="ghost" href="/erp/suppliers-app">Suppliers</a>
-            <a class="ghost" href="/erp/payment-batches-app">Payment batches</a>
-        </div>
-    </section>
+    <PhpErpModulePageHeader Title="Payables"
+                            Subtitle="Supplier payable balances — vendor invoices owed for this company workspace."
+                            PhpTabHref="@_phpTab">
+        <a class="btn btn-sm btn-default" href="/erp/purchases-app">Purchases</a>
+        <a class="btn btn-sm btn-default" href="/erp/suppliers-app">Suppliers</a>
+        <a class="btn btn-sm btn-default" href="/erp/payment-batches-app">Payment batches</a>
+    </PhpErpModulePageHeader>
+    <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
 
-    <div class="epc-ap-kpis" aria-label="Payables KPIs">
-        <div class="epc-ap-kpi"><strong>@_suppliers.Count</strong><span>Suppliers shown</span></div>
-        <div class="epc-ap-kpi"><strong>@_openBalance</strong><span>With open balance</span></div>
-        <div class="epc-ap-kpi"><strong>@_totalBalance.ToString("N2", CultureInfo.InvariantCulture)</strong><span>Payable total</span></div>
+    <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Payables KPIs">
+        <div class="kpi"><div class="lbl">Suppliers shown</div><div class="val">@_suppliers.Count</div></div>
+        <div class="kpi"><div class="lbl">With open balance</div><div class="val">@_openBalance</div></div>
+        <div class="kpi"><div class="lbl">Payable total</div><div class="val">@_totalBalance.ToString("N2", CultureInfo.InvariantCulture)</div></div>
     </div>
 
-    <div class="epc-ap-table-wrap">
-        <table class="epc-ap-table">
+    <div class="epc-erp-table-wrap">
+        <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
             <thead>
                 <tr>
                     <th>Supplier</th>
@@ -83,7 +51,7 @@
                         <tr>
                             <td><strong>@(string.IsNullOrWhiteSpace(s.Name) ? $"#{s.Id}" : s.Name)</strong></td>
                             <td>@(s.StorageId > 0 ? s.StorageId.ToString(CultureInfo.InvariantCulture) : "—")</td>
-                            <td><span class="epc-ap-badge">@s.Balance.ToString("N2", CultureInfo.InvariantCulture)</span></td>
+                            <td><span class="label label-default">@s.Balance.ToString("N2", CultureInfo.InvariantCulture)</span></td>
                             <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(phpHref)">Ledger</a></td>
                         </tr>
                     }
@@ -92,7 +60,9 @@
         </table>
     </div>
 
-    <div class="epc-ap-note">Matches ERP menu <strong>Payables</strong> (Accounts payable). Source: @_source.</div>
+    <div class="epc-erp-note alert alert-info" style="margin-top:12px;">
+        Matches ERP menu <strong>Payables</strong> (Accounts payable). Source: @_source.
+    </div>
 </PhpErpDesktopChrome>
 
 @code {
