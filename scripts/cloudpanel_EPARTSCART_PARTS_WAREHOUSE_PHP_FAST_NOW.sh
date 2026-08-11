@@ -8,13 +8,13 @@
 #
 # Do NOT run from ~ as `bash scripts/...` — that path only exists inside the git repo.
 # CloudPanel root paste:
-#   URL='https://raw.githubusercontent.com/epartscart/ecomae/cursor/parts-chpu-offers-1to3s-7b3b/scripts/cloudpanel_EPARTSCART_PARTS_WAREHOUSE_PHP_FAST_NOW.sh'
+#   URL='https://raw.githubusercontent.com/epartscart/ecomae/cursor/parts-chpu-cross-1s-7b3b/scripts/cloudpanel_EPARTSCART_PARTS_WAREHOUSE_PHP_FAST_NOW.sh'
 #   TMP=/tmp/epartscart-parts-warehouse-php-fast-now.sh
 #   curl -fsSL "$URL" -o "$TMP" && test -s "$TMP"
-#   export ECOMAE_BRANCH=cursor/parts-chpu-offers-1to3s-7b3b
+#   export ECOMAE_BRANCH=cursor/parts-chpu-cross-1s-7b3b
 #   export ECOMAE_EPARTSCART_SHOP_DB=docpart
-#   bash "$TMP" 2>&1 | tee /root/epartscart-parts-chpu-1to3s.log
-#   grep -E 'RESULT=|GATE_|SHA=|TTFB_|BUNCH_|HOST=' /root/epartscart-parts-chpu-1to3s.log | tail -80
+#   bash "$TMP" 2>&1 | tee /root/epartscart-parts-chpu-1s.log
+#   grep -E 'RESULT=|GATE_|SHA=|TTFB_|BUNCH_|CROSS_|HOST=' /root/epartscart-parts-chpu-1s.log | tail -80
 #
 # Silent "External action completed" without RESULT=PASS paste-back = FAIL.
 set -euo pipefail
