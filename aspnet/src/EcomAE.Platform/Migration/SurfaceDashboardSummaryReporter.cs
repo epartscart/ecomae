@@ -10735,8 +10735,11 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            // Prefer shop DB (docpart on ePartsCart) so content SEO rows match the live storefront.
+            await using var connection = await OpenStorefrontShopAsync(cancellationToken).ConfigureAwait(false);
             var urlCount = 0; var indexedReady = 0; var pingJobs = 0; var warmJobs = 0;
+            var robotsIndexable = 0; var withDescription = 0;
+            var homeTitle = string.Empty; var homeDescription = string.Empty;
             await using (var stats = connection.CreateCommand())
             {
                 stats.CommandText = LegacySurfaceDashboardSql.SelectCpSeoStats;
@@ -10745,6 +10748,10 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                 {
                     urlCount = Convert.ToInt32(reader["url_count"] is DBNull ? 0 : reader["url_count"], CultureInfo.InvariantCulture);
                     indexedReady = Convert.ToInt32(reader["indexed_ready"] is DBNull ? 0 : reader["indexed_ready"], CultureInfo.InvariantCulture);
+                    robotsIndexable = Convert.ToInt32(reader["robots_indexable"] is DBNull ? 0 : reader["robots_indexable"], CultureInfo.InvariantCulture);
+                    withDescription = Convert.ToInt32(reader["with_description"] is DBNull ? 0 : reader["with_description"], CultureInfo.InvariantCulture);
+                    homeTitle = Convert.ToString(reader["home_title_tag"] is DBNull ? string.Empty : reader["home_title_tag"], CultureInfo.InvariantCulture) ?? string.Empty;
+                    homeDescription = Convert.ToString(reader["home_description_tag"] is DBNull ? string.Empty : reader["home_description_tag"], CultureInfo.InvariantCulture) ?? string.Empty;
                     pingJobs = Convert.ToInt32(reader["ping_jobs"] is DBNull ? 0 : reader["ping_jobs"], CultureInfo.InvariantCulture);
                     warmJobs = Convert.ToInt32(reader["warm_jobs"] is DBNull ? 0 : reader["warm_jobs"], CultureInfo.InvariantCulture);
                 }
@@ -10754,9 +10761,15 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             {
                 new("url_count", urlCount.ToString(CultureInfo.InvariantCulture)),
                 new("indexed_ready", indexedReady.ToString(CultureInfo.InvariantCulture)),
+                new("robots_indexable", robotsIndexable.ToString(CultureInfo.InvariantCulture)),
+                new("pages_with_description", withDescription.ToString(CultureInfo.InvariantCulture)),
+                new("home_title_tag", string.IsNullOrWhiteSpace(homeTitle) || homeTitle == "0" ? "(empty — ASP.NET HomeMetaDescription used)" : homeTitle),
+                new("home_description_tag", string.IsNullOrWhiteSpace(homeDescription) || homeDescription == "0" ? "(empty — ASP.NET HomeMetaDescription used)" : homeDescription),
+                new("aspnet_chpu_seo", "PHP-parity title/description/keywords + Product JSON-LD on /en/parts/{BRAND}/{ARTICLE}"),
+                new("aspnet_home_seo", "canonical + OG + hreflang + JSON-LD via /storefront/app body fallback"),
+                new("sitemap_xml", "/sitemap.xml → PHP sitemap-index (warehouse shards)"),
                 new("sitemap_pages", "see /cp/sitemap-app"),
-                new("robots_pages", "see content frontend robots*"),
-                new("ping_jobs", pingJobs.ToString(CultureInfo.InvariantCulture)),
+                new("ping_jobs", pingJobs.ToString(CultureInfo.InvariantCulture) + " (warm/ping remain PHP cron)"),
                 new("warm_jobs", warmJobs.ToString(CultureInfo.InvariantCulture)),
             };
             if (rows.Count > safeLimit)

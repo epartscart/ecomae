@@ -1635,6 +1635,12 @@ public static class LegacySurfaceDashboardSql
         SELECT
             (SELECT COUNT(*) FROM `content` WHERE IFNULL(`is_frontend`,0)=1) AS url_count,
             (SELECT COUNT(*) FROM `content` WHERE IFNULL(`is_frontend`,0)=1 AND IFNULL(`published_flag`,0)=1) AS indexed_ready,
+            (SELECT COUNT(*) FROM `content` WHERE IFNULL(`is_frontend`,0)=1 AND IFNULL(`published_flag`,0)=1
+                AND IFNULL(`robots_tag`,'') NOT LIKE '%noindex%') AS robots_indexable,
+            (SELECT COUNT(*) FROM `content` WHERE IFNULL(`is_frontend`,0)=1 AND IFNULL(`description_tag`,'') != ''
+                AND IFNULL(`description_tag`,'') != '0') AS with_description,
+            (SELECT IFNULL(`title_tag`,'') FROM `content` WHERE IFNULL(`main_flag`,0)=1 ORDER BY `id` ASC LIMIT 1) AS home_title_tag,
+            (SELECT IFNULL(`description_tag`,'') FROM `content` WHERE IFNULL(`main_flag`,0)=1 ORDER BY `id` ASC LIMIT 1) AS home_description_tag,
             0 AS ping_jobs,
             0 AS warm_jobs
         """;

@@ -80,9 +80,19 @@ public sealed class StorefrontPublicSeoTests
         Assert.Equal("index,follow", StorefrontPublicSeo.PartsChpuRobots(inStock: true));
         Assert.Equal("noindex,follow", StorefrontPublicSeo.PartsChpuRobots(inStock: false));
 
+        var title = StorefrontPublicSeo.PartsChpuTitle(brand, article);
+        Assert.Contains("Part number MD191472", title, StringComparison.Ordinal);
+        Assert.StartsWith("MITSUBISHI MD191472", title, StringComparison.Ordinal);
+
         var desc = StorefrontPublicSeo.PartsChpuDescription(brand, article, "OIL FILTER", inStock: true);
-        Assert.Contains("MITSUBISHI MD191472", desc, StringComparison.Ordinal);
-        Assert.Contains("In stock", desc, StringComparison.Ordinal);
+        Assert.Contains("Part number / article: MD191472", desc, StringComparison.Ordinal);
+        Assert.Contains("Brand: MITSUBISHI", desc, StringComparison.Ordinal);
+        Assert.Contains("In stock at UAE warehouse", desc, StringComparison.Ordinal);
+        Assert.Contains("UAE-Oman-KSA warehouse", desc, StringComparison.Ordinal);
+
+        var keywords = StorefrontPublicSeo.PartsChpuKeywords(brand, article);
+        Assert.Contains("part number MD191472", keywords, StringComparison.Ordinal);
+        Assert.Contains("auto parts UAE", keywords, StringComparison.Ordinal);
 
         var productLd = StorefrontPublicSeo.ProductJsonLdBlock(
             ctx.Request,
@@ -97,6 +107,14 @@ public sealed class StorefrontPublicSeoTests
         Assert.Contains("InStock", productLd, StringComparison.Ordinal);
         Assert.Contains("90915YZZD1", productLd, StringComparison.Ordinal);
         Assert.Contains("\"price\":\"12.50\"", productLd, StringComparison.Ordinal);
+        Assert.Contains("shippingDetails", productLd, StringComparison.Ordinal);
+        Assert.Contains("areaServed", productLd, StringComparison.Ordinal);
+
+        var alts = StorefrontPublicSeo.HreflangAlternatesForParts(ctx.Request, brand, article);
+        Assert.Contains(alts, a => a.Hreflang == "en-SA");
+        Assert.Contains(alts, a => a.Hreflang == "en-OM");
+        Assert.Contains(alts, a => a.Hreflang == "en-PK");
+        Assert.True(StorefrontPublicSeo.PageOwnsRobotsMeta("/en/parts/MITSUBISHI/MD191472"));
     }
 
     [Fact]
@@ -105,6 +123,7 @@ public sealed class StorefrontPublicSeoTests
         var path = Find("aspnet/src/EcomAE.Platform/Components/App.razor");
         var text = File.ReadAllText(path);
         Assert.Contains("StorefrontPublicSeo.RobotsContentFor", text, StringComparison.Ordinal);
+        Assert.Contains("PageOwnsRobotsMeta", text, StringComparison.Ordinal);
         Assert.DoesNotContain("content=\"noindex,nofollow,noarchive\"", text, StringComparison.Ordinal);
     }
 
@@ -114,6 +133,18 @@ public sealed class StorefrontPublicSeoTests
         var path = Find("aspnet/src/EcomAE.Platform/Components/Pages/StorefrontPreviewApp.razor");
         var text = File.ReadAllText(path);
         Assert.Contains("IncludePublicSeo=\"true\"", text, StringComparison.Ordinal);
+        var head = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Shared/PhpSurfaceHead.razor"));
+        Assert.Contains("HomeMetaDescription", head, StringComparison.Ordinal);
+        Assert.Contains("Body-stream public SEO", head, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void CpSeoAppSurfacesAspNetParityStatus()
+    {
+        var text = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/CpSeoApp.razor"));
+        Assert.Contains("ASP.NET-primary storefront SEO", text, StringComparison.Ordinal);
+        Assert.Contains("Probe CHPU SEO", text, StringComparison.Ordinal);
+        Assert.Contains("/sitemap.xml", text, StringComparison.Ordinal);
     }
 
     [Fact]

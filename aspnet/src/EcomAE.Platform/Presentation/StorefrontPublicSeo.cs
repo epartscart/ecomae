@@ -12,7 +12,13 @@ namespace EcomAE.Platform.Presentation;
 public static class StorefrontPublicSeo
 {
     public const string DefaultDescription = "eParts Cart (Autoparts)";
-    public const string DefaultKeywords = "eParts Cart (Autoparts)";
+    public const string DefaultKeywords = "eParts Cart (Autoparts), auto parts UAE, spare parts, OE parts, aftermarket";
+    /// <summary>PHP-parity home meta description (warehouse regional shipping phrase).</summary>
+    public const string HomeMetaDescription =
+        "Buy genuine and aftermarket auto parts online at eParts Cart (Autoparts). UAE-Oman-KSA warehouse — Fast ship to GCC and worldwide.";
+    public const string RegionalShippingPhrase =
+        "UAE-Oman-KSA warehouse — Fast ship to GCC and worldwide";
+    public const string BingSiteVerification = "A5F1A0C564CD9037AAD1E7874D8F4FA8";
     public const string PhpSitemapIndex = "/sitemap-index.php";
     public const string SitemapXmlPath = "/sitemap.xml";
 
@@ -33,8 +39,18 @@ public static class StorefrontPublicSeo
     public static string RobotsContentFor(HttpContext? http)
     {
         var path = http?.Request.Path.Value ?? "/";
+        // CHPU brand+article pages own stock-aware robots in StorefrontSearchApp — avoid dual tags.
+        if (PageOwnsRobotsMeta(path))
+        {
+            return "index,follow";
+        }
+
         return IsPublicIndexablePath(path) ? "index,follow" : "noindex,nofollow,noarchive";
     }
+
+    /// <summary>True when the page component emits stock-aware robots (omit shell robots).</summary>
+    public static bool PageOwnsRobotsMeta(string? path)
+        => TryParsePartsChpu(path, out _, out _);
 
     public static bool IsPublicIndexablePath(string? path)
     {
@@ -154,18 +170,54 @@ public static class StorefrontPublicSeo
         return AbsoluteUrl(request, path);
     }
 
+    /// <summary>PHP <c>epc_seo_format_part_title</c>.</summary>
+    public static string PartsChpuTitle(string brand, string article, string? siteName = null)
+    {
+        var br = (brand ?? string.Empty).Trim().ToUpperInvariant();
+        var art = (article ?? string.Empty).Trim();
+        var site = string.IsNullOrWhiteSpace(siteName) ? DefaultDescription : siteName.Trim();
+        return $"{br} {art} — Part number {art} | {site}";
+    }
+
+    /// <summary>PHP <c>epc_seo_format_part_description</c>.</summary>
     public static string PartsChpuDescription(string brand, string article, string? productName = null, bool inStock = true)
     {
         var br = (brand ?? string.Empty).Trim().ToUpperInvariant();
         var art = (article ?? string.Empty).Trim();
         var name = string.IsNullOrWhiteSpace(productName) ? string.Empty : productName.Trim();
-        var stock = inStock ? "In stock" : "Check availability";
+        var bits = new List<string>
+        {
+            "Part number / article: " + art,
+            "Brand: " + br,
+        };
         if (name.Length > 0)
         {
-            return $"{br} {art} {name} — {stock}. Buy genuine and aftermarket auto parts online at eParts Cart (Autoparts). UAE warehouse shipping across GCC.";
+            bits.Add(name);
         }
 
-        return $"Pricing and availability for {br} {art} — {stock}. Genuine and aftermarket auto parts at eParts Cart (Autoparts). UAE warehouse shipping across GCC.";
+        if (inStock)
+        {
+            bits.Add("In stock at UAE warehouse");
+        }
+
+        bits.Add(RegionalShippingPhrase);
+        return string.Join(". ", bits) + ".";
+    }
+
+    /// <summary>PHP warehouse enrichment keywords for brand+article CHPU.</summary>
+    public static string PartsChpuKeywords(string brand, string article)
+    {
+        var br = (brand ?? string.Empty).Trim().ToUpperInvariant();
+        var art = (article ?? string.Empty).Trim();
+        return string.Join(", ", new[]
+        {
+            art,
+            $"{br} {art}",
+            "part number " + art,
+            "article " + art,
+            "spare parts",
+            "auto parts UAE",
+        }.Where(static s => !string.IsNullOrWhiteSpace(s)));
     }
 
     public static string PartsChpuRobots(bool inStock)
@@ -204,9 +256,41 @@ public static class StorefrontPublicSeo
             ("ru", PathFor("ru")),
             ("en-AE", PathFor("en")),
             ("ar-AE", PathFor("ar")),
+            ("en-SA", PathFor("en")),
+            ("en-OM", PathFor("en")),
+            ("en-PK", PathFor("en")),
             ("x-default", PathFor("en")),
         ];
     }
+
+    /// <summary>PHP <c>epc_seo_geo_meta_html</c> + Bing verification for epartscart hosts.</summary>
+    public static string HeadExtrasHtml(HttpRequest request)
+    {
+        var host = request.Host.Host ?? string.Empty;
+        var isEparts = host.Contains("epartscart", StringComparison.OrdinalIgnoreCase);
+        var sb = new System.Text.StringBuilder();
+        if (isEparts)
+        {
+            sb.Append("<meta name=\"msvalidate.01\" content=\"").Append(BingSiteVerification).Append("\" />\n");
+            sb.Append("<meta name=\"geo.region\" content=\"AE-DU\" />\n");
+            sb.Append("<meta name=\"geo.placename\" content=\"Dubai, United Arab Emirates\" />\n");
+            sb.Append("<meta name=\"geo.position\" content=\"25.2048;55.2708\" />\n");
+            sb.Append("<meta name=\"ICBM\" content=\"25.2048, 55.2708\" />\n");
+        }
+
+        return sb.ToString();
+    }
+
+    private static object[] AreaServedEntries() =>
+    [
+        new Dictionary<string, object?> { ["@type"] = "Country", ["name"] = "United Arab Emirates" },
+        new Dictionary<string, object?> { ["@type"] = "Country", ["name"] = "Saudi Arabia" },
+        new Dictionary<string, object?> { ["@type"] = "Country", ["name"] = "Oman" },
+        new Dictionary<string, object?> { ["@type"] = "Country", ["name"] = "Qatar" },
+        new Dictionary<string, object?> { ["@type"] = "Country", ["name"] = "Bahrain" },
+        new Dictionary<string, object?> { ["@type"] = "Country", ["name"] = "Kuwait" },
+        new Dictionary<string, object?> { ["@type"] = "Place", ["name"] = "Worldwide" },
+    ];
 
     public static string JsonLdBlock(HttpRequest request, string storeName)
     {
@@ -253,16 +337,7 @@ public static class StorefrontPublicSeo
                     ["addressRegion"] = "Dubai",
                     ["addressCountry"] = "AE",
                 },
-                ["areaServed"] = new object[]
-                {
-                    new Dictionary<string, object?> { ["@type"] = "Country", ["name"] = "United Arab Emirates" },
-                    new Dictionary<string, object?> { ["@type"] = "Country", ["name"] = "Saudi Arabia" },
-                    new Dictionary<string, object?> { ["@type"] = "Country", ["name"] = "Oman" },
-                    new Dictionary<string, object?> { ["@type"] = "Country", ["name"] = "Qatar" },
-                    new Dictionary<string, object?> { ["@type"] = "Country", ["name"] = "Bahrain" },
-                    new Dictionary<string, object?> { ["@type"] = "Country", ["name"] = "Kuwait" },
-                    new Dictionary<string, object?> { ["@type"] = "Place", ["name"] = "Worldwide" },
-                },
+                ["areaServed"] = AreaServedEntries(),
             },
         };
 
@@ -304,6 +379,27 @@ public static class StorefrontPublicSeo
             {
                 ["@type"] = "Organization",
                 ["name"] = DefaultDescription,
+            },
+            ["areaServed"] = AreaServedEntries(),
+            ["shippingDetails"] = new Dictionary<string, object?>
+            {
+                ["@type"] = "OfferShippingDetails",
+                ["shippingDestination"] = new Dictionary<string, object?>
+                {
+                    ["@type"] = "DefinedRegion",
+                    ["name"] = "GCC and Worldwide",
+                },
+                ["deliveryTime"] = new Dictionary<string, object?>
+                {
+                    ["@type"] = "ShippingDeliveryTime",
+                    ["handlingTime"] = new Dictionary<string, object?>
+                    {
+                        ["@type"] = "QuantitativeValue",
+                        ["minValue"] = 0,
+                        ["maxValue"] = 2,
+                        ["unitCode"] = "DAY",
+                    },
+                },
             },
         };
         if (price > 0m)
@@ -359,6 +455,7 @@ public static class StorefrontPublicSeo
             ["additionalProperty"] = props,
             ["offers"] = offer,
             ["url"] = pageUrl,
+            ["areaServed"] = AreaServedEntries(),
         };
         if (related.Count > 0)
         {
