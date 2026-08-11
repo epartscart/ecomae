@@ -247,4 +247,4 @@ if ($epc_cf_country === 'XX' || $epc_cf_country === 'T1') {
 	window.epcCmsActiveLangs = <?php echo json_encode(array_values($epc_cms_active_langs), JSON_UNESCAPED_UNICODE); ?>;
 	window.epcCmsCurrentLang = <?php echo json_encode($epc_cms_current_lang, JSON_UNESCAPED_UNICODE); ?>;
 </script>
-<script src="/content/general_pages/epc_google_translate_storefront.js?v=20260811a" defer></script>
+<script src="/content/general_pages/epc_google_translate_storefront.js?v=20260811b" defer></script>

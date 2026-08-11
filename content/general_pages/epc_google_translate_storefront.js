@@ -60,10 +60,18 @@
 		for (var i = 0; i < domains.length; i++) {
 			var d = domains[i] ? "; domain=" + domains[i] : "";
 			document.cookie = "googtrans=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/" + d;
+		}
+	}
+
+	function epcClearManualLanguageCookie() {
+		var domains = epcCookieDomains();
+		for (var i = 0; i < domains.length; i++) {
+			var d = domains[i] ? "; domain=" + domains[i] : "";
 			document.cookie = "epc_lang=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/" + d;
 		}
 	}
 
+	/** Google Translate cookie only — never marks a language as user-chosen. */
 	function epcSetTranslateCookie(lang) {
 		lang = String(lang || "en").toLowerCase();
 		var domains = epcCookieDomains();
@@ -74,7 +82,6 @@
 			} else {
 				document.cookie = "googtrans=/en/" + lang + "; path=/; max-age=31536000; SameSite=Lax" + d;
 			}
-			document.cookie = "epc_lang=" + encodeURIComponent(lang) + "; path=/; max-age=31536000; SameSite=Lax" + d;
 		}
 	}
 
@@ -86,10 +93,6 @@
 				return parts[2];
 			}
 		}
-		var epcMatch = document.cookie.match(/(?:^|;\s*)epc_lang=([^;]+)/);
-		if (epcMatch) {
-			return decodeURIComponent(epcMatch[1]) || "";
-		}
 		return "";
 	}
 
@@ -100,7 +103,7 @@
 				return String(stored).toLowerCase();
 			}
 		} catch (e) {}
-		// Cookie survives when localStorage is blocked / private mode quirks.
+		// epc_lang is written only by manual picks (survives when localStorage is blocked).
 		var epcMatch = document.cookie.match(/(?:^|;\s*)epc_lang=([^;]+)/);
 		if (epcMatch) {
 			return decodeURIComponent(epcMatch[1] || "").toLowerCase();
@@ -114,6 +117,11 @@
 			localStorage.setItem(epcTranslateManualKey, lang);
 			sessionStorage.removeItem(epcTranslateAutoAppliedKey);
 		} catch (e) {}
+		var domains = epcCookieDomains();
+		for (var i = 0; i < domains.length; i++) {
+			var d = domains[i] ? "; domain=" + domains[i] : "";
+			document.cookie = "epc_lang=" + encodeURIComponent(lang) + "; path=/; max-age=31536000; SameSite=Lax" + d;
+		}
 		epcSetTranslateCookie(lang);
 	}
 
@@ -389,10 +397,8 @@
 		}
 
 		var currentLanguage = epcTranslateCookieLanguage();
-		if (currentLanguage && currentLanguage !== "en") {
-			epcTranslateStatus("Auto language active: " + currentLanguage);
-			return;
-		}
+		// Keep a prior auto language only until geo can confirm; EN markets clear stale af/etc.
+		var stickyAutoCookie = currentLanguage && currentLanguage !== "en";
 
 		epcDetectVisitorCountryWithRetry(0)
 			.then(function (data) {
@@ -411,9 +417,21 @@
 				}
 				// Only use browser language when country is unknown — never override EN markets.
 				if (!countryMapped) {
-					lang = epcBrowserLanguage() || "en";
+					lang = stickyAutoCookie ? currentLanguage : (epcBrowserLanguage() || "en");
 				} else if (!lang) {
 					lang = "en";
+				}
+				// Country says English → drop leftover googtrans (common US→Afrikaans leftover).
+				if (lang === "en" && stickyAutoCookie) {
+					epcClearTranslateCookie();
+					epcSetTranslateCookie("en");
+					var selectEn = document.getElementById("epc_native_translate_select");
+					if (selectEn) {
+						selectEn.value = "en";
+					}
+					epcTranslateStatus("Auto language: English" + (country ? " (" + country + ")" : ""));
+					window.location.reload();
+					return;
 				}
 				epcSaveAutoLanguage(country, lang);
 				if (lang && lang !== "en") {
@@ -422,7 +440,9 @@
 						select.value = lang;
 					}
 					epcTranslateStatus("Auto language: " + (country ? country + " → " : "") + lang);
-					epcApplyAutoTranslate(lang);
+					if (!stickyAutoCookie || currentLanguage !== lang) {
+						epcApplyAutoTranslate(lang);
+					}
 				} else {
 					epcTranslateStatus("Auto language: English" + (country ? " (" + country + ")" : ""));
 				}

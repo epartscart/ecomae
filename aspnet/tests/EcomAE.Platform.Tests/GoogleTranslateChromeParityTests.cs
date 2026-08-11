@@ -45,7 +45,7 @@ public sealed class GoogleTranslateChromeParityTests
         Assert.Contains("google_translate_element", component, StringComparison.Ordinal);
         Assert.Contains("data-cf-country", component, StringComparison.Ordinal);
         Assert.Contains("/platform-assets/epc_google_translate_storefront.js", component, StringComparison.Ordinal);
-        Assert.Contains("v=20260811a", component, StringComparison.Ordinal);
+        Assert.Contains("v=20260811b", component, StringComparison.Ordinal);
         // English first so the control does not look "stuck" on Afrikaans.
         var enIdx = component.IndexOf("<option value=\"en\"", StringComparison.Ordinal);
         var afIdx = component.IndexOf("<option value=\"af\"", StringComparison.Ordinal);
