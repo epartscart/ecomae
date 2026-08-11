@@ -115,8 +115,9 @@ public static class EcomaeMarketingSnapshots
     }
 
     /// <summary>
-    /// Snapshots were rendered against PHP HTTP. When PHP serving is paused those
-    /// chrome CSS helpers 404 — rewrite to the Kestrel /platform-assets bridge.
+    /// Snapshots were rendered against PHP HTTP. Product HTML must never emit
+    /// active <c>.php</c> asset/page URLs — rewrite to Kestrel <c>/platform-assets</c>
+    /// and ASP.NET marketing routes. PHP remains compare-only under <c>/php-reference/*</c>.
     /// </summary>
     public static string RewritePhpAssetUrls(string html)
     {
@@ -162,11 +163,37 @@ public static class EcomaeMarketingSnapshots
             "/platform-assets/ecomae-mark.svg",
             RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
 
-        // Prefer epc-static for marketing_screens images (bridge already serves them).
+        // Screenshots / OG — stack-neutral platform-assets (never product .php).
+        html = Regex.Replace(
+            html,
+            @"/epc-static\.php\?f=content/general_pages/marketing_screens/([^""'\s&]+)(?:&amp;|&)?v?=?([^""'\s]*)?",
+            "/platform-assets/marketing_screens/$1",
+            RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+
+        html = Regex.Replace(
+            html,
+            @"https?://(?:www\.)?ecomae\.com/epc-static\.php\?f=content/general_pages/marketing_screens/([^""'\s&]+)(?:&amp;|&)?v?=?([^""'\s]*)?",
+            "https://www.ecomae.com/platform-assets/marketing_screens/$1",
+            RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+
         html = Regex.Replace(
             html,
             @"/(?:content/general_pages/)(marketing_screens/[^""'\s?]+)",
-            "/epc-static.php?f=content/general_pages/$1",
+            "/platform-assets/$1",
+            RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+
+        // Public verify UI is ASP.NET — never leave the PHP script in product HTML.
+        html = Regex.Replace(
+            html,
+            @"/epc-blockchain-verify\.php",
+            "/blockchain/verify",
+            RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+
+        // Catch-all: remaining epc-static.php?f=content/general_pages/X → /platform-assets/X
+        html = Regex.Replace(
+            html,
+            @"/epc-static\.php\?f=content/general_pages/([^""'\s&]+)(?:&amp;|&v=[^""'\s]*)?",
+            "/platform-assets/$1",
             RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
 
         return html;

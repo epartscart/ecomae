@@ -497,12 +497,32 @@ public static class PhpSurfaceLinkMap
             return "/cp/server-ip-app";
         }
 
-        if (value.StartsWith("/shop/", StringComparison.OrdinalIgnoreCase)
-            || value.Equals("/index.php", StringComparison.OrdinalIgnoreCase)
-            || value.EndsWith(".php", StringComparison.OrdinalIgnoreCase))
+        var phpPathOnly = value;
+        var phpQ = phpPathOnly.IndexOf('?', StringComparison.Ordinal);
+        if (phpQ >= 0)
         {
-            // Product never navigates to bare PHP scripts — home or marketing compare.
-            if (value.Contains("blockchain", StringComparison.OrdinalIgnoreCase))
+            phpPathOnly = phpPathOnly[..phpQ];
+        }
+
+        var phpHash = phpPathOnly.IndexOf('#', StringComparison.Ordinal);
+        if (phpHash >= 0)
+        {
+            phpPathOnly = phpPathOnly[..phpHash];
+        }
+
+        if (value.StartsWith("/shop/", StringComparison.OrdinalIgnoreCase)
+            || phpPathOnly.Equals("/index.php", StringComparison.OrdinalIgnoreCase)
+            || phpPathOnly.EndsWith(".php", StringComparison.OrdinalIgnoreCase))
+        {
+            // Product never navigates to bare PHP scripts — ASP.NET routes only.
+            // (PHP compare remains under /php-reference/*; asset bridges keep /epc-static.php.)
+            if (phpPathOnly.Contains("blockchain-verify", StringComparison.OrdinalIgnoreCase)
+                || phpPathOnly.Contains("epc-blockchain-verify", StringComparison.OrdinalIgnoreCase))
+            {
+                return phpQ >= 0 ? "/blockchain/verify" + value[phpQ..] : "/blockchain/verify";
+            }
+
+            if (phpPathOnly.Contains("blockchain", StringComparison.OrdinalIgnoreCase))
             {
                 return "/blockchain";
             }

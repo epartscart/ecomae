@@ -1802,6 +1802,8 @@ public static class EcomAeRoutes
     public const string MarketingBosApp = "/marketing/bos";
     /// <summary>Marketing blockchain Blazor scaffold (PHP /blockchain remains primary until dual-sample).</summary>
     public const string MarketingBlockchainApp = "/marketing/blockchain";
+    /// <summary>Public blockchain proof verify UI (replaces product /epc-blockchain-verify.php).</summary>
+    public const string BlockchainVerify = "/blockchain/verify";
     /// <summary>Marketing documentation Blazor scaffold (PHP /documentation remains primary until dual-sample).</summary>
     public const string MarketingDocumentationApp = "/marketing/documentation";
     /// <summary>Marketing solutions Blazor scaffold (PHP /solutions remains primary until dual-sample).</summary>

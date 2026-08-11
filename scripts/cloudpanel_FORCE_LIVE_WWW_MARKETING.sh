@@ -204,6 +204,7 @@ prove home-layla-css-link "$WWW_BASE/" '/platform-assets/epc_ecomae_layla_widget
 prove home-demo-css-link "$WWW_BASE/" '/platform-assets/epc_ecomae_demo_portal.css'
 prove home-layla-avatar-link "$WWW_BASE/" '/platform-assets/layla-avatar.svg'
 prove home-not-storefront "$WWW_BASE/" 'ehm-'
+prove home-verify-aspnet "$WWW_BASE/" '/blockchain/verify'
 # Negative: storefront nero marker must not dominate home
 tmpn="$(mktemp)"
 curl -sS -o "$tmpn" --connect-timeout 20 -A 'Mozilla/5.0' "$WWW_BASE/?epc_neg=$(date +%s)" || true
@@ -220,7 +221,39 @@ if ! grep -Fq 'Prove every critical' "$tmpn"; then
 else
   printf 'PASS home-sections-body\n'
 fi
+# Product HTML must not advertise active .php entrypoints (PHP is reference-only).
+if grep -Eoq '/epc-blockchain-verify\.php|/epc-static\.php' "$tmpn"; then
+  printf 'FAIL home still emits product .php URLs\n'
+  fail=1
+else
+  printf 'PASS home-no-product-php-urls\n'
+fi
 rm -f "$tmpn"
+
+# index.php / legacy verify.php must hit ASP.NET (302→/ or verify), never PHP marketing-home v2.
+idx_code="$(curl -sS -o /dev/null -w '%{http_code}' --connect-timeout 20 -A 'Mozilla/5.0' \
+  "$WWW_BASE/index.php?epc_prove=$(date +%s)" || echo 000)"
+idx_loc="$(curl -sS -o /dev/null -D - --connect-timeout 20 -A 'Mozilla/5.0' \
+  "$WWW_BASE/index.php?epc_prove=$(date +%s)" 2>/dev/null | grep -i '^location:' | tr -d '\r' | awk '{print $2}' | head -1 || true)"
+if [[ "$idx_code" == "302" || "$idx_code" == "301" ]] && grep -Eq '^/$|^/\?' <<<"${idx_loc:-}"; then
+  printf 'PASS index-php-redirects-home http=%s loc=%s\n' "$idx_code" "$idx_loc"
+elif [[ "$idx_code" == "200" ]]; then
+  # Accept 200 only when ASP.NET primary (never x-ecomae-marketing-home PHP marker).
+  hdr="$(mktemp)"; body="$(mktemp)"
+  curl -sS -D "$hdr" -o "$body" --connect-timeout 20 -A 'Mozilla/5.0' "$WWW_BASE/index.php?epc_prove=$(date +%s)" || true
+  if grep -qi 'x-ecomae-marketing-home' "$hdr" || grep -Fq 'ECOMAE-MARKETING-HOME-v8' "$body"; then
+    printf 'FAIL index.php still serves PHP marketing home\n'; fail=1
+  elif grep -qi 'x-ecomae-platform: primary' "$hdr" || grep -qi 'blazor-enhanced-nav' "$hdr"; then
+    printf 'PASS index-php-aspnet-primary\n'
+  else
+    printf 'FAIL index.php ambiguous product response\n'; fail=1
+  fi
+  rm -f "$hdr" "$body"
+else
+  printf 'FAIL index.php http=%s loc=%s\n' "$idx_code" "${idx_loc:-none}"; fail=1
+fi
+
+prove blockchain-verify-ui "$WWW_BASE/blockchain/verify" 'Verify a business proof'
 
 prove css-marketing "$WWW_BASE/platform-assets/epc_ecomae_platform_marketing.css" 'epm-hub' 'text/css'
 prove css-sections "$WWW_BASE/platform-assets/epc_ecomae_home_sections.css" 'epc-ehm-rev-fallback' 'text/css'

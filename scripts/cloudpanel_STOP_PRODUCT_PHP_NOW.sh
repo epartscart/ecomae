@@ -247,6 +247,43 @@ PACK_TEMPLATE = r'''
         proxy_set_header Cookie $http_cookie;
         proxy_set_header X-EcomAE-Route-Cutover __HOME_CUTOVER__;
     }
+    # Product PHP front-controllers → Kestrel (never php-fpm marketing/home).
+    location = /index.php {
+        proxy_pass http://127.0.0.1:5100/index.php;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header Cookie $http_cookie;
+        proxy_set_header X-EcomAE-Route-Cutover stop-product-php-index-php;
+    }
+    location = /epc-blockchain-verify.php {
+        proxy_pass http://127.0.0.1:5100/epc-blockchain-verify.php;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header Cookie $http_cookie;
+        proxy_set_header X-EcomAE-Route-Cutover stop-product-php-blockchain-verify;
+    }
+    location = /blockchain/verify {
+        proxy_pass http://127.0.0.1:5100/blockchain/verify;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header Cookie $http_cookie;
+        proxy_set_header X-EcomAE-Route-Cutover stop-product-php-blockchain-verify-aspnet;
+    }
+    location = /epc-static.php {
+        proxy_pass http://127.0.0.1:5100/epc-static.php;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header Cookie $http_cookie;
+        proxy_set_header X-EcomAE-Route-Cutover stop-product-php-epc-static-bridge;
+    }
     location ^~ /marketing/ {
         proxy_pass http://127.0.0.1:5100;
         proxy_http_version 1.1;
