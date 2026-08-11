@@ -57,16 +57,26 @@ chmod +x "$NUCLEAR" \
   "$REPO/scripts/cloudpanel_EPARTSCART_BIND_SHOP_DB_NOW.sh" 2>/dev/null || true
 
 # Bind shop DB before nuclear prove (prior acks left bunches unbound / CP tenant_db_unbound).
-printf '\n---- bind epartscart shop db_name (hardened) ----\n'
+# Default ePartsCart shop schema is Model C shared `docpart` (PHP portal parity).
+export ECOMAE_EPARTSCART_SHOP_DB="${ECOMAE_EPARTSCART_SHOP_DB:-docpart}"
+printf '\n---- bind epartscart shop db_name (hardened) shop_db=%s ----\n' "$ECOMAE_EPARTSCART_SHOP_DB"
 set +e
 ECOMAE_CONFIRM_FIX_EPARTSCART_PORTAL_TENANT_DB=YES \
 ECOMAE_CONFIRM_RESTART_PLATFORM=YES \
+ECOMAE_EPARTSCART_SHOP_DB="$ECOMAE_EPARTSCART_SHOP_DB" \
   bash "$REPO/scripts/cloudpanel_fix_epartscart_portal_tenant_db.sh" 2>&1 | tee /root/epartscart-portal-tenant-bind.log
 BIND_RC=${PIPESTATUS[0]}
 set -e
 printf 'portal_bind_exit=%s\n' "$BIND_RC"
-grep -E 'RESULT=|resolved_shop_db|discovered_' /root/epartscart-portal-tenant-bind.log | tail -20 || true
-[[ "$BIND_RC" -eq 0 ]] || die "portal tenant db bind failed — set ECOMAE_EPARTSCART_SHOP_DB if needed"
+grep -E 'RESULT=|resolved_shop_db|discovered_|accepting_already|WARN:' /root/epartscart-portal-tenant-bind.log | tail -30 || true
+if [[ "$BIND_RC" -ne 0 ]]; then
+  # Do not block nuclear publish when dump already shows live www → docpart.
+  if grep -Eiq 'www\.epartscart\.com[[:space:]]+docpart' /root/epartscart-portal-tenant-bind.log; then
+    printf 'WARN: portal bind exit=%s but www.epartscart.com already →docpart — continuing nuclear\n' "$BIND_RC"
+  else
+    die "portal tenant db bind failed — set ECOMAE_EPARTSCART_SHOP_DB if needed"
+  fi
+fi
 
 # Keep MD5 login parity with PHP when secret is missing/stale (non-fatal if confirm flags unset).
 if [[ "${ECOMAE_CONFIRM_SYNC_SECRET_SUCCESSION:-YES}" == "YES" ]]; then

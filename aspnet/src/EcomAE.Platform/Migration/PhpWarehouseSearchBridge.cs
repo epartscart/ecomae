@@ -358,7 +358,8 @@ public sealed class PhpWarehouseSearchBridge
     private async Task<T?> GetJsonAsync<T>(
         string path,
         IReadOnlyDictionary<string, string?> query,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        int timeoutSeconds = 8)
         where T : class
     {
         var targets = BuildRequestTargets(path, query);
@@ -367,9 +368,15 @@ public sealed class PhpWarehouseSearchBridge
             return null;
         }
 
-        var (client, dispose) = CreateClient();
+        var (client, dispose) = CreateClient(timeoutSeconds);
         try
         {
+            // Named factory clients may ignore CreateClient timeout — pin for long cross searches.
+            if (!dispose && client.Timeout < TimeSpan.FromSeconds(timeoutSeconds))
+            {
+                client.Timeout = TimeSpan.FromSeconds(timeoutSeconds);
+            }
+
             foreach (var target in targets)
             {
                 try

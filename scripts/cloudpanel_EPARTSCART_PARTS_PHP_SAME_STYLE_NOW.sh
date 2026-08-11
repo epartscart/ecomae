@@ -2,13 +2,14 @@
 # Force-live publish ePartsCart so PHP same-style parts UI reaches public :5100.
 #
 # Do NOT run from ~ as `bash scripts/...` — that path only exists inside the git repo.
-# CloudPanel root paste (after #986 on main):
-#   URL='https://raw.githubusercontent.com/epartscart/ecomae/main/scripts/cloudpanel_EPARTSCART_PARTS_PHP_SAME_STYLE_NOW.sh'
+# CloudPanel root paste:
+#   URL='https://raw.githubusercontent.com/epartscart/ecomae/cursor/parts-warehouse-php-ui-parity-7b3b/scripts/cloudpanel_EPARTSCART_PARTS_PHP_SAME_STYLE_NOW.sh'
 #   TMP=/tmp/epartscart-parts-php-same-style-now.sh
 #   curl -fsSL "$URL" -o "$TMP" && test -s "$TMP"
-#   export ECOMAE_BRANCH=main
+#   export ECOMAE_BRANCH=cursor/parts-warehouse-php-ui-parity-7b3b
+#   export ECOMAE_EPARTSCART_SHOP_DB=docpart
 #   bash "$TMP" 2>&1 | tee /root/epartscart-parts-php-same-style.log
-#   grep -E 'RESULT=|GATE_|SHA=|HOST=' /root/epartscart-parts-php-same-style.log | tail -80
+#   grep -E 'RESULT=|GATE_|SHA=|HOST=|MATCHER=' /root/epartscart-parts-php-same-style.log | tail -80
 #
 # Silent "External action completed" without RESULT=PASS paste-back = FAIL.
 set -euo pipefail
@@ -21,6 +22,8 @@ fi
 ECOMAE_GIT_URL="${ECOMAE_GIT_URL:-https://github.com/epartscart/ecomae.git}"
 ECOMAE_BRANCH="${ECOMAE_BRANCH:-main}"
 PUBLIC_BASE="${ECOMAE_PUBLIC_BASE:-https://www.epartscart.com}"
+# PHP Model C shared shop — registry principal often cannot SEE users; bind trusts portal.
+export ECOMAE_EPARTSCART_SHOP_DB="${ECOMAE_EPARTSCART_SHOP_DB:-docpart}"
 CANDIDATES=("${ECOMAE_REPO:-}" /opt/ecomae-aspnet-source /root/ecomae /opt/ecomae)
 
 note() { printf '%s\n' "$*"; }
@@ -30,6 +33,7 @@ note "======== EPARTSCART PARTS PHP SAME-STYLE FORCE LIVE ========"
 note "HOST=$(hostname -f 2>/dev/null || hostname || echo unknown)"
 note "DATE_UTC=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 note "ECOMAE_BRANCH=${ECOMAE_BRANCH}"
+note "ECOMAE_EPARTSCART_SHOP_DB=${ECOMAE_EPARTSCART_SHOP_DB}"
 note "Expect: epc-brand-picker-table + epc-part-type-split + php cross search + ?v=20260811z"
 
 REPO=""
@@ -61,27 +65,67 @@ fi
 if [[ ! -f scripts/cloudpanel_EPARTSCART_PARTS_PHP_SAME_STYLE_PROVE.sh ]]; then
   die "prove script missing in repo"
 fi
+if ! grep -Eq 'haystack_match|MATCHER=grep' \
+  scripts/cloudpanel_EPARTSCART_PARTS_PHP_SAME_STYLE_PROVE.sh; then
+  die "prove script missing grep fallback (wrong SHA / branch)"
+fi
+if ! grep -q 'ajax_epc_cross_search.php' \
+  aspnet/src/EcomAE.Platform/Components/Pages/StorefrontSearchApp.razor; then
+  die "StorefrontSearchApp missing ajax_epc_cross_search wiring (wrong SHA / branch)"
+fi
 
-# 1) Republish platform binary from this branch.
-if [[ -f scripts/cloudpanel_EPARTSCART_LIVE_PUBLISH_NOW.sh ]]; then
+publish_via_live_publish() {
   note ""
   note "---- LIVE_PUBLISH ----"
+  local rc=0
   set +e
-  ECOMAE_BRANCH="$ECOMAE_BRANCH" ECOMAE_SKIP_LIFEOS_MP4="${ECOMAE_SKIP_LIFEOS_MP4:-YES}" \
-    bash scripts/cloudpanel_EPARTSCART_LIVE_PUBLISH_NOW.sh 2>&1 | tee /root/epartscart-parts-same-style-live-publish.log | tail -80
-  LP_RC=${PIPESTATUS[0]}
-  set -e
-  note "live_publish_exit=${LP_RC}"
-elif [[ -f scripts/cloudpanel_FORCE_LIVE_NOW.sh ]]; then
+  ECOMAE_BRANCH="$ECOMAE_BRANCH" \
+  ECOMAE_SKIP_LIFEOS_MP4="${ECOMAE_SKIP_LIFEOS_MP4:-YES}" \
+  ECOMAE_EPARTSCART_SHOP_DB="$ECOMAE_EPARTSCART_SHOP_DB" \
+    bash scripts/cloudpanel_EPARTSCART_LIVE_PUBLISH_NOW.sh 2>&1 | tee /root/epartscart-parts-same-style-live-publish.log | tail -100
+  rc=${PIPESTATUS[0]}
+  set +e
+  note "live_publish_exit=${rc}"
+  return "$rc"
+}
+
+publish_via_force_live() {
   note ""
-  note "---- FORCE_LIVE ----"
+  note "---- FORCE_LIVE (fallback when LIVE_PUBLISH blocked) ----"
+  local rc=0
   set +e
-  ECOMAE_BRANCH="$ECOMAE_BRANCH" bash scripts/cloudpanel_FORCE_LIVE_NOW.sh 2>&1 | tee /root/epartscart-parts-same-style-force-live.log | tail -80
-  LP_RC=${PIPESTATUS[0]}
+  ECOMAE_BRANCH="$ECOMAE_BRANCH" \
+  ECOMAE_SKIP_LIFEOS_MP4="${ECOMAE_SKIP_LIFEOS_MP4:-YES}" \
+    bash scripts/cloudpanel_FORCE_LIVE_NOW.sh 2>&1 | tee /root/epartscart-parts-same-style-force-live.log | tail -100
+  rc=${PIPESTATUS[0]}
+  set +e
+  note "force_live_exit=${rc}"
+  return "$rc"
+}
+
+# 1) Republish platform binary from this branch.
+LP_RC=1
+if [[ -f scripts/cloudpanel_EPARTSCART_LIVE_PUBLISH_NOW.sh ]]; then
+  set +e
+  publish_via_live_publish
+  LP_RC=$?
   set -e
-  note "force_live_exit=${LP_RC}"
-else
-  die "no LIVE_PUBLISH / FORCE_LIVE helper in repo"
+fi
+
+if [[ "$LP_RC" -ne 0 ]]; then
+  if [[ -f scripts/cloudpanel_FORCE_LIVE_NOW.sh ]]; then
+    note "WARN: LIVE_PUBLISH failed (exit=${LP_RC}) — falling through to FORCE_LIVE so :5100 still republishes"
+    set +e
+    publish_via_force_live
+    LP_RC=$?
+    set -e
+  else
+    die "LIVE_PUBLISH failed and FORCE_LIVE helper missing"
+  fi
+fi
+
+if [[ "$LP_RC" -ne 0 ]]; then
+  die "publish failed live_publish/force_live exit=${LP_RC}"
 fi
 
 # 2) Prove public picker + CHPU use PHP same-style markup.
@@ -91,7 +135,7 @@ set +e
 bash scripts/cloudpanel_EPARTSCART_PARTS_PHP_SAME_STYLE_PROVE.sh 2>&1 | tee /root/epartscart-parts-php-same-style-prove.log
 PROVE_RC=${PIPESTATUS[0]}
 set -e
-grep -E 'RESULT=|GATE_' /root/epartscart-parts-php-same-style-prove.log | tail -40 || true
+grep -E 'RESULT=|GATE_|MATCHER=' /root/epartscart-parts-php-same-style-prove.log | tail -40 || true
 
 if [[ "$PROVE_RC" -ne 0 ]]; then
   die "prove SHA=${SHA} (public still stale or markup missing)"

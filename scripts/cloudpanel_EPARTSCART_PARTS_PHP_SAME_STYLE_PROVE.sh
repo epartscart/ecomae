@@ -16,6 +16,7 @@ note() { printf '%s\n' "$*"; }
 fail() { note "GATE_BAD $*"; pass=0; }
 ok() { note "GATE_OK $*"; }
 
+# Prefer rg when present; otherwise GNU/BusyBox grep -Eiq (CloudPanel has no rg).
 haystack_match() {
   local pat="$1" file="$2"
   if command -v rg >/dev/null 2>&1; then
@@ -57,6 +58,7 @@ haystack_match 'epc-cross-search-btn' /tmp/epc_chpu.html && ok "CHPU_CROSS=YES" 
 haystack_match 'epc-seo-cross-refs' /tmp/epc_chpu.html && ok "CHPU_CROSS_NAV=YES" || fail "CHPU_CROSS_NAV=NO"
 haystack_match 'epc-wa-share-btn|epc-btn-cart|Log in' /tmp/epc_chpu.html && ok "CHPU_ACTIONS=YES" || fail "CHPU_ACTIONS=NO"
 haystack_match 'epc-ssr-warehouse-banner' /tmp/epc_chpu.html && ok "CHPU_BANNER=YES" || fail "CHPU_BANNER=NO"
+haystack_match 'epc-cross-ref-list|ajax_epc_cross_search' /tmp/epc_chpu.html && ok "CHPU_CROSS_WIRE=YES" || fail "CHPU_CROSS_WIRE=NO"
 if haystack_match 'data-offer-key' /tmp/epc_chpu.html; then
   haystack_match 'info_box' /tmp/epc_chpu.html && ok "CHPU_INFO_BOX=YES" || fail "CHPU_INFO_BOX=NO"
   haystack_match 'epc-search-row-photo__btn--load' /tmp/epc_chpu.html && ok "CHPU_PHOTO_BTN=YES" || fail "CHPU_PHOTO_BTN=NO"
