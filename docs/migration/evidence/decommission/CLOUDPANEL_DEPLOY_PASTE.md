@@ -26,17 +26,34 @@ grep -E 'RESULT=|PREFLIGHT|GATE_|RECHECK|ERROR|SHA=|HOST=' /root/epartscart-live
 
 If `RESULT=FAIL`, send `/root/epartscart-live-publish-now.log`.
 
-## 0b) CP login `tenant_db_unbound` / bunches unbound / LifeOS clients-board 302 (ONE paste)
+## 0b) CP login `tenant_db_unbound` (taxofin2025@gmail.com) — ONE paste
 
-**Symptom:** `/cp/login` → `?error=tenant_db_unbound`; bunches unbound; `lifeos…/clients-board` → 302 login. **2026-08-09 probe after a silent “External action completed” ack still FAIL** — treat ack without pasted `RESULT=PASS` + `PASTE_ME_*` as FAIL.
+**Symptom:** `https://www.epartscart.com/cp/login?error=tenant_db_unbound` + bunches unbound. **#975 is on `main` but live still FAIL** until CloudPanel republishes `:5100`. Silent “External action completed” without pasted `RESULT=PASS` = FAIL.
 
-**Merging a PR is not a republish.** Agent re-probes public URLs; silent UI completion does not count.
+**Root cause (already proven on server):** portal row was already `www.epartscart.com|docpart|live`, but (1) registry MySQL user could not SEE `docpart.users` (needs GRANT), (2) live binary lacked #975 `db_pass` SQL fix / republish.
 
-ePartsCart shop DB is **`docpart`**. Finish branch also fills `docpart` in ASP.NET when portal `db_name` empty (needs LIVE_PUBLISH).
+ePartsCart shop DB is **`docpart`**. ASP.NET also fills `docpart` when portal `db_name` is empty (needs LIVE_PUBLISH of #975+).
 
-**2026-08-09 bind fail root cause:** portal already `www.epartscart.com|docpart|live`, but STANDALONE used registry MySQL user → `docpart missing_users_table` (no GRANT / invisible schema). Also ASP.NET `PortalTenantSql` referenced legacy `db_pass` column → query exception → false `tenant_db_unbound`. Fixed on finish-pending: discover as root + GRANT + SQL without `db_pass`.
+**2026-08-09 bind fail root cause:** portal already `www.epartscart.com|docpart|live`, but (1) registry MySQL user could not SEE `docpart.users` (needs GRANT), (2) unix_socket MySQL root is missing on CloudPanel — use **`clpctl db:show:master-credentials`** (TCP root), (3) live binary lacked #975 `db_pass` SQL fix until republish.
 
-**ONE paste (bind + republish + LifeOS prove) — #975 is on `main`. Must paste PASTE_ME block back:**
+**Preferred ONE paste (bind via clpctl + LIVE_PUBLISH + CP prove) — paste PASTE_ME back:**
+
+```bash
+set -euxo pipefail
+URL='https://raw.githubusercontent.com/epartscart/ecomae/cursor/fix-cp-login-unbound-now-7b3b/scripts/cloudpanel_FIX_EPARTSCART_CP_LOGIN_UNBOUND_NOW.sh'
+TMP=/tmp/fix-epartscart-cp-login-unbound-now.sh
+curl -fsSL "$URL" -o "$TMP"
+wc -c "$TMP"
+grep -q FIX_EPARTSCART_CP_LOGIN_UNBOUND_NOW "$TMP" || { echo RESULT=FAIL bad_download; exit 1; }
+grep -q 'clpctl db:show:master-credentials' "$TMP" || { echo RESULT=FAIL stale_fix_script; exit 1; }
+export ECOMAE_BRANCH=main ECOMAE_SKIP_LIFEOS_MP4=YES
+bash "$TMP" 2>&1 | tee /root/fix-epartscart-cp-login-unbound-now.log
+grep -E 'RESULT=|PASTE_ME_|GATE_|BOUND_|POST_LOGIN|SHA=|GRANT_|mysql_elevated|EMAIL_HIT|discovered_|ERROR|FAIL' /root/fix-epartscart-cp-login-unbound-now.log | tail -120
+```
+
+**PASS:** `RESULT=PASS FIX_EPARTSCART_CP_LOGIN_UNBOUND_NOW`, `mysql_elevated=YES`, `BOUND_BUNCHES=YES`, `POST_LOGIN_REDIRECT` does **not** contain `tenant_db_unbound` (wrong password → `invalid_credentials` is OK).
+
+**Alternate (bind + republish + LifeOS prove)** — FINISH_PENDING from `main`:
 
 ```bash
 set -euxo pipefail
@@ -50,18 +67,18 @@ bash "$TMP" 2>&1 | tee /root/finish-pending-epartscart-lifeos-now.log
 grep -E 'RESULT=|PASTE_ME_|GATE_|BOUND_|POST_LOGIN|SHA=|clients-board|EMAIL_HIT|GRANT_|discovered_|ERROR' /root/finish-pending-epartscart-lifeos-now.log | tail -120
 ```
 
-**PASS:** log contains `RESULT=PASS FINISH_PENDING…`, `BOUND_BUNCHES=YES`, `CLIENTS_BOARD=PUBLIC`, and `POST_LOGIN_REDIRECT` is not `tenant_db_unbound`.
+**PASS:** `RESULT=PASS FINISH_PENDING…`, `BOUND_BUNCHES=YES`, `CLIENTS_BOARD=PUBLIC`, and `POST_LOGIN_REDIRECT` is not `tenant_db_unbound`.
 
-**If only bind (no full publish yet)** — STANDALONE from `main` (must contain `mysql_root_socket`; reject stale #974 download):
+**If only bind (no full publish yet)** — STANDALONE must include clpctl master discovery (reject stale downloads):
 
 ```bash
 set -euxo pipefail
-URL='https://raw.githubusercontent.com/epartscart/ecomae/main/scripts/cloudpanel_EPARTSCART_BIND_DOCPART_STANDALONE.sh'
+URL='https://raw.githubusercontent.com/epartscart/ecomae/cursor/fix-cp-login-unbound-now-7b3b/scripts/cloudpanel_EPARTSCART_BIND_DOCPART_STANDALONE.sh'
 TMP=/tmp/epartscart-bind-docpart-standalone.sh
 curl -fsSL "$URL" -o "$TMP"
-grep -q 'mysql_root_socket' "$TMP" || { echo RESULT=FAIL stale_download; exit 1; }
+grep -q 'clpctl db:show:master-credentials' "$TMP" || { echo RESULT=FAIL stale_download; exit 1; }
 bash "$TMP" 2>&1 | tee /root/epartscart-bind-docpart-standalone.log
-grep -E 'RESULT=|PASTE_ME_|GATE_|BOUND_|GRANT_|EMAIL_HIT|discovered_|POST_LOGIN|ERROR' /root/epartscart-bind-docpart-standalone.log | tail -100
+grep -E 'RESULT=|PASTE_ME_|GATE_|BOUND_|GRANT_|mysql_elevated|EMAIL_HIT|discovered_|POST_LOGIN|ERROR' /root/epartscart-bind-docpart-standalone.log | tail -100
 ```
 
 ## 0☠) ALL SITES 502 / epartscart stuck on “Loading — Please wait”

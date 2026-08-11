@@ -11,12 +11,10 @@
 
 <PageTitle>Suppliers · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
-<PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Suppliers" BreadcrumbArea="Accounts Payable" BreadcrumbTab="Payables">
+<PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Suppliers" BreadcrumbArea="Procure to Pay" BreadcrumbTab="Suppliers">
 
-    
     <PhpErpModulePageHeader Title="Suppliers" Subtitle="ASP.NET Core digest — PHP compare only under /php-reference/*." PhpTabHref="@_phpTab" />
     <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
-
 
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Supplier KPIs">
         <div class="kpi"><div class="lbl">Shown (limit @_limit)</div><div class="val">@_suppliers.Count</div></div>
@@ -59,7 +57,7 @@
 </PhpErpDesktopChrome>
 
 @code {
-    private const string _phpTab = "/ERP/?epc_erp_shell=1&area=ap&tab=payables";
+    private const string _phpTab = "/ERP/?epc_erp_shell=1&area=purchasing&tab=supplier_portal";
     private bool _isAdmin;
     private IReadOnlyList<ErpSupplierDigest> _suppliers = [];
     private int _openBalance;

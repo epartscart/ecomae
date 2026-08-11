@@ -1019,12 +1019,13 @@ public static class PhpSurfaceLinkMap
         }
 
         // Area-only hubs must land on the module named by that area (not a sibling process).
+        // AP ≠ purchasing; AR ≠ sales; credit_coll ≠ treasury.
         return areaKey switch
         {
             "overview" or "common" or "setup" or "enterprise" => "/erp",
             "finance" or "gl" or "general_ledger" => "/erp/gl-journals-app",
-            "ap" => "/erp/module-app?tab=payables",
-            "ar" => "/erp/module-app?tab=receivables",
+            "ap" => "/erp/payables-app",
+            "ar" => "/erp/receivables-app",
             "sales" => "/erp/sales-orders-app",
             "purchasing" => "/erp/purchase-orders-app",
             "banking" => "/erp/cash-accounts-app",

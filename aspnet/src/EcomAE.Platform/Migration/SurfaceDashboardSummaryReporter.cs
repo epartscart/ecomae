@@ -1116,7 +1116,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         {
             try
             {
-                await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+                await using var connection = await OpenStorefrontShopAsync(cancellationToken).ConfigureAwait(false);
                 var hasSearchCol = await ProbePriceArticleSearchColumnAsync(connection, cancellationToken).ConfigureAwait(false);
                 var candidates = await CollectStorefrontArticleCandidatesAsync(connection, normalized, cancellationToken).ConfigureAwait(false);
 
@@ -1201,7 +1201,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         {
             try
             {
-                await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+                await using var connection = await OpenStorefrontShopAsync(cancellationToken).ConfigureAwait(false);
                 var hasSearchCol = await ProbePriceArticleSearchColumnAsync(connection, cancellationToken).ConfigureAwait(false);
                 var hasAnalogsSearch = await ProbeAnalogsSearchColumnsAsync(connection, cancellationToken).ConfigureAwait(false);
                 var candidates = await CollectStorefrontArticleCandidatesAsync(connection, normalized, cancellationToken).ConfigureAwait(false);
@@ -1385,6 +1385,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
     /// <summary>
     /// When storefront Live/ErpOnly tenant resolved without a shop DB name, OpenAsync(null) hits the
     /// registry/platform schema (no shop_docpart_prices_data). Surface a clear hostname/www hint.
+    /// ePartsCart recovers via Model C <c>docpart</c> (same as <see cref="RouteTenantResolver"/>).
     /// </summary>
     private bool TryGetUnboundTenantShopMessage(out string message)
     {
@@ -1398,8 +1399,31 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             return false;
         }
 
+        // Portal row missing db_name — still open shared docpart for ePartsCart (PHP parity).
+        if (RouteTenantResolver.IsEpartsCartHost(tenant.Host, tenant.SiteKey))
+        {
+            return false;
+        }
+
         message = "Tenant shop database is not bound for this host — check epc_portal_tenants.hostname (www alias).";
         return true;
+    }
+
+    /// <summary>
+    /// Open tenant shop DB. When context has no db_name on ePartsCart hosts, force <c>docpart</c>
+    /// so warehouse search / brands / bunches do not false-fail as unbound on www.
+    /// </summary>
+    private Task<DbConnection> OpenStorefrontShopAsync(CancellationToken cancellationToken)
+    {
+        var tenant = _httpContextAccessor?.HttpContext?.Items[TenantResolutionMiddleware.HttpContextItemKey] as TenantContext;
+        if (tenant is not null
+            && !tenant.HasTenantDatabase
+            && RouteTenantResolver.IsEpartsCartHost(tenant.Host, tenant.SiteKey))
+        {
+            return _connections.OpenAsync("docpart", cancellationToken);
+        }
+
+        return _connections.OpenAsync(null, cancellationToken);
     }
 
     private enum StorefrontArticleMatchMode
@@ -2151,29 +2175,18 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
-            await using var command = connection.CreateCommand();
-            command.CommandText = LegacySurfaceDashboardSql.SelectStorefrontCatalogueCategories;
-            var flat = new List<StorefrontCatalogueCategoryRow>();
-            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
-            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            await using var connection = await OpenStorefrontShopAsync(cancellationToken).ConfigureAwait(false);
+            var flat = await ReadCatalogueCategoryRowsAsync(
+                connection,
+                LegacySurfaceDashboardSql.SelectStorefrontCatalogueCategoriesTranslated,
+                cancellationToken).ConfigureAwait(false);
+            if (flat.Count == 0)
             {
-                var id = Convert.ToInt32(reader["id"] is DBNull ? 0 : reader["id"], CultureInfo.InvariantCulture);
-                var alias = Convert.ToString(reader["alias"] is DBNull ? string.Empty : reader["alias"], CultureInfo.InvariantCulture) ?? string.Empty;
-                var url = Convert.ToString(reader["url"] is DBNull ? string.Empty : reader["url"], CultureInfo.InvariantCulture) ?? string.Empty;
-                var valueRaw = Convert.ToString(reader["value_lang_id"] is DBNull ? string.Empty : reader["value_lang_id"], CultureInfo.InvariantCulture) ?? string.Empty;
-                // Lang string ids are not resolved here; alias humanization matches PHP empty-label fallback.
-                var value = StorefrontOwnCatalogueTreeBuilder.LabelFor(alias, valueRaw, id);
-                flat.Add(new StorefrontCatalogueCategoryRow(
-                    id,
-                    alias,
-                    url,
-                    Convert.ToInt32(reader["parent"] is DBNull ? 0 : reader["parent"], CultureInfo.InvariantCulture),
-                    Convert.ToInt32(reader["level"] is DBNull ? 0 : reader["level"], CultureInfo.InvariantCulture),
-                    Convert.ToInt32(reader["child_count"] is DBNull ? 0 : reader["child_count"], CultureInfo.InvariantCulture),
-                    Convert.ToInt32(reader["sort_order"] is DBNull ? 0 : reader["sort_order"], CultureInfo.InvariantCulture),
-                    Convert.ToString(reader["image"] is DBNull ? string.Empty : reader["image"], CultureInfo.InvariantCulture) ?? string.Empty,
-                    value));
+                // Lang table missing / empty — still humanize aliases (never show bare "1324").
+                flat = await ReadCatalogueCategoryRowsAsync(
+                    connection,
+                    LegacySurfaceDashboardSql.SelectStorefrontCatalogueCategories,
+                    cancellationToken).ConfigureAwait(false);
             }
 
             var tree = StorefrontOwnCatalogueTreeBuilder.Build(flat, filterApai: true);
@@ -2181,8 +2194,76 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
         catch (Exception ex)
         {
-            return new([], 0, "database-error", ex.Message);
+            try
+            {
+                await using var connection = await OpenStorefrontShopAsync(cancellationToken).ConfigureAwait(false);
+                var flat = await ReadCatalogueCategoryRowsAsync(
+                    connection,
+                    LegacySurfaceDashboardSql.SelectStorefrontCatalogueCategories,
+                    cancellationToken).ConfigureAwait(false);
+                var tree = StorefrontOwnCatalogueTreeBuilder.Build(flat, filterApai: true);
+                return new(tree, CountTreeNodes(tree), "database", ex.Message);
+            }
+            catch (Exception fallbackEx)
+            {
+                return new([], 0, "database-error", fallbackEx.Message);
+            }
         }
+    }
+
+    private static async Task<List<StorefrontCatalogueCategoryRow>> ReadCatalogueCategoryRowsAsync(
+        DbConnection connection,
+        string sql,
+        CancellationToken cancellationToken)
+    {
+        await using var command = connection.CreateCommand();
+        command.CommandText = sql;
+        var flat = new List<StorefrontCatalogueCategoryRow>();
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+        while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+        {
+            var id = Convert.ToInt32(reader["id"] is DBNull ? 0 : reader["id"], CultureInfo.InvariantCulture);
+            var alias = Convert.ToString(reader["alias"] is DBNull ? string.Empty : reader["alias"], CultureInfo.InvariantCulture) ?? string.Empty;
+            var url = Convert.ToString(reader["url"] is DBNull ? string.Empty : reader["url"], CultureInfo.InvariantCulture) ?? string.Empty;
+            var translated = ReadOptionalString(reader, "value_translated");
+            var valueRaw = Convert.ToString(reader["value_lang_id"] is DBNull ? string.Empty : reader["value_lang_id"], CultureInfo.InvariantCulture) ?? string.Empty;
+            var value = StorefrontOwnCatalogueTreeBuilder.LabelFor(
+                alias,
+                string.IsNullOrWhiteSpace(translated) ? valueRaw : translated,
+                id);
+            flat.Add(new StorefrontCatalogueCategoryRow(
+                id,
+                alias,
+                url,
+                Convert.ToInt32(reader["parent"] is DBNull ? 0 : reader["parent"], CultureInfo.InvariantCulture),
+                Convert.ToInt32(reader["level"] is DBNull ? 0 : reader["level"], CultureInfo.InvariantCulture),
+                Convert.ToInt32(reader["child_count"] is DBNull ? 0 : reader["child_count"], CultureInfo.InvariantCulture),
+                Convert.ToInt32(reader["sort_order"] is DBNull ? 0 : reader["sort_order"], CultureInfo.InvariantCulture),
+                Convert.ToString(reader["image"] is DBNull ? string.Empty : reader["image"], CultureInfo.InvariantCulture) ?? string.Empty,
+                value));
+        }
+
+        return flat;
+    }
+
+    private static string ReadOptionalString(DbDataReader reader, string column)
+    {
+        for (var i = 0; i < reader.FieldCount; i++)
+        {
+            if (!string.Equals(reader.GetName(i), column, StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            if (reader.IsDBNull(i))
+            {
+                return string.Empty;
+            }
+
+            return Convert.ToString(reader.GetValue(i), CultureInfo.InvariantCulture) ?? string.Empty;
+        }
+
+        return string.Empty;
     }
 
     public async Task<StorefrontCatalogueProductsResult> ListStorefrontCatalogueProductsAsync(
@@ -2209,45 +2290,41 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenStorefrontShopAsync(cancellationToken).ConfigureAwait(false);
 
             if (categoryId <= 0 && url.Length > 0)
             {
-                await using var resolve = connection.CreateCommand();
-                resolve.CommandText = LegacySurfaceDashboardSql.SelectStorefrontCatalogueCategories;
-                await using var resolveReader = await resolve.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
-                while (await resolveReader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                var cats = await ReadCatalogueCategoryRowsAsync(
+                    connection,
+                    LegacySurfaceDashboardSql.SelectStorefrontCatalogueCategories,
+                    cancellationToken).ConfigureAwait(false);
+                foreach (var cat in cats)
                 {
-                    var rowUrl = Convert.ToString(resolveReader["url"] is DBNull ? string.Empty : resolveReader["url"], CultureInfo.InvariantCulture) ?? string.Empty;
-                    if (!string.Equals(rowUrl.Trim().TrimStart('/'), url, StringComparison.OrdinalIgnoreCase))
+                    if (!string.Equals(cat.Url.Trim().TrimStart('/'), url, StringComparison.OrdinalIgnoreCase))
                     {
                         continue;
                     }
 
-                    categoryId = Convert.ToInt32(resolveReader["id"] is DBNull ? 0 : resolveReader["id"], CultureInfo.InvariantCulture);
-                    var alias = Convert.ToString(resolveReader["alias"] is DBNull ? string.Empty : resolveReader["alias"], CultureInfo.InvariantCulture) ?? string.Empty;
-                    var valueRaw = Convert.ToString(resolveReader["value_lang_id"] is DBNull ? string.Empty : resolveReader["value_lang_id"], CultureInfo.InvariantCulture) ?? string.Empty;
-                    categoryValue = StorefrontOwnCatalogueTreeBuilder.LabelFor(alias, valueRaw, categoryId);
+                    categoryId = cat.Id;
+                    categoryValue = StorefrontOwnCatalogueTreeBuilder.LabelFor(cat.Alias, cat.Value, cat.Id);
                     break;
                 }
             }
             else if (categoryId > 0)
             {
-                await using var resolve = connection.CreateCommand();
-                resolve.CommandText = LegacySurfaceDashboardSql.SelectStorefrontCatalogueCategories;
-                await using var resolveReader = await resolve.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
-                while (await resolveReader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                var cats = await ReadCatalogueCategoryRowsAsync(
+                    connection,
+                    LegacySurfaceDashboardSql.SelectStorefrontCatalogueCategories,
+                    cancellationToken).ConfigureAwait(false);
+                foreach (var cat in cats)
                 {
-                    var id = Convert.ToInt32(resolveReader["id"] is DBNull ? 0 : resolveReader["id"], CultureInfo.InvariantCulture);
-                    if (id != categoryId)
+                    if (cat.Id != categoryId)
                     {
                         continue;
                     }
 
-                    url = Convert.ToString(resolveReader["url"] is DBNull ? string.Empty : resolveReader["url"], CultureInfo.InvariantCulture) ?? url;
-                    var alias = Convert.ToString(resolveReader["alias"] is DBNull ? string.Empty : resolveReader["alias"], CultureInfo.InvariantCulture) ?? string.Empty;
-                    var valueRaw = Convert.ToString(resolveReader["value_lang_id"] is DBNull ? string.Empty : resolveReader["value_lang_id"], CultureInfo.InvariantCulture) ?? string.Empty;
-                    categoryValue = StorefrontOwnCatalogueTreeBuilder.LabelFor(alias, valueRaw, categoryId);
+                    url = string.IsNullOrWhiteSpace(cat.Url) ? url : cat.Url;
+                    categoryValue = StorefrontOwnCatalogueTreeBuilder.LabelFor(cat.Alias, cat.Value, cat.Id);
                     break;
                 }
             }
@@ -2366,7 +2443,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         {
             try
             {
-                await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+                await using var connection = await OpenStorefrontShopAsync(cancellationToken).ConfigureAwait(false);
                 var bunches = await LoadOfficeStorageBunchesFromSqlAsync(connection, cancellationToken)
                     .ConfigureAwait(false);
                 if (bunches.Count > 0)

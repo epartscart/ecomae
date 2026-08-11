@@ -12,12 +12,7 @@
 <PhpChromeStyles Surface="storefront" />
 <HeadContent>
 <style>
-    .epc-sf-bu-hero {
-        margin-bottom:1rem; padding:1.15rem 1.25rem; border-radius:.7rem; color:#fff;
-        background:linear-gradient(135deg,#111827 0%,#1d4ed8 45%,#2563eb 100%);
-    }
-    .epc-sf-bu-hero h1 { margin:.2rem 0 .35rem; font-size:clamp(1.35rem,3vw,1.9rem); }
-    .epc-sf-bu-hero p { margin:0; color:#dbeafe; max-width:44rem; font-size:.92rem; line-height:1.45; }
+    
     .epc-sf-bu-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
     .epc-sf-bu-cta a, .epc-sf-bu-cta button {
         display:inline-flex; padding:.5rem .85rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
@@ -50,19 +45,12 @@
 <StorefrontAnalytics Enabled="true" IncludeClarity="true" />
 
 <PhpStorefrontDesktopChrome>
-    <section class="epc-sf-bu-hero">
-        <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="eparts" style="height:28px;filter:brightness(1.1)" />
-        <h1>Excel bulk upload</h1>
-        <p>
-            ASP.NET Core bulk-upload shell with history digest. PHP process form is temporary compare
-            under <code>/php-reference/*</code> only — not the default production body.
-        </p>
-        <div class="epc-sf-bu-cta">
-            <a href="@ClassicBulkHref" title="Temporary PHP compare only">Compare PHP reference</a>
-            <a class="ghost" href="@StorefrontSurfaceLinks.PartSearch">Part search</a>
-            <a class="ghost" href="@StorefrontSurfaceLinks.Cart">Cart</a>
-        </div>
-    </section>
+    <PhpStorefrontPageHeader Title="Excel bulk upload"
+                            Subtitle="ASP.NET Core bulk-upload shell with history digest. PHP process form is temporary compare under /php-reference/* only — not the default production body.">
+        <a class="btn btn-sm btn-default" href="@ClassicBulkHref" title="Temporary PHP compare only">Compare PHP reference</a>
+            <a class="btn btn-sm btn-default" href="@StorefrontSurfaceLinks.PartSearch">Part search</a>
+            <a class="btn btn-sm btn-default" href="@StorefrontSurfaceLinks.Cart">Cart</a>
+    </PhpStorefrontPageHeader>
 
     <div class="epc-sf-bu-steps" aria-label="Bulk upload steps">
         <div class="epc-sf-bu-step"><strong>1. Upload</strong>Excel / CSV parts list</div>

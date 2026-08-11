@@ -9,36 +9,25 @@
 <PhpChromeStyles Surface="storefront" />
 <HeadContent>
 <style>
-        .epc-sf-vin-hero {
-            margin-bottom:1rem; padding:1.15rem 1.25rem; border-radius:.7rem; color:#fff;
-            background:linear-gradient(135deg,#0f172a 0%,#1e3a5f 55%,#0ea5e9 100%);
-        }
-        .epc-sf-vin-hero h1 { margin:.2rem 0 .35rem; font-size:clamp(1.35rem,3vw,1.9rem); }
-        .epc-sf-vin-hero p { margin:0; color:#bae6fd; max-width:42rem; font-size:.92rem; line-height:1.45; }
         .epc-sf-vin-form {
-            display:flex; flex-wrap:wrap; gap:.55rem; margin-top:.9rem; align-items:center;
+            display:flex; flex-wrap:wrap; gap:.45rem; align-items:center;
         }
         .epc-sf-vin-form input {
-            flex:1 1 16rem; min-width:12rem; padding:.55rem .75rem; border-radius:.4rem;
-            border:1px solid rgba(255,255,255,.35); background:rgba(15,23,42,.35); color:#fff;
+            flex:1 1 14rem; min-width:10rem; padding:.4rem .65rem; border-radius:3px;
+            border:1px solid #cbd5e1; background:#fff; color:#111827;
         }
         .epc-sf-vin-form input::placeholder { color:#94a3b8; }
-        .epc-sf-vin-form button, .epc-sf-vin-form a.btn {
-            display:inline-flex; padding:.55rem .95rem; border-radius:.4rem; border:0;
-            background:#0284c7; color:#fff; font-weight:700; font-size:.86rem; text-decoration:none; cursor:pointer;
-        }
-        .epc-sf-vin-form a.ghost {
-            background:transparent; border:1px solid rgba(255,255,255,.35);
+        .epc-sf-vin-form button {
+            display:inline-flex; padding:5px 12px; border-radius:3px; border:1px solid #b91c1c;
+            background:#dc2626; color:#fff; font-weight:600; font-size:12px; cursor:pointer;
         }
         .epc-sf-vin-panel {
-            background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; overflow:hidden; min-height:12rem;
+            background:#fff; border:1px solid #e2e8f0; border-radius:2px; overflow:hidden; min-height:12rem;
         }
-        .epc-sf-vin-panel iframe { width:100%; min-height:70vh; border:0; display:block; background:#f8fafc; }
         .epc-sf-vin-note {
             margin-top:.85rem; padding:.7rem .85rem; background:#eff6ff; border:1px solid #bfdbfe;
-            border-radius:.45rem; color:#1e3a8a; font-size:.84rem;
+            border-radius:2px; color:#1e3a8a; font-size:.84rem;
         }
-    
 </style>
 </HeadContent>
 
@@ -46,34 +35,32 @@
 
 <PhpStorefrontDesktopChrome>
 
-    <section class="epc-sf-vin-hero">
-        <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="eparts" style="height:28px;filter:brightness(1.15)" />
-        <h1>VIN / Frame search</h1>
-        <p>ASP.NET Core product shell. Decode stays here; Laximo PHP is temporary compare under <code>/php-reference/*</code> only.</p>
+    <PhpStorefrontPageHeader Title="VIN / Frame search"
+                            Subtitle="ASP.NET Core product shell. Decode stays here; Laximo PHP is temporary compare under /php-reference/* only.">
         <form class="epc-sf-vin-form" @onsubmit="OnSubmit" @onsubmit:preventDefault>
             <input type="search" @bind="_vin" maxlength="32" placeholder="VIN or Frame" aria-label="VIN or Frame" required />
             <button type="submit">Decode VIN</button>
-            <a class="btn ghost" href="@PhpResultsHref" title="Temporary PHP compare only">Compare PHP reference</a>
-            <a class="btn ghost" href="@StorefrontSurfaceLinks.PartSearch">Part search</a>
+            <a class="btn btn-sm btn-default" href="@PhpResultsHref" title="Temporary PHP compare only">Compare PHP reference</a>
+            <a class="btn btn-sm btn-default" href="@StorefrontSurfaceLinks.PartSearch">Part search</a>
         </form>
-    </section>
+    </PhpStorefrontPageHeader>
 
     @if (!string.IsNullOrWhiteSpace(_vin))
     {
-        <div class="epc-sf-vin-panel" style="padding:1.15rem 1.25rem;color:#334155" aria-label="VIN decode workspace">
+        <div class="epc-sf-vin-panel" style="padding:1.1rem 1.2rem;color:#334155" aria-label="VIN decode workspace">
             <p style="margin:0 0 .65rem;font-weight:700">VIN / frame: <code>@_vin</code></p>
             <p style="margin:0 0 .75rem;color:#64748b;font-size:.9rem;line-height:1.45">
                 Product results stay on ASP.NET Core. The classic Laximo tree is not the default production body —
                 open it only as temporary PHP reference compare (<code>?php=1</code> embeds the compare iframe).
             </p>
             <p style="margin:0">
-                <a href="@CompareEmbedHref" style="display:inline-flex;padding:.5rem .85rem;border-radius:.4rem;background:#0284c7;color:#fff;font-weight:700;text-decoration:none;margin-right:.35rem">Show PHP compare</a>
-                <a href="@PhpResultsHref" style="display:inline-flex;padding:.5rem .85rem;border-radius:.4rem;border:1px solid #d1d5db;color:#111;font-weight:700;text-decoration:none">Open /php-reference</a>
+                <a class="btn btn-sm btn-primary" href="@CompareEmbedHref">Show PHP compare</a>
+                <a class="btn btn-sm btn-default" href="@PhpResultsHref">Open /php-reference</a>
             </p>
             @if (_showPhpCompare)
             {
                 <iframe title="Laximo VIN results (PHP compare)" src="@PhpResultsHref" loading="lazy" referrerpolicy="same-origin"
-                        style="width:100%;min-height:70vh;margin-top:.85rem;border:1px solid #e2e8f0;border-radius:.45rem;background:#f8fafc"></iframe>
+                        style="width:100%;min-height:70vh;margin-top:.85rem;border:1px solid #e2e8f0;border-radius:2px;background:#f8fafc"></iframe>
             }
         </div>
         <p class="epc-sf-vin-note">

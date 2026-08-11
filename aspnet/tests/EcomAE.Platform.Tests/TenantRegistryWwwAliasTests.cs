@@ -133,7 +133,34 @@ public sealed class TenantRegistryWwwAliasTests
     }
 
     [Fact]
-    public async Task StorefrontSearch_UnboundTenantShop_ReturnsWwwAliasHint()
+    public async Task StorefrontSearch_UnboundNonEpartsCart_ReturnsWwwAliasHint()
+    {
+        var http = new HttpContextAccessor
+        {
+            HttpContext = new DefaultHttpContext()
+        };
+        http.HttpContext.Items[TenantResolutionMiddleware.HttpContextItemKey] = new TenantContext(
+            Host: "www.other-tenant.example",
+            Path: "/",
+            Surface: TenantSurface.Storefront,
+            Mode: TenantMode.LiveTenant,
+            SiteKey: "other",
+            DatabaseName: null);
+
+        var reporter = new SurfaceDashboardSummaryReporter(new ConfiguredNoopFactory(), http);
+        var brands = await reporter.ListStorefrontArticleBrandsAsync("DA320", 20);
+        var parts = await reporter.SearchStorefrontPartsAsync("DA320", 20);
+
+        Assert.Equal("migration", brands.Source);
+        Assert.Equal("migration", parts.Source);
+        Assert.Contains("www alias", brands.Message, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("epc_portal_tenants.hostname", parts.Message, StringComparison.OrdinalIgnoreCase);
+        Assert.Empty(brands.Brands);
+        Assert.Empty(parts.Rows);
+    }
+
+    [Fact]
+    public async Task StorefrontSearch_UnboundEpartsCart_OpensDocpartNotMigrationGate()
     {
         var http = new HttpContextAccessor
         {
@@ -147,16 +174,12 @@ public sealed class TenantRegistryWwwAliasTests
             SiteKey: "epartscart",
             DatabaseName: null);
 
-        var reporter = new SurfaceDashboardSummaryReporter(new ConfiguredNoopFactory(), http);
-        var brands = await reporter.ListStorefrontArticleBrandsAsync("DA320", 20);
-        var parts = await reporter.SearchStorefrontPartsAsync("DA320", 20);
+        var factory = new CapturingFactory();
+        var reporter = new SurfaceDashboardSummaryReporter(factory, http);
+        _ = await reporter.ListStorefrontArticleBrandsAsync("DA320", 20);
 
-        Assert.Equal("migration", brands.Source);
-        Assert.Equal("migration", parts.Source);
-        Assert.Contains("www alias", brands.Message, StringComparison.OrdinalIgnoreCase);
-        Assert.Contains("epc_portal_tenants.hostname", parts.Message, StringComparison.OrdinalIgnoreCase);
-        Assert.Empty(brands.Brands);
-        Assert.Empty(parts.Rows);
+        Assert.Contains("docpart", factory.OpenedDatabases, StringComparer.OrdinalIgnoreCase);
+        Assert.DoesNotContain(factory.OpenedDatabases, d => d is null);
     }
 
     private sealed class ConfiguredNoopFactory : ITenantDbConnectionFactory
@@ -174,5 +197,29 @@ public sealed class TenantRegistryWwwAliasTests
 
         public Task<System.Data.Common.DbConnection> OpenRegistryAsync(CancellationToken cancellationToken = default)
             => throw new InvalidOperationException("should not open when tenant shop DB is unbound");
+    }
+
+    private sealed class CapturingFactory : ITenantDbConnectionFactory
+    {
+        public List<string?> OpenedDatabases { get; } = [];
+        public bool IsConfigured => true;
+
+        public Task<System.Data.Common.DbConnection> OpenAsync(string? databaseName, CancellationToken cancellationToken = default)
+        {
+            OpenedDatabases.Add(databaseName);
+            throw new InvalidOperationException("capture-only");
+        }
+
+        public Task<System.Data.Common.DbConnection> OpenAsync(string? databaseName, string? userName, string? password, CancellationToken cancellationToken = default)
+        {
+            OpenedDatabases.Add(databaseName);
+            throw new InvalidOperationException("capture-only");
+        }
+
+        public Task<System.Data.Common.DbConnection> OpenForTenantAsync(TenantContext? tenant, CancellationToken cancellationToken = default)
+            => OpenAsync(tenant?.DatabaseName, cancellationToken);
+
+        public Task<System.Data.Common.DbConnection> OpenRegistryAsync(CancellationToken cancellationToken = default)
+            => throw new InvalidOperationException("registry not expected");
     }
 }

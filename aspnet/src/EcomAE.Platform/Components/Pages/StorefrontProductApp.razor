@@ -10,12 +10,7 @@
 <PhpChromeStyles Surface="storefront" />
 <HeadContent>
 <style>
-        .epc-sf-pd-hero {
-            margin-bottom:1rem; padding:1.15rem 1.25rem; border-radius:.7rem; color:#fff;
-            background:linear-gradient(135deg,#111827 0%,#7f1d1d 50%,#dc2626 100%);
-        }
-        .epc-sf-pd-hero h1 { margin:.2rem 0 .35rem; font-size:clamp(1.35rem,3vw,1.9rem); }
-        .epc-sf-pd-hero p { margin:0; color:#fecaca; max-width:42rem; font-size:.92rem; }
+        
         .epc-sf-pd-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
         .epc-sf-pd-cta a {
             display:inline-flex; padding:.5rem .85rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
@@ -50,14 +45,10 @@
 
     @if (_product is null)
     {
-        <section class="epc-sf-pd-hero">
-            <h1>Product</h1>
-            <p>Catalogue product with media and specifications. Add <code>?id=</code> for a product row.</p>
-            <div class="epc-sf-pd-cta">
-                <a href="@StorefrontSurfaceLinks.PartSearch">Part search</a>
-                <a class="ghost" href="@StorefrontSurfaceLinks.Wishlist">Bookmarks</a>
-            </div>
-        </section>
+        <PhpStorefrontPageHeader Title="Product" Subtitle="Catalogue product with media and specifications. Add ?id= for a product row.">
+            <a class="btn btn-sm btn-primary" href="@StorefrontSurfaceLinks.PartSearch">Part search</a>
+            <a class="btn btn-sm btn-default" href="@StorefrontSurfaceLinks.Wishlist">Bookmarks</a>
+        </PhpStorefrontPageHeader>
         <div class="epc-sf-pd-empty">
             @if (ProductId is null or <= 0)
             {
@@ -71,20 +62,12 @@
     }
     else
     {
-        <section class="epc-sf-pd-hero">
-            <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="eparts" style="height:28px;filter:brightness(1.1)" />
-            <h1>@_product.Caption</h1>
-            <p>
-                @(string.IsNullOrWhiteSpace(_product.Manufacturer) ? "" : _product.Manufacturer + " · ")
-                @(string.IsNullOrWhiteSpace(_product.Article) ? ("#" + _product.Id) : _product.Article)
-            </p>
-            <div class="epc-sf-pd-cta">
-                <a href="@PhpProductHref">Open classic product page</a>
-                <a class="ghost" href="@BrandArticleSearchHref">Warehouse search</a>
-                <a class="ghost" href="@StorefrontPhpCanonical.Wishlist">Bookmark on PHP</a>
-                <a class="ghost" href="@StorefrontSurfaceLinks.Cart">Cart</a>
-            </div>
-        </section>
+        <PhpStorefrontPageHeader Title="@_product.Caption" Subtitle="@ProductSubtitle">
+            <a class="btn btn-sm btn-primary" href="@PhpProductCompareHref" title="Temporary PHP compare only">Compare PHP reference</a>
+            <a class="btn btn-sm btn-default" href="@BrandArticleSearchHref">Warehouse search</a>
+            <a class="btn btn-sm btn-default" href="@StorefrontSurfaceLinks.Wishlist">Bookmarks</a>
+            <a class="btn btn-sm btn-default" href="@StorefrontSurfaceLinks.Cart">Cart</a>
+        </PhpStorefrontPageHeader>
 
         <div class="epc-sf-pd-grid">
             <div class="epc-sf-pd-card">
@@ -156,14 +139,14 @@
                 Add to cart / bookmark / compare writes stay on PHP (session + cookies).
             </p>
             <div class="epc-sf-pd-cta" style="margin:0">
-                <a href="@StorefrontPhpCanonical.Cart">Add via cart module</a>
-                <a class="ghost" href="@StorefrontPhpCanonical.Wishlist">Bookmarks</a>
-                <a class="ghost" href="@StorefrontPhpCanonical.Compare">Compare</a>
+                <a class="btn btn-sm btn-primary" href="@StorefrontSurfaceLinks.Cart">Cart</a>
+                <a class="btn btn-sm btn-default" href="@StorefrontSurfaceLinks.Wishlist">Bookmarks</a>
+                <a class="btn btn-sm btn-default" href="@StorefrontSurfaceLinks.Compare">Compare</a>
             </div>
         </div>
         <p class="epc-sf-pd-note">
             ASP.NET product digest includes catalogue gallery + SKU media/specs (PHP <code>epc_sku_media</code>).
-            Cart / bookmark / compare writes remain on classic PHP modules.
+            Cart / bookmark / compare writes remain PHP-authoritative under /php-reference/* until cutover.
         </p>
     }
 </PhpStorefrontDesktopChrome>
@@ -176,10 +159,22 @@
     [SupplyParameterFromQuery(Name = "id")]
     public int? ProductId { get; set; }
 
-    private string PhpProductHref =>
-        !string.IsNullOrWhiteSpace(_product?.Alias)
-            ? "/" + _product!.Alias.TrimStart('/')
-            : StorefrontPhpCanonical.PartSearch;
+    private string ProductSubtitle
+    {
+        get
+        {
+            if (_product is null) return "";
+            var mfr = string.IsNullOrWhiteSpace(_product.Manufacturer) ? "" : _product.Manufacturer + " · ";
+            var art = string.IsNullOrWhiteSpace(_product.Article) ? ("#" + _product.Id) : _product.Article;
+            return mfr + art;
+        }
+    }
+
+    private string PhpProductCompareHref =>
+        "/php-reference" + (
+            !string.IsNullOrWhiteSpace(_product?.Alias)
+                ? "/" + _product!.Alias.TrimStart('/')
+                : StorefrontPhpCanonical.PartSearch);
 
     private string BrandArticleSearchHref
     {

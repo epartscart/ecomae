@@ -1,0 +1,219 @@
+/**
+ * ASP.NET storefront module presentation → PHP nero / professional shell parity.
+ * Neutralizes invented marketing gradient heroes; keeps light panels + Bootstrap-like tables.
+ * Loaded with LegacyPresentationAssets.StorefrontStylesheets on every storefront app.
+ */
+
+/* ---- Page header (was dark gradient “hero”) ---- */
+.epc-sf-page-hd,
+[class*="epc-sf-"][class*="-hero"],
+.epc-own-cat__hero,
+.epc-acc__hero {
+  margin: 0 0 1rem !important;
+  padding: .85rem 1rem .95rem !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 2px !important;
+  background: #fff !important;
+  background-image: none !important;
+  color: #1f2937 !important;
+  box-shadow: none !important;
+}
+
+.epc-sf-page-hd {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: .75rem 1.25rem;
+}
+
+.epc-sf-page-hd-main { flex: 1 1 16rem; min-width: 0; }
+
+.epc-sf-page-title,
+[class*="epc-sf-"][class*="-hero"] h1,
+.epc-own-cat__hero h1,
+.epc-acc__hero h1 {
+  margin: 0 0 .25rem !important;
+  padding: 0 !important;
+  font-size: 22px !important;
+  font-weight: 700 !important;
+  line-height: 1.25 !important;
+  color: #111827 !important;
+  letter-spacing: 0 !important;
+}
+
+.epc-sf-page-sub,
+[class*="epc-sf-"][class*="-hero"] p,
+.epc-own-cat__hero p,
+.epc-acc__hero p {
+  margin: 0 !important;
+  max-width: 48rem !important;
+  font-size: 13px !important;
+  line-height: 1.45 !important;
+  color: #64748b !important;
+  font-weight: 400 !important;
+}
+
+/* Hide decorative brand mark inside invented heroes (PHP pages use site logo in chrome only). */
+[class*="epc-sf-"][class*="-hero"] > img[alt="eparts"],
+.epc-own-cat__hero .epc-own-cat__brand {
+  display: none !important;
+}
+
+.epc-sf-page-actions,
+[class*="epc-sf-"][class*="-cta"],
+.epc-own-cat__search {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .4rem;
+  margin-top: .65rem;
+  align-items: center;
+}
+
+/* CTA links → Bootstrap 3 btn look (PHP nero) */
+.epc-sf-page-actions .btn,
+[class*="epc-sf-"][class*="-cta"] a,
+[class*="epc-sf-"][class*="-cta"] button,
+[class*="epc-sf-"][class*="-hero"] a.btn,
+[class*="epc-sf-"][class*="-hero"] button {
+  display: inline-flex !important;
+  align-items: center;
+  gap: .35rem;
+  padding: 5px 12px !important;
+  border-radius: 3px !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  line-height: 1.4 !important;
+  text-decoration: none !important;
+  border: 1px solid transparent !important;
+  cursor: pointer;
+}
+
+.epc-sf-page-actions .btn-primary,
+[class*="epc-sf-"][class*="-cta"] > a:first-child:not(.ghost),
+[class*="epc-sf-"][class*="-cta"] > a:not(.ghost):not(.btn-default) {
+  background: #dc2626 !important;
+  border-color: #b91c1c !important;
+  color: #fff !important;
+}
+
+.epc-sf-page-actions .btn-default,
+[class*="epc-sf-"][class*="-cta"] a.ghost,
+[class*="epc-sf-"][class*="-hero"] a.ghost {
+  background: #fff !important;
+  border-color: #cbd5e1 !important;
+  color: #334155 !important;
+}
+
+/* Forms inside former heroes */
+[class*="epc-sf-"][class*="-hero"] input[type="search"],
+[class*="epc-sf-"][class*="-hero"] input[type="text"],
+[class*="epc-sf-"][class*="-form"] input,
+.epc-own-cat__search input {
+  background: #fff !important;
+  color: #111827 !important;
+  border: 1px solid #cbd5e1 !important;
+  border-radius: 3px !important;
+  box-shadow: none !important;
+}
+
+[class*="epc-sf-"][class*="-hero"] input::placeholder {
+  color: #94a3b8 !important;
+}
+
+/* KPI strips → flat PHP panels */
+[class*="epc-sf-"][class*="-kpi"],
+.epc-sf-page-kpi {
+  background: #fff !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 2px !important;
+  box-shadow: none !important;
+}
+
+/* Tables → PHP-like */
+[class*="epc-sf-"][class*="-table"],
+.table-epc {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  background: #fff;
+}
+
+[class*="epc-sf-"][class*="-table"] th,
+.table-epc th {
+  background: #f8fafc !important;
+  color: #475569 !important;
+  font-size: 11px !important;
+  text-transform: uppercase;
+  letter-spacing: .02em;
+  border-bottom: 1px solid #e2e8f0 !important;
+  font-weight: 700;
+}
+
+[class*="epc-sf-"][class*="-table"] td,
+.table-epc td {
+  border-bottom: 1px solid #f1f5f9 !important;
+  color: #1f2937;
+}
+
+[class*="epc-sf-"][class*="-table-wrap"],
+.epc-sf-panel,
+[class*="epc-sf-"][class*="-gate"],
+[class*="epc-sf-"][class*="-panel"],
+[class*="epc-sf-"][class*="-brand-picker"] {
+  background: #fff !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 2px !important;
+  box-shadow: none !important;
+}
+
+/* Soft notes */
+[class*="epc-sf-"][class*="-note"] {
+  border-radius: 2px !important;
+}
+
+/* Own-catalog / accessories search on light header */
+.epc-own-cat__search button {
+  border-radius: 3px !important;
+}
+
+.epc-acc__hero::before,
+.epc-acc__brand {
+  display: none !important;
+}
+
+.epc-acc__hero {
+  padding: .85rem 1rem .95rem !important;
+  margin: 0 0 1rem !important;
+}
+
+.epc-acc__search {
+  background: #fff !important;
+  border: 1px solid #cbd5e1 !important;
+  border-radius: 3px !important;
+  backdrop-filter: none !important;
+  padding: 4px !important;
+}
+
+.epc-acc__search input,
+.epc-acc__search button,
+.epc-acc__btn {
+  border-radius: 3px !important;
+  height: 36px !important;
+}
+
+.epc-acc__btn--ghost {
+  background: #fff !important;
+  border: 1px solid #cbd5e1 !important;
+  color: #334155 !important;
+}
+
+/* Vehicle catalog widget: flatten teal marketing cards if present */
+.epc-sf-vc-body .epc-umapi-panel,
+#epc-vehicle-catalog .epc-vc-global-card {
+  background: #fff !important;
+  background-image: none !important;
+  border: 1px solid #e2e8f0 !important;
+  color: #1f2937 !important;
+  box-shadow: none !important;
+}

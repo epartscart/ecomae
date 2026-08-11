@@ -2779,15 +2779,37 @@ public static class LegacySurfaceDashboardSql
     /// Published own-catalogue categories for storefront mega menu / own-catalog-app
     /// (PHP <c>get_catalogue_tree.php</c> + <c>dp_menu.php</c>).
     /// </summary>
+    /// <summary>Own-catalogue tree (raw lang id in <c>value</c>). Labels via LabelFor / optional translated query.</summary>
     public const string SelectStorefrontCatalogueCategories = """
         SELECT `id`, IFNULL(`alias`,'') AS alias, IFNULL(`url`,'') AS url,
                IFNULL(`parent`,0) AS parent, IFNULL(`level`,0) AS level,
                IFNULL(`count`,0) AS child_count, IFNULL(`order`,0) AS sort_order,
                IFNULL(`image`,'') AS image, IFNULL(`published_flag`,0) AS published_flag,
-               IFNULL(`value`,0) AS value_lang_id
+               IFNULL(`value`,0) AS value_lang_id,
+               '' AS value_translated
         FROM `shop_catalogue_categories`
         WHERE IFNULL(`published_flag`,0) = 1
         ORDER BY `level` ASC, `order` ASC, `id` ASC
+        LIMIT 5000
+        """;
+
+    /// <summary>Same tree with PHP <c>translate_str_by_id</c> caption from lang_text_strings_translation.</summary>
+    public const string SelectStorefrontCatalogueCategoriesTranslated = """
+        SELECT c.`id`, IFNULL(c.`alias`,'') AS alias, IFNULL(c.`url`,'') AS url,
+               IFNULL(c.`parent`,0) AS parent, IFNULL(c.`level`,0) AS level,
+               IFNULL(c.`count`,0) AS child_count, IFNULL(c.`order`,0) AS sort_order,
+               IFNULL(c.`image`,'') AS image, IFNULL(c.`published_flag`,0) AS published_flag,
+               IFNULL(c.`value`,0) AS value_lang_id,
+               IFNULL((
+                   SELECT NULLIF(TRIM(t.`value`), '')
+                   FROM `lang_text_strings_translation` t
+                   WHERE t.`str_key` = CAST(c.`value` AS CHAR)
+                   ORDER BY CASE WHEN t.`lang_code` = 'en' THEN 0 ELSE 1 END, t.`lang_code`
+                   LIMIT 1
+               ), '') AS value_translated
+        FROM `shop_catalogue_categories` c
+        WHERE IFNULL(c.`published_flag`,0) = 1
+        ORDER BY c.`level` ASC, c.`order` ASC, c.`id` ASC
         LIMIT 5000
         """;
 

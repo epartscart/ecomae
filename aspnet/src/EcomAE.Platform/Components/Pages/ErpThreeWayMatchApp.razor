@@ -9,14 +9,12 @@
 @inject IHttpContextAccessor Http
 @inject NavigationManager Nav
 
-<PageTitle>Three-Way Match · ERP · eParts Cart</PageTitle>
+<PageTitle>3-way match · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Three-Way Match" BreadcrumbArea="Procure to Pay" BreadcrumbTab="Three-way match">
 
-    
     <PhpErpModulePageHeader Title="Three-Way Match" Subtitle="ASP.NET Core digest — PHP compare only under /php-reference/*." PhpTabHref="@_phpTab" />
     <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
-
 
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Three-Way Match KPIs">
         <div class="kpi"><div class="lbl">Shown (limit @_limit)</div><div class="val">@_rows.Count</div></div>

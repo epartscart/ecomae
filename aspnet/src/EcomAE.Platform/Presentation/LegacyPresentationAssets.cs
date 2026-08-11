@@ -119,7 +119,10 @@ public static class LegacyPresentationAssets
         "/epc-static.php?f=content/general_pages/epc_storefront_professional_shell.css",
         "/content/general_pages/epc_storefront_professional_shell.css",
         // Container width (98% / 1728px) + piston hero (requires html data-epc-industry/storefront attrs)
-        "/content/general_pages/epc_automotive_spareparts.css"
+        "/content/general_pages/epc_automotive_spareparts.css",
+        // ASP.NET module digests → PHP page-header look (no invented gradient heroes)
+        "/platform-assets/epc_storefront_aspnet_module_parity.css?v=20260809php",
+        "/content/general_pages/epc_storefront_aspnet_module_parity.css"
     ];
 
     /// <summary>

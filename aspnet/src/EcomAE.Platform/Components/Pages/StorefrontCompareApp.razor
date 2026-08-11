@@ -10,12 +10,7 @@
 <PhpChromeStyles Surface="storefront" />
 <HeadContent>
 <style>
-        .epc-sf-cmp-hero {
-            margin-bottom:1rem; padding:1.15rem 1.25rem; border-radius:.7rem; color:#fff;
-            background:linear-gradient(135deg,#111827 0%,#7f1d1d 50%,#dc2626 100%);
-        }
-        .epc-sf-cmp-hero h1 { margin:.2rem 0 .35rem; font-size:clamp(1.35rem,3vw,1.9rem); }
-        .epc-sf-cmp-hero p { margin:0; color:#fecaca; max-width:40rem; font-size:.92rem; }
+        
         .epc-sf-cmp-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
         .epc-sf-cmp-cta a {
             display:inline-flex; padding:.5rem .85rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
@@ -37,16 +32,12 @@
 
 <PhpStorefrontDesktopChrome>
 
-    <section class="epc-sf-cmp-hero">
-        <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="eparts" style="height:28px;filter:brightness(1.1)" />
-        <h1>Compare</h1>
-        <p>Products saved in the classic compare cookie.</p>
-        <div class="epc-sf-cmp-cta">
-            <a href="@StorefrontPhpCanonical.Compare">Open classic compare</a>
-            <a class="ghost" href="@StorefrontSurfaceLinks.Wishlist">Bookmarks</a>
-            <a class="ghost" href="@StorefrontSurfaceLinks.PartSearch">Search</a>
-        </div>
-    </section>
+    <PhpStorefrontPageHeader Title="Compare"
+                            Subtitle="Products saved in the classic compare cookie.">
+        <a class="btn btn-sm btn-primary" href="@StorefrontPhpCanonical.Compare">Open classic compare</a>
+            <a class="btn btn-sm btn-default" href="@StorefrontSurfaceLinks.Wishlist">Bookmarks</a>
+            <a class="btn btn-sm btn-default" href="@StorefrontSurfaceLinks.PartSearch">Search</a>
+    </PhpStorefrontPageHeader>
 
     @if (_ids.Count == 0)
     {

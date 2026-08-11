@@ -11,12 +11,7 @@
 <PhpChromeStyles Surface="storefront" />
 <HeadContent>
 <style>
-        .epc-sf-wl-hero {
-            margin-bottom:1rem; padding:1.15rem 1.25rem; border-radius:.7rem; color:#fff;
-            background:linear-gradient(135deg,#111827 0%,#7f1d1d 50%,#dc2626 100%);
-        }
-        .epc-sf-wl-hero h1 { margin:.2rem 0 .35rem; font-size:clamp(1.35rem,3vw,1.9rem); }
-        .epc-sf-wl-hero p { margin:0; color:#fecaca; max-width:40rem; font-size:.92rem; }
+        
         .epc-sf-wl-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
         .epc-sf-wl-cta a {
             display:inline-flex; padding:.5rem .85rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
@@ -42,16 +37,12 @@
 
 <PhpStorefrontDesktopChrome>
 
-    <section class="epc-sf-wl-hero">
-        <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="eparts" style="height:28px;filter:brightness(1.1)" />
-        <h1>Bookmarks</h1>
-        <p>Saved catalogue products from the classic wishlist cookie.</p>
-        <div class="epc-sf-wl-cta">
-            <a href="@StorefrontPhpCanonical.Wishlist">Open classic bookmarks</a>
-            <a class="ghost" href="@StorefrontSurfaceLinks.Compare">Compare</a>
-            <a class="ghost" href="@StorefrontSurfaceLinks.Cart">Cart</a>
-        </div>
-    </section>
+    <PhpStorefrontPageHeader Title="Bookmarks"
+                            Subtitle="Saved catalogue products from the classic wishlist cookie.">
+        <a class="btn btn-sm btn-primary" href="@StorefrontPhpCanonical.Wishlist">Open classic bookmarks</a>
+            <a class="btn btn-sm btn-default" href="@StorefrontSurfaceLinks.Compare">Compare</a>
+            <a class="btn btn-sm btn-default" href="@StorefrontSurfaceLinks.Cart">Cart</a>
+    </PhpStorefrontPageHeader>
 
     @if (_ids.Count == 0)
     {

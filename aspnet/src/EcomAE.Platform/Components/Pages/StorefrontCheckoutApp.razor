@@ -18,12 +18,7 @@
 <PhpChromeStyles Surface="storefront" />
 <HeadContent>
 <style>
-        .epc-sf-co-hero {
-            margin-bottom:1rem; padding:1.15rem 1.25rem; border-radius:.7rem; color:#fff;
-            background:linear-gradient(135deg,#111827 0%,#7f1d1d 50%,#dc2626 100%);
-        }
-        .epc-sf-co-hero h1 { margin:.2rem 0 .35rem; font-size:clamp(1.4rem,3vw,1.95rem); }
-        .epc-sf-co-hero p { margin:0; color:#bbf7d0; max-width:42rem; font-size:.92rem; line-height:1.45; }
+        
         .epc-sf-co-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
         .epc-sf-co-cta a {
             display:inline-flex; padding:.5rem .85rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
@@ -57,17 +52,13 @@
 
 <PhpStorefrontDesktopChrome>
 
-    <section class="epc-sf-co-hero">
-        <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="eparts" style="height:28px;filter:brightness(1.1)" />
-        <h1>@_heroTitle</h1>
-        <p>@_heroLead</p>
-        <div class="epc-sf-co-cta">
-            <a href="@StorefrontSurfaceLinks.CheckoutHowGet">Delivery options</a>
-            <a class="ghost" href="@StorefrontSurfaceLinks.CheckoutConfirm">Confirm order</a>
-            <a class="ghost" href="@StorefrontSurfaceLinks.Cart">Cart</a>
-            <a class="ghost" href="@StorefrontSurfaceLinks.Login">Sign in</a>
-        </div>
-    </section>
+    <PhpStorefrontPageHeader Title="@_heroTitle"
+                            Subtitle="@_heroLead">
+        <a class="btn btn-sm btn-primary" href="@StorefrontSurfaceLinks.CheckoutHowGet">Delivery options</a>
+            <a class="btn btn-sm btn-default" href="@StorefrontSurfaceLinks.CheckoutConfirm">Confirm order</a>
+            <a class="btn btn-sm btn-default" href="@StorefrontSurfaceLinks.Cart">Cart</a>
+            <a class="btn btn-sm btn-default" href="@StorefrontSurfaceLinks.Login">Sign in</a>
+    </PhpStorefrontPageHeader>
 
     @if (_step is "how_get" or "confirm" or "login_offer")
     {

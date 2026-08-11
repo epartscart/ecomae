@@ -133,6 +133,9 @@ public sealed class StorefrontFrontendParityWaveTests
         Assert.Contains("/storefront/cart/check-for-order", text, StringComparison.Ordinal);
         Assert.Contains("/storefront/cart/delete", text, StringComparison.Ordinal);
         Assert.Contains("StorefrontPhpCanonical.Cart", text, StringComparison.Ordinal);
+        Assert.Contains("/php-reference", text, StringComparison.Ordinal);
+        Assert.Contains("Compare PHP reference", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("href=\"@StorefrontPhpCanonical.Cart\"", text, StringComparison.Ordinal);
     }
 
     [Fact]
