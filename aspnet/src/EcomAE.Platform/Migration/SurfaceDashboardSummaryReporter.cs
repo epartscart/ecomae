@@ -1257,8 +1257,10 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                 await MergeCpCrossBrandsAsync(connection, normalized, byBrand, hasAnalogsSearch, cancellationToken)
                     .ConfigureAwait(false);
 
+                // Warehouse stock brands first (PHP SSR), then cross-only siblings.
                 var brands = byBrand.Values
-                    .OrderBy(b => b.Brand, StringComparer.OrdinalIgnoreCase)
+                    .OrderByDescending(b => b.Exist > 0)
+                    .ThenBy(b => b.Brand, StringComparer.OrdinalIgnoreCase)
                     .Take(safeLimit)
                     .ToList();
 
@@ -1785,7 +1787,21 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                 continue;
             }
 
-            brands.Add(new StorefrontArticleBrandDigest(name.Trim()));
+            var partName = Convert.ToString(reader["part_name"] is DBNull ? string.Empty : reader["part_name"], CultureInfo.InvariantCulture) ?? string.Empty;
+            var exist = Convert.ToInt32(reader["exist_sum"] is DBNull ? 0 : reader["exist_sum"], CultureInfo.InvariantCulture);
+            decimal? minPrice = null;
+            if (reader["min_price"] is not DBNull and not null)
+            {
+                minPrice = Convert.ToDecimal(reader["min_price"], CultureInfo.InvariantCulture);
+            }
+
+            var warehouse = Convert.ToString(reader["warehouse"] is DBNull ? string.Empty : reader["warehouse"], CultureInfo.InvariantCulture) ?? string.Empty;
+            brands.Add(new StorefrontArticleBrandDigest(
+                name.Trim(),
+                partName.Trim(),
+                exist,
+                minPrice,
+                warehouse.Trim()));
         }
 
         return brands;

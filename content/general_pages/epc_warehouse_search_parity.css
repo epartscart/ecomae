@@ -26,3 +26,19 @@
 	font-size: 14px;
 	padding: 18px 20px;
 }
+/* PHP CHPU warehouse banner above #all_table_products */
+.epc-ssr-warehouse-banner {
+	background: linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%);
+	border: 1px solid #d7dee8;
+	border-radius: 4px;
+	color: #1e293b;
+	font-size: 13px;
+	margin: 0 0 10px;
+	padding: 10px 12px;
+}
+.epc-ssr-warehouse-banner strong {
+	letter-spacing: .02em;
+}
+.epc-chpu-work-area {
+	min-width: 0;
+}

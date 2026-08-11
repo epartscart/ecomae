@@ -379,11 +379,86 @@
 		});
 	}
 
+	function photoKey(brand, article) {
+		return String(brand || "").replace(/[^A-Za-z0-9]/g, "").toUpperCase() + "|" +
+			String(article || "").replace(/[^A-Za-z0-9]/g, "").toUpperCase();
+	}
+
+	function applySearchRowPhoto(brand, article, url) {
+		if (!url) return;
+		var key = photoKey(brand, article);
+		document.querySelectorAll('[data-epc-row-photo="' + key + '"]').forEach(function (cell) {
+			if (cell.getAttribute("data-epc-row-photo-loaded") === "1") return;
+			cell.setAttribute("data-epc-row-photo-loaded", "1");
+			cell.innerHTML = '<button type="button" class="epc-search-row-photo__btn" aria-label="View product photo">' +
+				'<img src="' + esc(url) + '" alt="" loading="lazy"></button>';
+			var btn = cell.querySelector("button");
+			if (btn) {
+				btn.style.cursor = "zoom-in";
+				btn.onclick = function (ev) {
+					ev.preventDefault();
+					ev.stopPropagation();
+					window.open(url, "_blank", "noopener");
+				};
+			}
+		});
+	}
+
+	function loadSearchRowPhotoOnClick(brand, article, triggerEl) {
+		if (!brand || !article) return;
+		if (triggerEl) {
+			if (triggerEl.getAttribute("data-epc-photo-loading") === "1") return;
+			triggerEl.setAttribute("data-epc-photo-loading", "1");
+			triggerEl.innerHTML = '<i class="fa fa-spinner fa-spin"></i>';
+		}
+		function finishEmpty() {
+			if (!triggerEl) return;
+			triggerEl.removeAttribute("data-epc-photo-loading");
+			triggerEl.innerHTML = '<i class="fa fa-ban"></i>';
+			triggerEl.title = "No photo available";
+		}
+		var endpoint = "/storefront/product-image?brand=" + encodeURIComponent(brand) +
+			"&article=" + encodeURIComponent(article);
+		fetch(endpoint, { credentials: "same-origin" })
+			.then(function (r) { return r.ok ? r.json() : null; })
+			.then(function (data) {
+				var url = data && (data.url || data.imageUrl || (data.images && data.images[0] && (data.images[0].url || data.images[0])));
+				if (triggerEl) triggerEl.removeAttribute("data-epc-photo-loading");
+				if (!url) {
+					finishEmpty();
+					return;
+				}
+				applySearchRowPhoto(brand, article, url);
+			})
+			.catch(function () { finishEmpty(); });
+	}
+
+	function bindSearchRowPhotoLoaders(root) {
+		var scope = root || document;
+		scope.querySelectorAll(".epc-search-row-photo__btn--load").forEach(function (btn) {
+			if (btn.getAttribute("data-epc-photo-bound") === "1") return;
+			btn.setAttribute("data-epc-photo-bound", "1");
+			btn.addEventListener("click", function (ev) {
+				ev.preventDefault();
+				ev.stopPropagation();
+				loadSearchRowPhotoOnClick(
+					btn.getAttribute("data-epc-photo-brand") || "",
+					btn.getAttribute("data-epc-photo-article") || "",
+					btn
+				);
+			});
+		});
+	}
+
+	window.epcBindSearchRowPhotoLoaders = bindSearchRowPhotoLoaders;
+	window.epcLoadSearchRowPhotoOnClick = loadSearchRowPhotoOnClick;
+
 	window.epcWarehouseParity = {
 		rebuildFilterOptions: rebuildFilterOptions,
 		applyFilters: applyFilters,
 		wireRowActions: wireRowActions,
-		openFitment: openFitment
+		openFitment: openFitment,
+		bindSearchRowPhotoLoaders: bindSearchRowPhotoLoaders
 	};
 
 	function boot() {
@@ -422,12 +497,14 @@
 		rebuildFilterOptions();
 		applyFilters();
 		wireRowActions(document);
+		bindSearchRowPhotoLoaders(document);
 		var body = document.getElementById("epcSfOfferBody");
 		if (body && window.MutationObserver) {
 			var mo = new MutationObserver(function () {
 				rebuildFilterOptions();
 				applyFilters();
 				wireRowActions(body);
+				bindSearchRowPhotoLoaders(body);
 			});
 			mo.observe(body, { childList: true, subtree: true });
 		}

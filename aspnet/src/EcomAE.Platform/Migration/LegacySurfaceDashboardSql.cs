@@ -1788,15 +1788,22 @@ public static class LegacySurfaceDashboardSql
         """;
 
     /// <summary>
-    /// Article-only warehouse manufacturers (PHP <c>epc_chpu_distinct_warehouse_brands_for_article</c>).
+    /// Article-only warehouse manufacturers with PHP SSR brand-picker aggregates
+    /// (<c>epc_chpu_ssr_brand_picker_table_html</c>: name / exist sum / min price / warehouse).
     /// No price&gt;0 / storefront_temp_disabled filters — CHPU brand query is article-table only.
+    /// Rows with zero total stock are omitted (PHP SSR skips <c>exist &lt;= 0</c>).
     /// </summary>
     public const string SelectStorefrontArticleWarehouseBrands = """
-        SELECT MIN(TRIM(d.`manufacturer`)) AS brand_name
+        SELECT MIN(TRIM(d.`manufacturer`)) AS brand_name,
+               MAX(NULLIF(TRIM(IFNULL(d.`name`, '')), '')) AS part_name,
+               SUM(IFNULL(d.`exist`, 0)) AS exist_sum,
+               MIN(CASE WHEN IFNULL(d.`price`, 0) > 0 THEN d.`price` ELSE NULL END) AS min_price,
+               MAX(NULLIF(TRIM(IFNULL(d.`storage`, '')), '')) AS warehouse
         FROM `shop_docpart_prices_data` d
         WHERE {ARTICLE_MATCH}
           AND TRIM(IFNULL(d.`manufacturer`, '')) != ''
         GROUP BY UPPER(TRIM(d.`manufacturer`))
+        HAVING SUM(IFNULL(d.`exist`, 0)) > 0
         ORDER BY UPPER(TRIM(d.`manufacturer`)) ASC
         LIMIT @limit
         """;
