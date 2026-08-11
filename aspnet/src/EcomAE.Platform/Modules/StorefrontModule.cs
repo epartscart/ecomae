@@ -427,6 +427,54 @@ public sealed class StorefrontModule : ISurfaceModule
             });
         });
 
+        endpoints.MapGet(EcomAeRoutes.StorefrontCrossSearch, async (
+            string? article,
+            string? brand,
+            string? brend,
+            int? limit,
+            ISurfaceDashboardSummaryReporter dashboards,
+            CancellationToken cancellationToken) =>
+        {
+            var manufacturer = string.IsNullOrWhiteSpace(brand) ? brend : brand;
+            var result = await dashboards.BuildStorefrontCrossSearchAsync(
+                article ?? string.Empty,
+                manufacturer,
+                limit ?? 600,
+                cancellationToken);
+            var references = result.References.Select(r => new
+            {
+                brand = r.Brand,
+                article = r.Article,
+                article_norm = EcomAE.Platform.Api.Catalog.PriceLookupRequest.NormalizeArticle(r.Article),
+                source = "cp",
+                name = string.IsNullOrWhiteSpace(r.Brand) ? r.Article : $"{r.Brand} {r.Article}"
+            }).ToList();
+            var stock = result.Stock.Select(r => new
+            {
+                brand = r.Brand,
+                article = r.Article,
+                article_norm = EcomAE.Platform.Api.Catalog.PriceLookupRequest.NormalizeArticle(r.Article),
+                name = string.IsNullOrWhiteSpace(r.Brand) ? r.Article : $"{r.Brand} {r.Article}"
+            }).ToList();
+            return Results.Ok(new
+            {
+                status = result.Source is "aspnet-cross-local" or "database" || result.References.Count > 0,
+                source = result.Source,
+                article = result.Article,
+                brand = result.Brand,
+                local_count = result.LocalCount,
+                crossbase_count = 0,
+                reference_count = result.UniqueReferenceCount,
+                references_loaded = references.Count,
+                unique_reference_count = result.UniqueReferenceCount,
+                stock_count = stock.Count,
+                references,
+                stock,
+                message = result.Message,
+                note = "Fast ASP.NET CP cross network for CHPU (~1s). Crossbase enrich is background client-side."
+            });
+        });
+
         endpoints.MapPost(EcomAeRoutes.StorefrontProductsOfBunch, async (
             HttpContext context,
             IStorefrontPriceAccess priceAccess,

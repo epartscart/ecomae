@@ -49,6 +49,8 @@ fi
 rg -qi 'runChpuPriceSearch' /tmp/epc_wh_fast.html && ok "CHPU_RUN_SEARCH=YES" || fail "CHPU_RUN_SEARCH=NO"
 rg -qi 'Immediate protocol-3 poll' /tmp/epc_wh_fast.html && ok "CHPU_IMMEDIATE_P3=YES" || fail "CHPU_IMMEDIATE_P3=NO"
 rg -qi 'AbortSignal\.timeout\(3000\)' /tmp/epc_wh_fast.html && ok "CHPU_ABORT_3S=YES" || fail "CHPU_ABORT_3S=NO"
+rg -qi '/storefront/cross-search' /tmp/epc_wh_fast.html && ok "CHPU_ASPNET_CROSS=YES" || fail "CHPU_ASPNET_CROSS=NO"
+rg -qi 'data-enhance-nav="false"' /tmp/epc_wh_fast.html && ok "CHPU_FULL_NAV=YES" || fail "CHPU_FULL_NAV=NO"
 rg -qi 'pickProtocol3Bunch' /tmp/epc_wh_fast.html && ok "CHPU_PROTOCOL3_PICK=YES" || fail "CHPU_PROTOCOL3_PICK=NO"
 rg -qi 'Promise\.all' /tmp/epc_wh_fast.html && ok "CHPU_PROMISE_ALL=YES" || fail "CHPU_PROMISE_ALL=NO"
 rg -qi '/storefront/products-of-bunch' /tmp/epc_wh_fast.html && ok "CHPU_PRODUCTS_OF_BUNCH=YES" || fail "CHPU_PRODUCTS_OF_BUNCH=NO"
@@ -106,9 +108,28 @@ else
   fail "BUNCH_PRODUCTS_KEY=NO"
 fi
 
+# Local CP cross network must paint fast (PHP crossbase is background-only).
+CROSS_BUDGET_MS="${ECOMAE_CHPU_CROSS_BUDGET_MS:-1500}"
+brand_q=$(python3 -c "import urllib.parse; print(urllib.parse.quote('''${brand_plain}'''))")
+cross_total_s=$(curl -sS -o /tmp/epc_wh_cross.json -w '%{time_total}' --max-time 5 \
+  "${BASE}/storefront/cross-search?article=${article_plain}&brand=${brand_q}" \
+  || echo 99)
+cross_ms=$(awk -v t="$cross_total_s" 'BEGIN { printf "%d", (t*1000)+0.5 }')
+note "CROSS_MS=${cross_ms} (budget ${CROSS_BUDGET_MS}ms)"
+if [[ -n "${cross_ms}" && "${cross_ms}" -le "${CROSS_BUDGET_MS}" ]]; then
+  ok "CROSS_BUDGET=YES (${cross_ms}ms <= ${CROSS_BUDGET_MS}ms)"
+else
+  fail "CROSS_BUDGET=NO (${cross_ms}ms > ${CROSS_BUDGET_MS}ms)"
+fi
+if rg -qi '"source"\s*:\s*"aspnet-cross-local"' /tmp/epc_wh_cross.json 2>/dev/null; then
+  ok "CROSS_SOURCE_LOCAL=YES"
+else
+  fail "CROSS_SOURCE_LOCAL=NO"
+fi
+
 if [[ "$pass" -eq 1 ]]; then
-  note "RESULT=PASS PARTS_WAREHOUSE_PHP_FAST=YES TTFB_MS=${ttfb_ms} BUNCH_MS=${bunch_ms} PROBE=${PARTS_PATH}"
+  note "RESULT=PASS PARTS_WAREHOUSE_PHP_FAST=YES TTFB_MS=${ttfb_ms} BUNCH_MS=${bunch_ms} CROSS_MS=${cross_ms} PROBE=${PARTS_PATH}"
   exit 0
 fi
-note "RESULT=FAIL see GATE_BAD above TTFB_MS=${ttfb_ms} BUNCH_MS=${bunch_ms}"
+note "RESULT=FAIL see GATE_BAD above TTFB_MS=${ttfb_ms} BUNCH_MS=${bunch_ms} CROSS_MS=${cross_ms}"
 exit 1

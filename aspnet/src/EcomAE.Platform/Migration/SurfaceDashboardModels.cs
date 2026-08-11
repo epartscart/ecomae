@@ -1491,6 +1491,17 @@ public sealed record StorefrontCrossRefsResult(
     string Source,
     string Message);
 
+/// <summary>PHP <c>ajax_epc_cross_search</c>-shaped payload for CHPU first paint (~1s).</summary>
+public sealed record StorefrontCrossSearchResult(
+    string Article,
+    string Brand,
+    IReadOnlyList<StorefrontCrossRefDigest> References,
+    IReadOnlyList<StorefrontCrossRefDigest> Stock,
+    int LocalCount,
+    int UniqueReferenceCount,
+    string Source,
+    string Message);
+
 public sealed record StorefrontQuoteDigest(
     int Id,
     string Status,

@@ -36,6 +36,8 @@ public sealed class StorefrontSearchPhpParityFlowTests
         Assert.Contains("Immediate protocol-3 poll", text, StringComparison.Ordinal);
         Assert.Contains("AbortSignal.timeout(3000)", text, StringComparison.Ordinal);
         Assert.Contains("loadGenuineBrandsBackground", text, StringComparison.Ordinal);
+        Assert.Contains("/storefront/cross-search?", text, StringComparison.Ordinal);
+        Assert.Contains("data-enhance-nav=\"false\"", text, StringComparison.Ordinal);
         Assert.DoesNotContain("await Task.WhenAll(genuineTask, stockTask)", text, StringComparison.Ordinal);
         Assert.DoesNotContain("chain = chain.then", text, StringComparison.Ordinal);
         Assert.Contains("epc-seo-cross-refs", text, StringComparison.Ordinal);

@@ -28,7 +28,10 @@ ECOMAE_GIT_URL="${ECOMAE_GIT_URL:-https://github.com/epartscart/ecomae.git}"
 ECOMAE_BRANCH="${ECOMAE_BRANCH:-cursor/parts-chpu-offers-1to3s-7b3b}"
 PUBLIC_BASE="${ECOMAE_PUBLIC_BASE:-https://www.epartscart.com}"
 export ECOMAE_EPARTSCART_SHOP_DB="${ECOMAE_EPARTSCART_SHOP_DB:-docpart}"
-PARTS_PATH="${ECOMAE_PARTS_PROBE:-/en/parts/AISIN/DT068}"
+# Prefer the user-reported slow CHPU; AISIN/DT068 also works via ECOMAE_PARTS_PROBE.
+PARTS_PATH="${ECOMAE_PARTS_PROBE:-/en/parts/JS%20ASAKASHI/C110J}"
+export ECOMAE_ARTICLE_PLAIN="${ECOMAE_ARTICLE_PLAIN:-C110J}"
+export ECOMAE_BRAND_PLAIN="${ECOMAE_BRAND_PLAIN:-JS ASAKASHI}"
 CANDIDATES=("${ECOMAE_REPO:-}" /opt/ecomae-aspnet-source /root/ecomae /opt/ecomae)
 
 note() { printf '%s\n' "$*"; }
@@ -75,6 +78,18 @@ fi
 if ! grep -q 'AbortSignal.timeout(3000)' \
   aspnet/src/EcomAE.Platform/Components/Pages/StorefrontSearchApp.razor; then
   die "StorefrontSearchApp missing AbortSignal 3s budget"
+fi
+if ! grep -q '/storefront/cross-search' \
+  aspnet/src/EcomAE.Platform/Components/Pages/StorefrontSearchApp.razor; then
+  die "StorefrontSearchApp missing ASP.NET /storefront/cross-search fast path"
+fi
+if ! grep -q 'data-enhance-nav="false"' \
+  aspnet/src/EcomAE.Platform/Components/Pages/StorefrontSearchApp.razor; then
+  die "StorefrontSearchApp missing data-enhance-nav=false (click sleep fix)"
+fi
+if ! grep -q 'BuildStorefrontCrossSearchAsync' \
+  aspnet/src/EcomAE.Platform/Migration/SurfaceDashboardSummaryReporter.cs; then
+  die "Reporter missing BuildStorefrontCrossSearchAsync"
 fi
 if ! grep -q 'ProbeStorefrontPartStockAsync' \
   aspnet/src/EcomAE.Platform/Migration/SurfaceDashboardSummaryReporter.cs; then

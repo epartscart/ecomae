@@ -1717,6 +1717,103 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    /// <inheritdoc />
+    public async Task<StorefrontCrossSearchResult> BuildStorefrontCrossSearchAsync(
+        string article,
+        string? brand,
+        int limit,
+        CancellationToken cancellationToken = default)
+    {
+        // PHP local path loads hundreds of CP analogs in one indexed query — keep that shape for ~1s paint.
+        var safeLimit = Math.Clamp(limit, 1, 600);
+        var normalized = PriceLookupRequest.NormalizeArticle(article ?? string.Empty);
+        var brandNorm = (brand ?? string.Empty).Trim().ToUpperInvariant();
+        if (string.IsNullOrWhiteSpace(normalized))
+        {
+            return new(string.Empty, brandNorm, [], [], 0, 0, "empty", "Enter a part number or OE code.");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return new(normalized, brandNorm, [], [], 0, 0, "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await OpenStorefrontShopAsync(cancellationToken).ConfigureAwait(false);
+            var hasAnalogsSearch = await ProbeAnalogsSearchColumnsAsync(connection, cancellationToken).ConfigureAwait(false);
+            await using var command = connection.CreateCommand();
+            command.CommandTimeout = 2;
+            command.CommandText = LegacySurfaceDashboardSql.SelectStorefrontArticleCrossPairs.Replace(
+                "{CROSS_MATCH}",
+                LegacySurfaceDashboardSql.StorefrontCrossArticleMatchSql(hasAnalogsSearch),
+                StringComparison.Ordinal);
+            AddParameter(command, "@article", normalized);
+            AddParameter(command, "@limit", Math.Min(safeLimit * 8, 5000));
+            var rows = new List<StorefrontCrossRefDigest>();
+            var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var selfBrandCompact = CompactStorefrontBrand(brandNorm);
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false) && rows.Count < safeLimit)
+            {
+                var sourceBrand = Convert.ToString(reader["source_brand"] is DBNull ? string.Empty : reader["source_brand"], CultureInfo.InvariantCulture) ?? string.Empty;
+                var sourceArticle = Convert.ToString(reader["source_article"] is DBNull ? string.Empty : reader["source_article"], CultureInfo.InvariantCulture) ?? string.Empty;
+                var crossBrand = Convert.ToString(reader["cross_brand"] is DBNull ? string.Empty : reader["cross_brand"], CultureInfo.InvariantCulture) ?? string.Empty;
+                var crossArticle = Convert.ToString(reader["cross_article"] is DBNull ? string.Empty : reader["cross_article"], CultureInfo.InvariantCulture) ?? string.Empty;
+                var sourceNorm = PriceLookupRequest.NormalizeArticle(sourceArticle);
+                var crossNorm = PriceLookupRequest.NormalizeArticle(crossArticle);
+                string partnerBrand;
+                string partnerArticle;
+                if (sourceNorm == normalized && crossNorm != string.Empty)
+                {
+                    partnerBrand = crossBrand;
+                    partnerArticle = crossArticle;
+                }
+                else if (crossNorm == normalized && sourceNorm != string.Empty)
+                {
+                    partnerBrand = sourceBrand;
+                    partnerArticle = sourceArticle;
+                }
+                else
+                {
+                    continue;
+                }
+
+                var partnerNorm = PriceLookupRequest.NormalizeArticle(partnerArticle);
+                // Skip the searched brand+article itself.
+                if (partnerNorm == normalized
+                    && (selfBrandCompact.Length == 0 || CompactStorefrontBrand(partnerBrand) == selfBrandCompact))
+                {
+                    continue;
+                }
+
+                var key = partnerBrand.Trim().ToUpperInvariant() + "|" + partnerNorm;
+                if (!seen.Add(key))
+                {
+                    continue;
+                }
+
+                rows.Add(new StorefrontCrossRefDigest(partnerBrand.Trim(), partnerArticle.Trim(), false));
+            }
+
+            // No N+1 stock probes here — that is what made PHP-shaped cross feel "asleep".
+            // Client paints the full local network immediately; stock badges enrich later if needed.
+            return new(
+                normalized,
+                brandNorm,
+                rows,
+                [],
+                rows.Count,
+                rows.Count,
+                "aspnet-cross-local",
+                string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(normalized, brandNorm, [], [], 0, 0, "database-error", ex.Message);
+        }
+    }
+
     /// <summary>
     /// When storefront Live/ErpOnly tenant resolved without a shop DB name, OpenAsync(null) hits the
     /// registry/platform schema (no shop_docpart_prices_data). Surface a clear hostname/www hint.
