@@ -1,23 +1,30 @@
 {
   "role": "epartscart-parts-chpu-aspnet",
-  "generatedAtUnix": 1786432260,
+  "generatedAtUnix": 1786432800,
   "ok": true,
   "cutoverAllowed": false,
   "readyForPhpRemoval": false,
   "phpAuthoritativeWrites": true,
+  "whyTwoUrlsDifferedLive": {
+    "chpu": "https://www.epartscart.com/en/parts/TOYOTA/1310154101 → full PHP nero with live ajax bunches",
+    "searchApp": "https://www.epartscart.com/storefront/search-app?article=1310154101&brand=TOYOTA → ASP.NET chrome but digests source=migration unbound shop DB (empty offers)",
+    "fix": "One ASP.NET product path: CHPU is canonical; search-app remaps into /en/parts/{BRAND}/{ARTICLE}; ePartsCart always opens docpart (never unbound gate)"
+  },
   "probeUrl": "https://www.epartscart.com/en/parts/TOYOTA/1310154101",
+  "searchAppProbe": "https://www.epartscart.com/storefront/search-app?article=1310154101&brand=TOYOTA",
   "liveBefore": {
-    "backend": "php-nero",
+    "backend": "php-nero vs aspnet-unbound",
     "xEcomaePlatform": null,
     "markers": [
       "base href=/templates/nero/",
-      "set-cookie: lang=",
       "ajax_getProductsOfBunch.php",
-      "Pricing and availability for TOYOTA 1310154101"
-    ],
-    "note": "Tenant reported receiving an order — PHP write path still works. Product UI for this CHPU URL was still PHP, not ASP.NET primary."
+      "Tenant shop database is not bound"
+    ]
   },
   "aspNetOwnership": {
+    "canonicalResultUrl": "/en/parts/{BRAND}/{ARTICLE}",
+    "brandPickerUrl": "/en/parts/brands/{ARTICLE}",
+    "queryAlias": "/storefront/search-app?article=&brand= → NavigateTo CHPU (replace)",
     "blazorRoutes": [
       "/storefront/search-app",
       "/en/shop/part_search",
@@ -31,13 +38,14 @@
       "location = /en/shop/part_search → :5100",
       "location = /en/shop/warehouse-search → :5100"
     ],
-    "noIncomingRedirect": "PhpSurfaceLinkMap.TryMapIncomingPhpProductPath returns false for Blazor-owned CHPU/search same-URL paths so Kestrel does not 302 to /storefront/search-app"
+    "pageTitleParity": "Pricing and availability for {BRAND} {ARTICLE} - eParts Cart (Autoparts)",
+    "docpartBind": "IsEpartsCartRequest → OpenStorefrontShopAsync(docpart); TryGetUnboundTenantShopMessage always false on ePartsCart"
   },
   "operator": {
     "install": "scripts/cloudpanel_EPARTSCART_PARTS_CHPU_ASPNET_NOW.sh",
     "prove": "scripts/cloudpanel_EPARTSCART_PARTS_CHPU_PROVE.sh",
     "branch": "cursor/epartscart-parts-chpu-aspnet-7b3b",
-    "passLine": "RESULT=PASS PARTS_CHPU_ASPNET=YES",
+    "passLine": "RESULT=PASS PARTS_CHPU_ASPNET=YES SEARCH_APP_SAME=YES UNBOUND=NO",
     "silentExternalActionWithoutPaste": "FAIL"
   },
   "phpReferenceKept": true,

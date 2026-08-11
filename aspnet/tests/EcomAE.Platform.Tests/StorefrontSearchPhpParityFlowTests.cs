@@ -7,8 +7,9 @@ namespace EcomAE.Platform.Tests;
 
 /// <summary>
 /// Guards storefront search-app PHP part_search brand→warehouse→cross flow parity.
-/// Canonical ASP.NET URL: <c>/storefront/search-app?article=…&amp;brand=…</c>
-/// (PHP legacy <c>brend</c> still accepted).
+/// Canonical ASP.NET result URL matches PHP CHPU: <c>/en/parts/{BRAND}/{ARTICLE}</c>.
+/// Query <c>/storefront/search-app?article=&amp;brand=</c> remaps into that CHPU (same digest).
+/// PHP legacy <c>brend</c> still accepted on the query entry.
 /// </summary>
 public sealed class StorefrontSearchPhpParityFlowTests
 {
@@ -20,6 +21,7 @@ public sealed class StorefrontSearchPhpParityFlowTests
         Assert.Contains("[SupplyParameterFromQuery(Name = \"brand\")]", text, StringComparison.Ordinal);
         Assert.Contains("[SupplyParameterFromQuery(Name = \"brend\")]", text, StringComparison.Ordinal);
         Assert.Contains("@page \"/parts/{PathBrand}/{PathArticle}\"", text, StringComparison.Ordinal);
+        Assert.Contains("@page \"/en/parts/{PathBrand}/{PathArticle}\"", text, StringComparison.Ordinal);
         Assert.Contains("ListStorefrontArticleBrandsAsync", text, StringComparison.Ordinal);
         Assert.Contains("epc-sf-brand-picker", text, StringComparison.Ordinal);
         Assert.Contains("SearchStorefrontPartsAsync(_articleInput, _brandInput", text, StringComparison.Ordinal);
@@ -27,14 +29,18 @@ public sealed class StorefrontSearchPhpParityFlowTests
         Assert.Contains("epc-sf-cross-refs", text, StringComparison.Ordinal);
         Assert.Contains("all_table_products", text, StringComparison.Ordinal);
         Assert.Contains("Availability", text, StringComparison.Ordinal);
-        Assert.Contains("&brand=", text, StringComparison.Ordinal);
-        Assert.Contains("/storefront/search-app?article=", text, StringComparison.Ordinal);
+        Assert.Contains("/en/parts/", text, StringComparison.Ordinal);
+        Assert.Contains("/en/parts/brands/", text, StringComparison.Ordinal);
+        Assert.Contains("Pricing and availability for", text, StringComparison.Ordinal);
         Assert.Contains("No manufacturers found for this article", text, StringComparison.Ordinal);
         Assert.Contains("warehouse offers", text, StringComparison.OrdinalIgnoreCase);
         // PHP CHPU: header search only on brand/warehouse results (no second in-page search window).
         Assert.Contains("_hideInPageSearch", text, StringComparison.Ordinal);
         Assert.Contains("epc-chpu-direct-part-search", text, StringComparison.Ordinal);
         Assert.Contains("php-chpu", text, StringComparison.Ordinal);
+        // CHPU loads digests in place; query search-app remaps INTO CHPU (not the reverse).
+        Assert.Contains("onChpuBrandArticle", text, StringComparison.Ordinal);
+        Assert.Contains("never bounce CHPU", text, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
@@ -72,21 +78,17 @@ public sealed class StorefrontSearchPhpParityFlowTests
     }
 
     [Fact]
-    public void PhpSurfaceLinkMap_MapsPartsBrandArticleToSearchApp()
+    public void PhpSurfaceLinkMap_MapsPartsBrandArticleToSameUrlChpu()
     {
         var previous = StorefrontSurfaceLinks.PreferAspNetApps;
         StorefrontSurfaceLinks.PreferAspNetApps = true;
         try
         {
             var href = PhpSurfaceLinkMap.AspNetPrimaryHref("/en/parts/ROCKY/DA320");
-            Assert.Contains("/storefront/search-app", href, StringComparison.Ordinal);
-            Assert.Contains("article=DA320", href, StringComparison.Ordinal);
-            Assert.Contains("brand=ROCKY", href, StringComparison.Ordinal);
+            Assert.Equal("/en/parts/ROCKY/DA320", href);
 
             var brands = PhpSurfaceLinkMap.AspNetPrimaryHref("/parts/brands/DA320");
-            Assert.Contains("/storefront/search-app", brands, StringComparison.Ordinal);
-            Assert.Contains("article=DA320", brands, StringComparison.Ordinal);
-            Assert.DoesNotContain("brand=", brands, StringComparison.Ordinal);
+            Assert.Equal("/en/parts/brands/DA320", brands);
         }
         finally
         {

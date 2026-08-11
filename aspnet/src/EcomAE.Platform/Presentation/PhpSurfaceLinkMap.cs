@@ -634,7 +634,8 @@ public static class PhpSurfaceLinkMap
                 return false;
             }
 
-            href = StorefrontAspNetCanonical.PartSearch + "?article=" + Uri.EscapeDataString(articleOnly);
+            // Same-URL ASP.NET brand picker (PHP /en/parts/brands/{ARTICLE}).
+            href = "/en/parts/brands/" + Uri.EscapeDataString(articleOnly);
             return true;
         }
 
@@ -647,9 +648,11 @@ public static class PhpSurfaceLinkMap
                 return false;
             }
 
-            href = StorefrontAspNetCanonical.PartSearch
-                   + "?article=" + Uri.EscapeDataString(article)
-                   + "&brand=" + Uri.EscapeDataString(brand);
+            // Same-URL ASP.NET CHPU result (PHP /en/parts/{BRAND}/{ARTICLE}).
+            href = "/en/parts/"
+                   + Uri.EscapeDataString(brand.ToUpperInvariant())
+                   + "/"
+                   + Uri.EscapeDataString(article);
             return true;
         }
 
