@@ -9,7 +9,7 @@ HOST="${EPARTSCART_HOST:-www.epartscart.com}"
 BASE="https://${HOST}"
 PICKER="${ECOMAE_PICKER_PROBE:-/storefront/search-app?article=1310154101}"
 CHPU="${ECOMAE_CHPU_PROBE:-/en/parts/TEIKINP/1310154101}"
-ASSET="${ECOMAE_WH_ASSET_PROBE:-/platform-assets/epc_warehouse_search_parity.js?v=20260811y}"
+ASSET="${ECOMAE_WH_ASSET_PROBE:-/platform-assets/epc_warehouse_search_parity.js?v=20260811z}"
 
 pass=1
 note() { printf '%s\n' "$*"; }
@@ -64,7 +64,7 @@ if haystack_match 'data-offer-key' /tmp/epc_chpu.html; then
 else
   ok "CHPU_ROWS=EMPTY_WHILE_POLLING (cell chrome deferred)"
 fi
-haystack_match 'v=20260811y' /tmp/epc_chpu.html && ok "CHPU_ASSET_BUST=YES" || fail "CHPU_ASSET_BUST=NO (publish stale?)"
+haystack_match 'v=20260811z' /tmp/epc_chpu.html && ok "CHPU_ASSET_BUST=YES" || fail "CHPU_ASSET_BUST=NO (publish stale?)"
 haystack_match 'epc-sf-search-table' /tmp/epc_chpu.html && fail "CHPU_INVENTED_TABLE=YES" || ok "CHPU_INVENTED_TABLE=NO"
 
 curl -sSI --max-time 20 "${BASE}${ASSET}" | tr -d '\r' > /tmp/epc_wh_asset.hdr || true

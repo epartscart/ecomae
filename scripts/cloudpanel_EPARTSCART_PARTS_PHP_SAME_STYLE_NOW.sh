@@ -30,7 +30,7 @@ note "======== EPARTSCART PARTS PHP SAME-STYLE FORCE LIVE ========"
 note "HOST=$(hostname -f 2>/dev/null || hostname || echo unknown)"
 note "DATE_UTC=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 note "ECOMAE_BRANCH=${ECOMAE_BRANCH}"
-note "Expect: epc-brand-picker-table + epc-part-type-split + ?v=20260811y"
+note "Expect: epc-brand-picker-table + epc-part-type-split + php cross search + ?v=20260811z"
 
 REPO=""
 for d in "${CANDIDATES[@]}"; do

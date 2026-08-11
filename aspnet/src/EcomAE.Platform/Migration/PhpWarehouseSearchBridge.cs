@@ -3,6 +3,7 @@ using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using EcomAE.Platform.Api.Catalog;
 
 namespace EcomAE.Platform.Migration;
 
@@ -163,6 +164,112 @@ public sealed class PhpWarehouseSearchBridge
             protocol == 3 ? "prices" : string.Empty,
             row.TreelaxCatalogue,
             nested);
+    }
+
+    /// <summary>
+    /// PHP <c>ajax_epc_cross_search.php</c> — CP crosses + crossbase + stock enrichment.
+    /// Local <c>shop_docpart_articles_analogs_list</c> alone misses most CHPU OE networks
+    /// (e.g. JSASAKASHI/C110J → 600+ references).
+    /// </summary>
+    public async Task<IReadOnlyList<StorefrontCrossRefDigest>> TryLoadCrossSearchAsync(
+        string article,
+        string? brand,
+        int limit,
+        CancellationToken cancellationToken = default)
+    {
+        var normalized = (article ?? string.Empty).Trim();
+        if (normalized.Length == 0)
+        {
+            return [];
+        }
+
+        var query = new Dictionary<string, string?>
+        {
+            ["article"] = normalized
+        };
+        if (!string.IsNullOrWhiteSpace(brand))
+        {
+            query["brand"] = brand.Trim();
+        }
+
+        // Live crossbase expansion regularly exceeds the short warehouse-offer timeout.
+        var payload = await GetJsonAsync<PhpCrossSearchPayload>(
+                "/content/shop/docpart/ajax_epc_cross_search.php",
+                query,
+                cancellationToken,
+                timeoutSeconds: 60)
+            .ConfigureAwait(false);
+
+        if (payload is null || payload.Status == false)
+        {
+            return [];
+        }
+
+        var safeLimit = Math.Clamp(limit, 1, 500);
+        var stockKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var stock in payload.Stock ?? [])
+        {
+            var sb = (stock.Brand ?? string.Empty).Trim();
+            var sa = PriceLookupRequest.NormalizeArticle(stock.ArticleNorm ?? stock.Article ?? string.Empty);
+            if (sb.Length > 0 && sa.Length > 0)
+            {
+                stockKeys.Add(sb.ToUpperInvariant() + "|" + sa);
+            }
+        }
+
+        var rows = new List<StorefrontCrossRefDigest>();
+        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var selfArticle = PriceLookupRequest.NormalizeArticle(normalized);
+        var selfBrand = CompactBrand(brand);
+        foreach (var reference in payload.References ?? [])
+        {
+            var refBrand = (reference.Brand ?? string.Empty).Trim();
+            var refArticle = (reference.Article ?? string.Empty).Trim();
+            var refNorm = PriceLookupRequest.NormalizeArticle(reference.ArticleNorm ?? refArticle);
+            if (refBrand.Length == 0 || refNorm.Length == 0)
+            {
+                continue;
+            }
+
+            // Skip the searched brand+article itself.
+            if (refNorm == selfArticle && CompactBrand(refBrand) == selfBrand)
+            {
+                continue;
+            }
+
+            var key = refBrand.ToUpperInvariant() + "|" + refNorm;
+            if (!seen.Add(key))
+            {
+                continue;
+            }
+
+            rows.Add(new StorefrontCrossRefDigest(refBrand, refArticle.Length > 0 ? refArticle : refNorm, stockKeys.Contains(key)));
+            if (rows.Count >= safeLimit)
+            {
+                break;
+            }
+        }
+
+        return rows;
+    }
+
+    private static string CompactBrand(string? brand)
+    {
+        if (string.IsNullOrWhiteSpace(brand))
+        {
+            return string.Empty;
+        }
+
+        var sb = new System.Text.StringBuilder(brand.Length);
+        foreach (var ch in brand)
+        {
+            if (char.IsLetterOrDigit(ch))
+            {
+                sb.Append(char.ToUpperInvariant(ch));
+            }
+        }
+
+        return sb.ToString();
     }
 
     /// <summary>
@@ -488,6 +595,45 @@ public sealed class PhpWarehouseSearchBridge
 
         [JsonPropertyName("time_to_exe")]
         public string? TimeToExe { get; set; }
+    }
+
+    private sealed class PhpCrossSearchPayload
+    {
+        public bool Status { get; set; }
+        public List<PhpCrossReferenceRow>? References { get; set; }
+        public List<PhpCrossStockRow>? Stock { get; set; }
+
+        [JsonPropertyName("unique_reference_count")]
+        public int UniqueReferenceCount { get; set; }
+
+        [JsonPropertyName("reference_count")]
+        public int ReferenceCount { get; set; }
+
+        [JsonPropertyName("stock_count")]
+        public int StockCount { get; set; }
+    }
+
+    private sealed class PhpCrossReferenceRow
+    {
+        public string? Brand { get; set; }
+        public string? Article { get; set; }
+
+        [JsonPropertyName("article_norm")]
+        public string? ArticleNorm { get; set; }
+
+        public string? Name { get; set; }
+        public string? Source { get; set; }
+    }
+
+    private sealed class PhpCrossStockRow
+    {
+        public string? Brand { get; set; }
+        public string? Article { get; set; }
+
+        [JsonPropertyName("article_norm")]
+        public string? ArticleNorm { get; set; }
+
+        public string? Name { get; set; }
     }
 
     private sealed class PhpArticleBrandsPayload

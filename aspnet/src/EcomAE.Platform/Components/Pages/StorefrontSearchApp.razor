@@ -16,7 +16,7 @@
 <PageTitle>@PageTitleText</PageTitle>
 <PhpChromeStyles Surface="storefront" />
 <HeadContent>
-<link rel="stylesheet" href="/platform-assets/epc_warehouse_search_parity.css?v=20260811y" />
+<link rel="stylesheet" href="/platform-assets/epc_warehouse_search_parity.css?v=20260811z" />
 <style>
         /* Keep PHP professional-shell look; only hide inventing ASP.NET chrome on CHPU/picker. */
         .epc-chpu-direct-part-search .epc-sf-search-form,
@@ -362,20 +362,24 @@
 
                 @if (!string.IsNullOrWhiteSpace(_brandInput))
                 {
-                    <nav class="epc-seo-cross-refs" id="epc-cross-base" aria-label="Cross references and OE numbers">
+                    <nav class="epc-seo-cross-refs" id="epc-cross-base"
+                         data-article="@_normalized" data-brand="@_brandInput"
+                         aria-label="Cross references and OE numbers">
                         <h2>@_brandInput @_normalized — cross references &amp; OE numbers</h2>
                         <p style="margin:0 0 10px;font-size:13px;color:#475569">Part number / article <strong>@_normalized</strong> interchanges with:</p>
-                        @if (_crossRefs.Count == 0 && _relatedBrandCross.Count == 0)
-                        {
-                            <p style="margin:0;font-size:13px;color:#64748b;">No local cross references for this brand + article.</p>
-                        }
-                        else
-                        {
-                            <ul>
+                        <p id="epc-cross-loading" class="epc-fitment-message" style="margin:0 0 10px;">Loading OE / aftermarket cross network…</p>
+                        <div id="epc-sf-cross-stock" class="epc-sf-cross-stock" hidden></div>
+                        <ul id="epc-cross-ref-list">
+                            @if (_crossRefs.Count == 0 && _relatedBrandCross.Count == 0)
+                            {
+                                <li class="epc-cross-placeholder" style="list-style:none;color:#64748b;">Waiting for cross search…</li>
+                            }
+                            else
+                            {
                                 @foreach (var cross in _crossRefs)
                                 {
                                     var label = string.IsNullOrWhiteSpace(cross.Brand) ? cross.Article : $"{cross.Brand} {cross.Article}";
-                                    <li>
+                                    <li data-cross-key="@($"{cross.Brand}|{cross.Article}")">
                                         <a href="@BrandArticleHref(cross.Article, cross.Brand)">@label</a>
                                         <span style="color:#64748b">(part number @cross.Article)</span>
                                         @if (cross.InStock)
@@ -390,27 +394,14 @@
                                 }
                                 @foreach (var brand in _relatedBrandCross)
                                 {
-                                    <li>
+                                    <li data-related-mfr="1">
                                         <a href="@BrandArticleHref(_normalized, brand)">@brand @_normalized</a>
                                         <span style="color:#64748b">(related manufacturer)</span>
                                     </li>
                                 }
-                            </ul>
-                        }
-                        @if (_crossStockRefs.Count > 0)
-                        {
-                            <div class="epc-sf-cross-stock">
-                                <strong>In stock on warehouse price lists (@_crossStockRefs.Count)</strong>
-                                <ul>
-                                    @foreach (var cross in _crossStockRefs)
-                                    {
-                                        <li>
-                                            <a href="@BrandArticleHref(cross.Article, cross.Brand)">@cross.Brand @cross.Article</a>
-                                        </li>
-                                    }
-                                </ul>
-                            </div>
-                        }
+                            }
+                        </ul>
+                        <p id="epc-cross-more" class="epc-fitment-message" style="margin:8px 0 0;display:none;"></p>
                     </nav>
                 }
             </div>
@@ -627,6 +618,92 @@
       }
     }
   }
+  function compactArt(a) { return String(a || '').replace(/[^A-Za-z0-9]/g, '').toUpperCase(); }
+  function compactBrand(b) { return String(b || '').replace(/[^A-Za-z0-9]/g, '').toUpperCase(); }
+  function partsHref(b, a) {
+    return '/en/parts/' + encodeURIComponent(String(b || '').toUpperCase()) + '/' + encodeURIComponent(String(a || ''));
+  }
+  function loadPhpCrossSearch() {
+    if (typeof window.epcLoadPhpCrossSearch === 'function') {
+      return window.epcLoadPhpCrossSearch(article, brand);
+    }
+    var url = '/content/shop/docpart/ajax_epc_cross_search.php?article=' + encodeURIComponent(article) +
+      '&brand=' + encodeURIComponent(brand);
+    return fetch(url, { credentials: 'same-origin' })
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        if (!data || data.status === false) return;
+        var refs = data.references || [];
+        var stock = data.stock || [];
+        var total = Number(data.unique_reference_count || data.reference_count || refs.length) || refs.length;
+        var countEl = document.getElementById('epc-cross-search-count');
+        if (countEl) countEl.textContent = total + ' references';
+        var btn = document.getElementById('epc-cross-search-btn');
+        if (btn) btn.setAttribute('title', 'Open ' + total + ' cross references');
+        var list = document.getElementById('epc-cross-ref-list');
+        var loading = document.getElementById('epc-cross-loading');
+        var more = document.getElementById('epc-cross-more');
+        var stockBox = document.getElementById('epc-sf-cross-stock');
+        var selfA = compactArt(article);
+        var selfB = compactBrand(brand);
+        var stockKeys = Object.create(null);
+        stock.forEach(function (s) {
+          stockKeys[compactBrand(s.brand) + '|' + compactArt(s.article_norm || s.article)] = 1;
+        });
+        if (stockBox) {
+          var stockHtml = stock.slice(0, 40).map(function (s) {
+            var b = s.brand || '';
+            var a = s.article || s.article_norm || '';
+            return '<li><a href="' + partsHref(b, a) + '">' + esc(b) + ' ' + esc(a) + '</a>' +
+              (s.name ? ' <span style="color:#64748b">' + esc(s.name) + '</span>' : '') + '</li>';
+          }).join('');
+          if (stockHtml) {
+            stockBox.hidden = false;
+            stockBox.innerHTML = '<strong>Cross references in stock (' + stock.length + ')</strong><ul>' + stockHtml + '</ul>';
+          }
+        }
+        if (list) {
+          var shown = 0;
+          var html = [];
+          var limit = 80;
+          for (var i = 0; i < refs.length && shown < limit; i++) {
+            var ref = refs[i];
+            var rb = ref.brand || '';
+            var ra = ref.article || ref.article_norm || '';
+            var rn = compactArt(ref.article_norm || ra);
+            if (!rb || !rn) continue;
+            if (rn === selfA && compactBrand(rb) === selfB) continue;
+            // Prefer real OE/AM article changes over same-article brand aliases.
+            var sameArticleAlias = rn === selfA;
+            var key = compactBrand(rb) + '|' + rn;
+            var inStock = !!stockKeys[key];
+            html.push('<li data-cross-key="' + esc(rb + '|' + ra) + '"' + (sameArticleAlias ? ' data-related-mfr="1"' : '') + '>' +
+              '<a href="' + partsHref(rb, ra) + '">' + esc(rb) + ' ' + esc(ra) + '</a> ' +
+              '<span style="color:#64748b">(' + (sameArticleAlias ? 'related manufacturer' : ('part number ' + esc(ra))) + ')</span> ' +
+              (inStock ? '<span class="epc-avail-yes">In stock</span>' : '<span class="epc-avail-no">Not in stock</span>') +
+              '</li>');
+            shown++;
+          }
+          if (html.length) list.innerHTML = html.join('');
+          else list.innerHTML = '<li style="list-style:none;color:#64748b;">No cross references found for this article.</li>';
+          if (more) {
+            if (total > shown) {
+              more.style.display = 'block';
+              more.textContent = 'Showing ' + shown + ' of ' + total.toLocaleString() + ' unique crosses (full network via cross search).';
+            } else {
+              more.style.display = 'none';
+            }
+          }
+        }
+        if (loading) loading.style.display = 'none';
+      })
+      .catch(function () {
+        var loading = document.getElementById('epc-cross-loading');
+        if (loading) loading.textContent = 'Cross search unavailable — showing local manufacturer aliases only.';
+      });
+  }
+  // PHP part_search: deep cross network loads beside warehouse polling (not brand-sibling aliases only).
+  loadPhpCrossSearch();
   fetch('/storefront/search-bunches?article=' + encodeURIComponent(article) + '&brand=' + encodeURIComponent(brand), { credentials: 'same-origin' })
     .then(function (r) { return r.json(); })
     .then(function (data) {
@@ -658,7 +735,7 @@
     });
 })();
             </script>
-            <script src="/platform-assets/epc_warehouse_search_parity.js?v=20260811y" defer></script>
+            <script src="/platform-assets/epc_warehouse_search_parity.js?v=20260811z" defer></script>
         }
     }
 
