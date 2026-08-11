@@ -23,10 +23,11 @@ public sealed class StorefrontSearchPhpParityFlowTests
         Assert.Contains("@page \"/parts/{PathBrand}/{PathArticle}\"", text, StringComparison.Ordinal);
         Assert.Contains("@page \"/en/parts/{PathBrand}/{PathArticle}\"", text, StringComparison.Ordinal);
         Assert.Contains("ListStorefrontArticleBrandsAsync", text, StringComparison.Ordinal);
-        Assert.Contains("epc-sf-brand-picker", text, StringComparison.Ordinal);
+        Assert.Contains("epc-brand-picker-table", text, StringComparison.Ordinal);
+        Assert.Contains("epc-brand-picker-mode", text, StringComparison.Ordinal);
         Assert.Contains("SearchStorefrontPartsAsync(_articleInput, _brandInput", text, StringComparison.Ordinal);
         Assert.Contains("ListStorefrontCrossRefsAsync(_articleInput, _brandInput", text, StringComparison.Ordinal);
-        Assert.Contains("epc-sf-cross-refs", text, StringComparison.Ordinal);
+        Assert.Contains("epc-seo-cross-refs", text, StringComparison.Ordinal);
         Assert.Contains("all_table_products", text, StringComparison.Ordinal);
         Assert.Contains("Availability", text, StringComparison.Ordinal);
         Assert.Contains("filter_div", text, StringComparison.Ordinal);
@@ -34,6 +35,7 @@ public sealed class StorefrontSearchPhpParityFlowTests
         Assert.Contains("epc-cross-search-btn", text, StringComparison.Ordinal);
         Assert.Contains("Add to Cart", text, StringComparison.Ordinal);
         Assert.Contains("Add to Quote", text, StringComparison.Ordinal);
+        Assert.Contains("Open prices", text, StringComparison.Ordinal);
         Assert.Contains("/en/parts/", text, StringComparison.Ordinal);
         Assert.Contains("/en/parts/brands/", text, StringComparison.Ordinal);
         Assert.Contains("Pricing and availability for", text, StringComparison.Ordinal);

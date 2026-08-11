@@ -1,6 +1,6 @@
 /**
- * PHP part_search warehouse parity helpers for ASP.NET StorefrontSearchApp:
- * filter panel, fitment check, cross toolbar, add-to-cart / add-to-quote.
+ * PHP part_search warehouse parity helpers for ASP.NET StorefrontSearchApp.
+ * Visual classes match professional shell; this file only wires behavior.
  */
 (function () {
 	"use strict";
@@ -11,14 +11,12 @@
 		});
 	}
 
-	function table() {
-		return document.getElementById("all_table_products");
-	}
+	function table() { return document.getElementById("all_table_products"); }
 
 	function offerRows() {
 		var t = table();
 		if (!t) return [];
-		return Array.prototype.slice.call(t.querySelectorAll("tbody tr.epc-part-type-row--genuine, tbody tr.epc-part-type-row--aftermarket, tbody tr[data-offer-key]"));
+		return Array.prototype.slice.call(t.querySelectorAll("tbody tr[data-offer-key]"));
 	}
 
 	function pricesVisible() {
@@ -32,9 +30,7 @@
 			var s = String(v || "").trim();
 			if (s) map[s] = 1;
 		});
-		return Object.keys(map).sort(function (a, b) {
-			return a.localeCompare(b);
-		});
+		return Object.keys(map).sort(function (a, b) { return a.localeCompare(b); });
 	}
 
 	function rebuildFilterOptions() {
@@ -56,8 +52,9 @@
 			box.innerHTML = values.map(function (v, i) {
 				var id = prefix + "_" + i;
 				var isChecked = Object.keys(checked).length === 0 || checked[v];
-				return '<label for="' + id + '"><input type="checkbox" id="' + id + '" value="' + esc(v) + '"' +
-					(isChecked ? " checked" : "") + '> <span>' + esc(v) + '</span></label>';
+				return '<input class="css-checkbox" type="checkbox" id="' + id + '" value="' + esc(v) + '"' +
+					(isChecked ? " checked" : "") + '>' +
+					'<label class="css-label" for="' + id + '">' + esc(v) + '</label>';
 			}).join("");
 			box.querySelectorAll('input[type="checkbox"]').forEach(function (cb) {
 				cb.addEventListener("change", applyFilters);
@@ -102,15 +99,14 @@
 			if (ok) visible += 1;
 		});
 		var status = document.getElementById("epc_filter_status");
-		if (status) {
-			status.textContent = visible + " offer(s) visible";
-		}
+		if (status) status.textContent = visible + " offer(s) visible";
 		["genuine", "aftermarket"].forEach(function (kind) {
-			var cap = document.querySelector('tr.epc-part-type-caption[data-section="' + kind + '"]');
-			if (!cap) return;
+			var cell = document.querySelector('td.epc-part-type-split[data-section="' + kind + '"]');
+			if (!cell) return;
 			var n = document.querySelectorAll('tr.epc-part-type-row--' + kind + ':not([data-filtered-out="1"])').length;
-			cap.firstChild.textContent = (kind === "genuine" ? "Genuine (OE)" : "Aftermarket") + " (" + n + ")";
-			cap.style.display = n === 0 ? "none" : "";
+			var count = cell.querySelector(".epc-part-type-count");
+			if (count) count.textContent = "(" + n + ")";
+			cell.closest("tr").style.display = n === 0 ? "none" : "";
 		});
 	}
 
@@ -172,7 +168,7 @@
 			.then(function (data) {
 				var rows = Array.isArray(data) ? data : (data && data.data) || [];
 				if (!rows.length) {
-					brandsBox.textContent = "No catalog brands found for this article. Try Fitment on a row brand/number.";
+					brandsBox.textContent = "No catalog brands found for this article.";
 					return;
 				}
 				brandsBox.className = "epc-fitment-brand-grid";
@@ -211,8 +207,9 @@
 		widget.textContent = "Loading vehicle applicability…";
 		umapi("analogs", { article: article || "", brand: brand || "", limit: 30, offset: 0, source: "fitment" })
 			.then(function (data) {
-				var fitment = data && (data.PC || data.CV || data.Motorcycle) ? data : { PC: (data && data.data) || [], CV: [], Motorcycle: [] };
-				window.__epcFitmentPayload = fitment;
+				window.__epcFitmentPayload = data && (data.PC || data.CV || data.Motorcycle)
+					? data
+					: { PC: (data && data.data) || [], CV: [], Motorcycle: [] };
 				renderFitmentSection("PC");
 			})
 			.catch(function (err) {
@@ -239,7 +236,7 @@
 			return;
 		}
 		widget.className = "";
-		widget.innerHTML = '<div style="overflow:auto"><table class="epc-fitment-vehicles"><thead><tr>' +
+		widget.innerHTML = '<div style="overflow:auto"><table class="table table-condensed table-striped" style="font-size:12px"><thead><tr>' +
 			"<th>Make</th><th>Model</th><th>Years</th><th>Engine / body</th></tr></thead><tbody>" +
 			rows.slice(0, 200).map(function (row) {
 				var make = row.MAKE || row.MANUFACTURER || "";
@@ -251,7 +248,7 @@
 	}
 
 	function focusCross() {
-		var nav = document.querySelector(".epc-sf-cross-refs");
+		var nav = document.querySelector(".epc-seo-cross-refs");
 		if (!nav) return;
 		nav.classList.add("is-highlight");
 		nav.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -323,9 +320,7 @@
 				return;
 			}
 			alert((data && (data.message || data.error)) || "Could not add to cart. Please log in and try again.");
-		}).catch(function () {
-			alert("Could not add to cart.");
-		});
+		}).catch(function () { alert("Could not add to cart."); });
 	}
 
 	function addToQuoteFromRow(tr) {

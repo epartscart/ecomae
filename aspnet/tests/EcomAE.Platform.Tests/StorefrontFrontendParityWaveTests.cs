@@ -63,18 +63,28 @@ public sealed class StorefrontFrontendParityWaveTests
         Assert.Contains("Genuine (OE)", text, StringComparison.Ordinal);
         Assert.Contains("Aftermarket", text, StringComparison.Ordinal);
         Assert.Contains("epc-part-type-row--genuine", text, StringComparison.Ordinal);
+        Assert.Contains("epc-part-type-split--genuine", text, StringComparison.Ordinal);
         Assert.Contains("/storefront/products-of-bunch", text, StringComparison.Ordinal);
         Assert.Contains("/storefront/search-bunches", text, StringComparison.Ordinal);
         Assert.Contains("ListStorefrontGenuineBrandsAsync", text, StringComparison.Ordinal);
         Assert.Contains("ajax_getProductsOfBunch", text, StringComparison.Ordinal);
-        // PHP warehouse chrome parity
-        Assert.Contains("manufacturer_blok", text, StringComparison.Ordinal);
+        // PHP same-to-same warehouse chrome (professional shell classes)
+        Assert.Contains("epc-brand-picker-table", text, StringComparison.Ordinal);
+        Assert.Contains("btn btn-ar btn-primary btn-sm", text, StringComparison.Ordinal);
+        Assert.Contains("Open prices", text, StringComparison.Ordinal);
+        Assert.Contains("one_property", text, StringComparison.Ordinal);
+        Assert.Contains("css-checkbox", text, StringComparison.Ordinal);
+        Assert.Contains("th_photo", text, StringComparison.Ordinal);
+        Assert.Contains("th_info", text, StringComparison.Ordinal);
+        Assert.Contains("epc-seo-cross-refs", text, StringComparison.Ordinal);
         Assert.Contains("epc-fitment-check-btn", text, StringComparison.Ordinal);
         Assert.Contains("epc-cross-search-btn", text, StringComparison.Ordinal);
         Assert.Contains("epc-btn-cart", text, StringComparison.Ordinal);
         Assert.Contains("epc-btn-quote", text, StringComparison.Ordinal);
+        Assert.Contains("epc-wa-share-btn", text, StringComparison.Ordinal);
         Assert.Contains("epc_warehouse_search_parity.js", text, StringComparison.Ordinal);
         Assert.Contains("In stock only", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("epc-sf-brand-grid", text, StringComparison.Ordinal);
     }
 
     [Fact]
