@@ -1,5 +1,6 @@
 @namespace EcomAE.Platform.Components.Shared
 @using EcomAE.Platform.Auth
+@using EcomAE.Platform.Middleware
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
 @using EcomAE.Platform.Services
@@ -12,6 +13,7 @@
   Click-to-toggle JS mirrors cp/js/epc_erp_shell_nav.js bindTopNav (no hover-open).
   Industry filter: jewellery tabs only when active company pack is jewellery (PHP parity).
   BOS nav is Super-CP only — never advertise /bos on tenant hosts.
+  Control panel link is hidden for ERP-only tenants (no CP surface).
 *@
 
 @*
@@ -83,7 +85,10 @@
                 <a href="@ErpHomeHref">Dashboard</a>
                 <a href="/erp/guide-app">Guide</a>
                 <a href="/erp/approvals-app">Approvals</a>
-                <a href="/cp">Control panel</a>
+                @if (_showControlPanel)
+                {
+                    <a href="/cp">Control panel</a>
+                }
                 @if (_showBos)
                 {
                     <a href="/erp/fleet-app">Fleet ERP</a>
@@ -223,7 +228,11 @@
         </div>
     </main>
     <footer class="epc-erp-foot">
-        ERP · <a href="@ErpHomeHref">Dashboard</a> · <a href="/cp">Control panel</a>
+        ERP · <a href="@ErpHomeHref">Dashboard</a>
+        @if (_showControlPanel)
+        {
+            <text> · <a href="/cp">Control panel</a></text>
+        }
         @if (_showBos)
         {
             <text> · <a href="/erp/fleet-app">Fleet</a> · <a href="/bos">BOS</a></text>
@@ -349,6 +358,7 @@
     [Parameter] public string BreadcrumbTab { get; set; } = "Dashboard";
 
     private bool _showBos;
+    private bool _showControlPanel = true;
     private bool _signedIn;
     private bool _jewellery;
     private long _activeCompanyId;
@@ -385,8 +395,15 @@
         if (ctx is null)
         {
             _signedIn = IsAdmin;
+            _showControlPanel = true;
             _nav = ErpIndustryNav.FilterTopnav(LegacyDesktopChromeCatalog.ErpTopnav(), false);
             return;
+        }
+
+        // ERP-only tenants have no Control Panel surface — never advertise /cp.
+        if (ctx.Items[TenantResolutionMiddleware.HttpContextItemKey] is TenantContext tenant)
+        {
+            _showControlPanel = tenant.Mode is not TenantMode.ErpOnlyTenant;
         }
 
         var companies = ErpIndustryNav.EnsureSwitchableCompanies(

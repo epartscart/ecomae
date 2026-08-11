@@ -100,8 +100,8 @@ public sealed class ErpModuleBodyParityTests
     }
 
     [Theory]
-    [InlineData("payables", "/erp/module-app?tab=payables")]
-    [InlineData("receivables", "/erp/module-app?tab=receivables")]
+    [InlineData("payables", "/erp/payables-app")]
+    [InlineData("receivables", "/erp/receivables-app")]
     public void BalanceTabsMapToAspNetModuleShell(string tab, string expected)
     {
         Assert.True(ErpPhpTabRouteMap.TryMapTab(tab, out var href));
@@ -109,8 +109,8 @@ public sealed class ErpModuleBodyParityTests
     }
 
     [Theory]
-    [InlineData("/ERP/?epc_erp_shell=1&area=ap", "/erp/module-app?tab=payables")]
-    [InlineData("/ERP/?epc_erp_shell=1&area=ar", "/erp/module-app?tab=receivables")]
+    [InlineData("/ERP/?epc_erp_shell=1&area=ap", "/erp/payables-app")]
+    [InlineData("/ERP/?epc_erp_shell=1&area=ar", "/erp/receivables-app")]
     [InlineData("/ERP/?epc_erp_shell=1&area=purchasing", "/erp/purchase-orders-app")]
     [InlineData("/ERP/?epc_erp_shell=1&area=sales", "/erp/sales-orders-app")]
     [InlineData("/ERP/?epc_erp_shell=1&area=finance", "/erp/gl-journals-app")]
@@ -119,6 +119,42 @@ public sealed class ErpModuleBodyParityTests
         var href = PhpSurfaceLinkMap.AspNetPrimaryHref(php);
         Assert.Equal(expected, href);
         Assert.DoesNotContain("/php-reference/", href, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void ErpStylesheetsIncludePlatformAssetsModuleParityCss()
+    {
+        Assert.Contains(
+            LegacyPresentationAssets.ErpStylesheets,
+            s => s.Contains("/platform-assets/epc_erp_aspnet_module_parity.css", StringComparison.Ordinal));
+    }
+
+    [Theory]
+    [InlineData("ErpReceivablesApp.razor")]
+    [InlineData("ErpPayablesApp.razor")]
+    public void BalanceApps_UsePhpErpModuleMarkers(string fileName)
+    {
+        var root = FindRepoRoot();
+        var text = File.ReadAllText(Path.Combine(root,
+            "aspnet", "src", "EcomAE.Platform", "Components", "Pages", fileName));
+        Assert.Contains("PhpErpModulePageHeader", text, StringComparison.Ordinal);
+        Assert.Contains("PhpErpD365ActionPane", text, StringComparison.Ordinal);
+        Assert.Contains("epc-erp-kpi", text, StringComparison.Ordinal);
+        Assert.Contains("table-epc", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("linear-gradient(135deg", text, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("epc-ar-hero", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("epc-ap-hero", text, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void ErpChrome_HidesControlPanelForErpOnlyTenants()
+    {
+        var root = FindRepoRoot();
+        var text = File.ReadAllText(Path.Combine(root,
+            "aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpErpDesktopChrome.razor"));
+        Assert.Contains("_showControlPanel", text, StringComparison.Ordinal);
+        Assert.Contains("TenantMode.ErpOnlyTenant", text, StringComparison.Ordinal);
+        Assert.Contains("never advertise /cp", text, StringComparison.OrdinalIgnoreCase);
     }
 
     private static string FindRepoRoot()
