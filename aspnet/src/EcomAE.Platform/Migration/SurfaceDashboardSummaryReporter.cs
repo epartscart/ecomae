@@ -1111,6 +1111,9 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         var brandUpper = brandTrim.ToUpperInvariant();
         var brandCompact = CompactStorefrontBrand(brandTrim);
         var unbound = TryGetUnboundTenantShopMessage(out var unboundMessage);
+        // Brand+article (CHPU / protocol-3): prefer indexed article_search on the primary article only.
+        // Skip 80-cross candidate expansion + REPLACE() cascade — PHP prices_enclosure is ~30–50ms.
+        var brandedFastPath = brandTrim.Length > 0;
 
         if (!unbound)
         {
@@ -1118,22 +1121,34 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             {
                 await using var connection = await OpenStorefrontShopAsync(cancellationToken).ConfigureAwait(false);
                 var hasSearchCol = await ProbePriceArticleSearchColumnAsync(connection, cancellationToken).ConfigureAwait(false);
-                var candidates = await CollectStorefrontArticleCandidatesAsync(connection, normalized, cancellationToken).ConfigureAwait(false);
+                IReadOnlyList<string> candidates = brandedFastPath
+                    ? [normalized]
+                    : await CollectStorefrontArticleCandidatesAsync(connection, normalized, cancellationToken).ConfigureAwait(false);
 
                 // PHP CHPU: article-only warehouse SQL, then brand/synonym filter in UI.
                 // Keep branded SQL first for index friendliness; retry article-only when empty.
-                var rows = await QueryStorefrontPartOffersCascadeAsync(
-                    connection,
-                    candidates,
-                    brandUpper,
-                    brandCompact,
-                    safeLimit,
-                    hasSearchCol,
-                    cancellationToken).ConfigureAwait(false);
+                var rows = brandedFastPath
+                    ? await QueryStorefrontPartOffersBrandedFastAsync(
+                        connection,
+                        candidates,
+                        brandUpper,
+                        brandCompact,
+                        safeLimit,
+                        hasSearchCol,
+                        cancellationToken).ConfigureAwait(false)
+                    : await QueryStorefrontPartOffersCascadeAsync(
+                        connection,
+                        candidates,
+                        brandUpper,
+                        brandCompact,
+                        safeLimit,
+                        hasSearchCol,
+                        cancellationToken).ConfigureAwait(false);
 
                 if (rows.Count == 0 && brandTrim.Length > 0)
                 {
-                    var unfiltered = await QueryStorefrontPartOffersCascadeAsync(
+                    // Alias miss: still stay on primary article (no cross expansion) + skip REPLACE.
+                    var unfiltered = await QueryStorefrontPartOffersBrandedFastAsync(
                         connection,
                         candidates,
                         brandUpper: string.Empty,
@@ -1180,6 +1195,110 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
 
         return new(normalized, [], 0, "database", string.Empty);
+    }
+
+    public async Task<StorefrontPartStockProbeResult> ProbeStorefrontPartStockAsync(
+        string article,
+        string? brand,
+        CancellationToken cancellationToken = default)
+    {
+        var normalized = PriceLookupRequest.NormalizeArticle(article ?? string.Empty);
+        if (string.IsNullOrWhiteSpace(normalized))
+        {
+            return new(string.Empty, false, string.Empty, 0m, "empty", "Enter a part number or OE code.");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return new(normalized, false, string.Empty, 0m, "migration", "TenantRegistry DB is not configured.");
+        }
+
+        var brandTrim = (brand ?? string.Empty).Trim();
+        var brandUpper = brandTrim.ToUpperInvariant();
+        if (TryGetUnboundTenantShopMessage(out var unboundMessage))
+        {
+            return new(normalized, false, string.Empty, 0m, "migration", unboundMessage);
+        }
+
+        try
+        {
+            await using var connection = await OpenStorefrontShopAsync(cancellationToken).ConfigureAwait(false);
+            var hasSearchCol = await ProbePriceArticleSearchColumnAsync(connection, cancellationToken).ConfigureAwait(false);
+            await using var command = connection.CreateCommand();
+            // Mirror PHP max_statement_time≈2s stock probe — never block first paint.
+            command.CommandTimeout = 2;
+            if (hasSearchCol && brandUpper.Length > 0)
+            {
+                command.CommandText = """
+                    SELECT IFNULL(`exist`, 0) AS exist,
+                           IFNULL(`name`, '') AS name,
+                           IFNULL(`price`, 0) AS price
+                    FROM `shop_docpart_prices_data`
+                    WHERE `article_search` = @article
+                      AND UPPER(TRIM(`manufacturer`)) = @brand
+                      AND IFNULL(`exist`, 0) > 0
+                    LIMIT 1
+                    """;
+            }
+            else if (hasSearchCol)
+            {
+                command.CommandText = """
+                    SELECT IFNULL(`exist`, 0) AS exist,
+                           IFNULL(`name`, '') AS name,
+                           IFNULL(`price`, 0) AS price
+                    FROM `shop_docpart_prices_data`
+                    WHERE `article_search` = @article
+                      AND IFNULL(`exist`, 0) > 0
+                    LIMIT 1
+                    """;
+            }
+            else if (brandUpper.Length > 0)
+            {
+                command.CommandText = """
+                    SELECT IFNULL(`exist`, 0) AS exist,
+                           IFNULL(`name`, '') AS name,
+                           IFNULL(`price`, 0) AS price
+                    FROM `shop_docpart_prices_data`
+                    WHERE UPPER(TRIM(IFNULL(`article`, ''))) = @article
+                      AND UPPER(TRIM(`manufacturer`)) = @brand
+                      AND IFNULL(`exist`, 0) > 0
+                    LIMIT 1
+                    """;
+            }
+            else
+            {
+                command.CommandText = """
+                    SELECT IFNULL(`exist`, 0) AS exist,
+                           IFNULL(`name`, '') AS name,
+                           IFNULL(`price`, 0) AS price
+                    FROM `shop_docpart_prices_data`
+                    WHERE UPPER(TRIM(IFNULL(`article`, ''))) = @article
+                      AND IFNULL(`exist`, 0) > 0
+                    LIMIT 1
+                    """;
+            }
+
+            AddParameter(command, "@article", normalized);
+            if (brandUpper.Length > 0)
+            {
+                AddParameter(command, "@brand", brandUpper);
+            }
+
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                var exist = Convert.ToInt32(reader["exist"] is DBNull ? 0 : reader["exist"], CultureInfo.InvariantCulture);
+                var name = Convert.ToString(reader["name"] is DBNull ? string.Empty : reader["name"], CultureInfo.InvariantCulture) ?? string.Empty;
+                var price = Convert.ToDecimal(reader["price"] is DBNull ? 0m : reader["price"], CultureInfo.InvariantCulture);
+                return new(normalized, exist > 0, name, price, "database", string.Empty);
+            }
+
+            return new(normalized, false, string.Empty, 0m, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(normalized, false, string.Empty, 0m, "database-error", ex.Message);
+        }
     }
 
     public async Task<StorefrontArticleBrandsResult> ListStorefrontArticleBrandsAsync(string article, int limit, CancellationToken cancellationToken = default)
@@ -1597,6 +1716,44 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                      StorefrontArticleMatchMode.ArticleSearch,
                      StorefrontArticleMatchMode.ExactTrim,
                      StorefrontArticleMatchMode.ReplaceNormalize
+                 })
+        {
+            var rows = await QueryStorefrontPartOffersAsync(
+                connection,
+                candidates,
+                brandUpper,
+                brandCompact,
+                safeLimit,
+                mode,
+                hasSearchCol,
+                cancellationToken).ConfigureAwait(false);
+            if (rows.Count > 0)
+            {
+                return rows;
+            }
+        }
+
+        return [];
+    }
+
+    /// <summary>
+    /// Brand+article / protocol-3 AJAX path: indexed <c>article_search</c> first, then light exacts.
+    /// Never runs REPLACE()-normalize (PHP CHPU stock/prices path avoids that CPU spike).
+    /// </summary>
+    private async Task<List<StorefrontPartOfferDigest>> QueryStorefrontPartOffersBrandedFastAsync(
+        DbConnection connection,
+        IReadOnlyList<string> candidates,
+        string brandUpper,
+        string brandCompact,
+        int safeLimit,
+        bool hasSearchCol,
+        CancellationToken cancellationToken)
+    {
+        foreach (var mode in new[]
+                 {
+                     StorefrontArticleMatchMode.ArticleSearch,
+                     StorefrontArticleMatchMode.SimpleEquality,
+                     StorefrontArticleMatchMode.ExactTrim
                  })
         {
             var rows = await QueryStorefrontPartOffersAsync(

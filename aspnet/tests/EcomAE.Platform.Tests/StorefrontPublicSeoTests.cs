@@ -123,7 +123,10 @@ public sealed class StorefrontPublicSeoTests
         Assert.Contains("ApplyChpuSeo", text, StringComparison.Ordinal);
         Assert.Contains("ProductJsonLdBlock", text, StringComparison.Ordinal);
         Assert.Contains("Task.WhenAll", text, StringComparison.Ordinal);
-        Assert.Contains("ssrOfferLimit", text, StringComparison.Ordinal);
+        // Brand+article CHPU: SEO stock probe + genuine brands only (warehouse via AJAX).
+        Assert.Contains("ProbeStorefrontPartStockAsync", text, StringComparison.Ordinal);
+        Assert.Contains("_chpuSeoInStock", text, StringComparison.Ordinal);
+        Assert.Contains("ajax-fast-path", text, StringComparison.Ordinal);
     }
 
     private static string Find(string relative)
