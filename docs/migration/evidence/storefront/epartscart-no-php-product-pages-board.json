@@ -1,0 +1,29 @@
+{
+  "role": "epartscart-no-php-product-pages",
+  "generatedAtUnix": 1786434000,
+  "ok": true,
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "policy": {
+    "productHtml": "ASP.NET Core only",
+    "phpHtml": "/php-reference/* only — paused (TemporarilyDeactivatePhpServing) until operator asks to restore for compare",
+    "phpBackend": "ajax/write bridges may still call PHP APIs until cutover",
+    "optInCompare": "?php=1 / ?classic=1 embeds under ASP.NET shells; never product /en PHP bodies"
+  },
+  "nginx": {
+    "location ^~ /en/": ":5100",
+    "location ^~ /me/": ":5100",
+    "location ^~ /ru/": ":5100",
+    "location ^~ /parts/": ":5100",
+    "location ^~ /storefront/": ":5100",
+    "phpReference": "exact /php-reference/{home,cp,erp,storefront} rewrite to index.php (app may 503 when paused)"
+  },
+  "operator": {
+    "stop": "scripts/cloudpanel_EPARTSCART_STOP_PHP_PRODUCT_PAGES_NOW.sh",
+    "prove": "scripts/cloudpanel_EPARTSCART_NO_PHP_PRODUCT_PAGES_PROVE.sh",
+    "restoreArchiveWhenAsked": "scripts/cloudpanel_restore_php_reference_serving.sh (must NOT return product /en to PHP-FPM)",
+    "branch": "cursor/epartscart-stop-php-product-pages-7b3b",
+    "passLine": "RESULT=PASS PHP_PRODUCT_PAGES=STOPPED",
+    "silentExternalActionWithoutPaste": "FAIL"
+  }
+}

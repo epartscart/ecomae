@@ -41,13 +41,18 @@
         "/bos"
       ],
       "sharedEntriesPhp": [],
-      "storefrontChpuAspNet": [
-        "/en/parts/",
-        "/parts/",
-        "/en/shop/part_search",
-        "/en/shop/warehouse-search"
+      "storefrontLangTreeAspNet": [
+        "/en/",
+        "/me/",
+        "/ru/",
+        "/parts/"
       ],
-      "storefrontChpuNote": "Classic-entry proxies CHPU part pages + PHP-canonical search to StorefrontSearchApp at the same URL. Live 2026-08-11 defect: /en/parts/TOYOTA/1310154101 was still full PHP nero while / was ASP.NET primary. Orders via PHP writes remain expected until cutoverAllowed=true.",
+      "storefrontLangTreeNote": "Entire language commerce trees proxy to ASP.NET. Product browser never renders PHP nero. PHP HTML only under /php-reference/* (paused unless operator restores). Backend ajax/write bridges may still call PHP APIs until cutoverAllowed=true.",
+      "storefrontChpuAspNet": [
+        "/en/",
+        "/parts/"
+      ],
+      "storefrontChpuNote": "CHPU /en/parts/{BRAND}/{ARTICLE} is covered by location ^~ /en/ → :5100. Same ASP.NET StorefrontSearchApp as search-app.",
       "loginBridges": [
         "/cp/login",
         "/erp/login",
