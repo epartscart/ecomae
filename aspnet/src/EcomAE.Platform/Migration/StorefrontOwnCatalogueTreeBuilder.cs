@@ -46,10 +46,13 @@ public static class StorefrontOwnCatalogueTreeBuilder
 
     public static string LabelFor(string alias, string value, int id)
     {
+        // PHP get_catalogue_tree.php: value column is a lang_text_strings key.
+        // Unresolved numeric ids must NOT render as the menu label (tenant saw "1324").
         var label = (value ?? string.Empty).Trim();
         if (label.Length == 0
             || string.Equals(label, "null", StringComparison.OrdinalIgnoreCase)
-            || Regex.IsMatch(label, @"^\?+$"))
+            || Regex.IsMatch(label, @"^\?+$")
+            || Regex.IsMatch(label, @"^\d+$"))
         {
             label = HumanizeAlias(alias);
         }

@@ -17,27 +17,14 @@
 <PhpChromeStyles Surface="storefront" />
 <HeadContent>
 <style>
-        .epc-sf-search-hero {
-            margin-bottom:1rem; padding:1.15rem 1.25rem; border-radius:.7rem; color:#fff;
-            background:linear-gradient(135deg,#111827 0%,#7f1d1d 50%,#dc2626 100%);
-        }
-        .epc-sf-search-hero h1 { margin:.2rem 0 .35rem; font-size:clamp(1.4rem,3vw,1.95rem); }
-        .epc-sf-search-hero p { margin:0; color:#fecaca; max-width:42rem; font-size:.92rem; line-height:1.45; }
-        .epc-sf-search-form { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.9rem; }
+        
+        .epc-sf-search-form { display:flex; gap:.45rem; flex-wrap:wrap; align-items:center; }
         .epc-sf-search-form input {
-            flex:1; min-width:160px; padding:.6rem .75rem; border:0; border-radius:.4rem; font-size:.95rem;
-        }
-        .epc-sf-search-form button {
-            padding:.6rem .95rem; border:0; border-radius:.4rem; background:#dc2626; color:#fff; font-weight:700; cursor:pointer;
+            flex:1; min-width:140px; padding:.4rem .65rem; border:1px solid #cbd5e1; border-radius:3px; font-size:.9rem; background:#fff; color:#111;
         }
         /* PHP site_professional_shell: CHPU results keep header search only. */
         .epc-chpu-direct-part-search .epc-sf-search-form,
-        .epc-chpu-direct-part-search .epc-sf-search-cta { display:none !important; }
-        .epc-sf-search-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.75rem; }
-        .epc-sf-search-cta a {
-            display:inline-flex; padding:.45rem .75rem; border-radius:.4rem; font-weight:700; font-size:.8rem;
-            text-decoration:none; color:#fff; border:1px solid rgba(255,255,255,.35);
-        }
+        .epc-chpu-direct-part-search .epc-sf-page-actions .btn-default { display:none !important; }
         .epc-sf-search-kpis { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
         .epc-sf-search-kpi { background:#fff; border:1px solid #e5e7eb; border-radius:.55rem; padding:.85rem .9rem; }
         .epc-sf-search-kpi strong { display:block; font-size:1.35rem; font-variant-numeric:tabular-nums; }
@@ -96,44 +83,39 @@
 
 <PhpStorefrontDesktopChrome>
 
-    <section class="epc-sf-search-hero @(_hideInPageSearch ? "epc-chpu-direct-part-search" : null)">
-        <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="eparts" style="height:28px;filter:brightness(1.1)" />
-        <h1>@_heroTitle</h1>
-        <p>@_heroSubtitle</p>
-        @* PHP CHPU warehouse results: header search only — hide redundant in-page search card. *@
-        @if (!_hideInPageSearch)
-        {
-            <form class="epc-sf-search-form" method="get" action="@SearchFormAction">
-                @if (string.Equals(_mode, "attr", StringComparison.OrdinalIgnoreCase))
-                {
-                    <input type="hidden" name="mode" value="attr" />
-                    <input type="search" name="q" value="@_attrQuery" placeholder="Engine, size, country, cross ref…" aria-label="Warehouse / more info search" />
-                }
-                else if (string.Equals(_mode, "vin", StringComparison.OrdinalIgnoreCase))
-                {
-                    <input type="hidden" name="mode" value="vin" />
-                    <input type="search" name="identString" value="@_articleInput" placeholder="Enter VIN / Frame" aria-label="VIN" maxlength="32" />
-                }
-                else if (string.Equals(_mode, "engine", StringComparison.OrdinalIgnoreCase))
-                {
-                    <input type="hidden" name="mode" value="engine" />
-                    <input type="search" name="engine" value="@_articleInput" placeholder="Engine code (e.g. 3L, 12R)" aria-label="Engine code" />
-                }
-                else
-                {
-                    <input type="search" name="article" value="@_articleInput" placeholder="Part number / article" aria-label="Part number" required />
-                    <input type="search" name="brand" value="@_brandInput" placeholder="Brand (optional)" aria-label="Brand" />
-                }
-                <button type="submit">Search</button>
-            </form>
-            <div class="epc-sf-search-cta">
-                <a href="@StorefrontSurfaceLinks.WarehouseSearch">Warehouse / more info</a>
-                <a href="@StorefrontSurfaceLinks.LaximoVin">VIN search</a>
-                <a href="@StorefrontSurfaceLinks.VehicleCatalog">Vehicle catalog</a>
-                <a href="/">Storefront home</a>
-            </div>
-        }
-    </section>
+    <div class="@(_hideInPageSearch ? "epc-chpu-direct-part-search" : null)">
+        <PhpStorefrontPageHeader Title="@_heroTitle" Subtitle="@_heroSubtitle">
+            @if (!_hideInPageSearch)
+            {
+                <form class="epc-sf-search-form" method="get" action="@SearchFormAction">
+                    @if (string.Equals(_mode, "attr", StringComparison.OrdinalIgnoreCase))
+                    {
+                        <input type="hidden" name="mode" value="attr" />
+                        <input type="search" name="q" value="@_attrQuery" placeholder="Engine, size, country, cross ref…" aria-label="Warehouse / more info search" />
+                    }
+                    else if (string.Equals(_mode, "vin", StringComparison.OrdinalIgnoreCase))
+                    {
+                        <input type="hidden" name="mode" value="vin" />
+                        <input type="search" name="identString" value="@_articleInput" placeholder="Enter VIN / Frame" aria-label="VIN" maxlength="32" />
+                    }
+                    else if (string.Equals(_mode, "engine", StringComparison.OrdinalIgnoreCase))
+                    {
+                        <input type="hidden" name="mode" value="engine" />
+                        <input type="search" name="engine" value="@_articleInput" placeholder="Engine code (e.g. 3L, 12R)" aria-label="Engine code" />
+                    }
+                    else
+                    {
+                        <input type="search" name="article" value="@_articleInput" placeholder="Part number / article" aria-label="Part number" required />
+                        <input type="search" name="brand" value="@_brandInput" placeholder="Brand (optional)" aria-label="Brand" />
+                    }
+                    <button type="submit" class="btn btn-sm btn-primary">Search</button>
+                </form>
+                <a class="btn btn-sm btn-default" href="@StorefrontSurfaceLinks.WarehouseSearch">Warehouse / more info</a>
+                <a class="btn btn-sm btn-default" href="@StorefrontSurfaceLinks.LaximoVin">VIN search</a>
+                <a class="btn btn-sm btn-default" href="@StorefrontSurfaceLinks.VehicleCatalog">Vehicle catalog</a>
+            }
+        </PhpStorefrontPageHeader>
+    </div>
 
     <div class="epc-sf-search-kpis" aria-label="Search KPIs">
         <div class="epc-sf-search-kpi"><strong>@(_normalized.Length == 0 ? "—" : _normalized)</strong><span>Article</span></div>

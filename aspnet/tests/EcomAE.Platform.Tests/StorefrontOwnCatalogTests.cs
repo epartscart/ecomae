@@ -58,6 +58,29 @@ public sealed class StorefrontOwnCatalogTests
         Assert.False(StorefrontOwnCatalogueTreeBuilder.IsApai("shiny", "shiny"));
     }
 
+    [Theory]
+    [InlineData("shiny", "1324", 62, "Shiny")]
+    [InlineData("masla-i-avtohimiya", "1332", 64, "Masla I Avtohimiya")]
+    [InlineData("diski", "???", 63, "Diski")]
+    [InlineData("tires", "Tires", 1, "Tires")]
+    public void LabelFor_HumanizesUnresolvedLangIds(string alias, string value, int id, string expected)
+    {
+        Assert.Equal(expected, StorefrontOwnCatalogueTreeBuilder.LabelFor(alias, value, id));
+    }
+
+    [Fact]
+    public void CatalogueSqlResolvesLangTranslationsWhenPresent()
+    {
+        Assert.Contains(
+            "lang_text_strings_translation",
+            LegacySurfaceDashboardSql.SelectStorefrontCatalogueCategoriesTranslated,
+            StringComparison.Ordinal);
+        Assert.Contains(
+            "value_translated",
+            LegacySurfaceDashboardSql.SelectStorefrontCatalogueCategoriesTranslated,
+            StringComparison.Ordinal);
+    }
+
     [Fact]
     public void ChromeWiresCatalogOfProductsMegaMenuAndOwnCatalog()
     {

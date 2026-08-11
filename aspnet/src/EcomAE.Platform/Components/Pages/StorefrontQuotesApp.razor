@@ -12,12 +12,7 @@
 <PhpChromeStyles Surface="storefront" />
 <HeadContent>
 <style>
-        .epc-sf-q-hero {
-            margin-bottom:1rem; padding:1.15rem 1.25rem; border-radius:.7rem; color:#fff;
-            background:linear-gradient(135deg,#111827 0%,#7f1d1d 50%,#dc2626 100%);
-        }
-        .epc-sf-q-hero h1 { margin:.2rem 0 .35rem; font-size:clamp(1.35rem,3vw,1.9rem); }
-        .epc-sf-q-hero p { margin:0; color:#fecaca; max-width:40rem; font-size:.92rem; }
+        
         .epc-sf-q-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
         .epc-sf-q-cta a {
             display:inline-flex; padding:.5rem .85rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
@@ -39,16 +34,12 @@
 
 <PhpStorefrontDesktopChrome>
 
-    <section class="epc-sf-q-hero">
-        <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="eparts" style="height:28px;filter:brightness(1.1)" />
-        <h1>My quotes</h1>
-        <p>Customer quote requests — submit and accept remain on the classic quotes module.</p>
-        <div class="epc-sf-q-cta">
-            <a href="@StorefrontPhpCanonical.Quotes">Open classic quotes</a>
-            <a class="ghost" href="@StorefrontSurfaceLinks.Cart">Cart</a>
-            <a class="ghost" href="@StorefrontSurfaceLinks.PartSearch">Search parts</a>
-        </div>
-    </section>
+    <PhpStorefrontPageHeader Title="My quotes"
+                            Subtitle="Customer quote requests — submit and accept remain on the classic quotes module.">
+        <a class="btn btn-sm btn-primary" href="@StorefrontPhpCanonical.Quotes">Open classic quotes</a>
+            <a class="btn btn-sm btn-default" href="@StorefrontSurfaceLinks.Cart">Cart</a>
+            <a class="btn btn-sm btn-default" href="@StorefrontSurfaceLinks.PartSearch">Search parts</a>
+    </PhpStorefrontPageHeader>
 
     @if (!_isCustomer)
     {

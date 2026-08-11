@@ -15,12 +15,7 @@
 <PhpChromeStyles Surface="storefront" />
 <HeadContent>
 <style>
-        .epc-sf-cart-hero {
-            margin-bottom:1rem; padding:1.15rem 1.25rem; border-radius:.7rem; color:#fff;
-            background:linear-gradient(135deg,#111827 0%,#7f1d1d 50%,#dc2626 100%);
-        }
-        .epc-sf-cart-hero h1 { margin:.2rem 0 .35rem; font-size:clamp(1.4rem,3vw,1.95rem); }
-        .epc-sf-cart-hero p { margin:0; color:#fecaca; max-width:40rem; font-size:.92rem; line-height:1.45; }
+        
         .epc-sf-cart-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
         .epc-sf-cart-cta a, .epc-sf-cart-cta button {
             display:inline-flex; padding:.5rem .85rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
@@ -55,17 +50,12 @@
 
 <PhpStorefrontDesktopChrome>
 
-    <section class="epc-sf-cart-hero">
-        <img src="@LegacyPresentationAssets.EpartsCartMarkUrl" alt="eparts" style="height:28px;filter:brightness(1.1)" />
-        <h1>Cart</h1>
-        <p>Lines in your cart ready for checkout. Qty / check / delete preview here; live writes stay on the classic cart module.</p>
-        <div class="epc-sf-cart-cta">
-            <a href="@StorefrontPhpCanonical.Cart">Open classic cart (writes)</a>
-            <a class="ghost" href="@StorefrontSurfaceLinks.Checkout">Checkout readiness</a>
-            <a class="ghost" href="@StorefrontPhpCanonical.Checkout">PHP how to obtain</a>
-            <a class="ghost" href="@StorefrontSurfaceLinks.PartSearch">Search parts</a>
-        </div>
-    </section>
+    <PhpStorefrontPageHeader Title="Cart"
+                            Subtitle="ASP.NET Core cart digest. Qty / check / delete dry-run here; live writes remain PHP-authoritative under /php-reference/* until cutover.">
+        <a class="btn btn-sm btn-primary" href="@StorefrontSurfaceLinks.Checkout">Checkout</a>
+            <a class="btn btn-sm btn-default" href="@StorefrontSurfaceLinks.PartSearch">Search parts</a>
+            <a class="btn btn-sm btn-default" href="@PhpCartCompareHref" title="Temporary PHP compare only">Compare PHP reference</a>
+    </PhpStorefrontPageHeader>
 
     @if (!_isCustomer)
     {
@@ -140,7 +130,7 @@
                                     ·
                                     <button class="linkish" type="button" @onclick="() => DryRunDelete(line.Id)">Delete</button>
                                     ·
-                                    <a href="@StorefrontPhpCanonical.Cart">PHP</a>
+                                    <a href="@PhpCartCompareHref" title="Temporary PHP compare only">PHP ref</a>
                                 </td>
                             </tr>
                         }
@@ -150,15 +140,17 @@
         </div>
 
         <p class="epc-sf-cart-note">
-            Qty / check / delete buttons call ASP.NET dry-run endpoints (<code>confirm_writes=false</code>) and then deep-link to
-            <a href="@StorefrontPhpCanonical.Cart">@StorefrontPhpCanonical.Cart</a> for authoritative writes.
-            Checkout create remains PHP.
+            Qty / check / delete call ASP.NET dry-run endpoints (<code>confirm_writes=false</code>).
+            Authoritative writes stay under <a href="@PhpCartCompareHref"><code>@PhpCartCompareHref</code></a>
+            until cutover. Product cart route is <code>/storefront/cart-app</code>.
         </p>
     }
 
 </PhpStorefrontDesktopChrome>
 
 @code {
+    private static string PhpCartCompareHref => "/php-reference" + StorefrontPhpCanonical.Cart;
+
     private bool _isCustomer;
     private StorefrontCartSummary _summary = new(0, 0m, "n/a", "");
     private IReadOnlyList<StorefrontCartLineDigest> _lines = [];
@@ -218,7 +210,7 @@
             var json = await response.Content.ReadAsStringAsync();
             _flashOk = response.IsSuccessStatusCode;
             _flash = response.IsSuccessStatusCode
-                ? $"Dry-run OK for {path}. Apply the change on classic cart: {StorefrontPhpCanonical.Cart}"
+                ? $"Dry-run OK for {path}. Apply the change on PHP reference cart: {PhpCartCompareHref}"
                 : $"Dry-run refused for {path}: {(json.Length > 220 ? json[..220] + "…" : json)}";
         }
         catch (Exception ex)

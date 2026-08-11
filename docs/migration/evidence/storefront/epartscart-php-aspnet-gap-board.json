@@ -1,6 +1,7 @@
 {
   "tenant": "epartscart.com",
-  "asOf": "2026-08-06",
+  "asOf": "2026-08-09",
+  "deepBoard": "docs/migration/evidence/storefront/epartscart-frontend-deep-parity-board.json",
   "phpReference": "/php-reference/* (archive; may 503 when TemporarilyDeactivatePhpServing)",
   "aspNetPrimary": true,
   "productBasedOn": "aspnet-core",
