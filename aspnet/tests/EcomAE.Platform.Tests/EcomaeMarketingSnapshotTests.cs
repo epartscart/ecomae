@@ -46,6 +46,25 @@ public sealed class EcomaeMarketingSnapshotTests
         Assert.Contains("/platform-assets/epc_ecomae_platform_marketing.css", html, StringComparison.Ordinal);
         Assert.DoesNotContain("epc_ecomae_platform_marketing_css.php", html, StringComparison.Ordinal);
         Assert.Contains("/platform-assets/ecomae-mark.svg", html, StringComparison.Ordinal);
+        Assert.DoesNotContain("/epc-static.php", html, StringComparison.Ordinal);
+        Assert.DoesNotContain("epc_ecomae_logo_svg.php", html, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void RewritePhpAssetUrls_StripsProductPhpEntryPoints()
+    {
+        const string raw = """
+            <img src="/epc-static.php?f=content/general_pages/marketing_screens/og_cover.png&amp;v=1" />
+            <a href="/epc-blockchain-verify.php">Verify</a>
+            <link href="/content/general_pages/epc_ecomae_platform_marketing_css.php?v=1" />
+            """;
+        var html = EcomaeMarketingSnapshots.RewritePhpAssetUrls(raw);
+        Assert.Contains("/platform-assets/marketing_screens/og_cover.png", html, StringComparison.Ordinal);
+        Assert.Contains("/blockchain/verify", html, StringComparison.Ordinal);
+        Assert.Contains("/platform-assets/epc_ecomae_platform_marketing.css", html, StringComparison.Ordinal);
+        Assert.DoesNotContain("/epc-static.php", html, StringComparison.Ordinal);
+        Assert.DoesNotContain("/epc-blockchain-verify.php", html, StringComparison.Ordinal);
+        Assert.DoesNotContain("_css.php", html, StringComparison.Ordinal);
     }
 
     [Theory]

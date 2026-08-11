@@ -1,0 +1,131 @@
+@page "/blockchain/verify"
+@layout Layout.PhpChromeLayout
+@using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Migration
+@inject ISurfaceDashboardSummaryReporter Dashboards
+@inject NavigationManager Nav
+
+<PageTitle>Verify proof — ECOM AE</PageTitle>
+<PhpChromeStyles Surface="marketing" />
+
+<style>
+.epc-bcv{--bg:#0b1220;--panel:#121a2b;--line:rgba(255,255,255,.08);--text:#e8eefc;--muted:#93a4c3;--ok:#34d399;--bad:#fb7185;--accent:#38bdf8;margin:0;font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;background:radial-gradient(1200px 600px at 20% -10%,#1e3a5f 0%,transparent 55%),radial-gradient(900px 500px at 90% 10%,#0f766e33 0%,transparent 50%),var(--bg);color:var(--text);min-height:70vh}
+.epc-bcv__wrap{max-width:760px;margin:0 auto;padding:40px 20px 64px}
+.epc-bcv__brand{font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin:0 0 10px}
+.epc-bcv h1{margin:0 0 8px;font-size:28px;line-height:1.2}
+.epc-bcv__lead{color:var(--muted);margin:0 0 28px;line-height:1.6}
+.epc-bcv__card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:22px}
+.epc-bcv form{display:flex;gap:10px;flex-wrap:wrap}
+.epc-bcv input[type=text]{flex:1;min-width:220px;background:#0a1220;border:1px solid var(--line);color:var(--text);border-radius:10px;padding:12px 14px;font-size:15px}
+.epc-bcv button{background:var(--accent);color:#041018;border:0;border-radius:10px;padding:12px 16px;font-weight:700;cursor:pointer}
+.epc-bcv__status{margin-top:18px;padding:12px 14px;border-radius:10px;font-weight:600}
+.epc-bcv__status.ok{background:rgba(52,211,153,.12);color:var(--ok);border:1px solid rgba(52,211,153,.35)}
+.epc-bcv__status.bad{background:rgba(251,113,133,.12);color:var(--bad);border:1px solid rgba(251,113,133,.35)}
+.epc-bcv__status.neutral{background:rgba(148,163,184,.08);color:var(--muted);border:1px solid var(--line)}
+.epc-bcv__grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px}
+@@media(max-width:640px){.epc-bcv__grid{grid-template-columns:1fr}}
+.epc-bcv__field{background:#0a1220;border:1px solid var(--line);border-radius:10px;padding:12px}
+.epc-bcv__field label{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:4px}
+.epc-bcv__field div{font-size:13px;word-break:break-all}
+.epc-bcv__foot{margin-top:28px;color:var(--muted);font-size:13px;line-height:1.5}
+.epc-bcv__foot a{color:var(--accent)}
+</style>
+
+<div class="epc-bcv">
+    <div class="epc-bcv__wrap">
+        <p class="epc-bcv__brand">ECOM AE Blockchain BOS</p>
+        <h1>Verify a business proof</h1>
+        <p class="epc-bcv__lead">Public cryptographic proof lookup for the ECOM AE Blockchain BOS Enterprise System.</p>
+
+        <div class="epc-bcv__card">
+            <EditForm Model="_model" OnValidSubmit="OnSubmit">
+                <InputText class="epc-bcv-input" @bind-Value="_model.Proof" placeholder="Proof ID (prf_…) or SHA-256 hash" autocomplete="off" />
+                <button type="submit">Verify</button>
+            </EditForm>
+            <div class="epc-bcv__status @_statusClass">@_statusLabel</div>
+
+            @if (_row is not null)
+            {
+                <div class="epc-bcv__grid">
+                    <div class="epc-bcv__field"><label>Proof ID</label><div>@_row.ProofUid</div></div>
+                    <div class="epc-bcv__field"><label>Status</label><div>@_row.Status</div></div>
+                    <div class="epc-bcv__field"><label>Tenant</label><div>@_row.TenantKey</div></div>
+                    <div class="epc-bcv__field"><label>Record</label><div>@_row.RecordType · @_row.RecordId</div></div>
+                    <div class="epc-bcv__field" style="grid-column:1/-1"><label>Payload hash (SHA-256)</label><div>@_row.PayloadHash</div></div>
+                    <div class="epc-bcv__field" style="grid-column:1/-1"><label>Anchor ref</label><div>@(string.IsNullOrEmpty(_row.AnchorRef) ? "— pending batch —" : _row.AnchorRef)</div></div>
+                </div>
+            }
+        </div>
+
+        <p class="epc-bcv__foot">
+            JSON API: <code>/blockchain/verify?proof=…&amp;format=json</code>.
+            <a href="/blockchain">Blockchain BOS</a> ·
+            <a href="/">ECOM AE</a>
+        </p>
+    </div>
+</div>
+
+<style>
+.epc-bcv-input{flex:1;min-width:220px;background:#0a1220;border:1px solid rgba(255,255,255,.08);color:#e8eefc;border-radius:10px;padding:12px 14px;font-size:15px}
+.epc-bcv form{display:flex;gap:10px;flex-wrap:wrap}
+</style>
+
+@code {
+    private readonly ProofForm _model = new();
+    private string _statusLabel = "Enter a proof ID or hash";
+    private string _statusClass = "neutral";
+    private CpBlockchainProofDigest? _row;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var uri = Nav.ToAbsoluteUri(Nav.Uri);
+        var q = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query);
+        if (q.TryGetValue("proof", out var p) || q.TryGetValue("hash", out p) || q.TryGetValue("id", out p))
+        {
+            _model.Proof = p.ToString().Trim();
+        }
+
+        if (string.IsNullOrEmpty(_model.Proof))
+        {
+            return;
+        }
+
+        await LookupAsync();
+    }
+
+    private Task OnSubmit()
+    {
+        var proof = (_model.Proof ?? "").Trim();
+        var target = string.IsNullOrWhiteSpace(proof)
+            ? "/blockchain/verify"
+            : "/blockchain/verify?proof=" + Uri.EscapeDataString(proof);
+        Nav.NavigateTo(target, forceLoad: true);
+        return Task.CompletedTask;
+    }
+
+    private async Task LookupAsync()
+    {
+        var digest = await Dashboards.BuildCpBlockchainProofsDigestAsync(500);
+        var key = (_model.Proof ?? "").Trim();
+        _row = digest.Proofs.FirstOrDefault(r =>
+            r.ProofUid.Equals(key, StringComparison.OrdinalIgnoreCase)
+            || r.PayloadHash.Equals(key, StringComparison.OrdinalIgnoreCase));
+
+        if (_row is null)
+        {
+            _statusLabel = "Proof not found";
+            _statusClass = "bad";
+            return;
+        }
+
+        var anchored = _row.Status.Equals("anchored", StringComparison.OrdinalIgnoreCase)
+            || _row.Status.Equals("confirmed", StringComparison.OrdinalIgnoreCase);
+        _statusLabel = anchored ? "Valid — proof on record" : "Found — awaiting anchor";
+        _statusClass = "ok";
+    }
+
+    private sealed class ProofForm
+    {
+        public string Proof { get; set; } = "";
+    }
+}

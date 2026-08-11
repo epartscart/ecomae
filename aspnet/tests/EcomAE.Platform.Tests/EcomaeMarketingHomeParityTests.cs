@@ -86,10 +86,13 @@ public sealed class EcomaeMarketingHomeParityTests
     }
 
     [Fact]
-    public void HomeSections_VerifyProofUsesPhpBlockchainVerify()
+    public void HomeSections_VerifyProofUsesAspNetBlockchainVerify()
     {
         var text = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpEcomaeHomeSections.razor"));
-        Assert.Contains("/epc-blockchain-verify.php", text, StringComparison.Ordinal);
+        Assert.Contains("/blockchain/verify", text, StringComparison.Ordinal);
+        Assert.Contains("/platform-assets/marketing_screens/", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("/epc-blockchain-verify.php", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("/epc-static.php", text, StringComparison.Ordinal);
         Assert.Contains("epc-ehm-rev-fallback", text, StringComparison.Ordinal);
     }
 
