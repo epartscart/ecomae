@@ -225,7 +225,17 @@ public sealed class PhpWarehouseSearchBridge
                 p.Price,
                 p.Exist,
                 p.StorageCaption ?? p.Storage ?? string.Empty,
-                FormatJsonScalar(p.TimeToExe)))
+                FormatJsonScalar(p.TimeToExe),
+                p.CheckHash ?? string.Empty,
+                p.MinOrder > 0 ? p.MinOrder : 1,
+                p.ProductType > 0 ? p.ProductType : 2,
+                p.OfficeId,
+                p.StorageId,
+                p.JsonParams ?? string.Empty,
+                p.PricePurchase,
+                p.Markup,
+                p.Probability > 0 ? p.Probability : 100,
+                FormatJsonScalar(p.TimeToExeGuaranteed)))
             .ToList();
 
         return new(
@@ -546,5 +556,33 @@ public sealed class PhpWarehouseSearchBridge
 
         [JsonPropertyName("time_to_exe")]
         public JsonElement TimeToExe { get; set; }
+
+        [JsonPropertyName("time_to_exe_guaranteed")]
+        public JsonElement TimeToExeGuaranteed { get; set; }
+
+        [JsonPropertyName("check_hash")]
+        public string? CheckHash { get; set; }
+
+        [JsonPropertyName("min_order")]
+        public int MinOrder { get; set; } = 1;
+
+        [JsonPropertyName("product_type")]
+        public int ProductType { get; set; } = 2;
+
+        [JsonPropertyName("office_id")]
+        public int OfficeId { get; set; }
+
+        [JsonPropertyName("storage_id")]
+        public int StorageId { get; set; }
+
+        [JsonPropertyName("json_params")]
+        public string? JsonParams { get; set; }
+
+        [JsonPropertyName("price_purchase")]
+        public decimal PricePurchase { get; set; }
+
+        public int Markup { get; set; }
+
+        public int Probability { get; set; } = 100;
     }
 }

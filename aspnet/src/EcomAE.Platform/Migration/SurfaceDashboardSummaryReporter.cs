@@ -1315,7 +1315,8 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            // Shop DB (docpart on ePartsCart) — not registry OpenAsync(null).
+            await using var connection = await OpenStorefrontShopAsync(cancellationToken).ConfigureAwait(false);
             var hasAnalogsSearch = await ProbeAnalogsSearchColumnsAsync(connection, cancellationToken).ConfigureAwait(false);
             await using var command = connection.CreateCommand();
             command.CommandText = LegacySurfaceDashboardSql.SelectStorefrontArticleCrossPairs.Replace(
@@ -2394,7 +2395,8 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            // UMAPI manufacturer cache lives in the shop DB (docpart on ePartsCart).
+            await using var connection = await OpenStorefrontShopAsync(cancellationToken).ConfigureAwait(false);
             var keys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
             await using (var command = connection.CreateCommand())

@@ -59,7 +59,7 @@ public sealed class StorefrontFrontendParityWaveTests
     public void SearchApp_HasGenuineSplitAndProgressivePoll()
     {
         var text = Read("aspnet/src/EcomAE.Platform/Components/Pages/StorefrontSearchApp.razor");
-        Assert.Contains("<th>Actions</th>", text, StringComparison.Ordinal);
+        Assert.Contains("Actions</th>", text, StringComparison.Ordinal);
         Assert.Contains("Genuine (OE)", text, StringComparison.Ordinal);
         Assert.Contains("Aftermarket", text, StringComparison.Ordinal);
         Assert.Contains("epc-part-type-row--genuine", text, StringComparison.Ordinal);
@@ -67,6 +67,14 @@ public sealed class StorefrontFrontendParityWaveTests
         Assert.Contains("/storefront/search-bunches", text, StringComparison.Ordinal);
         Assert.Contains("ListStorefrontGenuineBrandsAsync", text, StringComparison.Ordinal);
         Assert.Contains("ajax_getProductsOfBunch", text, StringComparison.Ordinal);
+        // PHP warehouse chrome parity
+        Assert.Contains("manufacturer_blok", text, StringComparison.Ordinal);
+        Assert.Contains("epc-fitment-check-btn", text, StringComparison.Ordinal);
+        Assert.Contains("epc-cross-search-btn", text, StringComparison.Ordinal);
+        Assert.Contains("epc-btn-cart", text, StringComparison.Ordinal);
+        Assert.Contains("epc-btn-quote", text, StringComparison.Ordinal);
+        Assert.Contains("epc_warehouse_search_parity.js", text, StringComparison.Ordinal);
+        Assert.Contains("In stock only", text, StringComparison.Ordinal);
     }
 
     [Fact]
