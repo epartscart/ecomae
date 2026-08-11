@@ -1,0 +1,39 @@
+@namespace EcomAE.Platform.Components.Shared
+@*
+  PHP Super/Tenant CP module page header — .epc-scp-panel__hero (not invented digest hero).
+  Product CTAs stay ASP.NET-primary. PHP reference is a secondary compare link only.
+*@
+@using EcomAE.Platform.Presentation
+
+<section class="epc-scp-panel @ExtraPanelClass">
+    <div class="epc-scp-panel__hero">
+        <div class="epc-scp-panel__hero-main">
+            <h2 class="epc-scp-dashboard__title">@Title</h2>
+            @if (!string.IsNullOrWhiteSpace(Subtitle))
+            {
+                <p class="epc-scp-dashboard__sub">@Subtitle</p>
+            }
+        </div>
+        <div class="epc-scp-panel__actions">
+            @if (!string.IsNullOrWhiteSpace(PhpTabHref))
+            {
+                <a class="btn btn-sm btn-primary" href="@PhpSurfaceLinkMap.AspNetPrimaryHref(PhpTabHref)">
+                    <i class="fa fa-external-link" aria-hidden="true"></i> Open module
+                </a>
+                <a class="btn btn-sm btn-default ghost" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(PhpTabHref)" title="Temporary PHP compare only">
+                    <i class="fa fa-code" aria-hidden="true"></i> Compare PHP reference
+                </a>
+            }
+            @ChildContent
+        </div>
+    </div>
+</section>
+
+@code {
+    [Parameter] public string Title { get; set; } = "";
+    [Parameter] public string? Subtitle { get; set; }
+    /// <summary>PHP-shaped /CP/… tab href — primary maps to ASP.NET; compare uses /php-reference only.</summary>
+    [Parameter] public string? PhpTabHref { get; set; }
+    [Parameter] public string? ExtraPanelClass { get; set; }
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+}

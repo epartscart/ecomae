@@ -11,61 +11,33 @@
 
 <PageTitle>Modules · Control Panel · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="cp" />
-<HeadContent>
-<style>
-        .epc-mod-hero {
-            margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
-            background:linear-gradient(135deg,#0c4a6e 0%,#2563eb 45%,#0ea5e9 100%);
-        }
-        .epc-mod-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
-        .epc-mod-hero p { margin:0; color:#cbd5e1; max-width:40rem; font-size:.92rem; line-height:1.45; }
-        .epc-mod-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
-        .epc-mod-cta a {
-            display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
-            text-decoration:none; color:#fff; background:#2563eb;
-        }
-        .epc-mod-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); }
-        .epc-mod-kpis { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
-        .epc-mod-kpi { background:#fff; border:1px solid #e5e7eb; border-radius:.55rem; padding:.85rem .9rem; }
-        .epc-mod-kpi strong { display:block; font-size:1.45rem; font-variant-numeric:tabular-nums; }
-        .epc-mod-kpi span { color:#64748b; font-size:.78rem; }
-        .epc-mod-table-wrap { background:#fff; border:1px solid #e5e7eb; border-radius:.55rem; overflow:auto; }
-        .epc-mod-table { width:100%; border-collapse:collapse; font-size:.86rem; }
-        .epc-mod-table th, .epc-mod-table td { padding:.55rem .7rem; border-bottom:1px solid #f1f5f9; text-align:left; white-space:nowrap; }
-        .epc-mod-table th { background:#f8fafc; color:#475569; font-size:.75rem; text-transform:uppercase; letter-spacing:.03em; }
-        .epc-mod-table a { color:#334155; font-weight:700; text-decoration:none; }
-        .epc-mod-badge { display:inline-flex; padding:.15rem .45rem; border-radius:.3rem; font-size:.72rem; font-weight:700; }
-        .epc-mod-badge--ok { background:#dcfce7; color:#166534; }
-        .epc-mod-badge--off { background:#fee2e2; color:#991b1b; }
-        .epc-mod-badge--info { background:#e2e8f0; color:#334155; }
-        .epc-mod-note { margin-top:1rem; padding:.75rem .9rem; background:#f8fafc; border:1px solid #cbd5e1; border-radius:.45rem; color:#334155; font-size:.86rem; }
-        @@media (max-width:900px){ .epc-mod-kpis{grid-template-columns:1fr;} }
-    
-</style>
-</HeadContent>
-
 
 <PhpCpDesktopChrome IsAdmin="_isAdmin">
 
-    <section class="epc-mod-hero">
-        <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
-        <h1>Modules</h1>
-        <p>Manage store operations, catalogue, and partner integrations from one control panel.</p>
-        <div class="epc-mod-cta">
-            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
-            <a class="ghost" href="/cp/users-app">Users list</a>
-            <a class="ghost" href="/cp/groups-app">Groups list</a>
-        </div>
-    </section>
+    <PhpCpModulePageHeader Title="Modules"
+                           Subtitle="Activated catalogue / control modules (PHP modules_manager presentation)."
+                           PhpTabHref="@_phpTab">
+        <a class="ghost" href="/cp/users-app">Users list</a>
+        <a class="ghost" href="/cp/groups-app">Groups list</a>
+    </PhpCpModulePageHeader>
 
-    <div class="epc-mod-kpis" aria-label="Modules KPIs">
-        <div class="epc-mod-kpi"><strong>@_modules.Count</strong><span>Shown (limit @_limit)</span></div>
-        <div class="epc-mod-kpi"><strong>@_activated</strong><span>Activated in page</span></div>
-        <div class="epc-mod-kpi"><strong>@_frontend</strong><span>Frontend modules</span></div>
+    <div class="epc-scp-kpi" aria-label="Modules KPIs">
+        <div class="epc-scp-kpi__card">
+            <div class="epc-scp-kpi__label">Shown (limit @_limit)</div>
+            <div class="epc-scp-kpi__val">@_modules.Count</div>
+        </div>
+        <div class="epc-scp-kpi__card">
+            <div class="epc-scp-kpi__label">Activated in page</div>
+            <div class="epc-scp-kpi__val">@_activated</div>
+        </div>
+        <div class="epc-scp-kpi__card">
+            <div class="epc-scp-kpi__label">Frontend modules</div>
+            <div class="epc-scp-kpi__val">@_frontend</div>
+        </div>
     </div>
 
-    <div class="epc-mod-table-wrap">
-        <table class="epc-mod-table">
+    <div class="epc-scp-table-card">
+        <table class="epc-scp-data-table table table-epc-pro">
             <thead>
                 <tr>
                     <th>ID</th>
@@ -92,17 +64,17 @@
                             <td>
                                 @if (m.Activated)
                                 {
-                                    <span class="epc-mod-badge epc-mod-badge--ok">yes</span>
+                                    <span class="epc-scp-badge epc-scp-badge--ok">yes</span>
                                 }
                                 else
                                 {
-                                    <span class="epc-mod-badge epc-mod-badge--off">no</span>
+                                    <span class="epc-scp-badge epc-scp-badge--off">no</span>
                                 }
                             </td>
-                            <td><span class="epc-mod-badge epc-mod-badge--info">@(m.IsFrontend ? "yes" : "no")</span></td>
-                            <td><span class="epc-mod-badge epc-mod-badge--info">@(m.IsPrototype ? "yes" : "no")</span></td>
-                            <td><span class="epc-mod-badge epc-mod-badge--info">@(m.ControlAvailable ? "yes" : "no")</span></td>
-                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
+                            <td><span class="epc-scp-badge">@(m.IsFrontend ? "yes" : "no")</span></td>
+                            <td><span class="epc-scp-badge">@(m.IsPrototype ? "yes" : "no")</span></td>
+                            <td><span class="epc-scp-badge">@(m.ControlAvailable ? "yes" : "no")</span></td>
+                            <td class="epc-scp-actions-cell"><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
                         </tr>
                     }
                 }

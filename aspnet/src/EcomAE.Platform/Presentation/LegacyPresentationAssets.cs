@@ -35,7 +35,11 @@ public static class LegacyPresentationAssets
         "/content/general_pages/epc_cp_tenant_polish_css.php",
         "/content/general_pages/epc_cp_storefront_topbar_css.php",
         // Tenant Control Command Centre (matches live PHP /CP/ dashboard presentation)
-        "/content/general_pages/epc_cp_command_dashboard_css.php"
+        "/content/general_pages/epc_cp_command_dashboard_css.php",
+        // After professional: neutralize invented digest heroes → PHP epc-scp-* module look
+        // (Super CP + Tenant CP). /platform-assets survives PHP pause.
+        "/platform-assets/epc_cp_aspnet_module_parity.css?v=20260811scp",
+        "/content/general_pages/epc_cp_aspnet_module_parity_css.php"
     ];
 
     /// <summary>

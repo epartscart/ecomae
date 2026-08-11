@@ -11,58 +11,28 @@
 
 <PageTitle>Users · Control Panel · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="cp" />
-<HeadContent>
-<style>
-        .epc-users-hero {
-            margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
-            background:linear-gradient(135deg,#0c4a6e 0%,#2563eb 45%,#0ea5e9 100%);
-        }
-        .epc-users-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
-        .epc-users-hero p { margin:0; color:#cbd5e1; max-width:36rem; font-size:.92rem; line-height:1.45; }
-        .epc-users-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
-        .epc-users-cta a {
-            display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
-            text-decoration:none; color:#fff; background:#2563eb;
-        }
-        .epc-users-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); }
-        .epc-users-kpis { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
-        .epc-users-kpi { background:#fff; border:1px solid #e5e7eb; border-radius:.55rem; padding:.85rem .9rem; }
-        .epc-users-kpi strong { display:block; font-size:1.45rem; font-variant-numeric:tabular-nums; }
-        .epc-users-kpi span { color:#64748b; font-size:.78rem; }
-        .epc-users-table-wrap { background:#fff; border:1px solid #e5e7eb; border-radius:.55rem; overflow:auto; }
-        .epc-users-table { width:100%; border-collapse:collapse; font-size:.86rem; }
-        .epc-users-table th, .epc-users-table td { padding:.55rem .7rem; border-bottom:1px solid #f1f5f9; text-align:left; white-space:nowrap; }
-        .epc-users-table th { background:#f8fafc; color:#475569; font-size:.75rem; text-transform:uppercase; letter-spacing:.03em; }
-        .epc-users-table a { color:#1d4ed8; font-weight:700; text-decoration:none; }
-        .epc-users-badge { display:inline-flex; padding:.15rem .45rem; border-radius:.3rem; font-size:.72rem; font-weight:700; }
-        .epc-users-badge--ok { background:#dcfce7; color:#166534; }
-        .epc-users-badge--off { background:#fee2e2; color:#991b1b; }
-        .epc-users-note { margin-top:1rem; padding:.75rem .9rem; background:#eff6ff; border:1px solid #bfdbfe; border-radius:.45rem; color:#1e3a8a; font-size:.86rem; }
-        @@media (max-width:900px){ .epc-users-kpis{grid-template-columns:1fr;} }
-    
-</style>
-</HeadContent>
-
 
 <PhpCpDesktopChrome IsAdmin="_isAdmin">
 
-    <section class="epc-users-hero">
-        <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
-        <h1>Users</h1>
-        <p>Manage store operations, catalogue, and partner integrations from one control panel.</p>
-        <div class="epc-users-cta">
-            <a href="@(PhpSurfaceLinkMap.AspNetPrimaryHref("/CP/control/users"))">Open module</a>
-            <a class="ghost" href="/cp/groups-app">Groups list</a>
+    <PhpCpModulePageHeader Title="Users"
+                           Subtitle="Manage storefront accounts, unlock status, and partner logins (PHP users module presentation)."
+                           PhpTabHref="/CP/control/users">
+        <a class="ghost" href="/cp/groups-app">Groups list</a>
+    </PhpCpModulePageHeader>
+
+    <div class="epc-scp-kpi" aria-label="Users KPIs">
+        <div class="epc-scp-kpi__card">
+            <div class="epc-scp-kpi__label">Shown (limit @_limit)</div>
+            <div class="epc-scp-kpi__val">@_users.Count</div>
         </div>
-    </section>
+        <div class="epc-scp-kpi__card">
+            <div class="epc-scp-kpi__label">Unlocked in page</div>
+            <div class="epc-scp-kpi__val">@_unlocked</div>
+        </div>
+    </div>
 
-    <div class="epc-users-kpis" aria-label="Users KPIs">
-        <div class="epc-users-kpi"><strong>@_users.Count</strong><span>Shown (limit @_limit)</span></div>
-        <div class="epc-users-kpi"><strong>@_unlocked</strong><span>Unlocked in page</span></div>
-</div>
-
-    <div class="epc-users-table-wrap">
-        <table class="epc-users-table">
+    <div class="epc-scp-table-card">
+        <table class="epc-scp-data-table table table-epc-pro">
             <thead>
                 <tr>
                     <th>User ID</th>
@@ -91,16 +61,16 @@
                             <td>
                                 @if (u.Unlocked == 1)
                                 {
-                                    <span class="epc-users-badge epc-users-badge--ok">Yes</span>
+                                    <span class="epc-scp-badge epc-scp-badge--ok">Yes</span>
                                 }
                                 else
                                 {
-                                    <span class="epc-users-badge epc-users-badge--off">No</span>
+                                    <span class="epc-scp-badge epc-scp-badge--off">No</span>
                                 }
                             </td>
                             <td>@FormatTime(u.TimeRegistered)</td>
                             <td>@FormatTime(u.TimeLastVisit)</td>
-                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(phpHref)">Open</a></td>
+                            <td class="epc-scp-actions-cell"><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(phpHref)">Open</a></td>
                         </tr>
                     }
                 }
