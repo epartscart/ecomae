@@ -891,11 +891,16 @@ public static class PhpSurfaceLinkMap
         var path = (qIndex < 0 ? strippedPathAndQuery : strippedPathAndQuery[..qIndex]).TrimEnd('/');
         if (path.Equals("/shop/part_search", StringComparison.OrdinalIgnoreCase)
             || path.Equals("/shop/warehouse-search", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/shop/cart", StringComparison.OrdinalIgnoreCase)
             || path.Equals("/shop/orders", StringComparison.OrdinalIgnoreCase)
             || path.StartsWith("/shop/orders/", StringComparison.OrdinalIgnoreCase)
             || path.Equals("/shop/checkout", StringComparison.OrdinalIgnoreCase)
             || path.StartsWith("/shop/checkout/", StringComparison.OrdinalIgnoreCase)
-            || path.Equals("/shop/checkout_confirm", StringComparison.OrdinalIgnoreCase))
+            || path.Equals("/shop/checkout_confirm", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/users/login", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/users/registration", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/katalog-laximo", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/vehicle-catalog", StringComparison.OrdinalIgnoreCase))
         {
             return true;
         }

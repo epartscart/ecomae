@@ -370,7 +370,8 @@ def install_into_host_servers(conf_text: str, example: str, host: str) -> tuple[
         "inserted": [],
         "serverNames": [],
         "prefixStorefront": any(k == "prefix" and m == "/storefront/" for (k, m), _ in blocks),
-        "prefixEnParts": any(k == "prefix" and m == "/en/parts/" for (k, m), _ in blocks),
+        "prefixEn": any(k == "prefix" and m == "/en/" for (k, m), _ in blocks),
+        "prefixEnParts": any(k == "prefix" and m in {"/en/", "/en/parts/"} for (k, m), _ in blocks),
     }
     for start, end, body, names in sorted(targets, key=lambda t: t[0], reverse=True):
         new_body, inserted, replaced = apply_blocks_to_server_body(body, named_blocks, blocks)
@@ -425,6 +426,9 @@ def strip_classic_entry_from_host_servers(conf_text: str, host: str | None = Non
         "/erp/",
         "/bos/",
         "/storefront/",
+        "/en/",
+        "/me/",
+        "/ru/",
         "/en/parts/",
         "/parts/",
         "/marketing/",
@@ -511,6 +515,7 @@ def main(argv: list[str] | None = None) -> int:
         print(f"HOST={summary['host']}")
         print(f"SERVER_BLOCKS_EDITED={summary['serverBlocksEdited']}")
         print(f"PREFIX_STOREFRONT={summary['prefixStorefront']}")
+        print(f"PREFIX_EN={summary['prefixEn']}")
         print(f"PREFIX_EN_PARTS={summary['prefixEnParts']}")
         for names in summary["serverNames"]:
             print(f"  server_name={names[:12]}")
@@ -523,11 +528,11 @@ def main(argv: list[str] | None = None) -> int:
         if not summary["prefixStorefront"]:
             print("ERROR: storefront prefix missing from example", file=sys.stderr)
             return 2
-        # Tenant + industry examples must own CHPU /en/parts/ (www Super-CP may omit).
+        # Tenant + industry: entire /en/ commerce tree must hit Kestrel (no PHP product HTML).
         example_name = Path(args.example).name
         if "tenant" in example_name or "industry" in example_name:
-            if not summary["prefixEnParts"]:
-                print("ERROR: /en/parts/ prefix missing from tenant/industry classic-entry", file=sys.stderr)
+            if not summary["prefixEn"]:
+                print("ERROR: /en/ lang-tree prefix missing from tenant/industry classic-entry", file=sys.stderr)
                 return 2
         return 0
 

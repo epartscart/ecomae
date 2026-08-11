@@ -84,8 +84,8 @@ for base in (Path("/etc/nginx/sites-enabled"), Path("/etc/nginx/conf.d")):
 PY
 rm -f "$NGINX_SNIPPET"
 
-# Remove paused-mode /en → :5100 blocks (FORCE_LIVE / STOP_PRODUCT_PHP installed
-# them while PHP serving was off) — PHP must own /en/* again in hybrid mode.
+# Strip only marked "paused-en" 503 packs. NEVER remove classic-entry
+# location ^~ /en/ → :5100 (product HTML must stay on ASP.NET).
 python3 - <<'PY'
 import re
 from pathlib import Path
@@ -93,10 +93,6 @@ from pathlib import Path
 PAUSED_BLOCK = re.compile(
     r"[ \t]*# BEGIN ecomae-paused-en-to-platform.*?# END ecomae-paused-en-to-platform\n?",
     re.S,
-)
-# /en block appended inside the search-app redirect snip markers by FORCE_LIVE.
-SNIP_EN = re.compile(
-    r"(?m)^[ \t]*location\s+\^~\s+/en/\s*\{[^{}]*proxy_pass http://127\.0\.0\.1:5100;[^{}]*\}\n?"
 )
 
 for base in (Path("/etc/nginx/sites-enabled"), Path("/etc/nginx/conf.d")):
@@ -110,10 +106,10 @@ for base in (Path("/etc/nginx/sites-enabled"), Path("/etc/nginx/conf.d")):
         except Exception:
             continue
         new = PAUSED_BLOCK.sub("", text)
-        new = SNIP_EN.sub("", new)
         if new != text:
             conf.write_text(new)
-            print("removed paused /en routing:", conf)
+            print("removed paused-en 503 pack (kept classic-entry /en/ → :5100):", conf)
+print("NOTE: product /en/* stays on ASP.NET; only /php-reference/* archive is restored")
 PY
 
 nginx -t && systemctl reload nginx
