@@ -320,7 +320,8 @@
                     <span> — warehouse prices &amp; stock (Genuine / Aftermarket)</span>
                 </div>
                 <div id="products_area" class="epc-part-search-results" role="region" aria-label="Part search results">
-                    <table id="all_table_products" class="epc-ssr-warehouse-table"
+                    <table id="all_table_products" class="epc-ssr-warehouse-table notranslate"
+                           translate="no"
                            data-prices-visible="@(_pricesVisible ? "1" : "0")"
                            data-access-state="@_accessState"
                            data-ssr-offers="@(_genuineRows.Count + _aftermarketRows.Count > 0 ? "1" : "0")">
@@ -399,7 +400,7 @@
 
                 @if (!string.IsNullOrWhiteSpace(_brandInput))
                 {
-                    <nav class="epc-seo-cross-refs" id="epc-cross-base"
+                    <nav class="epc-seo-cross-refs notranslate" id="epc-cross-base" translate="no"
                          data-article="@_normalized" data-brand="@_brandInput"
                          aria-label="Cross references and OE numbers">
                         <h2>@_brandInput @_normalized — cross references &amp; OE numbers</h2>
@@ -650,17 +651,20 @@
       .catch(function () {});
   }
   function finishPoll(total) {
-    if (progress) {
-      progress.hidden = false;
-      progress.setAttribute('data-done', '1');
-      if (!body.querySelector('tr.epc-part-type-row--genuine, tr.epc-part-type-row--aftermarket')) {
-        var empty = body.querySelector('tr[data-empty="1"]');
-        if (empty) {
-          empty.querySelector('td').innerHTML =
-            'No warehouse offers for <strong>' + esc(brand) + ' ' + esc(article) +
-            '</strong> after polling ' + total + ' supplier bunch(es). Try another brand or article.';
-        }
-      }
+    if (!progress) return;
+    progress.setAttribute('data-done', '1');
+    var hasRows = !!body.querySelector('tr.epc-part-type-row--genuine, tr.epc-part-type-row--aftermarket');
+    if (hasRows) {
+      // Never leave "Polling suppliers…" visible after rows exist — that felt like a hang.
+      progress.hidden = true;
+      return;
+    }
+    progress.hidden = false;
+    var empty = body.querySelector('tr[data-empty="1"]');
+    if (empty) {
+      empty.querySelector('td').innerHTML =
+        'No warehouse offers for <strong>' + esc(brand) + ' ' + esc(article) +
+        '</strong> after polling ' + total + ' supplier bunch(es). Try another brand or article.';
     }
   }
   function compactArt(a) { return String(a || '').replace(/[^A-Za-z0-9]/g, '').toUpperCase(); }
@@ -668,14 +672,22 @@
   function partsHref(b, a) {
     return '/en/parts/' + encodeURIComponent(String(b || '').toUpperCase()) + '/' + encodeURIComponent(String(a || ''));
   }
-  function applyCrossSearchPayload(data) {
+  function applyCrossSearchPayload(data, opts) {
     if (!data || data.status === false) return false;
+    opts = opts || {};
     window.__epcChpuCrossBootstrapped = true;
     var refs = data.references || [];
     var stock = data.stock || [];
+    var localCount = Number(data.local_count || 0) || 0;
+    var crossbaseCount = Number(data.crossbase_count || 0) || 0;
     var total = Number(data.unique_reference_count || data.reference_count || refs.length) || refs.length;
+    if (crossbaseCount > 0) {
+      total = Math.max(total, localCount + crossbaseCount);
+    }
     var countEl = document.getElementById('epc-cross-search-count');
-    if (countEl) countEl.textContent = total + ' references';
+    if (countEl) {
+      countEl.textContent = total + ' references' + (crossbaseCount > 0 ? (' · crossbase ' + crossbaseCount) : '');
+    }
     var btn = document.getElementById('epc-cross-search-btn');
     if (btn) btn.setAttribute('title', 'Open ' + total + ' cross references');
     var list = document.getElementById('epc-cross-ref-list');
@@ -701,10 +713,18 @@
       }
     }
     if (list) {
+      var existing = list.querySelectorAll('li[data-cross-key]').length;
+      // Avoid wiping a larger rendered list with a smaller payload (prevents flicker + translate thrash).
+      if (!opts.force && existing > 0 && refs.length > 0 && refs.length < existing && !opts.expandOnly) {
+        if (loading) loading.style.display = 'none';
+        if (countEl && total > existing) countEl.textContent = total + ' references';
+        return true;
+      }
       var shown = 0;
       var html = [];
-      var limit = 120;
-      for (var i = 0; i < refs.length && shown < limit; i++) {
+      var showLimit = opts.showAll ? 600 : 200;
+      var seenKeys = Object.create(null);
+      for (var i = 0; i < refs.length && shown < showLimit; i++) {
         var ref = refs[i];
         var rb = ref.brand || '';
         var ra = ref.article || ref.article_norm || '';
@@ -713,20 +733,35 @@
         if (rn === selfA && compactBrand(rb) === selfB) continue;
         var sameArticleAlias = rn === selfA;
         var key = compactBrand(rb) + '|' + rn;
+        if (seenKeys[key]) continue;
+        seenKeys[key] = 1;
         var inStock = !!stockKeys[key];
-        html.push('<li data-cross-key="' + esc(rb + '|' + ra) + '"' + (sameArticleAlias ? ' data-related-mfr="1"' : '') + '>' +
+        var src = ref.source || 'cp';
+        html.push('<li data-cross-key="' + esc(rb + '|' + ra) + '" data-source="' + esc(src) + '"' +
+          (sameArticleAlias ? ' data-related-mfr="1"' : '') + '>' +
           '<a href="' + partsHref(rb, ra) + '" data-enhance-nav="false">' + esc(rb) + ' ' + esc(ra) + '</a> ' +
-          '<span style="color:#64748b">(' + (sameArticleAlias ? 'related manufacturer' : ('part number ' + esc(ra))) + ')</span> ' +
+          '<span style="color:#64748b">(' +
+          (src === 'crossbase' ? 'crossbase' : (sameArticleAlias ? 'related manufacturer' : ('part number ' + esc(ra)))) +
+          ')</span> ' +
           (inStock ? '<span class="epc-avail-yes">In stock</span>' : '<span class="epc-avail-no">Not in stock</span>') +
           '</li>');
         shown++;
       }
       if (html.length) list.innerHTML = html.join('');
-      else list.innerHTML = '<li style="list-style:none;color:#64748b;">No cross references found for this article.</li>';
+      else if (!existing) list.innerHTML = '<li style="list-style:none;color:#64748b;">No cross references found for this article.</li>';
       if (more) {
         if (total > shown) {
           more.style.display = 'block';
-          more.textContent = 'Showing ' + shown + ' of ' + total.toLocaleString() + ' unique crosses (full network via cross search).';
+          more.innerHTML = 'Showing ' + shown + ' of ' + total.toLocaleString() +
+            ' unique crosses' + (crossbaseCount ? ' (incl. crossbase)' : '') +
+            '. <a href="#epc-cross-base" id="epc-cross-show-all" data-enhance-nav="false">Show more</a>';
+          var showAll = document.getElementById('epc-cross-show-all');
+          if (showAll) {
+            showAll.addEventListener('click', function (e) {
+              e.preventDefault();
+              applyCrossSearchPayload(data, { force: true, showAll: true });
+            });
+          }
         } else {
           more.style.display = 'none';
         }
@@ -736,26 +771,27 @@
     return true;
   }
   function loadAspNetCrossSearch() {
-    // ASP.NET-only — progressive: first 80 refs for instant cross nav, then full 600.
-    // No .php product URLs (PHP remains reference-only under /php-reference/*).
-    function fetchCross(limit, ms) {
+    // Local CP first (fast), then merge crossbase.ru in background (PHP ajax_epc_cross_search parity).
+    function fetchCross(limit, ms, withCrossbase) {
       var url = '/storefront/cross-search?article=' + encodeURIComponent(article) +
         '&brand=' + encodeURIComponent(brand) + '&limit=' + limit;
+      if (withCrossbase) url += '&include_crossbase=1';
       var opts = { credentials: 'same-origin' };
       if (typeof AbortSignal !== 'undefined' && typeof AbortSignal.timeout === 'function') {
         opts.signal = AbortSignal.timeout(ms);
       }
       return fetch(url, opts).then(function (r) { return r.json(); });
     }
-    return fetchCross(80, 1200)
+    return fetchCross(200, 1500, false)
       .then(function (data) {
-        if (!applyCrossSearchPayload(data)) {
+        if (!applyCrossSearchPayload(data, { force: true })) {
           var loading = document.getElementById('epc-cross-loading');
           if (loading) loading.textContent = 'Cross search unavailable — showing local manufacturer aliases only.';
-          return;
         }
-        // Background expand to full local CP network (does not block first paint).
-        fetchCross(600, 2500).then(function (full) { applyCrossSearchPayload(full); }).catch(function () {});
+        // Background: full local + crossbase (cache/HTTP). Never blocks warehouse rows.
+        fetchCross(600, 4000, true)
+          .then(function (full) { applyCrossSearchPayload(full, { force: true }); })
+          .catch(function () {});
       })
       .catch(function () {
         var loading = document.getElementById('epc-cross-loading');
@@ -775,37 +811,49 @@
       .catch(function () {});
   }
   function runChpuPriceSearch() {
+    var bootKey = String(article) + '|' + String(brand);
+    // Prevent enhancedload / double-inline re-entry from stacking polls (main-thread hang).
+    if (window.__epcChpuBootKey === bootKey && window.__epcChpuBootRunning) {
+      return Promise.resolve();
+    }
+    window.__epcChpuBootKey = bootKey;
+    window.__epcChpuBootRunning = true;
     var ssrOffers = table && table.getAttribute('data-ssr-offers') === '1';
     if (progress) {
-      progress.hidden = ssrOffers;
-      if (ssrOffers) {
-        progress.setAttribute('data-done', '1');
-      }
+      progress.hidden = true;
+      if (ssrOffers) progress.setAttribute('data-done', '1');
     }
     if (totalEl) totalEl.textContent = '1';
     if (countEl) countEl.textContent = ssrOffers ? '1' : '0';
     loadGenuineBrandsBackground();
     var crossPromise = loadAspNetCrossSearch();
-    // Immediate protocol-3 poll — target first warehouse rows in ~1s (or enrich SSR seed).
+    // Immediate protocol-3 poll — enrich SSR seed; never leave progress banner stuck.
     var pricePromise = pollOne({ officeId: 0, storageId: 0, protocolVersion: 3, nestedBunches: [] })
       .finally(function () {
         if (countEl) countEl.textContent = '1';
         finishPoll(1);
+        window.__epcChpuBootRunning = false;
       });
-    // search-bunches is diagnostic/enrichment only — do NOT re-fire protocol-3 (duplicate RTT).
-    // Nested supplier bunches await native ASP.NET handlers; empty polls only slow the page.
+    // search-bunches is diagnostic only — do NOT re-fire protocol-3.
     fetch(
       '/storefront/search-bunches?article=' + encodeURIComponent(article) + '&brand=' + encodeURIComponent(brand),
       { credentials: 'same-origin' }
     ).catch(function () {});
     return Promise.all([pricePromise, crossPromise]);
   }
-  // Full page loads + Blazor enhanced nav both need a bootstrap (inline scripts may not re-run).
   window.epcRunChpuPriceSearchBootstrap = runChpuPriceSearch;
   runChpuPriceSearch();
   if (!window.__epcChpuEnhancedNavHooked) {
     window.__epcChpuEnhancedNavHooked = true;
     document.addEventListener('enhancedload', function () {
+      // Only re-bootstrap when the CHPU article/brand in the DOM changed.
+      var t = document.getElementById('all_table_products');
+      var nav = document.getElementById('epc-cross-base');
+      var a = (nav && nav.getAttribute('data-article')) || '';
+      var b = (nav && nav.getAttribute('data-brand')) || '';
+      var key = a + '|' + b;
+      if (!a || !b) return;
+      if (window.__epcChpuBootKey === key) return;
       if (typeof window.epcRunChpuPriceSearchBootstrap === 'function') {
         window.epcRunChpuPriceSearchBootstrap();
       }
@@ -813,7 +861,7 @@
   }
 })();
             </script>
-            <script src="/platform-assets/epc_warehouse_search_parity.js?v=20260811-ssr-fast" defer></script>
+            <script src="/platform-assets/epc_warehouse_search_parity.js?v=20260811-hangfix" defer></script>
         }
     }
 

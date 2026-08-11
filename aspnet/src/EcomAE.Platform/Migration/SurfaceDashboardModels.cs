@@ -1482,7 +1482,8 @@ public sealed record StorefrontArticleBrandsResult(
 public sealed record StorefrontCrossRefDigest(
     string Brand,
     string Article,
-    bool InStock);
+    bool InStock,
+    string Source = "cp");
 
 public sealed record StorefrontCrossRefsResult(
     string Article,
@@ -1498,6 +1499,7 @@ public sealed record StorefrontCrossSearchResult(
     IReadOnlyList<StorefrontCrossRefDigest> References,
     IReadOnlyList<StorefrontCrossRefDigest> Stock,
     int LocalCount,
+    int CrossbaseCount,
     int UniqueReferenceCount,
     string Source,
     string Message);

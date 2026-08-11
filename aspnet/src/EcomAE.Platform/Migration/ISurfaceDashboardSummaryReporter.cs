@@ -312,8 +312,15 @@ public interface ISurfaceDashboardSummaryReporter
     /// <summary>
     /// Fast storefront cross search for CHPU (local CP analogs, no N+1 stock probe).
     /// Mirrors PHP <c>ajax_epc_cross_search</c> local path so the UI can paint in ~1s.
+    /// When <paramref name="includeCrossbase"/> is true, merges PHP-parity crossbase.ru refs
+    /// (disk cache first, then short HTTP fetch) without blocking the local path.
     /// </summary>
-    Task<StorefrontCrossSearchResult> BuildStorefrontCrossSearchAsync(string article, string? brand, int limit, CancellationToken cancellationToken = default);
+    Task<StorefrontCrossSearchResult> BuildStorefrontCrossSearchAsync(
+        string article,
+        string? brand,
+        int limit,
+        CancellationToken cancellationToken = default,
+        bool includeCrossbase = false);
 
     /// <summary>Batch 4: read-only authenticated customer cart (qty/checkout writes remain PHP).</summary>
     Task<StorefrontCartListResult> ListStorefrontCartAsync(int userId, int limit, CancellationToken cancellationToken = default);

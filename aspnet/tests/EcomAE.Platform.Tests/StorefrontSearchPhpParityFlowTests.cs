@@ -60,7 +60,7 @@ public sealed class StorefrontSearchPhpParityFlowTests
         Assert.Contains("epc-cross-ref-list", text, StringComparison.Ordinal);
         Assert.Contains("/en/parts/", text, StringComparison.Ordinal);
         Assert.Contains("/en/parts/brands/", text, StringComparison.Ordinal);
-        Assert.Contains("Pricing and availability for", text, StringComparison.Ordinal);
+        Assert.Contains("include_crossbase=1", text, StringComparison.Ordinal);
         Assert.Contains("No manufacturers found for this article", text, StringComparison.Ordinal);
         Assert.Contains("warehouse offers", text, StringComparison.OrdinalIgnoreCase);
         // PHP CHPU: header search only on brand/warehouse results (no second in-page search window).
@@ -189,7 +189,8 @@ public sealed class StorefrontSearchPhpParityFlowTests
             StringComparison.Ordinal);
         Assert.DoesNotContain("ListStorefrontGenuineBrandsAsync()", text, StringComparison.Ordinal);
         Assert.Contains("ONE protocol-3", text, StringComparison.OrdinalIgnoreCase);
-        Assert.Contains("search-bunches is diagnostic/enrichment only", text, StringComparison.Ordinal);
+        Assert.Contains("search-bunches is diagnostic only", text, StringComparison.Ordinal);
+        Assert.Contains("Never leave \"Polling suppliers…\" visible", text, StringComparison.Ordinal);
     }
 
     [Fact]

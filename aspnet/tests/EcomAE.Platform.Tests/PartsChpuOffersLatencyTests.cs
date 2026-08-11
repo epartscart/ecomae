@@ -13,14 +13,15 @@ public sealed class PartsChpuOffersLatencyTests
     {
         var text = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/StorefrontSearchApp.razor"));
         var immediate = text.IndexOf("Immediate protocol-3 poll", StringComparison.Ordinal);
-        var bunches = text.IndexOf("search-bunches is diagnostic/enrichment only", StringComparison.Ordinal);
+        var bunches = text.IndexOf("search-bunches is diagnostic only", StringComparison.Ordinal);
         Assert.True(immediate >= 0, "missing immediate protocol-3 poll marker");
         Assert.True(bunches > immediate, "search-bunches enrichment must come after immediate poll");
         Assert.Contains("AbortSignal.timeout(3000)", text, StringComparison.Ordinal);
         Assert.Contains("data-enhance-nav=\"false\"", text, StringComparison.Ordinal);
         Assert.Contains("epcRunChpuPriceSearchBootstrap", text, StringComparison.Ordinal);
         Assert.Contains("data-ssr-offers", text, StringComparison.Ordinal);
-        Assert.Contains("fetchCross(80,", text, StringComparison.Ordinal);
+        Assert.Contains("fetchCross(200,", text, StringComparison.Ordinal);
+        Assert.Contains("include_crossbase=1", text, StringComparison.Ordinal);
         Assert.DoesNotContain("return pollOne(p3);", text, StringComparison.Ordinal);
     }
 
@@ -31,6 +32,7 @@ public sealed class PartsChpuOffersLatencyTests
         Assert.Contains("/storefront/cross-search?", text, StringComparison.Ordinal);
         Assert.Contains("loadAspNetCrossSearch", text, StringComparison.Ordinal);
         Assert.Contains("AbortSignal.timeout(ms)", text, StringComparison.Ordinal);
+        Assert.Contains("include_crossbase=1", text, StringComparison.Ordinal);
         Assert.DoesNotContain("ajax_epc_cross_search.php", text, StringComparison.Ordinal);
         Assert.DoesNotContain("ajax_getProductsOfBunch.php", text, StringComparison.Ordinal);
         Assert.DoesNotContain("/content/shop/", text, StringComparison.Ordinal);

@@ -432,21 +432,26 @@ public sealed class StorefrontModule : ISurfaceModule
             string? brand,
             string? brend,
             int? limit,
+            string? include_crossbase,
             ISurfaceDashboardSummaryReporter dashboards,
             CancellationToken cancellationToken) =>
         {
             var manufacturer = string.IsNullOrWhiteSpace(brand) ? brend : brand;
+            var wantCrossbase = string.Equals(include_crossbase, "1", StringComparison.Ordinal)
+                || string.Equals(include_crossbase, "true", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(include_crossbase, "yes", StringComparison.OrdinalIgnoreCase);
             var result = await dashboards.BuildStorefrontCrossSearchAsync(
                 article ?? string.Empty,
                 manufacturer,
                 limit ?? 600,
-                cancellationToken);
+                cancellationToken,
+                includeCrossbase: wantCrossbase);
             var references = result.References.Select(r => new
             {
                 brand = r.Brand,
                 article = r.Article,
                 article_norm = EcomAE.Platform.Api.Catalog.PriceLookupRequest.NormalizeArticle(r.Article),
-                source = "cp",
+                source = string.IsNullOrWhiteSpace(r.Source) ? "cp" : r.Source,
                 name = string.IsNullOrWhiteSpace(r.Brand) ? r.Article : $"{r.Brand} {r.Article}"
             }).ToList();
             var stock = result.Stock.Select(r => new
@@ -458,20 +463,24 @@ public sealed class StorefrontModule : ISurfaceModule
             }).ToList();
             return Results.Ok(new
             {
-                status = result.Source is "aspnet-cross-local" or "database" || result.References.Count > 0,
+                status = result.Source.Contains("aspnet-cross", StringComparison.Ordinal)
+                    || result.Source is "database"
+                    || result.References.Count > 0,
                 source = result.Source,
                 article = result.Article,
                 brand = result.Brand,
                 local_count = result.LocalCount,
-                crossbase_count = 0,
+                crossbase_count = result.CrossbaseCount,
                 reference_count = result.UniqueReferenceCount,
                 references_loaded = references.Count,
-                unique_reference_count = result.UniqueReferenceCount,
+                unique_reference_count = Math.Max(result.UniqueReferenceCount, result.LocalCount + result.CrossbaseCount),
                 stock_count = stock.Count,
                 references,
                 stock,
                 message = result.Message,
-                note = "Fast ASP.NET CP cross network for CHPU (~1s). Crossbase enrich is background client-side."
+                note = wantCrossbase
+                    ? "ASP.NET local CP + crossbase.ru (cache/HTTP) — PHP ajax_epc_cross_search parity."
+                    : "Fast ASP.NET CP cross network. Pass include_crossbase=1 for full crossbase merge."
             });
         });
 
