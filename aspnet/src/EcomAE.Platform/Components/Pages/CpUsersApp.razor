@@ -47,7 +47,7 @@
             <tbody>
                 @if (_users.Count == 0)
                 {
-                    <tr><td colspan="7">Nothing to show yet.</td></tr>
+                    <tr><td colspan="7">@(string.IsNullOrWhiteSpace(_message) ? "Nothing to show yet." : _message)@if (!string.IsNullOrWhiteSpace(_source) && _source != "n/a") { <text> (source=@_source)</text> }</td></tr>
                 }
                 else
                 {

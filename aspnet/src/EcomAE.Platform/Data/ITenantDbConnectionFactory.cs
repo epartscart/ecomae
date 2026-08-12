@@ -8,8 +8,11 @@ public interface ITenantDbConnectionFactory
     bool IsConfigured { get; }
 
     /// <summary>
-    /// Opens a MySQL connection. When <paramref name="databaseName"/> is null, uses request
-    /// <see cref="TenantContext"/> database/credentials when present; otherwise the registry default.
+    /// Opens a MySQL connection.
+    /// When <paramref name="databaseName"/> is null, uses request <see cref="TenantContext"/>
+    /// database + credentials when present; otherwise the registry default.
+    /// When <paramref name="databaseName"/> is set without a user name, uses base connection-string
+    /// credentials only (ePartsCart shared <c>docpart</c> — never portal db_user override).
     /// </summary>
     Task<DbConnection> OpenAsync(string? databaseName, CancellationToken cancellationToken = default);
 

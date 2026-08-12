@@ -64,6 +64,15 @@
         <div class="kpi"><div class="lbl">Pending e-invoices</div><div class="val">@_s.PendingEinvoices.ToString(CultureInfo.InvariantCulture)</div></div>
     </div>
 
+    @if (!_isAdmin)
+    {
+        <div class="alert alert-info" role="status">Sign in with an ERP admin session to load live KPIs from the tenant shop DB (docpart on ePartsCart).</div>
+    }
+    else if (!string.IsNullOrWhiteSpace(_s.Message) || (_s.Source != "database" && _s.Source != "n/a"))
+    {
+        <div class="alert alert-warning" role="status">Source: <code>@_s.Source</code>@if (!string.IsNullOrWhiteSpace(_s.Message)) { <text> — @_s.Message</text> }</div>
+    }
+
     <h2 class="epc-eds-sec">Approval queue</h2>
     <div class="epc-erp-table-wrap">
         <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">

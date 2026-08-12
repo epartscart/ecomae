@@ -58,12 +58,22 @@ public sealed class MySqlTenantDbConnectionFactory : ITenantDbConnectionFactory
             builder.Database = db;
         }
 
-        var user = !string.IsNullOrWhiteSpace(userName) ? userName : tenant?.DbUser;
-        var pass = password ?? tenant?.DbPassword;
-        if (!string.IsNullOrWhiteSpace(user))
+        // Credentials policy (PHP Model C parity):
+        // - Explicit userName → use it (dedicated tenant DB via OpenForTenantAsync).
+        // - Implicit open (databaseName null) → TenantContext db_user/password when present.
+        // - Explicit databaseName without userName → base connection-string credentials only.
+        //   Critical for ePartsCart shared `docpart`: portal epc_portal_tenants.db_user must NOT
+        //   override registry credentials (wrong/empty grants → every CP/ERP digest empty).
+        if (!string.IsNullOrWhiteSpace(userName))
         {
-            builder.UserID = user;
-            builder.Password = pass ?? string.Empty;
+            builder.UserID = userName;
+            builder.Password = password ?? string.Empty;
+        }
+        else if (string.IsNullOrWhiteSpace(databaseName)
+            && !string.IsNullOrWhiteSpace(tenant?.DbUser))
+        {
+            builder.UserID = tenant.DbUser;
+            builder.Password = (password ?? tenant.DbPassword) ?? string.Empty;
         }
 
         var connection = new MySqlConnection(builder.ConnectionString);
