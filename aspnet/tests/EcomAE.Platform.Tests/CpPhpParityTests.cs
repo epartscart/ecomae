@@ -305,6 +305,37 @@ public sealed class CpPhpParityTests
         Assert.False(LegacyDesktopChromeCatalog.IsSuperOnlyCpLink("/cp/orders"));
     }
 
+    [Fact]
+    public void EpartscartTenantTopnav_ShowsShopOmsNotJewellery()
+    {
+        var groups = LegacyDesktopChromeCatalog.ControlPanelTopnav(includeSuperOnly: false, industryCode: "auto_parts");
+        var commerce = Assert.Single(groups, g => g.Label.Equals("Commerce", StringComparison.OrdinalIgnoreCase));
+
+        Assert.Contains(commerce.Links, l =>
+            l.Id.Equals("oms-orders", StringComparison.OrdinalIgnoreCase)
+            || l.Href.Contains("/shop/orders/orders", StringComparison.OrdinalIgnoreCase)
+            || l.Href.Equals("/cp/orders", StringComparison.OrdinalIgnoreCase));
+        Assert.True(
+            commerce.HubHref is not null
+            && (commerce.HubHref.Contains("/shop/orders/orders", StringComparison.OrdinalIgnoreCase)
+                || commerce.HubHref.Equals("/cp/orders", StringComparison.OrdinalIgnoreCase)),
+            $"Commerce hub should be OMS orders, got {commerce.HubHref}");
+
+        var all = groups.SelectMany(g => g.Links).ToList();
+        Assert.DoesNotContain(all, LegacyDesktopChromeCatalog.IsJewelleryCpLink);
+        Assert.DoesNotContain(all, l => l.Label.Contains("Retail and commerce", StringComparison.OrdinalIgnoreCase));
+        Assert.DoesNotContain(all, l => l.Href.Contains("/jewellery-", StringComparison.OrdinalIgnoreCase));
+        Assert.DoesNotContain(all, l => l.Label.Contains("[JW]", StringComparison.OrdinalIgnoreCase));
+    }
+
+    [Fact]
+    public void JewelleryTenantTopnav_KeepsJewelleryLinks()
+    {
+        var groups = LegacyDesktopChromeCatalog.ControlPanelTopnav(includeSuperOnly: false, industryCode: "jewellery");
+        var all = groups.SelectMany(g => g.Links).ToList();
+        Assert.Contains(all, LegacyDesktopChromeCatalog.IsJewelleryCpLink);
+    }
+
     private static string Find(string relative)
     {
         var dir = new DirectoryInfo(AppContext.BaseDirectory);
