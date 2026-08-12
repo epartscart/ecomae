@@ -9169,6 +9169,18 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    public Task<CpWebTrackerDashboardResult> BuildCpWebTrackerDashboardAsync(
+        CpWebTrackerFilterQuery filters,
+        CancellationToken cancellationToken = default)
+        => CpWebTrackerDashboardBuilder.BuildDashboardAsync(_connections, filters, cancellationToken);
+
+    public Task<CpWebTrackerSessionDetailResult> BuildCpWebTrackerSessionDetailAsync(
+        long sessionId,
+        string siteKey,
+        bool isSuper,
+        CancellationToken cancellationToken = default)
+        => CpWebTrackerDashboardBuilder.BuildSessionDetailAsync(_connections, sessionId, siteKey, isSuper, cancellationToken);
+
     public async Task<CpWebTrackerDigestResult> BuildCpWebTrackerDigestAsync(int limit, CancellationToken cancellationToken = default)
     {
         var safeLimit = Math.Clamp(limit, 1, 500);

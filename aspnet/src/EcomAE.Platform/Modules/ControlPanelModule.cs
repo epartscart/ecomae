@@ -2750,8 +2750,228 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only epc_web_tracker_sessions/pageviews/events KPIs + sessions (ip/ua/meta_json omitted). PHP web tracker remains authoritative."
+                note = "Read-only epc_web_tracker_sessions/pageviews/events KPIs + sessions (ip/ua/meta_json omitted). Full dashboard at /cp/web-tracker/dashboard."
             });
+        });
+
+        endpoints.MapGet(EcomAeRoutes.ControlPanelWebTrackerDashboard, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ISurfaceDashboardSummaryReporter dashboards,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return Unauthorized("Admin CP capability required for web-tracker dashboard.");
+            }
+
+            var host = context.Request.Host.Host;
+            var isSuper = session.Capabilities.Contains("bos") || PlatformHostPolicy.IsSuperCpHost(host);
+            var own = CpWebTrackerDashboardBuilder.ResolveOwnSiteKey(host);
+            var q = context.Request.Query;
+            var filters = CpWebTrackerDashboardBuilder.NormalizeFilters(
+                q["site_key"], q["from"], q["to"], q["device"], q["country"], q["ip"],
+                q["user_id"], q["user_type"], q["browser"], q["path"], isSuper, own);
+            var result = await dashboards.BuildCpWebTrackerDashboardAsync(filters, cancellationToken);
+            return Results.Ok(new
+            {
+                ok = result.Ok,
+                site_key = result.SiteKey,
+                from = result.FromUnix,
+                to = result.ToUnix,
+                filters = new
+                {
+                    device = result.Filters.Device,
+                    country = result.Filters.Country,
+                    ip = result.Filters.Ip,
+                    user_id = result.Filters.UserId,
+                    user_type = result.Filters.UserType,
+                    path = result.Filters.Path,
+                    browser = result.Filters.Browser,
+                },
+                is_super = result.IsSuper,
+                db = result.Db,
+                site_options = result.SiteOptions,
+                data = new
+                {
+                    summary = new
+                    {
+                        sessions = result.Summary.Sessions,
+                        visitors = result.Summary.Visitors,
+                        pageviews = result.Summary.Pageviews,
+                        events = result.Summary.Events,
+                        clicks = result.Summary.Clicks,
+                        searches = result.Summary.Searches,
+                        guest_sessions = result.Summary.GuestSessions,
+                        registered_sessions = result.Summary.RegisteredSessions,
+                        avg_duration_ms = result.Summary.AvgDurationMs,
+                        avg_pages = result.Summary.AvgPages,
+                        bounce_rate = result.Summary.BounceRate,
+                    },
+                    daily = result.Daily.Select(x => new { date = x.Date, sessions = x.Sessions, pageviews = x.Pageviews }),
+                    top_pages = result.TopPages.Select(x => new { path = x.Path, views = x.Views, sessions = x.Sessions, avg_time_ms = x.AvgTimeMs, avg_scroll = x.AvgScroll }),
+                    geo = result.Geo.Select(x => new { country_code = x.CountryCode, country_name = x.CountryName, city = x.City, sessions = x.Sessions }),
+                    devices = result.Devices.Select(x => new { device_type = x.DeviceType, browser = x.Browser, os = x.Os, sessions = x.Sessions }),
+                    searches = result.Searches.Select(x => new { search_query = x.SearchQuery, search_context = x.SearchContext, hits = x.Hits, sessions = x.Sessions }),
+                    top_clicks = result.TopClicks.Select(x => new { path = x.Path, element_tag = x.ElementTag, element_id = x.ElementId, element_text = x.ElementText, element_href = x.ElementHref, hits = x.Hits }),
+                    referrers = result.Referrers.Select(x => new { host = x.Host, utm_source = x.UtmSource, utm_medium = x.UtmMedium, utm_campaign = x.UtmCampaign, sessions = x.Sessions }),
+                    recent_sessions = result.RecentSessions.Select(x => new
+                    {
+                        id = x.Id,
+                        session_uid = x.SessionUid,
+                        site_key = x.SiteKey,
+                        hostname = x.Hostname,
+                        user_id = x.UserId,
+                        is_registered = x.IsRegistered ? 1 : 0,
+                        first_seen_at = x.FirstSeenAt,
+                        last_seen_at = x.LastSeenAt,
+                        pageview_count = x.PageviewCount,
+                        event_count = x.EventCount,
+                        duration_ms = x.DurationMs,
+                        landing_path = x.LandingPath,
+                        exit_path = x.ExitPath,
+                        country_code = x.CountryCode,
+                        country_name = x.CountryName,
+                        city = x.City,
+                        region = x.Region,
+                        device_type = x.DeviceType,
+                        browser = x.Browser,
+                        os = x.Os,
+                        ip = x.Ip,
+                        referrer_host = x.ReferrerHost,
+                        utm_source = x.UtmSource,
+                    }),
+                    by_tenant = result.ByTenant.Select(x => new { site_key = x.SiteKey, hostname = x.Hostname, sessions = x.Sessions, pageviews = x.Pageviews, visitors = x.Visitors }),
+                    facets = new
+                    {
+                        countries = result.Facets.Countries.Select(x => new { country_code = x.Value, country_name = x.Label, sessions = x.Sessions }),
+                        devices = result.Facets.Devices.Select(x => new { device_type = x.Value, sessions = x.Sessions }),
+                        browsers = result.Facets.Browsers.Select(x => new { browser = x.Value, sessions = x.Sessions }),
+                    },
+                },
+                source = result.Source,
+                message = result.Message,
+                session = SessionPayload(session),
+                note = "PHP-parity web tracker dashboard over epc_web_tracker_* (filters + facets + charts)."
+            });
+        });
+
+        endpoints.MapGet(EcomAeRoutes.ControlPanelWebTrackerSession, async (
+            HttpContext context,
+            long? id,
+            ILegacySessionValidator validator,
+            ISurfaceDashboardSummaryReporter dashboards,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return Unauthorized("Admin CP capability required for web-tracker session detail.");
+            }
+
+            var host = context.Request.Host.Host;
+            var isSuper = session.Capabilities.Contains("bos") || PlatformHostPolicy.IsSuperCpHost(host);
+            var own = CpWebTrackerDashboardBuilder.ResolveOwnSiteKey(host);
+            var siteKey = (string?)context.Request.Query["site_key"] ?? string.Empty;
+            if (!isSuper)
+            {
+                siteKey = own;
+            }
+
+            var detail = await dashboards.BuildCpWebTrackerSessionDetailAsync(id ?? 0, siteKey, isSuper, cancellationToken);
+            if (!detail.Ok || detail.Session is null)
+            {
+                return Results.Json(new { ok = false, error = "not_found", message = detail.Message }, statusCode: 404);
+            }
+
+            var s = detail.Session;
+            return Results.Ok(new
+            {
+                ok = true,
+                detail = new
+                {
+                    session = new
+                    {
+                        id = s.Id,
+                        session_uid = s.SessionUid,
+                        site_key = s.SiteKey,
+                        hostname = s.Hostname,
+                        user_id = s.UserId,
+                        is_registered = s.IsRegistered ? 1 : 0,
+                        first_seen_at = s.FirstSeenAt,
+                        last_seen_at = s.LastSeenAt,
+                        pageview_count = s.PageviewCount,
+                        event_count = s.EventCount,
+                        duration_ms = s.DurationMs,
+                        landing_path = s.LandingPath,
+                        exit_path = s.ExitPath,
+                        country_code = s.CountryCode,
+                        country_name = s.CountryName,
+                        city = s.City,
+                        region = s.Region,
+                        device_type = s.DeviceType,
+                        browser = s.Browser,
+                        os = s.Os,
+                        ip = s.Ip,
+                        referrer_host = s.ReferrerHost,
+                        utm_source = s.UtmSource,
+                    },
+                    pageviews = detail.Pageviews.Select(p => new
+                    {
+                        id = p.Id,
+                        ts = p.Ts,
+                        path = p.Path,
+                        query = p.Query,
+                        title = p.Title,
+                        time_on_page_ms = p.TimeOnPageMs,
+                        scroll_max_pct = p.ScrollMaxPct,
+                        load_time_ms = p.LoadTimeMs,
+                    }),
+                    events = detail.Events.Select(e => new
+                    {
+                        id = e.Id,
+                        ts = e.Ts,
+                        event_type = e.EventType,
+                        path = e.Path,
+                        search_query = e.SearchQuery,
+                        search_context = e.SearchContext,
+                        element_tag = e.ElementTag,
+                        element_id = e.ElementId,
+                        element_text = e.ElementText,
+                        element_href = e.ElementHref,
+                        x = e.X,
+                        y = e.Y,
+                    }),
+                },
+                session = SessionPayload(session),
+            });
+        });
+
+        endpoints.MapGet(EcomAeRoutes.ControlPanelWebTrackerCsv, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ISurfaceDashboardSummaryReporter dashboards,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return Unauthorized("Admin CP capability required for web-tracker CSV.");
+            }
+
+            var host = context.Request.Host.Host;
+            var isSuper = session.Capabilities.Contains("bos") || PlatformHostPolicy.IsSuperCpHost(host);
+            var own = CpWebTrackerDashboardBuilder.ResolveOwnSiteKey(host);
+            var q = context.Request.Query;
+            var filters = CpWebTrackerDashboardBuilder.NormalizeFilters(
+                q["site_key"], q["from"], q["to"], q["device"], q["country"], q["ip"],
+                q["user_id"], q["user_type"], q["browser"], q["path"], isSuper, own);
+            var result = await dashboards.BuildCpWebTrackerDashboardAsync(filters, cancellationToken);
+            var csv = CpWebTrackerDashboardBuilder.BuildCsv(result);
+            var label = result.SiteKey is "_all" or "" ? "all" : result.SiteKey;
+            var fname = $"web-tracker-{label}-{DateTimeOffset.FromUnixTimeSeconds(result.FromUnix):yyyyMMdd}-{DateTimeOffset.FromUnixTimeSeconds(result.ToUnix):yyyyMMdd}.csv";
+            return Results.File(System.Text.Encoding.UTF8.GetBytes(csv), "text/csv; charset=utf-8", fname);
         });
 
         endpoints.MapGet(EcomAeRoutes.ControlPanelAbandonedCarts, async (

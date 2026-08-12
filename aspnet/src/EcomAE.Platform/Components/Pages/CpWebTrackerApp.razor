@@ -4,127 +4,227 @@
 @using EcomAE.Platform.Auth
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
-@inject ISurfaceDashboardSummaryReporter Dashboards
+@using EcomAE.Platform.Services
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
-@inject NavigationManager Nav
 
-<PageTitle>Web tracker · Control Panel · eParts Cart</PageTitle>
+<PageTitle>Website tracker · Control Panel · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="cp" />
-<HeadContent>
-<style>
-        .epc-w19-hero {
-            margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
-            background:linear-gradient(135deg,#0c4a6e 0%,#2563eb 45%,#0ea5e9 100%);
-        }
-        .epc-w19-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
-        .epc-w19-hero p { margin:0; color:rgba(255,255,255,.88); max-width:44rem; font-size:.92rem; line-height:1.45; }
-        .epc-w19-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
-        .epc-w19-cta a {
-            display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
-            text-decoration:none; color:#0f172a; background:#fff;
-        }
-        .epc-w19-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); color:#fff; }
-        .epc-w19-kpis { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
-        .epc-w19-kpi { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; padding:.85rem .9rem; }
-        .epc-w19-kpi strong { display:block; font-size:1.2rem; word-break:break-word; }
-        .epc-w19-kpi span { color:#64748b; font-size:.78rem; }
-        .epc-w19-table-wrap { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; overflow:auto; }
-        .epc-w19-table { width:100%; border-collapse:collapse; font-size:.86rem; }
-        .epc-w19-table th, .epc-w19-table td { padding:.55rem .7rem; border-bottom:1px solid #f1f5f9; text-align:left; white-space:nowrap; }
-        .epc-w19-table th { background:#f8fafc; color:#475569; font-size:.75rem; text-transform:uppercase; letter-spacing:.03em; }
-        .epc-w19-note { margin-top:1rem; padding:.75rem .9rem; background:#f8fafc; border:1px solid #cbd5e1; border-radius:.45rem; color:#334155; font-size:.86rem; }
-        @@media (max-width:900px){ .epc-w19-kpis{grid-template-columns:1fr 1fr;} }
-    
-</style>
-</HeadContent>
-
+@foreach (var href in LegacyPresentationAssets.CpWebTrackerStylesheets)
+{
+    <link rel="stylesheet" href="@href" />
+}
 
 <PhpCpDesktopChrome IsAdmin="_isAdmin">
 
-    <section class="epc-w19-hero">
-        <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
-        <h1>Web tracker</h1>
-        <p>Manage store operations, catalogue, and partner integrations from one control panel.</p>
-        <div class="epc-w19-cta">
-            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
+<div class="epc-web-tracker epc-wt" data-epc-web-tracker="1">
+    <div class="wt-hero">
+        <div class="wt-hero__badge">@(_isSuper ? "Super CP · all tenants" : "Tenant traffic")</div>
+        <h1>Website tracker</h1>
+        <p>Pageviews, clicks, search, geography, devices, and full session timelines for guests and registered users — PHP same-to-same presentation with clearer charts and filters.</p>
+        <div class="wt-hero__meta">
+            <span><i class="fa fa-broadcast-tower"></i> Beacon <code>/epc-web-tracker-collect.php</code></span>
+            <span><i class="fa fa-database"></i> Live digest <code>/cp/web-tracker/dashboard</code></span>
         </div>
-    </section>
-
-    <div class="epc-w19-kpis" aria-label="Web tracker stats">
-        <div class="epc-w19-kpi"><strong>@_summary.SessionCount.ToString(CultureInfo.InvariantCulture)</strong><span>Sessions</span></div>
-        <div class="epc-w19-kpi"><strong>@_summary.PageviewCount.ToString(CultureInfo.InvariantCulture)</strong><span>Pageviews</span></div>
-        <div class="epc-w19-kpi"><strong>@_summary.EventCount.ToString(CultureInfo.InvariantCulture)</strong><span>Events</span></div>
-        <div class="epc-w19-kpi"><strong>@_summary.CountryCount.ToString(CultureInfo.InvariantCulture)</strong><span>Countries</span></div>
     </div>
 
-    <div class="epc-w19-table-wrap">
-    <table class="epc-w19-table">
-        <thead>
-            <tr>
-                    <th>Id</th>
-                    <th>Site key</th>
-                    <th>Country</th>
-                    <th>Device</th>
-                    <th>Browser</th>
-                    <th>Pageviews</th>
-                    <th>Events</th>
-                    <th>Last seen</th>
-                    <th></th>
-            </tr>
-        </thead>
-        <tbody>
-            @if (_rows.Count == 0)
-            {
-                <tr><td colspan="9">Nothing to show yet.</td></tr>
-            }
-            else
-            {
-                @foreach (var row in _rows)
-                {
-                    <tr>
-                            <td>@row.Id.ToString(CultureInfo.InvariantCulture)</td>
-                            <td>@(!string.IsNullOrWhiteSpace(row.SiteKey) ? row.SiteKey : "—")</td>
-                            <td>@(!string.IsNullOrWhiteSpace(row.CountryCode) ? row.CountryCode : "—")</td>
-                            <td>@(!string.IsNullOrWhiteSpace(row.DeviceType) ? row.DeviceType : "—")</td>
-                            <td>@(!string.IsNullOrWhiteSpace(row.Browser) ? row.Browser : "—")</td>
-                            <td>@row.PageviewCount.ToString(CultureInfo.InvariantCulture)</td>
-                            <td>@row.EventCount.ToString(CultureInfo.InvariantCulture)</td>
-                            <td>@row.LastSeenAt.ToString(CultureInfo.InvariantCulture)</td>
-                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
-                    </tr>
-                }
-            }
-        </tbody>
-    </table>
+    @if (!_isAdmin)
+    {
+        <div class="wt-status alert alert-info" role="status">Sign in with a Control Panel admin session to load live tracker data. Guest browse shows the PHP-parity shell.</div>
+    }
+
+    <div class="wt-filters">
+        @if (_isSuper)
+        {
+            <div>
+                <label for="wt_site">Site / tenant</label>
+                <select id="wt_site" class="form-control">
+                    @foreach (var sk in _siteOptions)
+                    {
+                        if (sk == _defaultSite)
+                        {
+                            <option value="@sk" selected>@(sk == "_all" ? "All sites (Super)" : sk)</option>
+                        }
+                        else
+                        {
+                            <option value="@sk">@(sk == "_all" ? "All sites (Super)" : sk)</option>
+                        }
+                    }
+                </select>
+            </div>
+        }
+        else
+        {
+            <input type="hidden" id="wt_site" value="@_defaultSite" />
+            <div>
+                <label>Site</label>
+                <div class="form-control wt-site-locked">@_defaultSite</div>
+            </div>
+        }
+        <div>
+            <label for="wt_from">From</label>
+            <input type="date" id="wt_from" class="form-control" value="@_from" />
+        </div>
+        <div>
+            <label for="wt_to">To</label>
+            <input type="date" id="wt_to" class="form-control" value="@_to" />
+        </div>
+        <div>
+            <label for="wt_device">Device</label>
+            <select id="wt_device" class="form-control">
+                <option value="">All devices</option>
+                <option value="desktop">Desktop</option>
+                <option value="mobile">Mobile</option>
+                <option value="tablet">Tablet</option>
+            </select>
+        </div>
+        <div>
+            <label for="wt_country">Country</label>
+            <select id="wt_country" class="form-control">
+                <option value="">All countries</option>
+            </select>
+        </div>
+        <div>
+            <label for="wt_ip">IP address</label>
+            <input type="text" id="wt_ip" class="form-control" placeholder="e.g. 86.96." autocomplete="off" />
+        </div>
+        <div>
+            <label for="wt_user_id">User ID</label>
+            <input type="text" id="wt_user_id" class="form-control" placeholder="e.g. 5" inputmode="numeric" autocomplete="off" />
+        </div>
+        <div>
+            <label for="wt_user_type">Who</label>
+            <select id="wt_user_type" class="form-control">
+                <option value="">All visitors</option>
+                <option value="guest">Guests only</option>
+                <option value="registered">Registered only</option>
+            </select>
+        </div>
+        <div>
+            <label for="wt_browser">Browser</label>
+            <select id="wt_browser" class="form-control">
+                <option value="">All browsers</option>
+            </select>
+        </div>
+        <div>
+            <label for="wt_path">Page path contains</label>
+            <input type="text" id="wt_path" class="form-control" placeholder="/en/parts/" autocomplete="off" />
+        </div>
+        <div class="wt-filter-actions">
+            <button type="button" class="btn btn-primary" id="wt_reload"><i class="fa fa-refresh"></i> Apply filters</button>
+            <button type="button" class="btn btn-default" id="wt_clear_filters" title="Clear device / country / IP / user filters">Clear filters</button>
+            <button type="button" class="btn btn-default" id="wt_csv" title="Download full report (CSV)"><i class="fa fa-download"></i> Download CSV</button>
+        </div>
     </div>
+
+    <div class="wt-status alert alert-info" id="wt_status">@(_isAdmin ? "Loading traffic…" : "Sign in to load traffic.")</div>
+    <div class="wt-kpis" id="wt_kpis" aria-label="Website tracker KPIs"></div>
+
+    <div class="wt-visual-row">
+        <div class="wt-panel wt-panel--chart">
+            <h4>Traffic by day</h4>
+            <div class="wt-body" id="wt_daily"></div>
+        </div>
+        <div class="wt-panel wt-panel--chart">
+            <h4>Visitor mix</h4>
+            <div class="wt-body" id="wt_mix"></div>
+        </div>
+        <div class="wt-panel wt-panel--chart">
+            <h4>@(_isSuper ? "By tenant / hostname" : "Devices & browsers")</h4>
+            <div class="wt-body" id="wt_side_a"></div>
+        </div>
+    </div>
+
+    <div class="wt-grid">
+        <div class="wt-panel">
+            <h4>Top pages (experience)</h4>
+            <div class="wt-body" id="wt_pages"></div>
+        </div>
+        <div class="wt-panel">
+            <h4>Geography</h4>
+            <div class="wt-body" id="wt_geo"></div>
+        </div>
+    </div>
+
+    <div class="wt-grid">
+        <div class="wt-panel">
+            <h4>Search terms</h4>
+            <div class="wt-body" id="wt_search"></div>
+        </div>
+        <div class="wt-panel">
+            <h4>Top clicks</h4>
+            <div class="wt-body" id="wt_clicks"></div>
+        </div>
+    </div>
+
+    <div class="wt-grid">
+        <div class="wt-panel">
+            <h4>Referrers &amp; UTM</h4>
+            <div class="wt-body" id="wt_refs"></div>
+        </div>
+        <div class="wt-panel">
+            <h4>@(_isSuper ? "Devices & browsers" : "Filter tips")</h4>
+            <div class="wt-body" id="wt_side_b"></div>
+        </div>
+    </div>
+
+    <div class="wt-panel" style="margin-bottom:20px;">
+        <h4>Recent sessions — IP shown · click page links to open that page · click a row for full timeline</h4>
+        <div class="wt-body" id="wt_sessions" style="max-height:520px;"></div>
+    </div>
+</div>
+
+<div class="modal fade wt-modal" id="wt_session_modal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" id="wt_session_close" aria-label="Close"><span>&times;</span></button>
+                <h4 class="modal-title">Session timeline</h4>
+            </div>
+            <div class="modal-body" id="wt_session_body">Loading…</div>
+        </div>
+    </div>
+</div>
 
 </PhpCpDesktopChrome>
 
+<script>
+window.EPC_WEB_TRACKER_CP = {
+  isSuper: @(_isSuper ? "true" : "false"),
+  ownSiteKey: @System.Text.Json.JsonSerializer.Serialize(_defaultSite),
+  endpoints: {
+    dashboard: '/cp/web-tracker/dashboard',
+    session: '/cp/web-tracker/session',
+    csv: '/cp/web-tracker/csv'
+  }
+};
+</script>
+<script src="/platform-assets/epc_web_tracker_aspnet.js?v=20260812wt1"></script>
+
 @code {
-    private const string _phpTab = "/CP/control/portal/epc_web_tracker";
     private bool _isAdmin;
-    private CpWebTrackerSummary _summary = new(0, 0, 0, 0, "n/a", "");
-    private IReadOnlyList<CpWebTrackerRowDigest> _rows = [];
-    private string _source = "n/a";
-    private string _message = "";
+    private bool _isSuper;
+    private string _defaultSite = "epartscart";
+    private string _from = DateTime.UtcNow.Date.AddDays(-7).ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+    private string _to = DateTime.UtcNow.Date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+    private IReadOnlyList<string> _siteOptions = ["_all", "ecomae", "epartscart"];
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
-        if (ctx is null) return;
-
-        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
-        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
-        if (!_isAdmin)
+        if (ctx is null)
         {
-            return; // guest browse — Sign in for live data
+            return;
         }
 
-        var result = await Dashboards.BuildCpWebTrackerDigestAsync(200, ctx.RequestAborted);
-        _summary = result.Summary;
-        _rows = result.Sessions;
-        _source = result.Source;
-        _message = result.Message;
+        var host = ctx.Request.Host.Host;
+        _defaultSite = CpWebTrackerDashboardBuilder.ResolveOwnSiteKey(host);
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
+        _isSuper = session.Capabilities.Contains("bos") || PlatformHostPolicy.IsSuperCpHost(host);
+        if (_isSuper)
+        {
+            _defaultSite = "_all";
+        }
     }
 }
