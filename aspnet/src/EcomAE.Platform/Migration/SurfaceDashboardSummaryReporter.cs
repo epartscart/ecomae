@@ -2056,8 +2056,22 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                     var key = xref.Brand.Trim().ToUpperInvariant() + "|" + partnerNorm;
                     if (seen.Contains(key))
                     {
-                        // Overlap with CP — keep CP row but count as also-in-crossbase for the badge total.
+                        // Overlap with CP — retag so CHPU modal/list can show crossbase provenance
+                        // (badge alone was "CROSSBASE N" with zero source=crossbase rows).
                         crossbaseCount++;
+                        for (var i = 0; i < rows.Count; i++)
+                        {
+                            var row = rows[i];
+                            var rowKey = row.Brand.Trim().ToUpperInvariant() + "|"
+                                + PriceLookupRequest.NormalizeArticle(row.Article);
+                            if (string.Equals(rowKey, key, StringComparison.OrdinalIgnoreCase)
+                                && !string.Equals(row.Source, "crossbase", StringComparison.OrdinalIgnoreCase))
+                            {
+                                rows[i] = row with { Source = "cp+crossbase" };
+                                break;
+                            }
+                        }
+
                         continue;
                     }
 
@@ -2102,12 +2116,32 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                 }
             }
 
-            // No N+1 stock probes here — that is what made PHP-shaped cross feel "asleep".
+            // PHP epc_cross_load_stock_for_references — one batched prices_data probe so CHPU
+            // is not blank when the typed OE has no warehouse row but crosses do.
+            var stock = await LoadStorefrontCrossStockAsync(connection, rows, cancellationToken)
+                .ConfigureAwait(false);
+            if (stock.Count > 0)
+            {
+                var stockKeys = new HashSet<string>(
+                    stock.Select(s => s.Brand.Trim().ToUpperInvariant() + "|" + s.ArticleNorm),
+                    StringComparer.OrdinalIgnoreCase);
+                for (var i = 0; i < rows.Count; i++)
+                {
+                    var row = rows[i];
+                    var key = row.Brand.Trim().ToUpperInvariant() + "|"
+                        + PriceLookupRequest.NormalizeArticle(row.Article);
+                    if (stockKeys.Contains(key) && !row.InStock)
+                    {
+                        rows[i] = row with { InStock = true };
+                    }
+                }
+            }
+
             return new(
                 normalized,
                 brandNorm,
                 rows,
-                [],
+                stock,
                 localCount,
                 crossbaseCount,
                 rows.Count,
@@ -2118,6 +2152,108 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         {
             return new(normalized, brandNorm, [], [], 0, 0, 0, "database-error", ex.Message);
         }
+    }
+
+    /// <summary>
+    /// PHP <c>epc_cross_load_stock_for_references</c> — batch IN on normalized article norms
+    /// (not per-row N+1). Cap keeps CHPU cross-search under the ~1–3s paint budget.
+    /// </summary>
+    private static async Task<List<StorefrontCrossStockDigest>> LoadStorefrontCrossStockAsync(
+        DbConnection connection,
+        IReadOnlyList<StorefrontCrossRefDigest> references,
+        CancellationToken cancellationToken)
+    {
+        const int stockMax = 80;
+        const int batchSize = 40;
+        var norms = new List<string>();
+        var seenNorm = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var reference in references)
+        {
+            var norm = PriceLookupRequest.NormalizeArticle(reference.Article);
+            if (norm.Length == 0 || !seenNorm.Add(norm))
+            {
+                continue;
+            }
+
+            norms.Add(norm);
+            if (norms.Count >= 160)
+            {
+                break;
+            }
+        }
+
+        if (norms.Count == 0)
+        {
+            return [];
+        }
+
+        var best = new Dictionary<string, StorefrontCrossStockDigest>(StringComparer.OrdinalIgnoreCase);
+        for (var offset = 0; offset < norms.Count && best.Count < stockMax; offset += batchSize)
+        {
+            var batch = norms.Skip(offset).Take(batchSize).ToList();
+            await using var command = connection.CreateCommand();
+            command.CommandTimeout = 2;
+            var articleMatch = LegacySurfaceDashboardSql.StorefrontPriceArticleExactInSql(batch.Count);
+            command.CommandText = $"""
+                SELECT d.`manufacturer`, d.`article`, d.`article_show`, d.`name`,
+                       d.`price`, d.`exist`, d.`time_to_exe`, d.`price_id`
+                FROM `shop_docpart_prices_data` d
+                WHERE {articleMatch}
+                  AND IFNULL(d.`price`, 0) > 0
+                  AND IFNULL(d.`exist`, 0) > 0
+                ORDER BY d.`manufacturer`, d.`article`
+                LIMIT 250
+                """;
+            BindArticleCandidates(command, batch);
+
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                var manufacturer = Convert.ToString(reader["manufacturer"] is DBNull ? string.Empty : reader["manufacturer"], CultureInfo.InvariantCulture)?.Trim() ?? string.Empty;
+                var articleRaw = Convert.ToString(reader["article"] is DBNull ? string.Empty : reader["article"], CultureInfo.InvariantCulture) ?? string.Empty;
+                var articleShow = Convert.ToString(reader["article_show"] is DBNull ? string.Empty : reader["article_show"], CultureInfo.InvariantCulture) ?? string.Empty;
+                var name = Convert.ToString(reader["name"] is DBNull ? string.Empty : reader["name"], CultureInfo.InvariantCulture) ?? string.Empty;
+                var price = Convert.ToDecimal(reader["price"] is DBNull ? 0m : reader["price"], CultureInfo.InvariantCulture);
+                var exist = Convert.ToDecimal(reader["exist"] is DBNull ? 0m : reader["exist"], CultureInfo.InvariantCulture);
+                var delivery = Convert.ToString(reader["time_to_exe"] is DBNull ? string.Empty : reader["time_to_exe"], CultureInfo.InvariantCulture) ?? string.Empty;
+                var priceId = Convert.ToInt32(reader["price_id"] is DBNull ? 0 : reader["price_id"], CultureInfo.InvariantCulture);
+                var articleNorm = PriceLookupRequest.NormalizeArticle(
+                    string.IsNullOrWhiteSpace(articleShow) ? articleRaw : articleShow);
+                if (manufacturer.Length == 0 || articleNorm.Length == 0 || !seenNorm.Contains(articleNorm))
+                {
+                    continue;
+                }
+
+                var displayArticle = string.IsNullOrWhiteSpace(articleShow) ? articleRaw.Trim() : articleShow.Trim();
+                var key = manufacturer.ToUpperInvariant() + "|" + articleNorm;
+                if (best.TryGetValue(key, out var existing) && existing.Price <= price)
+                {
+                    continue;
+                }
+
+                best[key] = new StorefrontCrossStockDigest(
+                    manufacturer,
+                    displayArticle,
+                    articleNorm,
+                    name.Trim(),
+                    price,
+                    exist,
+                    delivery.Trim(),
+                    string.Empty,
+                    0,
+                    priceId);
+
+                if (best.Count >= stockMax)
+                {
+                    break;
+                }
+            }
+        }
+
+        return best.Values
+            .OrderBy(s => s.Brand, StringComparer.OrdinalIgnoreCase)
+            .ThenBy(s => s.Article, StringComparer.OrdinalIgnoreCase)
+            .ToList();
     }
 
     /// <summary>

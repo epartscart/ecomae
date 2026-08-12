@@ -313,8 +313,9 @@ public interface ISurfaceDashboardSummaryReporter
     Task<StorefrontCrossRefsResult> ListStorefrontCrossRefsAsync(string article, string? brand, int limit, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Fast storefront cross search for CHPU (local CP analogs, no N+1 stock probe).
-    /// Mirrors PHP <c>ajax_epc_cross_search</c> local path so the UI can paint in ~1s.
+    /// Fast storefront cross search for CHPU (local CP analogs + batched cross stock).
+    /// Mirrors PHP <c>ajax_epc_cross_search</c> so the UI can paint in ~1s and, when the
+    /// typed article has no warehouse offers, still show stock for interchangeable numbers.
     /// When <paramref name="includeCrossbase"/> is true, merges PHP-parity crossbase.ru refs
     /// (disk cache first, then short HTTP fetch) without blocking the local path.
     /// </summary>

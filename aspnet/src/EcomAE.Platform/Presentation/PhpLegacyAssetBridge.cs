@@ -152,7 +152,7 @@ public static class PhpLegacyAssetBridge
                  })
         {
             var localRelative = relative;
-            endpoints.MapGet(url, () =>
+            endpoints.MapGet(url, (HttpContext http) =>
             {
                 var path = Path.GetFullPath(Path.Combine(repoRoot, localRelative));
                 if (!path.StartsWith(repoRoot, StringComparison.Ordinal) || !File.Exists(path))
@@ -160,6 +160,10 @@ public static class PhpLegacyAssetBridge
                     return Results.NotFound();
                 }
 
+                // Query-string cache-bust (?v=…) is defeated when nginx caches the old
+                // body under the old URL after the source file changes. Prefer revalidate.
+                http.Response.Headers.CacheControl = "no-cache, must-revalidate";
+                http.Response.Headers.Pragma = "no-cache";
                 return Results.File(path, ContentTypeFor(path));
             });
         }

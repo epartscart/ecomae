@@ -53,6 +53,8 @@ public sealed class CrossbaseReferenceLoaderTests
         Assert.Contains("Prefer showing distinct crossbase rows", reporter, StringComparison.Ordinal);
         // Must merge even when local CP already filled the limit (AISIN/DT068).
         Assert.DoesNotContain("includeCrossbase && rows.Count < safeLimit", reporter, StringComparison.Ordinal);
+        // CP∩crossbase overlap must keep crossbase provenance for the green CROSSBASE badge UX.
+        Assert.Contains("Source = \"cp+crossbase\"", reporter, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -62,6 +64,34 @@ public sealed class CrossbaseReferenceLoaderTests
         Assert.Contains("include_crossbase=1", js, StringComparison.Ordinal);
         Assert.Contains("data-source=", js, StringComparison.Ordinal);
         Assert.Contains("Do not wipe a larger CHPU bootstrap list", js, StringComparison.Ordinal);
+        // PHP part_search_page twin: green button opens modal, not only scroll-to-list.
+        Assert.Contains("function openCrossModal(", js, StringComparison.Ordinal);
+        Assert.Contains("openCrossModalFromButton", js, StringComparison.Ordinal);
+        Assert.Contains("__epcLastCrossPayload", js, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void ChpuClient_CachesCrossPayloadForModal()
+    {
+        var text = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/StorefrontSearchApp.razor"));
+        Assert.Contains("__epcLastCrossPayload", text, StringComparison.Ordinal);
+        Assert.Contains("epc_warehouse_search_parity.js?v=20260812-cross-stock", text, StringComparison.Ordinal);
+        Assert.Contains("indexOf('crossbase')", text, StringComparison.Ordinal);
+        // PHP empty-warehouse path: merge cross stock into the main offer table.
+        Assert.Contains("mergeCrossStockIntoOffers", text, StringComparison.Ordinal);
+        Assert.Contains("__epcPendingCrossStock", text, StringComparison.Ordinal);
+        Assert.Contains("Cross reference stock found", text, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void CrossSearch_LoadsBatchedStockForReferences()
+    {
+        var reporter = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Migration/SurfaceDashboardSummaryReporter.cs"));
+        Assert.Contains("LoadStorefrontCrossStockAsync", reporter, StringComparison.Ordinal);
+        Assert.Contains("StorefrontCrossStockDigest", reporter, StringComparison.Ordinal);
+        var module = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Modules/StorefrontModule.cs"));
+        Assert.Contains("stock_count = stock.Count", module, StringComparison.Ordinal);
+        Assert.Contains("prices_visible = access.PricesVisible", module, StringComparison.Ordinal);
     }
 
     private static string PriceLookupLike(string article)

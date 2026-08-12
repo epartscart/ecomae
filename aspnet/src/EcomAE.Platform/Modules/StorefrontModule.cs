@@ -495,12 +495,14 @@ public sealed class StorefrontModule : ISurfaceModule
         });
 
         endpoints.MapGet(EcomAeRoutes.StorefrontCrossSearch, async (
+            HttpContext context,
             string? article,
             string? brand,
             string? brend,
             int? limit,
             string? include_crossbase,
             ISurfaceDashboardSummaryReporter dashboards,
+            IStorefrontPriceAccess priceAccess,
             CancellationToken cancellationToken) =>
         {
             var manufacturer = string.IsNullOrWhiteSpace(brand) ? brend : brand;
@@ -513,26 +515,43 @@ public sealed class StorefrontModule : ISurfaceModule
                 limit ?? 600,
                 cancellationToken,
                 includeCrossbase: wantCrossbase);
+            var access = await priceAccess.ResolveAsync(context, cancellationToken).ConfigureAwait(false);
             var references = result.References.Select(r => new
             {
                 brand = r.Brand,
                 article = r.Article,
                 article_norm = EcomAE.Platform.Api.Catalog.PriceLookupRequest.NormalizeArticle(r.Article),
                 source = string.IsNullOrWhiteSpace(r.Source) ? "cp" : r.Source,
-                name = string.IsNullOrWhiteSpace(r.Brand) ? r.Article : $"{r.Brand} {r.Article}"
+                name = string.IsNullOrWhiteSpace(r.Brand) ? r.Article : $"{r.Brand} {r.Article}",
+                in_stock = r.InStock
             }).ToList();
+            // PHP ajax_epc_cross_search stock[] — guest redacts price/qty/warehouse.
             var stock = result.Stock.Select(r => new
             {
                 brand = r.Brand,
                 article = r.Article,
-                article_norm = EcomAE.Platform.Api.Catalog.PriceLookupRequest.NormalizeArticle(r.Article),
-                name = string.IsNullOrWhiteSpace(r.Brand) ? r.Article : $"{r.Brand} {r.Article}"
+                article_norm = string.IsNullOrWhiteSpace(r.ArticleNorm)
+                    ? EcomAE.Platform.Api.Catalog.PriceLookupRequest.NormalizeArticle(r.Article)
+                    : r.ArticleNorm,
+                name = string.IsNullOrWhiteSpace(r.Name)
+                    ? (string.IsNullOrWhiteSpace(r.Brand) ? r.Article : $"{r.Brand} {r.Article}")
+                    : r.Name,
+                price = access.PricesVisible ? r.Price : 0m,
+                currency = "",
+                qty = access.PricesVisible ? (decimal?)r.Qty : null,
+                exist = access.PricesVisible ? r.Qty : (r.Qty > 0 ? 1m : 0m),
+                delivery = access.PricesVisible ? r.Delivery : "",
+                warehouse = access.PricesVisible ? r.Warehouse : "**",
+                storage_id = access.PricesVisible ? r.StorageId : 0,
+                price_id = access.PricesVisible ? r.PriceId : 0,
+                prices_visible = access.PricesVisible
             }).ToList();
             return Results.Ok(new
             {
                 status = result.Source.Contains("aspnet-cross", StringComparison.Ordinal)
                     || result.Source is "database"
-                    || result.References.Count > 0,
+                    || result.References.Count > 0
+                    || result.Stock.Count > 0,
                 source = result.Source,
                 article = result.Article,
                 brand = result.Brand,
@@ -544,6 +563,7 @@ public sealed class StorefrontModule : ISurfaceModule
                 stock_count = stock.Count,
                 references,
                 stock,
+                prices_visible = access.PricesVisible,
                 message = result.Message,
                 note = wantCrossbase
                     ? "ASP.NET local CP + crossbase.ru (cache/HTTP) — PHP ajax_epc_cross_search parity."
