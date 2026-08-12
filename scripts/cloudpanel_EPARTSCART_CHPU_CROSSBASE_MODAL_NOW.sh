@@ -70,9 +70,15 @@ grep -q 'openCrossModalFromButton' content/general_pages/epc_warehouse_search_pa
   || die "missing openCrossModalFromButton wire"
 grep -q '__epcLastCrossPayload' aspnet/src/EcomAE.Platform/Components/Pages/StorefrontSearchApp.razor \
   || die "missing CHPU payload cache for modal"
-grep -q 'epc_warehouse_search_parity.js?v=20260812-cross-stock' \
+grep -Eq 'epc_warehouse_search_parity\.js\?v=20260812-cross-(stock|quote)' \
   aspnet/src/EcomAE.Platform/Components/Pages/StorefrontSearchApp.razor \
   || die "missing parity JS cache-bust in Razor"
+grep -q 'fetchCross(200, 12000, false)' \
+  aspnet/src/EcomAE.Platform/Components/Pages/StorefrontSearchApp.razor \
+  || die "missing cross-search timeout raise (ASAKASHI 0-references bug)"
+grep -q 'fromCrossStock: true' \
+  aspnet/src/EcomAE.Platform/Components/Pages/StorefrontSearchApp.razor \
+  || die "missing cross-stock Add to Quote wire"
 grep -q 'LoadStorefrontCrossStockAsync' \
   aspnet/src/EcomAE.Platform/Migration/SurfaceDashboardSummaryReporter.cs \
   || die "missing cross stock batch loader"
@@ -145,17 +151,22 @@ HTML=/tmp/epc_chpu_cb_modal_post.html
 CODE="$(curl -sS -A 'EcomAE-ChpuCrossModalNow/1.0' -o "$HTML" -w '%{http_code}' --max-time 45 \
   'https://www.epartscart.com/en/parts/TOYOTA/1310154101' || echo 000)"
 [[ "$CODE" == "200" ]] || die "CHPU HTTP=$CODE after publish"
-grep -Fq 'epc_warehouse_search_parity.js?v=20260812-cross-stock' "$HTML" \
-  || die "HTML still missing cross-stock cache-bust — ASP.NET DLL not republished"
+grep -Eq 'epc_warehouse_search_parity\.js\?v=20260812-cross-(stock|quote)' "$HTML" \
+  || die "HTML still missing cross cache-bust — ASP.NET DLL not republished"
 grep -Fq '__epcLastCrossPayload' "$HTML" \
   || die "HTML missing __epcLastCrossPayload — Razor not republished"
 grep -Fq 'mergeCrossStockIntoOffers' "$HTML" \
   || die "HTML missing mergeCrossStockIntoOffers — Razor not republished"
+grep -Fq 'fromCrossStock: true' "$HTML" \
+  || die "HTML missing fromCrossStock quote wire — Razor not republished"
+grep -Fq 'fetchCross(200, 12000, false)' "$HTML" \
+  || die "HTML missing raised cross-search timeout — Razor not republished"
 
 JS=/tmp/epc_parity_post.js
 curl -sS -A 'EcomAE-ChpuCrossModalNow/1.0' -o "$JS" --max-time 20 \
-  'https://www.epartscart.com/platform-assets/epc_warehouse_search_parity.js?v=20260812-cross-stock' || true
+  'https://www.epartscart.com/platform-assets/epc_warehouse_search_parity.js?v=20260812-cross-quote' || true
 grep -q 'function openCrossModal(' "$JS" || die "parity JS missing openCrossModal after publish"
+grep -q 'data-cross-stock' "$JS" || die "parity JS missing cross-stock quote allow"
 # Old bust must not keep serving the focusCross-only body after reload.
 OLD_JS=/tmp/epc_parity_oldbust.js
 curl -sS -A 'EcomAE-ChpuCrossModalNow/1.0' -o "$OLD_JS" --max-time 20 \

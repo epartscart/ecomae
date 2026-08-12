@@ -75,12 +75,16 @@ public sealed class CrossbaseReferenceLoaderTests
     {
         var text = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/StorefrontSearchApp.razor"));
         Assert.Contains("__epcLastCrossPayload", text, StringComparison.Ordinal);
-        Assert.Contains("epc_warehouse_search_parity.js?v=20260812-cross-stock", text, StringComparison.Ordinal);
+        Assert.Contains("epc_warehouse_search_parity.js?v=20260812-cross-quote", text, StringComparison.Ordinal);
         Assert.Contains("indexOf('crossbase')", text, StringComparison.Ordinal);
         // PHP empty-warehouse path: merge cross stock into the main offer table.
         Assert.Contains("mergeCrossStockIntoOffers", text, StringComparison.Ordinal);
         Assert.Contains("__epcPendingCrossStock", text, StringComparison.Ordinal);
         Assert.Contains("Cross reference stock found", text, StringComparison.Ordinal);
+        // Heavy articles (ASAKASHI/C110J ~3.6s+) must not abort at 1.5s/4s.
+        Assert.Contains("fetchCross(200, 12000, false)", text, StringComparison.Ordinal);
+        Assert.Contains("fetchCross(600, 20000, true)", text, StringComparison.Ordinal);
+        Assert.Contains("fromCrossStock: true", text, StringComparison.Ordinal);
     }
 
     [Fact]

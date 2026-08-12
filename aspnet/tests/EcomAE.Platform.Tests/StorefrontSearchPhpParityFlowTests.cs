@@ -182,7 +182,8 @@ public sealed class StorefrontSearchPhpParityFlowTests
 
         // Cap SSR offer seed so first paint stays in the 1–3s budget (rows visible in HTML).
         Assert.Contains("CancellationTokenSource(TimeSpan.FromMilliseconds(350))", text, StringComparison.Ordinal);
-        Assert.Contains("SearchStorefrontPartsAsync(_articleInput, _brandInput, 40, seedCts.Token)", text, StringComparison.Ordinal);
+        Assert.Contains("SearchStorefrontPartsAsync(", text, StringComparison.Ordinal);
+        Assert.Contains("_articleInput, _brandInput, 40, seedCts.Token", text, StringComparison.Ordinal);
         Assert.DoesNotContain(
             "ListStorefrontCrossRefsAsync(_articleInput, _brandInput, ssrCrossLimit)",
             text,

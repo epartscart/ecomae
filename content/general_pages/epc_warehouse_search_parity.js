@@ -660,11 +660,14 @@
 	}
 
 	function addToQuoteFromRow(tr) {
-		if (!pricesVisible()) {
+		var p = productFromRow(tr);
+		var isCrossStock = tr && tr.getAttribute("data-cross-stock") === "1";
+		// Cross-stock catalog rows use manual quote (PHP epcAddManualToQuote) even when
+		// the guest price mask is on — login is still required by the API.
+		if (!pricesVisible() && !isCrossStock) {
 			window.location.href = "/storefront/login?returnUrl=" + encodeURIComponent(window.location.pathname + window.location.search);
 			return;
 		}
-		var p = productFromRow(tr);
 		var body = {
 			productType: Number(p.product_type || 2),
 			manufacturer: p.manufacturer || "",
@@ -672,7 +675,7 @@
 			countNeed: 1,
 			confirmWrites: true
 		};
-		var url = p.check_hash ? "/storefront/quotes/add-item" : "/storefront/quotes/add-manual";
+		var url = (p.check_hash && !isCrossStock) ? "/storefront/quotes/add-item" : "/storefront/quotes/add-manual";
 		postJson(url, body).then(function (data) {
 			if (data && data.ok === true && !data.writesBlocked) {
 				window.location.href = "/storefront/quotes-app";

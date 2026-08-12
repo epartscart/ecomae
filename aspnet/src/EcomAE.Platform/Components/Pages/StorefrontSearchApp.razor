@@ -539,26 +539,37 @@
     var aid = aidSeq++;
     var minOrder = Math.max(1, Number(p.minOrder || p.min_order || 1));
     var mfr = p.manufacturer || '';
+    var isCrossStock = !!(p.fromCrossStock || p.from_cross_stock);
     var fit = '<button type="button" class="btn btn-sm epc-btn-fitment epc-fitment-check-btn epc-fitment-check-btn--row"' +
       ' data-epc-fitment-article="' + esc(show) + '" data-epc-fitment-brand="' + esc(mfr) + '"' +
       ' title="Fitment check"><i class="fa fa-car" aria-hidden="true"></i> Fitment</button>';
     if (!pricesVisible) {
+      // Guest: still allow Add to Quote on cross-stock catalog rows (PHP epcAddManualToQuote).
+      if (isCrossStock) {
+        return '<div class="epc-product-actions epc-product-actions--quote-only" data-aid="' + aid + '">' +
+          '<div class="epc-product-actions__tools">' + fit + '</div>' +
+          '<button type="button" class="btn btn-sm btn-primary epc-btn-quote">Add to Quote</button></div>';
+      }
       return '<div class="epc-product-actions epc-product-actions--guest"><div class="epc-product-actions__tools epc-product-actions__tools--guest">' +
         fit + ' <a href="/storefront/login">Log in</a> or <a href="/storefront/register-app">register</a></div></div>';
     }
     var wa = 'https://wa.me/?text=' + encodeURIComponent(mfr + ' ' + show + ' ' + (p.name || '') + ' ' + (p.price != null ? p.price : ''));
     var tools = '<div class="epc-product-actions__tools">' + fit +
       ' <a class="epc-wa-share-btn" href="' + wa + '" target="_blank" rel="noopener" title="WhatsApp"><i class="fa fa-whatsapp"></i></a></div>';
+    var quoteBtn = '<button type="button" class="btn btn-sm btn-primary epc-btn-quote">Add to Quote</button>';
     if (exist > 0) {
+      // PHP-parity: cross-stock / interchange rows keep Add to Quote beside Cart.
       return '<div class="epc-product-actions" data-aid="' + aid + '">' + tools +
         '<div class="epc-product-actions__buy"><div class="epc-product-actions__qty">' +
         '<a class="count_need_minus" href="#"><i class="fa fa-minus"></i></a>' +
         '<input class="epc-qty-input" id="count_need_' + aid + '" value="' + minOrder + '" />' +
         '<a class="count_need_plus" href="#"><i class="fa fa-plus"></i></a></div>' +
-        '<button type="button" class="btn btn-sm btn-danger epc-btn-cart">Add to Cart</button></div></div>';
+        '<button type="button" class="btn btn-sm btn-danger epc-btn-cart">Add to Cart</button>' +
+        (isCrossStock ? (' ' + quoteBtn) : '') +
+        '</div></div>';
     }
     return '<div class="epc-product-actions epc-product-actions--quote-only" data-aid="' + aid + '">' + tools +
-      '<button type="button" class="btn btn-sm btn-primary epc-btn-quote">Add to Quote</button></div>';
+      quoteBtn + '</div>';
   }
   function brandArticleGroupKey(mfr, art) {
     return String(mfr || '').replace(/[^A-Za-z0-9]/g, '').toUpperCase() + '|' +
@@ -633,7 +644,8 @@
       jsonParams: tr.getAttribute('data-json-params') || '',
       productType: Number(tr.getAttribute('data-product-type') || 2),
       checkHash: tr.getAttribute('data-check-hash') || '',
-      priceList: tr.getAttribute('data-storage') || ''
+      priceList: tr.getAttribute('data-storage') || '',
+      fromCrossStock: tr.getAttribute('data-cross-stock') === '1'
     };
   }
   function normalizeWarehouseGroups(kind) {
@@ -702,6 +714,9 @@
     tr.setAttribute('data-json-params', p.jsonParams || p.json_params || '');
     tr.setAttribute('data-product-type', String(p.productType || p.product_type || 2));
     tr.setAttribute('data-check-hash', p.checkHash || p.check_hash || '');
+    if (p.fromCrossStock || p.from_cross_stock) {
+      tr.setAttribute('data-cross-stock', '1');
+    }
     var peers = body.querySelectorAll('tr.epc-part-type-row--' + kind + '[data-group-key="' + gk.replace(/"/g, '') + '"]');
     if (peers.length) body.insertBefore(tr, peers[peers.length - 1].nextSibling);
     else {
@@ -770,8 +785,8 @@
       .catch(function () {});
   }
   function mergeCrossStockIntoOffers(stockItems) {
-    // PHP epcBindCrossStockProducts / epcTryMergePendingCrossStock — when the typed
-    // article has no warehouse row, still paint UAE stock for interchangeable numbers.
+    // PHP epcBindCrossStockProducts / epcTryMergePendingCrossStock — paint UAE stock
+    // for interchangeable numbers alongside the typed article's warehouse rows.
     stockItems = stockItems || window.__epcPendingCrossStock || [];
     if (!stockItems.length || !body) return 0;
     window.epcMergeCrossStockIntoOffers = mergeCrossStockIntoOffers;
@@ -786,6 +801,7 @@
         article: art,
         articleShow: item.article || art,
         name: item.name || '',
+        // Guest redaction may zero qty — still treat as in-stock catalog for merge paint.
         exist: item.qty != null ? item.qty : (item.exist != null ? item.exist : 1),
         price: item.price != null ? item.price : 0,
         timeToExe: item.delivery != null ? item.delivery : (item.time_to_exe || '0'),
@@ -798,7 +814,8 @@
         pricePurchase: item.price_purchase || 0,
         markup: item.markup || 0,
         jsonParams: '',
-        checkHash: ''
+        checkHash: '',
+        fromCrossStock: true
       });
       if (Object.keys(seen).length > before) added++;
     });
@@ -856,10 +873,8 @@
     // PHP epcPendingCrossStock — merge into warehouse table when typed OE is empty.
     window.__epcPendingCrossStock = stock.slice(0);
     window.__epcLastCrossStock = stock.slice(0);
-    if (data.prices_visible === false) {
-      pricesVisible = false;
-      if (table) table.setAttribute('data-prices-visible', '0');
-    } else if (data.prices_visible === true) {
+    // Never downgrade a logged-in pricesVisible=true table from a guest-redacted cross payload.
+    if (data.prices_visible === true) {
       pricesVisible = true;
       if (table) table.setAttribute('data-prices-visible', '1');
     }
@@ -875,7 +890,12 @@
       countEl.textContent = total + ' references' + (crossbaseCount > 0 ? (' · crossbase ' + crossbaseCount) : '');
     }
     var btn = document.getElementById('epc-cross-search-btn');
-    if (btn) btn.setAttribute('title', 'Open ' + total + ' cross references');
+    if (btn) {
+      btn.setAttribute('title', 'Open ' + total + ' cross references');
+      if (crossbaseCount > 0) {
+        btn.classList.add('epc-cross-search-btn--has-crossbase');
+      }
+    }
     // Cache for PHP-twin cross modal (parity.js openCrossModalFromButton).
     window.__epcLastCrossPayload = data;
     var list = document.getElementById('epc-cross-ref-list');
@@ -961,25 +981,33 @@
     return true;
   }
   function loadAspNetCrossSearch() {
-    // Local CP first (fast), then merge crossbase.ru in background (PHP ajax_epc_cross_search parity).
+    // Local CP first, then merge crossbase.ru (PHP ajax_epc_cross_search parity).
+    // ASAKASHI/C110J local alone is ~3.6s and with crossbase ~4.4s — old 1.5s/4s
+    // AbortSignal timeouts left the green button stuck at "0 references".
     function fetchCross(limit, ms, withCrossbase) {
       var url = '/storefront/cross-search?article=' + encodeURIComponent(article) +
         '&brand=' + encodeURIComponent(brand) + '&limit=' + limit;
       if (withCrossbase) url += '&include_crossbase=1';
       var opts = { credentials: 'same-origin' };
-      if (typeof AbortSignal !== 'undefined' && typeof AbortSignal.timeout === 'function') {
+      if (ms > 0 && typeof AbortSignal !== 'undefined' && typeof AbortSignal.timeout === 'function') {
         opts.signal = AbortSignal.timeout(ms);
       }
-      return fetch(url, opts).then(function (r) { return r.json(); });
+      return fetch(url, opts).then(function (r) { return r.json(); }).catch(function (err) {
+        // One retry without abort — heavy articles must still paint the interchange list.
+        if (ms > 0) {
+          return fetchCross(limit, 0, withCrossbase);
+        }
+        throw err;
+      });
     }
-    return fetchCross(200, 1500, false)
+    return fetchCross(200, 12000, false)
       .then(function (data) {
         if (!applyCrossSearchPayload(data, { force: true })) {
           var loading = document.getElementById('epc-cross-loading');
           if (loading) loading.textContent = 'Cross search unavailable — showing local manufacturer aliases only.';
         }
         // Background: full local + crossbase (cache/HTTP). Never blocks warehouse rows.
-        fetchCross(600, 4000, true)
+        return fetchCross(600, 20000, true)
           .then(function (full) { applyCrossSearchPayload(full, { force: true }); })
           .catch(function () {});
       })
@@ -1052,7 +1080,7 @@
   }
 })();
             </script>
-            <script src="/platform-assets/epc_warehouse_search_parity.js?v=20260812-cross-stock" defer></script>
+            <script src="/platform-assets/epc_warehouse_search_parity.js?v=20260812-cross-quote" defer></script>
         }
     }
 
@@ -1314,12 +1342,12 @@
 
         try
         {
+            // Fast warehouse seed only — do NOT share this CTS with cross-search
+            // (ASAKASHI/C110J local cross alone is ~3.6s; a 350ms shared cancel left
+            // the green button stuck at "0 references" in SSR HTML).
             using var seedCts = new CancellationTokenSource(TimeSpan.FromMilliseconds(350));
-            var offersTask = Dashboards.SearchStorefrontPartsAsync(_articleInput, _brandInput, 40, seedCts.Token);
-            var crossSeedTask = Dashboards.BuildStorefrontCrossSearchAsync(_articleInput, _brandInput, 40, seedCts.Token);
-            await Task.WhenAll(offersTask, crossSeedTask);
-
-            var offers = await offersTask;
+            var offers = await Dashboards.SearchStorefrontPartsAsync(
+                _articleInput, _brandInput, 40, seedCts.Token);
             if (!string.IsNullOrWhiteSpace(offers.Article))
             {
                 _normalized = offers.Article;
@@ -1349,8 +1377,20 @@
                 _chpuSeoProductName = stock.ProductName ?? string.Empty;
                 _chpuSeoMinPrice = stock.MinPrice;
             }
+        }
+        catch (OperationCanceledException)
+        {
+            // PHP skips enrichment when stock unknown — prefer noindex over false index.
+            _chpuSeoInStock = false;
+        }
 
-            var crossSeed = await crossSeedTask;
+        // Best-effort local CP cross seed for the REFERENCES badge (no crossbase.ru in SSR).
+        // Client JS expands to full crossbase + stock merge with longer timeouts.
+        try
+        {
+            using var crossCts = new CancellationTokenSource(TimeSpan.FromMilliseconds(2200));
+            var crossSeed = await Dashboards.BuildStorefrontCrossSearchAsync(
+                _articleInput, _brandInput, 80, crossCts.Token, includeCrossbase: false);
             if (crossSeed.References.Count > 0)
             {
                 _crossRefs = crossSeed.References;
@@ -1358,8 +1398,7 @@
         }
         catch (OperationCanceledException)
         {
-            // PHP skips enrichment when stock unknown — prefer noindex over false index.
-            _chpuSeoInStock = false;
+            // Client loadAspNetCrossSearch fills the badge / list.
         }
 
         ApplyChpuSeo();
