@@ -36,11 +36,13 @@
 	function fillRangeInputsFromOffers(rows) {
 		// PHP epcChpuUpdateFilterRangesFromProducts — min/max from live offers.
 		var priceMin = null, priceMax = null, termMin = null, termMax = null, existMin = null, existMax = null;
+		var pricesOn = pricesVisible();
 		rows.forEach(function (tr) {
 			var price = parseFloat(tr.getAttribute("data-price") || "");
 			var term = parseFloat(tr.getAttribute("data-term") || "");
 			var exist = parseFloat(tr.getAttribute("data-exist") || "");
-			if (!isNaN(price)) {
+			// Ignore guest-masked 0 prices so auto range does not become 0–0 then fight real rows.
+			if (pricesOn && !isNaN(price) && price > 0) {
 				priceMin = priceMin == null ? price : Math.min(priceMin, price);
 				priceMax = priceMax == null ? price : Math.max(priceMax, price);
 			}
@@ -130,6 +132,7 @@
 		var minExist = parseFloat((document.getElementById("epc_filter_exist_min") || {}).value);
 		var maxExist = parseFloat((document.getElementById("epc_filter_exist_max") || {}).value);
 		var inStockOnly = !!(document.getElementById("epc_filter_instock") || {}).checked;
+		var pricesOn = pricesVisible();
 		var visible = 0;
 		offerRows().forEach(function (tr) {
 			var mfr = tr.getAttribute("data-manufacturer") || "";
@@ -140,8 +143,11 @@
 			var ok = true;
 			if (mfrs.length && mfrs.indexOf(mfr) === -1) ok = false;
 			if (storages.length && storages.indexOf(stor) === -1 && storages.indexOf("—") === -1) ok = false;
-			if (!isNaN(minPrice) && price < minPrice) ok = false;
-			if (!isNaN(maxPrice) && price > maxPrice) ok = false;
+			// Guest-redacted cross stock uses price=0 / warehouse ** — never price-filter those away.
+			if (pricesOn) {
+				if (!isNaN(minPrice) && price < minPrice) ok = false;
+				if (!isNaN(maxPrice) && price > maxPrice) ok = false;
+			}
 			if (!isNaN(minTerm) && term < minTerm) ok = false;
 			if (!isNaN(maxTerm) && term > maxTerm) ok = false;
 			if (!isNaN(minExist) && exist < minExist) ok = false;
@@ -660,11 +666,14 @@
 	}
 
 	function addToQuoteFromRow(tr) {
-		if (!pricesVisible()) {
+		var p = productFromRow(tr);
+		var isCrossStock = tr && tr.getAttribute("data-cross-stock") === "1";
+		// Cross-stock catalog rows use manual quote (PHP epcAddManualToQuote) even when
+		// the guest price mask is on — login is still required by the API.
+		if (!pricesVisible() && !isCrossStock) {
 			window.location.href = "/storefront/login?returnUrl=" + encodeURIComponent(window.location.pathname + window.location.search);
 			return;
 		}
-		var p = productFromRow(tr);
 		var body = {
 			productType: Number(p.product_type || 2),
 			manufacturer: p.manufacturer || "",
@@ -672,7 +681,7 @@
 			countNeed: 1,
 			confirmWrites: true
 		};
-		var url = p.check_hash ? "/storefront/quotes/add-item" : "/storefront/quotes/add-manual";
+		var url = (p.check_hash && !isCrossStock) ? "/storefront/quotes/add-item" : "/storefront/quotes/add-manual";
 		postJson(url, body).then(function (data) {
 			if (data && data.ok === true && !data.writesBlocked) {
 				window.location.href = "/storefront/quotes-app";

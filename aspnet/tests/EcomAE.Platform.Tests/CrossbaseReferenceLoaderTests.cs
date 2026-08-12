@@ -75,12 +75,19 @@ public sealed class CrossbaseReferenceLoaderTests
     {
         var text = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/StorefrontSearchApp.razor"));
         Assert.Contains("__epcLastCrossPayload", text, StringComparison.Ordinal);
-        Assert.Contains("epc_warehouse_search_parity.js?v=20260812-cross-stock", text, StringComparison.Ordinal);
+        Assert.Contains("epc_warehouse_search_parity.js?v=20260812-cross-paint", text, StringComparison.Ordinal);
+        Assert.Contains("tr.getAttribute('data-cross-stock') === '1'", text, StringComparison.Ordinal);
+        Assert.Contains("ensureNoDirectStockNotice", text, StringComparison.Ordinal);
+        Assert.Contains("skipFilterRefresh", text, StringComparison.Ordinal);
         Assert.Contains("indexOf('crossbase')", text, StringComparison.Ordinal);
         // PHP empty-warehouse path: merge cross stock into the main offer table.
         Assert.Contains("mergeCrossStockIntoOffers", text, StringComparison.Ordinal);
         Assert.Contains("__epcPendingCrossStock", text, StringComparison.Ordinal);
         Assert.Contains("Cross reference stock found", text, StringComparison.Ordinal);
+        // Heavy articles (ASAKASHI/C110J ~3.6s+) must not abort at 1.5s/4s.
+        Assert.Contains("fetchCross(200, 12000, false)", text, StringComparison.Ordinal);
+        Assert.Contains("fetchCross(600, 20000, true)", text, StringComparison.Ordinal);
+        Assert.Contains("fromCrossStock: true", text, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -91,6 +98,11 @@ public sealed class CrossbaseReferenceLoaderTests
         Assert.Contains("StorefrontCrossStockDigest", reporter, StringComparison.Ordinal);
         // Must use PHP REPLACE-normalize IN (not only exact trim) so STD / OE variants hit prices_data.
         Assert.Contains("StorefrontPriceArticleReplaceInSql", reporter, StringComparison.Ordinal);
+        // Local CP reader must dispose before stock batch reuses the same MySqlConnection.
+        Assert.Contains("already in use", reporter, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("await using (var reader = await command.ExecuteReaderAsync", reporter, StringComparison.Ordinal);
+        // Heavy analogs queries exceed the old 2s CommandTimeout after republish load.
+        Assert.Contains("command.CommandTimeout = 10", reporter, StringComparison.Ordinal);
         var module = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Modules/StorefrontModule.cs"));
         Assert.Contains("stock_count = stock.Count", module, StringComparison.Ordinal);
         Assert.Contains("prices_visible = access.PricesVisible", module, StringComparison.Ordinal);

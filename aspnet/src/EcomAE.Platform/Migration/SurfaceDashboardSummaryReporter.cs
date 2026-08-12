@@ -1974,7 +1974,9 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             await using var connection = await OpenStorefrontShopAsync(cancellationToken).ConfigureAwait(false);
             var hasAnalogsSearch = await ProbeAnalogsSearchColumnsAsync(connection, cancellationToken).ConfigureAwait(false);
             await using var command = connection.CreateCommand();
-            command.CommandTimeout = 2;
+            // Heavy articles (ASAKASHI/C110J) regularly need >2s on shop_docpart analogs —
+            // a 2s CommandTimeout returned empty refs ("Command Timeout expired") after republish.
+            command.CommandTimeout = 10;
             command.CommandText = LegacySurfaceDashboardSql.SelectStorefrontArticleCrossPairs.Replace(
                 "{CROSS_MATCH}",
                 LegacySurfaceDashboardSql.StorefrontCrossArticleMatchSql(hasAnalogsSearch),
@@ -1991,47 +1993,51 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             var localRows = new List<StorefrontCrossRefDigest>();
             var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             var selfBrandCompact = CompactStorefrontBrand(brandNorm);
-            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
-            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false) && localRows.Count < maxLocal)
+            // Dispose the reader before crossbase HTTP + stock batch reuse this connection
+            // (MySqlConnector: "This MySqlConnection is already in use").
+            await using (var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false))
             {
-                var sourceBrand = Convert.ToString(reader["source_brand"] is DBNull ? string.Empty : reader["source_brand"], CultureInfo.InvariantCulture) ?? string.Empty;
-                var sourceArticle = Convert.ToString(reader["source_article"] is DBNull ? string.Empty : reader["source_article"], CultureInfo.InvariantCulture) ?? string.Empty;
-                var crossBrand = Convert.ToString(reader["cross_brand"] is DBNull ? string.Empty : reader["cross_brand"], CultureInfo.InvariantCulture) ?? string.Empty;
-                var crossArticle = Convert.ToString(reader["cross_article"] is DBNull ? string.Empty : reader["cross_article"], CultureInfo.InvariantCulture) ?? string.Empty;
-                var sourceNorm = PriceLookupRequest.NormalizeArticle(sourceArticle);
-                var crossNorm = PriceLookupRequest.NormalizeArticle(crossArticle);
-                string partnerBrand;
-                string partnerArticle;
-                if (sourceNorm == normalized && crossNorm != string.Empty)
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false) && localRows.Count < maxLocal)
                 {
-                    partnerBrand = crossBrand;
-                    partnerArticle = crossArticle;
-                }
-                else if (crossNorm == normalized && sourceNorm != string.Empty)
-                {
-                    partnerBrand = sourceBrand;
-                    partnerArticle = sourceArticle;
-                }
-                else
-                {
-                    continue;
-                }
+                    var sourceBrand = Convert.ToString(reader["source_brand"] is DBNull ? string.Empty : reader["source_brand"], CultureInfo.InvariantCulture) ?? string.Empty;
+                    var sourceArticle = Convert.ToString(reader["source_article"] is DBNull ? string.Empty : reader["source_article"], CultureInfo.InvariantCulture) ?? string.Empty;
+                    var crossBrand = Convert.ToString(reader["cross_brand"] is DBNull ? string.Empty : reader["cross_brand"], CultureInfo.InvariantCulture) ?? string.Empty;
+                    var crossArticle = Convert.ToString(reader["cross_article"] is DBNull ? string.Empty : reader["cross_article"], CultureInfo.InvariantCulture) ?? string.Empty;
+                    var sourceNorm = PriceLookupRequest.NormalizeArticle(sourceArticle);
+                    var crossNorm = PriceLookupRequest.NormalizeArticle(crossArticle);
+                    string partnerBrand;
+                    string partnerArticle;
+                    if (sourceNorm == normalized && crossNorm != string.Empty)
+                    {
+                        partnerBrand = crossBrand;
+                        partnerArticle = crossArticle;
+                    }
+                    else if (crossNorm == normalized && sourceNorm != string.Empty)
+                    {
+                        partnerBrand = sourceBrand;
+                        partnerArticle = sourceArticle;
+                    }
+                    else
+                    {
+                        continue;
+                    }
 
-                var partnerNorm = PriceLookupRequest.NormalizeArticle(partnerArticle);
-                // Skip the searched brand+article itself.
-                if (partnerNorm == normalized
-                    && (selfBrandCompact.Length == 0 || CompactStorefrontBrand(partnerBrand) == selfBrandCompact))
-                {
-                    continue;
-                }
+                    var partnerNorm = PriceLookupRequest.NormalizeArticle(partnerArticle);
+                    // Skip the searched brand+article itself.
+                    if (partnerNorm == normalized
+                        && (selfBrandCompact.Length == 0 || CompactStorefrontBrand(partnerBrand) == selfBrandCompact))
+                    {
+                        continue;
+                    }
 
-                var key = partnerBrand.Trim().ToUpperInvariant() + "|" + partnerNorm;
-                if (!seen.Add(key))
-                {
-                    continue;
-                }
+                    var key = partnerBrand.Trim().ToUpperInvariant() + "|" + partnerNorm;
+                    if (!seen.Add(key))
+                    {
+                        continue;
+                    }
 
-                localRows.Add(new StorefrontCrossRefDigest(partnerBrand.Trim(), partnerArticle.Trim(), false, "cp"));
+                    localRows.Add(new StorefrontCrossRefDigest(partnerBrand.Trim(), partnerArticle.Trim(), false, "cp"));
+                }
             }
 
             var localCount = localRows.Count;
@@ -2192,7 +2198,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         {
             var batch = norms.Skip(offset).Take(batchSize).ToList();
             await using var command = connection.CreateCommand();
-            command.CommandTimeout = 3;
+            command.CommandTimeout = 8;
             // PHP epc_cross_load_stock_for_references uses docpart_sql_article_normalized_expr IN (...).
             var articleMatch = LegacySurfaceDashboardSql.StorefrontPriceArticleReplaceInSql(batch.Count);
             command.CommandText = $"""

@@ -21,6 +21,14 @@ public sealed class PhpProductPathRedirectMiddleware
         var query = context.Request.QueryString.HasValue ? context.Request.QueryString.Value : string.Empty;
         var combined = path + query;
 
+        // Industry showcase hub/sub paths are not PHP product URLs — never 302 them to /.
+        // EcomaeIndustryShowcaseMiddleware serves snapshots; if missing, fall through cleanly.
+        if (EcomaeIndustryShowcaseSnapshots.TryResolveHostSlug(context.Request.Host.Host, out var industryHost)
+            && EcomaeIndustryShowcaseSnapshots.FileSlugFor(industryHost, path) is not null)
+        {
+            return _next(context);
+        }
+
         // /php-reference/* is the only intentional PHP compare entry — do not rewrite.
         // Asset bridges (/epc-static.php, *_css.php) stay on ASP.NET MapGet handlers.
         if (path.StartsWith("/php-reference", StringComparison.OrdinalIgnoreCase)

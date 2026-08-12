@@ -97,8 +97,11 @@ public sealed class PartsChpuOffersLatencyTests
         var text = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/StorefrontSearchApp.razor"));
         Assert.Contains("SSR-seed local warehouse rows", text, StringComparison.Ordinal);
         Assert.Contains("CancellationTokenSource(TimeSpan.FromMilliseconds(350))", text, StringComparison.Ordinal);
-        Assert.Contains("SearchStorefrontPartsAsync(_articleInput, _brandInput, 40", text, StringComparison.Ordinal);
+        Assert.Contains("SearchStorefrontPartsAsync(", text, StringComparison.Ordinal);
+        Assert.Contains("_articleInput, _brandInput, 40, seedCts.Token", text, StringComparison.Ordinal);
         Assert.Contains("BuildStorefrontCrossSearchAsync", text, StringComparison.Ordinal);
+        // Cross seed uses its own longer CTS — must not share the 350ms offer cancel.
+        Assert.Contains("includeCrossbase: false", text, StringComparison.Ordinal);
         Assert.DoesNotContain("ListStorefrontGenuineBrandsAsync()", text, StringComparison.Ordinal);
     }
 

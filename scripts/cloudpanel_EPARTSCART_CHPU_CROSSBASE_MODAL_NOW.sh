@@ -6,14 +6,16 @@
 # focusCross-only body; API still returned only source=cp). This script forces
 # a direct FORCE_LIVE publish + hard HTTP prove before RESULT=PASS.
 #
-# CloudPanel root paste:
-#   URL='https://raw.githubusercontent.com/epartscart/ecomae/cursor/chpu-crossbase-modal-7529/scripts/cloudpanel_EPARTSCART_CHPU_CROSSBASE_MODAL_NOW.sh'
+# CloudPanel root paste (pin script by commit SHA — raw branch URLs can be CDN-stale):
+#   set -euxo pipefail
+#   URL='https://raw.githubusercontent.com/epartscart/ecomae/dc2ba370cf530839a053218f8d2d0677b68710bd/scripts/cloudpanel_EPARTSCART_CHPU_CROSSBASE_MODAL_NOW.sh'
 #   TMP=/tmp/epartscart-chpu-crossbase-modal-now.sh
 #   curl -fsSL "$URL" -o "$TMP" && test -s "$TMP"
+#   grep -q 'stale_tip_' "$TMP" || { echo RESULT=FAIL bad_download_need_reader_dispose_NOW; exit 1; }
 #   export ECOMAE_BRANCH=cursor/chpu-crossbase-modal-7529
 #   export ECOMAE_EPARTSCART_SHOP_DB=docpart
 #   bash "$TMP" 2>&1 | tee /root/epartscart-chpu-crossbase-modal-now.log
-#   grep -E 'RESULT=|GATE_|SHA=|PUBLISH' /root/epartscart-chpu-crossbase-modal-now.log | tail -100
+#   grep -E 'RESULT=|GATE_|SHA=|PUBLISHED|API_CROSS_STOCK|mysql|stale' /root/epartscart-chpu-crossbase-modal-now.log | tail -120
 set -euo pipefail
 if [[ "$(id -u)" -ne 0 ]]; then printf 'ERROR: must run as root\n' >&2; exit 1; fi
 
@@ -43,13 +45,23 @@ FULL="$(git rev-parse HEAD)"
 MSG="$(git log -1 --pretty=%s)"
 note "REPO=${REPO} SHA=${SHA} FULL=${FULL}"
 note "HEAD_MSG=${MSG}"
-# Refuse stale branch tips that predate the empty-warehouse cross-stock fill.
-echo "$MSG" | grep -Eiq 'cross stock|crossbase modal' \
-  || die "unexpected HEAD message (need cross-stock fill commit on this branch): ${MSG}"
+# Stale tip 93832ce2 published HTML/JS but left cross-search DataReader open → empty API.
+# Refuse known-bad SHAs even if an old NOW script was re-run from a local cache.
+case "$FULL" in
+  93832ce211c39396de2138e9edea0eb68badca34|9f7798bbc86d8d5a29ffa59070f4749377bb2c83)
+    die "stale_tip_${SHA}_need_reader_dispose_fix_8a829122_or_newer — re-curl NOW from branch tip"
+    ;;
+esac
+# Tip commit subjects rotate — gate on code markers only.
 grep -q 'LoadStorefrontCrossStockAsync' \
   aspnet/src/EcomAE.Platform/Migration/SurfaceDashboardSummaryReporter.cs \
   || die "branch tip missing LoadStorefrontCrossStockAsync — git fetch/reset failed"
-
+grep -q 'MySqlConnection is already in use' \
+  aspnet/src/EcomAE.Platform/Migration/SurfaceDashboardSummaryReporter.cs \
+  || die "branch tip missing cross-search reader dispose fix"
+grep -q 'await using (var reader = await command.ExecuteReaderAsync' \
+  aspnet/src/EcomAE.Platform/Migration/SurfaceDashboardSummaryReporter.cs \
+  || die "branch tip missing scoped DataReader dispose before stock batch"
 grep -q 'Source = "cp+crossbase"' aspnet/src/EcomAE.Platform/Migration/SurfaceDashboardSummaryReporter.cs \
   || die "missing cp+crossbase overlap retag in source"
 grep -q 'function openCrossModal(' content/general_pages/epc_warehouse_search_parity.js \
@@ -58,9 +70,21 @@ grep -q 'openCrossModalFromButton' content/general_pages/epc_warehouse_search_pa
   || die "missing openCrossModalFromButton wire"
 grep -q '__epcLastCrossPayload' aspnet/src/EcomAE.Platform/Components/Pages/StorefrontSearchApp.razor \
   || die "missing CHPU payload cache for modal"
-grep -q 'epc_warehouse_search_parity.js?v=20260812-cross-stock' \
+grep -Eq 'epc_warehouse_search_parity\.js\?v=20260812-cross-(stock|quote|paint)' \
   aspnet/src/EcomAE.Platform/Components/Pages/StorefrontSearchApp.razor \
   || die "missing parity JS cache-bust in Razor"
+grep -q 'ensureNoDirectStockNotice' \
+  aspnet/src/EcomAE.Platform/Components/Pages/StorefrontSearchApp.razor \
+  || die "missing ACDELCO empty-table cross-paint fix"
+grep -q 'fetchCross(200, 12000, false)' \
+  aspnet/src/EcomAE.Platform/Components/Pages/StorefrontSearchApp.razor \
+  || die "missing cross-search timeout raise (ASAKASHI 0-references bug)"
+grep -q 'fromCrossStock: true' \
+  aspnet/src/EcomAE.Platform/Components/Pages/StorefrontSearchApp.razor \
+  || die "missing cross-stock Add to Quote wire"
+grep -q 'command.CommandTimeout = 10' \
+  aspnet/src/EcomAE.Platform/Migration/SurfaceDashboardSummaryReporter.cs \
+  || die "missing cross-search SQL CommandTimeout=10"
 grep -q 'LoadStorefrontCrossStockAsync' \
   aspnet/src/EcomAE.Platform/Migration/SurfaceDashboardSummaryReporter.cs \
   || die "missing cross stock batch loader"
@@ -133,17 +157,27 @@ HTML=/tmp/epc_chpu_cb_modal_post.html
 CODE="$(curl -sS -A 'EcomAE-ChpuCrossModalNow/1.0' -o "$HTML" -w '%{http_code}' --max-time 45 \
   'https://www.epartscart.com/en/parts/TOYOTA/1310154101' || echo 000)"
 [[ "$CODE" == "200" ]] || die "CHPU HTTP=$CODE after publish"
-grep -Fq 'epc_warehouse_search_parity.js?v=20260812-cross-stock' "$HTML" \
-  || die "HTML still missing cross-stock cache-bust — ASP.NET DLL not republished"
+grep -Eq 'epc_warehouse_search_parity\.js\?v=20260812-cross-(stock|quote|paint)' "$HTML" \
+  || die "HTML still missing cross cache-bust — ASP.NET DLL not republished"
+grep -Fq 'ensureNoDirectStockNotice' "$HTML" \
+  || die "HTML missing ACDELCO cross-paint fix — Razor not republished"
 grep -Fq '__epcLastCrossPayload' "$HTML" \
   || die "HTML missing __epcLastCrossPayload — Razor not republished"
 grep -Fq 'mergeCrossStockIntoOffers' "$HTML" \
   || die "HTML missing mergeCrossStockIntoOffers — Razor not republished"
+grep -Fq 'fromCrossStock: true' "$HTML" \
+  || die "HTML missing fromCrossStock quote wire — Razor not republished"
+grep -Fq 'fetchCross(200, 12000, false)' "$HTML" \
+  || die "HTML missing raised cross-search timeout — Razor not republished"
 
 JS=/tmp/epc_parity_post.js
+JS_BUST="$(grep -oE 'epc_warehouse_search_parity\.js\?v=20260812-cross-[a-z]+' "$HTML" | head -1 || true)"
+JS_BUST="${JS_BUST:-epc_warehouse_search_parity.js?v=20260812-cross-paint}"
 curl -sS -A 'EcomAE-ChpuCrossModalNow/1.0' -o "$JS" --max-time 20 \
-  'https://www.epartscart.com/platform-assets/epc_warehouse_search_parity.js?v=20260812-cross-stock' || true
+  "https://www.epartscart.com/platform-assets/${JS_BUST}" || true
 grep -q 'function openCrossModal(' "$JS" || die "parity JS missing openCrossModal after publish"
+grep -q 'data-cross-stock' "$JS" || die "parity JS missing cross-stock quote allow"
+grep -q 'Guest-redacted cross stock' "$JS" || die "parity JS missing guest price-filter skip"
 # Old bust must not keep serving the focusCross-only body after reload.
 OLD_JS=/tmp/epc_parity_oldbust.js
 curl -sS -A 'EcomAE-ChpuCrossModalNow/1.0' -o "$OLD_JS" --max-time 20 \
@@ -158,18 +192,24 @@ API=/tmp/epc_toyota_cross_post.json
 curl -sS -A 'EcomAE-ChpuCrossModalNow/1.0' -o "$API" --max-time 25 \
   'https://www.epartscart.com/storefront/cross-search?article=1310154101&brand=TOYOTA&limit=600&include_crossbase=1' || true
 python3 - <<'PY' || die "API missing crossbase provenance after publish"
-import json
+import json, sys
 from collections import Counter
 d=json.load(open("/tmp/epc_toyota_cross_post.json"))
 refs=d.get("references") or []
 sources=Counter(str(r.get("source") or "") for r in refs)
 tagged=sum(1 for r in refs if "crossbase" in str(r.get("source") or "").lower())
+print("API status", d.get("status"), "source", d.get("source"), "message", d.get("message"))
 print("API sources", dict(sources), "crossbase_count", d.get("crossbase_count"), "tagged", tagged)
-assert int(d.get("crossbase_count") or 0) > 0
-assert tagged > 0, "expected cp+crossbase and/or crossbase sources after retag"
+msg = str(d.get("message") or "")
+if "already in use" in msg.lower():
+    print("GATE_BAD mysql_connection_reuse — republish reader-dispose fix", file=sys.stderr)
+    raise SystemExit(2)
+if int(d.get("crossbase_count") or 0) <= 0 or tagged <= 0:
+    raise SystemExit("expected cp+crossbase and/or crossbase sources after retag")
 print("GATE_OK API_PROVENANCE=YES")
 stock = d.get("stock") or []
-assert int(d.get("stock_count") or 0) > 0 and len(stock) > 0, "expected cross stock for empty-warehouse fill"
+if int(d.get("stock_count") or 0) <= 0 or len(stock) <= 0:
+    raise SystemExit("expected cross stock for empty-warehouse fill")
 print("GATE_OK API_CROSS_STOCK=YES stock=", len(stock))
 PY
 

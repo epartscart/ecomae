@@ -195,10 +195,11 @@ public static class PhpHomeWidgetHtml
 
         candidates.Add("/opt/ecomae-aspnet-source");
         candidates.Add("/root/ecomae");
+        candidates.Add("/opt/ecomae");
 
         foreach (var candidate in candidates)
         {
-            if (File.Exists(Path.Combine(candidate, "content", "product_family_catalog.php")))
+            if (IsPhpSourceRoot(candidate))
             {
                 _repoRoot = candidate;
                 return _repoRoot;
@@ -206,5 +207,31 @@ public static class PhpHomeWidgetHtml
         }
 
         return null;
+    }
+
+    /// <summary>
+    /// Monorepo checkout <em>or</em> a publish tree that packed rendered snapshots under
+    /// <c>content/general_pages/epc_rendered_*</c> (FORCE_LIVE copies these next to the DLL).
+    /// </summary>
+    public static bool IsPhpSourceRoot(string candidate)
+    {
+        if (string.IsNullOrWhiteSpace(candidate) || !Directory.Exists(candidate))
+        {
+            return false;
+        }
+
+        return File.Exists(Path.Combine(candidate, "content", "product_family_catalog.php"))
+               || File.Exists(Path.Combine(
+                   candidate,
+                   "content",
+                   "general_pages",
+                   "epc_rendered_industry",
+                   "automotive.html"))
+               || File.Exists(Path.Combine(
+                   candidate,
+                   "content",
+                   "general_pages",
+                   "epc_rendered_marketing",
+                   "platform__industries.html"));
     }
 }
