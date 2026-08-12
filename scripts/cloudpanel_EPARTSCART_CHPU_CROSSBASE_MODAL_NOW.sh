@@ -8,7 +8,7 @@
 #
 # CloudPanel root paste (pin script by commit SHA — raw branch URLs can be CDN-stale):
 #   set -euxo pipefail
-#   URL='https://raw.githubusercontent.com/epartscart/ecomae/dc2ba370cf530839a053218f8d2d0677b68710bd/scripts/cloudpanel_EPARTSCART_CHPU_CROSSBASE_MODAL_NOW.sh'
+#   URL='https://raw.githubusercontent.com/epartscart/ecomae/8c6d312feacdd36a4f35675e3e1142af9ea7e123/scripts/cloudpanel_EPARTSCART_CHPU_CROSSBASE_MODAL_NOW.sh'
 #   TMP=/tmp/epartscart-chpu-crossbase-modal-now.sh
 #   curl -fsSL "$URL" -o "$TMP" && test -s "$TMP"
 #   grep -q 'stale_tip_' "$TMP" || { echo RESULT=FAIL bad_download_need_reader_dispose_NOW; exit 1; }
@@ -70,12 +70,15 @@ grep -q 'openCrossModalFromButton' content/general_pages/epc_warehouse_search_pa
   || die "missing openCrossModalFromButton wire"
 grep -q '__epcLastCrossPayload' aspnet/src/EcomAE.Platform/Components/Pages/StorefrontSearchApp.razor \
   || die "missing CHPU payload cache for modal"
-grep -Eq 'epc_warehouse_search_parity\.js\?v=20260812-cross-(stock|quote|paint)' \
+grep -Eq 'epc_warehouse_search_parity\.js\?v=20260812-cross-(stock|quote|paint|cells)' \
   aspnet/src/EcomAE.Platform/Components/Pages/StorefrontSearchApp.razor \
   || die "missing parity JS cache-bust in Razor"
 grep -q 'ensureNoDirectStockNotice' \
   aspnet/src/EcomAE.Platform/Components/Pages/StorefrontSearchApp.razor \
   || die "missing ACDELCO empty-table cross-paint fix"
+grep -q 'paintOfferCells(tr, p, kind, 0, 1)' \
+  aspnet/src/EcomAE.Platform/Components/Pages/StorefrontSearchApp.razor \
+  || die "missing appendProduct paintOfferCells (0-height empty cross-stock rows)"
 grep -q 'fetchCross(200, 12000, false)' \
   aspnet/src/EcomAE.Platform/Components/Pages/StorefrontSearchApp.razor \
   || die "missing cross-search timeout raise (ASAKASHI 0-references bug)"
@@ -157,10 +160,12 @@ HTML=/tmp/epc_chpu_cb_modal_post.html
 CODE="$(curl -sS -A 'EcomAE-ChpuCrossModalNow/1.0' -o "$HTML" -w '%{http_code}' --max-time 45 \
   'https://www.epartscart.com/en/parts/TOYOTA/1310154101' || echo 000)"
 [[ "$CODE" == "200" ]] || die "CHPU HTTP=$CODE after publish"
-grep -Eq 'epc_warehouse_search_parity\.js\?v=20260812-cross-(stock|quote|paint)' "$HTML" \
+grep -Eq 'epc_warehouse_search_parity\.js\?v=20260812-cross-(stock|quote|paint|cells)' "$HTML" \
   || die "HTML still missing cross cache-bust — ASP.NET DLL not republished"
 grep -Fq 'ensureNoDirectStockNotice' "$HTML" \
   || die "HTML missing ACDELCO cross-paint fix — Razor not republished"
+grep -Fq 'paintOfferCells(tr, p, kind, 0, 1)' "$HTML" \
+  || die "HTML missing appendProduct paintOfferCells — Razor not republished"
 grep -Fq '__epcLastCrossPayload' "$HTML" \
   || die "HTML missing __epcLastCrossPayload — Razor not republished"
 grep -Fq 'mergeCrossStockIntoOffers' "$HTML" \
@@ -172,7 +177,7 @@ grep -Fq 'fetchCross(200, 12000, false)' "$HTML" \
 
 JS=/tmp/epc_parity_post.js
 JS_BUST="$(grep -oE 'epc_warehouse_search_parity\.js\?v=20260812-cross-[a-z]+' "$HTML" | head -1 || true)"
-JS_BUST="${JS_BUST:-epc_warehouse_search_parity.js?v=20260812-cross-paint}"
+JS_BUST="${JS_BUST:-epc_warehouse_search_parity.js?v=20260812-cross-cells}"
 curl -sS -A 'EcomAE-ChpuCrossModalNow/1.0' -o "$JS" --max-time 20 \
   "https://www.epartscart.com/platform-assets/${JS_BUST}" || true
 grep -q 'function openCrossModal(' "$JS" || die "parity JS missing openCrossModal after publish"
