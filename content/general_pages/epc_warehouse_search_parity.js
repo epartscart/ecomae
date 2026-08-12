@@ -407,6 +407,153 @@
 		window.setTimeout(function () { nav.classList.remove("is-highlight"); }, 2400);
 	}
 
+	function partsHrefModal(brand, article) {
+		return "/en/parts/" + encodeURIComponent(String(brand || "").toUpperCase()) + "/" +
+			encodeURIComponent(String(article || ""));
+	}
+
+	function csvValue(value) {
+		value = String(value == null ? "" : value);
+		return "\"" + value.replace(/"/g, "\"\"") + "\"";
+	}
+
+	function downloadCsv(filename, rows) {
+		var csv = rows.map(function (row) { return row.map(csvValue).join(","); }).join("\r\n");
+		var blob = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8;" });
+		var link = document.createElement("a");
+		link.href = URL.createObjectURL(blob);
+		link.download = filename;
+		document.body.appendChild(link);
+		link.click();
+		window.setTimeout(function () {
+			URL.revokeObjectURL(link.href);
+			if (link.parentNode) link.parentNode.removeChild(link);
+		}, 100);
+	}
+
+	/**
+	 * PHP part_search_page openCrossModal twin — button must open a dialog, not only scroll.
+	 */
+	function openCrossModal(article, refs, stock, total) {
+		var existing = document.getElementById("epc-cross-modal");
+		if (existing && existing.parentNode) {
+			existing.parentNode.removeChild(existing);
+		}
+		refs = refs || [];
+		stock = stock || [];
+		var loaded = refs.length;
+		var catalogTotal = parseInt(total, 10) || loaded;
+		var modal = document.createElement("div");
+		modal.id = "epc-cross-modal";
+		modal.className = "epc-cross-modal";
+		modal.innerHTML = "<div class=\"epc-cross-modal__dialog\" role=\"dialog\" aria-modal=\"true\">" +
+			"<div class=\"epc-cross-modal__head\"><div><strong>Cross references for " + esc(article) +
+			"</strong><span></span></div><button type=\"button\" class=\"epc-cross-modal__close\" aria-label=\"Close\">&times;</button></div>" +
+			"<div class=\"epc-cross-modal__tools\"><input type=\"search\" class=\"form-control\" id=\"epc-cross-modal-filter\" placeholder=\"Filter brand or article\">" +
+			"<button type=\"button\" class=\"btn btn-primary\" id=\"epc-cross-download-refs\">Download references CSV</button>" +
+			"<button type=\"button\" class=\"btn btn-success\" id=\"epc-cross-download-stock\">Download stock CSV</button></div>" +
+			"<div class=\"epc-cross-modal__body\"><div class=\"epc-cross-modal__table\"><table class=\"table table-striped table-condensed\">" +
+			"<thead><tr><th>#</th><th>Brand</th><th>Article</th><th>Source</th><th>Availability</th><th class=\"text-right\">Action</th></tr></thead>" +
+			"<tbody id=\"epc-cross-modal-rows\"></tbody></table></div>" +
+			"<div class=\"epc-cross-modal__stock\"><strong>In stock on UAE price lists</strong>" +
+			"<div id=\"epc-cross-modal-stock\"></div></div></div></div>";
+		document.body.appendChild(modal);
+		var rowsBox = modal.querySelector("#epc-cross-modal-rows");
+		var stockRows = modal.querySelector("#epc-cross-modal-stock");
+		var filter = modal.querySelector("#epc-cross-modal-filter");
+		var headNote = modal.querySelector(".epc-cross-modal__head span");
+		var stockKeys = Object.create(null);
+		stock.forEach(function (s) {
+			stockKeys[compactToken(s.brand) + "|" + compactToken(s.article_norm || s.article)] = 1;
+		});
+		function sourceLabel(src) {
+			src = String(src || "cp").toLowerCase();
+			if (src === "crossbase" || src.indexOf("crossbase") >= 0) return "crossbase";
+			return "local";
+		}
+		function renderRows() {
+			var term = (filter.value || "").toLowerCase();
+			var shown = 0;
+			rowsBox.innerHTML = refs.map(function (row, index) {
+				var text = String((row.brand || "") + " " + (row.article || "") + " " + (row.source || "")).toLowerCase();
+				if (term && text.indexOf(term) === -1) return "";
+				shown++;
+				var inStock = !!stockKeys[compactToken(row.brand) + "|" + compactToken(row.article_norm || row.article)];
+				var avail = inStock
+					? "<span class=\"epc-avail-badge epc-avail-badge--yes\">In stock</span>"
+					: "<span class=\"epc-avail-badge epc-avail-badge--no\">Not in stock</span>";
+				var src = sourceLabel(row.source);
+				var srcBadge = src === "crossbase"
+					? "<span class=\"label label-success\">crossbase</span>"
+					: "<span class=\"label label-default\">local</span>";
+				return "<tr><td>" + (index + 1) + "</td><td><strong>" + esc(row.brand || "") +
+					"</strong></td><td>" + esc(row.article || "") + "</td><td>" + srcBadge +
+					"</td><td>" + avail + "</td><td class=\"text-right\"><a class=\"btn btn-xs btn-primary\" href=\"" +
+					esc(partsHrefModal(row.brand, row.article)) + "\">Search availability &amp; price</a></td></tr>";
+			}).join("") || "<tr><td colspan=\"6\" class=\"text-center\">No matching cross reference found.</td></tr>";
+			if (catalogTotal > loaded) {
+				headNote.textContent = shown + " shown (" + loaded + " loaded of " +
+					catalogTotal.toLocaleString() + " in catalog)";
+			} else {
+				headNote.textContent = shown + " of " + catalogTotal + " references shown";
+			}
+		}
+		stockRows.innerHTML = stock.length ? stock.map(function (item) {
+			var hide = !pricesVisible();
+			var mask = "**";
+			var priceText = hide ? mask : esc(item.price || "");
+			var qtyText = hide ? mask : esc(item.qty || item.exist || "");
+			return "<div class=\"epc-cross-modal__stock-row\"><span><strong>" +
+				esc(item.brand || "") + " " + esc(item.article || "") + "</strong><small>" +
+				esc(item.name || "") + "</small></span><b>" + priceText + "</b><em>Qty: " + qtyText +
+				"</em><a class=\"btn btn-xs btn-success\" href=\"" +
+				esc(partsHrefModal(item.brand, item.article)) + "\">Open price/cart</a></div>";
+		}).join("") : "<div class=\"epc-cross-modal__empty\">No cross stock match in loaded price lists.</div>";
+		renderRows();
+		filter.addEventListener("input", renderRows);
+		modal.querySelector(".epc-cross-modal__close").onclick = function () {
+			if (modal.parentNode) modal.parentNode.removeChild(modal);
+		};
+		modal.addEventListener("click", function (event) {
+			if (event.target === modal && modal.parentNode) modal.parentNode.removeChild(modal);
+		});
+		modal.querySelector("#epc-cross-download-refs").onclick = function () {
+			var rows = [["Brand", "Article", "Source", "Search URL"]];
+			refs.forEach(function (row) {
+				rows.push([
+					row.brand || "",
+					row.article || "",
+					sourceLabel(row.source),
+					location.origin + partsHrefModal(row.brand, row.article)
+				]);
+			});
+			downloadCsv("cross-references-" + article + ".csv", rows);
+		};
+		modal.querySelector("#epc-cross-download-stock").onclick = function () {
+			var rows = [["Brand", "Article", "Name", "Price", "Quantity", "Search URL"]];
+			stock.forEach(function (item) {
+				rows.push([
+					item.brand || "",
+					item.article || "",
+					item.name || "",
+					item.price || "",
+					item.qty || item.exist || "",
+					location.origin + partsHrefModal(item.brand, item.article)
+				]);
+			});
+			downloadCsv("cross-stock-" + article + ".csv", rows);
+		};
+		document.addEventListener("keydown", function onEsc(ev) {
+			if (ev.key === "Escape" && modal.parentNode) {
+				modal.parentNode.removeChild(modal);
+				document.removeEventListener("keydown", onEsc);
+			}
+		});
+		filter.focus();
+	}
+
+	window.epcOpenCrossModal = openCrossModal;
+
 	function qtyValue(aid) {
 		var input = document.getElementById("count_need_" + aid);
 		var n = input ? parseInt(input.value, 10) : 1;
@@ -724,7 +871,7 @@
 						html.push("<li data-cross-key=\"" + esc(rb + "|" + ra) + "\" data-source=\"" + esc(src) + "\">" +
 							"<a href=\"" + partsHref(rb, ra) + "\">" + esc(rb) + " " + esc(ra) + "</a> " +
 							"<span style=\"color:#64748b\">(" +
-							(src === "crossbase"
+							(String(src).toLowerCase().indexOf("crossbase") >= 0
 								? "crossbase"
 								: (sameArticleAlias ? "related manufacturer" : ("part number " + esc(ra)))) +
 							")</span> " +
@@ -749,6 +896,7 @@
 					}
 				}
 				if (loading) loading.style.display = "none";
+				window.__epcLastCrossPayload = data;
 				return data;
 			})
 			.catch(function () {
@@ -760,6 +908,31 @@
 	}
 
 	window.epcLoadAspNetCrossSearch = loadAspNetCrossSearch;
+
+	function openCrossModalFromButton() {
+		var nav = document.getElementById("epc-cross-base");
+		var btn = document.getElementById("epc-cross-search-btn");
+		var article = (nav && nav.getAttribute("data-article")) ||
+			(btn && btn.getAttribute("data-article")) || "";
+		var brand = (nav && nav.getAttribute("data-brand")) || "";
+		var cached = window.__epcLastCrossPayload;
+		function show(data) {
+			if (!data || data.status === false) {
+				focusCross();
+				return;
+			}
+			var refs = data.references || [];
+			var stock = data.stock || [];
+			var total = Number(data.unique_reference_count || data.reference_count || refs.length) || refs.length;
+			var cb = Number(data.crossbase_count || 0) || 0;
+			if (cb > 0) total = Math.max(total, Number(data.local_count || 0) + cb);
+			openCrossModal(article, refs, stock, total);
+		}
+		if (cached && cached.references && cached.references.length) {
+			show(cached);
+		}
+		loadAspNetCrossSearch(article, brand).then(show);
+	}
 
 	window.epcWarehouseParity = {
 		rebuildFilterOptions: rebuildFilterOptions,
@@ -803,14 +976,11 @@
 			});
 		}
 		var crossBtn = document.getElementById("epc-cross-search-btn");
-		if (crossBtn) {
-			crossBtn.addEventListener("click", function () {
-				focusCross();
-				var nav = document.getElementById("epc-cross-base");
-				loadAspNetCrossSearch(
-					(nav && nav.getAttribute("data-article")) || "",
-					(nav && nav.getAttribute("data-brand")) || ""
-				);
+		if (crossBtn && crossBtn.getAttribute("data-epc-cross-modal") !== "1") {
+			crossBtn.setAttribute("data-epc-cross-modal", "1");
+			crossBtn.addEventListener("click", function (ev) {
+				ev.preventDefault();
+				openCrossModalFromButton();
 			});
 		}
 		rebuildFilterOptions();

@@ -423,9 +423,11 @@
                                 @foreach (var cross in _crossRefs)
                                 {
                                     var label = string.IsNullOrWhiteSpace(cross.Brand) ? cross.Article : $"{cross.Brand} {cross.Article}";
-                                    <li data-cross-key="@($"{cross.Brand}|{cross.Article}")">
+                                    var src = string.IsNullOrWhiteSpace(cross.Source) ? "cp" : cross.Source;
+                                    var isCrossbase = src.Contains("crossbase", StringComparison.OrdinalIgnoreCase);
+                                    <li data-cross-key="@($"{cross.Brand}|{cross.Article}")" data-source="@src">
                                         <a href="@BrandArticleHref(cross.Article, cross.Brand)" data-enhance-nav="false">@label</a>
-                                        <span style="color:#64748b">(part number @cross.Article)</span>
+                                        <span style="color:#64748b">(@(isCrossbase ? "crossbase" : $"part number {cross.Article}"))</span>
                                         @if (cross.InStock)
                                         {
                                             <span class="epc-avail-yes">In stock</span>
@@ -807,6 +809,8 @@
     }
     var btn = document.getElementById('epc-cross-search-btn');
     if (btn) btn.setAttribute('title', 'Open ' + total + ' cross references');
+    // Cache for PHP-twin cross modal (parity.js openCrossModalFromButton).
+    window.__epcLastCrossPayload = data;
     var list = document.getElementById('epc-cross-ref-list');
     var loading = document.getElementById('epc-cross-loading');
     var more = document.getElementById('epc-cross-more');
@@ -853,12 +857,14 @@
         if (seenKeys[key]) continue;
         seenKeys[key] = 1;
         var inStock = !!stockKeys[key];
-        var src = ref.source || 'cp';
+        var src = String(ref.source || 'cp');
+        var srcLower = src.toLowerCase();
+        var isCrossbase = srcLower.indexOf('crossbase') !== -1;
         html.push('<li data-cross-key="' + esc(rb + '|' + ra) + '" data-source="' + esc(src) + '"' +
           (sameArticleAlias ? ' data-related-mfr="1"' : '') + '>' +
           '<a href="' + partsHref(rb, ra) + '" data-enhance-nav="false">' + esc(rb) + ' ' + esc(ra) + '</a> ' +
           '<span style="color:#64748b">(' +
-          (src === 'crossbase' ? 'crossbase' : (sameArticleAlias ? 'related manufacturer' : ('part number ' + esc(ra)))) +
+          (isCrossbase ? 'crossbase' : (sameArticleAlias ? 'related manufacturer' : ('part number ' + esc(ra)))) +
           ')</span> ' +
           (inStock ? '<span class="epc-avail-yes">In stock</span>' : '<span class="epc-avail-no">Not in stock</span>') +
           '</li>');
@@ -978,7 +984,7 @@
   }
 })();
             </script>
-            <script src="/platform-assets/epc_warehouse_search_parity.js?v=20260812-cross-price" defer></script>
+            <script src="/platform-assets/epc_warehouse_search_parity.js?v=20260812-cross-modal" defer></script>
         }
     }
 

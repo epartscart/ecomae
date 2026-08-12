@@ -2056,8 +2056,22 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                     var key = xref.Brand.Trim().ToUpperInvariant() + "|" + partnerNorm;
                     if (seen.Contains(key))
                     {
-                        // Overlap with CP — keep CP row but count as also-in-crossbase for the badge total.
+                        // Overlap with CP — retag so CHPU modal/list can show crossbase provenance
+                        // (badge alone was "CROSSBASE N" with zero source=crossbase rows).
                         crossbaseCount++;
+                        for (var i = 0; i < rows.Count; i++)
+                        {
+                            var row = rows[i];
+                            var rowKey = row.Brand.Trim().ToUpperInvariant() + "|"
+                                + PriceLookupRequest.NormalizeArticle(row.Article);
+                            if (string.Equals(rowKey, key, StringComparison.OrdinalIgnoreCase)
+                                && !string.Equals(row.Source, "crossbase", StringComparison.OrdinalIgnoreCase))
+                            {
+                                rows[i] = row with { Source = "cp+crossbase" };
+                                break;
+                            }
+                        }
+
                         continue;
                     }
 
