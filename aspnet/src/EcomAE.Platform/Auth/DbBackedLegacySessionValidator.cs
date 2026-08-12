@@ -10,16 +10,6 @@ namespace EcomAE.Platform.Auth;
 /// </summary>
 public sealed class DbBackedLegacySessionValidator : ILegacySessionValidator
 {
-    private static readonly string[] FullAdminPermissions =
-    [
-        EcomAePermissions.SuperCpAccess,
-        EcomAePermissions.SuperErpAccess,
-        EcomAePermissions.SuperBosAccess,
-        EcomAePermissions.TenantCpAccess,
-        EcomAePermissions.TenantErpAccess,
-        EcomAePermissions.ApiAccess
-    ];
-
     private readonly ILegacySessionStore _sessions;
 
     public DbBackedLegacySessionValidator(ILegacySessionStore sessions)
@@ -56,7 +46,7 @@ public sealed class DbBackedLegacySessionValidator : ILegacySessionValidator
                             LegacySessionKind.Admin,
                             adminUser,
                             adminSession,
-                            FullAdminPermissions,
+                            LegacyAdminPermissionSets.ForRequestHost(httpContext.Request.Host.Host),
                             identity.Email,
                             identity.GroupIds,
                             HasBackendAccess: true,
@@ -74,7 +64,7 @@ public sealed class DbBackedLegacySessionValidator : ILegacySessionValidator
                     LegacySessionKind.Admin,
                     adminUser,
                     adminSession,
-                    FullAdminPermissions,
+                    LegacyAdminPermissionSets.ForRequestHost(httpContext.Request.Host.Host),
                     HasBackendAccess: true);
             }
         }

@@ -221,7 +221,8 @@ window.EPC_WEB_TRACKER_CP = {
         _defaultSite = CpWebTrackerDashboardBuilder.ResolveOwnSiteKey(host);
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
-        _isSuper = session.Capabilities.Contains("bos") || PlatformHostPolicy.IsSuperCpHost(host);
+        // Super fleet tracker only on platform hosts — never from bos capability on tenant CP.
+        _isSuper = PlatformHostPolicy.IsSuperCpHost(host);
         if (_isSuper)
         {
             _defaultSite = "_all";

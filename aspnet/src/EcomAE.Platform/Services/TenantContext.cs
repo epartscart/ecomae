@@ -66,4 +66,28 @@ public sealed record TenantContext(
 
     /// <summary>True when this request should open a dedicated tenant schema (not the registry DB).</summary>
     public bool HasTenantDatabase => !string.IsNullOrWhiteSpace(DatabaseName);
+
+    /// <summary>
+    /// Public diagnostic projection — never includes <see cref="DbUser"/> / <see cref="DbPassword"/>.
+    /// </summary>
+    public TenantContextPublicDto ToPublicDto() => new(
+        Host,
+        Path,
+        Surface.ToString(),
+        Mode.ToString(),
+        SiteKey,
+        HasTenantDatabase,
+        DedicatedDb,
+        HasDbCredentials: !string.IsNullOrWhiteSpace(DbUser) || !string.IsNullOrWhiteSpace(DbPassword));
 }
+
+/// <summary>Safe tenant identity for HTTP digests — credentials never serialized.</summary>
+public sealed record TenantContextPublicDto(
+    string Host,
+    string Path,
+    string Surface,
+    string Mode,
+    string? SiteKey,
+    bool HasTenantDatabase,
+    bool DedicatedDb,
+    bool HasDbCredentials);

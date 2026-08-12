@@ -30,14 +30,7 @@ public sealed class HttpLegacySessionValidator : ILegacySessionValidator
                 LegacySessionKind.Admin,
                 adminUser,
                 adminSession,
-                [
-                    EcomAePermissions.SuperCpAccess,
-                    EcomAePermissions.SuperErpAccess,
-                    EcomAePermissions.SuperBosAccess,
-                    EcomAePermissions.TenantCpAccess,
-                    EcomAePermissions.TenantErpAccess,
-                    EcomAePermissions.ApiAccess
-                ]));
+                LegacyAdminPermissionSets.ForRequestHost(httpContext.Request.Host.Host)));
         }
 
         var customerSession = httpContext.Request.Cookies["session"];

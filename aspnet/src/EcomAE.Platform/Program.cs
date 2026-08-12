@@ -812,17 +812,28 @@ app.MapGet(EcomAeRoutes.MarketingPresentationLock, (IMarketingPresentationLockRe
 
 app.MapGet(EcomAeRoutes.SurfaceFieldParity, (ISurfaceFieldParityReporter reporter) => Results.Ok(reporter.BuildReport()));
 
+// Public tenant identity only — never serialize DbUser/DbPassword (SOP confidentiality).
 app.MapGet(EcomAeRoutes.TenantContext, (HttpContext context) =>
 {
     var tenant = context.Items[TenantResolutionMiddleware.HttpContextItemKey] as TenantContext;
-    return tenant is null ? Results.Problem("Tenant context was not resolved.") : Results.Ok(tenant);
+    return tenant is null
+        ? Results.Problem("Tenant context was not resolved.")
+        : Results.Ok(tenant.ToPublicDto());
 });
 
 app.MapGet(EcomAeRoutes.TenantWorkspaceParity, (ITenantWorkspaceParityReporter reporter) => Results.Ok(reporter.BuildReport()));
 
+// Session probe: authenticated callers only (own cookies). Never an anonymous fleet dump.
 app.MapGet(EcomAeRoutes.LegacySessionProbe, async (HttpContext context, ILegacySessionValidator validator) =>
 {
     var session = await validator.ValidateAsync(context, context.RequestAborted);
+    if (!session.IsAuthenticated)
+    {
+        return Results.Json(
+            new { ok = false, error = new { code = "unauthorized", message = "Authenticated session required." } },
+            statusCode: StatusCodes.Status401Unauthorized);
+    }
+
     return Results.Ok(new
     {
         session.Kind,

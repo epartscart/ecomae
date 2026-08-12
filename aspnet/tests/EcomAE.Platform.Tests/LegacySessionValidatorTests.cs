@@ -8,9 +8,10 @@ namespace EcomAE.Platform.Tests;
 public sealed class LegacySessionValidatorTests
 {
     [Fact]
-    public async Task AdminCookiesMapToAdminPermissionsWhenDbNotConfigured()
+    public async Task AdminCookiesOnSuperHostMapToSuperPermissionsWhenDbNotConfigured()
     {
         var context = new DefaultHttpContext();
+        context.Request.Host = new HostString("www.ecomae.com");
         context.Request.Headers.Cookie = "admin_session=abc; admin_u_id=42";
         var validator = new DbBackedLegacySessionValidator(new MigrationLegacySessionStore());
 
@@ -24,6 +25,27 @@ public sealed class LegacySessionValidatorTests
         Assert.Contains("cp", session.Capabilities);
         Assert.Contains("erp", session.Capabilities);
         Assert.Contains("bos", session.Capabilities);
+    }
+
+    [Fact]
+    public async Task AdminCookiesOnTenantHostNeverGetSuperBosPermissions()
+    {
+        var context = new DefaultHttpContext();
+        context.Request.Host = new HostString("www.epartscart.com");
+        context.Request.Headers.Cookie = "admin_session=abc; admin_u_id=42";
+        var validator = new DbBackedLegacySessionValidator(new MigrationLegacySessionStore());
+
+        var session = await validator.ValidateAsync(context);
+
+        Assert.Equal(LegacySessionKind.Admin, session.Kind);
+        Assert.Contains(EcomAePermissions.TenantCpAccess, session.Permissions);
+        Assert.Contains(EcomAePermissions.TenantErpAccess, session.Permissions);
+        Assert.DoesNotContain(EcomAePermissions.SuperCpAccess, session.Permissions);
+        Assert.DoesNotContain(EcomAePermissions.SuperErpAccess, session.Permissions);
+        Assert.DoesNotContain(EcomAePermissions.SuperBosAccess, session.Permissions);
+        Assert.Contains("cp", session.Capabilities);
+        Assert.Contains("erp", session.Capabilities);
+        Assert.DoesNotContain("bos", session.Capabilities);
     }
 
     [Fact]
