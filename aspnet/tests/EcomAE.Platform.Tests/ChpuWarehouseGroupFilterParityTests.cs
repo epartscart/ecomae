@@ -20,7 +20,7 @@ public sealed class ChpuWarehouseGroupFilterParityTests
         Assert.Contains("normalizeWarehouseGroups", text, StringComparison.Ordinal);
         Assert.Contains("epc_filter_exist_min", text, StringComparison.Ordinal);
         Assert.Contains("Availability (qty)", text, StringComparison.Ordinal);
-        Assert.Contains("20260812-whgroup", text, StringComparison.Ordinal);
+        Assert.Contains("epc_warehouse_search_parity.css?v=20260812-skumedia", text, StringComparison.Ordinal);
     }
 
     [Fact]

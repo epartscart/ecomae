@@ -734,7 +734,7 @@
 				btn.onclick = function (ev) {
 					ev.preventDefault();
 					ev.stopPropagation();
-					window.open(url, "_blank", "noopener");
+					openImageLightbox(url, brand + " " + article);
 				};
 			}
 		});
@@ -753,9 +753,10 @@
 			triggerEl.innerHTML = '<i class="fa fa-ban"></i>';
 			triggerEl.title = "No photo available";
 		}
-		var endpoint = "/storefront/product-image?brand=" + encodeURIComponent(brand) +
+		// PHP ajax_epc_sku_media_public twin (+ product-image alias).
+		var endpoint = "/storefront/sku-media?brand=" + encodeURIComponent(brand) +
 			"&article=" + encodeURIComponent(article);
-		fetch(endpoint, { credentials: "same-origin" })
+		fetch(endpoint, { credentials: "same-origin", cache: "no-store" })
 			.then(function (r) { return r.ok ? r.json() : null; })
 			.then(function (data) {
 				var url = data && (data.url || data.imageUrl || (data.images && data.images[0] && (data.images[0].url || data.images[0])));
@@ -768,6 +769,68 @@
 			})
 			.catch(function () { finishEmpty(); });
 	}
+
+	function ensureImageLightbox() {
+		if (document.getElementById("epc-image-lightbox")) return;
+		var el = document.createElement("div");
+		el.id = "epc-image-lightbox";
+		el.className = "epc-image-lightbox";
+		el.innerHTML = '<div class="epc-image-lightbox__backdrop"></div><div class="epc-image-lightbox__panel"><button type="button" class="epc-image-lightbox__close" aria-label="Close photo">&times;</button><img src="" alt=""></div>';
+		document.body.appendChild(el);
+		el.querySelector(".epc-image-lightbox__backdrop").onclick = function () { closeImageLightbox(); };
+		el.querySelector(".epc-image-lightbox__close").onclick = function () { closeImageLightbox(); };
+	}
+
+	function closeImageLightbox() {
+		var el = document.getElementById("epc-image-lightbox");
+		if (el) el.classList.remove("active");
+	}
+
+	function openImageLightbox(url, alt) {
+		if (!url) return;
+		ensureImageLightbox();
+		var el = document.getElementById("epc-image-lightbox");
+		var img = el.querySelector("img");
+		img.src = url;
+		img.alt = alt || "";
+		el.classList.add("active");
+	}
+	window.epcOpenImageLightbox = openImageLightbox;
+	window.epcCloseImageLightbox = closeImageLightbox;
+
+	function closeSpecSplash() {
+		var panel = document.getElementById("epc-spec-panel");
+		if (!panel) return;
+		panel.classList.remove("active", "is-open", "epc-fitment-panel--centered", "epc-fitment-panel--anchored");
+		var fit = document.getElementById("epc-fitment-panel");
+		if (!fit || !fit.classList.contains("active")) {
+			document.body.style.overflow = "";
+		}
+	}
+
+	function openSpecSplash() {
+		var panel = document.getElementById("epc-spec-panel");
+		if (!panel) return;
+		if (typeof window.epcCloseFitmentPanel === "function") {
+			try { window.epcCloseFitmentPanel(); } catch (e) { /* ignore */ }
+		}
+		var fit = document.getElementById("epc-fitment-panel");
+		if (fit) fit.classList.remove("active", "is-open");
+		if (panel.parentNode !== document.body) document.body.appendChild(panel);
+		panel.classList.add("active", "is-open", "epc-fitment-panel--centered");
+		document.body.style.overflow = "hidden";
+	}
+	window.epcOpenSpecSplash = openSpecSplash;
+	window.epcCloseSpecSplash = closeSpecSplash;
+
+	window.epcFetchSkuMediaLookup = function (brand, article, productId) {
+		var qs = "brand=" + encodeURIComponent(brand || "") +
+			"&article=" + encodeURIComponent(article || "") +
+			"&product_id=" + encodeURIComponent(productId || 0);
+		return fetch("/storefront/sku-media?" + qs, { credentials: "same-origin", cache: "no-store" })
+			.then(function (r) { return r.json(); })
+			.catch(function () { return { ok: false, url: "", photos: [], specs: [] }; });
+	};
 
 	function bindSearchRowPhotoLoaders(root) {
 		var scope = root || document;
@@ -970,16 +1033,43 @@
 			if (el && el.tagName === "INPUT" && el.type !== "checkbox") el.addEventListener("input", applyFilters);
 		});
 		var fitBtn = document.getElementById("epc-fitment-check-btn");
-		if (fitBtn) {
+		if (fitBtn && fitBtn.getAttribute("data-epc-fitment-wired") !== "1") {
+			fitBtn.setAttribute("data-epc-fitment-wired", "1");
 			fitBtn.addEventListener("click", function () {
+				closeSpecSplash();
 				openFitment(fitBtn.getAttribute("data-article") || "", fitBtn.getAttribute("data-brand") || "");
 			});
 		}
 		var fitClose = document.getElementById("epc-fitment-close");
-		if (fitClose) {
+		if (fitClose && fitClose.getAttribute("data-epc-fitment-wired") !== "1") {
+			fitClose.setAttribute("data-epc-fitment-wired", "1");
 			fitClose.addEventListener("click", function () {
 				var panel = document.getElementById("epc-fitment-panel");
-				if (panel) panel.classList.remove("is-open");
+				if (panel) panel.classList.remove("is-open", "active");
+				document.body.style.overflow = "";
+			});
+		}
+		var specBtn = document.getElementById("epc-spec-check-btn");
+		if (specBtn && specBtn.getAttribute("data-epc-spec-wired") !== "1") {
+			specBtn.setAttribute("data-epc-spec-wired", "1");
+			specBtn.addEventListener("click", function () {
+				var panel = document.getElementById("epc-spec-panel");
+				if (panel && panel.classList.contains("active")) closeSpecSplash();
+				else openSpecSplash();
+			});
+		}
+		var specClose = document.getElementById("epc-spec-close");
+		if (specClose && specClose.getAttribute("data-epc-spec-wired") !== "1") {
+			specClose.setAttribute("data-epc-spec-wired", "1");
+			specClose.addEventListener("click", function () { closeSpecSplash(); });
+		}
+		if (!window.__epcSpecEscWired) {
+			window.__epcSpecEscWired = 1;
+			document.addEventListener("keydown", function (ev) {
+				if (ev.key === "Escape") {
+					closeSpecSplash();
+					closeImageLightbox();
+				}
 			});
 		}
 		var typesBox = document.getElementById("epc-fitment-types");
