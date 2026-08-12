@@ -1974,7 +1974,9 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             await using var connection = await OpenStorefrontShopAsync(cancellationToken).ConfigureAwait(false);
             var hasAnalogsSearch = await ProbeAnalogsSearchColumnsAsync(connection, cancellationToken).ConfigureAwait(false);
             await using var command = connection.CreateCommand();
-            command.CommandTimeout = 2;
+            // Heavy articles (ASAKASHI/C110J) regularly need >2s on shop_docpart analogs —
+            // a 2s CommandTimeout returned empty refs ("Command Timeout expired") after republish.
+            command.CommandTimeout = 10;
             command.CommandText = LegacySurfaceDashboardSql.SelectStorefrontArticleCrossPairs.Replace(
                 "{CROSS_MATCH}",
                 LegacySurfaceDashboardSql.StorefrontCrossArticleMatchSql(hasAnalogsSearch),
@@ -2196,7 +2198,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         {
             var batch = norms.Skip(offset).Take(batchSize).ToList();
             await using var command = connection.CreateCommand();
-            command.CommandTimeout = 3;
+            command.CommandTimeout = 8;
             // PHP epc_cross_load_stock_for_references uses docpart_sql_article_normalized_expr IN (...).
             var articleMatch = LegacySurfaceDashboardSql.StorefrontPriceArticleReplaceInSql(batch.Count);
             command.CommandText = $"""

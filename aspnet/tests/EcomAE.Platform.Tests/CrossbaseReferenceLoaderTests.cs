@@ -98,6 +98,8 @@ public sealed class CrossbaseReferenceLoaderTests
         // Local CP reader must dispose before stock batch reuses the same MySqlConnection.
         Assert.Contains("already in use", reporter, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("await using (var reader = await command.ExecuteReaderAsync", reporter, StringComparison.Ordinal);
+        // Heavy analogs queries exceed the old 2s CommandTimeout after republish load.
+        Assert.Contains("command.CommandTimeout = 10", reporter, StringComparison.Ordinal);
         var module = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Modules/StorefrontModule.cs"));
         Assert.Contains("stock_count = stock.Count", module, StringComparison.Ordinal);
         Assert.Contains("prices_visible = access.PricesVisible", module, StringComparison.Ordinal);

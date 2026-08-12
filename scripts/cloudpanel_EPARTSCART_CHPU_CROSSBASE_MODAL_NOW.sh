@@ -79,6 +79,9 @@ grep -q 'fetchCross(200, 12000, false)' \
 grep -q 'fromCrossStock: true' \
   aspnet/src/EcomAE.Platform/Components/Pages/StorefrontSearchApp.razor \
   || die "missing cross-stock Add to Quote wire"
+grep -q 'command.CommandTimeout = 10' \
+  aspnet/src/EcomAE.Platform/Migration/SurfaceDashboardSummaryReporter.cs \
+  || die "missing cross-search SQL CommandTimeout=10"
 grep -q 'LoadStorefrontCrossStockAsync' \
   aspnet/src/EcomAE.Platform/Migration/SurfaceDashboardSummaryReporter.cs \
   || die "missing cross stock batch loader"

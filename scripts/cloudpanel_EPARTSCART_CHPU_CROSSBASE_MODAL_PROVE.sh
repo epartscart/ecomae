@@ -76,11 +76,20 @@ cb = int(d.get("crossbase_count") or 0)
 refs = int(d.get("reference_count") or len(d.get("references") or []) or 0)
 stock = int(d.get("stock_count") or len(d.get("stock") or []) or 0)
 print(f"ASAKASHI C110J crossbase_count={cb} refs={refs} stock={stock} msg={d.get('message')}")
-assert "already in use" not in str(d.get("message") or "").lower()
+msg = str(d.get("message") or "")
+assert "already in use" not in msg.lower()
+assert "command timeout" not in msg.lower(), msg
 assert cb > 0 and refs > 0, "expected ASAKASHI crossbase references"
 assert stock > 0, "expected ASAKASHI cross stock for table merge"
 print("GATE_OK ASAKASHI_CROSS=YES")
 PY
+
+# HTML must ship the raised browser timeouts (not stale 1500/4000).
+curl -sS -A "$UA" -o /tmp/epc_asak_chpu.html -w 'ASAK_CHPU_HTTP=%{http_code}\n' --max-time 45 \
+  "${BASE}/en/parts/JS%20ASAKASHI/C110J" || true
+has 'fetchCross\(200, 12000, false\)' /tmp/epc_asak_chpu.html && ok "ASAK_HTML_TIMEOUT=YES" || fail "ASAK_HTML_TIMEOUT=NO"
+has 'fromCrossStock: true' /tmp/epc_asak_chpu.html && ok "ASAK_HTML_QUOTE=YES" || fail "ASAK_HTML_QUOTE=NO"
+has 'epc_warehouse_search_parity\.js\?v=20260812-cross-quote' /tmp/epc_asak_chpu.html && ok "ASAK_HTML_BUST=YES" || fail "ASAK_HTML_BUST=NO"
 
 if [[ "$pass" -eq 1 ]]; then
   note "RESULT=PASS EPARTSCART_CHPU_CROSSBASE_MODAL=YES"
