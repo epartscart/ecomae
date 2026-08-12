@@ -1748,7 +1748,7 @@ public static class EcomAeRoutes
     public const string StorefrontCartCheckForOrder = "/storefront/cart/check-for-order";
     /// <summary>Wave B dry-run cart delete (PHP ajax_delete_cart_record.php remains authoritative).</summary>
     public const string StorefrontCartDelete = "/storefront/cart/delete";
-    /// <summary>Wave B dry-run add-to-cart type-2 (PHP ajax_add_to_basket.php remains authoritative).</summary>
+    /// <summary>Live add-to-cart type-2 (PHP <c>ajax_add_to_basket.php</c> twin). <c>confirmWrites=false</c> stays dry-run.</summary>
     public const string StorefrontCartAdd = "/storefront/cart/add";
     /// <summary>Wave B dry-run garage notepad add (PHP ajax_add_to_notepad.php remains authoritative).</summary>
     public const string StorefrontGarageNotepadAdd = "/storefront/garage/notepad-add";

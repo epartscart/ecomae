@@ -4,6 +4,22 @@ namespace EcomAE.Platform.Auth;
 
 public sealed class HttpLegacySessionValidator : ILegacySessionValidator
 {
+    public ValueTask<LegacySessionContext> ValidateCustomerAsync(HttpContext httpContext, CancellationToken cancellationToken = default)
+    {
+        var customerSession = httpContext.Request.Cookies["session"];
+        var customerUser = ParseInt(httpContext.Request.Cookies["u_id"]);
+        if (!string.IsNullOrWhiteSpace(customerSession) && customerUser > 0)
+        {
+            return ValueTask.FromResult(new LegacySessionContext(
+                LegacySessionKind.Customer,
+                customerUser,
+                customerSession,
+                []));
+        }
+
+        return ValueTask.FromResult(new LegacySessionContext(LegacySessionKind.Anonymous, 0, null, []));
+    }
+
     public ValueTask<LegacySessionContext> ValidateAsync(HttpContext httpContext, CancellationToken cancellationToken = default)
     {
         var adminSession = httpContext.Request.Cookies["admin_session"];

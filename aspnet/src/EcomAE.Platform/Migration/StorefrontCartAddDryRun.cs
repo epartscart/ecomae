@@ -112,7 +112,19 @@ public sealed record StorefrontCartAddRequest(
     decimal Price,
     decimal MinOrder = 0,
     decimal Exist = 0,
-    bool ConfirmWrites = false);
+    bool ConfirmWrites = false,
+    string? ArticleShow = null,
+    string? Name = null,
+    string? TimeToExe = null,
+    string? TimeToExeGuaranteed = null,
+    string? Storage = null,
+    int Probability = 100,
+    decimal PricePurchase = 0,
+    int Markup = 0,
+    int OfficeId = 0,
+    int StorageId = 0,
+    string? JsonParams = null,
+    string? CheckHash = null);
 
 public sealed record StorefrontCartAddDryRunResult(
     string Status, int Writes, bool WritesBlocked, bool CutoverAllowed, bool PhpAuthoritative,
