@@ -456,6 +456,16 @@
 		});
 	}
 
+	function cartErrorMessage(data, fallback) {
+		if (!data) return fallback || "Could not add to cart.";
+		if (data.detail) return String(data.detail);
+		if (data.message) return String(data.message);
+		if (data.note) return String(data.note);
+		if (data.error && typeof data.error === "object" && data.error.message) return String(data.error.message);
+		if (typeof data.error === "string") return data.error;
+		return fallback || "Could not add to cart.";
+	}
+
 	function addToCartFromRow(tr) {
 		if (!pricesVisible()) {
 			window.location.href = "/storefront/login?returnUrl=" + encodeURIComponent(window.location.pathname + window.location.search);
@@ -466,22 +476,39 @@
 		postJson("/storefront/cart/add", {
 			productType: Number(p.product_type || 2),
 			manufacturer: p.manufacturer || "",
-			article: p.article_show || p.article || "",
+			article: p.article || "",
+			articleShow: p.article_show || p.article || "",
+			name: p.name || "",
 			countNeed: qtyValue(aid),
 			price: Number(p.price || 0),
 			minOrder: Number(p.min_order || 1),
-			exist: Number(tr.getAttribute("data-exist") || "0"),
+			exist: Number(p.exist || tr.getAttribute("data-exist") || "0"),
+			timeToExe: String(p.time_to_exe || "0"),
+			timeToExeGuaranteed: String(p.time_to_exe_guaranteed || p.time_to_exe || "0"),
+			storage: p.storage || "",
+			probability: Number(p.probability || 100),
+			pricePurchase: Number(p.price_purchase || 0),
+			markup: Number(p.markup || 0),
+			officeId: Number(p.office_id || 0),
+			storageId: Number(p.storage_id || 0),
+			jsonParams: p.json_params || "",
+			checkHash: p.check_hash || "",
 			confirmWrites: true
 		}).then(function (data) {
-			if (data && data.ok === true && (data.writesBlocked === false || data.status === "written" || data.would_write === true)) {
-				if (data.writesBlocked) {
-					alert((data && (data.detail || data.message)) || "Cart write is ASP.NET dry-run only for this session.");
-					return;
-				}
+			// Live ASP.NET write: ok/status true and writesBlocked !== true.
+			var written = data && (data.ok === true || data.status === true || data.status_token === "written")
+				&& data.writesBlocked !== true
+				&& (data.writes > 0 || data.would_write === true || data.status_token === "written" || data.cart_record_id);
+			if (written) {
 				window.location.href = "/storefront/cart-app";
 				return;
 			}
-			alert((data && (data.detail || data.message || data.error)) || "Could not add to cart. Please log in and try again.");
+			var msg = cartErrorMessage(data, "Could not add to cart. Please log in and try again.");
+			if (data && (data.validation_code === "auth" || (data.error && data.error.code === "unauthorized"))) {
+				window.location.href = "/storefront/login?returnUrl=" + encodeURIComponent(window.location.pathname + window.location.search);
+				return;
+			}
+			alert(msg);
 		}).catch(function () { alert("Could not add to cart."); });
 	}
 

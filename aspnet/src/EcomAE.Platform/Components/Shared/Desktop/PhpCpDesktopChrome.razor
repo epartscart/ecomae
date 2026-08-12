@@ -129,7 +129,7 @@
                 <i class="fa fa-th-large" aria-hidden="true"></i><span>Control</span>
             </a>
             <ul class="epc-cp-topnav-list" role="menubar">
-                @foreach (var group in LegacyDesktopChromeCatalog.ControlPanelTopnav(includeSuperOnly: _showBos).Where(g => _showBos || !IsBosNavGroup(g)))
+                @foreach (var group in LegacyDesktopChromeCatalog.ControlPanelTopnav(includeSuperOnly: _showBos, industryCode: _industryCode).Where(g => _showBos || !IsBosNavGroup(g)))
                 {
                     var columns = group.Columns ?? Array.Empty<LegacyDesktopChromeCatalog.MegaAreaColumn>();
                     var shortLabel = string.IsNullOrWhiteSpace(group.ShortLabel) ? group.Label : group.ShortLabel;
@@ -350,11 +350,17 @@
     private bool _showBos;
     private bool _signedIn;
     private string _userLabel = "Admin session";
+    private string? _industryCode;
 
     protected override async Task OnInitializedAsync()
     {
         var host = Http.HttpContext?.Request.Host.Host;
         _showBos = PlatformHostPolicy.IsSuperCpHost(host);
+        // Tenant industry (epartscart → auto_parts) drives jewellery menu filtering.
+        if (!_showBos && !string.IsNullOrWhiteSpace(host))
+        {
+            _industryCode = ErpHostContext.Resolve(host).IndustryCode;
+        }
 
         var ctx = Http.HttpContext;
         if (ctx is null)
