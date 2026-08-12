@@ -717,6 +717,10 @@
     if (p.fromCrossStock || p.from_cross_stock) {
       tr.setAttribute('data-cross-stock', '1');
     }
+    // Must paint cells + row class BEFORE normalizeWarehouseGroups — that helper only
+    // finds tr.epc-part-type-row--{kind}. Leaving an attribute-only tr yields 0-height
+    // empty rows (ACDELCO/19114114: banner + notice, no visible offers).
+    paintOfferCells(tr, p, kind, 0, 1);
     var peers = body.querySelectorAll('tr.epc-part-type-row--' + kind + '[data-group-key="' + gk.replace(/"/g, '') + '"]');
     if (peers.length) body.insertBefore(tr, peers[peers.length - 1].nextSibling);
     else {
@@ -1123,7 +1127,7 @@
   }
 })();
             </script>
-            <script src="/platform-assets/epc_warehouse_search_parity.js?v=20260812-cross-paint" defer></script>
+            <script src="/platform-assets/epc_warehouse_search_parity.js?v=20260812-cross-cells" defer></script>
         }
     }
 

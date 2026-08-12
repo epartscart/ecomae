@@ -18,8 +18,9 @@ mv -f /tmp/epc_chpu_cb_modal.hdr.c /tmp/epc_chpu_cb_modal.hdr 2>/dev/null || tru
 
 has 'x-ecomae-platform:[[:space:]]*primary' /tmp/epc_chpu_cb_modal.hdr && ok "PRIMARY=YES" || fail "PRIMARY=NO"
 has 'epc-cross-search-btn' /tmp/epc_chpu_cb_modal.html && ok "CROSS_BTN=YES" || fail "CROSS_BTN=NO"
-has 'epc_warehouse_search_parity\.js\?v=20260812-cross-(stock|quote|paint)' /tmp/epc_chpu_cb_modal.html && ok "PARITY_JS_BUST=YES" || fail "PARITY_JS_BUST=NO"
+has 'epc_warehouse_search_parity\.js\?v=20260812-cross-(stock|quote|paint|cells)' /tmp/epc_chpu_cb_modal.html && ok "PARITY_JS_BUST=YES" || fail "PARITY_JS_BUST=NO"
 has 'ensureNoDirectStockNotice' /tmp/epc_chpu_cb_modal.html && ok "CROSS_PAINT_FIX=YES" || fail "CROSS_PAINT_FIX=NO"
+has 'paintOfferCells\(tr, p, kind, 0, 1\)' /tmp/epc_chpu_cb_modal.html && ok "CROSS_CELLS_PAINT=YES" || fail "CROSS_CELLS_PAINT=NO"
 has '__epcLastCrossPayload' /tmp/epc_chpu_cb_modal.html && ok "PAYLOAD_CACHE=YES" || fail "PAYLOAD_CACHE=NO"
 has 'mergeCrossStockIntoOffers' /tmp/epc_chpu_cb_modal.html && ok "CROSS_STOCK_MERGE=YES" || fail "CROSS_STOCK_MERGE=NO"
 has 'fetchCross\(200, 12000, false\)' /tmp/epc_chpu_cb_modal.html && ok "CROSS_TIMEOUT_RAISED=YES" || fail "CROSS_TIMEOUT_RAISED=NO"
@@ -27,7 +28,7 @@ has 'fromCrossStock: true' /tmp/epc_chpu_cb_modal.html && ok "CROSS_QUOTE_WIRE=Y
 
 # The HTML-referenced URL is what browsers load — must contain the modal (not a stale CDN body).
 REF_JS_URL="$(grep -oE '/platform-assets/epc_warehouse_search_parity\.js\?v=[^\"'\'' ]+' /tmp/epc_chpu_cb_modal.html | head -1 || true)"
-[[ -n "$REF_JS_URL" ]] || REF_JS_URL="/platform-assets/epc_warehouse_search_parity.js?v=20260812-cross-paint"
+[[ -n "$REF_JS_URL" ]] || REF_JS_URL="/platform-assets/epc_warehouse_search_parity.js?v=20260812-cross-cells"
 curl -sS -A "$UA" -o /tmp/epc_parity_cb_modal.js -w 'PARITY_JS_HTTP=%{http_code}\n' --max-time 20 \
   "${BASE}${REF_JS_URL}" || true
 note "PARITY_JS_REF=${REF_JS_URL}"
@@ -90,12 +91,14 @@ curl -sS -A "$UA" -o /tmp/epc_asak_chpu.html -w 'ASAK_CHPU_HTTP=%{http_code}\n' 
   "${BASE}/en/parts/JS%20ASAKASHI/C110J" || true
 has 'fetchCross\(200, 12000, false\)' /tmp/epc_asak_chpu.html && ok "ASAK_HTML_TIMEOUT=YES" || fail "ASAK_HTML_TIMEOUT=NO"
 has 'fromCrossStock: true' /tmp/epc_asak_chpu.html && ok "ASAK_HTML_QUOTE=YES" || fail "ASAK_HTML_QUOTE=NO"
-has 'epc_warehouse_search_parity\.js\?v=20260812-cross-(quote|paint)' /tmp/epc_asak_chpu.html && ok "ASAK_HTML_BUST=YES" || fail "ASAK_HTML_BUST=NO"
+has 'epc_warehouse_search_parity\.js\?v=20260812-cross-(quote|paint|cells)' /tmp/epc_asak_chpu.html && ok "ASAK_HTML_BUST=YES" || fail "ASAK_HTML_BUST=NO"
 
 # ACDELCO/19114114 — typed brand has no warehouse row; cross stock must stay painted (not wiped).
 curl -sS -A "$UA" -o /tmp/epc_acd_chpu.html -w 'ACD_CHPU_HTTP=%{http_code}\n' --max-time 45 \
   "${BASE}/en/parts/ACDELCO/19114114" || true
 has 'ensureNoDirectStockNotice' /tmp/epc_acd_chpu.html && ok "ACD_HTML_PAINT=YES" || fail "ACD_HTML_PAINT=NO"
+has 'paintOfferCells\(tr, p, kind, 0, 1\)' /tmp/epc_acd_chpu.html && ok "ACD_HTML_CELLS=YES" || fail "ACD_HTML_CELLS=NO"
+has 'epc_warehouse_search_parity\.js\?v=20260812-cross-cells' /tmp/epc_acd_chpu.html && ok "ACD_HTML_BUST=YES" || fail "ACD_HTML_BUST=NO"
 curl -sS -A "$UA" -o /tmp/epc_acd_cross.json -w 'ACD_CROSS_HTTP=%{http_code}\n' --max-time 30 \
   "${BASE}/storefront/cross-search?article=19114114&brand=ACDELCO&limit=600&include_crossbase=1" || true
 python3 - <<'PY' || fail "ACDELCO_CROSS_STOCK=NO"
