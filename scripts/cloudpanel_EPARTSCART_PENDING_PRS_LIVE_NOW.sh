@@ -1,17 +1,19 @@
 #!/usr/bin/env bash
-# ONE CloudPanel paste after ePartsCart pending PRs merge (#1005–#1012 family).
+# ONE CloudPanel paste after ePartsCart pending PRs merge (#1005–#1013 family).
 # Also recovers: Access denied ecomae→docpart, CHPU 502 after publish.
+# #1013: BIND_DOCPART_STANDALONE (GRANT) runs BEFORE LIVE_PUBLISH / proves.
 #
-# As root on CloudPanel (after #recover branch merges use main; until then use branch URL):
+# As root on CloudPanel (merge ≠ live — must paste). Prefer main after #1013 merge:
 #   set -euxo pipefail
-#   URL='https://raw.githubusercontent.com/epartscart/ecomae/cursor/epartscart-pending-deploy-recover-7b3b/scripts/cloudpanel_EPARTSCART_PENDING_PRS_LIVE_NOW.sh'
+#   URL='https://raw.githubusercontent.com/epartscart/ecomae/main/scripts/cloudpanel_EPARTSCART_PENDING_PRS_LIVE_NOW.sh'
 #   TMP=/tmp/epartscart-pending-prs-live-now.sh
 #   curl -fsSL "$URL" -o "$TMP" && test -s "$TMP"
 #   grep -q EPARTSCART_PENDING_PRS_LIVE_NOW "$TMP" || { echo RESULT=FAIL bad_download; exit 1; }
-#   export ECOMAE_BRANCH=cursor/epartscart-pending-deploy-recover-7b3b
+#   grep -q 'BIND+GRANT docpart' "$TMP" || { echo RESULT=FAIL stale_script_missing_bind_before_publish; exit 1; }
+#   export ECOMAE_BRANCH=main
 #   export ECOMAE_EPARTSCART_SHOP_DB=docpart
 #   bash "$TMP" 2>&1 | tee /root/epartscart-pending-prs-live-now.log
-#   grep -E 'RESULT=|GATE_|SHA=|PROVE_|PUBLISH_|GRANT_|BOUND_|PREFLIGHT' /root/epartscart-pending-prs-live-now.log | tail -140
+#   grep -E 'RESULT=|GATE_|SHA=|PROVE_|PUBLISH_|GRANT_|BOUND_|PREFLIGHT|SETTLE_' /root/epartscart-pending-prs-live-now.log | tail -140
 set -euo pipefail
 
 printf '======== EPARTSCART_PENDING_PRS_LIVE_NOW ========\n'
@@ -144,6 +146,12 @@ run_prove() {
 FAIL=0
 run_prove scripts/cloudpanel_EPARTSCART_CART_ADD_LOGIN_PROVE.sh cartadd || FAIL=1
 run_prove scripts/cloudpanel_EPARTSCART_CHPU_WH_GROUP_PROVE.sh whgroup || FAIL=1
+# If CloudPanel has ECOMAE_LOGIN_PASSWORD in env, crossprice prove also asserts prices_visible=true.
+if [[ -n "${ECOMAE_LOGIN_PASSWORD:-}" ]]; then
+  printf 'CROSSPRICE_LOGIN_UNMASK=attempt contact=%s\n' "${ECOMAE_LOGIN_CONTACT:-taxofin2025@gmail.com}"
+else
+  printf 'CROSSPRICE_LOGIN_UNMASK=skip (export ECOMAE_LOGIN_PASSWORD to assert live price/term)\n'
+fi
 run_prove scripts/cloudpanel_EPARTSCART_PARTS_CROSS_PRICE_LOGIN_PROVE.sh crossprice || FAIL=1
 
 # Users detail — guest 302→login is OK; HTML shell when session present.
