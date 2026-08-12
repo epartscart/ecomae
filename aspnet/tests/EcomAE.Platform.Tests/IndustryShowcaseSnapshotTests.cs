@@ -76,6 +76,27 @@ public sealed class IndustryShowcaseSnapshotTests
         Assert.Equal("industry-automotive", tenant.SiteKey);
     }
 
+
+    [Fact]
+    public void PhpHomeWidgetHtml_RecognizesPackedIndustrySnapshots()
+    {
+        var root = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", ".."));
+        // Walk up to monorepo from test output.
+        var dir = new DirectoryInfo(AppContext.BaseDirectory);
+        string? repo = null;
+        while (dir is not null)
+        {
+            if (File.Exists(Path.Combine(dir.FullName, "content", "general_pages", "epc_rendered_industry", "automotive.html")))
+            {
+                repo = dir.FullName;
+                break;
+            }
+            dir = dir.Parent;
+        }
+        Assert.False(string.IsNullOrWhiteSpace(repo));
+        Assert.True(PhpHomeWidgetHtml.IsPhpSourceRoot(repo!));
+        Assert.False(PhpHomeWidgetHtml.IsPhpSourceRoot("/tmp/no-such-ecomae-root"));
+    }
     private sealed class EmptyTenantRegistry : ITenantRegistry
     {
         public ValueTask<TenantRegistryRecord?> FindByHostAsync(string host, CancellationToken cancellationToken = default)
