@@ -41,4 +41,20 @@ public sealed class AdminSurfaceAuthGateMiddlewareTests
     {
         Assert.Equal(required, AdminSurfaceAuthGateMiddleware.RequiresAdmin(path));
     }
+
+    [Theory]
+    [InlineData("/cp/dashboard-summary", true)]
+    [InlineData("/erp/dashboard-summary", true)]
+    [InlineData("/cp/dashboard-summary/", true)]
+    [InlineData("/cp/dashboard-summary-app", false)]
+    [InlineData("/erp/dashboard-summary-app", false)]
+    [InlineData("/erp/dashboard-app", false)]
+    [InlineData("/cp/users-app", false)]
+    [InlineData("/cp/orders", false)]
+    [InlineData("/cp/writes/oms/dry-run", true)]
+    [InlineData("/erp/ajax/cash", true)]
+    public void JsonChallengePathDoesNotTrapBlazorDashboardApps(string path, bool wantsJson)
+    {
+        Assert.Equal(wantsJson, AdminSurfaceAuthGateMiddleware.IsJsonChallengePath(path));
+    }
 }

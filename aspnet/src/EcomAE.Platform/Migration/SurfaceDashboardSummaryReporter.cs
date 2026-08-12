@@ -47,11 +47,24 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
-            var users = await ScalarIntAsync(connection, LegacySurfaceDashboardSql.CountUsers, cancellationToken).ConfigureAwait(false);
-            var adminSessions = await ScalarIntAsync(connection, LegacySurfaceDashboardSql.CountAdminSessions, cancellationToken).ConfigureAwait(false);
-            var tenants = await ScalarIntSafeAsync(connection, LegacySurfaceDashboardSql.CountPortalTenants, cancellationToken).ConfigureAwait(false);
-            var active = await ScalarIntSafeAsync(connection, LegacySurfaceDashboardSql.CountActivePortalTenants, cancellationToken).ConfigureAwait(false);
+            // Shop KPIs (users/sessions) from tenant shop DB — ePartsCart forces docpart when unbound.
+            // Portal tenant counts live only on the platform registry DB (never on docpart).
+            int users;
+            int adminSessions;
+            await using (var shop = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false))
+            {
+                users = await ScalarIntAsync(shop, LegacySurfaceDashboardSql.CountUsers, cancellationToken).ConfigureAwait(false);
+                adminSessions = await ScalarIntSafeAsync(shop, LegacySurfaceDashboardSql.CountAdminSessions, cancellationToken).ConfigureAwait(false);
+            }
+
+            int tenants;
+            int active;
+            await using (var registry = await _connections.OpenRegistryAsync(cancellationToken).ConfigureAwait(false))
+            {
+                tenants = await ScalarIntSafeAsync(registry, LegacySurfaceDashboardSql.CountPortalTenants, cancellationToken).ConfigureAwait(false);
+                active = await ScalarIntSafeAsync(registry, LegacySurfaceDashboardSql.CountActivePortalTenants, cancellationToken).ConfigureAwait(false);
+            }
+
             return new(users, adminSessions, tenants, active, "database", string.Empty);
         }
         catch (Exception ex)
@@ -75,7 +88,8 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         try
         {
             // Uses TenantContext DB/credentials when present (per-tenant isolation).
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            // ePartsCart shop fallback = docpart (same as storefront OpenStorefrontShopAsync).
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
             var monthStart = new DateTimeOffset(DateTime.UtcNow.Year, DateTime.UtcNow.Month, 1, 0, 0, 0, TimeSpan.Zero)
                 .ToUnixTimeSeconds();
@@ -243,9 +257,18 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
-            var list = await ReadTenantsAsync(connection, 500, cancellationToken).ConfigureAwait(false);
-            var adminSessions = await ScalarIntAsync(connection, LegacySurfaceDashboardSql.CountAdminSessions, cancellationToken).ConfigureAwait(false);
+            IReadOnlyList<PortalTenantDigest> list;
+            await using (var registry = await _connections.OpenRegistryAsync(cancellationToken).ConfigureAwait(false))
+            {
+                list = await ReadTenantsAsync(registry, 500, cancellationToken).ConfigureAwait(false);
+            }
+
+            int adminSessions;
+            await using (var shop = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false))
+            {
+                adminSessions = await ScalarIntSafeAsync(shop, LegacySurfaceDashboardSql.CountAdminSessions, cancellationToken).ConfigureAwait(false);
+            }
+
             activity?.SetTag("ecomae.row_count", list.Count);
             return SummarizeFleet(list, adminSessions, "database", string.Empty);
         }
@@ -314,7 +337,9 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            // epc_portal_tenants is platform-registry only — OpenAsync(null) on epartscart
+            // opens docpart and yields empty / database-error ("Nothing to show").
+            await using var connection = await _connections.OpenRegistryAsync(cancellationToken).ConfigureAwait(false);
             var tenants = await ReadTenantsAsync(connection, safeLimit, cancellationToken).ConfigureAwait(false);
             return new(tenants, tenants.Count, "database", string.Empty);
         }
@@ -335,9 +360,19 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
-            var tenants = await ReadTenantsAsync(connection, 500, cancellationToken).ConfigureAwait(false);
-            var adminSessions = await ScalarIntAsync(connection, LegacySurfaceDashboardSql.CountAdminSessions, cancellationToken).ConfigureAwait(false);
+            // Fleet directory = registry; admin session count = shop (or platform on Super-CP).
+            IReadOnlyList<PortalTenantDigest> tenants;
+            await using (var registry = await _connections.OpenRegistryAsync(cancellationToken).ConfigureAwait(false))
+            {
+                tenants = await ReadTenantsAsync(registry, 500, cancellationToken).ConfigureAwait(false);
+            }
+
+            int adminSessions;
+            await using (var shop = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false))
+            {
+                adminSessions = await ScalarIntSafeAsync(shop, LegacySurfaceDashboardSql.CountAdminSessions, cancellationToken).ConfigureAwait(false);
+            }
+
             var summary = SummarizeFleet(tenants, adminSessions, "database", string.Empty);
             var sample = tenants.Take(safeLimit).ToArray();
             return new(summary, sample, "database", string.Empty);
@@ -407,7 +442,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             var todayStart = new DateTimeOffset(DateTime.UtcNow.Date, TimeSpan.Zero).ToUnixTimeSeconds();
             var open = await ScalarIntSafeAsync(connection, LegacySurfaceDashboardSql.CountCpOrdersOpen, cancellationToken).ConfigureAwait(false);
             var pendingShip = await ScalarIntSafeAsync(connection, LegacySurfaceDashboardSql.CountCpOrdersPendingShip, cancellationToken).ConfigureAwait(false);
@@ -659,7 +694,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             await using var command = connection.CreateCommand();
             command.CommandText = LegacySurfaceDashboardSql.SelectCpUsers;
             AddParameter(command, "@limit", safeLimit);
@@ -694,7 +729,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             await using var command = connection.CreateCommand();
             command.CommandText = LegacySurfaceDashboardSql.SelectCpGroups;
             AddParameter(command, "@limit", safeLimit);
@@ -1073,7 +1108,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             await using var command = connection.CreateCommand();
             command.CommandText = LegacySurfaceDashboardSql.SelectCpModules;
             AddParameter(command, "@limit", safeLimit);
@@ -1918,6 +1953,14 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
     /// so warehouse search / brands / bunches do not false-fail as unbound on www.
     /// </summary>
     private Task<DbConnection> OpenStorefrontShopAsync(CancellationToken cancellationToken)
+        => OpenTenantShopAsync(cancellationToken);
+
+    /// <summary>
+    /// Open the tenant shop schema for CP/ERP/storefront digests.
+    /// ePartsCart without a bound portal <c>db_name</c> must use shared Model C <c>docpart</c>
+    /// (PHP <c>epc_portal_resolve_tenant_db_credentials</c>) — never the platform registry DB.
+    /// </summary>
+    private Task<DbConnection> OpenTenantShopAsync(CancellationToken cancellationToken)
     {
         var tenant = _httpContextAccessor?.HttpContext?.Items[TenantResolutionMiddleware.HttpContextItemKey] as TenantContext;
         if (IsEpartsCartRequest() && (tenant is null || !tenant.HasTenantDatabase))

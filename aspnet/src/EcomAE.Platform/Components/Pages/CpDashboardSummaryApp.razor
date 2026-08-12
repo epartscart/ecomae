@@ -57,6 +57,15 @@
         <div class="epc-ds-kpi"><strong>@_active.ToString(CultureInfo.InvariantCulture)</strong><span>Active portal tenants</span></div>
     </div>
 
+    @if (!_isAdmin)
+    {
+        <div class="epc-ds-note" role="status">Sign in with a Control Panel admin session to load live KPIs.</div>
+    }
+    else if (!string.IsNullOrWhiteSpace(_message) || (_source != "database" && _source != "n/a"))
+    {
+        <div class="epc-ds-note" role="status">Source: <code>@_source</code>@if (!string.IsNullOrWhiteSpace(_message)) { <text> — @_message</text> }</div>
+    }
+
 </PhpCpDesktopChrome>
 
 @code {
