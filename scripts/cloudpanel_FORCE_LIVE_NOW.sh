@@ -574,6 +574,29 @@ dotnet restore aspnet/EcomAE.AspNetCore.sln
 dotnet publish aspnet/src/EcomAE.Platform/EcomAE.Platform.csproj -c Release -o "$PLATFORM_DIR"
 dotnet publish aspnet/src/EcomAE.Workers/EcomAE.Workers.csproj -c Release -o "$WORKERS_DIR"
 printf '%s\n' "$FULL" > "$RELEASE_DIR/PUBLISHED_GIT_SHA.txt"
+# Pack PHP-rendered marketing + industry showcase HTML next to the DLL so Kestrel
+# can serve them even when ECOMAE_PHP_SOURCE_ROOT is stale/missing on the host.
+for snap_dir in epc_rendered_industry epc_rendered_marketing epc_rendered_homes; do
+  src="$REPO/content/general_pages/$snap_dir"
+  dst="$PLATFORM_DIR/content/general_pages/$snap_dir"
+  if [[ -d "$src" ]]; then
+    mkdir -p "$dst"
+    # Prefer rsync; fall back to cp -a for hosts without it.
+    if command -v rsync >/dev/null 2>&1; then
+      rsync -a --delete "$src/" "$dst/" || cp -a "$src/." "$dst/"
+    else
+      cp -a "$src/." "$dst/"
+    fi
+    printf 'PACKED_SNAPSHOTS %s count=%s\n' "$snap_dir" "$(find "$dst" -type f -name '*.html' | wc -l | tr -d ' ')"
+  else
+    printf 'WARN: missing snapshot dir %s — industry/marketing HTML may 404\n' "$src" >&2
+  fi
+done
+# Minimal marker so PhpHomeWidgetHtml.IsPhpSourceRoot accepts the publish tree.
+if [[ -f "$REPO/content/product_family_catalog.php" ]]; then
+  mkdir -p "$PLATFORM_DIR/content"
+  cp -f "$REPO/content/product_family_catalog.php" "$PLATFORM_DIR/content/product_family_catalog.php" || true
+fi
 # LifeOS film must be real MP4 bytes in the publish tree (not an LFS pointer / missing file).
 PUB_MP4="$PLATFORM_DIR/wwwroot/lifeos/cinematic/lifeos-cinematic-launch-3min.mp4"
 if [[ ! -f "$PUB_MP4" ]]; then
