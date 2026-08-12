@@ -35,7 +35,10 @@ cb_rows=[r for r in refs if str(r.get('source') or '').lower()=='crossbase']
 local=int(d.get('local_count') or 0)
 cb=int(d.get('crossbase_count') or 0)
 src=str(d.get('source') or '')
+msg=str(d.get('message') or '')
 print(f'local={local} crossbase_count={cb} crossbase_rows={len(cb_rows)} refs={len(refs)} source={src}')
+if 'Access denied' in msg or src == 'database-error':
+    raise SystemExit('database-error (GRANT ecomae→docpart missing): ' + msg)
 assert len(refs) > 0, 'no references'
 # Either unique crossbase rows painted, or merge source + non-zero crossbase_count (overlap-only).
 assert len(cb_rows) > 0 or (cb > 0 and 'crossbase' in src), f'crossbase missing: rows={len(cb_rows)} count={cb} source={src}'
