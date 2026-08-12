@@ -602,6 +602,23 @@ public static class PhpSurfaceLinkMap
     }
 
     /// <summary>
+    /// PHP <c>/CP/control/users?user_id=</c> / <c>/users/usermanager/user?user_id=</c>
+    /// → ASP.NET users console with detail query preserved.
+    /// </summary>
+    private static string MapCpUsersAppHref(string original)
+    {
+        var raw = ExtractQuery(original, "user_id");
+        if (!string.IsNullOrWhiteSpace(raw)
+            && int.TryParse(raw, System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture, out var userId)
+            && userId > 0)
+        {
+            return "/cp/users-app?user_id=" + userId.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        }
+
+        return "/cp/users-app";
+    }
+
+    /// <summary>
     /// PHP CHPU <c>/parts/{BRAND}/{ARTICLE}</c> (and <c>/parts/brands/{ARTICLE}</c>) → search-app query.
     /// </summary>
     private static bool TryMapPartsBrandArticlePath(string value, out string href)
@@ -994,7 +1011,7 @@ public static class PhpSurfaceLinkMap
 
         if (topLevel.Equals("users", StringComparison.OrdinalIgnoreCase))
         {
-            return "/cp/users-app";
+            return MapCpUsersAppHref(value);
         }
 
         if (topLevel.Equals("menu", StringComparison.OrdinalIgnoreCase))
@@ -1042,6 +1059,12 @@ public static class PhpSurfaceLinkMap
             if (rest.Contains(marker, StringComparison.OrdinalIgnoreCase)
                 || path.Contains(marker, StringComparison.OrdinalIgnoreCase))
             {
+                // Preserve ?user_id= so Open / PHP user.php deep links open the detail pane.
+                if (aspNet.Equals("/cp/users-app", StringComparison.OrdinalIgnoreCase))
+                {
+                    return MapCpUsersAppHref(value);
+                }
+
                 return aspNet;
             }
         }

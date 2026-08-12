@@ -663,6 +663,37 @@ public sealed class ControlPanelModule : ISurfaceModule
             });
         });
 
+        endpoints.MapGet(EcomAeRoutes.ControlPanelUsersDetailDigest, async (
+            HttpContext context,
+            int userId,
+            ILegacySessionValidator validator,
+            ISurfaceDashboardSummaryReporter dashboards,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return Unauthorized("Admin CP capability required for user detail digest.");
+            }
+
+            var detail = await dashboards.GetCpUserDetailAsync(userId, cancellationToken);
+            if (detail is null)
+            {
+                return Results.NotFound(new { ok = false, message = "User not found." });
+            }
+
+            return Results.Ok(new
+            {
+                ok = true,
+                surface = "cp",
+                user = detail,
+                source = detail.Source,
+                message = detail.Message,
+                session = SessionPayload(session),
+                note = "Read-only user detail digest (PHP users/usermanager/user). Writes remain PHP-authoritative."
+            });
+        });
+
         endpoints.MapGet(EcomAeRoutes.ControlPanelGroups, async (
             HttpContext context,
             int? limit,

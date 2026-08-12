@@ -202,6 +202,9 @@ public static class PhpLegacyAssetBridge
                          "cp/content/shop/order_process/epc_orders_cp.css"),
                      ("/platform-assets/epc_statuses_cp.css",
                          "cp/content/shop/order_process/epc_statuses_cp.css"),
+                     // CP Users console (PHP user_manager / user.php dual-pane)
+                     ("/platform-assets/epc_users_cp.css",
+                         "cp/content/users/epc_users_cp.css"),
                      // ASP.NET Super/Tenant CP digests → PHP epc-scp-* module look
                      ("/platform-assets/epc_cp_aspnet_module_parity.css",
                          "content/general_pages/epc_cp_aspnet_module_parity.css"),

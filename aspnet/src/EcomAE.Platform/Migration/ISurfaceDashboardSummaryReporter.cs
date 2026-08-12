@@ -20,6 +20,9 @@ public interface ISurfaceDashboardSummaryReporter
 
     Task<CpUserListResult> ListCpUsersAsync(int limit, CancellationToken cancellationToken = default);
 
+    /// <summary>Read-only CP user detail console (PHP users/usermanager/user). Writes remain PHP-authoritative.</summary>
+    Task<CpUserDetailDigest?> GetCpUserDetailAsync(int userId, CancellationToken cancellationToken = default);
+
     /// <summary>Batch 4: read-only CP shop_orders list + KPI (writes remain PHP OMS).</summary>
     Task<CpOrdersListResult> ListCpOrdersAsync(int limit, CancellationToken cancellationToken = default);
 

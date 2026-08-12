@@ -684,6 +684,170 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    public async Task<CpUserDetailDigest?> GetCpUserDetailAsync(int userId, CancellationToken cancellationToken = default)
+    {
+        if (!_connections.IsConfigured || userId <= 0)
+        {
+            return null;
+        }
+
+        try
+        {
+            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+
+            string email = string.Empty;
+            var emailConfirmed = 0;
+            string phone = string.Empty;
+            var phoneConfirmed = 0;
+            var unlocked = 0;
+            var regVariant = 0;
+            long timeRegistered = 0;
+            long timeLastVisit = 0;
+
+            await using (var userCommand = connection.CreateCommand())
+            {
+                userCommand.CommandText = LegacySurfaceDashboardSql.SelectCpUserById;
+                AddParameter(userCommand, "@userId", userId);
+                await using var userReader = await userCommand.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (!await userReader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    return null;
+                }
+
+                email = Convert.ToString(userReader["email"] is DBNull ? string.Empty : userReader["email"], CultureInfo.InvariantCulture) ?? string.Empty;
+                emailConfirmed = Convert.ToInt32(userReader["email_confirmed"] is DBNull ? 0 : userReader["email_confirmed"], CultureInfo.InvariantCulture);
+                phone = Convert.ToString(userReader["phone"] is DBNull ? string.Empty : userReader["phone"], CultureInfo.InvariantCulture) ?? string.Empty;
+                phoneConfirmed = Convert.ToInt32(userReader["phone_confirmed"] is DBNull ? 0 : userReader["phone_confirmed"], CultureInfo.InvariantCulture);
+                unlocked = Convert.ToInt32(userReader["unlocked"] is DBNull ? 0 : userReader["unlocked"], CultureInfo.InvariantCulture);
+                regVariant = Convert.ToInt32(userReader["reg_variant"] is DBNull ? 0 : userReader["reg_variant"], CultureInfo.InvariantCulture);
+                timeRegistered = Convert.ToInt64(userReader["time_registered"] is DBNull ? 0 : userReader["time_registered"], CultureInfo.InvariantCulture);
+                timeLastVisit = Convert.ToInt64(userReader["time_last_visit"] is DBNull ? 0 : userReader["time_last_visit"], CultureInfo.InvariantCulture);
+            }
+
+            var fields = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            try
+            {
+                await using var profileCommand = connection.CreateCommand();
+                profileCommand.CommandText = LegacySurfaceDashboardSql.SelectStorefrontUserProfiles;
+                AddParameter(profileCommand, "@userId", userId);
+                await using var profileReader = await profileCommand.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await profileReader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    var key = Convert.ToString(profileReader["data_key"], CultureInfo.InvariantCulture) ?? string.Empty;
+                    if (key.Length == 0)
+                    {
+                        continue;
+                    }
+
+                    fields[key] = Convert.ToString(profileReader["data_value"] is DBNull ? string.Empty : profileReader["data_value"], CultureInfo.InvariantCulture) ?? string.Empty;
+                }
+            }
+            catch
+            {
+                // users_profiles may be missing on some tenants.
+            }
+
+            var groups = new List<CpUserGroupDigest>();
+            try
+            {
+                await using var groupsCommand = connection.CreateCommand();
+                groupsCommand.CommandText = LegacySurfaceDashboardSql.SelectCpUserGroups;
+                AddParameter(groupsCommand, "@userId", userId);
+                await using var groupsReader = await groupsCommand.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await groupsReader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    groups.Add(new CpUserGroupDigest(
+                        Convert.ToInt32(groupsReader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(groupsReader["value"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt32(groupsReader["for_backend"] is DBNull ? 0 : groupsReader["for_backend"], CultureInfo.InvariantCulture) != 0,
+                        Convert.ToInt32(groupsReader["unblocked"] is DBNull ? 1 : groupsReader["unblocked"], CultureInfo.InvariantCulture) != 0));
+                }
+            }
+            catch
+            {
+                // groups / bind tables may be missing on some tenants.
+            }
+
+            var balance = await ScalarDecimalParamSafeAsync(
+                connection,
+                LegacySurfaceDashboardSql.SelectCpUserBalance,
+                cancellationToken,
+                ("@userId", userId)).ConfigureAwait(false);
+            var orderCount = await ScalarIntSafeAsync(connection, LegacySurfaceDashboardSql.CountCustomerOrders, userId, cancellationToken).ConfigureAwait(false);
+            var sessionCount = await ScalarIntSafeAsync(connection, LegacySurfaceDashboardSql.CountCustomerSessionsForUser, userId, cancellationToken).ConfigureAwait(false);
+            var garageCount = await ScalarIntSafeAsync(connection, LegacySurfaceDashboardSql.CountCustomerGarage, userId, cancellationToken).ConfigureAwait(false);
+
+            var recent = new List<StorefrontOrderDigest>();
+            try
+            {
+                await using var ordersCommand = connection.CreateCommand();
+                ordersCommand.CommandText = LegacySurfaceDashboardSql.SelectCustomerOrders;
+                AddParameter(ordersCommand, "@userId", userId);
+                AddParameter(ordersCommand, "@limit", 8);
+                await using var ordersReader = await ordersCommand.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await ordersReader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    recent.Add(new StorefrontOrderDigest(
+                        Convert.ToInt64(ordersReader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(ordersReader["time"] is DBNull ? 0 : ordersReader["time"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(ordersReader["paid"] is DBNull ? 0 : ordersReader["paid"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(ordersReader["successfully_created"] is DBNull ? 0 : ordersReader["successfully_created"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(ordersReader["status"] is DBNull ? 0 : ordersReader["status"], CultureInfo.InvariantCulture)));
+                }
+            }
+            catch
+            {
+                // shop_orders may be missing on ERP-only tenants.
+            }
+
+            var displayName = ResolveUserDisplayName(fields, email, phone);
+            return new CpUserDetailDigest(
+                userId,
+                email,
+                emailConfirmed,
+                phone,
+                phoneConfirmed,
+                unlocked,
+                regVariant,
+                timeRegistered,
+                timeLastVisit,
+                balance,
+                orderCount,
+                sessionCount,
+                garageCount,
+                displayName,
+                fields,
+                groups,
+                recent,
+                "database",
+                string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new CpUserDetailDigest(
+                userId, string.Empty, 0, string.Empty, 0, 0, 0, 0, 0, 0m, 0, 0, 0, string.Empty,
+                new Dictionary<string, string>(), [], [], "database-error", ex.Message);
+        }
+    }
+
+    private static string ResolveUserDisplayName(IReadOnlyDictionary<string, string> fields, string email, string phone)
+    {
+        foreach (var key in new[] { "name", "fio", "full_name", "company_name", "organization" })
+        {
+            if (fields.TryGetValue(key, out var value) && !string.IsNullOrWhiteSpace(value))
+            {
+                return value.Trim();
+            }
+        }
+
+        if (!string.IsNullOrWhiteSpace(email))
+        {
+            return email.Trim();
+        }
+
+        return string.IsNullOrWhiteSpace(phone) ? string.Empty : phone.Trim();
+    }
+
     public async Task<CpGroupListResult> ListCpGroupsAsync(int limit, CancellationToken cancellationToken = default)
     {
         var safeLimit = Math.Clamp(limit, 1, 500);

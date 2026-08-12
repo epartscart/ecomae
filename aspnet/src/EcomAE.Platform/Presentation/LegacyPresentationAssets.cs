@@ -161,6 +161,12 @@ public static class LegacyPresentationAssets
         "/platform-assets/epc_statuses_cp.css?v=20260811oms"
     ];
 
+    /// <summary>CP Users (/cp/users-app) — PHP user_manager / user.php dual-pane console.</summary>
+    public static readonly IReadOnlyList<string> CpUsersConsoleStylesheets =
+    [
+        "/platform-assets/epc_users_cp.css?v=20260812users"
+    ];
+
     /// <summary>Structural selectors / class markers for graphical presentation probes.</summary>
     public static IReadOnlyList<string> RequiredGraphicalMarkers(string surface)
         => surface.Trim().ToLowerInvariant() switch
