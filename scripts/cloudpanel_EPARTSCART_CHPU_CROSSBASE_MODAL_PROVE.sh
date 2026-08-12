@@ -21,15 +21,21 @@ has 'epc-cross-search-btn' /tmp/epc_chpu_cb_modal.html && ok "CROSS_BTN=YES" || 
 has 'epc_warehouse_search_parity\.js\?v=20260812-cross-modal' /tmp/epc_chpu_cb_modal.html && ok "PARITY_JS_BUST=YES" || fail "PARITY_JS_BUST=NO"
 has '__epcLastCrossPayload' /tmp/epc_chpu_cb_modal.html && ok "PAYLOAD_CACHE=YES" || fail "PAYLOAD_CACHE=NO"
 
+# The HTML-referenced URL is what browsers load — must contain the modal (not a stale CDN body).
+REF_JS_URL="$(grep -oE '/platform-assets/epc_warehouse_search_parity\.js\?v=[^\"'\'' ]+' /tmp/epc_chpu_cb_modal.html | head -1 || true)"
+[[ -n "$REF_JS_URL" ]] || REF_JS_URL="/platform-assets/epc_warehouse_search_parity.js?v=20260812-cross-modal"
 curl -sS -A "$UA" -o /tmp/epc_parity_cb_modal.js -w 'PARITY_JS_HTTP=%{http_code}\n' --max-time 20 \
-  "${BASE}/platform-assets/epc_warehouse_search_parity.js?v=20260812-cross-modal" || true
+  "${BASE}${REF_JS_URL}" || true
+note "PARITY_JS_REF=${REF_JS_URL}"
 has 'function openCrossModal\(' /tmp/epc_parity_cb_modal.js && ok "OPEN_MODAL_FN=YES" || fail "OPEN_MODAL_FN=NO"
 has 'openCrossModalFromButton' /tmp/epc_parity_cb_modal.js && ok "MODAL_BTN_WIRE=YES" || fail "MODAL_BTN_WIRE=NO"
 # Live must NOT only scroll — modal path replaces focusCross-only click.
-if has 'crossBtn\.addEventListener\("click", function \(\) \{\s*focusCross' /tmp/epc_parity_cb_modal.js; then
+if has 'openCrossModalFromButton' /tmp/epc_parity_cb_modal.js; then
+  ok "FOCUS_ONLY_CLICK=YES"
+elif has 'crossBtn\.addEventListener\("click", function \(\) \{\s*focusCross' /tmp/epc_parity_cb_modal.js; then
   fail "FOCUS_ONLY_CLICK=NO"
 else
-  ok "FOCUS_ONLY_CLICK=YES"
+  fail "FOCUS_ONLY_CLICK=NO"
 fi
 
 curl -sS -A "$UA" -o /tmp/epc_toyota_cross.json -w 'CROSS_HTTP=%{http_code} TTFB=%{time_starttransfer}\n' --max-time 25 \
