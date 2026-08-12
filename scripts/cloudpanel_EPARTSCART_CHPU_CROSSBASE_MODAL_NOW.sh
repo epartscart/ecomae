@@ -6,9 +6,9 @@
 # focusCross-only body; API still returned only source=cp). This script forces
 # a direct FORCE_LIVE publish + hard HTTP prove before RESULT=PASS.
 #
-# CloudPanel root paste (must land tip >= reader-dispose; refuse SHA 93832ce2):
+# CloudPanel root paste (pin script by commit SHA — raw branch URLs can be CDN-stale):
 #   set -euxo pipefail
-#   URL='https://raw.githubusercontent.com/epartscart/ecomae/cursor/chpu-crossbase-modal-7529/scripts/cloudpanel_EPARTSCART_CHPU_CROSSBASE_MODAL_NOW.sh'
+#   URL='https://raw.githubusercontent.com/epartscart/ecomae/4457fd96445f3d07335f0224f5178c30f5c05811/scripts/cloudpanel_EPARTSCART_CHPU_CROSSBASE_MODAL_NOW.sh'
 #   TMP=/tmp/epartscart-chpu-crossbase-modal-now.sh
 #   curl -fsSL "$URL" -o "$TMP" && test -s "$TMP"
 #   grep -q 'stale_tip_' "$TMP" || { echo RESULT=FAIL bad_download_need_reader_dispose_NOW; exit 1; }
