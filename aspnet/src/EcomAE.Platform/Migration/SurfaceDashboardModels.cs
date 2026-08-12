@@ -210,11 +210,41 @@ public sealed record CpUserDigest(
     string Phone,
     int Unlocked,
     long TimeRegistered,
-    long TimeLastVisit);
+    long TimeLastVisit,
+    string DisplayName = "");
 
 public sealed record CpUserListResult(
     IReadOnlyList<CpUserDigest> Users,
     int Count,
+    string Source,
+    string Message);
+
+/// <summary>PHP user.php group bind row (users_groups_bind ∩ groups).</summary>
+public sealed record CpUserGroupDigest(
+    int GroupId,
+    string Name,
+    bool ForBackend,
+    bool Unblocked);
+
+/// <summary>Read-only CP user detail console (PHP users/usermanager/user). Writes remain PHP-authoritative.</summary>
+public sealed record CpUserDetailDigest(
+    int UserId,
+    string Email,
+    int EmailConfirmed,
+    string Phone,
+    int PhoneConfirmed,
+    int Unlocked,
+    int RegVariant,
+    long TimeRegistered,
+    long TimeLastVisit,
+    decimal Balance,
+    int OrderCount,
+    int SessionCount,
+    int GarageCount,
+    string DisplayName,
+    IReadOnlyDictionary<string, string> ProfileFields,
+    IReadOnlyList<CpUserGroupDigest> Groups,
+    IReadOnlyList<StorefrontOrderDigest> RecentOrders,
     string Source,
     string Message);
 

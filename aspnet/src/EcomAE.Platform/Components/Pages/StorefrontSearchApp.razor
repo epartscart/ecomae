@@ -33,7 +33,7 @@
     @((MarkupString)_chpuHeadExtras)
     @((MarkupString)_chpuJsonLd)
 }
-<link rel="stylesheet" href="/platform-assets/epc_warehouse_search_parity.css?v=20260811z" />
+<link rel="stylesheet" href="/platform-assets/epc_warehouse_search_parity.css?v=20260812-whgroup" />
 <style>
         /* Keep PHP professional-shell look; only hide inventing ASP.NET chrome on CHPU/picker. */
         .epc-chpu-direct-part-search .epc-sf-search-form,
@@ -249,8 +249,12 @@
                             </div>
                             <hr />
                             <div class="one_property" id="exist_blok" data-epc-filter="exist">
-                                <strong>Availability</strong>
-                                <div class="list_div">
+                                <strong>Availability (qty)</strong>
+                                <div class="slider_ranges">
+                                    <input id="epc_filter_exist_min" type="number" min="0" step="1" placeholder="Min" aria-label="Min qty" class="form-control input-sm" style="width:48%;display:inline-block;" />
+                                    <input id="epc_filter_exist_max" type="number" min="0" step="1" placeholder="Max" aria-label="Max qty" class="form-control input-sm" style="width:48%;display:inline-block;float:right;" />
+                                </div>
+                                <div class="list_div" style="margin-top:8px;">
                                     <input class="css-checkbox" type="checkbox" id="epc_filter_instock" />
                                     <label class="css-label" for="epc_filter_instock">In stock only</label>
                                 </div>
@@ -370,9 +374,9 @@
                                             </div>
                                         </td>
                                     </tr>
-                                    @foreach (var row in _genuineRows)
+                                    @foreach (var item in GroupWarehouseOffers(_genuineRows))
                                     {
-                                        @OfferRow(row, "genuine")
+                                        @OfferRow(item.Row, "genuine", item.Index, item.Quantity)
                                     }
                                 }
                                 @if (_aftermarketRows.Count > 0)
@@ -387,9 +391,9 @@
                                             </div>
                                         </td>
                                     </tr>
-                                    @foreach (var row in _aftermarketRows)
+                                    @foreach (var item in GroupWarehouseOffers(_aftermarketRows))
                                     {
-                                        @OfferRow(row, "aftermarket")
+                                        @OfferRow(item.Row, "aftermarket", item.Index, item.Quantity)
                                     }
                                 }
                             }
@@ -554,6 +558,111 @@
     return '<div class="epc-product-actions epc-product-actions--quote-only" data-aid="' + aid + '">' + tools +
       '<button type="button" class="btn btn-sm btn-primary epc-btn-quote">Add to Quote</button></div>';
   }
+  function brandArticleGroupKey(mfr, art) {
+    return String(mfr || '').replace(/[^A-Za-z0-9]/g, '').toUpperCase() + '|' +
+      String(art || '').replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+  }
+  function warehouseCaption(p, storageRaw) {
+    var wh = (p && (p.priceList || p.price_list)) || storageRaw || 'Warehouse';
+    if (wh === '—') wh = 'Warehouse';
+    return wh;
+  }
+  function paintOfferCells(tr, p, kind, index, quantity) {
+    var show = p.articleShow || p.article || '';
+    var exist = Number(p.exist || 0);
+    var termRaw = p.timeToExe || p.time_to_exe || '0';
+    var storageRaw = p.storage || '—';
+    var priceRaw = Number(p.price || 0);
+    var href = '/en/parts/' + encodeURIComponent(String(p.manufacturer || '').toUpperCase()) + '/' + encodeURIComponent(show || article);
+    var pk = photoKey(p.manufacturer, show || p.article);
+    var isSub = index > 0 && quantity > 1;
+    var mask = '**';
+    var avail = pricesVisible ? String(exist) : mask;
+    var term = pricesVisible ? esc(formatTerm(termRaw, storageRaw)) : mask;
+    var price = pricesVisible ? priceRaw.toFixed(2) : mask;
+    var wh = warehouseCaption(p, storageRaw);
+    var photoHtml = isSub
+      ? '<td class="td_photo epc-search-row-photo--subrow"></td>'
+      : ('<td class="td_photo" data-epc-row-photo="' + esc(pk) + '">' +
+        '<button type="button" class="epc-search-row-photo__btn epc-search-row-photo__btn--load" ' +
+        'data-epc-photo-brand="' + esc(p.manufacturer || '') + '" data-epc-photo-article="' + esc(show || p.article || '') + '" ' +
+        'title="Click to load product photo" aria-label="Load product photo"><i class="fa fa-image"></i></button></td>');
+    var mfrHtml = isSub
+      ? ('<td class="td_manufacturer"><span>' + esc(p.manufacturer || '') + '</span>' +
+        '<div class="epc-warehouse-subrow__label" title="Warehouse offer"><i class="fa fa-level-up fa-rotate-90" aria-hidden="true"></i> ' +
+        esc(wh) + '</div></td>')
+      : ('<td class="td_manufacturer"><strong>' + esc(p.manufacturer || '') + '</strong>' +
+        (quantity > 1 ? '<div class="epc-warehouse-group-hint" title="Multiple warehouse offers">' + quantity + ' warehouses</div>' : '') +
+        '</td>');
+    var artHtml = isSub
+      ? '<td class="td_article"></td>'
+      : ('<td class="td_article"><a class="bread_crumbs_a" href="' + href + '" data-enhance-nav="false">' + esc(show) + '</a></td>');
+    var nameHtml = isSub ? '<td class="td_name"></td>' : ('<td class="td_name">' + esc(p.name || '—') + '</td>');
+    tr.className = 'epc-part-type-row epc-part-type-row--' + kind + ' epc-ssr-warehouse-row' + (isSub ? ' epc-warehouse-subrow' : '');
+    tr.setAttribute('data-group-index', String(index));
+    tr.setAttribute('data-group-qty', String(quantity));
+    tr.removeAttribute('data-actions-wired');
+    tr.innerHTML =
+      photoHtml + mfrHtml + artHtml + nameHtml +
+      '<td class="td_exist ' + (pricesVisible && exist > 0 ? 'epc-stock-ok' : 'epc-stock-out') + '">' + avail + '</td>' +
+      '<td class="td_time_to_exe"><span class="epc-warehouse-term">' + term + '</span></td>' +
+      '<td class="td_info">' + (isSub ? '' : infoCellHtml(p, show, storageRaw, pricesVisible)) + '</td>' +
+      '<td class="td_price product_price">' + (pricesVisible ? ('<span class="epc-price-value" data-epc-base-price="' + price + '">' + price + '</span>') : price) + '</td>' +
+      '<td class="td_add_to_cart">' + actionsHtml(p, exist, show) + '</td>' +
+      '<td class="td_color"></td>';
+  }
+  function productFromTr(tr) {
+    return {
+      manufacturer: tr.getAttribute('data-manufacturer') || '',
+      article: tr.getAttribute('data-article') || '',
+      articleShow: tr.getAttribute('data-article-show') || '',
+      name: tr.getAttribute('data-name') || '',
+      exist: Number(tr.getAttribute('data-exist') || 0),
+      price: Number(tr.getAttribute('data-price') || 0),
+      timeToExe: tr.getAttribute('data-term') || '0',
+      timeToExeGuaranteed: tr.getAttribute('data-term-g') || '',
+      storage: tr.getAttribute('data-storage') || '—',
+      minOrder: Number(tr.getAttribute('data-min-order') || 1),
+      probability: Number(tr.getAttribute('data-probability') || 100),
+      officeId: Number(tr.getAttribute('data-office-id') || 0),
+      storageId: Number(tr.getAttribute('data-storage-id') || 0),
+      pricePurchase: Number(tr.getAttribute('data-price-purchase') || 0),
+      markup: Number(tr.getAttribute('data-markup') || 0),
+      jsonParams: tr.getAttribute('data-json-params') || '',
+      productType: Number(tr.getAttribute('data-product-type') || 2),
+      checkHash: tr.getAttribute('data-check-hash') || '',
+      priceList: tr.getAttribute('data-storage') || ''
+    };
+  }
+  function normalizeWarehouseGroups(kind) {
+    var rows = Array.prototype.slice.call(body.querySelectorAll('tr.epc-part-type-row--' + kind + '[data-offer-key]'));
+    if (!rows.length) return;
+    var groups = Object.create(null);
+    var order = [];
+    rows.forEach(function (tr) {
+      var gk = tr.getAttribute('data-group-key') || brandArticleGroupKey(
+        tr.getAttribute('data-manufacturer'),
+        tr.getAttribute('data-article-show') || tr.getAttribute('data-article'));
+      tr.setAttribute('data-group-key', gk);
+      if (!groups[gk]) { groups[gk] = []; order.push(gk); }
+      groups[gk].push(tr);
+    });
+    var anchor = rows[0].previousSibling;
+    order.forEach(function (gk) {
+      var list = groups[gk].slice().sort(function (a, b) {
+        var pa = parseFloat(a.getAttribute('data-price') || '0');
+        var pb = parseFloat(b.getAttribute('data-price') || '0');
+        if (pa !== pb) return pa - pb;
+        return parseFloat(a.getAttribute('data-term') || '0') - parseFloat(b.getAttribute('data-term') || '0');
+      });
+      list.forEach(function (tr, i) {
+        paintOfferCells(tr, productFromTr(tr), kind, i, list.length);
+        if (anchor && anchor.parentNode === body) body.insertBefore(tr, anchor.nextSibling);
+        else body.appendChild(tr);
+        anchor = tr;
+      });
+    });
+  }
   function appendProduct(p) {
     var key = offerKey(p);
     if (seen[key]) return;
@@ -569,11 +678,9 @@
     var storageRaw = p.storage || '—';
     var priceRaw = Number(p.price || 0);
     var aid = aidSeq;
-    var href = '/en/parts/' + encodeURIComponent(String(p.manufacturer || '').toUpperCase()) + '/' + encodeURIComponent(show || article);
-    // Full navigation — Blazor enhanced nav skips re-running warehouse bootstrap ("sleeping" click).
-    var pk = photoKey(p.manufacturer, show || p.article);
-    tr.className = 'epc-part-type-row epc-part-type-row--' + kind + ' epc-ssr-warehouse-row';
+    var gk = brandArticleGroupKey(p.manufacturer, show || p.article);
     tr.setAttribute('data-offer-key', key);
+    tr.setAttribute('data-group-key', gk);
     tr.setAttribute('data-aid', String(aid));
     tr.setAttribute('data-manufacturer', p.manufacturer || '');
     tr.setAttribute('data-article', p.article || show);
@@ -593,30 +700,20 @@
     tr.setAttribute('data-json-params', p.jsonParams || p.json_params || '');
     tr.setAttribute('data-product-type', String(p.productType || p.product_type || 2));
     tr.setAttribute('data-check-hash', p.checkHash || p.check_hash || '');
-    var mask = '**';
-    var avail = pricesVisible ? String(exist) : mask;
-    var term = pricesVisible ? esc(formatTerm(termRaw, storageRaw)) : mask;
-    var price = pricesVisible ? priceRaw.toFixed(2) : mask;
-    var photoHtml = '<td class="td_photo" data-epc-row-photo="' + esc(pk) + '">' +
-      '<button type="button" class="epc-search-row-photo__btn epc-search-row-photo__btn--load" ' +
-      'data-epc-photo-brand="' + esc(p.manufacturer || '') + '" data-epc-photo-article="' + esc(show || p.article || '') + '" ' +
-      'title="Click to load product photo" aria-label="Load product photo"><i class="fa fa-image"></i></button></td>';
-    tr.innerHTML =
-      photoHtml +
-      '<td class="td_manufacturer"><strong>' + esc(p.manufacturer || '') + '</strong></td>' +
-      '<td class="td_article"><a class="bread_crumbs_a" href="' + href + '" data-enhance-nav="false">' + esc(show) + '</a></td>' +
-      '<td class="td_name">' + esc(p.name || '—') + '</td>' +
-      '<td class="td_exist ' + (pricesVisible && exist > 0 ? 'epc-stock-ok' : 'epc-stock-out') + '">' + avail + '</td>' +
-      '<td class="td_time_to_exe"><span class="epc-warehouse-term">' + term + '</span></td>' +
-      '<td class="td_info">' + infoCellHtml(p, show, storageRaw, pricesVisible) + '</td>' +
-      '<td class="td_price product_price">' + (pricesVisible ? ('<span class="epc-price-value" data-epc-base-price="' + price + '">' + price + '</span>') : price) + '</td>' +
-      '<td class="td_add_to_cart">' + actionsHtml(p, exist, show) + '</td>' +
-      '<td class="td_color"></td>';
-    var rows = body.querySelectorAll('tr.epc-part-type-row--' + kind);
-    if (rows.length) body.insertBefore(tr, rows[rows.length - 1].nextSibling);
-    else body.insertBefore(tr, cap.nextSibling);
+    var peers = body.querySelectorAll('tr.epc-part-type-row--' + kind + '[data-group-key="' + gk.replace(/"/g, '') + '"]');
+    if (peers.length) body.insertBefore(tr, peers[peers.length - 1].nextSibling);
+    else {
+      var rows = body.querySelectorAll('tr.epc-part-type-row--' + kind);
+      if (rows.length) body.insertBefore(tr, rows[rows.length - 1].nextSibling);
+      else body.insertBefore(tr, cap.nextSibling);
+    }
+    normalizeWarehouseGroups(kind);
     bumpCaption(kind);
-    if (typeof window.epcBindSearchRowPhotoLoaders === 'function') window.epcBindSearchRowPhotoLoaders(tr);
+    if (typeof window.epcBindSearchRowPhotoLoaders === 'function') window.epcBindSearchRowPhotoLoaders(body);
+    if (typeof window.epcWarehouseParity === 'object' && typeof window.epcWarehouseParity.rebuildFilterOptions === 'function') {
+      window.epcWarehouseParity.rebuildFilterOptions();
+      window.epcWarehouseParity.applyFilters();
+    }
   }
   function buildQuery(bunch) {
     var q = { article: article, searsch_str: article, manufacturer: brand, manufacturers: [], analogs: [] };
@@ -1324,7 +1421,55 @@
         return Compact(brand) + "|" + Compact(article);
     }
 
-    private RenderFragment OfferRow(StorefrontPartOfferDigest row, string kind) => __builder =>
+    /// <summary>PHP part_search mode-1: same brand+article → one lead row + warehouse sub-rows.</summary>
+    private static IEnumerable<(StorefrontPartOfferDigest Row, int Index, int Quantity)> GroupWarehouseOffers(
+        IReadOnlyList<StorefrontPartOfferDigest> rows)
+    {
+        var groups = rows
+            .GroupBy(r => BrandArticleGroupKey(r.Manufacturer, string.IsNullOrWhiteSpace(r.ArticleShow) ? r.Article : r.ArticleShow))
+            .Select(g => g
+                .OrderBy(x => x.Price)
+                .ThenBy(x => ParseTermSort(x.TimeToExe))
+                .ThenBy(x => x.Storage ?? "", StringComparer.OrdinalIgnoreCase)
+                .ToList())
+            .ToList();
+        foreach (var group in groups)
+        {
+            for (var i = 0; i < group.Count; i++)
+            {
+                yield return (group[i], i, group.Count);
+            }
+        }
+    }
+
+    private static string BrandArticleGroupKey(string? brand, string? article)
+    {
+        static string Compact(string? s)
+        {
+            if (string.IsNullOrEmpty(s))
+            {
+                return string.Empty;
+            }
+
+            var sb = new System.Text.StringBuilder(s.Length);
+            foreach (var ch in s)
+            {
+                if (char.IsLetterOrDigit(ch))
+                {
+                    sb.Append(char.ToUpperInvariant(ch));
+                }
+            }
+
+            return sb.ToString();
+        }
+
+        return Compact(brand) + "|" + Compact(article);
+    }
+
+    private static int ParseTermSort(string? term)
+        => int.TryParse(term, NumberStyles.Integer, CultureInfo.InvariantCulture, out var n) ? n : int.MaxValue;
+
+    private RenderFragment OfferRow(StorefrontPartOfferDigest row, string kind, int index = 0, int quantity = 1) => __builder =>
     {
         var show = string.IsNullOrWhiteSpace(row.ArticleShow) ? row.Article : row.ArticleShow;
         var storage = string.IsNullOrWhiteSpace(row.Storage) ? "—" : row.Storage;
@@ -1335,6 +1480,8 @@
             row.Article ?? "",
             row.Storage ?? "",
             row.Price.ToString(CultureInfo.InvariantCulture));
+        var groupKey = BrandArticleGroupKey(row.Manufacturer, show);
+        var isSubRow = index > 0 && quantity > 1;
         var mask = StorefrontPriceAccess.SensitiveMask;
         var aid = _offerAidSeq++;
         var minOrder = row.MinOrder > 0 ? row.MinOrder : 1;
@@ -1350,8 +1497,13 @@
         var googleImg = "https://www.google.com/search?tbm=isch&q="
                         + Uri.EscapeDataString($"{row.Manufacturer} {show}");
         var priceBase = row.Price.ToString("0.00", CultureInfo.InvariantCulture);
-        <tr class="@($"epc-part-type-row epc-part-type-row--{kind} epc-ssr-warehouse-row")"
+        var rowClass = $"epc-part-type-row epc-part-type-row--{kind} epc-ssr-warehouse-row"
+                       + (isSubRow ? " epc-warehouse-subrow" : "");
+        <tr class="@rowClass"
             data-offer-key="@key"
+            data-group-key="@groupKey"
+            data-group-index="@index"
+            data-group-qty="@quantity"
             data-aid="@aid"
             data-manufacturer="@row.Manufacturer"
             data-article="@row.Article"
@@ -1371,19 +1523,40 @@
             data-json-params="@row.JsonParams"
             data-product-type="@row.ProductType"
             data-check-hash="@row.CheckHash">
-            <td class="td_photo" data-epc-row-photo="@photoKey">
-                <button type="button"
-                        class="epc-search-row-photo__btn epc-search-row-photo__btn--load"
-                        data-epc-photo-brand="@row.Manufacturer"
-                        data-epc-photo-article="@show"
-                        title="Click to load product photo"
-                        aria-label="Load product photo">
-                    <i class="fa fa-image"></i>
-                </button>
-            </td>
-            <td class="td_manufacturer"><strong>@row.Manufacturer</strong></td>
-            <td class="td_article"><a class="bread_crumbs_a" href="@articleHref">@show</a></td>
-            <td class="td_name">@(string.IsNullOrWhiteSpace(row.Name) ? "—" : row.Name)</td>
+            @if (isSubRow)
+            {
+                <td class="td_photo epc-search-row-photo--subrow"></td>
+                <td class="td_manufacturer">
+                    <span>@row.Manufacturer</span>
+                    <div class="epc-warehouse-subrow__label" title="Warehouse offer">
+                        <i class="fa fa-level-up fa-rotate-90" aria-hidden="true"></i> @infoLabel
+                    </div>
+                </td>
+                <td class="td_article"></td>
+                <td class="td_name"></td>
+            }
+            else
+            {
+                <td class="td_photo" data-epc-row-photo="@photoKey">
+                    <button type="button"
+                            class="epc-search-row-photo__btn epc-search-row-photo__btn--load"
+                            data-epc-photo-brand="@row.Manufacturer"
+                            data-epc-photo-article="@show"
+                            title="Click to load product photo"
+                            aria-label="Load product photo">
+                        <i class="fa fa-image"></i>
+                    </button>
+                </td>
+                <td class="td_manufacturer">
+                    <strong>@row.Manufacturer</strong>
+                    @if (quantity > 1)
+                    {
+                        <div class="epc-warehouse-group-hint" title="Multiple warehouse offers">@quantity warehouses</div>
+                    }
+                </td>
+                <td class="td_article"><a class="bread_crumbs_a" href="@articleHref" data-enhance-nav="false">@show</a></td>
+                <td class="td_name">@(string.IsNullOrWhiteSpace(row.Name) ? "—" : row.Name)</td>
+            }
             @if (_pricesVisible)
             {
                 <td class="td_exist @(row.Exist > 0 ? "epc-stock-ok" : "epc-stock-out")">
@@ -1391,20 +1564,23 @@
                 </td>
                 <td class="td_time_to_exe"><span class="epc-warehouse-term">@term</span></td>
                 <td class="td_info">
-                    <div style="margin:3px 0;">
-                        <span class="info_box">
-                            <a title="Product photos" href="@googleImg" target="_blank" rel="noopener"><span><i style="font-size:.8em;" class="fa fa-camera"></i></span></a>
-                            <a title="Warehouse" href="javascript:void(0);"><span><i class="fa fa-home"></i></span></a>
-                            <a title="Fitment" href="javascript:void(0);" class="epc-fitment-check-btn epc-fitment-check-btn--row"
-                               data-epc-fitment-article="@show" data-epc-fitment-brand="@row.Manufacturer">
-                                <span><i style="font-size:.9em;" class="fa fa-car"></i></span>
-                            </a>
-                            <br />
-                        </span>
-                        <div class="show_data_class epc-warehouse-label" style="margin:3px 0;white-space:nowrap;max-width:110px;font-size:11px;font-weight:600;" title="Warehouse">
-                            <span class="info_box">@infoLabel</span>
+                    @if (!isSubRow)
+                    {
+                        <div style="margin:3px 0;">
+                            <span class="info_box">
+                                <a title="Product photos" href="@googleImg" target="_blank" rel="noopener"><span><i style="font-size:.8em;" class="fa fa-camera"></i></span></a>
+                                <a title="Warehouse" href="javascript:void(0);"><span><i class="fa fa-home"></i></span></a>
+                                <a title="Fitment" href="javascript:void(0);" class="epc-fitment-check-btn epc-fitment-check-btn--row"
+                                   data-epc-fitment-article="@show" data-epc-fitment-brand="@row.Manufacturer">
+                                    <span><i style="font-size:.9em;" class="fa fa-car"></i></span>
+                                </a>
+                                <br />
+                            </span>
+                            <div class="show_data_class epc-warehouse-label" style="margin:3px 0;white-space:nowrap;max-width:110px;font-size:11px;font-weight:600;" title="Warehouse">
+                                <span class="info_box">@infoLabel</span>
+                            </div>
                         </div>
-                    </div>
+                    }
                 </td>
                 <td class="td_price product_price">
                     <span class="epc-price-value" data-epc-base-price="@priceBase">@row.Price.ToString("N2", CultureInfo.InvariantCulture)</span>
