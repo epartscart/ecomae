@@ -130,13 +130,40 @@ public static class LegacyDesktopChromeCatalog
         };
 
     /// <summary>
+    /// Explicit brochure category → CP topnav label (PHP control_groups / epc_cp_build_nav_tabs intent).
+    /// Avoids keyword false-positives such as Label "Retail and commerce" landing under Commerce
+    /// instead of the Shop / OMS order desk.
+    /// </summary>
+    private static readonly IReadOnlyDictionary<string, string[]> CpNavCategoryMap =
+        new Dictionary<string, string[]>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["Commerce"] = ["Shop / OMS", "Prices & Catalogue"],
+            ["Customers"] = ["Customers / CRM"],
+            ["Documents"] = ["Content / CMS"],
+            ["ERP"] = ["ERP / Modules", "ERP / Finance", "ERP / External Reporting", "ERP / Tax & VAT"],
+            ["Purchase"] = ["Procurement"],
+            ["Channels"] = ["Channels / Marketplace"],
+            ["Logistics"] = ["Logistics"],
+            ["AI"] = ["AI"],
+            ["Marketing"] = ["Marketing"],
+            ["Payments"] = ["Payments"],
+            ["Integrations"] = ["Integrations"],
+            ["Portal"] = ["Portal"],
+            ["Platform"] = ["Super CP / Platform", "Super CP / BOC", "Industry Templates"],
+            ["Operator"] = ["Super CP / Operator"],
+        };
+
+    /// <summary>
     /// CP topnav groups ≈ epc_cp_build_nav_tabs — multi-column mega panels (no artificial cap).
     /// When <paramref name="includeSuperOnly"/> is false (tenant hosts), mirrors PHP
     /// <c>epc_portal_cp_item_visible_enhanced</c>: hide Platform/Operator groups and
     /// Super brochure links (<c>epc_super_cp_*</c>, tenant_features, BOS).
+    /// When <paramref name="industryCode"/> is not jewellery, jewellery / [JW] links are hidden
+    /// (epartscart auto_parts must show Shop OMS, not jewellery retail).
     /// </summary>
-    public static IReadOnlyList<MegaGroup> ControlPanelTopnav(bool includeSuperOnly = true)
+    public static IReadOnlyList<MegaGroup> ControlPanelTopnav(bool includeSuperOnly = true, string? industryCode = null)
     {
+        var jewelleryIndustry = ErpIndustryNav.IsJewelleryFromHostOrPack(industryCode, null, null);
         var groups = new List<MegaGroup>();
         foreach (var nav in LegacyChromeNavCatalog.ControlPanel)
         {
@@ -149,7 +176,14 @@ public static class LegacyDesktopChromeCatalog
             var links = PhpModuleCatalog.CpBrochureFeatures
                 .Where(f => MatchesGroup(f, nav.Label, nav.Href))
                 .Where(f => includeSuperOnly || !IsSuperOnlyCpLink(f.Href, f.Group))
+                .Where(f => jewelleryIndustry || !IsJewelleryCpLink(f))
                 .ToList();
+
+            if (string.Equals(nav.Label, "Commerce", StringComparison.OrdinalIgnoreCase))
+            {
+                links = PrioritizeCommerceOms(links, nav.Href);
+            }
+
             if (links.Count == 0)
             {
                 if (!includeSuperOnly && IsSuperOnlyCpLink(nav.Href, nav.Label))
@@ -158,14 +192,24 @@ public static class LegacyDesktopChromeCatalog
                 }
 
                 links.Add(new PhpModuleCatalog.ModuleLink(id, nav.Label, nav.Href, null, nav.Label));
-                foreach (var qa in LegacyChromeNavCatalog.ControlPanelQuickActions.Take(6))
+                foreach (var qa in LegacyChromeNavCatalog.ControlPanelQuickActions.Take(8))
                 {
                     if (!includeSuperOnly && IsSuperOnlyCpLink(qa.Href, nav.Label))
                     {
                         continue;
                     }
 
+                    if (!jewelleryIndustry && IsJewelleryHrefOrLabel(qa.Href, qa.Label))
+                    {
+                        continue;
+                    }
+
                     links.Add(new PhpModuleCatalog.ModuleLink(Slug(qa.Label), qa.Label, qa.Href, null, nav.Label));
+                }
+
+                if (string.Equals(nav.Label, "Commerce", StringComparison.OrdinalIgnoreCase))
+                {
+                    links = PrioritizeCommerceOms(links, nav.Href);
                 }
             }
 
@@ -187,17 +231,113 @@ public static class LegacyDesktopChromeCatalog
                     chunk));
             }
 
+            var hub = string.Equals(nav.Label, "Commerce", StringComparison.OrdinalIgnoreCase)
+                ? (links.FirstOrDefault(l => IsOmsOrdersLink(l))?.Href ?? nav.Href)
+                : links[0].Href;
+
             groups.Add(new MegaGroup(
                 id,
                 nav.Label,
                 links,
                 CpGroupIcon(id),
                 nav.Label,
-                links[0].Href,
+                hub,
                 columns));
         }
 
         return groups;
+    }
+
+    /// <summary>Jewellery / JW brochure + app links — hidden on non-jewellery tenant CP (PHP industry filter).</summary>
+    public static bool IsJewelleryCpLink(PhpModuleCatalog.ModuleLink link)
+        => IsJewelleryHrefOrLabel(link.Href, link.Label)
+           || ErpIndustryNav.IsJewelleryTab(link);
+
+    public static bool IsJewelleryHrefOrLabel(string? href, string? label)
+    {
+        var h = href ?? string.Empty;
+        var l = label ?? string.Empty;
+        if (l.Contains("[JW]", StringComparison.OrdinalIgnoreCase)
+            || l.Contains("jewellery", StringComparison.OrdinalIgnoreCase)
+            || l.Contains("jewelry", StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        if (h.Contains("/jewellery-", StringComparison.OrdinalIgnoreCase)
+            || h.Contains("jewellery_", StringComparison.OrdinalIgnoreCase)
+            || h.Contains("jewellery-", StringComparison.OrdinalIgnoreCase)
+            || h.Contains("tab=jw_", StringComparison.OrdinalIgnoreCase)
+            || h.Contains("jw_", StringComparison.OrdinalIgnoreCase)
+            || h.Contains("epc_jewel", StringComparison.OrdinalIgnoreCase)
+            || h.Contains("gold_rate", StringComparison.OrdinalIgnoreCase)
+            || h.Contains("jewellery_tag", StringComparison.OrdinalIgnoreCase)
+            || h.Contains("gold_scheme", StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        // ERP retail/service_mgmt areas are jewellery POS packs in this product — not epartscart OMS.
+        if (h.Contains("area=retail", StringComparison.OrdinalIgnoreCase)
+            || h.Contains("area=service_mgmt", StringComparison.OrdinalIgnoreCase)
+            || h.Contains("tab=retail_commerce", StringComparison.OrdinalIgnoreCase)
+            || h.Contains("tab=jw_retail_sales", StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    private static bool IsOmsOrdersLink(PhpModuleCatalog.ModuleLink link)
+    {
+        var id = link.Id ?? string.Empty;
+        var href = link.Href ?? string.Empty;
+        var label = link.Label ?? string.Empty;
+        return id.Equals("oms-orders", StringComparison.OrdinalIgnoreCase)
+               || href.Contains("/shop/orders/orders", StringComparison.OrdinalIgnoreCase)
+               || href.Equals("/cp/orders", StringComparison.OrdinalIgnoreCase)
+               || href.StartsWith("/cp/orders?", StringComparison.OrdinalIgnoreCase)
+               || label.Contains("OMS · Orders", StringComparison.OrdinalIgnoreCase)
+               || label.Equals("Orders (OMS)", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static List<PhpModuleCatalog.ModuleLink> PrioritizeCommerceOms(
+        List<PhpModuleCatalog.ModuleLink> links,
+        string commerceHref)
+    {
+        if (links.Count == 0)
+        {
+            return links;
+        }
+
+        var ordered = new List<PhpModuleCatalog.ModuleLink>();
+        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        void Take(PhpModuleCatalog.ModuleLink link)
+        {
+            var key = link.Id + "|" + link.Href;
+            if (seen.Add(key))
+            {
+                ordered.Add(link);
+            }
+        }
+
+        foreach (var link in links.Where(IsOmsOrdersLink))
+        {
+            Take(link);
+        }
+
+        if (!ordered.Any(IsOmsOrdersLink))
+        {
+            Take(new PhpModuleCatalog.ModuleLink("oms-orders", "OMS · Orders", commerceHref, "fa-shopping-cart", "Shop / OMS"));
+        }
+
+        foreach (var link in links)
+        {
+            Take(link);
+        }
+
+        return ordered;
     }
 
     /// <summary>PHP epc_portal_cp_item_visible_enhanced Super-only needles + brochure groups.</summary>
@@ -406,25 +546,43 @@ public static class LegacyDesktopChromeCatalog
     private static bool MatchesGroup(PhpModuleCatalog.ModuleLink f, string label, string href)
     {
         var g = f.Group ?? "";
-        if (g.Contains(label, StringComparison.OrdinalIgnoreCase))
+        var linkHref = f.Href ?? string.Empty;
+
+        // Explicit brochure category map (Shop / OMS → Commerce). Do not use loose
+        // Label.Contains("Commerce") — that incorrectly matched ERP "Retail and commerce".
+        if (CpNavCategoryMap.TryGetValue(label, out var categories))
         {
-            return true;
+            foreach (var cat in categories)
+            {
+                if (g.Equals(cat, StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+            }
+
+            // Commerce also accepts any client shop/orders OMS deeplink by href.
+            if (label.Equals("Commerce", StringComparison.OrdinalIgnoreCase)
+                && (linkHref.Contains("/shop/orders", StringComparison.OrdinalIgnoreCase)
+                    || linkHref.Contains("/cp/orders", StringComparison.OrdinalIgnoreCase)
+                    || linkHref.Contains("/cp/abandoned-carts", StringComparison.OrdinalIgnoreCase)
+                    || linkHref.Contains("/cp/returns-rma", StringComparison.OrdinalIgnoreCase)
+                    || linkHref.Contains("/cp/quote-requests", StringComparison.OrdinalIgnoreCase)
+                    || linkHref.Contains("/cp/product-catalogue", StringComparison.OrdinalIgnoreCase)
+                    || linkHref.Contains("/cp/price-lists", StringComparison.OrdinalIgnoreCase)))
+            {
+                return true;
+            }
+
+            return false;
         }
 
-        var key = label.Split(' ', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault() ?? label;
-        if (g.Contains(key, StringComparison.OrdinalIgnoreCase) || f.Label.Contains(key, StringComparison.OrdinalIgnoreCase))
+        if (g.Contains(label, StringComparison.OrdinalIgnoreCase))
         {
             return true;
         }
 
         if (href.Contains("/portal", StringComparison.OrdinalIgnoreCase)
             && g.Contains("Portal", StringComparison.OrdinalIgnoreCase))
-        {
-            return true;
-        }
-
-        if (href.Contains("/shop/orders", StringComparison.OrdinalIgnoreCase)
-            && (g.Contains("Order", StringComparison.OrdinalIgnoreCase) || g.Contains("Commerce", StringComparison.OrdinalIgnoreCase)))
         {
             return true;
         }
