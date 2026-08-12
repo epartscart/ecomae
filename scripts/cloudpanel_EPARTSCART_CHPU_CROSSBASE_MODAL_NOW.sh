@@ -8,7 +8,7 @@
 #
 # CloudPanel root paste (pin script by commit SHA — raw branch URLs can be CDN-stale):
 #   set -euxo pipefail
-#   URL='https://raw.githubusercontent.com/epartscart/ecomae/4457fd96445f3d07335f0224f5178c30f5c05811/scripts/cloudpanel_EPARTSCART_CHPU_CROSSBASE_MODAL_NOW.sh'
+#   URL='https://raw.githubusercontent.com/epartscart/ecomae/62faadfe65b5dc5bf5bf0adf4f02893b6db165de/scripts/cloudpanel_EPARTSCART_CHPU_CROSSBASE_MODAL_NOW.sh'
 #   TMP=/tmp/epartscart-chpu-crossbase-modal-now.sh
 #   curl -fsSL "$URL" -o "$TMP" && test -s "$TMP"
 #   grep -q 'stale_tip_' "$TMP" || { echo RESULT=FAIL bad_download_need_reader_dispose_NOW; exit 1; }
