@@ -137,9 +137,18 @@
 		}
 	}
 
+	function compactFitment(value) {
+		return String(value || "").replace(/[^A-Za-z0-9]/g, "").toUpperCase();
+	}
+
+	function brandsEquivalent(left, right) {
+		return compactFitment(left) !== "" && compactFitment(left) === compactFitment(right);
+	}
+
 	function umapi(action, params) {
 		// ASP.NET-only fitment/catalog — no product .php proxies (PHP deletion-ready).
 		var art = (params && (params.article || params.Article)) || "";
+		var brand = (params && (params.brand || params.Brand || params.manufacturer)) || "";
 		if (String(action || "") === "brands") {
 			return fetch("/storefront/search-brands?article=" + encodeURIComponent(art) + "&limit=100", {
 				cache: "no-store",
@@ -153,28 +162,74 @@
 					var rows = brands.map(function (b) {
 						return {
 							brand: b.brand || b.Brand || "",
+							BRAND: b.brand || b.Brand || "",
 							manufacturer: b.brand || b.Brand || "",
 							article: art,
-							name: b.name || b.Name || ""
+							DISPLAY_NR: art,
+							SEARCH_NUMBER: art,
+							ARTICLE: art,
+							name: b.name || b.Name || "",
+							TITLE: b.name || b.Name || ""
 						};
 					});
 					return { data: rows };
 				});
 			});
 		}
-		return Promise.reject(new Error("Fitment action requires ASP.NET catalog route (product PHP proxies disabled)."));
+		if (String(action || "") === "analogs" || String(action || "") === "fitment") {
+			return fetch(
+				"/storefront/fitment?article=" + encodeURIComponent(art)
+					+ "&brand=" + encodeURIComponent(brand)
+					+ "&language=en",
+				{ cache: "no-store", credentials: "same-origin" }
+			).then(function (r) {
+				return r.json().catch(function () { return {}; }).then(function (data) {
+					if (!r.ok && !(data && (data.PC || data.CV || data.Motorcycle))) {
+						return Promise.reject(new Error((data && data.message) || ("HTTP " + r.status)));
+					}
+					return data || {};
+				});
+			});
+		}
+		return Promise.reject(new Error("Unknown fitment catalog action."));
+	}
+
+	function loadEpartscrossFitmentFallback(article, widget) {
+		if (!widget || !article) return;
+		widget.className = "epc-fitment-message";
+		widget.innerHTML = '<div class="epc-fitment-message">Loading vehicle applicability from cross-reference catalog…</div>';
+		var oldScript = document.getElementById("epc-fitment-epartscross-script");
+		if (oldScript && oldScript.parentNode) oldScript.parentNode.removeChild(oldScript);
+		var script = document.createElement("script");
+		script.id = "epc-fitment-epartscross-script";
+		script.type = "text/javascript";
+		script.async = true;
+		script.onerror = function () {
+			widget.innerHTML = '<div class="epc-fitment-message">Vehicle fitment is temporarily unavailable. Try again later.</div>';
+		};
+		var lang = (document.documentElement.getAttribute("lang") || "en").toLowerCase();
+		if (lang !== "ru") lang = "en";
+		// PHP epartscross fitment widget twin (ASP.NET /storefront proxy, no product PHP).
+		script.src = "/storefront/fitment-widget.js?n=" + encodeURIComponent(article)
+			+ "&lang=" + encodeURIComponent(lang) + "&_=" + Date.now();
+		document.body.appendChild(script);
 	}
 
 	function openFitment(article, brand) {
 		var panel = document.getElementById("epc-fitment-panel");
 		var brandsBox = document.getElementById("epc-fitment-brands");
 		var typesBox = document.getElementById("epc-fitment-types");
+		var shell = document.getElementById("epc-fitment-widget-shell");
 		var widget = document.getElementById("applicability_widget");
 		if (!panel || !brandsBox) return;
+		if (panel.parentNode !== document.body) {
+			document.body.appendChild(panel);
+		}
 		panel.classList.add("is-open");
 		brandsBox.className = "epc-fitment-message";
 		brandsBox.textContent = "Loading matching brands from eparts catalog…";
 		if (typesBox) typesBox.style.display = "none";
+		if (shell) shell.style.display = "none";
 		if (widget) {
 			widget.className = "epc-fitment-message";
 			widget.textContent = "Select a brand/part box to load fitment.";
@@ -184,14 +239,22 @@
 				var rows = Array.isArray(data) ? data : (data && data.data) || [];
 				if (!rows.length) {
 					brandsBox.textContent = "No catalog brands found for this article.";
+					// Still try crossbase applicability for the typed article (PHP fallback path).
+					if (shell) shell.style.display = "block";
+					loadEpartscrossFitmentFallback(article || "", widget);
 					return;
 				}
 				brandsBox.className = "epc-fitment-brand-grid";
 				brandsBox.innerHTML = rows.slice(0, 40).map(function (row) {
 					var b = row.BRAND || row.brand || row.MANUFACTURER || "";
 					var a = row.DISPLAY_NR || row.SEARCH_NUMBER || row.ARTICLE || article || "";
-					return '<button type="button" data-brand="' + esc(b) + '" data-article="' + esc(a) + '">' +
-						esc(b) + "<br><span style=\"font-weight:500;color:#64748b\">" + esc(a) + "</span></button>";
+					var title = row.TITLE || row.name || row.DES || "";
+					return '<button type="button" class="epc-fitment-brand-card" data-brand="' + esc(b)
+						+ '" data-article="' + esc(a) + '">'
+						+ "<strong>" + esc(b) + "</strong><br><span style=\"font-weight:500;color:#64748b\">"
+						+ esc(a) + "</span>"
+						+ (title ? "<br><small>" + esc(title) + "</small>" : "")
+						+ "</button>";
 				}).join("");
 				brandsBox.querySelectorAll("button").forEach(function (btn) {
 					btn.addEventListener("click", function () {
@@ -202,12 +265,14 @@
 				});
 				var preferred = brand || "";
 				var match = Array.prototype.slice.call(brandsBox.querySelectorAll("button")).find(function (btn) {
-					return String(btn.getAttribute("data-brand") || "").toUpperCase() === String(preferred).toUpperCase();
+					return brandsEquivalent(btn.getAttribute("data-brand") || "", preferred);
 				}) || brandsBox.querySelector("button");
 				if (match) match.click();
 			})
 			.catch(function (err) {
 				brandsBox.textContent = (err && err.message) || "Fitment lookup is temporarily unavailable.";
+				if (shell) shell.style.display = "block";
+				loadEpartscrossFitmentFallback(article || "", widget);
 			});
 	}
 
@@ -220,15 +285,24 @@
 		if (!widget) return;
 		widget.className = "epc-fitment-message";
 		widget.textContent = "Loading vehicle applicability…";
+		// PHP resolveAndLoadFitment: analogs→article_links, else epartscross widget fallback.
 		umapi("analogs", { article: article || "", brand: brand || "", limit: 30, offset: 0, source: "fitment" })
 			.then(function (data) {
-				window.__epcFitmentPayload = data && (data.PC || data.CV || data.Motorcycle)
-					? data
-					: { PC: (data && data.data) || [], CV: [], Motorcycle: [] };
-				renderFitmentSection("PC");
+				var pc = (data && data.PC) || [];
+				var cv = (data && data.CV) || [];
+				var moto = (data && data.Motorcycle) || [];
+				var total = (Array.isArray(pc) ? pc.length : 0)
+					+ (Array.isArray(cv) ? cv.length : 0)
+					+ (Array.isArray(moto) ? moto.length : 0);
+				if (total > 0) {
+					window.__epcFitmentPayload = { PC: pc, CV: cv, Motorcycle: moto };
+					renderFitmentSection("PC");
+					return;
+				}
+				loadEpartscrossFitmentFallback(article || "", widget);
 			})
-			.catch(function (err) {
-				widget.textContent = (err && err.message) || "No vehicle fitment found.";
+			.catch(function () {
+				loadEpartscrossFitmentFallback(article || "", widget);
 			});
 	}
 
@@ -245,20 +319,28 @@
 		var rows = section === "ALL"
 			? [].concat(fitment.PC || [], fitment.CV || [], fitment.Motorcycle || [])
 			: (fitment[section] || []);
-		if (!rows.length) {
+		var total = (fitment.PC || []).length + (fitment.CV || []).length + (fitment.Motorcycle || []).length;
+		if (!total) {
 			widget.className = "epc-fitment-message";
 			widget.textContent = "No vehicle fitment was found in Epart catalog for this part.";
 			return;
 		}
+		if (!rows.length) {
+			widget.className = "epc-fitment-message";
+			widget.textContent = "No rows in this vehicle type. Choose another tab or All vehicles.";
+			return;
+		}
 		widget.className = "";
 		widget.innerHTML = '<div style="overflow:auto"><table class="table table-condensed table-striped" style="font-size:12px"><thead><tr>' +
-			"<th>Make</th><th>Model</th><th>Years</th><th>Engine / body</th></tr></thead><tbody>" +
+			"<th>Make</th><th>Model</th><th>Modification</th><th>Years</th><th>Engine / body</th></tr></thead><tbody>" +
 			rows.slice(0, 200).map(function (row) {
 				var make = row.MAKE || row.MANUFACTURER || "";
-				var model = row.MODEL || row.PASSENGER_CAR || row.COMMERCIAL_VEHICLE || row.MOTORBIKE || "";
+				var model = row.MODEL_SERIES || row.MODEL || "";
+				var mod = row.PASSENGER_CAR || row.COMMERCIAL_VEHICLE || row.MOTORBIKE || "";
 				var years = [row.CI_FROM || "", row.CI_TO || ""].filter(Boolean).join(" - ") || "—";
 				var engine = [row.CAPACITY_TECH || row.CAPACITY_LT || "", row.FUEL_TYPE || "", row.BODY_TYPE || ""].filter(Boolean).join(" / ") || "—";
-				return "<tr><td>" + esc(make) + "</td><td>" + esc(model) + "</td><td>" + esc(years) + "</td><td>" + esc(engine) + "</td></tr>";
+				return "<tr><td>" + esc(make) + "</td><td>" + esc(model) + "</td><td>" + esc(mod)
+					+ "</td><td>" + esc(years) + "</td><td>" + esc(engine) + "</td></tr>";
 			}).join("") + "</tbody></table></div>";
 	}
 
