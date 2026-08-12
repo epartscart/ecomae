@@ -3205,6 +3205,17 @@ public sealed class ControlPanelModule : ISurfaceModule
             ISurfaceDashboardSummaryReporter dashboards,
             CancellationToken cancellationToken) =>
         {
+            // Multi-site fleet + deploy targets are Super CP only — never on tenant hosts.
+            if (!SuperCpHostGate.IsAllowed(context))
+            {
+                return Results.NotFound(new
+                {
+                    ok = false,
+                    surface = "cp",
+                    message = "Portal settings fleet digest is Super CP only. Tenant CPs are independent."
+                });
+            }
+
             var session = await validator.ValidateAsync(context, cancellationToken);
             if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
             {
@@ -3222,7 +3233,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only epc_portal_site_settings + epc_portal_deploy_targets KPIs + sites (contact_json/enabled_packs_json/theme_json/cp_menu_json/erp_modules_json omitted). PHP portal settings remain authoritative."
+                note = "Super-CP-only read-only epc_portal_site_settings + epc_portal_deploy_targets KPIs + sites (contact_json/enabled_packs_json/theme_json/cp_menu_json/erp_modules_json omitted). Tenant hosts receive 404. PHP portal settings remain authoritative."
             });
         });
 

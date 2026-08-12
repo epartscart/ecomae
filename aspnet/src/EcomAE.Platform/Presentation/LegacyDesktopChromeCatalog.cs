@@ -382,7 +382,14 @@ public static class LegacyDesktopChromeCatalog
             || h.Contains("epc_platform_health", StringComparison.OrdinalIgnoreCase)
             || h.Contains("/cp/failover-status-app", StringComparison.OrdinalIgnoreCase)
             || h.Contains("epc_dealer_portal", StringComparison.OrdinalIgnoreCase)
-            || h.Contains("epc_industry_license_trends", StringComparison.OrdinalIgnoreCase))
+            || h.Contains("epc_industry_license_trends", StringComparison.OrdinalIgnoreCase)
+            // Super CP multi-site portal fleet / deploy inventory — never on tenant chrome.
+            || h.Contains("/cp/portal-settings-app", StringComparison.OrdinalIgnoreCase)
+            || h.Contains("control/portal/portal", StringComparison.OrdinalIgnoreCase)
+            || h.Contains("/cp/platform-communication-app", StringComparison.OrdinalIgnoreCase)
+            || h.Contains("epc_super_cp_communication", StringComparison.OrdinalIgnoreCase)
+            || h.Contains("/cp/info-blocks-app", StringComparison.OrdinalIgnoreCase)
+            || h.Contains("epc_super_cp_info_blocks", StringComparison.OrdinalIgnoreCase))
         {
             return true;
         }

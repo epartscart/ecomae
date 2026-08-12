@@ -4,105 +4,116 @@
 @using EcomAE.Platform.Auth
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Services
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
 @inject NavigationManager Nav
 
-<PageTitle>Portal settings · Control Panel · eParts Cart</PageTitle>
+<PageTitle>Portal settings · Super CP · ECOM AE</PageTitle>
 <PhpChromeStyles Surface="cp" />
-<HeadContent>
-<style>
-        .epc-w21-hero {
-            margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
-            background:linear-gradient(135deg,#0c4a6e 0%,#2563eb 45%,#0ea5e9 100%);
-        }
-        .epc-w21-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
-        .epc-w21-hero p { margin:0; color:rgba(255,255,255,.88); max-width:44rem; font-size:.92rem; line-height:1.45; }
-        .epc-w21-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
-        .epc-w21-cta a {
-            display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
-            text-decoration:none; color:#0f172a; background:#fff;
-        }
-        .epc-w21-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); color:#fff; }
-        .epc-w21-kpis { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
-        .epc-w21-kpi { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; padding:.85rem .9rem; }
-        .epc-w21-kpi strong { display:block; font-size:1.2rem; word-break:break-word; }
-        .epc-w21-kpi span { color:#64748b; font-size:.78rem; }
-        .epc-w21-table-wrap { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; overflow:auto; }
-        .epc-w21-table { width:100%; border-collapse:collapse; font-size:.86rem; }
-        .epc-w21-table th, .epc-w21-table td { padding:.55rem .7rem; border-bottom:1px solid #f1f5f9; text-align:left; white-space:nowrap; }
-        .epc-w21-table th { background:#f8fafc; color:#475569; font-size:.75rem; text-transform:uppercase; letter-spacing:.03em; }
-        .epc-w21-note { margin-top:1rem; padding:.75rem .9rem; background:#f8fafc; border:1px solid #cbd5e1; border-radius:.45rem; color:#334155; font-size:.86rem; }
-        @@media (max-width:900px){ .epc-w21-kpis{grid-template-columns:1fr 1fr;} }
-    
-</style>
-</HeadContent>
 
+@if (_allowed)
+{
+    <PhpCpDesktopChrome IsAdmin="_isAdmin">
 
-<PhpCpDesktopChrome IsAdmin="_isAdmin">
+        <PhpCpModulePageHeader Title="Portal settings"
+                               Subtitle="Super CP multi-site fleet inventory (hosts, industries, access modes, deploy targets). Tenant CPs never see this console — each tenant manages its own settings independently."
+                               PhpTabHref="@_phpTab"
+                               ExtraPanelClass="epc-scp-panel--portal-settings">
+            <a class="ghost" href="/cp/tenants-app">Tenants</a>
+            <a class="ghost" href="/cp/industry-packs-app">Industry packs</a>
+            <a class="ghost" href="/bos/app">BOS fleet</a>
+        </PhpCpModulePageHeader>
 
-    <section class="epc-w21-hero">
-        <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
-        <h1>Portal settings</h1>
-        <p>Manage store operations, catalogue, and partner integrations from one control panel.</p>
-        <div class="epc-w21-cta">
-            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
+        <div class="epc-scp-kpi" aria-label="Portal settings stats">
+            <div class="epc-scp-kpi__card">
+                <div class="epc-scp-kpi__label">Sites</div>
+                <div class="epc-scp-kpi__val">@_summary.SiteCount.ToString(CultureInfo.InvariantCulture)</div>
+            </div>
+            <div class="epc-scp-kpi__card">
+                <div class="epc-scp-kpi__label">Industries</div>
+                <div class="epc-scp-kpi__val">@_summary.IndustryCount.ToString(CultureInfo.InvariantCulture)</div>
+            </div>
+            <div class="epc-scp-kpi__card">
+                <div class="epc-scp-kpi__label">Access modes</div>
+                <div class="epc-scp-kpi__val">@_summary.AccessModeCount.ToString(CultureInfo.InvariantCulture)</div>
+            </div>
+            <div class="epc-scp-kpi__card">
+                <div class="epc-scp-kpi__label">Deploy targets</div>
+                <div class="epc-scp-kpi__val">@_summary.DeployTargetCount.ToString(CultureInfo.InvariantCulture)</div>
+            </div>
         </div>
-    </section>
 
-    <div class="epc-w21-kpis" aria-label="Portal settings stats">
-        <div class="epc-w21-kpi"><strong>@_summary.SiteCount.ToString(CultureInfo.InvariantCulture)</strong><span>Sites</span></div>
-        <div class="epc-w21-kpi"><strong>@_summary.IndustryCount.ToString(CultureInfo.InvariantCulture)</strong><span>Industries</span></div>
-        <div class="epc-w21-kpi"><strong>@_summary.AccessModeCount.ToString(CultureInfo.InvariantCulture)</strong><span>Access modes</span></div>
-        <div class="epc-w21-kpi"><strong>@_summary.DeployTargetCount.ToString(CultureInfo.InvariantCulture)</strong><span>Deploy targets</span></div>
-    </div>
-
-    <div class="epc-w21-table-wrap">
-    <table class="epc-w21-table">
-        <thead>
-            <tr>
-                    <th>Host</th>
-                    <th>Industry</th>
-                    <th>System</th>
-                    <th>Hub</th>
-                    <th>Theme</th>
-                    <th>Access</th>
-                    <th>Lang</th>
-                    <th>Country</th>
-                    <th></th>
-            </tr>
-        </thead>
-        <tbody>
-            @if (_rows.Count == 0)
-            {
-                <tr><td colspan="9">Nothing to show yet.</td></tr>
-            }
-            else
-            {
-                @foreach (var row in _rows)
-                {
+        <div class="epc-scp-table-card">
+            <table class="epc-scp-data-table table table-epc-pro">
+                <thead>
                     <tr>
-                            <td>@(!string.IsNullOrWhiteSpace(row.Host) ? row.Host : "—")</td>
-                            <td>@(!string.IsNullOrWhiteSpace(row.IndustryCode) ? row.IndustryCode : "—")</td>
-                            <td>@(!string.IsNullOrWhiteSpace(row.SystemName) ? row.SystemName : "—")</td>
-                            <td>@(!string.IsNullOrWhiteSpace(row.HubName) ? row.HubName : "—")</td>
-                            <td>@(!string.IsNullOrWhiteSpace(row.ThemeTemplate) ? row.ThemeTemplate : "—")</td>
-                            <td>@(!string.IsNullOrWhiteSpace(row.AccessMode) ? row.AccessMode : "—")</td>
-                            <td>@(!string.IsNullOrWhiteSpace(row.CpDefaultLang) ? row.CpDefaultLang : "—")</td>
-                            <td>@(!string.IsNullOrWhiteSpace(row.CountryCode) ? row.CountryCode : "—")</td>
-                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
+                        <th>Host</th>
+                        <th>Industry</th>
+                        <th>System</th>
+                        <th>Hub</th>
+                        <th>Theme</th>
+                        <th>Access</th>
+                        <th>Lang</th>
+                        <th>Country</th>
+                        <th></th>
                     </tr>
-                }
-            }
-        </tbody>
-    </table>
-    </div>
+                </thead>
+                <tbody>
+                    @if (_rows.Count == 0)
+                    {
+                        <tr><td colspan="9">Nothing to show yet.</td></tr>
+                    }
+                    else
+                    {
+                        @foreach (var row in _rows)
+                        {
+                            <tr>
+                                <td>@(!string.IsNullOrWhiteSpace(row.Host) ? row.Host : "—")</td>
+                                <td>@(!string.IsNullOrWhiteSpace(row.IndustryCode) ? row.IndustryCode : "—")</td>
+                                <td>@(!string.IsNullOrWhiteSpace(row.SystemName) ? row.SystemName : "—")</td>
+                                <td>@(!string.IsNullOrWhiteSpace(row.HubName) ? row.HubName : "—")</td>
+                                <td>@(!string.IsNullOrWhiteSpace(row.ThemeTemplate) ? row.ThemeTemplate : "—")</td>
+                                <td>@(!string.IsNullOrWhiteSpace(row.AccessMode) ? row.AccessMode : "—")</td>
+                                <td>@(!string.IsNullOrWhiteSpace(row.CpDefaultLang) ? row.CpDefaultLang : "—")</td>
+                                <td>@(!string.IsNullOrWhiteSpace(row.CountryCode) ? row.CountryCode : "—")</td>
+                                <td class="epc-scp-actions-cell"><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
 
-</PhpCpDesktopChrome>
+        <p class="text-muted small" style="margin-top:12px">
+            Super CP only. Tenant hosts (e.g. epartscart.com) receive a not-found gate — no fleet inventory, deploy targets, or platform credentials.
+            Writes remain PHP industry/portal settings authoritative.
+            @if (!string.IsNullOrWhiteSpace(_message))
+            {
+                <span> · @_message (@_source)</span>
+            }
+        </p>
+
+    </PhpCpDesktopChrome>
+}
+else
+{
+    <div style="padding:2rem;font-family:sans-serif;">
+        <h1>Not found</h1>
+        <p>Portal fleet settings are available on the platform Super CP host only. This tenant Control Panel is independent — it does not show Super CP site inventory or deploy secrets.</p>
+        <p>
+            <a href="/cp">Open Control Panel</a>
+            · <a href="/cp/config-items-app">Tenant config</a>
+            · <a href="/cp/tenant-email-app">Tenant email / SMTP</a>
+            · <a href="/cp/industry-packs-app">Industry packs</a>
+        </p>
+    </div>
+}
 
 @code {
-    private const string _phpTab = "/CP/control/portal/portal";
+    private const string _phpTab = "/CP/control/portal/industry_settings";
+    private bool _allowed;
     private bool _isAdmin;
     private CpPortalSettingsSummary _summary = new(0, 0, 0, 0, "n/a", "");
     private IReadOnlyList<CpPortalSettingsRowDigest> _rows = [];
@@ -112,13 +123,17 @@
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
-        if (ctx is null) return;
+        _allowed = SuperCpHostGate.IsAllowed(ctx);
+        if (!_allowed || ctx is null)
+        {
+            return;
+        }
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
         if (!_isAdmin)
         {
-            return; // guest browse — Sign in for live data
+            return;
         }
 
         var result = await Dashboards.BuildCpPortalSettingsDigestAsync(200, ctx.RequestAborted);

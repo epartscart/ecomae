@@ -166,7 +166,8 @@ else
         new("Warehouses", "fa-building", "/cp/storages-app", "black"),
         new("ERP finance", "fa-university", "/erp", "red"),
         new("Documents", "fa-file-text-o", "/cp/document-control-app", "stone"),
-        new("Settings", "fa-cog", "/cp/portal-settings-app", "crimson"),
+        // Tenant Command Centre must not deep-link Super CP portal fleet inventory.
+        new("Settings", "fa-cog", "/cp/config-items-app", "crimson"),
     ];
 
     private sealed record DashTile(string Label, string Icon, string Href, string Tone);

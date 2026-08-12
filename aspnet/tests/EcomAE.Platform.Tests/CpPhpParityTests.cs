@@ -82,7 +82,7 @@ public sealed class CpPhpParityTests
     [InlineData("/CP/control/config?need_config_group=13", "/cp/config-items-app")]
     [InlineData("/CP/control/communications", "/cp/communications-test-app")]
     [InlineData("/CP/control/sms-operatory", "/cp/sms-whatsapp-app")]
-    [InlineData("/CP/control/portal/epc_tenant_email_settings", "/cp/portal-settings-app")]
+    [InlineData("/CP/control/portal/epc_tenant_email_settings", "/cp/tenant-email-app")]
     [InlineData("/CP/system/debug", "/cp/debug-console-app")]
     [InlineData("/CP/shop/cash", "/erp/cash-accounts-app")]
     [InlineData("/CP/shop/onlajn-kassy", "/cp/kkt-app")]
@@ -302,7 +302,10 @@ public sealed class CpPhpParityTests
 
         Assert.True(LegacyDesktopChromeCatalog.IsSuperOnlyCpLink("/bos/fleet-health-app"));
         Assert.True(LegacyDesktopChromeCatalog.IsSuperOnlyCpLink("/CP/control/portal/epc_super_cp_fleet_dashboard"));
+        Assert.True(LegacyDesktopChromeCatalog.IsSuperOnlyCpLink("/cp/portal-settings-app"));
         Assert.False(LegacyDesktopChromeCatalog.IsSuperOnlyCpLink("/cp/orders"));
+        Assert.False(LegacyDesktopChromeCatalog.IsSuperOnlyCpLink("/cp/tenant-email-app"));
+        Assert.DoesNotContain(allHrefs, h => h.Contains("portal-settings-app", StringComparison.OrdinalIgnoreCase));
     }
 
     [Fact]
