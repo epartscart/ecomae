@@ -161,6 +161,12 @@ public static class LegacyPresentationAssets
         "/platform-assets/epc_statuses_cp.css?v=20260811oms"
     ];
 
+    /// <summary>CP Website tracker (PHP epc_web_tracker_cp.css + ASP.NET chart upgrades).</summary>
+    public static readonly IReadOnlyList<string> CpWebTrackerStylesheets =
+    [
+        "/platform-assets/epc_web_tracker_cp.css?v=20260812wt1"
+    ];
+
     /// <summary>Structural selectors / class markers for graphical presentation probes.</summary>
     public static IReadOnlyList<string> RequiredGraphicalMarkers(string surface)
         => surface.Trim().ToLowerInvariant() switch

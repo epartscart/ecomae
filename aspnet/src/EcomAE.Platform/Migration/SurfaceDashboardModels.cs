@@ -2845,6 +2845,128 @@ public sealed record CpWebTrackerDigestResult(
     string Source,
     string Message);
 
+/// <summary>PHP ajax_epc_web_tracker.php dashboard filters.</summary>
+public sealed record CpWebTrackerFilterQuery(
+    string SiteKey,
+    string FromDate,
+    string ToDate,
+    string Device,
+    string Country,
+    string Ip,
+    string UserId,
+    string UserType,
+    string Browser,
+    string Path,
+    bool IsSuper);
+
+public sealed record CpWebTrackerDashSummary(
+    long Sessions,
+    long Visitors,
+    long Pageviews,
+    long Events,
+    long Clicks,
+    long Searches,
+    long GuestSessions,
+    long RegisteredSessions,
+    long AvgDurationMs,
+    double AvgPages,
+    double BounceRate);
+
+public sealed record CpWebTrackerDailyRow(string Date, long Sessions, long Pageviews);
+public sealed record CpWebTrackerPageRow(string Path, long Views, long Sessions, long AvgTimeMs, long AvgScroll);
+public sealed record CpWebTrackerGeoRow(string CountryCode, string CountryName, string City, long Sessions);
+public sealed record CpWebTrackerDeviceRow(string DeviceType, string Browser, string Os, long Sessions);
+public sealed record CpWebTrackerSearchRow(string SearchQuery, string SearchContext, long Hits, long Sessions);
+public sealed record CpWebTrackerClickRow(string Path, string ElementTag, string ElementId, string ElementText, string ElementHref, long Hits);
+public sealed record CpWebTrackerReferrerRow(string Host, string UtmSource, string UtmMedium, string UtmCampaign, long Sessions);
+public sealed record CpWebTrackerTenantRow(string SiteKey, string Hostname, long Sessions, long Pageviews, long Visitors);
+public sealed record CpWebTrackerFacetRow(string Value, string Label, long Sessions);
+
+public sealed record CpWebTrackerRecentSessionRow(
+    long Id,
+    string SessionUid,
+    string SiteKey,
+    string Hostname,
+    long UserId,
+    bool IsRegistered,
+    long FirstSeenAt,
+    long LastSeenAt,
+    long PageviewCount,
+    long EventCount,
+    long DurationMs,
+    string LandingPath,
+    string ExitPath,
+    string CountryCode,
+    string CountryName,
+    string City,
+    string Region,
+    string DeviceType,
+    string Browser,
+    string Os,
+    string Ip,
+    string ReferrerHost,
+    string UtmSource);
+
+public sealed record CpWebTrackerFacets(
+    IReadOnlyList<CpWebTrackerFacetRow> Countries,
+    IReadOnlyList<CpWebTrackerFacetRow> Devices,
+    IReadOnlyList<CpWebTrackerFacetRow> Browsers);
+
+public sealed record CpWebTrackerDashboardResult(
+    bool Ok,
+    string SiteKey,
+    long FromUnix,
+    long ToUnix,
+    bool IsSuper,
+    string Db,
+    CpWebTrackerDashSummary Summary,
+    IReadOnlyList<CpWebTrackerDailyRow> Daily,
+    IReadOnlyList<CpWebTrackerPageRow> TopPages,
+    IReadOnlyList<CpWebTrackerGeoRow> Geo,
+    IReadOnlyList<CpWebTrackerDeviceRow> Devices,
+    IReadOnlyList<CpWebTrackerSearchRow> Searches,
+    IReadOnlyList<CpWebTrackerClickRow> TopClicks,
+    IReadOnlyList<CpWebTrackerReferrerRow> Referrers,
+    IReadOnlyList<CpWebTrackerRecentSessionRow> RecentSessions,
+    IReadOnlyList<CpWebTrackerTenantRow> ByTenant,
+    CpWebTrackerFacets Facets,
+    CpWebTrackerFilterQuery Filters,
+    IReadOnlyList<string> SiteOptions,
+    string Source,
+    string Message);
+
+public sealed record CpWebTrackerPageviewDetail(
+    long Id,
+    long Ts,
+    string Path,
+    string Query,
+    string Title,
+    long TimeOnPageMs,
+    long ScrollMaxPct,
+    long LoadTimeMs);
+
+public sealed record CpWebTrackerEventDetail(
+    long Id,
+    long Ts,
+    string EventType,
+    string Path,
+    string SearchQuery,
+    string SearchContext,
+    string ElementTag,
+    string ElementId,
+    string ElementText,
+    string ElementHref,
+    int X,
+    int Y);
+
+public sealed record CpWebTrackerSessionDetailResult(
+    bool Ok,
+    CpWebTrackerRecentSessionRow? Session,
+    IReadOnlyList<CpWebTrackerPageviewDetail> Pageviews,
+    IReadOnlyList<CpWebTrackerEventDetail> Events,
+    string Source,
+    string Message);
+
 public sealed record CpAbandonedCartsSummary(
     int LineCount,
     int GuestLineCount,

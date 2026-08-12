@@ -350,6 +350,12 @@ public static class EcomAeRoutes
     public const string ControlPanelWebTracker = "/cp/web-tracker";
     /// <summary>CP Web tracker Blazor list (JSON digest remains <see cref="ControlPanelWebTracker"/>).</summary>
     public const string ControlPanelWebTrackerApp = "/cp/web-tracker-app";
+    /// <summary>PHP-parity filtered dashboard JSON (ajax_epc_web_tracker.php action=dashboard).</summary>
+    public const string ControlPanelWebTrackerDashboard = "/cp/web-tracker/dashboard";
+    /// <summary>PHP-parity session timeline JSON (ajax_epc_web_tracker.php action=session).</summary>
+    public const string ControlPanelWebTrackerSession = "/cp/web-tracker/session";
+    /// <summary>PHP-parity CSV export (ajax_epc_web_tracker.php action=csv).</summary>
+    public const string ControlPanelWebTrackerCsv = "/cp/web-tracker/csv";
     public const string ControlPanelAbandonedCarts = "/cp/abandoned-carts";
     /// <summary>CP Abandoned carts Blazor list (JSON digest remains <see cref="ControlPanelAbandonedCarts"/>).</summary>
     public const string ControlPanelAbandonedCartsApp = "/cp/abandoned-carts-app";
