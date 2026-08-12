@@ -51,12 +51,38 @@ block_re = re.compile(
     re.S,
 )
 
+import sys
+for lib in (
+    Path("/opt/ecomae-aspnet-source/scripts/lib"),
+    Path("/root/ecomae/scripts/lib"),
+    Path("scripts/lib"),
+):
+    if (lib / "nginx_safe_bak.py").is_file():
+        sys.path.insert(0, str(lib.resolve()))
+        break
+try:
+    from nginx_safe_bak import is_bak_litter, prune_sites_enabled_bak_litter, safe_bak_path
+except Exception:
+    is_bak_litter = lambda p: ".bak" in p.name.lower()
+    def prune_sites_enabled_bak_litter(max_path_len=160):
+        return 0
+    def safe_bak_path(conf, tag):
+        import time
+        d = Path("/root/nginx-bak"); d.mkdir(parents=True, exist_ok=True)
+        base = conf.name.split(".bak", 1)[0]
+        if not base.endswith(".conf"):
+            base += ".conf"
+        return d / f"{base}.{tag}.{time.strftime('%Y%m%d%H%M%S')}.bak"
+
+print(f"nginx bak prune moved={prune_sites_enabled_bak_litter()}")
 patched = 0
 for base in (Path("/etc/nginx/sites-enabled"), Path("/etc/nginx/conf.d")):
     if not base.exists():
         continue
     for conf in base.iterdir():
-        if not conf.is_file():
+        if not conf.is_file() or is_bak_litter(conf):
+            continue
+        if not conf.name.endswith(".conf"):
             continue
         try:
             text = conf.read_text(errors="ignore")
@@ -66,7 +92,7 @@ for base in (Path("/etc/nginx/sites-enabled"), Path("/etc/nginx/conf.d")):
             continue
         new, n = block_re.subn("\n# removed stub→/en by cloudpanel_fix_warmup_splash_storefront_loop.sh\n", text)
         if n:
-            bak = conf.with_name(conf.name + ".bak.warmup-splash-fix." + __import__("time").strftime("%Y%m%d%H%M%S"))
+            bak = safe_bak_path(conf, "warmup-splash-fix")
             bak.write_text(text)
             conf.write_text(new)
             print(f"stripped {n} stub location(s): {conf} bak={bak}")
