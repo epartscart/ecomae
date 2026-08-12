@@ -2218,6 +2218,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         string? best = null;
         var bestScore = 0;
+        StorefrontArticleBrandDigest? dominantStocked = null;
         foreach (var b in brands)
         {
             var name = (b.Brand ?? string.Empty).Trim();
@@ -2226,27 +2227,14 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                 continue;
             }
 
-            var compact = CompactStorefrontBrand(name);
-            var score = 0;
-            if (compact == brandCompact)
+            if (b.Exist > 0
+                && (dominantStocked is null || b.Exist > dominantStocked.Exist))
             {
-                score = 1000 + b.Exist;
-            }
-            else if (compact.Contains(brandCompact, StringComparison.Ordinal)
-                     || brandCompact.Contains(compact, StringComparison.Ordinal))
-            {
-                score = 500 + Math.Min(compact.Length, brandCompact.Length) + Math.Min(b.Exist, 100);
-            }
-            else
-            {
-                // Shared significant suffix (ASHIKA / ASAKASHI) — prefer in-stock warehouse brands.
-                var shared = LongestCommonSubstringLength(compact, brandCompact);
-                if (shared >= 5)
-                {
-                    score = 200 + shared + Math.Min(b.Exist, 50);
-                }
+                dominantStocked = b;
             }
 
+            var compact = CompactStorefrontBrand(name);
+            var score = ScoreWarehouseBrandMatch(brandCompact, compact, b.Exist);
             if (score > bestScore)
             {
                 bestScore = score;
@@ -2254,7 +2242,71 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             }
         }
 
-        return bestScore >= 200 ? best : null;
+        // Spoken miss (JA ASHIKA → JS ASAKASHI): LCS is often 4 ("ASHI"). Accept ≥4.
+        if (bestScore >= 180)
+        {
+            return best;
+        }
+
+        // Single dominant in-stock manufacturer for this article — accept when request shares a stem.
+        if (dominantStocked is not null
+            && dominantStocked.Exist > 0
+            && brands.Count(static x => x.Exist > 0) == 1)
+        {
+            var domName = (dominantStocked.Brand ?? string.Empty).Trim();
+            if (domName.Length > 0)
+            {
+                var domCompact = CompactStorefrontBrand(domName);
+                if (ScoreWarehouseBrandMatch(brandCompact, domCompact, dominantStocked.Exist) >= 100)
+                {
+                    return domName;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Score spoken / near-miss brands. JAASHIKA vs JSASAKASHI shares "ASHI" (len 4).
+    /// </summary>
+    private static int ScoreWarehouseBrandMatch(string brandCompact, string warehouseCompact, int exist)
+    {
+        if (warehouseCompact.Length == 0 || brandCompact.Length == 0)
+        {
+            return 0;
+        }
+
+        if (warehouseCompact == brandCompact)
+        {
+            return 1000 + exist;
+        }
+
+        if (warehouseCompact.Contains(brandCompact, StringComparison.Ordinal)
+            || brandCompact.Contains(warehouseCompact, StringComparison.Ordinal))
+        {
+            return 500 + Math.Min(warehouseCompact.Length, brandCompact.Length) + Math.Min(exist, 100);
+        }
+
+        // Drop 2-letter prefix (JA/JS/OE…) and compare stems (ASHIKA vs ASAKASHI).
+        var reqStem = brandCompact.Length > 4 ? brandCompact[2..] : brandCompact;
+        var whStem = warehouseCompact.Length > 4 ? warehouseCompact[2..] : warehouseCompact;
+        if (reqStem.Length >= 4
+            && (whStem.Contains(reqStem, StringComparison.Ordinal)
+                || reqStem.Contains(whStem, StringComparison.Ordinal)
+                || warehouseCompact.Contains(reqStem, StringComparison.Ordinal)
+                || brandCompact.Contains(whStem, StringComparison.Ordinal)))
+        {
+            return 300 + Math.Min(reqStem.Length, whStem.Length) + Math.Min(exist, 80);
+        }
+
+        var shared = LongestCommonSubstringLength(warehouseCompact, brandCompact);
+        if (shared >= 4)
+        {
+            return 180 + shared + Math.Min(exist, 50);
+        }
+
+        return 0;
     }
 
     private static int LongestCommonSubstringLength(string a, string b)

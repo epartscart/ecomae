@@ -62,6 +62,23 @@ public sealed class PartsChpuOffersLatencyTests
         Assert.Contains("ResolveWarehouseBrandForArticleAsync", text, StringComparison.Ordinal);
         Assert.Contains("QueryStorefrontPartOffersForBrandAliasesAsync", text, StringComparison.Ordinal);
         Assert.Contains("SearchStorefrontPartsAsync(article, brand, 80,", text, StringComparison.Ordinal);
+        Assert.Contains("ScoreWarehouseBrandMatch", text, StringComparison.Ordinal);
+        Assert.Contains("shared >= 4", text, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void NginxSafeBak_PrunesLongNamesAndSkipsBakLitter()
+    {
+        var text = File.ReadAllText(FindRepoFile("scripts/lib/nginx_safe_bak.py"));
+        Assert.Contains("ENAMETOOLONG", text, StringComparison.Ordinal);
+        Assert.Contains("prune_sites_enabled_bak_litter", text, StringComparison.Ordinal);
+        Assert.Contains("/root/nginx-bak", text, StringComparison.Ordinal);
+        var warmup = File.ReadAllText(FindRepoFile("scripts/cloudpanel_fix_warmup_splash_storefront_loop.sh"));
+        Assert.Contains("nginx_safe_bak", warmup, StringComparison.Ordinal);
+        Assert.Contains("is_bak_litter", warmup, StringComparison.Ordinal);
+        var prove = File.ReadAllText(FindRepoFile("scripts/cloudpanel_EPARTSCART_SEARCH_FASTER_THAN_PHP_PROVE.sh"));
+        Assert.Contains("JAASHIKA", prove, StringComparison.Ordinal);
+        Assert.Contains("SSR_FLAG=SOFT", prove, StringComparison.Ordinal);
     }
 
     [Fact]
