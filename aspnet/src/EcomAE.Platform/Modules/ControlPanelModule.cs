@@ -36,6 +36,20 @@ public sealed class ControlPanelModule : ISurfaceModule
             }
 
             var summary = await dashboards.BuildControlPanelAsync(cancellationToken);
+            // Fleet portal counts are Super-CP registry metadata — never on tenant hosts.
+            if (!SuperCpHostGate.IsAllowed(context)
+                && (summary.PortalTenants != 0 || summary.ActivePortalTenants != 0))
+            {
+                summary = summary with
+                {
+                    PortalTenants = 0,
+                    ActivePortalTenants = 0,
+                    Message = string.IsNullOrWhiteSpace(summary.Message)
+                        ? "fleet_counts_redacted_tenant_cp"
+                        : summary.Message
+                };
+            }
+
             return Results.Ok(new
             {
                 ok = true,
@@ -53,6 +67,16 @@ public sealed class ControlPanelModule : ISurfaceModule
             ISurfaceDashboardSummaryReporter dashboards,
             CancellationToken cancellationToken) =>
         {
+            if (!SuperCpHostGate.IsAllowed(context))
+            {
+                return Results.NotFound(new
+                {
+                    ok = false,
+                    surface = "cp",
+                    message = "Portal tenant fleet digest is Super CP only. Tenant CPs are independent."
+                });
+            }
+
             var session = await validator.ValidateAsync(context, cancellationToken);
             if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
             {
@@ -1080,6 +1104,16 @@ public sealed class ControlPanelModule : ISurfaceModule
             ISurfaceDashboardSummaryReporter dashboards,
             CancellationToken cancellationToken) =>
         {
+            if (!SuperCpHostGate.IsAllowed(context))
+            {
+                return Results.NotFound(new
+                {
+                    ok = false,
+                    surface = "cp",
+                    message = "Demo tenant fleet digest is Super CP only. Tenant CPs are independent."
+                });
+            }
+
             var session = await validator.ValidateAsync(context, cancellationToken);
             if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
             {
@@ -2798,7 +2832,8 @@ public sealed class ControlPanelModule : ISurfaceModule
             }
 
             var host = context.Request.Host.Host;
-            var isSuper = session.Capabilities.Contains("bos") || PlatformHostPolicy.IsSuperCpHost(host);
+            // Super tracker = platform host only — never derive from bos capability (tenant admins must not fleet-read).
+            var isSuper = PlatformHostPolicy.IsSuperCpHost(host);
             var own = CpWebTrackerDashboardBuilder.ResolveOwnSiteKey(host);
             var q = context.Request.Query;
             var filters = CpWebTrackerDashboardBuilder.NormalizeFilters(
@@ -2902,7 +2937,7 @@ public sealed class ControlPanelModule : ISurfaceModule
             }
 
             var host = context.Request.Host.Host;
-            var isSuper = session.Capabilities.Contains("bos") || PlatformHostPolicy.IsSuperCpHost(host);
+            var isSuper = PlatformHostPolicy.IsSuperCpHost(host);
             var own = CpWebTrackerDashboardBuilder.ResolveOwnSiteKey(host);
             var siteKey = (string?)context.Request.Query["site_key"] ?? string.Empty;
             if (!isSuper)
@@ -2992,7 +3027,7 @@ public sealed class ControlPanelModule : ISurfaceModule
             }
 
             var host = context.Request.Host.Host;
-            var isSuper = session.Capabilities.Contains("bos") || PlatformHostPolicy.IsSuperCpHost(host);
+            var isSuper = PlatformHostPolicy.IsSuperCpHost(host);
             var own = CpWebTrackerDashboardBuilder.ResolveOwnSiteKey(host);
             var q = context.Request.Query;
             var filters = CpWebTrackerDashboardBuilder.NormalizeFilters(
