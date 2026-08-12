@@ -469,6 +469,37 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>PHP <c>users/usermanager/user</c> core row.</summary>
+    public const string SelectCpUserById = """
+        SELECT `user_id`, `email`, `email_confirmed`, `phone`, `phone_confirmed`,
+               `unlocked`, `reg_variant`, `time_registered`, `time_last_visit`
+        FROM `users`
+        WHERE `user_id` = @userId
+        LIMIT 1
+        """;
+
+    /// <summary>PHP user.php groups tree bind.</summary>
+    public const string SelectCpUserGroups = """
+        SELECT g.`id`, g.`value`, g.`for_backend`, g.`unblocked`
+        FROM `users_groups_bind` b
+        INNER JOIN `groups` g ON g.`id` = b.`group_id`
+        WHERE b.`user_id` = @userId
+        ORDER BY g.`level` ASC, g.`id` ASC
+        LIMIT 100
+        """;
+
+    /// <summary>PHP user.php / user_manager balance (income − issue).</summary>
+    public const string SelectCpUserBalance = """
+        SELECT IFNULL((
+                   SELECT SUM(`amount`) FROM `shop_users_accounting`
+                   WHERE `user_id` = @userId AND `income` = 1 AND `active` = 1
+               ), 0)
+             - IFNULL((
+                   SELECT SUM(`amount`) FROM `shop_users_accounting`
+                   WHERE `user_id` = @userId AND `income` = 0 AND `active` = 1
+               ), 0) AS balance
+        """;
+
     public const string SelectCpGroups = """
         SELECT `id`, `value`, `for_backend`, `for_guests`, `for_registrated`, `unblocked`, `parent`, `level`
         FROM `groups`

@@ -11,71 +11,367 @@
 
 <PageTitle>Users · Control Panel · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="cp" />
+@foreach (var href in LegacyPresentationAssets.CpUsersConsoleStylesheets)
+{
+    <link rel="stylesheet" href="@href" />
+}
 
 <PhpCpDesktopChrome IsAdmin="_isAdmin">
 
     <PhpCpModulePageHeader Title="Users"
-                           Subtitle="Manage storefront accounts, unlock status, and partner logins (PHP users module presentation)."
+                           Subtitle="PHP user_manager parity — list on the left, account console on the right. Manage profile, groups, balance, and jump to related modules."
                            PhpTabHref="/CP/control/users">
-        <a class="ghost" href="/cp/groups-app">Groups list</a>
+        <a class="ghost" href="/cp/groups-app">Groups</a>
+        <a class="ghost" href="/cp/customer-board-app">Customer board</a>
+        <a class="ghost" href="/cp/credit-limits-app">Credit limits</a>
+        <a class="ghost" href="/cp/orders">Orders · OMS</a>
     </PhpCpModulePageHeader>
 
-    <div class="epc-scp-kpi" aria-label="Users KPIs">
-        <div class="epc-scp-kpi__card">
-            <div class="epc-scp-kpi__label">Shown (limit @_limit)</div>
-            <div class="epc-scp-kpi__val">@_users.Count</div>
+    <div class="col-lg-12 epc-scp-panel epc-users-page">
+        <div class="epc-users-page__hero">
+            <div>
+                <h2><i class="fa fa-users"></i> Users · account console</h2>
+                <p>Same-to-same with PHP <code>users/usermanager</code> and <code>users/usermanager/user</code>: open a row to inspect profile, groups, balance, recent orders, and linked modules. Writes stay on the classic PHP editor until cutover.</p>
+            </div>
+            <div class="epc-users-page__hero-actions">
+                <a class="btn btn-primary btn-sm" href="/cp/groups-app"><i class="fa fa-sitemap"></i> Groups</a>
+                <a class="btn btn-default btn-sm" href="/cp/customer-board-app"><i class="fa fa-id-card-o"></i> Customer board</a>
+                <a class="btn btn-default btn-sm" href="/cp/abandoned-carts-app"><i class="fa fa-shopping-cart"></i> Abandoned carts</a>
+                <a class="btn btn-default btn-sm" href="/cp/credit-limits-app"><i class="fa fa-credit-card"></i> Credit limits</a>
+            </div>
         </div>
-        <div class="epc-scp-kpi__card">
-            <div class="epc-scp-kpi__label">Unlocked in page</div>
-            <div class="epc-scp-kpi__val">@_unlocked</div>
-        </div>
-    </div>
 
-    <div class="epc-scp-table-card">
-        <table class="epc-scp-data-table table table-epc-pro">
-            <thead>
-                <tr>
-                    <th>User ID</th>
-                    <th>Email</th>
-                    <th>Phone</th>
-                    <th>Unlocked</th>
-                    <th>Registered</th>
-                    <th>Last visit</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody>
-                @if (_users.Count == 0)
+        <div class="epc-scp-kpi" aria-label="Users KPIs">
+            <div class="epc-scp-kpi__card">
+                <div class="epc-scp-kpi__label">Shown (limit @_limit)</div>
+                <div class="epc-scp-kpi__val">@_visibleUsers.Count</div>
+            </div>
+            <div class="epc-scp-kpi__card">
+                <div class="epc-scp-kpi__label">Unlocked in page</div>
+                <div class="epc-scp-kpi__val">@_unlocked</div>
+            </div>
+            <div class="epc-scp-kpi__card">
+                <div class="epc-scp-kpi__label">Locked in page</div>
+                <div class="epc-scp-kpi__val">@(_visibleUsers.Count - _unlocked)</div>
+            </div>
+            <div class="epc-scp-kpi__card">
+                <div class="epc-scp-kpi__label">Selected</div>
+                <div class="epc-scp-kpi__val">@(_selectedId > 0 ? $"#{_selectedId}" : "—")</div>
+            </div>
+        </div>
+
+        <div class="epc-users-toolbar">
+            <form method="get" action="/cp/users-app">
+                @if (_selectedId > 0)
                 {
-                    <tr><td colspan="7">@(string.IsNullOrWhiteSpace(_message) ? "Nothing to show yet." : _message)@if (!string.IsNullOrWhiteSpace(_source) && _source != "n/a") { <text> (source=@_source)</text> }</td></tr>
+                    <input type="hidden" name="user_id" value="@_selectedId.ToString(CultureInfo.InvariantCulture)" />
                 }
-                else
+                <input type="search" name="q" value="@_query" placeholder="Filter email, phone, or user id…" aria-label="Filter users" />
+                <button type="submit" class="btn btn-default btn-sm"><i class="fa fa-search"></i> Filter</button>
+                @if (!string.IsNullOrWhiteSpace(_query))
                 {
-                    @foreach (var u in _users)
-                    {
-                        var phpHref = $"/CP/control/users?user_id={u.UserId.ToString(CultureInfo.InvariantCulture)}";
-                        <tr>
-                            <td><strong>@u.UserId</strong></td>
-                            <td>@u.Email</td>
-                            <td>@(string.IsNullOrWhiteSpace(u.Phone) ? "—" : u.Phone)</td>
-                            <td>
-                                @if (u.Unlocked == 1)
+                    <a class="btn btn-default btn-sm" href="@DetailHref(0, null)">Clear</a>
+                }
+            </form>
+            <span class="epc-users-toolbar__hint"><i class="fa fa-columns"></i> Open a row — detail console loads on the right</span>
+        </div>
+
+        @if (!_isAdmin)
+        {
+            <div class="alert alert-info" role="status">Sign in with a Control Panel admin session to load live users. Guest browse shows the PHP-parity shell.</div>
+        }
+        else if (!string.IsNullOrWhiteSpace(_message))
+        {
+            <div class="alert alert-warning" role="status">@_message <span class="text-muted small">(@_source)</span></div>
+        }
+
+        <div class="epc-scp-users-workspace @(_selectedId > 0 ? "is-detail-active" : null)">
+            <div class="epc-scp-users-workspace__list">
+                <div class="epc-scp-table-card">
+                    <div class="epc-scp-table-card__head">
+                        <div>
+                            <h3>User accounts</h3>
+                            <p class="epc-users-hint">PHP user_manager list — select a row for the account console</p>
+                        </div>
+                        <span>
+                            <a class="btn btn-default btn-xs" href="/cp/groups-app"><i class="fa fa-sitemap"></i> Groups</a>
+                            <a class="btn btn-default btn-xs" href="/cp/admin-sessions-app"><i class="fa fa-key"></i> Sessions</a>
+                        </span>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="epc-scp-data-table table table-epc-pro table-hover">
+                            <thead>
+                                <tr>
+                                    <th>User ID</th>
+                                    <th>Email</th>
+                                    <th>Phone</th>
+                                    <th>Unlocked</th>
+                                    <th>Registered</th>
+                                    <th>Last visit</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (_visibleUsers.Count == 0)
                                 {
-                                    <span class="epc-scp-badge epc-scp-badge--ok">Yes</span>
+                                    <tr><td colspan="7">Nothing to show yet.</td></tr>
                                 }
                                 else
                                 {
-                                    <span class="epc-scp-badge epc-scp-badge--off">No</span>
+                                    @foreach (var u in _visibleUsers)
+                                    {
+                                        var rowClass = "epc-scp-users-row" + (_selectedId == u.UserId ? " is-selected" : "");
+                                        <tr class="@rowClass">
+                                            <td>
+                                                <a class="epc-scp-users-link" href="@DetailHref(u.UserId, _query)">
+                                                    <strong>@u.UserId</strong>
+                                                </a>
+                                            </td>
+                                            <td>@(string.IsNullOrWhiteSpace(u.Email) ? "—" : u.Email)</td>
+                                            <td>@(string.IsNullOrWhiteSpace(u.Phone) ? "—" : u.Phone)</td>
+                                            <td>
+                                                @if (u.Unlocked == 1)
+                                                {
+                                                    <span class="epc-scp-badge epc-scp-badge--ok">Yes</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="epc-scp-badge epc-scp-badge--off">No</span>
+                                                }
+                                            </td>
+                                            <td>@FormatTime(u.TimeRegistered)</td>
+                                            <td>@FormatTime(u.TimeLastVisit)</td>
+                                            <td class="epc-scp-actions-cell">
+                                                <a href="@DetailHref(u.UserId, _query)">Open</a>
+                                            </td>
+                                        </tr>
+                                    }
                                 }
-                            </td>
-                            <td>@FormatTime(u.TimeRegistered)</td>
-                            <td>@FormatTime(u.TimeLastVisit)</td>
-                            <td class="epc-scp-actions-cell"><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(phpHref)">Open</a></td>
-                        </tr>
-                    }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="epc-scp-users-workspace__detail" id="epc_users_detail_pane">
+                @if (_detail is null)
+                {
+                    <div class="epc-ud__empty">
+                        <i class="fa fa-user"></i>
+                        <p>Select a user to manage</p>
+                        <span class="text-muted small">One-window console: profile, groups, balance, orders, and related modules</span>
+                    </div>
                 }
-            </tbody>
-        </table>
+                else
+                {
+                    var d = _detail;
+                    var tab = string.IsNullOrWhiteSpace(_detailTab) ? "profile" : _detailTab;
+                    <div class="epc-ud" data-user-id="@d.UserId">
+                        <div class="epc-ud__head">
+                            <div class="epc-ud__title-row">
+                                <h3 class="epc-ud__title">
+                                    @(string.IsNullOrWhiteSpace(d.DisplayName) ? $"User #{d.UserId}" : d.DisplayName)
+                                    <span class="epc-ud__tag">User</span>
+                                </h3>
+                                @if (d.Unlocked == 1)
+                                {
+                                    <span class="epc-scp-badge epc-scp-badge--ok">Unlocked</span>
+                                }
+                                else
+                                {
+                                    <span class="epc-scp-badge epc-scp-badge--off">Locked</span>
+                                }
+                            </div>
+                            <div class="epc-ud__meta">
+                                <span><i class="fa fa-hashtag"></i> ID @d.UserId</span>
+                                <span><i class="fa fa-envelope-o"></i> @(string.IsNullOrWhiteSpace(d.Email) ? "—" : d.Email)</span>
+                                <span><i class="fa fa-phone"></i> @(string.IsNullOrWhiteSpace(d.Phone) ? "—" : d.Phone)</span>
+                                <span><i class="fa fa-clock-o"></i> Reg @FormatTime(d.TimeRegistered)</span>
+                                <span><i class="fa fa-refresh"></i> Visit @FormatTime(d.TimeLastVisit)</span>
+                            </div>
+                            <div class="epc-ud__chips">
+                                <span class="epc-scp-badge epc-scp-badge--normal">Reg variant @d.RegVariant</span>
+                                <span class="epc-scp-badge @(d.EmailConfirmed == 1 ? "epc-scp-badge--ok" : "epc-scp-badge--off")">Email @(d.EmailConfirmed == 1 ? "confirmed" : "unconfirmed")</span>
+                                <span class="epc-scp-badge @(d.PhoneConfirmed == 1 ? "epc-scp-badge--ok" : "epc-scp-badge--off")">Phone @(d.PhoneConfirmed == 1 ? "confirmed" : "unconfirmed")</span>
+                                <span class="epc-scp-badge epc-scp-badge--normal">@d.Groups.Count groups</span>
+                            </div>
+                            <div class="epc-ud__totals">
+                                <div>
+                                    <span>Balance</span>
+                                    <strong class="@(d.Balance >= 0 ? "is-ok" : "is-bad")">@d.Balance.ToString("N2", CultureInfo.InvariantCulture)</strong>
+                                </div>
+                                <div>
+                                    <span>Orders</span>
+                                    <strong>@d.OrderCount.ToString(CultureInfo.InvariantCulture)</strong>
+                                </div>
+                                <div>
+                                    <span>Garage / sessions</span>
+                                    <strong>@d.GarageCount.ToString(CultureInfo.InvariantCulture) / @d.SessionCount.ToString(CultureInfo.InvariantCulture)</strong>
+                                </div>
+                            </div>
+                        </div>
+
+                        <nav class="epc-ud__tabs" aria-label="User detail tabs">
+                            <a class="@(tab == "profile" ? "is-active" : null)" href="@DetailHref(d.UserId, _query, "profile")">Profile</a>
+                            <a class="@(tab == "groups" ? "is-active" : null)" href="@DetailHref(d.UserId, _query, "groups")">Groups</a>
+                            <a class="@(tab == "orders" ? "is-active" : null)" href="@DetailHref(d.UserId, _query, "orders")">Orders</a>
+                            <a class="@(tab == "related" ? "is-active" : null)" href="@DetailHref(d.UserId, _query, "related")">Related modules</a>
+                        </nav>
+
+                        @if (tab == "profile")
+                        {
+                            <section class="epc-ud__panel">
+                                <div class="epc-ud__section-title">Account</div>
+                                <dl class="epc-ud__grid">
+                                    <dt>User ID</dt><dd>@d.UserId</dd>
+                                    <dt>Email</dt><dd>@(string.IsNullOrWhiteSpace(d.Email) ? "—" : d.Email)</dd>
+                                    <dt>Phone</dt><dd>@(string.IsNullOrWhiteSpace(d.Phone) ? "—" : d.Phone)</dd>
+                                    <dt>Unlocked</dt><dd>@(d.Unlocked == 1 ? "Yes" : "No")</dd>
+                                    <dt>Reg variant</dt><dd>@d.RegVariant</dd>
+                                    <dt>Registered</dt><dd>@FormatTime(d.TimeRegistered)</dd>
+                                    <dt>Last visit</dt><dd>@FormatTime(d.TimeLastVisit)</dd>
+                                </dl>
+
+                                @if (d.ProfileFields.Count > 0)
+                                {
+                                    <div class="epc-ud__section-title" style="margin-top:16px">Profile fields</div>
+                                    <dl class="epc-ud__grid">
+                                        @foreach (var field in d.ProfileFields.OrderBy(kv => kv.Key, StringComparer.OrdinalIgnoreCase))
+                                        {
+                                            <dt>@field.Key</dt>
+                                            <dd>@(string.IsNullOrWhiteSpace(field.Value) ? "—" : field.Value)</dd>
+                                        }
+                                    </dl>
+                                }
+
+                                <div class="epc-ud__actions">
+                                    <a class="btn btn-primary btn-sm" href="@PhpReferenceEditorHref(d.UserId)"><i class="fa fa-pencil"></i> PHP reference editor</a>
+                                    <a class="btn btn-default btn-sm" href="/cp/orders"><i class="fa fa-shopping-basket"></i> Orders · OMS</a>
+                                    <a class="btn btn-default btn-sm" href="@DetailHref(0, _query)"><i class="fa fa-times"></i> Close detail</a>
+                                </div>
+                                <p class="text-muted small" style="margin-top:10px">Save / unlock / password / auth-as-user writes remain on PHP <code>users/usermanager/user</code> until cutover. This pane is the same graphical management shell.</p>
+                            </section>
+                        }
+                        else if (tab == "groups")
+                        {
+                            <section class="epc-ud__panel">
+                                <div class="epc-ud__section-title">Group membership</div>
+                                @if (d.Groups.Count == 0)
+                                {
+                                    <p class="text-muted">No groups bound.</p>
+                                }
+                                else
+                                {
+                                    @foreach (var g in d.Groups)
+                                    {
+                                        <span class="epc-ud__group-chip">
+                                            #@g.GroupId · @(string.IsNullOrWhiteSpace(g.Name) ? "Group" : g.Name)
+                                            @if (g.ForBackend)
+                                            {
+                                                <text> · backend</text>
+                                            }
+                                            @if (!g.Unblocked)
+                                            {
+                                                <text> · blocked</text>
+                                            }
+                                        </span>
+                                    }
+                                }
+                                <div class="epc-ud__actions">
+                                    <a class="btn btn-default btn-sm" href="/cp/groups-app"><i class="fa fa-sitemap"></i> Manage groups</a>
+                                </div>
+                            </section>
+                        }
+                        else if (tab == "orders")
+                        {
+                            <section class="epc-ud__panel">
+                                <div class="epc-ud__section-title">Recent orders (@d.OrderCount total)</div>
+                                <div class="table-responsive">
+                                    <table class="table table-condensed epc-ud__orders">
+                                        <thead>
+                                            <tr>
+                                                <th>Order #</th>
+                                                <th>Created</th>
+                                                <th>Paid</th>
+                                                <th>Status</th>
+                                                <th></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @if (d.RecentOrders.Count == 0)
+                                            {
+                                                <tr><td colspan="5">No orders yet.</td></tr>
+                                            }
+                                            else
+                                            {
+                                                @foreach (var o in d.RecentOrders)
+                                                {
+                                                    <tr>
+                                                        <td><strong>#@o.Id</strong></td>
+                                                        <td>@FormatTime(o.TimeUnix)</td>
+                                                        <td>@PaidLabel(o.Paid)</td>
+                                                        <td>#@o.Status</td>
+                                                        <td><a href="@($"/cp/orders?order_id={o.Id.ToString(CultureInfo.InvariantCulture)}")">Open OMS</a></td>
+                                                    </tr>
+                                                }
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div class="epc-ud__actions">
+                                    <a class="btn btn-default btn-sm" href="/cp/orders"><i class="fa fa-shopping-basket"></i> Full OMS list</a>
+                                    <a class="btn btn-default btn-sm" href="/cp/abandoned-carts-app"><i class="fa fa-shopping-cart"></i> Abandoned carts</a>
+                                </div>
+                            </section>
+                        }
+                        else
+                        {
+                            <section class="epc-ud__panel">
+                                <div class="epc-ud__section-title">Related modules</div>
+                                <div class="epc-ud__related">
+                                    <a href="/cp/orders">
+                                        <strong>Orders · OMS</strong>
+                                        <span>@d.OrderCount orders · open console</span>
+                                    </a>
+                                    <a href="/cp/groups-app">
+                                        <strong>Groups</strong>
+                                        <span>@d.Groups.Count bound · ACL tree</span>
+                                    </a>
+                                    <a href="/cp/credit-limits-app">
+                                        <strong>Credit limits</strong>
+                                        <span>Balance @d.Balance.ToString("N2", CultureInfo.InvariantCulture)</span>
+                                    </a>
+                                    <a href="/cp/collections-dunning-app">
+                                        <strong>Collections</strong>
+                                        <span>Dunning / AR follow-up</span>
+                                    </a>
+                                    <a href="/cp/abandoned-carts-app">
+                                        <strong>Abandoned carts</strong>
+                                        <span>Recover cart intent</span>
+                                    </a>
+                                    <a href="/cp/customer-board-app">
+                                        <strong>Customer board</strong>
+                                        <span>CRM-style customer list</span>
+                                    </a>
+                                    <a href="/cp/admin-sessions-app">
+                                        <strong>Admin sessions</strong>
+                                        <span>@d.SessionCount session row(s)</span>
+                                    </a>
+                                    <a href="/cp/web-tracker-app">
+                                        <strong>Web tracker</strong>
+                                        <span>Browse / session analytics</span>
+                                    </a>
+                                    <a href="@PhpReferenceEditorHref(d.UserId)">
+                                        <strong>PHP reference editor</strong>
+                                        <span>Compare / write path (may 503)</span>
+                                    </a>
+                                </div>
+                            </section>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
     </div>
 
 </PhpCpDesktopChrome>
@@ -83,33 +379,129 @@
 @code {
     private bool _isAdmin;
     private IReadOnlyList<CpUserDigest> _users = [];
+    private IReadOnlyList<CpUserDigest> _visibleUsers = [];
+    private CpUserDetailDigest? _detail;
+    private int _selectedId;
     private int _unlocked;
     private int _limit = 100;
     private string _source = "n/a";
     private string _message = "";
+    private string _query = "";
+    private string _detailTab = "profile";
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
-        if (ctx is null) return;
+        if (ctx is null)
+        {
+            return;
+        }
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
+
+        if (ctx.Request.Query.TryGetValue("user_id", out var userRaw)
+            && int.TryParse(userRaw, NumberStyles.Integer, CultureInfo.InvariantCulture, out var uid)
+            && uid > 0)
+        {
+            _selectedId = uid;
+        }
+
+        if (ctx.Request.Query.TryGetValue("q", out var qRaw) && !string.IsNullOrWhiteSpace(qRaw))
+        {
+            _query = qRaw.ToString().Trim();
+        }
+
+        if (ctx.Request.Query.TryGetValue("tab", out var tabRaw) && !string.IsNullOrWhiteSpace(tabRaw))
+        {
+            _detailTab = tabRaw.ToString().Trim().ToLowerInvariant();
+        }
+
         if (!_isAdmin)
         {
-            return; // guest browse — Sign in for live data
+            return;
         }
 
         var result = await Dashboards.ListCpUsersAsync(_limit, ctx.RequestAborted);
         _users = result.Users;
-        _unlocked = _users.Count(u => u.Unlocked == 1);
         _source = result.Source;
         _message = result.Message;
+        _visibleUsers = FilterUsers(_users, _query);
+        _unlocked = _visibleUsers.Count(u => u.Unlocked == 1);
+
+        if (_selectedId > 0)
+        {
+            _detail = await Dashboards.GetCpUserDetailAsync(_selectedId, ctx.RequestAborted);
+            if (_detail is null)
+            {
+                var row = _users.FirstOrDefault(u => u.UserId == _selectedId);
+                if (row is not null)
+                {
+                    _detail = new CpUserDetailDigest(
+                        row.UserId, row.Email, 0, row.Phone, 0, row.Unlocked, 0,
+                        row.TimeRegistered, row.TimeLastVisit, 0m, 0, 0, 0,
+                        row.Email,
+                        new Dictionary<string, string>(), [], [],
+                        "list", "Detail unavailable — showing list row.");
+                }
+            }
+        }
     }
+
+    private static IReadOnlyList<CpUserDigest> FilterUsers(IReadOnlyList<CpUserDigest> users, string query)
+    {
+        if (string.IsNullOrWhiteSpace(query))
+        {
+            return users;
+        }
+
+        var q = query.Trim();
+        return users.Where(u =>
+                u.UserId.ToString(CultureInfo.InvariantCulture).Contains(q, StringComparison.OrdinalIgnoreCase)
+                || (u.Email?.Contains(q, StringComparison.OrdinalIgnoreCase) ?? false)
+                || (u.Phone?.Contains(q, StringComparison.OrdinalIgnoreCase) ?? false)
+                || (u.DisplayName?.Contains(q, StringComparison.OrdinalIgnoreCase) ?? false))
+            .ToList();
+    }
+
+    private static string DetailHref(int userId, string? query, string? tab = null)
+    {
+        var parts = new List<string>();
+        if (userId > 0)
+        {
+            parts.Add("user_id=" + userId.ToString(CultureInfo.InvariantCulture));
+        }
+
+        if (!string.IsNullOrWhiteSpace(query))
+        {
+            parts.Add("q=" + Uri.EscapeDataString(query));
+        }
+
+        if (!string.IsNullOrWhiteSpace(tab) && !tab.Equals("profile", StringComparison.OrdinalIgnoreCase))
+        {
+            parts.Add("tab=" + Uri.EscapeDataString(tab));
+        }
+
+        return parts.Count == 0 ? "/cp/users-app" : "/cp/users-app?" + string.Join("&", parts);
+    }
+
+    private static string PhpReferenceEditorHref(int userId)
+        => "/php-reference/CP/users/usermanager/user?user_id=" + userId.ToString(CultureInfo.InvariantCulture);
+
+    private static string PaidLabel(int paid) => paid switch
+    {
+        1 => "Paid",
+        2 => "Partial",
+        _ => "Unpaid",
+    };
 
     private static string FormatTime(long unix)
     {
-        if (unix <= 0) return "—";
+        if (unix <= 0)
+        {
+            return "—";
+        }
+
         return DateTimeOffset.FromUnixTimeSeconds(unix).ToLocalTime().ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture);
     }
 }

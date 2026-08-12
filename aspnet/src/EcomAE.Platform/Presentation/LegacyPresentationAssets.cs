@@ -161,6 +161,12 @@ public static class LegacyPresentationAssets
         "/platform-assets/epc_statuses_cp.css?v=20260811oms"
     ];
 
+    /// <summary>CP Users (/cp/users-app) — PHP user_manager / user.php dual-pane console.</summary>
+    public static readonly IReadOnlyList<string> CpUsersConsoleStylesheets =
+    [
+        "/platform-assets/epc_users_cp.css?v=20260812users"
+    ];
+
     /// <summary>CP Website tracker (PHP epc_web_tracker_cp.css + ASP.NET chart upgrades).</summary>
     public static readonly IReadOnlyList<string> CpWebTrackerStylesheets =
     [

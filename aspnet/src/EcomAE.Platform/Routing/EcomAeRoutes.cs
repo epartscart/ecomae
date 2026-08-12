@@ -523,6 +523,8 @@ public static class EcomAeRoutes
 
     /// <summary>Batch 4: users Blazor list (JSON digest remains <see cref="ControlPanelUsers"/>).</summary>
     public const string ControlPanelUsersApp = "/cp/users-app";
+    /// <summary>Read-only CP user detail digest (PHP users/usermanager/user).</summary>
+    public const string ControlPanelUsersDetailDigest = "/cp/users-detail-digest/{userId:int}";
     /// <summary>Batch 4: groups Blazor list (JSON digest remains <see cref="ControlPanelGroups"/>).</summary>
     public const string ControlPanelGroupsApp = "/cp/groups-app";
     public const string Erp = "/erp";
