@@ -6,14 +6,16 @@
 # focusCross-only body; API still returned only source=cp). This script forces
 # a direct FORCE_LIVE publish + hard HTTP prove before RESULT=PASS.
 #
-# CloudPanel root paste:
+# CloudPanel root paste (must land tip >= reader-dispose; refuse SHA 93832ce2):
+#   set -euxo pipefail
 #   URL='https://raw.githubusercontent.com/epartscart/ecomae/cursor/chpu-crossbase-modal-7529/scripts/cloudpanel_EPARTSCART_CHPU_CROSSBASE_MODAL_NOW.sh'
 #   TMP=/tmp/epartscart-chpu-crossbase-modal-now.sh
 #   curl -fsSL "$URL" -o "$TMP" && test -s "$TMP"
+#   grep -q 'stale_tip_' "$TMP" || { echo RESULT=FAIL bad_download_need_reader_dispose_NOW; exit 1; }
 #   export ECOMAE_BRANCH=cursor/chpu-crossbase-modal-7529
 #   export ECOMAE_EPARTSCART_SHOP_DB=docpart
 #   bash "$TMP" 2>&1 | tee /root/epartscart-chpu-crossbase-modal-now.log
-#   grep -E 'RESULT=|GATE_|SHA=|PUBLISH' /root/epartscart-chpu-crossbase-modal-now.log | tail -100
+#   grep -E 'RESULT=|GATE_|SHA=|PUBLISHED|API_CROSS_STOCK|mysql|stale' /root/epartscart-chpu-crossbase-modal-now.log | tail -120
 set -euo pipefail
 if [[ "$(id -u)" -ne 0 ]]; then printf 'ERROR: must run as root\n' >&2; exit 1; fi
 
@@ -43,14 +45,23 @@ FULL="$(git rev-parse HEAD)"
 MSG="$(git log -1 --pretty=%s)"
 note "REPO=${REPO} SHA=${SHA} FULL=${FULL}"
 note "HEAD_MSG=${MSG}"
-# Tip commit subjects rotate (SHA prove, REPLACE stock, modal, …) — gate on code markers only.
+# Stale tip 93832ce2 published HTML/JS but left cross-search DataReader open → empty API.
+# Refuse known-bad SHAs even if an old NOW script was re-run from a local cache.
+case "$FULL" in
+  93832ce211c39396de2138e9edea0eb68badca34|9f7798bbc86d8d5a29ffa59070f4749377bb2c83)
+    die "stale_tip_${SHA}_need_reader_dispose_fix_8a829122_or_newer — re-curl NOW from branch tip"
+    ;;
+esac
+# Tip commit subjects rotate — gate on code markers only.
 grep -q 'LoadStorefrontCrossStockAsync' \
   aspnet/src/EcomAE.Platform/Migration/SurfaceDashboardSummaryReporter.cs \
   || die "branch tip missing LoadStorefrontCrossStockAsync — git fetch/reset failed"
 grep -q 'MySqlConnection is already in use' \
   aspnet/src/EcomAE.Platform/Migration/SurfaceDashboardSummaryReporter.cs \
   || die "branch tip missing cross-search reader dispose fix"
-
+grep -q 'await using (var reader = await command.ExecuteReaderAsync' \
+  aspnet/src/EcomAE.Platform/Migration/SurfaceDashboardSummaryReporter.cs \
+  || die "branch tip missing scoped DataReader dispose before stock batch"
 grep -q 'Source = "cp+crossbase"' aspnet/src/EcomAE.Platform/Migration/SurfaceDashboardSummaryReporter.cs \
   || die "missing cp+crossbase overlap retag in source"
 grep -q 'function openCrossModal(' content/general_pages/epc_warehouse_search_parity.js \
