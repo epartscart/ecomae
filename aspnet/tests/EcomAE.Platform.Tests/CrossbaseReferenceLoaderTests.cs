@@ -44,6 +44,26 @@ public sealed class CrossbaseReferenceLoaderTests
         Assert.Contains("includeCrossbase: wantCrossbase", module, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void CrossSearch_ReservesSlotsForUniqueCrossbase()
+    {
+        var reporter = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Migration/SurfaceDashboardSummaryReporter.cs"));
+        Assert.Contains("safeLimit * 0.65", reporter, StringComparison.Ordinal);
+        Assert.Contains("uniqueCrossbase", reporter, StringComparison.Ordinal);
+        Assert.Contains("Prefer showing distinct crossbase rows", reporter, StringComparison.Ordinal);
+        // Must merge even when local CP already filled the limit (AISIN/DT068).
+        Assert.DoesNotContain("includeCrossbase && rows.Count < safeLimit", reporter, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void WarehouseParityJs_RequestsIncludeCrossbase()
+    {
+        var js = File.ReadAllText(FindRepoFile("content/general_pages/epc_warehouse_search_parity.js"));
+        Assert.Contains("include_crossbase=1", js, StringComparison.Ordinal);
+        Assert.Contains("data-source=", js, StringComparison.Ordinal);
+        Assert.Contains("Do not wipe a larger CHPU bootstrap list", js, StringComparison.Ordinal);
+    }
+
     private static string PriceLookupLike(string article)
         => new string((article ?? string.Empty).Where(char.IsLetterOrDigit).ToArray()).ToUpperInvariant();
 

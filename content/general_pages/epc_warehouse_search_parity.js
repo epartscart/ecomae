@@ -643,7 +643,7 @@
 	}
 
 	/**
-	 * ASP.NET /storefront/cross-search — fill SEO cross nav + count (local CP analogs).
+	 * ASP.NET /storefront/cross-search — local CP + crossbase.ru (include_crossbase=1).
 	 * No product .php URLs (PHP remains reference-only under /php-reference/*).
 	 */
 	function loadAspNetCrossSearch(article, brand) {
@@ -655,7 +655,8 @@
 			art = nav.getAttribute("data-article") || art;
 			br = nav.getAttribute("data-brand") || br;
 		}
-		var url = "/storefront/cross-search?article=" + encodeURIComponent(art) + "&limit=600";
+		var url = "/storefront/cross-search?article=" + encodeURIComponent(art) +
+			"&limit=600&include_crossbase=1";
 		if (br) url += "&brand=" + encodeURIComponent(br);
 		return fetch(url, { credentials: "same-origin" })
 			.then(function (r) { return r.json(); })
@@ -663,9 +664,17 @@
 				if (!data || data.status === false) return data;
 				var refs = data.references || [];
 				var stock = data.stock || [];
+				var localCount = Number(data.local_count || 0) || 0;
+				var crossbaseCount = Number(data.crossbase_count || 0) || 0;
 				var total = Number(data.unique_reference_count || data.reference_count || refs.length) || refs.length;
+				if (crossbaseCount > 0) {
+					total = Math.max(total, localCount + crossbaseCount);
+				}
 				var countEl = document.getElementById("epc-cross-search-count");
-				if (countEl) countEl.textContent = total + " references";
+				if (countEl) {
+					countEl.textContent = total + " references" +
+						(crossbaseCount > 0 ? (" · crossbase " + crossbaseCount) : "");
+				}
 				var btn = document.getElementById("epc-cross-search-btn");
 				if (btn) btn.setAttribute("title", "Open " + total + " cross references");
 				var list = document.getElementById("epc-cross-ref-list");
@@ -689,9 +698,19 @@
 						}).join("") + "</ul>";
 				}
 				if (list) {
+					var existing = list.querySelectorAll("li[data-cross-key]").length;
+					// Do not wipe a larger CHPU bootstrap list with a smaller parity refresh.
+					if (existing > 0 && refs.length > 0 && refs.length < existing) {
+						if (loading) loading.style.display = "none";
+						if (countEl && total > existing) {
+							countEl.textContent = total + " references" +
+								(crossbaseCount > 0 ? (" · crossbase " + crossbaseCount) : "");
+						}
+						return data;
+					}
 					var shown = 0;
 					var html = [];
-					for (var i = 0; i < refs.length && shown < 80; i++) {
+					for (var i = 0; i < refs.length && shown < 200; i++) {
 						var ref = refs[i];
 						var rb = ref.brand || "";
 						var ra = ref.article || ref.article_norm || "";
@@ -701,10 +720,13 @@
 						var sameArticleAlias = rn === selfA;
 						var key = compactToken(rb) + "|" + rn;
 						var inStock = !!stockKeys[key];
-						html.push("<li>" +
+						var src = ref.source || "cp";
+						html.push("<li data-cross-key=\"" + esc(rb + "|" + ra) + "\" data-source=\"" + esc(src) + "\">" +
 							"<a href=\"" + partsHref(rb, ra) + "\">" + esc(rb) + " " + esc(ra) + "</a> " +
 							"<span style=\"color:#64748b\">(" +
-							(sameArticleAlias ? "related manufacturer" : ("part number " + esc(ra))) +
+							(src === "crossbase"
+								? "crossbase"
+								: (sameArticleAlias ? "related manufacturer" : ("part number " + esc(ra)))) +
 							")</span> " +
 							(inStock
 								? "<span class=\"epc-avail-yes\">In stock</span>"
@@ -712,14 +734,15 @@
 							"</li>");
 						shown++;
 					}
-					list.innerHTML = html.length
-						? html.join("")
-						: "<li style=\"list-style:none;color:#64748b;\">No cross references found for this article.</li>";
+					if (html.length) list.innerHTML = html.join("");
+					else if (!existing) {
+						list.innerHTML = "<li style=\"list-style:none;color:#64748b;\">No cross references found for this article.</li>";
+					}
 					if (more) {
 						if (total > shown) {
 							more.style.display = "block";
 							more.textContent = "Showing " + shown + " of " + total.toLocaleString() +
-								" unique crosses (full network via cross search).";
+								" unique crosses" + (crossbaseCount ? " (incl. crossbase)" : "") + ".";
 						} else {
 							more.style.display = "none";
 						}

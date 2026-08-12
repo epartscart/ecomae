@@ -46,38 +46,37 @@ public sealed class DbBackedLegacySessionValidator : ILegacySessionValidator
             if (_sessions.IsConfigured)
             {
                 var exists = await _sessions.AdminSessionExistsAsync(adminSession, adminUser, cancellationToken).ConfigureAwait(false);
-                if (!exists)
+                if (exists)
                 {
-                    activity?.SetTag("ecomae.session.kind", "anonymous");
-                    return Anonymous();
+                    var identity = await _sessions.GetAdminIdentityAsync(adminUser, cancellationToken).ConfigureAwait(false);
+                    if (identity is not null && identity.HasBackendAccess)
+                    {
+                        activity?.SetTag("ecomae.session.kind", "admin");
+                        return new LegacySessionContext(
+                            LegacySessionKind.Admin,
+                            adminUser,
+                            adminSession,
+                            FullAdminPermissions,
+                            identity.Email,
+                            identity.GroupIds,
+                            HasBackendAccess: true,
+                            ModuleAcl: identity.Modules);
+                    }
                 }
 
-                var identity = await _sessions.GetAdminIdentityAsync(adminUser, cancellationToken).ConfigureAwait(false);
-                if (identity is null || !identity.HasBackendAccess)
-                {
-                    activity?.SetTag("ecomae.session.kind", "anonymous");
-                    return Anonymous();
-                }
-
+                // Stale/invalid admin cookies must NOT wipe a valid customer storefront session —
+                // that hid prices/terms on /en/parts/* after retail login (PHP fall-through parity).
+            }
+            else
+            {
                 activity?.SetTag("ecomae.session.kind", "admin");
                 return new LegacySessionContext(
                     LegacySessionKind.Admin,
                     adminUser,
                     adminSession,
                     FullAdminPermissions,
-                    identity.Email,
-                    identity.GroupIds,
-                    HasBackendAccess: true,
-                    ModuleAcl: identity.Modules);
+                    HasBackendAccess: true);
             }
-
-            activity?.SetTag("ecomae.session.kind", "admin");
-            return new LegacySessionContext(
-                LegacySessionKind.Admin,
-                adminUser,
-                adminSession,
-                FullAdminPermissions,
-                HasBackendAccess: true);
         }
 
         var customer = await TryCustomerAsync(httpContext, cancellationToken).ConfigureAwait(false);
