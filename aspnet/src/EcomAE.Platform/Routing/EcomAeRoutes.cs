@@ -350,6 +350,12 @@ public static class EcomAeRoutes
     public const string ControlPanelWebTracker = "/cp/web-tracker";
     /// <summary>CP Web tracker Blazor list (JSON digest remains <see cref="ControlPanelWebTracker"/>).</summary>
     public const string ControlPanelWebTrackerApp = "/cp/web-tracker-app";
+    /// <summary>PHP-parity filtered dashboard JSON (ajax_epc_web_tracker.php action=dashboard).</summary>
+    public const string ControlPanelWebTrackerDashboard = "/cp/web-tracker/dashboard";
+    /// <summary>PHP-parity session timeline JSON (ajax_epc_web_tracker.php action=session).</summary>
+    public const string ControlPanelWebTrackerSession = "/cp/web-tracker/session";
+    /// <summary>PHP-parity CSV export (ajax_epc_web_tracker.php action=csv).</summary>
+    public const string ControlPanelWebTrackerCsv = "/cp/web-tracker/csv";
     public const string ControlPanelAbandonedCarts = "/cp/abandoned-carts";
     /// <summary>CP Abandoned carts Blazor list (JSON digest remains <see cref="ControlPanelAbandonedCarts"/>).</summary>
     public const string ControlPanelAbandonedCartsApp = "/cp/abandoned-carts-app";
@@ -376,8 +382,10 @@ public static class EcomAeRoutes
     /// <summary>CP Notifications Blazor list (JSON digest remains <see cref="ControlPanelNotifications"/>).</summary>
     public const string ControlPanelNotificationsApp = "/cp/notifications-app";
     public const string ControlPanelPortalSettings = "/cp/portal-settings";
-    /// <summary>CP Portal settings Blazor list (JSON digest remains <see cref="ControlPanelPortalSettings"/>).</summary>
+    /// <summary>Super-CP-only portal fleet Blazor list (JSON digest remains <see cref="ControlPanelPortalSettings"/>).</summary>
     public const string ControlPanelPortalSettingsApp = "/cp/portal-settings-app";
+    /// <summary>Tenant-local SMTP / email settings shell (PHP epc_tenant_email_settings).</summary>
+    public const string ControlPanelTenantEmailApp = "/cp/tenant-email-app";
     public const string ControlPanelDataMigrations = "/cp/data-migrations";
     /// <summary>CP Data migrations Blazor list (JSON digest remains <see cref="ControlPanelDataMigrations"/>).</summary>
     public const string ControlPanelDataMigrationsApp = "/cp/data-migrations-app";
@@ -1750,7 +1758,7 @@ public static class EcomAeRoutes
     public const string StorefrontCartCheckForOrder = "/storefront/cart/check-for-order";
     /// <summary>Wave B dry-run cart delete (PHP ajax_delete_cart_record.php remains authoritative).</summary>
     public const string StorefrontCartDelete = "/storefront/cart/delete";
-    /// <summary>Wave B dry-run add-to-cart type-2 (PHP ajax_add_to_basket.php remains authoritative).</summary>
+    /// <summary>Live add-to-cart type-2 (PHP <c>ajax_add_to_basket.php</c> twin). <c>confirmWrites=false</c> stays dry-run.</summary>
     public const string StorefrontCartAdd = "/storefront/cart/add";
     /// <summary>Wave B dry-run garage notepad add (PHP ajax_add_to_notepad.php remains authoritative).</summary>
     public const string StorefrontGarageNotepadAdd = "/storefront/garage/notepad-add";

@@ -1,0 +1,72 @@
+@page "/cp/tenant-email-app"
+@layout Layout.PhpChromeLayout
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Presentation
+@inject ILegacySessionValidator Sessions
+@inject IHttpContextAccessor Http
+
+<PageTitle>Email / SMTP · Control Panel · eParts Cart</PageTitle>
+<PhpChromeStyles Surface="cp" />
+
+<PhpCpDesktopChrome IsAdmin="_isAdmin">
+
+    <PhpCpModulePageHeader Title="Email / SMTP"
+                           Subtitle="This tenant’s outgoing mail for OTP, order notifications, and customer email. Independent of Super CP — no platform fleet secrets here."
+                           PhpTabHref="/CP/control/portal/epc_tenant_email_settings">
+        <a class="ghost" href="/cp/integrations-app">Integrations</a>
+        <a class="ghost" href="/cp/config-items-app">Config items</a>
+        <a class="ghost" href="/cp/communications-test-app">Communications test</a>
+    </PhpCpModulePageHeader>
+
+    <div class="epc-scp-kpi" aria-label="Tenant email scope">
+        <div class="epc-scp-kpi__card">
+            <div class="epc-scp-kpi__label">Scope</div>
+            <div class="epc-scp-kpi__val">This tenant</div>
+        </div>
+        <div class="epc-scp-kpi__card">
+            <div class="epc-scp-kpi__label">Host</div>
+            <div class="epc-scp-kpi__val">@_host</div>
+        </div>
+        <div class="epc-scp-kpi__card">
+            <div class="epc-scp-kpi__label">Super CP fleet</div>
+            <div class="epc-scp-kpi__val">Hidden</div>
+        </div>
+    </div>
+
+    <div class="epc-scp-table-card">
+        <div class="epc-scp-table-card__head" style="padding:14px 16px;border-bottom:1px solid #e2e8f0;">
+            <h3 style="margin:0 0 4px;font-size:1rem;">Tenant mail settings</h3>
+            <p class="text-muted small" style="margin:0">Configure SMTP for this site only. Platform operator credentials and multi-tenant deploy targets are Super CP exclusive.</p>
+        </div>
+        <div style="padding:16px;">
+            <p style="margin:0 0 12px;">Use the PHP reference editor for authoritative SMTP save / test until the ASP.NET write cutover.</p>
+            <div style="display:flex;flex-wrap:wrap;gap:8px;">
+                <a class="btn btn-primary btn-sm" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref("/CP/control/portal/epc_tenant_email_settings")"><i class="fa fa-envelope"></i> PHP SMTP editor</a>
+                <a class="btn btn-default btn-sm" href="/cp/integrations-app"><i class="fa fa-plug"></i> Integrations hub</a>
+                <a class="btn btn-default btn-sm" href="/cp/communications-test-app"><i class="fa fa-paper-plane"></i> Send test</a>
+            </div>
+            <p class="text-muted small" style="margin-top:14px;">
+                On Super CP hosts, platform SMTP lives under Modern auth settings — not this tenant page.
+            </p>
+        </div>
+    </div>
+
+</PhpCpDesktopChrome>
+
+@code {
+    private bool _isAdmin;
+    private string _host = "—";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null)
+        {
+            return;
+        }
+
+        _host = string.IsNullOrWhiteSpace(ctx.Request.Host.Host) ? "—" : ctx.Request.Host.Host;
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
+    }
+}

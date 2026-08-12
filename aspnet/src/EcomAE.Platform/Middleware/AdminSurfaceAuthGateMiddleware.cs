@@ -177,11 +177,27 @@ public sealed class AdminSurfaceAuthGateMiddleware
         }
 
         // Digests / API-ish GETs under /cp|/erp|/bos|/ip without Blazor navigation.
-        var path = context.Request.Path.Value ?? "";
-        return path.Contains("dashboard-summary", StringComparison.OrdinalIgnoreCase)
-            || path.EndsWith("/parity", StringComparison.OrdinalIgnoreCase)
-            || path.Contains("/ajax", StringComparison.OrdinalIgnoreCase)
-            || path.Contains("dry-run", StringComparison.OrdinalIgnoreCase)
-            || path.Contains("/writes/", StringComparison.OrdinalIgnoreCase);
+        // Use path-segment suffix match so Blazor shells like /cp/dashboard-summary-app
+        // still get the HTML login redirect (not a raw 401 JSON body).
+        return IsJsonChallengePath(context.Request.Path.Value);
+    }
+
+    /// <summary>
+    /// True for JSON digest/API paths. False for Blazor <c>*-app</c> presentation shells
+    /// even when the route name contains a digest stem (e.g. dashboard-summary-app).
+    /// </summary>
+    public static bool IsJsonChallengePath(string? path)
+    {
+        if (string.IsNullOrWhiteSpace(path))
+        {
+            return false;
+        }
+
+        var bare = path.TrimEnd('/');
+        return bare.EndsWith("/dashboard-summary", StringComparison.OrdinalIgnoreCase)
+            || bare.EndsWith("/parity", StringComparison.OrdinalIgnoreCase)
+            || bare.Contains("/ajax", StringComparison.OrdinalIgnoreCase)
+            || bare.Contains("dry-run", StringComparison.OrdinalIgnoreCase)
+            || bare.Contains("/writes/", StringComparison.OrdinalIgnoreCase);
     }
 }

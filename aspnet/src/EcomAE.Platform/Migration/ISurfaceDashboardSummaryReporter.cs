@@ -368,6 +368,8 @@ public interface ISurfaceDashboardSummaryReporter
     Task<CpFinanceCloseDigestResult> BuildCpFinanceCloseDigestAsync(int limit, CancellationToken cancellationToken = default);
     Task<CpJewelleryFixingDigestResult> BuildCpJewelleryFixingDigestAsync(int limit, CancellationToken cancellationToken = default);
     Task<CpWebTrackerDigestResult> BuildCpWebTrackerDigestAsync(int limit, CancellationToken cancellationToken = default);
+    Task<CpWebTrackerDashboardResult> BuildCpWebTrackerDashboardAsync(CpWebTrackerFilterQuery filters, CancellationToken cancellationToken = default);
+    Task<CpWebTrackerSessionDetailResult> BuildCpWebTrackerSessionDetailAsync(long sessionId, string siteKey, bool isSuper, CancellationToken cancellationToken = default);
     Task<CpAbandonedCartsDigestResult> BuildCpAbandonedCartsDigestAsync(int limit, CancellationToken cancellationToken = default);
     Task<CpQuoteRequestsDigestResult> BuildCpQuoteRequestsDigestAsync(int limit, CancellationToken cancellationToken = default);
     Task<CpPlatformCommunicationDigestResult> BuildCpPlatformCommunicationDigestAsync(int limit, CancellationToken cancellationToken = default);

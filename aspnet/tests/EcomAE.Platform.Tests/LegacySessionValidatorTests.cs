@@ -107,6 +107,34 @@ public sealed class LegacySessionValidatorTests
     }
 
     [Fact]
+    public async Task ValidateCustomerAsync_PrefersCustomerCookiesWhenAdminAlsoPresent()
+    {
+        var context = new DefaultHttpContext();
+        // Chrome may show signed-in via admin cookies while storefront cart needs customer.
+        context.Request.Headers.Cookie = "admin_session=adm; admin_u_id=1; session=cust; u_id=9";
+        var validator = new DbBackedLegacySessionValidator(new DualSessionStore());
+
+        var adminFirst = await validator.ValidateAsync(context);
+        Assert.Equal(LegacySessionKind.Admin, adminFirst.Kind);
+
+        var customer = await validator.ValidateCustomerAsync(context);
+        Assert.Equal(LegacySessionKind.Customer, customer.Kind);
+        Assert.Equal(9, customer.UserId);
+    }
+
+    [Fact]
+    public async Task HttpValidator_ValidateCustomerAsync_IgnoresAdminCookies()
+    {
+        var context = new DefaultHttpContext();
+        context.Request.Headers.Cookie = "admin_session=adm; admin_u_id=1; session=cust; u_id=9";
+        var validator = new HttpLegacySessionValidator();
+
+        var customer = await validator.ValidateCustomerAsync(context);
+        Assert.Equal(LegacySessionKind.Customer, customer.Kind);
+        Assert.Equal(9, customer.UserId);
+    }
+
+    [Fact]
     public void LegacySessionSqlIsSelectOnly()
     {
         Assert.Equal("sessions", LegacySessionSql.SourceTable);
@@ -149,5 +177,19 @@ public sealed class LegacySessionValidatorTests
                 _exists
                     ? new LegacyAdminIdentity("admin@example.com", [3], _hasBackend)
                     : null);
+    }
+
+    private sealed class DualSessionStore : ILegacySessionStore
+    {
+        public bool IsConfigured => true;
+
+        public Task<bool> AdminSessionExistsAsync(string sessionToken, int userId, CancellationToken cancellationToken = default)
+            => Task.FromResult(true);
+
+        public Task<bool> CustomerSessionExistsAsync(string sessionToken, int userId, CancellationToken cancellationToken = default)
+            => Task.FromResult(true);
+
+        public Task<LegacyAdminIdentity?> GetAdminIdentityAsync(int userId, CancellationToken cancellationToken = default)
+            => Task.FromResult<LegacyAdminIdentity?>(new LegacyAdminIdentity("admin@example.com", [3], true));
     }
 }

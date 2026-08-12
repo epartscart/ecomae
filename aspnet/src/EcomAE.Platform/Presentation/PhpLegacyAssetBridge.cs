@@ -205,6 +205,11 @@ public static class PhpLegacyAssetBridge
                      // CP Users console (PHP user_manager / user.php dual-pane)
                      ("/platform-assets/epc_users_cp.css",
                          "cp/content/users/epc_users_cp.css"),
+                     // CP Website tracker — PHP CSS + ASP.NET dashboard JS
+                     ("/platform-assets/epc_web_tracker_cp.css",
+                         "content/general_pages/epc_web_tracker_cp.css"),
+                     ("/platform-assets/epc_web_tracker_aspnet.js",
+                         "content/general_pages/epc_web_tracker_aspnet.js"),
                      // ASP.NET Super/Tenant CP digests → PHP epc-scp-* module look
                      ("/platform-assets/epc_cp_aspnet_module_parity.css",
                          "content/general_pages/epc_cp_aspnet_module_parity.css"),

@@ -47,11 +47,24 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
-            var users = await ScalarIntAsync(connection, LegacySurfaceDashboardSql.CountUsers, cancellationToken).ConfigureAwait(false);
-            var adminSessions = await ScalarIntAsync(connection, LegacySurfaceDashboardSql.CountAdminSessions, cancellationToken).ConfigureAwait(false);
-            var tenants = await ScalarIntSafeAsync(connection, LegacySurfaceDashboardSql.CountPortalTenants, cancellationToken).ConfigureAwait(false);
-            var active = await ScalarIntSafeAsync(connection, LegacySurfaceDashboardSql.CountActivePortalTenants, cancellationToken).ConfigureAwait(false);
+            // Shop KPIs (users/sessions) from tenant shop DB — ePartsCart forces docpart when unbound.
+            // Portal tenant counts live only on the platform registry DB (never on docpart).
+            int users;
+            int adminSessions;
+            await using (var shop = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false))
+            {
+                users = await ScalarIntAsync(shop, LegacySurfaceDashboardSql.CountUsers, cancellationToken).ConfigureAwait(false);
+                adminSessions = await ScalarIntSafeAsync(shop, LegacySurfaceDashboardSql.CountAdminSessions, cancellationToken).ConfigureAwait(false);
+            }
+
+            int tenants;
+            int active;
+            await using (var registry = await _connections.OpenRegistryAsync(cancellationToken).ConfigureAwait(false))
+            {
+                tenants = await ScalarIntSafeAsync(registry, LegacySurfaceDashboardSql.CountPortalTenants, cancellationToken).ConfigureAwait(false);
+                active = await ScalarIntSafeAsync(registry, LegacySurfaceDashboardSql.CountActivePortalTenants, cancellationToken).ConfigureAwait(false);
+            }
+
             return new(users, adminSessions, tenants, active, "database", string.Empty);
         }
         catch (Exception ex)
@@ -75,7 +88,8 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         try
         {
             // Uses TenantContext DB/credentials when present (per-tenant isolation).
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            // ePartsCart shop fallback = docpart (same as storefront OpenStorefrontShopAsync).
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
             var monthStart = new DateTimeOffset(DateTime.UtcNow.Year, DateTime.UtcNow.Month, 1, 0, 0, 0, TimeSpan.Zero)
                 .ToUnixTimeSeconds();
@@ -243,9 +257,18 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
-            var list = await ReadTenantsAsync(connection, 500, cancellationToken).ConfigureAwait(false);
-            var adminSessions = await ScalarIntAsync(connection, LegacySurfaceDashboardSql.CountAdminSessions, cancellationToken).ConfigureAwait(false);
+            IReadOnlyList<PortalTenantDigest> list;
+            await using (var registry = await _connections.OpenRegistryAsync(cancellationToken).ConfigureAwait(false))
+            {
+                list = await ReadTenantsAsync(registry, 500, cancellationToken).ConfigureAwait(false);
+            }
+
+            int adminSessions;
+            await using (var shop = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false))
+            {
+                adminSessions = await ScalarIntSafeAsync(shop, LegacySurfaceDashboardSql.CountAdminSessions, cancellationToken).ConfigureAwait(false);
+            }
+
             activity?.SetTag("ecomae.row_count", list.Count);
             return SummarizeFleet(list, adminSessions, "database", string.Empty);
         }
@@ -272,7 +295,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             var orders = await ScalarIntSafeAsync(connection, LegacySurfaceDashboardSql.CountCustomerOrders, userId, cancellationToken).ConfigureAwait(false);
             var sessions = await ScalarIntSafeAsync(connection, LegacySurfaceDashboardSql.CountCustomerSessionsForUser, userId, cancellationToken).ConfigureAwait(false);
             var garage = await ScalarIntSafeAsync(connection, LegacySurfaceDashboardSql.CountCustomerGarage, userId, cancellationToken).ConfigureAwait(false);
@@ -314,7 +337,9 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            // epc_portal_tenants is platform-registry only — OpenAsync(null) on epartscart
+            // opens docpart and yields empty / database-error ("Nothing to show").
+            await using var connection = await _connections.OpenRegistryAsync(cancellationToken).ConfigureAwait(false);
             var tenants = await ReadTenantsAsync(connection, safeLimit, cancellationToken).ConfigureAwait(false);
             return new(tenants, tenants.Count, "database", string.Empty);
         }
@@ -335,9 +360,19 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
-            var tenants = await ReadTenantsAsync(connection, 500, cancellationToken).ConfigureAwait(false);
-            var adminSessions = await ScalarIntAsync(connection, LegacySurfaceDashboardSql.CountAdminSessions, cancellationToken).ConfigureAwait(false);
+            // Fleet directory = registry; admin session count = shop (or platform on Super-CP).
+            IReadOnlyList<PortalTenantDigest> tenants;
+            await using (var registry = await _connections.OpenRegistryAsync(cancellationToken).ConfigureAwait(false))
+            {
+                tenants = await ReadTenantsAsync(registry, 500, cancellationToken).ConfigureAwait(false);
+            }
+
+            int adminSessions;
+            await using (var shop = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false))
+            {
+                adminSessions = await ScalarIntSafeAsync(shop, LegacySurfaceDashboardSql.CountAdminSessions, cancellationToken).ConfigureAwait(false);
+            }
+
             var summary = SummarizeFleet(tenants, adminSessions, "database", string.Empty);
             var sample = tenants.Take(safeLimit).ToArray();
             return new(summary, sample, "database", string.Empty);
@@ -370,7 +405,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             await using var command = connection.CreateCommand();
             command.CommandText = LegacySurfaceDashboardSql.SelectCustomerOrders;
             AddParameter(command, "@userId", userId);
@@ -407,7 +442,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             var todayStart = new DateTimeOffset(DateTime.UtcNow.Date, TimeSpan.Zero).ToUnixTimeSeconds();
             var open = await ScalarIntSafeAsync(connection, LegacySurfaceDashboardSql.CountCpOrdersOpen, cancellationToken).ConfigureAwait(false);
             var pendingShip = await ScalarIntSafeAsync(connection, LegacySurfaceDashboardSql.CountCpOrdersPendingShip, cancellationToken).ConfigureAwait(false);
@@ -477,7 +512,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             await using var orderCmd = connection.CreateCommand();
             orderCmd.CommandText = LegacySurfaceDashboardSql.SelectCpShopOrderById;
             AddParameter(orderCmd, "@orderId", orderId);
@@ -659,7 +694,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             await using var command = connection.CreateCommand();
             command.CommandText = LegacySurfaceDashboardSql.SelectCpUsers;
             AddParameter(command, "@limit", safeLimit);
@@ -858,7 +893,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             await using var command = connection.CreateCommand();
             command.CommandText = LegacySurfaceDashboardSql.SelectCpGroups;
             AddParameter(command, "@limit", safeLimit);
@@ -895,7 +930,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             await using var command = connection.CreateCommand();
             command.CommandText = LegacySurfaceDashboardSql.SelectErpSuppliers;
             AddParameter(command, "@limit", safeLimit);
@@ -928,7 +963,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             await using var command = connection.CreateCommand();
             command.CommandText = LegacySurfaceDashboardSql.SelectErpPurchases;
             AddParameter(command, "@limit", safeLimit);
@@ -970,7 +1005,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             await using var command = connection.CreateCommand();
             command.CommandText = LegacySurfaceDashboardSql.SelectCustomerGarage;
             AddParameter(command, "@userId", userId);
@@ -1007,7 +1042,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             await using var command = connection.CreateCommand();
             command.CommandText = LegacySurfaceDashboardSql.SelectErpCashAccounts;
             AddParameter(command, "@limit", safeLimit);
@@ -1046,7 +1081,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             string email = string.Empty;
             var emailConfirmed = 0;
             string phone = string.Empty;
@@ -1116,7 +1151,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             await using var command = connection.CreateCommand();
             if (accountId is > 0)
             {
@@ -1164,7 +1199,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             await using var command = connection.CreateCommand();
             command.CommandText = LegacySurfaceDashboardSql.SelectErpInvoices;
             AddParameter(command, "@limit", safeLimit);
@@ -1201,7 +1236,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             await using var command = connection.CreateCommand();
             command.CommandText = LegacySurfaceDashboardSql.SelectErpGlJournals;
             AddParameter(command, "@limit", safeLimit);
@@ -1237,7 +1272,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             await using var command = connection.CreateCommand();
             command.CommandText = LegacySurfaceDashboardSql.SelectCpModules;
             AddParameter(command, "@limit", safeLimit);
@@ -1272,7 +1307,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             await using var command = connection.CreateCommand();
             command.CommandText = LegacySurfaceDashboardSql.SelectCpConfigItemsMeta;
             AddParameter(command, "@limit", safeLimit);
@@ -1359,7 +1394,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             await using var command = connection.CreateCommand();
             command.CommandText = LegacySurfaceDashboardSql.SelectErpCoaAccounts;
             AddParameter(command, "@limit", safeLimit);
@@ -1397,7 +1432,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             await using var command = connection.CreateCommand();
             command.CommandText = LegacySurfaceDashboardSql.SelectErpWarehouses;
             AddParameter(command, "@limit", safeLimit);
@@ -1432,7 +1467,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             await using var command = connection.CreateCommand();
             command.CommandText = LegacySurfaceDashboardSql.SelectErpSalesOrders;
             AddParameter(command, "@limit", safeLimit);
@@ -2082,9 +2117,17 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
     /// so warehouse search / brands / bunches do not false-fail as unbound on www.
     /// </summary>
     private Task<DbConnection> OpenStorefrontShopAsync(CancellationToken cancellationToken)
+        => OpenTenantShopAsync(cancellationToken);
+
+    /// <summary>
+    /// Open the tenant shop schema for CP/ERP/storefront digests.
+    /// ePartsCart always uses shared Model C <c>docpart</c> with registry/base credentials
+    /// (PHP <c>epc_portal_resolve_tenant_db</c>) — never platform registry tables and never
+    /// portal <c>db_user</c> override (that override emptied every CP/ERP module on www).
+    /// </summary>
+    private Task<DbConnection> OpenTenantShopAsync(CancellationToken cancellationToken)
     {
-        var tenant = _httpContextAccessor?.HttpContext?.Items[TenantResolutionMiddleware.HttpContextItemKey] as TenantContext;
-        if (IsEpartsCartRequest() && (tenant is null || !tenant.HasTenantDatabase))
+        if (IsEpartsCartRequest())
         {
             return _connections.OpenAsync("docpart", cancellationToken);
         }
@@ -2833,7 +2876,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             var count = 0;
             var sum = 0m;
             await using (var summaryCmd = connection.CreateCommand())
@@ -2895,7 +2938,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             await using var command = connection.CreateCommand();
             command.CommandText = LegacySurfaceDashboardSql.SelectStorefrontCustomerQuotes;
             AddParameter(command, "@userId", userId);
@@ -2934,7 +2977,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             string status;
             await using (var header = connection.CreateCommand())
             {
@@ -3020,7 +3063,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             await using var command = connection.CreateCommand();
             command.CommandText = LegacySurfaceDashboardSql.SelectStorefrontProductById;
             AddParameter(command, "@productId", productId);
@@ -3079,7 +3122,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             await using var command = connection.CreateCommand();
             var placeholders = new string[ids.Count];
             for (var i = 0; i < ids.Count; i++)
@@ -3576,7 +3619,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             await using var command = connection.CreateCommand();
             command.CommandText = LegacySurfaceDashboardSql.SelectStorefrontBulkUploadHistory;
             AddParameter(command, "@userId", userId);
@@ -3817,7 +3860,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             await using var command = connection.CreateCommand();
             command.CommandText = LegacySurfaceDashboardSql.SelectCpMenus;
             AddParameter(command, "@limit", safeLimit);
@@ -3862,7 +3905,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             await using var command = connection.CreateCommand();
             command.CommandText = LegacySurfaceDashboardSql.SelectCpPages;
             AddParameter(command, "@limit", safeLimit);
@@ -3899,7 +3942,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             await using var command = connection.CreateCommand();
             command.CommandText = LegacySurfaceDashboardSql.SelectCpAdminSessions;
             AddParameter(command, "@limit", safeLimit);
@@ -3932,7 +3975,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             await using var command = connection.CreateCommand();
             command.CommandText = LegacySurfaceDashboardSql.SelectCpStorages;
             AddParameter(command, "@limit", safeLimit);
@@ -3965,7 +4008,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             await using var command = connection.CreateCommand();
             if (!string.IsNullOrWhiteSpace(area))
             {
@@ -4011,7 +4054,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             await using var command = connection.CreateCommand();
             command.CommandText = LegacySurfaceDashboardSql.SelectErpPurchaseOrders;
             AddParameter(command, "@limit", safeLimit);
@@ -4049,7 +4092,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             var summary = empty with { Source = "database", Message = string.Empty };
             await using (var stats = connection.CreateCommand())
             {
@@ -4136,7 +4179,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             await using var command = connection.CreateCommand();
             command.CommandText = LegacySurfaceDashboardSql.SelectCpCurrencies;
             AddParameter(command, "@limit", safeLimit);
@@ -4172,7 +4215,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             await using var command = connection.CreateCommand();
             command.CommandText = LegacySurfaceDashboardSql.SelectCpApiClientsMeta;
             AddParameter(command, "@limit", safeLimit);
@@ -4213,7 +4256,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
 
             string siteKey = string.Empty, workspaceId = string.Empty, azureTenantId = string.Empty;
             string defaultReportId = string.Empty, defaultDatasetId = string.Empty, embedUrl = string.Empty;
@@ -4283,7 +4326,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             await using var command = connection.CreateCommand();
             command.CommandText = LegacySurfaceDashboardSql.SelectCpMobileAppsIntegrationsJson;
             var raw = Convert.ToString(await command.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false), CultureInfo.InvariantCulture) ?? string.Empty;
@@ -4308,7 +4351,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             var siteKey = string.Empty;
             var metabaseUrl = string.Empty;
             var active = false;
@@ -4362,7 +4405,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             await using var command = connection.CreateCommand();
             command.CommandText = LegacySurfaceDashboardSql.SelectCpNlReportDefinitions;
             AddParameter(command, "@limit", safeLimit);
@@ -4401,7 +4444,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             var campaignsCount = 0;
             var emailsSent = 0;
             var whatsappSent = 0;
@@ -4462,7 +4505,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await _connections.OpenRegistryAsync(cancellationToken).ConfigureAwait(false);
             await using var command = connection.CreateCommand();
             command.CommandText = LegacySurfaceDashboardSql.SelectCpDemoTenants;
             AddParameter(command, "@limit", safeLimit);
@@ -4503,7 +4546,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             var enabled = false;
             var agentName = string.Empty;
             var domain = string.Empty;
@@ -4578,7 +4621,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             var posEnabled = false;
             var registerName = string.Empty;
             await using (var cfg = connection.CreateCommand())
@@ -4651,7 +4694,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             var toolkitCount = 0;
             var installCount = 0;
             await using (var stats = connection.CreateCommand())
@@ -4718,7 +4761,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             var operators = new List<CpSmsOperatorDigest>();
             await using (var list = connection.CreateCommand())
             {
@@ -4791,7 +4834,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             var leads = 0; var opps = 0; var acts = 0; var tickets = 0;
             await using (var stats = connection.CreateCommand())
             {
@@ -4846,7 +4889,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             var company = string.Empty;
             await using (var cfg = connection.CreateCommand())
             {
@@ -4911,7 +4954,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             var methods = 0; var available = 0;
             await using (var stats = connection.CreateCommand())
             {
@@ -4963,7 +5006,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             var total = 0; var brands = 0;
             await using (var stats = connection.CreateCommand())
             {
@@ -5014,7 +5057,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             var active = 0; var leave = 0; var payroll = 0; var attendance = 0;
             await using (var stats = connection.CreateCommand())
             {
@@ -5068,7 +5111,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             var bom = 0; var open = 0; var completed = 0;
             await using (var stats = connection.CreateCommand())
             {
@@ -5121,7 +5164,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             var open = 0; var tasks = 0; var contracts = 0;
             await using (var stats = connection.CreateCommand())
             {
@@ -5174,7 +5217,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             var packCount = 0; var activePacks = 0; var assignments = 0;
             await using (var stats = connection.CreateCommand())
             {
@@ -5226,7 +5269,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             var packs = new Dictionary<long, string>();
             try
             {
@@ -5287,7 +5330,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             var vouchers = 0; var open = 0; var tags = 0; var metal = 0;
             await using (var stats = connection.CreateCommand())
             {
@@ -5344,7 +5387,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             var activeLists = 0; var priceRows = 0; var uploads = 0;
             await using (var stats = connection.CreateCommand())
             {
@@ -5398,7 +5441,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             var rules = 0; var sources = 0; var compareRuns = 0;
             await using (var stats = connection.CreateCommand())
             {
@@ -5453,7 +5496,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             var legislation = 0; var advance = 0; var refunds = 0;
             await using (var stats = connection.CreateCommand())
             {
@@ -5509,7 +5552,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             var budgets = 0; var active = 0; var lines = 0; var dims = 0;
             await using (var stats = connection.CreateCommand())
             {
@@ -5564,7 +5607,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             var carriers = 0; var active = 0; var shipments = 0; var open = 0;
             await using (var stats = connection.CreateCommand())
             {
@@ -5634,7 +5677,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             var gateways = 0; var enabled = 0; var active = 0; var selectable = 0; var accounts = 0;
             await using (var stats = connection.CreateCommand())
             {
@@ -5689,7 +5732,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             var workflows = 0; var active = 0; var runs = 0; var failed = 0;
             await using (var stats = connection.CreateCommand())
             {
@@ -5745,7 +5788,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             var reqs = 0; var draft = 0; var pending = 0; var lines = 0; var cats = 0;
             await using (var stats = connection.CreateCommand())
             {
@@ -5804,7 +5847,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             var promos = 0; var active = 0; var percent = 0; var loyalty = 0;
             await using (var stats = connection.CreateCommand())
             {
@@ -5861,7 +5904,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             var opps = 0; var open = 0; var won = 0; var pipeline = 0m;
             await using (var stats = connection.CreateCommand())
             {
@@ -5918,7 +5961,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         {
             try
             {
-                await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+                await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
                 flags = new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase);
                 await using var list = connection.CreateCommand();
                 list.CommandText = LegacySurfaceDashboardSql.SelectCpIntegrationFeatureFlags;
@@ -5965,7 +6008,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             var lines = 0; var unmatched = 0; var matched = 0; var credit = 0m; var debit = 0m;
             await using (var stats = connection.CreateCommand())
             {
@@ -6024,7 +6067,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             var transfers = 0; var draft = 0; var transit = 0; var received = 0; var totalQty = 0m;
             await using (var stats = connection.CreateCommand())
             {
@@ -6086,7 +6129,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             var quotes = 0; var draft = 0; var sent = 0; var accepted = 0; var subtotal = 0m;
             await using (var stats = connection.CreateCommand())
             {
@@ -6146,7 +6189,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             var shortcuts = 0; var pinned = 0; var users = 0; var erpSurface = 0;
             await using (var stats = connection.CreateCommand())
             {
@@ -6206,7 +6249,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             var assets = 0; var active = 0; var disposed = 0; var cost = 0m; var book = 0m;
             await using (var stats = connection.CreateCommand())
             {
@@ -6306,7 +6349,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             IReadOnlyList<string> columns;
             IReadOnlyList<IReadOnlyDictionary<string, string>> rows;
 
@@ -6607,7 +6650,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             var tasks = 0; var open = 0; var done = 0; var overdue = 0; var cancelled = 0;
             await using (var stats = connection.CreateCommand())
             {
@@ -6676,7 +6719,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
 
             var arMap = new Dictionary<long, ErpAgingPartyDigest>();
@@ -6825,7 +6868,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             var totalCount = 0;
             try
             {
@@ -6907,7 +6950,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             var layouts = 0; var published = 0; var draft = 0; var sites = 0;
             await using (var stats = connection.CreateCommand())
             {
@@ -6961,7 +7004,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             var products = 0; var published = 0; var unpublished = 0; var categories = 0;
             await using (var stats = connection.CreateCommand())
             {
@@ -7014,7 +7057,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await _connections.OpenRegistryAsync(cancellationToken).ConfigureAwait(false);
             var rules = 0; var active = 0; var required = 0; var categories = 0;
             await using (var stats = connection.CreateCommand())
             {
@@ -7071,7 +7114,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             var docs = 0; var open = 0; var submitted = 0; var total = 0m;
             await using (var stats = connection.CreateCommand())
             {
@@ -7131,7 +7174,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             var repairs = 0; var open = 0; var authorized = 0; var items = 0;
             await using (var stats = connection.CreateCommand())
             {
@@ -7191,7 +7234,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             var tickets = 0; var open = 0; var high = 0; var messages = 0;
             await using (var stats = connection.CreateCommand())
             {
@@ -7249,7 +7292,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             var tasks = 0; var done = 0; var kpis = 0; var reviews = 0;
             await using (var stats = connection.CreateCommand())
             {
@@ -7303,7 +7346,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             var controls = 0; var implemented = 0; var evidence = 0; var policies = 0;
             await using (var stats = connection.CreateCommand())
             {
@@ -7359,7 +7402,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             var items = 0; var txns = 0; var closes = 0; var models = 0;
             await using (var stats = connection.CreateCommand())
             {
@@ -7413,7 +7456,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             var periods = 0; var openPeriods = 0; var rules = 0; var accruals = 0;
             await using (var stats = connection.CreateCommand())
             {
@@ -7469,7 +7512,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             var proofs = 0; var pending = 0; var anchored = 0; var batches = 0;
             await using (var stats = connection.CreateCommand())
             {
@@ -7529,7 +7572,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             var sheets = 0; var posted = 0; var expenses = 0; var lines = 0;
             await using (var stats = connection.CreateCommand())
             {
@@ -7590,7 +7633,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             var locations = 0; var lps = 0; var waves = 0; var openWork = 0;
             await using (var stats = connection.CreateCommand())
             {
@@ -7648,7 +7691,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             var queries = 0; var success = 0; var blocked = 0; var providers = 0;
             await using (var stats = connection.CreateCommand())
             {
@@ -7706,7 +7749,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             var rmas = 0; var open = 0; var warranties = 0; var items = 0;
             await using (var stats = connection.CreateCommand())
             {
@@ -7765,7 +7808,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             var runs = 0; var failedRuns = 0; var violations = 0; var sites = 0;
             await using (var stats = connection.CreateCommand())
             {
@@ -7820,7 +7863,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             var kyc = 0; var pending = 0; var flagged = 0; var rules = 0;
             await using (var stats = connection.CreateCommand())
             {
@@ -7877,7 +7920,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             var karats = 0; var rates = 0; var barcodes = 0; var diamonds = 0;
             await using (var stats = connection.CreateCommand())
             {
@@ -7934,7 +7977,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             var entities = 0; var figures = 0; var ic = 0; var openIc = 0;
             await using (var stats = connection.CreateCommand())
             {
@@ -7991,7 +8034,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             var activityCount = 0; var openCount = 0; var overdueCount = 0; var doneCount = 0;
             await using (var stats = connection.CreateCommand())
             {
@@ -8048,7 +8091,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             var secretCount = 0; var confirmedCount = 0; var backupUnused = 0; var policyCount = 0;
             await using (var stats = connection.CreateCommand())
             {
@@ -8103,7 +8146,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             var formatCount = 0; var fieldCount = 0; var runCount = 0; var outputTypeCount = 0;
             await using (var stats = connection.CreateCommand())
             {
@@ -8160,7 +8203,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             var queueCount = 0; var openCount = 0; var profileCount = 0; var logCount = 0;
             await using (var stats = connection.CreateCommand())
             {
@@ -8220,7 +8263,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             var channelCount = 0; var activeCount = 0; var skuMapCount = 0; var orderCount = 0;
             await using (var stats = connection.CreateCommand())
             {
@@ -8298,7 +8341,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             var countryCount = 0; var articleDemandCount = 0; var priceListDemandCount = 0; var userDemandCount = 0;
             await using (var stats = connection.CreateCommand())
             {
@@ -8349,7 +8392,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             var limitCount = 0; var activeCount = 0; var heldCount = 0; var txnCount = 0;
             await using (var stats = connection.CreateCommand())
             {
@@ -8407,7 +8450,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             var policyCount = 0; var activeCount = 0; var claimCount = 0; var documentCount = 0;
             await using (var stats = connection.CreateCommand())
             {
@@ -8468,7 +8511,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             var entryCount = 0; var actionCount = 0; var adminCount = 0; var entityTypeCount = 0;
             await using (var stats = connection.CreateCommand())
             {
@@ -8523,7 +8566,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             var documentCount = 0; var activeCount = 0; var expiredCount = 0; var reminderCount = 0;
             await using (var stats = connection.CreateCommand())
             {
@@ -8583,7 +8626,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             var configCount = 0; var groupCount = 0; var editableCount = 0; var historyCount = 0;
             await using (var stats = connection.CreateCommand())
             {
@@ -8640,7 +8683,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             var verificationCount = 0; var inProgressCount = 0; var completeCount = 0; var lineCount = 0;
             await using (var stats = connection.CreateCommand())
             {
@@ -9108,7 +9151,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             var ruleCount = 0; var activeCount = 0; var stagingCount = 0; var auditCount = 0;
             await using (var stats = connection.CreateCommand())
             {
@@ -9164,7 +9207,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             var requestCount = 0; var pendingCount = 0; var approvedCount = 0; var stepCount = 0;
             await using (var stats = connection.CreateCommand())
             {
@@ -9223,7 +9266,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             var batchCount = 0; var postedBatchCount = 0; var openingLineCount = 0; var periodCount = 0; var closedPeriodCount = 0; var closeLogCount = 0;
             await using (var stats = connection.CreateCommand())
             {
@@ -9281,7 +9324,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             var fixingCount = 0; var openFixingCount = 0; var purchaseFixCount = 0; var settlementCount = 0; var pettyCashCount = 0;
             await using (var stats = connection.CreateCommand())
             {
@@ -9333,6 +9376,18 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    public Task<CpWebTrackerDashboardResult> BuildCpWebTrackerDashboardAsync(
+        CpWebTrackerFilterQuery filters,
+        CancellationToken cancellationToken = default)
+        => CpWebTrackerDashboardBuilder.BuildDashboardAsync(_connections, filters, cancellationToken);
+
+    public Task<CpWebTrackerSessionDetailResult> BuildCpWebTrackerSessionDetailAsync(
+        long sessionId,
+        string siteKey,
+        bool isSuper,
+        CancellationToken cancellationToken = default)
+        => CpWebTrackerDashboardBuilder.BuildSessionDetailAsync(_connections, sessionId, siteKey, isSuper, cancellationToken);
+
     public async Task<CpWebTrackerDigestResult> BuildCpWebTrackerDigestAsync(int limit, CancellationToken cancellationToken = default)
     {
         var safeLimit = Math.Clamp(limit, 1, 500);
@@ -9344,7 +9399,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             var sessionCount = 0; var pageviewCount = 0; var eventCount = 0; var countryCount = 0;
             await using (var stats = connection.CreateCommand())
             {
@@ -9402,7 +9457,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             var lineCount = 0; var guestLineCount = 0; var userLineCount = 0; var guestSessionCount = 0; var userCartCount = 0;
             var cartSum = 0m;
             await using (var stats = connection.CreateCommand())
@@ -9465,7 +9520,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             var quoteCount = 0; var draftCount = 0; var submittedCount = 0; var quotedCount = 0; var acceptedCount = 0; var itemCount = 0;
             await using (var stats = connection.CreateCommand())
             {
@@ -9523,7 +9578,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await _connections.OpenRegistryAsync(cancellationToken).ConfigureAwait(false);
             var settingCount = 0; var taskCount = 0; var openTaskCount = 0; var highPriorityCount = 0;
             await using (var stats = connection.CreateCommand())
             {
@@ -9580,7 +9635,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await _connections.OpenRegistryAsync(cancellationToken).ConfigureAwait(false);
             var blockCount = 0; var activeCount = 0; var placementCount = 0; var localeCount = 0;
             await using (var stats = connection.CreateCommand())
             {
@@ -9638,7 +9693,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await _connections.OpenRegistryAsync(cancellationToken).ConfigureAwait(false);
             var accountCount = 0; var saveCount = 0; var settingCount = 0; var activeAccountCount = 0;
             await using (var stats = connection.CreateCommand())
             {
@@ -9694,7 +9749,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             var snapshotCount = 0; var activeSnapshotCount = 0; var promotedSnapshotCount = 0; var changeCount = 0;
             await using (var stats = connection.CreateCommand())
             {
@@ -9749,7 +9804,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             var appCount = 0; var publishedCount = 0; var installCount = 0; var activeInstallCount = 0; var reviewCount = 0;
             await using (var stats = connection.CreateCommand())
             {
@@ -9812,7 +9867,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             var notificationCount = 0; var unreadCount = 0; var prefCount = 0; var channelCount = 0;
             await using (var stats = connection.CreateCommand())
             {
@@ -9869,7 +9924,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await _connections.OpenRegistryAsync(cancellationToken).ConfigureAwait(false);
             var siteCount = 0; var industryCount = 0; var accessModeCount = 0; var deployTargetCount = 0;
             await using (var stats = connection.CreateCommand())
             {
@@ -9928,7 +9983,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             var migrationCount = 0; var completedCount = 0; var failedCount = 0; var rowCount = 0;
             await using (var stats = connection.CreateCommand())
             {
@@ -9988,7 +10043,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             var nodeCount = 0; var level1Count = 0; var level2Count = 0; var mappedOfficeCount = 0;
             nodeCount = await ScalarIntSafeAsync(connection, LegacySurfaceDashboardSql.CountCpGeoRegionsNodeCount, cancellationToken).ConfigureAwait(false);
             level1Count = await ScalarIntSafeAsync(connection, LegacySurfaceDashboardSql.CountCpGeoRegionsLevel1Count, cancellationToken).ConfigureAwait(false);
@@ -10039,7 +10094,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             var filterCount = 0; var withStorageScope = 0; var withPriceBand = 0; var withTimeBand = 0;
             await using (var stats = connection.CreateCommand())
             {
@@ -10100,7 +10155,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             var tabCount = 0; var enabledCount = 0; var disabledCount = 0; var maxOrder = 0;
             await using (var stats = connection.CreateCommand())
             {
@@ -10157,7 +10212,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             var requestCount = 0; var unviewedCount = 0; var viewedCount = 0; var withUserCount = 0;
             await using (var stats = connection.CreateCommand())
             {
@@ -10214,7 +10269,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             var textCount = 0; var beforeMainCount = 0; var withTitleCount = 0; var withDescriptionCount = 0;
             await using (var stats = connection.CreateCommand())
             {
@@ -10272,7 +10327,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             var imageCount = 0; var connected = 0; var cntImg = 0; var cntImgNext = 0;
             imageCount = await ScalarIntSafeAsync(connection, LegacySurfaceDashboardSql.CountCpSliderBannersImageCount, cancellationToken).ConfigureAwait(false);
             connected = await ScalarIntSafeAsync(connection, LegacySurfaceDashboardSql.CountCpSliderBannersConnected, cancellationToken).ConfigureAwait(false);
@@ -10321,7 +10376,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             var dumpCount = 0; var totalRecords = 0; var latestTimeCreated = 0; var withFileCount = 0;
             await using (var stats = connection.CreateCommand())
             {
@@ -10379,7 +10434,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             var smsActiveCount = 0; var smsTotalCount = 0; var emailLastStatus = ""; var smsLastStatus = "";
             smsActiveCount = await ScalarIntSafeAsync(connection, LegacySurfaceDashboardSql.CountCpCommunicationsTestSmsActiveCount, cancellationToken).ConfigureAwait(false);
             smsTotalCount = await ScalarIntSafeAsync(connection, LegacySurfaceDashboardSql.CountCpCommunicationsTestSmsTotalCount, cancellationToken).ConfigureAwait(false);
@@ -10442,7 +10497,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             var languageCount = 0; var activeCount = 0; var defaultCount = 0; var inactiveCount = 0;
             await using (var stats = connection.CreateCommand())
             {
@@ -10498,7 +10553,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             var pluginCount = 0; var activatedCount = 0; var frontendCount = 0; var lockedCount = 0;
             await using (var stats = connection.CreateCommand())
             {
@@ -10557,7 +10612,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             var templateCount = 0; var frontendCount = 0; var currentFrontendCount = 0; var currentBackendCount = 0;
             await using (var stats = connection.CreateCommand())
             {
@@ -10617,7 +10672,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             var tokenCount = 0; var tenantCount = 0; var whiteLabelCount = 0; var updatedRecentCount = 0;
             tokenCount = await ScalarIntSafeAsync(connection, LegacySurfaceDashboardSql.CountCpDesignTokensTokenCount, cancellationToken).ConfigureAwait(false);
             tenantCount = await ScalarIntSafeAsync(connection, LegacySurfaceDashboardSql.CountCpDesignTokensTenantCount, cancellationToken).ConfigureAwait(false);
@@ -10665,7 +10720,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             var contentUrlCount = 0; var categoryCount = 0; var productCount = 0; var frontendContentCount = 0;
             contentUrlCount = await ScalarIntSafeAsync(connection, LegacySurfaceDashboardSql.CountCpSitemapContentUrlCount, cancellationToken).ConfigureAwait(false);
             categoryCount = await ScalarIntSafeAsync(connection, LegacySurfaceDashboardSql.CountCpSitemapCategoryCount, cancellationToken).ConfigureAwait(false);
@@ -10784,7 +10839,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             var groupCount = 0; var itemCount = 0; var showAnywayCount = 0; var urlItemCount = 0;
             await using (var stats = connection.CreateCommand())
             {
@@ -11009,7 +11064,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             var orderCount = 0; var queryCount = 0; var uniqueArticles = 0; var activeDays = 0;
             await using (var stats = connection.CreateCommand())
             {
@@ -11062,7 +11117,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             var listingCount = 0; var publishedCount = 0; var categoryCount = 0; var photoCount = 0;
             await using (var stats = connection.CreateCommand())
             {
@@ -11117,7 +11172,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             var manufacturerCount = 0; var synonymCount = 0; var orphanCount = 0; var mappedCount = 0;
             await using (var stats = connection.CreateCommand())
             {
@@ -11233,7 +11288,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             var accountCount = 0; var draftCount = 0; var publishedCount = 0; var errorCount = 0;
             await using (var stats = connection.CreateCommand())
             {
@@ -11287,7 +11342,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             var siteCount = 0; var flagCount = 0; var enabledCount = 0; var disabledCount = 0;
             await using (var stats = connection.CreateCommand())
             {
@@ -11340,7 +11395,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             var userCount = 0; var withEmail = 0; var withPhone = 0; var recentLogins = 0;
             await using (var stats = connection.CreateCommand())
             {
@@ -11394,7 +11449,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             var queued = 0; var picking = 0; var shipping = 0; var delivered = 0;
             await using (var stats = connection.CreateCommand())
             {
@@ -11450,7 +11505,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             var providerCount = 0; var activeProviders = 0; var sessionCount = 0; var activeSessions = 0;
             await using (var stats = connection.CreateCommand())
             {
@@ -11504,7 +11559,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             var eventCount = 0; var typeCount = 0; var tenantCount = 0; var last24h = 0;
             await using (var stats = connection.CreateCommand())
             {
@@ -11556,7 +11611,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             await using var command = connection.CreateCommand();
             command.CommandText = LegacySurfaceDashboardSql.SelectOnPremisesLicenses;
             AddParameter(command, "@limit", safeLimit);
@@ -11597,7 +11652,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             await using var command = connection.CreateCommand();
             command.CommandText = LegacySurfaceDashboardSql.SelectErpDeliveryNotes;
             AddParameter(command, "@limit", safeLimit);
@@ -11635,7 +11690,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             await using var command = connection.CreateCommand();
             command.CommandText = LegacySurfaceDashboardSql.SelectErpRfqs;
             AddParameter(command, "@limit", safeLimit);
@@ -11674,7 +11729,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             await using var command = connection.CreateCommand();
             command.CommandText = LegacySurfaceDashboardSql.SelectErpThreeWayMatch;
             AddParameter(command, "@limit", safeLimit);
@@ -11712,7 +11767,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             await using var command = connection.CreateCommand();
             command.CommandText = LegacySurfaceDashboardSql.SelectErpContacts;
             AddParameter(command, "@limit", safeLimit);
@@ -11754,7 +11809,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             await using var command = connection.CreateCommand();
             command.CommandText = LegacySurfaceDashboardSql.SelectErpPaymentBatches;
             AddParameter(command, "@limit", safeLimit);
@@ -11793,7 +11848,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             await using var command = connection.CreateCommand();
             command.CommandText = LegacySurfaceDashboardSql.SelectErpFiscalPeriods;
             AddParameter(command, "@limit", safeLimit);
@@ -11829,7 +11884,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             await using var command = connection.CreateCommand();
             command.CommandText = LegacySurfaceDashboardSql.SelectErpAgendaEvents;
             AddParameter(command, "@limit", safeLimit);
@@ -11867,7 +11922,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             await using var command = connection.CreateCommand();
             command.CommandText = LegacySurfaceDashboardSql.SelectErpDocuments;
             AddParameter(command, "@limit", safeLimit);
@@ -11904,7 +11959,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             await using var command = connection.CreateCommand();
             command.CommandText = LegacySurfaceDashboardSql.SelectErpExpenseReports;
             AddParameter(command, "@limit", safeLimit);

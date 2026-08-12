@@ -115,6 +115,11 @@ public sealed class StorefrontGuestPriceVisibilityTests
             HttpContext httpContext,
             CancellationToken cancellationToken = default)
             => ValueTask.FromResult(new Auth.LegacySessionContext(Auth.LegacySessionKind.Anonymous, 0, null, []));
+
+        public ValueTask<Auth.LegacySessionContext> ValidateCustomerAsync(
+            HttpContext httpContext,
+            CancellationToken cancellationToken = default)
+            => ValidateAsync(httpContext, cancellationToken);
     }
 
     private sealed class NoopConnections : Data.ITenantDbConnectionFactory
