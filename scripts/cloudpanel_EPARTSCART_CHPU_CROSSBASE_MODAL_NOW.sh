@@ -43,12 +43,13 @@ FULL="$(git rev-parse HEAD)"
 MSG="$(git log -1 --pretty=%s)"
 note "REPO=${REPO} SHA=${SHA} FULL=${FULL}"
 note "HEAD_MSG=${MSG}"
-# Refuse stale branch tips that predate the empty-warehouse cross-stock fill.
-echo "$MSG" | grep -Eiq 'cross stock|crossbase modal' \
-  || die "unexpected HEAD message (need cross-stock fill commit on this branch): ${MSG}"
+# Tip commit subjects rotate (SHA prove, REPLACE stock, modal, …) — gate on code markers only.
 grep -q 'LoadStorefrontCrossStockAsync' \
   aspnet/src/EcomAE.Platform/Migration/SurfaceDashboardSummaryReporter.cs \
   || die "branch tip missing LoadStorefrontCrossStockAsync — git fetch/reset failed"
+grep -q 'MySqlConnection is already in use' \
+  aspnet/src/EcomAE.Platform/Migration/SurfaceDashboardSummaryReporter.cs \
+  || die "branch tip missing cross-search reader dispose fix"
 
 grep -q 'Source = "cp+crossbase"' aspnet/src/EcomAE.Platform/Migration/SurfaceDashboardSummaryReporter.cs \
   || die "missing cp+crossbase overlap retag in source"
@@ -158,18 +159,24 @@ API=/tmp/epc_toyota_cross_post.json
 curl -sS -A 'EcomAE-ChpuCrossModalNow/1.0' -o "$API" --max-time 25 \
   'https://www.epartscart.com/storefront/cross-search?article=1310154101&brand=TOYOTA&limit=600&include_crossbase=1' || true
 python3 - <<'PY' || die "API missing crossbase provenance after publish"
-import json
+import json, sys
 from collections import Counter
 d=json.load(open("/tmp/epc_toyota_cross_post.json"))
 refs=d.get("references") or []
 sources=Counter(str(r.get("source") or "") for r in refs)
 tagged=sum(1 for r in refs if "crossbase" in str(r.get("source") or "").lower())
+print("API status", d.get("status"), "source", d.get("source"), "message", d.get("message"))
 print("API sources", dict(sources), "crossbase_count", d.get("crossbase_count"), "tagged", tagged)
-assert int(d.get("crossbase_count") or 0) > 0
-assert tagged > 0, "expected cp+crossbase and/or crossbase sources after retag"
+msg = str(d.get("message") or "")
+if "already in use" in msg.lower():
+    print("GATE_BAD mysql_connection_reuse — republish reader-dispose fix", file=sys.stderr)
+    raise SystemExit(2)
+if int(d.get("crossbase_count") or 0) <= 0 or tagged <= 0:
+    raise SystemExit("expected cp+crossbase and/or crossbase sources after retag")
 print("GATE_OK API_PROVENANCE=YES")
 stock = d.get("stock") or []
-assert int(d.get("stock_count") or 0) > 0 and len(stock) > 0, "expected cross stock for empty-warehouse fill"
+if int(d.get("stock_count") or 0) <= 0 or len(stock) <= 0:
+    raise SystemExit("expected cross stock for empty-warehouse fill")
 print("GATE_OK API_CROSS_STOCK=YES stock=", len(stock))
 PY
 

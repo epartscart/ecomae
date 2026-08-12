@@ -91,6 +91,9 @@ public sealed class CrossbaseReferenceLoaderTests
         Assert.Contains("StorefrontCrossStockDigest", reporter, StringComparison.Ordinal);
         // Must use PHP REPLACE-normalize IN (not only exact trim) so STD / OE variants hit prices_data.
         Assert.Contains("StorefrontPriceArticleReplaceInSql", reporter, StringComparison.Ordinal);
+        // Local CP reader must dispose before stock batch reuses the same MySqlConnection.
+        Assert.Contains("already in use", reporter, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("await using (var reader = await command.ExecuteReaderAsync", reporter, StringComparison.Ordinal);
         var module = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Modules/StorefrontModule.cs"));
         Assert.Contains("stock_count = stock.Count", module, StringComparison.Ordinal);
         Assert.Contains("prices_visible = access.PricesVisible", module, StringComparison.Ordinal);
