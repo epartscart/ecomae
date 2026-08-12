@@ -70,6 +70,10 @@ fi
 curl -sk -o /tmp/parity.js -w 'PARITY_HTTP=%{http_code}\n' --max-time 15 \
   "${BASE}/platform-assets/epc_warehouse_search_parity.js?v=20260812-fitment" || true
 grep -q 'loadEpartscrossFitmentFallback' /tmp/parity.js && ok "live parity has fallback" || bad "live parity stale"
+grep -q 'window.epcOpenFitmentCheck = openFitment' /tmp/parity.js && ok "PHP epcOpenFitmentCheck global" || bad "missing epcOpenFitmentCheck"
+grep -q 'epc-fitment-panel--centered' /tmp/parity.js && ok "centered panel positioning" || bad "missing centered panel"
+grep -q 'panel.classList.add("is-open", "active")' /tmp/parity.js && ok "active+is-open open classes" || bad "missing .active open"
+grep -q '__epcFitmentDelegated' /tmp/parity.js && ok "row fitment delegation" || bad "missing row fitment delegation"
 grep -q 'Fitment action requires ASP.NET catalog route' /tmp/parity.js \
   && bad "live parity still hard-rejects analogs" || ok "analogs hard-reject removed"
 

@@ -21,6 +21,11 @@ public sealed class StorefrontFitmentPhpParityTests
         Assert.Contains("/storefront/fitment-widget.js?", text, StringComparison.Ordinal);
         Assert.Contains("loadEpartscrossFitmentFallback", text, StringComparison.Ordinal);
         Assert.Contains("Loading vehicle applicability from cross-reference catalog", text, StringComparison.Ordinal);
+        Assert.Contains("window.epcOpenFitmentCheck = openFitment", text, StringComparison.Ordinal);
+        Assert.Contains("window.epcOpenFitmentCheckRow = openFitmentCheckRow", text, StringComparison.Ordinal);
+        Assert.Contains("epc-fitment-panel--centered", text, StringComparison.Ordinal);
+        Assert.Contains("panel.classList.add(\"is-open\", \"active\")", text, StringComparison.Ordinal);
+        Assert.Contains("__epcFitmentDelegated", text, StringComparison.Ordinal);
         Assert.DoesNotContain(
             "Fitment action requires ASP.NET catalog route (product PHP proxies disabled).",
             text,
@@ -34,7 +39,7 @@ public sealed class StorefrontFitmentPhpParityTests
     {
         var text = File.ReadAllText(FindRepoFile(
             "aspnet/src/EcomAE.Platform/Components/Pages/StorefrontSearchApp.razor"));
-        Assert.Contains("epc_warehouse_search_parity.js?v=20260812-cross-price", text, StringComparison.Ordinal);
+        Assert.Contains("epc_warehouse_search_parity.js?v=20260812-fitment", text, StringComparison.Ordinal);
         Assert.Contains("epc-fitment-check-btn", text, StringComparison.Ordinal);
         Assert.Contains("applicability_widget", text, StringComparison.Ordinal);
     }
