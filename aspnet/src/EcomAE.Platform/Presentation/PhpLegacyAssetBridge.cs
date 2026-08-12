@@ -256,6 +256,37 @@ public static class PhpLegacyAssetBridge
             return Results.File(path, ContentTypeFor(path));
         });
 
+        // Industry showcase 3D assets (rewritten from epc-static.php in snapshots).
+        endpoints.MapGet("/platform-assets/industry_templates/assets/{*filePath}", (string filePath) =>
+        {
+            if (string.IsNullOrWhiteSpace(filePath)
+                || filePath.Contains("..", StringComparison.Ordinal)
+                || Path.IsPathRooted(filePath))
+            {
+                return Results.NotFound();
+            }
+
+            var relative = Path.Combine("content", "general_pages", "industry_templates", "assets", filePath.Replace('\\', '/'));
+            var path = Path.GetFullPath(Path.Combine(repoRoot, relative));
+            var root = Path.GetFullPath(Path.Combine(repoRoot, "content", "general_pages", "industry_templates", "assets"));
+            if (!path.StartsWith(root, StringComparison.Ordinal) || !File.Exists(path))
+            {
+                return Results.NotFound();
+            }
+
+            return Results.File(path, ContentTypeFor(path));
+        });
+        endpoints.MapGet("/platform-assets/industry_3d.css", () =>
+        {
+            var path = Path.GetFullPath(Path.Combine(repoRoot, "content/general_pages/industry_templates/assets/industry_3d.css"));
+            return File.Exists(path) ? Results.File(path, "text/css; charset=utf-8") : Results.NotFound();
+        });
+        endpoints.MapGet("/platform-assets/industry_3d.js", () =>
+        {
+            var path = Path.GetFullPath(Path.Combine(repoRoot, "content/general_pages/industry_templates/assets/industry_3d.js"));
+            return File.Exists(path) ? Results.File(path, "application/javascript; charset=utf-8") : Results.NotFound();
+        });
+
         endpoints.MapGet("/platform-assets/ecomae-mark.svg", () =>
         {
             foreach (var candidate in new[]
