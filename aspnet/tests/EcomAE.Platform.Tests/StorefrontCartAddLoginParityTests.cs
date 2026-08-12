@@ -25,7 +25,8 @@ public sealed class StorefrontCartAddLoginParityTests
     {
         var text = File.ReadAllText(FindRepoFile(
             "aspnet/src/EcomAE.Platform/Components/Pages/StorefrontSearchApp.razor"));
-        Assert.Contains("epc_warehouse_search_parity.js?v=20260812-cartadd", text, StringComparison.Ordinal);
+        // Cache-bust advances with later CHPU PRs (whgroup); cart-add wiring stays in parity JS.
+        Assert.Contains("epc_warehouse_search_parity.js?v=20260812-", text, StringComparison.Ordinal);
     }
 
     [Fact]
