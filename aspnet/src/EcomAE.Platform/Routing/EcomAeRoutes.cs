@@ -376,8 +376,10 @@ public static class EcomAeRoutes
     /// <summary>CP Notifications Blazor list (JSON digest remains <see cref="ControlPanelNotifications"/>).</summary>
     public const string ControlPanelNotificationsApp = "/cp/notifications-app";
     public const string ControlPanelPortalSettings = "/cp/portal-settings";
-    /// <summary>CP Portal settings Blazor list (JSON digest remains <see cref="ControlPanelPortalSettings"/>).</summary>
+    /// <summary>Super-CP-only portal fleet Blazor list (JSON digest remains <see cref="ControlPanelPortalSettings"/>).</summary>
     public const string ControlPanelPortalSettingsApp = "/cp/portal-settings-app";
+    /// <summary>Tenant-local SMTP / email settings shell (PHP epc_tenant_email_settings).</summary>
+    public const string ControlPanelTenantEmailApp = "/cp/tenant-email-app";
     public const string ControlPanelDataMigrations = "/cp/data-migrations";
     /// <summary>CP Data migrations Blazor list (JSON digest remains <see cref="ControlPanelDataMigrations"/>).</summary>
     public const string ControlPanelDataMigrationsApp = "/cp/data-migrations-app";

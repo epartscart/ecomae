@@ -65,7 +65,7 @@ public sealed class FullArchitectureLinkRemapTests
     // --- BOS exact m= (no substring steal) ---
     [Theory]
     [InlineData("/BOS/?m=isolation_audit", "/cp/isolation-audit-app")]
-    [InlineData("/BOS/?m=tenant_email", "/cp/portal-settings-app")]
+    [InlineData("/BOS/?m=tenant_email", "/cp/tenant-email-app")]
     [InlineData("/BOS/?m=command_center", "/bos/app")]
     [InlineData("/BOS/?m=fleet_cp", "/bos/tenants-app")]
     [InlineData("/BOS/?m=audit_log", "/bos/audit-log-app")]
@@ -114,9 +114,20 @@ public sealed class FullArchitectureLinkRemapTests
     [InlineData("/CP/control/portal/epc_boc_audit_log")]
     [InlineData("/cp/free-tools-app")]
     [InlineData("/cp/failover-status-app")]
+    [InlineData("/cp/portal-settings-app")]
+    [InlineData("/CP/control/portal/portal")]
+    [InlineData("/cp/platform-communication-app")]
+    [InlineData("/cp/info-blocks-app")]
     public void SuperOnlyFilter_HidesTenantChromeLeaks(string href)
     {
         Assert.True(LegacyDesktopChromeCatalog.IsSuperOnlyCpLink(href));
+    }
+
+    [Fact]
+    public void TenantEmail_IsNotSuperOnlyFleetPortal()
+    {
+        Assert.False(LegacyDesktopChromeCatalog.IsSuperOnlyCpLink("/cp/tenant-email-app"));
+        Assert.Equal("/cp/tenant-email-app", PhpSurfaceLinkMap.AspNetPrimaryHref("/CP/control/portal/epc_tenant_email_settings"));
     }
 
     [Fact]
