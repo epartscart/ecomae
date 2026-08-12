@@ -769,9 +769,57 @@
       })
       .catch(function () {});
   }
+  function mergeCrossStockIntoOffers(stockItems) {
+    // PHP epcBindCrossStockProducts / epcTryMergePendingCrossStock — when the typed
+    // article has no warehouse row, still paint UAE stock for interchangeable numbers.
+    stockItems = stockItems || window.__epcPendingCrossStock || [];
+    if (!stockItems.length || !body) return 0;
+    window.epcMergeCrossStockIntoOffers = mergeCrossStockIntoOffers;
+    var added = 0;
+    stockItems.forEach(function (item) {
+      var mfr = item.brand || item.manufacturer || '';
+      var art = item.article || item.article_norm || '';
+      if (!mfr || !art) return;
+      var before = Object.keys(seen).length;
+      appendProduct({
+        manufacturer: mfr,
+        article: art,
+        articleShow: item.article || art,
+        name: item.name || '',
+        exist: item.qty != null ? item.qty : (item.exist != null ? item.exist : 1),
+        price: item.price != null ? item.price : 0,
+        timeToExe: item.delivery != null ? item.delivery : (item.time_to_exe || '0'),
+        storage: item.warehouse || 'Cross stock',
+        storageId: item.storage_id || 0,
+        officeId: item.office_id || 1,
+        minOrder: 1,
+        probability: 100,
+        productType: 2,
+        pricePurchase: item.price_purchase || 0,
+        markup: item.markup || 0,
+        jsonParams: '',
+        checkHash: ''
+      });
+      if (Object.keys(seen).length > before) added++;
+    });
+    if (added > 0) {
+      var banner = document.getElementById('epc-cross-stock-banner');
+      if (!banner && table && table.parentNode) {
+        banner = document.createElement('div');
+        banner.id = 'epc-cross-stock-banner';
+        banner.className = 'epc-cross-stock-results';
+        banner.innerHTML = '<div class="epc-cross-stock-results__head"><strong>Cross reference stock found</strong>' +
+          '<span>These items match cross numbers for ' + esc(article) +
+          ' and are available in loaded UAE price lists. Open the green references button for the full interchange list.</span></div>';
+        table.parentNode.insertBefore(banner, table);
+      }
+    }
+    return added;
+  }
   function finishPoll(total) {
     if (!progress) return;
     progress.setAttribute('data-done', '1');
+    mergeCrossStockIntoOffers(window.__epcPendingCrossStock);
     var hasRows = !!body.querySelector('tr.epc-part-type-row--genuine, tr.epc-part-type-row--aftermarket');
     if (hasRows) {
       // Never leave "Polling suppliers…" visible after rows exist — that felt like a hang.
@@ -781,9 +829,17 @@
     progress.hidden = false;
     var empty = body.querySelector('tr[data-empty="1"]');
     if (empty) {
+      var crossBtn = document.getElementById('epc-cross-search-btn');
+      var crossLabel = crossBtn ? String(crossBtn.textContent || '').replace(/\s+/g, ' ').trim() : '';
+      var crossHint = crossLabel
+        ? (' Open <strong>' + esc(crossLabel) + '</strong> for interchangeable numbers' +
+          (window.__epcPendingCrossStock && window.__epcPendingCrossStock.length
+            ? ' — cross stock is loading into this table.'
+            : '.'))
+        : ' Try another brand or article, or open cross references.';
       empty.querySelector('td').innerHTML =
         'No warehouse offers for <strong>' + esc(brand) + ' ' + esc(article) +
-        '</strong> after polling ' + total + ' supplier bunch(es). Try another brand or article.';
+        '</strong> after polling ' + total + ' supplier bunch(es).' + crossHint;
     }
   }
   function compactArt(a) { return String(a || '').replace(/[^A-Za-z0-9]/g, '').toUpperCase(); }
@@ -797,6 +853,17 @@
     window.__epcChpuCrossBootstrapped = true;
     var refs = data.references || [];
     var stock = data.stock || [];
+    // PHP epcPendingCrossStock — merge into warehouse table when typed OE is empty.
+    window.__epcPendingCrossStock = stock.slice(0);
+    window.__epcLastCrossStock = stock.slice(0);
+    if (data.prices_visible === false) {
+      pricesVisible = false;
+      if (table) table.setAttribute('data-prices-visible', '0');
+    } else if (data.prices_visible === true) {
+      pricesVisible = true;
+      if (table) table.setAttribute('data-prices-visible', '1');
+    }
+    mergeCrossStockIntoOffers(stock);
     var localCount = Number(data.local_count || 0) || 0;
     var crossbaseCount = Number(data.crossbase_count || 0) || 0;
     var total = Number(data.unique_reference_count || data.reference_count || refs.length) || refs.length;
@@ -951,18 +1018,19 @@
     loadGenuineBrandsBackground();
     var crossPromise = loadAspNetCrossSearch();
     // Immediate protocol-3 poll — enrich SSR seed; never leave progress banner stuck.
-    var pricePromise = pollOne({ officeId: 0, storageId: 0, protocolVersion: 3, nestedBunches: [] })
-      .finally(function () {
-        if (countEl) countEl.textContent = '1';
-        finishPoll(1);
-        window.__epcChpuBootRunning = false;
-      });
+    var pricePromise = pollOne({ officeId: 0, storageId: 0, protocolVersion: 3, nestedBunches: [] });
     // search-bunches is diagnostic only — do NOT re-fire protocol-3.
     fetch(
       '/storefront/search-bunches?article=' + encodeURIComponent(article) + '&brand=' + encodeURIComponent(brand),
       { credentials: 'same-origin' }
     ).catch(function () {});
-    return Promise.all([pricePromise, crossPromise]);
+    // PHP epcChpuApplyCombinedResults — wait for price + cross stock before empty-state paint.
+    return Promise.all([pricePromise, crossPromise]).finally(function () {
+      if (countEl) countEl.textContent = '1';
+      mergeCrossStockIntoOffers(window.__epcPendingCrossStock);
+      finishPoll(1);
+      window.__epcChpuBootRunning = false;
+    });
   }
   window.epcRunChpuPriceSearchBootstrap = runChpuPriceSearch;
   runChpuPriceSearch();
@@ -984,7 +1052,7 @@
   }
 })();
             </script>
-            <script src="/platform-assets/epc_warehouse_search_parity.js?v=20260812-cross-modal" defer></script>
+            <script src="/platform-assets/epc_warehouse_search_parity.js?v=20260812-cross-stock" defer></script>
         }
     }
 

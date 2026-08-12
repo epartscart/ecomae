@@ -18,12 +18,13 @@ mv -f /tmp/epc_chpu_cb_modal.hdr.c /tmp/epc_chpu_cb_modal.hdr 2>/dev/null || tru
 
 has 'x-ecomae-platform:[[:space:]]*primary' /tmp/epc_chpu_cb_modal.hdr && ok "PRIMARY=YES" || fail "PRIMARY=NO"
 has 'epc-cross-search-btn' /tmp/epc_chpu_cb_modal.html && ok "CROSS_BTN=YES" || fail "CROSS_BTN=NO"
-has 'epc_warehouse_search_parity\.js\?v=20260812-cross-modal' /tmp/epc_chpu_cb_modal.html && ok "PARITY_JS_BUST=YES" || fail "PARITY_JS_BUST=NO"
+has 'epc_warehouse_search_parity\.js\?v=20260812-cross-stock' /tmp/epc_chpu_cb_modal.html && ok "PARITY_JS_BUST=YES" || fail "PARITY_JS_BUST=NO"
 has '__epcLastCrossPayload' /tmp/epc_chpu_cb_modal.html && ok "PAYLOAD_CACHE=YES" || fail "PAYLOAD_CACHE=NO"
+has 'mergeCrossStockIntoOffers' /tmp/epc_chpu_cb_modal.html && ok "CROSS_STOCK_MERGE=YES" || fail "CROSS_STOCK_MERGE=NO"
 
 # The HTML-referenced URL is what browsers load — must contain the modal (not a stale CDN body).
 REF_JS_URL="$(grep -oE '/platform-assets/epc_warehouse_search_parity\.js\?v=[^\"'\'' ]+' /tmp/epc_chpu_cb_modal.html | head -1 || true)"
-[[ -n "$REF_JS_URL" ]] || REF_JS_URL="/platform-assets/epc_warehouse_search_parity.js?v=20260812-cross-modal"
+[[ -n "$REF_JS_URL" ]] || REF_JS_URL="/platform-assets/epc_warehouse_search_parity.js?v=20260812-cross-stock"
 curl -sS -A "$UA" -o /tmp/epc_parity_cb_modal.js -w 'PARITY_JS_HTTP=%{http_code}\n' --max-time 20 \
   "${BASE}${REF_JS_URL}" || true
 note "PARITY_JS_REF=${REF_JS_URL}"
@@ -55,6 +56,12 @@ assert cb > 0, "expected crossbase_count > 0 for TOYOTA 1310154101"
 # Overlap retag (cp+crossbase) and/or unique crossbase rows must be visible to the modal Source column.
 assert cross_tagged > 0, "expected at least one reference source containing crossbase"
 print("GATE_OK CROSS_PROVENANCE=YES")
+stock = d.get("stock") or []
+stock_count = int(d.get("stock_count") or len(stock) or 0)
+print(f"stock_count={stock_count} stock_len={len(stock)}")
+# PHP ajax_epc_cross_search returns UAE warehouse hits for cross numbers when typed OE is empty.
+assert stock_count > 0 and len(stock) > 0, "expected cross stock rows (PHP empty-warehouse fill)"
+print("GATE_OK CROSS_STOCK=YES")
 PY
 
 if [[ "$pass" -eq 1 ]]; then

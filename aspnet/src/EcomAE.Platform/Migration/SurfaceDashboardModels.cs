@@ -1515,6 +1515,22 @@ public sealed record StorefrontCrossRefDigest(
     bool InStock,
     string Source = "cp");
 
+/// <summary>
+/// PHP <c>ajax_epc_cross_search</c> <c>stock[]</c> row — warehouse hits for cross numbers
+/// (fills CHPU when the typed article itself has no offers).
+/// </summary>
+public sealed record StorefrontCrossStockDigest(
+    string Brand,
+    string Article,
+    string ArticleNorm,
+    string Name,
+    decimal Price,
+    decimal Qty,
+    string Delivery,
+    string Warehouse,
+    int StorageId,
+    int PriceId);
+
 public sealed record StorefrontCrossRefsResult(
     string Article,
     IReadOnlyList<StorefrontCrossRefDigest> Rows,
@@ -1527,7 +1543,7 @@ public sealed record StorefrontCrossSearchResult(
     string Article,
     string Brand,
     IReadOnlyList<StorefrontCrossRefDigest> References,
-    IReadOnlyList<StorefrontCrossRefDigest> Stock,
+    IReadOnlyList<StorefrontCrossStockDigest> Stock,
     int LocalCount,
     int CrossbaseCount,
     int UniqueReferenceCount,

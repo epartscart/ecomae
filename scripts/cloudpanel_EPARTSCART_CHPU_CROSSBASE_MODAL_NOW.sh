@@ -50,9 +50,15 @@ grep -q 'openCrossModalFromButton' content/general_pages/epc_warehouse_search_pa
   || die "missing openCrossModalFromButton wire"
 grep -q '__epcLastCrossPayload' aspnet/src/EcomAE.Platform/Components/Pages/StorefrontSearchApp.razor \
   || die "missing CHPU payload cache for modal"
-grep -q 'epc_warehouse_search_parity.js?v=20260812-cross-modal' \
+grep -q 'epc_warehouse_search_parity.js?v=20260812-cross-stock' \
   aspnet/src/EcomAE.Platform/Components/Pages/StorefrontSearchApp.razor \
   || die "missing parity JS cache-bust in Razor"
+grep -q 'LoadStorefrontCrossStockAsync' \
+  aspnet/src/EcomAE.Platform/Migration/SurfaceDashboardSummaryReporter.cs \
+  || die "missing cross stock batch loader"
+grep -q 'mergeCrossStockIntoOffers' \
+  aspnet/src/EcomAE.Platform/Components/Pages/StorefrontSearchApp.razor \
+  || die "missing CHPU cross-stock merge"
 
 # Warm TOYOTA piston cache so prove does not depend on first-hit crossbase.ru.
 CACHE_DIRS=(
@@ -103,14 +109,16 @@ HTML=/tmp/epc_chpu_cb_modal_post.html
 CODE="$(curl -sS -A 'EcomAE-ChpuCrossModalNow/1.0' -o "$HTML" -w '%{http_code}' --max-time 45 \
   'https://www.epartscart.com/en/parts/TOYOTA/1310154101' || echo 000)"
 [[ "$CODE" == "200" ]] || die "CHPU HTTP=$CODE after publish"
-grep -Fq 'epc_warehouse_search_parity.js?v=20260812-cross-modal' "$HTML" \
-  || die "HTML still missing cross-modal cache-bust — ASP.NET DLL not republished"
+grep -Fq 'epc_warehouse_search_parity.js?v=20260812-cross-stock' "$HTML" \
+  || die "HTML still missing cross-stock cache-bust — ASP.NET DLL not republished"
 grep -Fq '__epcLastCrossPayload' "$HTML" \
   || die "HTML missing __epcLastCrossPayload — Razor not republished"
+grep -Fq 'mergeCrossStockIntoOffers' "$HTML" \
+  || die "HTML missing mergeCrossStockIntoOffers — Razor not republished"
 
 JS=/tmp/epc_parity_post.js
 curl -sS -A 'EcomAE-ChpuCrossModalNow/1.0' -o "$JS" --max-time 20 \
-  'https://www.epartscart.com/platform-assets/epc_warehouse_search_parity.js?v=20260812-cross-modal' || true
+  'https://www.epartscart.com/platform-assets/epc_warehouse_search_parity.js?v=20260812-cross-stock' || true
 grep -q 'function openCrossModal(' "$JS" || die "parity JS missing openCrossModal after publish"
 # Old bust must not keep serving the focusCross-only body after reload.
 OLD_JS=/tmp/epc_parity_oldbust.js
@@ -136,6 +144,9 @@ print("API sources", dict(sources), "crossbase_count", d.get("crossbase_count"),
 assert int(d.get("crossbase_count") or 0) > 0
 assert tagged > 0, "expected cp+crossbase and/or crossbase sources after retag"
 print("GATE_OK API_PROVENANCE=YES")
+stock = d.get("stock") or []
+assert int(d.get("stock_count") or 0) > 0 and len(stock) > 0, "expected cross stock for empty-warehouse fill"
+print("GATE_OK API_CROSS_STOCK=YES stock=", len(stock))
 PY
 
 bash scripts/cloudpanel_EPARTSCART_CHPU_CROSSBASE_MODAL_PROVE.sh 2>&1 \

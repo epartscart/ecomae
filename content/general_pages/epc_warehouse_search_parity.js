@@ -897,6 +897,12 @@
 				}
 				if (loading) loading.style.display = "none";
 				window.__epcLastCrossPayload = data;
+				// PHP epcPendingCrossStock — CHPU bootstrap merges these into the offer table.
+				window.__epcPendingCrossStock = stock.slice(0);
+				window.__epcLastCrossStock = stock.slice(0);
+				if (typeof window.epcMergeCrossStockIntoOffers === "function") {
+					window.epcMergeCrossStockIntoOffers(stock);
+				}
 				return data;
 			})
 			.catch(function () {
