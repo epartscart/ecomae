@@ -40,7 +40,15 @@ git checkout -f "$ECOMAE_BRANCH"
 git reset --hard "origin/$ECOMAE_BRANCH"
 SHA="$(git rev-parse --short HEAD)"
 FULL="$(git rev-parse HEAD)"
+MSG="$(git log -1 --pretty=%s)"
 note "REPO=${REPO} SHA=${SHA} FULL=${FULL}"
+note "HEAD_MSG=${MSG}"
+# Refuse stale branch tips that predate the empty-warehouse cross-stock fill.
+echo "$MSG" | grep -Eiq 'cross stock|crossbase modal' \
+  || die "unexpected HEAD message (need cross-stock fill commit on this branch): ${MSG}"
+grep -q 'LoadStorefrontCrossStockAsync' \
+  aspnet/src/EcomAE.Platform/Migration/SurfaceDashboardSummaryReporter.cs \
+  || die "branch tip missing LoadStorefrontCrossStockAsync — git fetch/reset failed"
 
 grep -q 'Source = "cp+crossbase"' aspnet/src/EcomAE.Platform/Migration/SurfaceDashboardSummaryReporter.cs \
   || die "missing cp+crossbase overlap retag in source"
@@ -90,6 +98,22 @@ FORCE_RC=${PIPESTATUS[0]}
 set -e
 note "force_live_exit=${FORCE_RC}"
 [[ "$FORCE_RC" -eq 0 ]] || die "FORCE_LIVE failed — see /root/epartscart-chpu-crossbase-modal-force-live.log"
+# Confirm published release SHA matches the branch tip we just checked out.
+RELEASE_ROOT="${ECOMAE_ASPNET_RELEASE_ROOT:-/var/www/ecomae-aspnet}"
+PUB_SHA_FILE=""
+if [[ -L "$RELEASE_ROOT/current" || -d "$RELEASE_ROOT/current" ]]; then
+  PUB_SHA_FILE="$RELEASE_ROOT/current/PUBLISHED_GIT_SHA.txt"
+fi
+if [[ ! -f "$PUB_SHA_FILE" ]]; then
+  PUB_SHA_FILE="$(ls -1t "$RELEASE_ROOT"/releases/*/PUBLISHED_GIT_SHA.txt 2>/dev/null | head -1 || true)"
+fi
+if [[ -n "$PUB_SHA_FILE" && -f "$PUB_SHA_FILE" ]]; then
+  PUB_FULL="$(tr -d '[:space:]' < "$PUB_SHA_FILE")"
+  note "PUBLISHED_GIT_SHA=${PUB_FULL} file=${PUB_SHA_FILE}"
+  [[ "$PUB_FULL" == "$FULL" ]] || die "published SHA ${PUB_FULL} != branch tip ${FULL} — FORCE_LIVE did not publish this checkout"
+else
+  note "WARN: PUBLISHED_GIT_SHA.txt not found under ${RELEASE_ROOT} — relying on HTTP gates"
+fi
 
 # Drop stale nginx proxy cache entries for the old parity JS query string if present.
 for cache_root in /var/cache/nginx /var/cache/nginx-proxy /var/lib/nginx/cache /var/cache/cloudpanel; do

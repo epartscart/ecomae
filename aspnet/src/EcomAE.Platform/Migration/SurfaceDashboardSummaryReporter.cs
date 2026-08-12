@@ -2192,8 +2192,9 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         {
             var batch = norms.Skip(offset).Take(batchSize).ToList();
             await using var command = connection.CreateCommand();
-            command.CommandTimeout = 2;
-            var articleMatch = LegacySurfaceDashboardSql.StorefrontPriceArticleExactInSql(batch.Count);
+            command.CommandTimeout = 3;
+            // PHP epc_cross_load_stock_for_references uses docpart_sql_article_normalized_expr IN (...).
+            var articleMatch = LegacySurfaceDashboardSql.StorefrontPriceArticleReplaceInSql(batch.Count);
             command.CommandText = $"""
                 SELECT d.`manufacturer`, d.`article`, d.`article_show`, d.`name`,
                        d.`price`, d.`exist`, d.`time_to_exe`, d.`price_id`

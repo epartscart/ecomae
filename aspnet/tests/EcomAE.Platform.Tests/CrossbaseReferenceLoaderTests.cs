@@ -89,6 +89,8 @@ public sealed class CrossbaseReferenceLoaderTests
         var reporter = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Migration/SurfaceDashboardSummaryReporter.cs"));
         Assert.Contains("LoadStorefrontCrossStockAsync", reporter, StringComparison.Ordinal);
         Assert.Contains("StorefrontCrossStockDigest", reporter, StringComparison.Ordinal);
+        // Must use PHP REPLACE-normalize IN (not only exact trim) so STD / OE variants hit prices_data.
+        Assert.Contains("StorefrontPriceArticleReplaceInSql", reporter, StringComparison.Ordinal);
         var module = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Modules/StorefrontModule.cs"));
         Assert.Contains("stock_count = stock.Count", module, StringComparison.Ordinal);
         Assert.Contains("prices_visible = access.PricesVisible", module, StringComparison.Ordinal);
