@@ -627,6 +627,7 @@ builder.Services.AddSingleton<IErpSalesOrderCancelDryRun, ErpSalesOrderCancelDry
 builder.Services.AddSingleton<IErpSalesOrderDeleteDryRun, ErpSalesOrderDeleteDryRun>();
 builder.Services.AddSingleton<IErpPoDeleteDryRun, ErpPoDeleteDryRun>();
 builder.Services.AddSingleton<IStorefrontCartAddDryRun, StorefrontCartAddDryRun>();
+builder.Services.AddSingleton<EcomAE.Platform.Storefront.IStorefrontCartAddService, EcomAE.Platform.Storefront.StorefrontCartAddService>();
 builder.Services.AddSingleton<IStorefrontGarageNotepadAddDryRun, StorefrontGarageNotepadAddDryRun>();
 builder.Services.AddSingleton<IStorefrontQuoteSubmitDryRun, StorefrontQuoteSubmitDryRun>();
 builder.Services.AddSingleton<IStorefrontQuoteAcceptDryRun, StorefrontQuoteAcceptDryRun>();
