@@ -1702,6 +1702,12 @@ public static class EcomAeRoutes
     public const string StorefrontProductsOfBunch = "/storefront/products-of-bunch";
     /// <summary>Fast CP cross network (PHP <c>ajax_epc_cross_search</c> local path; crossbase enrich optional).</summary>
     public const string StorefrontCrossSearch = "/storefront/cross-search";
+    /// <summary>Part fitment vehicles (PHP umapi analogs→article_links; public guest).</summary>
+    public const string StorefrontFitment = "/storefront/fitment";
+    /// <summary>PHP <c>api/epartscross_fitment.js.php</c> twin — crossbase fitment widget JS.</summary>
+    public const string StorefrontFitmentWidgetJs = "/storefront/fitment-widget.js";
+    /// <summary>Proxied crossbase fitment table HTML (POST/GET) used by the widget JS.</summary>
+    public const string StorefrontFitmentTable = "/storefront/fitment-table";
     /// <summary>Excel bulk-upload shell (process writes remain PHP ajax_process).</summary>
     public const string StorefrontBulkUploadApp = "/storefront/bulk-upload-app";
     /// <summary>Customer bulk-upload history digest.</summary>

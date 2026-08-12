@@ -427,6 +427,73 @@ public sealed class StorefrontModule : ISurfaceModule
             });
         });
 
+        // PHP part_search fitment: umapi analogs→article_links, else epartscross widget.
+        endpoints.MapGet(EcomAeRoutes.StorefrontFitment, async (
+            string? article,
+            string? brand,
+            string? brend,
+            string? language,
+            IStorefrontFitmentService fitment,
+            CancellationToken cancellationToken) =>
+        {
+            var manufacturer = string.IsNullOrWhiteSpace(brand) ? brend : brand;
+            var result = await fitment.LookupAsync(
+                article ?? string.Empty,
+                manufacturer ?? string.Empty,
+                language,
+                cancellationToken);
+            return Results.Ok(new
+            {
+                ok = result.Ok,
+                surface = "storefront",
+                article = result.Article,
+                brand = result.Brand,
+                source = result.Source,
+                message = result.Message,
+                art_id = result.ArticleId,
+                fallback_widget = result.FallbackWidget,
+                PC = result.PC,
+                CV = result.CV,
+                Motorcycle = result.Motorcycle,
+                note = "PHP umapi fitment twin (cache first). When empty, client loads /storefront/fitment-widget.js."
+            });
+        });
+
+        endpoints.MapGet(EcomAeRoutes.StorefrontFitmentWidgetJs, async (
+            string? n,
+            string? article,
+            string? lang,
+            string? language,
+            IStorefrontFitmentService fitment,
+            CancellationToken cancellationToken) =>
+        {
+            var art = string.IsNullOrWhiteSpace(n) ? article : n;
+            var jsLang = string.IsNullOrWhiteSpace(lang) ? language : lang;
+            var js = await fitment.GetWidgetJsAsync(art ?? string.Empty, jsLang, cancellationToken);
+            return Results.Text(js, "application/javascript; charset=utf-8");
+        });
+
+        endpoints.MapMethods(EcomAeRoutes.StorefrontFitmentTable, new[] { "GET", "POST" }, async (
+            HttpContext context,
+            string? n,
+            string? article,
+            string? lang,
+            string? language,
+            string? cartype,
+            IStorefrontFitmentService fitment,
+            CancellationToken cancellationToken) =>
+        {
+            var art = string.IsNullOrWhiteSpace(n) ? article : n;
+            var jsLang = string.IsNullOrWhiteSpace(lang) ? language : lang;
+            var html = await fitment.GetTableHtmlAsync(
+                art ?? string.Empty,
+                jsLang,
+                cartype,
+                context.Request.Body,
+                cancellationToken);
+            return Results.Content(html, "text/html; charset=utf-8");
+        });
+
         endpoints.MapGet(EcomAeRoutes.StorefrontCrossSearch, async (
             string? article,
             string? brand,
