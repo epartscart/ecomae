@@ -80,6 +80,7 @@ public sealed class StorefrontGuestPriceVisibilityTests
     public void PriceAccess_UnlocksAdminAndCustomerSessions()
     {
         var text = Read("aspnet/src/EcomAE.Platform/Storefront/StorefrontPriceAccess.cs");
+        Assert.Contains("ValidateCustomerAsync", text, StringComparison.Ordinal);
         Assert.Contains("LegacySessionKind.Customer or LegacySessionKind.Admin", text, StringComparison.Ordinal);
         Assert.Contains("session.Kind == LegacySessionKind.Admin", text, StringComparison.Ordinal);
         Assert.Contains("return StorefrontPriceAccessResult.Visible", text, StringComparison.Ordinal);
@@ -136,6 +137,11 @@ public sealed class StorefrontGuestPriceVisibilityTests
             HttpContext httpContext,
             CancellationToken cancellationToken = default)
             => ValueTask.FromResult(new Auth.LegacySessionContext(Auth.LegacySessionKind.Anonymous, 0, null, []));
+
+        public ValueTask<Auth.LegacySessionContext> ValidateCustomerAsync(
+            HttpContext httpContext,
+            CancellationToken cancellationToken = default)
+            => ValidateAsync(httpContext, cancellationToken);
     }
 
     private sealed class NoopConnections : Data.ITenantDbConnectionFactory

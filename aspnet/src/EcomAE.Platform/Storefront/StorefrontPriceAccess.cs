@@ -77,9 +77,18 @@ public sealed class StorefrontPriceAccess : IStorefrontPriceAccess
         var host = httpContext.Request.Host.Host ?? string.Empty;
         var hideForGuests = HideStorefrontPricesForGuests(tenant, host);
 
-        var session = await _sessions.ValidateAsync(httpContext, cancellationToken).ConfigureAwait(false);
-        // Customer retail login OR admin browsing the storefront both unlock prices (PHP twin).
-        // Guests / anonymous stay masked on epartscart.
+        // Prefer customer cookies even when stale/valid admin cookies are present (PHP DP_User::getUserId).
+        // If no retail session, fall back so Admin browsing the storefront still unlocks prices/terms.
+        var session = await _sessions.ValidateCustomerAsync(httpContext, cancellationToken).ConfigureAwait(false);
+        if (session.Kind != LegacySessionKind.Customer)
+        {
+            var adminOrOther = await _sessions.ValidateAsync(httpContext, cancellationToken).ConfigureAwait(false);
+            if (adminOrOther.Kind == LegacySessionKind.Admin)
+            {
+                session = adminOrOther;
+            }
+        }
+
         var userId = session.Kind is LegacySessionKind.Customer or LegacySessionKind.Admin
             ? session.UserId
             : 0;

@@ -27,6 +27,14 @@ public sealed class DbBackedLegacySessionValidator : ILegacySessionValidator
         _sessions = sessions;
     }
 
+    public async ValueTask<LegacySessionContext> ValidateCustomerAsync(HttpContext httpContext, CancellationToken cancellationToken = default)
+    {
+        using var activity = EcomAeActivitySources.Auth.StartActivity("auth.legacy-session.validate-customer");
+        var customer = await TryCustomerAsync(httpContext, cancellationToken).ConfigureAwait(false);
+        activity?.SetTag("ecomae.session.kind", customer.Kind.ToString().ToLowerInvariant());
+        return customer;
+    }
+
     public async ValueTask<LegacySessionContext> ValidateAsync(HttpContext httpContext, CancellationToken cancellationToken = default)
     {
         using var activity = EcomAeActivitySources.Auth.StartActivity("auth.legacy-session.validate");
@@ -71,26 +79,11 @@ public sealed class DbBackedLegacySessionValidator : ILegacySessionValidator
             }
         }
 
-        var customerSession = httpContext.Request.Cookies["session"];
-        var customerUser = ParseInt(httpContext.Request.Cookies["u_id"]);
-        if (!string.IsNullOrWhiteSpace(customerSession) && customerUser > 0)
+        var customer = await TryCustomerAsync(httpContext, cancellationToken).ConfigureAwait(false);
+        if (customer.Kind == LegacySessionKind.Customer)
         {
-            if (_sessions.IsConfigured)
-            {
-                var exists = await _sessions.CustomerSessionExistsAsync(customerSession, customerUser, cancellationToken).ConfigureAwait(false);
-                if (!exists)
-                {
-                    activity?.SetTag("ecomae.session.kind", "anonymous");
-                    return Anonymous();
-                }
-            }
-
             activity?.SetTag("ecomae.session.kind", "customer");
-            return new LegacySessionContext(
-                LegacySessionKind.Customer,
-                customerUser,
-                customerSession,
-                []);
+            return customer;
         }
 
         var apiKey = httpContext.Request.Headers["X-API-Key"].FirstOrDefault()
@@ -108,6 +101,31 @@ public sealed class DbBackedLegacySessionValidator : ILegacySessionValidator
 
         activity?.SetTag("ecomae.session.kind", "anonymous");
         return Anonymous();
+    }
+
+    private async ValueTask<LegacySessionContext> TryCustomerAsync(HttpContext httpContext, CancellationToken cancellationToken)
+    {
+        var customerSession = httpContext.Request.Cookies["session"];
+        var customerUser = ParseInt(httpContext.Request.Cookies["u_id"]);
+        if (string.IsNullOrWhiteSpace(customerSession) || customerUser <= 0)
+        {
+            return Anonymous();
+        }
+
+        if (_sessions.IsConfigured)
+        {
+            var exists = await _sessions.CustomerSessionExistsAsync(customerSession, customerUser, cancellationToken).ConfigureAwait(false);
+            if (!exists)
+            {
+                return Anonymous();
+            }
+        }
+
+        return new LegacySessionContext(
+            LegacySessionKind.Customer,
+            customerUser,
+            customerSession,
+            []);
     }
 
     private static LegacySessionContext Anonymous()

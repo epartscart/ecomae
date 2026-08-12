@@ -249,10 +249,10 @@ public sealed class StorefrontModule : ISurfaceModule
             ISurfaceDashboardSummaryReporter dashboards,
             CancellationToken cancellationToken) =>
         {
-            var session = await validator.ValidateAsync(context, cancellationToken);
+            var session = await validator.ValidateCustomerAsync(context, cancellationToken);
             if (session.Kind != LegacySessionKind.Customer || session.UserId <= 0)
             {
-                return Unauthorized("Customer session required for storefront cart digest.");
+                return Unauthorized("Please log in or register to continue.");
             }
 
             var result = await dashboards.ListStorefrontCartAsync(session.UserId, limit ?? 50, cancellationToken);
@@ -763,27 +763,55 @@ public sealed class StorefrontModule : ISurfaceModule
             StorefrontCartAddBody? body,
             ILegacySessionValidator validator,
             IStorefrontCartAddDryRun dryRun,
+            IStorefrontCartAddService cartAdd,
             CancellationToken cancellationToken) =>
         {
-            var session = await validator.ValidateAsync(context, cancellationToken);
+            // PHP DP_User::getUserId — customer cookies even if admin cookies also present.
+            var session = await validator.ValidateCustomerAsync(context, cancellationToken);
             if (session.Kind != LegacySessionKind.Customer || session.UserId <= 0)
             {
-                return Unauthorized("Customer session required for cart add dry-run.");
+                return Unauthorized("Please log in or register to continue.");
             }
 
             body ??= new StorefrontCartAddBody(2, null, null, 0, 0, 0, 0, false);
-            var result = await dryRun.EvaluateAsync(
-                session.UserId,
-                new StorefrontCartAddRequest(
-                    body.ProductType,
-                    body.Manufacturer,
-                    body.Article,
-                    body.CountNeed,
-                    body.Price,
-                    body.MinOrder,
-                    body.Exist,
-                    body.ConfirmWrites),
-                cancellationToken);
+            var request = new StorefrontCartAddRequest(
+                body.ProductType,
+                body.Manufacturer,
+                body.Article,
+                body.CountNeed,
+                body.Price,
+                body.MinOrder,
+                body.Exist,
+                body.ConfirmWrites,
+                body.ArticleShow,
+                body.Name,
+                body.TimeToExe,
+                body.TimeToExeGuaranteed,
+                body.Storage,
+                body.Probability,
+                body.PricePurchase,
+                body.Markup,
+                body.OfficeId,
+                body.StorageId,
+                body.JsonParams,
+                body.CheckHash);
+
+            // Live write path (PHP ajax_add_to_basket type-2). Dry-run only when confirmWrites=false.
+            if (body.ConfirmWrites)
+            {
+                var written = await cartAdd.AddAsync(session.UserId, request, cancellationToken);
+                if (!written.Ok)
+                {
+                    var status = written.Code is "auth" or "unauthorized"
+                        ? StatusCodes.Status401Unauthorized
+                        : StatusCodes.Status400BadRequest;
+                    return Results.Json(written.ToPayload(SessionPayload(session)), statusCode: status);
+                }
+
+                return Results.Ok(written.ToPayload(SessionPayload(session)));
+            }
+
+            var result = await dryRun.EvaluateAsync(session.UserId, request, cancellationToken);
             return Results.Ok(result.ToPayload(SessionPayload(session)));
         });
 
@@ -1140,7 +1168,19 @@ public sealed class StorefrontModule : ISurfaceModule
         decimal Price,
         decimal MinOrder = 0,
         decimal Exist = 0,
-        bool ConfirmWrites = false);
+        bool ConfirmWrites = false,
+        string? ArticleShow = null,
+        string? Name = null,
+        string? TimeToExe = null,
+        string? TimeToExeGuaranteed = null,
+        string? Storage = null,
+        int Probability = 100,
+        decimal PricePurchase = 0,
+        int Markup = 0,
+        int OfficeId = 0,
+        int StorageId = 0,
+        string? JsonParams = null,
+        string? CheckHash = null);
     private sealed record StorefrontGarageNotepadAddBody(
         long GarageId,
         string? Manufacturer,

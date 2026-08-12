@@ -17,6 +17,18 @@ public sealed class LegacyDesktopChromeCatalogTests
     }
 
     [Fact]
+    public void ControlPanelTopnav_CommerceUsesShopOmsCategory()
+    {
+        var commerce = Assert.Single(
+            LegacyDesktopChromeCatalog.ControlPanelTopnav(includeSuperOnly: false, industryCode: "auto_parts"),
+            g => g.Id == "commerce");
+        Assert.Contains(commerce.Links, l => (l.Group ?? "").Equals("Shop / OMS", StringComparison.OrdinalIgnoreCase)
+            || l.Id.Equals("oms-orders", StringComparison.OrdinalIgnoreCase));
+        Assert.DoesNotContain(commerce.Links, l =>
+            l.Label.Contains("Retail and commerce", StringComparison.OrdinalIgnoreCase));
+    }
+
+    [Fact]
     public void ErpTopnavUsesCategoryAreaColumnsNotFlatCap()
     {
         var groups = LegacyDesktopChromeCatalog.ErpTopnav();

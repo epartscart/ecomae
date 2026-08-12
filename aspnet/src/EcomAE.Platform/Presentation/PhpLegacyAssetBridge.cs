@@ -202,6 +202,11 @@ public static class PhpLegacyAssetBridge
                          "cp/content/shop/order_process/epc_orders_cp.css"),
                      ("/platform-assets/epc_statuses_cp.css",
                          "cp/content/shop/order_process/epc_statuses_cp.css"),
+                     // CP Website tracker — PHP CSS + ASP.NET dashboard JS
+                     ("/platform-assets/epc_web_tracker_cp.css",
+                         "content/general_pages/epc_web_tracker_cp.css"),
+                     ("/platform-assets/epc_web_tracker_aspnet.js",
+                         "content/general_pages/epc_web_tracker_aspnet.js"),
                      // ASP.NET Super/Tenant CP digests → PHP epc-scp-* module look
                      ("/platform-assets/epc_cp_aspnet_module_parity.css",
                          "content/general_pages/epc_cp_aspnet_module_parity.css"),
