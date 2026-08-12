@@ -99,16 +99,20 @@ set -e
 note "force_live_exit=${FORCE_RC}"
 [[ "$FORCE_RC" -eq 0 ]] || die "FORCE_LIVE failed — see /root/epartscart-chpu-crossbase-modal-force-live.log"
 # Confirm published release SHA matches the branch tip we just checked out.
-PUB_SHA_FILE="$(readlink -f /opt/ecomae-aspnet/current/PUBLISHED_GIT_SHA.txt 2>/dev/null || true)"
-if [[ -z "$PUB_SHA_FILE" || ! -f "$PUB_SHA_FILE" ]]; then
-  PUB_SHA_FILE="$(ls -1t /opt/ecomae-aspnet/*/PUBLISHED_GIT_SHA.txt 2>/dev/null | head -1 || true)"
+RELEASE_ROOT="${ECOMAE_ASPNET_RELEASE_ROOT:-/var/www/ecomae-aspnet}"
+PUB_SHA_FILE=""
+if [[ -L "$RELEASE_ROOT/current" || -d "$RELEASE_ROOT/current" ]]; then
+  PUB_SHA_FILE="$RELEASE_ROOT/current/PUBLISHED_GIT_SHA.txt"
+fi
+if [[ ! -f "$PUB_SHA_FILE" ]]; then
+  PUB_SHA_FILE="$(ls -1t "$RELEASE_ROOT"/releases/*/PUBLISHED_GIT_SHA.txt 2>/dev/null | head -1 || true)"
 fi
 if [[ -n "$PUB_SHA_FILE" && -f "$PUB_SHA_FILE" ]]; then
   PUB_FULL="$(tr -d '[:space:]' < "$PUB_SHA_FILE")"
-  note "PUBLISHED_GIT_SHA=${PUB_FULL}"
+  note "PUBLISHED_GIT_SHA=${PUB_FULL} file=${PUB_SHA_FILE}"
   [[ "$PUB_FULL" == "$FULL" ]] || die "published SHA ${PUB_FULL} != branch tip ${FULL} — FORCE_LIVE did not publish this checkout"
 else
-  note "WARN: PUBLISHED_GIT_SHA.txt not found — relying on HTTP gates"
+  note "WARN: PUBLISHED_GIT_SHA.txt not found under ${RELEASE_ROOT} — relying on HTTP gates"
 fi
 
 # Drop stale nginx proxy cache entries for the old parity JS query string if present.
