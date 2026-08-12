@@ -78,7 +78,11 @@ public sealed class StorefrontPriceAccess : IStorefrontPriceAccess
         var hideForGuests = HideStorefrontPricesForGuests(tenant, host);
 
         var session = await _sessions.ValidateAsync(httpContext, cancellationToken).ConfigureAwait(false);
-        var userId = session.Kind == LegacySessionKind.Customer ? session.UserId : 0;
+        // Customer retail login OR admin browsing the storefront both unlock prices (PHP twin).
+        // Guests / anonymous stay masked on epartscart.
+        var userId = session.Kind is LegacySessionKind.Customer or LegacySessionKind.Admin
+            ? session.UserId
+            : 0;
 
         if (userId <= 0)
         {
@@ -88,6 +92,12 @@ public sealed class StorefrontPriceAccess : IStorefrontPriceAccess
             }
 
             return Build(StorefrontPriceAccessState.Guest);
+        }
+
+        // Admin CP sessions are not wholesale trade accounts — show prices/terms on storefront.
+        if (session.Kind == LegacySessionKind.Admin)
+        {
+            return StorefrontPriceAccessResult.Visible;
         }
 
         if (!_connections.IsConfigured)

@@ -645,8 +645,28 @@
         if (data && data.prices_visible === false) {
           pricesVisible = false;
           if (table) table.setAttribute('data-prices-visible', '0');
+        } else if (data && data.prices_visible === true) {
+          // Login / session restore: unlatch guest mask so redacted ** SSR rows can be replaced.
+          var wasMasked = !pricesVisible || (table && table.getAttribute('data-prices-visible') === '0');
+          pricesVisible = true;
+          if (table) table.setAttribute('data-prices-visible', '1');
+          if (wasMasked) {
+            body.querySelectorAll('tr.epc-part-type-row--genuine, tr.epc-part-type-row--aftermarket').forEach(function (tr) {
+              var k = tr.getAttribute('data-offer-key');
+              if (k) delete seen[k];
+              tr.remove();
+            });
+            ['genuine', 'aftermarket'].forEach(bumpCaption);
+          }
         }
-        ((data && data.products) || []).forEach(appendProduct);
+        var products = (data && data.products) || [];
+        products.forEach(appendProduct);
+        // If we just unmasked but this payload had no offers, fire one more poll for unredacted rows.
+        if (data && data.prices_visible === true && products.length === 0 &&
+            table && table.getAttribute('data-prices-visible') === '1' && !window.__epcPriceUnmaskRepoll) {
+          window.__epcPriceUnmaskRepoll = 1;
+          return pollOne(bunch);
+        }
       })
       .catch(function () {});
   }
@@ -861,7 +881,7 @@
   }
 })();
             </script>
-            <script src="/platform-assets/epc_warehouse_search_parity.js?v=20260812-fitment" defer></script>
+            <script src="/platform-assets/epc_warehouse_search_parity.js?v=20260812-cross-price" defer></script>
         }
     }
 

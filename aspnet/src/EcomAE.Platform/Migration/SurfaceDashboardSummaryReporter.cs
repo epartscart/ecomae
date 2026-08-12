@@ -1782,11 +1782,18 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                 StringComparison.Ordinal);
             AddParameter(command, "@article", normalized);
             AddParameter(command, "@limit", Math.Min(safeLimit * 8, 5000));
-            var rows = new List<StorefrontCrossRefDigest>();
+
+            // When merging crossbase.ru, reserve slots so CP local cannot crowd out every crossbase row
+            // (AISIN/DT068: local ⊇ crossbase overlap → zero source=crossbase without a reserve).
+            var maxLocal = includeCrossbase
+                ? Math.Max(24, (int)Math.Floor(safeLimit * 0.65))
+                : safeLimit;
+
+            var localRows = new List<StorefrontCrossRefDigest>();
             var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             var selfBrandCompact = CompactStorefrontBrand(brandNorm);
             await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
-            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false) && rows.Count < safeLimit)
+            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false) && localRows.Count < maxLocal)
             {
                 var sourceBrand = Convert.ToString(reader["source_brand"] is DBNull ? string.Empty : reader["source_brand"], CultureInfo.InvariantCulture) ?? string.Empty;
                 var sourceArticle = Convert.ToString(reader["source_article"] is DBNull ? string.Empty : reader["source_article"], CultureInfo.InvariantCulture) ?? string.Empty;
@@ -1825,20 +1832,54 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                     continue;
                 }
 
-                rows.Add(new StorefrontCrossRefDigest(partnerBrand.Trim(), partnerArticle.Trim(), false, "cp"));
+                localRows.Add(new StorefrontCrossRefDigest(partnerBrand.Trim(), partnerArticle.Trim(), false, "cp"));
             }
 
-            var localCount = rows.Count;
+            var localCount = localRows.Count;
+            var rows = new List<StorefrontCrossRefDigest>(localRows);
             var crossbaseCount = 0;
             var source = "aspnet-cross-local";
 
             // PHP ajax_epc_cross_search merges crossbase.ru after local CP — opt-in so first paint stays fast.
-            if (includeCrossbase && rows.Count < safeLimit)
+            if (includeCrossbase)
             {
-                var (crossbaseRefs, reported) = await CrossbaseReferenceLoader
-                    .LoadAsync(normalized, safeLimit - rows.Count, cancellationToken)
+                var room = Math.Max(0, safeLimit - rows.Count);
+                var loadCap = Math.Max(room, Math.Min(safeLimit, 200));
+                var (crossbaseRefs, _) = await CrossbaseReferenceLoader
+                    .LoadAsync(normalized, loadCap, cancellationToken)
                     .ConfigureAwait(false);
+
+                // Prefer showing distinct crossbase rows: when still over capacity, drop trailing CP locals.
+                var uniqueCrossbase = new List<StorefrontCrossRefDigest>();
                 foreach (var xref in crossbaseRefs)
+                {
+                    var partnerNorm = PriceLookupRequest.NormalizeArticle(xref.Article);
+                    var key = xref.Brand.Trim().ToUpperInvariant() + "|" + partnerNorm;
+                    if (seen.Contains(key))
+                    {
+                        // Overlap with CP — keep CP row but count as also-in-crossbase for the badge total.
+                        crossbaseCount++;
+                        continue;
+                    }
+
+                    uniqueCrossbase.Add(xref);
+                }
+
+                var need = uniqueCrossbase.Count;
+                if (need > 0 && rows.Count + need > safeLimit)
+                {
+                    var keepLocal = Math.Max(0, safeLimit - need);
+                    if (keepLocal < rows.Count)
+                    {
+                        rows = rows.Take(keepLocal).ToList();
+                        seen = new HashSet<string>(
+                            rows.Select(r => r.Brand.Trim().ToUpperInvariant() + "|" + PriceLookupRequest.NormalizeArticle(r.Article)),
+                            StringComparer.OrdinalIgnoreCase);
+                        localCount = rows.Count;
+                    }
+                }
+
+                foreach (var xref in uniqueCrossbase)
                 {
                     var partnerNorm = PriceLookupRequest.NormalizeArticle(xref.Article);
                     var key = xref.Brand.Trim().ToUpperInvariant() + "|" + partnerNorm;
@@ -1855,15 +1896,10 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                     }
                 }
 
-                if (crossbaseCount > 0)
+                if (rows.Any(r => string.Equals(r.Source, "crossbase", StringComparison.OrdinalIgnoreCase))
+                    || crossbaseCount > 0)
                 {
                     source = "aspnet-cross-local+crossbase";
-                }
-
-                if (reported > crossbaseCount)
-                {
-                    // Prefer provider total when HTML reports more than we parsed into the window.
-                    crossbaseCount = Math.Max(crossbaseCount, reported);
                 }
             }
 

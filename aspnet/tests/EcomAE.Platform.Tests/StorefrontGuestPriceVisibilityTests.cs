@@ -70,6 +70,27 @@ public sealed class StorefrontGuestPriceVisibilityTests
         Assert.Contains("epc-sf-price-gate", text, StringComparison.Ordinal);
         Assert.Contains("StorefrontPriceAccess.SensitiveMask", text, StringComparison.Ordinal);
         Assert.Contains("prices_visible === false", text, StringComparison.Ordinal);
+        // unlatch guest mask after login and replace redacted SSR rows
+        Assert.Contains("prices_visible === true", text, StringComparison.Ordinal);
+        Assert.Contains("__epcPriceUnmaskRepoll", text, StringComparison.Ordinal);
+        Assert.Contains("data-prices-visible', '1'", text, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void PriceAccess_UnlocksAdminAndCustomerSessions()
+    {
+        var text = Read("aspnet/src/EcomAE.Platform/Storefront/StorefrontPriceAccess.cs");
+        Assert.Contains("LegacySessionKind.Customer or LegacySessionKind.Admin", text, StringComparison.Ordinal);
+        Assert.Contains("session.Kind == LegacySessionKind.Admin", text, StringComparison.Ordinal);
+        Assert.Contains("return StorefrontPriceAccessResult.Visible", text, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void SessionValidator_FallsThroughStaleAdminToCustomer()
+    {
+        var text = Read("aspnet/src/EcomAE.Platform/Auth/DbBackedLegacySessionValidator.cs");
+        Assert.Contains("Stale/invalid admin cookies must NOT wipe", text, StringComparison.Ordinal);
+        Assert.Contains("CustomerSessionExistsAsync", text, StringComparison.Ordinal);
     }
 
     [Fact]

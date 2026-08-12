@@ -40,6 +40,21 @@ public sealed class LegacySessionValidatorTests
     }
 
     [Fact]
+    public async Task StaleAdminCookiesFallThroughToCustomerSession()
+    {
+        var context = new DefaultHttpContext();
+        context.Request.Headers.Cookie = "admin_session=stale; admin_u_id=42; session=cust; u_id=9";
+        var validator = new DbBackedLegacySessionValidator(
+            new StaticSessionStore(configured: true, adminExists: false, customerExists: true));
+
+        var session = await validator.ValidateAsync(context);
+
+        Assert.Equal(LegacySessionKind.Customer, session.Kind);
+        Assert.Equal(9, session.UserId);
+        Assert.True(session.IsAuthenticated);
+    }
+
+    [Fact]
     public async Task AdminCookiesAcceptedWhenDbConfirmsRowAndBackendGroup()
     {
         var context = new DefaultHttpContext();
@@ -126,27 +141,34 @@ public sealed class LegacySessionValidatorTests
 
     private sealed class StaticSessionStore : ILegacySessionStore
     {
-        private readonly bool _exists;
+        private readonly bool _adminExists;
+        private readonly bool _customerExists;
         private readonly bool _hasBackend;
 
         public StaticSessionStore(bool configured, bool exists, bool hasBackend = true)
+            : this(configured, adminExists: exists, customerExists: exists, hasBackend)
+        {
+        }
+
+        public StaticSessionStore(bool configured, bool adminExists, bool customerExists, bool hasBackend = true)
         {
             IsConfigured = configured;
-            _exists = exists;
+            _adminExists = adminExists;
+            _customerExists = customerExists;
             _hasBackend = hasBackend;
         }
 
         public bool IsConfigured { get; }
 
         public Task<bool> AdminSessionExistsAsync(string sessionToken, int userId, CancellationToken cancellationToken = default)
-            => Task.FromResult(_exists);
+            => Task.FromResult(_adminExists);
 
         public Task<bool> CustomerSessionExistsAsync(string sessionToken, int userId, CancellationToken cancellationToken = default)
-            => Task.FromResult(_exists);
+            => Task.FromResult(_customerExists);
 
         public Task<LegacyAdminIdentity?> GetAdminIdentityAsync(int userId, CancellationToken cancellationToken = default)
             => Task.FromResult<LegacyAdminIdentity?>(
-                _exists
+                _adminExists
                     ? new LegacyAdminIdentity("admin@example.com", [3], _hasBackend)
                     : null);
     }
