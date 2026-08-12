@@ -33,6 +33,53 @@
 		return Object.keys(map).sort(function (a, b) { return a.localeCompare(b); });
 	}
 
+	function fillRangeInputsFromOffers(rows) {
+		// PHP epcChpuUpdateFilterRangesFromProducts — min/max from live offers.
+		var priceMin = null, priceMax = null, termMin = null, termMax = null, existMin = null, existMax = null;
+		rows.forEach(function (tr) {
+			var price = parseFloat(tr.getAttribute("data-price") || "");
+			var term = parseFloat(tr.getAttribute("data-term") || "");
+			var exist = parseFloat(tr.getAttribute("data-exist") || "");
+			if (!isNaN(price)) {
+				priceMin = priceMin == null ? price : Math.min(priceMin, price);
+				priceMax = priceMax == null ? price : Math.max(priceMax, price);
+			}
+			if (!isNaN(term)) {
+				termMin = termMin == null ? term : Math.min(termMin, term);
+				termMax = termMax == null ? term : Math.max(termMax, term);
+			}
+			if (!isNaN(exist)) {
+				existMin = existMin == null ? exist : Math.min(existMin, exist);
+				existMax = existMax == null ? exist : Math.max(existMax, exist);
+			}
+		});
+		function setRange(minId, maxId, minVal, maxVal) {
+			var minEl = document.getElementById(minId);
+			var maxEl = document.getElementById(maxId);
+			if (!minEl || !maxEl || minVal == null || maxVal == null) return;
+			// Only auto-fill when empty or still at previous auto range.
+			var autoMin = minEl.getAttribute("data-epc-auto");
+			var autoMax = maxEl.getAttribute("data-epc-auto");
+			var curMin = minEl.value;
+			var curMax = maxEl.value;
+			if (!curMin || curMin === autoMin) {
+				minEl.value = String(minVal);
+				minEl.setAttribute("data-epc-auto", String(minVal));
+				minEl.placeholder = String(minVal);
+			}
+			if (!curMax || curMax === autoMax) {
+				maxEl.value = String(maxVal);
+				maxEl.setAttribute("data-epc-auto", String(maxVal));
+				maxEl.placeholder = String(maxVal);
+			}
+			minEl.min = String(minVal);
+			maxEl.min = String(minVal);
+		}
+		setRange("epc_filter_price_min", "epc_filter_price_max", priceMin, priceMax);
+		setRange("epc_filter_term_min", "epc_filter_term_max", termMin, termMax);
+		setRange("epc_filter_exist_min", "epc_filter_exist_max", existMin, existMax);
+	}
+
 	function rebuildFilterOptions() {
 		var mfrBox = document.getElementById("epc_filter_manufacturer_options");
 		var storBox = document.getElementById("epc_filter_storage_options");
@@ -62,6 +109,7 @@
 		}
 		fill(mfrBox, mfrs, "epc_mfr");
 		fill(storBox, storages.length ? storages : ["—"], "epc_stor");
+		fillRangeInputsFromOffers(rows);
 	}
 
 	function selectedValues(boxId) {
@@ -79,6 +127,8 @@
 		var maxPrice = parseFloat((document.getElementById("epc_filter_price_max") || {}).value);
 		var minTerm = parseFloat((document.getElementById("epc_filter_term_min") || {}).value);
 		var maxTerm = parseFloat((document.getElementById("epc_filter_term_max") || {}).value);
+		var minExist = parseFloat((document.getElementById("epc_filter_exist_min") || {}).value);
+		var maxExist = parseFloat((document.getElementById("epc_filter_exist_max") || {}).value);
 		var inStockOnly = !!(document.getElementById("epc_filter_instock") || {}).checked;
 		var visible = 0;
 		offerRows().forEach(function (tr) {
@@ -94,12 +144,14 @@
 			if (!isNaN(maxPrice) && price > maxPrice) ok = false;
 			if (!isNaN(minTerm) && term < minTerm) ok = false;
 			if (!isNaN(maxTerm) && term > maxTerm) ok = false;
+			if (!isNaN(minExist) && exist < minExist) ok = false;
+			if (!isNaN(maxExist) && exist > maxExist) ok = false;
 			if (inStockOnly && !(exist > 0)) ok = false;
 			tr.setAttribute("data-filtered-out", ok ? "0" : "1");
 			if (ok) visible += 1;
 		});
 		var status = document.getElementById("epc_filter_status");
-		if (status) status.textContent = visible + " offer(s) visible";
+		if (status) status.textContent = visible + " warehouse offer(s) visible";
 		["genuine", "aftermarket"].forEach(function (kind) {
 			var cell = document.querySelector('td.epc-part-type-split[data-section="' + kind + '"]');
 			if (!cell) return;
@@ -111,9 +163,12 @@
 	}
 
 	function resetFilters() {
-		["epc_filter_price_min", "epc_filter_price_max", "epc_filter_term_min", "epc_filter_term_max"].forEach(function (id) {
+		["epc_filter_price_min", "epc_filter_price_max", "epc_filter_term_min", "epc_filter_term_max", "epc_filter_exist_min", "epc_filter_exist_max"].forEach(function (id) {
 			var el = document.getElementById(id);
-			if (el) el.value = "";
+			if (el) {
+				el.value = "";
+				el.removeAttribute("data-epc-auto");
+			}
 		});
 		var instock = document.getElementById("epc_filter_instock");
 		if (instock) instock.checked = false;
@@ -689,7 +744,8 @@
 		wireRowActions: wireRowActions,
 		openFitment: openFitment,
 		bindSearchRowPhotoLoaders: bindSearchRowPhotoLoaders,
-		loadAspNetCrossSearch: loadAspNetCrossSearch
+		loadAspNetCrossSearch: loadAspNetCrossSearch,
+		fillRangeInputsFromOffers: function () { fillRangeInputsFromOffers(offerRows()); }
 	};
 
 	function boot() {
@@ -697,7 +753,7 @@
 		if (toggle) toggle.addEventListener("click", function (e) { e.preventDefault(); toggleFilter(); });
 		var reset = document.getElementById("epc_filter_reset");
 		if (reset) reset.addEventListener("click", function (e) { e.preventDefault(); resetFilters(); });
-		["epc_filter_price_min", "epc_filter_price_max", "epc_filter_term_min", "epc_filter_term_max", "epc_filter_instock"].forEach(function (id) {
+		["epc_filter_price_min", "epc_filter_price_max", "epc_filter_term_min", "epc_filter_term_max", "epc_filter_exist_min", "epc_filter_exist_max", "epc_filter_instock"].forEach(function (id) {
 			var el = document.getElementById(id);
 			if (el) el.addEventListener("change", applyFilters);
 			if (el && el.tagName === "INPUT" && el.type !== "checkbox") el.addEventListener("input", applyFilters);

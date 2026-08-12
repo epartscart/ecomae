@@ -56,3 +56,36 @@
 .epc-sf-cross-stock[hidden] {
 	display: none !important;
 }
+/* PHP part_search mode-1: same article, multiple warehouse options */
+#all_table_products tr.epc-warehouse-subrow td {
+	border-top: 1px dashed #d9e2ef;
+	background: #fbfdff;
+}
+#all_table_products tr.epc-warehouse-subrow .td_manufacturer {
+	padding-left: 0.35rem;
+	font-weight: 500;
+	color: #64748b;
+}
+#all_table_products tr.epc-warehouse-subrow .td_article,
+#all_table_products tr.epc-warehouse-subrow .td_name {
+	color: #94a3b8;
+}
+.epc-warehouse-subrow__label {
+	color: #0f766e;
+	font-size: 11px;
+	font-weight: 700;
+	margin-top: 2px;
+	white-space: nowrap;
+}
+.epc-warehouse-subrow__label .fa {
+	margin-right: 3px;
+}
+.epc-warehouse-group-hint {
+	color: #64748b;
+	font-size: 11px;
+	font-weight: 600;
+	margin-top: 2px;
+}
+.epc-search-row-photo--subrow {
+	min-width: 42px;
+}
