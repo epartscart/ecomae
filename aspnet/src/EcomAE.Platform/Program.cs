@@ -130,6 +130,9 @@ builder.Services.AddSingleton<ICatalogOfflineCacheRepository>(sp =>
         : new MigrationCatalogOfflineCacheRepository();
 });
 builder.Services.AddSingleton<ICatalogOfflineCacheService, CatalogOfflineCacheService>();
+builder.Services.AddSingleton<EcomAE.Platform.Storefront.IStorefrontFitmentService, EcomAE.Platform.Storefront.StorefrontFitmentService>();
+builder.Services.AddHttpClient(nameof(EcomAE.Platform.Storefront.StorefrontFitmentService))
+    .ConfigureHttpClient(c => c.Timeout = TimeSpan.FromSeconds(20));
 builder.Services.AddSingleton<ICatalogBrandPartsRepository>(sp =>
 {
     var connections = sp.GetRequiredService<ITenantDbConnectionFactory>();

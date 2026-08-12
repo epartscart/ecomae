@@ -125,6 +125,8 @@ for base in (Path("/etc/nginx/sites-enabled"), Path("/etc/nginx/conf.d")):
     for conf in sorted(base.iterdir()):
         if not conf.is_file():
             continue
+        if ".bak" in conf.name.lower() or not conf.name.endswith(".conf"):
+            continue
         try:
             text = conf.read_text(errors="ignore")
         except Exception:
@@ -146,7 +148,13 @@ for base in (Path("/etc/nginx/sites-enabled"), Path("/etc/nginx/conf.d")):
                 changed = True
                 print(f"surgical-home-fix {conf} → marketing/app")
         if changed:
-            bak = conf.with_name(conf.name + ".bak.www-marketing-home." + time.strftime("%Y%m%d%H%M%S"))
+            # Short bak under /root/nginx-bak — never append .bak onto .bak (ENAMETOOLONG).
+            bak_dir = Path("/root/nginx-bak")
+            bak_dir.mkdir(parents=True, exist_ok=True)
+            base_name = conf.name.split(".bak", 1)[0]
+            if not base_name.endswith(".conf"):
+                base_name += ".conf"
+            bak = bak_dir / f"{base_name}.www-marketing-home.{time.strftime('%Y%m%d%H%M%S')}.bak"
             shutil.copy2(conf, bak)
             conf.write_text(out)
             patched += 1

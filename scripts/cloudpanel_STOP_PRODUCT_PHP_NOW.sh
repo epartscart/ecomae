@@ -414,6 +414,9 @@ for base in (Path("/etc/nginx/sites-enabled"), Path("/etc/nginx/conf.d")):
     for conf in sorted(base.iterdir()):
         if not conf.is_file():
             continue
+        # Skip .bak litter — appending another .bak caused ENAMETOOLONG on CloudPanel.
+        if ".bak" in conf.name.lower() or not conf.name.endswith(".conf"):
+            continue
         try:
             text = conf.read_text(errors="ignore")
         except Exception:
@@ -451,7 +454,13 @@ for base in (Path("/etc/nginx/sites-enabled"), Path("/etc/nginx/conf.d")):
             changed = True
             print(f"patched server_name={names[:8]} in {conf}")
         if changed:
-            bak = conf.with_name(conf.name + ".bak.stop-product-php." + time.strftime("%Y%m%d%H%M%S"))
+            # Never append .bak onto already-backed litter (ENAMETOOLONG on CloudPanel).
+            bak_dir = Path("/root/nginx-bak")
+            bak_dir.mkdir(parents=True, exist_ok=True)
+            base_name = conf.name.split(".bak", 1)[0]
+            if not base_name.endswith(".conf"):
+                base_name += ".conf"
+            bak = bak_dir / f"{base_name}.stop-product-php.{time.strftime('%Y%m%d%H%M%S')}.bak"
             shutil.copy2(conf, bak)
             conf.write_text(out)
             print(f"wrote {conf} bak={bak}")

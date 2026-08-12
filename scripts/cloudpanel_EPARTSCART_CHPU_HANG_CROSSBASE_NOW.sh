@@ -40,6 +40,11 @@ grep -q 'Never leave "Polling suppliers' aspnet/src/EcomAE.Platform/Components/P
 grep -q 'CrossbaseReferenceLoader' aspnet/src/EcomAE.Platform/Migration/SurfaceDashboardSummaryReporter.cs || die "missing CrossbaseReferenceLoader wiring"
 grep -q 'Debounce' content/general_pages/epc_warehouse_search_parity.js || die "missing MutationObserver debounce"
 
+# Prune ENAMETOOLONG nginx .bak litter before LIVE_PUBLISH (journey/warmup append .bak forever).
+if [[ -f scripts/lib/nginx_safe_bak.py ]]; then
+  python3 scripts/lib/nginx_safe_bak.py prune 2>&1 | tee /root/epartscart-nginx-bak-prune.log || true
+fi
+
 if [[ -f scripts/cloudpanel_EPARTSCART_LIVE_PUBLISH_NOW.sh ]]; then
   set +e
   ECOMAE_BRANCH="$ECOMAE_BRANCH" ECOMAE_SKIP_LIFEOS_MP4=YES \
