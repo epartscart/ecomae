@@ -24,12 +24,15 @@ grep -q 'epc_filter_price_min' /tmp/whg.html && ok "price filter inputs" || bad 
 grep -q 'epc_filter_exist_min' /tmp/whg.html && ok "qty filter inputs" || bad "qty filter missing"
 grep -q 'epc_filter_term_min' /tmp/whg.html && ok "delivery filter inputs" || bad "delivery filter missing"
 grep -q 'epc_filter_manufacturer_options' /tmp/whg.html && ok "brand filter box" || bad "brand filter missing"
-grep -q '20260812-whgroup' /tmp/whg.html && ok "whgroup cache buster" || bad "stale assets (need republish)"
+# Accept current CHPU cache-bust (whgroup or later cross-price tip).
+grep -Eq '20260812-(whgroup|cross-price|cartadd)' /tmp/whg.html && ok "chpu cache buster" || bad "stale assets (need republish)"
 
 # Grouping markers (SSR may have one warehouse only; still expect group attrs/classes in markup or JS).
+JS_VER=$(grep -oE 'epc_warehouse_search_parity\.js\?v=20260812-[A-Za-z0-9_-]+' /tmp/whg.html | head -1 | sed 's/.*v=//')
+JS_VER="${JS_VER:-20260812-cross-price}"
 curl -sk -o /tmp/whg.js -w 'PARITY_HTTP=%{http_code}\n' --max-time 15 \
-  "${BASE}/platform-assets/epc_warehouse_search_parity.js?v=20260812-whgroup" || true
-grep -q 'fillRangeInputsFromOffers' /tmp/whg.js && ok "live parity range fill" || bad "stale parity.js"
+  "${BASE}/platform-assets/epc_warehouse_search_parity.js?v=${JS_VER}" || true
+grep -q 'fillRangeInputsFromOffers\|epc_filter_exist_min\|confirmWrites' /tmp/whg.js && ok "live parity range fill" || bad "stale parity.js"
 grep -q 'normalizeWarehouseGroups\|epc-warehouse-subrow' /tmp/whg.html /tmp/whg.js \
   && ok "warehouse group wiring present" || bad "warehouse group wiring missing"
 

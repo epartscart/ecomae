@@ -1,19 +1,17 @@
 #!/usr/bin/env bash
-# ONE CloudPanel paste after merging pending ePartsCart PRs (#1005–#1012 family).
-# Merge alone does NOT republish :5100 — this FORCE_LIVE / LIVE_PUBLISH does.
+# ONE CloudPanel paste after ePartsCart pending PRs merge (#1005–#1012 family).
+# Also recovers: Access denied ecomae→docpart, CHPU 502 after publish.
 #
-# Prerequisites: merge #1006 + #1009 + #1012 (and any other open storefront/CP PRs) into main.
-#
-# As root on CloudPanel:
+# As root on CloudPanel (after #recover branch merges use main; until then use branch URL):
 #   set -euxo pipefail
-#   URL='https://raw.githubusercontent.com/epartscart/ecomae/main/scripts/cloudpanel_EPARTSCART_PENDING_PRS_LIVE_NOW.sh'
+#   URL='https://raw.githubusercontent.com/epartscart/ecomae/cursor/epartscart-pending-deploy-recover-7b3b/scripts/cloudpanel_EPARTSCART_PENDING_PRS_LIVE_NOW.sh'
 #   TMP=/tmp/epartscart-pending-prs-live-now.sh
 #   curl -fsSL "$URL" -o "$TMP" && test -s "$TMP"
 #   grep -q EPARTSCART_PENDING_PRS_LIVE_NOW "$TMP" || { echo RESULT=FAIL bad_download; exit 1; }
-#   export ECOMAE_BRANCH=main
+#   export ECOMAE_BRANCH=cursor/epartscart-pending-deploy-recover-7b3b
 #   export ECOMAE_EPARTSCART_SHOP_DB=docpart
 #   bash "$TMP" 2>&1 | tee /root/epartscart-pending-prs-live-now.log
-#   grep -E 'RESULT=|GATE_|SHA=|PROVE_|PUBLISH_' /root/epartscart-pending-prs-live-now.log | tail -120
+#   grep -E 'RESULT=|GATE_|SHA=|PROVE_|PUBLISH_|GRANT_|BOUND_|PREFLIGHT' /root/epartscart-pending-prs-live-now.log | tail -140
 set -euo pipefail
 
 printf '======== EPARTSCART_PENDING_PRS_LIVE_NOW ========\n'
@@ -45,7 +43,6 @@ git reset --hard "origin/$BRANCH" || die "git_reset_failed"
 SHA="$(git rev-parse --short HEAD)"
 printf 'REPO=%s SHA=%s BRANCH=%s SHOP_DB=%s\n' "$REPO" "$SHA" "$BRANCH" "$ECOMAE_EPARTSCART_SHOP_DB"
 
-# Preflight markers from pending PR family (fail fast if wrong tip / not merged yet).
 need() { grep -q "$2" "$1" || die "missing_marker $1 :: $2"; }
 need content/general_pages/epc_warehouse_search_parity.js 'include_crossbase=1'
 need content/general_pages/epc_warehouse_search_parity.js 'confirmWrites'
@@ -58,6 +55,30 @@ printf 'PREFLIGHT_MARKERS=OK\n'
 
 if [[ -f scripts/lib/nginx_safe_bak.py ]]; then
   python3 scripts/lib/nginx_safe_bak.py prune 2>&1 | tee /root/epartscart-nginx-bak-prune.log || true
+fi
+
+# CRITICAL: registry user (ecomae) must SELECT on shared shop `docpart`.
+# Without GRANT, /storefront/cross-search returns database-error Access denied → CHPU empty/502.
+printf '\n---- BIND+GRANT docpart (standalone) ----\n'
+if [[ -f scripts/cloudpanel_EPARTSCART_BIND_DOCPART_STANDALONE.sh ]]; then
+  set +e
+  ECOMAE_EPARTSCART_SHOP_DB="$ECOMAE_EPARTSCART_SHOP_DB" \
+    bash scripts/cloudpanel_EPARTSCART_BIND_DOCPART_STANDALONE.sh 2>&1 \
+    | tee /root/epartscart-pending-bind-docpart.log | tail -80
+  BIND_RC=${PIPESTATUS[0]}
+  set -e
+  printf 'BIND_EXIT=%s\n' "$BIND_RC"
+  grep -E 'RESULT=|BOUND_|GRANT_|ROW_|shop_db|ERROR' /root/epartscart-pending-bind-docpart.log | tail -40 || true
+  # Soft: continue publish even if bind soft-fails when dump already shows live→docpart.
+  if [[ "$BIND_RC" -ne 0 ]]; then
+    if grep -Eiq 'www\.epartscart\.com[[:space:]]+docpart|BOUND_=YES|RESULT=PASS' /root/epartscart-pending-bind-docpart.log; then
+      printf 'WARN: bind exit=%s but docpart already bound — continuing\n' "$BIND_RC"
+    else
+      die "bind_docpart_failed — registry user cannot open docpart (cross-search Access denied)"
+    fi
+  fi
+else
+  die "missing BIND_DOCPART_STANDALONE"
 fi
 
 # Warm AISIN/DT068 crossbase cache so first prove is not HTTP-dependent.
@@ -91,6 +112,15 @@ set -e
 printf 'PUBLISH_EXIT=%s\n' "$PUB_RC"
 [[ "$PUB_RC" -eq 0 ]] || die "publish_failed — see /root/epartscart-pending-prs-publish.log"
 
+# Brief settle — Kestrel can 502 for a few seconds after restart.
+sleep 3
+for i in 1 2 3 4 5; do
+  code=$(curl -sS -o /dev/null -w '%{http_code}' --max-time 15 'https://www.epartscart.com/en/parts/AISIN/DT068' || echo 000)
+  printf 'SETTLE_PARTS_HTTP=%s try=%s\n' "$code" "$i"
+  [[ "$code" == "200" ]] && break
+  sleep 2
+done
+
 run_prove() {
   local script="$1"
   local label="$2"
@@ -115,22 +145,26 @@ FAIL=0
 run_prove scripts/cloudpanel_EPARTSCART_CART_ADD_LOGIN_PROVE.sh cartadd || FAIL=1
 run_prove scripts/cloudpanel_EPARTSCART_CHPU_WH_GROUP_PROVE.sh whgroup || FAIL=1
 run_prove scripts/cloudpanel_EPARTSCART_PARTS_CROSS_PRICE_LOGIN_PROVE.sh crossprice || FAIL=1
-# Users detail — lightweight live probe if dedicated prove missing.
-if [[ -f scripts/cloudpanel_EPARTSCART_CP_USERS_DETAIL_NOW.sh ]]; then
-  # NOW scripts republish; prefer a read-only probe here.
-  printf '\n---- PROVE users-detail (HTTP) ----\n'
-  set +e
-  curl -sS -o /tmp/epc_users_app.html -D /tmp/epc_users_app.hdr -w 'USERS_HTTP=%{http_code}\n' --max-time 30 \
-    'https://www.epartscart.com/cp/users-app' || true
-  set -e
-  if grep -Eiq 'x-ecomae-platform:[[:space:]]*primary' /tmp/epc_users_app.hdr \
-    && grep -Eq 'epc-scp-users-workspace|users-app' /tmp/epc_users_app.html; then
-    printf 'PROVE_OK users-detail\n'
-  else
-    printf 'PROVE_BAD users-detail\n'
-    FAIL=1
-  fi
+
+# Users detail — guest 302→login is OK; HTML shell when session present.
+printf '\n---- PROVE users-detail (HTTP) ----\n'
+set +e
+curl -sS -o /tmp/epc_users_app.html -D /tmp/epc_users_app.hdr -w 'USERS_HTTP=%{http_code}\n' --max-time 30 \
+  'https://www.epartscart.com/cp/users-app' || true
+tr -d '\r' < /tmp/epc_users_app.hdr > /tmp/epc_users_app.hdr.c 2>/dev/null || true
+mv -f /tmp/epc_users_app.hdr.c /tmp/epc_users_app.hdr 2>/dev/null || true
+USERS_CODE=$(awk 'NR==1{print $2}' /tmp/epc_users_app.hdr 2>/dev/null || echo 000)
+set -e
+if grep -Eiq 'location:.*(login|/cp/login)' /tmp/epc_users_app.hdr \
+  || [[ "$USERS_CODE" == "302" || "$USERS_CODE" == "401" ]]; then
+  printf 'PROVE_OK users-detail (auth gate %s — expected for guest)\n' "$USERS_CODE"
+elif grep -Eiq 'x-ecomae-platform:[[:space:]]*primary' /tmp/epc_users_app.hdr \
+  && grep -Eq 'epc-scp-users-workspace|users-app' /tmp/epc_users_app.html; then
+  printf 'PROVE_OK users-detail\n'
+else
+  printf 'PROVE_BAD users-detail http=%s\n' "$USERS_CODE"
+  FAIL=1
 fi
 
-[[ "$FAIL" -eq 0 ]] || die "one_or_more_proves_failed — see /root/epartscart-prove-*.log"
+[[ "$FAIL" -eq 0 ]] || die "one_or_more_proves_failed — see /root/epartscart-prove-*.log and bind log"
 printf 'RESULT=PASS EPARTSCART_PENDING_PRS_LIVE SHA=%s BRANCH=%s\n' "$SHA" "$BRANCH"
