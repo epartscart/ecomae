@@ -687,6 +687,8 @@ app.UseResponseCompression();
 app.UseMiddleware<SecurityHeadersMiddleware>();
 app.UseMiddleware<PhpServingDeactivatedMiddleware>();
 app.UseMiddleware<BlockchainVerifyJsonMiddleware>();
+// Industry {slug}.ecomae.com hubs/subs — before PHP product redirects (sub-paths must not 302→/).
+app.UseMiddleware<EcomaeIndustryShowcaseMiddleware>();
 // Deep /CP|/ERP|/BOS|/shop product paths → ASP.NET; PHP only via /php-reference/* (503 when serving deactivated).
 app.UseMiddleware<PhpProductPathRedirectMiddleware>();
 // Thin /marketing/{slug} stubs → PHP canonical full pages (except /marketing/app home). Skipped when PHP serving off.

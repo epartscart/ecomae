@@ -1,4 +1,5 @@
 using EcomAE.Platform.Configuration;
+using EcomAE.Platform.Presentation;
 using Microsoft.Extensions.Options;
 
 namespace EcomAE.Platform.Services;
@@ -56,6 +57,23 @@ public sealed class RouteTenantResolver : ITenantResolver
                 platformRecord?.DbUser,
                 platformRecord?.DbPassword,
                 platformRecord?.DedicatedDb ?? false);
+        }
+
+        // Industry showcase hosts ({slug}.ecomae.com) — platform-managed marketing demos,
+        // not client shop DBs. CP/ERP shells still use platform registry credentials.
+        if (EcomaeIndustryShowcaseSnapshots.TryResolveHostSlug(host, out var industrySlug))
+        {
+            var platformRecord = registryRecord?.Mode == TenantMode.Platform ? registryRecord : null;
+            return new TenantContext(
+                host,
+                path,
+                surface,
+                TenantMode.IndustrySubdomain,
+                "industry-" + industrySlug,
+                platformRecord?.DatabaseName ?? PlatformSeedDatabase(),
+                platformRecord?.DbUser,
+                platformRecord?.DbPassword,
+                DedicatedDb: false);
         }
 
         var mode = registryRecord?.Mode

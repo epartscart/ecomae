@@ -42,6 +42,8 @@ node_modules/
 !/content/general_pages/epc_rendered_homes/*.html
 # PHP-rendered ecomae marketing pages (regenerate: scripts/render_ecomae_marketing_snapshots.php)
 !/content/general_pages/epc_rendered_marketing/*.html
+# PHP-rendered industry showcase hubs/subs (regenerate: scripts/render_ecomae_industry_snapshots.php)
+!/content/general_pages/epc_rendered_industry/*.html
 config.epc-smtp.php
 epc-operator-update.php
 epc-operator-probe.php

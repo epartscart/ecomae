@@ -1,0 +1,1373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Online electronics store — Storefront, CP &amp; ERP | ecomae</title>
+<meta name="description" content="Online electronics store on electronics.ecomae.com: Smartphones, Tablets, Wearables, Accessories, Cables &amp; Chargers, Screen Protectors. Premium animated storefront with categories, products, Control Panel and ERP — ready for client go-live.">
+<meta name="keywords" content="online electronics store, electronics &amp; technology, smartphones, tablets, wearables, accessories, cables &amp; chargers, screen protectors, erp, storefront, control panel, ecomae">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://electronics.ecomae.com/online-electronics-store">
+<!-- Open Graph -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="Online electronics store — ecomae Electronics &amp; Technology">
+<meta property="og:description" content="Online electronics store on electronics.ecomae.com: Smartphones, Tablets, Wearables, Accessories, Cables &amp; Chargers, Screen Protectors. Premium animated storefront with categories, products, Control Panel and ERP — ready for client go-live.">
+<meta property="og:image" content="https://images.unsplash.com/photo-1550009158-9ebf69173e03?w=1600&amp;q=80">
+<meta property="og:url" content="https://electronics.ecomae.com/online-electronics-store">
+<meta property="og:site_name" content="ecomae">
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Online electronics store — ecomae Electronics &amp; Technology">
+<meta name="twitter:description" content="Online electronics store on electronics.ecomae.com: Smartphones, Tablets, Wearables, Accessories, Cables &amp; Chargers, Screen Protectors. Premium animated storefront with categories, products, Control Panel and ERP — ready for client go-live.">
+<meta name="twitter:image" content="https://images.unsplash.com/photo-1550009158-9ebf69173e03?w=1600&amp;q=80">
+<!-- JSON-LD Structured Data -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  "name": "Online electronics store — ecomae Electronics & Technology",
+  "description": "Online electronics store on electronics.ecomae.com: Smartphones, Tablets, Wearables, Accessories, Cables & Chargers, Screen Protectors. Premium animated storefront with categories, products, Control Panel and ERP — ready for client go-live.",
+  "url": "https://electronics.ecomae.com/online-electronics-store",
+  "publisher": {
+    "@type": "Organization",
+    "name": "ecomae",
+    "url": "https://www.ecomae.com",
+    "logo": "https://www.ecomae.com/images/ecomae-logo.png"
+  },
+  "mainEntity": {
+    "@type": "ItemList",
+    "name": "Online electronics store Categories",
+    "numberOfItems": 6,
+    "itemListElement": [
+      {"@type": "ListItem", "position": 1, "name": "Online Electronics Management Platform"},
+      {"@type": "ListItem", "position": 2, "name": "Online Electronics Operations Suite"},
+      {"@type": "ListItem", "position": 3, "name": "Online Electronics Analytics Dashboard"},
+      {"@type": "ListItem", "position": 4, "name": "Accessories — Online electronics store"},
+      {"@type": "ListItem", "position": 5, "name": "Cables & Chargers — Online electronics store"},
+      {"@type": "ListItem", "position": 6, "name": "Screen Protectors — Online electronics store"}
+    ]
+  },
+  "breadcrumb": {
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {"@type": "ListItem", "position": 1, "name": "ecomae", "item": "https://www.ecomae.com"},
+      {"@type": "ListItem", "position": 2, "name": "Industries", "item": "https://www.ecomae.com/platform/industries"},
+      {"@type": "ListItem", "position": 3, "name": "Electronics & Technology", "item": "https://electronics.ecomae.com/"},
+      {"@type": "ListItem", "position": 4, "name": "Online electronics store", "item": "https://electronics.ecomae.com/online-electronics-store"}
+    ]
+  }
+}
+</script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--primary:#e10a0a;--accent:#000000;--bg-from:#000000;--bg-to:#2d2d2d}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#1e293b;background:#fff;overflow-x:hidden}
+a{color:var(--primary);text-decoration:none}
+a:hover{text-decoration:underline}
+
+/* ===== HEADER ===== */
+.site-header{position:fixed;top:0;left:0;right:0;z-index:1000;background:rgba(255,255,255,.97);backdrop-filter:blur(12px);border-bottom:1px solid rgba(0,0,0,.06);transition:all .3s}
+.site-header.scrolled{box-shadow:0 2px 20px rgba(0,0,0,.08)}
+.header-inner{max-width:1280px;margin:0 auto;padding:0 24px;height:64px;display:flex;align-items:center;gap:20px}
+.header-logo{display:flex;align-items:center;gap:10px;font-weight:700;font-size:18px;color:#0f172a;text-decoration:none!important}
+.header-logo .logo-icon{width:36px;height:36px;border-radius:8px;background:linear-gradient(135deg,var(--primary),var(--accent));display:flex;align-items:center;justify-content:center;color:#fff;font-size:15px}
+.header-nav{display:flex;gap:4px;margin-left:auto}
+.header-nav a{padding:8px 16px;border-radius:8px;font-size:14px;font-weight:500;color:#475569;transition:all .2s;text-decoration:none!important}
+.header-nav a:hover{background:#f1f5f9;color:var(--primary)}
+.header-actions{display:flex;align-items:center;gap:12px;margin-left:16px}
+.header-cart{position:relative;width:40px;height:40px;border-radius:10px;background:#f8fafc;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s;border:1px solid #e2e8f0}
+.header-cart:hover{background:var(--primary);color:#fff;border-color:var(--primary)}
+.header-cart .cart-count{position:absolute;top:-4px;right:-4px;width:18px;height:18px;border-radius:50%;background:#ef4444;color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;transform:scale(0);transition:transform .3s}
+.header-cart .cart-count.show{transform:scale(1)}
+.header-btn{padding:8px 18px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;border:none;text-decoration:none!important}
+.header-btn--login{background:#f1f5f9;color:#475569}
+.header-btn--login:hover{background:#e2e8f0}
+.header-btn--register{background:var(--primary);color:#fff}
+.header-btn--register:hover{background:var(--accent);transform:translateY(-1px)}
+.header-mobile{display:none;width:40px;height:40px;border-radius:8px;background:#f8fafc;border:1px solid #e2e8f0;align-items:center;justify-content:center;cursor:pointer;font-size:18px}
+@media(max-width:768px){
+.header-nav{display:none}
+.header-mobile{display:flex}
+}
+
+/* ===== MINI CART DROPDOWN ===== */
+.mini-cart{position:fixed;top:0;right:-400px;width:380px;max-width:90vw;height:100vh;background:#fff;box-shadow:-5px 0 30px rgba(0,0,0,.15);z-index:2000;transition:right .4s cubic-bezier(.16,1,.3,1);display:flex;flex-direction:column}
+.mini-cart.open{right:0}
+.mini-cart__header{padding:20px 24px;border-bottom:1px solid #e2e8f0;display:flex;align-items:center;justify-content:space-between}
+.mini-cart__header h3{font-size:18px;font-weight:700;color:#0f172a}
+.mini-cart__close{width:32px;height:32px;border-radius:8px;background:#f1f5f9;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;color:#475569;border:none}
+.mini-cart__items{flex:1;overflow-y:auto;padding:16px 24px}
+.mini-cart__empty{text-align:center;padding:60px 20px;color:#94a3b8}
+.mini-cart__empty i{font-size:48px;margin-bottom:12px;opacity:.4}
+.mini-cart__item{display:flex;gap:12px;padding:14px 0;border-bottom:1px solid #f1f5f9;align-items:center}
+.mini-cart__item-img{width:56px;height:56px;border-radius:8px;background:#f8fafc;display:flex;align-items:center;justify-content:center;font-size:20px;color:var(--primary);flex-shrink:0;overflow:hidden}
+.mini-cart__item-img img{width:100%;height:100%;object-fit:cover}
+.mini-cart__item-info{flex:1}
+.mini-cart__item-name{font-size:13px;font-weight:600;color:#1e293b}
+.mini-cart__item-price{font-size:14px;font-weight:700;color:var(--primary);margin-top:2px}
+.mini-cart__item-qty{display:flex;align-items:center;gap:8px;margin-top:6px}
+.mini-cart__item-qty button{width:24px;height:24px;border-radius:6px;border:1px solid #e2e8f0;background:#f8fafc;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center}
+.mini-cart__item-qty span{font-size:13px;font-weight:600;min-width:20px;text-align:center}
+.mini-cart__item-remove{color:#ef4444;cursor:pointer;font-size:14px;padding:4px}
+.mini-cart__footer{padding:20px 24px;border-top:1px solid #e2e8f0;background:#f8fafc}
+.mini-cart__total{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.mini-cart__total span{font-size:14px;color:#64748b}
+.mini-cart__total strong{font-size:20px;color:#0f172a}
+.mini-cart__checkout{width:100%;padding:14px;border-radius:10px;background:var(--primary);color:#fff;font-size:14px;font-weight:600;border:none;cursor:pointer;transition:all .2s}
+.mini-cart__checkout:hover{background:var(--accent);transform:translateY(-1px)}
+.cart-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:1999;opacity:0;pointer-events:none;transition:opacity .3s}
+.cart-overlay.open{opacity:1;pointer-events:auto}
+
+/* ===== AUTH MODAL ===== */
+.auth-modal{position:fixed;inset:0;z-index:3000;display:none;align-items:center;justify-content:center;padding:20px}
+.auth-modal.open{display:flex}
+.auth-modal__bg{position:absolute;inset:0;background:rgba(0,0,0,.5);backdrop-filter:blur(4px)}
+.auth-modal__box{position:relative;width:100%;max-width:440px;background:#fff;border-radius:20px;padding:40px;box-shadow:0 25px 60px rgba(0,0,0,.2);animation:modalIn .4s cubic-bezier(.16,1,.3,1)}
+@keyframes modalIn{from{opacity:0;transform:translateY(20px) scale(.95)}to{opacity:1;transform:translateY(0) scale(1)}}
+.auth-modal__close{position:absolute;top:16px;right:16px;width:32px;height:32px;border-radius:8px;background:#f1f5f9;border:none;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center}
+.auth-modal__tabs{display:flex;gap:4px;margin-bottom:28px;background:#f1f5f9;border-radius:10px;padding:4px}
+.auth-modal__tab{flex:1;padding:10px;text-align:center;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;transition:all .2s;color:#64748b}
+.auth-modal__tab.active{background:#fff;color:var(--primary);box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.auth-modal__form{display:none}
+.auth-modal__form.active{display:block}
+.auth-form-group{margin-bottom:16px}
+.auth-form-group label{display:block;font-size:12px;font-weight:600;color:#475569;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px}
+.auth-form-group input,.auth-form-group select{width:100%;padding:12px 14px;border:2px solid #e2e8f0;border-radius:10px;font-size:14px;transition:border-color .2s;outline:none}
+.auth-form-group input:focus,.auth-form-group select:focus{border-color:var(--primary)}
+.auth-form-submit{width:100%;padding:14px;border-radius:10px;background:var(--primary);color:#fff;font-size:15px;font-weight:600;border:none;cursor:pointer;margin-top:8px;transition:all .2s}
+.auth-form-submit:hover{background:var(--accent);transform:translateY(-1px)}
+.auth-form-footer{text-align:center;margin-top:16px;font-size:13px;color:#64748b}
+.auth-form-footer a{color:var(--primary);font-weight:600}
+.auth-form-note{font-size:12px;color:#94a3b8;text-align:center;margin-top:12px}
+.auth-industry{display:flex;align-items:center;gap:10px;padding:12px;background:#f8fafc;border-radius:10px;margin-bottom:20px;border:1px solid #e2e8f0}
+.auth-industry .ai-icon{width:32px;height:32px;border-radius:6px;background:var(--primary);display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px}
+.auth-industry .ai-text{font-size:12px;color:#475569}
+.auth-industry .ai-text strong{display:block;color:#0f172a;font-size:13px}
+
+/* ===== HERO ===== */
+.ind-hero{min-height:90vh;display:flex;align-items:center;justify-content:center;text-align:center;position:relative;overflow:hidden;padding-top:64px}
+.ind-hero-video{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:1}
+.ind-hero-video video{position:absolute;top:50%;left:50%;min-width:100%;min-height:100%;width:auto;height:auto;transform:translate(-50%,-50%);object-fit:cover}
+.ind-hero-bg{position:absolute;inset:0;background-size:cover;background-position:center;animation:slowZoom 20s ease-in-out infinite alternate}
+.ind-hero-overlay{position:absolute;inset:0;background:linear-gradient(135deg,rgba(0,0,0,.55),rgba(45,45,45,.45))}
+.ind-hero-content{position:relative;z-index:2;max-width:800px;padding:40px 20px;animation:heroFadeIn 1.2s cubic-bezier(.16,1,.3,1)}
+.ind-hero h1{font-size:clamp(2.5rem,6vw,4.5rem);font-weight:800;background:linear-gradient(135deg,#fff 30%,var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:16px;line-height:1.1}
+.ind-hero .tagline{font-size:1.3rem;color:rgba(255,255,255,.85);margin-bottom:20px;font-weight:300}
+.ind-hero .desc{font-size:1rem;color:rgba(255,255,255,.7);max-width:600px;margin:0 auto 32px;line-height:1.7}
+.ind-hero .hero-icon{font-size:3.5rem;color:var(--accent);margin-bottom:16px;animation:iconFloat 3s ease-in-out infinite;filter:drop-shadow(0 0 20px var(--accent))}
+.particles{position:absolute;inset:0;overflow:hidden;z-index:1}
+.particle{position:absolute;border-radius:50%;background:var(--accent);opacity:.12;animation:float 8s infinite}
+.particle:nth-child(2n){animation-duration:12s;opacity:.08}
+.particle:nth-child(3n){animation-duration:10s;opacity:.15}
+.ind-hero-ctas{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
+.btn-hero{display:inline-flex;align-items:center;gap:8px;padding:14px 28px;border-radius:10px;font-size:15px;font-weight:600;text-decoration:none!important;transition:all .3s}
+.btn-hero--primary{background:#fff;color:var(--primary);box-shadow:0 4px 20px rgba(0,0,0,.15)}
+.btn-hero--primary:hover{transform:translateY(-3px);box-shadow:0 8px 30px rgba(0,0,0,.2)}
+.btn-hero--secondary{background:rgba(255,255,255,.1);color:#fff;border:2px solid rgba(255,255,255,.3)}
+.btn-hero--secondary:hover{border-color:#fff;transform:translateY(-2px)}
+
+/* ===== ABOUT SECTION ===== */
+.ind-about{padding:80px 20px;background:#fff}
+.ind-about-inner{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:center}
+.ind-about-text h2{font-size:2.2rem;font-weight:800;color:#0f172a;margin-bottom:16px}
+.ind-about-text p{font-size:1rem;color:#475569;line-height:1.8;margin-bottom:16px}
+.ind-about-text .about-highlights{list-style:none;padding:0;margin:20px 0 0}
+.ind-about-text .about-highlights li{padding:8px 0 8px 28px;position:relative;font-size:14px;color:#334155}
+.ind-about-text .about-highlights li::before{content:'\f00c';font-family:FontAwesome;position:absolute;left:0;top:8px;color:var(--primary);font-size:14px}
+.ind-about-media{position:relative;border-radius:16px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.12)}
+.ind-about-media img{width:100%;height:auto;display:block;border-radius:16px}
+.ind-about-media .video-wrapper{position:relative;padding-bottom:56.25%;height:0;border-radius:16px;overflow:hidden}
+.ind-about-media .video-wrapper iframe{position:absolute;top:0;left:0;width:100%;height:100%;border:0;border-radius:16px}
+.ind-about-media .video-play-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.25);cursor:pointer;transition:background .3s;border-radius:16px}
+.ind-about-media .video-play-overlay:hover{background:rgba(0,0,0,.15)}
+.ind-about-media .play-btn{width:72px;height:72px;border-radius:50%;background:rgba(255,255,255,.95);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(0,0,0,.2)}
+.ind-about-media .play-btn i{font-size:28px;color:var(--primary);margin-left:4px}
+@media(max-width:768px){
+.ind-about-inner{grid-template-columns:1fr;gap:32px}
+}
+
+/* ===== STATS ===== */
+.ind-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:0;background:#fff;border-bottom:1px solid #e2e8f0}
+.ind-stat{text-align:center;padding:36px 20px;border-right:1px solid #f1f5f9}
+.ind-stat:last-child{border-right:0}
+.ind-stat h3{font-size:2rem;font-weight:800;color:var(--primary)}
+.ind-stat p{font-size:.8rem;color:#64748b;margin-top:4px;text-transform:uppercase;letter-spacing:1px}
+
+/* ===== PRODUCT CATEGORIES ===== */
+.ind-categories{padding:80px 20px;background:#fff}
+.ind-categories h2{text-align:center;font-size:2rem;font-weight:800;color:#0f172a;margin-bottom:12px}
+.ind-categories .section-sub{text-align:center;color:#64748b;font-size:15px;margin-bottom:40px}
+.ind-categories-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:24px;max-width:1280px;margin:0 auto}
+.cat-group{background:#f8fafc;border-radius:16px;border:1px solid #e2e8f0;padding:24px;transition:all .3s}
+.cat-group:hover{transform:translateY(-3px);box-shadow:0 8px 24px rgba(0,0,0,.06);border-color:var(--primary)}
+.cat-group__header{display:flex;align-items:center;gap:12px;margin-bottom:16px;padding-bottom:14px;border-bottom:2px solid #e2e8f0}
+.cat-group__icon{width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,var(--primary),var(--accent));display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;flex-shrink:0}
+.cat-group__title{font-size:15px;font-weight:700;color:#0f172a}
+.cat-group__count{font-size:11px;color:#64748b;margin-top:2px}
+.cat-group__list{list-style:none;padding:0;margin:0}
+.cat-group__list li{padding:8px 12px;margin-bottom:4px;border-radius:8px;font-size:13px;color:#334155;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:8px}
+.cat-group__list li:hover{background:var(--primary);color:#fff;transform:translateX(4px)}
+.cat-group__list li::before{content:'\f105';font-family:FontAwesome;font-size:11px;color:var(--primary);transition:color .2s}
+.cat-group__list li:hover::before{color:#fff}
+.cat-group__list li .cat-badge{margin-left:auto;padding:2px 7px;background:#e2e8f0;border-radius:10px;font-size:10px;font-weight:600;color:#64748b}
+.cat-group__list li:hover .cat-badge{background:rgba(255,255,255,.2);color:#fff}
+@media(max-width:768px){
+.ind-categories-grid{grid-template-columns:1fr}
+}
+
+/* ===== PRODUCTS ===== */
+.ind-products{padding:80px 20px;background:#f8fafc}
+.ind-products h2{text-align:center;font-size:2rem;font-weight:800;color:#0f172a;margin-bottom:12px}
+.ind-products .section-sub{text-align:center;color:#64748b;font-size:15px;margin-bottom:40px}
+.ind-products-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:20px;max-width:1200px;margin:0 auto}
+.product-card{background:#fff;border-radius:14px;border:1px solid #e2e8f0;overflow:hidden;transition:all .3s cubic-bezier(.16,1,.3,1)}
+.product-card:hover{transform:translateY(-4px);box-shadow:0 12px 30px rgba(0,0,0,.08);border-color:transparent}
+.product-card__img{height:180px;background:#f1f5f9;display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative}
+.product-card__img img{width:100%;height:100%;object-fit:cover;transition:transform .5s}
+.product-card:hover .product-card__img img{transform:scale(1.06)}
+.product-card__img .prod-icon-lg{font-size:3rem;color:var(--primary);opacity:.5}
+.product-card__cat{position:absolute;top:10px;left:10px;padding:4px 10px;background:rgba(255,255,255,.9);border-radius:6px;font-size:11px;font-weight:600;color:#475569}
+.product-card__body{padding:18px}
+.product-card__name{font-size:15px;font-weight:600;color:#1e293b;margin-bottom:6px}
+.product-card__price{font-size:18px;font-weight:700;color:var(--primary);margin-bottom:12px}
+.product-card__add{width:100%;padding:10px;border-radius:8px;background:var(--primary);color:#fff;font-size:13px;font-weight:600;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:all .2s}
+.product-card__add:hover{background:var(--accent);transform:translateY(-1px)}
+.product-card__add.added{background:#10b981}
+
+/* ===== FEATURES ===== */
+.ind-features{padding:80px 20px;max-width:1200px;margin:0 auto}
+.ind-features h2{text-align:center;font-size:2rem;font-weight:800;color:#0f172a;margin-bottom:12px}
+.ind-features .section-sub{text-align:center;color:#64748b;font-size:15px;margin-bottom:40px}
+.ind-features-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:20px}
+.feat-card{padding:28px;border-radius:14px;border:1px solid #e2e8f0;background:#fff;transition:all .3s;position:relative;overflow:hidden}
+.feat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--primary),var(--accent));transform:scaleX(0);transition:transform .3s;transform-origin:left}
+.feat-card:hover{transform:translateY(-4px);box-shadow:0 10px 30px rgba(0,0,0,.06);border-color:transparent}
+.feat-card:hover::before{transform:scaleX(1)}
+.feat-card .feat-icon{width:44px;height:44px;border-radius:10px;background:linear-gradient(135deg,var(--primary),var(--accent));display:flex;align-items:center;justify-content:center;color:#fff;font-size:18px;margin-bottom:14px}
+.feat-card h4{font-size:16px;font-weight:700;color:#0f172a;margin-bottom:8px}
+.feat-card p{font-size:13px;color:#64748b;line-height:1.6}
+
+/* ===== SUB-INDUSTRIES ===== */
+.ind-subs{padding:80px 20px;background:linear-gradient(180deg,#f8fafc 0%,#fff 100%)}
+.ind-subs h2{text-align:center;font-size:2rem;font-weight:800;color:#0f172a;margin-bottom:12px}
+.ind-subs .section-sub{text-align:center;color:#64748b;font-size:15px;margin-bottom:40px}
+.ind-subs-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:24px;max-width:1280px;margin:0 auto}
+.sub-card.is-seo-active{outline:3px solid var(--accent);box-shadow:0 12px 40px rgba(0,0,0,.18);transform:translateY(-2px)}
+.sub-card{background:#fff;border-radius:16px;border:1px solid #e2e8f0;overflow:hidden;transition:all .4s cubic-bezier(.16,1,.3,1);cursor:pointer;position:relative}
+.sub-card:hover{transform:translateY(-6px);box-shadow:0 20px 40px rgba(0,0,0,.1);border-color:transparent}
+.sub-card__img{height:160px;overflow:hidden;position:relative}
+.sub-card__img img{width:100%;height:100%;object-fit:cover;transition:transform .6s}
+.sub-card:hover .sub-card__img img{transform:scale(1.08)}
+.sub-card__img::after{content:'';position:absolute;bottom:0;left:0;right:0;height:60px;background:linear-gradient(transparent,rgba(0,0,0,.4))}
+.sub-card__badge{position:absolute;top:12px;right:12px;display:flex;gap:4px}
+.sub-card__badge span{padding:3px 8px;border-radius:4px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+.sub-card__badge .b-erp{background:rgba(16,185,129,.9);color:#fff}
+.sub-card__badge .b-cp{background:rgba(59,130,246,.9);color:#fff}
+.sub-card__badge .b-store{background:rgba(249,115,22,.9);color:#fff}
+.sub-card__body{padding:20px}
+.sub-card__name{font-size:16px;font-weight:700;color:#0f172a;margin-bottom:6px}
+.sub-card__desc{font-size:13px;color:#64748b;margin-bottom:12px;line-height:1.6}
+.sub-card__cats{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:12px}
+.cat-tag{display:inline-block;padding:3px 8px;background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;font-size:11px;color:#475569;white-space:nowrap;transition:all .2s}
+.cat-tag:hover{background:var(--primary);color:#fff;border-color:var(--primary)}
+.sub-card__process{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:14px;padding:10px 12px;background:#f8fafc;border-radius:8px;border:1px solid #f1f5f9}
+.sub-card__process .proc-step{font-size:11px;color:#475569;font-weight:500;white-space:nowrap}
+.sub-card__process .proc-arrow{color:var(--primary);font-size:10px}
+.sub-card__products{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.sub-prod{text-align:center;border-radius:8px;overflow:hidden;border:1px solid #f1f5f9;transition:all .2s}
+.sub-prod:hover{border-color:var(--primary);transform:scale(1.03)}
+.sub-prod img{width:100%;height:60px;object-fit:cover}
+.sub-prod .sp-name{font-size:10px;font-weight:600;color:#1e293b;padding:4px 2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sub-prod .sp-price{font-size:10px;color:var(--primary);font-weight:700;padding:0 2px 4px}
+.sub-card__cta{display:flex;gap:8px;margin-top:14px}
+.sub-card__cta a{flex:1;padding:8px;border-radius:6px;font-size:11px;font-weight:600;text-align:center;text-decoration:none!important;transition:all .2s}
+.sub-card__cta .sc-site{background:var(--primary);color:#fff}
+.sub-card__cta .sc-site:hover{background:var(--accent)}
+.sub-card__cta .sc-erp{background:#f1f5f9;color:#475569}
+.sub-card__cta .sc-erp:hover{background:#e2e8f0}
+
+/* Sub-industry filter tabs */
+.sub-filter{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:32px;max-width:900px;margin-left:auto;margin-right:auto}
+.sub-filter-btn{padding:8px 16px;border-radius:100px;border:1px solid #e2e8f0;background:#fff;font-size:13px;font-weight:500;color:#475569;cursor:pointer;transition:all .2s}
+.sub-filter-btn:hover,.sub-filter-btn.active{background:var(--primary);border-color:var(--primary);color:#fff;transform:scale(1.05)}
+
+/* ===== GALLERY ===== */
+.ind-gallery{padding:80px 20px;max-width:1200px;margin:0 auto}
+.ind-gallery h2{text-align:center;font-size:2rem;font-weight:800;color:#0f172a;margin-bottom:40px}
+.ind-gallery-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;grid-auto-rows:200px}
+.ind-gallery-item{border-radius:12px;overflow:hidden;position:relative;transition:all .4s cubic-bezier(.16,1,.3,1)}
+.ind-gallery-item:hover{transform:translateY(-4px);box-shadow:0 16px 40px rgba(0,0,0,.15)}
+.ind-gallery-item img{width:100%;height:100%;object-fit:cover;transition:transform .6s}
+.ind-gallery-item:hover img{transform:scale(1.08)}
+.ind-gallery-item:first-child{grid-row:span 2}
+.ind-gallery-item::after{content:'';position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.3) 0%,transparent 50%);opacity:0;transition:opacity .3s}
+.ind-gallery-item:hover::after{opacity:1}
+
+/* ===== TESTIMONIAL ===== */
+.ind-testimonial{padding:80px 40px;text-align:center;background:#fff;border-top:1px solid #e2e8f0;border-bottom:1px solid #e2e8f0}
+.ind-testimonial blockquote{font-size:1.2rem;font-style:italic;color:#374151;max-width:700px;margin:0 auto 16px;line-height:1.7}
+.ind-testimonial cite{color:var(--primary);font-size:.9rem;font-style:normal;font-weight:600}
+
+/* ===== FOOTER ===== */
+.site-footer{background:#0f172a;color:#94a3b8;padding:60px 24px 30px}
+.footer-inner{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:40px}
+.footer-brand h3{color:#fff;font-size:18px;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.footer-brand p{font-size:13px;line-height:1.7;margin-bottom:16px}
+.footer-social{display:flex;gap:10px}
+.footer-social a{width:36px;height:36px;border-radius:8px;background:rgba(255,255,255,.06);display:flex;align-items:center;justify-content:center;color:#94a3b8;transition:all .2s;text-decoration:none!important}
+.footer-social a:hover{background:var(--primary);color:#fff;transform:translateY(-2px)}
+.footer-col h4{color:#fff;font-size:14px;font-weight:700;margin-bottom:16px}
+.footer-col ul{list-style:none;padding:0}
+.footer-col li{margin-bottom:10px}
+.footer-col a{color:#94a3b8;font-size:13px;transition:color .2s;text-decoration:none!important}
+.footer-col a:hover{color:var(--accent)}
+.footer-newsletter{margin-top:12px}
+.footer-newsletter input{width:100%;padding:10px 12px;border:1px solid rgba(255,255,255,.12);border-radius:8px;background:rgba(255,255,255,.04);color:#fff;font-size:13px;outline:none;margin-bottom:8px}
+.footer-newsletter button{width:100%;padding:10px;border-radius:8px;background:var(--primary);color:#fff;font-size:13px;font-weight:600;border:none;cursor:pointer;transition:all .2s}
+.footer-newsletter button:hover{background:var(--accent)}
+.footer-bottom{max-width:1200px;margin:30px auto 0;padding-top:20px;border-top:1px solid rgba(255,255,255,.06);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px}
+.footer-bottom p{font-size:12px;color:#64748b}
+.footer-bottom .demo-link{padding:6px 14px;background:rgba(255,255,255,.06);border-radius:6px;font-size:11px;color:#94a3b8;border:1px solid rgba(255,255,255,.08)}
+.footer-bottom .demo-link code{color:var(--accent)}
+
+/* ===== CTA SECTION ===== */
+.ind-cta{padding:80px 20px;text-align:center;background:linear-gradient(135deg,var(--bg-from),var(--bg-to));position:relative;overflow:hidden}
+.ind-cta::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at center,rgba(255,255,255,.03),transparent 70%)}
+.ind-cta h2{font-size:2rem;color:#fff;margin-bottom:12px;position:relative}
+.ind-cta p{color:rgba(255,255,255,.7);margin-bottom:32px;font-size:1rem;position:relative}
+.ind-cta-buttons{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;position:relative}
+.btn-cta{display:inline-flex;align-items:center;gap:8px;padding:14px 28px;border-radius:10px;font-size:15px;font-weight:600;text-decoration:none!important;transition:all .3s}
+.btn-cta-primary{background:#fff;color:var(--primary)}
+.btn-cta-primary:hover{transform:translateY(-3px);box-shadow:0 10px 30px rgba(0,0,0,.3)}
+.btn-cta-secondary{background:transparent;color:#fff;border:2px solid rgba(255,255,255,.3)}
+.btn-cta-secondary:hover{border-color:#fff;transform:translateY(-2px)}
+
+/* ===== REVEAL ===== */
+.reveal{opacity:0;transform:translateY(24px);transition:all .7s cubic-bezier(.16,1,.3,1)}
+.reveal.visible{opacity:1;transform:translateY(0)}
+
+/* ===== ANIMATIONS ===== */
+@keyframes heroFadeIn{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+@keyframes float{0%,100%{transform:translateY(0) translateX(0)}25%{transform:translateY(-20px) translateX(10px)}75%{transform:translateY(-30px) translateX(5px)}}
+@keyframes slowZoom{from{transform:scale(1)}to{transform:scale(1.08)}}
+@keyframes iconFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+@keyframes cartBounce{0%{transform:scale(1)}50%{transform:scale(1.3)}100%{transform:scale(1)}}
+
+/* ===== RESPONSIVE ===== */
+@media(max-width:768px){
+.footer-inner{grid-template-columns:1fr}
+.ind-gallery-grid{grid-template-columns:1fr 1fr;grid-auto-rows:150px}
+.ind-gallery-item:first-child{grid-row:span 1}
+.ind-stats{grid-template-columns:repeat(2,1fr)}
+.ind-stat{border-right:0;border-bottom:1px solid #f1f5f9}
+.ind-hero{min-height:80vh}
+}
+</style>
+<link rel="stylesheet" href="/epc-static.php?f=content/general_pages/industry_templates/assets/industry_3d.css&amp;v=20260716f">
+</head>
+<body class="ind-premium-3d ind-sub-site" data-ind-motif="electronics" data-ind-group="electronics" data-ind-slug="electronics" data-ind-sub="online-electronics-store">
+
+<!-- ===== HEADER ===== -->
+<header class="site-header" id="siteHeader">
+<div class="header-inner">
+<a href="https://electronics.ecomae.com/" class="header-logo">
+<div class="logo-icon"><i class="fa fa-microchip"></i></div>
+<span>
+Online electronics store<small style="display:block;font-size:11px;font-weight:500;color:#94a3b8;margin-top:1px">Electronics &amp; Technology vertical</small>
+</span>
+</a>
+<nav class="header-nav">
+<a href="#products">Products</a>
+<a href="#categories">Categories</a>
+<a href="#features">Features</a>
+<a href="#related-verticals">Related</a>
+<a href="#about">About</a>
+</nav>
+<div class="header-actions">
+<div class="header-cart" id="cartBtn" onclick="openCart()">
+<i class="fa fa-shopping-cart"></i>
+<span class="cart-count" id="cartCount">0</span>
+</div>
+<button class="header-btn header-btn--login" onclick="openAuth('login')">Login</button>
+<button class="header-btn header-btn--register" onclick="openAuth('register')">Register</button>
+</div>
+<div class="header-mobile" onclick="toggleMobileNav()"><i class="fa fa-bars"></i></div>
+</div>
+</header>
+
+<!-- ===== MINI CART ===== -->
+<div class="cart-overlay" id="cartOverlay" onclick="closeCart()"></div>
+<div class="mini-cart" id="miniCart">
+<div class="mini-cart__header">
+<h3><i class="fa fa-shopping-cart"></i> Your Cart</h3>
+<button class="mini-cart__close" onclick="closeCart()"><i class="fa fa-times"></i></button>
+</div>
+<div class="mini-cart__items" id="cartItems">
+<div class="mini-cart__empty">
+<i class="fa fa-shopping-bag"></i>
+<p>Your cart is empty</p>
+<p style="font-size:12px;margin-top:8px">Browse products below and add items to get started</p>
+</div>
+</div>
+<div class="mini-cart__footer" id="cartFooter" style="display:none">
+<div class="mini-cart__total">
+<span>Total</span>
+<strong id="cartTotal">AED 0</strong>
+</div>
+<button class="mini-cart__checkout" onclick="checkout()"><i class="fa fa-lock"></i> Proceed to Checkout</button>
+</div>
+</div>
+
+<!-- ===== AUTH MODAL ===== -->
+<div class="auth-modal" id="authModal">
+<div class="auth-modal__bg" onclick="closeAuth()"></div>
+<div class="auth-modal__box">
+<button class="auth-modal__close" onclick="closeAuth()"><i class="fa fa-times"></i></button>
+<div class="auth-industry">
+<div class="ai-icon"><i class="fa fa-microchip"></i></div>
+<div class="ai-text"><strong>Online electronics store</strong>Your account will be configured for this industry</div>
+</div>
+<div class="auth-modal__tabs">
+<div class="auth-modal__tab active" data-tab="login" onclick="switchAuthTab('login')">Login</div>
+<div class="auth-modal__tab" data-tab="register" onclick="switchAuthTab('register')">Register</div>
+</div>
+<!-- Login Form -->
+<form class="auth-modal__form active" id="formLogin" onsubmit="return handleLogin(event)">
+<div class="auth-form-group">
+<label>Email Address</label>
+<input type="email" id="loginEmail" placeholder="your@email.com" required>
+</div>
+<div class="auth-form-group">
+<label>Password</label>
+<input type="password" id="loginPass" placeholder="Enter your password" required>
+</div>
+<button type="submit" class="auth-form-submit"><i class="fa fa-sign-in"></i> Login</button>
+<p class="auth-form-footer">Don't have an account? <a href="#" onclick="switchAuthTab('register');return false">Register here</a></p>
+<p class="auth-form-note">Demo: demo@ecomae.com / demo2026</p>
+</form>
+<!-- Register Form -->
+<form class="auth-modal__form" id="formRegister" onsubmit="return handleRegister(event)">
+<div class="auth-form-group">
+<label>Full Name</label>
+<input type="text" id="regName" placeholder="John Doe" required>
+</div>
+<div class="auth-form-group">
+<label>Email Address</label>
+<input type="email" id="regEmail" placeholder="your@email.com" required>
+</div>
+<div class="auth-form-group">
+<label>Phone Number</label>
+<input type="tel" id="regPhone" placeholder="+971 50 123 4567">
+</div>
+<div class="auth-form-group">
+<label>Company Name</label>
+<input type="text" id="regCompany" placeholder="Your business name">
+</div>
+<div class="auth-form-group">
+<label>Industry</label>
+<select id="regIndustry">
+<option value="electronics_technology">Online electronics store (current)</option>
+<option value="automotive">Automotive & Vehicles</option>
+<option value="healthcare">Healthcare & Medical</option>
+<option value="food_beverage">Food & Beverage</option>
+<option value="fashion">Fashion & Apparel</option>
+<option value="jewellery">Jewellery & Luxury</option>
+<option value="electronics">Electronics & Technology</option>
+<option value="construction">Construction & Real Estate</option>
+<option value="manufacturing">Manufacturing & Industrial</option>
+<option value="professional">Professional Services</option>
+<option value="education">Education & Training</option>
+<option value="hospitality">Hospitality & Travel</option>
+<option value="beauty">Beauty & Wellness</option>
+<option value="retail">Retail & E-commerce</option>
+<option value="agriculture">Agriculture & Farming</option>
+<option value="logistics">Logistics & Transport</option>
+<option value="energy">Energy & Utilities</option>
+<option value="finance">Financial Services</option>
+<option value="technology">IT & Software</option>
+<option value="media">Media & Entertainment</option>
+<option value="sports">Sports & Fitness</option>
+<option value="homeliving">Home & Living</option>
+<option value="wholesale">Wholesale & Trading</option>
+<option value="rental">Rental & Leasing</option>
+<option value="nonprofit">Non-Profit & Government</option>
+<option value="cleaning">Cleaning & Maintenance</option>
+<option value="pet">Pet & Animal Services</option>
+<option value="printing">Printing & Signage</option>
+<option value="security">Security & Safety</option>
+</select>
+</div>
+<div class="auth-form-group">
+<label>Password</label>
+<input type="password" id="regPass" placeholder="Min 8 characters" required minlength="8">
+</div>
+<button type="submit" class="auth-form-submit"><i class="fa fa-user-plus"></i> Create Account</button>
+<p class="auth-form-footer">Already have an account? <a href="#" onclick="switchAuthTab('login');return false">Login</a></p>
+</form>
+</div>
+</div>
+
+<!-- ===== HERO ===== -->
+<section class="ind-hero" id="about">
+<div class="ind-hero-bg" style="background-image:url('https://images.unsplash.com/photo-1550009158-9ebf69173e03?w=1600&amp;q=80')"></div>
+<div class="ind-hero-video" id="heroVidWrap" data-src="/content/videos/bg_cool.mp4?v=2"></div>
+<div class="ind-hero-overlay"></div>
+<div class="ind3d-stage" aria-hidden="true">
+<div class="ind3d-ring"></div>
+<div class="ind3d-ring ind3d-ring--2"></div>
+<div class="ind3d-core"><i class="fa fa-microchip"></i></div>
+</div>
+<div class="ind3d-sprites" aria-hidden="true">
+<div class="ind3d-sprite"><i class="fa fa-mobile"></i></div><div class="ind3d-sprite"><i class="fa fa-laptop"></i></div><div class="ind3d-sprite"><i class="fa fa-wifi"></i></div><div class="ind3d-sprite"><i class="fa fa-hdd-o"></i></div><div class="ind3d-sprite"><i class="fa fa-headphones"></i></div><div class="ind3d-sprite"><i class="fa fa-gamepad"></i></div></div>
+<div class="particles">
+<div class="particle" style="width:11px;height:11px;left:20%;top:67%;animation-delay:-10s"></div>
+<div class="particle" style="width:12px;height:12px;left:91%;top:52%;animation-delay:-2s"></div>
+<div class="particle" style="width:4px;height:4px;left:39%;top:54%;animation-delay:-8s"></div>
+<div class="particle" style="width:7px;height:7px;left:37%;top:28%;animation-delay:-1s"></div>
+<div class="particle" style="width:9px;height:9px;left:42%;top:89%;animation-delay:-2s"></div>
+<div class="particle" style="width:5px;height:5px;left:14%;top:100%;animation-delay:-9s"></div>
+<div class="particle" style="width:8px;height:8px;left:15%;top:26%;animation-delay:-9s"></div>
+<div class="particle" style="width:10px;height:10px;left:11%;top:22%;animation-delay:-6s"></div>
+<div class="particle" style="width:5px;height:5px;left:86%;top:63%;animation-delay:-7s"></div>
+<div class="particle" style="width:7px;height:7px;left:7%;top:21%;animation-delay:-1s"></div>
+<div class="particle" style="width:9px;height:9px;left:23%;top:79%;animation-delay:-9s"></div>
+<div class="particle" style="width:8px;height:8px;left:95%;top:58%;animation-delay:-6s"></div>
+<div class="particle" style="width:6px;height:6px;left:3%;top:65%;animation-delay:-3s"></div>
+<div class="particle" style="width:5px;height:5px;left:22%;top:63%;animation-delay:-10s"></div>
+<div class="particle" style="width:7px;height:7px;left:25%;top:10%;animation-delay:-8s"></div>
+<div class="particle" style="width:12px;height:12px;left:79%;top:36%;animation-delay:-6s"></div>
+<div class="particle" style="width:4px;height:4px;left:11%;top:74%;animation-delay:-9s"></div>
+<div class="particle" style="width:9px;height:9px;left:70%;top:36%;animation-delay:-10s"></div>
+<div class="particle" style="width:5px;height:5px;left:47%;top:27%;animation-delay:-5s"></div>
+<div class="particle" style="width:12px;height:12px;left:23%;top:18%;animation-delay:-10s"></div>
+</div>
+<div class="ind-hero-content">
+<div class="hero-icon"><i class="fa fa-microchip"></i></div>
+<h1>Online electronics store</h1>
+<p class="tagline">Client-ready Online electronics store storefront · CP · ERP</p>
+<p class="desc">Online electronics store operations encompassing inventory management, point-of-sale, customer loyalty programs, visual merchandising, e-commerce integration. Provides end-to-end digital workflow management aligned with electronics industry standards and best practices Categories: Smartphones, Tablets, Wearables, Accessories, Cables &amp; Chargers, Screen Protectors.</p>
+<div class="ind-hero-ctas">
+<a href="#products" class="btn-hero btn-hero--primary"><i class="fa fa-shopping-bag"></i> Browse Catalog</a>
+<a href="#categories" class="btn-hero btn-hero--secondary"><i class="fa fa-th-large"></i> Categories</a>
+<a href="#" class="btn-hero btn-hero--secondary" onclick="openAuth('register');return false"><i class="fa fa-user-plus"></i> Start Free</a>
+</div>
+</div>
+</section>
+
+<!-- ===== STATS ===== -->
+<section class="ind-stats reveal">
+<div class="ind-stat">
+<h3>6</h3>
+<p>Categories</p>
+</div>
+<div class="ind-stat">
+<h3>6</h3>
+<p>Demo SKUs</p>
+</div>
+<div class="ind-stat">
+<h3>24h</h3>
+<p>Go-live target</p>
+</div>
+<div class="ind-stat">
+<h3>1</h3>
+<p>Unified BOS stack</p>
+</div>
+</section>
+
+<!-- ===== ABOUT SECTION WITH VIDEO ===== -->
+<section class="ind-about reveal" id="about-section">
+<div class="ind-about-inner">
+<div class="ind-about-text">
+<h2>About Online electronics store</h2>
+<p>Online electronics store operations encompassing inventory management, point-of-sale, customer loyalty programs, visual merchandising, e-commerce integration. Provides end-to-end digital workflow management aligned with electronics industry standards and best practices</p>
+<p>This is a <strong>client-ready vertical storefront</strong> for Online electronics store under Electronics &amp; Technology — with dedicated categories, demo products, Control Panel, and ERP. Same premium stack as the main industry sites.</p>
+<ul class="about-highlights">
+<li>Dedicated storefront for Online electronics store (not the generic Electronics &amp; Technology hub)</li>
+<li>6 product &amp; service categories: Smartphones, Tablets, Wearables, Accessories, Cables &amp; Chargers, Screen Protectors</li>
+<li>Premium 3D animated hero with vertical-specific photography</li>
+<li>Control Panel + ERP demo ready for client onboarding</li>
+<li>Related verticals under Electronics &amp; Technology for cross-sell</li>
+</ul>
+</div>
+<div class="ind-about-media">
+<img src="https://images.unsplash.com/photo-1550009158-9ebf69173e03?w=1600&amp;q=80" alt="About Online electronics store — Vertical Overview" loading="lazy">
+</div>
+</div>
+</section>
+
+<!-- ===== PRODUCT/SERVICE CATEGORIES & SUB-CATEGORIES ===== -->
+<section class="ind-categories reveal" id="categories">
+<h2>Product & Service Categories</h2>
+<p class="section-sub">6 categories for this online electronics store vertical — ready for client catalog setup</p>
+<div class="ind-categories-grid">
+<div class="cat-group">
+<div class="cat-group__header">
+<div class="cat-group__icon"><i class="fa fa-cubes"></i></div>
+<div>
+<div class="cat-group__title">Online electronics store</div>
+<div class="cat-group__count">6 categories</div>
+</div>
+</div>
+<ul class="cat-group__list">
+<li>Smartphones<span class="cat-badge">Products</span></li>
+<li>Tablets<span class="cat-badge">Products</span></li>
+<li>Wearables<span class="cat-badge">Products</span></li>
+<li>Accessories<span class="cat-badge">Products</span></li>
+<li>Cables &amp; Chargers<span class="cat-badge">Products</span></li>
+<li>Screen Protectors<span class="cat-badge">Products</span></li>
+</ul>
+</div>
+</div>
+</section>
+
+<!-- ===== PRODUCTS ===== -->
+<section class="ind-products reveal" id="products">
+<h2>Online electronics store Products &amp; Services</h2>
+<p class="section-sub">Vertical catalog for client demos — add items to cart and experience the full e-commerce flow</p>
+<div class="ind-products-grid">
+<div class="product-card">
+<div class="product-card__img">
+<img src="https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=400&amp;q=75" alt="Online Electronics Management Platform" loading="lazy">
+<span class="product-card__cat">Smartphones</span>
+</div>
+<div class="product-card__body">
+<div class="product-card__name">Online Electronics Management Platform</div>
+<div class="product-card__price">AED 250</div>
+<button class="product-card__add" onclick="addToCart(0)" id="addBtn0"><i class="fa fa-cart-plus"></i> Add to Cart</button>
+</div>
+</div>
+<div class="product-card">
+<div class="product-card__img">
+<img src="https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=400&amp;q=75" alt="Online Electronics Operations Suite" loading="lazy">
+<span class="product-card__cat">Tablets</span>
+</div>
+<div class="product-card__body">
+<div class="product-card__name">Online Electronics Operations Suite</div>
+<div class="product-card__price">AED 45</div>
+<button class="product-card__add" onclick="addToCart(1)" id="addBtn1"><i class="fa fa-cart-plus"></i> Add to Cart</button>
+</div>
+</div>
+<div class="product-card">
+<div class="product-card__img">
+<img src="https://images.unsplash.com/photo-1491933382434-500287f9b54b?w=400&amp;q=75" alt="Online Electronics Analytics Dashboard" loading="lazy">
+<span class="product-card__cat">Wearables</span>
+</div>
+<div class="product-card__body">
+<div class="product-card__name">Online Electronics Analytics Dashboard</div>
+<div class="product-card__price">AED 1,800</div>
+<button class="product-card__add" onclick="addToCart(2)" id="addBtn2"><i class="fa fa-cart-plus"></i> Add to Cart</button>
+</div>
+</div>
+<div class="product-card">
+<div class="product-card__img">
+<img src="https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=400&amp;q=75" alt="Accessories — Online electronics store" loading="lazy">
+<span class="product-card__cat">Accessories</span>
+</div>
+<div class="product-card__body">
+<div class="product-card__name">Accessories — Online electronics store</div>
+<div class="product-card__price">AED 75</div>
+<button class="product-card__add" onclick="addToCart(3)" id="addBtn3"><i class="fa fa-cart-plus"></i> Add to Cart</button>
+</div>
+</div>
+<div class="product-card">
+<div class="product-card__img">
+<img src="https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=400&amp;q=75" alt="Cables &amp; Chargers — Online electronics store" loading="lazy">
+<span class="product-card__cat">Cables &amp; Chargers</span>
+</div>
+<div class="product-card__body">
+<div class="product-card__name">Cables &amp; Chargers — Online electronics store</div>
+<div class="product-card__price">AED 3,500</div>
+<button class="product-card__add" onclick="addToCart(4)" id="addBtn4"><i class="fa fa-cart-plus"></i> Add to Cart</button>
+</div>
+</div>
+<div class="product-card">
+<div class="product-card__img">
+<img src="https://images.unsplash.com/photo-1491933382434-500287f9b54b?w=400&amp;q=75" alt="Screen Protectors — Online electronics store" loading="lazy">
+<span class="product-card__cat">Screen Protectors</span>
+</div>
+<div class="product-card__body">
+<div class="product-card__name">Screen Protectors — Online electronics store</div>
+<div class="product-card__price">AED 950</div>
+<button class="product-card__add" onclick="addToCart(5)" id="addBtn5"><i class="fa fa-cart-plus"></i> Add to Cart</button>
+</div>
+</div>
+</div>
+</section>
+
+<!-- ===== FEATURES ===== -->
+<section class="ind-features reveal" id="features">
+<h2>Industry-Specific ERP Features</h2>
+<p class="section-sub">Purpose-built tools for online electronics store businesses worldwide</p>
+<div class="ind-features-grid">
+<div class="feat-card">
+<div class="feat-icon"><i class="fa fa-barcode"></i></div>
+<h4>Serial Tracking</h4>
+<p>IMEI/serial-level inventory and warranty lookup</p>
+</div>
+<div class="feat-card">
+<div class="feat-icon"><i class="fa fa-wrench"></i></div>
+<h4>Repair Module</h4>
+<p>Job cards with diagnostics, parts used and billing</p>
+</div>
+<div class="feat-card">
+<div class="feat-icon"><i class="fa fa-balance-scale"></i></div>
+<h4>Price Comparison</h4>
+<p>Competitor price monitoring and auto-adjust</p>
+</div>
+<div class="feat-card">
+<div class="feat-icon"><i class="fa fa-certificate"></i></div>
+<h4>Warranty Claims</h4>
+<p>Brand warranty registration and claim processing</p>
+</div>
+<div class="feat-card">
+<div class="feat-icon"><i class="fa fa-exchange"></i></div>
+<h4>Trade-In Program</h4>
+<p>Device grading, valuation and credit system</p>
+</div>
+<div class="feat-card">
+<div class="feat-icon"><i class="fa fa-recycle"></i></div>
+<h4>E-waste Compliance</h4>
+<p>Electronics disposal tracking and certificates</p>
+</div>
+</div>
+</section>
+
+<!-- ===== GALLERY ===== -->
+<section class="ind-gallery reveal">
+<h2>Online electronics store in Action</h2>
+<div class="ind-gallery-grid">
+<div class="ind-gallery-item">
+<img src="https://images.unsplash.com/photo-1550009158-9ebf69173e03?w=1600&amp;q=80" alt="Online electronics store" loading="lazy">
+</div>
+<div class="ind-gallery-item">
+<img src="https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=400&amp;q=75" alt="Online electronics store" loading="lazy">
+</div>
+<div class="ind-gallery-item">
+<img src="https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=400&amp;q=75" alt="Online electronics store" loading="lazy">
+</div>
+<div class="ind-gallery-item">
+<img src="https://images.unsplash.com/photo-1491933382434-500287f9b54b?w=400&amp;q=75" alt="Online electronics store" loading="lazy">
+</div>
+</div>
+</section>
+
+<!-- ===== RELATED VERTICALS (sub-industry sites) ===== -->
+<section class="ind-subs reveal" id="related-verticals">
+<h2>Related Electronics &amp; Technology Verticals</h2>
+<p class="section-sub">Other client-ready storefronts under the same industry hub — each with its own categories and products</p>
+<div class="ind-subs-grid">
+<div class="sub-card reveal" data-group="related">
+<div class="sub-card__img">
+<img src="https://images.unsplash.com/photo-1518770660439-4636190af475?w=400&amp;q=75" alt="Electronics retail store" loading="lazy">
+<div class="sub-card__badge">
+<span class="b-erp">ERP</span>
+<span class="b-cp">CP</span>
+<span class="b-store">Store</span>
+</div>
+</div>
+<div class="sub-card__body">
+<h3 class="sub-card__name"><a href="https://electronics.ecomae.com/electronics-retail-store" style="color:inherit;text-decoration:none">Electronics retail store</a></h3>
+<p class="sub-card__desc">Electronics retail store operations encompassing inventory management, point-of-sale, customer loyalty programs, visual merchandising, e-commerce integration. P…</p>
+<div class="sub-card__cats">
+<span class="cat-tag">Electronics Products</span>
+<span class="cat-tag">Accessories</span>
+<span class="cat-tag">Premium Range</span>
+<span class="cat-tag">Budget Range</span>
+<span class="cat-tag">Online Store</span>
+<span class="cat-tag">Gift &amp; Seasonal</span>
+</div>
+<div class="sub-card__products">
+<div class="sub-prod">
+<img src="https://images.unsplash.com/photo-1531297484001-80022131f5a1?w=400&amp;q=75" alt="" loading="lazy"><div class="sp-name">Electronics Retail Management Platform</div>
+<div class="sp-price">AED 150</div>
+</div>
+<div class="sub-prod">
+<img src="https://images.unsplash.com/photo-1593642632559-0c6d3fc62b89?w=400&amp;q=75" alt="" loading="lazy"><div class="sp-name">Electronics Retail Operations Suite</div>
+<div class="sp-price">AED 5,000</div>
+</div>
+<div class="sub-prod">
+<img src="https://images.unsplash.com/photo-1572569511254-d8f925fe2cbb?w=400&amp;q=75" alt="" loading="lazy"><div class="sp-name">Electronics Retail Analytics Dashboard</div>
+<div class="sp-price">AED 950</div>
+</div>
+</div>
+<div class="sub-card__cta">
+<a href="https://electronics.ecomae.com/electronics-retail-store" class="sc-site"><i class="fa fa-external-link"></i> Open Vertical</a>
+<a href="https://electronics.ecomae.com/" class="sc-erp"><i class="fa fa-th-large"></i> Industry Hub</a>
+</div>
+</div>
+</div>
+<div class="sub-card reveal" data-group="related">
+<div class="sub-card__img">
+<img src="https://images.unsplash.com/photo-1531297484001-80022131f5a1?w=400&amp;q=75" alt="Device repair &amp; service" loading="lazy">
+<div class="sub-card__badge">
+<span class="b-erp">ERP</span>
+<span class="b-cp">CP</span>
+<span class="b-store">Store</span>
+</div>
+</div>
+<div class="sub-card__body">
+<h3 class="sub-card__name"><a href="https://electronics.ecomae.com/device-repair-service" style="color:inherit;text-decoration:none">Device repair &amp; service</a></h3>
+<p class="sub-card__desc">Device repair &amp; service operations encompassing job scheduling, technician dispatch, parts inventory, service history, warranty tracking. Provides end-to-end di…</p>
+<div class="sub-card__cats">
+<span class="cat-tag">Preventive Maintenance</span>
+<span class="cat-tag">Emergency Repairs</span>
+<span class="cat-tag">Replacement Parts</span>
+<span class="cat-tag">Service Contracts</span>
+<span class="cat-tag">Diagnostics</span>
+<span class="cat-tag">Warranty Work</span>
+</div>
+<div class="sub-card__products">
+<div class="sub-prod">
+<img src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&amp;q=75" alt="" loading="lazy"><div class="sp-name">Device Repair Management Platform</div>
+<div class="sp-price">AED 500</div>
+</div>
+<div class="sub-prod">
+<img src="https://images.unsplash.com/photo-1498049794561-7780e7231661?w=400&amp;q=75" alt="" loading="lazy"><div class="sp-name">Device Repair Operations Suite</div>
+<div class="sp-price">AED 85</div>
+</div>
+<div class="sub-prod">
+<img src="https://images.unsplash.com/photo-1611532736597-de2d4265fba3?w=400&amp;q=75" alt="" loading="lazy"><div class="sp-name">Device Repair Analytics Dashboard</div>
+<div class="sp-price">AED 75</div>
+</div>
+</div>
+<div class="sub-card__cta">
+<a href="https://electronics.ecomae.com/device-repair-service" class="sc-site"><i class="fa fa-external-link"></i> Open Vertical</a>
+<a href="https://electronics.ecomae.com/" class="sc-erp"><i class="fa fa-th-large"></i> Industry Hub</a>
+</div>
+</div>
+</div>
+<div class="sub-card reveal" data-group="related">
+<div class="sub-card__img">
+<img src="https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=400&amp;q=75" alt="Computers &amp; laptops" loading="lazy">
+<div class="sub-card__badge">
+<span class="b-erp">ERP</span>
+<span class="b-cp">CP</span>
+<span class="b-store">Store</span>
+</div>
+</div>
+<div class="sub-card__body">
+<h3 class="sub-card__name"><a href="https://electronics.ecomae.com/computers-laptops" style="color:inherit;text-decoration:none">Computers &amp; laptops</a></h3>
+<p class="sub-card__desc">Computers &amp; laptops operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Pro…</p>
+<div class="sub-card__cats">
+<span class="cat-tag">Desktop PCs</span>
+<span class="cat-tag">Laptops</span>
+<span class="cat-tag">Monitors</span>
+<span class="cat-tag">Keyboards &amp; Mice</span>
+<span class="cat-tag">Storage Drives</span>
+<span class="cat-tag">RAM &amp; Upgrades</span>
+</div>
+<div class="sub-card__products">
+<div class="sub-prod">
+<img src="https://images.unsplash.com/photo-1593642632559-0c6d3fc62b89?w=400&amp;q=75" alt="" loading="lazy"><div class="sp-name">Computers Laptops Management Platform</div>
+<div class="sp-price">AED 800</div>
+</div>
+<div class="sub-prod">
+<img src="https://images.unsplash.com/photo-1572569511254-d8f925fe2cbb?w=400&amp;q=75" alt="" loading="lazy"><div class="sp-name">Computers Laptops Operations Suite</div>
+<div class="sp-price">AED 120</div>
+</div>
+<div class="sub-prod">
+<img src="https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?w=400&amp;q=75" alt="" loading="lazy"><div class="sp-name">Computers Laptops Analytics Dashboard</div>
+<div class="sp-price">AED 180</div>
+</div>
+</div>
+<div class="sub-card__cta">
+<a href="https://electronics.ecomae.com/computers-laptops" class="sc-site"><i class="fa fa-external-link"></i> Open Vertical</a>
+<a href="https://electronics.ecomae.com/" class="sc-erp"><i class="fa fa-th-large"></i> Industry Hub</a>
+</div>
+</div>
+</div>
+<div class="sub-card reveal" data-group="related">
+<div class="sub-card__img">
+<img src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&amp;q=75" alt="Mobile phones &amp; tablets" loading="lazy">
+<div class="sub-card__badge">
+<span class="b-erp">ERP</span>
+<span class="b-cp">CP</span>
+<span class="b-store">Store</span>
+</div>
+</div>
+<div class="sub-card__body">
+<h3 class="sub-card__name"><a href="https://electronics.ecomae.com/mobile-phones-tablets" style="color:inherit;text-decoration:none">Mobile phones &amp; tablets</a></h3>
+<p class="sub-card__desc">Mobile phones &amp; tablets operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking.…</p>
+<div class="sub-card__cats">
+<span class="cat-tag">Smartphones</span>
+<span class="cat-tag">Tablets</span>
+<span class="cat-tag">Phone Cases</span>
+<span class="cat-tag">Screen Guards</span>
+<span class="cat-tag">Chargers</span>
+<span class="cat-tag">Earphones</span>
+</div>
+<div class="sub-card__products">
+<div class="sub-prod">
+<img src="https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=400&amp;q=75" alt="" loading="lazy"><div class="sp-name">Mobile Phones Management Platform</div>
+<div class="sp-price">AED 1,200</div>
+</div>
+<div class="sub-prod">
+<img src="https://images.unsplash.com/photo-1491933382434-500287f9b54b?w=400&amp;q=75" alt="" loading="lazy"><div class="sp-name">Mobile Phones Operations Suite</div>
+<div class="sp-price">AED 350</div>
+</div>
+<div class="sub-prod">
+<img src="https://images.unsplash.com/photo-1518770660439-4636190af475?w=400&amp;q=75" alt="" loading="lazy"><div class="sp-name">Mobile Phones Analytics Dashboard</div>
+<div class="sp-price">AED 420</div>
+</div>
+</div>
+<div class="sub-card__cta">
+<a href="https://electronics.ecomae.com/mobile-phones-tablets" class="sc-site"><i class="fa fa-external-link"></i> Open Vertical</a>
+<a href="https://electronics.ecomae.com/" class="sc-erp"><i class="fa fa-th-large"></i> Industry Hub</a>
+</div>
+</div>
+</div>
+<div class="sub-card reveal" data-group="related">
+<div class="sub-card__img">
+<img src="https://images.unsplash.com/photo-1593642632559-0c6d3fc62b89?w=400&amp;q=75" alt="Gaming &amp; consoles" loading="lazy">
+<div class="sub-card__badge">
+<span class="b-erp">ERP</span>
+<span class="b-cp">CP</span>
+<span class="b-store">Store</span>
+</div>
+</div>
+<div class="sub-card__body">
+<h3 class="sub-card__name"><a href="https://electronics.ecomae.com/gaming-consoles" style="color:inherit;text-decoration:none">Gaming &amp; consoles</a></h3>
+<p class="sub-card__desc">Gaming &amp; consoles operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provi…</p>
+<div class="sub-card__cats">
+<span class="cat-tag">Gaming Consoles</span>
+<span class="cat-tag">Controllers</span>
+<span class="cat-tag">Gaming PCs</span>
+<span class="cat-tag">VR Headsets</span>
+<span class="cat-tag">Gaming Chairs</span>
+<span class="cat-tag">Game Titles</span>
+</div>
+<div class="sub-card__products">
+<div class="sub-prod">
+<img src="https://images.unsplash.com/photo-1498049794561-7780e7231661?w=400&amp;q=75" alt="" loading="lazy"><div class="sp-name">Gaming Consoles Management Platform</div>
+<div class="sp-price">AED 2,500</div>
+</div>
+<div class="sub-prod">
+<img src="https://images.unsplash.com/photo-1611532736597-de2d4265fba3?w=400&amp;q=75" alt="" loading="lazy"><div class="sp-name">Gaming Consoles Operations Suite</div>
+<div class="sp-price">AED 650</div>
+</div>
+<div class="sub-prod">
+<img src="https://images.unsplash.com/photo-1550009158-9ebf69173e03?w=400&amp;q=75" alt="" loading="lazy"><div class="sp-name">Gaming Consoles Analytics Dashboard</div>
+<div class="sp-price">AED 720</div>
+</div>
+</div>
+<div class="sub-card__cta">
+<a href="https://electronics.ecomae.com/gaming-consoles" class="sc-site"><i class="fa fa-external-link"></i> Open Vertical</a>
+<a href="https://electronics.ecomae.com/" class="sc-erp"><i class="fa fa-th-large"></i> Industry Hub</a>
+</div>
+</div>
+</div>
+<div class="sub-card reveal" data-group="related">
+<div class="sub-card__img">
+<img src="https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=400&amp;q=75" alt="Audio &amp; home theater" loading="lazy">
+<div class="sub-card__badge">
+<span class="b-erp">ERP</span>
+<span class="b-cp">CP</span>
+<span class="b-store">Store</span>
+</div>
+</div>
+<div class="sub-card__body">
+<h3 class="sub-card__name"><a href="https://electronics.ecomae.com/audio-home-theater" style="color:inherit;text-decoration:none">Audio &amp; home theater</a></h3>
+<p class="sub-card__desc">Audio &amp; home theater operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Pr…</p>
+<div class="sub-card__cats">
+<span class="cat-tag">Speakers</span>
+<span class="cat-tag">Soundbars</span>
+<span class="cat-tag">Headphones</span>
+<span class="cat-tag">Amplifiers</span>
+<span class="cat-tag">Turntables</span>
+<span class="cat-tag">Streaming Devices</span>
+</div>
+<div class="sub-card__products">
+<div class="sub-prod">
+<img src="https://images.unsplash.com/photo-1572569511254-d8f925fe2cbb?w=400&amp;q=75" alt="" loading="lazy"><div class="sp-name">Audio Home Management Platform</div>
+<div class="sp-price">AED 3,500</div>
+</div>
+<div class="sub-prod">
+<img src="https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?w=400&amp;q=75" alt="" loading="lazy"><div class="sp-name">Audio Home Operations Suite</div>
+<div class="sp-price">AED 950</div>
+</div>
+<div class="sub-prod">
+<img src="https://images.unsplash.com/photo-1531297484001-80022131f5a1?w=400&amp;q=75" alt="" loading="lazy"><div class="sp-name">Audio Home Analytics Dashboard</div>
+<div class="sp-price">AED 1,500</div>
+</div>
+</div>
+<div class="sub-card__cta">
+<a href="https://electronics.ecomae.com/audio-home-theater" class="sc-site"><i class="fa fa-external-link"></i> Open Vertical</a>
+<a href="https://electronics.ecomae.com/" class="sc-erp"><i class="fa fa-th-large"></i> Industry Hub</a>
+</div>
+</div>
+</div>
+<div class="sub-card reveal" data-group="related">
+<div class="sub-card__img">
+<img src="https://images.unsplash.com/photo-1498049794561-7780e7231661?w=400&amp;q=75" alt="Smart home &amp; IoT" loading="lazy">
+<div class="sub-card__badge">
+<span class="b-erp">ERP</span>
+<span class="b-cp">CP</span>
+<span class="b-store">Store</span>
+</div>
+</div>
+<div class="sub-card__body">
+<h3 class="sub-card__name"><a href="https://electronics.ecomae.com/smart-home-iot" style="color:inherit;text-decoration:none">Smart home &amp; IoT</a></h3>
+<p class="sub-card__desc">Smart home &amp; IoT operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. Provid…</p>
+<div class="sub-card__cats">
+<span class="cat-tag">Smart Speakers</span>
+<span class="cat-tag">Security Cameras</span>
+<span class="cat-tag">Smart Locks</span>
+<span class="cat-tag">Thermostats</span>
+<span class="cat-tag">Smart Lighting</span>
+<span class="cat-tag">Hub Controllers</span>
+</div>
+<div class="sub-card__products">
+<div class="sub-prod">
+<img src="https://images.unsplash.com/photo-1491933382434-500287f9b54b?w=400&amp;q=75" alt="" loading="lazy"><div class="sp-name">Smart Home Management Platform</div>
+<div class="sp-price">AED 5,000</div>
+</div>
+<div class="sub-prod">
+<img src="https://images.unsplash.com/photo-1518770660439-4636190af475?w=400&amp;q=75" alt="" loading="lazy"><div class="sp-name">Smart Home Operations Suite</div>
+<div class="sp-price">AED 1,800</div>
+</div>
+<div class="sub-prod">
+<img src="https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=400&amp;q=75" alt="" loading="lazy"><div class="sp-name">Smart Home Analytics Dashboard</div>
+<div class="sp-price">AED 150</div>
+</div>
+</div>
+<div class="sub-card__cta">
+<a href="https://electronics.ecomae.com/smart-home-iot" class="sc-site"><i class="fa fa-external-link"></i> Open Vertical</a>
+<a href="https://electronics.ecomae.com/" class="sc-erp"><i class="fa fa-th-large"></i> Industry Hub</a>
+</div>
+</div>
+</div>
+<div class="sub-card reveal" data-group="related">
+<div class="sub-card__img">
+<img src="https://images.unsplash.com/photo-1572569511254-d8f925fe2cbb?w=400&amp;q=75" alt="Electronic components" loading="lazy">
+<div class="sub-card__badge">
+<span class="b-erp">ERP</span>
+<span class="b-cp">CP</span>
+<span class="b-store">Store</span>
+</div>
+</div>
+<div class="sub-card__body">
+<h3 class="sub-card__name"><a href="https://electronics.ecomae.com/electronic-components" style="color:inherit;text-decoration:none">Electronic components</a></h3>
+<p class="sub-card__desc">Electronic components operations encompassing operations management, client relationship management, resource planning, quality assurance, financial tracking. P…</p>
+<div class="sub-card__cats">
+<span class="cat-tag">Resistors &amp; Capacitors</span>
+<span class="cat-tag">PCB Boards</span>
+<span class="cat-tag">Connectors</span>
+<span class="cat-tag">Display Modules</span>
+<span class="cat-tag">Battery &amp; Power</span>
+<span class="cat-tag">LED Modules</span>
+</div>
+<div class="sub-card__products">
+<div class="sub-prod">
+<img src="https://images.unsplash.com/photo-1611532736597-de2d4265fba3?w=400&amp;q=75" alt="" loading="lazy"><div class="sp-name">Electronic Components Management Platform</div>
+<div class="sp-price">AED 45</div>
+</div>
+<div class="sub-prod">
+<img src="https://images.unsplash.com/photo-1550009158-9ebf69173e03?w=400&amp;q=75" alt="" loading="lazy"><div class="sp-name">Electronic Components Operations Suite</div>
+<div class="sp-price">AED 75</div>
+</div>
+<div class="sub-prod">
+<img src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&amp;q=75" alt="" loading="lazy"><div class="sp-name">Electronic Components Analytics Dashboard</div>
+<div class="sp-price">AED 250</div>
+</div>
+</div>
+<div class="sub-card__cta">
+<a href="https://electronics.ecomae.com/electronic-components" class="sc-site"><i class="fa fa-external-link"></i> Open Vertical</a>
+<a href="https://electronics.ecomae.com/" class="sc-erp"><i class="fa fa-th-large"></i> Industry Hub</a>
+</div>
+</div>
+</div>
+<div class="sub-card reveal" data-group="related">
+<div class="sub-card__img">
+<img src="https://images.unsplash.com/photo-1491933382434-500287f9b54b?w=400&amp;q=75" alt="Cameras &amp; photography" loading="lazy">
+<div class="sub-card__badge">
+<span class="b-erp">ERP</span>
+<span class="b-cp">CP</span>
+<span class="b-store">Store</span>
+</div>
+</div>
+<div class="sub-card__body">
+<h3 class="sub-card__name"><a href="https://electronics.ecomae.com/cameras-photography" style="color:inherit;text-decoration:none">Cameras &amp; photography</a></h3>
+<p class="sub-card__desc">Cameras &amp; photography operations encompassing booking management, equipment scheduling, post-production workflow, client galleries, licensing &amp; rights. Provides…</p>
+<div class="sub-card__cats">
+<span class="cat-tag">DSLR Cameras</span>
+<span class="cat-tag">Mirrorless Cameras</span>
+<span class="cat-tag">Lenses</span>
+<span class="cat-tag">Tripods</span>
+<span class="cat-tag">Memory Cards</span>
+<span class="cat-tag">Lighting Kits</span>
+</div>
+<div class="sub-card__products">
+<div class="sub-prod">
+<img src="https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?w=400&amp;q=75" alt="" loading="lazy"><div class="sp-name">Cameras Photography Management Platform</div>
+<div class="sp-price">AED 85</div>
+</div>
+<div class="sub-prod">
+<img src="https://images.unsplash.com/photo-1531297484001-80022131f5a1?w=400&amp;q=75" alt="" loading="lazy"><div class="sp-name">Cameras Photography Operations Suite</div>
+<div class="sp-price">AED 180</div>
+</div>
+<div class="sub-prod">
+<img src="https://images.unsplash.com/photo-1593642632559-0c6d3fc62b89?w=400&amp;q=75" alt="" loading="lazy"><div class="sp-name">Cameras Photography Analytics Dashboard</div>
+<div class="sp-price">AED 500</div>
+</div>
+</div>
+<div class="sub-card__cta">
+<a href="https://electronics.ecomae.com/cameras-photography" class="sc-site"><i class="fa fa-external-link"></i> Open Vertical</a>
+<a href="https://electronics.ecomae.com/" class="sc-erp"><i class="fa fa-th-large"></i> Industry Hub</a>
+</div>
+</div>
+</div>
+</div>
+<p style="text-align:center;margin-top:28px">
+<a href="https://electronics.ecomae.com/" class="btn-hero btn-hero--secondary" style="display:inline-flex"><i class="fa fa-arrow-left"></i> Back to Electronics &amp; Technology hub</a>
+</p>
+</section>
+
+<!-- ===== SUB-INDUSTRIES WITH BUSINESS PROCESSES (industry hub) ===== -->
+
+<!-- ===== TESTIMONIAL ===== -->
+<section class="ind-testimonial reveal">
+<blockquote>&ldquo;Serial-level tracking eliminated ghost inventory and improved warranty claims by 90%.&rdquo;</blockquote>
+<cite>— Hassan T., Electronics Chain, Sharjah</cite>
+</section>
+
+<!-- ===== CTA ===== -->
+<section class="ind-cta reveal">
+<h2>Ready to Transform Your Online electronics store Business?</h2>
+<p>Client-ready vertical demo — full ERP + Control Panel + storefront for Online electronics store. No credit card required.</p>
+<div class="ind-cta-buttons">
+<a href="#" class="btn-cta btn-cta-primary" onclick="openAuth('register');return false"><i class="fa fa-rocket"></i> Start Free Demo</a>
+<a href="https://electronics.ecomae.com/" class="btn-cta btn-cta-secondary"><i class="fa fa-th-large"></i> Electronics &amp; Technology Hub</a>
+</div>
+</section>
+
+<!-- ===== FOOTER ===== -->
+<footer class="site-footer">
+<div class="footer-inner">
+<div class="footer-brand">
+<h3><i class="fa fa-microchip"></i> Online electronics store</h3>
+<p>Client-ready online electronics store storefront, control panel, and ERP — a dedicated vertical under Electronics &amp; Technology. Same premium platform as the main industry sites.
+</p>
+<div class="footer-social">
+<a href="#"><i class="fa fa-facebook"></i></a>
+<a href="#"><i class="fa fa-twitter"></i></a>
+<a href="#"><i class="fa fa-linkedin"></i></a>
+<a href="#"><i class="fa fa-instagram"></i></a>
+<a href="#"><i class="fa fa-youtube"></i></a>
+</div>
+</div>
+<div class="footer-col">
+<h4>Quick Links</h4>
+<ul>
+<li><a href="#products">Products</a></li>
+<li><a href="#categories">Categories</a></li>
+<li><a href="#features">Features</a></li>
+<li><a href="https://electronics.ecomae.com/">Electronics &amp; Technology Hub</a></li>
+<li><a href="/platform/industries">All Industries</a></li>
+<li><a href="/cp/">Control Panel</a></li>
+<li><a href="https://www.ecomae.com/marketing/bos">Blockchain BOS</a></li>
+</ul>
+</div>
+<div class="footer-col">
+<h4>Support</h4>
+<ul>
+<li><a href="#">Documentation</a></li>
+<li><a href="#">API Reference</a></li>
+<li><a href="#">Help Center</a></li>
+<li><a href="#">Contact Sales</a></li>
+<li><a href="#">Status Page</a></li>
+</ul>
+</div>
+<div class="footer-col">
+<h4>Stay Updated</h4>
+<p style="font-size:12px;color:#64748b;margin-bottom:12px">Get industry insights and platform updates</p>
+<div class="footer-newsletter">
+<input type="email" placeholder="Enter your email">
+<button type="button">Subscribe</button>
+</div>
+</div>
+</div>
+<div class="footer-bottom">
+<p>&copy; 2026 <a href="https://www.ecomae.com" style="color:var(--accent)">ecomae</a> — Blockchain BOS Enterprise System</p>
+<span class="demo-link">Demo: <code>demo@ecomae.com</code> / <code>demo2026</code></span>
+</div>
+</footer>
+
+<!-- ===== JAVASCRIPT ===== -->
+<script>
+(function(){
+/* Product data for cart */
+var products = [{"name":"Online Electronics Management Platform","price":"AED 250","icon":"fa-diamond","category":"Smartphones","image":"https:\/\/images.unsplash.com\/photo-1496181133206-80ce9b88a853?w=400\u0026q=75"},{"name":"Online Electronics Operations Suite","price":"AED 45","icon":"fa-cubes","category":"Tablets","image":"https:\/\/images.unsplash.com\/photo-1519389950473-47ba0277781c?w=400\u0026q=75"},{"name":"Online Electronics Analytics Dashboard","price":"AED 1,800","icon":"fa-tags","category":"Wearables","image":"https:\/\/images.unsplash.com\/photo-1491933382434-500287f9b54b?w=400\u0026q=75"},{"name":"Accessories \u2014 Online electronics store","price":"AED 75","icon":"fa-wrench","category":"Accessories","image":"https:\/\/images.unsplash.com\/photo-1496181133206-80ce9b88a853?w=400\u0026q=75"},{"name":"Cables \u0026 Chargers \u2014 Online electronics store","price":"AED 3,500","icon":"fa-certificate","category":"Cables \u0026 Chargers","image":"https:\/\/images.unsplash.com\/photo-1519389950473-47ba0277781c?w=400\u0026q=75"},{"name":"Screen Protectors \u2014 Online electronics store","price":"AED 950","icon":"fa-star","category":"Screen Protectors","image":"https:\/\/images.unsplash.com\/photo-1491933382434-500287f9b54b?w=400\u0026q=75"}];
+var cart = [];
+
+/* Header scroll effect */
+var header = document.getElementById('siteHeader');
+window.addEventListener('scroll', function(){
+header.classList.toggle('scrolled', window.scrollY > 20);
+});
+
+/* Cart functions */
+window.addToCart = function(idx){
+var p = products[idx];
+if(!p) return;
+var existing = cart.find(function(c){return c.idx === idx;});
+if(existing) existing.qty++;
+else cart.push({idx:idx, name:p.name, price:p.price||'', image:p.image||'', icon:p.icon||'fa-cube', qty:1});
+updateCartUI();
+var btn = document.getElementById('addBtn'+idx);
+if(btn){btn.classList.add('added');btn.innerHTML='<i class="fa fa-check"></i> Added!';setTimeout(function(){btn.classList.remove('added');btn.innerHTML='<i class="fa fa-cart-plus"></i> Add to Cart'},1500)}
+};
+
+window.removeFromCart = function(idx){
+cart = cart.filter(function(c){return c.idx !== idx});
+updateCartUI();
+};
+
+window.changeQty = function(idx, delta){
+var item = cart.find(function(c){return c.idx === idx});
+if(!item) return;
+item.qty += delta;
+if(item.qty <= 0) cart = cart.filter(function(c){return c.idx !== idx});
+updateCartUI();
+};
+
+function updateCartUI(){
+var countEl = document.getElementById('cartCount');
+var itemsEl = document.getElementById('cartItems');
+var footerEl = document.getElementById('cartFooter');
+var totalEl = document.getElementById('cartTotal');
+var total = cart.reduce(function(s,c){return s+c.qty},0);
+countEl.textContent = total;
+countEl.classList.toggle('show', total > 0);
+if(total > 0) countEl.style.animation = 'cartBounce .3s';
+if(cart.length === 0){
+itemsEl.innerHTML = '<div class="mini-cart__empty"><i class="fa fa-shopping-bag"></i><p>Your cart is empty</p></div>';
+footerEl.style.display = 'none';
+} else {
+var html = '';
+var priceTotal = 0;
+cart.forEach(function(c){
+var numPrice = parseFloat((c.price||'0').replace(/[^0-9.]/g,''));
+priceTotal += numPrice * c.qty;
+var imgHtml = c.image ? '<img src="'+c.image+'" alt="">' : '<i class="fa '+c.icon+'"></i>';
+html += '<div class="mini-cart__item"><div class="mini-cart__item-img">'+imgHtml+'</div><div class="mini-cart__item-info"><div class="mini-cart__item-name">'+c.name+'</div><div class="mini-cart__item-price">'+c.price+'</div><div class="mini-cart__item-qty"><button onclick="changeQty('+c.idx+',-1)">−</button><span>'+c.qty+'</span><button onclick="changeQty('+c.idx+',1)">+</button></div></div><div class="mini-cart__item-remove" onclick="removeFromCart('+c.idx+')"><i class="fa fa-trash"></i></div></div>';
+});
+itemsEl.innerHTML = html;
+totalEl.textContent = 'AED ' + priceTotal.toFixed(2);
+footerEl.style.display = 'block';
+}
+}
+
+window.openCart = function(){
+document.getElementById('miniCart').classList.add('open');
+document.getElementById('cartOverlay').classList.add('open');
+document.body.style.overflow = 'hidden';
+};
+window.closeCart = function(){
+document.getElementById('miniCart').classList.remove('open');
+document.getElementById('cartOverlay').classList.remove('open');
+document.body.style.overflow = '';
+};
+window.checkout = function(){
+closeCart();
+openAuth('register');
+};
+
+/* Auth modal */
+window.openAuth = function(tab){
+document.getElementById('authModal').classList.add('open');
+document.body.style.overflow = 'hidden';
+switchAuthTab(tab||'login');
+};
+window.closeAuth = function(){
+document.getElementById('authModal').classList.remove('open');
+document.body.style.overflow = '';
+};
+window.switchAuthTab = function(tab){
+document.querySelectorAll('.auth-modal__tab').forEach(function(t){t.classList.toggle('active',t.dataset.tab===tab)});
+document.getElementById('formLogin').classList.toggle('active',tab==='login');
+document.getElementById('formRegister').classList.toggle('active',tab==='register');
+};
+window.handleLogin = function(e){
+e.preventDefault();
+var email = document.getElementById('loginEmail').value;
+var pass = document.getElementById('loginPass').value;
+if(email === 'demo@ecomae.com' && pass === 'demo2026'){
+window.location.href = '/cp/demo/electronics_technology/';
+} else {
+window.location.href = '/cp/';
+}
+return false;
+};
+window.handleRegister = function(e){
+e.preventDefault();
+var industry = document.getElementById('regIndustry').value;
+alert('Registration successful! Redirecting to your ' + industry + ' control panel...');
+window.location.href = '/cp/demo/' + industry + '/';
+return false;
+};
+
+/* Mobile nav */
+window.toggleMobileNav = function(){
+var nav = document.querySelector('.header-nav');
+nav.style.display = nav.style.display === 'flex' ? 'none' : 'flex';
+nav.style.position = 'absolute';
+nav.style.top = '64px';
+nav.style.left = '0';
+nav.style.right = '0';
+nav.style.background = '#fff';
+nav.style.padding = '16px';
+nav.style.flexDirection = 'column';
+nav.style.boxShadow = '0 4px 20px rgba(0,0,0,.1)';
+};
+
+/* Sub-industry filter */
+window.filterSubs = function(group){
+var cards = document.querySelectorAll('.sub-card');
+var btns = document.querySelectorAll('.sub-filter-btn');
+btns.forEach(function(b){b.classList.remove('active')});
+event.target.classList.add('active');
+cards.forEach(function(c){
+if(group === 'all'){c.style.display = '';c.classList.add('visible')}
+else{
+if(c.dataset.group === group){c.style.display = '';c.classList.add('visible')}
+else{c.style.display = 'none'}
+}
+});
+};
+
+/* Scroll reveal */
+var reveals = document.querySelectorAll('.reveal');
+var io = new IntersectionObserver(function(entries){
+entries.forEach(function(e){if(e.isIntersecting){e.target.classList.add('visible');io.unobserve(e.target)}})
+},{threshold:.1,rootMargin:'0px 0px -40px 0px'});
+reveals.forEach(function(el){io.observe(el)});
+
+/* Smooth scroll for anchor links */
+document.querySelectorAll('a[href^="#"]').forEach(function(a){
+a.addEventListener('click', function(e){
+var target = document.querySelector(this.getAttribute('href'));
+if(target){e.preventDefault();target.scrollIntoView({behavior:'smooth',block:'start'})}
+});
+});
+})();
+/* Lazy-load hero video after page paint — prevents server overload from concurrent video requests */
+(function(){
+var w=document.getElementById('heroVidWrap');
+if(!w)return;
+var src=w.getAttribute('data-src');
+if(!src)return;
+setTimeout(function(){
+var v=document.createElement('video');
+v.autoplay=true;v.muted=true;v.loop=true;v.playsInline=true;v.setAttribute('playsinline','');
+v.style.cssText='position:absolute;top:50%;left:50%;min-width:100%;min-height:100%;width:auto;height:auto;transform:translate(-50%,-50%);object-fit:cover';
+var s=document.createElement('source');s.src=src;s.type='video/mp4';
+v.appendChild(s);w.appendChild(v);
+v.addEventListener('error',function(){w.style.display='none'});
+v.play().catch(function(){});
+},800);
+})();
+</script>
+<script defer src="/epc-static.php?f=content/general_pages/industry_templates/assets/industry_3d.js&amp;v=20260716f"></script>
+</body>
+</html>
