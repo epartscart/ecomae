@@ -727,10 +727,21 @@
     normalizeWarehouseGroups(kind);
     bumpCaption(kind);
     if (typeof window.epcBindSearchRowPhotoLoaders === 'function') window.epcBindSearchRowPhotoLoaders(body);
-    if (typeof window.epcWarehouseParity === 'object' && typeof window.epcWarehouseParity.rebuildFilterOptions === 'function') {
+    // Per-row filter refresh hides cross-stock under a mid-merge price range (ACDELCO/19114114).
+    if (!p.skipFilterRefresh
+      && typeof window.epcWarehouseParity === 'object'
+      && typeof window.epcWarehouseParity.rebuildFilterOptions === 'function') {
       window.epcWarehouseParity.rebuildFilterOptions();
       window.epcWarehouseParity.applyFilters();
     }
+  }
+  function refreshOfferFilters() {
+    if (typeof window.epcWarehouseParity === 'object'
+      && typeof window.epcWarehouseParity.rebuildFilterOptions === 'function') {
+      window.epcWarehouseParity.rebuildFilterOptions();
+      window.epcWarehouseParity.applyFilters();
+    }
+    ['genuine', 'aftermarket'].forEach(bumpCaption);
   }
   function buildQuery(bunch) {
     var q = { article: article, searsch_str: article, manufacturer: brand, manufacturers: [], analogs: [] };
@@ -761,11 +772,14 @@
           if (table) table.setAttribute('data-prices-visible', '0');
         } else if (data && data.prices_visible === true) {
           // Login / session restore: unlatch guest mask so redacted ** SSR rows can be replaced.
+          // Never delete PHP-style cross-stock rows — ACDELCO/19114114 has zero direct warehouse
+          // hits; wiping them left the green banner with an empty table.
           var wasMasked = !pricesVisible || (table && table.getAttribute('data-prices-visible') === '0');
           pricesVisible = true;
           if (table) table.setAttribute('data-prices-visible', '1');
           if (wasMasked) {
             body.querySelectorAll('tr.epc-part-type-row--genuine, tr.epc-part-type-row--aftermarket').forEach(function (tr) {
+              if (tr.getAttribute('data-cross-stock') === '1') return;
               var k = tr.getAttribute('data-offer-key');
               if (k) delete seen[k];
               tr.remove();
@@ -774,7 +788,13 @@
           }
         }
         var products = (data && data.products) || [];
-        products.forEach(appendProduct);
+        products.forEach(function (p) { appendProduct(p); });
+        // Empty typed-brand poll must not leave a wiped table — restore cross stock (PHP epcBindCrossStockProducts).
+        if (products.length === 0) {
+          mergeCrossStockIntoOffers(window.__epcPendingCrossStock);
+        } else {
+          refreshOfferFilters();
+        }
         // If we just unmasked but this payload had no offers, fire one more poll for unredacted rows.
         if (data && data.prices_visible === true && products.length === 0 &&
             table && table.getAttribute('data-prices-visible') === '1' && !window.__epcPriceUnmaskRepoll) {
@@ -783,6 +803,20 @@
         }
       })
       .catch(function () {});
+  }
+  function ensureNoDirectStockNotice() {
+    // PHP urlBrandNotice when typed brand has no warehouse row but crosses do.
+    if (!body || body.querySelector('tr[data-offer-key]:not([data-cross-stock="1"])')) return;
+    if (!body.querySelector('tr[data-cross-stock="1"]')) return;
+    if (document.getElementById('epc-cross-brand-notice')) return;
+    var tr = document.createElement('tr');
+    tr.id = 'epc-cross-brand-notice';
+    tr.innerHTML = '<td colspan="10" style="padding:12px 10px;background:#fff8e6;border-bottom:1px solid #f0e4b5;">' +
+      '<div class="epc-brand-notice"><div class="epc-brand-notice__text"><i class="fa fa-info-circle"></i> No stock for <strong>' +
+      esc(brand) + '</strong> on this article. Showing available brands from UAE price lists.</div></div></td>';
+    var firstSplit = body.querySelector('tr td.epc-part-type-split');
+    if (firstSplit && firstSplit.parentNode) body.insertBefore(tr, firstSplit.parentNode);
+    else body.insertBefore(tr, body.firstChild);
   }
   function mergeCrossStockIntoOffers(stockItems) {
     // PHP epcBindCrossStockProducts / epcTryMergePendingCrossStock — paint UAE stock
@@ -815,11 +849,19 @@
         markup: item.markup || 0,
         jsonParams: '',
         checkHash: '',
-        fromCrossStock: true
+        fromCrossStock: true,
+        skipFilterRefresh: true
       });
       if (Object.keys(seen).length > before) added++;
     });
     if (added > 0) {
+      body.querySelectorAll('tr[data-empty="1"]').forEach(function (tr) { tr.remove(); });
+      ensureNoDirectStockNotice();
+      refreshOfferFilters();
+      if (progress) {
+        progress.hidden = true;
+        progress.setAttribute('data-done', '1');
+      }
       var banner = document.getElementById('epc-cross-stock-banner');
       if (!banner && table && table.parentNode) {
         banner = document.createElement('div');
@@ -841,6 +883,7 @@
     if (hasRows) {
       // Never leave "Polling suppliers…" visible after rows exist — that felt like a hang.
       progress.hidden = true;
+      ensureNoDirectStockNotice();
       return;
     }
     progress.hidden = false;
@@ -1080,7 +1123,7 @@
   }
 })();
             </script>
-            <script src="/platform-assets/epc_warehouse_search_parity.js?v=20260812-cross-quote" defer></script>
+            <script src="/platform-assets/epc_warehouse_search_parity.js?v=20260812-cross-paint" defer></script>
         }
     }
 
