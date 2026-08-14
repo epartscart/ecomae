@@ -24,6 +24,24 @@
         <div class="kpi"><div class="lbl">Page total amount</div><div class="val">@_totalAmount.ToString("N2", CultureInfo.InvariantCulture)</div></div>
     </div>
 
+    @if (_isAdmin)
+    {
+        <div class="panel panel-default" id="epc-so-new">
+            <div class="panel-heading"><strong>New sales order</strong> <span class="text-muted">SO number, VAT and totals follow the tenant jurisdiction kit.</span></div>
+            <div class="panel-body">
+                <div class="row">
+                    <div class="col-sm-2"><label for="so-customer">Customer user id</label><input id="so-customer" class="form-control" type="number" min="1" step="1" /></div>
+                    <div class="col-sm-4"><label for="so-title">Title</label><input id="so-title" class="form-control" type="text" maxlength="255" /></div>
+                    <div class="col-sm-2"><label for="so-amount">Amount (ex VAT)</label><input id="so-amount" class="form-control" type="number" min="0" step="0.01" /></div>
+                    <div class="col-sm-3"><label for="so-notes">Notes</label><input id="so-notes" class="form-control" type="text" /></div>
+                    <div class="col-sm-1"><label for="so-save">&nbsp;</label><button id="so-save" type="button" class="btn btn-primary btn-block">Save</button></div>
+                </div>
+                <input id="so-id" type="hidden" value="0" />
+                <p id="so-feedback" class="text-muted" role="status" aria-live="polite"></p>
+            </div>
+        </div>
+    }
+
     <div class="epc-erp-table-wrap">
         <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
             <thead>
@@ -33,7 +51,7 @@
                     <th>Customer</th>
                     <th>Status</th>
                     <th>Total</th>
-                    <th></th>
+                    <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -52,7 +70,17 @@
                             <td>@o.CustomerUserId</td>
                             <td><span class="label label-default">@o.Status</span></td>
                             <td>@o.TotalAmount.ToString("N2", CultureInfo.InvariantCulture)</td>
-                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(phpHref)">Open</a></td>
+                            <td>
+                                <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(phpHref)">Open</a>
+                                @if (_isAdmin)
+                                {
+                                    <span class="epc-so-actions" data-so-id="@o.Id.ToString(CultureInfo.InvariantCulture)">
+                                        <button type="button" class="btn btn-link btn-xs epc-so-status" data-status="confirmed">Confirm</button>
+                                        <button type="button" class="btn btn-link btn-xs epc-so-status" data-status="cancelled">Cancel</button>
+                                        <button type="button" class="btn btn-link btn-xs epc-so-delete">Delete</button>
+                                    </span>
+                                }
+                            </td>
                         </tr>
                     }
                 }
@@ -61,6 +89,11 @@
     </div>
 
 </PhpErpDesktopChrome>
+
+@if (_isAdmin)
+{
+    <script src="/erp/erp-sales-orders.js" defer></script>
+}
 
 @code {
     private const string _phpTab = "/ERP/?epc_erp_shell=1&area=sales&tab=sales_orders";

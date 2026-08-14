@@ -447,6 +447,12 @@ builder.Services.AddSingleton<IErpPoReceiveLinesDryRun, ErpPoReceiveLinesDryRun>
 builder.Services.AddSingleton<IErpPoToInvoiceDryRun, ErpPoToInvoiceDryRun>();
 builder.Services.AddSingleton<IErpCustomerCreateDryRun, ErpCustomerCreateDryRun>();
 builder.Services.AddSingleton<IErpSoSaveDryRun, ErpSoSaveDryRun>();
+// Live ERP writes (PHP epc_erp_vouchers.php parity) — used when confirmWrites=true.
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpWriteConnectionFactory, EcomAE.Platform.Erp.ErpWriteConnectionFactory>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpVoucherNumberService, EcomAE.Platform.Erp.ErpVoucherNumberService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpTaxAmountCalculator, EcomAE.Platform.Erp.ErpTaxAmountCalculator>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpAuditLogWriter, EcomAE.Platform.Erp.ErpAuditLogWriter>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpSalesOrderWriteService, EcomAE.Platform.Erp.ErpSalesOrderWriteService>();
 builder.Services.AddSingleton<IErpSoStatusDryRun, ErpSoStatusDryRun>();
 builder.Services.AddSingleton<IErpSoToInvoiceDryRun, ErpSoToInvoiceDryRun>();
 builder.Services.AddSingleton<IErpTransferVoucherDryRun, ErpTransferVoucherDryRun>();
