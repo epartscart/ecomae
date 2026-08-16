@@ -230,8 +230,29 @@ public sealed class ErpModule : ISurfaceModule
                 return ("Sales order status updated", new { id = body.Id, status = body.TargetStatus ?? string.Empty });
             });
         });
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxSoToInvoice, async (HttpContext context, ErpSoToInvoiceBody? body, ILegacySessionValidator validator, IErpSoToInvoiceDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpSoToInvoiceRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxSoToInvoice, async (HttpContext context, ErpSoToInvoiceBody? body, ILegacySessionValidator validator, IErpSoToInvoiceDryRun dryRun, IErpSalesInvoiceWriteService writes, CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required.");
+            body ??= new(0,null,false);
+            if (!body.ConfirmWrites)
+                return Results.Ok(dryRun.Evaluate(new ErpSoToInvoiceRequest(body.Id, body.Code, false)).ToPayload(SessionPayload(session)));
+
+            return await ExecuteErpWriteAsync(session, async () =>
+            {
+                var invoice = await writes.ConvertSalesOrderAsync(body.Id, session.UserId, cancellationToken);
+                return ("Sales order converted to tax invoice", new
+                {
+                    sales_order_id = invoice.SalesOrderId,
+                    sales_invoice_id = invoice.SalesInvoiceId,
+                    invoice_number = invoice.InvoiceNumber,
+                    subtotal_ex_vat = invoice.SubtotalExVat,
+                    total_vat = invoice.TotalVat,
+                    total_incl_vat = invoice.TotalInclVat,
+                    ledger_id = invoice.LedgerId,
+                });
+            });
+        });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxTransferVoucher, async (HttpContext context, ErpTransferVoucherBody? body, ILegacySessionValidator validator, IErpTransferVoucherDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpTransferVoucherRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxPaymentBatchSave, async (HttpContext context, ErpPaymentBatchSaveBody? body, ILegacySessionValidator validator, IErpPaymentBatchSaveDryRun dryRun, CancellationToken cancellationToken) =>
