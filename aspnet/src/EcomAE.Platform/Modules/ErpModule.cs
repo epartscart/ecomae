@@ -614,6 +614,7 @@ public sealed class ErpModule : ISurfaceModule
             ErpCashEntryCreateBody? body,
             ILegacySessionValidator validator,
             IErpCashEntryCreateDryRun dryRun,
+            IErpCashWriteService writes,
             CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateAsync(context, cancellationToken);
@@ -623,12 +624,35 @@ public sealed class ErpModule : ISurfaceModule
             }
 
             body ??= new ErpCashEntryCreateBody(0, 0, false, null, null, null, false);
-            var result = await dryRun.EvaluateAsync(
-                new ErpCashEntryCreateRequest(
-                    body.AccountId, body.Amount, body.Direction, body.EntryType,
-                    body.Reference, body.Note, body.ConfirmWrites),
-                cancellationToken);
-            return Results.Ok(result.ToPayload(SessionPayload(session)));
+            if (!body.ConfirmWrites)
+            {
+                var result = await dryRun.EvaluateAsync(
+                    new ErpCashEntryCreateRequest(
+                        body.AccountId, body.Amount, body.Direction, body.EntryType,
+                        body.Reference, body.Note, false),
+                    cancellationToken);
+                return Results.Ok(result.ToPayload(SessionPayload(session)));
+            }
+
+            return await ExecuteErpWriteAsync(session, async () =>
+            {
+                var saved = await writes.CashEntryAsync(
+                    new ErpCashEntryInput
+                    {
+                        AccountId = (int)body.AccountId,
+                        Amount = body.Amount,
+                        Direction = body.Direction,
+                        EntryType = body.EntryType ?? string.Empty,
+                        CounterpartyType = body.CounterpartyType ?? "none",
+                        CounterpartyId = (int)body.CounterpartyId,
+                        Reference = body.Reference ?? string.Empty,
+                        VoucherNo = body.VoucherNo ?? string.Empty,
+                        Note = body.Note ?? string.Empty,
+                    },
+                    session.UserId,
+                    cancellationToken);
+                return ("Cash entry saved", CashPayload(saved));
+            });
         });
 
         endpoints.MapPost(EcomAeRoutes.ErpCashEntriesReceiptVoucher, async (
@@ -636,6 +660,7 @@ public sealed class ErpModule : ISurfaceModule
             ErpReceiptVoucherBody? body,
             ILegacySessionValidator validator,
             IErpReceiptVoucherDryRun dryRun,
+            IErpCashWriteService writes,
             CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateAsync(context, cancellationToken);
@@ -645,9 +670,31 @@ public sealed class ErpModule : ISurfaceModule
             }
 
             body ??= new ErpReceiptVoucherBody(0, 0, 0, null, false);
-            var result = dryRun.Evaluate(
-                new ErpReceiptVoucherRequest(body.UserId, body.AccountId, body.Amount, body.SalesOrderId, body.ConfirmWrites));
-            return Results.Ok(result.ToPayload(SessionPayload(session)));
+            if (!body.ConfirmWrites)
+            {
+                var result = dryRun.Evaluate(
+                    new ErpReceiptVoucherRequest(body.UserId, body.AccountId, body.Amount, body.SalesOrderId, false));
+                return Results.Ok(result.ToPayload(SessionPayload(session)));
+            }
+
+            return await ExecuteErpWriteAsync(session, async () =>
+            {
+                var saved = await writes.ReceiptVoucherAsync(
+                    new ErpReceiptVoucherInput
+                    {
+                        UserId = (int)body.UserId,
+                        AccountId = (int)body.AccountId,
+                        Amount = body.Amount,
+                        SalesOrderId = body.SalesOrderId ?? 0,
+                        SalesInvoiceId = body.SalesInvoiceId ?? 0,
+                        IsAdvance = body.IsAdvance,
+                        PostGl = body.PostGl,
+                        Note = body.Note ?? string.Empty,
+                    },
+                    session.UserId,
+                    cancellationToken);
+                return ("Receipt voucher posted", CashPayload(saved));
+            });
         });
 
         endpoints.MapPost(EcomAeRoutes.ErpCashEntriesPaymentVoucher, async (
@@ -655,6 +702,7 @@ public sealed class ErpModule : ISurfaceModule
             ErpPaymentVoucherBody? body,
             ILegacySessionValidator validator,
             IErpPaymentVoucherDryRun dryRun,
+            IErpCashWriteService writes,
             CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateAsync(context, cancellationToken);
@@ -664,9 +712,29 @@ public sealed class ErpModule : ISurfaceModule
             }
 
             body ??= new ErpPaymentVoucherBody(0, 0, 0, false);
-            var result = dryRun.Evaluate(
-                new ErpPaymentVoucherRequest(body.SupplierId, body.AccountId, body.Amount, body.ConfirmWrites));
-            return Results.Ok(result.ToPayload(SessionPayload(session)));
+            if (!body.ConfirmWrites)
+            {
+                var result = dryRun.Evaluate(
+                    new ErpPaymentVoucherRequest(body.SupplierId, body.AccountId, body.Amount, false));
+                return Results.Ok(result.ToPayload(SessionPayload(session)));
+            }
+
+            return await ExecuteErpWriteAsync(session, async () =>
+            {
+                var saved = await writes.PaymentVoucherAsync(
+                    new ErpPaymentVoucherInput
+                    {
+                        SupplierId = (int)body.SupplierId,
+                        AccountId = (int)body.AccountId,
+                        Amount = body.Amount,
+                        PurchaseId = body.PurchaseId ?? 0,
+                        Reference = body.Reference ?? string.Empty,
+                        Note = body.Note ?? string.Empty,
+                    },
+                    session.UserId,
+                    cancellationToken);
+                return ("Payment voucher posted", CashPayload(saved));
+            });
         });
 
         endpoints.MapPost(EcomAeRoutes.ErpSuppliersCreate, async (
@@ -2401,6 +2469,14 @@ public sealed class ErpModule : ISurfaceModule
     /// (<c>status</c>/<c>message</c> + action payload). Validation failures answer HTTP 200
     /// with <c>status=false</c>, exactly like ajax_erp.php.
     /// </summary>
+    private static object CashPayload(ErpCashEntryResult result) => new
+    {
+        cash_entry_id = result.CashEntryId,
+        voucher_no = result.VoucherNo,
+        gl_journal_id = result.GlJournalId,
+        ledger_id = result.LedgerId,
+    };
+
     private static async Task<IResult> ExecuteErpWriteAsync(
         LegacySessionContext session,
         Func<Task<(string Message, object Payload)>> write)
@@ -2476,18 +2552,28 @@ public sealed class ErpModule : ISurfaceModule
         string? EntryType = null,
         string? Reference = null,
         string? Note = null,
-        bool ConfirmWrites = false);
+        bool ConfirmWrites = false,
+        string? CounterpartyType = null,
+        long CounterpartyId = 0,
+        string? VoucherNo = null);
     private sealed record ErpReceiptVoucherBody(
         long UserId,
         long AccountId,
         decimal Amount,
         long? SalesOrderId = null,
-        bool ConfirmWrites = false);
+        bool ConfirmWrites = false,
+        long? SalesInvoiceId = null,
+        bool IsAdvance = false,
+        bool PostGl = false,
+        string? Note = null);
     private sealed record ErpPaymentVoucherBody(
         long SupplierId,
         long AccountId,
         decimal Amount,
-        bool ConfirmWrites = false);
+        bool ConfirmWrites = false,
+        long? PurchaseId = null,
+        string? Reference = null,
+        string? Note = null);
     private sealed record ErpSupplierCreateBody(string? Name, string? ContactEmail = null, bool ConfirmWrites = false);
     private sealed record ErpPurchaseCreateBody(long SupplierId, decimal AmountExVat, bool ConfirmWrites = false);
     private sealed record ErpPurchaseDeleteBody(long PurchaseId, bool ConfirmWrites = false);

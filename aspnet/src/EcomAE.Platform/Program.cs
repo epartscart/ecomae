@@ -453,6 +453,8 @@ builder.Services.AddScoped<EcomAE.Platform.Erp.IErpVoucherNumberService, EcomAE.
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpTaxAmountCalculator, EcomAE.Platform.Erp.ErpTaxAmountCalculator>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpAuditLogWriter, EcomAE.Platform.Erp.ErpAuditLogWriter>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpSalesOrderWriteService, EcomAE.Platform.Erp.ErpSalesOrderWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpGlPostingService, EcomAE.Platform.Erp.ErpGlPostingService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpCashWriteService, EcomAE.Platform.Erp.ErpCashWriteService>();
 builder.Services.AddSingleton<IErpSoStatusDryRun, ErpSoStatusDryRun>();
 builder.Services.AddSingleton<IErpSoToInvoiceDryRun, ErpSoToInvoiceDryRun>();
 builder.Services.AddSingleton<IErpTransferVoucherDryRun, ErpTransferVoucherDryRun>();
