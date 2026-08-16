@@ -43,11 +43,13 @@ public sealed class ErpCashWriteServiceTests
         Assert.Equal("Customer, bank account, and amount required", ex.Message);
     }
 
-    [Fact]
-    public async Task AdvanceReceiptsStayPhpOnly()
+    [Theory]
+    [InlineData(true)]
+    [InlineData(null)]
+    public async Task AdvanceReceiptsStayPhpOnly(bool? isAdvance)
     {
         var ex = await Assert.ThrowsAsync<ErpWriteException>(() => Service().ReceiptVoucherAsync(
-            new ErpReceiptVoucherInput { UserId = 9, AccountId = 4, Amount = 100m, IsAdvance = true },
+            new ErpReceiptVoucherInput { UserId = 9, AccountId = 4, Amount = 100m, IsAdvance = isAdvance },
             adminId: 1));
         Assert.StartsWith("Advance receipts", ex.Message, StringComparison.Ordinal);
     }

@@ -2563,7 +2563,7 @@ public sealed class ErpModule : ISurfaceModule
         long? SalesOrderId = null,
         bool ConfirmWrites = false,
         long? SalesInvoiceId = null,
-        bool IsAdvance = false,
+        bool? IsAdvance = null,
         bool PostGl = false,
         string? Note = null);
     private sealed record ErpPaymentVoucherBody(

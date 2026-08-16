@@ -42,8 +42,11 @@ public sealed record ErpReceiptVoucherInput
 
     public long SalesInvoiceId { get; init; }
 
-    /// <summary>PHP treats a receipt as an advance unless <c>is_advance</c> is explicitly falsy.</summary>
-    public bool IsAdvance { get; init; }
+    /// <summary>
+    /// PHP treats an unallocated receipt as an advance unless <c>is_advance</c> is sent and falsy,
+    /// so <c>null</c> (field omitted) means advance here too.
+    /// </summary>
+    public bool? IsAdvance { get; init; }
 
     public bool PostGl { get; init; }
 
@@ -188,7 +191,7 @@ public sealed class ErpCashWriteService : IErpCashWriteService
             throw new ErpWriteException("Customer, bank account, and amount required");
         }
 
-        if (input.IsAdvance)
+        if (input.IsAdvance ?? true)
         {
             throw new ErpWriteException("Advance receipts (VAT on advance) remain PHP-only — post the receipt with is_advance = 0");
         }

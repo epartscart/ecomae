@@ -36,10 +36,12 @@ public sealed class ErpVoucherNumberService : IErpVoucherNumberService
             throw new ErpWriteException("Unknown voucher type: " + type);
         }
 
+        await EnsureSequenceSchemaAsync(connection, transaction, cancellationToken).ConfigureAwait(false);
+
         var prefix = await ResolvePrefixAsync(connection, transaction, type, defaultPrefix, cancellationToken).ConfigureAwait(false);
         var pad = await ResolvePadAsync(connection, transaction, type, cancellationToken).ConfigureAwait(false);
         var year = DateTimeOffset.Now.Year;
-        var seq = await NextSequenceAsync(connection, transaction, type, year, cancellationToken).ConfigureAwait(false);
+        var seq = await NextOwnTransactionSequenceAsync(connection, transaction, type, year, cancellationToken).ConfigureAwait(false);
 
         return prefix
             + year.ToString(CultureInfo.InvariantCulture)
@@ -55,6 +57,64 @@ public sealed class ErpVoucherNumberService : IErpVoucherNumberService
 
     public static string Render(string prefix, int year, int seq, int pad)
         => prefix + year.ToString(CultureInfo.InvariantCulture) + "-" + seq.ToString(CultureInfo.InvariantCulture).PadLeft(pad, '0');
+
+    /// <summary>
+    /// The <c>FOR UPDATE</c> row lock only holds inside a transaction, so mirror PHP and open one
+    /// when the caller has no ambient transaction — otherwise concurrent writers read the same
+    /// <c>last_seq</c> and hand out duplicate voucher numbers.
+    /// </summary>
+    private static async Task<int> NextOwnTransactionSequenceAsync(
+        DbConnection connection,
+        DbTransaction? transaction,
+        string type,
+        int year,
+        CancellationToken cancellationToken)
+    {
+        if (transaction is not null)
+        {
+            return await NextSequenceAsync(connection, transaction, type, year, cancellationToken).ConfigureAwait(false);
+        }
+
+        await using var own = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            var seq = await NextSequenceAsync(connection, own, type, year, cancellationToken).ConfigureAwait(false);
+            await own.CommitAsync(cancellationToken).ConfigureAwait(false);
+            return seq;
+        }
+        catch
+        {
+            await own.RollbackAsync(cancellationToken).ConfigureAwait(false);
+            throw;
+        }
+    }
+
+    /// <summary>
+    /// Port of PHP <c>epc_erp_vouchers_ensure_schema</c> (sequence table only): PHP self-heals tenants
+    /// that never issued a voucher. Skipped under an ambient transaction, where DDL would implicitly
+    /// commit the caller's work — those callers create the table before opening their transaction.
+    /// </summary>
+    private static async Task EnsureSequenceSchemaAsync(
+        DbConnection connection,
+        DbTransaction? transaction,
+        CancellationToken cancellationToken)
+    {
+        if (transaction is not null)
+        {
+            return;
+        }
+
+        await ErpDb.ExecuteAsync(
+            connection,
+            null,
+            "CREATE TABLE IF NOT EXISTS `epc_erp_voucher_sequences` ("
+            + " `voucher_type` varchar(8) NOT NULL,"
+            + " `year` int(11) NOT NULL,"
+            + " `last_seq` int(11) NOT NULL DEFAULT 0,"
+            + " PRIMARY KEY (`voucher_type`,`year`)"
+            + ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='ERP voucher sequences'",
+            cancellationToken).ConfigureAwait(false);
+    }
 
     private static async Task<int> NextSequenceAsync(
         DbConnection connection,
