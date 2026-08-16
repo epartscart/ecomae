@@ -1,5 +1,5 @@
 // ERP sales orders — live writes against the ASP.NET endpoints ported from PHP ajax_erp.php
-// (so_save / so_status / so_delete). Every call sends confirmWrites so the dry-run gate is bypassed.
+// (so_save / so_status / so_delete / so_to_invoice). Every call sends confirmWrites so the dry-run gate is bypassed.
 (function () {
     'use strict';
 
@@ -76,6 +76,17 @@
                 id: ownerId(button),
                 targetStatus: button.getAttribute('data-status')
             }, reload);
+        });
+    });
+
+    Array.prototype.forEach.call(document.querySelectorAll('.epc-so-invoice'), function (button) {
+        button.addEventListener('click', function () {
+            var id = ownerId(button);
+            if (!window.confirm('Convert sales order #' + id + ' to a tax invoice?')) {
+                return;
+            }
+
+            post('/erp/ajax/so-to-invoice', { confirmWrites: true, id: id }, reload);
         });
     });
 

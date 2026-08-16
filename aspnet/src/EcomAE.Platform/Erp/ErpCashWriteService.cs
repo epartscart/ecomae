@@ -76,6 +76,26 @@ public sealed record ErpPaymentVoucherInput
 
 public sealed record ErpCashEntryResult(long CashEntryId, string VoucherNo, long GlJournalId, long LedgerId);
 
+/// <summary>PHP <c>epc_erp_customer_settlement</c> payload (<c>income</c> = PHP <c>direction=credit</c>).</summary>
+public sealed record ErpCustomerSettlementInput
+{
+    public int UserId { get; init; }
+
+    public decimal Amount { get; init; }
+
+    public bool Income { get; init; }
+
+    public string EntryKind { get; init; } = "adjustment";
+
+    public string Reference { get; init; } = string.Empty;
+
+    public string Note { get; init; } = string.Empty;
+
+    public long Time { get; init; }
+
+    public bool PostGl { get; init; }
+}
+
 /// <summary>
 /// Live ASP.NET port of PHP <c>epc_erp_cash_entry</c>, <c>epc_erp_receipt_voucher</c> and
 /// <c>epc_erp_payment_voucher</c> / <c>epc_erp_supplier_payment</c>
@@ -91,6 +111,12 @@ public interface IErpCashWriteService
     Task<ErpCashEntryResult> ReceiptVoucherAsync(ErpReceiptVoucherInput input, int adminId, CancellationToken cancellationToken = default);
 
     Task<ErpCashEntryResult> PaymentVoucherAsync(ErpPaymentVoucherInput input, int adminId, CancellationToken cancellationToken = default);
+
+    Task<long> CustomerSettlementAsync(
+        DbConnection connection,
+        ErpCustomerSettlementInput input,
+        int adminId,
+        CancellationToken cancellationToken = default);
 }
 
 public sealed class ErpCashWriteService : IErpCashWriteService
@@ -228,14 +254,17 @@ public sealed class ErpCashWriteService : IErpCashWriteService
 
         var ledgerId = await CustomerSettlementAsync(
             connection,
-            input.UserId,
-            amount,
-            income: false,
-            "settlement",
-            voucherNo,
-            note,
-            time,
-            input.PostGl,
+            new ErpCustomerSettlementInput
+            {
+                UserId = input.UserId,
+                Amount = amount,
+                Income = false,
+                EntryKind = "settlement",
+                Reference = voucherNo,
+                Note = note,
+                Time = time,
+                PostGl = input.PostGl,
+            },
             adminId,
             cancellationToken).ConfigureAwait(false);
 
@@ -331,19 +360,28 @@ public sealed class ErpCashWriteService : IErpCashWriteService
     }
 
     /// <summary>PHP <c>epc_erp_customer_settlement</c>: AR ledger row on <c>shop_users_accounting</c> plus optional GL.</summary>
-    private async Task<long> CustomerSettlementAsync(
+    public async Task<long> CustomerSettlementAsync(
         DbConnection connection,
-        int userId,
-        decimal amount,
-        bool income,
-        string entryKind,
-        string reference,
-        string note,
-        long time,
-        bool postGl,
+        ErpCustomerSettlementInput input,
         int adminId,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken = default)
     {
+        ArgumentNullException.ThrowIfNull(connection);
+        ArgumentNullException.ThrowIfNull(input);
+
+        var userId = input.UserId;
+        var amount = ErpTaxAmountCalculator.Round2(input.Amount);
+        var income = input.Income;
+        var entryKind = input.EntryKind;
+        var reference = input.Reference;
+        var note = input.Note;
+        var time = input.Time > 0 ? input.Time : DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        var postGl = input.PostGl;
+        if (userId <= 0 || amount <= 0m)
+        {
+            throw new ErpWriteException("Customer and positive amount required");
+        }
+
         var codeId = await ErpDb.LongAsync(
             connection,
             null,
