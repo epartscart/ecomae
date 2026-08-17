@@ -78,6 +78,24 @@ public sealed class ErpPurchaseOrderWriteServiceTests
         => Assert.Equal(["draft", "approved", "partial", "received", "cancelled"], ErpPurchaseOrderWriteService.AllowedStatuses);
 
     [Fact]
+    public void ReceivedJsonParsesPhpLineMap()
+    {
+        var map = ErpPurchaseOrderWriteService.ParseReceivedJson("""{"11":2.5,"12":"3","0":9,"x":4}""");
+
+        Assert.Equal(2, map.Count);
+        Assert.Equal(2.5m, map[11]);
+        Assert.Equal(3m, map[12]);
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("[]")]
+    [InlineData("not json")]
+    public void ReceivedJsonFallsBackToEmptyMap(string? payload)
+        => Assert.Empty(ErpPurchaseOrderWriteService.ParseReceivedJson(payload));
+
+    [Fact]
     public void PoVoucherNumbersRenderLikePhp()
     {
         Assert.Equal("PO", ErpVoucherNumberService.NormalizeType("po_1"));

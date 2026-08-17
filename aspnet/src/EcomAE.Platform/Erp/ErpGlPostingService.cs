@@ -46,6 +46,13 @@ public interface IErpGlPostingService
         long cashEntryId,
         int adminId,
         CancellationToken cancellationToken = default);
+
+    /// <summary>Port of PHP <c>epc_erp_gl_post_purchase</c>: COGS (+ input VAT) debit against accounts payable.</summary>
+    Task<long> PostPurchaseAsync(
+        DbConnection connection,
+        long purchaseId,
+        int adminId,
+        CancellationToken cancellationToken = default);
 }
 
 public sealed class ErpGlPostingService : IErpGlPostingService
@@ -303,6 +310,112 @@ public sealed class ErpGlPostingService : IErpGlPostingService
         {
             throw new ErpWriteException("Journal amount must be greater than zero");
         }
+    }
+
+    public async Task<long> PostPurchaseAsync(
+        DbConnection connection,
+        long purchaseId,
+        int adminId,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(connection);
+        await EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
+
+        var purchase = await LoadPurchaseAsync(connection, purchaseId, cancellationToken).ConfigureAwait(false)
+            ?? throw new ErpWriteException("Purchase not found");
+        if (purchase.GlJournalId > 0)
+        {
+            return purchase.GlJournalId;
+        }
+
+        var existing = await ErpDb.LongAsync(
+            connection,
+            null,
+            ErpDb.Positional(
+                "SELECT `id` FROM `epc_erp_gl_journals` WHERE `source_type` = 'purchase' AND `source_id` = ? AND `active` = 1 LIMIT 1"),
+            cancellationToken,
+            purchaseId).ConfigureAwait(false);
+        if (existing > 0)
+        {
+            await LinkPurchaseJournalAsync(connection, purchaseId, existing, cancellationToken).ConfigureAwait(false);
+            return existing;
+        }
+
+        var cogsId = await CoaIdByCodeAsync(connection, "5000", cancellationToken).ConfigureAwait(false);
+        var payableId = await CoaIdByCodeAsync(connection, "2000", cancellationToken).ConfigureAwait(false);
+        if (cogsId <= 0 || payableId <= 0)
+        {
+            throw new ErpWriteException("COA accounts missing — run ERP setup");
+        }
+
+        var vatInputId = await CoaIdByCodeAsync(connection, "1150", cancellationToken).ConfigureAwait(false);
+        var lines = new List<ErpGlLine> { new(cogsId, purchase.AmountExVat, 0m, "Purchase ex VAT") };
+        if (purchase.VatAmount > 0m && vatInputId > 0)
+        {
+            lines.Add(new ErpGlLine(vatInputId, purchase.VatAmount, 0m, "VAT input"));
+        }
+
+        lines.Add(new ErpGlLine(payableId, 0m, purchase.TotalAmount, "Accounts payable"));
+
+        var journalId = await PostJournalAsync(
+            connection,
+            new ErpGlJournalHeader
+            {
+                JournalDate = purchase.PurchaseDate,
+                Reference = purchase.InvoiceNumber,
+                Description = "Purchase invoice #" + purchaseId.ToString(CultureInfo.InvariantCulture),
+                SourceType = "purchase",
+                SourceId = purchaseId,
+                LegislationRef = purchase.LegislationRef,
+            },
+            lines,
+            adminId,
+            cancellationToken).ConfigureAwait(false);
+
+        await LinkPurchaseJournalAsync(connection, purchaseId, journalId, cancellationToken).ConfigureAwait(false);
+        return journalId;
+    }
+
+    private static Task LinkPurchaseJournalAsync(
+        DbConnection connection,
+        long purchaseId,
+        long journalId,
+        CancellationToken cancellationToken)
+        => ErpDb.ExecuteAsync(
+            connection,
+            null,
+            ErpDb.Positional("UPDATE `epc_erp_purchases` SET `gl_journal_id` = ? WHERE `id` = ?"),
+            cancellationToken,
+            journalId,
+            purchaseId);
+
+    private static async Task<(decimal AmountExVat, decimal VatAmount, decimal TotalAmount, long PurchaseDate, string InvoiceNumber, string LegislationRef, long GlJournalId)?> LoadPurchaseAsync(
+        DbConnection connection,
+        long purchaseId,
+        CancellationToken cancellationToken)
+    {
+        await using var command = connection.CreateCommand();
+        command.CommandText = ErpDb.Positional(
+            "SELECT `amount_ex_vat`, `vat_amount`, `total_amount`, `purchase_date`, `invoice_number`,"
+            + " `uae_tax_legislation_ref`, `gl_journal_id` FROM `epc_erp_purchases` WHERE `id` = ? AND `active` = 1 LIMIT 1");
+        var parameter = command.CreateParameter();
+        parameter.ParameterName = "@p0";
+        parameter.Value = purchaseId;
+        command.Parameters.Add(parameter);
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+        if (!await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+        {
+            return null;
+        }
+
+        return (
+            reader.IsDBNull(0) ? 0m : reader.GetDecimal(0),
+            reader.IsDBNull(1) ? 0m : reader.GetDecimal(1),
+            reader.IsDBNull(2) ? 0m : reader.GetDecimal(2),
+            reader.IsDBNull(3) ? 0L : reader.GetInt64(3),
+            reader.IsDBNull(4) ? string.Empty : reader.GetString(4),
+            reader.IsDBNull(5) ? string.Empty : reader.GetString(5),
+            reader.IsDBNull(6) ? 0L : reader.GetInt64(6));
     }
 
     private static Task<long> CoaIdByCodeAsync(DbConnection connection, string code, CancellationToken cancellationToken)

@@ -27,6 +27,7 @@ public sealed record ErpPurchaseTaxAmounts(
     decimal LandedCostExVat,
     decimal TotalWithDuty,
     string KitCode,
+    string CountryCode,
     string TaxContext);
 
 /// <summary>
@@ -153,6 +154,7 @@ public sealed class ErpTaxAmountCalculator : IErpTaxAmountCalculator
                 Round2(amountEx + importDuty),
                 Round2(delegated.TotalAmount + importDuty),
                 kitCode,
+                profile.CountryCode,
                 "uae_delegate_purchase");
         }
 
@@ -169,6 +171,7 @@ public sealed class ErpTaxAmountCalculator : IErpTaxAmountCalculator
             Round2(amountEx + importDuty),
             Round2(amountEx + vat + importDuty),
             kitCode,
+            profile.CountryCode,
             "tenant_toolkit_purchase");
     }
 

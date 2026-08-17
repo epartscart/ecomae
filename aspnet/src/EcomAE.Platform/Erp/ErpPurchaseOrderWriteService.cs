@@ -29,6 +29,12 @@ public sealed record ErpPurchaseOrderInput
     public IReadOnlyList<ErpPurchaseOrderLineInput> Lines { get; init; } = [];
 }
 
+public sealed record ErpPoReceiveResult(
+    long PurchaseOrderId,
+    string Status,
+    decimal QtyReceived,
+    decimal QtyOpen);
+
 public sealed record ErpPurchaseOrderSaveResult(
     long Id,
     string PoNo,
@@ -51,6 +57,12 @@ public interface IErpPurchaseOrderWriteService
     Task SetStatusAsync(long purchaseOrderId, string status, int adminId, CancellationToken cancellationToken = default);
 
     Task DeleteAsync(long purchaseOrderId, int adminId, CancellationToken cancellationToken = default);
+
+    Task<ErpPoReceiveResult> ReceiveLinesAsync(
+        long purchaseOrderId,
+        IReadOnlyDictionary<long, decimal> receivedByLineId,
+        int adminId,
+        CancellationToken cancellationToken = default);
 }
 
 public sealed class ErpPurchaseOrderWriteService : IErpPurchaseOrderWriteService
@@ -321,6 +333,179 @@ public sealed class ErpPurchaseOrderWriteService : IErpPurchaseOrderWriteService
             cancellationToken).ConfigureAwait(false);
     }
 
+    /// <summary>
+    /// PHP <c>epc_erp_po_receive_lines</c>: set cumulative qty_received per line (clamped to qty - qty_cancelled),
+    /// then recompute this PO's status from the aggregate open quantity.
+    /// </summary>
+    public async Task<ErpPoReceiveResult> ReceiveLinesAsync(
+        long purchaseOrderId,
+        IReadOnlyDictionary<long, decimal> receivedByLineId,
+        int adminId,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(receivedByLineId);
+        EnsureConfigured();
+
+        await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
+
+        var header = await LoadHeaderAsync(connection, null, purchaseOrderId, cancellationToken).ConfigureAwait(false)
+            ?? throw new ErpWriteException("Purchase order not found");
+        if (string.Equals(header.Status, "cancelled", StringComparison.Ordinal))
+        {
+            throw new ErpWriteException("Cannot receive a cancelled purchase order");
+        }
+
+        var lines = await LoadLinesAsync(connection, purchaseOrderId, cancellationToken).ConfigureAwait(false);
+        if (lines.Count == 0)
+        {
+            throw new ErpWriteException("This purchase order has no line items to receive");
+        }
+
+        var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        foreach (var line in lines)
+        {
+            if (!receivedByLineId.TryGetValue(line.Id, out var requested))
+            {
+                continue;
+            }
+
+            var max = decimal.Max(0m, decimal.Round(line.Qty - line.QtyCancelled, 3, MidpointRounding.AwayFromZero));
+            var newQty = decimal.Round(requested, 3, MidpointRounding.AwayFromZero);
+            newQty = decimal.Clamp(newQty, 0m, max);
+            await ErpDb.ExecuteAsync(
+                connection,
+                null,
+                ErpDb.Positional("UPDATE `epc_erp_po_lines` SET `qty_received` = ?, `time_updated` = ? WHERE `id` = ?"),
+                cancellationToken,
+                newQty,
+                now,
+                line.Id).ConfigureAwait(false);
+        }
+
+        var totals = await LoadReceiptAggregateAsync(connection, purchaseOrderId, cancellationToken).ConfigureAwait(false);
+        var status = header.Status;
+        if (totals.QtyReceived > 0m)
+        {
+            status = totals.QtyOpen <= 0.001m ? "received" : "partial";
+        }
+
+        if (!string.Equals(status, header.Status, StringComparison.Ordinal))
+        {
+            await SetStatusAsync(purchaseOrderId, status, adminId, cancellationToken).ConfigureAwait(false);
+        }
+
+        await _audit.LogAsync(
+            connection,
+            null,
+            adminId,
+            "po_receive_lines",
+            "purchase_order",
+            purchaseOrderId,
+            "Received purchase order lines",
+            new Dictionary<string, string?>
+            {
+                ["qty_received"] = totals.QtyReceived.ToString(CultureInfo.InvariantCulture),
+                ["qty_open"] = totals.QtyOpen.ToString(CultureInfo.InvariantCulture),
+            },
+            cancellationToken).ConfigureAwait(false);
+
+        return new ErpPoReceiveResult(purchaseOrderId, status, totals.QtyReceived, totals.QtyOpen);
+    }
+
+    /// <summary>PHP <c>received_json</c> map: line id =&gt; new cumulative qty received.</summary>
+    public static IReadOnlyDictionary<long, decimal> ParseReceivedJson(string? receivedJson)
+    {
+        var map = new Dictionary<long, decimal>();
+        if (string.IsNullOrWhiteSpace(receivedJson))
+        {
+            return map;
+        }
+
+        try
+        {
+            using var document = JsonDocument.Parse(receivedJson);
+            if (document.RootElement.ValueKind != JsonValueKind.Object)
+            {
+                return map;
+            }
+
+            foreach (var property in document.RootElement.EnumerateObject())
+            {
+                if (!long.TryParse(property.Name, NumberStyles.Integer, CultureInfo.InvariantCulture, out var lineId) || lineId <= 0)
+                {
+                    continue;
+                }
+
+                var qty = property.Value.ValueKind switch
+                {
+                    JsonValueKind.Number when property.Value.TryGetDecimal(out var number) => number,
+                    JsonValueKind.String when decimal.TryParse(property.Value.GetString(), NumberStyles.Float, CultureInfo.InvariantCulture, out var parsed) => parsed,
+                    _ => (decimal?)null,
+                };
+                if (qty.HasValue)
+                {
+                    map[lineId] = qty.Value;
+                }
+            }
+        }
+        catch (JsonException)
+        {
+            return new Dictionary<long, decimal>();
+        }
+
+        return map;
+    }
+
+    private static async Task<List<(long Id, decimal Qty, decimal QtyCancelled)>> LoadLinesAsync(
+        DbConnection connection,
+        long purchaseOrderId,
+        CancellationToken cancellationToken)
+    {
+        var lines = new List<(long Id, decimal Qty, decimal QtyCancelled)>();
+        await using var command = connection.CreateCommand();
+        command.CommandText = ErpDb.Positional(
+            "SELECT `id`, `qty`, `qty_cancelled` FROM `epc_erp_po_lines` WHERE `po_id` = ? ORDER BY `line_no`");
+        var parameter = command.CreateParameter();
+        parameter.ParameterName = "@p0";
+        parameter.Value = purchaseOrderId;
+        command.Parameters.Add(parameter);
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+        while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+        {
+            lines.Add((
+                reader.IsDBNull(0) ? 0L : reader.GetInt64(0),
+                reader.IsDBNull(1) ? 0m : reader.GetDecimal(1),
+                reader.IsDBNull(2) ? 0m : reader.GetDecimal(2)));
+        }
+
+        return lines;
+    }
+
+    private static async Task<(decimal QtyReceived, decimal QtyOpen)> LoadReceiptAggregateAsync(
+        DbConnection connection,
+        long purchaseOrderId,
+        CancellationToken cancellationToken)
+    {
+        await using var command = connection.CreateCommand();
+        command.CommandText = ErpDb.Positional(
+            "SELECT IFNULL(SUM(`qty_received`),0), IFNULL(SUM(GREATEST(0, `qty` - `qty_received` - `qty_cancelled`)),0)"
+            + " FROM `epc_erp_po_lines` WHERE `po_id` = ?");
+        var parameter = command.CreateParameter();
+        parameter.ParameterName = "@p0";
+        parameter.Value = purchaseOrderId;
+        command.Parameters.Add(parameter);
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+        if (!await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+        {
+            return (0m, 0m);
+        }
+
+        return (
+            decimal.Round(reader.IsDBNull(0) ? 0m : reader.GetDecimal(0), 3, MidpointRounding.AwayFromZero),
+            decimal.Round(reader.IsDBNull(1) ? 0m : reader.GetDecimal(1), 3, MidpointRounding.AwayFromZero));
+    }
+
     /// <summary>PHP PO line grid: <c>lines_json</c> wins, then the repeated <c>po_line_*</c> fields.</summary>
     public static IReadOnlyList<ErpPurchaseOrderLineInput> ResolveLines(ErpPurchaseOrderInput input)
     {
@@ -493,7 +678,7 @@ public sealed class ErpPurchaseOrderWriteService : IErpPurchaseOrderWriteService
 
     private static async Task<(int SupplierId, string Status, long PurchaseId, decimal AmountExVat)?> LoadHeaderAsync(
         DbConnection connection,
-        DbTransaction transaction,
+        DbTransaction? transaction,
         long purchaseOrderId,
         CancellationToken cancellationToken)
     {

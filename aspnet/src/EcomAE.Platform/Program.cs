@@ -457,6 +457,7 @@ builder.Services.AddScoped<EcomAE.Platform.Erp.IErpGlPostingService, EcomAE.Plat
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpCashWriteService, EcomAE.Platform.Erp.ErpCashWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpSalesInvoiceWriteService, EcomAE.Platform.Erp.ErpSalesInvoiceWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpPurchaseOrderWriteService, EcomAE.Platform.Erp.ErpPurchaseOrderWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpPurchaseInvoiceWriteService, EcomAE.Platform.Erp.ErpPurchaseInvoiceWriteService>();
 builder.Services.AddSingleton<IErpSoStatusDryRun, ErpSoStatusDryRun>();
 builder.Services.AddSingleton<IErpSoToInvoiceDryRun, ErpSoToInvoiceDryRun>();
 builder.Services.AddSingleton<IErpTransferVoucherDryRun, ErpTransferVoucherDryRun>();

@@ -220,10 +220,53 @@ public sealed class ErpModule : ISurfaceModule
                 return ("PO status updated", new { id = body.Id, status = body.TargetStatus ?? string.Empty });
             });
         });
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxPoReceiveLines, async (HttpContext context, ErpPoReceiveLinesBody? body, ILegacySessionValidator validator, IErpPoReceiveLinesDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpPoReceiveLinesRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxPoToInvoice, async (HttpContext context, ErpPoToInvoiceBody? body, ILegacySessionValidator validator, IErpPoToInvoiceDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpPoToInvoiceRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        // Live writes (PHP po_receive_lines / po_to_invoice parity) when confirmWrites=true.
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxPoReceiveLines, async (HttpContext context, ErpPoReceiveLinesBody? body, ILegacySessionValidator validator, IErpPoReceiveLinesDryRun dryRun, IErpPurchaseOrderWriteService writes, CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required.");
+            body ??= new();
+            if (!body.ConfirmWrites)
+                return Results.Ok(dryRun.Evaluate(new ErpPoReceiveLinesRequest(body.Id, body.Code, false)).ToPayload(SessionPayload(session)));
+
+            return await ExecuteErpWriteAsync(session, async () =>
+            {
+                var received = await writes.ReceiveLinesAsync(
+                    body.Id,
+                    ErpPurchaseOrderWriteService.ParseReceivedJson(body.ReceivedJson),
+                    session.UserId,
+                    cancellationToken);
+                return ("Purchase order lines received", new
+                {
+                    po_id = received.PurchaseOrderId,
+                    status = received.Status,
+                    qty_received = received.QtyReceived,
+                    qty_open = received.QtyOpen,
+                });
+            });
+        });
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxPoToInvoice, async (HttpContext context, ErpPoToInvoiceBody? body, ILegacySessionValidator validator, IErpPoToInvoiceDryRun dryRun, IErpPurchaseInvoiceWriteService writes, CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required.");
+            body ??= new(0,null,false);
+            if (!body.ConfirmWrites)
+                return Results.Ok(dryRun.Evaluate(new ErpPoToInvoiceRequest(body.Id, body.Code, false)).ToPayload(SessionPayload(session)));
+
+            return await ExecuteErpWriteAsync(session, async () =>
+            {
+                var converted = await writes.ConvertPurchaseOrderAsync(body.Id, session.UserId, cancellationToken);
+                return ("Purchase invoice " + converted.VoucherNo + " created", new
+                {
+                    po_id = converted.PurchaseOrderId,
+                    purchase_id = converted.PurchaseId,
+                    voucher_no = converted.VoucherNo,
+                    amount_ex_vat = converted.AmountExVat,
+                    vat_amount = converted.VatAmount,
+                    total_amount = converted.TotalAmount,
+                });
+            });
+        });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxCustomerCreate, async (HttpContext context, ErpCustomerCreateBody? body, ILegacySessionValidator validator, IErpCustomerCreateDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpCustomerCreateRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         // Live write (PHP so_save parity) when confirmWrites=true; otherwise the Wave B dry-run gate.
@@ -2930,7 +2973,7 @@ public sealed class ErpModule : ISurfaceModule
         int ExpectedVersion = 0,
         string? LinesJson = null);
     private sealed record ErpPoStatusBody(long Id, string? TargetStatus = null, bool ConfirmWrites = false);
-    private sealed record ErpPoReceiveLinesBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
+    private sealed record ErpPoReceiveLinesBody(long Id = 0, string? Code = null, bool ConfirmWrites = false, string? ReceivedJson = null);
     private sealed record ErpPoToInvoiceBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpCustomerCreateBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpSoSaveBody(
