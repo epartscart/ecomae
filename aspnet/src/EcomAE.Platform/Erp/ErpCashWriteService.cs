@@ -382,6 +382,7 @@ public sealed class ErpCashWriteService : IErpCashWriteService
             throw new ErpWriteException("Customer and positive amount required");
         }
 
+        await EnsureAccountingCodesAsync(connection, cancellationToken).ConfigureAwait(false);
         var codeId = await ErpDb.LongAsync(
             connection,
             null,
@@ -528,6 +529,38 @@ public sealed class ErpCashWriteService : IErpCashWriteService
                 ["amount"] = amount.ToString(System.Globalization.CultureInfo.InvariantCulture),
             },
             cancellationToken);
+
+    /// <summary>Port of PHP <c>epc_erp_ensure_accounting_codes</c>: seed the AR settlement codes on first use.</summary>
+    private static async Task EnsureAccountingCodesAsync(DbConnection connection, CancellationToken cancellationToken)
+    {
+        foreach (var (key, income, name) in new[]
+        {
+            ("epc_erp_ar_credit", 1, "ERP — customer credit (settlement/adjustment)"),
+            ("epc_erp_ar_debit", 0, "ERP — customer debit (settlement/adjustment)"),
+        })
+        {
+            var existing = await ErpDb.LongAsync(
+                connection,
+                null,
+                ErpDb.Positional("SELECT `id` FROM `shop_accounting_codes` WHERE `key` = ? LIMIT 1"),
+                cancellationToken,
+                key).ConfigureAwait(false);
+            if (existing > 0)
+            {
+                continue;
+            }
+
+            await ErpDb.ExecuteAsync(
+                connection,
+                null,
+                ErpDb.Positional(
+                    "INSERT INTO `shop_accounting_codes` (`income`, `name`, `manual_available`, `key`) VALUES (?, ?, 1, ?)"),
+                cancellationToken,
+                income,
+                name,
+                key).ConfigureAwait(false);
+        }
+    }
 
     private static async Task<bool> HasColumnAsync(DbConnection connection, string table, string column, CancellationToken cancellationToken)
     {

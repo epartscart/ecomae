@@ -29,6 +29,8 @@ public sealed record ErpSoToInvoiceResult(
 /// <c>epc_einvoice_save_document</c> (<c>content/shop/finance/epc_erp_vouchers.php</c>,
 /// <c>epc_erp_invoices.php</c>, <c>epc_einvoice.php</c>): same guards, line copy, per-line tenant tax,
 /// SI numbering, document/line/event persistence, AR settlement and status transition.
+/// Step order follows PHP: the invoice is persisted, then the AR settlement runs, and only then is the
+/// sales order flipped to <c>invoiced</c>, so a settlement failure leaves the order convertible again.
 /// The PINT XML payload is left empty; the PHP export handler rebuilds and caches it on first download.
 /// </summary>
 public interface IErpSalesInvoiceWriteService
@@ -197,16 +199,6 @@ public sealed class ErpSalesInvoiceWriteService : IErpSalesInvoiceWriteService
                 JsonSerializer.Serialize(new Dictionary<string, string> { ["sales_order"] = order.SoNo }),
                 issueDate).ConfigureAwait(false);
 
-            await ErpDb.ExecuteAsync(
-                connection,
-                transaction,
-                ErpDb.Positional(
-                    "UPDATE `epc_erp_sales_orders` SET `status` = 'invoiced', `sales_invoice_id` = ?, `time_updated` = ? WHERE `id` = ?"),
-                cancellationToken,
-                invoiceId,
-                issueDate,
-                salesOrderId).ConfigureAwait(false);
-
             await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
         }
         catch
@@ -230,6 +222,16 @@ public sealed class ErpSalesInvoiceWriteService : IErpSalesInvoiceWriteService
             },
             adminId,
             cancellationToken).ConfigureAwait(false);
+
+        await ErpDb.ExecuteAsync(
+            connection,
+            null,
+            ErpDb.Positional(
+                "UPDATE `epc_erp_sales_orders` SET `status` = 'invoiced', `sales_invoice_id` = ?, `time_updated` = ? WHERE `id` = ?"),
+            cancellationToken,
+            invoiceId,
+            issueDate,
+            salesOrderId).ConfigureAwait(false);
 
         await _audit.LogAsync(
             connection,
