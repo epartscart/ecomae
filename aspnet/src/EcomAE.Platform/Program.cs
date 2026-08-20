@@ -456,6 +456,8 @@ builder.Services.AddScoped<EcomAE.Platform.Erp.IErpSalesOrderWriteService, EcomA
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpGlPostingService, EcomAE.Platform.Erp.ErpGlPostingService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpCashWriteService, EcomAE.Platform.Erp.ErpCashWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpSalesInvoiceWriteService, EcomAE.Platform.Erp.ErpSalesInvoiceWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpPurchaseOrderWriteService, EcomAE.Platform.Erp.ErpPurchaseOrderWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpPurchaseInvoiceWriteService, EcomAE.Platform.Erp.ErpPurchaseInvoiceWriteService>();
 builder.Services.AddSingleton<IErpSoStatusDryRun, ErpSoStatusDryRun>();
 builder.Services.AddSingleton<IErpSoToInvoiceDryRun, ErpSoToInvoiceDryRun>();
 builder.Services.AddSingleton<IErpTransferVoucherDryRun, ErpTransferVoucherDryRun>();
@@ -1036,6 +1038,7 @@ PhpLegacyAssetBridge.Map(app, app.Environment);
 // LifeOS cinematic MP4/PNG — platform does not UseStaticFiles; serve wwwroot explicitly.
 EcomAE.Platform.LifeOs.Cinematic.LifeOsCinematicAssets.Map(app, app.Environment);
 EcomAE.Platform.LifeOs.Clients.LifeOsPwaAssets.Map(app, app.Environment);
+EcomAE.Platform.Erp.ErpAppAssets.Map(app);
 
 // Blazor SSR ops console (exact /migration/console). Interim improvement UI — not product chrome cutover.
 app.MapRazorComponents<App>();

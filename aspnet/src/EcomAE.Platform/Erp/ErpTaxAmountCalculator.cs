@@ -17,6 +17,19 @@ public sealed record ErpTaxAmounts(
     string CountryCode,
     string Reason);
 
+public sealed record ErpPurchaseTaxAmounts(
+    decimal AmountExVat,
+    decimal VatAmount,
+    decimal TotalAmount,
+    decimal TaxRate,
+    bool VatApplicable,
+    decimal ImportDuty,
+    decimal LandedCostExVat,
+    decimal TotalWithDuty,
+    string KitCode,
+    string CountryCode,
+    string TaxContext);
+
 /// <summary>
 /// Port of PHP <c>epc_tax_toolkit_calc_amounts</c> / <c>epc_tax_toolkit_resolve</c>.
 /// The rate always comes from the tenant's registered jurisdiction kit
@@ -31,6 +44,15 @@ public interface IErpTaxAmountCalculator
         int customerUserId,
         int contactId,
         bool export,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>Port of PHP <c>epc_tax_toolkit_purchase_amounts</c> (input VAT is only charged when the kit says it is recoverable).</summary>
+    Task<ErpPurchaseTaxAmounts> CalcPurchaseAsync(
+        DbConnection connection,
+        DbTransaction? transaction,
+        decimal amountExVat,
+        int supplierId,
+        bool import,
         CancellationToken cancellationToken = default);
 }
 
@@ -68,7 +90,7 @@ public sealed class ErpTaxAmountCalculator : IErpTaxAmountCalculator
         }
 
         var standardRate = kit?.StandardRate ?? FallbackStandardRate;
-        var taxLabel = kit is null || string.IsNullOrWhiteSpace(kit.Value.TaxLabel) ? "VAT" : kit.Value.TaxLabel;
+        var taxLabel = kit is null || string.IsNullOrWhiteSpace(kit.TaxLabel) ? "VAT" : kit.TaxLabel;
         var taxRate = standardRate;
         var taxCategory = "S";
         var reason = "tenant_jurisdiction";
@@ -94,7 +116,163 @@ public sealed class ErpTaxAmountCalculator : IErpTaxAmountCalculator
             reason);
     }
 
+    public async Task<ErpPurchaseTaxAmounts> CalcPurchaseAsync(
+        DbConnection connection,
+        DbTransaction? transaction,
+        decimal amountExVat,
+        int supplierId,
+        bool import,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(connection);
+        var amountEx = Round2(decimal.Max(0m, amountExVat));
+
+        var profile = await LoadTenantProfileAsync(connection, transaction, cancellationToken).ConfigureAwait(false);
+        var kitCode = string.IsNullOrWhiteSpace(profile.KitCode) ? FallbackKitCode : profile.KitCode;
+        var kit = await LoadKitAsync(connection, transaction, kitCode, cancellationToken).ConfigureAwait(false);
+        if (kit is null && !string.Equals(kitCode, FallbackKitCode, StringComparison.Ordinal))
+        {
+            kitCode = FallbackKitCode;
+            kit = await LoadKitAsync(connection, transaction, kitCode, cancellationToken).ConfigureAwait(false);
+        }
+
+        var importDutyRate = kit?.ImportDutyRate ?? 0m;
+        var importDuty = import && (kit?.ImportDutyOnCost ?? false) && importDutyRate > 0m
+            ? Round2(amountEx * importDutyRate / 100m)
+            : 0m;
+
+        if ((kit?.DelegateUaeVat ?? false) && supplierId > 0)
+        {
+            var delegated = await CalcDelegatedUaeInputVatAsync(connection, transaction, amountEx, supplierId, cancellationToken).ConfigureAwait(false);
+            return new ErpPurchaseTaxAmounts(
+                amountEx,
+                delegated.VatAmount,
+                delegated.TotalAmount,
+                delegated.TaxRate,
+                delegated.VatApplicable,
+                importDuty,
+                Round2(amountEx + importDuty),
+                Round2(delegated.TotalAmount + importDuty),
+                kitCode,
+                profile.CountryCode,
+                "uae_delegate_purchase");
+        }
+
+        var rate = kit?.StandardRate ?? FallbackStandardRate;
+        var recoverable = string.Equals(kit?.PurchaseInventoryHook, "vat_on_purchase_recoverable", StringComparison.Ordinal);
+        var vat = rate > 0m && recoverable ? Round2(amountEx * rate / 100m) : 0m;
+        return new ErpPurchaseTaxAmounts(
+            amountEx,
+            vat,
+            Round2(amountEx + vat),
+            decimal.Round(rate, 3, MidpointRounding.AwayFromZero),
+            recoverable && rate > 0m,
+            importDuty,
+            Round2(amountEx + importDuty),
+            Round2(amountEx + vat + importDuty),
+            kitCode,
+            profile.CountryCode,
+            "tenant_toolkit_purchase");
+    }
+
     public static decimal Round2(decimal value) => decimal.Round(value, 2, MidpointRounding.AwayFromZero);
+
+    /// <summary>PHP <c>epc_uae_vat_purchase_amounts</c>: input VAT only for an FTA-ready tenant buying from a TRN-valid UAE supplier.</summary>
+    private static async Task<(decimal VatAmount, decimal TotalAmount, decimal TaxRate, bool VatApplicable)> CalcDelegatedUaeInputVatAsync(
+        DbConnection connection,
+        DbTransaction? transaction,
+        decimal amountEx,
+        int supplierId,
+        CancellationToken cancellationToken)
+    {
+        var companyCountry = (await SettingAsync(connection, transaction, "company_country_code", "AE", cancellationToken).ConfigureAwait(false)).ToUpperInvariant();
+        var companyTrn = DigitsOnly(await SettingAsync(connection, transaction, "company_trn", string.Empty, cancellationToken).ConfigureAwait(false));
+        var vatRegisteredRaw = await SettingAsync(connection, transaction, "company_vat_registered", "1", cancellationToken).ConfigureAwait(false);
+        var vatRegistered = vatRegisteredRaw.Trim() is "1" or "true" or "yes";
+        var ftaReady = companyCountry is "AE" or "ARE" && vatRegistered && companyTrn.Length == 15;
+        if (!ftaReady || amountEx <= 0m)
+        {
+            return (0m, amountEx, 0m, false);
+        }
+
+        var supplier = await LoadSupplierTaxRowAsync(connection, transaction, supplierId, cancellationToken).ConfigureAwait(false);
+        if (supplier is null
+            || !supplier.Value.VatRegistered
+            || supplier.Value.CountryCode is not ("AE" or "ARE")
+            || DigitsOnly(supplier.Value.Trn).Length != 15)
+        {
+            return (0m, amountEx, 0m, false);
+        }
+
+        var rate = decimal.TryParse(
+            await SettingAsync(connection, transaction, "vat_percent", "5.00", cancellationToken).ConfigureAwait(false),
+            NumberStyles.Float,
+            CultureInfo.InvariantCulture,
+            out var parsed)
+            ? decimal.Clamp(parsed, 0m, 100m)
+            : 5m;
+        var vat = Round2(amountEx * rate / 100m);
+        return (vat, Round2(amountEx + vat), decimal.Round(rate, 3, MidpointRounding.AwayFromZero), true);
+    }
+
+    private static async Task<(bool VatRegistered, string CountryCode, string Trn)?> LoadSupplierTaxRowAsync(
+        DbConnection connection,
+        DbTransaction? transaction,
+        int supplierId,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            await using var command = connection.CreateCommand();
+            command.Transaction = transaction;
+            command.CommandText = ErpDb.Positional(
+                "SELECT `vat_registered`, `country_code`, `trn` FROM `epc_erp_suppliers` WHERE `id` = ? AND `active` = 1 LIMIT 1");
+            var parameter = command.CreateParameter();
+            parameter.ParameterName = "@p0";
+            parameter.Value = supplierId;
+            command.Parameters.Add(parameter);
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            if (!await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                return null;
+            }
+
+            return (
+                !reader.IsDBNull(0) && reader.GetInt32(0) == 1,
+                ReadString(reader.IsDBNull(1) ? null : reader.GetValue(1)).ToUpperInvariant(),
+                ReadString(reader.IsDBNull(2) ? null : reader.GetValue(2)));
+        }
+        catch (DbException)
+        {
+            return null;
+        }
+    }
+
+    /// <summary>PHP <c>epc_pricing_get_setting</c> over <c>epc_price_settings</c>.</summary>
+    private static async Task<string> SettingAsync(
+        DbConnection connection,
+        DbTransaction? transaction,
+        string key,
+        string fallback,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var value = await ErpDb.StringAsync(
+                connection,
+                transaction,
+                ErpDb.Positional("SELECT `setting_value` FROM `epc_price_settings` WHERE `setting_key` = ? LIMIT 1"),
+                cancellationToken,
+                key).ConfigureAwait(false);
+            return value ?? fallback;
+        }
+        catch (DbException)
+        {
+            return fallback;
+        }
+    }
+
+    private static string DigitsOnly(string value) => new(value.Where(char.IsAsciiDigit).ToArray());
 
     private async Task<(string KitCode, string CountryCode)> LoadTenantProfileAsync(
         DbConnection connection,
@@ -139,7 +317,15 @@ public sealed class ErpTaxAmountCalculator : IErpTaxAmountCalculator
         return (string.Empty, string.Empty);
     }
 
-    private static async Task<(decimal StandardRate, string TaxLabel)?> LoadKitAsync(
+    private sealed record ErpTaxKitRules(
+        decimal StandardRate,
+        string TaxLabel,
+        bool DelegateUaeVat,
+        string PurchaseInventoryHook,
+        bool ImportDutyOnCost,
+        decimal ImportDutyRate);
+
+    private static async Task<ErpTaxKitRules?> LoadKitAsync(
         DbConnection connection,
         DbTransaction? transaction,
         string kitCode,
@@ -175,7 +361,27 @@ public sealed class ErpTaxAmountCalculator : IErpTaxAmountCalculator
             var label = root.TryGetProperty("tax_label", out var labelElement) && labelElement.ValueKind == JsonValueKind.String
                 ? labelElement.GetString() ?? "VAT"
                 : "VAT";
-            return (rate, label);
+            var delegateUaeVat = root.TryGetProperty("delegate_uae_vat", out var delegateElement)
+                && (delegateElement.ValueKind == JsonValueKind.True
+                    || (delegateElement.ValueKind == JsonValueKind.Number && TryReadDecimal(delegateElement, out var flag) && flag != 0m)
+                    || (delegateElement.ValueKind == JsonValueKind.String && delegateElement.GetString() is "1" or "true"));
+            var hooks = root.TryGetProperty("erp_hooks", out var hooksElement) && hooksElement.ValueKind == JsonValueKind.Object
+                ? hooksElement
+                : default;
+            var purchaseHook = hooks.ValueKind == JsonValueKind.Object
+                && hooks.TryGetProperty("purchase_inventory", out var purchaseElement)
+                && purchaseElement.ValueKind == JsonValueKind.String
+                ? purchaseElement.GetString() ?? string.Empty
+                : string.Empty;
+            var importDutyOnCost = hooks.ValueKind == JsonValueKind.Object
+                && hooks.TryGetProperty("import_duty_on_cost", out var dutyHook)
+                && (dutyHook.ValueKind == JsonValueKind.True
+                    || (dutyHook.ValueKind == JsonValueKind.Number && TryReadDecimal(dutyHook, out var dutyFlag) && dutyFlag != 0m)
+                    || (dutyHook.ValueKind == JsonValueKind.String && dutyHook.GetString() is "1" or "true"));
+            var importDutyRate = ReadNestedDecimal(root, "trade", "import_duty_default")
+                ?? ReadNestedDecimal(root, "import_rules", "import_duty_rate")
+                ?? 0m;
+            return new ErpTaxKitRules(rate, label, delegateUaeVat, purchaseHook, importDutyOnCost, importDutyRate);
         }
         catch (JsonException)
         {
@@ -212,6 +418,19 @@ public sealed class ErpTaxAmountCalculator : IErpTaxAmountCalculator
         {
             return false;
         }
+    }
+
+    private static decimal? ReadNestedDecimal(JsonElement root, string section, string property)
+    {
+        if (!root.TryGetProperty(section, out var sectionElement)
+            || sectionElement.ValueKind != JsonValueKind.Object
+            || !sectionElement.TryGetProperty(property, out var value)
+            || !TryReadDecimal(value, out var parsed))
+        {
+            return null;
+        }
+
+        return parsed;
     }
 
     private static bool TryReadDecimal(JsonElement element, out decimal value)
