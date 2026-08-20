@@ -87,6 +87,33 @@ public sealed record ErpCustomerSettlementInput
 
     public string EntryKind { get; init; } = "adjustment";
 
+    public long OrderId { get; init; }
+
+    public string Reference { get; init; } = string.Empty;
+
+    public string Note { get; init; } = string.Empty;
+
+    public long Time { get; init; }
+
+    public bool PostGl { get; init; }
+}
+
+/// <summary>PHP <c>epc_erp_supplier_settlement</c> payload (<c>increase</c> raises the payable).</summary>
+public sealed record ErpSupplierSettlementInput
+{
+    public int SupplierId { get; init; }
+
+    public decimal Amount { get; init; }
+
+    /// <summary>PHP <c>direction</c>: <c>increase</c> or <c>decrease</c> payable.</summary>
+    public string Direction { get; init; } = "decrease";
+
+    public string EntryKind { get; init; } = "adjustment";
+
+    public long PurchaseId { get; init; }
+
+    public long OrderId { get; init; }
+
     public string Reference { get; init; } = string.Empty;
 
     public string Note { get; init; } = string.Empty;
@@ -115,6 +142,11 @@ public interface IErpCashWriteService
     Task<long> CustomerSettlementAsync(
         DbConnection connection,
         ErpCustomerSettlementInput input,
+        int adminId,
+        CancellationToken cancellationToken = default);
+
+    Task<ErpCashEntryResult> SupplierSettlementAsync(
+        ErpSupplierSettlementInput input,
         int adminId,
         CancellationToken cancellationToken = default);
 }
@@ -350,6 +382,202 @@ public sealed class ErpCashWriteService : IErpCashWriteService
         return new ErpCashEntryResult(cashEntryId, voucherNo, journalId, 0);
     }
 
+    /// <summary>
+    /// PHP <c>epc_erp_supplier_settlement</c>: AP ledger row on <c>epc_erp_supplier_accounting</c> plus optional GL.
+    /// </summary>
+    public async Task<ErpCashEntryResult> SupplierSettlementAsync(
+        ErpSupplierSettlementInput input,
+        int adminId,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        EnsureConfigured();
+
+        var amount = ErpTaxAmountCalculator.Round2(input.Amount);
+        if (input.SupplierId <= 0 || amount <= 0m)
+        {
+            throw new ErpWriteException("Supplier and positive amount required");
+        }
+
+        var direction = input.Direction.Trim();
+        if (direction is not ("increase" or "decrease"))
+        {
+            throw new ErpWriteException("Direction must be increase or decrease payable");
+        }
+
+        var entryKind = NormalizeSettlementKind(input.EntryKind);
+        if (entryKind == "write_off" && direction == "increase")
+        {
+            throw new ErpWriteException("Write-off must decrease payable");
+        }
+
+        await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
+        if (input.OrderId > 0)
+        {
+            await ErpOrderCompletionGuard.AssertCompleteAsync(
+                connection,
+                input.OrderId,
+                "Supplier settlement linked to order",
+                cancellationToken).ConfigureAwait(false);
+        }
+
+        if (input.PurchaseId > 0)
+        {
+            var linkedOrder = await ErpDb.LongAsync(
+                connection,
+                null,
+                ErpDb.Positional("SELECT `order_id` FROM `epc_erp_purchases` WHERE `id` = ? AND `active` = 1 LIMIT 1"),
+                cancellationToken,
+                input.PurchaseId).ConfigureAwait(false);
+            if (linkedOrder > 0)
+            {
+                await ErpOrderCompletionGuard.AssertCompleteAsync(
+                    connection,
+                    linkedOrder,
+                    "Supplier settlement linked to purchase order",
+                    cancellationToken).ConfigureAwait(false);
+            }
+        }
+
+        await AssertSupplierAsync(connection, input.SupplierId, cancellationToken).ConfigureAwait(false);
+
+        var isCredit = direction == "increase";
+        var reference = input.Reference.Trim();
+        var note = input.Note.Trim();
+        if (note.Length == 0)
+        {
+            note = SettlementKindLabel(entryKind) + (reference.Length > 0 ? " — " + reference : string.Empty);
+        }
+
+        var time = input.Time > 0 ? input.Time : DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        await ErpDb.ExecuteAsync(
+            connection,
+            null,
+            ErpDb.Positional(
+                "INSERT INTO `epc_erp_supplier_accounting` (`supplier_id`, `time`, `is_credit`, `amount`, `purchase_id`,"
+                + " `order_id`, `reference`, `note`, `admin_id`, `entry_kind`) VALUES (?,?,?,?,?,?,?,?,?,?)"),
+            cancellationToken,
+            input.SupplierId,
+            time,
+            isCredit ? 1 : 0,
+            amount,
+            input.PurchaseId,
+            input.OrderId,
+            reference,
+            note,
+            adminId,
+            entryKind).ConfigureAwait(false);
+        var ledgerId = await ErpDb.LastInsertIdAsync(connection, null, cancellationToken).ConfigureAwait(false);
+
+        var journalId = 0L;
+        if (input.PostGl)
+        {
+            journalId = await TryPostApSettlementAsync(
+                connection,
+                ledgerId,
+                amount,
+                isCredit,
+                entryKind,
+                reference,
+                note,
+                time,
+                adminId,
+                cancellationToken).ConfigureAwait(false);
+            if (journalId > 0)
+            {
+                await ErpDb.TryExecuteAsync(
+                    connection,
+                    "ALTER TABLE `epc_erp_supplier_accounting` ADD COLUMN `gl_journal_id` int(11) NOT NULL DEFAULT 0",
+                    cancellationToken).ConfigureAwait(false);
+                await ErpDb.ExecuteAsync(
+                    connection,
+                    null,
+                    ErpDb.Positional("UPDATE `epc_erp_supplier_accounting` SET `gl_journal_id` = ? WHERE `id` = ?"),
+                    cancellationToken,
+                    journalId,
+                    ledgerId).ConfigureAwait(false);
+            }
+        }
+
+        await LogAsync(connection, adminId, "supplier_settlement", ledgerId, note, reference, amount, cancellationToken).ConfigureAwait(false);
+        return new ErpCashEntryResult(0, reference, journalId, ledgerId);
+    }
+
+    /// <summary>PHP <c>epc_erp_settlement_kinds</c> keys; anything else degrades to <c>adjustment</c>.</summary>
+    public static string NormalizeSettlementKind(string? entryKind)
+    {
+        var kind = (entryKind ?? string.Empty).Trim();
+        return kind is "settlement" or "write_off" ? kind : "adjustment";
+    }
+
+    /// <summary>PHP <c>epc_erp_settlement_kinds</c> labels, used for the default ledger note.</summary>
+    public static string SettlementKindLabel(string entryKind) => entryKind switch
+    {
+        "settlement" => "Settlement (non-cash close-off)",
+        "write_off" => "Write-off",
+        _ => "Adjustment / correction",
+    };
+
+    /// <summary>AP side of PHP <c>epc_erp_gl_post_ap_settlement</c>: 2000 payable vs 6100 expense.</summary>
+    private async Task<long> TryPostApSettlementAsync(
+        DbConnection connection,
+        long ledgerId,
+        decimal amount,
+        bool isCredit,
+        string entryKind,
+        string reference,
+        string note,
+        long time,
+        int adminId,
+        CancellationToken cancellationToken)
+    {
+        var payable = await CoaIdAsync(connection, "2000", cancellationToken).ConfigureAwait(false);
+        var expense = await CoaIdAsync(connection, "6100", cancellationToken).ConfigureAwait(false);
+        if (payable <= 0 || expense <= 0)
+        {
+            return 0L;
+        }
+
+        var lines = isCredit
+            ? new List<ErpGlLine>
+            {
+                new(expense, amount, 0m, "Supplier charge — " + entryKind),
+                new(payable, 0m, amount, "Accounts payable increase"),
+            }
+            : new List<ErpGlLine>
+            {
+                new(payable, amount, 0m, "Accounts payable decrease"),
+                new(expense, 0m, amount, "Supplier credit — " + entryKind),
+            };
+
+        try
+        {
+            return await _gl.PostJournalAsync(
+                connection,
+                new ErpGlJournalHeader
+                {
+                    JournalDate = time,
+                    Reference = reference,
+                    Description = note.Length > 0 ? note : "Supplier AP settlement",
+                    SourceType = "adjustment",
+                    SourceId = ledgerId,
+                },
+                lines,
+                adminId,
+                cancellationToken).ConfigureAwait(false);
+        }
+        catch (ErpWriteException)
+        {
+            // PHP swallows settlement GL failures — the ledger row still stands.
+            return 0L;
+        }
+        catch (DbException)
+        {
+            return 0L;
+        }
+    }
+
     /// <summary>PHP <c>epc_erp_cash_entry</c> entry-type resolution (direction decides unless overridden).</summary>
     public static string ResolveEntryType(string? entryType, bool direction)
     {
@@ -372,14 +600,33 @@ public sealed class ErpCashWriteService : IErpCashWriteService
         var userId = input.UserId;
         var amount = ErpTaxAmountCalculator.Round2(input.Amount);
         var income = input.Income;
-        var entryKind = input.EntryKind;
-        var reference = input.Reference;
-        var note = input.Note;
+        var entryKind = NormalizeSettlementKind(input.EntryKind);
+        var reference = input.Reference.Trim();
+        var note = input.Note.Trim();
         var time = input.Time > 0 ? input.Time : DateTimeOffset.UtcNow.ToUnixTimeSeconds();
         var postGl = input.PostGl;
         if (userId <= 0 || amount <= 0m)
         {
             throw new ErpWriteException("Customer and positive amount required");
+        }
+
+        if (input.OrderId > 0)
+        {
+            await ErpOrderCompletionGuard.AssertCompleteAsync(
+                connection,
+                input.OrderId,
+                "Customer settlement linked to order",
+                cancellationToken).ConfigureAwait(false);
+        }
+
+        if (entryKind == "write_off" && income)
+        {
+            throw new ErpWriteException("Write-off must reduce customer balance (debit direction)");
+        }
+
+        if (note.Length == 0)
+        {
+            note = SettlementKindLabel(entryKind) + (reference.Length > 0 ? " — " + reference : string.Empty);
         }
 
         await EnsureAccountingCodesAsync(connection, cancellationToken).ConfigureAwait(false);
@@ -403,38 +650,28 @@ public sealed class ErpCashWriteService : IErpCashWriteService
 
         // The shop ledger predates ERP: older tenant databases have neither the
         // tech_value_text detail column nor order_id (PHP probes SHOW COLUMNS too).
-        var hasDetail = await HasColumnAsync(connection, "shop_users_accounting", "tech_value_text", cancellationToken).ConfigureAwait(false);
-        if (hasDetail)
+        var columns = new List<string> { "user_id", "time", "income", "amount", "operation_code", "active", "office_id" };
+        var values = new List<object?> { userId, time, income ? 1 : 0, amount, codeId, 1, 0 };
+        if (await HasColumnAsync(connection, "shop_users_accounting", "order_id", cancellationToken).ConfigureAwait(false))
         {
-            await ErpDb.ExecuteAsync(
-                connection,
-                null,
-                ErpDb.Positional(
-                    "INSERT INTO `shop_users_accounting` (`user_id`, `time`, `income`, `amount`, `operation_code`, `active`,"
-                    + " `office_id`, `tech_value_text`) VALUES (?,?,?,?,?,1,0,?)"),
-                cancellationToken,
-                userId,
-                time,
-                income ? 1 : 0,
-                amount,
-                codeId,
-                detail).ConfigureAwait(false);
+            columns.Add("order_id");
+            values.Add(input.OrderId);
         }
-        else
+
+        if (await HasColumnAsync(connection, "shop_users_accounting", "tech_value_text", cancellationToken).ConfigureAwait(false))
         {
-            await ErpDb.ExecuteAsync(
-                connection,
-                null,
-                ErpDb.Positional(
-                    "INSERT INTO `shop_users_accounting` (`user_id`, `time`, `income`, `amount`, `operation_code`, `active`,"
-                    + " `office_id`) VALUES (?,?,?,?,?,1,0)"),
-                cancellationToken,
-                userId,
-                time,
-                income ? 1 : 0,
-                amount,
-                codeId).ConfigureAwait(false);
+            columns.Add("tech_value_text");
+            values.Add(detail);
         }
+
+        await ErpDb.ExecuteAsync(
+            connection,
+            null,
+            ErpDb.Positional(
+                "INSERT INTO `shop_users_accounting` (`" + string.Join("`,`", columns) + "`) VALUES ("
+                + string.Join(',', Enumerable.Repeat("?", columns.Count)) + ")"),
+            cancellationToken,
+            [.. values]).ConfigureAwait(false);
 
         var ledgerId = await ErpDb.LastInsertIdAsync(connection, null, cancellationToken).ConfigureAwait(false);
 

@@ -1080,6 +1080,7 @@ public sealed class ErpModule : ISurfaceModule
             ErpSupplierSettlementBody? body,
             ILegacySessionValidator validator,
             IErpSupplierSettlementDryRun dryRun,
+            IErpCashWriteService writes,
             CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateAsync(context, cancellationToken);
@@ -1088,9 +1089,37 @@ public sealed class ErpModule : ISurfaceModule
                 return Unauthorized("Admin ERP capability required for supplier settlement dry-run.");
             }
             body ??= new ErpSupplierSettlementBody(0, 0, "decrease", false);
-            var result = dryRun.Evaluate(new ErpSupplierSettlementRequest(
-                body.SupplierId, body.Amount, body.Direction, body.ConfirmWrites));
-            return Results.Ok(result.ToPayload(SessionPayload(session)));
+            if (!body.ConfirmWrites)
+            {
+                var result = dryRun.Evaluate(new ErpSupplierSettlementRequest(
+                    body.SupplierId, body.Amount, body.Direction, false));
+                return Results.Ok(result.ToPayload(SessionPayload(session)));
+            }
+
+            return await ExecuteErpWriteAsync(session, async () =>
+            {
+                var settled = await writes.SupplierSettlementAsync(
+                    new ErpSupplierSettlementInput
+                    {
+                        SupplierId = (int)body.SupplierId,
+                        Amount = body.Amount,
+                        Direction = body.Direction ?? "decrease",
+                        EntryKind = body.EntryKind ?? "adjustment",
+                        PurchaseId = body.PurchaseId,
+                        OrderId = body.OrderId,
+                        Reference = body.Reference ?? string.Empty,
+                        Note = body.Note ?? string.Empty,
+                        Time = body.Time,
+                        PostGl = body.PostGl,
+                    },
+                    session.UserId,
+                    cancellationToken);
+                return ("Supplier ledger updated", new
+                {
+                    ledger_id = settled.LedgerId,
+                    gl_journal_id = settled.GlJournalId,
+                });
+            });
         });
 
         endpoints.MapPost(EcomAeRoutes.ErpFiscalSetLock, async (
@@ -1426,8 +1455,38 @@ public sealed class ErpModule : ISurfaceModule
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(false); return Results.Ok(dryRun.Evaluate(new ErpBankReconcileRequest(body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxFxPostRevaluation, async (HttpContext context, ErpFxPostRevaluationBody? body, ILegacySessionValidator validator, IErpFxPostRevaluationDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(false); return Results.Ok(dryRun.Evaluate(new ErpFxPostRevaluationRequest(body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxSupplierPayment, async (HttpContext context, ErpSupplierPaymentBody? body, ILegacySessionValidator validator, IErpSupplierPaymentDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,false); return Results.Ok(dryRun.Evaluate(new ErpSupplierPaymentRequest(body.Id, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        // Live write (PHP supplier_payment parity) when confirmWrites=true; otherwise the Wave B dry-run gate.
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxSupplierPayment, async (HttpContext context, ErpSupplierPaymentBody? body, ILegacySessionValidator validator, IErpSupplierPaymentDryRun dryRun, IErpCashWriteService writes, CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required.");
+            body ??= new(0, false);
+            if (!body.ConfirmWrites)
+                return Results.Ok(dryRun.Evaluate(new ErpSupplierPaymentRequest(body.Id, false)).ToPayload(SessionPayload(session)));
+
+            return await ExecuteErpWriteAsync(session, async () =>
+            {
+                var paid = await writes.PaymentVoucherAsync(
+                    new ErpPaymentVoucherInput
+                    {
+                        SupplierId = body.SupplierId > 0 ? body.SupplierId : (int)body.Id,
+                        AccountId = body.AccountId,
+                        Amount = body.Amount,
+                        PurchaseId = body.PurchaseId,
+                        Reference = body.Reference ?? string.Empty,
+                        Note = body.Note ?? string.Empty,
+                        Time = body.Time,
+                    },
+                    session.UserId,
+                    cancellationToken);
+                return ("Supplier payment " + paid.VoucherNo + " posted", new
+                {
+                    cash_entry_id = paid.CashEntryId,
+                    voucher_no = paid.VoucherNo,
+                    gl_journal_id = paid.GlJournalId,
+                });
+            });
+        });
 
         endpoints.MapPost(EcomAeRoutes.ErpAjaxInvSyncWarehouses, async (HttpContext context, ErpInvSyncWarehousesBody? body, ILegacySessionValidator validator, IErpInvSyncWarehousesDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(false); return Results.Ok(dryRun.Evaluate(new ErpInvSyncWarehousesRequest(body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
@@ -2738,7 +2797,14 @@ public sealed class ErpModule : ISurfaceModule
         long SupplierId,
         decimal Amount,
         string? Direction = "decrease",
-        bool ConfirmWrites = false);
+        bool ConfirmWrites = false,
+        string? EntryKind = "adjustment",
+        long PurchaseId = 0,
+        long OrderId = 0,
+        string? Reference = null,
+        string? Note = null,
+        long Time = 0,
+        bool PostGl = false);
     private sealed record ErpFiscalSetLockBody(long LockDateUnix = 0, string? Note = null, bool ConfirmWrites = false);
     private sealed record ErpPeriodReopenBody(string? YearMonth, string? Note = null, bool ConfirmWrites = false);
     private sealed record ErpPurchaseAdjustmentBody(long PurchaseId, decimal DeltaExVat, string? Note = null, bool ConfirmWrites = false);
@@ -3071,5 +3137,14 @@ public sealed class ErpModule : ISurfaceModule
     private sealed record ErpBankImportBody(bool ConfirmWrites = false);
     private sealed record ErpBankReconcileBody(bool ConfirmWrites = false);
     private sealed record ErpFxPostRevaluationBody(bool ConfirmWrites = false);
-    private sealed record ErpSupplierPaymentBody(long Id, bool ConfirmWrites = false);
+    private sealed record ErpSupplierPaymentBody(
+        long Id,
+        bool ConfirmWrites = false,
+        int SupplierId = 0,
+        int AccountId = 0,
+        decimal Amount = 0m,
+        long PurchaseId = 0,
+        string? Reference = null,
+        string? Note = null,
+        long Time = 0);
 }

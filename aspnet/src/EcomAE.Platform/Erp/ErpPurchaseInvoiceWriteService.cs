@@ -24,6 +24,9 @@ public sealed record ErpPurchaseInvoiceInput
     public string Status { get; init; } = "confirmed";
 
     public string Note { get; init; } = string.Empty;
+
+    /// <summary>PHP <c>allow_open_order</c>: skips the order-completion guard (PO conversions set it).</summary>
+    public bool AllowOpenOrder { get; init; }
 }
 
 public sealed record ErpPurchaseInvoiceResult(
@@ -126,6 +129,7 @@ public sealed class ErpPurchaseInvoiceWriteService : IErpPurchaseInvoiceWriteSer
             {
                 SupplierId = po.SupplierId,
                 OrderId = po.OrderId,
+                AllowOpenOrder = po.OrderId > 0,
                 PurchaseOrderId = purchaseOrderId,
                 InvoiceNumber = piNo,
                 AmountExVat = po.AmountExVat,
@@ -179,6 +183,15 @@ public sealed class ErpPurchaseInvoiceWriteService : IErpPurchaseInvoiceWriteSer
         int adminId,
         CancellationToken cancellationToken)
     {
+        if (input.OrderId > 0 && !input.AllowOpenOrder)
+        {
+            await ErpOrderCompletionGuard.AssertCompleteAsync(
+                connection,
+                input.OrderId,
+                "Purchase invoice for order",
+                cancellationToken).ConfigureAwait(false);
+        }
+
         var amountEx = ErpTaxAmountCalculator.Round2(input.AmountExVat);
         var tax = await _tax.CalcPurchaseAsync(connection, null, amountEx, input.SupplierId, input.Import, cancellationToken).ConfigureAwait(false);
         var total = tax.ImportDuty > 0m ? tax.TotalWithDuty : tax.TotalAmount;
