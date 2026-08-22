@@ -253,9 +253,11 @@ public sealed class ErpSettlementAllocationService : IErpSettlementAllocationSer
             await ErpDb.ExecuteAsync(
                 connection,
                 null,
+                // MySQL applies SET assignments left to right, so `amount_due` must be derived
+                // before `paid_amount` is raised or the payment is subtracted twice.
                 ErpDb.Positional(
-                    "UPDATE `epc_einvoice_documents` SET `paid_amount` = ROUND(`paid_amount` + ?, 2),"
-                    + " `amount_due` = ROUND(`total_incl_vat` - (`paid_amount` + ?), 2), `time_updated` = ?"
+                    "UPDATE `epc_einvoice_documents` SET `amount_due` = ROUND(`total_incl_vat` - (`paid_amount` + ?), 2),"
+                    + " `paid_amount` = ROUND(`paid_amount` + ?, 2), `time_updated` = ?"
                     + " WHERE `id` = ?"),
                 cancellationToken,
                 apply,
