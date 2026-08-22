@@ -74,4 +74,60 @@ public sealed class ErpCashWriteServiceTests
     [InlineData("transfer_in", false, "transfer_in")]
     public void EntryTypeFollowsPhpResolution(string requested, bool direction, string expected)
         => Assert.Equal(expected, ErpCashWriteService.ResolveEntryType(requested, direction));
+
+    [Theory]
+    [InlineData(0, 100)]
+    [InlineData(7, 0)]
+    [InlineData(7, -5)]
+    public async Task SupplierSettlementRequiresSupplierAndPositiveAmount(int supplierId, decimal amount)
+    {
+        var ex = await Assert.ThrowsAsync<ErpWriteException>(() => Service().SupplierSettlementAsync(
+            new ErpSupplierSettlementInput { SupplierId = supplierId, Amount = amount },
+            adminId: 1));
+        Assert.Equal("Supplier and positive amount required", ex.Message);
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("raise")]
+    [InlineData("credit")]
+    public async Task SupplierSettlementRejectsUnknownDirection(string direction)
+    {
+        var ex = await Assert.ThrowsAsync<ErpWriteException>(() => Service().SupplierSettlementAsync(
+            new ErpSupplierSettlementInput { SupplierId = 7, Amount = 100m, Direction = direction },
+            adminId: 1));
+        Assert.Equal("Direction must be increase or decrease payable", ex.Message);
+    }
+
+    [Fact]
+    public async Task SupplierWriteOffCannotIncreasePayable()
+    {
+        var ex = await Assert.ThrowsAsync<ErpWriteException>(() => Service().SupplierSettlementAsync(
+            new ErpSupplierSettlementInput
+            {
+                SupplierId = 7,
+                Amount = 100m,
+                Direction = "increase",
+                EntryKind = "write_off",
+            },
+            adminId: 1));
+        Assert.Equal("Write-off must decrease payable", ex.Message);
+    }
+
+    [Theory]
+    [InlineData("settlement", "settlement")]
+    [InlineData("write_off", "write_off")]
+    [InlineData("adjustment", "adjustment")]
+    [InlineData("", "adjustment")]
+    [InlineData("bogus", "adjustment")]
+    [InlineData(null, "adjustment")]
+    public void SettlementKindFollowsPhpKindList(string? requested, string expected)
+        => Assert.Equal(expected, ErpCashWriteService.NormalizeSettlementKind(requested));
+
+    [Theory]
+    [InlineData("adjustment", "Adjustment / correction")]
+    [InlineData("settlement", "Settlement (non-cash close-off)")]
+    [InlineData("write_off", "Write-off")]
+    public void SettlementLabelsMatchPhpKindLabels(string kind, string expected)
+        => Assert.Equal(expected, ErpCashWriteService.SettlementKindLabel(kind));
 }
