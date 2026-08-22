@@ -29,7 +29,13 @@ public sealed class ErpSalesInvoiceWriteServiceTests
             connections,
             vouchers,
             new ErpTaxAmountCalculator(),
-            new ErpCashWriteService(connections, vouchers, new ErpGlPostingService(vouchers), new ErpAuditLogWriter()),
+            new ErpCashWriteService(
+                connections,
+                vouchers,
+                new ErpGlPostingService(vouchers),
+                new ErpAuditLogWriter(),
+                new ErpSettlementAllocationService(),
+                new ErpAdvanceVatService(new ErpGlPostingService(vouchers))),
             new ErpAuditLogWriter());
     }
 
