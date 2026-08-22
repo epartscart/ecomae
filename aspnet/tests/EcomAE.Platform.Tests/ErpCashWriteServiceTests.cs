@@ -18,7 +18,9 @@ public sealed class ErpCashWriteServiceTests
         new UnusedConnections(),
         new ErpVoucherNumberService(),
         new ErpGlPostingService(new ErpVoucherNumberService()),
-        new ErpAuditLogWriter());
+        new ErpAuditLogWriter(),
+        new ErpSettlementAllocationService(),
+        new ErpAdvanceVatService(new ErpGlPostingService(new ErpVoucherNumberService())));
 
     [Theory]
     [InlineData(0, 100)]
@@ -46,12 +48,22 @@ public sealed class ErpCashWriteServiceTests
     [Theory]
     [InlineData(true)]
     [InlineData(null)]
-    public async Task AdvanceReceiptsStayPhpOnly(bool? isAdvance)
-    {
-        var ex = await Assert.ThrowsAsync<ErpWriteException>(() => Service().ReceiptVoucherAsync(
+    public async Task AdvanceReceiptsPassValidationAndReachTheDatabase(bool? isAdvance)
+        => await Assert.ThrowsAsync<InvalidOperationException>(() => Service().ReceiptVoucherAsync(
             new ErpReceiptVoucherInput { UserId = 9, AccountId = 4, Amount = 100m, IsAdvance = isAdvance },
             adminId: 1));
-        Assert.StartsWith("Advance receipts", ex.Message, StringComparison.Ordinal);
+
+    [Theory]
+    [InlineData(0, 4, 100)]
+    [InlineData(4, 0, 100)]
+    [InlineData(4, 4, 100)]
+    [InlineData(4, 5, 0)]
+    public async Task TransferVoucherRequiresTwoDistinctAccountsAndPositiveAmount(int fromId, int toId, decimal amount)
+    {
+        var ex = await Assert.ThrowsAsync<ErpWriteException>(() => Service().TransferVoucherAsync(
+            new ErpTransferVoucherInput { FromAccountId = fromId, ToAccountId = toId, Amount = amount },
+            adminId: 1));
+        Assert.Equal("Two distinct accounts and a positive amount required", ex.Message);
     }
 
     [Theory]

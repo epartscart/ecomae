@@ -343,8 +343,48 @@ public sealed class ErpModule : ISurfaceModule
                 });
             });
         });
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxTransferVoucher, async (HttpContext context, ErpTransferVoucherBody? body, ILegacySessionValidator validator, IErpTransferVoucherDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpTransferVoucherRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxTransferVoucher, async (
+            HttpContext context,
+            ErpTransferVoucherBody? body,
+            ILegacySessionValidator validator,
+            IErpTransferVoucherDryRun dryRun,
+            IErpCashWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+            {
+                return Unauthorized("Admin ERP capability required.");
+            }
+
+            body ??= new ErpTransferVoucherBody();
+            if (!body.ConfirmWrites)
+            {
+                return Results.Ok(dryRun
+                    .Evaluate(new ErpTransferVoucherRequest(body.Id, body.Code, false))
+                    .ToPayload(SessionPayload(session)));
+            }
+
+            return await ExecuteErpWriteAsync(session, async () =>
+            {
+                var saved = await writes.TransferVoucherAsync(
+                    new ErpTransferVoucherInput
+                    {
+                        FromAccountId = (int)body.FromAccountId,
+                        ToAccountId = (int)body.ToAccountId,
+                        Amount = body.Amount,
+                        Note = body.Note ?? string.Empty,
+                    },
+                    session.UserId,
+                    cancellationToken);
+                return ("Transfer voucher posted", (object)new
+                {
+                    voucher_no = saved.VoucherNo,
+                    out_id = saved.OutEntryId,
+                    in_id = saved.InEntryId,
+                });
+            });
+        });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxPaymentBatchSave, async (HttpContext context, ErpPaymentBatchSaveBody? body, ILegacySessionValidator validator, IErpPaymentBatchSaveDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpPaymentBatchSaveRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxPettyCashSave, async (HttpContext context, ErpPettyCashSaveBody? body, ILegacySessionValidator validator, IErpPettyCashSaveDryRun dryRun, CancellationToken cancellationToken) =>
@@ -780,7 +820,7 @@ public sealed class ErpModule : ISurfaceModule
                 return Unauthorized("Admin ERP capability required for receipt voucher dry-run.");
             }
 
-            body ??= new ErpReceiptVoucherBody(0, 0, 0, null, false);
+            body ??= new ErpReceiptVoucherBody(0, 0, 0);
             if (!body.ConfirmWrites)
             {
                 var result = dryRun.Evaluate(
@@ -800,6 +840,10 @@ public sealed class ErpModule : ISurfaceModule
                         SalesInvoiceId = body.SalesInvoiceId ?? 0,
                         IsAdvance = body.IsAdvance,
                         PostGl = body.PostGl,
+                        OrderId = body.OrderId ?? 0,
+                        AutoAllocate = body.AutoAllocate,
+                        AllocInvoiceIds = body.AllocInvoiceId,
+                        AllocAmounts = body.AllocAmount,
                         Note = body.Note ?? string.Empty,
                     },
                     session.UserId,
@@ -822,7 +866,7 @@ public sealed class ErpModule : ISurfaceModule
                 return Unauthorized("Admin ERP capability required for payment voucher dry-run.");
             }
 
-            body ??= new ErpPaymentVoucherBody(0, 0, 0, false);
+            body ??= new ErpPaymentVoucherBody(0, 0, 0);
             if (!body.ConfirmWrites)
             {
                 var result = dryRun.Evaluate(
@@ -839,6 +883,11 @@ public sealed class ErpModule : ISurfaceModule
                         AccountId = (int)body.AccountId,
                         Amount = body.Amount,
                         PurchaseId = body.PurchaseId ?? 0,
+                        PurchaseOrderId = body.PurchaseOrderId ?? 0,
+                        IsAdvance = body.IsAdvance,
+                        AutoAllocate = body.AutoAllocate,
+                        AllocInvoiceIds = body.AllocInvoiceId,
+                        AllocAmounts = body.AllocAmount,
                         Reference = body.Reference ?? string.Empty,
                         Note = body.Note ?? string.Empty,
                     },
@@ -2655,6 +2704,9 @@ public sealed class ErpModule : ISurfaceModule
         voucher_no = result.VoucherNo,
         gl_journal_id = result.GlJournalId,
         ledger_id = result.LedgerId,
+        is_advance = result.IsAdvance,
+        allocated = result.Allocated,
+        unallocated = result.Unallocated,
     };
 
     private static async Task<IResult> ExecuteErpWriteAsync(
@@ -2745,7 +2797,11 @@ public sealed class ErpModule : ISurfaceModule
         long? SalesInvoiceId = null,
         bool? IsAdvance = null,
         bool PostGl = false,
-        string? Note = null);
+        string? Note = null,
+        long? OrderId = null,
+        bool AutoAllocate = false,
+        IReadOnlyList<long>? AllocInvoiceId = null,
+        IReadOnlyList<decimal>? AllocAmount = null);
     private sealed record ErpPaymentVoucherBody(
         long SupplierId,
         long AccountId,
@@ -2753,7 +2809,12 @@ public sealed class ErpModule : ISurfaceModule
         bool ConfirmWrites = false,
         long? PurchaseId = null,
         string? Reference = null,
-        string? Note = null);
+        string? Note = null,
+        long? PurchaseOrderId = null,
+        bool IsAdvance = false,
+        bool AutoAllocate = false,
+        IReadOnlyList<long>? AllocInvoiceId = null,
+        IReadOnlyList<decimal>? AllocAmount = null);
     private sealed record ErpSupplierCreateBody(string? Name, string? ContactEmail = null, bool ConfirmWrites = false);
     private sealed record ErpPurchaseCreateBody(long SupplierId, decimal AmountExVat, bool ConfirmWrites = false);
     private sealed record ErpPurchaseDeleteBody(long PurchaseId, bool ConfirmWrites = false);
@@ -3056,7 +3117,14 @@ public sealed class ErpModule : ISurfaceModule
         string? LinesJson = null);
     private sealed record ErpSoStatusBody(long Id, string? TargetStatus = null, bool ConfirmWrites = false);
     private sealed record ErpSoToInvoiceBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
-    private sealed record ErpTransferVoucherBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
+    private sealed record ErpTransferVoucherBody(
+        long Id = 0,
+        string? Code = null,
+        bool ConfirmWrites = false,
+        long FromAccountId = 0,
+        long ToAccountId = 0,
+        decimal Amount = 0m,
+        string? Note = null);
     private sealed record ErpPaymentBatchSaveBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpPettyCashSaveBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpAgendaSaveBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);

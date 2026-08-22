@@ -60,6 +60,17 @@ internal static class ErpDb
         return value is null ? 0L : Convert.ToInt64(value, CultureInfo.InvariantCulture);
     }
 
+    public static async Task<decimal> DecimalAsync(
+        DbConnection connection,
+        DbTransaction? transaction,
+        string sql,
+        CancellationToken cancellationToken,
+        params object?[] parameters)
+    {
+        var value = await ScalarAsync(connection, transaction, sql, cancellationToken, parameters).ConfigureAwait(false);
+        return value is null ? 0m : Convert.ToDecimal(value, CultureInfo.InvariantCulture);
+    }
+
     public static async Task<long> LastInsertIdAsync(DbConnection connection, DbTransaction? transaction, CancellationToken cancellationToken)
         => await LongAsync(connection, transaction, "SELECT LAST_INSERT_ID()", cancellationToken).ConfigureAwait(false);
 
@@ -76,11 +87,9 @@ internal static class ErpDb
         }
     }
 
-    private static DbCommand CreateCommand(DbConnection connection, DbTransaction? transaction, string sql, object?[] parameters)
+    /// <summary>Binds positional values onto a command the caller builds itself (readers).</summary>
+    public static void AddParameters(DbCommand command, params object?[] parameters)
     {
-        var command = connection.CreateCommand();
-        command.CommandText = sql;
-        command.Transaction = transaction;
         for (var i = 0; i < parameters.Length; i++)
         {
             var parameter = command.CreateParameter();
@@ -89,7 +98,14 @@ internal static class ErpDb
             parameter.Direction = ParameterDirection.Input;
             command.Parameters.Add(parameter);
         }
+    }
 
+    private static DbCommand CreateCommand(DbConnection connection, DbTransaction? transaction, string sql, object?[] parameters)
+    {
+        var command = connection.CreateCommand();
+        command.CommandText = sql;
+        command.Transaction = transaction;
+        AddParameters(command, parameters);
         return command;
     }
 
