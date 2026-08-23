@@ -207,6 +207,21 @@ public sealed class ErpGlLedgerWriteService : IErpGlLedgerWriteService
         var journal = await JournalHeadAsync(connection, journalId, cancellationToken).ConfigureAwait(false)
             ?? throw new ErpWriteException("Journal not found or already reversed");
 
+        // PHP's message promises this guard but never queries for it, so a journal can be
+        // reversed repeatedly and each pass double-counts the mirrored side.
+        var existingReversal = await ErpDb.LongAsync(
+            connection,
+            null,
+            ErpDb.Positional(
+                "SELECT `id` FROM `epc_erp_gl_journals` WHERE `source_type` = 'adjustment' AND `source_id` = ?"
+                + " AND `active` = 1 LIMIT 1"),
+            cancellationToken,
+            journalId).ConfigureAwait(false);
+        if (existingReversal > 0)
+        {
+            throw new ErpWriteException("Journal not found or already reversed");
+        }
+
         var lines = await JournalLinesAsync(connection, journalId, cancellationToken).ConfigureAwait(false);
         if (lines.Count == 0)
         {
