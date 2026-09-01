@@ -457,6 +457,7 @@ builder.Services.AddScoped<EcomAE.Platform.Erp.IErpGlPostingService, EcomAE.Plat
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpSettlementAllocationService, EcomAE.Platform.Erp.ErpSettlementAllocationService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpAdvanceVatService, EcomAE.Platform.Erp.ErpAdvanceVatService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpCashWriteService, EcomAE.Platform.Erp.ErpCashWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpGlLedgerWriteService, EcomAE.Platform.Erp.ErpGlLedgerWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpSalesInvoiceWriteService, EcomAE.Platform.Erp.ErpSalesInvoiceWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpPurchaseOrderWriteService, EcomAE.Platform.Erp.ErpPurchaseOrderWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpPurchaseInvoiceWriteService, EcomAE.Platform.Erp.ErpPurchaseInvoiceWriteService>();

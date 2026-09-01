@@ -1,3 +1,4 @@
+using System.Globalization;
 using EcomAE.Platform.Auth;
 using EcomAE.Platform.Erp;
 using EcomAE.Platform.Middleware;
@@ -1801,6 +1802,7 @@ public sealed class ErpModule : ISurfaceModule
             ErpCashAccountCreateBody? body,
             ILegacySessionValidator validator,
             IErpCashAccountCreateDryRun dryRun,
+            IErpGlLedgerWriteService writes,
             CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateAsync(context, cancellationToken);
@@ -1809,8 +1811,43 @@ public sealed class ErpModule : ISurfaceModule
                 return Unauthorized("Admin ERP capability required for cash account create dry-run.");
             }
             body ??= new ErpCashAccountCreateBody(null, "cash", false);
-            var result = dryRun.Evaluate(new ErpCashAccountCreateRequest(body.Name, body.AccountType, body.ConfirmWrites));
-            return Results.Ok(result.ToPayload(SessionPayload(session)));
+            if (!body.ConfirmWrites)
+            {
+                return Results.Ok(dryRun
+                    .Evaluate(new ErpCashAccountCreateRequest(body.Name, body.AccountType, false))
+                    .ToPayload(SessionPayload(session)));
+            }
+
+            return await ExecuteErpWriteAsync(session, async () =>
+            {
+                var accountId = await writes.CreateCashAccountAsync(
+                    new ErpCashAccountInput
+                    {
+                        Name = body.Name ?? string.Empty,
+                        AccountType = body.AccountType ?? "cash",
+                        BankName = body.BankName ?? string.Empty,
+                        AccountNumber = body.AccountNumber ?? string.Empty,
+                        CurrencyCode = body.CurrencyCode ?? "AED",
+                        OpeningBalance = body.OpeningBalance,
+                        OfficeId = body.OfficeId,
+                        LegalEntityId = body.LegalEntityId,
+                        BusinessUnitId = body.BusinessUnitId,
+                        GlAccountId = body.GlAccountId,
+                        Iban = body.Iban ?? string.Empty,
+                        SwiftBic = body.SwiftBic ?? string.Empty,
+                        BankBranch = body.BankBranch ?? string.Empty,
+                        RoutingCode = body.RoutingCode ?? string.Empty,
+                        Address = body.Address ?? string.Empty,
+                        ContactName = body.ContactName ?? string.Empty,
+                        ContactPhone = body.ContactPhone ?? string.Empty,
+                        ContactEmail = body.ContactEmail ?? string.Empty,
+                        Status = body.Status ?? "active",
+                        Notes = body.Notes ?? string.Empty,
+                    },
+                    session.UserId,
+                    cancellationToken);
+                return ("Account created", (object)new { id = accountId });
+            });
         });
 
         endpoints.MapPost(EcomAeRoutes.ErpCoaAccountsCreate, async (
@@ -1818,6 +1855,7 @@ public sealed class ErpModule : ISurfaceModule
             ErpCoaCreateBody? body,
             ILegacySessionValidator validator,
             IErpCoaCreateDryRun dryRun,
+            IErpGlLedgerWriteService writes,
             CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateAsync(context, cancellationToken);
@@ -1826,8 +1864,30 @@ public sealed class ErpModule : ISurfaceModule
                 return Unauthorized("Admin ERP capability required for COA create dry-run.");
             }
             body ??= new ErpCoaCreateBody(null, null, "expense", false);
-            var result = dryRun.Evaluate(new ErpCoaCreateRequest(body.Code, body.Name, body.AccountType, body.ConfirmWrites));
-            return Results.Ok(result.ToPayload(SessionPayload(session)));
+            if (!body.ConfirmWrites)
+            {
+                return Results.Ok(dryRun
+                    .Evaluate(new ErpCoaCreateRequest(body.Code, body.Name, body.AccountType, false))
+                    .ToPayload(SessionPayload(session)));
+            }
+
+            return await ExecuteErpWriteAsync(session, async () =>
+            {
+                var accountId = await writes.CreateCoaAccountAsync(
+                    new ErpCoaAccountInput
+                    {
+                        Code = body.Code ?? string.Empty,
+                        Name = body.Name ?? string.Empty,
+                        AccountType = body.AccountType ?? "expense",
+                        NormalSide = body.NormalSide ?? string.Empty,
+                        ParentId = body.ParentId,
+                        OpeningBalance = body.OpeningBalance,
+                        Description = body.Description ?? string.Empty,
+                    },
+                    session.UserId,
+                    cancellationToken);
+                return ("COA account created", (object)new { id = accountId });
+            });
         });
 
         endpoints.MapPost(EcomAeRoutes.ErpGlJournalsManual, async (
@@ -1835,6 +1895,7 @@ public sealed class ErpModule : ISurfaceModule
             ErpGlManualEntryBody? body,
             ILegacySessionValidator validator,
             IErpGlManualEntryDryRun dryRun,
+            IErpGlLedgerWriteService writes,
             CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateAsync(context, cancellationToken);
@@ -1844,13 +1905,35 @@ public sealed class ErpModule : ISurfaceModule
             }
 
             body ??= new ErpGlManualEntryBody([], null, null, false);
-            var lines = (body.Lines ?? [])
-                .Select(l => new ErpGlManualLine(l.CoaId, l.Debit, l.Credit, l.LineNote))
-                .ToList();
-            var result = await dryRun.EvaluateAsync(
-                new ErpGlManualEntryRequest(lines, body.Reference, body.Description, body.ConfirmWrites),
-                cancellationToken);
-            return Results.Ok(result.ToPayload(SessionPayload(session)));
+            if (!body.ConfirmWrites)
+            {
+                var lines = (body.Lines ?? [])
+                    .Select(l => new ErpGlManualLine(l.CoaId, l.Debit, l.Credit, l.LineNote))
+                    .ToList();
+                var result = await dryRun.EvaluateAsync(
+                    new ErpGlManualEntryRequest(lines, body.Reference, body.Description, false),
+                    cancellationToken);
+                return Results.Ok(result.ToPayload(SessionPayload(session)));
+            }
+
+            return await ExecuteErpWriteAsync(session, async () =>
+            {
+                var posted = await writes.ManualJournalAsync(
+                    new ErpManualJournalInput
+                    {
+                        Lines = (body.Lines ?? [])
+                            .Select(l => new ErpGlLine(l.CoaId, l.Debit, l.Credit, l.LineNote ?? string.Empty))
+                            .ToList(),
+                        Reference = body.Reference ?? string.Empty,
+                        Description = body.Description ?? string.Empty,
+                        JournalDate = body.JournalDate,
+                    },
+                    session.UserId,
+                    cancellationToken);
+                return (
+                    "GL journal posted",
+                    (object)new { journal_id = posted.JournalId, journal_no = posted.JournalNo });
+            });
         });
 
         endpoints.MapPost(EcomAeRoutes.ErpGlJournalsReverse, async (
@@ -1858,6 +1941,7 @@ public sealed class ErpModule : ISurfaceModule
             ErpGlReverseJournalBody? body,
             ILegacySessionValidator validator,
             IErpGlReverseJournalDryRun dryRun,
+            IErpGlLedgerWriteService writes,
             CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateAsync(context, cancellationToken);
@@ -1867,10 +1951,32 @@ public sealed class ErpModule : ISurfaceModule
             }
 
             body ??= new ErpGlReverseJournalBody(0, null, false);
-            var result = await dryRun.EvaluateAsync(
-                new ErpGlReverseJournalRequest(body.JournalId, body.Note, body.ConfirmWrites),
-                cancellationToken);
-            return Results.Ok(result.ToPayload(SessionPayload(session)));
+            if (!body.ConfirmWrites)
+            {
+                var result = await dryRun.EvaluateAsync(
+                    new ErpGlReverseJournalRequest(body.JournalId, body.Note, false),
+                    cancellationToken);
+                return Results.Ok(result.ToPayload(SessionPayload(session)));
+            }
+
+            return await ExecuteErpWriteAsync(session, async () =>
+            {
+                var reversal = await writes.ReverseJournalAsync(
+                    body.JournalId,
+                    body.ReverseDate,
+                    body.Note ?? string.Empty,
+                    session.UserId,
+                    cancellationToken);
+                return (
+                    "Journal reversed (new journal #" + reversal.JournalId.ToString(CultureInfo.InvariantCulture) + ")",
+                    (object)new
+                    {
+                        journal_id = reversal.JournalId,
+                        journal_no = reversal.JournalNo,
+                        source_journal_id = reversal.SourceJournalId,
+                        source_journal_no = reversal.SourceJournalNo,
+                    });
+            });
         });
 
         endpoints.MapPost(EcomAeRoutes.ErpPurchasesVoid, async (
@@ -2825,8 +2931,37 @@ public sealed class ErpModule : ISurfaceModule
         decimal? AmountExVat = null,
         bool ConfirmWrites = false);
     private sealed record ErpInvoiceDeleteBody(long InvoiceId, bool ConfirmWrites = false);
-    private sealed record ErpCashAccountCreateBody(string? Name, string? AccountType = "cash", bool ConfirmWrites = false);
-    private sealed record ErpCoaCreateBody(string? Code, string? Name, string? AccountType = "expense", bool ConfirmWrites = false);
+    private sealed record ErpCashAccountCreateBody(
+        string? Name,
+        string? AccountType = "cash",
+        bool ConfirmWrites = false,
+        string? BankName = null,
+        string? AccountNumber = null,
+        string? CurrencyCode = "AED",
+        decimal OpeningBalance = 0m,
+        long OfficeId = 0,
+        long LegalEntityId = 0,
+        long BusinessUnitId = 0,
+        long GlAccountId = 0,
+        string? Iban = null,
+        string? SwiftBic = null,
+        string? BankBranch = null,
+        string? RoutingCode = null,
+        string? Address = null,
+        string? ContactName = null,
+        string? ContactPhone = null,
+        string? ContactEmail = null,
+        string? Status = "active",
+        string? Notes = null);
+    private sealed record ErpCoaCreateBody(
+        string? Code,
+        string? Name,
+        string? AccountType = "expense",
+        bool ConfirmWrites = false,
+        string? NormalSide = null,
+        long ParentId = 0,
+        decimal OpeningBalance = 0m,
+        string? Description = null);
     private sealed record ErpCustomerMasterSaveBody(
         long CustomerId,
         string? CustomerName = null,
@@ -2897,8 +3032,17 @@ public sealed class ErpModule : ISurfaceModule
     private sealed record ErpProcReqDecisionBody(long Id, bool Approve = true, string? Note = null, bool ConfirmWrites = false);
     private sealed record ErpWmsLocationDeleteBody(long Id, bool ConfirmWrites = false);
     private sealed record ErpGlManualLineBody(long CoaId, decimal Debit, decimal Credit, string? LineNote = null);
-    private sealed record ErpGlManualEntryBody(IReadOnlyList<ErpGlManualLineBody>? Lines, string? Reference, string? Description, bool ConfirmWrites = false);
-    private sealed record ErpGlReverseJournalBody(long JournalId, string? Note, bool ConfirmWrites = false);
+    private sealed record ErpGlManualEntryBody(
+        IReadOnlyList<ErpGlManualLineBody>? Lines,
+        string? Reference,
+        string? Description,
+        bool ConfirmWrites = false,
+        long JournalDate = 0);
+    private sealed record ErpGlReverseJournalBody(
+        long JournalId,
+        string? Note,
+        bool ConfirmWrites = false,
+        long ReverseDate = 0);
     private sealed record ErpPurchaseVoidBody(long PurchaseId, string? Reason, bool ConfirmWrites = false);
     private sealed record ErpInvoiceCancelBody(long InvoiceId, string? Reason, bool ConfirmWrites = false);
     private sealed record ErpSalesOrderCancelBody(long SalesOrderId, string? Reason, bool ConfirmWrites = false);
