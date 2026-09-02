@@ -3,11 +3,11 @@
 #
 # CloudPanel root paste (pin by commit SHA — raw branch URLs can be CDN-stale):
 #   set -euxo pipefail
-#   URL='https://raw.githubusercontent.com/epartscart/ecomae/bd9d931a0aed86791b3a85ffef78a77d32c99b91/scripts/cloudpanel_EPARTSCART_CHPU_FITMENT_NOW.sh'
+#   URL='https://raw.githubusercontent.com/epartscart/ecomae/b94953e2af44fdf4a76bb0dbe73efe88e666c707/scripts/cloudpanel_EPARTSCART_CHPU_FITMENT_NOW.sh'
 #   TMP=/tmp/epartscart-chpu-fitment-now.sh
 #   curl -fsSL "$URL" -o "$TMP" && test -s "$TMP"
 #   grep -q 'epcOpenFitmentCheck' "$TMP" || { echo RESULT=FAIL bad_download; exit 1; }
-#   export ECOMAE_BRANCH=cursor/chpu-fitment-parity-7529
+#   export ECOMAE_BRANCH=cursor/chpu-fitment-sku-media-7529
 #   export ECOMAE_EPARTSCART_SHOP_DB=docpart
 #   bash "$TMP" 2>&1 | tee /root/epartscart-chpu-fitment-now.log
 #   grep -E 'RESULT=|GATE_|SHA=|FITMENT_' /root/epartscart-chpu-fitment-now.log | tail -80

@@ -3,11 +3,11 @@
 #
 # CloudPanel root paste (pin by commit SHA):
 #   set -euxo pipefail
-#   URL='https://raw.githubusercontent.com/epartscart/ecomae/104566cb84c1f1fdf87b2fb4a80bdd24a447b033/scripts/cloudpanel_EPARTSCART_CHPU_SKU_MEDIA_NOW.sh'
+#   URL='https://raw.githubusercontent.com/epartscart/ecomae/b94953e2af44fdf4a76bb0dbe73efe88e666c707/scripts/cloudpanel_EPARTSCART_CHPU_SKU_MEDIA_NOW.sh'
 #   TMP=/tmp/epartscart-chpu-sku-media-now.sh
 #   curl -fsSL "$URL" -o "$TMP" && test -s "$TMP"
 #   grep -q 'StorefrontSkuMedia' "$TMP" || { echo RESULT=FAIL bad_download; exit 1; }
-#   export ECOMAE_BRANCH=cursor/chpu-sku-media-spec-photo-7529
+#   export ECOMAE_BRANCH=cursor/chpu-fitment-sku-media-7529
 #   export ECOMAE_EPARTSCART_SHOP_DB=docpart
 #   bash "$TMP" 2>&1 | tee /root/epartscart-chpu-sku-media-now.log
 #   grep -E 'RESULT=|GATE_|SHA=|SKU_' /root/epartscart-chpu-sku-media-now.log | tail -80
