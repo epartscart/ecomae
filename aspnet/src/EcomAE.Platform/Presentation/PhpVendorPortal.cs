@@ -37,4 +37,6 @@ public static class PhpVendorPortal
     public static string ConfirmWriteHref => "/php-reference/en/users/confirm_contact";
     public static string ReturnsWriteHref => "/php-reference/en/shop/returns/add";
     public static string BulkUploadWriteHref => "/php-reference/en/shop/bulk-upload";
+    public static string NewsletterWriteHref => "/php-reference/ajax_newsletter_subscribe.php";
+    public static string ContactWriteHref => "/php-reference/en/kontakty";
 }

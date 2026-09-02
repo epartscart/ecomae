@@ -57,6 +57,9 @@ public static class StorefrontAspNetCanonical
     /// <summary>Customer registration (PHP twin: <c>/en/users/registration</c>).</summary>
     public const string Registration = "/storefront/register-app";
     public const string GarageLogin = "/storefront/garage-app";
+    public const string AutoWorkshop = "/storefront/auto-workshop-app";
+    public const string GarageManager = "/storefront/garage-manager-app";
+    public const string Newsletter = "/storefront/newsletter-app";
     /// <summary>Checkout delivery/pickup step (PHP <c>/en/shop/checkout/how_get</c>).</summary>
     public const string CheckoutHowGet = "/storefront/checkout-app?step=how_get";
     /// <summary>Checkout confirm step (PHP <c>/en/shop/checkout/confirm</c>).</summary>

@@ -126,6 +126,39 @@ public sealed class IndustryStorefrontSlugMiddleware
             return true;
         }
 
+        if (only.Equals("auto-workshop", StringComparison.OrdinalIgnoreCase)
+            && industry is "auto_parts")
+        {
+            rewrite = StorefrontAspNetCanonical.AutoWorkshop + incomingQuery;
+            kind = "auto-workshop";
+            return true;
+        }
+
+        if ((only.Equals("garage/manager", StringComparison.OrdinalIgnoreCase)
+             || only.Equals("garage/manager/", StringComparison.OrdinalIgnoreCase))
+            && industry is "auto_parts")
+        {
+            rewrite = StorefrontAspNetCanonical.GarageManager;
+            kind = "garage-manager";
+            return true;
+        }
+
+        if (only.Equals("garazh", StringComparison.OrdinalIgnoreCase)
+            || only.StartsWith("garazh/", StringComparison.OrdinalIgnoreCase))
+        {
+            rewrite = StorefrontAspNetCanonical.GarageLogin + incomingQuery;
+            kind = "customer-garage";
+            return true;
+        }
+
+        if (only.Equals("newsletter", StringComparison.OrdinalIgnoreCase)
+            || only.Equals("subscribe", StringComparison.OrdinalIgnoreCase))
+        {
+            rewrite = StorefrontAspNetCanonical.Newsletter;
+            kind = "newsletter";
+            return true;
+        }
+
         if (only.StartsWith("p/", StringComparison.OrdinalIgnoreCase)
             || only.StartsWith("product/", StringComparison.OrdinalIgnoreCase))
         {

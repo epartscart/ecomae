@@ -33,7 +33,20 @@ public static class StorefrontUcatsCatalog
             return null;
         }
 
-        return Cards.FirstOrDefault(c => string.Equals(c.Slug, slug, StringComparison.OrdinalIgnoreCase));
+        var key = slug.Trim().Trim('/');
+        key = key.ToLowerInvariant() switch
+        {
+            "disky" or "disks" => "kolesnye-diski",
+            "accessories" or "aksessuary" => "avtoaksessuary",
+            "to" or "texnicheskoe-obsluzhivanie" => "katalog-texnicheskogo-obsluzhivaniya",
+            "oil" or "masla" or "masla-i-avtoximiya" => "avtoximiya",
+            "akb" or "batteries" => "akkumulyatory",
+            "caps" or "hubcaps" => "kolpaki",
+            "bolty" or "bolty-gayki-prostavki" => "kolesnye-gajki-bolty-prostavki",
+            "tires" or "tyres" => "shiny",
+            _ => key,
+        };
+        return Cards.FirstOrDefault(c => string.Equals(c.Slug, key, StringComparison.OrdinalIgnoreCase));
     }
 }
 

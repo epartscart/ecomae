@@ -1,0 +1,72 @@
+@page "/storefront/garage-manager-app"
+@page "/en/storefront/garage-manager-app"
+@layout Layout.PhpChromeLayout
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Presentation
+@inject ILegacySessionValidator Sessions
+@inject IHttpContextAccessor Http
+
+<PageTitle>Garage manager · @_brand</PageTitle>
+<PhpSurfaceHead Surface="storefront" IncludeStorefrontAnalytics="true" ApplyStorefrontIndustryAttrs="true" />
+<PhpChromeBodyClass Surface="storefront" />
+
+<StorefrontTenantChrome>
+    <section style="padding:2rem 0 3rem">
+        <div class="container" style="max-width:52rem">
+            <p style="margin:0 0 .35rem;color:#64748b;font-size:.85rem"><a href="@StorefrontAspNetCanonical.GarageLogin">Garage login</a> · Manager</p>
+            <h1 style="margin:.1rem 0 .4rem">Garage manager</h1>
+            <p style="color:#475569">Staff board for appointments, check-in, job cards, bays, and handover.</p>
+            @if (!_isStaff)
+            {
+                <div style="padding:1.15rem 1.2rem;background:#fff;border:1px solid #e2e8f0;border-radius:.55rem">
+                    <p style="margin:0 0 .75rem">Sign in with a workshop staff account to open the board.</p>
+                    <a class="btn btn-primary" href="@StorefrontAspNetCanonical.GarageLogin">Garage login</a>
+                    <a class="btn btn-default" href="@StorefrontAspNetCanonical.AutoWorkshop" style="margin-left:.4rem">Public book / track</a>
+                </div>
+            }
+            else
+            {
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:.65rem;margin:1rem 0">
+                    @foreach (var col in PhpWorkshopPortal.BoardColumns)
+                    {
+                        <div style="background:#fff;border:1px solid #e2e8f0;border-radius:.5rem;padding:.75rem .85rem">
+                            <strong style="text-transform:capitalize">@col.Replace('_', ' ')</strong>
+                            <div style="color:#64748b;font-size:.82rem">Open jobs stay on the workshop desk</div>
+                        </div>
+                    }
+                </div>
+                <p>
+                    <a class="btn btn-primary" href="/cp/workshop-app">Workshop desk</a>
+                    <a class="btn btn-default" href="@StorefrontAspNetCanonical.AutoWorkshop" style="margin-left:.4rem">Public book / track</a>
+                    <a class="btn btn-default" href="@StorefrontAspNetCanonical.GarageLogin" style="margin-left:.4rem">Customer garage</a>
+                </p>
+                <form method="post" action="@PhpWorkshopPortal.ManagerWriteHref" style="margin-top:1rem;background:#fff;border:1px solid #e2e8f0;border-radius:.55rem;padding:1rem 1.1rem">
+                    <h2 style="font-size:1.05rem;margin:.1rem 0 .65rem">New appointment</h2>
+                    <label>Customer name</label>
+                    <input name="customer_name" required style="width:100%;margin:0 0 .65rem;padding:.5rem" />
+                    <label>Plate</label>
+                    <input name="plate" required style="width:100%;margin:0 0 .85rem;padding:.5rem" />
+                    <button type="submit" style="border:0;border-radius:.45rem;background:#0e7490;color:#fff;font-weight:800;padding:.65rem 1rem;cursor:pointer">Create appointment</button>
+                </form>
+            }
+        </div>
+    </section>
+</StorefrontTenantChrome>
+
+@code {
+    private string _brand = "eParts Cart";
+    private bool _isStaff;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null)
+        {
+            return;
+        }
+
+        _brand = StorefrontIndustryHostResolver.ResolveBrandLabel(ctx.Request.Host.Host);
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        _isStaff = session.Kind == LegacySessionKind.Admin || session.HasBackendAccess;
+    }
+}

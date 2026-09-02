@@ -561,6 +561,27 @@ public static class PhpSurfaceLinkMap
             return StorefrontAspNetCanonical.CustomerReturns;
         }
 
+        if (value.StartsWith("/auto-workshop", StringComparison.OrdinalIgnoreCase))
+        {
+            return StorefrontAspNetCanonical.AutoWorkshop;
+        }
+
+        if (value.StartsWith("/garage/manager", StringComparison.OrdinalIgnoreCase))
+        {
+            return StorefrontAspNetCanonical.GarageManager;
+        }
+
+        if (value.StartsWith("/garazh", StringComparison.OrdinalIgnoreCase))
+        {
+            return StorefrontAspNetCanonical.GarageLogin;
+        }
+
+        if (value.StartsWith("/newsletter", StringComparison.OrdinalIgnoreCase)
+            || value.Equals("/subscribe", StringComparison.OrdinalIgnoreCase))
+        {
+            return StorefrontAspNetCanonical.Newsletter;
+        }
+
         if (value.StartsWith("/users", StringComparison.OrdinalIgnoreCase))
         {
             return StorefrontSurfaceLinks.Login;
@@ -1003,6 +1024,12 @@ public static class PhpSurfaceLinkMap
             || path.Equals("/shop/bulk-upload", StringComparison.OrdinalIgnoreCase)
             || path.Equals("/garage/login", StringComparison.OrdinalIgnoreCase)
             || path.Equals("/garage", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/garage/manager", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/garazh", StringComparison.OrdinalIgnoreCase)
+            || path.StartsWith("/garazh/", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/auto-workshop", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/newsletter", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/subscribe", StringComparison.OrdinalIgnoreCase)
             || path.Equals("/users/profile", StringComparison.OrdinalIgnoreCase)
             || path.Equals("/shop/cart", StringComparison.OrdinalIgnoreCase)
             || path.Equals("/shop/orders", StringComparison.OrdinalIgnoreCase)

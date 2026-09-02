@@ -219,6 +219,31 @@ public sealed class LiveTenantIndustryParityTests
         Assert.Equal("Dubai Economy and Tourism", PhpVendorPortal.AuthorityFor("Dubai"));
     }
 
+    [Theory]
+    [InlineData("www.epartscart.com", "/en/auto-workshop", "auto-workshop")]
+    [InlineData("www.epartscart.com", "/garage/manager", "garage-manager")]
+    [InlineData("www.epartscart.com", "/en/garazh", "customer-garage")]
+    [InlineData("www.epartscart.com", "/garazh/avtomobil", "customer-garage")]
+    [InlineData("www.electronicae.com", "/en/newsletter", "newsletter")]
+    public void AutomotiveWorkshopAndNewsletterRewrite(string host, string path, string kind)
+    {
+        Assert.True(IndustryStorefrontSlugMiddleware.TryMatch(host, path, out var rewrite, out var matched));
+        Assert.Equal(kind, matched);
+        Assert.False(string.IsNullOrWhiteSpace(rewrite));
+    }
+
+    [Fact]
+    public void WorkshopDoesNotLeakOntoIndustryHosts()
+    {
+        Assert.False(IndustryStorefrontSlugMiddleware.TryMatch("www.thejewellerytrend.com", "/auto-workshop", out _, out _));
+        Assert.False(IndustryStorefrontSlugMiddleware.TryMatch("www.stylenlook.com", "/garage/manager", out _, out _));
+        Assert.Equal("Tires", StorefrontUcatsCatalog.Find("tires")!.Title);
+        Assert.Equal("Wheels", StorefrontUcatsCatalog.Find("disky")!.Title);
+        Assert.Equal("Oil & chemicals", StorefrontUcatsCatalog.Find("masla-i-avtoximiya")!.Title);
+        Assert.Equal(StorefrontAspNetCanonical.AutoWorkshop, PhpSurfaceLinkMap.AspNetPrimaryHref("/en/auto-workshop"));
+        Assert.Equal(StorefrontAspNetCanonical.GarageManager, PhpSurfaceLinkMap.AspNetPrimaryHref("/garage/manager"));
+    }
+
     [Fact]
     public void DedicatedIndustryAppsExist()
     {

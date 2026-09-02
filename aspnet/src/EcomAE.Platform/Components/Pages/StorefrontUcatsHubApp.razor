@@ -26,7 +26,7 @@
 </HeadContent>
 <StorefrontAnalytics Enabled="true" IncludeClarity="true" />
 
-<PhpStorefrontDesktopChrome>
+<StorefrontTenantChrome>
     <PhpStorefrontPageHeader Title="@PageHeading"
                             Subtitle="@PageSubtitle">
         <a class="btn btn-sm btn-primary" href="@StorefrontSurfaceLinks.PartSearch">Part search</a>
@@ -63,7 +63,7 @@
             Open a card, then use search for live stock.
         </p>
     }
-</PhpStorefrontDesktopChrome>
+</StorefrontTenantChrome>
 
 @code {
     [Parameter] public string? Slug { get; set; }

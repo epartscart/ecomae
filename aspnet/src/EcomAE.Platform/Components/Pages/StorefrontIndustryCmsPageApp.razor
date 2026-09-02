@@ -51,6 +51,21 @@ else
                 .Append(System.Net.WebUtility.HtmlEncode(para)).Append("</p>");
         }
 
+        if (_page.Slug.Equals("kontakty", StringComparison.OrdinalIgnoreCase))
+        {
+            sb.Append("<form method=\"post\" action=\"")
+                .Append(PhpVendorPortal.ContactWriteHref)
+                .Append("\" style=\"margin:1.25rem 0;background:#fff;border:1px solid #e2e8f0;border-radius:.55rem;padding:1rem 1.1rem\">");
+            sb.Append("<label style=\"display:block;font-weight:600;margin:.25rem 0\">Name</label>");
+            sb.Append("<input name=\"name\" required style=\"width:100%;margin:0 0 .65rem;padding:.5rem\" />");
+            sb.Append("<label style=\"display:block;font-weight:600;margin:.25rem 0\">Email</label>");
+            sb.Append("<input name=\"email\" type=\"email\" required style=\"width:100%;margin:0 0 .65rem;padding:.5rem\" />");
+            sb.Append("<label style=\"display:block;font-weight:600;margin:.25rem 0\">Message</label>");
+            sb.Append("<textarea name=\"message\" rows=\"4\" required style=\"width:100%;margin:0 0 .85rem;padding:.5rem\"></textarea>");
+            sb.Append("<button type=\"submit\" style=\"border:0;border-radius:.45rem;background:#dc2626;color:#fff;font-weight:800;padding:.65rem 1rem;cursor:pointer\">Send message</button>");
+            sb.Append("</form>");
+        }
+
         sb.Append("<p style=\"margin-top:1.5rem\"><a class=\"btn btn-primary\" href=\"")
             .Append(StorefrontSurfaceLinks.Login).Append("\">Customer login</a> ");
         sb.Append("<a class=\"btn btn-default\" href=\"/\">Back to home</a></p>");

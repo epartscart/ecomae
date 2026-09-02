@@ -41,7 +41,7 @@
 
 <StorefrontAnalytics Enabled="true" IncludeClarity="true" />
 
-<PhpStorefrontDesktopChrome>
+<StorefrontTenantChrome>
 
     @if (_product is null)
     {
@@ -63,8 +63,7 @@
     else
     {
         <PhpStorefrontPageHeader Title="@_product.Caption" Subtitle="@ProductSubtitle">
-            <a class="btn btn-sm btn-primary" href="@PhpProductCompareHref" title="Temporary PHP compare only">Compare PHP reference</a>
-            <a class="btn btn-sm btn-default" href="@BrandArticleSearchHref">Warehouse search</a>
+            <a class="btn btn-sm btn-primary" href="@BrandArticleSearchHref">Warehouse search</a>
             <a class="btn btn-sm btn-default" href="@StorefrontSurfaceLinks.Wishlist">Bookmarks</a>
             <a class="btn btn-sm btn-default" href="@StorefrontSurfaceLinks.Cart">Cart</a>
         </PhpStorefrontPageHeader>
@@ -145,11 +144,10 @@
             </div>
         </div>
         <p class="epc-sf-pd-note">
-            ASP.NET product digest includes catalogue gallery + SKU media/specs (PHP <code>epc_sku_media</code>).
-            Cart / bookmark / compare writes remain PHP-authoritative under /php-reference/* until cutover.
+            Gallery and specs stay on this product card. Cart, bookmarks, and compare stay on this storefront.
         </p>
     }
-</PhpStorefrontDesktopChrome>
+</StorefrontTenantChrome>
 
 @code {
     private StorefrontProductDigest? _product;
@@ -169,12 +167,6 @@
             return mfr + art;
         }
     }
-
-    private string PhpProductCompareHref =>
-        "/php-reference" + (
-            !string.IsNullOrWhiteSpace(_product?.Alias)
-                ? "/" + _product!.Alias.TrimStart('/')
-                : StorefrontPhpCanonical.PartSearch);
 
     private string BrandArticleSearchHref
     {

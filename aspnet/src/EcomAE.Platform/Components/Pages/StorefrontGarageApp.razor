@@ -1,6 +1,12 @@
 @page "/storefront/garage-app"
 @page "/en/garage/login"
 @page "/en/garage"
+@page "/en/garazh"
+@page "/garazh"
+@page "/en/garazh/avtomobil"
+@page "/garazh/avtomobil"
+@page "/en/garazh/bloknot"
+@page "/garazh/bloknot"
 @layout Layout.PhpChromeLayout
 @using System.Globalization
 @using EcomAE.Platform.Auth
@@ -46,8 +52,11 @@
 
     <PhpStorefrontPageHeader Title="Garage"
                             Subtitle="Browse parts, manage your garage, and track recent orders.">
-        <a class="btn btn-sm btn-primary" href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpGarage)">Open module</a>
-            <a class="btn btn-sm btn-default" href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpGarageLogin)">Garage manager login</a>
+        @if (_showWorkshop)
+            {
+                <a class="btn btn-sm btn-primary" href="@StorefrontAspNetCanonical.GarageManager">Garage manager</a>
+                <a class="btn btn-sm btn-default" href="@StorefrontAspNetCanonical.AutoWorkshop">Book / track service</a>
+            }
             <a class="btn btn-sm btn-default" href="/storefront/orders-app">My orders</a>
             <a class="btn btn-sm btn-default" href="/storefront/login">Customer login</a>
     </PhpStorefrontPageHeader>
@@ -57,7 +66,7 @@
         <div class="epc-sf-gar-gate">
             <p style="margin:0 0 .75rem;color:#334155">Sign in with your store account to load garage vehicles.</p>
             <a href="/storefront/login" style="display:inline-flex;padding:.55rem .9rem;border-radius:.4rem;background:#dc2626;color:#fff;font-weight:700;text-decoration:none">Sign in</a>
-            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpGarage)" style="display:inline-flex;margin-left:.45rem;padding:.55rem .9rem;border-radius:.4rem;border:1px solid #d1d5db;color:#111;font-weight:700;text-decoration:none">Part search</a>
+            <a href="@StorefrontSurfaceLinks.PartSearch" style="display:inline-flex;margin-left:.45rem;padding:.55rem .9rem;border-radius:.4rem;border:1px solid #d1d5db;color:#111;font-weight:700;text-decoration:none">Part search</a>
         </div>
     }
     else
@@ -99,7 +108,7 @@
                                 <td>@(string.IsNullOrWhiteSpace(v.Year) ? "—" : v.Year)</td>
                                 <td>@(string.IsNullOrWhiteSpace(v.Vin) ? "—" : v.Vin)</td>
                                 <td><span class="epc-sf-gar-badge @(v.Active != 0 ? "epc-sf-gar-badge--ok" : "epc-sf-gar-badge--off")">@(v.Active != 0 ? "yes" : "no")</span></td>
-                                <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpGarage)">Open</a></td>
+                                <td><a href="@StorefrontSurfaceLinks.PartSearch">Open</a></td>
                             </tr>
                         }
                     }
@@ -111,9 +120,8 @@
 </StorefrontTenantChrome>
 
 @code {
-    private const string _phpGarage = "https://epartscart.com/shop/part_search";
-    private const string _phpGarageLogin = "https://epartscart.com/garage/login";
     private string _brand = "eParts Cart";
+    private bool _showWorkshop;
     private bool _isCustomer;
     private IReadOnlyList<StorefrontGarageVehicleDigest> _vehicles = [];
     private int _active;
@@ -127,6 +135,7 @@
         var ctx = Http.HttpContext;
         if (ctx is null) return;
         _brand = StorefrontIndustryHostResolver.ResolveBrandLabel(ctx.Request.Host.Host);
+        _showWorkshop = StorefrontIndustryHostResolver.ResolveIndustryCode(ctx.Request.Host.Host) == "auto_parts";
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         if (session.Kind != LegacySessionKind.Customer || session.UserId <= 0)
