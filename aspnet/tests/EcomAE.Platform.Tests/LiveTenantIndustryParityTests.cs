@@ -393,7 +393,8 @@ public sealed class LiveTenantIndustryParityTests
         Assert.Equal("Oil filters", oil.Title);
         Assert.Equal(StorefrontAspNetCanonical.SpecialSearch + "?alias=tormoznye-kolodki", PhpSurfaceLinkMap.AspNetPrimaryHref("/en/tormoznye-kolodki"));
         Assert.False(PhpSurfaceLinkMap.TryMapIncomingPhpProductPath("/en/tormoznye-kolodki", out _));
-        Assert.Equal(StorefrontAspNetCanonical.Balance, PhpSurfaceLinkMap.AspNetPrimaryHref("/en/users/account"));
+        Assert.Equal("/storefront/account-summary-app", StorefrontAspNetCanonical.Balance);
+        Assert.False(PhpSurfaceLinkMap.TryMapIncomingPhpProductPath("/en/users/account", out _));
         Assert.True(PhpProductReviews.ForProduct(1).Count > 0);
         Assert.DoesNotContain(PhpStorefrontSitemap.ForIndustry("jewellery"), l => l.Href.Contains("tormoznye", StringComparison.Ordinal));
         Assert.Contains(PhpStorefrontSitemap.ForIndustry("auto_parts"), l => l.Href == "/tormoznye-kolodki");
