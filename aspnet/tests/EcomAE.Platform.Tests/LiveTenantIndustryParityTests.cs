@@ -162,6 +162,17 @@ public sealed class LiveTenantIndustryParityTests
         Assert.False(PhpSurfaceLinkMap.TryMapIncomingPhpProductPath("/users/register", out _));
     }
 
+    [Theory]
+    [InlineData("www.electronicae.com", "Electronicae")]
+    [InlineData("www.stylenlook.com", "StyleNLook")]
+    [InlineData("www.thejewellerytrend.com", "The Jewellery Trend")]
+    [InlineData("www.taxofinca.com", "TaxoFinca")]
+    [InlineData("www.epartscart.com", "eParts Cart")]
+    public void BrandLabelsMatchTenantNotEpartsOnIndustryHosts(string host, string label)
+    {
+        Assert.Equal(label, StorefrontIndustryHostResolver.ResolveBrandLabel(host));
+    }
+
     [Fact]
     public void DedicatedIndustryAppsExist()
     {

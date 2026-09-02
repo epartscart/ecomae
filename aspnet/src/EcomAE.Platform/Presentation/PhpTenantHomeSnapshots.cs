@@ -40,11 +40,18 @@ public static class PhpTenantHomeSnapshots
     /// same chrome PHP <c>templates/nero/desktop.php</c> uses for custom packages.
     /// </summary>
     public static string WrapInner(string package, string innerHtml)
+        => TrySplitChrome(package, out var header, out var footer)
+            ? header + (innerHtml ?? string.Empty) + footer
+            : (innerHtml ?? string.Empty);
+
+    public static bool TrySplitChrome(string package, out string header, out string footer)
     {
+        header = string.Empty;
+        footer = string.Empty;
         var snapshot = HtmlFor(package);
         if (string.IsNullOrWhiteSpace(snapshot))
         {
-            return innerHtml ?? string.Empty;
+            return false;
         }
 
         var homeClass = package.ToLowerInvariant() switch
@@ -57,14 +64,14 @@ public static class PhpTenantHomeSnapshots
         };
         if (homeClass.Length == 0)
         {
-            return innerHtml ?? string.Empty;
+            return false;
         }
 
         var homeNeedle = "class=\"" + homeClass;
         var homeIdx = snapshot.IndexOf(homeNeedle, StringComparison.OrdinalIgnoreCase);
         if (homeIdx < 0)
         {
-            return snapshot;
+            return false;
         }
 
         var openDiv = snapshot.LastIndexOf("<div", homeIdx, StringComparison.OrdinalIgnoreCase);
@@ -78,9 +85,11 @@ public static class PhpTenantHomeSnapshots
         var tailIdx = newsIdx >= 0 ? newsIdx : footerIdx;
         if (tailIdx < 0)
         {
-            return snapshot;
+            return false;
         }
 
-        return snapshot[..openDiv] + (innerHtml ?? string.Empty) + snapshot[tailIdx..];
+        header = snapshot[..openDiv];
+        footer = snapshot[tailIdx..];
+        return header.Length > 0 && footer.Length > 0;
     }
 }

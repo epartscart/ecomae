@@ -14,7 +14,7 @@
 @inject IHttpContextAccessor Http
 @inject NavigationManager Nav
 
-<PageTitle>Checkout · eParts Cart</PageTitle>
+<PageTitle>Checkout · @_brand</PageTitle>
 <PhpChromeStyles Surface="storefront" />
 <HeadContent>
 <style>
@@ -50,7 +50,7 @@
 
 <StorefrontAnalytics Enabled="true" IncludeClarity="true" />
 
-<PhpStorefrontDesktopChrome>
+<StorefrontTenantChrome>
 
     <PhpStorefrontPageHeader Title="@_heroTitle"
                             Subtitle="@_heroLead">
@@ -139,9 +139,10 @@
         </p>
     }
 
-</PhpStorefrontDesktopChrome>
+</StorefrontTenantChrome>
 
 @code {
+    private string _brand = "eParts Cart";
     private bool _isCustomer;
     private StorefrontCartSummary _summary = new(0, 0m, "n/a", "");
     private int _checkedCount;
@@ -160,6 +161,7 @@
         ResolveStep();
         var ctx = Http.HttpContext;
         if (ctx is null) return;
+        _brand = StorefrontIndustryHostResolver.ResolveBrandLabel(ctx.Request.Host.Host);
 
         var q = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(Nav.ToAbsoluteUri(Nav.Uri).Query);
         _showPhpCompare = q.TryGetValue("php", out var phpVal)

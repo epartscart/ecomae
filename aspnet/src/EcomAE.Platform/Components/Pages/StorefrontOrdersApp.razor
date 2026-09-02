@@ -11,7 +11,7 @@
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
 
-<PageTitle>My Orders · eParts Cart</PageTitle>
+<PageTitle>My Orders · @_brand</PageTitle>
 <PhpChromeStyles Surface="storefront" />
 <HeadContent>
 <style>
@@ -44,7 +44,7 @@
 
 <StorefrontAnalytics Enabled="true" IncludeClarity="true" />
 
-<PhpStorefrontDesktopChrome>
+<StorefrontTenantChrome>
 
     <PhpStorefrontPageHeader Title="My Orders"
                             Subtitle="Browse parts, manage your garage, and track recent orders.">
@@ -106,10 +106,11 @@
         </div>
     }
 
-</PhpStorefrontDesktopChrome>
+</StorefrontTenantChrome>
 
 @code {
     private const string _phpOrders = "https://epartscart.com/shop/orders";
+    private string _brand = "eParts Cart";
     private bool _isCustomer;
     private IReadOnlyList<StorefrontOrderDigest> _orders = [];
     private int _paid;
@@ -122,6 +123,7 @@
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
+        _brand = StorefrontIndustryHostResolver.ResolveBrandLabel(ctx.Request.Host.Host);
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         if (session.Kind != LegacySessionKind.Customer || session.UserId <= 0)

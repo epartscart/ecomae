@@ -13,7 +13,7 @@
 @inject IHttpClientFactory HttpClients
 @inject NavigationManager Navigation
 
-<PageTitle>Cart · eParts Cart</PageTitle>
+<PageTitle>Cart · @_brand</PageTitle>
 <PhpChromeStyles Surface="storefront" />
 <HeadContent>
 <style>
@@ -50,7 +50,7 @@
 
 <StorefrontAnalytics Enabled="true" IncludeClarity="true" />
 
-<PhpStorefrontDesktopChrome>
+<StorefrontTenantChrome>
 
     <PhpStorefrontPageHeader Title="Cart"
                             Subtitle="Your storefront cart (ASP.NET Core). Add-to-cart writes to shop_carts like PHP ajax_add_to_basket.">
@@ -148,11 +148,12 @@
         </p>
     }
 
-</PhpStorefrontDesktopChrome>
+</StorefrontTenantChrome>
 
 @code {
     private static string PhpCartCompareHref => "/php-reference" + StorefrontPhpCanonical.Cart;
 
+    private string _brand = "eParts Cart";
     private bool _isCustomer;
     private StorefrontCartSummary _summary = new(0, 0m, "n/a", "");
     private IReadOnlyList<StorefrontCartLineDigest> _lines = [];
@@ -168,6 +169,8 @@
         {
             return;
         }
+
+        _brand = StorefrontIndustryHostResolver.ResolveBrandLabel(ctx.Request.Host.Host);
 
         // Prefer storefront customer cookies (PHP DP_User) even if admin cookies are also set.
         var session = await Sessions.ValidateCustomerAsync(ctx, ctx.RequestAborted);

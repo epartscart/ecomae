@@ -1,0 +1,36 @@
+@namespace EcomAE.Platform.Components.Shared
+@using EcomAE.Platform.Presentation
+@inject IHttpContextAccessor Http
+
+@if (!string.IsNullOrEmpty(_headerHtml))
+{
+    <div class="epc-php-font-root">
+        @((MarkupString)_headerHtml)
+        @ChildContent
+        @((MarkupString)_footerHtml)
+    </div>
+}
+else
+{
+    <PhpStorefrontDesktopChrome>
+        @ChildContent
+    </PhpStorefrontDesktopChrome>
+}
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    private string _headerHtml = string.Empty;
+    private string _footerHtml = string.Empty;
+
+    protected override void OnInitialized()
+    {
+        var host = Http.HttpContext?.Request.Host.Host ?? string.Empty;
+        var package = StorefrontIndustryHostResolver.Resolve(host).StorefrontPackage;
+        if (PhpTenantHomeSnapshots.TrySplitChrome(package, out var header, out var footer))
+        {
+            _headerHtml = header;
+            _footerHtml = footer;
+        }
+    }
+}
