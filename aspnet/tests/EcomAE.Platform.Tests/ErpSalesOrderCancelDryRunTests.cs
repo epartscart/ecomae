@@ -6,7 +6,7 @@ namespace EcomAE.Platform.Tests;
 public sealed class ErpSalesOrderCancelDryRunTests
 {
     private static ErpSalesOrderDigest Order(long id, string status = "open") =>
-        new(id, $"SO-{id}", 5, 100m, status, 1_700_000_000);
+        new(id, $"SO-{id}", 5, 100m, status, 1_700_000_000, []);
 
     [Fact]
     public void ConfirmWritesIsRefused()

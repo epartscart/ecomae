@@ -6,7 +6,7 @@ namespace EcomAE.Platform.Tests;
 public sealed class WaveBGlWorkflowDryRunTests
 {
     private static ErpPurchaseDigest Purchase(long id) =>
-        new(id, 1, "S", 1_700_000_000, "INV", 100m, "posted", 0);
+        new(id, 1, "S", 1_700_000_000, "INV", 100m, "posted", 0, []);
 
     private static CpShopOrderDigest Order(long id, int ok = 1) =>
         new(id, 1, 9, 1, 0, 0, 1, ok, 1, 10m);

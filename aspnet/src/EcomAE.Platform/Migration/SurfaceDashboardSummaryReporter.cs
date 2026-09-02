@@ -967,20 +967,34 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             await using var command = connection.CreateCommand();
             command.CommandText = LegacySurfaceDashboardSql.SelectErpPurchases;
             AddParameter(command, "@limit", safeLimit);
-            var rows = new List<ErpPurchaseDigest>();
-            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
-            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            var headers = new List<ErpPurchaseDigest>();
+            await using (var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false))
             {
-                rows.Add(new ErpPurchaseDigest(
-                    Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
-                    Convert.ToInt64(reader["supplier_id"], CultureInfo.InvariantCulture),
-                    Convert.ToString(reader["supplier_name"], CultureInfo.InvariantCulture) ?? string.Empty,
-                    Convert.ToInt64(reader["purchase_date"] is DBNull ? 0 : reader["purchase_date"], CultureInfo.InvariantCulture),
-                    Convert.ToString(reader["invoice_number"] is DBNull ? string.Empty : reader["invoice_number"], CultureInfo.InvariantCulture) ?? string.Empty,
-                    Convert.ToDecimal(reader["total_amount"] is DBNull ? 0m : reader["total_amount"], CultureInfo.InvariantCulture),
-                    Convert.ToString(reader["status"] is DBNull ? string.Empty : reader["status"], CultureInfo.InvariantCulture) ?? string.Empty,
-                    Convert.ToInt64(reader["order_id"] is DBNull ? 0 : reader["order_id"], CultureInfo.InvariantCulture)));
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    headers.Add(new ErpPurchaseDigest(
+                        Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["supplier_id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["supplier_name"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt64(reader["purchase_date"] is DBNull ? 0 : reader["purchase_date"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["invoice_number"] is DBNull ? string.Empty : reader["invoice_number"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToDecimal(reader["total_amount"] is DBNull ? 0m : reader["total_amount"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["status"] is DBNull ? string.Empty : reader["status"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt64(reader["order_id"] is DBNull ? 0 : reader["order_id"], CultureInfo.InvariantCulture),
+                        []));
+                }
             }
+
+            var lines = await LoadErpDocumentLinesAsync(
+                connection,
+                LegacySurfaceDashboardSql.SelectErpPurchaseInvoiceLines,
+                safeLimit,
+                cancellationToken).ConfigureAwait(false);
+            var rows = headers
+                .Select(header => lines.TryGetValue(header.Id, out var documentLines)
+                    ? header with { Lines = documentLines }
+                    : header)
+                .ToList();
 
             return new(rows, rows.Count, "database", string.Empty);
         }
@@ -1471,18 +1485,32 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             await using var command = connection.CreateCommand();
             command.CommandText = LegacySurfaceDashboardSql.SelectErpSalesOrders;
             AddParameter(command, "@limit", safeLimit);
-            var rows = new List<ErpSalesOrderDigest>();
-            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
-            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            var headers = new List<ErpSalesOrderDigest>();
+            await using (var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false))
             {
-                rows.Add(new ErpSalesOrderDigest(
-                    Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
-                    Convert.ToString(reader["so_no"] is DBNull ? string.Empty : reader["so_no"], CultureInfo.InvariantCulture) ?? string.Empty,
-                    Convert.ToInt32(reader["customer_user_id"] is DBNull ? 0 : reader["customer_user_id"], CultureInfo.InvariantCulture),
-                    Convert.ToDecimal(reader["total_amount"] is DBNull ? 0m : reader["total_amount"], CultureInfo.InvariantCulture),
-                    Convert.ToString(reader["status"] is DBNull ? string.Empty : reader["status"], CultureInfo.InvariantCulture) ?? string.Empty,
-                    Convert.ToInt64(reader["time_created"] is DBNull ? 0 : reader["time_created"], CultureInfo.InvariantCulture)));
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    headers.Add(new ErpSalesOrderDigest(
+                        Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["so_no"] is DBNull ? string.Empty : reader["so_no"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt32(reader["customer_user_id"] is DBNull ? 0 : reader["customer_user_id"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(reader["total_amount"] is DBNull ? 0m : reader["total_amount"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["status"] is DBNull ? string.Empty : reader["status"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt64(reader["time_created"] is DBNull ? 0 : reader["time_created"], CultureInfo.InvariantCulture),
+                        []));
+                }
             }
+
+            var lines = await LoadErpDocumentLinesAsync(
+                connection,
+                LegacySurfaceDashboardSql.SelectErpSalesOrderLines,
+                safeLimit,
+                cancellationToken).ConfigureAwait(false);
+            var rows = headers
+                .Select(header => lines.TryGetValue(header.Id, out var documentLines)
+                    ? header with { Lines = documentLines }
+                    : header)
+                .ToList();
 
             return new(rows, rows.Count, "database", string.Empty);
         }
@@ -4237,18 +4265,66 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             await using var command = connection.CreateCommand();
             command.CommandText = LegacySurfaceDashboardSql.SelectErpPurchaseOrders;
             AddParameter(command, "@limit", safeLimit);
-            var rows = new List<ErpPurchaseOrderDigest>();
+            var headers = new List<ErpPurchaseOrderDigest>();
+            await using (var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false))
+            {
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    headers.Add(new ErpPurchaseOrderDigest(
+                        Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["po_no"] is DBNull ? string.Empty : reader["po_no"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt64(reader["supplier_id"] is DBNull ? 0 : reader["supplier_id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["title"] is DBNull ? string.Empty : reader["title"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToDecimal(reader["total_amount"] is DBNull ? 0m : reader["total_amount"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["status"] is DBNull ? string.Empty : reader["status"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt64(reader["time_created"] is DBNull ? 0 : reader["time_created"], CultureInfo.InvariantCulture),
+                        []));
+                }
+            }
+
+            var lines = await LoadErpDocumentLinesAsync(
+                connection,
+                LegacySurfaceDashboardSql.SelectErpPurchaseOrderLines,
+                safeLimit,
+                cancellationToken).ConfigureAwait(false);
+            var rows = headers
+                .Select(header => lines.TryGetValue(header.Id, out var documentLines)
+                    ? header with { Lines = documentLines }
+                    : header)
+                .ToList();
+
+            return new(rows, rows.Count, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new([], 0, "database-error", ex.Message);
+        }
+    }
+
+    public async Task<ErpInventoryItemPickerResult> ListErpInventoryItemsForPickerAsync(int limit, CancellationToken cancellationToken = default)
+    {
+        var safeLimit = Math.Clamp(limit, 1, 1000);
+        if (!_connections.IsConfigured)
+        {
+            return new([], 0, "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            await using var command = connection.CreateCommand();
+            command.CommandText = LegacySurfaceDashboardSql.SelectErpInventoryItemsForPicker;
+            AddParameter(command, "@limit", safeLimit);
+            var rows = new List<ErpInventoryItemPickerDigest>();
             await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
             while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
             {
-                rows.Add(new ErpPurchaseOrderDigest(
+                rows.Add(new ErpInventoryItemPickerDigest(
                     Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
-                    Convert.ToString(reader["po_no"] is DBNull ? string.Empty : reader["po_no"], CultureInfo.InvariantCulture) ?? string.Empty,
-                    Convert.ToInt64(reader["supplier_id"] is DBNull ? 0 : reader["supplier_id"], CultureInfo.InvariantCulture),
-                    Convert.ToString(reader["title"] is DBNull ? string.Empty : reader["title"], CultureInfo.InvariantCulture) ?? string.Empty,
-                    Convert.ToDecimal(reader["total_amount"] is DBNull ? 0m : reader["total_amount"], CultureInfo.InvariantCulture),
-                    Convert.ToString(reader["status"] is DBNull ? string.Empty : reader["status"], CultureInfo.InvariantCulture) ?? string.Empty,
-                    Convert.ToInt64(reader["time_created"] is DBNull ? 0 : reader["time_created"], CultureInfo.InvariantCulture)));
+                    Convert.ToString(reader["sku"] is DBNull ? string.Empty : reader["sku"], CultureInfo.InvariantCulture) ?? string.Empty,
+                    Convert.ToString(reader["name"] is DBNull ? string.Empty : reader["name"], CultureInfo.InvariantCulture) ?? string.Empty,
+                    Convert.ToDecimal(reader["sales_price"] is DBNull ? 0m : reader["sales_price"], CultureInfo.InvariantCulture),
+                    Convert.ToDecimal(reader["purchase_price"] is DBNull ? 0m : reader["purchase_price"], CultureInfo.InvariantCulture)));
             }
 
             return new(rows, rows.Count, "database", string.Empty);
@@ -4257,6 +4333,62 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         {
             return new([], 0, "database-error", ex.Message);
         }
+    }
+
+    /// <summary>Item/SKU lines for the same page of documents; a tenant without the line table degrades to headers only.</summary>
+    private static async Task<Dictionary<long, IReadOnlyList<ErpDocumentLineDigest>>> LoadErpDocumentLinesAsync(
+        DbConnection connection,
+        string sql,
+        int safeLimit,
+        CancellationToken cancellationToken)
+    {
+        var grouped = new Dictionary<long, IReadOnlyList<ErpDocumentLineDigest>>();
+        try
+        {
+            await using var command = connection.CreateCommand();
+            command.CommandText = sql;
+            AddParameter(command, "@limit", safeLimit);
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            var hasQtyReceived = false;
+            for (var i = 0; i < reader.FieldCount; i++)
+            {
+                if (string.Equals(reader.GetName(i), "qty_received", StringComparison.OrdinalIgnoreCase))
+                {
+                    hasQtyReceived = true;
+                    break;
+                }
+            }
+
+            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                var documentId = Convert.ToInt64(reader["document_id"], CultureInfo.InvariantCulture);
+                var line = new ErpDocumentLineDigest(
+                    Convert.ToInt64(reader["line_id"], CultureInfo.InvariantCulture),
+                    documentId,
+                    Convert.ToString(reader["item_code"] is DBNull ? string.Empty : reader["item_code"], CultureInfo.InvariantCulture) ?? string.Empty,
+                    Convert.ToString(reader["description"] is DBNull ? string.Empty : reader["description"], CultureInfo.InvariantCulture) ?? string.Empty,
+                    Convert.ToDecimal(reader["qty"] is DBNull ? 0m : reader["qty"], CultureInfo.InvariantCulture),
+                    Convert.ToDecimal(reader["unit_price_ex_vat"] is DBNull ? 0m : reader["unit_price_ex_vat"], CultureInfo.InvariantCulture),
+                    Convert.ToDecimal(reader["line_ex_vat"] is DBNull ? 0m : reader["line_ex_vat"], CultureInfo.InvariantCulture),
+                    hasQtyReceived
+                        ? Convert.ToDecimal(reader["qty_received"] is DBNull ? 0m : reader["qty_received"], CultureInfo.InvariantCulture)
+                        : 0m);
+                if (grouped.TryGetValue(documentId, out var existing))
+                {
+                    ((List<ErpDocumentLineDigest>)existing).Add(line);
+                }
+                else
+                {
+                    grouped[documentId] = new List<ErpDocumentLineDigest> { line };
+                }
+            }
+        }
+        catch (DbException)
+        {
+            return [];
+        }
+
+        return grouped;
     }
 
     public async Task<ErpInventoryStockDigestResult> BuildErpInventoryStockDigestAsync(int limit, int? warehouseId = null, CancellationToken cancellationToken = default)

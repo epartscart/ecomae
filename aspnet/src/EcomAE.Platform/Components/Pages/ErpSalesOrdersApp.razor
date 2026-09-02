@@ -32,10 +32,52 @@
                 <div class="row">
                     <div class="col-sm-2"><label for="so-customer">Customer user id</label><input id="so-customer" class="form-control" type="number" min="1" step="1" /></div>
                     <div class="col-sm-4"><label for="so-title">Title</label><input id="so-title" class="form-control" type="text" maxlength="255" /></div>
-                    <div class="col-sm-2"><label for="so-amount">Amount (ex VAT)</label><input id="so-amount" class="form-control" type="number" min="0" step="0.01" /></div>
+                    <div class="col-sm-2"><label for="so-amount">Amount (ex VAT)</label><input id="so-amount" class="form-control" type="number" min="0" step="0.01" readonly aria-describedby="so-amount-help" /><span id="so-amount-help" class="help-block small">Sum of lines</span></div>
                     <div class="col-sm-3"><label for="so-notes">Notes</label><input id="so-notes" class="form-control" type="text" /></div>
                     <div class="col-sm-1"><label for="so-save">&nbsp;</label><button id="so-save" type="button" class="btn btn-primary btn-block">Save</button></div>
                 </div>
+
+                <datalist id="erp-item-list">
+                    @foreach (var item in _items)
+                    {
+                        <option value="@item.Sku" label="@item.Name"></option>
+                    }
+                </datalist>
+
+                <div class="epc-erp-table-wrap" style="margin-top:10px">
+                    <table class="table table-bordered table-condensed table-epc" id="so-lines">
+                        <thead>
+                            <tr>
+                                <th style="width:22%">Item / SKU</th>
+                                <th>Description</th>
+                                <th style="width:12%">Qty</th>
+                                <th style="width:15%">Unit price (ex VAT)</th>
+                                <th style="width:15%">Line total</th>
+                                <th style="width:6%">&nbsp;</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                        <tfoot>
+                            <tr>
+                                <td colspan="4" class="text-right"><strong>Total (ex VAT)</strong></td>
+                                <td id="so-lines-total">0.00</td>
+                                <td>&nbsp;</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+                <button id="so-line-add" type="button" class="btn btn-default btn-xs">Add line</button>
+                <select id="so-item-picker" class="form-control input-sm" style="display:inline-block;width:auto;margin-left:8px" aria-label="Link inventory item to the last line">
+                    <option value="">-- Link Inventory Item --</option>
+                    @foreach (var item in _items)
+                    {
+                        var price = item.SalesPrice.ToString("0.00", CultureInfo.InvariantCulture);
+                        <option value="@item.Id.ToString(CultureInfo.InvariantCulture)"
+                                data-sku="@item.Sku"
+                                data-name="@item.Name"
+                                data-price="@price">@item.Sku — @item.Name</option>
+                    }
+                </select>
                 <input id="so-id" type="hidden" value="0" />
                 <p id="so-feedback" class="text-muted" role="status" aria-live="polite"></p>
             </div>
@@ -86,6 +128,42 @@
                                 }
                             </td>
                         </tr>
+                        @if (o.Lines.Count > 0)
+                        {
+                            <tr class="epc-erp-doc-lines">
+                                <td colspan="6">
+                                    <table class="table table-condensed table-bordered" style="margin-bottom:0">
+                                        <thead>
+                                            <tr>
+                                                <th style="width:22%">Item / SKU</th>
+                                                <th>Description</th>
+                                                <th style="width:12%" class="text-right">Qty</th>
+                                                <th style="width:15%" class="text-right">Unit price</th>
+                                                <th style="width:15%" class="text-right">Line total</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var line in o.Lines)
+                                            {
+                                                <tr>
+                                                    <td>@(string.IsNullOrWhiteSpace(line.ItemCode) ? "—" : line.ItemCode)</td>
+                                                    <td>@line.Description</td>
+                                                    <td class="text-right">@line.Qty.ToString("N3", CultureInfo.InvariantCulture)</td>
+                                                    <td class="text-right">@line.UnitPriceExVat.ToString("N4", CultureInfo.InvariantCulture)</td>
+                                                    <td class="text-right">@line.LineExVat.ToString("N2", CultureInfo.InvariantCulture)</td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                        <tfoot>
+                                            <tr>
+                                                <td colspan="4" class="text-right"><strong>Lines total (ex VAT)</strong></td>
+                                                <td class="text-right">@o.Lines.Sum(l => l.LineExVat).ToString("N2", CultureInfo.InvariantCulture)</td>
+                                            </tr>
+                                        </tfoot>
+                                    </table>
+                                </td>
+                            </tr>
+                        }
                     }
                 }
             </tbody>
@@ -103,6 +181,7 @@
     private const string _phpTab = "/ERP/?epc_erp_shell=1&area=sales&tab=sales_orders";
     private bool _isAdmin;
     private IReadOnlyList<ErpSalesOrderDigest> _orders = [];
+    private IReadOnlyList<ErpInventoryItemPickerDigest> _items = [];
     private int _open;
     private decimal _totalAmount;
     private int _limit = 100;
@@ -123,6 +202,7 @@
 
         var result = await Dashboards.ListErpSalesOrdersAsync(_limit, ctx.RequestAborted);
         _orders = result.Orders;
+        _items = (await Dashboards.ListErpInventoryItemsForPickerAsync(1000, ctx.RequestAborted)).Items;
         _open = _orders.Count(o => !string.Equals(o.Status, "closed", StringComparison.OrdinalIgnoreCase)
             && !string.Equals(o.Status, "cancelled", StringComparison.OrdinalIgnoreCase)
             && !string.Equals(o.Status, "canceled", StringComparison.OrdinalIgnoreCase));

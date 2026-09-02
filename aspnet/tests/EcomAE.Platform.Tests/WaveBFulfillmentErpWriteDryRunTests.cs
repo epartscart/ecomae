@@ -18,10 +18,10 @@ public sealed class WaveBFulfillmentErpWriteDryRunTests
         new(id, 1, 9, 1, 0, 0, 1, 1, 1, 10m);
 
     private static ErpPurchaseDigest Purchase(long id, string status = "posted") =>
-        new(id, 1, "Supplier", 1_700_000_000, "INV-1", 100m, status, 0);
+        new(id, 1, "Supplier", 1_700_000_000, "INV-1", 100m, status, 0, []);
 
     private static ErpSalesOrderDigest So(long id, string status = "draft") =>
-        new(id, $"SO-{id}", 5, 100m, status, 1_700_000_000);
+        new(id, $"SO-{id}", 5, 100m, status, 1_700_000_000, []);
 
     [Fact]
     public void QuoteAddManualRequiresBrandArticle()
