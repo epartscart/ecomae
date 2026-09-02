@@ -3922,3 +3922,116 @@ public sealed record ErpExpenseReportListResult(
     int Count,
     string Source,
     string Message);
+
+public sealed record CpOfficesSummary(
+    int OfficeCount,
+    int MappedStorageCount,
+    int GeoMappedCount,
+    string Source,
+    string Message);
+
+public sealed record CpOfficeDigest(
+    long Id,
+    string Caption,
+    string City,
+    string Address,
+    string Phone);
+
+public sealed record CpOfficesDigestResult(
+    CpOfficesSummary Summary,
+    IReadOnlyList<CpOfficeDigest> Offices,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record CpWorkshopSummary(
+    int OpenCount,
+    int InProgressCount,
+    int ReadyCount,
+    int DeliveredToday,
+    decimal RevenueOpen,
+    string Source,
+    string Message);
+
+public sealed record CpWorkshopJobDigest(
+    long Id,
+    string JobNo,
+    string Status,
+    string CustomerName,
+    string Plate,
+    string Make,
+    string Model,
+    string Year,
+    string BayName,
+    string TechName,
+    decimal GrandTotal);
+
+public sealed record CpWorkshopDigestResult(
+    CpWorkshopSummary Summary,
+    IReadOnlyList<CpWorkshopJobDigest> Jobs,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record CpKktSummary(
+    int DeviceCount,
+    int WiredDeviceCount,
+    int CheckCount,
+    int SentCount,
+    string Source,
+    string Message);
+
+public sealed record CpKktDeviceDigest(
+    long Id,
+    string Name,
+    string Handler,
+    string InterfaceDescription);
+
+public sealed record CpKktDigestResult(
+    CpKktSummary Summary,
+    IReadOnlyList<CpKktDeviceDigest> Devices,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record CpBulkUploadSummary(
+    int UploadCount,
+    int UploadedLines,
+    int AvailableCount,
+    int NotFoundCount,
+    string Source,
+    string Message);
+
+public sealed record CpBulkUploadRowDigest(
+    long Id,
+    string FileName,
+    string Priority,
+    int UploadedCount,
+    int AvailableCount,
+    int CrossCount,
+    int ShortCount,
+    int NotFoundCount,
+    string CreatedAt);
+
+public sealed record CpBulkUploadDigestResult(
+    CpBulkUploadSummary Summary,
+    IReadOnlyList<CpBulkUploadRowDigest> Uploads,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record CpTenantEmailSummary(
+    bool UseTenantSmtp,
+    string Host,
+    string Port,
+    string Encryption,
+    string FromName,
+    string FromEmail,
+    bool HasPassword,
+    string Source,
+    string Message);
+
+public sealed record CpTenantEmailDigestResult(
+    CpTenantEmailSummary Summary,
+    string Source,
+    string Message);

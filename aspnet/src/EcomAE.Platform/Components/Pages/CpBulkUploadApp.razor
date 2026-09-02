@@ -1,81 +1,140 @@
 @page "/cp/bulk-upload-app"
 @layout Layout.PhpChromeLayout
+@using System.Globalization
 @using EcomAE.Platform.Auth
+@using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
+@inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
 
 <PageTitle>Bulk upload · Control Panel · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="cp" />
-<HeadContent>
-<style>
-    .epc-cpmod-hero {
-        margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
-        background:linear-gradient(135deg,#0c4a6e 0%,#2563eb 45%,#0ea5e9 100%);
-    }
-    .epc-cpmod-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
-    .epc-cpmod-hero p { margin:0; color:rgba(255,255,255,.9); max-width:46rem; font-size:.92rem; line-height:1.45; }
-    .epc-cpmod-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
-    .epc-cpmod-cta a {
-        display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
-        text-decoration:none; color:#0f172a; background:#fff;
-    }
-    .epc-cpmod-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); color:#fff; }
-    .epc-cpmod-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:.75rem; }
-    .epc-cpmod-card { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; padding:1rem; }
-    .epc-cpmod-card h3 { margin:0 0 .4rem; font-size:1rem; }
-    .epc-cpmod-card p, .epc-cpmod-card li { margin:0; color:#475569; font-size:.86rem; line-height:1.45; }
-    .epc-cpmod-card ul { margin:.35rem 0 0; padding-left:1.1rem; }
-    .epc-cpmod-note { margin-top:1rem; padding:.75rem .9rem; background:#eff6ff; border:1px solid #93c5fd; border-radius:.45rem; color:#1e3a8a; font-size:.86rem; }
-    @@media (max-width:900px){ .epc-cpmod-grid{grid-template-columns:1fr;} }
-</style>
-</HeadContent>
 
 <PhpCpDesktopChrome IsAdmin="_isAdmin">
 
-    <section class="epc-cpmod-hero">
-        <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
-        <h1>Bulk upload</h1>
-        <p>Bulk CP upload hub for catalogue and price batches. ajax_bulk_cp remains PHP.</p>
-        <div class="epc-cpmod-cta">
-            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open PHP reference module</a>
-            <a class="ghost" href="/cp/prices-upload-app">Prices upload</a>
-            <a class="ghost" href="/cp/data-transfer-app">Data transfer</a>
-            <a class="ghost" href="/cp">Command centre</a>
+    <PhpCpModulePageHeader Title="Bulk upload"
+                           Subtitle="PHP bulk_upload_hub parity — operator history from epc_bulk_upload_history. process_upload / review / quote / cart writes stay PHP."
+                           PhpTabHref="@_phpTab">
+        <a class="ghost" href="/cp/prices-upload-app">Prices upload</a>
+        <a class="ghost" href="/storefront/bulk-upload-app">Storefront bulk</a>
+        <a class="ghost" href="/cp/orders">Orders</a>
+    </PhpCpModulePageHeader>
+
+    @if (!_isAdmin)
+    {
+        <div class="alert alert-info" role="status">Sign in with a Control Panel admin session to load live tenant data. Guest browse shows the PHP-parity shell.</div>
+    }
+
+    <div class="epc-scp-kpi" aria-label="Bulk upload stats">
+        <div class="epc-scp-kpi__card">
+            <div class="epc-scp-kpi__label">Uploads</div>
+            <div class="epc-scp-kpi__val">@_summary.UploadCount.ToString(CultureInfo.InvariantCulture)</div>
         </div>
-    </section>
-
-    <div class="epc-cpmod-grid">
-        <div class="epc-cpmod-card">
-            <h3>ASP.NET-primary surface</h3>
-            <p>Route: <code>/cp/bulk-upload-app</code></p>
-            <p style="margin-top:.4rem;">PHP path: <code>/CP/shop/bulk_upload</code></p>
-            <p style="margin-top:.4rem;">Product locks: cutoverAllowed=false · readyForPhpRemoval=false · PHP authoritative for writes.</p>
+        <div class="epc-scp-kpi__card">
+            <div class="epc-scp-kpi__label">Uploaded lines</div>
+            <div class="epc-scp-kpi__val">@_summary.UploadedLines.ToString(CultureInfo.InvariantCulture)</div>
         </div>
-
-    <div class="epc-cpmod-card">
-        <h3>PHP ajax reference</h3>
-        <ul>
-            <li><code>ajax_bulk_cp</code></li>
-        </ul>
-        <p>ASP.NET dry-runs validate payloads with writes=0; live execution stays on PHP.</p>
+        <div class="epc-scp-kpi__card">
+            <div class="epc-scp-kpi__label">Available</div>
+            <div class="epc-scp-kpi__val">@_summary.AvailableCount.ToString(CultureInfo.InvariantCulture)</div>
+        </div>
+        <div class="epc-scp-kpi__card">
+            <div class="epc-scp-kpi__label">Not found</div>
+            <div class="epc-scp-kpi__val">@_summary.NotFoundCount.ToString(CultureInfo.InvariantCulture)</div>
+        </div>
     </div>
+
+    <div class="epc-scp-tool-grid" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.75rem;margin-bottom:1rem;">
+        <a class="epc-scp-table-card" style="padding:1rem;text-decoration:none;color:inherit;" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">
+            <h3 style="margin:0 0 .35rem;font-size:1rem;">process_upload</h3>
+            <p style="margin:0;color:#475569;font-size:.86rem;">ingest file</p>
+        </a>
+        <a class="epc-scp-table-card" style="padding:1rem;text-decoration:none;color:inherit;" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">
+            <h3 style="margin:0 0 .35rem;font-size:1rem;">mark_reviewed</h3>
+            <p style="margin:0;color:#475569;font-size:.86rem;">operator review</p>
+        </a>
+        <a class="epc-scp-table-card" style="padding:1rem;text-decoration:none;color:inherit;" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">
+            <h3 style="margin:0 0 .35rem;font-size:1rem;">create_quote</h3>
+            <p style="margin:0;color:#475569;font-size:.86rem;">quote handoff</p>
+        </a>
+        <a class="epc-scp-table-card" style="padding:1rem;text-decoration:none;color:inherit;" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">
+            <h3 style="margin:0 0 .35rem;font-size:1rem;">add_to_cart</h3>
+            <p style="margin:0;color:#475569;font-size:.86rem;">cart handoff</p>
+        </a>
     </div>
 
-    <div class="epc-cpmod-note">
-        ePartsCart tenant CP maps this PHP module here so mega-menu / deep links no longer collapse to Command Centre.
+    <div class="epc-scp-table-card">
+        <div class="epc-scp-table-card__head">
+            <div>
+                <h3>Upload history</h3>
+                <p class="epc-users-hint">PHP ajax_bulk_cp history — file, priority, line counts. File bodies omitted.</p>
+            </div>
+            <a class="btn btn-primary btn-xs" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Open PHP module</a>
+        </div>
+        <table class="epc-scp-data-table table table-epc-pro">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>File</th>
+                    <th>Priority</th>
+                    <th>Uploaded</th>
+                    <th>Available</th>
+                    <th>Cross</th>
+                    <th>Short</th>
+                    <th>Not found</th>
+                    <th>Created</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (_uploads.Count == 0)
+                {
+                    <tr><td colspan="10">Nothing to show yet.</td></tr>
+                }
+                else
+                {
+                    @foreach (var row in _uploads)
+                    {
+                        <tr>
+                            <td><strong>@row.Id.ToString(CultureInfo.InvariantCulture)</strong></td>
+                            <td>@(string.IsNullOrWhiteSpace(row.FileName) ? "—" : row.FileName)</td>
+                            <td>@(string.IsNullOrWhiteSpace(row.Priority) ? "—" : row.Priority)</td>
+                            <td>@row.UploadedCount.ToString(CultureInfo.InvariantCulture)</td>
+                            <td>@row.AvailableCount.ToString(CultureInfo.InvariantCulture)</td>
+                            <td>@row.CrossCount.ToString(CultureInfo.InvariantCulture)</td>
+                            <td>@row.ShortCount.ToString(CultureInfo.InvariantCulture)</td>
+                            <td>@row.NotFoundCount.ToString(CultureInfo.InvariantCulture)</td>
+                            <td>@(string.IsNullOrWhiteSpace(row.CreatedAt) ? "—" : row.CreatedAt)</td>
+                            <td><a href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Open</a></td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
     </div>
 </PhpCpDesktopChrome>
 
 @code {
     private const string _phpTab = "/CP/shop/bulk_upload";
     private bool _isAdmin;
+    private CpBulkUploadSummary _summary = new(0, 0, 0, 0, "n/a", "");
+    private IReadOnlyList<CpBulkUploadRowDigest> _uploads = [];
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
+
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
-        _isAdmin = session.Kind == LegacySessionKind.Admin;
+        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
+        if (!_isAdmin)
+        {
+            return;
+        }
+
+        var result = await Dashboards.BuildCpBulkUploadDigestAsync(200, ctx.RequestAborted);
+        _summary = result.Summary;
+        _uploads = result.Uploads;
     }
 }

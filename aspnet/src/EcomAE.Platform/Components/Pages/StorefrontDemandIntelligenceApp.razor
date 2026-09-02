@@ -1,0 +1,64 @@
+@page "/storefront/demand-intelligence-app"
+@page "/en/demand-intelligence"
+@layout Layout.PhpChromeLayout
+@using EcomAE.Platform.Presentation
+
+<PageTitle>Vehicle Parts intelligence AI · eParts Cart</PageTitle>
+<PhpChromeStyles Surface="storefront" />
+<HeadContent>
+<style>
+    .epc-di-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:.75rem; }
+    .epc-di-card { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; padding:1rem; }
+    .epc-di-card h2 { margin:0 0 .4rem; font-size:1.05rem; }
+    .epc-di-card p, .epc-di-card li { margin:0; color:#475569; font-size:.88rem; line-height:1.45; }
+    .epc-di-card ul { margin:.4rem 0 0; padding-left:1.15rem; }
+    .epc-di-form { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.75rem; }
+    .epc-di-form input { flex:1 1 12rem; padding:.4rem .65rem; border:1px solid #cbd5e1; border-radius:3px; }
+    @@media (max-width:800px){ .epc-di-grid{grid-template-columns:1fr;} }
+</style>
+</HeadContent>
+<StorefrontAnalytics Enabled="true" IncludeClarity="true" />
+
+<PhpStorefrontDesktopChrome>
+    <PhpStorefrontPageHeader Title="Vehicle Parts intelligence AI"
+                            Subtitle="Demand-country intelligence plus live part / VIN search — PHP /en/demand-intelligence twin.">
+        <a class="btn btn-sm btn-primary" href="@StorefrontSurfaceLinks.PartSearch">Part search</a>
+        <a class="btn btn-sm btn-default" href="@StorefrontSurfaceLinks.LaximoVin">VIN / Frame</a>
+        <a class="btn btn-sm btn-default" href="@("/php-reference" + StorefrontPhpCanonical.DemandIntelligence)" title="Temporary PHP compare only">Compare PHP reference</a>
+    </PhpStorefrontPageHeader>
+
+    <div class="epc-di-grid">
+        <section class="epc-di-card">
+            <h2>Find a part</h2>
+            <p>Article / brand search stays on ASP.NET Core. Writes and supplier quotes remain PHP.</p>
+            <form class="epc-di-form" method="get" action="@StorefrontAspNetCanonical.PartSearch" role="search">
+                <label class="sr-only" for="epc-di-article">Article</label>
+                <input id="epc-di-article" name="article" type="search" placeholder="Article / OEM number" maxlength="64" />
+                <button class="btn btn-sm btn-primary" type="submit">Search</button>
+            </form>
+        </section>
+        <section class="epc-di-card">
+            <h2>Decode a VIN</h2>
+            <p>Same Laximo VIN / frame workspace as <code>/en/katalog-laximo</code>.</p>
+            <form class="epc-di-form" method="get" action="@StorefrontAspNetCanonical.LaximoVin" role="search">
+                <label class="sr-only" for="epc-di-vin">VIN</label>
+                <input id="epc-di-vin" name="identString" type="search" placeholder="VIN or Frame" maxlength="32" />
+                <button class="btn btn-sm btn-primary" type="submit">Decode</button>
+            </form>
+        </section>
+        <section class="epc-di-card">
+            <h2>Catalogs on this tenant</h2>
+            <ul>
+                <li><a href="@StorefrontSurfaceLinks.UmapiCatalog">Epart Catalog (UMAPI)</a></li>
+                <li><a href="@StorefrontSurfaceLinks.ProductFamily">Product Family</a></li>
+                <li><a href="@StorefrontSurfaceLinks.VehicleCatalog">Vehicle parts catalog</a></li>
+                <li><a href="@StorefrontSurfaceLinks.UcatsService">Epart Service Catalog (UCats)</a></li>
+            </ul>
+        </section>
+        <section class="epc-di-card">
+            <h2>Staff demand countries</h2>
+            <p>CP demand-intelligence console (admin session) lists country demand rows. Customer writes stay PHP.</p>
+            <p style="margin-top:.65rem"><a class="btn btn-sm btn-default" href="/cp/demand-intelligence-app">Open CP demand intelligence</a></p>
+        </section>
+    </div>
+</PhpStorefrontDesktopChrome>

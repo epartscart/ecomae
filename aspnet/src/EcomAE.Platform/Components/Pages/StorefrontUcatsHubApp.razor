@@ -1,0 +1,84 @@
+@page "/storefront/ucats-app"
+@page "/storefront/ucats-app/{Slug}"
+@page "/en/shop/katalogi-ucats"
+@page "/en/shop/katalogi-ucats/{Slug}"
+@layout Layout.PhpChromeLayout
+@using EcomAE.Platform.Presentation
+
+<PageTitle>@PageHeading · eParts Cart</PageTitle>
+<PhpChromeStyles Surface="storefront" />
+<HeadContent>
+<style>
+    .epc-ucats-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:.75rem; }
+    .epc-ucats-card {
+        display:flex; flex-direction:column; gap:.35rem; padding:1rem .95rem; border:1px solid #e2e8f0;
+        border-radius:.55rem; background:#fff; text-decoration:none; color:#0f172a; min-height:8.5rem;
+    }
+    .epc-ucats-card:hover { border-color:#2563eb; box-shadow:0 6px 18px rgba(15,23,42,.08); }
+    .epc-ucats-card i { font-size:1.45rem; color:#2563eb; }
+    .epc-ucats-card strong { font-size:1rem; }
+    .epc-ucats-card span { color:#64748b; font-size:.84rem; line-height:1.4; }
+    .epc-ucats-card.is-active { border-color:#2563eb; background:#eff6ff; }
+    .epc-ucats-note { margin-top:1rem; color:#64748b; font-size:.84rem; }
+    @@media (max-width:900px){ .epc-ucats-grid{grid-template-columns:1fr 1fr;} }
+    @@media (max-width:560px){ .epc-ucats-grid{grid-template-columns:1fr;} }
+</style>
+</HeadContent>
+<StorefrontAnalytics Enabled="true" IncludeClarity="true" />
+
+<PhpStorefrontDesktopChrome>
+    <PhpStorefrontPageHeader Title="@PageHeading"
+                            Subtitle="@PageSubtitle">
+        <a class="btn btn-sm btn-primary" href="@StorefrontSurfaceLinks.PartSearch">Part search</a>
+        <a class="btn btn-sm btn-default" href="@StorefrontSurfaceLinks.Accessories">Accessories marketplace</a>
+        <a class="btn btn-sm btn-default" href="@("/php-reference" + StorefrontPhpCanonical.UcatsService + PhpSlugSuffix)" title="Temporary PHP compare only">Compare PHP reference</a>
+    </PhpStorefrontPageHeader>
+
+    <div class="epc-ucats-grid" aria-label="UCats service catalogs">
+        @foreach (var card in StorefrontUcatsCatalog.Cards)
+        {
+            var href = StorefrontAspNetCanonical.UcatsService + "/" + card.Slug;
+            var active = string.Equals(card.Slug, Slug, StringComparison.OrdinalIgnoreCase);
+            <a class="epc-ucats-card @(active ? "is-active" : "")" href="@href">
+                <i class="fa @card.Icon" aria-hidden="true"></i>
+                <strong>@card.Title</strong>
+                <span>@card.Blurb</span>
+            </a>
+        }
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(_selectedBlurb))
+    {
+        <p class="epc-ucats-note">
+            @_selectedBlurb
+            Deep size/vehicle trees stay on PHP compare until the UCats AJAX port.
+            Use <a href="@StorefrontSurfaceLinks.NameSearch">name search</a>
+            or <a href="@StorefrontSurfaceLinks.WarehouseSearch">warehouse search</a> for live stock.
+        </p>
+    }
+    else
+    {
+        <p class="epc-ucats-note">
+            Eight UCats service catalogs from PHP <code>content/shop/ucats/catalogues.php</code>.
+            Open a card to stay on ASP.NET; deep picker trees remain PHP compare-only.
+        </p>
+    }
+</PhpStorefrontDesktopChrome>
+
+@code {
+    [Parameter] public string? Slug { get; set; }
+
+    private string PageHeading => _selected?.Title ?? "Epart Service Catalog";
+    private string PageSubtitle => _selected is null
+        ? "Tires, wheels, oil, batteries, service kits, accessories, hubcaps, and bolts — PHP UCats hub."
+        : _selected.Blurb;
+    private string PhpSlugSuffix => string.IsNullOrWhiteSpace(Slug) ? "" : "/" + Slug;
+    private StorefrontUcatsCard? _selected;
+    private string _selectedBlurb = "";
+
+    protected override void OnParametersSet()
+    {
+        _selected = StorefrontUcatsCatalog.Find(Slug);
+        _selectedBlurb = _selected?.Detail ?? "";
+    }
+}

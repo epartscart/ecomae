@@ -729,6 +729,8 @@ app.UseMiddleware<AdminSurfaceAuthGateMiddleware>();
 app.UseMiddleware<LifeOsPersonalAuthGateMiddleware>();
 // Credential POSTs on /cp|/erp|/bos|/ip|/lifeos|/storefront/login and /auth/login/admin — before antiforgery/Blazor.
 app.UseMiddleware<LegacyLoginBridgeMiddleware>();
+// Exact /en/ /ar/ /me/ /ru/ homes → same storefront as / (browser URL stays /en/).
+app.UseMiddleware<LangHomeFallbackMiddleware>();
 // Explicit routing after host gates so any future Path rewrites before this line re-match.
 app.UseRouting();
 // Required for Blazor SSR endpoints (MapRazorComponents adds antiforgery metadata).

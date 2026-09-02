@@ -3750,4 +3750,78 @@ public const string SelectCpOpsGuidesStats = """
         LIMIT @limit
         """;
 
+    public const string SelectCpOfficesStats = """
+        SELECT
+            (SELECT COUNT(*) FROM `shop_offices`) AS office_count,
+            (SELECT COUNT(DISTINCT `office_id`) FROM `shop_offices_storages_map`) AS mapped_storage_count,
+            (SELECT COUNT(DISTINCT `office_id`) FROM `shop_offices_geo_map`) AS geo_mapped_count
+        """;
+
+    public const string SelectCpOffices = """
+        SELECT `id`, IFNULL(`caption`,'') AS caption, IFNULL(`city`,'') AS city,
+               IFNULL(`address`,'') AS address, IFNULL(`phone`,'') AS phone
+        FROM `shop_offices`
+        ORDER BY `id` ASC
+        LIMIT @limit
+        """;
+
+    /// <summary>PHP workshop_main_page / epc_ws_dashboard KPIs (phone/email/notes omitted).</summary>
+    public const string SelectCpWorkshopStats = """
+        SELECT
+            (SELECT COUNT(*) FROM `epc_ws_jobs` WHERE IFNULL(`status`,'') NOT IN ('delivered','cancelled')) AS open_count,
+            (SELECT COUNT(*) FROM `epc_ws_jobs` WHERE IFNULL(`status`,'') IN ('in_progress','qc')) AS in_progress_count,
+            (SELECT COUNT(*) FROM `epc_ws_jobs` WHERE IFNULL(`status`,'')='ready') AS ready_count,
+            (SELECT COUNT(*) FROM `epc_ws_jobs` WHERE IFNULL(`status`,'')='delivered' AND IFNULL(`time_updated`,0) >= UNIX_TIMESTAMP(CURRENT_DATE())) AS delivered_today,
+            (SELECT IFNULL(SUM(`grand_total`),0) FROM `epc_ws_jobs` WHERE IFNULL(`status`,'') NOT IN ('delivered','cancelled')) AS revenue_open
+        """;
+
+    public const string SelectCpWorkshopJobs = """
+        SELECT j.`id`, IFNULL(j.`job_no`,'') AS job_no, IFNULL(j.`status`,'') AS status,
+               IFNULL(j.`customer_name`,'') AS customer_name, IFNULL(j.`plate`,'') AS plate,
+               IFNULL(j.`make`,'') AS make, IFNULL(j.`model`,'') AS model,
+               IFNULL(j.`year`,'') AS year, IFNULL(b.`name`,'') AS bay_name,
+               IFNULL(t.`name`,'') AS tech_name, IFNULL(j.`grand_total`,0) AS grand_total
+        FROM `epc_ws_jobs` j
+        LEFT JOIN `epc_ws_bays` b ON b.`id` = j.`bay_id`
+        LEFT JOIN `epc_ws_technicians` t ON t.`id` = j.`tech_id`
+        ORDER BY j.`id` DESC
+        LIMIT @limit
+        """;
+
+    /// <summary>PHP devices.php / kkt_root_page — shop_kkt_devices + fiscal checks (customer contact omitted).</summary>
+    public const string SelectCpKktStats = """
+        SELECT
+            (SELECT COUNT(*) FROM `shop_kkt_devices`) AS device_count,
+            (SELECT COUNT(*) FROM `shop_kkt_devices` WHERE IFNULL(`handler`,'')!='') AS wired_device_count,
+            (SELECT COUNT(*) FROM `shop_kkt_checks`) AS check_count,
+            (SELECT COUNT(*) FROM `shop_kkt_checks` WHERE IFNULL(`sent_to_real_device_flag`,0)=1) AS sent_count
+        """;
+
+    public const string SelectCpKktDevices = """
+        SELECT d.`id`, IFNULL(d.`name`,'') AS name, IFNULL(d.`handler`,'') AS handler,
+               IFNULL((SELECT `description` FROM `shop_kkt_interfaces_types` WHERE `handler` = d.`handler` LIMIT 1),'') AS interface_description
+        FROM `shop_kkt_devices` d
+        ORDER BY d.`name` ASC
+        LIMIT @limit
+        """;
+
+    /// <summary>PHP bulk_upload_hub — operator history (all users; no file bodies).</summary>
+    public const string SelectCpBulkUploadStats = """
+        SELECT
+            (SELECT COUNT(*) FROM `epc_bulk_upload_history`) AS upload_count,
+            (SELECT IFNULL(SUM(`uploaded_count`),0) FROM `epc_bulk_upload_history`) AS uploaded_lines,
+            (SELECT IFNULL(SUM(`available_count`),0) FROM `epc_bulk_upload_history`) AS available_count,
+            (SELECT IFNULL(SUM(`notfound_count`),0) FROM `epc_bulk_upload_history`) AS notfound_count
+        """;
+
+    public const string SelectCpBulkUploadRows = """
+        SELECT `id`, IFNULL(`file_name`,'') AS file_name, IFNULL(`priority`,'') AS priority,
+               IFNULL(`uploaded_count`,0) AS uploaded_count, IFNULL(`available_count`,0) AS available_count,
+               IFNULL(`cross_count`,0) AS cross_count, IFNULL(`short_count`,0) AS short_count,
+               IFNULL(`notfound_count`,0) AS notfound_count, IFNULL(`created_at`,'') AS created_at
+        FROM `epc_bulk_upload_history`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
 }

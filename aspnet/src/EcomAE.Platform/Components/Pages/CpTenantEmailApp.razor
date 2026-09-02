@@ -1,7 +1,9 @@
 @page "/cp/tenant-email-app"
 @layout Layout.PhpChromeLayout
 @using EcomAE.Platform.Auth
+@using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
+@inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
 
@@ -11,35 +13,48 @@
 <PhpCpDesktopChrome IsAdmin="_isAdmin">
 
     <PhpCpModulePageHeader Title="Email / SMTP"
-                           Subtitle="This tenant’s outgoing mail for OTP, order notifications, and customer email. Independent of Super CP — no platform fleet secrets here."
+                           Subtitle="PHP epc_tenant_email_settings parity — this tenant’s outgoing mail for OTP and order notifications. Password/username omitted; save/test stay PHP."
                            PhpTabHref="/CP/control/portal/epc_tenant_email_settings">
         <a class="ghost" href="/cp/integrations-app">Integrations</a>
         <a class="ghost" href="/cp/config-items-app">Config items</a>
         <a class="ghost" href="/cp/communications-test-app">Communications test</a>
     </PhpCpModulePageHeader>
 
+    @if (!_isAdmin)
+    {
+        <div class="alert alert-info" role="status">Sign in with a Control Panel admin session to load live tenant data. Guest browse shows the PHP-parity shell.</div>
+    }
+
     <div class="epc-scp-kpi" aria-label="Tenant email scope">
         <div class="epc-scp-kpi__card">
-            <div class="epc-scp-kpi__label">Scope</div>
-            <div class="epc-scp-kpi__val">This tenant</div>
+            <div class="epc-scp-kpi__label">Use tenant SMTP</div>
+            <div class="epc-scp-kpi__val">@(_summary.UseTenantSmtp ? "yes" : "no")</div>
         </div>
         <div class="epc-scp-kpi__card">
             <div class="epc-scp-kpi__label">Host</div>
-            <div class="epc-scp-kpi__val">@_host</div>
+            <div class="epc-scp-kpi__val">@(string.IsNullOrWhiteSpace(_summary.Host) ? _host : _summary.Host)</div>
         </div>
         <div class="epc-scp-kpi__card">
-            <div class="epc-scp-kpi__label">Super CP fleet</div>
-            <div class="epc-scp-kpi__val">Hidden</div>
+            <div class="epc-scp-kpi__label">Port / encryption</div>
+            <div class="epc-scp-kpi__val">@(string.IsNullOrWhiteSpace(_summary.Port) ? "—" : _summary.Port) / @(string.IsNullOrWhiteSpace(_summary.Encryption) ? "—" : _summary.Encryption)</div>
+        </div>
+        <div class="epc-scp-kpi__card">
+            <div class="epc-scp-kpi__label">Password saved</div>
+            <div class="epc-scp-kpi__val">@(_summary.HasPassword ? "yes" : "no")</div>
         </div>
     </div>
 
     <div class="epc-scp-table-card">
         <div class="epc-scp-table-card__head" style="padding:14px 16px;border-bottom:1px solid #e2e8f0;">
             <h3 style="margin:0 0 4px;font-size:1rem;">Tenant mail settings</h3>
-            <p class="text-muted small" style="margin:0">Configure SMTP for this site only. Platform operator credentials and multi-tenant deploy targets are Super CP exclusive.</p>
+            <p class="text-muted small" style="margin:0">From name / from email shown. Username and password never returned.</p>
         </div>
         <div style="padding:16px;">
-            <p style="margin:0 0 12px;">Use the PHP reference editor for authoritative SMTP save / test until the ASP.NET write cutover.</p>
+            <dl style="display:grid;grid-template-columns:10rem 1fr;gap:.35rem .75rem;margin:0 0 1rem;font-size:.9rem;">
+                <dt>From name</dt><dd>@(string.IsNullOrWhiteSpace(_summary.FromName) ? "—" : _summary.FromName)</dd>
+                <dt>From email</dt><dd>@(string.IsNullOrWhiteSpace(_summary.FromEmail) ? "—" : _summary.FromEmail)</dd>
+                <dt>This host</dt><dd>@_host</dd>
+            </dl>
             <div style="display:flex;flex-wrap:wrap;gap:8px;">
                 <a class="btn btn-primary btn-sm" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref("/CP/control/portal/epc_tenant_email_settings")"><i class="fa fa-envelope"></i> PHP SMTP editor</a>
                 <a class="btn btn-default btn-sm" href="/cp/integrations-app"><i class="fa fa-plug"></i> Integrations hub</a>
@@ -56,6 +71,7 @@
 @code {
     private bool _isAdmin;
     private string _host = "—";
+    private CpTenantEmailSummary _summary = new(false, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, false, "n/a", "");
 
     protected override async Task OnInitializedAsync()
     {
@@ -68,5 +84,12 @@
         _host = string.IsNullOrWhiteSpace(ctx.Request.Host.Host) ? "—" : ctx.Request.Host.Host;
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
+        if (!_isAdmin)
+        {
+            return;
+        }
+
+        var result = await Dashboards.BuildCpTenantEmailDigestAsync(ctx.RequestAborted);
+        _summary = result.Summary;
     }
 }

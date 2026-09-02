@@ -90,17 +90,17 @@ public static class StorefrontSurfaceLinks
         return bare.ToLowerInvariant() switch
         {
             "/accessories-spare-parts" or "/accessories" => StorefrontAspNetCanonical.Accessories + query,
-            "/available-brands" => StorefrontAspNetCanonical.AvailableBrands,
-            "/parts" => StorefrontAspNetCanonical.PartsInStock,
-            "/eparts-cata" => StorefrontAspNetCanonical.EpartsCata,
-            "/eparts-mod" => StorefrontAspNetCanonical.EpartsMod,
-            "/partsapi-catalog" => StorefrontAspNetCanonical.PartsApiCatalog,
-            "/levam-oem" => StorefrontAspNetCanonical.LevamOem,
-            "/umapi_catalog" => StorefrontAspNetCanonical.UmapiCatalog,
-            "/original-catalog" => StorefrontAspNetCanonical.OriginalCatalog,
-            "/demand-intelligence" => StorefrontAspNetCanonical.DemandIntelligence,
-            "/zapros-prodavczu" => StorefrontAspNetCanonical.SellerRequest,
-            "/product-family" => StorefrontAspNetCanonical.ProductFamily,
+            "/available-brands" => StorefrontAspNetCanonical.AvailableBrands + query,
+            "/parts" => StorefrontAspNetCanonical.PartsInStock + query,
+            "/eparts-cata" => StorefrontAspNetCanonical.EpartsCata + query,
+            "/eparts-mod" => StorefrontAspNetCanonical.EpartsMod + query,
+            "/partsapi-catalog" => StorefrontAspNetCanonical.PartsApiCatalog + query,
+            "/levam-oem" => StorefrontAspNetCanonical.LevamOem + query,
+            "/umapi_catalog" => StorefrontAspNetCanonical.UmapiCatalog + query,
+            "/original-catalog" => StorefrontAspNetCanonical.OriginalCatalog + query,
+            "/demand-intelligence" => StorefrontAspNetCanonical.DemandIntelligence + query,
+            "/zapros-prodavczu" => StorefrontAspNetCanonical.SellerRequest + query,
+            "/product-family" => StorefrontAspNetCanonical.ProductFamily + query,
             _ when bare.Contains("katalogi-ucats", StringComparison.OrdinalIgnoreCase)
                 => StorefrontAspNetCanonical.UcatsService,
             _ when bare.Contains("bulk-upload", StringComparison.OrdinalIgnoreCase)

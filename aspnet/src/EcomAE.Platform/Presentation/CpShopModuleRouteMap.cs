@@ -25,6 +25,7 @@ public static class CpShopModuleRouteMap
         ["geo"] = "/cp/geo-regions-app",
         ["kkt"] = "/cp/kkt-app",
         ["logistics"] = "/cp/delivery-methods-app",
+        ["offices"] = "/cp/offices-app",
         ["manufacturers_synonyms"] = "/cp/synonyms-app",
         ["marketing"] = "/cp/marketing-growth-app",
         ["order_process"] = "/cp/orders",

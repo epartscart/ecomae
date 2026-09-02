@@ -1,0 +1,108 @@
+@page "/cp/offices-app"
+@layout Layout.PhpChromeLayout
+@using System.Globalization
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Migration
+@using EcomAE.Platform.Presentation
+@inject ISurfaceDashboardSummaryReporter Dashboards
+@inject ILegacySessionValidator Sessions
+@inject IHttpContextAccessor Http
+
+<PageTitle>Offices · Control Panel · eParts Cart</PageTitle>
+<PhpChromeStyles Surface="cp" />
+
+<PhpCpDesktopChrome IsAdmin="_isAdmin">
+
+    <PhpCpModulePageHeader Title="Offices / pickup points"
+                           Subtitle="PHP offices.php parity — shop_offices caption, city, address, and phone. Create/edit/delete stay on classic PHP."
+                           PhpTabHref="@_phpTab">
+        <a class="ghost" href="/cp/storages-app">Storages</a>
+        <a class="ghost" href="/cp/delivery-methods-app">Obtaining modes</a>
+        <a class="ghost" href="/cp/geo-regions-app">Geo</a>
+    </PhpCpModulePageHeader>
+
+    @if (!_isAdmin)
+    {
+        <div class="alert alert-info" role="status">Sign in with a Control Panel admin session to load live tenant data. Guest browse shows the PHP-parity shell.</div>
+    }
+
+    <div class="epc-scp-kpi" aria-label="Office stats">
+        <div class="epc-scp-kpi__card">
+            <div class="epc-scp-kpi__label">Offices</div>
+            <div class="epc-scp-kpi__val">@_summary.OfficeCount.ToString(CultureInfo.InvariantCulture)</div>
+        </div>
+        <div class="epc-scp-kpi__card">
+            <div class="epc-scp-kpi__label">Mapped storages</div>
+            <div class="epc-scp-kpi__val">@_summary.MappedStorageCount.ToString(CultureInfo.InvariantCulture)</div>
+        </div>
+        <div class="epc-scp-kpi__card">
+            <div class="epc-scp-kpi__label">Geo mapped</div>
+            <div class="epc-scp-kpi__val">@_summary.GeoMappedCount.ToString(CultureInfo.InvariantCulture)</div>
+        </div>
+    </div>
+
+    <div class="epc-scp-table-card">
+        <div class="epc-scp-table-card__head">
+            <div>
+                <h3>Pickup points</h3>
+                <p class="epc-users-hint">PHP offices.php columns — id, caption, city + address, phone</p>
+            </div>
+            <a class="btn btn-primary btn-xs" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Open PHP module</a>
+        </div>
+        <table class="epc-scp-data-table table table-epc-pro">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Caption</th>
+                    <th>City, address</th>
+                    <th>Phone</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (_offices.Count == 0)
+                {
+                    <tr><td colspan="5">Nothing to show yet.</td></tr>
+                }
+                else
+                {
+                    @foreach (var row in _offices)
+                    {
+                        var cityAddress = string.Join(", ", new[] { row.City, row.Address }.Where(s => !string.IsNullOrWhiteSpace(s)));
+                        <tr>
+                            <td><strong>@row.Id.ToString(CultureInfo.InvariantCulture)</strong></td>
+                            <td>@(string.IsNullOrWhiteSpace(row.Caption) ? "—" : row.Caption)</td>
+                            <td>@(string.IsNullOrWhiteSpace(cityAddress) ? "—" : cityAddress)</td>
+                            <td>@(string.IsNullOrWhiteSpace(row.Phone) ? "—" : row.Phone)</td>
+                            <td><a href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref($"{_phpTab}/office?office_id={row.Id.ToString(CultureInfo.InvariantCulture)}")">Open</a></td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+</PhpCpDesktopChrome>
+
+@code {
+    private const string _phpTab = "/CP/shop/logistics/offices";
+    private bool _isAdmin;
+    private CpOfficesSummary _summary = new(0, 0, 0, "n/a", "");
+    private IReadOnlyList<CpOfficeDigest> _offices = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null) return;
+
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
+        if (!_isAdmin)
+        {
+            return;
+        }
+
+        var result = await Dashboards.BuildCpOfficesDigestAsync(200, ctx.RequestAborted);
+        _summary = result.Summary;
+        _offices = result.Offices;
+    }
+}

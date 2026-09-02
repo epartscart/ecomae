@@ -1,0 +1,33 @@
+@namespace EcomAE.Platform.Components.Shared
+@using EcomAE.Platform.Presentation
+
+<style>
+    .epc-sf-vc-body { background:#fff; border:1px solid #e5e7eb; border-radius:.55rem; padding:.75rem .85rem 1rem; }
+    .epc-sf-vc-note { margin-top:.85rem; color:#64748b; font-size:.84rem; }
+</style>
+
+<PhpStorefrontDesktopChrome>
+    <PhpStorefrontPageHeader Title="@Title" Subtitle="@Subtitle">
+        @if (ChildContent is not null)
+        {
+            @ChildContent
+        }
+    </PhpStorefrontPageHeader>
+
+    <div class="epc-sf-vc-body" id="@AnchorId" aria-label="@Title">
+        @((MarkupString)Html)
+    </div>
+    <p class="epc-sf-vc-note">
+        ASP.NET Core catalog page with same-to-same widget markup (no PHP page body).
+        PHP compare only under <code>/php-reference@PhpComparePath</code>.
+    </p>
+</PhpStorefrontDesktopChrome>
+
+@code {
+    [Parameter] public string Title { get; set; } = "";
+    [Parameter] public string? Subtitle { get; set; }
+    [Parameter] public string AnchorId { get; set; } = "epc-catalog";
+    [Parameter] public string Html { get; set; } = "";
+    [Parameter] public string PhpComparePath { get; set; } = "";
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+}

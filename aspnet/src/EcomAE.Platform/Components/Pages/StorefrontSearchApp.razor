@@ -1,6 +1,7 @@
 @page "/storefront/search-app"
 @page "/en/shop/part_search"
 @page "/en/shop/warehouse-search"
+@page "/en/shop/search"
 @page "/parts/{PathBrand}/{PathArticle}"
 @page "/en/parts/{PathBrand}/{PathArticle}"
 @layout Layout.PhpChromeLayout
@@ -1257,6 +1258,12 @@
         if (Navigation.Uri.Contains("warehouse-search", StringComparison.OrdinalIgnoreCase))
         {
             _mode = "attr";
+        }
+        else if (Navigation.Uri.Contains("/shop/search", StringComparison.OrdinalIgnoreCase)
+                 && string.IsNullOrWhiteSpace(_mode)
+                 && string.IsNullOrWhiteSpace(ModeQuery))
+        {
+            _mode = "name";
         }
 
         _mode = string.IsNullOrWhiteSpace(_mode)

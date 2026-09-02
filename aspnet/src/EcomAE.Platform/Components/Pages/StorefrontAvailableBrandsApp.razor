@@ -1,0 +1,44 @@
+@page "/storefront/available-brands-app"
+@page "/en/available-brands"
+@page "/en/parts"
+@layout Layout.PhpChromeLayout
+@using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Storefront
+@inject IStorefrontPriceAccess PriceAccess
+@inject IHttpContextAccessor Http
+
+<PageTitle>Available brands · eParts Cart</PageTitle>
+<PhpChromeStyles Surface="storefront" />
+<StorefrontAnalytics Enabled="true" IncludeClarity="true" />
+
+<StorefrontCatalogWidgetBody Title="Available brands"
+                            Subtitle="Brands in stock — same widget as the PHP /en/available-brands page."
+                            AnchorId="epc-brands"
+                            Html="@_html"
+                            PhpComparePath="@StorefrontPhpCanonical.AvailableBrands">
+    <a class="btn btn-sm btn-primary" href="@StorefrontSurfaceLinks.PartSearch">Part search</a>
+    <a class="btn btn-sm btn-default" href="@StorefrontSurfaceLinks.OwnCatalog">Own catalog</a>
+    <a class="btn btn-sm btn-default" href="@("/php-reference" + StorefrontPhpCanonical.AvailableBrands)" title="Temporary PHP compare only">Compare PHP reference</a>
+</StorefrontCatalogWidgetBody>
+
+@code {
+    private string _html = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var pricesVisible = false;
+        var ctx = Http.HttpContext;
+        if (ctx is not null)
+        {
+            var access = await PriceAccess.ResolveAsync(ctx, ctx.RequestAborted);
+            pricesVisible = access.PricesVisible;
+        }
+
+        _html = PhpHomeWidgetHtml.AvailableBrands(pricesVisible);
+        if (string.IsNullOrWhiteSpace(_html))
+        {
+            _html = "<p style=\"margin:0;color:#64748b\">Available brands widget is unavailable in this environment. "
+                  + "<a href=\"" + StorefrontSurfaceLinks.PartSearch + "\">Open part search</a>.</p>";
+        }
+    }
+}

@@ -435,6 +435,21 @@ public interface ISurfaceDashboardSummaryReporter
     Task<ErpAgendaEventListResult> ListErpAgendaEventsAsync(int limit, CancellationToken cancellationToken = default);
     Task<ErpDocumentListResult> ListErpDocumentsAsync(int limit, CancellationToken cancellationToken = default);
     Task<ErpExpenseReportListResult> ListErpExpenseReportsAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Read-only shop_offices + storage/geo maps (PHP offices.php).</summary>
+    Task<CpOfficesDigestResult> BuildCpOfficesDigestAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Read-only workshop jobs (customer phone/email omitted).</summary>
+    Task<CpWorkshopDigestResult> BuildCpWorkshopDigestAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Read-only KKT devices (PHP devices.php; customer contact omitted).</summary>
+    Task<CpKktDigestResult> BuildCpKktDigestAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Read-only CP bulk-upload history (PHP bulk_upload_hub; file bodies omitted).</summary>
+    Task<CpBulkUploadDigestResult> BuildCpBulkUploadDigestAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Read-only tenant SMTP settings (password/username omitted).</summary>
+    Task<CpTenantEmailDigestResult> BuildCpTenantEmailDigestAsync(CancellationToken cancellationToken = default);
 }
 
 

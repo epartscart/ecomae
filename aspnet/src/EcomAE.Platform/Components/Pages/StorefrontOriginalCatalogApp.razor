@@ -1,0 +1,33 @@
+@page "/storefront/original-catalog-app"
+@page "/en/original-catalog"
+@page "/en/levam-oem"
+@layout Layout.PhpChromeLayout
+@using EcomAE.Platform.Presentation
+
+<PageTitle>Original catalog · eParts Cart</PageTitle>
+<PhpChromeStyles Surface="storefront" />
+<StorefrontAnalytics Enabled="true" IncludeClarity="true" />
+
+<StorefrontCatalogWidgetBody Title="Original catalog"
+                            Subtitle="OEM / original-parts vehicle tree (year → make → model → engine)."
+                            AnchorId="epc-vehicle-catalog"
+                            Html="@_html"
+                            PhpComparePath="@StorefrontPhpCanonical.OriginalCatalog">
+    <a class="btn btn-sm btn-primary" href="@StorefrontSurfaceLinks.VehicleCatalog">Vehicle parts catalog</a>
+    <a class="btn btn-sm btn-default" href="@StorefrontSurfaceLinks.LaximoVin">VIN / Frame</a>
+    <a class="btn btn-sm btn-default" href="@("/php-reference" + StorefrontPhpCanonical.OriginalCatalog)" title="Temporary PHP compare only">Compare PHP reference</a>
+</StorefrontCatalogWidgetBody>
+
+@code {
+    private string _html = "";
+
+    protected override void OnInitialized()
+    {
+        _html = PhpHomeWidgetHtml.VehicleCatalog();
+        if (string.IsNullOrWhiteSpace(_html))
+        {
+            _html = "<p style=\"margin:0;color:#64748b\">Original catalog widget is unavailable in this environment. "
+                  + "<a href=\"" + StorefrontSurfaceLinks.LaximoVin + "\">Open VIN / Frame search</a>.</p>";
+        }
+    }
+}
