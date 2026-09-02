@@ -136,6 +136,31 @@ public sealed record StorefrontOrdersResult(
     string Source,
     string Message);
 
+public sealed record StorefrontOrderItemDigest(
+    long Id,
+    long OrderId,
+    string Brand,
+    string Article,
+    string Name,
+    decimal Price,
+    decimal CountNeed,
+    int Status);
+
+public sealed record StorefrontOrderItemsResult(
+    int UserId,
+    long OrderId,
+    IReadOnlyList<StorefrontOrderItemDigest> Items,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record StorefrontPriceListResult(
+    int UserId,
+    int GroupId,
+    string FileHref,
+    string Source,
+    string Message);
+
 public sealed record CpShopOrderDigest(
     long Id,
     long TimeUnix,

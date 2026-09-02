@@ -323,6 +323,31 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>Customer-scoped order lines (PHP <c>my_orders_items.php</c>). Never omit the user join.</summary>
+    public const string SelectCustomerOrderItems = """
+        SELECT i.`id`, i.`order_id`,
+               IFNULL(i.`t2_manufacturer`, '') AS brand,
+               IFNULL(i.`t2_article`, '') AS article,
+               IFNULL(i.`t2_name`, '') AS name,
+               IFNULL(i.`price`, 0) AS price,
+               IFNULL(i.`count_need`, 0) AS count_need,
+               IFNULL(i.`status`, 0) AS status
+        FROM `shop_orders_items` i
+        INNER JOIN `shop_orders` o ON o.`id` = i.`order_id`
+        WHERE o.`user_id` = @userId
+          AND (@orderId = 0 OR i.`order_id` = @orderId)
+        ORDER BY i.`order_id` DESC, i.`id` ASC
+        LIMIT @limit
+        """;
+
+    public const string SelectCustomerPriceGroup = """
+        SELECT IFNULL(`group_id`, 0) AS group_id
+        FROM `users_groups_bind`
+        WHERE `user_id` = @userId
+        ORDER BY `group_id` ASC
+        LIMIT 1
+        """;
+
     /// <summary>
     /// CP OMS recent orders (platform-wide read digest).
     /// Office-manager ACL filtering remains PHP-authoritative.

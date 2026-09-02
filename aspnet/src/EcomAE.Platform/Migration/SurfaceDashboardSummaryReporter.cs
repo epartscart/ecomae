@@ -5,6 +5,7 @@ using EcomAE.Platform.Api.Catalog;
 using EcomAE.Platform.Data;
 using EcomAE.Platform.Middleware;
 using EcomAE.Platform.Observability;
+using EcomAE.Platform.Presentation;
 using EcomAE.Platform.Services;
 
 namespace EcomAE.Platform.Migration;
@@ -428,6 +429,81 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         catch (Exception ex)
         {
             return new(userId, [], 0, "database-error", ex.Message);
+        }
+    }
+
+    public async Task<StorefrontOrderItemsResult> ListStorefrontOrderItemsAsync(int userId, long orderId, int limit, CancellationToken cancellationToken = default)
+    {
+        var safeLimit = Math.Clamp(limit, 1, 200);
+        var safeOrder = orderId < 0 ? 0 : orderId;
+        if (!_connections.IsConfigured)
+        {
+            return new(userId, safeOrder, [], 0, "migration", "TenantRegistry DB is not configured.");
+        }
+
+        if (userId <= 0)
+        {
+            return new(0, 0, [], 0, "rejected", "Valid customer user id is required.");
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            await using var command = connection.CreateCommand();
+            command.CommandText = LegacySurfaceDashboardSql.SelectCustomerOrderItems;
+            AddParameter(command, "@userId", userId);
+            AddParameter(command, "@orderId", safeOrder);
+            AddParameter(command, "@limit", safeLimit);
+
+            var rows = new List<StorefrontOrderItemDigest>();
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                rows.Add(new StorefrontOrderItemDigest(
+                    Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                    Convert.ToInt64(reader["order_id"], CultureInfo.InvariantCulture),
+                    Convert.ToString(reader["brand"] is DBNull ? string.Empty : reader["brand"], CultureInfo.InvariantCulture) ?? string.Empty,
+                    Convert.ToString(reader["article"] is DBNull ? string.Empty : reader["article"], CultureInfo.InvariantCulture) ?? string.Empty,
+                    Convert.ToString(reader["name"] is DBNull ? string.Empty : reader["name"], CultureInfo.InvariantCulture) ?? string.Empty,
+                    Convert.ToDecimal(reader["price"] is DBNull ? 0 : reader["price"], CultureInfo.InvariantCulture),
+                    Convert.ToDecimal(reader["count_need"] is DBNull ? 0 : reader["count_need"], CultureInfo.InvariantCulture),
+                    Convert.ToInt32(reader["status"] is DBNull ? 0 : reader["status"], CultureInfo.InvariantCulture)));
+            }
+
+            return new(userId, safeOrder, rows, rows.Count, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(userId, safeOrder, [], 0, "database-error", ex.Message);
+        }
+    }
+
+    public async Task<StorefrontPriceListResult> GetStorefrontPriceListAsync(int userId, CancellationToken cancellationToken = default)
+    {
+        if (!_connections.IsConfigured)
+        {
+            return new(userId, 0, string.Empty, "migration", "TenantRegistry DB is not configured.");
+        }
+
+        if (userId <= 0)
+        {
+            return new(0, 0, string.Empty, "rejected", "Valid customer user id is required.");
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            await using var command = connection.CreateCommand();
+            command.CommandText = LegacySurfaceDashboardSql.SelectCustomerPriceGroup;
+            AddParameter(command, "@userId", userId);
+            var raw = await command.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
+            var groupId = raw is null or DBNull ? 0 : Convert.ToInt32(raw, CultureInfo.InvariantCulture);
+            var href = groupId > 0 ? PhpCustomerPrices.FileHref(groupId) : string.Empty;
+            return new(userId, groupId, href, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(userId, 0, string.Empty, "database-error", ex.Message);
         }
     }
 

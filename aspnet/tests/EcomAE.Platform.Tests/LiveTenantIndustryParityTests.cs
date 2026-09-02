@@ -444,6 +444,18 @@ public sealed class LiveTenantIndustryParityTests
         Assert.Equal("/storefront/logout", logout);
         Assert.True(IndustryStorefrontSlugMiddleware.TryMatch("www.thejewellerytrend.com", "/en/users/logout", out _, out var jewelleryLogout));
         Assert.Equal("logout", jewelleryLogout);
+        Assert.True(IndustryStorefrontSlugMiddleware.TryMatch("www.electronicae.com", "/en/shop/prices-download", out var prices, out var pricesKind));
+        Assert.Equal("prices-download", pricesKind);
+        Assert.Equal(StorefrontAspNetCanonical.PricesDownload, prices);
+        Assert.True(IndustryStorefrontSlugMiddleware.TryMatch("www.stylenlook.com", "/users/prices", out _, out var fashionPrices));
+        Assert.Equal("prices-download", fashionPrices);
+        Assert.True(PhpCustomerPrices.IsPublishedHref(PhpCustomerPrices.FileHref(2)));
+        Assert.Equal("/content/files/Documents/prices_tmp/prices_2.csv", PhpCustomerPrices.FileHref(2));
+        Assert.Equal(string.Empty, PhpCustomerPrices.FileHref(0));
+        Assert.Equal(StorefrontAspNetCanonical.PricesDownload, PhpSurfaceLinkMap.AspNetPrimaryHref("/en/shop/prices-download"));
+        Assert.False(PhpSurfaceLinkMap.TryMapIncomingPhpProductPath("/en/shop/prices-download", out _));
+        Assert.Contains("user_id", LegacySurfaceDashboardSql.SelectCustomerOrderItems, StringComparison.Ordinal);
+        Assert.Contains("users_groups_bind", LegacySurfaceDashboardSql.SelectCustomerPriceGroup, StringComparison.Ordinal);
     }
 
     [Fact]

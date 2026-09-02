@@ -701,6 +701,14 @@ public static class PhpSurfaceLinkMap
             return StorefrontAspNetCanonical.ConfirmContact;
         }
 
+        if (value.Equals("/shop/prices-download", StringComparison.OrdinalIgnoreCase)
+            || value.StartsWith("/shop/prices-download?", StringComparison.OrdinalIgnoreCase)
+            || value.Equals("/users/prices", StringComparison.OrdinalIgnoreCase)
+            || value.StartsWith("/users/prices?", StringComparison.OrdinalIgnoreCase))
+        {
+            return StorefrontAspNetCanonical.PricesDownload;
+        }
+
         if (value.StartsWith("/shop/returns", StringComparison.OrdinalIgnoreCase))
         {
             return StorefrontAspNetCanonical.CustomerReturns;
@@ -1263,6 +1271,8 @@ public static class PhpSurfaceLinkMap
             || path.Equals("/users/editform", StringComparison.OrdinalIgnoreCase)
             || path.Equals("/users/logout", StringComparison.OrdinalIgnoreCase)
             || path.Equals("/users/exit", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/users/prices", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/shop/prices-download", StringComparison.OrdinalIgnoreCase)
             || path.Equals("/shop/ucats", StringComparison.OrdinalIgnoreCase)
             || path.StartsWith("/shop/ucats/", StringComparison.OrdinalIgnoreCase)
             || PhpSpecialSearches.IsAlias(path)

@@ -127,6 +127,14 @@ public sealed class IndustryStorefrontSlugMiddleware
             return true;
         }
 
+        if (only.Equals("shop/prices-download", StringComparison.OrdinalIgnoreCase)
+            || only.Equals("users/prices", StringComparison.OrdinalIgnoreCase))
+        {
+            rewrite = StorefrontAspNetCanonical.PricesDownload + incomingQuery;
+            kind = "prices-download";
+            return true;
+        }
+
         if (only.Equals("shop/returns", StringComparison.OrdinalIgnoreCase)
             || only.StartsWith("shop/returns/", StringComparison.OrdinalIgnoreCase))
         {

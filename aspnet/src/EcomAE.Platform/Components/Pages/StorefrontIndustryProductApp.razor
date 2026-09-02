@@ -36,7 +36,17 @@
                     </div>
                     <aside style="border:1px solid #e2e8f0;border-radius:.7rem;padding:1.1rem 1.15rem;background:#fff;height:fit-content">
                         <div style="font-size:1.35rem;font-weight:800;margin-bottom:.85rem">@PhpIndustryStorefrontCatalog.FormatAed(_product.Price)</div>
-                        <a class="btn btn-primary" href="@($"/shop/cart?add={Uri.EscapeDataString(_product.Alias)}")">Add to cart</a>
+                        <form method="get" action="@StorefrontSurfaceLinks.Cart" style="margin:0 0 .75rem">
+                            <input type="hidden" name="sku" value="@_product.Alias" />
+                            <label>Qty <input type="number" name="count_need" value="1" min="1" style="width:4.5rem;margin-left:.35rem;padding:.35rem" /></label>
+                            <button type="submit" class="btn btn-primary" style="margin-left:.45rem">Add to cart</button>
+                        </form>
+                        <form method="get" action="@PhpCustomerWrites.EvaluationWriteHref" style="margin:0 0 .65rem">
+                            <input type="hidden" name="product_alias" value="@_product.Alias" />
+                            <label>Review</label>
+                            <textarea name="text" rows="2" required style="width:100%;margin:.25rem 0 .55rem;padding:.45rem"></textarea>
+                            <button type="submit" style="padding:.45rem .75rem;border:0;border-radius:.35rem;background:#0f766e;color:#fff;font-weight:800;cursor:pointer">Send review</button>
+                        </form>
                         <p style="color:#64748b;font-size:.82rem;margin-top:.85rem">Checkout stays on this storefront.</p>
                     </aside>
                 </div>

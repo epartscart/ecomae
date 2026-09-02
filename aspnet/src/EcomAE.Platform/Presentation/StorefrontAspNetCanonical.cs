@@ -83,4 +83,6 @@ public static class StorefrontAspNetCanonical
     public const string OrderDetail = "/storefront/orders-app";
     /// <summary>Customer profile (PHP <c>/en/users/profile</c> / <c>/users/editform</c>).</summary>
     public const string Profile = "/storefront/profile-app";
+    /// <summary>Published markup-group CSV (PHP prices_download tab).</summary>
+    public const string PricesDownload = "/storefront/prices-download-app";
 }

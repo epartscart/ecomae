@@ -18,6 +18,7 @@ public static class PhpStorefrontSitemap
             new(StorefrontAspNetCanonical.Registration, "Register", "Account"),
             new(StorefrontAspNetCanonical.ForgotPassword, "Forgot password", "Account"),
             new(StorefrontAspNetCanonical.Balance, "Account / balance", "Account"),
+            new(StorefrontAspNetCanonical.PricesDownload, "Price list", "Account"),
             new(StorefrontAspNetCanonical.Orders, "My orders", "Account"),
             new(StorefrontAspNetCanonical.GuestOrder, "Guest order", "Account"),
             new(StorefrontAspNetCanonical.CustomerReturns, "Returns", "Account"),

@@ -18,6 +18,12 @@ public interface ISurfaceDashboardSummaryReporter
 
     Task<StorefrontOrdersResult> ListStorefrontOrdersAsync(int userId, int limit, CancellationToken cancellationToken = default);
 
+    /// <summary>Customer-scoped order lines (PHP <c>shop/orders/items</c>). Writes stay PHP.</summary>
+    Task<StorefrontOrderItemsResult> ListStorefrontOrderItemsAsync(int userId, long orderId, int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Published markup-group CSV path (PHP prices_download tab).</summary>
+    Task<StorefrontPriceListResult> GetStorefrontPriceListAsync(int userId, CancellationToken cancellationToken = default);
+
     Task<CpUserListResult> ListCpUsersAsync(int limit, CancellationToken cancellationToken = default);
 
     /// <summary>Read-only CP user detail console (PHP users/usermanager/user). Writes remain PHP-authoritative.</summary>

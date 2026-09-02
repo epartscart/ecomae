@@ -111,8 +111,12 @@
 
         <div class="epc-sf-acc-links" aria-label="Account shortcuts">
             <a href="@StorefrontSurfaceLinks.Orders">Orders list</a>
+            <a href="@(StorefrontAspNetCanonical.Orders + "?view=items")">Order items</a>
             <a href="@StorefrontSurfaceLinks.GarageLogin">Garage list</a>
-            <a href="/storefront/profile-app">Profile</a>
+            <a href="@StorefrontAspNetCanonical.Profile">Profile</a>
+            <a href="@StorefrontAspNetCanonical.PricesDownload">Price list</a>
+            <a href="@StorefrontAspNetCanonical.CustomerReturns">Returns</a>
+            <a href="@StorefrontAspNetCanonical.CustomerRequests">Requests</a>
             <a href="@StorefrontAspNetCanonical.Payment">Pay</a>
         </div>
     }

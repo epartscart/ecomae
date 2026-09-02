@@ -114,6 +114,44 @@
             </table>
         </div>
 
+        @if (_items.Count > 0 || _showItems)
+        {
+            <div class="epc-sf-ord-table-wrap" style="margin-top:1rem">
+                <table class="epc-sf-ord-table">
+                    <thead>
+                        <tr>
+                            <th>Order</th>
+                            <th>Brand</th>
+                            <th>Article</th>
+                            <th>Name</th>
+                            <th>Qty</th>
+                            <th>Price</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (_items.Count == 0)
+                        {
+                            <tr><td colspan="6">No order lines yet.</td></tr>
+                        }
+                        else
+                        {
+                            @foreach (var line in _items)
+                            {
+                                <tr>
+                                    <td><a href="@StorefrontSurfaceLinks.ForOrder(line.OrderId)">#@line.OrderId.ToString(CultureInfo.InvariantCulture)</a></td>
+                                    <td>@(string.IsNullOrWhiteSpace(line.Brand) ? "—" : line.Brand)</td>
+                                    <td>@(string.IsNullOrWhiteSpace(line.Article) ? "—" : line.Article)</td>
+                                    <td>@(string.IsNullOrWhiteSpace(line.Name) ? "—" : line.Name)</td>
+                                    <td>@line.CountNeed.ToString("0.##", CultureInfo.InvariantCulture)</td>
+                                    <td>@line.Price.ToString("N2", CultureInfo.InvariantCulture)</td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+
         @if (_selected is not null)
         {
             <div class="epc-sf-ord-table-wrap" style="margin-top:1rem;padding:1rem 1.1rem">
@@ -164,9 +202,14 @@
     private string _source = "n/a";
     private string _message = "";
     private StorefrontOrderDigest? _selected;
+    private IReadOnlyList<StorefrontOrderItemDigest> _items = [];
+    private bool _showItems;
 
     [SupplyParameterFromQuery(Name = "order_id")]
     public long? OrderId { get; set; }
+
+    [SupplyParameterFromQuery(Name = "view")]
+    public string? View { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
@@ -188,9 +231,22 @@
         _created = _orders.Count(o => o.SuccessfullyCreated != 0);
         _source = result.Source;
         _message = result.Message;
+        var path = ctx.Request.Path.Value ?? string.Empty;
+        _showItems = path.Contains("/items", StringComparison.OrdinalIgnoreCase)
+                     || string.Equals(View, "items", StringComparison.OrdinalIgnoreCase);
         if (OrderId is > 0)
         {
             _selected = _orders.FirstOrDefault(o => o.Id == OrderId.Value);
+        }
+
+        if (_showItems || _selected is not null)
+        {
+            var lines = await Dashboards.ListStorefrontOrderItemsAsync(
+                session.UserId,
+                _selected?.Id ?? 0,
+                100,
+                ctx.RequestAborted);
+            _items = lines.Items;
         }
     }
 
