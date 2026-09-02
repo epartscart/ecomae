@@ -216,7 +216,7 @@ public static class StorefrontSurfaceLinks
         => (PreferAspNetApps ? StorefrontAspNetCanonical.CustomerRequests : StorefrontPhpCanonical.CustomerRequests)
            + "?id=" + requestId.ToString(System.Globalization.CultureInfo.InvariantCulture);
 
-    public static string ForPrint(int orderId, string? docName = null)
+    public static string ForPrint(long orderId, string? docName = null)
     {
         var basePath = CustomerPrint;
         var query = "order_id=" + orderId.ToString(System.Globalization.CultureInfo.InvariantCulture);
