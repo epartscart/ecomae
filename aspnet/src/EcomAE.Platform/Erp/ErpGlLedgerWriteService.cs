@@ -106,6 +106,18 @@ public interface IErpGlLedgerWriteService
         int adminId,
         CancellationToken cancellationToken = default);
 
+    /// <summary>
+    /// Reverses on a caller-owned connection so document-lifecycle voids can reverse the
+    /// journals they own without opening a second tenant connection.
+    /// </summary>
+    Task<ErpReversedJournalResult> ReverseJournalAsync(
+        DbConnection connection,
+        long journalId,
+        long reverseDate,
+        string note,
+        int adminId,
+        CancellationToken cancellationToken = default);
+
     Task<long> CreateCoaAccountAsync(
         ErpCoaAccountInput input,
         int adminId,
@@ -202,7 +214,29 @@ public sealed class ErpGlLedgerWriteService : IErpGlLedgerWriteService
         }
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        return await ReverseJournalAsync(connection, journalId, reverseDate, note, adminId, cancellationToken)
+            .ConfigureAwait(false);
+    }
+
+    public async Task<ErpReversedJournalResult> ReverseJournalAsync(
+        DbConnection connection,
+        long journalId,
+        long reverseDate,
+        string note,
+        int adminId,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(connection);
+        if (journalId <= 0)
+        {
+            throw new ErpWriteException("Journal not found or already reversed");
+        }
+
         await EnsureCoaSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
+        await ErpDb.TryExecuteAsync(
+            connection,
+            "ALTER TABLE `epc_erp_gl_journals` ADD `reversed_by_journal_id` int(11) NOT NULL DEFAULT 0",
+            cancellationToken).ConfigureAwait(false);
 
         var journal = await JournalHeadAsync(connection, journalId, cancellationToken).ConfigureAwait(false)
             ?? throw new ErpWriteException("Journal not found or already reversed");
@@ -217,6 +251,11 @@ public sealed class ErpGlLedgerWriteService : IErpGlLedgerWriteService
                 + " AND `active` = 1 LIMIT 1"),
             cancellationToken,
             journalId).ConfigureAwait(false);
+        if (existingReversal <= 0)
+        {
+            existingReversal = journal.ReversedByJournalId;
+        }
+
         if (existingReversal > 0)
         {
             throw new ErpWriteException("Journal not found or already reversed");
@@ -255,6 +294,16 @@ public sealed class ErpGlLedgerWriteService : IErpGlLedgerWriteService
             reversed,
             adminId,
             cancellationToken).ConfigureAwait(false);
+
+        // PHP epc_erp_doc_reverse_journals stamps the back-reference so later voids of the
+        // same document reuse the mirror instead of posting another one.
+        await ErpDb.ExecuteAsync(
+            connection,
+            null,
+            ErpDb.Positional("UPDATE `epc_erp_gl_journals` SET `reversed_by_journal_id` = ? WHERE `id` = ?"),
+            cancellationToken,
+            newJournalId,
+            journalId).ConfigureAwait(false);
 
         var newJournalNo = await JournalNoAsync(connection, newJournalId, cancellationToken).ConfigureAwait(false);
         await LogAsync(
@@ -451,14 +500,15 @@ public sealed class ErpGlLedgerWriteService : IErpGlLedgerWriteService
         }
     }
 
-    private static async Task<(string JournalNo, long CompanyId)?> JournalHeadAsync(
+    private static async Task<(string JournalNo, long CompanyId, long ReversedByJournalId)?> JournalHeadAsync(
         DbConnection connection,
         long journalId,
         CancellationToken cancellationToken)
     {
         await using var command = connection.CreateCommand();
         command.CommandText = ErpDb.Positional(
-            "SELECT `journal_no`, `company_id` FROM `epc_erp_gl_journals` WHERE `id` = ? AND `active` = 1 LIMIT 1");
+            "SELECT `journal_no`, `company_id`, COALESCE(`reversed_by_journal_id`, 0)"
+            + " FROM `epc_erp_gl_journals` WHERE `id` = ? AND `active` = 1 LIMIT 1");
         ErpDb.AddParameters(command, journalId);
         await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
         if (!await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
@@ -468,7 +518,8 @@ public sealed class ErpGlLedgerWriteService : IErpGlLedgerWriteService
 
         return (
             reader.IsDBNull(0) ? string.Empty : reader.GetString(0),
-            reader.IsDBNull(1) ? 0L : reader.GetInt64(1));
+            reader.IsDBNull(1) ? 0L : reader.GetInt64(1),
+            reader.IsDBNull(2) ? 0L : reader.GetInt64(2));
     }
 
     private static async Task<List<ErpGlLine>> JournalLinesAsync(

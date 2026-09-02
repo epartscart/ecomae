@@ -726,6 +726,7 @@ public sealed class ErpModule : ISurfaceModule
             ErpCashVoucherAmendBody? body,
             ILegacySessionValidator validator,
             IErpCashVoucherAmendDryRun dryRun,
+            IErpDocLifecycleWriteService lifecycle,
             CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateAsync(context, cancellationToken);
@@ -735,10 +736,24 @@ public sealed class ErpModule : ISurfaceModule
             }
 
             body ??= new ErpCashVoucherAmendBody(0, null, null, false);
-            var result = await dryRun.EvaluateAsync(
-                new ErpCashVoucherAmendRequest(body.EntryId, body.Reference, body.Note, body.ConfirmWrites),
-                cancellationToken);
-            return Results.Ok(result.ToPayload(SessionPayload(session)));
+            if (!body.ConfirmWrites)
+            {
+                var result = await dryRun.EvaluateAsync(
+                    new ErpCashVoucherAmendRequest(body.EntryId, body.Reference, body.Note, false),
+                    cancellationToken);
+                return Results.Ok(result.ToPayload(SessionPayload(session)));
+            }
+
+            return await ExecuteErpWriteAsync(session, async () =>
+            {
+                await lifecycle.CashVoucherAmendAsync(
+                    body.EntryId,
+                    body.Reference,
+                    body.Note,
+                    session.UserId,
+                    cancellationToken);
+                return ("Voucher narrative updated", (object)new { entry_id = body.EntryId });
+            });
         });
 
         endpoints.MapPost(EcomAeRoutes.ErpCashEntriesVoid, async (
@@ -746,6 +761,7 @@ public sealed class ErpModule : ISurfaceModule
             ErpCashVoucherVoidBody? body,
             ILegacySessionValidator validator,
             IErpCashVoucherVoidDryRun dryRun,
+            IErpDocLifecycleWriteService lifecycle,
             CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateAsync(context, cancellationToken);
@@ -755,10 +771,29 @@ public sealed class ErpModule : ISurfaceModule
             }
 
             body ??= new ErpCashVoucherVoidBody(0, null, false);
-            var result = await dryRun.EvaluateAsync(
-                new ErpCashVoucherVoidRequest(body.EntryId, body.Reason, body.ConfirmWrites),
-                cancellationToken);
-            return Results.Ok(result.ToPayload(SessionPayload(session)));
+            if (!body.ConfirmWrites)
+            {
+                var result = await dryRun.EvaluateAsync(
+                    new ErpCashVoucherVoidRequest(body.EntryId, body.Reason, false),
+                    cancellationToken);
+                return Results.Ok(result.ToPayload(SessionPayload(session)));
+            }
+
+            return await ExecuteErpWriteAsync(session, async () =>
+            {
+                var voided = await lifecycle.CashVoucherVoidAsync(
+                    body.EntryId,
+                    body.Reason ?? string.Empty,
+                    session.UserId,
+                    cancellationToken);
+                return (
+                    "Voucher voided — reversing journal posted",
+                    (object)new
+                    {
+                        reversal_journal_ids = voided.ReversalJournalIds,
+                        voided_ids = voided.VoidedIds,
+                    });
+            });
         });
 
         endpoints.MapPost(EcomAeRoutes.ErpCashEntriesCreate, async (
@@ -937,6 +972,7 @@ public sealed class ErpModule : ISurfaceModule
             ErpPurchaseDeleteBody? body,
             ILegacySessionValidator validator,
             IErpPurchaseDeleteDryRun dryRun,
+            IErpDocLifecycleWriteService lifecycle,
             CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateAsync(context, cancellationToken);
@@ -945,8 +981,19 @@ public sealed class ErpModule : ISurfaceModule
                 return Unauthorized("Admin ERP capability required for purchase delete dry-run.");
             }
             body ??= new ErpPurchaseDeleteBody(0, false);
-            var result = await dryRun.EvaluateAsync(new ErpPurchaseDeleteRequest(body.PurchaseId, body.ConfirmWrites), cancellationToken);
-            return Results.Ok(result.ToPayload(SessionPayload(session)));
+            if (!body.ConfirmWrites)
+            {
+                var result = await dryRun.EvaluateAsync(
+                    new ErpPurchaseDeleteRequest(body.PurchaseId, false),
+                    cancellationToken);
+                return Results.Ok(result.ToPayload(SessionPayload(session)));
+            }
+
+            return await ExecuteErpWriteAsync(session, async () =>
+            {
+                await lifecycle.PurchaseDeleteAsync(body.PurchaseId, session.UserId, cancellationToken);
+                return ("Draft purchase deleted", (object)new { purchase_id = body.PurchaseId });
+            });
         });
 
         endpoints.MapPost(EcomAeRoutes.ErpPurchasesAmend, async (
@@ -954,6 +1001,7 @@ public sealed class ErpModule : ISurfaceModule
             ErpPurchaseAmendBody? body,
             ILegacySessionValidator validator,
             IErpPurchaseAmendDryRun dryRun,
+            IErpDocLifecycleWriteService lifecycle,
             CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateAsync(context, cancellationToken);
@@ -962,11 +1010,29 @@ public sealed class ErpModule : ISurfaceModule
                 return Unauthorized("Admin ERP capability required for purchase amend dry-run.");
             }
             body ??= new ErpPurchaseAmendBody(0, null, null, null, false);
-            var result = await dryRun.EvaluateAsync(
-                new ErpPurchaseAmendRequest(
-                    body.PurchaseId, body.InvoiceNumber, body.Note, body.AmountExVat, body.ConfirmWrites),
-                cancellationToken);
-            return Results.Ok(result.ToPayload(SessionPayload(session)));
+            if (!body.ConfirmWrites)
+            {
+                var result = await dryRun.EvaluateAsync(
+                    new ErpPurchaseAmendRequest(
+                        body.PurchaseId, body.InvoiceNumber, body.Note, body.AmountExVat, false),
+                    cancellationToken);
+                return Results.Ok(result.ToPayload(SessionPayload(session)));
+            }
+
+            return await ExecuteErpWriteAsync(session, async () =>
+            {
+                await lifecycle.PurchaseAmendAsync(
+                    new ErpPurchaseAmendInput
+                    {
+                        PurchaseId = body.PurchaseId,
+                        InvoiceNumber = body.InvoiceNumber,
+                        Note = body.Note,
+                        AmountExVat = body.AmountExVat,
+                    },
+                    session.UserId,
+                    cancellationToken);
+                return ("Purchase updated", (object)new { purchase_id = body.PurchaseId });
+            });
         });
 
         endpoints.MapPost(EcomAeRoutes.ErpSalesOrdersDelete, async (
@@ -1785,6 +1851,7 @@ public sealed class ErpModule : ISurfaceModule
             ErpInvoiceDeleteBody? body,
             ILegacySessionValidator validator,
             IErpInvoiceDeleteDryRun dryRun,
+            IErpDocLifecycleWriteService lifecycle,
             CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateAsync(context, cancellationToken);
@@ -1793,8 +1860,19 @@ public sealed class ErpModule : ISurfaceModule
                 return Unauthorized("Admin ERP capability required for invoice delete dry-run.");
             }
             body ??= new ErpInvoiceDeleteBody(0, false);
-            var result = await dryRun.EvaluateAsync(new ErpInvoiceDeleteRequest(body.InvoiceId, body.ConfirmWrites), cancellationToken);
-            return Results.Ok(result.ToPayload(SessionPayload(session)));
+            if (!body.ConfirmWrites)
+            {
+                var result = await dryRun.EvaluateAsync(
+                    new ErpInvoiceDeleteRequest(body.InvoiceId, false),
+                    cancellationToken);
+                return Results.Ok(result.ToPayload(SessionPayload(session)));
+            }
+
+            return await ExecuteErpWriteAsync(session, async () =>
+            {
+                await lifecycle.InvoiceDeleteAsync(body.InvoiceId, session.UserId, cancellationToken);
+                return ("Draft invoice deleted", (object)new { invoice_id = body.InvoiceId });
+            });
         });
 
         endpoints.MapPost(EcomAeRoutes.ErpCashAccountsCreate, async (
@@ -1984,6 +2062,7 @@ public sealed class ErpModule : ISurfaceModule
             ErpPurchaseVoidBody? body,
             ILegacySessionValidator validator,
             IErpPurchaseVoidDryRun dryRun,
+            IErpDocLifecycleWriteService lifecycle,
             CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateAsync(context, cancellationToken);
@@ -1993,10 +2072,25 @@ public sealed class ErpModule : ISurfaceModule
             }
 
             body ??= new ErpPurchaseVoidBody(0, null, false);
-            var result = await dryRun.EvaluateAsync(
-                new ErpPurchaseVoidRequest(body.PurchaseId, body.Reason, body.ConfirmWrites),
-                cancellationToken);
-            return Results.Ok(result.ToPayload(SessionPayload(session)));
+            if (!body.ConfirmWrites)
+            {
+                var result = await dryRun.EvaluateAsync(
+                    new ErpPurchaseVoidRequest(body.PurchaseId, body.Reason, false),
+                    cancellationToken);
+                return Results.Ok(result.ToPayload(SessionPayload(session)));
+            }
+
+            return await ExecuteErpWriteAsync(session, async () =>
+            {
+                var voided = await lifecycle.PurchaseVoidAsync(
+                    body.PurchaseId,
+                    body.Reason ?? string.Empty,
+                    session.UserId,
+                    cancellationToken);
+                return (
+                    "Purchase invoice voided — reversing journal posted",
+                    (object)new { reversal_journal_ids = voided.ReversalJournalIds });
+            });
         });
 
         endpoints.MapPost(EcomAeRoutes.ErpInvoicesCancel, async (
@@ -2004,6 +2098,7 @@ public sealed class ErpModule : ISurfaceModule
             ErpInvoiceCancelBody? body,
             ILegacySessionValidator validator,
             IErpInvoiceCancelDryRun dryRun,
+            IErpDocLifecycleWriteService lifecycle,
             CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateAsync(context, cancellationToken);
@@ -2013,10 +2108,23 @@ public sealed class ErpModule : ISurfaceModule
             }
 
             body ??= new ErpInvoiceCancelBody(0, null, false);
-            var result = await dryRun.EvaluateAsync(
-                new ErpInvoiceCancelRequest(body.InvoiceId, body.Reason, body.ConfirmWrites),
-                cancellationToken);
-            return Results.Ok(result.ToPayload(SessionPayload(session)));
+            if (!body.ConfirmWrites)
+            {
+                var result = await dryRun.EvaluateAsync(
+                    new ErpInvoiceCancelRequest(body.InvoiceId, body.Reason, false),
+                    cancellationToken);
+                return Results.Ok(result.ToPayload(SessionPayload(session)));
+            }
+
+            return await ExecuteErpWriteAsync(session, async () =>
+            {
+                await lifecycle.InvoiceCancelAsync(
+                    body.InvoiceId,
+                    body.Reason ?? string.Empty,
+                    session.UserId,
+                    cancellationToken);
+                return ("Invoice cancelled", (object)new { invoice_id = body.InvoiceId });
+            });
         });
 
         endpoints.MapPost(EcomAeRoutes.ErpSalesOrdersCancel, async (
@@ -2024,6 +2132,7 @@ public sealed class ErpModule : ISurfaceModule
             ErpSalesOrderCancelBody? body,
             ILegacySessionValidator validator,
             IErpSalesOrderCancelDryRun dryRun,
+            IErpDocLifecycleWriteService lifecycle,
             CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateAsync(context, cancellationToken);
@@ -2033,10 +2142,23 @@ public sealed class ErpModule : ISurfaceModule
             }
 
             body ??= new ErpSalesOrderCancelBody(0, null, false);
-            var result = await dryRun.EvaluateAsync(
-                new ErpSalesOrderCancelRequest(body.SalesOrderId, body.Reason, body.ConfirmWrites),
-                cancellationToken);
-            return Results.Ok(result.ToPayload(SessionPayload(session)));
+            if (!body.ConfirmWrites)
+            {
+                var result = await dryRun.EvaluateAsync(
+                    new ErpSalesOrderCancelRequest(body.SalesOrderId, body.Reason, false),
+                    cancellationToken);
+                return Results.Ok(result.ToPayload(SessionPayload(session)));
+            }
+
+            return await ExecuteErpWriteAsync(session, async () =>
+            {
+                await lifecycle.SalesOrderCancelAsync(
+                    body.SalesOrderId,
+                    body.Reason ?? string.Empty,
+                    session.UserId,
+                    cancellationToken);
+                return ("Sales order cancelled", (object)new { sales_order_id = body.SalesOrderId });
+            });
         });
 
         endpoints.MapPost(EcomAeRoutes.ErpPurchaseOrdersDelete, async (
