@@ -439,6 +439,11 @@ public sealed class LiveTenantIndustryParityTests
             editform.Equals(StorefrontAspNetCanonical.Profile, StringComparison.Ordinal)
             || editform.EndsWith("/users/profile", StringComparison.Ordinal));
         Assert.False(PhpSurfaceLinkMap.TryMapIncomingPhpProductPath("/en/katalog-laximo", out _));
+        Assert.True(IndustryStorefrontSlugMiddleware.TryMatch("www.epartscart.com", "/users/logout", out var logout, out var logoutKind));
+        Assert.Equal("logout", logoutKind);
+        Assert.Equal("/storefront/logout", logout);
+        Assert.True(IndustryStorefrontSlugMiddleware.TryMatch("www.thejewellerytrend.com", "/en/users/logout", out _, out var jewelleryLogout));
+        Assert.Equal("logout", jewelleryLogout);
     }
 
     [Fact]

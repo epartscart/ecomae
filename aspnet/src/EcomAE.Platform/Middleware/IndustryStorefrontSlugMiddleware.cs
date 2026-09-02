@@ -119,6 +119,14 @@ public sealed class IndustryStorefrontSlugMiddleware
             return true;
         }
 
+        if (only.Equals("users/logout", StringComparison.OrdinalIgnoreCase)
+            || only.Equals("users/exit", StringComparison.OrdinalIgnoreCase))
+        {
+            rewrite = "/storefront/logout";
+            kind = "logout";
+            return true;
+        }
+
         if (only.Equals("shop/returns", StringComparison.OrdinalIgnoreCase)
             || only.StartsWith("shop/returns/", StringComparison.OrdinalIgnoreCase))
         {

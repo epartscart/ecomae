@@ -640,6 +640,12 @@ public static class PhpSurfaceLinkMap
         }
 
         // Account/profile before blanket /users → login.
+        if (value.Contains("/users/logout", StringComparison.OrdinalIgnoreCase)
+            || value.Contains("/users/exit", StringComparison.OrdinalIgnoreCase))
+        {
+            return "/storefront/logout";
+        }
+
         if (value.Contains("/users/profile", StringComparison.OrdinalIgnoreCase)
             || value.Contains("/users/editform", StringComparison.OrdinalIgnoreCase))
         {
@@ -1255,6 +1261,8 @@ public static class PhpSurfaceLinkMap
             || path.Equals("/vozvrat", StringComparison.OrdinalIgnoreCase)
             || path.Equals("/o-nas", StringComparison.OrdinalIgnoreCase)
             || path.Equals("/users/editform", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/users/logout", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/users/exit", StringComparison.OrdinalIgnoreCase)
             || path.Equals("/shop/ucats", StringComparison.OrdinalIgnoreCase)
             || path.StartsWith("/shop/ucats/", StringComparison.OrdinalIgnoreCase)
             || PhpSpecialSearches.IsAlias(path)
