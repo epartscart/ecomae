@@ -212,7 +212,7 @@ public sealed class LiveTenantIndustryParityTests
         Assert.False(PhpSurfaceLinkMap.TryMapIncomingPhpProductPath("/en/vendor", out _));
         Assert.False(PhpSurfaceLinkMap.TryMapIncomingPhpProductPath("/vendor/register", out _));
         Assert.False(PhpSurfaceLinkMap.TryMapIncomingPhpProductPath("/en/users/forgot_password", out _));
-        Assert.False(PhpSurfaceLinkMap.TryMapIncomingPhpProductPath("/shop/returns", out _));
+        Assert.False(PhpSurfaceLinkMap.TryMapIncomingPhpProductPath("/en/shop/returns", out _));
         Assert.Equal(StorefrontAspNetCanonical.VendorPortal, PhpSurfaceLinkMap.AspNetPrimaryHref("/en/vendor"));
         Assert.Equal(StorefrontAspNetCanonical.ForgotPassword, PhpSurfaceLinkMap.AspNetPrimaryHref("/users/forgot"));
         Assert.Equal(StorefrontAspNetCanonical.CustomerReturns, PhpSurfaceLinkMap.AspNetPrimaryHref("/shop/returns"));
