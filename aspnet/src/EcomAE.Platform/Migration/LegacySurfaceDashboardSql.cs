@@ -352,6 +352,105 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>Customer-scoped returns list (PHP <c>shop/returns/returns.php</c>). Never omit user_id.</summary>
+    public const string SelectCustomerReturns = """
+        SELECT r.`id`,
+               IFNULL(r.`status_id`, 0) AS status_id,
+               IFNULL(s.`caption`, '') AS status,
+               0 AS time_unix,
+               IFNULL((
+                   SELECT i.`order_id`
+                   FROM `shop_orders_returns_items` ri
+                   INNER JOIN `shop_orders_items` i ON i.`id` = ri.`item_id`
+                   WHERE ri.`return_id` = r.`id`
+                   LIMIT 1
+               ), 0) AS order_id
+        FROM `shop_orders_returns` r
+        LEFT JOIN `shop_orders_returns_statuses` s ON s.`id` = r.`status_id`
+        WHERE r.`user_id` = @userId
+        ORDER BY r.`id` DESC
+        LIMIT @limit
+        """;
+
+    /// <summary>Customer-scoped return lines (PHP <c>shop/returns/return.php</c>).</summary>
+    public const string SelectCustomerReturnItems = """
+        SELECT ri.`id`, ri.`return_id`, ri.`item_id`,
+               IFNULL(ri.`reason_id`, 0) AS reason_id,
+               IFNULL(rs.`caption`, '') AS reason,
+               IFNULL(oi.`order_id`, 0) AS order_id,
+               IFNULL(oi.`t2_manufacturer`, '') AS brand,
+               IFNULL(oi.`t2_article`, '') AS article,
+               IFNULL(oi.`t2_name`, '') AS name,
+               IFNULL(oi.`price`, 0) AS price,
+               IFNULL(oi.`count_need`, 0) AS count_need
+        FROM `shop_orders_returns_items` ri
+        INNER JOIN `shop_orders_returns` r ON r.`id` = ri.`return_id`
+        LEFT JOIN `shop_orders_returns_reasons` rs ON rs.`id` = ri.`reason_id`
+        LEFT JOIN `shop_orders_items` oi ON oi.`id` = ri.`item_id`
+        WHERE r.`user_id` = @userId
+          AND ri.`return_id` = @returnId
+        ORDER BY ri.`id` ASC
+        LIMIT @limit
+        """;
+
+    /// <summary>Customer-scoped return thread. Never omit the user join. Does not mark messages read.</summary>
+    public const string SelectCustomerReturnMessages = """
+        SELECT m.`id`, IFNULL(m.`time`, 0) AS time, IFNULL(m.`text`, '') AS text, IFNULL(m.`is_customer`, 0) AS is_customer
+        FROM `shop_orders_messages` m
+        INNER JOIN `shop_orders_returns` r ON r.`id` = m.`return_id`
+        WHERE r.`user_id` = @userId
+          AND m.`return_id` = @returnId
+        ORDER BY m.`id` ASC
+        LIMIT @limit
+        """;
+
+    /// <summary>Customer VIN / seller-request inbox (PHP <c>content/requests/requests.php</c>).</summary>
+    public const string SelectCustomerVinRequests = """
+        SELECT `id`, IFNULL(`time`, 0) AS time_unix, IFNULL(`viewed_customer`, 0) AS viewed_customer
+        FROM `users_vin`
+        WHERE `user_id` = @userId
+        ORDER BY `viewed_customer` ASC, `id` DESC
+        LIMIT @limit
+        """;
+
+    /// <summary>One VIN request header. Text is HTML from PHP send_vin_email — shown as source only.</summary>
+    public const string SelectCustomerVinRequestById = """
+        SELECT `id`, IFNULL(`time`, 0) AS time_unix, IFNULL(`viewed_customer`, 0) AS viewed_customer,
+               IFNULL(`text`, '') AS text
+        FROM `users_vin`
+        WHERE `user_id` = @userId
+          AND `id` = @requestId
+        LIMIT 1
+        """;
+
+    /// <summary>Customer VIN request thread (PHP <c>ajax_get_message.php</c>). Ownership via users_vin join.</summary>
+    public const string SelectCustomerVinRequestMessages = """
+        SELECT m.`id`, IFNULL(m.`time`, 0) AS time, IFNULL(m.`text`, '') AS text, IFNULL(m.`is_customer`, 0) AS is_customer
+        FROM `users_vin_messages` m
+        INNER JOIN `users_vin` v ON v.`id` = m.`vin_id`
+        WHERE v.`user_id` = @userId
+          AND m.`vin_id` = @requestId
+        ORDER BY m.`id` ASC
+        LIMIT @limit
+        """;
+
+    /// <summary>Garage notepad lines (PHP <c>notepad.php</c>). Ownership via garage user_id join.</summary>
+    public const string SelectCustomerGarageNotepad = """
+        SELECT n.`id`, n.`garage_id`,
+               IFNULL(n.`brend`, '') AS brend,
+               IFNULL(n.`article`, '') AS article,
+               IFNULL(n.`name`, '') AS name,
+               IFNULL(n.`exist`, 0) AS exist,
+               IFNULL(n.`price`, 0) AS price,
+               IFNULL(n.`comment`, '') AS comment
+        FROM `shop_docpart_garage_notepad` n
+        INNER JOIN `shop_docpart_garage` g ON g.`id` = n.`garage_id` AND g.`user_id` = n.`user_id`
+        WHERE n.`user_id` = @userId
+          AND n.`garage_id` = @garageId
+        ORDER BY n.`id` DESC
+        LIMIT @limit
+        """;
+
     public const string SelectCustomerPriceGroup = """
         SELECT IFNULL(`group_id`, 0) AS group_id
         FROM `users_groups_bind`

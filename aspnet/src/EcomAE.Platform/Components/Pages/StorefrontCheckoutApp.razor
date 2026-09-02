@@ -88,6 +88,32 @@
             }
             else if (_step is "confirm")
             {
+                @if (_lines.Count > 0)
+                {
+                    <table style="width:100%;border-collapse:collapse;font-size:.86rem;margin:0 0 .85rem">
+                        <thead>
+                            <tr>
+                                <th style="text-align:left;padding:.35rem .4rem">Brand</th>
+                                <th style="text-align:left;padding:.35rem .4rem">Article</th>
+                                <th style="text-align:left;padding:.35rem .4rem">Name</th>
+                                <th style="text-align:left;padding:.35rem .4rem">Qty</th>
+                                <th style="text-align:left;padding:.35rem .4rem">Price</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var line in _lines)
+                            {
+                                <tr>
+                                    <td style="padding:.35rem .4rem">@(string.IsNullOrWhiteSpace(line.Manufacturer) ? "—" : line.Manufacturer)</td>
+                                    <td style="padding:.35rem .4rem">@(string.IsNullOrWhiteSpace(line.Article) ? "—" : line.Article)</td>
+                                    <td style="padding:.35rem .4rem">@(string.IsNullOrWhiteSpace(line.Name) ? "—" : line.Name)</td>
+                                    <td style="padding:.35rem .4rem">@line.CountNeed.ToString("0.##", CultureInfo.InvariantCulture)</td>
+                                    <td style="padding:.35rem .4rem">@line.Price.ToString("N2", CultureInfo.InvariantCulture)</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
                 <form method="post" action="@PhpCustomerWrites.CheckoutConfirmWriteHref" style="margin:0 0 .85rem">
                     <label>Order note</label>
                     <textarea name="order_message" rows="3" style="width:100%;margin:.25rem 0 .75rem;padding:.45rem"></textarea>
@@ -120,6 +146,33 @@
             <div class="epc-sf-co-kpi"><strong>@_checkedCount</strong><span>Checked for order</span></div>
             <div class="epc-sf-co-kpi"><strong>@_readiness</strong><span>Readiness</span></div>
         </div>
+
+        @if (_lines.Count > 0 && _step is not "confirm")
+        {
+            <table style="width:100%;border-collapse:collapse;font-size:.86rem;margin:0 0 1rem;background:#fff">
+                <thead>
+                    <tr>
+                        <th style="text-align:left;padding:.4rem .5rem">Brand</th>
+                        <th style="text-align:left;padding:.4rem .5rem">Article</th>
+                        <th style="text-align:left;padding:.4rem .5rem">Name</th>
+                        <th style="text-align:left;padding:.4rem .5rem">Qty</th>
+                        <th style="text-align:left;padding:.4rem .5rem">Price</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var line in _lines)
+                    {
+                        <tr>
+                            <td style="padding:.4rem .5rem">@(string.IsNullOrWhiteSpace(line.Manufacturer) ? "—" : line.Manufacturer)</td>
+                            <td style="padding:.4rem .5rem">@(string.IsNullOrWhiteSpace(line.Article) ? "—" : line.Article)</td>
+                            <td style="padding:.4rem .5rem">@(string.IsNullOrWhiteSpace(line.Name) ? "—" : line.Name)</td>
+                            <td style="padding:.4rem .5rem">@line.CountNeed.ToString("0.##", CultureInfo.InvariantCulture)</td>
+                            <td style="padding:.4rem .5rem">@line.Price.ToString("N2", CultureInfo.InvariantCulture)</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
 
         <div class="epc-sf-co-steps" aria-label="Checkout steps">
             <div class="epc-sf-co-step">
@@ -161,6 +214,7 @@
     private string _brand = "eParts Cart";
     private bool _isCustomer;
     private StorefrontCartSummary _summary = new(0, 0m, "n/a", "");
+    private IReadOnlyList<StorefrontCartLineDigest> _lines = [];
     private int _checkedCount;
     private string _source = "n/a";
     private string _readiness = "n/a";
@@ -187,6 +241,7 @@
         _isCustomer = true;
         var result = await Dashboards.ListStorefrontCartAsync(session.UserId, 100, ctx.RequestAborted);
         _summary = result.Summary;
+        _lines = result.Lines;
         _source = result.Source;
         _checkedCount = result.Lines.Count(l => l.CheckedForOrder);
         _readiness = result.Summary.Count > 0

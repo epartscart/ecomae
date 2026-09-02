@@ -120,6 +120,45 @@
             </table>
         </div>
 
+        @if (GarageId is > 0)
+        {
+            <div class="epc-sf-gar-table-wrap" style="margin-top:1rem">
+                <p style="margin:.75rem .9rem .35rem;font-weight:700">Notepad for garage #@GarageId.Value.ToString(CultureInfo.InvariantCulture)</p>
+                <table class="epc-sf-gar-table">
+                    <thead>
+                        <tr>
+                            <th>Brand</th>
+                            <th>Article</th>
+                            <th>Name</th>
+                            <th>Qty</th>
+                            <th>Price</th>
+                            <th>Comment</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (_notepad.Count == 0)
+                        {
+                            <tr><td colspan="6">@(string.IsNullOrWhiteSpace(_notepadMessage) ? "No notepad lines yet." : _notepadMessage)</td></tr>
+                        }
+                        else
+                        {
+                            @foreach (var line in _notepad)
+                            {
+                                <tr>
+                                    <td>@(string.IsNullOrWhiteSpace(line.Brand) ? "—" : line.Brand)</td>
+                                    <td>@(string.IsNullOrWhiteSpace(line.Article) ? "—" : line.Article)</td>
+                                    <td>@(string.IsNullOrWhiteSpace(line.Name) ? "—" : line.Name)</td>
+                                    <td>@line.Exist.ToString(CultureInfo.InvariantCulture)</td>
+                                    <td>@line.Price.ToString("N2", CultureInfo.InvariantCulture)</td>
+                                    <td>@(string.IsNullOrWhiteSpace(line.Comment) ? "—" : line.Comment)</td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+
         <form method="post" action="@PhpCustomerWrites.GarageCarWriteHref" style="margin-top:1.1rem;background:#fff;border:1px solid #e7e5e4;border-radius:.55rem;padding:1.1rem 1.2rem">
             <input type="hidden" name="save_action" value="1" />
             <input type="hidden" name="car_id" value="0" />
@@ -157,6 +196,8 @@
     private bool _showWorkshop;
     private bool _isCustomer;
     private IReadOnlyList<StorefrontGarageVehicleDigest> _vehicles = [];
+    private IReadOnlyList<StorefrontGarageNotepadDigest> _notepad = [];
+    private string _notepadMessage = "";
     private int _active;
     private int _withVin;
     private int _limit = 50;
@@ -187,5 +228,13 @@
         _withVin = _vehicles.Count(v => !string.IsNullOrWhiteSpace(v.Vin));
         _source = result.Source;
         _message = result.Message;
+        if (GarageId is > 0)
+        {
+            var notes = await Dashboards.ListStorefrontGarageNotepadAsync(session.UserId, GarageId.Value, 80, ctx.RequestAborted);
+            _notepad = notes.Lines;
+            _notepadMessage = notes.Count == 0
+                ? (string.IsNullOrWhiteSpace(notes.Message) ? "No notepad lines yet." : notes.Message)
+                : string.Empty;
+        }
     }
 }

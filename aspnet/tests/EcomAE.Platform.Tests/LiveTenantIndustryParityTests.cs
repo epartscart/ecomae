@@ -429,6 +429,13 @@ public sealed class LiveTenantIndustryParityTests
         Assert.Contains("article", PhpIndustryCmsPages.Resolve("kak-zakazat", "auto_parts").Lead, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("VIN", PhpIndustryCmsPages.Resolve("kak-zakazat", "jewellery").Lead, StringComparison.Ordinal);
         Assert.Equal(2, PhpCustomerReturns.SampleForAccount().Count);
+        Assert.Contains("user_id", LegacySurfaceDashboardSql.SelectCustomerReturns, StringComparison.Ordinal);
+        Assert.Contains("user_id", LegacySurfaceDashboardSql.SelectCustomerVinRequests, StringComparison.Ordinal);
+        Assert.Contains("shop_docpart_garage_notepad", LegacySurfaceDashboardSql.SelectCustomerGarageNotepad, StringComparison.Ordinal);
+        Assert.Contains("ListStorefrontReturnsAsync", File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/StorefrontReturnsApp.razor")), StringComparison.Ordinal);
+        Assert.Contains("ListStorefrontCustomerRequestsAsync", File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/StorefrontCustomerRequestsApp.razor")), StringComparison.Ordinal);
+        Assert.Contains("ListStorefrontGarageNotepadAsync", File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/StorefrontGarageApp.razor")), StringComparison.Ordinal);
+        Assert.Contains("_lines", File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/StorefrontCheckoutApp.razor")), StringComparison.Ordinal);
         Assert.True(PhpOwnCatalogSlugs.IsAlias("tormoznaya-sistema"));
         Assert.True(PhpOwnCatalogSlugs.IsAlias("podshipniki"));
         Assert.False(PhpOwnCatalogSlugs.IsAlias("gold"));

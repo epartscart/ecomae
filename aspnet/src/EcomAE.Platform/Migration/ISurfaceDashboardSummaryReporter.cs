@@ -43,6 +43,11 @@ public interface ISurfaceDashboardSummaryReporter
     Task<ErpPurchaseListResult> ListErpPurchasesAsync(int limit, CancellationToken cancellationToken = default);
 
     Task<StorefrontGarageResult> ListStorefrontGarageAsync(int userId, int limit, CancellationToken cancellationToken = default);
+    Task<StorefrontGarageNotepadResult> ListStorefrontGarageNotepadAsync(int userId, long garageId, int limit, CancellationToken cancellationToken = default);
+    Task<StorefrontReturnsResult> ListStorefrontReturnsAsync(int userId, int limit, CancellationToken cancellationToken = default);
+    Task<StorefrontReturnDetailResult> GetStorefrontReturnAsync(int userId, long returnId, CancellationToken cancellationToken = default);
+    Task<StorefrontCustomerRequestsResult> ListStorefrontCustomerRequestsAsync(int userId, int limit, CancellationToken cancellationToken = default);
+    Task<StorefrontCustomerRequestDetailResult> GetStorefrontCustomerRequestAsync(int userId, long requestId, CancellationToken cancellationToken = default);
 
     Task<ErpCashAccountListResult> ListErpCashAccountsAsync(int limit, CancellationToken cancellationToken = default);
 

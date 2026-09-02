@@ -348,6 +348,78 @@ public sealed record StorefrontGarageResult(
     string Source,
     string Message);
 
+public sealed record StorefrontGarageNotepadDigest(
+    long Id,
+    long GarageId,
+    string Brand,
+    string Article,
+    string Name,
+    int Exist,
+    decimal Price,
+    string Comment);
+
+public sealed record StorefrontGarageNotepadResult(
+    int UserId,
+    long GarageId,
+    IReadOnlyList<StorefrontGarageNotepadDigest> Lines,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record StorefrontReturnDigest(
+    long Id,
+    long OrderId,
+    int StatusId,
+    string Status,
+    long TimeUnix);
+
+public sealed record StorefrontReturnItemDigest(
+    long Id,
+    long ReturnId,
+    long ItemId,
+    long OrderId,
+    string Brand,
+    string Article,
+    string Name,
+    decimal Price,
+    decimal CountNeed,
+    string Reason);
+
+public sealed record StorefrontReturnsResult(
+    int UserId,
+    IReadOnlyList<StorefrontReturnDigest> Returns,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record StorefrontReturnDetailResult(
+    int UserId,
+    StorefrontReturnDigest? Return,
+    IReadOnlyList<StorefrontReturnItemDigest> Items,
+    IReadOnlyList<StorefrontOrderMessageDigest> Messages,
+    string Source,
+    string Message);
+
+public sealed record StorefrontCustomerRequestDigest(
+    long Id,
+    long TimeUnix,
+    int ViewedCustomer);
+
+public sealed record StorefrontCustomerRequestsResult(
+    int UserId,
+    IReadOnlyList<StorefrontCustomerRequestDigest> Requests,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record StorefrontCustomerRequestDetailResult(
+    int UserId,
+    StorefrontCustomerRequestDigest? Request,
+    string Text,
+    IReadOnlyList<StorefrontOrderMessageDigest> Messages,
+    string Source,
+    string Message);
+
 public sealed record ErpCashAccountDigest(
     long Id,
     string Name,

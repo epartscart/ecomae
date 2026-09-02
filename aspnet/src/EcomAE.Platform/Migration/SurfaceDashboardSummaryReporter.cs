@@ -1164,6 +1164,285 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    public async Task<StorefrontGarageNotepadResult> ListStorefrontGarageNotepadAsync(int userId, long garageId, int limit, CancellationToken cancellationToken = default)
+    {
+        var safeLimit = Math.Clamp(limit, 1, 200);
+        var safeGarage = garageId < 0 ? 0 : garageId;
+        if (!_connections.IsConfigured)
+        {
+            return new(userId, safeGarage, [], 0, "migration", "TenantRegistry DB is not configured.");
+        }
+
+        if (userId <= 0 || safeGarage <= 0)
+        {
+            return new(userId, safeGarage, [], 0, "rejected", "Valid customer user id and garage id are required.");
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            await using var command = connection.CreateCommand();
+            command.CommandText = LegacySurfaceDashboardSql.SelectCustomerGarageNotepad;
+            AddParameter(command, "@userId", userId);
+            AddParameter(command, "@garageId", safeGarage);
+            AddParameter(command, "@limit", safeLimit);
+            var rows = new List<StorefrontGarageNotepadDigest>();
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                rows.Add(new StorefrontGarageNotepadDigest(
+                    Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                    Convert.ToInt64(reader["garage_id"], CultureInfo.InvariantCulture),
+                    Convert.ToString(reader["brend"] is DBNull ? string.Empty : reader["brend"], CultureInfo.InvariantCulture) ?? string.Empty,
+                    Convert.ToString(reader["article"] is DBNull ? string.Empty : reader["article"], CultureInfo.InvariantCulture) ?? string.Empty,
+                    Convert.ToString(reader["name"] is DBNull ? string.Empty : reader["name"], CultureInfo.InvariantCulture) ?? string.Empty,
+                    Convert.ToInt32(reader["exist"] is DBNull ? 0 : reader["exist"], CultureInfo.InvariantCulture),
+                    Convert.ToDecimal(reader["price"] is DBNull ? 0 : reader["price"], CultureInfo.InvariantCulture),
+                    Convert.ToString(reader["comment"] is DBNull ? string.Empty : reader["comment"], CultureInfo.InvariantCulture) ?? string.Empty));
+            }
+
+            return new(userId, safeGarage, rows, rows.Count, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(userId, safeGarage, [], 0, "database-error", ex.Message);
+        }
+    }
+
+    public async Task<StorefrontReturnsResult> ListStorefrontReturnsAsync(int userId, int limit, CancellationToken cancellationToken = default)
+    {
+        var safeLimit = Math.Clamp(limit, 1, 200);
+        if (!_connections.IsConfigured)
+        {
+            return new(userId, [], 0, "migration", "TenantRegistry DB is not configured.");
+        }
+
+        if (userId <= 0)
+        {
+            return new(0, [], 0, "rejected", "Valid customer user id is required.");
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            await using var command = connection.CreateCommand();
+            command.CommandText = LegacySurfaceDashboardSql.SelectCustomerReturns;
+            AddParameter(command, "@userId", userId);
+            AddParameter(command, "@limit", safeLimit);
+            var rows = new List<StorefrontReturnDigest>();
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                rows.Add(ReadReturnDigest(reader));
+            }
+
+            return new(userId, rows, rows.Count, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(userId, [], 0, "database-error", ex.Message);
+        }
+    }
+
+    public async Task<StorefrontReturnDetailResult> GetStorefrontReturnAsync(int userId, long returnId, CancellationToken cancellationToken = default)
+    {
+        var safeReturn = returnId < 0 ? 0 : returnId;
+        if (!_connections.IsConfigured)
+        {
+            return new(userId, null, [], [], "migration", "TenantRegistry DB is not configured.");
+        }
+
+        if (userId <= 0 || safeReturn <= 0)
+        {
+            return new(userId, null, [], [], "rejected", "Valid customer user id and return id are required.");
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            StorefrontReturnDigest? header = null;
+            await using (var listCmd = connection.CreateCommand())
+            {
+                listCmd.CommandText = LegacySurfaceDashboardSql.SelectCustomerReturns;
+                AddParameter(listCmd, "@userId", userId);
+                AddParameter(listCmd, "@limit", 80);
+                await using var listReader = await listCmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await listReader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    var row = ReadReturnDigest(listReader);
+                    if (row.Id == safeReturn)
+                    {
+                        header = row;
+                        break;
+                    }
+                }
+            }
+
+            if (header is null)
+            {
+                return new(userId, null, [], [], "empty", "Return not found for this account.");
+            }
+
+            var items = new List<StorefrontReturnItemDigest>();
+            await using (var itemCmd = connection.CreateCommand())
+            {
+                itemCmd.CommandText = LegacySurfaceDashboardSql.SelectCustomerReturnItems;
+                AddParameter(itemCmd, "@userId", userId);
+                AddParameter(itemCmd, "@returnId", safeReturn);
+                AddParameter(itemCmd, "@limit", 80);
+                await using var itemReader = await itemCmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await itemReader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    items.Add(new StorefrontReturnItemDigest(
+                        Convert.ToInt64(itemReader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(itemReader["return_id"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(itemReader["item_id"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(itemReader["order_id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(itemReader["brand"] is DBNull ? string.Empty : itemReader["brand"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(itemReader["article"] is DBNull ? string.Empty : itemReader["article"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(itemReader["name"] is DBNull ? string.Empty : itemReader["name"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToDecimal(itemReader["price"] is DBNull ? 0 : itemReader["price"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(itemReader["count_need"] is DBNull ? 0 : itemReader["count_need"], CultureInfo.InvariantCulture),
+                        Convert.ToString(itemReader["reason"] is DBNull ? string.Empty : itemReader["reason"], CultureInfo.InvariantCulture) ?? string.Empty));
+                }
+            }
+
+            var messages = new List<StorefrontOrderMessageDigest>();
+            await using (var msgCmd = connection.CreateCommand())
+            {
+                msgCmd.CommandText = LegacySurfaceDashboardSql.SelectCustomerReturnMessages;
+                AddParameter(msgCmd, "@userId", userId);
+                AddParameter(msgCmd, "@returnId", safeReturn);
+                AddParameter(msgCmd, "@limit", 80);
+                await using var msgReader = await msgCmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await msgReader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    messages.Add(ReadThreadMessage(msgReader));
+                }
+            }
+
+            return new(userId, header, items, messages, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(userId, null, [], [], "database-error", ex.Message);
+        }
+    }
+
+    public async Task<StorefrontCustomerRequestsResult> ListStorefrontCustomerRequestsAsync(int userId, int limit, CancellationToken cancellationToken = default)
+    {
+        var safeLimit = Math.Clamp(limit, 1, 200);
+        if (!_connections.IsConfigured)
+        {
+            return new(userId, [], 0, "migration", "TenantRegistry DB is not configured.");
+        }
+
+        if (userId <= 0)
+        {
+            return new(0, [], 0, "rejected", "Valid customer user id is required.");
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            await using var command = connection.CreateCommand();
+            command.CommandText = LegacySurfaceDashboardSql.SelectCustomerVinRequests;
+            AddParameter(command, "@userId", userId);
+            AddParameter(command, "@limit", safeLimit);
+            var rows = new List<StorefrontCustomerRequestDigest>();
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                rows.Add(new StorefrontCustomerRequestDigest(
+                    Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                    Convert.ToInt64(reader["time_unix"], CultureInfo.InvariantCulture),
+                    Convert.ToInt32(reader["viewed_customer"] is DBNull ? 0 : reader["viewed_customer"], CultureInfo.InvariantCulture)));
+            }
+
+            return new(userId, rows, rows.Count, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(userId, [], 0, "database-error", ex.Message);
+        }
+    }
+
+    public async Task<StorefrontCustomerRequestDetailResult> GetStorefrontCustomerRequestAsync(int userId, long requestId, CancellationToken cancellationToken = default)
+    {
+        var safeId = requestId < 0 ? 0 : requestId;
+        if (!_connections.IsConfigured)
+        {
+            return new(userId, null, string.Empty, [], "migration", "TenantRegistry DB is not configured.");
+        }
+
+        if (userId <= 0 || safeId <= 0)
+        {
+            return new(userId, null, string.Empty, [], "rejected", "Valid customer user id and request id are required.");
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            StorefrontCustomerRequestDigest? header = null;
+            var text = string.Empty;
+            await using (var headerCmd = connection.CreateCommand())
+            {
+                headerCmd.CommandText = LegacySurfaceDashboardSql.SelectCustomerVinRequestById;
+                AddParameter(headerCmd, "@userId", userId);
+                AddParameter(headerCmd, "@requestId", safeId);
+                await using var headerReader = await headerCmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (await headerReader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    header = new StorefrontCustomerRequestDigest(
+                        Convert.ToInt64(headerReader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(headerReader["time_unix"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(headerReader["viewed_customer"] is DBNull ? 0 : headerReader["viewed_customer"], CultureInfo.InvariantCulture));
+                    text = Convert.ToString(headerReader["text"] is DBNull ? string.Empty : headerReader["text"], CultureInfo.InvariantCulture) ?? string.Empty;
+                }
+            }
+
+            if (header is null)
+            {
+                return new(userId, null, string.Empty, [], "empty", "Request not found for this account.");
+            }
+
+            var messages = new List<StorefrontOrderMessageDigest>();
+            await using (var msgCmd = connection.CreateCommand())
+            {
+                msgCmd.CommandText = LegacySurfaceDashboardSql.SelectCustomerVinRequestMessages;
+                AddParameter(msgCmd, "@userId", userId);
+                AddParameter(msgCmd, "@requestId", safeId);
+                AddParameter(msgCmd, "@limit", 80);
+                await using var msgReader = await msgCmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await msgReader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    messages.Add(ReadThreadMessage(msgReader));
+                }
+            }
+
+            return new(userId, header, text, messages, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(userId, null, string.Empty, [], "database-error", ex.Message);
+        }
+    }
+
+    private static StorefrontReturnDigest ReadReturnDigest(DbDataReader reader)
+        => new(
+            Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+            Convert.ToInt64(reader["order_id"] is DBNull ? 0 : reader["order_id"], CultureInfo.InvariantCulture),
+            Convert.ToInt32(reader["status_id"] is DBNull ? 0 : reader["status_id"], CultureInfo.InvariantCulture),
+            Convert.ToString(reader["status"] is DBNull ? string.Empty : reader["status"], CultureInfo.InvariantCulture) ?? string.Empty,
+            Convert.ToInt64(reader["time_unix"] is DBNull ? 0 : reader["time_unix"], CultureInfo.InvariantCulture));
+
+    private static StorefrontOrderMessageDigest ReadThreadMessage(DbDataReader reader)
+        => new(
+            Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+            Convert.ToInt64(reader["time"], CultureInfo.InvariantCulture),
+            Convert.ToString(reader["text"] is DBNull ? string.Empty : reader["text"], CultureInfo.InvariantCulture) ?? string.Empty,
+            Convert.ToInt32(reader["is_customer"] is DBNull ? 0 : reader["is_customer"], CultureInfo.InvariantCulture));
+
     public async Task<ErpCashAccountListResult> ListErpCashAccountsAsync(int limit, CancellationToken cancellationToken = default)
     {
         var safeLimit = Math.Clamp(limit, 1, 500);

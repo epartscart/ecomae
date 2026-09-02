@@ -74,7 +74,7 @@
       "php": "/en/shop/checkout",
       "aspnet": "/storefront/checkout-app",
       "status": "partial",
-      "notes": "Readiness KPIs + explicit PHP how_get / confirm / login_offer steps. Create/payment PHP."
+      "notes": "Readiness KPIs + cart line review on checkout/confirm. Create/payment writes stay PHP."
     },
     {
       "id": "orders",
@@ -88,14 +88,14 @@
       "php": "/en/garazh + /en/garage/login",
       "aspnet": "/storefront/garage-app",
       "status": "partial",
-      "notes": "Shell + digests; car/notepad writes PHP."
+      "notes": "Vehicle list + notepad READ. Car/notepad writes stay PHP."
     },
     {
       "id": "account",
       "php": "/en/users/login|/profile",
       "aspnet": "/storefront/login|/storefront/account-summary-app|/storefront/account-app",
       "status": "partial",
-      "notes": "Chrome balance → account-summary; registration still PHP."
+      "notes": "Account summary + returns/requests inbox READ. Registration and return/request writes stay PHP."
     },
     {
       "id": "catalog_family",
