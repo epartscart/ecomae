@@ -284,7 +284,8 @@ public sealed record ErpPurchaseDigest(
     string InvoiceNumber,
     decimal TotalAmount,
     string Status,
-    long OrderId);
+    long OrderId,
+    IReadOnlyList<ErpDocumentLineDigest> Lines);
 
 public sealed record ErpPurchaseListResult(
     IReadOnlyList<ErpPurchaseDigest> Purchases,
@@ -451,13 +452,39 @@ public sealed record ErpWarehouseListResult(
     string Source,
     string Message);
 
+/// <summary>Inventory item offered by the SO/PO line pickers, mirroring the PHP <c>epc_erp_inv_items</c> select.</summary>
+public sealed record ErpInventoryItemPickerDigest(
+    long Id,
+    string Sku,
+    string Name,
+    decimal SalesPrice,
+    decimal PurchasePrice);
+
+public sealed record ErpInventoryItemPickerResult(
+    IReadOnlyList<ErpInventoryItemPickerDigest> Items,
+    int Count,
+    string Source,
+    string Message);
+
+/// <summary>Item/SKU line of a sales or purchase document, as the PHP tabs print under the header row.</summary>
+public sealed record ErpDocumentLineDigest(
+    long LineId,
+    long DocumentId,
+    string ItemCode,
+    string Description,
+    decimal Qty,
+    decimal UnitPriceExVat,
+    decimal LineExVat,
+    decimal QtyReceived);
+
 public sealed record ErpSalesOrderDigest(
     long Id,
     string SoNo,
     int CustomerUserId,
     decimal TotalAmount,
     string Status,
-    long TimeCreated);
+    long TimeCreated,
+    IReadOnlyList<ErpDocumentLineDigest> Lines);
 
 public sealed record ErpSalesOrderListResult(
     IReadOnlyList<ErpSalesOrderDigest> Orders,
@@ -548,7 +575,8 @@ public sealed record ErpPurchaseOrderDigest(
     string Title,
     decimal TotalAmount,
     string Status,
-    long TimeCreated);
+    long TimeCreated,
+    IReadOnlyList<ErpDocumentLineDigest> Lines);
 
 public sealed record ErpPurchaseOrderListResult(
     IReadOnlyList<ErpPurchaseOrderDigest> Orders,

@@ -6,7 +6,7 @@ namespace EcomAE.Platform.Tests;
 public sealed class ErpPoDeleteDryRunTests
 {
     private static ErpPurchaseOrderDigest Po(long id, string status = "draft") =>
-        new(id, $"PO-{id}", 3, "Parts", 80m, status, 1_700_000_000);
+        new(id, $"PO-{id}", 3, "Parts", 80m, status, 1_700_000_000, []);
 
     [Fact]
     public void ConfirmWritesIsRefused()

@@ -59,6 +59,8 @@ public interface ISurfaceDashboardSummaryReporter
 
     Task<ErpSalesOrderListResult> ListErpSalesOrdersAsync(int limit, CancellationToken cancellationToken = default);
 
+    Task<ErpInventoryItemPickerResult> ListErpInventoryItemsForPickerAsync(int limit, CancellationToken cancellationToken = default);
+
     Task<CpMenuListResult> ListCpMenusAsync(int limit, CancellationToken cancellationToken = default);
 
     Task<CpPageListResult> ListCpPagesAsync(int limit, CancellationToken cancellationToken = default);

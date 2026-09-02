@@ -6,7 +6,7 @@ namespace EcomAE.Platform.Tests;
 public sealed class ErpPurchaseVoidDryRunTests
 {
     private static ErpPurchaseDigest Purchase(long id, string status = "posted") =>
-        new(id, 3, "Supplier Co", 1_700_000_000, $"PI-{id}", 250m, status, 0);
+        new(id, 3, "Supplier Co", 1_700_000_000, $"PI-{id}", 250m, status, 0, []);
 
     [Fact]
     public void ConfirmWritesIsRefused()

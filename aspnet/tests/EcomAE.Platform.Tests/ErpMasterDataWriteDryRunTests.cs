@@ -30,7 +30,7 @@ public sealed class ErpMasterDataWriteDryRunTests
     [Fact]
     public void PurchaseDeleteDraftOk()
     {
-        var dig = new ErpPurchaseDigest(1, 2, "S", 1, "INV", 10m, "draft", 0);
+        var dig = new ErpPurchaseDigest(1, 2, "S", 1, "INV", 10m, "draft", 0, []);
         var r = ErpPurchaseDeleteDryRun.EvaluateAgainstPurchases([dig], new ErpPurchaseDeleteRequest(1));
         Assert.Equal("dry-run-validated", r.Status);
     }

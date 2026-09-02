@@ -679,6 +679,28 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>PHP <c>erp_tabs_sales_orders.php</c> line picker source.</summary>
+    public const string SelectErpInventoryItemsForPicker = """
+        SELECT `id`, IFNULL(`sku`, '') AS sku, IFNULL(`name`, '') AS name,
+               IFNULL(`sales_price`, 0) AS sales_price, IFNULL(`purchase_price`, 0) AS purchase_price
+        FROM `epc_erp_inv_items`
+        WHERE `active` = 1
+        ORDER BY `sku` ASC
+        LIMIT @limit
+        """;
+
+    public const string SelectErpSalesOrderLines = """
+        SELECT `l`.`id` AS line_id, `l`.`sales_order_id` AS document_id, IFNULL(`l`.`item_code`, '') AS item_code,
+               IFNULL(`l`.`description`, '') AS description, IFNULL(`l`.`qty`, 0) AS qty,
+               IFNULL(`l`.`unit_price_ex_vat`, 0) AS unit_price_ex_vat, IFNULL(`l`.`line_ex_vat`, 0) AS line_ex_vat
+        FROM `epc_erp_sales_order_lines` `l`
+        WHERE `l`.`sales_order_id` IN (
+            SELECT `id` FROM (
+                SELECT `id` FROM `epc_erp_sales_orders` ORDER BY `time_created` DESC, `id` DESC LIMIT @limit
+            ) `h`)
+        ORDER BY `l`.`sales_order_id` DESC, `l`.`line_no` ASC, `l`.`id` ASC
+        """;
+
     public const string SelectCpMenus = """
         SELECT `id`, IFNULL(`caption`, '') AS caption, `is_frontend`,
                IFNULL(`menu_ul_class`, '') AS menu_ul_class, IFNULL(`menu_ul_id`, '') AS menu_ul_id,
@@ -740,6 +762,35 @@ public static class LegacySurfaceDashboardSql
         FROM `epc_erp_purchase_orders`
         ORDER BY `time_created` DESC, `id` DESC
         LIMIT @limit
+        """;
+
+    public const string SelectErpPurchaseOrderLines = """
+        SELECT `l`.`id` AS line_id, `l`.`po_id` AS document_id, IFNULL(`l`.`item_code`, '') AS item_code,
+               IFNULL(`l`.`description`, '') AS description, IFNULL(`l`.`qty`, 0) AS qty,
+               IFNULL(`l`.`unit_cost_ex_vat`, 0) AS unit_price_ex_vat, IFNULL(`l`.`line_ex_vat`, 0) AS line_ex_vat,
+               IFNULL(`l`.`qty_received`, 0) AS qty_received
+        FROM `epc_erp_po_lines` `l`
+        WHERE `l`.`po_id` IN (
+            SELECT `id` FROM (
+                SELECT `id` FROM `epc_erp_purchase_orders` ORDER BY `time_created` DESC, `id` DESC LIMIT @limit
+            ) `h`)
+        ORDER BY `l`.`po_id` DESC, `l`.`line_no` ASC, `l`.`id` ASC
+        """;
+
+    /// <summary>PHP <c>epc_erp_purchase_inv_lines</c> receipt lines resolved to the inventory item SKU/name.</summary>
+    public const string SelectErpPurchaseInvoiceLines = """
+        SELECT `l`.`id` AS line_id, `l`.`purchase_id` AS document_id, IFNULL(`i`.`sku`, '') AS item_code,
+               IFNULL(`i`.`name`, '') AS description, IFNULL(`l`.`qty`, 0) AS qty,
+               IFNULL(`l`.`unit_cost`, 0) AS unit_price_ex_vat,
+               ROUND(IFNULL(`l`.`qty`, 0) * IFNULL(`l`.`unit_cost`, 0), 2) AS line_ex_vat
+        FROM `epc_erp_purchase_inv_lines` `l`
+        LEFT JOIN `epc_erp_inv_items` `i` ON `i`.`id` = `l`.`item_id`
+        WHERE `l`.`purchase_id` IN (
+            SELECT `id` FROM (
+                SELECT `id` FROM `epc_erp_purchases` WHERE `active` = 1
+                ORDER BY `purchase_date` DESC, `id` DESC LIMIT @limit
+            ) `h`)
+        ORDER BY `l`.`purchase_id` DESC, `l`.`id` ASC
         """;
 
     public const string SelectErpInventoryStockSummary = """
