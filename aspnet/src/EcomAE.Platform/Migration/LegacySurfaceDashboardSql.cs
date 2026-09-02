@@ -3081,6 +3081,19 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>PHP <c>epc_price_attr_search</c> against <c>epc_price_attr_index</c>.</summary>
+    public const string SelectStorefrontWarehouseAttrIndex = """
+        SELECT `price_data_id`, `price_id`, `field_key`, `value_raw`, `value_norm`,
+               `manufacturer`, `article`, `article_show`, `name`
+        FROM `epc_price_attr_index`
+        WHERE `value_norm` LIKE @like
+          AND (@field = '' OR @field = 'all' OR `field_key` = @field)
+        ORDER BY
+          CASE WHEN `value_norm` = @norm THEN 0 WHEN `value_norm` LIKE @like THEN 1 ELSE 2 END,
+          `manufacturer` ASC, `article_show` ASC
+        LIMIT @limit
+        """;
+
     /// <summary>Catalogue product card fields for wishlist/compare/product-app digests.</summary>
     public const string SelectStorefrontProductById = """
         SELECT p.`id`, IFNULL(p.`caption`,'') AS caption, IFNULL(p.`alias`,'') AS alias,

@@ -63,6 +63,29 @@
             background:#fff7ed; border:1px solid #fed7aa; color:#9a3412;
         }
         .epc-sf-price-gate a { color:#b91c1c; font-weight:700; }
+        .epc-sf-name-grid {
+            display:grid; grid-template-columns:repeat(auto-fill,minmax(14rem,1fr)); gap:.75rem; margin:.75rem 0 1.25rem;
+        }
+        .epc-sf-name-card {
+            background:#fff; border:1px solid #e5e7eb; border-radius:.55rem; padding:.85rem .9rem;
+        }
+        .epc-sf-name-card strong { display:block; margin:0 0 .35rem; font-size:.95rem; }
+        .epc-sf-name-card span { display:block; color:#64748b; font-size:.82rem; margin:0 0 .55rem; }
+        .epc-sf-name-card a { color:#b91c1c; font-weight:700; text-decoration:none; font-size:.82rem; }
+        .epc-sf-name-empty, .epc-sf-attr-empty {
+            padding:1.25rem; background:#fff; border:1px dashed #cbd5e1; border-radius:.55rem; color:#475569;
+        }
+        .epc-sf-attr-form-row { display:flex; gap:.45rem; flex-wrap:wrap; align-items:center; width:100%; }
+        .epc-sf-attr-form-row select {
+            min-width:10rem; padding:.4rem .55rem; border:1px solid #cbd5e1; border-radius:3px; background:#fff;
+        }
+        .epc-sf-attr-meta { color:#64748b; font-size:.86rem; margin:0 0 .75rem; }
+        .epc-sf-attr-table-wrap { background:#fff; border:1px solid #e5e7eb; border-radius:.55rem; overflow:auto; }
+        .epc-sf-attr-table { width:100%; border-collapse:collapse; font-size:.86rem; }
+        .epc-sf-attr-table th, .epc-sf-attr-table td { padding:.55rem .7rem; border-bottom:1px solid #f1f5f9; text-align:left; vertical-align:top; }
+        .epc-sf-attr-table th { background:#f8fafc; color:#475569; font-size:.75rem; text-transform:uppercase; }
+        .epc-sf-attr-table a { color:#b91c1c; font-weight:700; text-decoration:none; }
+        .epc-sf-attr-chip { display:inline-block; background:#f1f5f9; border-radius:.35rem; padding:.1rem .45rem; font-size:.75rem; font-weight:700; color:#334155; }
 </style>
 </HeadContent>
 
@@ -95,8 +118,21 @@
             <form class="epc-sf-search-form" method="get" action="@SearchFormAction">
                 @if (string.Equals(_mode, "attr", StringComparison.OrdinalIgnoreCase))
                 {
-                    <input type="hidden" name="mode" value="attr" />
-                    <input type="search" name="q" value="@_attrQuery" placeholder="Engine, size, country, cross ref…" aria-label="Warehouse / more info search" />
+                    <div class="epc-sf-attr-form-row">
+                        <input type="hidden" name="mode" value="attr" />
+                        <select name="field" aria-label="Search field">
+                            @foreach (var field in PhpWarehouseAttrSearch.Fields)
+                            {
+                                <option value="@field.Key" selected="@(string.Equals(_attrField, field.Key, StringComparison.Ordinal))">@field.Label</option>
+                            }
+                        </select>
+                        <input type="search" name="q" value="@_attrQuery" placeholder="Engine, size, country, cross ref…" aria-label="Warehouse / more info search" maxlength="120" />
+                    </div>
+                }
+                else if (string.Equals(_mode, "name", StringComparison.OrdinalIgnoreCase))
+                {
+                    <input type="hidden" name="mode" value="name" />
+                    <input type="search" name="search_string" value="@_nameQuery" placeholder="Product name" aria-label="Search by name" maxlength="80" />
                 }
                 else if (string.Equals(_mode, "vin", StringComparison.OrdinalIgnoreCase))
                 {
@@ -121,7 +157,106 @@
         </PhpStorefrontPageHeader>
     }
 
-    @if (_showBrandPicker)
+    @if (_mode is "name")
+    {
+        @if (!_nameSearchLoaded && string.IsNullOrWhiteSpace(_nameQuery))
+        {
+            <div class="epc-sf-name-empty">Enter a product name to search the warehouse catalogue.</div>
+        }
+        else if (_nameProducts.Count == 0)
+        {
+            <div class="epc-sf-name-empty">
+                @if (string.IsNullOrWhiteSpace(_nameSearchMessage))
+                {
+                    <text>No products matched “@_nameQuery”.</text>
+                }
+                else
+                {
+                    @_nameSearchMessage
+                }
+            </div>
+        }
+        else
+        {
+            <p class="epc-sf-attr-meta">@_nameProducts.Count product(s) for “@_nameQuery”.</p>
+            <div class="epc-sf-name-grid" aria-label="Name search results">
+                @foreach (var p in _nameProducts)
+                {
+                    var href = StorefrontSurfaceLinks.ForProduct(p.Id);
+                    var title = string.IsNullOrWhiteSpace(p.Caption)
+                        ? (string.IsNullOrWhiteSpace(p.Alias) ? ("#" + p.Id) : p.Alias)
+                        : p.Caption;
+                    <article class="epc-sf-name-card">
+                        <strong>@title</strong>
+                        @if (!string.IsNullOrWhiteSpace(p.Manufacturer) || !string.IsNullOrWhiteSpace(p.Article))
+                        {
+                            <span>@p.Manufacturer @(!string.IsNullOrWhiteSpace(p.Article) ? "· " + p.Article : "")</span>
+                        }
+                        <a href="@href">View product</a>
+                    </article>
+                }
+            </div>
+        }
+    }
+    else if (_mode is "attr")
+    {
+        @if (!_attrSearchLoaded && string.IsNullOrWhiteSpace(_attrQuery))
+        {
+            <div class="epc-sf-attr-empty">Choose a field and enter a value to search warehouse products.</div>
+        }
+        else if (_attrRows.Count == 0)
+        {
+            <div class="epc-sf-attr-empty">
+                @if (string.IsNullOrWhiteSpace(_attrSearchMessage))
+                {
+                    <text>No products matched @PhpWarehouseAttrSearch.LabelFor(_attrField) for “@_attrQuery”.</text>
+                }
+                else
+                {
+                    @_attrSearchMessage
+                }
+            </div>
+        }
+        else
+        {
+            <p class="epc-sf-attr-meta">
+                @_attrRows.Count product(s) for <strong>@PhpWarehouseAttrSearch.LabelFor(_attrField)</strong> = “@_attrQuery”.
+                Click a part number to open warehouse prices.
+            </p>
+            <div class="epc-sf-attr-table-wrap">
+                <table class="epc-sf-attr-table">
+                    <thead>
+                        <tr>
+                            <th>Brand</th>
+                            <th>Article</th>
+                            <th>Name</th>
+                            <th>Matched</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var row in _attrRows)
+                        {
+                            var href = BrandArticleHref(
+                                string.IsNullOrWhiteSpace(row.ArticleShow) ? row.Article : row.ArticleShow,
+                                row.Manufacturer);
+                            <tr>
+                                <td>@(string.IsNullOrWhiteSpace(row.Manufacturer) ? "—" : row.Manufacturer)</td>
+                                <td><a href="@href">@(string.IsNullOrWhiteSpace(row.ArticleShow) ? (string.IsNullOrWhiteSpace(row.Article) ? "—" : row.Article) : row.ArticleShow)</a></td>
+                                <td>@(string.IsNullOrWhiteSpace(row.Name) ? "—" : row.Name)</td>
+                                <td>
+                                    <span class="epc-sf-attr-chip">@row.MatchedFieldLabel</span>
+                                    <div>@row.MatchedValue</div>
+                                </td>
+                                <td><a href="@href">View prices</a></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    }
+    else if (_showBrandPicker)
     {
         <div class="row epc-part-search-layout epc-brand-picker-mode">
             <div class="epc-part-search-main col-md-12">
@@ -1142,6 +1277,14 @@
 @code {
     private string _articleInput = "";
     private string _attrQuery = "";
+    private string _attrField = "all";
+    private string _nameQuery = "";
+    private IReadOnlyList<StorefrontProductDigest> _nameProducts = [];
+    private bool _nameSearchLoaded;
+    private string _nameSearchMessage = "";
+    private IReadOnlyList<StorefrontWarehouseAttrDigest> _attrRows = [];
+    private bool _attrSearchLoaded;
+    private string _attrSearchMessage = "";
     private string _brandInput = "";
     private string _mode = "";
     private string _heroTitle = "Part search";
@@ -1204,6 +1347,20 @@
                 return StorefrontPublicSeo.PartsChpuTitle(_brandInput, _normalized);
             }
 
+            if (_mode is "name")
+            {
+                return string.IsNullOrWhiteSpace(_nameQuery)
+                    ? "Search by name · eParts Cart"
+                    : $"Search {_nameQuery} · eParts Cart";
+            }
+
+            if (_mode is "attr")
+            {
+                return string.IsNullOrWhiteSpace(_attrQuery)
+                    ? "Warehouse / more info · eParts Cart"
+                    : $"Warehouse search {_attrQuery} · eParts Cart";
+            }
+
             if (!string.IsNullOrWhiteSpace(_normalized))
             {
                 return $"Part search {_normalized} · eParts Cart";
@@ -1216,6 +1373,7 @@
     private string SearchFormAction => _mode switch
     {
         "attr" => StorefrontSurfaceLinks.WarehouseSearch,
+        "name" => StorefrontSurfaceLinks.NameSearch,
         "vin" => StorefrontSurfaceLinks.LaximoVin,
         "engine" or "car" => StorefrontSurfaceLinks.VehicleCatalog,
         _ => StorefrontSurfaceLinks.PartSearch
@@ -1240,6 +1398,12 @@
 
     [SupplyParameterFromQuery(Name = "q")]
     public string? AttrQuery { get; set; }
+
+    [SupplyParameterFromQuery(Name = "search_string")]
+    public string? SearchStringQuery { get; set; }
+
+    [SupplyParameterFromQuery(Name = "field")]
+    public string? FieldQuery { get; set; }
 
     [SupplyParameterFromQuery(Name = "mode")]
     public string? ModeQuery { get; set; }
@@ -1275,6 +1439,43 @@
             ? (ModeQuery ?? "").Trim().ToLowerInvariant()
             : _mode;
         _attrQuery = AttrQuery?.Trim() ?? "";
+        _attrField = PhpWarehouseAttrSearch.NormalizeField(FieldQuery);
+        _nameQuery = FirstNonEmpty(SearchStringQuery, _mode is "name" ? AttrQuery : null, _mode is "name" ? ArticleQuery : null);
+
+        if (_mode is "name")
+        {
+            _heroTitle = "Search by name";
+            _heroSubtitle = "Search the warehouse catalogue by product name.";
+            if (!string.IsNullOrWhiteSpace(_nameQuery))
+            {
+                var products = await Dashboards.ListStorefrontCatalogueProductsAsync(0, null, _nameQuery, 48);
+                _nameSearchLoaded = true;
+                _nameProducts = products.Rows;
+                _nameSearchMessage = string.IsNullOrWhiteSpace(products.Message)
+                    ? (products.Count == 0 ? $"No products matched “{_nameQuery}”." : "")
+                    : products.Message;
+            }
+
+            return;
+        }
+
+        if (_mode is "attr")
+        {
+            _heroTitle = "Warehouse / more info";
+            _heroSubtitle = "Search product attributes across warehouse offers (engine, size, country, cross ref).";
+            if (!string.IsNullOrWhiteSpace(_attrQuery))
+            {
+                var attrs = await Dashboards.ListStorefrontWarehouseAttrAsync(_attrField, _attrQuery, 100);
+                _attrSearchLoaded = true;
+                _attrRows = attrs.Rows;
+                _attrField = string.IsNullOrWhiteSpace(attrs.Field) ? _attrField : attrs.Field;
+                _attrSearchMessage = string.IsNullOrWhiteSpace(attrs.Message)
+                    ? (attrs.Count == 0 ? $"No products matched {PhpWarehouseAttrSearch.LabelFor(_attrField)} for “{_attrQuery}”." : "")
+                    : attrs.Message;
+            }
+
+            return;
+        }
 
         // CHPU /parts/{brand}/{article} → brand+article result (PHP prices_by_article_and_manufacturer).
         var pathBrand = DecodePathSegment(PathBrand);
@@ -1338,6 +1539,7 @@
             "vin" => "Look up parts by VIN / Frame — open the dedicated VIN app for Laximo decode trees.",
             "engine" => "Look up parts by engine code across warehouse offers.",
             "car" => "Browse by vehicle — open the vehicle catalog app for year/make/model.",
+            "name" => "Search the warehouse catalogue by product name.",
             _ => string.IsNullOrWhiteSpace(_brandInput)
                 ? "Select a manufacturer after searching by article (PHP brand picker parity)."
                 : string.IsNullOrWhiteSpace(_articleInput)
@@ -1373,7 +1575,7 @@
         if (!onChpuBrandArticle
             && !string.IsNullOrWhiteSpace(_articleInput)
             && !string.IsNullOrWhiteSpace(_brandInput)
-            && _mode is not ("attr" or "vin" or "engine" or "car"))
+            && _mode is not ("attr" or "name" or "vin" or "engine" or "car"))
         {
             Navigation.NavigateTo(BrandArticleHref(_articleInput, _brandInput), forceLoad: true, replace: true);
             return;

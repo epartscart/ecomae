@@ -360,6 +360,13 @@ public interface ISurfaceDashboardSummaryReporter
         int limit,
         CancellationToken cancellationToken = default);
 
+    /// <summary>PHP <c>epc_price_attr_search</c> against <c>epc_price_attr_index</c>.</summary>
+    Task<StorefrontWarehouseAttrResult> ListStorefrontWarehouseAttrAsync(
+        string? field,
+        string? query,
+        int limit,
+        CancellationToken cancellationToken = default);
+
     /// <summary>Genuine OE brand keys (PHP <c>epc_genuine_build_frontend_index</c>).</summary>
     Task<StorefrontGenuineBrandsResult> ListStorefrontGenuineBrandsAsync(CancellationToken cancellationToken = default);
 

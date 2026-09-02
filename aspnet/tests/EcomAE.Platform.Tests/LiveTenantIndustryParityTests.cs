@@ -199,6 +199,7 @@ public sealed class LiveTenantIndustryParityTests
     public void EpartscartKeepsAutomotiveSearchAndRejectsForeignSkus()
     {
         Assert.False(IndustryStorefrontSlugMiddleware.TryMatch("www.epartscart.com", "/en/shop/search", out _, out _));
+        Assert.False(IndustryStorefrontSlugMiddleware.TryMatch("www.epartscart.com", "/en/shop/warehouse-search", out _, out _));
         Assert.False(IndustryStorefrontSlugMiddleware.TryMatch("www.epartscart.com", "/p/JWL-GN-22K-15G", out _, out _));
         Assert.False(PhpIndustryStorefrontCatalog.TryFindProduct("auto_parts", "ELC-IP16-128", out _));
         Assert.True(PhpIndustryStorefrontCatalog.TryFindProduct("electronics", "ELC-IP16-128", out var phone));

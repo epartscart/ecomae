@@ -3629,6 +3629,93 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    public async Task<StorefrontWarehouseAttrResult> ListStorefrontWarehouseAttrAsync(
+        string? field,
+        string? query,
+        int limit,
+        CancellationToken cancellationToken = default)
+    {
+        var fieldKey = PhpWarehouseAttrSearch.NormalizeField(field);
+        var raw = (query ?? string.Empty).Trim();
+        if (raw.Length > 120)
+        {
+            raw = raw[..120];
+        }
+
+        limit = Math.Clamp(limit <= 0 ? 80 : limit, 1, 200);
+        var compact = Regex.Replace(raw, @"\s+", string.Empty);
+        if (compact.Length < 2)
+        {
+            return new(fieldKey, raw, [], 0, "empty", "Enter at least 2 characters.");
+        }
+
+        var norm = PhpWarehouseAttrSearch.NormalizeValue(raw);
+        if (norm.Length == 0)
+        {
+            return new(fieldKey, raw, [], 0, "empty", "Enter a valid search value.");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return new(fieldKey, raw, [], 0, "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await OpenStorefrontShopAsync(cancellationToken).ConfigureAwait(false);
+            await using var command = connection.CreateCommand();
+            command.CommandText = LegacySurfaceDashboardSql.SelectStorefrontWarehouseAttrIndex;
+            AddParameter(command, "@like", norm + "%");
+            AddParameter(command, "@field", fieldKey);
+            AddParameter(command, "@norm", norm);
+            AddParameter(command, "@limit", limit);
+
+            var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var rows = new List<StorefrontWarehouseAttrDigest>();
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                var manufacturer = ReadOptionalString(reader, "manufacturer");
+                var article = ReadOptionalString(reader, "article");
+                var articleShow = ReadOptionalString(reader, "article_show");
+                if (string.IsNullOrWhiteSpace(articleShow))
+                {
+                    articleShow = article;
+                }
+
+                var uk = manufacturer + "|" + (string.IsNullOrWhiteSpace(article) ? articleShow : article);
+                if (!seen.Add(uk))
+                {
+                    continue;
+                }
+
+                var matchedField = ReadOptionalString(reader, "field_key");
+                rows.Add(new StorefrontWarehouseAttrDigest(
+                    manufacturer,
+                    article,
+                    articleShow,
+                    ReadOptionalString(reader, "name"),
+                    matchedField,
+                    PhpWarehouseAttrSearch.LabelFor(matchedField),
+                    ReadOptionalString(reader, "value_raw"),
+                    ReadInt(reader, "price_id"),
+                    ReadInt(reader, "price_data_id")));
+            }
+
+            return new(
+                fieldKey,
+                raw,
+                rows,
+                rows.Count,
+                "database",
+                rows.Count == 0 ? "No matching warehouse products." : string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(fieldKey, raw, [], 0, "database-error", ex.Message);
+        }
+    }
+
     private static int CountTreeNodes(IReadOnlyList<StorefrontCatalogueCategoryNode> tree)
     {
         var n = 0;

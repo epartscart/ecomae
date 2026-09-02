@@ -37,9 +37,8 @@
 <StorefrontTenantChrome>
 
     <PhpStorefrontPageHeader Title="Compare"
-                            Subtitle="Products saved in the classic compare cookie.">
-        <a class="btn btn-sm btn-primary" href="@StorefrontPhpCanonical.Compare">Open classic compare</a>
-            <a class="btn btn-sm btn-default" href="@StorefrontSurfaceLinks.Wishlist">Bookmarks</a>
+                            Subtitle="Products saved in the compare cookie.">
+        <a class="btn btn-sm btn-primary" href="@StorefrontSurfaceLinks.Wishlist">Bookmarks</a>
             <a class="btn btn-sm btn-default" href="@StorefrontSurfaceLinks.PartSearch">Search</a>
     </PhpStorefrontPageHeader>
 
@@ -62,7 +61,7 @@
                 <tbody>
                     @if (_products.Count == 0)
                     {
-                        <tr><td colspan="4">Compare cookie has @_ids.Count id(s); catalogue rows unavailable (<code>@_source</code>). <a href="@StorefrontPhpCanonical.Compare">Open PHP</a></td></tr>
+                        <tr><td colspan="4">Compare cookie has @_ids.Count id(s); catalogue rows unavailable (<code>@_source</code>). <a href="@StorefrontSurfaceLinks.OwnCatalog">Own catalog</a></td></tr>
                     }
                     else
                     {

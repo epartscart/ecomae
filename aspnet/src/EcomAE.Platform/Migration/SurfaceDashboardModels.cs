@@ -1710,6 +1710,26 @@ public sealed record StorefrontCatalogueProductsResult(
     string Source,
     string Message);
 
+/// <summary>PHP <c>epc_price_attr_search</c> warehouse “more info” hit.</summary>
+public sealed record StorefrontWarehouseAttrDigest(
+    string Manufacturer,
+    string Article,
+    string ArticleShow,
+    string Name,
+    string MatchedField,
+    string MatchedFieldLabel,
+    string MatchedValue,
+    int PriceId,
+    int PriceDataId);
+
+public sealed record StorefrontWarehouseAttrResult(
+    string Field,
+    string Query,
+    IReadOnlyList<StorefrontWarehouseAttrDigest> Rows,
+    int Count,
+    string Source,
+    string Message);
+
 public sealed record StorefrontGenuineBrandsResult(
     IReadOnlyList<string> Brands,
     int Count,

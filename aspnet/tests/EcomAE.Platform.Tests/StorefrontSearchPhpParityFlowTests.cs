@@ -213,6 +213,64 @@ public sealed class StorefrontSearchPhpParityFlowTests
     }
 
     [Fact]
+    public void SearchApp_NameModeUsesCatalogueSearchString()
+    {
+        var text = File.ReadAllText(FindRepoFile(
+            "aspnet/src/EcomAE.Platform/Components/Pages/StorefrontSearchApp.razor"));
+        Assert.Contains("ListStorefrontCatalogueProductsAsync", text, StringComparison.Ordinal);
+        Assert.Contains("[SupplyParameterFromQuery(Name = \"search_string\")]", text, StringComparison.Ordinal);
+        Assert.Contains("name=\"search_string\"", text, StringComparison.Ordinal);
+        Assert.Contains("StorefrontSurfaceLinks.NameSearch", text, StringComparison.Ordinal);
+        Assert.Contains("_mode is \"name\"", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("@page \"/en/{alias}\"", text, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void SearchApp_AttrModeUsesWarehouseAttrIndex()
+    {
+        var text = File.ReadAllText(FindRepoFile(
+            "aspnet/src/EcomAE.Platform/Components/Pages/StorefrontSearchApp.razor"));
+        Assert.Contains("ListStorefrontWarehouseAttrAsync", text, StringComparison.Ordinal);
+        Assert.Contains("name=\"field\"", text, StringComparison.Ordinal);
+        Assert.Contains("PhpWarehouseAttrSearch.Fields", text, StringComparison.Ordinal);
+        Assert.Contains("epc_price_attr_index", LegacySurfaceDashboardSql.SelectStorefrontWarehouseAttrIndex, StringComparison.Ordinal);
+        Assert.Contains("@field", LegacySurfaceDashboardSql.SelectStorefrontWarehouseAttrIndex, StringComparison.Ordinal);
+        Assert.Contains("@norm", LegacySurfaceDashboardSql.SelectStorefrontWarehouseAttrIndex, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void WarehouseAttr_NormalizeMatchesPhp()
+    {
+        Assert.Equal("all", PhpWarehouseAttrSearch.NormalizeField(null));
+        Assert.Equal("engine_code", PhpWarehouseAttrSearch.NormalizeField("engine_code"));
+        Assert.Equal("all", PhpWarehouseAttrSearch.NormalizeField("engine code!"));
+        Assert.Equal("2JZGE", PhpWarehouseAttrSearch.NormalizeValue("2JZ-GE"));
+        Assert.Equal("Engine code", PhpWarehouseAttrSearch.LabelFor("engine_code"));
+    }
+
+    [Fact]
+    public void CompareApp_HasNoTenantVisiblePhpLink()
+    {
+        var text = File.ReadAllText(FindRepoFile(
+            "aspnet/src/EcomAE.Platform/Components/Pages/StorefrontCompareApp.razor"));
+        Assert.DoesNotContain("Open PHP", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("Open classic compare", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("StorefrontPhpCanonical.Compare", text, StringComparison.Ordinal);
+        Assert.Contains("StorefrontSurfaceLinks.OwnCatalog", text, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void WishlistApp_HasGetAddToCartForm()
+    {
+        var text = File.ReadAllText(FindRepoFile(
+            "aspnet/src/EcomAE.Platform/Components/Pages/StorefrontWishlistApp.razor"));
+        Assert.Contains("StorefrontSurfaceLinks.Cart", text, StringComparison.Ordinal);
+        Assert.Contains("name=\"product_id\"", text, StringComparison.Ordinal);
+        Assert.Contains("name=\"count_need\"", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("ajax_add_to_basket", text, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void GapBoard_DocumentsEpartscartStorefrontSurfaces()
     {
         var json = File.ReadAllText(FindRepoFile(
