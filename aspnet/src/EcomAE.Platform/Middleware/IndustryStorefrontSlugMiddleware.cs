@@ -209,9 +209,8 @@ public sealed class IndustryStorefrontSlugMiddleware
                 || only.Equals("shop/ucats", StringComparison.OrdinalIgnoreCase)
                 || only.StartsWith("shop/ucats/", StringComparison.OrdinalIgnoreCase)))
         {
-            var ucatsKey = only.Contains('/', StringComparison.Ordinal)
-                ? only[(only.LastIndexOf('/', StringComparison.Ordinal) + 1)..]
-                : string.Empty;
+            var slash = only.LastIndexOf('/');
+            var ucatsKey = slash >= 0 ? only[(slash + 1)..] : string.Empty;
             if (ucatsKey.Equals("katalogi-ucats", StringComparison.OrdinalIgnoreCase)
                 || ucatsKey.Equals("ucats", StringComparison.OrdinalIgnoreCase)
                 || ucatsKey.Equals("catalogues", StringComparison.OrdinalIgnoreCase)
