@@ -34,6 +34,8 @@ public static class StorefrontSurfaceLinks
     public static string OriginalCatalog => PreferAspNetApps ? StorefrontAspNetCanonical.OriginalCatalog : StorefrontPhpCanonical.OriginalCatalog;
     public static string DemandIntelligence => PreferAspNetApps ? StorefrontAspNetCanonical.DemandIntelligence : StorefrontPhpCanonical.DemandIntelligence;
     public static string SellerRequest => PreferAspNetApps ? StorefrontAspNetCanonical.SellerRequest : StorefrontPhpCanonical.SellerRequest;
+    public static string CustomerRequests => PreferAspNetApps ? StorefrontAspNetCanonical.CustomerRequests : StorefrontPhpCanonical.CustomerRequests;
+    public static string CustomerPrint => PreferAspNetApps ? StorefrontAspNetCanonical.CustomerPrint : StorefrontPhpCanonical.CustomerPrint;
     public static string Cart => PreferAspNetApps ? StorefrontAspNetCanonical.Cart : StorefrontPhpCanonical.Cart;
     public static string Checkout => PreferAspNetApps ? StorefrontAspNetCanonical.Checkout : StorefrontPhpCanonical.Checkout;
     public static string Orders => PreferAspNetApps ? StorefrontAspNetCanonical.Orders : StorefrontPhpCanonical.Orders;
@@ -100,6 +102,7 @@ public static class StorefrontSurfaceLinks
             "/original-catalog" => StorefrontAspNetCanonical.OriginalCatalog + query,
             "/demand-intelligence" => StorefrontAspNetCanonical.DemandIntelligence + query,
             "/zapros-prodavczu" => StorefrontAspNetCanonical.SellerRequest + query,
+            "/requests" => StorefrontAspNetCanonical.CustomerRequests + query,
             "/product-family" => StorefrontAspNetCanonical.ProductFamily + query,
             _ when bare.Contains("katalogi-ucats", StringComparison.OrdinalIgnoreCase)
                 => StorefrontAspNetCanonical.UcatsService,
@@ -208,6 +211,22 @@ public static class StorefrontSurfaceLinks
         => PreferAspNetApps
             ? StorefrontAspNetCanonical.UmapiCatalog + "?brand=" + Uri.EscapeDataString(brand.Trim().ToLowerInvariant())
             : StorefrontPhpCanonical.ForUmapiBrand(brand);
+
+    public static string ForCustomerRequest(int requestId)
+        => (PreferAspNetApps ? StorefrontAspNetCanonical.CustomerRequests : StorefrontPhpCanonical.CustomerRequests)
+           + "?id=" + requestId.ToString(System.Globalization.CultureInfo.InvariantCulture);
+
+    public static string ForPrint(int orderId, string? docName = null)
+    {
+        var basePath = CustomerPrint;
+        var query = "order_id=" + orderId.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        if (!string.IsNullOrWhiteSpace(docName))
+        {
+            query += "&doc_name=" + Uri.EscapeDataString(docName.Trim());
+        }
+
+        return basePath + "?" + query;
+    }
 
     private static string AppendQuery(string basePath, string? original)
     {

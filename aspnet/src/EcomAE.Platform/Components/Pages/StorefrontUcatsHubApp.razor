@@ -47,20 +47,33 @@
         }
     </div>
 
-    @if (!string.IsNullOrWhiteSpace(_selectedBlurb))
+    @if (_selected is not null)
     {
+        <form method="get" action="@StorefrontSurfaceLinks.WarehouseSearch" style="margin-top:1.15rem;background:#fff;border:1px solid #e2e8f0;border-radius:.55rem;padding:1rem 1.1rem">
+            <p style="margin:0 0 .75rem;font-weight:700">@_selected.Title picker</p>
+            <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.65rem">
+                @foreach (var field in _selected.PickerFields)
+                {
+                    <div>
+                        <label for="ucats-@field.Name">@field.Label</label>
+                        <input id="ucats-@field.Name" type="text" name="@field.Name" style="width:100%;margin:.25rem 0 0;padding:.45rem" />
+                    </div>
+                }
+            </div>
+            <input type="hidden" name="ucats" value="@_selected.Slug" />
+            <button type="submit" style="margin-top:.9rem;padding:.55rem .95rem;border:0;border-radius:.4rem;background:#2563eb;color:#fff;font-weight:800;cursor:pointer">Search live stock</button>
+        </form>
         <p class="epc-ucats-note">
             @_selectedBlurb
-            Deep size/vehicle trees stay on the classic catalog pickers.
             Use <a href="@StorefrontSurfaceLinks.NameSearch">name search</a>
-            or <a href="@StorefrontSurfaceLinks.WarehouseSearch">warehouse search</a> for live stock.
+            or <a href="@StorefrontSurfaceLinks.Accessories">accessories marketplace</a> for related listings.
         </p>
     }
     else
     {
         <p class="epc-ucats-note">
             Eight service catalogs (tires, wheels, oil, batteries, TO, accessories, hubcaps, bolts).
-            Open a card, then use search for live stock.
+            Open a card, then pick size or vehicle fields for live stock.
         </p>
     }
 </StorefrontTenantChrome>

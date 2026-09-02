@@ -49,7 +49,12 @@ public static class StorefrontAspNetCanonical
     public const string ForgotPassword = "/storefront/forgot-password-app";
     public const string ConfirmContact = "/storefront/confirm-contact-app";
     public const string CustomerReturns = "/storefront/returns-app";
-    public const string SellerRequest = "/storefront/search-app?mode=vin";
+    /// <summary>Seller VIN / part request (PHP twin: <c>/en/zapros-prodavczu</c>).</summary>
+    public const string SellerRequest = "/storefront/seller-request-app";
+    /// <summary>Customer VIN-request inbox (PHP twin: <c>/en/requests</c>). Not CP system-requests.</summary>
+    public const string CustomerRequests = "/storefront/customer-requests-app";
+    /// <summary>Customer order print (PHP <c>content/shop/print_docs/service/print.php</c>).</summary>
+    public const string CustomerPrint = "/storefront/print-app";
     public const string Cart = "/storefront/cart-app";
     public const string Checkout = "/storefront/checkout-app";
     public const string Orders = "/storefront/orders-app";

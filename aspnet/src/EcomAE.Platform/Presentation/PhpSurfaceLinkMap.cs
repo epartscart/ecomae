@@ -573,6 +573,27 @@ public static class PhpSurfaceLinkMap
             return StorefrontAspNetCanonical.CustomerReturns;
         }
 
+        if (value.Equals("/zapros-prodavczu", StringComparison.OrdinalIgnoreCase)
+            || value.StartsWith("/zapros-prodavczu?", StringComparison.OrdinalIgnoreCase))
+        {
+            return StorefrontAspNetCanonical.SellerRequest;
+        }
+
+        if (value.Equals("/requests", StringComparison.OrdinalIgnoreCase)
+            || value.StartsWith("/requests/", StringComparison.OrdinalIgnoreCase)
+            || value.StartsWith("/requests?", StringComparison.OrdinalIgnoreCase))
+        {
+            return StorefrontAspNetCanonical.CustomerRequests;
+        }
+
+        if (value.Equals("/shop/print", StringComparison.OrdinalIgnoreCase)
+            || value.StartsWith("/shop/print?", StringComparison.OrdinalIgnoreCase)
+            || value.Equals("/shop/print_docs", StringComparison.OrdinalIgnoreCase)
+            || value.StartsWith("/shop/print_docs", StringComparison.OrdinalIgnoreCase))
+        {
+            return StorefrontAspNetCanonical.CustomerPrint;
+        }
+
         if (value.StartsWith("/auto-workshop", StringComparison.OrdinalIgnoreCase))
         {
             return StorefrontAspNetCanonical.AutoWorkshop;
@@ -816,6 +837,10 @@ public static class PhpSurfaceLinkMap
             || path.Equals("/original-catalog", StringComparison.OrdinalIgnoreCase)
             || path.Equals("/demand-intelligence", StringComparison.OrdinalIgnoreCase)
             || path.Equals("/zapros-prodavczu", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/requests", StringComparison.OrdinalIgnoreCase)
+            || path.StartsWith("/requests/", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/shop/print", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/shop/print_docs", StringComparison.OrdinalIgnoreCase)
             || path.Contains("katalogi-ucats", StringComparison.OrdinalIgnoreCase)
             || path.Contains("bulk-upload", StringComparison.OrdinalIgnoreCase);
     }
@@ -1063,6 +1088,14 @@ public static class PhpSurfaceLinkMap
             || path.Equals("/vendor/upload", StringComparison.OrdinalIgnoreCase)
             || path.Equals("/shop/returns", StringComparison.OrdinalIgnoreCase)
             || path.StartsWith("/shop/returns/", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/zapros-prodavczu", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/requests", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/requests/request", StringComparison.OrdinalIgnoreCase)
+            || path.StartsWith("/requests/", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/shop/print", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/shop/print_docs", StringComparison.OrdinalIgnoreCase)
+            || path.StartsWith("/shop/print/", StringComparison.OrdinalIgnoreCase)
+            || path.StartsWith("/shop/print_docs/", StringComparison.OrdinalIgnoreCase)
             || path.Equals("/katalog-laximo", StringComparison.OrdinalIgnoreCase)
             || path.Equals("/vehicle-catalog", StringComparison.OrdinalIgnoreCase)
             || path.Equals("/umapi_catalog", StringComparison.OrdinalIgnoreCase)

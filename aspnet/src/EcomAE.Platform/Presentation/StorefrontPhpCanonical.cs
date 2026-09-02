@@ -29,6 +29,8 @@ public static class StorefrontPhpCanonical
     public const string OriginalCatalog = LangPrefix + "/original-catalog";
     public const string DemandIntelligence = LangPrefix + "/demand-intelligence";
     public const string SellerRequest = LangPrefix + "/zapros-prodavczu";
+    public const string CustomerRequests = LangPrefix + "/requests";
+    public const string CustomerPrint = LangPrefix + "/shop/print";
     public const string Cart = LangPrefix + "/shop/cart";
     public const string Checkout = LangPrefix + "/shop/checkout";
     public const string Orders = LangPrefix + "/shop/orders";
@@ -99,6 +101,9 @@ public static class StorefrontPhpCanonical
             "/storefront/wishlist-app" => Wishlist + query,
             "/storefront/compare-app" => Compare + query,
             "/storefront/product-app" => PartSearch + query,
+            "/storefront/seller-request-app" => SellerRequest + query,
+            "/storefront/customer-requests-app" => CustomerRequests + query,
+            "/storefront/print-app" => CustomerPrint + query,
             _ => "",
         };
 
@@ -128,6 +133,7 @@ public static class StorefrontPhpCanonical
             "/original-catalog" => OriginalCatalog + query,
             "/demand-intelligence" => DemandIntelligence + query,
             "/zapros-prodavczu" => SellerRequest + query,
+            "/requests" => CustomerRequests + query,
             _ when bare.Contains("katalogi-ucats", StringComparison.OrdinalIgnoreCase)
                 => UcatsService + query,
             _ => ProductFamily + query,

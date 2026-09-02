@@ -14,13 +14,13 @@
 
 <StorefrontAnalytics Enabled="true" IncludeClarity="true" />
 
-<PhpStorefrontDesktopChrome>
+<StorefrontTenantChrome>
     <section class="epc-own-cat" id="epc-own-catalog" data-base="/storefront/own-catalog-app">
         <div class="epc-own-cat__hero">
             <div class="container">
                 <div class="epc-own-cat__brand">eParts<span>Cart</span></div>
                 <h1>Own catalog</h1>
-                <p>Browse your warehouse catalogue by category — the same Catalog of products tree as the PHP storefront.</p>
+                <p>Browse your warehouse catalogue by category — the same Catalog of products tree as the live storefront.</p>
                 <form class="epc-own-cat__search" method="get" action="/storefront/own-catalog-app" role="search">
                     <label class="sr-only" for="epc-own-q">Search in own catalog</label>
                     <input id="epc-own-q" name="search_string" type="search" value="@_search" placeholder="In own catalog" maxlength="80" />
@@ -108,7 +108,7 @@
             </div>
         </div>
     </section>
-</PhpStorefrontDesktopChrome>
+</StorefrontTenantChrome>
 
 @code {
     private IReadOnlyList<StorefrontCatalogueCategoryNode> _tree = [];

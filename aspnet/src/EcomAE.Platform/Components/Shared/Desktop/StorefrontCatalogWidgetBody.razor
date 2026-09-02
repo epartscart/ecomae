@@ -6,7 +6,7 @@
     .epc-sf-vc-note { margin-top:.85rem; color:#64748b; font-size:.84rem; }
 </style>
 
-<PhpStorefrontDesktopChrome>
+<StorefrontTenantChrome>
     <PhpStorefrontPageHeader Title="@Title" Subtitle="@Subtitle">
         @if (ChildContent is not null)
         {
@@ -20,7 +20,7 @@
     <p class="epc-sf-vc-note">
         Catalog page with the same widget markup as the classic storefront.
     </p>
-</PhpStorefrontDesktopChrome>
+</StorefrontTenantChrome>
 
 @code {
     [Parameter] public string Title { get; set; } = "";

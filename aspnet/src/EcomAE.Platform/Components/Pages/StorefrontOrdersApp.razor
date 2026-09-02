@@ -97,7 +97,11 @@
                                 <td><span class="epc-sf-ord-badge @(o.Paid != 0 ? "epc-sf-ord-badge--ok" : "epc-sf-ord-badge--off")">@(o.Paid != 0 ? "yes" : "no")</span></td>
                                 <td><span class="epc-sf-ord-badge @(o.SuccessfullyCreated != 0 ? "epc-sf-ord-badge--ok" : "epc-sf-ord-badge--info")">@(o.SuccessfullyCreated != 0 ? "yes" : "no")</span></td>
                                 <td><span class="epc-sf-ord-badge epc-sf-ord-badge--info">@o.Status.ToString(CultureInfo.InvariantCulture)</span></td>
-                                <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpOrders)">Open module</a></td>
+                                <td>
+                                    <a href="@StorefrontSurfaceLinks.ForPrint(o.Id, "sales_receipt")">Receipt</a>
+                                    ·
+                                    <a href="@StorefrontSurfaceLinks.ForPrint(o.Id, "invoice_for_payment")">Invoice</a>
+                                </td>
                             </tr>
                         }
                     }

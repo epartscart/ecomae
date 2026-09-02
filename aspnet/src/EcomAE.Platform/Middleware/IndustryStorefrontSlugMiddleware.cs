@@ -126,6 +126,32 @@ public sealed class IndustryStorefrontSlugMiddleware
             return true;
         }
 
+        if (only.Equals("zapros-prodavczu", StringComparison.OrdinalIgnoreCase))
+        {
+            rewrite = StorefrontAspNetCanonical.SellerRequest + incomingQuery;
+            kind = "seller-request";
+            return true;
+        }
+
+        if (only.Equals("requests", StringComparison.OrdinalIgnoreCase)
+            || only.Equals("requests/request", StringComparison.OrdinalIgnoreCase)
+            || only.StartsWith("requests/", StringComparison.OrdinalIgnoreCase))
+        {
+            rewrite = StorefrontAspNetCanonical.CustomerRequests + incomingQuery;
+            kind = "customer-requests";
+            return true;
+        }
+
+        if (only.Equals("shop/print", StringComparison.OrdinalIgnoreCase)
+            || only.Equals("shop/print_docs", StringComparison.OrdinalIgnoreCase)
+            || only.StartsWith("shop/print/", StringComparison.OrdinalIgnoreCase)
+            || only.StartsWith("shop/print_docs/", StringComparison.OrdinalIgnoreCase))
+        {
+            rewrite = StorefrontAspNetCanonical.CustomerPrint + incomingQuery;
+            kind = "customer-print";
+            return true;
+        }
+
         if (only.Equals("auto-workshop", StringComparison.OrdinalIgnoreCase)
             && industry is "auto_parts")
         {
@@ -219,6 +245,9 @@ public sealed class IndustryStorefrontSlugMiddleware
                || only.Equals("product-family", StringComparison.OrdinalIgnoreCase)
                || only.Equals("available-brands", StringComparison.OrdinalIgnoreCase)
                || only.Equals("vehicle-catalog", StringComparison.OrdinalIgnoreCase)
-               || only.Equals("katalog-laximo", StringComparison.OrdinalIgnoreCase);
+               || only.Equals("katalog-laximo", StringComparison.OrdinalIgnoreCase)
+               || only.Equals("zapros-prodavczu", StringComparison.OrdinalIgnoreCase)
+               || only.Equals("requests", StringComparison.OrdinalIgnoreCase)
+               || only.StartsWith("requests/", StringComparison.OrdinalIgnoreCase);
     }
 }

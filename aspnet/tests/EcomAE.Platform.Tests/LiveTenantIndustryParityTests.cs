@@ -1,3 +1,4 @@
+using System.Linq;
 using EcomAE.Platform.Middleware;
 using EcomAE.Platform.Migration;
 using EcomAE.Platform.Presentation;
@@ -242,6 +243,34 @@ public sealed class LiveTenantIndustryParityTests
         Assert.Equal("Oil & chemicals", StorefrontUcatsCatalog.Find("masla-i-avtoximiya")!.Title);
         Assert.Equal(StorefrontAspNetCanonical.AutoWorkshop, PhpSurfaceLinkMap.AspNetPrimaryHref("/en/auto-workshop"));
         Assert.Equal(StorefrontAspNetCanonical.GarageManager, PhpSurfaceLinkMap.AspNetPrimaryHref("/garage/manager"));
+    }
+
+    [Theory]
+    [InlineData("www.epartscart.com", "/en/zapros-prodavczu", "seller-request")]
+    [InlineData("www.electronicae.com", "/requests", "customer-requests")]
+    [InlineData("www.stylenlook.com", "/en/requests/request?id=12", "customer-requests")]
+    [InlineData("www.thejewellerytrend.com", "/en/shop/print?order_id=20", "customer-print")]
+    [InlineData("www.taxofinca.com", "/shop/print_docs", "customer-print")]
+    public void SellerRequestsAndPrintRewrite(string host, string path, string kind)
+    {
+        Assert.True(IndustryStorefrontSlugMiddleware.TryMatch(host, path, out var rewrite, out var matched));
+        Assert.Equal(kind, matched);
+        Assert.False(string.IsNullOrWhiteSpace(rewrite));
+    }
+
+    [Fact]
+    public void StorefrontRequestsDoNotMapToControlPanel()
+    {
+        Assert.Equal(StorefrontAspNetCanonical.CustomerRequests, PhpSurfaceLinkMap.AspNetPrimaryHref("/en/requests"));
+        Assert.Equal(StorefrontAspNetCanonical.CustomerRequests, PhpSurfaceLinkMap.AspNetPrimaryHref("/requests"));
+        Assert.Equal(StorefrontAspNetCanonical.SellerRequest, PhpSurfaceLinkMap.AspNetPrimaryHref("/en/zapros-prodavczu"));
+        Assert.Equal(StorefrontAspNetCanonical.CustomerPrint, PhpSurfaceLinkMap.AspNetPrimaryHref("/shop/print"));
+        Assert.Equal("/cp/system-requests-app", PhpSurfaceLinkMap.AspNetPrimaryHref("/CP/requests"));
+        Assert.False(PhpSurfaceLinkMap.TryMapIncomingPhpProductPath("/en/requests", out _));
+        Assert.False(PhpSurfaceLinkMap.TryMapIncomingPhpProductPath("/en/zapros-prodavczu", out _));
+        Assert.Equal("/storefront/seller-request-app", StorefrontAspNetCanonical.SellerRequest);
+        Assert.Contains("client_vin", PhpSellerRequest.Fields.Select(f => f.Name));
+        Assert.Equal(4, StorefrontUcatsCatalog.Find("shiny")!.PickerFields.Count);
     }
 
     [Fact]
