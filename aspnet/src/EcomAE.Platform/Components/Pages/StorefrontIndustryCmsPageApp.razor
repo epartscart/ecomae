@@ -1,0 +1,64 @@
+@page "/storefront/cms-page-app"
+@layout Layout.PhpChromeLayout
+@using EcomAE.Platform.Presentation
+@inject IHttpContextAccessor Http
+
+<PageTitle>@_page.Title</PageTitle>
+<PhpSurfaceHead Surface="storefront" IncludeStorefrontAnalytics="true" ApplyStorefrontIndustryAttrs="true" IncludePublicSeo="true" />
+<PhpChromeBodyClass Surface="storefront" />
+
+@if (!string.IsNullOrEmpty(_wrappedHtml))
+{
+    <div class="epc-php-font-root">
+        @((MarkupString)_wrappedHtml)
+    </div>
+}
+else
+{
+    <PhpStorefrontDesktopChrome>
+        @((MarkupString)_bodyHtml)
+    </PhpStorefrontDesktopChrome>
+}
+
+@code {
+    private PhpIndustryCmsPages.Page _page = PhpIndustryCmsPages.Resolve("kontakty", "auto_parts");
+    private string _bodyHtml = string.Empty;
+    private string _wrappedHtml = string.Empty;
+
+    protected override void OnInitialized()
+    {
+        var ctx = Http.HttpContext;
+        var host = ctx?.Request.Host.Host ?? string.Empty;
+        var attrs = StorefrontIndustryHostResolver.Resolve(host);
+        var slug = ctx?.Request.Query["slug"].ToString() ?? "kontakty";
+        if (string.IsNullOrWhiteSpace(slug)
+            && ctx?.Items.TryGetValue(EcomAE.Platform.Middleware.IndustryStorefrontSlugMiddleware.OriginalPathItem, out var original) == true)
+        {
+            slug = StorefrontLangPrefix.Strip(original?.ToString() ?? string.Empty).Trim('/');
+        }
+
+        _page = PhpIndustryCmsPages.Resolve(slug, attrs.IndustryCode);
+        var sb = new System.Text.StringBuilder();
+        sb.Append("<section class=\"epc-ind-cms\" style=\"padding:2rem 0 3rem\"><div class=\"container\" style=\"max-width:46rem\">");
+        sb.Append("<p style=\"margin:0 0 .4rem;color:#64748b;font-size:.85rem\"><a href=\"/\">Home</a></p>");
+        sb.Append("<h1 style=\"margin:.1rem 0 .4rem;font-size:1.7rem\">")
+            .Append(System.Net.WebUtility.HtmlEncode(_page.Title)).Append("</h1>");
+        sb.Append("<p style=\"color:#334155;font-size:1.02rem\">")
+            .Append(System.Net.WebUtility.HtmlEncode(_page.Lead)).Append("</p>");
+        foreach (var para in _page.Paragraphs)
+        {
+            sb.Append("<p style=\"color:#475569;line-height:1.55\">")
+                .Append(System.Net.WebUtility.HtmlEncode(para)).Append("</p>");
+        }
+
+        sb.Append("<p style=\"margin-top:1.5rem\"><a class=\"btn btn-primary\" href=\"")
+            .Append(StorefrontSurfaceLinks.Login).Append("\">Customer login</a> ");
+        sb.Append("<a class=\"btn btn-default\" href=\"/\">Back to home</a></p>");
+        sb.Append("</div></section>");
+        _bodyHtml = sb.ToString();
+        if (PhpTenantHomeSnapshots.IsCustomPackage(attrs.StorefrontPackage))
+        {
+            _wrappedHtml = PhpTenantHomeSnapshots.WrapInner(attrs.StorefrontPackage, _bodyHtml);
+        }
+    }
+}

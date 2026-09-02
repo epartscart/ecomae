@@ -556,6 +556,12 @@ public static class PhpSurfaceLinkMap
             phpPathOnly = phpPathOnly[..phpHash];
         }
 
+        if (phpPathOnly.Equals("/shop/erp", StringComparison.OrdinalIgnoreCase)
+            || phpPathOnly.Equals("/shop/erp/", StringComparison.OrdinalIgnoreCase))
+        {
+            return "/erp";
+        }
+
         if (value.StartsWith("/shop/", StringComparison.OrdinalIgnoreCase)
             || phpPathOnly.Equals("/index.php", StringComparison.OrdinalIgnoreCase)
             || phpPathOnly.EndsWith(".php", StringComparison.OrdinalIgnoreCase))
@@ -608,25 +614,7 @@ public static class PhpSurfaceLinkMap
     }
 
     private static string StripStorefrontLangPrefix(string value)
-    {
-        var qIndex = value.IndexOf('?', StringComparison.Ordinal);
-        var path = qIndex < 0 ? value : value[..qIndex];
-        var query = qIndex < 0 ? string.Empty : value[qIndex..];
-        foreach (var lang in new[] { "/en", "/me", "/ru" })
-        {
-            if (path.Equals(lang, StringComparison.OrdinalIgnoreCase))
-            {
-                return "/" + query;
-            }
-
-            if (path.StartsWith(lang + "/", StringComparison.OrdinalIgnoreCase))
-            {
-                return path[lang.Length..] + query;
-            }
-        }
-
-        return value;
-    }
+        => StorefrontLangPrefix.Strip(value);
 
     private static string AppendQuery(string aspNetPath, string original, string requiredPair)
     {
@@ -994,6 +982,7 @@ public static class PhpSurfaceLinkMap
             || path.Equals("/shop/checkout_confirm", StringComparison.OrdinalIgnoreCase)
             || path.Equals("/users/login", StringComparison.OrdinalIgnoreCase)
             || path.Equals("/users/registration", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/users/register", StringComparison.OrdinalIgnoreCase)
             || path.Equals("/katalog-laximo", StringComparison.OrdinalIgnoreCase)
             || path.Equals("/vehicle-catalog", StringComparison.OrdinalIgnoreCase)
             || path.Equals("/umapi_catalog", StringComparison.OrdinalIgnoreCase)

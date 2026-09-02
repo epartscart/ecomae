@@ -34,4 +34,53 @@ public static class PhpTenantHomeSnapshots
         var relative = "content/general_pages/epc_rendered_homes/" + package.ToLowerInvariant() + ".html";
         return PhpHomeWidgetHtml.RenderStatic(relative);
     }
+
+    /// <summary>
+    /// Package header + CSS + footer around an inner page (category / CMS),
+    /// same chrome PHP <c>templates/nero/desktop.php</c> uses for custom packages.
+    /// </summary>
+    public static string WrapInner(string package, string innerHtml)
+    {
+        var snapshot = HtmlFor(package);
+        if (string.IsNullOrWhiteSpace(snapshot))
+        {
+            return innerHtml ?? string.Empty;
+        }
+
+        var homeClass = package.ToLowerInvariant() switch
+        {
+            "electronics_retail_virgin" => "epc-er-home",
+            "fashion_retail_namshi" => "epc-frn-home",
+            "jewellery_retail_kiyasha" => "epc-jrk-home",
+            "consulting_primeinvest" => "epc-cpi-home",
+            _ => string.Empty,
+        };
+        if (homeClass.Length == 0)
+        {
+            return innerHtml ?? string.Empty;
+        }
+
+        var homeNeedle = "class=\"" + homeClass;
+        var homeIdx = snapshot.IndexOf(homeNeedle, StringComparison.OrdinalIgnoreCase);
+        if (homeIdx < 0)
+        {
+            return snapshot;
+        }
+
+        var openDiv = snapshot.LastIndexOf("<div", homeIdx, StringComparison.OrdinalIgnoreCase);
+        if (openDiv < 0)
+        {
+            openDiv = homeIdx;
+        }
+
+        var newsIdx = snapshot.IndexOf("<section class=\"epc-wc-newsletter", openDiv, StringComparison.OrdinalIgnoreCase);
+        var footerIdx = snapshot.IndexOf("<footer", openDiv, StringComparison.OrdinalIgnoreCase);
+        var tailIdx = newsIdx >= 0 ? newsIdx : footerIdx;
+        if (tailIdx < 0)
+        {
+            return snapshot;
+        }
+
+        return snapshot[..openDiv] + (innerHtml ?? string.Empty) + snapshot[tailIdx..];
+    }
 }

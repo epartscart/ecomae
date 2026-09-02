@@ -37,6 +37,10 @@ public static class StorefrontAspNetCanonical
     public const string UcatsService = "/storefront/ucats-app";
     public const string OriginalCatalog = "/storefront/original-catalog-app";
     public const string DemandIntelligence = "/storefront/demand-intelligence-app";
+    /// <summary>Industry package category (PHP seed slugs: /gaming, /women, /gold, /services/tax).</summary>
+    public const string IndustryCatalog = "/storefront/industry-catalog-app";
+    /// <summary>CMS twins /kontakty /o-dostavke /ob-oplate /o-vozvrate.</summary>
+    public const string IndustryCms = "/storefront/cms-page-app";
     public const string SellerRequest = "/storefront/search-app?mode=vin";
     public const string Cart = "/storefront/cart-app";
     public const string Checkout = "/storefront/checkout-app";

@@ -1,0 +1,129 @@
+@page "/storefront/industry-catalog-app"
+@layout Layout.PhpChromeLayout
+@using EcomAE.Platform.Presentation
+@inject IHttpContextAccessor Http
+
+<PageTitle>@_title</PageTitle>
+<PhpSurfaceHead Surface="storefront" IncludeStorefrontAnalytics="true" ApplyStorefrontIndustryAttrs="true" IncludePublicSeo="true" />
+<PhpChromeBodyClass Surface="storefront" />
+
+@if (!string.IsNullOrEmpty(_wrappedHtml))
+{
+    <div class="epc-php-font-root">
+        @((MarkupString)_wrappedHtml)
+    </div>
+}
+else
+{
+    <PhpStorefrontDesktopChrome>
+        @((MarkupString)_bodyHtml)
+    </PhpStorefrontDesktopChrome>
+}
+
+@code {
+    private string _title = "Catalogue";
+    private string _bodyHtml = string.Empty;
+    private string _wrappedHtml = string.Empty;
+
+    protected override void OnInitialized()
+    {
+        var ctx = Http.HttpContext;
+        var host = ctx?.Request.Host.Host ?? string.Empty;
+        var attrs = StorefrontIndustryHostResolver.Resolve(host);
+        var url = ctx?.Request.Query["url"].ToString() ?? string.Empty;
+        if (string.IsNullOrWhiteSpace(url)
+            && ctx?.Items.TryGetValue(EcomAE.Platform.Middleware.IndustryStorefrontSlugMiddleware.OriginalPathItem, out var original) == true)
+        {
+            url = StorefrontLangPrefix.Strip(original?.ToString() ?? string.Empty).Trim('/');
+        }
+
+        if (!PhpIndustryStorefrontCatalog.TryResolve(attrs.IndustryCode, url, out var category))
+        {
+            _title = StorefrontIndustryHostResolver.ResolveStorefrontTitle(host);
+            _bodyHtml = "<div class=\"container\" style=\"padding:2rem 0\"><p>This category is not on this store.</p><p><a href=\"/\">Back to home</a></p></div>";
+            if (PhpTenantHomeSnapshots.IsCustomPackage(attrs.StorefrontPackage))
+            {
+                _wrappedHtml = PhpTenantHomeSnapshots.WrapInner(attrs.StorefrontPackage, _bodyHtml);
+            }
+
+            return;
+        }
+
+        _title = category.Name + " · " + StorefrontIndustryHostResolver.ResolveStorefrontTitle(host);
+        var children = PhpIndustryStorefrontCatalog.ChildrenOf(attrs.IndustryCode, category.Alias);
+        var products = PhpIndustryStorefrontCatalog.ProductsIn(attrs.IndustryCode, category);
+        var roots = PhpIndustryStorefrontCatalog.Roots(attrs.IndustryCode);
+        _bodyHtml = BuildBody(category, children, products, roots);
+        if (PhpTenantHomeSnapshots.IsCustomPackage(attrs.StorefrontPackage))
+        {
+            _wrappedHtml = PhpTenantHomeSnapshots.WrapInner(attrs.StorefrontPackage, _bodyHtml);
+        }
+    }
+
+    private static string BuildBody(
+        PhpIndustryStorefrontCatalog.Category category,
+        IReadOnlyList<PhpIndustryStorefrontCatalog.Category> children,
+        IReadOnlyList<PhpIndustryStorefrontCatalog.Product> products,
+        IReadOnlyList<PhpIndustryStorefrontCatalog.Category> roots)
+    {
+        var sb = new System.Text.StringBuilder();
+        sb.Append("<section class=\"epc-ind-cat\" style=\"padding:1.5rem 0 2.5rem\">");
+        sb.Append("<div class=\"container\">");
+        sb.Append("<nav style=\"margin:0 0 .75rem;font-size:.85rem;color:#64748b\">");
+        sb.Append("<a href=\"/\">Home</a>");
+        foreach (var root in roots.Where(r => category.Url.StartsWith(r.Url, StringComparison.OrdinalIgnoreCase)))
+        {
+            if (!root.Url.Equals(category.Url, StringComparison.OrdinalIgnoreCase))
+            {
+                sb.Append(" · <a href=\"/").Append(System.Net.WebUtility.HtmlEncode(root.Url)).Append("\">")
+                    .Append(System.Net.WebUtility.HtmlEncode(root.Name)).Append("</a>");
+            }
+        }
+
+        sb.Append("</nav>");
+        sb.Append("<h1 style=\"margin:.15rem 0 .35rem;font-size:1.65rem\">")
+            .Append(System.Net.WebUtility.HtmlEncode(category.Name)).Append("</h1>");
+        if (children.Count > 0)
+        {
+            sb.Append("<div style=\"display:flex;flex-wrap:wrap;gap:.5rem;margin:0 0 1.25rem\">");
+            foreach (var child in children)
+            {
+                sb.Append("<a href=\"/").Append(System.Net.WebUtility.HtmlEncode(child.Url))
+                    .Append("\" style=\"display:inline-block;padding:.4rem .75rem;border:1px solid #e2e8f0;border-radius:.4rem;text-decoration:none;color:#0f172a;background:#fff\">")
+                    .Append(System.Net.WebUtility.HtmlEncode(child.Name)).Append("</a>");
+            }
+
+            sb.Append("</div>");
+        }
+
+        if (products.Count == 0)
+        {
+            sb.Append("<p style=\"color:#64748b\">No published items in this category yet.</p>");
+        }
+        else
+        {
+            sb.Append("<div style=\"display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:1rem\">");
+            foreach (var product in products)
+            {
+                sb.Append("<article style=\"border:1px solid #e2e8f0;border-radius:.55rem;background:#fff;overflow:hidden\">");
+                sb.Append("<a href=\"").Append(StorefrontSurfaceLinks.Cart).Append("\" style=\"text-decoration:none;color:inherit;display:block\">");
+                sb.Append("<img src=\"").Append(System.Net.WebUtility.HtmlEncode(product.Image))
+                    .Append("\" alt=\"").Append(System.Net.WebUtility.HtmlEncode(product.Name))
+                    .Append("\" width=\"480\" height=\"360\" style=\"width:100%;height:180px;object-fit:cover;background:#f8fafc\" />");
+                sb.Append("<div style=\"padding:.7rem .8rem 1rem\">");
+                sb.Append("<strong style=\"display:block;font-size:.92rem;line-height:1.35\">")
+                    .Append(System.Net.WebUtility.HtmlEncode(product.Name)).Append("</strong>");
+                sb.Append("<span style=\"display:block;margin-top:.35rem;color:#0f766e;font-weight:700\">")
+                    .Append(System.Net.WebUtility.HtmlEncode(PhpIndustryStorefrontCatalog.FormatAed(product.Price))).Append("</span>");
+                sb.Append("<span style=\"display:block;margin-top:.2rem;color:#94a3b8;font-size:.75rem\">")
+                    .Append(System.Net.WebUtility.HtmlEncode(product.Alias)).Append("</span>");
+                sb.Append("</div></a></article>");
+            }
+
+            sb.Append("</div>");
+        }
+
+        sb.Append("</div></section>");
+        return sb.ToString();
+    }
+}
