@@ -236,7 +236,7 @@ public sealed class ErpGlLedgerWriteService : IErpGlLedgerWriteService
 
         // The duplicate guard below is a read-then-write, so two concurrent voids of the same
         // document could both pass it and double-count the correction. Serialize per journal.
-        var lockName = "erp_gl_reverse_" + journalId.ToString(CultureInfo.InvariantCulture);
+        var lockName = await ReversalLockNameAsync(connection, journalId, cancellationToken).ConfigureAwait(false);
         var acquired = await ErpDb.LongAsync(
             connection,
             null,
@@ -268,6 +268,25 @@ public sealed class ErpGlLedgerWriteService : IErpGlLedgerWriteService
                 CancellationToken.None,
                 lockName).ConfigureAwait(false);
         }
+    }
+
+    /// <summary>
+    /// Named locks live in a server-wide namespace while journal ids restart per tenant database,
+    /// so the schema name is part of the lock identity. Truncated to stay inside MySQL's 64-char limit.
+    /// </summary>
+    private static async Task<string> ReversalLockNameAsync(
+        DbConnection connection,
+        long journalId,
+        CancellationToken cancellationToken)
+    {
+        var schema = await ErpDb.StringAsync(connection, null, "SELECT DATABASE()", cancellationToken)
+            .ConfigureAwait(false) ?? string.Empty;
+        if (schema.Length > 32)
+        {
+            schema = schema[..32];
+        }
+
+        return schema + ":erp_gl_reverse_" + journalId.ToString(CultureInfo.InvariantCulture);
     }
 
     private async Task<ErpReversedJournalResult> ReverseJournalLockedAsync(
