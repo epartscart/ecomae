@@ -21,16 +21,15 @@
 
 <PhpStorefrontDesktopChrome>
     <PhpStorefrontPageHeader Title="Vehicle Parts intelligence AI"
-                            Subtitle="Demand-country intelligence plus live part / VIN search — PHP /en/demand-intelligence twin.">
+                            Subtitle="Demand-country intelligence plus live part / VIN search.">
         <a class="btn btn-sm btn-primary" href="@StorefrontSurfaceLinks.PartSearch">Part search</a>
         <a class="btn btn-sm btn-default" href="@StorefrontSurfaceLinks.LaximoVin">VIN / Frame</a>
-        <a class="btn btn-sm btn-default" href="@("/php-reference" + StorefrontPhpCanonical.DemandIntelligence)" title="Temporary PHP compare only">Compare PHP reference</a>
     </PhpStorefrontPageHeader>
 
     <div class="epc-di-grid">
         <section class="epc-di-card">
             <h2>Find a part</h2>
-            <p>Article / brand search stays on ASP.NET Core. Writes and supplier quotes remain PHP.</p>
+            <p>Article / brand search stays on this storefront. Supplier quotes remain on the classic desk flow.</p>
             <form class="epc-di-form" method="get" action="@StorefrontAspNetCanonical.PartSearch" role="search">
                 <label class="sr-only" for="epc-di-article">Article</label>
                 <input id="epc-di-article" name="article" type="search" placeholder="Article / OEM number" maxlength="64" />
@@ -57,7 +56,7 @@
         </section>
         <section class="epc-di-card">
             <h2>Staff demand countries</h2>
-            <p>CP demand-intelligence console (admin session) lists country demand rows. Customer writes stay PHP.</p>
+            <p>Staff demand-country console (admin session) lists country demand rows.</p>
             <p style="margin-top:.65rem"><a class="btn btn-sm btn-default" href="/cp/demand-intelligence-app">Open CP demand intelligence</a></p>
         </section>
     </div>

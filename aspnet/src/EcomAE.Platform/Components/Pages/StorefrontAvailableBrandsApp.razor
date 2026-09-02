@@ -12,13 +12,13 @@
 <StorefrontAnalytics Enabled="true" IncludeClarity="true" />
 
 <StorefrontCatalogWidgetBody Title="Available brands"
-                            Subtitle="Brands in stock — same widget as the PHP /en/available-brands page."
+                            Subtitle="Brands in stock — open a manufacturer to search live articles."
                             AnchorId="epc-brands"
                             Html="@_html"
                             PhpComparePath="@StorefrontPhpCanonical.AvailableBrands">
     <a class="btn btn-sm btn-primary" href="@StorefrontSurfaceLinks.PartSearch">Part search</a>
     <a class="btn btn-sm btn-default" href="@StorefrontSurfaceLinks.OwnCatalog">Own catalog</a>
-    <a class="btn btn-sm btn-default" href="@("/php-reference" + StorefrontPhpCanonical.AvailableBrands)" title="Temporary PHP compare only">Compare PHP reference</a>
+    <a class="btn btn-sm btn-default" href="@StorefrontSurfaceLinks.UmapiCatalog">Epart Catalog</a>
 </StorefrontCatalogWidgetBody>
 
 @code {

@@ -119,8 +119,7 @@ public sealed class PhpStorefrontNeroChromeParityTests
         Assert.Equal("/en/vehicle-catalog", PhpSurfaceLinkMap.AspNetPrimaryHref("/vehicle-catalog"));
         Assert.Equal("/en/product-family", PhpSurfaceLinkMap.AspNetPrimaryHref("/product-family"));
         Assert.Equal("/en/umapi_catalog", PhpSurfaceLinkMap.AspNetPrimaryHref("/umapi_catalog"));
-        Assert.True(PhpSurfaceLinkMap.TryMapIncomingPhpProductPath("/en/shop/warehouse-search", out var mapped));
-        Assert.Equal("/en/shop/warehouse-search", mapped);
+        Assert.False(PhpSurfaceLinkMap.TryMapIncomingPhpProductPath("/en/shop/warehouse-search", out _));
     }
 
     [Fact]

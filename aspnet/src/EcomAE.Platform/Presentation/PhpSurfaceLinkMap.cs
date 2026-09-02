@@ -920,9 +920,12 @@ public static class PhpSurfaceLinkMap
 
         var value = pathAndQuery.Trim();
         var stripped = StripStorefrontLangPrefix(value);
-        // Blazor already owns same-URL CHPU / search aliases — leave the browser path alone
-        // (otherwise nginx→:5100 would 302 /en/parts/TOYOTA/… → /storefront/search-app).
-        if (IsBlazorOwnedStorefrontSameUrlPath(stripped))
+        // CHPU /parts/{brand}/{article} always stays on Blazor (with or without /en).
+        // Lang-prefixed aliases (/en/shop/part_search, /en/umapi_catalog, …) stay too.
+        // Bare /shop/part_search still remaps to /en/… when PreferAspNet is off.
+        if (IsBlazorOwnedChpuPartsPath(stripped)
+            || (IncomingHasStorefrontLangPrefix(value) && IsBlazorOwnedStorefrontSameUrlPath(stripped))
+            || (StorefrontSurfaceLinks.PreferAspNetApps && IsBlazorOwnedStorefrontSameUrlPath(stripped)))
         {
             return false;
         }
@@ -1012,6 +1015,13 @@ public static class PhpSurfaceLinkMap
             return true;
         }
 
+        return IsBlazorOwnedChpuPartsPath(path);
+    }
+
+    private static bool IsBlazorOwnedChpuPartsPath(string strippedPath)
+    {
+        var qIndex = strippedPath.IndexOf('?', StringComparison.Ordinal);
+        var path = (qIndex < 0 ? strippedPath : strippedPath[..qIndex]).TrimEnd('/');
         if (!path.StartsWith("/parts/", StringComparison.OrdinalIgnoreCase))
         {
             return false;
@@ -1019,8 +1029,23 @@ public static class PhpSurfaceLinkMap
 
         var rest = path["/parts/".Length..];
         var segments = rest.Split('/', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-        // /parts/{brand}/{article} and /parts/brands/{article} — Blazor @page aliases.
         return segments.Length >= 2;
+    }
+
+    private static bool IncomingHasStorefrontLangPrefix(string pathAndQuery)
+    {
+        var q = pathAndQuery.IndexOf('?', StringComparison.Ordinal);
+        var path = (q < 0 ? pathAndQuery : pathAndQuery[..q]);
+        foreach (var lang in new[] { "/en", "/me", "/ru", "/ar" })
+        {
+            if (path.Equals(lang, StringComparison.OrdinalIgnoreCase)
+                || path.StartsWith(lang + "/", StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private static bool IsUpperPhpShell(string value, string shell)

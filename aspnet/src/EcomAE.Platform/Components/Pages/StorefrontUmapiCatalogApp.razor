@@ -8,13 +8,13 @@
 <StorefrontAnalytics Enabled="true" IncludeClarity="true" />
 
 <StorefrontCatalogWidgetBody Title="Epart Catalog"
-                            Subtitle="Aftermarket brand catalog (UMAPI) — same widget as the PHP /en/umapi_catalog page."
+                            Subtitle="Aftermarket brand catalog — manufacturer tiles and article drill-down."
                             AnchorId="epc-umapi"
                             Html="@_html"
                             PhpComparePath="@StorefrontPhpCanonical.UmapiCatalog">
     <a class="btn btn-sm btn-primary" href="@StorefrontSurfaceLinks.PartSearch">Part search</a>
     <a class="btn btn-sm btn-default" href="@StorefrontSurfaceLinks.ProductFamily">Product family</a>
-    <a class="btn btn-sm btn-default" href="@("/php-reference" + StorefrontPhpCanonical.UmapiCatalog)" title="Temporary PHP compare only">Compare PHP reference</a>
+    <a class="btn btn-sm btn-default" href="@StorefrontSurfaceLinks.VehicleCatalog">Vehicle catalog</a>
 </StorefrontCatalogWidgetBody>
 
 @code {

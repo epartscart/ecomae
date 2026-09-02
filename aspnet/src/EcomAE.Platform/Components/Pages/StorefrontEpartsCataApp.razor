@@ -9,14 +9,14 @@
 <StorefrontAnalytics Enabled="true" IncludeClarity="true" />
 
 <StorefrontCatalogWidgetBody Title="EParts CATA"
-                            Subtitle="Unified parts catalog — vehicle tree plus aftermarket brand catalog (PHP eparts-cata / PartsAPI shell)."
+                            Subtitle="Unified parts catalog — vehicle tree plus aftermarket brand catalog."
                             AnchorId="epc-eparts-cata"
                             Html="@_html"
                             PhpComparePath="@StorefrontPhpCanonical.EpartsCata">
     <a class="btn btn-sm btn-primary" href="@StorefrontSurfaceLinks.VehicleCatalog">Vehicle catalog</a>
     <a class="btn btn-sm btn-default" href="@StorefrontSurfaceLinks.UmapiCatalog">Epart Catalog</a>
     <a class="btn btn-sm btn-default" href="@StorefrontSurfaceLinks.EpartsMod">EParts Mod</a>
-    <a class="btn btn-sm btn-default" href="@("/php-reference" + StorefrontPhpCanonical.EpartsCata)" title="Temporary PHP compare only">Compare PHP reference</a>
+    <a class="btn btn-sm btn-default" href="@StorefrontSurfaceLinks.PartSearch">Part search</a>
 </StorefrontCatalogWidgetBody>
 
 @code {
