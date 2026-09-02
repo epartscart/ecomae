@@ -9,7 +9,11 @@ public static class PhpIndustryCmsPages
 {
     public sealed record Page(string Slug, string Title, string Lead, IReadOnlyList<string> Paragraphs);
 
-    public static readonly string[] Slugs = ["kontakty", "o-dostavke", "ob-oplate", "o-vozvrate"];
+    public static readonly string[] Slugs =
+    [
+        "kontakty", "o-dostavke", "ob-oplate", "o-vozvrate",
+        "polzovatelskoe-soglashenie", "politika-konfidencialnosti",
+    ];
 
     public static bool IsSlug(string? path)
     {
@@ -26,6 +30,8 @@ public static class PhpIndustryCmsPages
             "o-dostavke" => Delivery(industry),
             "ob-oplate" => Payment(industry),
             "o-vozvrate" => Returns(industry),
+            "polzovatelskoe-soglashenie" => UserAgreement(industry),
+            "politika-konfidencialnosti" => Privacy(industry),
             _ => Contact(industry),
         };
     }
@@ -222,4 +228,31 @@ public static class PhpIndustryCmsPages
                 "Open a return from My orders. Credit notes appear on the same account.",
             ]),
     };
+
+    private static Page UserAgreement(string industry) => new(
+        "polzovatelskoe-soglashenie",
+        "User agreement",
+        industry switch
+        {
+            "electronics" => "Terms for shopping electronics on this store.",
+            "fashion" => "Terms for shopping fashion and beauty on this store.",
+            "jewellery" => "Terms for buying jewellery on this store.",
+            "tax_advisory" => "Engagement terms for advisory services.",
+            _ => "Terms for using this spare-parts store.",
+        },
+        [
+            "By creating an account or placing an order you accept these terms and the privacy policy.",
+            "Prices stay in AED. Returns and cancellations follow the returns page.",
+        ]);
+
+    private static Page Privacy(string industry) => new(
+        "politika-konfidencialnosti",
+        "Privacy policy",
+        "How this store uses account and order data.",
+        [
+            industry == "tax_advisory"
+                ? "Client filings and contact details stay with the engagement. We do not sell personal data."
+                : "Orders, delivery addresses, and login contacts stay with this store. We do not sell personal data.",
+            "You can ask for a copy or deletion of your account from the contact page.",
+        ]);
 }

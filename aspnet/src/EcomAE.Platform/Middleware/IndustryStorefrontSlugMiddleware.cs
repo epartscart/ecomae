@@ -59,12 +59,85 @@ public sealed class IndustryStorefrontSlugMiddleware
         }
 
         var industry = StorefrontIndustryHostResolver.ResolveIndustryCode(host);
+        var package = StorefrontIndustryHostResolver.ResolveStorefrontPackage(industry);
+        var incomingQuery = q >= 0 ? stripped[q..] : string.Empty;
+
         if (only.Equals("shop/erp", StringComparison.OrdinalIgnoreCase)
             && industry is "tax_advisory")
         {
             rewrite = "/erp";
             kind = "client-erp";
             return true;
+        }
+
+        if (only.Equals("shop/search", StringComparison.OrdinalIgnoreCase)
+            && PhpTenantHomeSnapshots.IsCustomPackage(package))
+        {
+            rewrite = StorefrontAspNetCanonical.IndustrySearch + incomingQuery;
+            kind = "industry-search";
+            return true;
+        }
+
+        if (only.Equals("vendor", StringComparison.OrdinalIgnoreCase)
+            || only.Equals("vendor/login", StringComparison.OrdinalIgnoreCase))
+        {
+            rewrite = StorefrontAspNetCanonical.VendorPortal;
+            kind = "vendor";
+            return true;
+        }
+
+        if (only.Equals("vendor/register", StringComparison.OrdinalIgnoreCase))
+        {
+            rewrite = StorefrontAspNetCanonical.VendorRegister;
+            kind = "vendor-register";
+            return true;
+        }
+
+        if (only.Equals("vendor/upload", StringComparison.OrdinalIgnoreCase))
+        {
+            rewrite = StorefrontAspNetCanonical.VendorUpload;
+            kind = "vendor-upload";
+            return true;
+        }
+
+        if (only.Equals("users/forgot", StringComparison.OrdinalIgnoreCase)
+            || only.Equals("users/forgot_password", StringComparison.OrdinalIgnoreCase)
+            || only.Equals("users/new_password", StringComparison.OrdinalIgnoreCase)
+            || only.Equals("users/password-reset", StringComparison.OrdinalIgnoreCase))
+        {
+            rewrite = StorefrontAspNetCanonical.ForgotPassword + incomingQuery;
+            kind = "forgot-password";
+            return true;
+        }
+
+        if (only.Equals("users/confirm", StringComparison.OrdinalIgnoreCase)
+            || only.Equals("users/confirm_contact", StringComparison.OrdinalIgnoreCase))
+        {
+            rewrite = StorefrontAspNetCanonical.ConfirmContact + incomingQuery;
+            kind = "confirm-contact";
+            return true;
+        }
+
+        if (only.Equals("shop/returns", StringComparison.OrdinalIgnoreCase)
+            || only.StartsWith("shop/returns/", StringComparison.OrdinalIgnoreCase))
+        {
+            rewrite = StorefrontAspNetCanonical.CustomerReturns + incomingQuery;
+            kind = "customer-returns";
+            return true;
+        }
+
+        if (only.StartsWith("p/", StringComparison.OrdinalIgnoreCase)
+            || only.StartsWith("product/", StringComparison.OrdinalIgnoreCase))
+        {
+            var alias = only.Contains('/', StringComparison.Ordinal)
+                ? only[(only.IndexOf('/', StringComparison.Ordinal) + 1)..]
+                : string.Empty;
+            if (PhpIndustryStorefrontCatalog.TryFindProduct(industry, alias, out _))
+            {
+                rewrite = StorefrontAspNetCanonical.IndustryProduct + "?sku=" + Uri.EscapeDataString(alias);
+                kind = "product:" + alias;
+                return true;
+            }
         }
 
         if (IsReserved(only))

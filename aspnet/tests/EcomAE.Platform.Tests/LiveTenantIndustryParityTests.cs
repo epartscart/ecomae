@@ -133,6 +133,8 @@ public sealed class LiveTenantIndustryParityTests
         Assert.Contains("VIN", auto.Lead, StringComparison.Ordinal);
         var tax = PhpIndustryCmsPages.Resolve("o-dostavke", "tax_advisory");
         Assert.Contains("ERP", tax.Paragraphs[1], StringComparison.Ordinal);
+        Assert.True(PhpIndustryCmsPages.IsSlug("polzovatelskoe-soglashenie"));
+        Assert.Equal("User agreement", PhpIndustryCmsPages.Resolve("polzovatelskoe-soglashenie", "jewellery").Title);
     }
 
     [Theory]
@@ -171,6 +173,50 @@ public sealed class LiveTenantIndustryParityTests
     public void BrandLabelsMatchTenantNotEpartsOnIndustryHosts(string host, string label)
     {
         Assert.Equal(label, StorefrontIndustryHostResolver.ResolveBrandLabel(host));
+    }
+
+    [Theory]
+    [InlineData("www.electronicae.com", "/en/shop/search?search_string=iPhone", "industry-search")]
+    [InlineData("www.stylenlook.com", "/shop/search", "industry-search")]
+    [InlineData("www.thejewellerytrend.com", "/p/JWL-GN-22K-15G", "product:JWL-GN-22K-15G")]
+    [InlineData("www.taxofinca.com", "/product/CNS-VAT-REG-NEW", "product:CNS-VAT-REG-NEW")]
+    [InlineData("www.electronicae.com", "/en/vendor", "vendor")]
+    [InlineData("www.stylenlook.com", "/vendor/register", "vendor-register")]
+    [InlineData("www.thejewellerytrend.com", "/vendor/upload", "vendor-upload")]
+    [InlineData("www.taxofinca.com", "/en/users/forgot_password", "forgot-password")]
+    [InlineData("www.epartscart.com", "/users/confirm", "confirm-contact")]
+    [InlineData("www.electronicae.com", "/en/shop/returns", "customer-returns")]
+    [InlineData("www.stylenlook.com", "/polzovatelskoe-soglashenie", "cms:polzovatelskoe-soglashenie")]
+    public void CustomerParitySlugsRewrite(string host, string path, string kind)
+    {
+        Assert.True(IndustryStorefrontSlugMiddleware.TryMatch(host, path, out var rewrite, out var matched));
+        Assert.Equal(kind, matched);
+        Assert.False(string.IsNullOrWhiteSpace(rewrite));
+    }
+
+    [Fact]
+    public void EpartscartKeepsAutomotiveSearchAndRejectsForeignSkus()
+    {
+        Assert.False(IndustryStorefrontSlugMiddleware.TryMatch("www.epartscart.com", "/en/shop/search", out _, out _));
+        Assert.False(IndustryStorefrontSlugMiddleware.TryMatch("www.epartscart.com", "/p/JWL-GN-22K-15G", out _, out _));
+        Assert.False(PhpIndustryStorefrontCatalog.TryFindProduct("auto_parts", "ELC-IP16-128", out _));
+        Assert.True(PhpIndustryStorefrontCatalog.TryFindProduct("electronics", "ELC-IP16-128", out var phone));
+        Assert.Equal("ELC-IP16-128", phone.Alias);
+        Assert.Contains(PhpIndustryStorefrontCatalog.Search("electronics", "iPhone"), p => p.Alias == "ELC-IP16-128");
+        Assert.Empty(PhpIndustryStorefrontCatalog.Search("jewellery", "iPhone"));
+    }
+
+    [Fact]
+    public void VendorAndForgotStayOnSameUrl()
+    {
+        Assert.False(PhpSurfaceLinkMap.TryMapIncomingPhpProductPath("/en/vendor", out _));
+        Assert.False(PhpSurfaceLinkMap.TryMapIncomingPhpProductPath("/vendor/register", out _));
+        Assert.False(PhpSurfaceLinkMap.TryMapIncomingPhpProductPath("/en/users/forgot_password", out _));
+        Assert.False(PhpSurfaceLinkMap.TryMapIncomingPhpProductPath("/shop/returns", out _));
+        Assert.Equal(StorefrontAspNetCanonical.VendorPortal, PhpSurfaceLinkMap.AspNetPrimaryHref("/en/vendor"));
+        Assert.Equal(StorefrontAspNetCanonical.ForgotPassword, PhpSurfaceLinkMap.AspNetPrimaryHref("/users/forgot"));
+        Assert.Equal(StorefrontAspNetCanonical.CustomerReturns, PhpSurfaceLinkMap.AspNetPrimaryHref("/shop/returns"));
+        Assert.Equal("Dubai Economy and Tourism", PhpVendorPortal.AuthorityFor("Dubai"));
     }
 
     [Fact]

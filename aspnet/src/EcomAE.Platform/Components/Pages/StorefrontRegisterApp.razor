@@ -5,7 +5,6 @@
 @page "/users/register"
 @layout Layout.PhpChromeLayout
 @using EcomAE.Platform.Presentation
-@inject NavigationManager Nav
 @inject IHttpContextAccessor Http
 @*
   PHP twin: content/users/regform.php (+ register.php write).
@@ -55,71 +54,57 @@
 <div class="epc-reg-sf">
     <StorefrontTenantChrome>
         <h1>Create your account</h1>
-        <p class="lead">Register to place orders, save garage vehicles, and track deliveries — same journey as the PHP storefront.</p>
+        <p class="lead">Register to place orders, save items, and track deliveries.</p>
 
         <div class="epc-reg-tabs" aria-label="Registration options">
-            <a class="@(!_useClassic ? "is-active" : null)" href="@StorefrontAspNetCanonical.Registration">Quick register</a>
-            <a class="@(_useClassic ? "is-active" : null)" href="@StorefrontAspNetCanonical.Registration?classic=1">Compare PHP reference</a>
+            <a class="is-active" href="@StorefrontAspNetCanonical.Registration">Quick register</a>
             <a href="@StorefrontSurfaceLinks.Login">Already have an account?</a>
         </div>
 
-        @if (_useClassic)
-        {
-            <div class="epc-reg-panel">
-                <h2>Compare PHP reference (temporary)</h2>
-                <p style="margin:0 0 .75rem;color:#64748b;font-size:.88rem">
-                    Opt-in only. Product registration stays on ASP.NET; this loads
-                    <code>/php-reference/en/users/registration</code> for side-by-side compare.
-                </p>
-                <iframe class="epc-reg-iframe" title="PHP registration compare" src="/php-reference/en/users/registration"></iframe>
+        <form class="epc-reg-panel" method="post" action="/php-reference/en/users/register" id="epc_regform" enctype="multipart/form-data">
+            <h2>Account details</h2>
+            <div class="epc-reg-field">
+                <label for="epc_reg_email">E-mail</label>
+                <input id="epc_reg_email" name="email" type="email" autocomplete="email" required />
             </div>
-        }
-        else
-        {
-            <form class="epc-reg-panel" method="post" action="/php-reference/en/users/register" id="epc_regform" enctype="multipart/form-data">
-                <h2>Account details</h2>
-                <div class="epc-reg-field">
-                    <label for="epc_reg_email">E-mail</label>
-                    <input id="epc_reg_email" name="email" type="email" autocomplete="email" required />
-                </div>
-                <div class="epc-reg-field">
-                    <label for="epc_reg_phone">Phone</label>
-                    <input id="epc_reg_phone" name="phone" type="tel" autocomplete="tel" required />
-                </div>
-                <div class="epc-reg-field">
-                    <label for="epc_reg_password">Password</label>
-                    <input id="epc_reg_password" name="password" type="password" autocomplete="new-password" required minlength="6" />
-                </div>
-                <div class="epc-reg-field">
-                    <label for="epc_reg_password2">Confirm password</label>
-                    <input id="epc_reg_password2" name="password_confirm" type="password" autocomplete="new-password" required minlength="6" />
-                </div>
-                <div class="epc-reg-field">
-                    <label for="epc_reg_name">Full name</label>
-                    <input id="epc_reg_name" name="name" type="text" autocomplete="name" />
-                </div>
-                <button class="epc-reg-submit" type="submit">Register</button>
-                <p class="epc-reg-note">
-                    After you submit, the store reviews the account before prices and orders unlock.
-                </p>
-            </form>
-        }
+            <div class="epc-reg-field">
+                <label for="epc_reg_phone">Phone</label>
+                <input id="epc_reg_phone" name="phone" type="tel" autocomplete="tel" required />
+            </div>
+            <div class="epc-reg-field">
+                <label for="epc_reg_password">Password</label>
+                <input id="epc_reg_password" name="password" type="password" autocomplete="new-password" required minlength="6" />
+            </div>
+            <div class="epc-reg-field">
+                <label for="epc_reg_password2">Confirm password</label>
+                <input id="epc_reg_password2" name="password_confirm" type="password" autocomplete="new-password" required minlength="6" />
+            </div>
+            <div class="epc-reg-field">
+                <label for="epc_reg_name">Full name</label>
+                <input id="epc_reg_name" name="name" type="text" autocomplete="name" />
+            </div>
+            <div class="epc-reg-field">
+                <label style="display:flex;gap:.5rem;align-items:flex-start;font-weight:500">
+                    <input type="checkbox" name="users_agreement" value="yes" required style="margin-top:.2rem" />
+                    <span>I accept the <a href="/polzovatelskoe-soglashenie" target="_blank">user agreement</a>.</span>
+                </label>
+            </div>
+            <button class="epc-reg-submit" type="submit">Register</button>
+            <p class="epc-reg-note">
+                After you submit, the store reviews the account before prices and orders unlock.
+            </p>
+        </form>
 
         <p class="epc-reg-login">Already registered? <a href="@StorefrontSurfaceLinks.Login">Sign in</a></p>
     </StorefrontTenantChrome>
 </div>
 
 @code {
-    private bool _useClassic;
     private string _brand = "eParts Cart";
 
     protected override void OnInitialized()
     {
         var host = Http.HttpContext?.Request.Host.Host ?? string.Empty;
         _brand = StorefrontIndustryHostResolver.ResolveBrandLabel(host);
-        var uri = Nav.ToAbsoluteUri(Nav.Uri);
-        var q = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query);
-        _useClassic = q.TryGetValue("classic", out var c)
-                      && (c == "1" || c.ToString().Equals("true", StringComparison.OrdinalIgnoreCase));
     }
 }

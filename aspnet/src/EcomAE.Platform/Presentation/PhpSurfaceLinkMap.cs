@@ -530,8 +530,38 @@ public static class PhpSurfaceLinkMap
                 : StorefrontPhpCanonical.Balance;
         }
 
-        if (value.StartsWith("/users", StringComparison.OrdinalIgnoreCase)
-            || value.StartsWith("/vendor", StringComparison.OrdinalIgnoreCase))
+        if (value.StartsWith("/vendor/register", StringComparison.OrdinalIgnoreCase))
+        {
+            return StorefrontAspNetCanonical.VendorRegister;
+        }
+
+        if (value.StartsWith("/vendor/upload", StringComparison.OrdinalIgnoreCase))
+        {
+            return StorefrontAspNetCanonical.VendorUpload;
+        }
+
+        if (value.StartsWith("/vendor", StringComparison.OrdinalIgnoreCase))
+        {
+            return StorefrontAspNetCanonical.VendorPortal;
+        }
+
+        if (value.StartsWith("/users/forgot", StringComparison.OrdinalIgnoreCase)
+            || value.StartsWith("/users/new_password", StringComparison.OrdinalIgnoreCase))
+        {
+            return StorefrontAspNetCanonical.ForgotPassword;
+        }
+
+        if (value.StartsWith("/users/confirm", StringComparison.OrdinalIgnoreCase))
+        {
+            return StorefrontAspNetCanonical.ConfirmContact;
+        }
+
+        if (value.StartsWith("/shop/returns", StringComparison.OrdinalIgnoreCase))
+        {
+            return StorefrontAspNetCanonical.CustomerReturns;
+        }
+
+        if (value.StartsWith("/users", StringComparison.OrdinalIgnoreCase))
         {
             return StorefrontSurfaceLinks.Login;
         }
@@ -983,6 +1013,17 @@ public static class PhpSurfaceLinkMap
             || path.Equals("/users/login", StringComparison.OrdinalIgnoreCase)
             || path.Equals("/users/registration", StringComparison.OrdinalIgnoreCase)
             || path.Equals("/users/register", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/users/forgot", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/users/forgot_password", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/users/new_password", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/users/confirm", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/users/confirm_contact", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/vendor", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/vendor/login", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/vendor/register", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/vendor/upload", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/shop/returns", StringComparison.OrdinalIgnoreCase)
+            || path.StartsWith("/shop/returns/", StringComparison.OrdinalIgnoreCase)
             || path.Equals("/katalog-laximo", StringComparison.OrdinalIgnoreCase)
             || path.Equals("/vehicle-catalog", StringComparison.OrdinalIgnoreCase)
             || path.Equals("/umapi_catalog", StringComparison.OrdinalIgnoreCase)

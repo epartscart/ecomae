@@ -1,0 +1,72 @@
+@page "/storefront/industry-product-app"
+@page "/en/storefront/industry-product-app"
+@layout Layout.PhpChromeLayout
+@using EcomAE.Platform.Presentation
+@inject IHttpContextAccessor Http
+
+<PageTitle>@(_product?.Name ?? "Product")</PageTitle>
+<PhpSurfaceHead Surface="storefront" IncludeStorefrontAnalytics="true" ApplyStorefrontIndustryAttrs="true" IncludePublicSeo="true" />
+<PhpChromeBodyClass Surface="storefront" />
+
+<StorefrontTenantChrome>
+    <section class="epc-ind-pdp" style="padding:1.5rem 0 2.5rem">
+        <div class="container" style="max-width:56rem">
+            @if (_product is null)
+            {
+                <h1>Product</h1>
+                <p style="color:#64748b">This product is not listed for this store.</p>
+                <p><a href="/">Back to home</a></p>
+            }
+            else
+            {
+                <p style="margin:0 0 .4rem;color:#64748b;font-size:.85rem">
+                    <a href="/">Home</a>
+                    @if (_category is not null)
+                    {
+                        <text> · </text>
+                        <a href="@($"/{_category.Url}")">@_category.Name</a>
+                    }
+                    <text> · @_product.Name</text>
+                </p>
+                <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(14rem,18rem);gap:1.5rem">
+                    <div>
+                        <img src="@_product.Image" alt="@_product.Name" width="720" height="480" style="width:100%;max-height:22rem;object-fit:cover;border-radius:.55rem;background:#f8fafc" />
+                        <h1 style="margin:1rem 0 .35rem;font-size:1.55rem">@_product.Name</h1>
+                        <p style="color:#64748b">SKU @_product.Alias</p>
+                    </div>
+                    <aside style="border:1px solid #e2e8f0;border-radius:.7rem;padding:1.1rem 1.15rem;background:#fff;height:fit-content">
+                        <div style="font-size:1.35rem;font-weight:800;margin-bottom:.85rem">@PhpIndustryStorefrontCatalog.FormatAed(_product.Price)</div>
+                        <a class="btn btn-primary" href="@($"/shop/cart?add={Uri.EscapeDataString(_product.Alias)}")">Add to cart</a>
+                        <p style="color:#64748b;font-size:.82rem;margin-top:.85rem">Checkout stays on this storefront.</p>
+                    </aside>
+                </div>
+            }
+        </div>
+    </section>
+</StorefrontTenantChrome>
+
+@code {
+    private PhpIndustryStorefrontCatalog.Product? _product;
+    private PhpIndustryStorefrontCatalog.Category? _category;
+
+    protected override void OnInitialized()
+    {
+        var ctx = Http.HttpContext;
+        var host = ctx?.Request.Host.Host ?? string.Empty;
+        var industry = StorefrontIndustryHostResolver.ResolveIndustryCode(host);
+        var sku = ctx?.Request.Query["sku"].ToString();
+        if (string.IsNullOrWhiteSpace(sku)
+            && ctx?.Items.TryGetValue(EcomAE.Platform.Middleware.IndustryStorefrontSlugMiddleware.OriginalPathItem, out var original) == true)
+        {
+            var stripped = StorefrontLangPrefix.Strip(original?.ToString() ?? string.Empty).Trim('/');
+            var slash = stripped.IndexOf('/', StringComparison.Ordinal);
+            sku = slash >= 0 ? stripped[(slash + 1)..] : stripped;
+        }
+
+        if (PhpIndustryStorefrontCatalog.TryFindProduct(industry, sku, out var product))
+        {
+            _product = product;
+            _category = PhpIndustryStorefrontCatalog.CategoryForProduct(industry, product);
+        }
+    }
+}

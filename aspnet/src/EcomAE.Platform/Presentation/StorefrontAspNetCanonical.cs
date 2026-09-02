@@ -41,6 +41,14 @@ public static class StorefrontAspNetCanonical
     public const string IndustryCatalog = "/storefront/industry-catalog-app";
     /// <summary>CMS twins /kontakty /o-dostavke /ob-oplate /o-vozvrate.</summary>
     public const string IndustryCms = "/storefront/cms-page-app";
+    public const string IndustrySearch = "/storefront/industry-search-app";
+    public const string IndustryProduct = "/storefront/industry-product-app";
+    public const string VendorPortal = "/storefront/vendor-app";
+    public const string VendorRegister = "/storefront/vendor-register-app";
+    public const string VendorUpload = "/storefront/vendor-upload-app";
+    public const string ForgotPassword = "/storefront/forgot-password-app";
+    public const string ConfirmContact = "/storefront/confirm-contact-app";
+    public const string CustomerReturns = "/storefront/returns-app";
     public const string SellerRequest = "/storefront/search-app?mode=vin";
     public const string Cart = "/storefront/cart-app";
     public const string Checkout = "/storefront/checkout-app";

@@ -1,0 +1,41 @@
+@page "/storefront/vendor-upload-app"
+@page "/en/vendor/upload"
+@page "/vendor/upload"
+@layout Layout.PhpChromeLayout
+@using EcomAE.Platform.Presentation
+@inject IHttpContextAccessor Http
+
+<PageTitle>Upload price list · @_brand</PageTitle>
+<PhpSurfaceHead Surface="storefront" IncludeStorefrontAnalytics="true" ApplyStorefrontIndustryAttrs="true" />
+<PhpChromeBodyClass Surface="storefront" />
+
+<StorefrontTenantChrome>
+    <section class="epc-vp" style="padding:2rem 0 3rem">
+        <div class="container" style="max-width:46rem">
+            <p style="margin:0 0 .35rem;color:#64748b;font-size:.85rem"><a href="@StorefrontAspNetCanonical.VendorPortal">← Vendor portal</a></p>
+            <h1 style="margin:.1rem 0 .4rem">Upload price list</h1>
+            <p style="color:#475569">CSV or Excel. Required columns: Brand, Article, Price. Optional: Name, Qty, Data type, Delivery.</p>
+            <form method="post" action="@PhpVendorPortal.UploadWriteHref" enctype="multipart/form-data" style="background:#fff;border:1px solid #e2e8f0;border-radius:.55rem;padding:1.1rem 1.2rem">
+                <label>Default data type</label>
+                <select name="data_type" style="width:100%;margin:.25rem 0 .75rem;padding:.5rem">
+                    <option value="inventory">Inventory (stock)</option>
+                    <option value="sales">Sales</option>
+                    <option value="purchase">Purchase</option>
+                </select>
+                <label>Price file *</label>
+                <input type="file" name="price_file" accept=".csv,.xls,.xlsx,text/csv" required style="width:100%;margin:.25rem 0 1rem" />
+                <button type="submit" style="width:100%;padding:.75rem 1rem;border:0;border-radius:.45rem;background:#0f766e;color:#fff;font-weight:800;cursor:pointer">Upload &amp; publish</button>
+            </form>
+            <p style="margin-top:1rem;color:#64748b;font-size:.85rem">Sign in on the vendor portal first. Unpublished files stay with your warehouse account.</p>
+        </div>
+    </section>
+</StorefrontTenantChrome>
+
+@code {
+    private string _brand = "eParts Cart";
+
+    protected override void OnInitialized()
+    {
+        _brand = StorefrontIndustryHostResolver.ResolveBrandLabel(Http.HttpContext?.Request.Host.Host);
+    }
+}

@@ -7,7 +7,7 @@
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject IHttpContextAccessor Http
 
-<PageTitle>Compare · eParts Cart</PageTitle>
+<PageTitle>Compare · @_brand</PageTitle>
 <PhpChromeStyles Surface="storefront" />
 <HeadContent>
 <style>
@@ -31,7 +31,7 @@
 
 <StorefrontAnalytics Enabled="true" IncludeClarity="true" />
 
-<PhpStorefrontDesktopChrome>
+<StorefrontTenantChrome>
 
     <PhpStorefrontPageHeader Title="Compare"
                             Subtitle="Products saved in the classic compare cookie.">
@@ -81,9 +81,10 @@
     <p class="epc-sf-cmp-note">
         Compare list is the PHP <code>compare</code> cookie. Spec-matrix writes remain on the classic module.
     </p>
-</PhpStorefrontDesktopChrome>
+</StorefrontTenantChrome>
 
 @code {
+    private string _brand = "eParts Cart";
     private List<int> _ids = [];
     private IReadOnlyList<StorefrontProductDigest> _products = [];
     private string _source = "n/a";
@@ -95,6 +96,8 @@
         {
             return;
         }
+
+        _brand = StorefrontIndustryHostResolver.ResolveBrandLabel(ctx.Request.Host.Host);
 
         if (ctx.Request.Cookies.TryGetValue("compare", out var raw) && !string.IsNullOrWhiteSpace(raw))
         {

@@ -1,0 +1,96 @@
+@page "/storefront/vendor-register-app"
+@page "/en/vendor/register"
+@page "/vendor/register"
+@layout Layout.PhpChromeLayout
+@using EcomAE.Platform.Presentation
+@inject IHttpContextAccessor Http
+
+<PageTitle>Register as a vendor · @_brand</PageTitle>
+<PhpSurfaceHead Surface="storefront" IncludeStorefrontAnalytics="true" ApplyStorefrontIndustryAttrs="true" />
+<PhpChromeBodyClass Surface="storefront" LoginChrome="true" />
+
+<StorefrontTenantChrome>
+    <section class="epc-vp" style="padding:2rem 0 3rem">
+        <div class="container" style="max-width:46rem">
+            <p style="margin:0 0 .35rem;color:#64748b;font-size:.85rem"><a href="@StorefrontAspNetCanonical.VendorPortal">Vendor portal</a></p>
+            <h1 style="margin:.1rem 0 .4rem">Register as a vendor</h1>
+            <p style="color:#475569">Sell from the storefront with UAE e-invoice seller details (TRN, trade licence, address).</p>
+            <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:.45rem;padding:.75rem .9rem;margin:1rem 0;color:#78350f;font-size:.9rem">
+                <strong>UAE e-invoicing (FTA / PINT-AE).</strong>
+                Tax invoices need legal name, 15-digit TRN when VAT-registered, trade licence, and a full UAE address with emirate.
+            </div>
+            <form method="post" action="@PhpVendorPortal.RegisterWriteHref" class="epc-vp__form" autocomplete="on" style="background:#fff;border:1px solid #e2e8f0;border-radius:.55rem;padding:1.1rem 1.2rem">
+                <h2 style="font-size:1.05rem">1. Account login</h2>
+                <label>Login email *</label>
+                <input type="email" name="email" required style="width:100%;margin:.25rem 0 .75rem;padding:.5rem" />
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem">
+                    <div><label>Password *</label><input type="password" name="password" required minlength="6" style="width:100%;margin:.25rem 0 .75rem;padding:.5rem" /></div>
+                    <div><label>Confirm password *</label><input type="password" name="password2" required minlength="6" style="width:100%;margin:.25rem 0 .75rem;padding:.5rem" /></div>
+                </div>
+                <h2 style="font-size:1.05rem">2. Contact person</h2>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem">
+                    <div><label>Contact name *</label><input type="text" name="contact_name" required maxlength="190" style="width:100%;margin:.25rem 0 .75rem;padding:.5rem" /></div>
+                    <div><label>Job title</label><input type="text" name="contact_job_title" maxlength="120" style="width:100%;margin:.25rem 0 .75rem;padding:.5rem" /></div>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem">
+                    <div><label>Phone / mobile *</label><input type="text" name="phone" required maxlength="64" placeholder="+971…" style="width:100%;margin:.25rem 0 .75rem;padding:.5rem" /></div>
+                    <div><label>Billing email</label><input type="email" name="billing_email" maxlength="190" style="width:100%;margin:.25rem 0 .75rem;padding:.5rem" /></div>
+                </div>
+                <h2 style="font-size:1.05rem">3. Legal &amp; tax identity</h2>
+                <label>Legal entity name *</label>
+                <input type="text" name="legal_name" required maxlength="255" style="width:100%;margin:.25rem 0 .75rem;padding:.5rem" />
+                <label>Trade / storefront name *</label>
+                <input type="text" name="vendor_full" required maxlength="255" style="width:100%;margin:.25rem 0 .75rem;padding:.5rem" />
+                <label style="display:block;margin:.4rem 0"><input type="checkbox" name="vat_registered" value="1" checked /> VAT registered in the UAE</label>
+                <label>Tax Registration Number (TRN)</label>
+                <input type="text" name="trn" inputmode="numeric" maxlength="15" placeholder="100123456700003" style="width:100%;margin:.25rem 0 .75rem;padding:.5rem" />
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem">
+                    <div>
+                        <label>Legal registration type *</label>
+                        <select name="legal_reg_type" required style="width:100%;margin:.25rem 0 .75rem;padding:.5rem">
+                            @foreach (var t in PhpVendorPortal.LegalRegTypes)
+                            {
+                                <option value="@t.Code">@t.Label</option>
+                            }
+                        </select>
+                    </div>
+                    <div>
+                        <label>Trade licence / reg. no. *</label>
+                        <input type="text" name="legal_reg_no" required maxlength="64" style="width:100%;margin:.25rem 0 .75rem;padding:.5rem" />
+                    </div>
+                </div>
+                <label>Licensing authority *</label>
+                <input type="text" name="authority_name" required maxlength="255" placeholder="Dubai Economy and Tourism" style="width:100%;margin:.25rem 0 .75rem;padding:.5rem" />
+                <h2 style="font-size:1.05rem">4. Business address</h2>
+                <label>Address line 1 *</label>
+                <input type="text" name="address_line1" required maxlength="255" style="width:100%;margin:.25rem 0 .75rem;padding:.5rem" />
+                <label>Address line 2</label>
+                <input type="text" name="address_line2" maxlength="255" style="width:100%;margin:.25rem 0 .75rem;padding:.5rem" />
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem">
+                    <div><label>City *</label><input type="text" name="city" required maxlength="120" style="width:100%;margin:.25rem 0 .75rem;padding:.5rem" /></div>
+                    <div>
+                        <label>Emirate *</label>
+                        <select name="emirate" required style="width:100%;margin:.25rem 0 .75rem;padding:.5rem">
+                            @foreach (var e in PhpVendorPortal.Emirates)
+                            {
+                                <option value="@e">@e</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+                <input type="hidden" name="country_code" value="AE" />
+                <button type="submit" style="width:100%;padding:.75rem 1rem;border:0;border-radius:.45rem;background:#dc2626;color:#fff;font-weight:800;cursor:pointer">Create vendor account</button>
+                <p style="margin:.75rem 0 0;color:#64748b;font-size:.82rem">Already registered? <a href="@StorefrontAspNetCanonical.VendorPortal">Sign in</a></p>
+            </form>
+        </div>
+    </section>
+</StorefrontTenantChrome>
+
+@code {
+    private string _brand = "eParts Cart";
+
+    protected override void OnInitialized()
+    {
+        _brand = StorefrontIndustryHostResolver.ResolveBrandLabel(Http.HttpContext?.Request.Host.Host);
+    }
+}

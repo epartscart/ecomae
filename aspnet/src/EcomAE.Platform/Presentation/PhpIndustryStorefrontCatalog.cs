@@ -53,6 +53,49 @@ public static class PhpIndustryStorefrontCatalog
 
     public static bool OwnsUrl(string industryCode, string? url) => TryResolve(industryCode, url, out _);
 
+    public static bool TryFindProduct(string industryCode, string? alias, out Product product)
+    {
+        product = null!;
+        var key = (alias ?? string.Empty).Trim();
+        if (key.Length == 0)
+        {
+            return false;
+        }
+
+        var match = ProductsFor(industryCode)
+            .FirstOrDefault(p => p.Alias.Equals(key, StringComparison.OrdinalIgnoreCase));
+        if (match is null)
+        {
+            return false;
+        }
+
+        product = match;
+        return true;
+    }
+
+    public static Category? CategoryForProduct(string industryCode, Product product)
+        => CategoriesFor(industryCode).FirstOrDefault(c =>
+            c.Alias.Equals(product.CategoryAlias, StringComparison.OrdinalIgnoreCase));
+
+    public static IReadOnlyList<Product> Search(string industryCode, string? query)
+    {
+        var q = (query ?? string.Empty).Trim();
+        if (q.Length == 0)
+        {
+            return [];
+        }
+
+        return ProductsFor(industryCode)
+            .Where(p =>
+                p.Name.Contains(q, StringComparison.OrdinalIgnoreCase)
+                || p.Alias.Contains(q, StringComparison.OrdinalIgnoreCase)
+                || p.CategoryAlias.Contains(q, StringComparison.OrdinalIgnoreCase))
+            .ToArray();
+    }
+
+    public static string ProductHref(string alias)
+        => "/p/" + Uri.EscapeDataString(alias);
+
     public static IReadOnlyList<Category> ChildrenOf(string industryCode, string alias)
         => CategoriesFor(industryCode)
             .Where(c => string.Equals(c.ParentAlias, alias, StringComparison.OrdinalIgnoreCase))

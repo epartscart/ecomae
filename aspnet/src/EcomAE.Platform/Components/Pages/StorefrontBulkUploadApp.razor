@@ -45,10 +45,9 @@
 
 <StorefrontAnalytics Enabled="true" IncludeClarity="true" />
 
-<PhpStorefrontDesktopChrome>
+<StorefrontTenantChrome>
     <PhpStorefrontPageHeader Title="Excel bulk upload"
-                            Subtitle="ASP.NET Core bulk-upload shell with history digest. PHP process form is temporary compare under /php-reference/* only — not the default production body.">
-        <a class="btn btn-sm btn-default" href="@ClassicBulkHref" title="Temporary PHP compare only">Compare PHP reference</a>
+                            Subtitle="Upload a parts list, match warehouse offers, then add matched lines to cart.">
             <a class="btn btn-sm btn-default" href="@StorefrontSurfaceLinks.PartSearch">Part search</a>
             <a class="btn btn-sm btn-default" href="@StorefrontSurfaceLinks.Cart">Cart</a>
     </PhpStorefrontPageHeader>
@@ -66,7 +65,6 @@
             <p style="margin:0 0 .75rem">Sign in to upload a parts list and view your bulk-upload history.</p>
             <div class="epc-sf-bu-cta" style="margin:0">
                 <a href="@StorefrontSurfaceLinks.Login">Customer login</a>
-                <a class="ghost" href="@ClassicBulkHref">Compare PHP reference</a>
             </div>
         </div>
     }
@@ -75,22 +73,12 @@
         <div class="epc-sf-bu-panel">
             <h2>Upload workspace</h2>
             <p style="margin:0 0 .75rem;color:#64748b;font-size:.88rem">
-                Product UI is ASP.NET Core. Live process / cross / cart writes remain PHP-authoritative
-                under <code>/php-reference</code> until cutover
-                (<code>POST /storefront/bulk-upload/process</code> is dry-run only).
-                Embed the classic form only with <code>?php=1</code>.
+                Upload an Excel or CSV parts list. Matching, crosses, and cart add stay on the classic module.
             </p>
-            <p style="margin:0 0 .75rem">
-                <a href="?php=1" style="display:inline-flex;padding:.5rem .85rem;border-radius:.4rem;background:#1d4ed8;color:#fff;font-weight:700;text-decoration:none;margin-right:.35rem">Show PHP compare</a>
-                <a href="@ClassicBulkHref" style="display:inline-flex;padding:.5rem .85rem;border-radius:.4rem;border:1px solid #d1d5db;color:#111;font-weight:700;text-decoration:none">Open /php-reference</a>
-            </p>
-            @if (_showPhpCompare)
-            {
-                <iframe class="epc-sf-bu-frame"
-                        title="Classic Excel bulk upload (PHP compare)"
-                        src="@ClassicBulkHref"
-                        loading="lazy"></iframe>
-            }
+            <form method="post" action="@PhpVendorPortal.BulkUploadWriteHref" enctype="multipart/form-data">
+                <input type="file" name="price_file" accept=".csv,.xls,.xlsx,text/csv" required />
+                <button type="submit" class="btn btn-primary" style="margin-left:.5rem">Upload list</button>
+            </form>
         </div>
 
         <div class="epc-sf-bu-panel">
@@ -139,18 +127,12 @@
     }
 
     <p class="epc-sf-bu-note">
-        ASP.NET shell + history digest. PHP is temporary compare under <code>/php-reference/*</code> only.
-        Upload / cross / cart / CSV download remain PHP-authoritative until cutover
-        (<code>POST /storefront/bulk-upload/process</code> is dry-run only).
+        Upload, cross, and cart add stay on the classic bulk-upload module.
     </p>
-</PhpStorefrontDesktopChrome>
+</StorefrontTenantChrome>
 
 @code {
-    /// <summary>PHP reference path — never a product /en body.</summary>
-    private static string ClassicBulkHref => "/php-reference" + StorefrontPhpCanonical.BulkUpload;
-
     private bool _signedIn;
-    private bool _showPhpCompare;
     private IReadOnlyList<StorefrontBulkUploadHistoryDigest> _history = [];
     private string _source = "n/a";
     private string _message = "";
@@ -162,11 +144,6 @@
         {
             return;
         }
-
-        var phpQ = ctx.Request.Query["php"].ToString();
-        _showPhpCompare = string.Equals(phpQ, "1", StringComparison.OrdinalIgnoreCase)
-                          || string.Equals(phpQ, "true", StringComparison.OrdinalIgnoreCase)
-                          || phpQ.StartsWith("/php-reference", StringComparison.OrdinalIgnoreCase);
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _signedIn = session.Kind == LegacySessionKind.Customer && session.UserId > 0;
