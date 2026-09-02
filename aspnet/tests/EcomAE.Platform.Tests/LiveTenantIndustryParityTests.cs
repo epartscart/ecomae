@@ -456,6 +456,8 @@ public sealed class LiveTenantIndustryParityTests
         Assert.Equal(StorefrontAspNetCanonical.PricesDownload, PhpSurfaceLinkMap.AspNetPrimaryHref("/en/shop/prices-download"));
         Assert.False(PhpSurfaceLinkMap.TryMapIncomingPhpProductPath("/en/shop/prices-download", out _));
         Assert.Contains("user_id", LegacySurfaceDashboardSql.SelectCustomerOrderItems, StringComparison.Ordinal);
+        Assert.Contains("user_id", LegacySurfaceDashboardSql.SelectCustomerOrderMessages, StringComparison.Ordinal);
+        Assert.Contains("shop_orders_messages", LegacySurfaceDashboardSql.SelectCustomerOrderMessages, StringComparison.Ordinal);
         Assert.Contains("users_groups_bind", LegacySurfaceDashboardSql.SelectCustomerPriceGroup, StringComparison.Ordinal);
     }
 
@@ -467,6 +469,12 @@ public sealed class LiveTenantIndustryParityTests
         Assert.Contains("PhpIndustryStorefrontCatalog", File.ReadAllText(catalog), StringComparison.Ordinal);
         Assert.Contains("PhpIndustryCmsPages", File.ReadAllText(cms), StringComparison.Ordinal);
         Assert.Contains("IndustryStorefrontSlugMiddleware", File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Program.cs")), StringComparison.Ordinal);
+        var orders = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/StorefrontOrdersApp.razor"));
+        Assert.Contains("ListStorefrontOrderMessagesAsync", orders, StringComparison.Ordinal);
+        Assert.Contains("PhpCustomerWrites.OrderMessageHref", orders, StringComparison.Ordinal);
+        var register = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/StorefrontRegisterApp.razor"));
+        Assert.Contains("@page \"/en/users/regform\"", register, StringComparison.Ordinal);
+        Assert.False(PhpSurfaceLinkMap.TryMapIncomingPhpProductPath("/en/users/regform", out _));
     }
 
     private static string Find(string relative)

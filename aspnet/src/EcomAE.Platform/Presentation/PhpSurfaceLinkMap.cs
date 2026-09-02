@@ -655,7 +655,8 @@ public static class PhpSurfaceLinkMap
         }
 
         if (value.Contains("/users/registration", StringComparison.OrdinalIgnoreCase)
-            || value.Contains("/users/register", StringComparison.OrdinalIgnoreCase))
+            || value.Contains("/users/register", StringComparison.OrdinalIgnoreCase)
+            || value.Contains("/users/regform", StringComparison.OrdinalIgnoreCase))
         {
             return StorefrontSurfaceLinks.Registration;
         }
@@ -1214,6 +1215,7 @@ public static class PhpSurfaceLinkMap
             || path.Equals("/users/login", StringComparison.OrdinalIgnoreCase)
             || path.Equals("/users/registration", StringComparison.OrdinalIgnoreCase)
             || path.Equals("/users/register", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/users/regform", StringComparison.OrdinalIgnoreCase)
             || path.Equals("/users/forgot", StringComparison.OrdinalIgnoreCase)
             || path.Equals("/users/forgot_password", StringComparison.OrdinalIgnoreCase)
             || path.Equals("/users/new_password", StringComparison.OrdinalIgnoreCase)

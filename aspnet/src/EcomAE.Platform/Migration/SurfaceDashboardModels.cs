@@ -154,6 +154,20 @@ public sealed record StorefrontOrderItemsResult(
     string Source,
     string Message);
 
+public sealed record StorefrontOrderMessageDigest(
+    long Id,
+    long TimeUnix,
+    string Text,
+    int IsCustomer);
+
+public sealed record StorefrontOrderMessagesResult(
+    int UserId,
+    long OrderId,
+    IReadOnlyList<StorefrontOrderMessageDigest> Messages,
+    int Count,
+    string Source,
+    string Message);
+
 public sealed record StorefrontPriceListResult(
     int UserId,
     int GroupId,

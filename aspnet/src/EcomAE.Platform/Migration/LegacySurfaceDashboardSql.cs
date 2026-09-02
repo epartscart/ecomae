@@ -340,6 +340,18 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>Customer-scoped order thread (PHP <c>my_order.php</c> messages). Never omit the user join.</summary>
+    public const string SelectCustomerOrderMessages = """
+        SELECT m.`id`, IFNULL(m.`time`, 0) AS time, IFNULL(m.`text`, '') AS text, IFNULL(m.`is_customer`, 0) AS is_customer
+        FROM `shop_orders_messages` m
+        INNER JOIN `shop_orders` o ON o.`id` = m.`order_id`
+        WHERE o.`user_id` = @userId
+          AND m.`order_id` = @orderId
+          AND IFNULL(m.`return_id`, 0) = 0
+        ORDER BY m.`id` ASC
+        LIMIT @limit
+        """;
+
     public const string SelectCustomerPriceGroup = """
         SELECT IFNULL(`group_id`, 0) AS group_id
         FROM `users_groups_bind`

@@ -175,6 +175,21 @@
                     <input type="hidden" name="action" value="pay_on_place" />
                     <button type="submit" style="padding:.55rem .9rem;border:0;border-radius:.4rem;background:#0f766e;color:#fff;font-weight:800;cursor:pointer">Pay on collection</button>
                 </form>
+                @if (_messages.Count > 0)
+                {
+                    <h3 style="margin:0 0 .45rem;font-size:.95rem">Messages</h3>
+                    <ul class="epc-sf-ord-msgs" style="list-style:none;margin:0 0 1rem;padding:0">
+                        @foreach (var msg in _messages)
+                        {
+                            <li style="margin:0 0 .55rem;padding:.55rem .7rem;border:1px solid #e5e7eb;border-radius:.4rem;background:#f8fafc">
+                                <div style="font-size:.75rem;color:#64748b;margin-bottom:.25rem">
+                                    @(msg.IsCustomer != 0 ? "You" : "Store") · @FormatTs(msg.TimeUnix)
+                                </div>
+                                <div>@msg.Text</div>
+                            </li>
+                        }
+                    </ul>
+                }
                 <form method="get" action="@PhpCustomerWrites.OrderMessageHref">
                     <input type="hidden" name="order_id" value="@_selected.Id.ToString(CultureInfo.InvariantCulture)" />
                     <label for="order_message">Message to the store</label>
@@ -203,6 +218,7 @@
     private string _message = "";
     private StorefrontOrderDigest? _selected;
     private IReadOnlyList<StorefrontOrderItemDigest> _items = [];
+    private IReadOnlyList<StorefrontOrderMessageDigest> _messages = [];
     private bool _showItems;
 
     [SupplyParameterFromQuery(Name = "order_id")]
@@ -247,6 +263,16 @@
                 100,
                 ctx.RequestAborted);
             _items = lines.Items;
+        }
+
+        if (_selected is not null)
+        {
+            var thread = await Dashboards.ListStorefrontOrderMessagesAsync(
+                session.UserId,
+                _selected.Id,
+                80,
+                ctx.RequestAborted);
+            _messages = thread.Messages;
         }
     }
 

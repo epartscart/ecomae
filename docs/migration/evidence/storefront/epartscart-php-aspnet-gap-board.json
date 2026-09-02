@@ -81,7 +81,7 @@
       "php": "/en/shop/orders",
       "aspnet": "/storefront/orders-app",
       "status": "partial",
-      "notes": "List digest; detail/messages PHP."
+      "notes": "List + items + customer-scoped message thread. Send-message / pay-on-collection writes stay PHP."
     },
     {
       "id": "garage",

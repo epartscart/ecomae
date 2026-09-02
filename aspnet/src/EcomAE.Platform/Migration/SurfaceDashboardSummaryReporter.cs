@@ -478,6 +478,48 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    public async Task<StorefrontOrderMessagesResult> ListStorefrontOrderMessagesAsync(int userId, long orderId, int limit, CancellationToken cancellationToken = default)
+    {
+        var safeLimit = Math.Clamp(limit, 1, 200);
+        var safeOrder = orderId < 0 ? 0 : orderId;
+        if (!_connections.IsConfigured)
+        {
+            return new(userId, safeOrder, [], 0, "migration", "TenantRegistry DB is not configured.");
+        }
+
+        if (userId <= 0 || safeOrder <= 0)
+        {
+            return new(userId, safeOrder, [], 0, "rejected", "Valid customer user id and order id are required.");
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            await using var command = connection.CreateCommand();
+            command.CommandText = LegacySurfaceDashboardSql.SelectCustomerOrderMessages;
+            AddParameter(command, "@userId", userId);
+            AddParameter(command, "@orderId", safeOrder);
+            AddParameter(command, "@limit", safeLimit);
+
+            var rows = new List<StorefrontOrderMessageDigest>();
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                rows.Add(new StorefrontOrderMessageDigest(
+                    Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                    Convert.ToInt64(reader["time"], CultureInfo.InvariantCulture),
+                    Convert.ToString(reader["text"] is DBNull ? string.Empty : reader["text"], CultureInfo.InvariantCulture) ?? string.Empty,
+                    Convert.ToInt32(reader["is_customer"] is DBNull ? 0 : reader["is_customer"], CultureInfo.InvariantCulture)));
+            }
+
+            return new(userId, safeOrder, rows, rows.Count, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(userId, safeOrder, [], 0, "database-error", ex.Message);
+        }
+    }
+
     public async Task<StorefrontPriceListResult> GetStorefrontPriceListAsync(int userId, CancellationToken cancellationToken = default)
     {
         if (!_connections.IsConfigured)

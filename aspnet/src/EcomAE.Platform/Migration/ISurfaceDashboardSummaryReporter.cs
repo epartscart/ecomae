@@ -20,6 +20,7 @@ public interface ISurfaceDashboardSummaryReporter
 
     /// <summary>Customer-scoped order lines (PHP <c>shop/orders/items</c>). Writes stay PHP.</summary>
     Task<StorefrontOrderItemsResult> ListStorefrontOrderItemsAsync(int userId, long orderId, int limit, CancellationToken cancellationToken = default);
+    Task<StorefrontOrderMessagesResult> ListStorefrontOrderMessagesAsync(int userId, long orderId, int limit, CancellationToken cancellationToken = default);
 
     /// <summary>Published markup-group CSV path (PHP prices_download tab).</summary>
     Task<StorefrontPriceListResult> GetStorefrontPriceListAsync(int userId, CancellationToken cancellationToken = default);
