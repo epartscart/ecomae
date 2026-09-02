@@ -496,9 +496,21 @@ public static class PhpSurfaceLinkMap
             return StorefrontSurfaceLinks.ForCatalogBrowse(value);
         }
 
-        if (value.Contains("garage", StringComparison.OrdinalIgnoreCase))
+        if (value.Contains("/garage/manager", StringComparison.OrdinalIgnoreCase)
+            || value.Equals("/garage/manager", StringComparison.OrdinalIgnoreCase))
+        {
+            return StorefrontAspNetCanonical.GarageManager;
+        }
+
+        if (value.Contains("garage", StringComparison.OrdinalIgnoreCase)
+            || value.Contains("garazh", StringComparison.OrdinalIgnoreCase))
         {
             return StorefrontSurfaceLinks.GarageLogin;
+        }
+
+        if (value.Contains("auto-workshop", StringComparison.OrdinalIgnoreCase))
+        {
+            return StorefrontAspNetCanonical.AutoWorkshop;
         }
 
         // Account/profile before blanket /users → login.
