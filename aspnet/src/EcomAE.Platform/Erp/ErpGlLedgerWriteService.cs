@@ -131,6 +131,8 @@ public interface IErpGlLedgerWriteService
 
 public sealed class ErpGlLedgerWriteService : IErpGlLedgerWriteService
 {
+    private const int ReversalLockSeconds = 10;
+
     private static readonly string[] AccountTypes = ["asset", "liability", "equity", "revenue", "expense"];
 
     private static readonly string[] CreditSideTypes = ["liability", "equity", "revenue"];
@@ -232,6 +234,50 @@ public sealed class ErpGlLedgerWriteService : IErpGlLedgerWriteService
             throw new ErpWriteException("Journal not found or already reversed");
         }
 
+        // The duplicate guard below is a read-then-write, so two concurrent voids of the same
+        // document could both pass it and double-count the correction. Serialize per journal.
+        var lockName = "erp_gl_reverse_" + journalId.ToString(CultureInfo.InvariantCulture);
+        var acquired = await ErpDb.LongAsync(
+            connection,
+            null,
+            ErpDb.Positional("SELECT COALESCE(GET_LOCK(?, ?), 0)"),
+            cancellationToken,
+            lockName,
+            ReversalLockSeconds).ConfigureAwait(false);
+        if (acquired != 1)
+        {
+            throw new ErpWriteException("Journal is being reversed by another request — retry");
+        }
+
+        try
+        {
+            return await ReverseJournalLockedAsync(
+                connection,
+                journalId,
+                reverseDate,
+                note,
+                adminId,
+                cancellationToken).ConfigureAwait(false);
+        }
+        finally
+        {
+            await ErpDb.ExecuteAsync(
+                connection,
+                null,
+                ErpDb.Positional("DO RELEASE_LOCK(?)"),
+                CancellationToken.None,
+                lockName).ConfigureAwait(false);
+        }
+    }
+
+    private async Task<ErpReversedJournalResult> ReverseJournalLockedAsync(
+        DbConnection connection,
+        long journalId,
+        long reverseDate,
+        string note,
+        int adminId,
+        CancellationToken cancellationToken)
+    {
         await EnsureCoaSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
         await ErpDb.TryExecuteAsync(
             connection,
