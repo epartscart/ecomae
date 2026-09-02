@@ -465,6 +465,17 @@ public static class PhpSurfaceLinkMap
             return StorefrontAspNetCanonical.Offices;
         }
 
+        if (value.Equals("/ai-parts-expert", StringComparison.OrdinalIgnoreCase)
+            || value.StartsWith("/ai-parts-expert?", StringComparison.OrdinalIgnoreCase))
+        {
+            return StorefrontAspNetCanonical.AiPartsExpert;
+        }
+
+        if (PhpSpecialSearches.IsAlias(value))
+        {
+            return StorefrontAspNetCanonical.SpecialSearch + "?alias=" + Uri.EscapeDataString(PhpSpecialSearches.Normalize(value));
+        }
+
         if (value.Contains("/shop/quotes", StringComparison.OrdinalIgnoreCase)
             || value.Equals("/shop/quotes", StringComparison.OrdinalIgnoreCase))
         {
@@ -1207,6 +1218,9 @@ public static class PhpSurfaceLinkMap
             || path.Equals("/chastye-voprosy", StringComparison.OrdinalIgnoreCase)
             || path.Equals("/ofisy", StringComparison.OrdinalIgnoreCase)
             || path.Equals("/shop/offices", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/users/account", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/ai-parts-expert", StringComparison.OrdinalIgnoreCase)
+            || PhpSpecialSearches.IsAlias(path)
             || path.Equals("/katalog-laximo", StringComparison.OrdinalIgnoreCase)
             || path.Equals("/vehicle-catalog", StringComparison.OrdinalIgnoreCase)
             || path.Equals("/umapi_catalog", StringComparison.OrdinalIgnoreCase)

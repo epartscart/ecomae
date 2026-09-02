@@ -68,15 +68,16 @@
             @if (_step is "how_get")
             {
                 <form method="post" action="@PhpCustomerWrites.CheckoutHowGetWriteHref" style="margin:0 0 .85rem">
-                    @foreach (var mode in PhpCustomerWrites.ObtainModes)
+                    @foreach (var mode in _obtainModes)
                     {
                         <label style="display:block;margin:.35rem 0">
-                            <input type="radio" name="how_get_radio" value="@mode.Code" />
+                            <input type="radio" name="how_get" value="@mode.Code" />
                             @mode.Label
                         </label>
                     }
                     <label style="display:block;margin:.65rem 0 .25rem">City / area</label>
                     <input type="text" name="city" style="width:100%;max-width:22rem;padding:.45rem" />
+                    <p style="margin:.75rem 0 .35rem"><a href="@StorefrontSurfaceLinks.Offices">Pickup points</a></p>
                     <button type="submit" style="margin-top:.75rem;padding:.5rem .85rem;border:0;border-radius:.4rem;background:#0f766e;color:#fff;font-weight:800;cursor:pointer">Save delivery option</button>
                 </form>
             }
@@ -163,6 +164,7 @@
     private string _heroLead = "Review your cart and continue to delivery and payment.";
     private string _stepHeading = "";
     private string _stepHelp = "";
+    private IReadOnlyList<(string Code, string Label)> _obtainModes = PhpCustomerWrites.ObtainModes;
     protected override async Task OnInitializedAsync()
     {
         ResolveStep();
@@ -185,6 +187,30 @@
         _readiness = result.Summary.Count > 0
             ? (result.Lines.Any(l => l.CheckedForOrder) ? "ready for delivery" : "cart has lines")
             : "empty cart";
+
+        try
+        {
+            var methods = await Dashboards.BuildCpDeliveryMethodsDigestAsync(20, ctx.RequestAborted);
+            if (methods.Modes.Count > 0)
+            {
+                _obtainModes = methods.Modes
+                    .Where(m => m.Available)
+                    .OrderBy(m => m.SortOrder)
+                    .Select(m => (
+                        m.Id.ToString(CultureInfo.InvariantCulture),
+                        string.IsNullOrWhiteSpace(m.Caption) ? m.Handler : m.Caption))
+                    .ToArray();
+            }
+        }
+        catch (Exception)
+        {
+            _obtainModes = PhpCustomerWrites.ObtainModes;
+        }
+
+        if (_obtainModes.Count == 0)
+        {
+            _obtainModes = PhpCustomerWrites.ObtainModes;
+        }
     }
 
     private void ResolveStep()

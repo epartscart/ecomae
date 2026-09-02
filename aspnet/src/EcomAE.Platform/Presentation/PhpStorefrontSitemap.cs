@@ -52,9 +52,15 @@ public static class PhpStorefrontSitemap
                 new(StorefrontAspNetCanonical.UcatsService, "Service catalogs", "Catalog"),
                 new(StorefrontAspNetCanonical.Accessories, "Accessories", "Catalog"),
                 new(StorefrontAspNetCanonical.SellerRequest, "Request to seller", "Help"),
+                new(StorefrontAspNetCanonical.AiPartsExpert, "Parts expert", "Help"),
+                new(StorefrontAspNetCanonical.SpecialSearch, "Special searches", "Catalog"),
                 new(StorefrontAspNetCanonical.AutoWorkshop, "Auto workshop", "Service"),
                 new(StorefrontAspNetCanonical.GarageLogin, "Garage", "Service"),
             ]);
+            foreach (var search in PhpSpecialSearches.All)
+            {
+                rows.Add(new("/" + search.Alias, search.Title, "Special search"));
+            }
         }
         else
         {

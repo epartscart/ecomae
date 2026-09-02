@@ -38,6 +38,7 @@ public static class StorefrontPhpCanonical
     public const string Catalogue = LangPrefix + "/shop/catalogue";
     public const string Brochure = "/brochure";
     public const string Offices = LangPrefix + "/ofisy";
+    public const string AiPartsExpert = LangPrefix + "/ai-parts-expert";
     public const string Cart = LangPrefix + "/shop/cart";
     public const string Checkout = LangPrefix + "/shop/checkout";
     public const string Orders = LangPrefix + "/shop/orders";
@@ -118,6 +119,8 @@ public static class StorefrontPhpCanonical
             "/storefront/own-catalog-app" => Catalogue + query,
             "/storefront/brochure-app" => Brochure + query,
             "/storefront/offices-app" => Offices + query,
+            "/storefront/special-search-app" => LangPrefix + query,
+            "/storefront/ai-parts-expert-app" => AiPartsExpert + query,
             _ => "",
         };
 

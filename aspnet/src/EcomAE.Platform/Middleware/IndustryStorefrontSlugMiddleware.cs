@@ -192,6 +192,23 @@ public sealed class IndustryStorefrontSlugMiddleware
             return true;
         }
 
+        if (only.Equals("ai-parts-expert", StringComparison.OrdinalIgnoreCase)
+            && industry is "auto_parts")
+        {
+            rewrite = StorefrontAspNetCanonical.AiPartsExpert + incomingQuery;
+            kind = "ai-parts-expert";
+            return true;
+        }
+
+        if (industry is "auto_parts"
+            && PhpSpecialSearches.TryFind(only, out _))
+        {
+            var alias = PhpSpecialSearches.Normalize(only);
+            rewrite = StorefrontAspNetCanonical.SpecialSearch + "?alias=" + Uri.EscapeDataString(alias);
+            kind = "special-search";
+            return true;
+        }
+
         if (only.Equals("shop/catalogue", StringComparison.OrdinalIgnoreCase)
             || only.Equals("katalog", StringComparison.OrdinalIgnoreCase)
             || only.StartsWith("shop/catalogue/", StringComparison.OrdinalIgnoreCase))
@@ -336,6 +353,7 @@ public sealed class IndustryStorefrontSlugMiddleware
                || only.Equals("sitemap", StringComparison.OrdinalIgnoreCase)
                || only.Equals("katalog", StringComparison.OrdinalIgnoreCase)
                || only.Equals("brochure", StringComparison.OrdinalIgnoreCase)
-               || only.Equals("ofisy", StringComparison.OrdinalIgnoreCase);
+               || only.Equals("ofisy", StringComparison.OrdinalIgnoreCase)
+               || only.Equals("ai-parts-expert", StringComparison.OrdinalIgnoreCase);
     }
 }

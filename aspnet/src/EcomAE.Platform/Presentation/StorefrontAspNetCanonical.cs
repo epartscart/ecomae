@@ -61,6 +61,8 @@ public static class StorefrontAspNetCanonical
     public const string Sitemap = "/storefront/sitemap-app";
     public const string Brochure = "/storefront/brochure-app";
     public const string Offices = "/storefront/offices-app";
+    public const string SpecialSearch = "/storefront/special-search-app";
+    public const string AiPartsExpert = "/storefront/ai-parts-expert-app";
     public const string Cart = "/storefront/cart-app";
     public const string Checkout = "/storefront/checkout-app";
     public const string Orders = "/storefront/orders-app";

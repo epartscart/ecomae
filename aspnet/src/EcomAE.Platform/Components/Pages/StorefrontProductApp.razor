@@ -152,6 +152,23 @@
 
         <div class="epc-sf-pd-card" style="margin-top:1rem">
             <h2>Reviews</h2>
+            @if (_reviews.Count > 0)
+            {
+                <ul style="margin:0 0 1rem;padding:0;list-style:none">
+                    @foreach (var review in _reviews)
+                    {
+                        <li style="margin:0 0 .75rem;padding:.7rem .8rem;background:#f8fafc;border:1px solid #e2e8f0;border-radius:.45rem">
+                            <strong>@review.Rating / 5</strong>
+                            <span style="color:#64748b;font-size:.82rem"> · @review.Author · @review.Date</span>
+                            <p style="margin:.35rem 0 0;color:#334155">@review.Text</p>
+                        </li>
+                    }
+                </ul>
+            }
+            else
+            {
+                <p style="margin:0 0 .85rem;color:#64748b;font-size:.88rem">No reviews on this product yet.</p>
+            }
             <form method="post" action="@PhpCustomerWrites.EvaluationWriteHref" style="margin:0">
                 <input type="hidden" name="product_id" value="@_product.Id.ToString(CultureInfo.InvariantCulture)" />
                 <label style="display:block;margin:.25rem 0">Rating
@@ -178,6 +195,7 @@
     private StorefrontProductDigest? _product;
     private string _source = "n/a";
     private string _message = "";
+    private IReadOnlyList<PhpProductReviews.Review> _reviews = [];
 
     [SupplyParameterFromQuery(Name = "id")]
     public int? ProductId { get; set; }
@@ -223,5 +241,6 @@
         _product = result.Product;
         _source = result.Source;
         _message = result.Message;
+        _reviews = PhpProductReviews.ForProduct(ProductId.Value);
     }
 }

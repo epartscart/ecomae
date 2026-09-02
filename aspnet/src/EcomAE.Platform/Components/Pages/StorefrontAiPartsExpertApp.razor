@@ -1,0 +1,54 @@
+@page "/storefront/ai-parts-expert-app"
+@layout Layout.PhpChromeLayout
+@using EcomAE.Platform.Presentation
+@inject IHttpContextAccessor Http
+
+<PageTitle>Parts expert · @_brand</PageTitle>
+<PhpSurfaceHead Surface="storefront" IncludeStorefrontAnalytics="true" ApplyStorefrontIndustryAttrs="true" IncludePublicSeo="true" />
+<PhpChromeBodyClass Surface="storefront" />
+
+<StorefrontTenantChrome>
+    <section style="padding:2rem 0 3rem">
+        <div class="container" style="max-width:46rem">
+            <p style="margin:0 0 .35rem;color:#64748b;font-size:.85rem"><a href="/">Home</a> · Parts expert</p>
+            <h1 style="margin:.1rem 0 .4rem">@_heading</h1>
+            <p style="color:#475569">@_lead</p>
+            @if (_autoParts)
+            {
+            <form method="get" action="@StorefrontSurfaceLinks.PartSearch" style="margin:1rem 0;padding:1.1rem 1.2rem;background:#fff;border:1px solid #e2e8f0;border-radius:.55rem">
+                <label style="display:block;margin:0 0 .25rem">Part number</label>
+                <input type="text" name="article" required maxlength="64" placeholder="e.g. C110J, DT068" style="width:100%;max-width:22rem;padding:.5rem;margin-bottom:.75rem" />
+                <label style="display:block;margin:.25rem 0">Brand (optional)</label>
+                <input type="text" name="brand" maxlength="48" style="width:100%;max-width:22rem;padding:.5rem;margin-bottom:.85rem" />
+                <button type="submit" style="padding:.55rem .95rem;border:0;border-radius:.4rem;background:#dc2626;color:#fff;font-weight:800;cursor:pointer">Search</button>
+            </form>
+            <p>
+                <a href="@StorefrontSurfaceLinks.LaximoVin">VIN / Frame</a>
+                ·
+                <a href="@StorefrontSurfaceLinks.SellerRequest">Request to seller</a>
+                ·
+                <a href="@StorefrontSurfaceLinks.UcatsService">Service catalogs</a>
+            </p>
+            }
+        </div>
+    </section>
+</StorefrontTenantChrome>
+
+@code {
+    private string _brand = "eParts Cart";
+    private bool _autoParts;
+    private string _heading = "Look up any part number";
+    private string _lead = "Article search, cross-references, and live warehouse stock.";
+
+    protected override void OnInitialized()
+    {
+        var host = Http.HttpContext?.Request.Host.Host;
+        _brand = StorefrontIndustryHostResolver.ResolveBrandLabel(host);
+        _autoParts = StorefrontIndustryHostResolver.ResolveIndustryCode(host) is "auto_parts";
+        if (!_autoParts)
+        {
+            _heading = "Search";
+            _lead = "Use the store search from the header.";
+        }
+    }
+}

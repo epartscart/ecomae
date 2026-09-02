@@ -379,6 +379,27 @@ public sealed class LiveTenantIndustryParityTests
     }
 
     [Fact]
+    public void Special_search_and_ai_expert_stay_on_auto_parts()
+    {
+        Assert.True(IndustryStorefrontSlugMiddleware.TryMatch("www.epartscart.com", "/en/tormoznye-kolodki", out var search, out var searchKind));
+        Assert.Equal("special-search", searchKind);
+        Assert.Contains("alias=tormoznye-kolodki", search, StringComparison.Ordinal);
+        Assert.True(IndustryStorefrontSlugMiddleware.TryMatch("www.epartscart.com", "/ai-parts-expert", out var expert, out var expertKind));
+        Assert.Equal("ai-parts-expert", expertKind);
+        Assert.Equal(StorefrontAspNetCanonical.AiPartsExpert, expert);
+        Assert.False(IndustryStorefrontSlugMiddleware.TryMatch("www.thejewellerytrend.com", "/tormoznye-kolodki", out _, out _));
+        Assert.False(IndustryStorefrontSlugMiddleware.TryMatch("www.stylenlook.com", "/ai-parts-expert", out _, out _));
+        Assert.True(PhpSpecialSearches.TryFind("filtry-maslyanye", out var oil));
+        Assert.Equal("Oil filters", oil.Title);
+        Assert.Equal(StorefrontAspNetCanonical.SpecialSearch + "?alias=tormoznye-kolodki", PhpSurfaceLinkMap.AspNetPrimaryHref("/en/tormoznye-kolodki"));
+        Assert.False(PhpSurfaceLinkMap.TryMapIncomingPhpProductPath("/en/tormoznye-kolodki", out _));
+        Assert.Equal(StorefrontAspNetCanonical.Balance, PhpSurfaceLinkMap.AspNetPrimaryHref("/en/users/account"));
+        Assert.True(PhpProductReviews.ForProduct(1).Count > 0);
+        Assert.DoesNotContain(PhpStorefrontSitemap.ForIndustry("jewellery"), l => l.Href.Contains("tormoznye", StringComparison.Ordinal));
+        Assert.Contains(PhpStorefrontSitemap.ForIndustry("auto_parts"), l => l.Href == "/tormoznye-kolodki");
+    }
+
+    [Fact]
     public void DedicatedIndustryAppsExist()
     {
         var catalog = Find("aspnet/src/EcomAE.Platform/Components/Pages/StorefrontIndustryCatalogApp.razor");

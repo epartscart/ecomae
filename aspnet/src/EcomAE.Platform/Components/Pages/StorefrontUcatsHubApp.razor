@@ -63,6 +63,17 @@
             <input type="hidden" name="ucats" value="@_selected.Slug" />
             <button type="submit" style="margin-top:.9rem;padding:.55rem .95rem;border:0;border-radius:.4rem;background:#2563eb;color:#fff;font-weight:800;cursor:pointer">Search live stock</button>
         </form>
+        @if (_selected.PickerFields.Count > 0)
+        {
+            <p style="margin:1rem 0 .45rem;font-weight:700">Common lookups</p>
+            <div style="display:flex;flex-wrap:wrap;gap:.45rem">
+                @foreach (var field in _selected.PickerFields)
+                {
+                    <a href="@(StorefrontSurfaceLinks.WarehouseSearch + (StorefrontSurfaceLinks.WarehouseSearch.Contains('?') ? "&" : "?") + "ucats=" + Uri.EscapeDataString(_selected.Slug) + "&q=" + Uri.EscapeDataString(field.Label))"
+                       style="padding:.4rem .7rem;border:1px solid #e2e8f0;border-radius:.4rem;background:#fff;text-decoration:none;color:#0f172a">@field.Label</a>
+                }
+            </div>
+        }
         <p class="epc-ucats-note">
             @_selectedBlurb
             Use <a href="@StorefrontSurfaceLinks.NameSearch">name search</a>
