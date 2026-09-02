@@ -3098,6 +3098,17 @@ public static class LegacySurfaceDashboardSql
         LIMIT 40
         """;
 
+    /// <summary>PHP <c>epc_sku_media_find_profile</c> by brand + article_key (active only).</summary>
+    public const string SelectStorefrontSkuProfileByBrandArticle = """
+        SELECT `id`
+        FROM `epc_sku_profiles`
+        WHERE UPPER(`brand`) = @brand
+          AND `article_key` = @articleKey
+          AND IFNULL(`status`,'active') NOT IN ('hidden','draft')
+        ORDER BY `id` DESC
+        LIMIT 1
+        """;
+
     /// <summary>SKU media gallery (PHP epc_sku_photos).</summary>
     public const string SelectStorefrontSkuPhotos = """
         SELECT `id`, IFNULL(`file_name`,'') AS file_name, IFNULL(`alt`,'') AS alt,

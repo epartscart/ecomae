@@ -39,7 +39,7 @@ public sealed class StorefrontFitmentPhpParityTests
     {
         var text = File.ReadAllText(FindRepoFile(
             "aspnet/src/EcomAE.Platform/Components/Pages/StorefrontSearchApp.razor"));
-        Assert.Contains("epc_warehouse_search_parity.js?v=20260812-fitment", text, StringComparison.Ordinal);
+        Assert.Contains("epc_warehouse_search_parity.js?v=20260812-fitment-sku", text, StringComparison.Ordinal);
         Assert.Contains("epc-fitment-check-btn", text, StringComparison.Ordinal);
         Assert.Contains("applicability_widget", text, StringComparison.Ordinal);
     }

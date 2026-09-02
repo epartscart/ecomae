@@ -15,7 +15,7 @@ set -euo pipefail
 if [[ "$(id -u)" -ne 0 ]]; then printf 'ERROR: must run as root\n' >&2; exit 1; fi
 
 ECOMAE_GIT_URL="${ECOMAE_GIT_URL:-https://github.com/epartscart/ecomae.git}"
-ECOMAE_BRANCH="${ECOMAE_BRANCH:-cursor/chpu-fitment-parity-7529}"
+ECOMAE_BRANCH="${ECOMAE_BRANCH:-cursor/chpu-fitment-sku-media-7529}"
 export ECOMAE_EPARTSCART_SHOP_DB="${ECOMAE_EPARTSCART_SHOP_DB:-docpart}"
 export ECOMAE_SKIP_LIFEOS_MP4="${ECOMAE_SKIP_LIFEOS_MP4:-YES}"
 CANDIDATES=("${ECOMAE_REPO:-}" /opt/ecomae-aspnet-source /root/ecomae /opt/ecomae)
@@ -49,7 +49,7 @@ grep -q 'epc-fitment-panel--centered' content/general_pages/epc_warehouse_search
 grep -q 'panel.classList.add("is-open", "active")' content/general_pages/epc_warehouse_search_parity.js \
   || die "missing professional-shell .active open class"
 grep -q 'StorefrontFitment' aspnet/src/EcomAE.Platform/Modules/StorefrontModule.cs || die "missing StorefrontFitment route map"
-grep -q '20260812-fitment' aspnet/src/EcomAE.Platform/Components/Pages/StorefrontSearchApp.razor || die "missing fitment cache buster"
+grep -q '20260812-fitment-sku' aspnet/src/EcomAE.Platform/Components/Pages/StorefrontSearchApp.razor || die "missing fitment-sku cache buster"
 
 if [[ -f scripts/cloudpanel_FORCE_LIVE_NOW.sh ]]; then
   ECOMAE_BRANCH="$ECOMAE_BRANCH" ECOMAE_SKIP_LIFEOS_MP4=YES \
@@ -72,11 +72,11 @@ HTML=/tmp/epc_chpu_fitment_post.html
 CODE="$(curl -sS -A 'EcomAE-ChpuFitmentNow/1.0' -o "$HTML" -w '%{http_code}' --max-time 45 \
   'https://www.epartscart.com/en/parts/JS%20ASAKASHI/C110J' || echo 000)"
 [[ "$CODE" == "200" ]] || die "CHPU HTTP=$CODE after publish"
-grep -Fq '20260812-fitment' "$HTML" || die "HTML missing fitment cache-bust — Razor not republished"
+grep -Fq '20260812-fitment-sku' "$HTML" || die "HTML missing fitment-sku cache-bust — Razor not republished"
 grep -Fq 'epc-fitment-check-btn' "$HTML" || die "HTML missing fitment button"
 JS=/tmp/epc_parity_fitment_post.js
 curl -sS -A 'EcomAE-ChpuFitmentNow/1.0' -o "$JS" --max-time 20 \
-  'https://www.epartscart.com/platform-assets/epc_warehouse_search_parity.js?v=20260812-fitment' || true
+  'https://www.epartscart.com/platform-assets/epc_warehouse_search_parity.js?v=20260812-fitment-sku' || true
 grep -q 'window.epcOpenFitmentCheck = openFitment' "$JS" || die "parity JS missing epcOpenFitmentCheck after publish"
 grep -q 'epc-fitment-panel--centered' "$JS" || die "parity JS missing centered panel after publish"
 

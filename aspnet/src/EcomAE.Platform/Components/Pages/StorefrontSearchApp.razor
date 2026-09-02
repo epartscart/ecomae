@@ -9,6 +9,7 @@
 @using EcomAE.Platform.Presentation
 @using EcomAE.Platform.Storefront
 @inject ISurfaceDashboardSummaryReporter Dashboards
+@inject IStorefrontSkuMediaService SkuMedia
 @inject IStorefrontPriceAccess PriceAccess
 @inject IHttpContextAccessor Http
 @inject NavigationManager Navigation
@@ -33,7 +34,8 @@
     @((MarkupString)_chpuHeadExtras)
     @((MarkupString)_chpuJsonLd)
 }
-<link rel="stylesheet" href="/platform-assets/epc_warehouse_search_parity.css?v=20260812-fitment" />
+<link rel="stylesheet" href="/platform-assets/epc_warehouse_search_parity.css?v=20260812-fitment-sku" />
+<link rel="stylesheet" href="/platform-assets/epc_sku_media.css?v=20260812-fitment-sku" />
 <style>
         /* Keep PHP professional-shell look; only hide inventing ASP.NET chrome on CHPU/picker. */
         .epc-chpu-direct-part-search .epc-sf-search-form,
@@ -275,6 +277,14 @@
                             data-article="@_normalized" data-brand="@_brandInput">
                         <i class="fa fa-car" aria-hidden="true"></i> Fitment check
                     </button>
+                    @if (_skuHasSpecs)
+                    {
+                        <button type="button" class="btn btn-default btn-sm epc-spec-check-btn" id="epc-spec-check-btn"
+                                data-article="@_normalized" data-brand="@_brandInput"
+                                title="Open technical specifications">
+                            <i class="fa fa-list-alt" aria-hidden="true"></i> Spec
+                        </button>
+                    }
                     <button type="button" class="btn btn-default btn-sm epc-cross-search-btn" id="epc-cross-search-btn"
                             data-article="@_normalized" title="Open all cross references">
                         <i class="fa fa-random" aria-hidden="true"></i>
@@ -287,7 +297,7 @@
                     <div class="epc-fitment-panel__head">
                         <div>
                             <div class="epc-fitment-panel__title">Part Fitment</div>
-                            <div class="epc-fitment-panel__hint">Choose the matching brand/number — vehicle fitment loads automatically.</div>
+                            <div class="epc-fitment-panel__hint">Choose the matching brand/number — photo, specifications and vehicle fitment load automatically.</div>
                         </div>
                         <button type="button" class="epc-fitment-panel__close" id="epc-fitment-close" aria-label="Close fitment check">&times;</button>
                     </div>
@@ -305,6 +315,41 @@
                         </div>
                     </div>
                 </div>
+
+                @if (_skuHasSpecs)
+                {
+                    <div class="epc-fitment-panel epc-spec-panel" id="epc-spec-panel" aria-live="polite" role="dialog" aria-modal="true" aria-labelledby="epc-spec-panel-title">
+                        <div class="epc-fitment-panel__head">
+                            <div>
+                                <div class="epc-fitment-panel__title" id="epc-spec-panel-title">Specifications</div>
+                                <div class="epc-fitment-panel__hint">@_brandInput.ToUpperInvariant() · @_normalized — technical details, dimensions and notes</div>
+                            </div>
+                            <button type="button" class="epc-fitment-panel__close" id="epc-spec-close" aria-label="Close specifications">&times;</button>
+                        </div>
+                        <div class="epc-fitment-panel__body epc-spec-panel__body">
+                            <div class="epc-spec-panel__scroll" id="epc-spec-panel-body">
+                                @((MarkupString)_skuSpecsHtml)
+                            </div>
+                        </div>
+                    </div>
+                }
+
+                @if (_skuHasPhotos)
+                {
+                    <div class="epc-sku-media-part-page" id="epc-sku-media-part-page" style="margin:12px 0 18px;text-align:left;">
+                        <div class="epc-sku-media-part-page__head" style="margin:0 0 10px;">
+                            <strong style="font-size:15px;letter-spacing:-0.01em;">Photos</strong>
+                            <span style="display:block;color:#64748b;font-size:13px;margin-top:2px;">
+                                @_brandInput.ToUpperInvariant() · @_normalized
+                                @if (_skuHasSpecs)
+                                {
+                                    <text> · use <strong>Spec</strong> next to Fitment for full details</text>
+                                }
+                            </span>
+                        </div>
+                        @((MarkupString)_skuPhotosHtml)
+                    </div>
+                }
 
                 @if (!_pricesVisible)
                 {
@@ -1127,7 +1172,7 @@
   }
 })();
             </script>
-            <script src="/platform-assets/epc_warehouse_search_parity.js?v=20260812-fitment" defer></script>
+            <script src="/platform-assets/epc_warehouse_search_parity.js?v=20260812-fitment-sku" defer></script>
         }
     }
 
@@ -1167,6 +1212,10 @@
     private string _chpuRobots = "noindex,follow";
     private string _chpuJsonLd = "";
     private IReadOnlyList<(string Hreflang, string Href)> _chpuHreflang = [];
+    private bool _skuHasPhotos;
+    private bool _skuHasSpecs;
+    private string _skuPhotosHtml = "";
+    private string _skuSpecsHtml = "";
 
     private Microsoft.AspNetCore.Components.MarkupString JsonArticle =>
         (Microsoft.AspNetCore.Components.MarkupString)System.Text.Json.JsonSerializer.Serialize(_normalized);
@@ -1448,7 +1497,94 @@
             // Client loadAspNetCrossSearch fills the badge / list.
         }
 
+        // PHP part_search: Spec splash + Photos gallery from CP sku_media (UMAPI article fallback).
+        try
+        {
+            using var mediaCts = new CancellationTokenSource(TimeSpan.FromMilliseconds(1800));
+            var media = await SkuMedia.LookupAsync(_brandInput, _normalized, mediaCts.Token);
+            ApplySkuMedia(media);
+        }
+        catch (OperationCanceledException)
+        {
+            // Client can still fetch /storefront/sku-media.
+        }
+
         ApplyChpuSeo();
+    }
+
+    private void ApplySkuMedia(StorefrontSkuMediaLookupResult media)
+    {
+        _skuHasPhotos = media.Photos.Count > 0;
+        _skuHasSpecs = media.Specs.Count > 0;
+        _skuPhotosHtml = _skuHasPhotos ? RenderSkuPhotosHtml(media) : "";
+        _skuSpecsHtml = _skuHasSpecs ? RenderSkuSpecsHtml(media.Specs) : "";
+    }
+
+    private static string RenderSkuSpecsHtml(IReadOnlyList<StorefrontSkuMediaSpecGroup> groups)
+    {
+        var sb = new System.Text.StringBuilder();
+        sb.Append("<div class=\"epc-sku-storefront__specs\">");
+        foreach (var g in groups)
+        {
+            sb.Append("<section class=\"epc-sku-storefront__group\">");
+            sb.Append("<h3><i class=\"fa ").Append(System.Net.WebUtility.HtmlEncode(g.Icon)).Append("\"></i> ")
+                .Append(System.Net.WebUtility.HtmlEncode(g.Name)).Append("</h3><table><tbody>");
+            foreach (var row in g.Rows)
+            {
+                sb.Append("<tr><th scope=\"row\">").Append(System.Net.WebUtility.HtmlEncode(row.Label))
+                    .Append("</th><td>").Append(System.Net.WebUtility.HtmlEncode(row.Value)).Append("</td></tr>");
+            }
+
+            sb.Append("</tbody></table></section>");
+        }
+
+        sb.Append("</div>");
+        return sb.ToString();
+    }
+
+    private static string RenderSkuPhotosHtml(StorefrontSkuMediaLookupResult media)
+    {
+        var photos = media.Photos;
+        var primary = photos.FirstOrDefault(p => p.IsPrimary) ?? photos[0];
+        var uid = "epcSkuGal" + (media.Profile?.Id ?? 0).ToString(CultureInfo.InvariantCulture);
+        var sb = new System.Text.StringBuilder();
+        sb.Append("<div class=\"epc-sku-storefront\" id=\"").Append(uid).Append("\">");
+        sb.Append("<div class=\"epc-sku-storefront__gallery\"><div><div class=\"epc-sku-storefront__main\">");
+        sb.Append("<img id=\"").Append(uid).Append("_main\" src=\"")
+            .Append(System.Net.WebUtility.HtmlEncode(primary.Url)).Append("\" alt=\"")
+            .Append(System.Net.WebUtility.HtmlEncode(primary.Alt)).Append("\"></div>");
+        sb.Append("<div class=\"epc-sku-storefront__caption\" id=\"").Append(uid).Append("_cap\">")
+            .Append(System.Net.WebUtility.HtmlEncode(primary.Caption)).Append("</div></div>");
+        if (photos.Count > 1)
+        {
+            sb.Append("<div class=\"epc-sku-storefront__thumbs\" role=\"list\">");
+            foreach (var (ph, i) in photos.Select((p, i) => (p, i)))
+            {
+                var active = string.Equals(ph.Url, primary.Url, StringComparison.Ordinal) ? " is-active" : "";
+                sb.Append("<button type=\"button\" class=\"").Append(active).Append("\" data-src=\"")
+                    .Append(System.Net.WebUtility.HtmlEncode(ph.Url)).Append("\" data-alt=\"")
+                    .Append(System.Net.WebUtility.HtmlEncode(ph.Alt)).Append("\" data-cap=\"")
+                    .Append(System.Net.WebUtility.HtmlEncode(ph.Caption)).Append("\" aria-label=\"Photo ")
+                    .Append((i + 1).ToString(CultureInfo.InvariantCulture)).Append("\">");
+                sb.Append("<img src=\"").Append(System.Net.WebUtility.HtmlEncode(ph.Url)).Append("\" alt=\"\"></button>");
+            }
+
+            sb.Append("</div>");
+        }
+
+        sb.Append("</div></div>");
+        if (photos.Count > 1)
+        {
+            sb.Append("<script>(function(){var r=document.getElementById(")
+                .Append(System.Text.Json.JsonSerializer.Serialize(uid))
+                .Append(");if(!r)return;var m=document.getElementById(")
+                .Append(System.Text.Json.JsonSerializer.Serialize(uid + "_main"))
+                .Append(");var c=document.getElementById(")
+                .Append(System.Text.Json.JsonSerializer.Serialize(uid + "_cap"))
+                .Append(");r.querySelectorAll(\".epc-sku-storefront__thumbs button\").forEach(function(b){b.addEventListener(\"click\",function(){r.querySelectorAll(\".epc-sku-storefront__thumbs button\").forEach(function(x){x.classList.remove(\"is-active\")});b.classList.add(\"is-active\");if(m){m.src=b.getAttribute(\"data-src\");m.alt=b.getAttribute(\"data-alt\")||\"\";}if(c){c.textContent=b.getAttribute(\"data-cap\")||\"\";}});});})();</script>");
+        }
+
+        return sb.ToString();
     }
 
     private void ApplyChpuSeo()

@@ -1712,6 +1712,10 @@ public static class EcomAeRoutes
     public const string StorefrontProductsOfBunch = "/storefront/products-of-bunch";
     /// <summary>Fast CP cross network (PHP <c>ajax_epc_cross_search</c> local path; crossbase enrich optional).</summary>
     public const string StorefrontCrossSearch = "/storefront/cross-search";
+    /// <summary>PHP <c>ajax_epc_sku_media_public.php?action=lookup</c> — CHPU Spec + Photos.</summary>
+    public const string StorefrontSkuMedia = "/storefront/sku-media";
+    /// <summary>Row photo loader alias (parity.js <c>/storefront/product-image</c>).</summary>
+    public const string StorefrontProductImage = "/storefront/product-image";
     /// <summary>Part fitment vehicles (PHP umapi analogs→article_links; public guest).</summary>
     public const string StorefrontFitment = "/storefront/fitment";
     /// <summary>PHP <c>api/epartscross_fitment.js.php</c> twin — crossbase fitment widget JS.</summary>
