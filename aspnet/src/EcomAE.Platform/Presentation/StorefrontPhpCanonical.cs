@@ -31,6 +31,9 @@ public static class StorefrontPhpCanonical
     public const string SellerRequest = LangPrefix + "/zapros-prodavczu";
     public const string CustomerRequests = LangPrefix + "/requests";
     public const string CustomerPrint = LangPrefix + "/shop/print";
+    public const string News = LangPrefix + "/novosti";
+    public const string GuestOrder = LangPrefix + "/shop/orders/guest";
+    public const string Payment = LangPrefix + "/shop/pay";
     public const string Cart = LangPrefix + "/shop/cart";
     public const string Checkout = LangPrefix + "/shop/checkout";
     public const string Orders = LangPrefix + "/shop/orders";
@@ -104,6 +107,9 @@ public static class StorefrontPhpCanonical
             "/storefront/seller-request-app" => SellerRequest + query,
             "/storefront/customer-requests-app" => CustomerRequests + query,
             "/storefront/print-app" => CustomerPrint + query,
+            "/storefront/news-app" => News + query,
+            "/storefront/guest-order-app" => GuestOrder + query,
+            "/storefront/payment-app" => Payment + query,
             _ => "",
         };
 

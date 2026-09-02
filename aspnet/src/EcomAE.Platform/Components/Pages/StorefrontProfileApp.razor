@@ -106,7 +106,18 @@
             </table>
         </div>
 
-        <p style="margin:0 0 1rem"><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpProfile)" style="color:#0369a1;font-weight:700;text-decoration:none">Edit profile</a></p>
+        <form method="post" action="@PhpCustomerWrites.ProfileWriteHref" style="background:#fff;border:1px solid #e2e8f0;border-radius:.55rem;padding:1.1rem 1.2rem;margin-bottom:1rem">
+            <input type="hidden" name="edit_user" value="edit_user" />
+            <label>Email</label>
+            <input type="email" name="email" value="@_email" style="width:100%;margin:.25rem 0 .75rem;padding:.5rem" />
+            <label>Phone</label>
+            <input type="text" name="phone" value="@_phone" style="width:100%;margin:.25rem 0 .75rem;padding:.5rem" />
+            <label>New password</label>
+            <input type="password" name="password" style="width:100%;margin:.25rem 0 .75rem;padding:.5rem" />
+            <label>Repeat password</label>
+            <input type="password" name="password_repeat" style="width:100%;margin:.25rem 0 1rem;padding:.5rem" />
+            <button type="submit" style="padding:.55rem .95rem;border:0;border-radius:.4rem;background:#dc2626;color:#fff;font-weight:800;cursor:pointer">Save profile</button>
+        </form>
     }
 
 </StorefrontTenantChrome>

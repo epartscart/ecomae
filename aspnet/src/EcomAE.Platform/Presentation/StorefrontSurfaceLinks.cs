@@ -36,6 +36,9 @@ public static class StorefrontSurfaceLinks
     public static string SellerRequest => PreferAspNetApps ? StorefrontAspNetCanonical.SellerRequest : StorefrontPhpCanonical.SellerRequest;
     public static string CustomerRequests => PreferAspNetApps ? StorefrontAspNetCanonical.CustomerRequests : StorefrontPhpCanonical.CustomerRequests;
     public static string CustomerPrint => PreferAspNetApps ? StorefrontAspNetCanonical.CustomerPrint : StorefrontPhpCanonical.CustomerPrint;
+    public static string News => PreferAspNetApps ? StorefrontAspNetCanonical.News : StorefrontPhpCanonical.News;
+    public static string GuestOrder => PreferAspNetApps ? StorefrontAspNetCanonical.GuestOrder : StorefrontPhpCanonical.GuestOrder;
+    public static string Payment => PreferAspNetApps ? StorefrontAspNetCanonical.Payment : StorefrontPhpCanonical.Payment;
     public static string Cart => PreferAspNetApps ? StorefrontAspNetCanonical.Cart : StorefrontPhpCanonical.Cart;
     public static string Checkout => PreferAspNetApps ? StorefrontAspNetCanonical.Checkout : StorefrontPhpCanonical.Checkout;
     public static string Orders => PreferAspNetApps ? StorefrontAspNetCanonical.Orders : StorefrontPhpCanonical.Orders;
@@ -215,6 +218,23 @@ public static class StorefrontSurfaceLinks
     public static string ForCustomerRequest(int requestId)
         => (PreferAspNetApps ? StorefrontAspNetCanonical.CustomerRequests : StorefrontPhpCanonical.CustomerRequests)
            + "?id=" + requestId.ToString(System.Globalization.CultureInfo.InvariantCulture);
+
+    public static string ForNews(string url)
+    {
+        var slug = (url ?? string.Empty).Trim().Trim('/');
+        if (slug.Length == 0)
+        {
+            return News;
+        }
+
+        return PreferAspNetApps
+            ? StorefrontAspNetCanonical.News + "?url=" + Uri.EscapeDataString(slug)
+            : StorefrontPhpCanonical.LangPrefix + "/" + slug;
+    }
+
+    public static string ForOrder(long orderId)
+        => (PreferAspNetApps ? StorefrontAspNetCanonical.Orders : StorefrontPhpCanonical.OrderDetail)
+           + "?order_id=" + orderId.ToString(System.Globalization.CultureInfo.InvariantCulture);
 
     public static string ForPrint(long orderId, string? docName = null)
     {

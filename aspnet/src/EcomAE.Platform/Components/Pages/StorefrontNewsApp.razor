@@ -1,0 +1,75 @@
+@page "/storefront/news-app"
+@page "/en/novosti"
+@page "/novosti"
+@page "/en/news"
+@page "/news"
+@layout Layout.PhpChromeLayout
+@using EcomAE.Platform.Presentation
+@inject IHttpContextAccessor Http
+
+<PageTitle>@(_article?.Title ?? "News") · @_brand</PageTitle>
+<PhpSurfaceHead Surface="storefront" IncludeStorefrontAnalytics="true" ApplyStorefrontIndustryAttrs="true" IncludePublicSeo="true" />
+<PhpChromeBodyClass Surface="storefront" />
+
+<StorefrontTenantChrome>
+    <section style="padding:2rem 0 3rem">
+        <div class="container" style="max-width:46rem">
+            <p style="margin:0 0 .35rem;color:#64748b;font-size:.85rem"><a href="/">Home</a> · News</p>
+            @if (_article is not null)
+            {
+                <h1 style="margin:.1rem 0 .35rem">@_article.Title</h1>
+                <p style="color:#64748b;font-size:.85rem">@_article.Date</p>
+                <p style="color:#334155;font-size:1.02rem">@_article.Lead</p>
+                <p style="color:#475569;line-height:1.55">@_article.Body</p>
+                <p style="margin-top:1.25rem"><a href="@StorefrontAspNetCanonical.News">All news</a></p>
+            }
+            else
+            {
+                <h1 style="margin:.1rem 0 .4rem">News</h1>
+                <p style="color:#475569">Store updates for @_brand.</p>
+                @foreach (var item in _items)
+                {
+                    <article style="margin:1rem 0;padding:1rem 1.1rem;background:#fff;border:1px solid #e2e8f0;border-radius:.55rem">
+                        <p style="margin:0 0 .25rem;color:#64748b;font-size:.8rem">@item.Date</p>
+                        <h2 style="margin:0 0 .35rem;font-size:1.15rem"><a href="@StorefrontSurfaceLinks.ForNews(item.Url)">@item.Title</a></h2>
+                        <p style="margin:0;color:#475569">@item.Lead</p>
+                    </article>
+                }
+            }
+        </div>
+    </section>
+</StorefrontTenantChrome>
+
+@code {
+    private string _brand = "eParts Cart";
+    private string _industry = "auto_parts";
+    private PhpStorefrontNews.Article? _article;
+    private IReadOnlyList<PhpStorefrontNews.Article> _items = [];
+
+    [SupplyParameterFromQuery(Name = "url")]
+    public string? Url { get; set; }
+
+    protected override void OnInitialized()
+    {
+        var ctx = Http.HttpContext;
+        var host = ctx?.Request.Host.Host ?? string.Empty;
+        _brand = StorefrontIndustryHostResolver.ResolveBrandLabel(host);
+        _industry = StorefrontIndustryHostResolver.ResolveIndustryCode(host);
+        _items = PhpStorefrontNews.ForIndustry(_industry);
+
+        var slug = Url;
+        if (string.IsNullOrWhiteSpace(slug)
+            && ctx?.Items.TryGetValue(EcomAE.Platform.Middleware.IndustryStorefrontSlugMiddleware.OriginalPathItem, out var original) == true)
+        {
+            slug = StorefrontLangPrefix.Strip(original?.ToString() ?? string.Empty).Trim('/');
+        }
+
+        if (!string.IsNullOrWhiteSpace(slug)
+            && !slug.Equals("novosti", StringComparison.OrdinalIgnoreCase)
+            && !slug.Equals("news", StringComparison.OrdinalIgnoreCase)
+            && PhpStorefrontNews.TryFind(_industry, slug, out var found))
+        {
+            _article = found;
+        }
+    }
+}

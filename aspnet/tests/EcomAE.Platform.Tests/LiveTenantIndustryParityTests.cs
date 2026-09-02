@@ -273,6 +273,33 @@ public sealed class LiveTenantIndustryParityTests
         Assert.Equal(4, StorefrontUcatsCatalog.Find("shiny")!.PickerFields.Count);
     }
 
+    [Theory]
+    [InlineData("www.epartscart.com", "/en/novosti", "news")]
+    [InlineData("www.electronicae.com", "/novosti/iphone-trade-in", "news")]
+    [InlineData("www.stylenlook.com", "/en/shop/orders/guest", "guest-order")]
+    [InlineData("www.thejewellerytrend.com", "/shop/pay", "customer-pay")]
+    public void NewsGuestOrderAndPayRewrite(string host, string path, string kind)
+    {
+        Assert.True(IndustryStorefrontSlugMiddleware.TryMatch(host, path, out var rewrite, out var matched));
+        Assert.Equal(kind, matched);
+        Assert.False(string.IsNullOrWhiteSpace(rewrite));
+    }
+
+    [Fact]
+    public void NewsIsIndustryScopedAndRequestsStayOffControlPanel()
+    {
+        Assert.True(PhpStorefrontNews.TryFind("auto_parts", "novosti/ucats-tires-wheels", out var auto));
+        Assert.Contains("Tires", auto.Title, StringComparison.Ordinal);
+        Assert.False(PhpStorefrontNews.TryFind("auto_parts", "novosti/gold-hallmark", out _));
+        Assert.True(PhpStorefrontNews.TryFind("jewellery", "novosti/gold-hallmark", out var gold));
+        Assert.Contains("Gold", gold.Title, StringComparison.Ordinal);
+        Assert.Equal(StorefrontAspNetCanonical.News, PhpSurfaceLinkMap.AspNetPrimaryHref("/en/novosti"));
+        Assert.Equal(StorefrontAspNetCanonical.GuestOrder, PhpSurfaceLinkMap.AspNetPrimaryHref("/shop/orders/guest"));
+        Assert.Equal(StorefrontAspNetCanonical.Payment, PhpSurfaceLinkMap.AspNetPrimaryHref("/en/shop/pay"));
+        Assert.Equal("/cp/system-requests-app", PhpSurfaceLinkMap.AspNetPrimaryHref("/CP/requests"));
+        Assert.Equal("/php-reference/en/users/profile", PhpCustomerWrites.ProfileWriteHref);
+    }
+
     [Fact]
     public void DedicatedIndustryAppsExist()
     {

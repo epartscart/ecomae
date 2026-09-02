@@ -1,0 +1,69 @@
+@page "/storefront/payment-app"
+@page "/en/shop/pay"
+@page "/shop/pay"
+@layout Layout.PhpChromeLayout
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Presentation
+@inject ILegacySessionValidator Sessions
+@inject IHttpContextAccessor Http
+
+<PageTitle>Pay · @_brand</PageTitle>
+<PhpSurfaceHead Surface="storefront" IncludeStorefrontAnalytics="true" ApplyStorefrontIndustryAttrs="true" />
+<PhpChromeBodyClass Surface="storefront" />
+
+<StorefrontTenantChrome>
+    <section style="padding:2rem 0 3rem">
+        <div class="container" style="max-width:40rem">
+            <p style="margin:0 0 .35rem;color:#64748b;font-size:.85rem">
+                <a href="@StorefrontSurfaceLinks.Orders">My orders</a>
+                · Pay
+            </p>
+            <h1 style="margin:.1rem 0 .4rem">Pay an order or top-up</h1>
+            <p style="color:#475569">Open the payment page for an operation created from an order or account top-up.</p>
+            @if (!_isCustomer)
+            {
+                <div style="padding:1.15rem 1.2rem;background:#fff;border:1px solid #e2e8f0;border-radius:.55rem">
+                    <p style="margin:0 0 .75rem">Sign in to continue payment, or track a guest order first.</p>
+                    <a class="btn btn-primary" href="@StorefrontSurfaceLinks.Login">Sign in</a>
+                    <a class="btn btn-default" href="@StorefrontAspNetCanonical.GuestOrder" style="margin-left:.45rem">Guest order</a>
+                </div>
+            }
+            else
+            {
+                <form method="get" action="@PhpCustomerWrites.PaymentDemoHref" style="background:#fff;border:1px solid #e2e8f0;border-radius:.55rem;padding:1.1rem 1.2rem">
+                    <label for="operation">Operation number</label>
+                    <input id="operation" type="text" name="operation" required value="@Operation" style="width:100%;margin:.25rem 0 .75rem;padding:.5rem" />
+                    <label for="gateway">Gateway</label>
+                    <select id="gateway" name="pay_system" style="width:100%;margin:.25rem 0 1rem;padding:.5rem">
+                        @foreach (var gate in PhpCustomerWrites.PayGateways)
+                        {
+                            <option value="@gate.Code">@gate.Label</option>
+                        }
+                    </select>
+                    <button type="submit" style="padding:.65rem 1.1rem;border:0;border-radius:.45rem;background:#0f766e;color:#fff;font-weight:800;cursor:pointer">Continue to pay</button>
+                </form>
+            }
+        </div>
+    </section>
+</StorefrontTenantChrome>
+
+@code {
+    private string _brand = "eParts Cart";
+    private bool _isCustomer;
+
+    [SupplyParameterFromQuery(Name = "operation")]
+    public string? Operation { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null)
+        {
+            return;
+        }
+
+        _brand = StorefrontIndustryHostResolver.ResolveBrandLabel(ctx.Request.Host.Host);
+        var session = await Sessions.ValidateCustomerAsync(ctx, ctx.RequestAborted);
+        _isCustomer = session.Kind == LegacySessionKind.Customer && session.UserId > 0;
+    }
+}

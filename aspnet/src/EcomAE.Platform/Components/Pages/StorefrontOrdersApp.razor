@@ -98,6 +98,8 @@
                                 <td><span class="epc-sf-ord-badge @(o.SuccessfullyCreated != 0 ? "epc-sf-ord-badge--ok" : "epc-sf-ord-badge--info")">@(o.SuccessfullyCreated != 0 ? "yes" : "no")</span></td>
                                 <td><span class="epc-sf-ord-badge epc-sf-ord-badge--info">@o.Status.ToString(CultureInfo.InvariantCulture)</span></td>
                                 <td>
+                                    <a href="@StorefrontSurfaceLinks.ForOrder(o.Id)">Open</a>
+                                    ·
                                     <a href="@StorefrontSurfaceLinks.ForPrint(o.Id, "sales_receipt")">Receipt</a>
                                     ·
                                     <a href="@StorefrontSurfaceLinks.ForPrint(o.Id, "invoice_for_payment")">Invoice</a>
@@ -108,6 +110,42 @@
                 </tbody>
             </table>
         </div>
+
+        @if (_selected is not null)
+        {
+            <div class="epc-sf-ord-table-wrap" style="margin-top:1rem;padding:1rem 1.1rem">
+                <h2 style="margin:0 0 .55rem;font-size:1.05rem">Order #@_selected.Id.ToString(CultureInfo.InvariantCulture)</h2>
+                <p style="margin:0 0 .75rem;color:#475569">
+                    @(_selected.Paid != 0 ? "Paid" : "Unpaid")
+                    · status @_selected.Status.ToString(CultureInfo.InvariantCulture)
+                    · @FormatTs(_selected.TimeUnix)
+                </p>
+                <p style="margin:0 0 .85rem">
+                    <a href="@StorefrontSurfaceLinks.ForPrint(_selected.Id, "sales_receipt")">Receipt</a>
+                    ·
+                    <a href="@StorefrontSurfaceLinks.ForPrint(_selected.Id, "invoice_for_payment")">Invoice</a>
+                    ·
+                    <a href="@StorefrontAspNetCanonical.CustomerReturns">Return</a>
+                    ·
+                    <a href="@StorefrontAspNetCanonical.Payment">Pay</a>
+                </p>
+                <form method="post" action="@PhpCustomerWrites.OrderWriteHref" style="margin-bottom:1rem">
+                    <input type="hidden" name="order_id" value="@_selected.Id.ToString(CultureInfo.InvariantCulture)" />
+                    <input type="hidden" name="action" value="pay_on_place" />
+                    <button type="submit" style="padding:.55rem .9rem;border:0;border-radius:.4rem;background:#0f766e;color:#fff;font-weight:800;cursor:pointer">Pay on collection</button>
+                </form>
+                <form method="get" action="@PhpCustomerWrites.OrderMessageHref">
+                    <input type="hidden" name="order_id" value="@_selected.Id.ToString(CultureInfo.InvariantCulture)" />
+                    <label for="order_message">Message to the store</label>
+                    <textarea id="order_message" name="text" rows="3" required style="width:100%;margin:.25rem 0 .75rem;padding:.5rem"></textarea>
+                    <button type="submit" style="padding:.55rem .9rem;border:0;border-radius:.4rem;background:#dc2626;color:#fff;font-weight:800;cursor:pointer">Send message</button>
+                </form>
+            </div>
+        }
+        else
+        {
+            <p style="margin-top:1rem"><a href="@StorefrontAspNetCanonical.GuestOrder">Track a guest order</a></p>
+        }
     }
 
 </StorefrontTenantChrome>
@@ -122,6 +160,10 @@
     private int _limit = 25;
     private string _source = "n/a";
     private string _message = "";
+    private StorefrontOrderDigest? _selected;
+
+    [SupplyParameterFromQuery(Name = "order_id")]
+    public long? OrderId { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
@@ -143,6 +185,10 @@
         _created = _orders.Count(o => o.SuccessfullyCreated != 0);
         _source = result.Source;
         _message = result.Message;
+        if (OrderId is > 0)
+        {
+            _selected = _orders.FirstOrDefault(o => o.Id == OrderId.Value);
+        }
     }
 
     private static string FormatTs(long ts)

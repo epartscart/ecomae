@@ -152,6 +152,38 @@ public sealed class IndustryStorefrontSlugMiddleware
             return true;
         }
 
+        if (only.Equals("shop/orders/guest", StringComparison.OrdinalIgnoreCase))
+        {
+            rewrite = StorefrontAspNetCanonical.GuestOrder + incomingQuery;
+            kind = "guest-order";
+            return true;
+        }
+
+        if (only.Equals("shop/pay", StringComparison.OrdinalIgnoreCase)
+            || only.StartsWith("shop/pay/", StringComparison.OrdinalIgnoreCase))
+        {
+            rewrite = StorefrontAspNetCanonical.Payment + incomingQuery;
+            kind = "customer-pay";
+            return true;
+        }
+
+        if (PhpStorefrontNews.IsNewsPath(only))
+        {
+            var newsQuery = incomingQuery;
+            if (only.Contains('/', StringComparison.Ordinal)
+                && !newsQuery.Contains("url=", StringComparison.OrdinalIgnoreCase))
+            {
+                newsQuery = "?url=" + Uri.EscapeDataString(only)
+                            + (incomingQuery.Length > 0 && incomingQuery[0] == '?'
+                                ? "&" + incomingQuery[1..]
+                                : incomingQuery);
+            }
+
+            rewrite = StorefrontAspNetCanonical.News + newsQuery;
+            kind = "news";
+            return true;
+        }
+
         if (only.Equals("auto-workshop", StringComparison.OrdinalIgnoreCase)
             && industry is "auto_parts")
         {
@@ -248,6 +280,10 @@ public sealed class IndustryStorefrontSlugMiddleware
                || only.Equals("katalog-laximo", StringComparison.OrdinalIgnoreCase)
                || only.Equals("zapros-prodavczu", StringComparison.OrdinalIgnoreCase)
                || only.Equals("requests", StringComparison.OrdinalIgnoreCase)
-               || only.StartsWith("requests/", StringComparison.OrdinalIgnoreCase);
+               || only.StartsWith("requests/", StringComparison.OrdinalIgnoreCase)
+               || only.Equals("novosti", StringComparison.OrdinalIgnoreCase)
+               || only.StartsWith("novosti/", StringComparison.OrdinalIgnoreCase)
+               || only.Equals("news", StringComparison.OrdinalIgnoreCase)
+               || only.StartsWith("news/", StringComparison.OrdinalIgnoreCase);
     }
 }

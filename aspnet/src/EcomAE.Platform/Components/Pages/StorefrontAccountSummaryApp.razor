@@ -100,14 +100,18 @@
             </table>
         </div>
 
-        <div class="epc-sf-acc-links" aria-label="Account shortcuts">
-            <a href="/storefront/orders-app">Orders list</a>
-            <a href="/storefront/garage-app">Garage list</a>
-            <a href="/storefront/profile-app">Profile read</a>
-            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpAccount)">Account hub</a>
-        </div>
+        <form method="post" action="@PhpCustomerWrites.BalanceTopUpHref" style="background:#fff;border:1px solid #e7e5e4;border-radius:.55rem;padding:1.1rem 1.2rem;margin-bottom:1rem">
+            <label for="money_value">Top up (AED)</label>
+            <input id="money_value" type="number" name="amount" min="1" step="0.01" required style="width:100%;margin:.25rem 0 1rem;padding:.5rem" />
+            <button type="submit" style="padding:.55rem .95rem;border:0;border-radius:.4rem;background:#0f766e;color:#fff;font-weight:800;cursor:pointer">Create top-up</button>
+        </form>
 
-        <div class="epc-sf-acc-note">Source: @_summary.Source. PHP /users/ remains authoritative for account tools.</div>
+        <div class="epc-sf-acc-links" aria-label="Account shortcuts">
+            <a href="@StorefrontSurfaceLinks.Orders">Orders list</a>
+            <a href="@StorefrontSurfaceLinks.GarageLogin">Garage list</a>
+            <a href="/storefront/profile-app">Profile</a>
+            <a href="@StorefrontAspNetCanonical.Payment">Pay</a>
+        </div>
     }
 
 </StorefrontTenantChrome>

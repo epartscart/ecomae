@@ -1,4 +1,16 @@
 @page "/storefront/cms-page-app"
+@page "/en/kontakty"
+@page "/kontakty"
+@page "/en/o-dostavke"
+@page "/o-dostavke"
+@page "/en/ob-oplate"
+@page "/ob-oplate"
+@page "/en/o-vozvrate"
+@page "/o-vozvrate"
+@page "/en/polzovatelskoe-soglashenie"
+@page "/polzovatelskoe-soglashenie"
+@page "/en/politika-konfidencialnosti"
+@page "/politika-konfidencialnosti"
 @layout Layout.PhpChromeLayout
 @using EcomAE.Platform.Presentation
 @inject IHttpContextAccessor Http
@@ -30,11 +42,16 @@ else
         var ctx = Http.HttpContext;
         var host = ctx?.Request.Host.Host ?? string.Empty;
         var attrs = StorefrontIndustryHostResolver.Resolve(host);
-        var slug = ctx?.Request.Query["slug"].ToString() ?? "kontakty";
+        var slug = ctx?.Request.Query["slug"].ToString() ?? string.Empty;
         if (string.IsNullOrWhiteSpace(slug)
             && ctx?.Items.TryGetValue(EcomAE.Platform.Middleware.IndustryStorefrontSlugMiddleware.OriginalPathItem, out var original) == true)
         {
             slug = StorefrontLangPrefix.Strip(original?.ToString() ?? string.Empty).Trim('/');
+        }
+
+        if (string.IsNullOrWhiteSpace(slug))
+        {
+            slug = StorefrontLangPrefix.Strip(ctx?.Request.Path.Value ?? string.Empty).Trim('/');
         }
 
         _page = PhpIndustryCmsPages.Resolve(slug, attrs.IndustryCode);
