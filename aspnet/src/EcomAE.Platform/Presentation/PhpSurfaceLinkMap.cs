@@ -476,6 +476,11 @@ public static class PhpSurfaceLinkMap
             return StorefrontAspNetCanonical.SpecialSearch + "?alias=" + Uri.EscapeDataString(PhpSpecialSearches.Normalize(value));
         }
 
+        if (PhpOwnCatalogSlugs.IsAlias(value))
+        {
+            return StorefrontAspNetCanonical.OwnCatalog + "?url=" + Uri.EscapeDataString(PhpOwnCatalogSlugs.Normalize(value));
+        }
+
         if (value.Contains("/shop/quotes", StringComparison.OrdinalIgnoreCase)
             || value.Equals("/shop/quotes", StringComparison.OrdinalIgnoreCase))
         {
@@ -523,10 +528,29 @@ public static class PhpSurfaceLinkMap
                 : "");
         }
 
-        if (value.Contains("katalog-laximo", StringComparison.OrdinalIgnoreCase)
+        if (value.Equals("/vin-zapros", StringComparison.OrdinalIgnoreCase)
+            || value.StartsWith("/vin-zapros?", StringComparison.OrdinalIgnoreCase)
+            || value.Equals("/vin_zapros", StringComparison.OrdinalIgnoreCase)
+            || value.StartsWith("/vin_zapros?", StringComparison.OrdinalIgnoreCase))
+        {
+            return StorefrontAspNetCanonical.SellerRequest;
+        }
+
+        if (value.Equals("/vin", StringComparison.OrdinalIgnoreCase)
+            || value.StartsWith("/vin?", StringComparison.OrdinalIgnoreCase)
+            || value.Contains("katalog-laximo", StringComparison.OrdinalIgnoreCase)
             || value.Contains("identString=", StringComparison.OrdinalIgnoreCase))
         {
             return StorefrontSurfaceLinks.ForVinSearch(value);
+        }
+
+        if (value.Equals("/shop/ucats", StringComparison.OrdinalIgnoreCase)
+            || value.StartsWith("/shop/ucats/", StringComparison.OrdinalIgnoreCase)
+            || value.StartsWith("/shop/ucats?", StringComparison.OrdinalIgnoreCase)
+            || value.Equals("/shop/katalogi-ucats", StringComparison.OrdinalIgnoreCase)
+            || value.StartsWith("/shop/katalogi-ucats/", StringComparison.OrdinalIgnoreCase))
+        {
+            return StorefrontSurfaceLinks.UcatsService;
         }
 
         if (value.Contains("vehicle-catalog", StringComparison.OrdinalIgnoreCase))
@@ -616,10 +640,11 @@ public static class PhpSurfaceLinkMap
         }
 
         // Account/profile before blanket /users → login.
-        if (value.Contains("/users/profile", StringComparison.OrdinalIgnoreCase))
+        if (value.Contains("/users/profile", StringComparison.OrdinalIgnoreCase)
+            || value.Contains("/users/editform", StringComparison.OrdinalIgnoreCase))
         {
             return StorefrontSurfaceLinks.PreferAspNetApps
-                ? "/storefront/profile-app"
+                ? StorefrontAspNetCanonical.Profile
                 : StorefrontPhpCanonical.LangPrefix + "/users/profile";
         }
 
@@ -1220,7 +1245,20 @@ public static class PhpSurfaceLinkMap
             || path.Equals("/shop/offices", StringComparison.OrdinalIgnoreCase)
             || path.Equals("/users/account", StringComparison.OrdinalIgnoreCase)
             || path.Equals("/ai-parts-expert", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/vin", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/vin-zapros", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/vin_zapros", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/kak-zakazat", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/garantii", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/dostavka", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/oplata", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/vozvrat", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/o-nas", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/users/editform", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/shop/ucats", StringComparison.OrdinalIgnoreCase)
+            || path.StartsWith("/shop/ucats/", StringComparison.OrdinalIgnoreCase)
             || PhpSpecialSearches.IsAlias(path)
+            || PhpOwnCatalogSlugs.IsAlias(path)
             || path.Equals("/katalog-laximo", StringComparison.OrdinalIgnoreCase)
             || path.Equals("/vehicle-catalog", StringComparison.OrdinalIgnoreCase)
             || path.Equals("/umapi_catalog", StringComparison.OrdinalIgnoreCase)

@@ -401,6 +401,47 @@ public sealed class LiveTenantIndustryParityTests
     }
 
     [Fact]
+    public void Own_catalog_vin_and_how_to_order_are_host_gated()
+    {
+        Assert.True(IndustryStorefrontSlugMiddleware.TryMatch("www.epartscart.com", "/en/masla", out var catalog, out var catalogKind));
+        Assert.Equal("own-catalog-slug", catalogKind);
+        Assert.Contains("url=masla", catalog, StringComparison.Ordinal);
+        Assert.True(IndustryStorefrontSlugMiddleware.TryMatch("www.epartscart.com", "/vin", out var vin, out var vinKind));
+        Assert.Equal("laximo-vin", vinKind);
+        Assert.Equal(StorefrontAspNetCanonical.LaximoVin, vin);
+        Assert.True(IndustryStorefrontSlugMiddleware.TryMatch("www.epartscart.com", "/katalog-laximo", out var laximo, out var laximoKind));
+        Assert.Equal("laximo-vin", laximoKind);
+        Assert.True(IndustryStorefrontSlugMiddleware.TryMatch("www.epartscart.com", "/vin-zapros", out var zapros, out var zaprosKind));
+        Assert.Equal("seller-request", zaprosKind);
+        Assert.True(IndustryStorefrontSlugMiddleware.TryMatch("www.epartscart.com", "/en/shop/ucats/shiny", out var ucats, out var ucatsKind));
+        Assert.Equal("ucats", ucatsKind);
+        Assert.Contains("/shiny", ucats, StringComparison.Ordinal);
+        Assert.False(IndustryStorefrontSlugMiddleware.TryMatch("www.thejewellerytrend.com", "/masla", out _, out _));
+        Assert.False(IndustryStorefrontSlugMiddleware.TryMatch("www.stylenlook.com", "/vin", out _, out _));
+        Assert.False(IndustryStorefrontSlugMiddleware.TryMatch("www.thejewellerytrend.com", "/shop/ucats/shiny", out _, out _));
+        Assert.True(IndustryStorefrontSlugMiddleware.TryMatch("www.electronicae.com", "/kak-zakazat", out var how, out var howKind));
+        Assert.Equal("cms:kak-zakazat", howKind);
+        Assert.True(IndustryStorefrontSlugMiddleware.TryMatch("www.stylenlook.com", "/dostavka", out var delivery, out var deliveryKind));
+        Assert.Equal("cms:dostavka", deliveryKind);
+        Assert.True(PhpIndustryCmsPages.IsSlug("garantii"));
+        Assert.True(PhpIndustryCmsPages.IsSlug("o-nas"));
+        Assert.Contains("article", PhpIndustryCmsPages.Resolve("kak-zakazat", "auto_parts").Lead, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("VIN", PhpIndustryCmsPages.Resolve("kak-zakazat", "jewellery").Lead, StringComparison.Ordinal);
+        Assert.Equal(2, PhpCustomerReturns.SampleForAccount().Count);
+        Assert.True(PhpOwnCatalogSlugs.IsAlias("tormoznaya-sistema"));
+        Assert.True(PhpOwnCatalogSlugs.IsAlias("podshipniki"));
+        Assert.False(PhpOwnCatalogSlugs.IsAlias("gold"));
+        Assert.True(PhpSpecialSearches.IsAlias("generator"));
+        Assert.False(PhpSpecialSearches.IsAlias("gold"));
+        Assert.Equal(StorefrontAspNetCanonical.SellerRequest, PhpSurfaceLinkMap.AspNetPrimaryHref("/vin-zapros"));
+        var editform = PhpSurfaceLinkMap.AspNetPrimaryHref("/users/editform");
+        Assert.True(
+            editform.Equals(StorefrontAspNetCanonical.Profile, StringComparison.Ordinal)
+            || editform.EndsWith("/users/profile", StringComparison.Ordinal));
+        Assert.False(PhpSurfaceLinkMap.TryMapIncomingPhpProductPath("/en/katalog-laximo", out _));
+    }
+
+    [Fact]
     public void DedicatedIndustryAppsExist()
     {
         var catalog = Find("aspnet/src/EcomAE.Platform/Components/Pages/StorefrontIndustryCatalogApp.razor");

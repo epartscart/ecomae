@@ -81,4 +81,6 @@ public static class StorefrontAspNetCanonical
     public const string CheckoutLoginOffer = "/storefront/checkout-app?step=login_offer";
     /// <summary>Order detail (PHP <c>/en/shop/orders/order</c>).</summary>
     public const string OrderDetail = "/storefront/orders-app";
+    /// <summary>Customer profile (PHP <c>/en/users/profile</c> / <c>/users/editform</c>).</summary>
+    public const string Profile = "/storefront/profile-app";
 }

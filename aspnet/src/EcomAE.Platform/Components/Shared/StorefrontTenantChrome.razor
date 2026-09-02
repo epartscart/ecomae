@@ -9,12 +9,20 @@
         @ChildContent
         @((MarkupString)_footerHtml)
     </div>
+    @if (_showAgent)
+    {
+        <StorefrontPartsAgentChip />
+    }
 }
 else
 {
     <PhpStorefrontDesktopChrome>
         @ChildContent
     </PhpStorefrontDesktopChrome>
+    @if (_showAgent)
+    {
+        <StorefrontPartsAgentChip />
+    }
 }
 
 @code {
@@ -22,10 +30,12 @@ else
 
     private string _headerHtml = string.Empty;
     private string _footerHtml = string.Empty;
+    private bool _showAgent;
 
     protected override void OnInitialized()
     {
         var host = Http.HttpContext?.Request.Host.Host ?? string.Empty;
+        _showAgent = StorefrontIndustryHostResolver.ResolveIndustryCode(host) is "auto_parts";
         var package = StorefrontIndustryHostResolver.Resolve(host).StorefrontPackage;
         if (PhpTenantHomeSnapshots.TrySplitChrome(package, out var header, out var footer))
         {

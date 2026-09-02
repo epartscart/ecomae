@@ -109,5 +109,29 @@ public static class PhpSpecialSearches
                 new("Head gasket", "head gasket"),
                 new("Valve cover", "valve cover gasket"),
             ]),
+        new("generator", "Alternators",
+            "Charging-system alternators by vehicle.",
+            [
+                new("Alternator", "alternator"),
+                new("Voltage regulator", "voltage regulator"),
+            ]),
+        new("starter", "Starters",
+            "Starter motors and solenoid kits.",
+            [
+                new("Starter", "starter motor"),
+                new("Solenoid", "starter solenoid"),
+            ]),
+        new("nasosy-toplivnye", "Fuel pumps",
+            "In-tank and in-line fuel pumps.",
+            [
+                new("In-tank pump", "fuel pump"),
+                new("In-line pump", "inline fuel pump"),
+            ]),
+        new("antifriz", "Antifreeze",
+            "Coolant and antifreeze by spec.",
+            [
+                new("G12", "antifreeze G12"),
+                new("G13", "antifreeze G13"),
+            ]),
     ];
 }

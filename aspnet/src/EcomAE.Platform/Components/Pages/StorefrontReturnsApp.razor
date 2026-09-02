@@ -34,6 +34,18 @@
             {
                 <div style="background:#fff;border:1px solid #e2e8f0;border-radius:.55rem;padding:1.1rem 1.2rem">
                     <p style="margin:0 0 .75rem;color:#475569">Start a new return from an order, or open an existing request.</p>
+                    @if (_returns.Count > 0)
+                    {
+                        <ul style="margin:0 0 1rem;padding:0;list-style:none">
+                            @foreach (var row in _returns)
+                            {
+                                <li style="margin:0 0 .45rem;padding:.55rem .7rem;background:#f8fafc;border:1px solid #e2e8f0;border-radius:.4rem">
+                                    Return #@row.Id · order @row.OrderId · @row.Status
+                                    · <a href="@(StorefrontAspNetCanonical.CustomerReturns + "?return_id=" + row.Id)">Message</a>
+                                </li>
+                            }
+                        </ul>
+                    }
                     <p style="margin:0 0 .85rem"><a class="btn btn-primary" href="@StorefrontSurfaceLinks.Orders">Choose an order</a></p>
                     <form method="post" action="@PhpVendorPortal.ReturnsWriteHref">
                         <label>Order number</label>
@@ -60,6 +72,7 @@
 @code {
     private string _brand = "eParts Cart";
     private bool _isCustomer;
+    private IReadOnlyList<PhpCustomerReturns.Row> _returns = [];
 
     [SupplyParameterFromQuery(Name = "order_id")]
     public string? OrderId { get; set; }
@@ -78,5 +91,9 @@
         _brand = StorefrontIndustryHostResolver.ResolveBrandLabel(ctx.Request.Host.Host);
         var session = await Sessions.ValidateCustomerAsync(ctx, ctx.RequestAborted);
         _isCustomer = session.Kind == LegacySessionKind.Customer && session.UserId > 0;
+        if (_isCustomer)
+        {
+            _returns = PhpCustomerReturns.SampleForAccount();
+        }
     }
 }

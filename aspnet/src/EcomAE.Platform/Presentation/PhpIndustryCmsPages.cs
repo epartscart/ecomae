@@ -13,7 +13,8 @@ public static class PhpIndustryCmsPages
     [
         "kontakty", "o-dostavke", "ob-oplate", "o-vozvrate",
         "polzovatelskoe-soglashenie", "politika-konfidencialnosti",
-        "o-kompanii", "chastye-voprosy",
+        "o-kompanii", "chastye-voprosy", "kak-zakazat", "garantii",
+        "dostavka", "oplata", "vozvrat", "o-nas",
     ];
 
     public static bool IsSlug(string? path)
@@ -28,13 +29,15 @@ public static class PhpIndustryCmsPages
         var industry = string.IsNullOrWhiteSpace(industryCode) ? "auto_parts" : industryCode.Trim().ToLowerInvariant();
         return slug switch
         {
-            "o-dostavke" => Delivery(industry),
-            "ob-oplate" => Payment(industry),
-            "o-vozvrate" => Returns(industry),
+            "o-dostavke" or "dostavka" => Delivery(industry),
+            "ob-oplate" or "oplata" => Payment(industry),
+            "o-vozvrate" or "vozvrat" => Returns(industry),
             "polzovatelskoe-soglashenie" => UserAgreement(industry),
             "politika-konfidencialnosti" => Privacy(industry),
-            "o-kompanii" => About(industry),
+            "o-kompanii" or "o-nas" => About(industry),
             "chastye-voprosy" => Faq(industry),
+            "kak-zakazat" => HowToOrder(industry),
+            "garantii" => Warranty(industry),
             _ => Contact(industry),
         };
     }
@@ -338,6 +341,94 @@ public static class PhpIndustryCmsPages
                 "Search by article and manufacturer, or decode a VIN on the VIN page.",
                 "Workshops use the garage notepad and seller request when the article is unknown.",
                 "Electrical parts and opened fluids are often non-returnable.",
+            ]),
+    };
+
+    private static Page HowToOrder(string industry) => industry switch
+    {
+        "electronics" => new(
+            "kak-zakazat",
+            "How to order",
+            "Search, add to cart, and collect or take delivery.",
+            [
+                "Find a product from the category pages or the search box, then add it to the cart.",
+                "Pay at checkout. Store pickup is available when the listing shows stock.",
+            ]),
+        "fashion" => new(
+            "kak-zakazat",
+            "How to order",
+            "Browse, size, and checkout in AED.",
+            [
+                "Open a category, pick a size, and add the item to the cart.",
+                "Delivery windows show at checkout. Sizing help stays on the contact page.",
+            ]),
+        "jewellery" => new(
+            "kak-zakazat",
+            "How to order",
+            "Reserve or buy a piece, then collect or take insured delivery.",
+            [
+                "Open a collection, check the certificate notes, and add the piece to the cart.",
+                "High-value items may need a deposit. Boutique collection is available.",
+            ]),
+        "tax_advisory" => new(
+            "kak-zakazat",
+            "How to engage",
+            "Pick a service card and send the contact form.",
+            [
+                "Open VAT, corporate tax, or company-formation cards for the published fee.",
+                "Signed-in clients continue in Client ERP after the engagement letter.",
+            ]),
+        _ => new(
+            "kak-zakazat",
+            "How to order",
+            "Search by article, VIN, or catalogue, then checkout.",
+            [
+                "Search a part number, decode a VIN, or open a special-search landing.",
+                "Workshops can upload an Excel list or send a seller request when the article is unknown.",
+            ]),
+    };
+
+    private static Page Warranty(string industry) => industry switch
+    {
+        "electronics" => new(
+            "garantii",
+            "Warranty",
+            "Brand warranty stays on the product card.",
+            [
+                "Keep the box and serial labels. Warranty claims go to the brand service centre.",
+                "Store returns follow the returns page when the item is unused.",
+            ]),
+        "fashion" => new(
+            "garantii",
+            "Quality",
+            "Unused fashion and unopened beauty follow the returns page.",
+            [
+                "Tags must stay attached. Opened cosmetics are final sale.",
+                "Write to customer care from the contact page if a garment is faulty.",
+            ]),
+        "jewellery" => new(
+            "garantii",
+            "Certificates & warranty",
+            "Gold weight and diamond certificates stay with the invoice.",
+            [
+                "Hallmark and certificate copies are issued with the piece.",
+                "Unused returns follow the 14-day window on the returns page.",
+            ]),
+        "tax_advisory" => new(
+            "garantii",
+            "Engagement quality",
+            "Filed work follows the engagement letter.",
+            [
+                "Scope and deadlines are written before filing.",
+                "Unused retainer hours can be reallocated on the next invoice.",
+            ]),
+        _ => new(
+            "garantii",
+            "Warranty",
+            "Supplier warranty follows the warehouse row.",
+            [
+                "Electrical parts and fluids often have a limited return window.",
+                "Open a return from My orders if the part does not match the article.",
             ]),
     };
 

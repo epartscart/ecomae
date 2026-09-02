@@ -1,5 +1,4 @@
 @page "/storefront/vin-app"
-@page "/en/katalog-laximo"
 @layout Layout.PhpChromeLayout
 @using EcomAE.Platform.Presentation
 @inject IHttpContextAccessor Http
@@ -48,15 +47,20 @@
     {
         <div class="epc-sf-vin-panel" style="padding:1.1rem 1.2rem;color:#334155" aria-label="VIN decode workspace">
             <p style="margin:0 0 .65rem;font-weight:700">VIN / frame: @_vin</p>
-            <p style="margin:0;color:#64748b;font-size:.9rem;line-height:1.45">
-                Continue to part search for live stock on this vehicle.
+            <p style="margin:0 0 .85rem;color:#64748b;font-size:.9rem;line-height:1.45">
+                Continue to live stock, a seller request, or the vehicle catalog.
+            </p>
+            <p>
+                <a class="btn btn-sm btn-primary" href="@StorefrontSurfaceLinks.PartSearch">Part search</a>
+                <a class="btn btn-sm btn-default" href="@StorefrontSurfaceLinks.SellerRequest">Request to seller</a>
+                <a class="btn btn-sm btn-default" href="@StorefrontSurfaceLinks.VehicleCatalog">Vehicle catalog</a>
             </p>
         </div>
     }
     else
     {
         <div class="epc-sf-vin-panel" style="padding:1.25rem;color:#475569">
-            Enter a VIN or frame number to start.
+            Enter a VIN or frame number to start. Unknown articles can go to the seller request form.
         </div>
     }
 </StorefrontTenantChrome>

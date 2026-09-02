@@ -127,7 +127,10 @@ public sealed class IndustryStorefrontSlugMiddleware
             return true;
         }
 
-        if (only.Equals("zapros-prodavczu", StringComparison.OrdinalIgnoreCase))
+        if (only.Equals("zapros-prodavczu", StringComparison.OrdinalIgnoreCase)
+            || ((only.Equals("vin-zapros", StringComparison.OrdinalIgnoreCase)
+                 || only.Equals("vin_zapros", StringComparison.OrdinalIgnoreCase))
+                && industry is "auto_parts"))
         {
             rewrite = StorefrontAspNetCanonical.SellerRequest + incomingQuery;
             kind = "seller-request";
@@ -197,6 +200,42 @@ public sealed class IndustryStorefrontSlugMiddleware
         {
             rewrite = StorefrontAspNetCanonical.AiPartsExpert + incomingQuery;
             kind = "ai-parts-expert";
+            return true;
+        }
+
+        if (industry is "auto_parts"
+            && (only.Equals("shop/katalogi-ucats", StringComparison.OrdinalIgnoreCase)
+                || only.StartsWith("shop/katalogi-ucats/", StringComparison.OrdinalIgnoreCase)
+                || only.Equals("shop/ucats", StringComparison.OrdinalIgnoreCase)
+                || only.StartsWith("shop/ucats/", StringComparison.OrdinalIgnoreCase)))
+        {
+            var ucatsKey = only.Contains('/', StringComparison.Ordinal)
+                ? only[(only.LastIndexOf('/', StringComparison.Ordinal) + 1)..]
+                : string.Empty;
+            if (ucatsKey.Equals("katalogi-ucats", StringComparison.OrdinalIgnoreCase)
+                || ucatsKey.Equals("ucats", StringComparison.OrdinalIgnoreCase)
+                || ucatsKey.Equals("catalogues", StringComparison.OrdinalIgnoreCase)
+                || ucatsKey.Length == 0)
+            {
+                rewrite = StorefrontAspNetCanonical.UcatsService + incomingQuery;
+                kind = "ucats";
+                return true;
+            }
+
+            var card = StorefrontUcatsCatalog.Find(ucatsKey);
+            rewrite = card is null
+                ? StorefrontAspNetCanonical.UcatsService + incomingQuery
+                : StorefrontAspNetCanonical.UcatsService + "/" + card.Slug + incomingQuery;
+            kind = "ucats";
+            return true;
+        }
+
+        if ((only.Equals("vin", StringComparison.OrdinalIgnoreCase)
+             || only.Equals("katalog-laximo", StringComparison.OrdinalIgnoreCase))
+            && industry is "auto_parts")
+        {
+            rewrite = StorefrontAspNetCanonical.LaximoVin + incomingQuery;
+            kind = "laximo-vin";
             return true;
         }
 
@@ -315,6 +354,13 @@ public sealed class IndustryStorefrontSlugMiddleware
             return true;
         }
 
+        if (industry is "auto_parts" && PhpOwnCatalogSlugs.IsAlias(only))
+        {
+            rewrite = StorefrontAspNetCanonical.OwnCatalog + "?url=" + Uri.EscapeDataString(PhpOwnCatalogSlugs.Normalize(only));
+            kind = "own-catalog-slug";
+            return true;
+        }
+
         return false;
     }
 
@@ -354,6 +400,9 @@ public sealed class IndustryStorefrontSlugMiddleware
                || only.Equals("katalog", StringComparison.OrdinalIgnoreCase)
                || only.Equals("brochure", StringComparison.OrdinalIgnoreCase)
                || only.Equals("ofisy", StringComparison.OrdinalIgnoreCase)
-               || only.Equals("ai-parts-expert", StringComparison.OrdinalIgnoreCase);
+               || only.Equals("ai-parts-expert", StringComparison.OrdinalIgnoreCase)
+               || only.Equals("vin", StringComparison.OrdinalIgnoreCase)
+               || only.Equals("vin-zapros", StringComparison.OrdinalIgnoreCase)
+               || only.Equals("vin_zapros", StringComparison.OrdinalIgnoreCase);
     }
 }
