@@ -4,6 +4,8 @@
 @page "/en/shop/search"
 @page "/parts/{PathBrand}/{PathArticle}"
 @page "/en/parts/{PathBrand}/{PathArticle}"
+@page "/parts/{PathBrand}"
+@page "/en/parts/{PathBrand}"
 @layout Layout.PhpChromeLayout
 @using System.Globalization
 @using EcomAE.Platform.Migration
@@ -1280,6 +1282,14 @@
             _articleInput = pathArticle;
             _brandInput = pathBrand;
         }
+        else if (!string.IsNullOrWhiteSpace(pathBrand)
+                 && string.IsNullOrWhiteSpace(pathArticle)
+                 && !string.Equals(pathBrand, "brands", StringComparison.OrdinalIgnoreCase))
+        {
+            // PHP manufacturer browse: /en/parts/{BRAND}
+            _articleInput = ArticleQuery?.Trim() ?? "";
+            _brandInput = FirstNonEmpty(BrandQuery, BrendQuery, pathBrand);
+        }
         else
         {
             _articleInput = ArticleQuery?.Trim() ?? "";
@@ -1313,7 +1323,11 @@
             "engine" => "Engine code search",
             "car" => "Vehicle catalog",
             "name" => "Search by name",
-            _ => string.IsNullOrWhiteSpace(_brandInput) ? "Part search" : $"{_brandInput.ToUpperInvariant()} {_articleInput.ToUpperInvariant()}"
+            _ => string.IsNullOrWhiteSpace(_brandInput)
+                ? "Part search"
+                : string.IsNullOrWhiteSpace(_articleInput)
+                    ? _brandInput.ToUpperInvariant()
+                    : $"{_brandInput.ToUpperInvariant()} {_articleInput.ToUpperInvariant()}"
         };
         _heroSubtitle = _mode switch
         {
@@ -1323,7 +1337,9 @@
             "car" => "Browse by vehicle — open the vehicle catalog app for year/make/model.",
             _ => string.IsNullOrWhiteSpace(_brandInput)
                 ? "Select a manufacturer after searching by article (PHP brand picker parity)."
-                : "Warehouse offers and cross references for the selected brand + article."
+                : string.IsNullOrWhiteSpace(_articleInput)
+                    ? "Search articles from this manufacturer."
+                    : "Warehouse offers and cross references for the selected brand + article."
         };
 
         // Dedicated apps own VIN / vehicle-tree UX when PreferAspNetApps is on.

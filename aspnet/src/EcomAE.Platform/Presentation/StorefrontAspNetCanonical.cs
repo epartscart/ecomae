@@ -58,6 +58,8 @@ public static class StorefrontAspNetCanonical
     public const string News = "/storefront/news-app";
     public const string GuestOrder = "/storefront/guest-order-app";
     public const string Payment = "/storefront/payment-app";
+    public const string Sitemap = "/storefront/sitemap-app";
+    public const string Brochure = "/storefront/brochure-app";
     public const string Cart = "/storefront/cart-app";
     public const string Checkout = "/storefront/checkout-app";
     public const string Orders = "/storefront/orders-app";

@@ -301,6 +301,68 @@ public sealed class LiveTenantIndustryParityTests
     }
 
     [Fact]
+    public void Sitemap_is_industry_scoped_and_rewritten()
+    {
+        Assert.True(IndustryStorefrontSlugMiddleware.TryMatch("www.epartscart.com", "/en/sitemap", out var rewrite, out var kind));
+        Assert.Equal("sitemap", kind);
+        Assert.StartsWith(StorefrontAspNetCanonical.Sitemap, rewrite, StringComparison.Ordinal);
+        Assert.Equal(StorefrontAspNetCanonical.Sitemap, PhpSurfaceLinkMap.AspNetPrimaryHref("/en/sitemap"));
+        Assert.Equal(StorefrontAspNetCanonical.Sitemap, PhpSurfaceLinkMap.AspNetPrimaryHref("/en/shop/sitemap"));
+        Assert.False(PhpSurfaceLinkMap.TryMapIncomingPhpProductPath("/en/sitemap", out _));
+
+        var auto = PhpStorefrontSitemap.ForIndustry("auto_parts");
+        Assert.Contains(auto, l => l.Href == StorefrontAspNetCanonical.SellerRequest);
+        Assert.Contains(auto, l => l.Href == StorefrontAspNetCanonical.AutoWorkshop);
+        Assert.Contains(auto, l => l.Href == StorefrontAspNetCanonical.UcatsService);
+        Assert.DoesNotContain(auto, l => l.Href.Contains("gold", StringComparison.OrdinalIgnoreCase));
+        Assert.DoesNotContain(auto, l => l.Href.Contains("jewellery", StringComparison.OrdinalIgnoreCase));
+
+        var jewellery = PhpStorefrontSitemap.ForIndustry("jewellery");
+        Assert.Contains(jewellery, l => l.Href == "/bridal");
+        Assert.Contains(jewellery, l => l.Href == "/gold");
+        Assert.DoesNotContain(jewellery, l => l.Href == StorefrontAspNetCanonical.SellerRequest);
+        Assert.DoesNotContain(jewellery, l => l.Href == StorefrontAspNetCanonical.AutoWorkshop);
+
+        var tax = PhpStorefrontSitemap.ForIndustry("tax_advisory");
+        Assert.Contains(tax, l => l.Href == "/erp");
+        Assert.Contains(tax, l => l.Href == "/services/tax");
+        Assert.DoesNotContain(tax, l => l.Href == StorefrontAspNetCanonical.AutoWorkshop);
+    }
+
+    [Fact]
+    public void Own_catalogue_product_brochure_and_manufacturer_same_urls()
+    {
+        Assert.True(IndustryStorefrontSlugMiddleware.TryMatch("www.epartscart.com", "/en/shop/catalogue", out var catalog, out var catalogKind));
+        Assert.Equal("own-catalog", catalogKind);
+        Assert.StartsWith(StorefrontAspNetCanonical.OwnCatalog, catalog, StringComparison.Ordinal);
+        Assert.True(IndustryStorefrontSlugMiddleware.TryMatch("www.electronicae.com", "/en/shop/product", out var product, out var productKind));
+        Assert.Equal("catalogue-product", productKind);
+        Assert.StartsWith(StorefrontAspNetCanonical.Product, product, StringComparison.Ordinal);
+        Assert.True(IndustryStorefrontSlugMiddleware.TryMatch("www.epartscart.com", "/brochure", out var brochure, out var brochureKind));
+        Assert.Equal("brochure", brochureKind);
+        Assert.Equal(StorefrontAspNetCanonical.Brochure, brochure);
+        Assert.False(IndustryStorefrontSlugMiddleware.TryMatch("www.ecomae.com", "/brochure", out _, out _));
+        Assert.Equal(StorefrontAspNetCanonical.OwnCatalog, PhpSurfaceLinkMap.AspNetPrimaryHref("/en/shop/catalogue"));
+        Assert.Equal(StorefrontAspNetCanonical.Product, PhpSurfaceLinkMap.AspNetPrimaryHref("/en/shop/product"));
+        Assert.False(PhpSurfaceLinkMap.TryMapIncomingPhpProductPath("/en/shop/catalogue", out _));
+        Assert.False(PhpSurfaceLinkMap.TryMapIncomingPhpProductPath("/en/parts/BOSCH", out _));
+    }
+
+    [Fact]
+    public void Checkout_returns_and_review_write_hrefs_stay_on_php()
+    {
+        Assert.StartsWith("/php-reference/", PhpCustomerWrites.CheckoutHowGetWriteHref);
+        Assert.StartsWith("/php-reference/", PhpCustomerWrites.CheckoutConfirmWriteHref);
+        Assert.StartsWith("/php-reference/", PhpCustomerWrites.CartAddHref);
+        Assert.StartsWith("/php-reference/", PhpCustomerWrites.ReturnsMessageHref);
+        Assert.StartsWith("/php-reference/", PhpCustomerWrites.EvaluationWriteHref);
+        Assert.Equal(StorefrontAspNetCanonical.CustomerReturns, PhpSurfaceLinkMap.AspNetPrimaryHref("/en/shop/returns_list"));
+        Assert.True(PhpIndustryCmsPages.IsSlug("o-kompanii"));
+        Assert.Contains("eParts Cart", PhpIndustryCmsPages.Resolve("o-kompanii", "auto_parts").Title, StringComparison.Ordinal);
+        Assert.Contains("Jewellery", PhpIndustryCmsPages.Resolve("o-kompanii", "jewellery").Title, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void DedicatedIndustryAppsExist()
     {
         var catalog = Find("aspnet/src/EcomAE.Platform/Components/Pages/StorefrontIndustryCatalogApp.razor");

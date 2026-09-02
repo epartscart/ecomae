@@ -433,6 +433,30 @@ public static class PhpSurfaceLinkMap
             return StorefrontAspNetCanonical.Payment;
         }
 
+        if (value.StartsWith("/shop/catalogue/product", StringComparison.OrdinalIgnoreCase)
+            || value.Equals("/shop/product", StringComparison.OrdinalIgnoreCase)
+            || value.StartsWith("/shop/product?", StringComparison.OrdinalIgnoreCase))
+        {
+            return StorefrontAspNetCanonical.Product;
+        }
+
+        if (value.Equals("/shop/catalogue", StringComparison.OrdinalIgnoreCase)
+            || value.StartsWith("/shop/catalogue?", StringComparison.OrdinalIgnoreCase)
+            || value.StartsWith("/shop/catalogue/", StringComparison.OrdinalIgnoreCase)
+            || value.Equals("/katalog", StringComparison.OrdinalIgnoreCase)
+            || value.StartsWith("/katalog?", StringComparison.OrdinalIgnoreCase))
+        {
+            return StorefrontAspNetCanonical.OwnCatalog;
+        }
+
+        if (value.Equals("/sitemap", StringComparison.OrdinalIgnoreCase)
+            || value.StartsWith("/sitemap?", StringComparison.OrdinalIgnoreCase)
+            || value.Equals("/shop/sitemap", StringComparison.OrdinalIgnoreCase)
+            || value.StartsWith("/shop/sitemap?", StringComparison.OrdinalIgnoreCase))
+        {
+            return StorefrontAspNetCanonical.Sitemap;
+        }
+
         if (value.Contains("/shop/quotes", StringComparison.OrdinalIgnoreCase)
             || value.Equals("/shop/quotes", StringComparison.OrdinalIgnoreCase))
         {
@@ -444,7 +468,9 @@ public static class PhpSurfaceLinkMap
             return StorefrontSurfaceLinks.Wishlist;
         }
 
-        if (value.Contains("sravneniya", StringComparison.OrdinalIgnoreCase))
+        if (value.Contains("sravneniya", StringComparison.OrdinalIgnoreCase)
+            || value.Equals("/shop/compare", StringComparison.OrdinalIgnoreCase)
+            || value.StartsWith("/shop/compare?", StringComparison.OrdinalIgnoreCase))
         {
             return StorefrontSurfaceLinks.Compare;
         }
@@ -1162,6 +1188,14 @@ public static class PhpSurfaceLinkMap
             || path.Equals("/o-vozvrate", StringComparison.OrdinalIgnoreCase)
             || path.Equals("/polzovatelskoe-soglashenie", StringComparison.OrdinalIgnoreCase)
             || path.Equals("/politika-konfidencialnosti", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/sitemap", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/shop/sitemap", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/shop/catalogue", StringComparison.OrdinalIgnoreCase)
+            || path.StartsWith("/shop/catalogue/", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/katalog", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/shop/product", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/shop/compare", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/o-kompanii", StringComparison.OrdinalIgnoreCase)
             || path.Equals("/katalog-laximo", StringComparison.OrdinalIgnoreCase)
             || path.Equals("/vehicle-catalog", StringComparison.OrdinalIgnoreCase)
             || path.Equals("/umapi_catalog", StringComparison.OrdinalIgnoreCase)
@@ -1197,7 +1231,7 @@ public static class PhpSurfaceLinkMap
 
         var rest = path["/parts/".Length..];
         var segments = rest.Split('/', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-        return segments.Length >= 2;
+        return segments.Length >= 1;
     }
 
     private static bool IncomingHasStorefrontLangPrefix(string pathAndQuery)

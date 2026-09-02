@@ -5,6 +5,8 @@
 @page "/shop/returns/return"
 @page "/en/shop/returns/add"
 @page "/shop/returns/add"
+@page "/en/shop/returns/returns_list"
+@page "/shop/returns/returns_list"
 @layout Layout.PhpChromeLayout
 @using EcomAE.Platform.Auth
 @using EcomAE.Platform.Presentation
@@ -35,11 +37,20 @@
                     <p style="margin:0 0 .85rem"><a class="btn btn-primary" href="@StorefrontSurfaceLinks.Orders">Choose an order</a></p>
                     <form method="post" action="@PhpVendorPortal.ReturnsWriteHref">
                         <label>Order number</label>
-                        <input type="text" name="order_id" required style="width:100%;margin:.25rem 0 .75rem;padding:.5rem" />
+                        <input type="text" name="order_id" required value="@OrderId" style="width:100%;margin:.25rem 0 .75rem;padding:.5rem" />
                         <label>Reason</label>
                         <textarea name="reason" rows="3" style="width:100%;margin:.25rem 0 1rem;padding:.5rem"></textarea>
                         <button type="submit" style="padding:.65rem 1rem;border:0;border-radius:.45rem;background:#0f766e;color:#fff;font-weight:800;cursor:pointer">Submit return request</button>
                     </form>
+                    @if (ReturnId is > 0)
+                    {
+                        <form method="get" action="@PhpCustomerWrites.ReturnsMessageHref" style="margin-top:1rem;padding-top:1rem;border-top:1px solid #e2e8f0">
+                            <input type="hidden" name="return_id" value="@ReturnId" />
+                            <label>Message on return #@ReturnId</label>
+                            <textarea name="text" rows="3" required style="width:100%;margin:.25rem 0 1rem;padding:.5rem"></textarea>
+                            <button type="submit" style="padding:.55rem .9rem;border:0;border-radius:.4rem;background:#0f766e;color:#fff;font-weight:800;cursor:pointer">Send message</button>
+                        </form>
+                    }
                 </div>
             }
         </div>
@@ -49,6 +60,12 @@
 @code {
     private string _brand = "eParts Cart";
     private bool _isCustomer;
+
+    [SupplyParameterFromQuery(Name = "order_id")]
+    public string? OrderId { get; set; }
+
+    [SupplyParameterFromQuery(Name = "return_id")]
+    public int? ReturnId { get; set; }
 
     protected override async Task OnInitializedAsync()
     {

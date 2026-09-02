@@ -34,6 +34,9 @@ public static class StorefrontPhpCanonical
     public const string News = LangPrefix + "/novosti";
     public const string GuestOrder = LangPrefix + "/shop/orders/guest";
     public const string Payment = LangPrefix + "/shop/pay";
+    public const string Sitemap = LangPrefix + "/sitemap";
+    public const string Catalogue = LangPrefix + "/shop/catalogue";
+    public const string Brochure = "/brochure";
     public const string Cart = LangPrefix + "/shop/cart";
     public const string Checkout = LangPrefix + "/shop/checkout";
     public const string Orders = LangPrefix + "/shop/orders";
@@ -103,13 +106,16 @@ public static class StorefrontPhpCanonical
             "/storefront/quotes-app" => Quotes + query,
             "/storefront/wishlist-app" => Wishlist + query,
             "/storefront/compare-app" => Compare + query,
-            "/storefront/product-app" => PartSearch + query,
+            "/storefront/product-app" => Catalogue + "/product" + query,
             "/storefront/seller-request-app" => SellerRequest + query,
             "/storefront/customer-requests-app" => CustomerRequests + query,
             "/storefront/print-app" => CustomerPrint + query,
             "/storefront/news-app" => News + query,
             "/storefront/guest-order-app" => GuestOrder + query,
             "/storefront/payment-app" => Payment + query,
+            "/storefront/sitemap-app" => Sitemap + query,
+            "/storefront/own-catalog-app" => Catalogue + query,
+            "/storefront/brochure-app" => Brochure + query,
             _ => "",
         };
 

@@ -13,6 +13,7 @@ public static class PhpIndustryCmsPages
     [
         "kontakty", "o-dostavke", "ob-oplate", "o-vozvrate",
         "polzovatelskoe-soglashenie", "politika-konfidencialnosti",
+        "o-kompanii",
     ];
 
     public static bool IsSlug(string? path)
@@ -32,6 +33,7 @@ public static class PhpIndustryCmsPages
             "o-vozvrate" => Returns(industry),
             "polzovatelskoe-soglashenie" => UserAgreement(industry),
             "politika-konfidencialnosti" => Privacy(industry),
+            "o-kompanii" => About(industry),
             _ => Contact(industry),
         };
     }
@@ -244,6 +246,50 @@ public static class PhpIndustryCmsPages
             "By creating an account or placing an order you accept these terms and the privacy policy.",
             "Prices stay in AED. Returns and cancellations follow the returns page.",
         ]);
+
+    private static Page About(string industry) => industry switch
+    {
+        "electronics" => new(
+            "o-kompanii",
+            "About Electronicae",
+            "UAE electronics retail — phones, laptops, gaming, and home tech.",
+            [
+                "Electronicae lists current AED prices for phones, computers, gaming, audio, and smart home.",
+                "Warranty and store pickup stay on the product card and the contact page.",
+            ]),
+        "fashion" => new(
+            "o-kompanii",
+            "About Style N Look",
+            "Fashion, modest wear, beauty, and accessories in the UAE.",
+            [
+                "Style N Look is a fashion and beauty storefront with women’s, men’s, kids, and home edits.",
+                "Sizing help and store visits use the contact page. Prices stay in AED.",
+            ]),
+        "jewellery" => new(
+            "o-kompanii",
+            "About The Jewellery Trend",
+            "Gold, diamonds, bridal, and everyday jewellery in the UAE.",
+            [
+                "The Jewellery Trend sells hallmark gold, certified diamonds, bridal sets, and watches.",
+                "Ring sizing and certificates stay with the boutique team on the contact page.",
+            ]),
+        "tax_advisory" => new(
+            "o-kompanii",
+            "About Taxofinca",
+            "Corporate tax, VAT, audit, and company formation in the UAE.",
+            [
+                "Taxofinca advisors handle VAT, corporate tax, bookkeeping, AML, and company setup.",
+                "Signed-in clients follow filings in Client ERP on this same host.",
+            ]),
+        _ => new(
+            "o-kompanii",
+            "About eParts Cart",
+            "Spare-parts storefront for VIN, warehouse, and workshop orders.",
+            [
+                "eParts Cart is the UAE spare-parts desk: article search, VIN decode, UCats, and garage jobs.",
+                "Workshops use the garage notepad and seller request when the article is unknown.",
+            ]),
+    };
 
     private static Page Privacy(string industry) => new(
         "politika-konfidencialnosti",

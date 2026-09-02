@@ -112,6 +112,20 @@ public sealed class StorefrontCatalogDedicatedAppsTests : IDisposable
         Assert.Contains("@page \"" + aspNetApp, text, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void Sitemap_catalogue_and_brochure_apps_exist()
+    {
+        AssertPage("StorefrontSitemapApp.razor", "/en/sitemap", "/storefront/sitemap-app");
+        AssertPage("StorefrontOwnCatalogApp.razor", "/en/shop/catalogue", "/storefront/own-catalog-app");
+        AssertPage("StorefrontProductApp.razor", "/en/shop/product", "/storefront/product-app");
+        var brochure = Find("aspnet/src/EcomAE.Platform/Components/Pages/StorefrontBrochureApp.razor");
+        var text = File.ReadAllText(brochure);
+        Assert.Contains("@page \"/storefront/brochure-app\"", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("@page \"/brochure\"", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("ASP.NET", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("/php-reference/", text, StringComparison.Ordinal);
+    }
+
     private static string Find(string relative)
     {
         var dir = new DirectoryInfo(Directory.GetCurrentDirectory());

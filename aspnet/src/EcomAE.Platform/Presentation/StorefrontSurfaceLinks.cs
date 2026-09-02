@@ -39,6 +39,8 @@ public static class StorefrontSurfaceLinks
     public static string News => PreferAspNetApps ? StorefrontAspNetCanonical.News : StorefrontPhpCanonical.News;
     public static string GuestOrder => PreferAspNetApps ? StorefrontAspNetCanonical.GuestOrder : StorefrontPhpCanonical.GuestOrder;
     public static string Payment => PreferAspNetApps ? StorefrontAspNetCanonical.Payment : StorefrontPhpCanonical.Payment;
+    public static string Sitemap => PreferAspNetApps ? StorefrontAspNetCanonical.Sitemap : StorefrontPhpCanonical.Sitemap;
+    public static string Brochure => PreferAspNetApps ? StorefrontAspNetCanonical.Brochure : StorefrontPhpCanonical.Brochure;
     public static string Cart => PreferAspNetApps ? StorefrontAspNetCanonical.Cart : StorefrontPhpCanonical.Cart;
     public static string Checkout => PreferAspNetApps ? StorefrontAspNetCanonical.Checkout : StorefrontPhpCanonical.Checkout;
     public static string Orders => PreferAspNetApps ? StorefrontAspNetCanonical.Orders : StorefrontPhpCanonical.Orders;

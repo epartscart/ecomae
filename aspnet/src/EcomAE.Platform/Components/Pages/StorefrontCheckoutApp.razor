@@ -65,6 +65,29 @@
         <div class="epc-sf-co-gate" style="margin-bottom:1rem">
             <p style="margin:0 0 .65rem;color:#334155;font-weight:700">@_stepHeading</p>
             <p style="margin:0 0 .75rem;color:#64748b;font-size:.9rem">@_stepHelp</p>
+            @if (_step is "how_get")
+            {
+                <form method="post" action="@PhpCustomerWrites.CheckoutHowGetWriteHref" style="margin:0 0 .85rem">
+                    @foreach (var mode in PhpCustomerWrites.ObtainModes)
+                    {
+                        <label style="display:block;margin:.35rem 0">
+                            <input type="radio" name="how_get_radio" value="@mode.Code" />
+                            @mode.Label
+                        </label>
+                    }
+                    <label style="display:block;margin:.65rem 0 .25rem">City / area</label>
+                    <input type="text" name="city" style="width:100%;max-width:22rem;padding:.45rem" />
+                    <button type="submit" style="margin-top:.75rem;padding:.5rem .85rem;border:0;border-radius:.4rem;background:#0f766e;color:#fff;font-weight:800;cursor:pointer">Save delivery option</button>
+                </form>
+            }
+            else if (_step is "confirm")
+            {
+                <form method="post" action="@PhpCustomerWrites.CheckoutConfirmWriteHref" style="margin:0 0 .85rem">
+                    <label>Order note</label>
+                    <textarea name="order_message" rows="3" style="width:100%;margin:.25rem 0 .75rem;padding:.45rem"></textarea>
+                    <button type="submit" style="padding:.5rem .85rem;border:0;border-radius:.4rem;background:#dc2626;color:#fff;font-weight:800;cursor:pointer">Place order</button>
+                </form>
+            }
             <p style="margin:0">
                 <a href="@StorefrontSurfaceLinks.Cart" style="display:inline-flex;padding:.5rem .85rem;border-radius:.4rem;background:#dc2626;color:#fff;font-weight:700;text-decoration:none;margin-right:.35rem">Back to cart</a>
             </p>

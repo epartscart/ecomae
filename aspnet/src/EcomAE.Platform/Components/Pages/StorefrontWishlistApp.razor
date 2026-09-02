@@ -40,7 +40,7 @@
 
     <PhpStorefrontPageHeader Title="Bookmarks"
                             Subtitle="Saved catalogue products from the classic wishlist cookie.">
-        <a class="btn btn-sm btn-primary" href="@StorefrontPhpCanonical.Wishlist">Open classic bookmarks</a>
+        <a class="btn btn-sm btn-primary" href="@StorefrontSurfaceLinks.OwnCatalog">Own catalog</a>
             <a class="btn btn-sm btn-default" href="@StorefrontSurfaceLinks.Compare">Compare</a>
             <a class="btn btn-sm btn-default" href="@StorefrontSurfaceLinks.Cart">Cart</a>
     </PhpStorefrontPageHeader>
@@ -55,7 +55,7 @@
     {
         <div class="epc-sf-wl-empty">
             Found @_ids.Count bookmark id(s) in cookie, but no matching catalogue products loaded (<code>@_source</code>).
-            <a href="@StorefrontPhpCanonical.Wishlist">Open classic bookmarks</a>
+            <a href="@StorefrontSurfaceLinks.OwnCatalog">Own catalog</a>
         </div>
     }
     else
@@ -71,8 +71,6 @@
                     </p>
                     <a href="@StorefrontSurfaceLinks.ForProduct(p.Id)">View</a>
                     ·
-                    <a href="@StorefrontPhpCanonical.Wishlist">Manage on PHP</a>
-                    ·
                     <a href="@StorefrontSurfaceLinks.Cart">Cart</a>
                 </article>
             }
@@ -80,7 +78,7 @@
     }
 
     <p class="epc-sf-wl-note">
-        Wishlist membership is the PHP <code>bookmarks</code> cookie (JSON product ids). Add/remove stays on the classic module.
+        Bookmarks are the products you saved from the catalogue. Add or remove them from a product card.
     </p>
 </StorefrontTenantChrome>
 

@@ -1,3 +1,4 @@
+using EcomAE.Platform.Migration;
 using EcomAE.Platform.Presentation;
 
 namespace EcomAE.Platform.Middleware;
@@ -167,6 +168,45 @@ public sealed class IndustryStorefrontSlugMiddleware
             return true;
         }
 
+        if (only.Equals("sitemap", StringComparison.OrdinalIgnoreCase)
+            || only.Equals("shop/sitemap", StringComparison.OrdinalIgnoreCase))
+        {
+            rewrite = StorefrontAspNetCanonical.Sitemap + incomingQuery;
+            kind = "sitemap";
+            return true;
+        }
+
+        if (only.Equals("brochure", StringComparison.OrdinalIgnoreCase)
+            && LiveTenantPresentationLock.IsProductTenantHost(host))
+        {
+            rewrite = StorefrontAspNetCanonical.Brochure + incomingQuery;
+            kind = "brochure";
+            return true;
+        }
+
+        if (only.Equals("shop/catalogue", StringComparison.OrdinalIgnoreCase)
+            || only.Equals("katalog", StringComparison.OrdinalIgnoreCase)
+            || only.StartsWith("shop/catalogue/", StringComparison.OrdinalIgnoreCase))
+        {
+            if (only.Contains("product", StringComparison.OrdinalIgnoreCase))
+            {
+                rewrite = StorefrontAspNetCanonical.Product + incomingQuery;
+                kind = "catalogue-product";
+                return true;
+            }
+
+            rewrite = StorefrontAspNetCanonical.OwnCatalog + incomingQuery;
+            kind = "own-catalog";
+            return true;
+        }
+
+        if (only.Equals("shop/product", StringComparison.OrdinalIgnoreCase))
+        {
+            rewrite = StorefrontAspNetCanonical.Product + incomingQuery;
+            kind = "catalogue-product";
+            return true;
+        }
+
         if (PhpStorefrontNews.IsNewsPath(only))
         {
             var newsQuery = incomingQuery;
@@ -284,6 +324,9 @@ public sealed class IndustryStorefrontSlugMiddleware
                || only.Equals("novosti", StringComparison.OrdinalIgnoreCase)
                || only.StartsWith("novosti/", StringComparison.OrdinalIgnoreCase)
                || only.Equals("news", StringComparison.OrdinalIgnoreCase)
-               || only.StartsWith("news/", StringComparison.OrdinalIgnoreCase);
+               || only.StartsWith("news/", StringComparison.OrdinalIgnoreCase)
+               || only.Equals("sitemap", StringComparison.OrdinalIgnoreCase)
+               || only.Equals("katalog", StringComparison.OrdinalIgnoreCase)
+               || only.Equals("brochure", StringComparison.OrdinalIgnoreCase);
     }
 }

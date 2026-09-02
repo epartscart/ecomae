@@ -79,9 +79,7 @@
                                 <td>@FormatUnix(row.TimeUpdated)</td>
                                 <td>@row.ItemCount</td>
                                 <td>
-                                    <a href="@StorefrontSurfaceLinks.ForQuote(row.Id)">ASP.NET</a>
-                                    ·
-                                    <a href="@(StorefrontPhpCanonical.Quotes + "?id=" + row.Id.ToString(CultureInfo.InvariantCulture))">PHP detail</a>
+                                    <a href="@StorefrontSurfaceLinks.ForQuote(row.Id)">Open</a>
                                 </td>
                             </tr>
                         }
@@ -125,13 +123,14 @@
                     </tbody>
                 </table>
             </div>
-            <div class="epc-sf-q-cta" style="margin-top:.75rem">
-                <a href="@(StorefrontPhpCanonical.Quotes + "?id=" + _detail.Id.ToString(CultureInfo.InvariantCulture))">Submit / accept on classic module</a>
-            </div>
+            <form method="post" action="@PhpCustomerWrites.QuotesWriteHref" style="margin-top:.75rem">
+                <input type="hidden" name="id" value="@_detail.Id.ToString(CultureInfo.InvariantCulture)" />
+                <button type="submit" name="action" value="submit" style="padding:.5rem .85rem;border:0;border-radius:.4rem;background:#dc2626;color:#fff;font-weight:800;cursor:pointer">Submit quote</button>
+            </form>
         }
 
         <p class="epc-sf-q-note">
-            Read-only list. Submit and accept stay on the classic quotes module.
+            Open a quote to review lines, then submit it from this page.
         </p>
     }
 </StorefrontTenantChrome>

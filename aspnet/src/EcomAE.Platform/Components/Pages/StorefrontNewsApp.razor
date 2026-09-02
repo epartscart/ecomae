@@ -3,6 +3,10 @@
 @page "/novosti"
 @page "/en/news"
 @page "/news"
+@page "/en/novosti/{*ArticleSlug}"
+@page "/novosti/{*ArticleSlug}"
+@page "/en/news/{*ArticleSlug}"
+@page "/news/{*ArticleSlug}"
 @layout Layout.PhpChromeLayout
 @using EcomAE.Platform.Presentation
 @inject IHttpContextAccessor Http
@@ -46,6 +50,9 @@
     private PhpStorefrontNews.Article? _article;
     private IReadOnlyList<PhpStorefrontNews.Article> _items = [];
 
+    [Parameter]
+    public string? ArticleSlug { get; set; }
+
     [SupplyParameterFromQuery(Name = "url")]
     public string? Url { get; set; }
 
@@ -58,6 +65,12 @@
         _items = PhpStorefrontNews.ForIndustry(_industry);
 
         var slug = Url;
+        if (string.IsNullOrWhiteSpace(slug) && !string.IsNullOrWhiteSpace(ArticleSlug))
+        {
+            slug = ArticleSlug.Contains('/', StringComparison.Ordinal)
+                ? ArticleSlug
+                : "novosti/" + ArticleSlug.Trim('/');
+        }
         if (string.IsNullOrWhiteSpace(slug)
             && ctx?.Items.TryGetValue(EcomAE.Platform.Middleware.IndustryStorefrontSlugMiddleware.OriginalPathItem, out var original) == true)
         {
