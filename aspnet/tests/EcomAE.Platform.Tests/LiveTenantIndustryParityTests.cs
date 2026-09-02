@@ -360,6 +360,22 @@ public sealed class LiveTenantIndustryParityTests
         Assert.True(PhpIndustryCmsPages.IsSlug("o-kompanii"));
         Assert.Contains("eParts Cart", PhpIndustryCmsPages.Resolve("o-kompanii", "auto_parts").Title, StringComparison.Ordinal);
         Assert.Contains("Jewellery", PhpIndustryCmsPages.Resolve("o-kompanii", "jewellery").Title, StringComparison.Ordinal);
+        Assert.True(PhpIndustryCmsPages.IsSlug("chastye-voprosy"));
+        Assert.Contains("VIN", PhpIndustryCmsPages.Resolve("chastye-voprosy", "auto_parts").Lead, StringComparison.Ordinal);
+        Assert.DoesNotContain("gold", PhpIndustryCmsPages.Resolve("chastye-voprosy", "auto_parts").Lead, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void Pickup_offices_are_industry_scoped()
+    {
+        Assert.True(IndustryStorefrontSlugMiddleware.TryMatch("www.epartscart.com", "/en/ofisy", out var rewrite, out var kind));
+        Assert.Equal("offices", kind);
+        Assert.StartsWith(StorefrontAspNetCanonical.Offices, rewrite, StringComparison.Ordinal);
+        Assert.Equal(StorefrontAspNetCanonical.Offices, PhpSurfaceLinkMap.AspNetPrimaryHref("/en/shop/offices"));
+        Assert.Contains(PhpStorefrontOffices.ForIndustry("auto_parts"), o => o.Name.Contains("warehouse", StringComparison.OrdinalIgnoreCase));
+        Assert.DoesNotContain(PhpStorefrontOffices.ForIndustry("auto_parts"), o => o.Name.Contains("boutique", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(PhpStorefrontOffices.ForIndustry("jewellery"), o => o.Name.Contains("boutique", StringComparison.OrdinalIgnoreCase));
+        Assert.DoesNotContain(PhpStorefrontOffices.ForIndustry("jewellery"), o => o.Name.Contains("eParts", StringComparison.OrdinalIgnoreCase));
     }
 
     [Fact]

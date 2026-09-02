@@ -35,6 +35,8 @@ public static class PhpStorefrontSitemap
             new(StorefrontAspNetCanonical.IndustryCms + "?slug=ob-oplate", "Payment", "Help"),
             new(StorefrontAspNetCanonical.IndustryCms + "?slug=o-vozvrate", "Returns policy", "Help"),
             new(StorefrontAspNetCanonical.IndustryCms + "?slug=o-kompanii", "About", "Help"),
+            new(StorefrontAspNetCanonical.IndustryCms + "?slug=chastye-voprosy", "Questions", "Help"),
+            new(StorefrontAspNetCanonical.Offices, "Pickup points", "Help"),
             new(StorefrontAspNetCanonical.News, "News", "Help"),
             new(StorefrontAspNetCanonical.Newsletter, "Newsletter", "Help"),
             new(StorefrontAspNetCanonical.Brochure, "Brochure", "Help"),

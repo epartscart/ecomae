@@ -184,6 +184,14 @@ public sealed class IndustryStorefrontSlugMiddleware
             return true;
         }
 
+        if (only.Equals("ofisy", StringComparison.OrdinalIgnoreCase)
+            || only.Equals("shop/offices", StringComparison.OrdinalIgnoreCase))
+        {
+            rewrite = StorefrontAspNetCanonical.Offices + incomingQuery;
+            kind = "offices";
+            return true;
+        }
+
         if (only.Equals("shop/catalogue", StringComparison.OrdinalIgnoreCase)
             || only.Equals("katalog", StringComparison.OrdinalIgnoreCase)
             || only.StartsWith("shop/catalogue/", StringComparison.OrdinalIgnoreCase))
@@ -327,6 +335,7 @@ public sealed class IndustryStorefrontSlugMiddleware
                || only.StartsWith("news/", StringComparison.OrdinalIgnoreCase)
                || only.Equals("sitemap", StringComparison.OrdinalIgnoreCase)
                || only.Equals("katalog", StringComparison.OrdinalIgnoreCase)
-               || only.Equals("brochure", StringComparison.OrdinalIgnoreCase);
+               || only.Equals("brochure", StringComparison.OrdinalIgnoreCase)
+               || only.Equals("ofisy", StringComparison.OrdinalIgnoreCase);
     }
 }

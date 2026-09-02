@@ -13,7 +13,7 @@ public static class PhpIndustryCmsPages
     [
         "kontakty", "o-dostavke", "ob-oplate", "o-vozvrate",
         "polzovatelskoe-soglashenie", "politika-konfidencialnosti",
-        "o-kompanii",
+        "o-kompanii", "chastye-voprosy",
     ];
 
     public static bool IsSlug(string? path)
@@ -34,6 +34,7 @@ public static class PhpIndustryCmsPages
             "polzovatelskoe-soglashenie" => UserAgreement(industry),
             "politika-konfidencialnosti" => Privacy(industry),
             "o-kompanii" => About(industry),
+            "chastye-voprosy" => Faq(industry),
             _ => Contact(industry),
         };
     }
@@ -288,6 +289,55 @@ public static class PhpIndustryCmsPages
             [
                 "eParts Cart is the UAE spare-parts desk: article search, VIN decode, UCats, and garage jobs.",
                 "Workshops use the garage notepad and seller request when the article is unknown.",
+            ]),
+    };
+
+    private static Page Faq(string industry) => industry switch
+    {
+        "electronics" => new(
+            "chastye-voprosy",
+            "Questions",
+            "Warranty, delivery, and store pickup for electronics.",
+            [
+                "Warranty follows the brand service centre listed on the product card.",
+                "Free UAE delivery applies over AED 200. Store pickup is available when stock shows.",
+                "Opened software and personalised items are not returnable.",
+            ]),
+        "fashion" => new(
+            "chastye-voprosy",
+            "Questions",
+            "Sizing, delivery, and returns for fashion and beauty.",
+            [
+                "Use the size notes on the product card, or write to customer care from the contact page.",
+                "Unworn fashion with tags and unopened beauty can be returned from My orders.",
+                "Sale items and pierced jewellery may be final.",
+            ]),
+        "jewellery" => new(
+            "chastye-voprosy",
+            "Questions",
+            "Sizing, certificates, and insured delivery.",
+            [
+                "Ring sizes and gold certificates stay with the boutique team on the contact page.",
+                "Fine jewellery ships insured. Signature may be required.",
+                "Custom bridal sets follow the engagement letter.",
+            ]),
+        "tax_advisory" => new(
+            "chastye-voprosy",
+            "Questions",
+            "VAT, corporate tax, and client ERP.",
+            [
+                "Published fees are in AED. Complex groups receive a written engagement letter.",
+                "Signed-in clients follow filings in Client ERP on this host.",
+                "Filed returns cannot be reversed. Write before the deadline to change scope.",
+            ]),
+        _ => new(
+            "chastye-voprosy",
+            "Questions",
+            "VIN, warehouse pickup, and workshop orders.",
+            [
+                "Search by article and manufacturer, or decode a VIN on the VIN page.",
+                "Workshops use the garage notepad and seller request when the article is unknown.",
+                "Electrical parts and opened fluids are often non-returnable.",
             ]),
     };
 

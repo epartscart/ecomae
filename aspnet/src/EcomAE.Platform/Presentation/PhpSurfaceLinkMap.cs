@@ -457,6 +457,14 @@ public static class PhpSurfaceLinkMap
             return StorefrontAspNetCanonical.Sitemap;
         }
 
+        if (value.Equals("/ofisy", StringComparison.OrdinalIgnoreCase)
+            || value.StartsWith("/ofisy?", StringComparison.OrdinalIgnoreCase)
+            || value.Equals("/shop/offices", StringComparison.OrdinalIgnoreCase)
+            || value.StartsWith("/shop/offices?", StringComparison.OrdinalIgnoreCase))
+        {
+            return StorefrontAspNetCanonical.Offices;
+        }
+
         if (value.Contains("/shop/quotes", StringComparison.OrdinalIgnoreCase)
             || value.Equals("/shop/quotes", StringComparison.OrdinalIgnoreCase))
         {
@@ -1196,6 +1204,9 @@ public static class PhpSurfaceLinkMap
             || path.Equals("/shop/product", StringComparison.OrdinalIgnoreCase)
             || path.Equals("/shop/compare", StringComparison.OrdinalIgnoreCase)
             || path.Equals("/o-kompanii", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/chastye-voprosy", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/ofisy", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/shop/offices", StringComparison.OrdinalIgnoreCase)
             || path.Equals("/katalog-laximo", StringComparison.OrdinalIgnoreCase)
             || path.Equals("/vehicle-catalog", StringComparison.OrdinalIgnoreCase)
             || path.Equals("/umapi_catalog", StringComparison.OrdinalIgnoreCase)
