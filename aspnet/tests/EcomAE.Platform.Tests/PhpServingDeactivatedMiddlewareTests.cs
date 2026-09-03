@@ -97,10 +97,9 @@ public sealed class PhpServingDeactivatedMiddlewareTests : IDisposable
         ctx.Response.Body = new MemoryStream();
         await mw.InvokeAsync(ctx);
 
-        Assert.False(calledNext);
-        var redirect = ctx.Response.Headers.Location.ToString();
-        Assert.Contains("/storefront/search-app", redirect, StringComparison.OrdinalIgnoreCase);
-        Assert.Contains("article=1310154101", redirect, StringComparison.Ordinal);
+        // /en/shop/part_search is a Blazor same-URL alias — do not 302 it away.
+        Assert.True(calledNext);
+        Assert.True(string.IsNullOrEmpty(ctx.Response.Headers.Location.ToString()));
     }
 
     [Fact]

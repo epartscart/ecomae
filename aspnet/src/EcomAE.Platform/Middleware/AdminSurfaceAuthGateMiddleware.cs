@@ -1,4 +1,5 @@
 using EcomAE.Platform.Auth;
+using EcomAE.Platform.Presentation;
 using EcomAE.Platform.Routing;
 
 namespace EcomAE.Platform.Middleware;
@@ -24,6 +25,12 @@ public sealed class AdminSurfaceAuthGateMiddleware
     public async Task InvokeAsync(HttpContext context, ILegacySessionValidator sessions)
     {
         var path = context.Request.Path.Value ?? "/";
+        if (StorefrontLangPrefix.TryStripAdminShell(path, out var strippedAdmin))
+        {
+            context.Request.Path = strippedAdmin;
+            path = strippedAdmin;
+        }
+
         if (!RequiresAdmin(path))
         {
             await _next(context);
@@ -84,6 +91,11 @@ public sealed class AdminSurfaceAuthGateMiddleware
         if (value.Length == 0)
         {
             return false;
+        }
+
+        if (StorefrontLangPrefix.TryStripAdminShell(value, out var stripped))
+        {
+            value = stripped;
         }
 
         // Never gate PHP reference or public auth bridges.

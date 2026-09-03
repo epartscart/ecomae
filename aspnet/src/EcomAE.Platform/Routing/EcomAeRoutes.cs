@@ -743,6 +743,55 @@ public static class EcomAeRoutes
     public const string ErpExpenseReportsApp = "/erp/expense-reports-app";
     public const string ErpVatApp = "/erp/vat-app";
     public const string ErpWithholdingApp = "/erp/withholding-app";
+    /// <summary>Department workflow board from <c>epc_erp_workflow_tasks</c> (not process-flow cases).</summary>
+    public const string ErpWorkflowTasks = "/erp/workflow-tasks";
+    public const string ErpWorkflowApp = "/erp/workflow-app";
+    /// <summary>Operational VAT 201 boxes (shop orders + purchases). FTA filing stays PHP.</summary>
+    public const string ErpVatReturn = "/erp/vat-return";
+    /// <summary>Withholding codes + transactions (PHP <c>epc_wht_*</c>).</summary>
+    public const string ErpWithholding = "/erp/withholding";
+    public const string ErpPettyCash = "/erp/petty-cash";
+    public const string ErpCashForecast = "/erp/cash-forecast";
+    public const string ErpBankInstruments = "/erp/bank-instruments";
+    public const string ErpSubscriptions = "/erp/subscriptions";
+    public const string ErpSupplierPortal = "/erp/supplier-portal";
+    public const string ErpVirtualWarehouses = "/erp/virtual-warehouses";
+    public const string ErpStaff = "/erp/staff";
+    public const string ErpStaffApp = "/erp/staff-app";
+    public const string ErpContracts = "/erp/contracts";
+    public const string ErpContractsApp = "/erp/contracts-app";
+    public const string ErpOpening = "/erp/opening";
+    public const string ErpOpeningApp = "/erp/opening-app";
+    public const string ErpMarketing = "/erp/marketing";
+    public const string ErpMarketingApp = "/erp/marketing-app";
+    public const string ErpPayroll = "/erp/payroll";
+    public const string ErpPayrollApp = "/erp/payroll-app";
+    public const string ErpPrintTemplates = "/erp/print-templates";
+    public const string ErpPrintDesignerApp = "/erp/print-designer-app";
+    public const string ErpOrderPlanning = "/erp/order-planning";
+    public const string ErpOrderPlanningApp = "/erp/order-planning-app";
+    public const string ErpProcurementCategories = "/erp/procurement-categories";
+    public const string ErpProcurementCategoriesApp = "/erp/procurement-categories-app";
+    public const string ErpQuality = "/erp/quality";
+    public const string ErpQualityApp = "/erp/quality-app";
+    public const string ErpRfid = "/erp/rfid";
+    public const string ErpRfidApp = "/erp/rfid-app";
+    public const string ErpRecruitment = "/erp/recruitment";
+    public const string ErpRecruitmentApp = "/erp/recruitment-app";
+    public const string ErpCustomerGroups = "/erp/customer-groups";
+    public const string ErpCustomerGroupsApp = "/erp/customer-groups-app";
+    public const string ErpPerformance = "/erp/performance";
+    public const string ErpPerformanceApp = "/erp/performance-app";
+    public const string ErpProductInfo = "/erp/product-info";
+    public const string ErpProductInfoApp = "/erp/product-info-app";
+    public const string ErpReportScheduler = "/erp/report-scheduler";
+    public const string ErpReportSchedulerApp = "/erp/report-scheduler-app";
+    public const string ErpProjectAccounting = "/erp/project-accounting";
+    public const string ErpProjectAccountingApp = "/erp/project-accounting-app";
+    public const string ErpDocAttachments = "/erp/doc-attachments";
+    public const string ErpDocAttachmentsApp = "/erp/doc-attachments-app";
+    public const string ErpInventoryReport = "/erp/inventory-report";
+    public const string ErpInventoryReportApp = "/erp/inventory-report-app";
 
     /// <summary>ERP tab→app coverage board.</summary>
     public const string ErpTabCoverage = "/erp/tab-coverage";

@@ -14,10 +14,64 @@
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Sales Orders" BreadcrumbArea="Order to Cash" BreadcrumbTab="Sales Orders">
 
     
-    <PhpErpModulePageHeader Title="Sales Orders" Subtitle="ASP.NET Core digest — PHP compare only under /php-reference/*." PhpTabHref="@_phpTab" />
+    <PhpErpModulePageHeader Title="@_title" Subtitle="@_subtitle" PhpTabHref="@_phpTab" />
     <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
 
+    <p class="text-muted" style="margin:8px 0 12px;">
+        <a href="/erp/sales-orders-app">Sales orders</a>
+        · <a href="/erp/sales-orders-app?tab=subscriptions">Subscriptions</a>
+    </p>
 
+    @if (_view == "subscriptions")
+    {
+        <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Subscription KPIs">
+            <div class="kpi"><div class="lbl">Active</div><div class="val">@_subs.Active.ToString(CultureInfo.InvariantCulture)</div></div>
+            <div class="kpi"><div class="lbl">MRR</div><div class="val">@_subs.Mrr.ToString("N2", CultureInfo.InvariantCulture)</div></div>
+            <div class="kpi"><div class="lbl">ARR</div><div class="val">@_subs.Arr.ToString("N2", CultureInfo.InvariantCulture)</div></div>
+            <div class="kpi"><div class="lbl">Recognised</div><div class="val">@_subs.Recognized.ToString("N2", CultureInfo.InvariantCulture)</div></div>
+            <div class="kpi"><div class="lbl">Deferred</div><div class="val">@_subs.Deferred.ToString("N2", CultureInfo.InvariantCulture)</div></div>
+        </div>
+        <div class="epc-erp-table-wrap">
+            <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
+                <thead>
+                    <tr>
+                        <th>Code</th>
+                        <th>Customer</th>
+                        <th>Plan</th>
+                        <th>Cycle</th>
+                        <th class="text-right">MRR</th>
+                        <th class="text-right">Recognised</th>
+                        <th class="text-right">Deferred</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (_subscriptions.Count == 0)
+                    {
+                        <tr><td colspan="8">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? "No subscriptions yet." : _message) : "Sign in with ERP capability for live rows.")</td></tr>
+                    }
+                    else
+                    {
+                        @foreach (var s in _subscriptions)
+                        {
+                            <tr>
+                                <td><strong>@(string.IsNullOrWhiteSpace(s.Code) ? $"#{s.Id}" : s.Code)</strong></td>
+                                <td>@(string.IsNullOrWhiteSpace(s.Customer) ? "—" : s.Customer)</td>
+                                <td>@(string.IsNullOrWhiteSpace(s.PlanName) ? "—" : s.PlanName)</td>
+                                <td>@s.Cycle</td>
+                                <td class="text-right">@s.Mrr.ToString("N2", CultureInfo.InvariantCulture)</td>
+                                <td class="text-right">@s.Recognized.ToString("N2", CultureInfo.InvariantCulture)</td>
+                                <td class="text-right">@s.Deferred.ToString("N2", CultureInfo.InvariantCulture)</td>
+                                <td><span class="label label-default">@s.Status</span></td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+    else
+    {
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Sales order KPIs">
         <div class="kpi"><div class="lbl">Shown (limit @_limit)</div><div class="val">@_orders.Count</div></div>
         <div class="kpi"><div class="lbl">Non-closed in page</div><div class="val">@_open</div></div>
@@ -169,19 +223,25 @@
             </tbody>
         </table>
     </div>
+    }
 
 </PhpErpDesktopChrome>
 
-@if (_isAdmin)
+@if (_isAdmin && _view != "subscriptions")
 {
     <script src="/erp/erp-sales-orders.js" defer></script>
 }
 
 @code {
-    private const string _phpTab = "/ERP/?epc_erp_shell=1&area=sales&tab=sales_orders";
+    private string _phpTab = "/ERP/?epc_erp_shell=1&area=sales&tab=sales_orders";
+    private string _title = "Sales Orders";
+    private string _subtitle = "Sales orders with line totals.";
+    private string _view = "sales_orders";
     private bool _isAdmin;
     private IReadOnlyList<ErpSalesOrderDigest> _orders = [];
     private IReadOnlyList<ErpInventoryItemPickerDigest> _items = [];
+    private ErpSubscriptionsSummary _subs = new(0, 0, 0, 0, 0, "n/a", "");
+    private IReadOnlyList<ErpSubscriptionDigest> _subscriptions = [];
     private int _open;
     private decimal _totalAmount;
     private int _limit = 100;
@@ -193,11 +253,31 @@
         var ctx = Http.HttpContext;
         if (ctx is null) return;
 
+        var tab = (ctx.Request.Query["tab"].ToString() ?? "").Trim().ToLowerInvariant();
+        _view = tab == "subscriptions" ? "subscriptions" : "sales_orders";
+        _phpTab = _view == "subscriptions"
+            ? "/ERP/?epc_erp_shell=1&area=sales&tab=subscriptions"
+            : "/ERP/?epc_erp_shell=1&area=sales&tab=sales_orders";
+        _title = _view == "subscriptions" ? "Subscriptions" : "Sales Orders";
+        _subtitle = _view == "subscriptions"
+            ? "Recurring plans, MRR / ARR and straight-line revenue recognition."
+            : "Sales orders with line totals.";
+
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("erp");
         if (!_isAdmin)
         {
             return; // guest browse — Sign in for live data
+        }
+
+        if (_view == "subscriptions")
+        {
+            var subs = await Dashboards.BuildErpSubscriptionsDigestAsync(_limit, ctx.RequestAborted);
+            _subs = subs.Summary;
+            _subscriptions = subs.Subscriptions;
+            _source = subs.Source;
+            _message = subs.Message;
+            return;
         }
 
         var result = await Dashboards.ListErpSalesOrdersAsync(_limit, ctx.RequestAborted);

@@ -34,10 +34,10 @@
     },
     {
       "id": "vin-laximo-decode",
-      "aspnet": "/storefront/vin-app iframe",
-      "php": "/php-reference/en/katalog-laximo",
-      "status": "reference-embed",
-      "note": "Shell is ASP.NET; decode tree still PHP reference until native Laximo port."
+      "aspnet": "/storefront/vin-app cache LookupVinAsync",
+      "php": "/php-reference/en/katalog-laximo + UMAPI/Laximo live fill",
+      "status": "cache-read",
+      "note": "VIN app shows saved cache make/model on hit; live Laximo decode tree stays PHP/UMAPI. No native Guayaquil port."
     },
     {
       "id": "bulk-upload-process",

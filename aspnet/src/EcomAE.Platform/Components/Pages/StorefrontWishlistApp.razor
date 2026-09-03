@@ -1,4 +1,6 @@
 @page "/storefront/wishlist-app"
+@page "/en/shop/zakladki"
+@page "/shop/zakladki"
 @layout Layout.PhpChromeLayout
 @using System.Globalization
 @using System.Text.Json
@@ -7,7 +9,7 @@
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject IHttpContextAccessor Http
 
-<PageTitle>Bookmarks · eParts Cart</PageTitle>
+<PageTitle>Bookmarks · @_brand</PageTitle>
 <PhpChromeStyles Surface="storefront" />
 <HeadContent>
 <style>
@@ -35,11 +37,11 @@
 
 <StorefrontAnalytics Enabled="true" IncludeClarity="true" />
 
-<PhpStorefrontDesktopChrome>
+<StorefrontTenantChrome>
 
     <PhpStorefrontPageHeader Title="Bookmarks"
                             Subtitle="Saved catalogue products from the classic wishlist cookie.">
-        <a class="btn btn-sm btn-primary" href="@StorefrontPhpCanonical.Wishlist">Open classic bookmarks</a>
+        <a class="btn btn-sm btn-primary" href="@StorefrontSurfaceLinks.OwnCatalog">Own catalog</a>
             <a class="btn btn-sm btn-default" href="@StorefrontSurfaceLinks.Compare">Compare</a>
             <a class="btn btn-sm btn-default" href="@StorefrontSurfaceLinks.Cart">Cart</a>
     </PhpStorefrontPageHeader>
@@ -54,7 +56,7 @@
     {
         <div class="epc-sf-wl-empty">
             Found @_ids.Count bookmark id(s) in cookie, but no matching catalogue products loaded (<code>@_source</code>).
-            <a href="@StorefrontPhpCanonical.Wishlist">Open classic bookmarks</a>
+            <a href="@StorefrontSurfaceLinks.OwnCatalog">Own catalog</a>
         </div>
     }
     else
@@ -70,20 +72,23 @@
                     </p>
                     <a href="@StorefrontSurfaceLinks.ForProduct(p.Id)">View</a>
                     ·
-                    <a href="@StorefrontPhpCanonical.Wishlist">Manage on PHP</a>
-                    ·
-                    <a href="@StorefrontSurfaceLinks.Cart">Cart</a>
+                    <form method="get" action="@StorefrontSurfaceLinks.Cart" style="display:inline">
+                        <input type="hidden" name="product_id" value="@p.Id.ToString(CultureInfo.InvariantCulture)" />
+                        <input type="hidden" name="count_need" value="1" />
+                        <button type="submit" class="btn btn-sm btn-primary" style="padding:.15rem .5rem;font-size:.78rem">Add to cart</button>
+                    </form>
                 </article>
             }
         </div>
     }
 
     <p class="epc-sf-wl-note">
-        Wishlist membership is the PHP <code>bookmarks</code> cookie (JSON product ids). Add/remove stays on the classic module.
+        Bookmarks are the products you saved from the catalogue. Add or remove them from a product card.
     </p>
-</PhpStorefrontDesktopChrome>
+</StorefrontTenantChrome>
 
 @code {
+    private string _brand = "eParts Cart";
     private List<int> _ids = [];
     private IReadOnlyList<StorefrontProductDigest> _products = [];
     private string _source = "n/a";
@@ -95,6 +100,8 @@
         {
             return;
         }
+
+        _brand = StorefrontIndustryHostResolver.ResolveBrandLabel(ctx.Request.Host.Host);
 
         if (ctx.Request.Cookies.TryGetValue("bookmarks", out var raw) && !string.IsNullOrWhiteSpace(raw))
         {

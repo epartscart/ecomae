@@ -136,6 +136,61 @@ public sealed record StorefrontOrdersResult(
     string Source,
     string Message);
 
+/// <summary>Guest checkout digest (PHP <c>ajax_check_order_not_authorized.php</c>). <c>UserId</c> is always 0.</summary>
+public sealed record StorefrontGuestOrderDigest(
+    long Id,
+    long TimeUnix,
+    int Paid,
+    int SuccessfullyCreated,
+    int Status,
+    int OfficeId,
+    decimal Sum,
+    string ObtainCaption);
+
+public sealed record StorefrontGuestOrderResult(
+    StorefrontGuestOrderDigest? Order,
+    string Source,
+    string Message);
+
+public sealed record StorefrontOrderItemDigest(
+    long Id,
+    long OrderId,
+    string Brand,
+    string Article,
+    string Name,
+    decimal Price,
+    decimal CountNeed,
+    int Status);
+
+public sealed record StorefrontOrderItemsResult(
+    int UserId,
+    long OrderId,
+    IReadOnlyList<StorefrontOrderItemDigest> Items,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record StorefrontOrderMessageDigest(
+    long Id,
+    long TimeUnix,
+    string Text,
+    int IsCustomer);
+
+public sealed record StorefrontOrderMessagesResult(
+    int UserId,
+    long OrderId,
+    IReadOnlyList<StorefrontOrderMessageDigest> Messages,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record StorefrontPriceListResult(
+    int UserId,
+    int GroupId,
+    string FileHref,
+    string Source,
+    string Message);
+
 public sealed record CpShopOrderDigest(
     long Id,
     long TimeUnix,
@@ -306,6 +361,78 @@ public sealed record StorefrontGarageResult(
     int UserId,
     IReadOnlyList<StorefrontGarageVehicleDigest> Vehicles,
     int Count,
+    string Source,
+    string Message);
+
+public sealed record StorefrontGarageNotepadDigest(
+    long Id,
+    long GarageId,
+    string Brand,
+    string Article,
+    string Name,
+    int Exist,
+    decimal Price,
+    string Comment);
+
+public sealed record StorefrontGarageNotepadResult(
+    int UserId,
+    long GarageId,
+    IReadOnlyList<StorefrontGarageNotepadDigest> Lines,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record StorefrontReturnDigest(
+    long Id,
+    long OrderId,
+    int StatusId,
+    string Status,
+    long TimeUnix);
+
+public sealed record StorefrontReturnItemDigest(
+    long Id,
+    long ReturnId,
+    long ItemId,
+    long OrderId,
+    string Brand,
+    string Article,
+    string Name,
+    decimal Price,
+    decimal CountNeed,
+    string Reason);
+
+public sealed record StorefrontReturnsResult(
+    int UserId,
+    IReadOnlyList<StorefrontReturnDigest> Returns,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record StorefrontReturnDetailResult(
+    int UserId,
+    StorefrontReturnDigest? Return,
+    IReadOnlyList<StorefrontReturnItemDigest> Items,
+    IReadOnlyList<StorefrontOrderMessageDigest> Messages,
+    string Source,
+    string Message);
+
+public sealed record StorefrontCustomerRequestDigest(
+    long Id,
+    long TimeUnix,
+    int ViewedCustomer);
+
+public sealed record StorefrontCustomerRequestsResult(
+    int UserId,
+    IReadOnlyList<StorefrontCustomerRequestDigest> Requests,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record StorefrontCustomerRequestDetailResult(
+    int UserId,
+    StorefrontCustomerRequestDigest? Request,
+    string Text,
+    IReadOnlyList<StorefrontOrderMessageDigest> Messages,
     string Source,
     string Message);
 
@@ -1681,6 +1808,26 @@ public sealed record StorefrontCatalogueProductsResult(
     string CategoryValue,
     string Search,
     IReadOnlyList<StorefrontProductDigest> Rows,
+    int Count,
+    string Source,
+    string Message);
+
+/// <summary>PHP <c>epc_price_attr_search</c> warehouse “more info” hit.</summary>
+public sealed record StorefrontWarehouseAttrDigest(
+    string Manufacturer,
+    string Article,
+    string ArticleShow,
+    string Name,
+    string MatchedField,
+    string MatchedFieldLabel,
+    string MatchedValue,
+    int PriceId,
+    int PriceDataId);
+
+public sealed record StorefrontWarehouseAttrResult(
+    string Field,
+    string Query,
+    IReadOnlyList<StorefrontWarehouseAttrDigest> Rows,
     int Count,
     string Source,
     string Message);
@@ -3922,3 +4069,631 @@ public sealed record ErpExpenseReportListResult(
     int Count,
     string Source,
     string Message);
+
+public sealed record CpOfficesSummary(
+    int OfficeCount,
+    int MappedStorageCount,
+    int GeoMappedCount,
+    string Source,
+    string Message);
+
+public sealed record CpOfficeDigest(
+    long Id,
+    string Caption,
+    string City,
+    string Address,
+    string Phone);
+
+public sealed record CpOfficesDigestResult(
+    CpOfficesSummary Summary,
+    IReadOnlyList<CpOfficeDigest> Offices,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record CpWorkshopSummary(
+    int OpenCount,
+    int InProgressCount,
+    int ReadyCount,
+    int DeliveredToday,
+    decimal RevenueOpen,
+    string Source,
+    string Message);
+
+public sealed record CpWorkshopJobDigest(
+    long Id,
+    string JobNo,
+    string Status,
+    string CustomerName,
+    string Plate,
+    string Make,
+    string Model,
+    string Year,
+    string BayName,
+    string TechName,
+    decimal GrandTotal);
+
+public sealed record CpWorkshopDigestResult(
+    CpWorkshopSummary Summary,
+    IReadOnlyList<CpWorkshopJobDigest> Jobs,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record CpKktSummary(
+    int DeviceCount,
+    int WiredDeviceCount,
+    int CheckCount,
+    int SentCount,
+    string Source,
+    string Message);
+
+public sealed record CpKktDeviceDigest(
+    long Id,
+    string Name,
+    string Handler,
+    string InterfaceDescription);
+
+public sealed record CpKktDigestResult(
+    CpKktSummary Summary,
+    IReadOnlyList<CpKktDeviceDigest> Devices,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record CpBulkUploadSummary(
+    int UploadCount,
+    int UploadedLines,
+    int AvailableCount,
+    int NotFoundCount,
+    string Source,
+    string Message);
+
+public sealed record CpBulkUploadRowDigest(
+    long Id,
+    string FileName,
+    string Priority,
+    int UploadedCount,
+    int AvailableCount,
+    int CrossCount,
+    int ShortCount,
+    int NotFoundCount,
+    string CreatedAt);
+
+public sealed record CpBulkUploadDigestResult(
+    CpBulkUploadSummary Summary,
+    IReadOnlyList<CpBulkUploadRowDigest> Uploads,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record CpTenantEmailSummary(
+    bool UseTenantSmtp,
+    string Host,
+    string Port,
+    string Encryption,
+    string FromName,
+    string FromEmail,
+    bool HasPassword,
+    string Source,
+    string Message);
+
+public sealed record CpTenantEmailDigestResult(
+    CpTenantEmailSummary Summary,
+    string Source,
+    string Message);
+
+/// <summary>PHP <c>epc_erp_workflow_list</c> / <c>epc_erp_workflow_tasks</c> (writes remain PHP).</summary>
+public sealed record ErpWorkflowTasksSummary(
+    int TaskCount,
+    int OpenCount,
+    int DoneCount,
+    int OverdueCount,
+    int CancelledCount,
+    string Source,
+    string Message);
+
+public sealed record ErpWorkflowTaskDigest(
+    long Id,
+    string DepartmentCode,
+    string WorkflowStep,
+    string Title,
+    string Description,
+    long OrderId,
+    string Status,
+    string Priority,
+    long AssignedUserId,
+    string AssigneeName,
+    long DueAt,
+    long CompletedAt,
+    long TimeCreated);
+
+public sealed record ErpWorkflowTasksDigestResult(
+    ErpWorkflowTasksSummary Summary,
+    IReadOnlyList<ErpWorkflowTaskDigest> Tasks,
+    int Count,
+    string Source,
+    string Message);
+
+/// <summary>Operational FTA VAT 201 boxes from shop orders + purchases (filing stays PHP).</summary>
+public sealed record ErpVatReturnSummary(
+    long DateFromUnix,
+    long DateToUnix,
+    decimal VatRatePercent,
+    decimal SalesExVat,
+    decimal OutputVat,
+    decimal SalesInclVat,
+    decimal PurchaseExVat,
+    decimal InputVat,
+    decimal PurchaseInclVat,
+    decimal NetVatPayable,
+    string NetStatus,
+    string Form,
+    string Source,
+    string Message);
+
+public sealed record ErpVatReturnDigestResult(
+    ErpVatReturnSummary Summary,
+    string Source,
+    string Message);
+
+public sealed record ErpWithholdingSummary(
+    int CodeCount,
+    int TxnCount,
+    decimal Accrued,
+    decimal Settled,
+    decimal TotalWithheld,
+    string Source,
+    string Message);
+
+public sealed record ErpWithholdingCodeDigest(
+    long Id,
+    string Code,
+    string Name,
+    decimal Rate,
+    string Account,
+    bool Active);
+
+public sealed record ErpWithholdingTxnDigest(
+    long Id,
+    long CodeId,
+    string Code,
+    string Vendor,
+    string DocRef,
+    string TxnDate,
+    decimal BaseAmount,
+    decimal WhtAmount,
+    decimal Rate,
+    string CertificateNo,
+    string Status,
+    long TimeCreated);
+
+public sealed record ErpWithholdingDigestResult(
+    ErpWithholdingSummary Summary,
+    IReadOnlyList<ErpWithholdingCodeDigest> Codes,
+    IReadOnlyList<ErpWithholdingTxnDigest> Txns,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record ErpPettyCashDigest(
+    long Id,
+    string Name,
+    long AccountId,
+    string AccountName,
+    decimal FloatAmount,
+    decimal AccountBalance,
+    long CustodianUserId,
+    bool Active,
+    long TimeCreated);
+
+public sealed record ErpPettyCashListResult(
+    IReadOnlyList<ErpPettyCashDigest> Floats,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record ErpCashForecastDigest(
+    long Id,
+    string Name,
+    decimal OpeningBalance,
+    string Currency,
+    string Notes,
+    long TimeCreated);
+
+public sealed record ErpCashForecastLineDigest(
+    long Id,
+    long ForecastId,
+    string DueDate,
+    string Direction,
+    decimal Amount,
+    string Category,
+    string Source,
+    string Notes,
+    decimal RunningBalance);
+
+public sealed record ErpCashForecastSummary(
+    int ForecastCount,
+    decimal Opening,
+    decimal TotalIn,
+    decimal TotalOut,
+    decimal Closing,
+    decimal MinBalance,
+    string Source,
+    string Message);
+
+public sealed record ErpCashForecastDigestResult(
+    ErpCashForecastSummary Summary,
+    IReadOnlyList<ErpCashForecastDigest> Forecasts,
+    IReadOnlyList<ErpCashForecastLineDigest> Lines,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record ErpBankInstrumentDigest(
+    long Id,
+    string Ref,
+    string Type,
+    string Beneficiary,
+    string Applicant,
+    string Bank,
+    decimal Amount,
+    string Currency,
+    string IssueDate,
+    string ExpiryDate,
+    string Status,
+    long TimeCreated);
+
+public sealed record ErpBankInstrumentsSummary(
+    int Count,
+    int Issued,
+    int Utilized,
+    int Closed,
+    decimal Exposure,
+    string Source,
+    string Message);
+
+public sealed record ErpBankInstrumentsDigestResult(
+    ErpBankInstrumentsSummary Summary,
+    IReadOnlyList<ErpBankInstrumentDigest> Instruments,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record ErpSubscriptionDigest(
+    long Id,
+    string Code,
+    string Customer,
+    string PlanName,
+    decimal Amount,
+    string Currency,
+    string Cycle,
+    int TermMonths,
+    long StartDate,
+    long NextBillDate,
+    string Status,
+    decimal Mrr,
+    decimal Recognized,
+    decimal Deferred);
+
+public sealed record ErpSubscriptionsSummary(
+    int Active,
+    decimal Mrr,
+    decimal Arr,
+    decimal Recognized,
+    decimal Deferred,
+    string Source,
+    string Message);
+
+public sealed record ErpSubscriptionsDigestResult(
+    ErpSubscriptionsSummary Summary,
+    IReadOnlyList<ErpSubscriptionDigest> Subscriptions,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record ErpSupplierPortalCardDigest(
+    long Id,
+    string Name,
+    string Email,
+    string Phone,
+    int PoCount,
+    int Received,
+    decimal Spend,
+    decimal AvgLeadDays,
+    decimal? OntimePct,
+    int RfqCount,
+    decimal? ResponsePct,
+    decimal? WinPct,
+    decimal Balance,
+    decimal Score,
+    string Rating);
+
+public sealed record ErpSupplierPortalSummary(
+    int SupplierCount,
+    decimal TotalSpend,
+    decimal OpenPayable,
+    decimal AvgScore,
+    string Source,
+    string Message);
+
+public sealed record ErpSupplierPortalDigestResult(
+    ErpSupplierPortalSummary Summary,
+    IReadOnlyList<ErpSupplierPortalCardDigest> Cards,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record ErpVirtualWarehouseDigestResult(
+    int LocationCount,
+    IReadOnlyList<ErpWarehouseDigest> Locations,
+    ErpStockTransfersDigestResult Transfers,
+    int Count,
+    string Source,
+    string Message);
+
+/// <summary>PHP <c>epc_erp_staff_list</c> / <c>epc_erp_staff_profiles</c> (writes remain PHP).</summary>
+public sealed record ErpStaffProfileDigest(
+    long Id,
+    long UserId,
+    string DepartmentCode,
+    string DisplayName,
+    string JobTitle,
+    string Email,
+    string Phone,
+    bool Active,
+    long TimeCreated);
+
+public sealed record ErpStaffListResult(
+    IReadOnlyList<ErpStaffProfileDigest> Staff,
+    int Count,
+    int ActiveCount,
+    int DepartmentCount,
+    string Source,
+    string Message);
+
+/// <summary>PHP <c>epc_erp_contracts</c> register (body/OCR text omitted).</summary>
+public sealed record ErpContractDigest(
+    long Id,
+    string Code,
+    string Title,
+    string Counterparty,
+    decimal ContractValue,
+    string Currency,
+    long StartDate,
+    long EndDate,
+    string Status,
+    int Version,
+    long TimeCreated);
+
+public sealed record ErpContractsListResult(
+    IReadOnlyList<ErpContractDigest> Contracts,
+    int Count,
+    int ActiveCount,
+    decimal ValueTotal,
+    string Source,
+    string Message);
+
+/// <summary>PHP <c>epc_erp_opening_batches</c> (line meta omitted).</summary>
+public sealed record ErpOpeningBatchDigest(
+    long Id,
+    string Module,
+    string AsOfDate,
+    string Reference,
+    string Status,
+    int LineCount,
+    decimal DebitTotal,
+    decimal CreditTotal,
+    long TimeCreated,
+    long TimePosted);
+
+public sealed record ErpOpeningListResult(
+    IReadOnlyList<ErpOpeningBatchDigest> Batches,
+    int Count,
+    int PostedCount,
+    decimal DebitTotal,
+    decimal CreditTotal,
+    string Source,
+    string Message);
+
+/// <summary>PHP <c>epc_erp_marketing_campaigns</c> (notes omitted).</summary>
+public sealed record ErpMarketingCampaignDigest(
+    long Id,
+    string Name,
+    string Channel,
+    decimal Budget,
+    decimal Spent,
+    int Leads,
+    string Status,
+    long TimeStart,
+    long TimeEnd,
+    long TimeCreated);
+
+public sealed record ErpMarketingListResult(
+    IReadOnlyList<ErpMarketingCampaignDigest> Campaigns,
+    int Count,
+    int ActiveCount,
+    decimal BudgetTotal,
+    int LeadTotal,
+    string Source,
+    string Message);
+
+/// <summary>PHP <c>epc_erp_payroll_runs</c> (notes omitted).</summary>
+public sealed record ErpPayrollRunDigest(
+    long Id,
+    string PeriodLabel,
+    long PeriodStart,
+    long PeriodEnd,
+    string Status,
+    int EmployeeCount,
+    decimal TotalGross,
+    decimal TotalDeductions,
+    decimal TotalNet,
+    long PaidAt,
+    long TimeCreated);
+
+public sealed record ErpPayrollListResult(
+    IReadOnlyList<ErpPayrollRunDigest> Runs,
+    int Count,
+    int PaidCount,
+    decimal GrossTotal,
+    decimal NetTotal,
+    string Source,
+    string Message);
+
+/// <summary>PHP <c>epc_erp_print_templates</c> (HTML/CSS bodies omitted).</summary>
+public sealed record ErpPrintTemplateDigest(
+    long Id,
+    string DocType,
+    string Name,
+    bool IsDefault,
+    string PageSize,
+    string Orientation,
+    bool Active,
+    long TimeUpdated);
+
+public sealed record ErpPrintTemplatesListResult(
+    IReadOnlyList<ErpPrintTemplateDigest> Templates,
+    int Count,
+    int DefaultCount,
+    int DocTypeCount,
+    string Source,
+    string Message);
+
+public sealed record ErpOrderRecommendationDigest(
+    long Id, long ItemId, string Sku, string ItemName, long WarehouseId,
+    decimal Roq, decimal OrderValue, string Status, string Supplier, long OrderedPoId, long TimeUpdated);
+
+public sealed record ErpPlanningParamDigest(
+    long ItemId, long WarehouseId, int LeadTimeDays, decimal TargetServiceLevel,
+    int ReviewPeriodDays, decimal MinOrderQty, decimal OrderMultiple, string Supplier, bool Stocked);
+
+public sealed record ErpOrderPlanningDigestResult(
+    IReadOnlyList<ErpOrderRecommendationDigest> Recommendations,
+    IReadOnlyList<ErpPlanningParamDigest> Params,
+    int Count, int PendingCount, decimal PendingValue, string Source, string Message);
+
+public sealed record ErpProcCategoryDigest(
+    long Id, string Code, string Name, long ParentId, string DefaultAccount, bool Active, long TimeCreated);
+
+public sealed record ErpProcPolicyDigest(
+    long Id, string Name, long CategoryId, decimal ApprovalThreshold, string PreferredVendor, bool Active);
+
+public sealed record ErpProcurementCategoriesDigestResult(
+    IReadOnlyList<ErpProcCategoryDigest> Categories,
+    IReadOnlyList<ErpProcPolicyDigest> Policies,
+    int Count, int ActiveCount, int PolicyCount, string Source, string Message);
+
+public sealed record ErpQmPlanDigest(long Id, string Code, string Name, bool Active, int TestCount, long TimeUpdated);
+public sealed record ErpQmOrderDigest(long Id, long PlanId, string RefType, string RefId, long ItemId, decimal Qty, string Status, string Verdict, long TimeCreated);
+public sealed record ErpQmNcrDigest(long Id, long OrderId, string Title, string Severity, string Disposition, string Status, long TimeCreated);
+
+public sealed record ErpQualityDigestResult(
+    IReadOnlyList<ErpQmPlanDigest> Plans,
+    IReadOnlyList<ErpQmOrderDigest> Orders,
+    IReadOnlyList<ErpQmNcrDigest> Ncrs,
+    int Count, int OpenOrderCount, int OpenNcrCount, string Source, string Message);
+
+public sealed record ErpRfidTagDigest(
+    long Id, string RfidEpc, string Sku, string ItemDescription, long WarehouseId,
+    string LocationZone, string Status, string LastScannedAt, long TimeCreated);
+
+public sealed record ErpRfidSessionDigest(
+    long Id, string SessionType, long WarehouseId, string Zone, int TotalScanned, int TotalExpected,
+    int TotalFound, int TotalMissing, string Status, string ScannedByName, long TimeStarted);
+
+public sealed record ErpRfidDigestResult(
+    IReadOnlyList<ErpRfidTagDigest> Tags,
+    IReadOnlyList<ErpRfidSessionDigest> Sessions,
+    int Count, int ActiveTagCount, int SessionCount, string Source, string Message);
+
+public sealed record ErpRecruitmentJobDigest(
+    long Id, string Title, string Department, int Headcount, int Hired, string Status, string HiringManager, long TimeCreated);
+
+public sealed record ErpRecruitmentApplicantDigest(
+    long Id, long JobId, string Name, string Email, string Phone, string Stage, int Rating, long TimeCreated);
+
+public sealed record ErpRecruitmentDigestResult(
+    IReadOnlyList<ErpRecruitmentJobDigest> Jobs,
+    IReadOnlyList<ErpRecruitmentApplicantDigest> Applicants,
+    int Count, int OpenJobCount, int ApplicantCount, string Source, string Message);
+
+public sealed record ErpCustomerGroupDigest(
+    long Id, string GroupCode, string GroupName, string GroupType, decimal DiscountPct,
+    decimal CreditLimit, int PaymentTermsDays, int MemberCount, bool IsActive, long TimeCreated);
+
+public sealed record ErpCustomerGroupsDigestResult(
+    IReadOnlyList<ErpCustomerGroupDigest> Groups,
+    int Count, int ActiveCount, int MemberTotal, string Source, string Message);
+
+public sealed record ErpPerformanceReviewDigest(
+    long Id, long EmployeeId, string EmployeeName, string Period, string Status,
+    string Reviewer, decimal OverallRating, long TimeUpdated);
+
+public sealed record ErpPerformanceGoalDigest(
+    long Id, long ReviewId, string Title, decimal Weight, string Target, int Rating);
+
+public sealed record ErpPerformanceDigestResult(
+    IReadOnlyList<ErpPerformanceReviewDigest> Reviews,
+    IReadOnlyList<ErpPerformanceGoalDigest> Goals,
+    int Count, int OpenCount, int DoneCount, string Source, string Message);
+
+public sealed record ErpProductInfoItemDigest(
+    long Id, string Sku, string Name, long ProductId, string ItemType, string Unit,
+    decimal SalesPrice, bool Active, long TimeCreated);
+
+public sealed record ErpProductInfoFieldDigest(
+    long Id, string FieldKey, string Label, string FieldType, string FieldRole, int SortOrder, bool Active);
+
+public sealed record ErpProductInfoVariantDigest(
+    long Id, long ItemId, string BaseSku, string VariantSku, string VariantLabel, bool Active, long TimeCreated);
+
+public sealed record ErpProductInfoDigestResult(
+    IReadOnlyList<ErpProductInfoItemDigest> Items,
+    IReadOnlyList<ErpProductInfoFieldDigest> FieldDefs,
+    IReadOnlyList<ErpProductInfoVariantDigest> Variants,
+    int Count, int ActiveCount, int FieldCount, string Source, string Message);
+
+public sealed record ErpReportScheduleDigest(
+    long Id, string ReportName, string ReportType, string Frequency, int DayOfWeek, int DayOfMonth,
+    string TimeOfDay, string Format, bool IsActive, string LastStatus, long TimeCreated);
+
+public sealed record ErpReportSchedulerDigestResult(
+    IReadOnlyList<ErpReportScheduleDigest> Schedules,
+    int Count, int ActiveCount, string Source, string Message);
+
+public sealed record ErpPrjaBudgetDigest(
+    long Id, long ProjectId, string Category, decimal CostBudget, decimal RevenueBudget, long TimeCreated);
+
+public sealed record ErpPrjaTxnDigest(
+    long Id, long ProjectId, string TxnType, string Category, string Description, decimal Amount, long TxnDate, long TimeCreated);
+
+public sealed record ErpPrjaRecognitionDigest(
+    long Id, long ProjectId, string Method, long AsOf, decimal PctComplete,
+    decimal RecognizedRevenue, decimal RecognizedCost, decimal Wip, long TimeCreated);
+
+public sealed record ErpProjectAccountingDigestResult(
+    IReadOnlyList<ErpPrjaBudgetDigest> Budgets,
+    IReadOnlyList<ErpPrjaTxnDigest> Txns,
+    IReadOnlyList<ErpPrjaRecognitionDigest> Recognitions,
+    int Count, int TxnCount, int RecognitionCount, string Source, string Message);
+
+public sealed record ErpDocAttachmentDigest(
+    long Id, string EntityType, long EntityId, string FileName, int FileSize, string MimeType,
+    string Description, string UploadedByName, long TimeCreated);
+
+public sealed record ErpDocAttachmentsDigestResult(
+    IReadOnlyList<ErpDocAttachmentDigest> Attachments,
+    int Count, int EntityTypeCount, string Source, string Message);
+
+public sealed record ErpInventoryReportCategoryDigest(
+    long Id, long ParentId, string Code, string Name, int Level, int SortOrder, bool IsActive, long TimeCreated);
+
+public sealed record ErpInventoryReportSnapshotDigest(
+    long Id, string SnapshotDate, long CategoryId, int TotalSkus, decimal TotalQty, decimal TotalValue,
+    decimal AvgAgeDays, long TimeCreated);
+
+public sealed record ErpInventoryReportDigestResult(
+    IReadOnlyList<ErpInventoryReportCategoryDigest> Categories,
+    IReadOnlyList<ErpInventoryReportSnapshotDigest> Snapshots,
+    int Count, int SnapshotCount, decimal TotalValue, string Source, string Message);

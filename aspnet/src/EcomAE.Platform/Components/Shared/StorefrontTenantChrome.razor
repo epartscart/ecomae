@@ -1,0 +1,46 @@
+@namespace EcomAE.Platform.Components.Shared
+@using EcomAE.Platform.Presentation
+@inject IHttpContextAccessor Http
+
+@if (!string.IsNullOrEmpty(_headerHtml))
+{
+    <div class="epc-php-font-root">
+        @((MarkupString)_headerHtml)
+        @ChildContent
+        @((MarkupString)_footerHtml)
+    </div>
+    @if (_showAgent)
+    {
+        <StorefrontPartsAgentChip />
+    }
+}
+else
+{
+    <PhpStorefrontDesktopChrome>
+        @ChildContent
+    </PhpStorefrontDesktopChrome>
+    @if (_showAgent)
+    {
+        <StorefrontPartsAgentChip />
+    }
+}
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    private string _headerHtml = string.Empty;
+    private string _footerHtml = string.Empty;
+    private bool _showAgent;
+
+    protected override void OnInitialized()
+    {
+        var host = Http.HttpContext?.Request.Host.Host ?? string.Empty;
+        _showAgent = StorefrontIndustryHostResolver.ResolveIndustryCode(host) is "auto_parts";
+        var package = StorefrontIndustryHostResolver.Resolve(host).StorefrontPackage;
+        if (PhpTenantHomeSnapshots.TrySplitChrome(package, out var header, out var footer))
+        {
+            _headerHtml = header;
+            _footerHtml = footer;
+        }
+    }
+}

@@ -1,0 +1,33 @@
+@page "/storefront/umapi-catalog-app"
+@page "/en/umapi_catalog"
+@page "/umapi_catalog"
+@layout Layout.PhpChromeLayout
+@using EcomAE.Platform.Presentation
+
+<PageTitle>Epart Catalog · eParts Cart</PageTitle>
+<PhpChromeStyles Surface="storefront" />
+<StorefrontAnalytics Enabled="true" IncludeClarity="true" />
+
+<StorefrontCatalogWidgetBody Title="Epart Catalog"
+                            Subtitle="Aftermarket brand catalog — manufacturer tiles and article drill-down."
+                            AnchorId="epc-umapi"
+                            Html="@_html"
+                            PhpComparePath="@StorefrontPhpCanonical.UmapiCatalog">
+    <a class="btn btn-sm btn-primary" href="@StorefrontSurfaceLinks.PartSearch">Part search</a>
+    <a class="btn btn-sm btn-default" href="@StorefrontSurfaceLinks.ProductFamily">Product family</a>
+    <a class="btn btn-sm btn-default" href="@StorefrontSurfaceLinks.VehicleCatalog">Vehicle catalog</a>
+</StorefrontCatalogWidgetBody>
+
+@code {
+    private string _html = "";
+
+    protected override void OnInitialized()
+    {
+        _html = PhpHomeWidgetHtml.UmapiCatalog();
+        if (string.IsNullOrWhiteSpace(_html))
+        {
+            _html = "<p style=\"margin:0;color:#64748b\">UMAPI catalog widget is unavailable in this environment. "
+                  + "<a href=\"" + StorefrontSurfaceLinks.PartSearch + "\">Open part search</a>.</p>";
+        }
+    }
+}

@@ -1,0 +1,175 @@
+@page "/storefront/returns-app"
+@page "/en/shop/returns"
+@page "/shop/returns"
+@page "/en/shop/returns/return"
+@page "/shop/returns/return"
+@page "/en/shop/returns/add"
+@page "/shop/returns/add"
+@page "/en/shop/returns/returns_list"
+@page "/shop/returns/returns_list"
+@layout Layout.PhpChromeLayout
+@using System.Globalization
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Migration
+@using EcomAE.Platform.Presentation
+@inject ISurfaceDashboardSummaryReporter Dashboards
+@inject ILegacySessionValidator Sessions
+@inject IHttpContextAccessor Http
+
+<PageTitle>Returns · @_brand</PageTitle>
+<PhpSurfaceHead Surface="storefront" IncludeStorefrontAnalytics="true" ApplyStorefrontIndustryAttrs="true" />
+<PhpChromeBodyClass Surface="storefront" />
+
+<StorefrontTenantChrome>
+    <section style="padding:2rem 0 3rem">
+        <div class="container" style="max-width:46rem">
+            <p style="margin:0 0 .35rem;color:#64748b;font-size:.85rem"><a href="@StorefrontSurfaceLinks.Orders">My orders</a> · Returns</p>
+            <h1 style="margin:.1rem 0 .4rem">Returns</h1>
+            <p style="color:#475569">Open a return from a paid order. The store reviews the request before a credit is issued.</p>
+            @if (!_isCustomer)
+            {
+                <div style="padding:1.15rem 1.2rem;background:#fff;border:1px solid #e2e8f0;border-radius:.55rem">
+                    <p style="margin:0 0 .75rem">Sign in to see your return requests.</p>
+                    <a class="btn btn-primary" href="@StorefrontSurfaceLinks.Login">Sign in</a>
+                </div>
+            }
+            else
+            {
+                <div style="background:#fff;border:1px solid #e2e8f0;border-radius:.55rem;padding:1.1rem 1.2rem">
+                    <p style="margin:0 0 .75rem;color:#475569">Start a new return from an order, or open an existing request.</p>
+                    @if (_returns.Count > 0)
+                    {
+                        <ul style="margin:0 0 1rem;padding:0;list-style:none">
+                            @foreach (var row in _returns)
+                            {
+                                <li style="margin:0 0 .45rem;padding:.55rem .7rem;background:#f8fafc;border:1px solid #e2e8f0;border-radius:.4rem">
+                                    Return #@row.Id.ToString(CultureInfo.InvariantCulture)
+                                    · order @(row.OrderId > 0 ? row.OrderId.ToString(CultureInfo.InvariantCulture) : "—")
+                                    · @(string.IsNullOrWhiteSpace(row.Status) ? "Open" : row.Status)
+                                    · <a href="@(StorefrontAspNetCanonical.CustomerReturns + "?return_id=" + row.Id.ToString(CultureInfo.InvariantCulture))">Open</a>
+                                </li>
+                            }
+                        </ul>
+                    }
+                    else if (!string.IsNullOrWhiteSpace(_listMessage))
+                    {
+                        <p style="margin:0 0 .75rem;color:#64748b">@_listMessage</p>
+                    }
+                    @if (_detail is not null)
+                    {
+                        <div style="margin:0 0 1rem;padding:.85rem .9rem;border:1px solid #e2e8f0;border-radius:.45rem;background:#fff">
+                            <h2 style="margin:0 0 .45rem;font-size:1.05rem">Return #@_detail.Id.ToString(CultureInfo.InvariantCulture)</h2>
+                            <p style="margin:0 0 .65rem;color:#475569">
+                                @(string.IsNullOrWhiteSpace(_detail.Status) ? "Open" : _detail.Status)
+                                @if (_detail.OrderId > 0)
+                                {
+                                    <text> · <a href="@StorefrontSurfaceLinks.ForOrder(_detail.OrderId)">Order #@_detail.OrderId.ToString(CultureInfo.InvariantCulture)</a></text>
+                                }
+                            </p>
+                            @if (_items.Count > 0)
+                            {
+                                <table style="width:100%;border-collapse:collapse;font-size:.86rem;margin-bottom:.85rem">
+                                    <thead>
+                                        <tr>
+                                            <th style="text-align:left;padding:.35rem .4rem">Brand</th>
+                                            <th style="text-align:left;padding:.35rem .4rem">Article</th>
+                                            <th style="text-align:left;padding:.35rem .4rem">Name</th>
+                                            <th style="text-align:left;padding:.35rem .4rem">Qty</th>
+                                            <th style="text-align:left;padding:.35rem .4rem">Reason</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var line in _items)
+                                        {
+                                            <tr>
+                                                <td style="padding:.35rem .4rem">@(string.IsNullOrWhiteSpace(line.Brand) ? "—" : line.Brand)</td>
+                                                <td style="padding:.35rem .4rem">@(string.IsNullOrWhiteSpace(line.Article) ? "—" : line.Article)</td>
+                                                <td style="padding:.35rem .4rem">@(string.IsNullOrWhiteSpace(line.Name) ? "—" : line.Name)</td>
+                                                <td style="padding:.35rem .4rem">@line.CountNeed.ToString("0.##", CultureInfo.InvariantCulture)</td>
+                                                <td style="padding:.35rem .4rem">@(string.IsNullOrWhiteSpace(line.Reason) ? "—" : line.Reason)</td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            }
+                            @if (_messages.Count > 0)
+                            {
+                                <h3 style="margin:0 0 .4rem;font-size:.95rem">Messages</h3>
+                                <ul style="list-style:none;margin:0 0 .75rem;padding:0">
+                                    @foreach (var msg in _messages)
+                                    {
+                                        <li style="margin:0 0 .45rem;padding:.5rem .65rem;background:#f8fafc;border:1px solid #e2e8f0;border-radius:.35rem">
+                                            <div style="font-size:.75rem;color:#64748b">@(msg.IsCustomer != 0 ? "You" : "Store")</div>
+                                            <div>@msg.Text</div>
+                                        </li>
+                                    }
+                                </ul>
+                            }
+                        </div>
+                    }
+                    <p style="margin:0 0 .85rem"><a class="btn btn-primary" href="@StorefrontSurfaceLinks.Orders">Choose an order</a></p>
+                    <form method="post" action="@PhpVendorPortal.ReturnsWriteHref">
+                        <label>Order number</label>
+                        <input type="text" name="order_id" required value="@OrderId" style="width:100%;margin:.25rem 0 .75rem;padding:.5rem" />
+                        <label>Reason</label>
+                        <textarea name="reason" rows="3" style="width:100%;margin:.25rem 0 1rem;padding:.5rem"></textarea>
+                        <button type="submit" style="padding:.65rem 1rem;border:0;border-radius:.45rem;background:#0f766e;color:#fff;font-weight:800;cursor:pointer">Submit return request</button>
+                    </form>
+                    @if (ReturnId is > 0)
+                    {
+                        <form method="get" action="@PhpCustomerWrites.ReturnsMessageHref" style="margin-top:1rem;padding-top:1rem;border-top:1px solid #e2e8f0">
+                            <input type="hidden" name="return_id" value="@ReturnId" />
+                            <label>Message on return #@ReturnId</label>
+                            <textarea name="text" rows="3" required style="width:100%;margin:.25rem 0 1rem;padding:.5rem"></textarea>
+                            <button type="submit" style="padding:.55rem .9rem;border:0;border-radius:.4rem;background:#0f766e;color:#fff;font-weight:800;cursor:pointer">Send message</button>
+                        </form>
+                    }
+                </div>
+            }
+        </div>
+    </section>
+</StorefrontTenantChrome>
+
+@code {
+    private string _brand = "eParts Cart";
+    private bool _isCustomer;
+    private IReadOnlyList<StorefrontReturnDigest> _returns = [];
+    private StorefrontReturnDigest? _detail;
+    private IReadOnlyList<StorefrontReturnItemDigest> _items = [];
+    private IReadOnlyList<StorefrontOrderMessageDigest> _messages = [];
+    private string _listMessage = "";
+
+    [SupplyParameterFromQuery(Name = "order_id")]
+    public string? OrderId { get; set; }
+
+    [SupplyParameterFromQuery(Name = "return_id")]
+    public int? ReturnId { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null)
+        {
+            return;
+        }
+
+        _brand = StorefrontIndustryHostResolver.ResolveBrandLabel(ctx.Request.Host.Host);
+        var session = await Sessions.ValidateCustomerAsync(ctx, ctx.RequestAborted);
+        _isCustomer = session.Kind == LegacySessionKind.Customer && session.UserId > 0;
+        if (_isCustomer && session.UserId > 0)
+        {
+            var list = await Dashboards.ListStorefrontReturnsAsync(session.UserId, 40, ctx.RequestAborted);
+            _returns = list.Returns;
+            _listMessage = list.Count == 0
+                ? (string.IsNullOrWhiteSpace(list.Message) ? "No return requests yet." : list.Message)
+                : string.Empty;
+            if (ReturnId is > 0)
+            {
+                var detail = await Dashboards.GetStorefrontReturnAsync(session.UserId, ReturnId.Value, ctx.RequestAborted);
+                _detail = detail.Return;
+                _items = detail.Items;
+                _messages = detail.Messages;
+            }
+        }
+    }
+}

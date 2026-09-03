@@ -1,0 +1,44 @@
+@page "/storefront/sitemap-app"
+@page "/en/sitemap"
+@page "/sitemap"
+@page "/en/shop/sitemap"
+@page "/shop/sitemap"
+@layout Layout.PhpChromeLayout
+@using EcomAE.Platform.Presentation
+@inject IHttpContextAccessor Http
+
+<PageTitle>Sitemap · @_brand</PageTitle>
+<PhpSurfaceHead Surface="storefront" IncludeStorefrontAnalytics="true" ApplyStorefrontIndustryAttrs="true" IncludePublicSeo="true" />
+<PhpChromeBodyClass Surface="storefront" />
+
+<StorefrontTenantChrome>
+    <section style="padding:2rem 0 3rem">
+        <div class="container" style="max-width:52rem">
+            <p style="margin:0 0 .35rem;color:#64748b;font-size:.85rem"><a href="/">Home</a> · Sitemap</p>
+            <h1 style="margin:.1rem 0 .4rem">Sitemap</h1>
+            <p style="color:#475569">Customer pages on @_brand.</p>
+            @foreach (var group in _entries.GroupBy(e => e.Group))
+            {
+                <h2 style="margin:1.25rem 0 .45rem;font-size:1.05rem">@group.Key</h2>
+                <ul style="margin:0;padding-left:1.15rem;line-height:1.7">
+                    @foreach (var item in group)
+                    {
+                        <li><a href="@item.Href">@item.Label</a></li>
+                    }
+                </ul>
+            }
+        </div>
+    </section>
+</StorefrontTenantChrome>
+
+@code {
+    private string _brand = "eParts Cart";
+    private IReadOnlyList<PhpStorefrontSitemap.Entry> _entries = [];
+
+    protected override void OnInitialized()
+    {
+        var host = Http.HttpContext?.Request.Host.Host;
+        _brand = StorefrontIndustryHostResolver.ResolveBrandLabel(host);
+        _entries = PhpStorefrontSitemap.ForIndustry(StorefrontIndustryHostResolver.ResolveIndustryCode(host));
+    }
+}

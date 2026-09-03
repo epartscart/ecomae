@@ -18,6 +18,16 @@ public interface ISurfaceDashboardSummaryReporter
 
     Task<StorefrontOrdersResult> ListStorefrontOrdersAsync(int userId, int limit, CancellationToken cancellationToken = default);
 
+    /// <summary>Guest checkout lookup (PHP <c>ajax_check_order_not_authorized</c>). Always <c>user_id = 0</c>. Writes stay PHP.</summary>
+    Task<StorefrontGuestOrderResult> GetStorefrontGuestOrderAsync(long orderId, string? email, string? phone, CancellationToken cancellationToken = default);
+
+    /// <summary>Customer-scoped order lines (PHP <c>shop/orders/items</c>). Writes stay PHP.</summary>
+    Task<StorefrontOrderItemsResult> ListStorefrontOrderItemsAsync(int userId, long orderId, int limit, CancellationToken cancellationToken = default);
+    Task<StorefrontOrderMessagesResult> ListStorefrontOrderMessagesAsync(int userId, long orderId, int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Published markup-group CSV path (PHP prices_download tab).</summary>
+    Task<StorefrontPriceListResult> GetStorefrontPriceListAsync(int userId, CancellationToken cancellationToken = default);
+
     Task<CpUserListResult> ListCpUsersAsync(int limit, CancellationToken cancellationToken = default);
 
     /// <summary>Read-only CP user detail console (PHP users/usermanager/user). Writes remain PHP-authoritative.</summary>
@@ -36,6 +46,11 @@ public interface ISurfaceDashboardSummaryReporter
     Task<ErpPurchaseListResult> ListErpPurchasesAsync(int limit, CancellationToken cancellationToken = default);
 
     Task<StorefrontGarageResult> ListStorefrontGarageAsync(int userId, int limit, CancellationToken cancellationToken = default);
+    Task<StorefrontGarageNotepadResult> ListStorefrontGarageNotepadAsync(int userId, long garageId, int limit, CancellationToken cancellationToken = default);
+    Task<StorefrontReturnsResult> ListStorefrontReturnsAsync(int userId, int limit, CancellationToken cancellationToken = default);
+    Task<StorefrontReturnDetailResult> GetStorefrontReturnAsync(int userId, long returnId, CancellationToken cancellationToken = default);
+    Task<StorefrontCustomerRequestsResult> ListStorefrontCustomerRequestsAsync(int userId, int limit, CancellationToken cancellationToken = default);
+    Task<StorefrontCustomerRequestDetailResult> GetStorefrontCustomerRequestAsync(int userId, long requestId, CancellationToken cancellationToken = default);
 
     Task<ErpCashAccountListResult> ListErpCashAccountsAsync(int limit, CancellationToken cancellationToken = default);
 
@@ -354,6 +369,13 @@ public interface ISurfaceDashboardSummaryReporter
         int limit,
         CancellationToken cancellationToken = default);
 
+    /// <summary>PHP <c>epc_price_attr_search</c> against <c>epc_price_attr_index</c>.</summary>
+    Task<StorefrontWarehouseAttrResult> ListStorefrontWarehouseAttrAsync(
+        string? field,
+        string? query,
+        int limit,
+        CancellationToken cancellationToken = default);
+
     /// <summary>Genuine OE brand keys (PHP <c>epc_genuine_build_frontend_index</c>).</summary>
     Task<StorefrontGenuineBrandsResult> ListStorefrontGenuineBrandsAsync(CancellationToken cancellationToken = default);
 
@@ -435,6 +457,79 @@ public interface ISurfaceDashboardSummaryReporter
     Task<ErpAgendaEventListResult> ListErpAgendaEventsAsync(int limit, CancellationToken cancellationToken = default);
     Task<ErpDocumentListResult> ListErpDocumentsAsync(int limit, CancellationToken cancellationToken = default);
     Task<ErpExpenseReportListResult> ListErpExpenseReportsAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Read-only shop_offices + storage/geo maps (PHP offices.php).</summary>
+    Task<CpOfficesDigestResult> BuildCpOfficesDigestAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Read-only workshop jobs (customer phone/email omitted).</summary>
+    Task<CpWorkshopDigestResult> BuildCpWorkshopDigestAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Read-only KKT devices (PHP devices.php; customer contact omitted).</summary>
+    Task<CpKktDigestResult> BuildCpKktDigestAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Read-only CP bulk-upload history (PHP bulk_upload_hub; file bodies omitted).</summary>
+    Task<CpBulkUploadDigestResult> BuildCpBulkUploadDigestAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Read-only tenant SMTP settings (password/username omitted).</summary>
+    Task<CpTenantEmailDigestResult> BuildCpTenantEmailDigestAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>Read-only department workflow board from PHP <c>epc_erp_workflow_tasks</c> (writes remain PHP).</summary>
+    Task<ErpWorkflowTasksDigestResult> BuildErpWorkflowTasksDigestAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Operational VAT 201 boxes (shop orders + purchases). FTA filing stays PHP.</summary>
+    Task<ErpVatReturnDigestResult> BuildErpVatReturnDigestAsync(long? fromUnix = null, long? toUnix = null, CancellationToken cancellationToken = default);
+
+    /// <summary>Read-only withholding codes + transactions (PHP <c>epc_wht_*</c>; writes remain PHP).</summary>
+    Task<ErpWithholdingDigestResult> BuildErpWithholdingDigestAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Read-only petty cash floats (PHP <c>epc_erp_petty_cash</c>).</summary>
+    Task<ErpPettyCashListResult> ListErpPettyCashAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Read-only cash-flow forecasts + projection (PHP <c>epc_cft_forecast</c>).</summary>
+    Task<ErpCashForecastDigestResult> BuildErpCashForecastDigestAsync(int limit, long? forecastId = null, CancellationToken cancellationToken = default);
+
+    /// <summary>Read-only bank instruments LC/BG/SBLC (PHP <c>epc_cft_instrument</c>).</summary>
+    Task<ErpBankInstrumentsDigestResult> BuildErpBankInstrumentsDigestAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Read-only subscription billing list + MRR/ARR (PHP <c>epc_erp_subscriptions</c>).</summary>
+    Task<ErpSubscriptionsDigestResult> BuildErpSubscriptionsDigestAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Read-only supplier performance scorecards (PHP <c>epc_sp_scorecards</c>).</summary>
+    Task<ErpSupplierPortalDigestResult> BuildErpSupplierPortalDigestAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Read-only virtual/exhibition warehouse locations + transfer history.</summary>
+    Task<ErpVirtualWarehouseDigestResult> BuildErpVirtualWarehouseDigestAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Read-only staff profiles (PHP <c>epc_erp_staff_profiles</c>; writes remain PHP).</summary>
+    Task<ErpStaffListResult> ListErpStaffAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Read-only contracts register (PHP <c>epc_erp_contracts</c>; body/OCR omitted).</summary>
+    Task<ErpContractsListResult> ListErpContractsAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Read-only opening-balance batches (PHP <c>epc_erp_opening_batches</c>).</summary>
+    Task<ErpOpeningListResult> ListErpOpeningBatchesAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Read-only marketing campaigns (PHP <c>epc_erp_marketing_campaigns</c>).</summary>
+    Task<ErpMarketingListResult> ListErpMarketingCampaignsAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Read-only payroll runs (PHP <c>epc_erp_payroll_runs</c>).</summary>
+    Task<ErpPayrollListResult> ListErpPayrollRunsAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Read-only print templates (PHP <c>epc_erp_print_templates</c>; HTML/CSS omitted).</summary>
+    Task<ErpPrintTemplatesListResult> ListErpPrintTemplatesAsync(int limit, CancellationToken cancellationToken = default);
+
+    Task<ErpOrderPlanningDigestResult> BuildErpOrderPlanningDigestAsync(int limit, CancellationToken cancellationToken = default);
+    Task<ErpProcurementCategoriesDigestResult> BuildErpProcurementCategoriesDigestAsync(int limit, CancellationToken cancellationToken = default);
+    Task<ErpQualityDigestResult> BuildErpQualityDigestAsync(int limit, CancellationToken cancellationToken = default);
+    Task<ErpRfidDigestResult> BuildErpRfidDigestAsync(int limit, CancellationToken cancellationToken = default);
+    Task<ErpRecruitmentDigestResult> BuildErpRecruitmentDigestAsync(int limit, CancellationToken cancellationToken = default);
+    Task<ErpCustomerGroupsDigestResult> ListErpCustomerGroupsAsync(int limit, CancellationToken cancellationToken = default);
+    Task<ErpPerformanceDigestResult> BuildErpPerformanceDigestAsync(int limit, CancellationToken cancellationToken = default);
+    Task<ErpProductInfoDigestResult> BuildErpProductInfoDigestAsync(int limit, CancellationToken cancellationToken = default);
+    Task<ErpReportSchedulerDigestResult> BuildErpReportSchedulerDigestAsync(int limit, CancellationToken cancellationToken = default);
+    Task<ErpProjectAccountingDigestResult> BuildErpProjectAccountingDigestAsync(int limit, CancellationToken cancellationToken = default);
+    Task<ErpDocAttachmentsDigestResult> ListErpDocAttachmentsAsync(int limit, CancellationToken cancellationToken = default);
+    Task<ErpInventoryReportDigestResult> BuildErpInventoryReportDigestAsync(int limit, CancellationToken cancellationToken = default);
 }
 
 

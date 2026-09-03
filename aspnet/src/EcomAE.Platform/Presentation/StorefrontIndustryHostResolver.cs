@@ -143,6 +143,18 @@ public static class StorefrontIndustryHostResolver
         return "ECOM AE Storefront";
     }
 
+    /// <summary>Short store name for document titles (login/cart/orders) — not the SEO title.</summary>
+    public static string ResolveBrandLabel(string? host)
+    {
+        var brand = LoginHostBrand.Resolve(host, "storefront");
+        if (brand.LogoKind != LoginHostBrand.Kind.Platform && !string.IsNullOrWhiteSpace(brand.Label))
+        {
+            return brand.Label;
+        }
+
+        return ResolveStorefrontTitle(host);
+    }
+
     private static string? ExtractIndustrySlug(string? host)
     {
         if (string.IsNullOrWhiteSpace(host))

@@ -1,0 +1,10 @@
+@namespace EcomAE.Platform.Components.Shared
+@using EcomAE.Platform.Presentation
+
+<div style="position:fixed;right:1rem;bottom:1rem;z-index:40;max-width:18rem;background:#0f172a;color:#f8fafc;border-radius:.7rem;padding:.85rem .95rem;box-shadow:0 12px 28px rgba(15,23,42,.28)">
+    <p style="margin:0 0 .45rem;font-weight:800;font-size:.85rem">Parts desk</p>
+    <form method="get" action="@StorefrontSurfaceLinks.PartSearch" style="margin:0">
+        <input type="text" name="article" required maxlength="64" placeholder="Part number" style="width:100%;padding:.4rem .5rem;border:0;border-radius:.35rem;margin-bottom:.45rem;color:#0f172a" />
+        <button type="submit" style="width:100%;padding:.4rem .5rem;border:0;border-radius:.35rem;background:#dc2626;color:#fff;font-weight:800;cursor:pointer">Ask</button>
+    </form>
+</div>

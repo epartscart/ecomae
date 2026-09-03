@@ -14,10 +14,62 @@
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Bank reconciliation" BreadcrumbArea="Cash & Treasury" BreadcrumbTab="Bank recon">
 
     
-    <PhpErpModulePageHeader Title="Bank reconciliation" Subtitle="ASP.NET Core digest — PHP compare only under /php-reference/*." PhpTabHref="@_phpTab" />
+    <PhpErpModulePageHeader Title="@_title" Subtitle="@_subtitle" PhpTabHref="@_phpTab" />
     <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
 
+    <p class="text-muted" style="margin:8px 0 12px;">
+        <a href="/erp/bank-reconciliation-app">Bank recon</a>
+        · <a href="/erp/bank-reconciliation-app?tab=bank_instruments">Bank instruments</a>
+    </p>
 
+    @if (_view == "bank_instruments")
+    {
+        <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Bank instrument stats">
+            <div class="kpi"><div class="lbl">Instruments</div><div class="val">@_instruments.Count.ToString(CultureInfo.InvariantCulture)</div></div>
+            <div class="kpi"><div class="lbl">Issued</div><div class="val">@_instrumentSummary.Issued.ToString(CultureInfo.InvariantCulture)</div></div>
+            <div class="kpi"><div class="lbl">Utilized</div><div class="val">@_instrumentSummary.Utilized.ToString(CultureInfo.InvariantCulture)</div></div>
+            <div class="kpi"><div class="lbl">Closed</div><div class="val">@_instrumentSummary.Closed.ToString(CultureInfo.InvariantCulture)</div></div>
+            <div class="kpi"><div class="lbl">Outstanding</div><div class="val">@_instrumentSummary.Exposure.ToString("N2", CultureInfo.InvariantCulture)</div></div>
+        </div>
+        <div class="epc-erp-table-wrap">
+            <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
+                <thead>
+                    <tr>
+                        <th>Ref</th>
+                        <th>Type</th>
+                        <th>Beneficiary</th>
+                        <th>Bank</th>
+                        <th class="text-right">Amount</th>
+                        <th>Expiry</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (_instruments.Count == 0)
+                    {
+                        <tr><td colspan="7">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? "No bank instruments yet." : _message) : "Sign in with ERP capability for live rows.")</td></tr>
+                    }
+                    else
+                    {
+                        @foreach (var row in _instruments)
+                        {
+                            <tr>
+                                <td><strong>@(string.IsNullOrWhiteSpace(row.Ref) ? $"#{row.Id}" : row.Ref)</strong></td>
+                                <td>@row.Type</td>
+                                <td>@(string.IsNullOrWhiteSpace(row.Beneficiary) ? "—" : row.Beneficiary)</td>
+                                <td>@(string.IsNullOrWhiteSpace(row.Bank) ? "—" : row.Bank)</td>
+                                <td class="text-right">@row.Amount.ToString("N2", CultureInfo.InvariantCulture) @(string.IsNullOrWhiteSpace(row.Currency) ? "" : row.Currency)</td>
+                                <td>@(string.IsNullOrWhiteSpace(row.ExpiryDate) ? "—" : row.ExpiryDate)</td>
+                                <td><span class="label label-default">@row.Status</span></td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+    else
+    {
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Bank reconciliation stats">
         <div class="kpi"><div class="lbl">Lines</div><div class="val">@_summary.LineCount.ToString(CultureInfo.InvariantCulture)</div></div>
         <div class="kpi"><div class="lbl">Unmatched</div><div class="val">@_summary.UnmatchedCount.ToString(CultureInfo.InvariantCulture)</div></div>
@@ -64,16 +116,22 @@
                     }
                 }
             </tbody>
-        </table>
-    </div>
+            </table>
+        </div>
+    }
 
 </PhpErpDesktopChrome>
 
 @code {
-    private const string _phpTab = "/ERP/?epc_erp_shell=1&area=banking&tab=bank_recon";
+    private string _phpTab = "/ERP/?epc_erp_shell=1&area=banking&tab=bank_recon";
+    private string _title = "Bank reconciliation";
+    private string _subtitle = "Statement lines and match status.";
+    private string _view = "bank_recon";
     private bool _isAdmin;
     private ErpBankReconciliationSummary _summary = new(0, 0, 0, 0, 0, "n/a", "");
     private IReadOnlyList<ErpBankStatementLineDigest> _lines = [];
+    private ErpBankInstrumentsSummary _instrumentSummary = new(0, 0, 0, 0, 0, "n/a", "");
+    private IReadOnlyList<ErpBankInstrumentDigest> _instruments = [];
     private string _source = "n/a";
     private string _message = "";
 
@@ -82,11 +140,31 @@
         var ctx = Http.HttpContext;
         if (ctx is null) return;
 
+        var tab = (ctx.Request.Query["tab"].ToString() ?? "").Trim().ToLowerInvariant();
+        _view = tab == "bank_instruments" ? "bank_instruments" : "bank_recon";
+        _phpTab = _view == "bank_instruments"
+            ? "/ERP/?epc_erp_shell=1&area=banking&tab=bank_instruments"
+            : "/ERP/?epc_erp_shell=1&area=banking&tab=bank_recon";
+        _title = _view == "bank_instruments" ? "Bank instruments" : "Bank reconciliation";
+        _subtitle = _view == "bank_instruments"
+            ? "Letters of credit, guarantees and SBLC with outstanding exposure."
+            : "Statement lines and match status.";
+
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("erp");
         if (!_isAdmin)
         {
             return; // guest browse — Sign in for live data
+        }
+
+        if (_view == "bank_instruments")
+        {
+            var instruments = await Dashboards.BuildErpBankInstrumentsDigestAsync(200, ctx.RequestAborted);
+            _instrumentSummary = instruments.Summary;
+            _instruments = instruments.Instruments;
+            _source = instruments.Source;
+            _message = instruments.Message;
+            return;
         }
 
         var result = await Dashboards.BuildErpBankReconciliationDigestAsync(200, ctx.RequestAborted);

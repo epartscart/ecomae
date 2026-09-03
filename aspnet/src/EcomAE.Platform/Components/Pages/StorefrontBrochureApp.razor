@@ -1,0 +1,42 @@
+@page "/storefront/brochure-app"
+@layout Layout.PhpChromeLayout
+@using EcomAE.Platform.Presentation
+@inject IHttpContextAccessor Http
+
+<PageTitle>Brochure · @_brand</PageTitle>
+<PhpSurfaceHead Surface="storefront" IncludeStorefrontAnalytics="true" ApplyStorefrontIndustryAttrs="true" IncludePublicSeo="true" />
+<PhpChromeBodyClass Surface="storefront" />
+
+<StorefrontTenantChrome>
+    <section style="padding:2rem 0 3rem">
+        <div class="container" style="max-width:46rem">
+            <p style="margin:0 0 .35rem;color:#64748b;font-size:.85rem"><a href="/">Home</a> · Brochure</p>
+            <h1 style="margin:.1rem 0 .4rem">@_brand</h1>
+            <p style="color:#475569">What this store offers.</p>
+            @foreach (var section in _sections)
+            {
+                <article style="margin:1rem 0;padding:1rem 1.1rem;background:#fff;border:1px solid #e2e8f0;border-radius:.55rem">
+                    <h2 style="margin:0 0 .35rem;font-size:1.1rem">@section.Title</h2>
+                    <p style="margin:0;color:#475569;line-height:1.55">@section.Body</p>
+                </article>
+            }
+            <p style="margin-top:1.25rem">
+                <a href="@StorefrontAspNetCanonical.IndustryCms?slug=kontakty">Contact</a>
+                ·
+                <a href="@StorefrontAspNetCanonical.Sitemap">Sitemap</a>
+            </p>
+        </div>
+    </section>
+</StorefrontTenantChrome>
+
+@code {
+    private string _brand = "eParts Cart";
+    private IReadOnlyList<PhpStorefrontBrochure.Section> _sections = [];
+
+    protected override void OnInitialized()
+    {
+        var host = Http.HttpContext?.Request.Host.Host;
+        _brand = StorefrontIndustryHostResolver.ResolveBrandLabel(host);
+        _sections = PhpStorefrontBrochure.ForIndustry(StorefrontIndustryHostResolver.ResolveIndustryCode(host));
+    }
+}

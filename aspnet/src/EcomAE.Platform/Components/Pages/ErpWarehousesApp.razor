@@ -14,10 +14,89 @@
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Warehouses" BreadcrumbArea="Inventory & Fulfilment" BreadcrumbTab="Inventory">
 
     
-    <PhpErpModulePageHeader Title="Warehouses" Subtitle="ASP.NET Core digest — PHP compare only under /php-reference/*." PhpTabHref="@_phpTab" />
+    <PhpErpModulePageHeader Title="@_title" Subtitle="@_subtitle" PhpTabHref="@_phpTab" />
     <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
 
+    <p class="text-muted" style="margin:8px 0 12px;">
+        <a href="/erp/warehouses-app">Warehouses</a>
+        · <a href="/erp/warehouses-app?tab=virtual_warehouse">Virtual warehouse</a>
+    </p>
 
+    @if (_view == "virtual_warehouse")
+    {
+        <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Virtual warehouse KPIs">
+            <div class="kpi"><div class="lbl">Virtual locations</div><div class="val">@_virtual.Count.ToString(CultureInfo.InvariantCulture)</div></div>
+            <div class="kpi"><div class="lbl">Transfers</div><div class="val">@_transfers.Summary.TransferCount.ToString(CultureInfo.InvariantCulture)</div></div>
+        </div>
+        <h2 style="font-size:16px;">Virtual locations</h2>
+        <div class="epc-erp-table-wrap">
+            <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
+                <thead>
+                    <tr>
+                        <th>Code</th>
+                        <th>Name</th>
+                        <th>Storage ID</th>
+                        <th>Active</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (_virtual.Count == 0)
+                    {
+                        <tr><td colspan="4">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? "No virtual / exhibition / consignment locations in the warehouse master." : _message) : "Sign in with ERP capability for live rows.")</td></tr>
+                    }
+                    else
+                    {
+                        @foreach (var w in _virtual)
+                        {
+                            <tr>
+                                <td><strong>@(string.IsNullOrWhiteSpace(w.Code) ? $"#{w.Id}" : w.Code)</strong></td>
+                                <td>@(string.IsNullOrWhiteSpace(w.Name) ? "—" : w.Name)</td>
+                                <td>@(w.StorageId > 0 ? w.StorageId.ToString(CultureInfo.InvariantCulture) : "—")</td>
+                                <td><span class="label label-default">@(w.Active ? "active" : "inactive")</span></td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+        <h2 style="font-size:16px;margin-top:16px;">Transfer history</h2>
+        <div class="epc-erp-table-wrap">
+            <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
+                <thead>
+                    <tr>
+                        <th>Transfer</th>
+                        <th>From</th>
+                        <th>To</th>
+                        <th>Reason</th>
+                        <th>Status</th>
+                        <th class="text-right">Qty</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (_transfers.Transfers.Count == 0)
+                    {
+                        <tr><td colspan="6">No stock transfers yet.</td></tr>
+                    }
+                    else
+                    {
+                        @foreach (var t in _transfers.Transfers)
+                        {
+                            <tr>
+                                <td><strong>@(string.IsNullOrWhiteSpace(t.TransferNo) ? $"#{t.Id}" : t.TransferNo)</strong></td>
+                                <td>@t.FromWarehouseId.ToString(CultureInfo.InvariantCulture)</td>
+                                <td>@t.ToWarehouseId.ToString(CultureInfo.InvariantCulture)</td>
+                                <td>@(string.IsNullOrWhiteSpace(t.Reason) ? "—" : t.Reason)</td>
+                                <td>@t.Status</td>
+                                <td class="text-right">@t.TotalQty.ToString("N2", CultureInfo.InvariantCulture)</td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+    else
+    {
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Warehouse KPIs">
         <div class="kpi"><div class="lbl">Shown (limit @_limit)</div><div class="val">@_warehouses.Count</div></div>
         <div class="kpi"><div class="lbl">Active in page</div><div class="val">@_active</div></div>
@@ -56,16 +135,22 @@
                     }
                 }
             </tbody>
-        </table>
-    </div>
+            </table>
+        </div>
+    }
 
 </PhpErpDesktopChrome>
 
 @code {
-    private const string _phpTab = "/ERP/?epc_erp_shell=1&area=inventory_mgmt&tab=inventory";
+    private string _phpTab = "/ERP/?epc_erp_shell=1&area=inventory_mgmt&tab=inventory";
     private const string _phpWms = "/ERP/?epc_erp_shell=1&area=warehouse&tab=wms";
+    private string _title = "Warehouses";
+    private string _subtitle = "Warehouse master linked to shop storage.";
+    private string _view = "warehouses";
     private bool _isAdmin;
     private IReadOnlyList<ErpWarehouseDigest> _warehouses = [];
+    private IReadOnlyList<ErpWarehouseDigest> _virtual = [];
+    private ErpStockTransfersDigestResult _transfers = new(new(0, 0, 0, 0, 0, "n/a", ""), [], 0, "n/a", "");
     private int _active;
     private int _linkedStorage;
     private int _limit = 100;
@@ -77,11 +162,31 @@
         var ctx = Http.HttpContext;
         if (ctx is null) return;
 
+        var tab = (ctx.Request.Query["tab"].ToString() ?? "").Trim().ToLowerInvariant();
+        _view = tab == "virtual_warehouse" ? "virtual_warehouse" : "warehouses";
+        _phpTab = _view == "virtual_warehouse"
+            ? "/ERP/?epc_erp_shell=1&area=warehouse&tab=virtual_warehouse"
+            : "/ERP/?epc_erp_shell=1&area=inventory_mgmt&tab=inventory";
+        _title = _view == "virtual_warehouse" ? "Virtual warehouse" : "Warehouses";
+        _subtitle = _view == "virtual_warehouse"
+            ? "Exhibition, display, consignment and transit locations from the warehouse master."
+            : "Warehouse master linked to shop storage.";
+
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("erp");
         if (!_isAdmin)
         {
             return; // guest browse — Sign in for live data
+        }
+
+        if (_view == "virtual_warehouse")
+        {
+            var vw = await Dashboards.BuildErpVirtualWarehouseDigestAsync(_limit, ctx.RequestAborted);
+            _virtual = vw.Locations;
+            _transfers = vw.Transfers;
+            _source = vw.Source;
+            _message = vw.Message;
+            return;
         }
 
         var result = await Dashboards.ListErpWarehousesAsync(_limit, ctx.RequestAborted);

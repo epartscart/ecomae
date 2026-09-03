@@ -1,0 +1,108 @@
+@page "/storefront/ucats-app"
+@page "/storefront/ucats-app/{Slug}"
+@page "/en/shop/katalogi-ucats"
+@page "/en/shop/katalogi-ucats/{Slug}"
+@layout Layout.PhpChromeLayout
+@using EcomAE.Platform.Presentation
+
+<PageTitle>@PageHeading · eParts Cart</PageTitle>
+<PhpChromeStyles Surface="storefront" />
+<HeadContent>
+<style>
+    .epc-ucats-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:.75rem; }
+    .epc-ucats-card {
+        display:flex; flex-direction:column; gap:.35rem; padding:1rem .95rem; border:1px solid #e2e8f0;
+        border-radius:.55rem; background:#fff; text-decoration:none; color:#0f172a; min-height:8.5rem;
+    }
+    .epc-ucats-card:hover { border-color:#2563eb; box-shadow:0 6px 18px rgba(15,23,42,.08); }
+    .epc-ucats-card i { font-size:1.45rem; color:#2563eb; }
+    .epc-ucats-card strong { font-size:1rem; }
+    .epc-ucats-card span { color:#64748b; font-size:.84rem; line-height:1.4; }
+    .epc-ucats-card.is-active { border-color:#2563eb; background:#eff6ff; }
+    .epc-ucats-note { margin-top:1rem; color:#64748b; font-size:.84rem; }
+    @@media (max-width:900px){ .epc-ucats-grid{grid-template-columns:1fr 1fr;} }
+    @@media (max-width:560px){ .epc-ucats-grid{grid-template-columns:1fr;} }
+</style>
+</HeadContent>
+<StorefrontAnalytics Enabled="true" IncludeClarity="true" />
+
+<StorefrontTenantChrome>
+    <PhpStorefrontPageHeader Title="@PageHeading"
+                            Subtitle="@PageSubtitle">
+        <a class="btn btn-sm btn-primary" href="@StorefrontSurfaceLinks.PartSearch">Part search</a>
+        <a class="btn btn-sm btn-default" href="@StorefrontSurfaceLinks.Accessories">Accessories marketplace</a>
+        <a class="btn btn-sm btn-default" href="@StorefrontSurfaceLinks.WarehouseSearch">Warehouse search</a>
+    </PhpStorefrontPageHeader>
+
+    <div class="epc-ucats-grid" aria-label="UCats service catalogs">
+        @foreach (var card in StorefrontUcatsCatalog.Cards)
+        {
+            var href = StorefrontAspNetCanonical.UcatsService + "/" + card.Slug;
+            var active = string.Equals(card.Slug, Slug, StringComparison.OrdinalIgnoreCase);
+            <a class="epc-ucats-card @(active ? "is-active" : "")" href="@href">
+                <i class="fa @card.Icon" aria-hidden="true"></i>
+                <strong>@card.Title</strong>
+                <span>@card.Blurb</span>
+            </a>
+        }
+    </div>
+
+    @if (_selected is not null)
+    {
+        <form method="get" action="@StorefrontSurfaceLinks.WarehouseSearch" style="margin-top:1.15rem;background:#fff;border:1px solid #e2e8f0;border-radius:.55rem;padding:1rem 1.1rem">
+            <p style="margin:0 0 .75rem;font-weight:700">@_selected.Title picker</p>
+            <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.65rem">
+                @foreach (var field in _selected.PickerFields)
+                {
+                    <div>
+                        <label for="ucats-@field.Name">@field.Label</label>
+                        <input id="ucats-@field.Name" type="text" name="@field.Name" style="width:100%;margin:.25rem 0 0;padding:.45rem" />
+                    </div>
+                }
+            </div>
+            <input type="hidden" name="ucats" value="@_selected.Slug" />
+            <button type="submit" style="margin-top:.9rem;padding:.55rem .95rem;border:0;border-radius:.4rem;background:#2563eb;color:#fff;font-weight:800;cursor:pointer">Search live stock</button>
+        </form>
+        @if (_selected.PickerFields.Count > 0)
+        {
+            <p style="margin:1rem 0 .45rem;font-weight:700">Common lookups</p>
+            <div style="display:flex;flex-wrap:wrap;gap:.45rem">
+                @foreach (var field in _selected.PickerFields)
+                {
+                    <a href="@(StorefrontSurfaceLinks.WarehouseSearch + (StorefrontSurfaceLinks.WarehouseSearch.Contains('?') ? "&" : "?") + "ucats=" + Uri.EscapeDataString(_selected.Slug) + "&q=" + Uri.EscapeDataString(field.Label))"
+                       style="padding:.4rem .7rem;border:1px solid #e2e8f0;border-radius:.4rem;background:#fff;text-decoration:none;color:#0f172a">@field.Label</a>
+                }
+            </div>
+        }
+        <p class="epc-ucats-note">
+            @_selectedBlurb
+            Use <a href="@StorefrontSurfaceLinks.NameSearch">name search</a>
+            or <a href="@StorefrontSurfaceLinks.Accessories">accessories marketplace</a> for related listings.
+        </p>
+    }
+    else
+    {
+        <p class="epc-ucats-note">
+            Eight service catalogs (tires, wheels, oil, batteries, TO, accessories, hubcaps, bolts).
+            Open a card, then pick size or vehicle fields for live stock.
+        </p>
+    }
+</StorefrontTenantChrome>
+
+@code {
+    [Parameter] public string? Slug { get; set; }
+
+    private string PageHeading => _selected?.Title ?? "Epart Service Catalog";
+    private string PageSubtitle => _selected is null
+        ? "Tires, wheels, oil, batteries, service kits, accessories, hubcaps, and bolts."
+        : _selected.Blurb;
+    private string PhpSlugSuffix => string.IsNullOrWhiteSpace(Slug) ? "" : "/" + Slug;
+    private StorefrontUcatsCard? _selected;
+    private string _selectedBlurb = "";
+
+    protected override void OnParametersSet()
+    {
+        _selected = StorefrontUcatsCatalog.Find(Slug);
+        _selectedBlurb = _selected?.Detail ?? "";
+    }
+}

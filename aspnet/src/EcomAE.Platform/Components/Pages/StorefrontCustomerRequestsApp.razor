@@ -1,0 +1,166 @@
+@page "/storefront/customer-requests-app"
+@page "/en/requests"
+@page "/requests"
+@page "/en/requests/request"
+@page "/requests/request"
+@layout Layout.PhpChromeLayout
+@using System.Globalization
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Migration
+@using EcomAE.Platform.Presentation
+@inject ISurfaceDashboardSummaryReporter Dashboards
+@inject ILegacySessionValidator Sessions
+@inject IHttpContextAccessor Http
+
+<PageTitle>My requests · @_brand</PageTitle>
+<PhpSurfaceHead Surface="storefront" IncludeStorefrontAnalytics="true" ApplyStorefrontIndustryAttrs="true" />
+<PhpChromeBodyClass Surface="storefront" />
+
+<StorefrontTenantChrome>
+    <section style="padding:2rem 0 3rem">
+        <div class="container" style="max-width:48rem">
+            <p style="margin:0 0 .35rem;color:#64748b;font-size:.85rem">
+                <a href="@StorefrontSurfaceLinks.SellerRequest">New request</a>
+                · My requests
+            </p>
+            <h1 style="margin:.1rem 0 .4rem">@(RequestId is > 0 ? "Request #" + RequestId : "My requests")</h1>
+            <p style="color:#475569">VIN and part requests you sent to the store. Replies stay on this inbox.</p>
+            @if (!_isCustomer)
+            {
+                <div style="padding:1.15rem 1.2rem;background:#fff;border:1px solid #e2e8f0;border-radius:.55rem">
+                    <p style="margin:0 0 .75rem">Sign in to see your seller requests.</p>
+                    <a class="btn btn-primary" href="@StorefrontSurfaceLinks.Login">Sign in</a>
+                </div>
+            }
+            else if (RequestId is > 0)
+            {
+                <div style="background:#fff;border:1px solid #e2e8f0;border-radius:.55rem;padding:1.1rem 1.2rem">
+                    @if (_detail is null)
+                    {
+                        <p style="margin:0 0 .75rem;color:#475569">@(string.IsNullOrWhiteSpace(_detailMessage) ? "Request not found for this account." : _detailMessage)</p>
+                    }
+                    else
+                    {
+                        <p style="margin:0 0 .75rem;color:#475569">
+                            Request #@_detail.Id.ToString(CultureInfo.InvariantCulture)
+                            · @FormatTs(_detail.TimeUnix)
+                            · @(_detail.ViewedCustomer != 0 ? "Read" : "Unread")
+                        </p>
+                        @if (_messages.Count > 0)
+                        {
+                            <ul style="list-style:none;margin:0 0 1rem;padding:0">
+                                @foreach (var msg in _messages)
+                                {
+                                    <li style="margin:0 0 .45rem;padding:.55rem .7rem;background:#f8fafc;border:1px solid #e2e8f0;border-radius:.4rem">
+                                        <div style="font-size:.75rem;color:#64748b">@(msg.IsCustomer != 0 ? "You" : "Store") · @FormatTs(msg.TimeUnix)</div>
+                                        <div>@msg.Text</div>
+                                    </li>
+                                }
+                            </ul>
+                        }
+                    }
+                    <form method="get" action="@PhpSellerRequest.MessageWriteHref">
+                        <input type="hidden" name="vin_id" value="@RequestId" />
+                        <label for="new_message_area">Message</label>
+                        <textarea id="new_message_area" name="text" rows="4" required style="width:100%;margin:.25rem 0 1rem;padding:.5rem"></textarea>
+                        <button type="submit" style="padding:.65rem 1rem;border:0;border-radius:.45rem;background:#0f766e;color:#fff;font-weight:800;cursor:pointer">Send message</button>
+                    </form>
+                    <p style="margin:1rem 0 0"><a href="@StorefrontSurfaceLinks.CustomerRequests">Back to my requests</a></p>
+                </div>
+            }
+            else
+            {
+                <div style="background:#fff;border:1px solid #e2e8f0;border-radius:.55rem;padding:1.1rem 1.2rem">
+                    @if (_requests.Count == 0)
+                    {
+                        <p style="margin:0 0 .85rem;color:#475569">@(string.IsNullOrWhiteSpace(_listMessage) ? "No seller requests yet." : _listMessage)</p>
+                    }
+                    else
+                    {
+                        <table style="width:100%;border-collapse:collapse;font-size:.86rem;margin-bottom:1rem">
+                            <thead>
+                                <tr>
+                                    <th style="text-align:left;padding:.4rem .45rem">ID</th>
+                                    <th style="text-align:left;padding:.4rem .45rem">When</th>
+                                    <th style="text-align:left;padding:.4rem .45rem"></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var row in _requests)
+                                {
+                                    <tr>
+                                        <td style="padding:.4rem .45rem"><a href="@StorefrontSurfaceLinks.ForCustomerRequest((int)row.Id)">#@row.Id.ToString(CultureInfo.InvariantCulture)</a></td>
+                                        <td style="padding:.4rem .45rem">@FormatTs(row.TimeUnix)</td>
+                                        <td style="padding:.4rem .45rem">@(row.ViewedCustomer != 0 ? "Read" : "Unread")</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    }
+                    <p style="margin:0">
+                        <a class="btn btn-primary" href="@StorefrontSurfaceLinks.SellerRequest">Send a request to seller</a>
+                    </p>
+                </div>
+            }
+        </div>
+    </section>
+</StorefrontTenantChrome>
+
+@code {
+    private string _brand = "eParts Cart";
+    private bool _isCustomer;
+    private IReadOnlyList<StorefrontCustomerRequestDigest> _requests = [];
+    private StorefrontCustomerRequestDigest? _detail;
+    private IReadOnlyList<StorefrontOrderMessageDigest> _messages = [];
+    private string _listMessage = "";
+    private string _detailMessage = "";
+
+    [SupplyParameterFromQuery(Name = "id")]
+    public int? RequestId { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null)
+        {
+            return;
+        }
+
+        _brand = StorefrontIndustryHostResolver.ResolveBrandLabel(ctx.Request.Host.Host);
+        var session = await Sessions.ValidateCustomerAsync(ctx, ctx.RequestAborted);
+        _isCustomer = session.Kind == LegacySessionKind.Customer && session.UserId > 0;
+        if (!_isCustomer)
+        {
+            return;
+        }
+
+        if (RequestId is > 0)
+        {
+            var detail = await Dashboards.GetStorefrontCustomerRequestAsync(session.UserId, RequestId.Value, ctx.RequestAborted);
+            _detail = detail.Request;
+            _messages = detail.Messages;
+            _detailMessage = detail.Message;
+        }
+        else
+        {
+            var list = await Dashboards.ListStorefrontCustomerRequestsAsync(session.UserId, 40, ctx.RequestAborted);
+            _requests = list.Requests;
+            _listMessage = list.Count == 0
+                ? (string.IsNullOrWhiteSpace(list.Message) ? "No seller requests yet." : list.Message)
+                : string.Empty;
+        }
+    }
+
+    private static string FormatTs(long ts)
+    {
+        if (ts <= 0) return "—";
+        try
+        {
+            return DateTimeOffset.FromUnixTimeSeconds(ts).UtcDateTime.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture) + " UTC";
+        }
+        catch (ArgumentOutOfRangeException)
+        {
+            return ts.ToString(CultureInfo.InvariantCulture);
+        }
+    }
+}

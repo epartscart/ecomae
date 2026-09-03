@@ -1,0 +1,78 @@
+@page "/storefront/special-search-app"
+@layout Layout.PhpChromeLayout
+@using EcomAE.Platform.Presentation
+@inject IHttpContextAccessor Http
+
+<PageTitle>@(_search?.Title ?? "Special search") · eParts Cart</PageTitle>
+<PhpSurfaceHead Surface="storefront" IncludeStorefrontAnalytics="true" ApplyStorefrontIndustryAttrs="true" IncludePublicSeo="true" />
+<PhpChromeBodyClass Surface="storefront" />
+
+<StorefrontTenantChrome>
+    <section style="padding:2rem 0 3rem">
+        <div class="container" style="max-width:46rem">
+            <p style="margin:0 0 .35rem;color:#64748b;font-size:.85rem"><a href="/">Home</a> · Special search</p>
+            @if (!_autoParts)
+            {
+                <h1 style="margin:.1rem 0 .4rem">Search</h1>
+                <p style="color:#475569">Use the store search from the header.</p>
+            }
+            else if (_search is null)
+            {
+                <h1 style="margin:.1rem 0 .4rem">Special searches</h1>
+                <p style="color:#475569">Guided warehouse searches for common parts.</p>
+                <ul style="margin:1rem 0 0;padding-left:1.15rem;line-height:1.7">
+                    @foreach (var item in PhpSpecialSearches.All)
+                    {
+                        <li><a href="@(StorefrontAspNetCanonical.SpecialSearch + "?alias=" + Uri.EscapeDataString(item.Alias))">@item.Title</a></li>
+                    }
+                </ul>
+            }
+            else
+            {
+                <h1 style="margin:.1rem 0 .4rem">@_search.Title</h1>
+                <p style="color:#475569">@_search.Lead</p>
+                <div style="display:grid;gap:.65rem;margin-top:1rem">
+                    @foreach (var option in _search.Options)
+                    {
+                        <a href="@(StorefrontSurfaceLinks.WarehouseSearch + (StorefrontSurfaceLinks.WarehouseSearch.Contains('?') ? "&" : "?") + "q=" + Uri.EscapeDataString(option.Query))"
+                           style="display:block;padding:.85rem 1rem;background:#fff;border:1px solid #e2e8f0;border-radius:.5rem;text-decoration:none;color:#0f172a;font-weight:700">
+                            @option.Label
+                        </a>
+                    }
+                </div>
+                <p style="margin-top:1.25rem"><a href="@StorefrontAspNetCanonical.SpecialSearch">All special searches</a></p>
+            }
+        </div>
+    </section>
+</StorefrontTenantChrome>
+
+@code {
+    private PhpSpecialSearches.Search? _search;
+    private bool _autoParts;
+
+    [SupplyParameterFromQuery(Name = "alias")]
+    public string? Alias { get; set; }
+
+    protected override void OnInitialized()
+    {
+        var host = Http.HttpContext?.Request.Host.Host;
+        var industry = StorefrontIndustryHostResolver.ResolveIndustryCode(host);
+        _autoParts = industry is "auto_parts";
+        if (!_autoParts)
+        {
+            return;
+        }
+
+        var slug = Alias;
+        if (string.IsNullOrWhiteSpace(slug)
+            && Http.HttpContext?.Items.TryGetValue(EcomAE.Platform.Middleware.IndustryStorefrontSlugMiddleware.OriginalPathItem, out var original) == true)
+        {
+            slug = StorefrontLangPrefix.Strip(original?.ToString() ?? string.Empty).Trim('/');
+        }
+
+        if (PhpSpecialSearches.TryFind(slug, out var found))
+        {
+            _search = found;
+        }
+    }
+}

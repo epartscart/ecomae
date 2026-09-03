@@ -1,5 +1,6 @@
 @page "/storefront/vehicle-catalog-app"
 @page "/en/vehicle-catalog"
+@page "/vehicle-catalog"
 @layout Layout.PhpChromeLayout
 @using EcomAE.Platform.Presentation
 
@@ -22,23 +23,21 @@
 
 <StorefrontAnalytics Enabled="true" IncludeClarity="true" />
 
-<PhpStorefrontDesktopChrome>
+<StorefrontTenantChrome>
 
     <PhpStorefrontPageHeader Title="Vehicle parts catalog"
                             Subtitle="Year → make → model → engine tree for vehicle-based part selection.">
         <a class="btn btn-sm btn-primary" href="@StorefrontSurfaceLinks.PartSearch">Part search</a>
             <a class="btn btn-sm btn-default" href="@StorefrontSurfaceLinks.LaximoVin">VIN / Frame</a>
-            <a class="btn btn-sm btn-default" href="@("/php-reference" + StorefrontPhpCanonical.VehicleCatalog)" title="Temporary PHP compare only">Compare PHP reference</a>
     </PhpStorefrontPageHeader>
 
     <div class="epc-sf-vc-body" id="epc-vehicle-catalog" aria-label="Vehicle catalog tree">
         @((MarkupString)_html)
     </div>
     <p class="epc-sf-vc-note">
-        ASP.NET Core product shell with same-to-same widget markup (no PHP page body).
-        PHP compare only under <code>/php-reference@(StorefrontPhpCanonical.VehicleCatalog)</code>.
+        Choose year, make, model, and engine, then continue into part search.
     </p>
-</PhpStorefrontDesktopChrome>
+</StorefrontTenantChrome>
 
 @code {
     private string _html = "";

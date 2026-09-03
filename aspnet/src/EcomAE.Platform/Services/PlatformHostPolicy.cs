@@ -148,6 +148,11 @@ public static class PlatformHostPolicy
             p = p[..q];
         }
 
+        if (Presentation.StorefrontLangPrefix.TryStripAdminShell(p, out var strippedBos))
+        {
+            p = strippedBos;
+        }
+
         if (p.StartsWith("/marketing/", StringComparison.OrdinalIgnoreCase)
             || p.StartsWith("/php-reference/marketing", StringComparison.OrdinalIgnoreCase))
         {
