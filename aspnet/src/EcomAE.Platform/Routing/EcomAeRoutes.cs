@@ -1845,6 +1845,12 @@ public static class EcomAeRoutes
     public const string MarketingCapabilitiesApp = "/marketing/capabilities";
     /// <summary>Marketing demo Blazor scaffold (PHP /platform/demo remains primary until dual-sample).</summary>
     public const string MarketingDemoApp = "/marketing/demo";
+    /// <summary>
+    /// Public demo-apply field validation (PHP <c>epc-demo-provision-public.php</c> remains
+    /// the live provisioner). Never creates a tenant — returns JSON so Kestrel never 404s
+    /// a wizard POST with an empty body.
+    /// </summary>
+    public const string DemoApply = "/demo/apply";
     /// <summary>Marketing free-tools Blazor scaffold (PHP /platform/free-tools remains primary until dual-sample).</summary>
     public const string MarketingFreeToolsApp = "/marketing/free-tools";
     /// <summary>Marketing platform-guides Blazor scaffold (PHP /platform/platform-guides remains primary until dual-sample).</summary>

@@ -1038,6 +1038,33 @@ app.MapPost(EcomAeRoutes.LegacyAdminLogin, async (HttpContext context, ILegacyAd
     }
 }).DisableAntiforgery();
 
+// Public demo-apply field validation. Live provision stays on PHP
+// epc-demo-provision-public.php (nginx → PHP-FPM). Do not remap that PHP path
+// here — a Kestrel stub must never steal a working production POST.
+app.MapMethods(EcomAeRoutes.DemoApply, ["GET", "POST"], async (HttpContext context) =>
+{
+    if (!HttpMethods.IsPost(context.Request.Method))
+    {
+        var method = DemoApplyValidator.MethodNotAllowed();
+        return Results.Json(new { ok = method.Ok, message = method.Message }, statusCode: method.StatusCode);
+    }
+
+    if (!context.Request.HasFormContentType)
+    {
+        return Results.Json(new { ok = false, message = "Name is required" }, statusCode: 400);
+    }
+
+    var form = await context.Request.ReadFormAsync(context.RequestAborted);
+    var fields = DemoApplyValidator.ValidateFields(DemoApplyValidator.FromForm(form));
+    if (!fields.Ok)
+    {
+        return Results.Json(new { ok = false, message = fields.Message }, statusCode: fields.StatusCode);
+    }
+
+    var unavailable = DemoApplyValidator.Unavailable();
+    return Results.Json(new { ok = false, message = unavailable.Message }, statusCode: unavailable.StatusCode);
+}).DisableAntiforgery();
+
 app.MapEcomAeSurfaceModules();
 
 // Serve PHP chrome CSS/static from the monorepo so ASP.NET shells match PHP look

@@ -64,6 +64,48 @@ public static class EcomaeMarketingSnapshots
         return RewritePhpAssetUrls(html);
     }
 
+    /// <summary>
+    /// Home / industry pills deep-link <c>/platform/demo?industry=fashion</c> (or
+    /// <c>erp_only</c> / <c>auto_parts</c>). Snapshots are static with auto_parts
+    /// checked — apply the query so a new applicant lands on the industry they picked.
+    /// Unknown codes (electronics, jewellery, …) stay on the baked default; never invent
+    /// extra radios. <c>erp_standalone</c> maps to the ERP-only preset.
+    /// </summary>
+    public static string ApplyDemoIndustryPref(string html, string? industry)
+    {
+        if (string.IsNullOrWhiteSpace(html) || string.IsNullOrWhiteSpace(industry))
+        {
+            return html;
+        }
+
+        var code = industry.Trim().ToLowerInvariant();
+        if (code is "erp_standalone")
+        {
+            code = "erp_only";
+        }
+
+        if (code is not ("auto_parts" or "fashion" or "erp_only"))
+        {
+            return html;
+        }
+
+        html = Regex.Replace(
+            html,
+            @"<input\b[^>]*\bname=""epm_industry""[^>]*>",
+            m => Regex.Replace(
+                m.Value,
+                @"\s+checked(?:=(?:""[^""]*""|'[^']*'|[^\s>]+))?",
+                "",
+                RegexOptions.IgnoreCase | RegexOptions.CultureInvariant),
+            RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+
+        return Regex.Replace(
+            html,
+            $@"(<input\b[^>]*\bname=""epm_industry""[^>]*\bvalue=""{Regex.Escape(code)}""[^>]*)(>)",
+            "$1 checked$2",
+            RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+    }
+
     /// <summary>Path → snapshot slug; null when the path is never a marketing snapshot.</summary>
     public static string? SlugFor(string? path)
     {

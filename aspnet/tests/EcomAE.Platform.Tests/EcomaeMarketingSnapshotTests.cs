@@ -126,6 +126,37 @@ public sealed class EcomaeMarketingSnapshotTests
         Assert.DoesNotContain("<?php", html, StringComparison.Ordinal);
     }
 
+    [Theory]
+    [InlineData("fashion", "fashion", "auto_parts")]
+    [InlineData("erp_only", "erp_only", "auto_parts")]
+    [InlineData("erp_standalone", "erp_only", "auto_parts")]
+    [InlineData("auto_parts", "auto_parts", "fashion")]
+    public void ApplyDemoIndustryPref_ChecksOnlyTheRequestedPreset(string query, string expected, string other)
+    {
+        var raw = EcomaeMarketingSnapshots.HtmlFor("/platform/demo");
+        Assert.False(string.IsNullOrWhiteSpace(raw));
+        var html = EcomaeMarketingSnapshots.ApplyDemoIndustryPref(raw, query);
+        Assert.Contains($"name=\"epm_industry\" value=\"{expected}\" checked", html, StringComparison.Ordinal);
+        Assert.DoesNotContain($"name=\"epm_industry\" value=\"{other}\" checked", html, StringComparison.Ordinal);
+        Assert.Contains("name=\"epm_industry\" value=\"auto_parts\"", html, StringComparison.Ordinal);
+        Assert.Contains("name=\"epm_industry\" value=\"fashion\"", html, StringComparison.Ordinal);
+        Assert.Contains("name=\"epm_industry\" value=\"erp_only\"", html, StringComparison.Ordinal);
+        Assert.DoesNotContain("name=\"epm_industry\" value=\"jewellery\"", html, StringComparison.Ordinal);
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("electronics")]
+    [InlineData("jewellery")]
+    public void ApplyDemoIndustryPref_UnknownCodesLeaveSnapshotDefault(string? industry)
+    {
+        var raw = EcomaeMarketingSnapshots.HtmlFor("/platform/demo");
+        var html = EcomaeMarketingSnapshots.ApplyDemoIndustryPref(raw, industry);
+        Assert.Equal(raw, html);
+        Assert.Contains("name=\"epm_industry\" value=\"auto_parts\" checked", html, StringComparison.Ordinal);
+    }
+
     [Fact]
     public void SnapshotCorpusCoversTheWholePhpMarketingRouter()
     {

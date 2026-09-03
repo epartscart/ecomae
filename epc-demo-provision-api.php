@@ -35,6 +35,7 @@ try {
 		'contact_email' => $_POST['contact_email'] ?? $_POST['email'] ?? '',
 		'contact_phone' => $_POST['contact_phone'] ?? $_POST['phone'] ?? '',
 		'company' => $_POST['company'] ?? '',
+		'country_code' => $_POST['country_code'] ?? $_POST['country'] ?? '',
 		'industry_code' => $_POST['industry_code'] ?? $_POST['industry'] ?? '',
 		'notes' => $_POST['notes'] ?? '',
 		'terms' => !empty($_POST['terms']) || !empty($_POST['accept_terms']),
