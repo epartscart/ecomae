@@ -920,7 +920,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
 
             string email = string.Empty;
             var emailConfirmed = 0;
