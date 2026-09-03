@@ -335,8 +335,14 @@ public static class EcomAeRoutes
     /// <summary>CP jewellery stock verification Blazor list (JSON digest remains <see cref="ControlPanelJewelleryStockVerification"/>).</summary>
     public const string ControlPanelJewelleryStockVerificationApp = "/cp/jewellery-stock-verification-app";
     public const string ControlPanelTaxExternalReporting = "/cp/tax-external-reporting";
-    /// <summary>CP Tax external reporting Blazor list (JSON digest remains <see cref="ControlPanelTaxExternalReporting"/>).</summary>
+    /// <summary>CP alias of the ERP External Reporting workspace (PHP <c>erp_tabs_external_reports</c>).</summary>
     public const string ControlPanelTaxExternalReportingApp = "/cp/tax-external-reporting-app";
+    /// <summary>ERP External Reporting catalogue (PHP <c>ext_reports</c> tab).</summary>
+    public const string ErpTaxExternalReportingApp = "/erp/tax-external-reporting-app";
+    /// <summary>ERP External Reporting catalogue JSON (static PHP registry, no shop writes).</summary>
+    public const string ErpTaxExternalReporting = "/erp/tax-external-reporting";
+    /// <summary>Dry-run fetch / import / intake for External Reporting (writes=0).</summary>
+    public const string ErpAjaxExternalReportingFetch = "/erp/ajax/ext-reports-fetch";
     public const string ControlPanelPoApprovals = "/cp/po-approvals";
     /// <summary>CP PO approvals Blazor list (JSON digest remains <see cref="ControlPanelPoApprovals"/>).</summary>
     public const string ControlPanelPoApprovalsApp = "/cp/po-approvals-app";
