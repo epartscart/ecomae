@@ -4475,4 +4475,160 @@ public const string SelectCpOpsGuidesStats = """
         LIMIT @limit
         """;
 
+    public const string SelectErpPerformanceReviews = """
+        SELECT `id`, IFNULL(`employee_id`,0) AS employee_id,
+               IFNULL(`employee_name`,'') AS employee_name,
+               IFNULL(`period`,'') AS period,
+               IFNULL(`status`,'draft') AS status,
+               IFNULL(`reviewer`,'') AS reviewer,
+               IFNULL(`overall_rating`,0) AS overall_rating,
+               IFNULL(`time_updated`,0) AS time_updated
+        FROM `epc_hrt_review`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
+    public const string SelectErpPerformanceGoals = """
+        SELECT `id`, IFNULL(`review_id`,0) AS review_id,
+               IFNULL(`title`,'') AS title,
+               IFNULL(`weight`,1) AS weight,
+               IFNULL(`target`,'') AS target,
+               IFNULL(`rating`,0) AS rating
+        FROM `epc_hrt_goal`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
+    public const string SelectErpProductInfoItems = """
+        SELECT `id`, IFNULL(`sku`,'') AS sku,
+               IFNULL(`name`,'') AS name,
+               IFNULL(`product_id`,0) AS product_id,
+               IFNULL(`item_type`,'standard') AS item_type,
+               IFNULL(`unit`,'pcs') AS unit,
+               IFNULL(`sales_price`,0) AS sales_price,
+               IFNULL(`active`,1) AS active,
+               IFNULL(`time_created`,0) AS time_created
+        FROM `epc_erp_inv_items`
+        ORDER BY `sku`, `id`
+        LIMIT @limit
+        """;
+
+    public const string SelectErpProductInfoFieldDefs = """
+        SELECT `id`, IFNULL(`field_key`,'') AS field_key,
+               IFNULL(`label`,'') AS label,
+               IFNULL(`field_type`,'text') AS field_type,
+               IFNULL(`field_role`,'inventory') AS field_role,
+               IFNULL(`sort_order`,0) AS sort_order,
+               IFNULL(`active`,1) AS active
+        FROM `epc_erp_inv_field_defs`
+        ORDER BY `sort_order`, `id`
+        LIMIT @limit
+        """;
+
+    public const string SelectErpProductInfoVariants = """
+        SELECT `id`, IFNULL(`item_id`,0) AS item_id,
+               IFNULL(`base_sku`,'') AS base_sku,
+               IFNULL(`variant_sku`,'') AS variant_sku,
+               IFNULL(`variant_label`,'') AS variant_label,
+               IFNULL(`active`,1) AS active,
+               IFNULL(`time_created`,0) AS time_created
+        FROM `epc_erp_prod_variants`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
+    public const string SelectErpReportSchedules = """
+        SELECT `id`, IFNULL(`report_name`,'') AS report_name,
+               IFNULL(`report_type`,'') AS report_type,
+               IFNULL(`frequency`,'monthly') AS frequency,
+               IFNULL(`day_of_week`,1) AS day_of_week,
+               IFNULL(`day_of_month`,1) AS day_of_month,
+               IFNULL(`time_of_day`,'08:00') AS time_of_day,
+               IFNULL(`format`,'pdf') AS format,
+               IFNULL(`is_active`,1) AS is_active,
+               IFNULL(`last_status`,'') AS last_status,
+               IFNULL(`time_created`,0) AS time_created
+        FROM `epc_report_schedules`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
+    public const string SelectErpPrjaBudgets = """
+        SELECT `id`, IFNULL(`project_id`,0) AS project_id,
+               IFNULL(`category`,'general') AS category,
+               IFNULL(`cost_budget`,0) AS cost_budget,
+               IFNULL(`revenue_budget`,0) AS revenue_budget,
+               IFNULL(`time_created`,0) AS time_created
+        FROM `epc_prja_budget`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
+    public const string SelectErpPrjaTxns = """
+        SELECT `id`, IFNULL(`project_id`,0) AS project_id,
+               IFNULL(`txn_type`,'cost') AS txn_type,
+               IFNULL(`category`,'general') AS category,
+               IFNULL(`description`,'') AS description,
+               IFNULL(`amount`,0) AS amount,
+               IFNULL(`txn_date`,0) AS txn_date,
+               IFNULL(`time_created`,0) AS time_created
+        FROM `epc_prja_txn`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
+    public const string SelectErpPrjaRecognitions = """
+        SELECT `id`, IFNULL(`project_id`,0) AS project_id,
+               IFNULL(`method`,'poc') AS method,
+               IFNULL(`as_of`,0) AS as_of,
+               IFNULL(`pct_complete`,0) AS pct_complete,
+               IFNULL(`recognized_revenue`,0) AS recognized_revenue,
+               IFNULL(`recognized_cost`,0) AS recognized_cost,
+               IFNULL(`wip`,0) AS wip,
+               IFNULL(`time_created`,0) AS time_created
+        FROM `epc_prja_recognition`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
+    public const string SelectErpDocAttachments = """
+        SELECT `id`, IFNULL(`entity_type`,'') AS entity_type,
+               IFNULL(`entity_id`,0) AS entity_id,
+               IFNULL(`file_name`,'') AS file_name,
+               IFNULL(`file_size`,0) AS file_size,
+               IFNULL(`mime_type`,'') AS mime_type,
+               IFNULL(`description`,'') AS description,
+               IFNULL(`uploaded_by_name`,'') AS uploaded_by_name,
+               IFNULL(`time_created`,0) AS time_created
+        FROM `epc_doc_attachments`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
+    public const string SelectErpInventoryReportCategories = """
+        SELECT `id`, IFNULL(`parent_id`,0) AS parent_id,
+               IFNULL(`code`,'') AS code,
+               IFNULL(`name`,'') AS name,
+               IFNULL(`level`,1) AS level,
+               IFNULL(`sort_order`,0) AS sort_order,
+               IFNULL(`is_active`,1) AS is_active,
+               IFNULL(`time_created`,0) AS time_created
+        FROM `epc_inventory_categories`
+        ORDER BY `level`, `sort_order`, `name`, `id`
+        LIMIT @limit
+        """;
+
+    public const string SelectErpInventoryReportSnapshots = """
+        SELECT `id`, IFNULL(`snapshot_date`,'') AS snapshot_date,
+               IFNULL(`category_id`,0) AS category_id,
+               IFNULL(`total_skus`,0) AS total_skus,
+               IFNULL(`total_qty`,0) AS total_qty,
+               IFNULL(`total_value`,0) AS total_value,
+               IFNULL(`avg_age_days`,0) AS avg_age_days,
+               IFNULL(`time_created`,0) AS time_created
+        FROM `epc_inventory_snapshots`
+        ORDER BY `snapshot_date` DESC, `id` DESC
+        LIMIT @limit
+        """;
+
 }

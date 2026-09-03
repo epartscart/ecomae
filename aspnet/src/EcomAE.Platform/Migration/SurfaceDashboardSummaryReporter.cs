@@ -14262,6 +14262,282 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    public async Task<ErpPerformanceDigestResult> BuildErpPerformanceDigestAsync(int limit, CancellationToken cancellationToken = default)
+    {
+        var safeLimit = Math.Clamp(limit, 1, 500);
+        if (!_connections.IsConfigured)
+            return new([], [], 0, 0, 0, "migration", "TenantRegistry DB is not configured.");
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            var reviews = new List<ErpPerformanceReviewDigest>();
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectErpPerformanceReviews;
+                AddParameter(cmd, "@limit", safeLimit);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    reviews.Add(new(ReadI64(reader, "id"), ReadI64(reader, "employee_id"), ReadStr(reader, "employee_name"),
+                        ReadStr(reader, "period"), ReadStr(reader, "status"), ReadStr(reader, "reviewer"),
+                        ReadDec(reader, "overall_rating"), ReadI64(reader, "time_updated")));
+                }
+            }
+
+            var goals = new List<ErpPerformanceGoalDigest>();
+            try
+            {
+                await using var cmd = connection.CreateCommand();
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectErpPerformanceGoals;
+                AddParameter(cmd, "@limit", safeLimit);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    goals.Add(new(ReadI64(reader, "id"), ReadI64(reader, "review_id"), ReadStr(reader, "title"),
+                        ReadDec(reader, "weight"), ReadStr(reader, "target"), ReadI32(reader, "rating")));
+                }
+            }
+            catch { /* goals optional */ }
+
+            return new(reviews, goals, reviews.Count,
+                reviews.Count(r => !string.Equals(r.Status, "completed", StringComparison.OrdinalIgnoreCase)),
+                reviews.Count(r => string.Equals(r.Status, "completed", StringComparison.OrdinalIgnoreCase)),
+                "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new([], [], 0, 0, 0, "database-error", ex.Message);
+        }
+    }
+
+    public async Task<ErpProductInfoDigestResult> BuildErpProductInfoDigestAsync(int limit, CancellationToken cancellationToken = default)
+    {
+        var safeLimit = Math.Clamp(limit, 1, 500);
+        if (!_connections.IsConfigured)
+            return new([], [], [], 0, 0, 0, "migration", "TenantRegistry DB is not configured.");
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            var items = new List<ErpProductInfoItemDigest>();
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectErpProductInfoItems;
+                AddParameter(cmd, "@limit", safeLimit);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    items.Add(new(ReadI64(reader, "id"), ReadStr(reader, "sku"), ReadStr(reader, "name"),
+                        ReadI64(reader, "product_id"), ReadStr(reader, "item_type"), ReadStr(reader, "unit"),
+                        ReadDec(reader, "sales_price"), ReadI32(reader, "active") == 1, ReadI64(reader, "time_created")));
+                }
+            }
+
+            var fields = new List<ErpProductInfoFieldDigest>();
+            try
+            {
+                await using var cmd = connection.CreateCommand();
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectErpProductInfoFieldDefs;
+                AddParameter(cmd, "@limit", safeLimit);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    fields.Add(new(ReadI64(reader, "id"), ReadStr(reader, "field_key"), ReadStr(reader, "label"),
+                        ReadStr(reader, "field_type"), ReadStr(reader, "field_role"), ReadI32(reader, "sort_order"),
+                        ReadI32(reader, "active") == 1));
+                }
+            }
+            catch { /* field defs optional */ }
+
+            var variants = new List<ErpProductInfoVariantDigest>();
+            try
+            {
+                await using var cmd = connection.CreateCommand();
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectErpProductInfoVariants;
+                AddParameter(cmd, "@limit", safeLimit);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    variants.Add(new(ReadI64(reader, "id"), ReadI64(reader, "item_id"), ReadStr(reader, "base_sku"),
+                        ReadStr(reader, "variant_sku"), ReadStr(reader, "variant_label"),
+                        ReadI32(reader, "active") == 1, ReadI64(reader, "time_created")));
+                }
+            }
+            catch { /* variants optional */ }
+
+            return new(items, fields, variants, items.Count, items.Count(i => i.Active), fields.Count, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new([], [], [], 0, 0, 0, "database-error", ex.Message);
+        }
+    }
+
+    public async Task<ErpReportSchedulerDigestResult> BuildErpReportSchedulerDigestAsync(int limit, CancellationToken cancellationToken = default)
+    {
+        var safeLimit = Math.Clamp(limit, 1, 500);
+        if (!_connections.IsConfigured)
+            return new([], 0, 0, "migration", "TenantRegistry DB is not configured.");
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            var rows = new List<ErpReportScheduleDigest>();
+            await using var cmd = connection.CreateCommand();
+            cmd.CommandText = LegacySurfaceDashboardSql.SelectErpReportSchedules;
+            AddParameter(cmd, "@limit", safeLimit);
+            await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                rows.Add(new(ReadI64(reader, "id"), ReadStr(reader, "report_name"), ReadStr(reader, "report_type"),
+                    ReadStr(reader, "frequency"), ReadI32(reader, "day_of_week"), ReadI32(reader, "day_of_month"),
+                    ReadStr(reader, "time_of_day"), ReadStr(reader, "format"), ReadI32(reader, "is_active") == 1,
+                    ReadStr(reader, "last_status"), ReadI64(reader, "time_created")));
+            }
+
+            return new(rows, rows.Count, rows.Count(r => r.IsActive), "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new([], 0, 0, "database-error", ex.Message);
+        }
+    }
+
+    public async Task<ErpProjectAccountingDigestResult> BuildErpProjectAccountingDigestAsync(int limit, CancellationToken cancellationToken = default)
+    {
+        var safeLimit = Math.Clamp(limit, 1, 500);
+        if (!_connections.IsConfigured)
+            return new([], [], [], 0, 0, 0, "migration", "TenantRegistry DB is not configured.");
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            var budgets = new List<ErpPrjaBudgetDigest>();
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectErpPrjaBudgets;
+                AddParameter(cmd, "@limit", safeLimit);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    budgets.Add(new(ReadI64(reader, "id"), ReadI64(reader, "project_id"), ReadStr(reader, "category"),
+                        ReadDec(reader, "cost_budget"), ReadDec(reader, "revenue_budget"), ReadI64(reader, "time_created")));
+                }
+            }
+
+            var txns = new List<ErpPrjaTxnDigest>();
+            try
+            {
+                await using var cmd = connection.CreateCommand();
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectErpPrjaTxns;
+                AddParameter(cmd, "@limit", safeLimit);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    txns.Add(new(ReadI64(reader, "id"), ReadI64(reader, "project_id"), ReadStr(reader, "txn_type"),
+                        ReadStr(reader, "category"), ReadStr(reader, "description"), ReadDec(reader, "amount"),
+                        ReadI64(reader, "txn_date"), ReadI64(reader, "time_created")));
+                }
+            }
+            catch { /* txns optional */ }
+
+            var recs = new List<ErpPrjaRecognitionDigest>();
+            try
+            {
+                await using var cmd = connection.CreateCommand();
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectErpPrjaRecognitions;
+                AddParameter(cmd, "@limit", safeLimit);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    recs.Add(new(ReadI64(reader, "id"), ReadI64(reader, "project_id"), ReadStr(reader, "method"),
+                        ReadI64(reader, "as_of"), ReadDec(reader, "pct_complete"), ReadDec(reader, "recognized_revenue"),
+                        ReadDec(reader, "recognized_cost"), ReadDec(reader, "wip"), ReadI64(reader, "time_created")));
+                }
+            }
+            catch { /* recognition optional */ }
+
+            return new(budgets, txns, recs, budgets.Count, txns.Count, recs.Count, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new([], [], [], 0, 0, 0, "database-error", ex.Message);
+        }
+    }
+
+    public async Task<ErpDocAttachmentsDigestResult> ListErpDocAttachmentsAsync(int limit, CancellationToken cancellationToken = default)
+    {
+        var safeLimit = Math.Clamp(limit, 1, 500);
+        if (!_connections.IsConfigured)
+            return new([], 0, 0, "migration", "TenantRegistry DB is not configured.");
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            var rows = new List<ErpDocAttachmentDigest>();
+            await using var cmd = connection.CreateCommand();
+            cmd.CommandText = LegacySurfaceDashboardSql.SelectErpDocAttachments;
+            AddParameter(cmd, "@limit", safeLimit);
+            await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                rows.Add(new(ReadI64(reader, "id"), ReadStr(reader, "entity_type"), ReadI64(reader, "entity_id"),
+                    ReadStr(reader, "file_name"), ReadI32(reader, "file_size"), ReadStr(reader, "mime_type"),
+                    ReadStr(reader, "description"), ReadStr(reader, "uploaded_by_name"), ReadI64(reader, "time_created")));
+            }
+
+            return new(rows, rows.Count,
+                rows.Select(r => r.EntityType).Where(t => t.Length > 0).Distinct(StringComparer.OrdinalIgnoreCase).Count(),
+                "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new([], 0, 0, "database-error", ex.Message);
+        }
+    }
+
+    public async Task<ErpInventoryReportDigestResult> BuildErpInventoryReportDigestAsync(int limit, CancellationToken cancellationToken = default)
+    {
+        var safeLimit = Math.Clamp(limit, 1, 500);
+        if (!_connections.IsConfigured)
+            return new([], [], 0, 0, 0, "migration", "TenantRegistry DB is not configured.");
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            var cats = new List<ErpInventoryReportCategoryDigest>();
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectErpInventoryReportCategories;
+                AddParameter(cmd, "@limit", safeLimit);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    cats.Add(new(ReadI64(reader, "id"), ReadI64(reader, "parent_id"), ReadStr(reader, "code"),
+                        ReadStr(reader, "name"), ReadI32(reader, "level"), ReadI32(reader, "sort_order"),
+                        ReadI32(reader, "is_active") == 1, ReadI64(reader, "time_created")));
+                }
+            }
+
+            var snaps = new List<ErpInventoryReportSnapshotDigest>();
+            try
+            {
+                await using var cmd = connection.CreateCommand();
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectErpInventoryReportSnapshots;
+                AddParameter(cmd, "@limit", safeLimit);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    snaps.Add(new(ReadI64(reader, "id"), ReadStr(reader, "snapshot_date"), ReadI64(reader, "category_id"),
+                        ReadI32(reader, "total_skus"), ReadDec(reader, "total_qty"), ReadDec(reader, "total_value"),
+                        ReadDec(reader, "avg_age_days"), ReadI64(reader, "time_created")));
+                }
+            }
+            catch { /* snapshots optional */ }
+
+            return new(cats, snaps, cats.Count, snaps.Count, snaps.Sum(s => s.TotalValue), "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new([], [], 0, 0, 0, "database-error", ex.Message);
+        }
+    }
+
     private async Task<List<ErpQmPlanDigest>> ReadQmPlansAsync(System.Data.Common.DbConnection connection, int limit, CancellationToken cancellationToken)
     {
         var plans = new List<ErpQmPlanDigest>();

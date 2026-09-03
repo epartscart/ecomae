@@ -1,0 +1,151 @@
+@page "/erp/project-accounting-app"
+@layout Layout.PhpChromeLayout
+@using System.Globalization
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Migration
+@using EcomAE.Platform.Presentation
+@inject ISurfaceDashboardSummaryReporter Dashboards
+@inject ILegacySessionValidator Sessions
+@inject IErpPrjaBudgetSaveDryRun BudgetSave
+@inject IHttpContextAccessor Http
+@inject NavigationManager Nav
+
+<PageTitle>Project accounting · ERP · eParts Cart</PageTitle>
+<PhpChromeStyles Surface="erp" />
+<PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Project accounting" BreadcrumbArea="Projects" BreadcrumbTab="Project accounting">
+    <PhpErpModulePageHeader Title="Project accounting" Subtitle="Budgets, cost/revenue postings and recognition. Saves stay dry-run." PhpTabHref="@_phpTab" />
+    <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
+
+    <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Project accounting KPIs">
+        <div class="kpi"><div class="lbl">Budgets</div><div class="val">@_count.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Transactions</div><div class="val">@_txnCount.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Recognition</div><div class="val">@_recCount.ToString(CultureInfo.InvariantCulture)</div></div>
+    </div>
+
+    @if (_isAdmin)
+    {
+        <form @onsubmit="OnSave" @onsubmit:preventDefault="true" style="margin:12px 0;padding:10px;border:1px solid #c5d4de;background:#fff;">
+            <strong>New budget (dry-run)</strong>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;align-items:end;">
+                <label>Category <input class="form-control" @bind="_formCode" /></label>
+                <button type="submit" class="btn btn-primary">Validate save</button>
+            </div>
+            @if (!string.IsNullOrWhiteSpace(_formResult)) { <p style="margin:8px 0 0;font-size:12px;">@_formResult</p> }
+        </form>
+    }
+
+    <h2 style="font-size:16px;">Budgets</h2>
+    <div class="epc-erp-table-wrap">
+        <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
+            <thead><tr><th>Project</th><th>Category</th><th class="text-right">Cost</th><th class="text-right">Revenue</th></tr></thead>
+            <tbody>
+                @if (_budgets.Count == 0)
+                {
+                    <tr><td colspan="4">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? "No project budgets yet." : _message) : "Sign in with ERP capability for live rows.")</td></tr>
+                }
+                else
+                {
+                    @foreach (var row in _budgets)
+                    {
+                        <tr>
+                            <td>@(row.ProjectId > 0 ? row.ProjectId.ToString(CultureInfo.InvariantCulture) : "—")</td>
+                            <td><strong>@row.Category</strong></td>
+                            <td class="text-right">@row.CostBudget.ToString("N2", CultureInfo.InvariantCulture)</td>
+                            <td class="text-right">@row.RevenueBudget.ToString("N2", CultureInfo.InvariantCulture)</td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <h2 style="font-size:16px;">Transactions</h2>
+    <div class="epc-erp-table-wrap">
+        <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
+            <thead><tr><th>Project</th><th>Type</th><th>Category</th><th>Description</th><th class="text-right">Amount</th></tr></thead>
+            <tbody>
+                @if (_txns.Count == 0) { <tr><td colspan="5">No project transactions yet.</td></tr> }
+                else
+                {
+                    @foreach (var row in _txns)
+                    {
+                        <tr>
+                            <td>@(row.ProjectId > 0 ? row.ProjectId.ToString(CultureInfo.InvariantCulture) : "—")</td>
+                            <td>@row.TxnType</td>
+                            <td>@row.Category</td>
+                            <td>@(string.IsNullOrWhiteSpace(row.Description) ? "—" : row.Description)</td>
+                            <td class="text-right">@row.Amount.ToString("N2", CultureInfo.InvariantCulture)</td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <h2 style="font-size:16px;">Recognition</h2>
+    <div class="epc-erp-table-wrap">
+        <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
+            <thead><tr><th>Project</th><th>Method</th><th class="text-right">% complete</th><th class="text-right">Revenue</th><th class="text-right">Cost</th><th class="text-right">WIP</th></tr></thead>
+            <tbody>
+                @if (_recs.Count == 0) { <tr><td colspan="6">No recognition runs yet.</td></tr> }
+                else
+                {
+                    @foreach (var row in _recs)
+                    {
+                        <tr>
+                            <td>@(row.ProjectId > 0 ? row.ProjectId.ToString(CultureInfo.InvariantCulture) : "—")</td>
+                            <td>@row.Method</td>
+                            <td class="text-right">@row.PctComplete.ToString("N2", CultureInfo.InvariantCulture)</td>
+                            <td class="text-right">@row.RecognizedRevenue.ToString("N2", CultureInfo.InvariantCulture)</td>
+                            <td class="text-right">@row.RecognizedCost.ToString("N2", CultureInfo.InvariantCulture)</td>
+                            <td class="text-right">@row.Wip.ToString("N2", CultureInfo.InvariantCulture)</td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="epc-erp-empty" style="display:block;margin-top:12px;padding:8px 10px;border:1px solid #c5d4de;background:#f8fafc;color:#475569;font-size:12px;">
+        Source: @_source. Dry-run: <code>prja_budget_save</code> — writes=0.
+        @if (!string.IsNullOrWhiteSpace(_message)) { <span> @_message</span> }
+    </div>
+</PhpErpDesktopChrome>
+
+@code {
+    private const string _phpTab = "/ERP/?epc_erp_shell=1&area=projects&tab=project_accounting";
+    private bool _isAdmin;
+    private IReadOnlyList<ErpPrjaBudgetDigest> _budgets = [];
+    private IReadOnlyList<ErpPrjaTxnDigest> _txns = [];
+    private IReadOnlyList<ErpPrjaRecognitionDigest> _recs = [];
+    private int _count, _txnCount, _recCount;
+    private string _source = "n/a";
+    private string _message = "";
+    private string _formCode = "";
+    private string _formResult = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null) return;
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("erp");
+        if (!_isAdmin) { _message = "Sign in for live data."; return; }
+
+        var result = await Dashboards.BuildErpProjectAccountingDigestAsync(200, ctx.RequestAborted);
+        _budgets = result.Budgets;
+        _txns = result.Txns;
+        _recs = result.Recognitions;
+        _count = result.Count;
+        _txnCount = result.TxnCount;
+        _recCount = result.RecognitionCount;
+        _source = result.Source;
+        _message = result.Message;
+    }
+
+    private void OnSave()
+    {
+        var result = BudgetSave.Evaluate(new ErpPrjaBudgetSaveRequest(0, _formCode, false));
+        _formResult = $"{result.Status}: {result.Detail} (writes={result.Writes.ToString(CultureInfo.InvariantCulture)})";
+    }
+}

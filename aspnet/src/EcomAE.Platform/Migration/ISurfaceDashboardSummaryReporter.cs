@@ -524,6 +524,12 @@ public interface ISurfaceDashboardSummaryReporter
     Task<ErpRfidDigestResult> BuildErpRfidDigestAsync(int limit, CancellationToken cancellationToken = default);
     Task<ErpRecruitmentDigestResult> BuildErpRecruitmentDigestAsync(int limit, CancellationToken cancellationToken = default);
     Task<ErpCustomerGroupsDigestResult> ListErpCustomerGroupsAsync(int limit, CancellationToken cancellationToken = default);
+    Task<ErpPerformanceDigestResult> BuildErpPerformanceDigestAsync(int limit, CancellationToken cancellationToken = default);
+    Task<ErpProductInfoDigestResult> BuildErpProductInfoDigestAsync(int limit, CancellationToken cancellationToken = default);
+    Task<ErpReportSchedulerDigestResult> BuildErpReportSchedulerDigestAsync(int limit, CancellationToken cancellationToken = default);
+    Task<ErpProjectAccountingDigestResult> BuildErpProjectAccountingDigestAsync(int limit, CancellationToken cancellationToken = default);
+    Task<ErpDocAttachmentsDigestResult> ListErpDocAttachmentsAsync(int limit, CancellationToken cancellationToken = default);
+    Task<ErpInventoryReportDigestResult> BuildErpInventoryReportDigestAsync(int limit, CancellationToken cancellationToken = default);
 }
 
 

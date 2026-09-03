@@ -780,6 +780,18 @@ public static class EcomAeRoutes
     public const string ErpRecruitmentApp = "/erp/recruitment-app";
     public const string ErpCustomerGroups = "/erp/customer-groups";
     public const string ErpCustomerGroupsApp = "/erp/customer-groups-app";
+    public const string ErpPerformance = "/erp/performance";
+    public const string ErpPerformanceApp = "/erp/performance-app";
+    public const string ErpProductInfo = "/erp/product-info";
+    public const string ErpProductInfoApp = "/erp/product-info-app";
+    public const string ErpReportScheduler = "/erp/report-scheduler";
+    public const string ErpReportSchedulerApp = "/erp/report-scheduler-app";
+    public const string ErpProjectAccounting = "/erp/project-accounting";
+    public const string ErpProjectAccountingApp = "/erp/project-accounting-app";
+    public const string ErpDocAttachments = "/erp/doc-attachments";
+    public const string ErpDocAttachmentsApp = "/erp/doc-attachments-app";
+    public const string ErpInventoryReport = "/erp/inventory-report";
+    public const string ErpInventoryReportApp = "/erp/inventory-report-app";
 
     /// <summary>ERP tab→app coverage board.</summary>
     public const string ErpTabCoverage = "/erp/tab-coverage";

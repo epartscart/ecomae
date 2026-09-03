@@ -4625,3 +4625,75 @@ public sealed record ErpCustomerGroupDigest(
 public sealed record ErpCustomerGroupsDigestResult(
     IReadOnlyList<ErpCustomerGroupDigest> Groups,
     int Count, int ActiveCount, int MemberTotal, string Source, string Message);
+
+public sealed record ErpPerformanceReviewDigest(
+    long Id, long EmployeeId, string EmployeeName, string Period, string Status,
+    string Reviewer, decimal OverallRating, long TimeUpdated);
+
+public sealed record ErpPerformanceGoalDigest(
+    long Id, long ReviewId, string Title, decimal Weight, string Target, int Rating);
+
+public sealed record ErpPerformanceDigestResult(
+    IReadOnlyList<ErpPerformanceReviewDigest> Reviews,
+    IReadOnlyList<ErpPerformanceGoalDigest> Goals,
+    int Count, int OpenCount, int DoneCount, string Source, string Message);
+
+public sealed record ErpProductInfoItemDigest(
+    long Id, string Sku, string Name, long ProductId, string ItemType, string Unit,
+    decimal SalesPrice, bool Active, long TimeCreated);
+
+public sealed record ErpProductInfoFieldDigest(
+    long Id, string FieldKey, string Label, string FieldType, string FieldRole, int SortOrder, bool Active);
+
+public sealed record ErpProductInfoVariantDigest(
+    long Id, long ItemId, string BaseSku, string VariantSku, string VariantLabel, bool Active, long TimeCreated);
+
+public sealed record ErpProductInfoDigestResult(
+    IReadOnlyList<ErpProductInfoItemDigest> Items,
+    IReadOnlyList<ErpProductInfoFieldDigest> FieldDefs,
+    IReadOnlyList<ErpProductInfoVariantDigest> Variants,
+    int Count, int ActiveCount, int FieldCount, string Source, string Message);
+
+public sealed record ErpReportScheduleDigest(
+    long Id, string ReportName, string ReportType, string Frequency, int DayOfWeek, int DayOfMonth,
+    string TimeOfDay, string Format, bool IsActive, string LastStatus, long TimeCreated);
+
+public sealed record ErpReportSchedulerDigestResult(
+    IReadOnlyList<ErpReportScheduleDigest> Schedules,
+    int Count, int ActiveCount, string Source, string Message);
+
+public sealed record ErpPrjaBudgetDigest(
+    long Id, long ProjectId, string Category, decimal CostBudget, decimal RevenueBudget, long TimeCreated);
+
+public sealed record ErpPrjaTxnDigest(
+    long Id, long ProjectId, string TxnType, string Category, string Description, decimal Amount, long TxnDate, long TimeCreated);
+
+public sealed record ErpPrjaRecognitionDigest(
+    long Id, long ProjectId, string Method, long AsOf, decimal PctComplete,
+    decimal RecognizedRevenue, decimal RecognizedCost, decimal Wip, long TimeCreated);
+
+public sealed record ErpProjectAccountingDigestResult(
+    IReadOnlyList<ErpPrjaBudgetDigest> Budgets,
+    IReadOnlyList<ErpPrjaTxnDigest> Txns,
+    IReadOnlyList<ErpPrjaRecognitionDigest> Recognitions,
+    int Count, int TxnCount, int RecognitionCount, string Source, string Message);
+
+public sealed record ErpDocAttachmentDigest(
+    long Id, string EntityType, long EntityId, string FileName, int FileSize, string MimeType,
+    string Description, string UploadedByName, long TimeCreated);
+
+public sealed record ErpDocAttachmentsDigestResult(
+    IReadOnlyList<ErpDocAttachmentDigest> Attachments,
+    int Count, int EntityTypeCount, string Source, string Message);
+
+public sealed record ErpInventoryReportCategoryDigest(
+    long Id, long ParentId, string Code, string Name, int Level, int SortOrder, bool IsActive, long TimeCreated);
+
+public sealed record ErpInventoryReportSnapshotDigest(
+    long Id, string SnapshotDate, long CategoryId, int TotalSkus, decimal TotalQty, decimal TotalValue,
+    decimal AvgAgeDays, long TimeCreated);
+
+public sealed record ErpInventoryReportDigestResult(
+    IReadOnlyList<ErpInventoryReportCategoryDigest> Categories,
+    IReadOnlyList<ErpInventoryReportSnapshotDigest> Snapshots,
+    int Count, int SnapshotCount, decimal TotalValue, string Source, string Message);

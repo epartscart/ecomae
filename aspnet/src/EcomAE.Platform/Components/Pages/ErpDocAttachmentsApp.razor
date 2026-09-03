@@ -1,0 +1,99 @@
+@page "/erp/doc-attachments-app"
+@layout Layout.PhpChromeLayout
+@using System.Globalization
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Migration
+@using EcomAE.Platform.Presentation
+@inject ISurfaceDashboardSummaryReporter Dashboards
+@inject ILegacySessionValidator Sessions
+@inject IErpDocumentUploadDryRun Upload
+@inject IHttpContextAccessor Http
+@inject NavigationManager Nav
+
+<PageTitle>Document attachments · ERP · eParts Cart</PageTitle>
+<PhpChromeStyles Surface="erp" />
+<PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Document attachments" BreadcrumbArea="Documents" BreadcrumbTab="Attachments">
+    <PhpErpModulePageHeader Title="Document attachments" Subtitle="Files linked to invoices, POs and journals. Uploads stay dry-run." PhpTabHref="@_phpTab" />
+    <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
+
+    <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Attachment KPIs">
+        <div class="kpi"><div class="lbl">Attachments</div><div class="val">@_count.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Entity types</div><div class="val">@_entityTypes.ToString(CultureInfo.InvariantCulture)</div></div>
+    </div>
+
+    @if (_isAdmin)
+    {
+        <form @onsubmit="OnSave" @onsubmit:preventDefault="true" style="margin:12px 0;padding:10px;border:1px solid #c5d4de;background:#fff;">
+            <strong>Upload (dry-run)</strong>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;align-items:end;">
+                <label>File name <input class="form-control" @bind="_formCode" /></label>
+                <button type="submit" class="btn btn-primary">Validate upload</button>
+            </div>
+            @if (!string.IsNullOrWhiteSpace(_formResult)) { <p style="margin:8px 0 0;font-size:12px;">@_formResult</p> }
+        </form>
+    }
+
+    <div class="epc-erp-table-wrap">
+        <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
+            <thead><tr><th>File</th><th>Entity</th><th>Entity id</th><th>Type</th><th class="text-right">Size</th><th>Uploaded by</th></tr></thead>
+            <tbody>
+                @if (_rows.Count == 0)
+                {
+                    <tr><td colspan="6">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? "No attachments yet." : _message) : "Sign in with ERP capability for live rows.")</td></tr>
+                }
+                else
+                {
+                    @foreach (var row in _rows)
+                    {
+                        <tr>
+                            <td><strong>@(string.IsNullOrWhiteSpace(row.FileName) ? $"#{row.Id.ToString(CultureInfo.InvariantCulture)}" : row.FileName)</strong></td>
+                            <td>@(string.IsNullOrWhiteSpace(row.EntityType) ? "—" : row.EntityType)</td>
+                            <td>@(row.EntityId > 0 ? row.EntityId.ToString(CultureInfo.InvariantCulture) : "—")</td>
+                            <td>@(string.IsNullOrWhiteSpace(row.MimeType) ? "—" : row.MimeType)</td>
+                            <td class="text-right">@row.FileSize.ToString(CultureInfo.InvariantCulture)</td>
+                            <td>@(string.IsNullOrWhiteSpace(row.UploadedByName) ? "—" : row.UploadedByName)</td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="epc-erp-empty" style="display:block;margin-top:12px;padding:8px 10px;border:1px solid #c5d4de;background:#f8fafc;color:#475569;font-size:12px;">
+        Source: @_source. File paths omitted. Dry-run: <code>document_upload</code> — writes=0.
+        @if (!string.IsNullOrWhiteSpace(_message)) { <span> @_message</span> }
+    </div>
+</PhpErpDesktopChrome>
+
+@code {
+    private const string _phpTab = "/ERP/?epc_erp_shell=1&area=common&tab=doc_attachment";
+    private bool _isAdmin;
+    private IReadOnlyList<ErpDocAttachmentDigest> _rows = [];
+    private int _count, _entityTypes;
+    private string _source = "n/a";
+    private string _message = "";
+    private string _formCode = "";
+    private string _formResult = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null) return;
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("erp");
+        if (!_isAdmin) { _message = "Sign in for live data."; return; }
+
+        var result = await Dashboards.ListErpDocAttachmentsAsync(200, ctx.RequestAborted);
+        _rows = result.Attachments;
+        _count = result.Count;
+        _entityTypes = result.EntityTypeCount;
+        _source = result.Source;
+        _message = result.Message;
+    }
+
+    private void OnSave()
+    {
+        var result = Upload.Evaluate(new ErpDocumentUploadRequest(0, _formCode, false));
+        _formResult = $"{result.Status}: {result.Detail} (writes={result.Writes.ToString(CultureInfo.InvariantCulture)})";
+    }
+}

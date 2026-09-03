@@ -3036,6 +3036,60 @@ public sealed class ErpModule : ISurfaceModule
             return Results.Ok(new { ok = true, surface = "erp", groups = result.Groups, count = result.Count, activeCount = result.ActiveCount, memberTotal = result.MemberTotal, source = result.Source, message = result.Message, session = SessionPayload(session), note = "Read-only epc_customer_groups. PHP customer_groups tab remains authoritative." });
         });
 
+        endpoints.MapGet(EcomAeRoutes.ErpPerformance, async (HttpContext context, int? limit, ILegacySessionValidator validator, ISurfaceDashboardSummaryReporter dashboards, CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+                return Unauthorized("Admin ERP capability required for performance digest.");
+            var result = await dashboards.BuildErpPerformanceDigestAsync(limit ?? 200, cancellationToken);
+            return Results.Ok(new { ok = true, surface = "erp", reviews = result.Reviews, goals = result.Goals, count = result.Count, openCount = result.OpenCount, doneCount = result.DoneCount, source = result.Source, message = result.Message, session = SessionPayload(session), note = "Read-only epc_hrt_review + goals. PHP performance tab remains authoritative." });
+        });
+
+        endpoints.MapGet(EcomAeRoutes.ErpProductInfo, async (HttpContext context, int? limit, ILegacySessionValidator validator, ISurfaceDashboardSummaryReporter dashboards, CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+                return Unauthorized("Admin ERP capability required for product-info digest.");
+            var result = await dashboards.BuildErpProductInfoDigestAsync(limit ?? 200, cancellationToken);
+            return Results.Ok(new { ok = true, surface = "erp", items = result.Items, fieldDefs = result.FieldDefs, variants = result.Variants, count = result.Count, activeCount = result.ActiveCount, fieldCount = result.FieldCount, source = result.Source, message = result.Message, session = SessionPayload(session), note = "Read-only epc_erp_inv_items + field defs + variants. PHP product_info remains authoritative." });
+        });
+
+        endpoints.MapGet(EcomAeRoutes.ErpReportScheduler, async (HttpContext context, int? limit, ILegacySessionValidator validator, ISurfaceDashboardSummaryReporter dashboards, CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+                return Unauthorized("Admin ERP capability required for report-scheduler digest.");
+            var result = await dashboards.BuildErpReportSchedulerDigestAsync(limit ?? 200, cancellationToken);
+            return Results.Ok(new { ok = true, surface = "erp", schedules = result.Schedules, count = result.Count, activeCount = result.ActiveCount, source = result.Source, message = result.Message, session = SessionPayload(session), note = "Read-only epc_report_schedules (recipients/body omitted). PHP report_scheduler remains authoritative." });
+        });
+
+        endpoints.MapGet(EcomAeRoutes.ErpProjectAccounting, async (HttpContext context, int? limit, ILegacySessionValidator validator, ISurfaceDashboardSummaryReporter dashboards, CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+                return Unauthorized("Admin ERP capability required for project-accounting digest.");
+            var result = await dashboards.BuildErpProjectAccountingDigestAsync(limit ?? 200, cancellationToken);
+            return Results.Ok(new { ok = true, surface = "erp", budgets = result.Budgets, txns = result.Txns, recognitions = result.Recognitions, count = result.Count, txnCount = result.TxnCount, recognitionCount = result.RecognitionCount, source = result.Source, message = result.Message, session = SessionPayload(session), note = "Read-only epc_prja_budget/txn/recognition. PHP project_accounting remains authoritative." });
+        });
+
+        endpoints.MapGet(EcomAeRoutes.ErpDocAttachments, async (HttpContext context, int? limit, ILegacySessionValidator validator, ISurfaceDashboardSummaryReporter dashboards, CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+                return Unauthorized("Admin ERP capability required for doc-attachments digest.");
+            var result = await dashboards.ListErpDocAttachmentsAsync(limit ?? 200, cancellationToken);
+            return Results.Ok(new { ok = true, surface = "erp", attachments = result.Attachments, count = result.Count, entityTypeCount = result.EntityTypeCount, source = result.Source, message = result.Message, session = SessionPayload(session), note = "Read-only epc_doc_attachments (file_path omitted). PHP doc_attachment remains authoritative." });
+        });
+
+        endpoints.MapGet(EcomAeRoutes.ErpInventoryReport, async (HttpContext context, int? limit, ILegacySessionValidator validator, ISurfaceDashboardSummaryReporter dashboards, CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+                return Unauthorized("Admin ERP capability required for inventory-report digest.");
+            var result = await dashboards.BuildErpInventoryReportDigestAsync(limit ?? 200, cancellationToken);
+            return Results.Ok(new { ok = true, surface = "erp", categories = result.Categories, snapshots = result.Snapshots, count = result.Count, snapshotCount = result.SnapshotCount, totalValue = result.TotalValue, source = result.Source, message = result.Message, session = SessionPayload(session), note = "Read-only epc_inventory_categories + snapshots. PHP inventory_report remains authoritative." });
+        });
+
         endpoints.MapGet(EcomAeRoutes.ErpReportCenter, async (
             HttpContext context,
             string? key,
