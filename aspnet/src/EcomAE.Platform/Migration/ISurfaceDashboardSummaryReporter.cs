@@ -308,6 +308,9 @@ public interface ISurfaceDashboardSummaryReporter
     /// <summary>Read-only AR/AP/inventory aging (PHP <c>epc_erp_aging.php</c>).</summary>
     Task<ErpAgingDigestResult> BuildErpAgingDigestAsync(int limit, CancellationToken cancellationToken = default);
 
+    /// <summary>Read-only AR customer balances (PHP <c>epc_erp_receivables</c>).</summary>
+    Task<ErpReceivablesDigestResult> BuildErpReceivablesDigestAsync(int limit, CancellationToken cancellationToken = default);
+
     /// <summary>Read-only inventory movement ledger (PHP <c>epc_erp_inventory_ledger</c>).</summary>
     Task<ErpInventoryMovementsDigestResult> BuildErpInventoryMovementsDigestAsync(int limit, int? itemId = null, int? warehouseId = null, CancellationToken cancellationToken = default);
 

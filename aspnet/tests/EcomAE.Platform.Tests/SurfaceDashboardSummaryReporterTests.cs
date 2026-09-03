@@ -118,6 +118,7 @@ public sealed class SurfaceDashboardSummaryReporterTests
         var inventoryReport = await reporter.BuildErpInventoryReportDigestAsync(10);
         var reportCenter = await reporter.BuildErpReportCenterDigestAsync(null, 10);
         var aging = await reporter.BuildErpAgingDigestAsync(10);
+        var receivables = await reporter.BuildErpReceivablesDigestAsync(10);
         var stockMovements = await reporter.BuildErpInventoryMovementsDigestAsync(10);
         var pageBuilder = await reporter.BuildCpPageBuilderDigestAsync(10);
         var productCatalogue = await reporter.BuildCpProductCatalogueDigestAsync(10);
@@ -334,6 +335,8 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.Equal(19, reportCenter.Summary.AreaCount);
         Assert.Equal(33, reportCenter.Reports.Count);
         Assert.Equal("migration", aging.Source);
+        Assert.Equal("migration", receivables.Source);
+        Assert.Equal(0, receivables.Count);
         Assert.Equal("migration", stockMovements.Source);
         Assert.Empty(inventoryStock.LowStock);
         Assert.Equal("migration", pageBuilder.Source);

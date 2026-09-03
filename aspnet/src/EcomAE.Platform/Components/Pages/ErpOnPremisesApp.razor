@@ -1,7 +1,10 @@
 @page "/erp/on-premises-app"
 @layout Layout.PhpChromeLayout
+@using System.Globalization
 @using EcomAE.Platform.Auth
+@using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
+@inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
 @inject NavigationManager Nav
@@ -10,50 +13,94 @@
 <PhpChromeStyles Surface="erp" />
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="On-Premises" BreadcrumbArea="Platform" BreadcrumbTab="On-Premises">
 
-    
-    <PhpErpModulePageHeader Title="On-Premises Deployment" Subtitle="Live shop digest. Writes stay on ERP ajax." PhpTabHref="@_phpTab" />
+    <PhpErpModulePageHeader Title="On-Premises Deployment"
+                            Subtitle="Self-hosted license registry and installer pack."
+                            PhpTabHref="@_phpTab" />
+    <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
 
+    <div class="epc-erp-kpi epc-erp-stat-row" aria-label="On-premises KPIs">
+        <div class="kpi"><div class="lbl">Licenses shown</div><div class="val">@_licenses.Count.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Active</div><div class="val">@_activeCount.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Digest source</div><div class="val">@_source</div></div>
+    </div>
 
-    <div class="epc-op-grid" aria-label="On-premises tracks">
-        <div class="epc-op-card">
-            <h3>Installer pack</h3>
-            <p><code>deploy/on-premises/*</code> — setup wizard, Docker compose, backup, and health-check for self-hosted installs.</p>
-        </div>
-        <div class="epc-op-card">
-            <h3>License + health APIs</h3>
-            <p><code>api/v1/licenses/activate</code> + <code>api/v1/on-premises/health</code>. Dry-runs: <code>/erp/on-premises/health-dry-run</code> + <code>/erp/on-premises/license-activate-dry-run</code> (writes=0).</p>
-        </div>
-        <div class="epc-op-card">
-            <h3>≠ ERP-only SaaS</h3>
-            <p>Hosted multi-tenant ERP-only is separate from self-hosted on-premises. Both product tracks stay available under the platform mandate.</p>
-        </div>
+    <div class="epc-erp-table-wrap">
+        <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
+            <thead>
+                <tr>
+                    <th>Customer</th>
+                    <th>Tier</th>
+                    <th>Users max</th>
+                    <th>Status</th>
+                    <th>Hostname</th>
+                    <th>License</th>
+                    <th>Expires</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (_licenses.Count == 0)
+                {
+                    <tr><td colspan="8">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? "No on-premises licenses yet." : _message) : "Sign in with ERP capability for live licenses.")</td></tr>
+                }
+                else
+                {
+                    @foreach (var row in _licenses)
+                    {
+                        var phpHref = $"{_phpTab}&license_id={row.Id.ToString(CultureInfo.InvariantCulture)}";
+                        <tr>
+                            <td><strong>@(string.IsNullOrWhiteSpace(row.CustomerName) ? $"#{row.Id}" : row.CustomerName)</strong></td>
+                            <td>@(string.IsNullOrWhiteSpace(row.Tier) ? "—" : row.Tier)</td>
+                            <td>@row.UsersMax.ToString(CultureInfo.InvariantCulture)</td>
+                            <td><span class="label label-default">@row.Status</span></td>
+                            <td>@(string.IsNullOrWhiteSpace(row.Hostname) ? "—" : row.Hostname)</td>
+                            <td>@(string.IsNullOrWhiteSpace(row.LicenseKeyPreview) ? "—" : row.LicenseKeyPreview)</td>
+                            <td>@FormatTime(row.ExpiresAt)</td>
+                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(phpHref)">Open</a></td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
     </div>
 
     <div class="epc-erp-empty" style="display:block;margin-top:12px;padding:8px 10px;border:1px solid #c5d4de;background:#f8fafc;color:#475569;font-size:12px;">
-        Platform mandate locks remain in force until release-owner approval. Use the dual-sample compare board before any exact-route promotion.
+        Notes, fingerprint and IP omitted; license keys masked. Activate and health stay on the dry-run routes
+        (<code>/erp/on-premises/license-activate-dry-run</code>, <code>/erp/on-premises/health-dry-run</code>).
+        Installer pack: <code>deploy/on-premises/*</code>.
     </div>
-    <p class="epc-op-mandate">
-        On-Premises overview — compare against the archive tab before promoting installer pack routes.
-    </p>
 </PhpErpDesktopChrome>
 
 @code {
+    private const string _phpTab = "/ERP/?epc_erp_shell=1&tab=on_premises";
     private bool _isAdmin;
-    private readonly string _phpTab = "/ERP/?epc_erp_shell=1&tab=on_premises";
+    private IReadOnlyList<OnPremisesLicenseDigest> _licenses = [];
+    private int _activeCount;
+    private string _source = "n/a";
+    private string _message = "";
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
-        if (ctx is null)
+        if (ctx is null) return;
+
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("erp");
+        if (!_isAdmin)
         {
             return;
         }
 
-        var session = await Sessions.ValidateAsync(ctx);
-        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("erp");
-        if (!_isAdmin)
-        {
-            return; // guest browse — Sign in for live data
-        }
+        var result = await Dashboards.ListOnPremisesLicensesAsync(100, ctx.RequestAborted);
+        _licenses = result.Licenses;
+        _activeCount = _licenses.Count(l => string.Equals(l.Status, "active", StringComparison.OrdinalIgnoreCase));
+        _source = result.Source;
+        _message = result.Message;
+    }
+
+    private static string FormatTime(long unix)
+    {
+        if (unix <= 0) return "—";
+        return DateTimeOffset.FromUnixTimeSeconds(unix).UtcDateTime.ToString("dd MMM yyyy", CultureInfo.InvariantCulture);
     }
 }

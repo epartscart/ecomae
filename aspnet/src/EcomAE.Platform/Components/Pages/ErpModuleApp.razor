@@ -13,7 +13,7 @@
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="@_title" BreadcrumbArea="Modules" BreadcrumbTab="@_tab">
 
     <PhpErpModulePageHeader Title="@_title"
-                            Subtitle="ASP.NET-primary module shell. Interactive digests stay on /erp/*; PHP is temporary compare only under /php-reference/*."
+                            Subtitle="Module shell for residual ERP tabs. Dedicated digest apps stay on /erp/*."
                             PhpTabHref="@_phpTab" />
 
     <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
@@ -22,18 +22,43 @@
         <div class="epc-erp-section-card-hd"><h4><i class="fa fa-cubes"></i> @_title</h4></div>
         <div class="epc-erp-section-card-bd" style="font-size:12.5px;color:#475569;line-height:1.45;">
             <p style="margin:0 0 8px;">
-                Product route: <code>@_mappedApp</code> (ASP.NET Core).
+                Product route: <code>@_mappedApp</code>.
                 Tab key: <code>@_tab</code>.
             </p>
-            <p style="margin:0 0 8px;">
-                Writes remain PHP-authoritative until cutover; production UI does <strong>not</strong> load PHP by default.
-                Use <em>Compare PHP reference</em> (or <code>?php=</code>) only for temporary side-by-side checks.
-            </p>
+            @if (_hasDedicatedApp)
+            {
+                <p style="margin:0 0 8px;">
+                    Dedicated digest app:
+                    <a href="@_mappedApp"><strong>@_mappedApp</strong></a>
+                </p>
+            }
             <p style="margin:0;">
-                <a class="btn btn-sm btn-primary" href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Stay on ASP.NET</a>
-                <a class="btn btn-sm btn-default" href="@_compareHref">Compare PHP reference</a>
+                <a class="btn btn-sm btn-primary" href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open this module</a>
             </p>
         </div>
+    </div>
+
+    <h4>ERP tab catalog</h4>
+    <div class="epc-erp-table-wrap">
+        <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
+            <thead>
+                <tr>
+                    <th>Tab</th>
+                    <th>App</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var row in _catalog)
+                {
+                    <tr>
+                        <td><code>@row.Tab</code></td>
+                        <td>@row.Href</td>
+                        <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(row.Href)">Open</a></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
     </div>
 
     @* Opt-in only — never the default production body. *@
@@ -49,9 +74,11 @@
     private string _title = "ERP Module";
     private string _phpTab = "/ERP/?epc_erp_shell=1";
     private string _mappedApp = "/erp/module-app";
+    private bool _hasDedicatedApp;
     private string _compareHref = "/php-reference/erp";
     private string? _hybridPhp;
     private string _clearHref = "/erp/module-app";
+    private IReadOnlyList<(string Tab, string Href)> _catalog = [];
 
     protected override async Task OnInitializedAsync()
     {
@@ -63,6 +90,12 @@
         _title = ToTitle(_tab);
         _phpTab = $"/ERP/?epc_erp_shell=1&tab={Uri.EscapeDataString(_tab)}";
         _mappedApp = ErpPhpTabRouteMap.MapTabOrModuleApp(_tab);
+        _hasDedicatedApp = !_mappedApp.StartsWith(ErpPhpTabRouteMap.ModuleAppPath, StringComparison.OrdinalIgnoreCase);
+        _catalog = ErpPhpTabRouteMap.All
+            .OrderBy(kv => kv.Key, StringComparer.Ordinal)
+            .Select(kv => (kv.Key, kv.Value))
+            .Take(80)
+            .ToList();
         _compareHref = PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab);
         _clearHref = "/erp/module-app?tab=" + Uri.EscapeDataString(_tab);
 
