@@ -418,8 +418,33 @@ public static class CpWebTrackerDashboardBuilder
             // ignore
         }
 
+        DbConnection? docpart = null;
+        try
+        {
+            docpart = await connections.OpenAsync("docpart", cancellationToken).ConfigureAwait(false);
+        }
+        catch
+        {
+            // ignore — non-ePartsCart environments may not expose Model C
+        }
+
         var regCount = registry is null ? -1 : await CountSessionsSafeAsync(registry, cancellationToken).ConfigureAwait(false);
         var tenCount = tenant is null ? -1 : await CountSessionsSafeAsync(tenant, cancellationToken).ConfigureAwait(false);
+        var docCount = docpart is null ? -1 : await CountSessionsSafeAsync(docpart, cancellationToken).ConfigureAwait(false);
+        if (docpart is not null && docCount > tenCount)
+        {
+            if (tenant is not null)
+            {
+                await tenant.DisposeAsync().ConfigureAwait(false);
+            }
+
+            tenant = docpart;
+            tenCount = docCount;
+        }
+        else if (docpart is not null)
+        {
+            await docpart.DisposeAsync().ConfigureAwait(false);
+        }
 
         if (registry is not null && regCount >= tenCount)
         {
@@ -1102,6 +1127,11 @@ public static class CpWebTrackerDashboardBuilder
 
     private static void Bind(DbCommand cmd, List<(string Name, object Value)> parameters)
     {
+        if (cmd.CommandTimeout is 0 or 30)
+        {
+            cmd.CommandTimeout = 12;
+        }
+
         foreach (var (name, value) in parameters)
         {
             Add(cmd, name, value);
@@ -1110,6 +1140,11 @@ public static class CpWebTrackerDashboardBuilder
 
     private static void Add(DbCommand command, string name, object value)
     {
+        if (command.CommandTimeout is 0 or 30)
+        {
+            command.CommandTimeout = 12;
+        }
+
         var parameter = command.CreateParameter();
         parameter.ParameterName = name;
         parameter.Value = value;
