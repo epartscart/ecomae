@@ -1197,6 +1197,16 @@ public sealed class ControlPanelModule : ISurfaceModule
             ISurfaceDashboardSummaryReporter dashboards,
             CancellationToken cancellationToken) =>
         {
+            if (!SuperCpHostGate.IsAllowed(context))
+            {
+                return Results.NotFound(new
+                {
+                    ok = false,
+                    surface = "cp",
+                    message = "Tax toolkits digest is Super CP only. Tenant CPs are independent."
+                });
+            }
+
             var session = await validator.ValidateAsync(context, cancellationToken);
             if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
             {
@@ -1871,6 +1881,16 @@ public sealed class ControlPanelModule : ISurfaceModule
             ISurfaceDashboardSummaryReporter dashboards,
             CancellationToken cancellationToken) =>
         {
+            if (!SuperCpHostGate.IsAllowed(context))
+            {
+                return Results.NotFound(new
+                {
+                    ok = false,
+                    surface = "cp",
+                    message = "Platform governance digest is Super CP only. Tenant CPs are independent."
+                });
+            }
+
             var session = await validator.ValidateAsync(context, cancellationToken);
             if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
             {
@@ -3159,6 +3179,16 @@ public sealed class ControlPanelModule : ISurfaceModule
             ISurfaceDashboardSummaryReporter dashboards,
             CancellationToken cancellationToken) =>
         {
+            if (!SuperCpHostGate.IsAllowed(context))
+            {
+                return Results.NotFound(new
+                {
+                    ok = false,
+                    surface = "cp",
+                    message = "Free tools digest is Super CP only. Tenant CPs are independent."
+                });
+            }
+
             var session = await validator.ValidateAsync(context, cancellationToken);
             if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
             {
@@ -3704,6 +3734,16 @@ public sealed class ControlPanelModule : ISurfaceModule
             ISurfaceDashboardSummaryReporter dashboards,
             CancellationToken cancellationToken) =>
         {
+            if (!SuperCpHostGate.IsAllowed(context))
+            {
+                return Results.NotFound(new
+                {
+                    ok = false,
+                    surface = "cp",
+                    message = "Failover status digest is Super CP only. Tenant CPs are independent."
+                });
+            }
+
             var session = await validator.ValidateAsync(context, cancellationToken);
             if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
             {
@@ -3990,6 +4030,16 @@ public sealed class ControlPanelModule : ISurfaceModule
             ISurfaceDashboardSummaryReporter dashboards,
             CancellationToken cancellationToken) =>
         {
+            if (!SuperCpHostGate.IsAllowed(context))
+            {
+                return Results.NotFound(new
+                {
+                    ok = false,
+                    surface = "cp",
+                    message = "Tenant features digest is Super CP only. Tenant CPs are independent."
+                });
+            }
+
             var session = await validator.ValidateAsync(context, cancellationToken);
             if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
             {
@@ -4019,6 +4069,16 @@ public sealed class ControlPanelModule : ISurfaceModule
             ISurfaceDashboardSummaryReporter dashboards,
             CancellationToken cancellationToken) =>
         {
+            if (!SuperCpHostGate.IsAllowed(context))
+            {
+                return Results.NotFound(new
+                {
+                    ok = false,
+                    surface = "cp",
+                    message = "Customer board digest is Super CP only. Tenant CPs are independent."
+                });
+            }
+
             var session = await validator.ValidateAsync(context, cancellationToken);
             if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
             {
@@ -4077,6 +4137,16 @@ public sealed class ControlPanelModule : ISurfaceModule
             ISurfaceDashboardSummaryReporter dashboards,
             CancellationToken cancellationToken) =>
         {
+            if (!SuperCpHostGate.IsAllowed(context))
+            {
+                return Results.NotFound(new
+                {
+                    ok = false,
+                    surface = "cp",
+                    message = "SSO/SAML digest is Super CP only. Tenant CPs are independent."
+                });
+            }
+
             var session = await validator.ValidateAsync(context, cancellationToken);
             if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
             {
@@ -4106,6 +4176,16 @@ public sealed class ControlPanelModule : ISurfaceModule
             ISurfaceDashboardSummaryReporter dashboards,
             CancellationToken cancellationToken) =>
         {
+            if (!SuperCpHostGate.IsAllowed(context))
+            {
+                return Results.NotFound(new
+                {
+                    ok = false,
+                    surface = "cp",
+                    message = "Event bus digest is Super CP only. Tenant CPs are independent."
+                });
+            }
+
             var session = await validator.ValidateAsync(context, cancellationToken);
             if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
             {

@@ -81,6 +81,29 @@ public sealed class SuperCpTenantIsolationTests
     }
 
     [Fact]
+    public void SuperOnlyDigests_AreHostGatedInControlPanelModule()
+    {
+        var text = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Modules/ControlPanelModule.cs"));
+        foreach (var message in new[]
+                 {
+                     "Portal tenant fleet digest is Super CP only",
+                     "Demo tenant fleet digest is Super CP only",
+                     "Portal settings fleet digest is Super CP only",
+                     "Tenant features digest is Super CP only",
+                     "Customer board digest is Super CP only",
+                     "SSO/SAML digest is Super CP only",
+                     "Event bus digest is Super CP only",
+                     "Tax toolkits digest is Super CP only",
+                     "Platform governance digest is Super CP only",
+                     "Free tools digest is Super CP only",
+                     "Failover status digest is Super CP only",
+                 })
+        {
+            Assert.Contains(message, text, StringComparison.Ordinal);
+        }
+    }
+
+    [Fact]
     public void CpHomeBranchesSuperVsTenant()
     {
         // Mirrors PHP cp/content/control/control.php: super hosts render
