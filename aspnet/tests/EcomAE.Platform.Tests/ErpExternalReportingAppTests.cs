@@ -53,6 +53,8 @@ public sealed class ErpExternalReportingAppTests
         Assert.Contains("Guided IFRS report builder", razor, StringComparison.Ordinal);
         Assert.Contains("Fetch &amp; build", razor, StringComparison.Ordinal);
         Assert.Contains("UAE statutory sub-layer", razor, StringComparison.Ordinal);
+        Assert.Contains("FY@(DateTime.UtcNow.Year)", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("FY@DateTime.UtcNow.Year", razor, StringComparison.Ordinal);
         Assert.Contains("company=", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("Manage store operations", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("linear-gradient(135deg", razor, StringComparison.Ordinal);
