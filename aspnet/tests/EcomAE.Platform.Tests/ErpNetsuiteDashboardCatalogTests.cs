@@ -142,6 +142,8 @@ public sealed class ErpNetsuiteDashboardCatalogTests
         Assert.Contains("for_finish", LegacySurfaceDashboardSql.SumErpWorkspaceRevenueExVat, StringComparison.Ordinal);
         Assert.Contains("for_finish", LegacySurfaceDashboardSql.SumErpWorkspaceSalesInclVat, StringComparison.Ordinal);
         Assert.Contains("for_finish", LegacySurfaceDashboardSql.SumErpWorkspaceReceivableDueOrders, StringComparison.Ordinal);
+        Assert.Contains("for_finish", LegacySurfaceDashboardSql.CountErpWorkspaceCompletedOrders, StringComparison.Ordinal);
+        Assert.Contains("shop_orders", LegacySurfaceDashboardSql.CountErpWorkspaceCompletedOrders, StringComparison.Ordinal);
 
         Assert.Contains("epc_erp_coa_accounts", LegacySurfaceDashboardSql.SumErpWorkspaceGlNetProfit, StringComparison.Ordinal);
         Assert.Contains("completed_at", LegacySurfaceDashboardSql.SelectErpWorkspaceTopPerformers, StringComparison.Ordinal);

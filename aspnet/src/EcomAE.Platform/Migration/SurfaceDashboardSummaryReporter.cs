@@ -326,7 +326,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
-    private static async Task<(decimal PurchaseExVat, decimal RevenueExVat, decimal SalesInclVat, decimal DueOrders, int ConfirmedSo, int OpenPo, int InvoicesDue, int Busy, int Headcount, int ProcessDone, decimal GlNetProfit)>
+    private static async Task<(decimal PurchaseExVat, decimal RevenueExVat, decimal SalesInclVat, decimal DueOrders, int CompletedOrders, int ConfirmedSo, int OpenPo, int InvoicesDue, int Busy, int Headcount, int ProcessDone, decimal GlNetProfit)>
         ReadWorkspaceExtrasAsync(DbConnection connection, long dateFrom, long dateTo, CancellationToken cancellationToken)
     {
         var purchase = await ScalarDecimalParamSafeAsync(
@@ -341,6 +341,9 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         var due = await ScalarDecimalParamSafeAsync(
             connection, LegacySurfaceDashboardSql.SumErpWorkspaceReceivableDueOrders, cancellationToken,
             ("@dateFrom", dateFrom), ("@dateTo", dateTo)).ConfigureAwait(false);
+        var completedOrders = await ScalarIntParamSafeAsync(
+            connection, LegacySurfaceDashboardSql.CountErpWorkspaceCompletedOrders, cancellationToken,
+            ("@dateFrom", dateFrom), ("@dateTo", dateTo)).ConfigureAwait(false);
         var confirmed = await ScalarIntSafeAsync(connection, LegacySurfaceDashboardSql.CountErpWorkspaceConfirmedSalesOrders, cancellationToken).ConfigureAwait(false);
         var openPo = await ScalarIntSafeAsync(connection, LegacySurfaceDashboardSql.CountErpWorkspaceOpenPurchaseOrders, cancellationToken).ConfigureAwait(false);
         var invDue = await ScalarIntSafeAsync(connection, LegacySurfaceDashboardSql.CountErpWorkspaceInvoicesDue, cancellationToken).ConfigureAwait(false);
@@ -352,12 +355,12 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         var glNet = await ScalarDecimalParamSafeAsync(
             connection, LegacySurfaceDashboardSql.SumErpWorkspaceGlNetProfit, cancellationToken,
             ("@dateFrom", dateFrom), ("@dateTo", dateTo)).ConfigureAwait(false);
-        return (purchase, revenueEx, salesIncl, due, confirmed, openPo, invDue, busy, head, processDone, glNet);
+        return (purchase, revenueEx, salesIncl, due, completedOrders, confirmed, openPo, invDue, busy, head, processDone, glNet);
     }
 
     private static ErpWorkspacePeriodKpis ToWorkspacePeriod(
         ErpDashboardSummary s,
-        (decimal PurchaseExVat, decimal RevenueExVat, decimal SalesInclVat, decimal DueOrders, int ConfirmedSo, int OpenPo, int InvoicesDue, int Busy, int Headcount, int ProcessDone, decimal GlNetProfit) x)
+        (decimal PurchaseExVat, decimal RevenueExVat, decimal SalesInclVat, decimal DueOrders, int CompletedOrders, int ConfirmedSo, int OpenPo, int InvoicesDue, int Busy, int Headcount, int ProcessDone, decimal GlNetProfit) x)
     {
         var purchase = x.PurchaseExVat;
         var revenue = x.RevenueExVat;
@@ -377,7 +380,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             x.DueOrders != 0 ? x.DueOrders : s.ArBalance,
             s.ArBalance,
             s.ApBalance,
-            s.OrdersCount,
+            x.CompletedOrders,
             s.InventoryItems,
             s.DraftSalesOrders,
             x.ConfirmedSo,

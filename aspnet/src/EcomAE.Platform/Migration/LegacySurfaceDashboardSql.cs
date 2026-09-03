@@ -4748,6 +4748,17 @@ public const string SelectCpOpsGuidesStats = """
           AND `time` >= @dateFrom AND `time` <= @dateTo
         """;
 
+    /// <summary>
+    /// PHP <c>epc_erp_dashboard</c> <c>order_count</c>:
+    /// <c>SUM(IF(order_complete_expr, 1, 0))</c> — finished shop orders only.
+    /// </summary>
+    public const string CountErpWorkspaceCompletedOrders = """
+        SELECT COUNT(*) FROM `shop_orders`
+        WHERE `successfully_created` = 1
+          AND `status` IN (SELECT `id` FROM `shop_orders_statuses_ref` WHERE `for_finish` = 1)
+          AND `time` >= @dateFrom AND `time` <= @dateTo
+        """;
+
     public const string CountErpWorkspaceConfirmedSalesOrders = """
         SELECT COUNT(*) FROM `epc_erp_sales_orders` WHERE `status` = 'confirmed'
         """;
