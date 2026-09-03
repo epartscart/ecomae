@@ -98,6 +98,26 @@ public sealed class ErpNetsuiteDashboardCatalogTests
     }
 
     [Fact]
+    public void GlNetProfitIsNotGrossMargin()
+    {
+        var profile = ErpNetsuiteDashboardCatalog.Profiles["finance"];
+        var cur = new ErpWorkspacePeriodKpis(
+            0, 1000, 400, 600, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "open", 180);
+        var fin = ErpNetsuiteDashboardCatalog.ResolveFinancials(profile, cur, "AED");
+        Assert.Contains(fin, f => f.Label == "Margin (ex VAT)" && f.Value.StartsWith("600.00", StringComparison.Ordinal));
+        Assert.Contains(fin, f => f.Label == "GL net profit" && f.Value.StartsWith("180.00", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void PeriodDaysInclusiveCountsCurrentCalendarDay()
+    {
+        Assert.Equal(3, ErpNetsuiteDashboardCatalog.PeriodDaysInclusive("2026-09-01", "2026-09-03"));
+        Assert.Equal(1, ErpNetsuiteDashboardCatalog.PeriodDaysInclusive("2026-09-03", "2026-09-03"));
+        Assert.Equal(1, ErpNetsuiteDashboardCatalog.PeriodDaysInclusive(null, null));
+    }
+
+    [Fact]
     public void IndustryControlsStayGenericUnlessJewellery()
     {
         var core = ErpNetsuiteDashboardCatalog.IndustryControls("auto_parts", jewellery: false);
@@ -110,10 +130,102 @@ public sealed class ErpNetsuiteDashboardCatalogTests
     }
 
     [Fact]
+    public void WorkspaceSqlMatchesPhpCogsTasksAndGlPl()
+    {
+        Assert.Contains("t2_price_purchase", LegacySurfaceDashboardSql.SumErpWorkspacePurchaseExVat, StringComparison.Ordinal);
+        Assert.Contains("shop_orders", LegacySurfaceDashboardSql.SumErpWorkspacePurchaseExVat, StringComparison.Ordinal);
+        Assert.Contains("for_finish", LegacySurfaceDashboardSql.SumErpWorkspacePurchaseExVat, StringComparison.Ordinal);
+        Assert.Contains("count_flag", LegacySurfaceDashboardSql.SumErpWorkspacePurchaseExVat, StringComparison.Ordinal);
+        Assert.Contains("shop_orders_items_statuses_ref", LegacySurfaceDashboardSql.SumErpWorkspacePurchaseExVat, StringComparison.Ordinal);
+        Assert.DoesNotContain("epc_erp_purchases", LegacySurfaceDashboardSql.SumErpWorkspacePurchaseExVat, StringComparison.Ordinal);
+
+        Assert.Contains("for_finish", LegacySurfaceDashboardSql.SumErpWorkspaceRevenueExVat, StringComparison.Ordinal);
+        Assert.Contains("for_finish", LegacySurfaceDashboardSql.SumErpWorkspaceSalesInclVat, StringComparison.Ordinal);
+        Assert.Contains("for_finish", LegacySurfaceDashboardSql.SumErpWorkspaceReceivableDueOrders, StringComparison.Ordinal);
+        Assert.Contains("for_finish", LegacySurfaceDashboardSql.CountErpWorkspaceCompletedOrders, StringComparison.Ordinal);
+        Assert.Contains("shop_orders", LegacySurfaceDashboardSql.CountErpWorkspaceCompletedOrders, StringComparison.Ordinal);
+
+        Assert.Contains("epc_erp_coa_accounts", LegacySurfaceDashboardSql.SumErpWorkspaceGlNetProfit, StringComparison.Ordinal);
+        Assert.DoesNotContain("@companyId", LegacySurfaceDashboardSql.SumErpWorkspaceGlNetProfit, StringComparison.Ordinal);
+        var scopedGl = LegacySurfaceDashboardSql.BuildSumErpWorkspaceGlNetProfit(7);
+        Assert.Contains("j.`company_id` = @companyId", scopedGl, StringComparison.Ordinal);
+        Assert.DoesNotContain("IFNULL(j.`company_id`", scopedGl, StringComparison.Ordinal);
+        Assert.Contains("@dateFrom", scopedGl, StringComparison.Ordinal);
+        var defaultGl = LegacySurfaceDashboardSql.BuildSumErpWorkspaceGlNetProfit(3, includeUnassignedZero: true);
+        Assert.Contains("IFNULL(j.`company_id`, 0) = 0", defaultGl, StringComparison.Ordinal);
+        Assert.DoesNotContain("j.`company_id`", LegacySurfaceDashboardSql.BuildSumErpWorkspaceGlNetProfit(0), StringComparison.Ordinal);
+        Assert.Equal(7, ErpHostContext.ResolveErpGlCompanyId(7, [3, 7, 9]));
+        Assert.Equal(3, ErpHostContext.ResolveErpGlCompanyId(99, [3, 7, 9]));
+        Assert.Equal(3, ErpHostContext.ResolveErpGlCompanyId(null, [3, 7]));
+        Assert.Equal(0, ErpHostContext.ResolveErpGlCompanyId(5, []));
+        Assert.True(ErpHostContext.IncludeUnassignedGlJournals(3, [3, 7, 9]));
+        Assert.False(ErpHostContext.IncludeUnassignedGlJournals(7, [3, 7, 9]));
+        Assert.False(ErpHostContext.IncludeUnassignedGlJournals(0, []));
+        Assert.Contains("completed_at", LegacySurfaceDashboardSql.SelectErpWorkspaceTopPerformers, StringComparison.Ordinal);
+        Assert.Contains("department_code", LegacySurfaceDashboardSql.SelectErpWorkspaceTopPerformers, StringComparison.Ordinal);
+        Assert.Contains("epc_erp_staff_profiles", LegacySurfaceDashboardSql.SelectErpWorkspaceTopPerformers, StringComparison.Ordinal);
+        Assert.Contains("GROUP BY s.`acted_by`", LegacySurfaceDashboardSql.SelectErpWorkspaceTopPerformers, StringComparison.Ordinal);
+        Assert.DoesNotContain("current_department", LegacySurfaceDashboardSql.SelectErpWorkspaceTopPerformers, StringComparison.Ordinal);
+        Assert.Contains("@dateFrom", LegacySurfaceDashboardSql.CountErpWorkspaceProcessDoneInPeriod, StringComparison.Ordinal);
+        Assert.Contains("epc_pf_case_steps", LegacySurfaceDashboardSql.CountErpWorkspaceProcessDoneInPeriod, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void DepartmentNameMatchesPhpUnassignedFallback()
     {
         Assert.Equal("Unassigned", ErpNetsuiteDashboardCatalog.DepartmentName(""));
         Assert.Equal("Purchasing", ErpNetsuiteDashboardCatalog.DepartmentName("purchase"));
         Assert.Equal("Sales", ErpNetsuiteDashboardCatalog.DepartmentName("sales"));
+    }
+
+    [Fact]
+    public void InsightsSuiteAlwaysRendersPhpBandsAndZeroEmptyStates()
+    {
+        var zero = new ErpWorkspacePeriodKpis(
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "open");
+        var suite = ErpInsightsSuiteCatalog.Build(
+            zero, zero, ErpInsightsSuiteCatalog.EmptyCommerce, 0, [0, 0, 0, 0, 0],
+            "AED", "2026-09-01", "2026-09-03", autoParts: true);
+        Assert.Equal(3, suite.Bands.Count);
+        Assert.Contains(suite.Bands, b => b.Key == "financial" && b.Items.Count == 6);
+        Assert.Contains(suite.Bands, b => b.Key == "business" && b.Items.Count == 5);
+        Assert.Contains(suite.Bands, b => b.Key == "cp" && b.Items.Any(c => c.Key == "vin"));
+        Assert.Contains(suite.Bands.SelectMany(b => b.Items), c => c.Key == "revenue" && c.Narrative.Contains("No MTD sales", StringComparison.Ordinal));
+        Assert.Contains(suite.Alerts, a => a.Title == "Pricing not ready");
+        Assert.Equal("Ready", ErpInsightsSuiteCatalog.FormatValue(suite.Bands.SelectMany(b => b.Items).First(c => c.Key == "sku_media"), "AED"));
+    }
+
+    [Fact]
+    public void InsightsVinCardStaysOffForJewelleryWhenNoOpenRequests()
+    {
+        var zero = new ErpWorkspacePeriodKpis(
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "open");
+        var suite = ErpInsightsSuiteCatalog.Build(
+            zero, zero, ErpInsightsSuiteCatalog.EmptyCommerce, 0, [0, 0, 0, 0, 0],
+            "AED", "2026-09-01", "2026-09-03", autoParts: false);
+        Assert.DoesNotContain(suite.Bands.SelectMany(b => b.Items), c => c.Key == "vin");
+    }
+
+    [Fact]
+    public void PurchaseCentreIncludesInventoryTurnover()
+    {
+        var profile = ErpNetsuiteDashboardCatalog.Profiles["purchase"];
+        var cur = new ErpWorkspacePeriodKpis(
+            0, 0, 400, 0, 0, 0, 100, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "open");
+        var kpis = ErpNetsuiteDashboardCatalog.OperationalKpis(profile, cur, 3);
+        Assert.Contains(kpis, k => k.Key == "inv_turnover" && k.Value.StartsWith("4.00", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void StatutoryTilesDeepLinkLikePhpExtUrl()
+    {
+        Assert.Contains("tab=pl", ErpNetsuiteDashboardCatalog.Tiles["pl"].Href, StringComparison.Ordinal);
+        Assert.Contains("tab=balance_sheet", ErpNetsuiteDashboardCatalog.Tiles["balance_sheet"].Href, StringComparison.Ordinal);
+        Assert.Contains("cat=audit", ErpNetsuiteDashboardCatalog.Tiles["ext_ifrs"].Href, StringComparison.Ordinal);
+        Assert.Contains("rep=tax__vat_return", ErpNetsuiteDashboardCatalog.Tiles["ext_vat"].Href, StringComparison.Ordinal);
+        Assert.Contains("fetch=1", ErpNetsuiteDashboardCatalog.Tiles["ext_ct"].Href, StringComparison.Ordinal);
     }
 }

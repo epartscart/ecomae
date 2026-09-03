@@ -156,8 +156,9 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             var prevSummary = await ReadErpDashboardForPeriodAsync(
                 connection, prevFrom, prevTo, periodKey, overdueBefore, cancellationToken).ConfigureAwait(false);
 
-            var curExtras = await ReadWorkspaceExtrasAsync(connection, monthStart, now, cancellationToken).ConfigureAwait(false);
-            var prevExtras = await ReadWorkspaceExtrasAsync(connection, prevFrom, prevTo, cancellationToken).ConfigureAwait(false);
+            var glScope = await ResolveWorkspaceGlScopeAsync(connection, cancellationToken).ConfigureAwait(false);
+            var curExtras = await ReadWorkspaceExtrasAsync(connection, monthStart, now, glScope, cancellationToken).ConfigureAwait(false);
+            var prevExtras = await ReadWorkspaceExtrasAsync(connection, prevFrom, prevTo, glScope, cancellationToken).ConfigureAwait(false);
 
             var current = ToWorkspacePeriod(currentSummary, curExtras);
             var previous = ToWorkspacePeriod(prevSummary, prevExtras);
@@ -169,7 +170,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                 var mFrom = new DateTimeOffset(m).ToUnixTimeSeconds();
                 var mTo = new DateTimeOffset(m.AddMonths(1).AddSeconds(-1)).ToUnixTimeSeconds();
                 var rev = await ScalarDecimalParamSafeAsync(
-                    connection, LegacySurfaceDashboardSql.SumErpCcRevenueExVat, cancellationToken,
+                    connection, LegacySurfaceDashboardSql.SumErpWorkspaceRevenueExVat, cancellationToken,
                     ("@dateFrom", mFrom), ("@dateTo", mTo)).ConfigureAwait(false);
                 var purch = await ScalarDecimalParamSafeAsync(
                     connection, LegacySurfaceDashboardSql.SumErpWorkspacePurchaseExVat, cancellationToken,
@@ -200,14 +201,19 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             {
                 await using var cmd = connection.CreateCommand();
                 cmd.CommandText = LegacySurfaceDashboardSql.SelectErpWorkspaceTopPerformers;
+                AddParameter(cmd, "@dateFrom", monthStart);
+                AddParameter(cmd, "@dateTo", now);
                 await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
                 while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
                 {
                     var assignee = Convert.ToInt64(reader["assignee"] is DBNull ? 0 : reader["assignee"], CultureInfo.InvariantCulture);
+                    var staffName = Convert.ToString(reader["staff_name"] is DBNull ? string.Empty : reader["staff_name"], CultureInfo.InvariantCulture) ?? string.Empty;
                     var dept = Convert.ToString(reader["dept"] is DBNull ? string.Empty : reader["dept"], CultureInfo.InvariantCulture) ?? string.Empty;
                     var n = Convert.ToInt32(reader["n"] is DBNull ? 0 : reader["n"], CultureInfo.InvariantCulture);
                     if (n <= 0) continue;
-                    var name = assignee > 0 ? "Staff #" + assignee.ToString(CultureInfo.InvariantCulture) : "Unassigned";
+                    var name = !string.IsNullOrWhiteSpace(staffName)
+                        ? staffName.Trim()
+                        : (assignee > 0 ? "Staff #" + assignee.ToString(CultureInfo.InvariantCulture) : "Unassigned");
                     performers.Add(new(name, ErpNetsuiteDashboardCatalog.DepartmentName(dept), n));
                 }
             }
@@ -279,6 +285,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             }
 
             var alerts = new ErpWorkspacePlanningAlerts(danger, warning, info, dead, danger + warning + info + dead);
+            var commerce = await ReadInsightsCommerceAsync(connection, cancellationToken).ConfigureAwait(false);
             return new(
                 current,
                 previous,
@@ -293,7 +300,8 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                 periodFromStr,
                 periodToStr,
                 currentSummary.Source,
-                currentSummary.Message);
+                currentSummary.Message,
+                commerce);
         }
         catch (Exception ex)
         {
@@ -321,11 +329,72 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
-    private static async Task<(decimal PurchaseExVat, decimal SalesInclVat, decimal DueOrders, int ConfirmedSo, int OpenPo, int InvoicesDue, int Busy, int Headcount)>
-        ReadWorkspaceExtrasAsync(DbConnection connection, long dateFrom, long dateTo, CancellationToken cancellationToken)
+    /// <summary>
+    /// PHP <c>epc_erp_gl_resolve_company_id</c> + read-only equivalent of
+    /// <c>epc_erp_gl_backfill_company_id</c>. Missing <c>company_id</c> column
+    /// stays unscoped (PHP would ADD the column; we do not write).
+    /// </summary>
+    private async Task<(int CompanyId, bool IncludeUnassignedZero)> ResolveWorkspaceGlScopeAsync(
+        DbConnection connection,
+        CancellationToken cancellationToken)
+    {
+        var requested = ErpHostContext.ActiveCompanyIdFromQuery(_httpContextAccessor?.HttpContext?.Request);
+        var ids = new List<int>();
+        try
+        {
+            await using var cmd = connection.CreateCommand();
+            cmd.CommandText = LegacySurfaceDashboardSql.SelectErpCompanies;
+            AddParameter(cmd, "@limit", 50);
+            await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                ids.Add(Convert.ToInt32(reader["id"], CultureInfo.InvariantCulture));
+            }
+        }
+        catch
+        {
+            // companies table optional — PHP resolve returns 0 (unscoped)
+        }
+
+        if (!await HasGlJournalCompanyIdAsync(connection, cancellationToken).ConfigureAwait(false))
+        {
+            return (0, false);
+        }
+
+        var companyId = ErpHostContext.ResolveErpGlCompanyId(requested, ids);
+        return (companyId, ErpHostContext.IncludeUnassignedGlJournals(companyId, ids));
+    }
+
+    private static async Task<bool> HasGlJournalCompanyIdAsync(
+        DbConnection connection,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            await using var cmd = connection.CreateCommand();
+            cmd.CommandText = "SELECT `company_id` FROM `epc_erp_gl_journals` LIMIT 0";
+            _ = await cmd.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    private static async Task<(decimal PurchaseExVat, decimal RevenueExVat, decimal SalesInclVat, decimal DueOrders, int CompletedOrders, int ConfirmedSo, int OpenPo, int InvoicesDue, int Busy, int Headcount, int ProcessDone, decimal GlNetProfit)>
+        ReadWorkspaceExtrasAsync(
+            DbConnection connection,
+            long dateFrom,
+            long dateTo,
+            (int CompanyId, bool IncludeUnassignedZero) glScope,
+            CancellationToken cancellationToken)
     {
         var purchase = await ScalarDecimalParamSafeAsync(
             connection, LegacySurfaceDashboardSql.SumErpWorkspacePurchaseExVat, cancellationToken,
+            ("@dateFrom", dateFrom), ("@dateTo", dateTo)).ConfigureAwait(false);
+        var revenueEx = await ScalarDecimalParamSafeAsync(
+            connection, LegacySurfaceDashboardSql.SumErpWorkspaceRevenueExVat, cancellationToken,
             ("@dateFrom", dateFrom), ("@dateTo", dateTo)).ConfigureAwait(false);
         var salesIncl = await ScalarDecimalParamSafeAsync(
             connection, LegacySurfaceDashboardSql.SumErpWorkspaceSalesInclVat, cancellationToken,
@@ -333,25 +402,65 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         var due = await ScalarDecimalParamSafeAsync(
             connection, LegacySurfaceDashboardSql.SumErpWorkspaceReceivableDueOrders, cancellationToken,
             ("@dateFrom", dateFrom), ("@dateTo", dateTo)).ConfigureAwait(false);
+        var completedOrders = await ScalarIntParamSafeAsync(
+            connection, LegacySurfaceDashboardSql.CountErpWorkspaceCompletedOrders, cancellationToken,
+            ("@dateFrom", dateFrom), ("@dateTo", dateTo)).ConfigureAwait(false);
         var confirmed = await ScalarIntSafeAsync(connection, LegacySurfaceDashboardSql.CountErpWorkspaceConfirmedSalesOrders, cancellationToken).ConfigureAwait(false);
         var openPo = await ScalarIntSafeAsync(connection, LegacySurfaceDashboardSql.CountErpWorkspaceOpenPurchaseOrders, cancellationToken).ConfigureAwait(false);
         var invDue = await ScalarIntSafeAsync(connection, LegacySurfaceDashboardSql.CountErpWorkspaceInvoicesDue, cancellationToken).ConfigureAwait(false);
         var busy = await ScalarIntSafeAsync(connection, LegacySurfaceDashboardSql.CountErpWorkspaceProcessBusy, cancellationToken).ConfigureAwait(false);
         var head = await ScalarIntSafeAsync(connection, LegacySurfaceDashboardSql.CountErpWorkspaceProcessHeadcount, cancellationToken).ConfigureAwait(false);
-        return (purchase, salesIncl, due, confirmed, openPo, invDue, busy, head);
+        var processDone = await ScalarIntParamSafeAsync(
+            connection, LegacySurfaceDashboardSql.CountErpWorkspaceProcessDoneInPeriod, cancellationToken,
+            ("@dateFrom", dateFrom), ("@dateTo", dateTo)).ConfigureAwait(false);
+        var glSql = LegacySurfaceDashboardSql.BuildSumErpWorkspaceGlNetProfit(
+            glScope.CompanyId, glScope.IncludeUnassignedZero);
+        var glNet = glScope.CompanyId > 0
+            ? await ScalarDecimalParamSafeAsync(
+                connection, glSql, cancellationToken,
+                ("@dateFrom", dateFrom), ("@dateTo", dateTo), ("@companyId", glScope.CompanyId)).ConfigureAwait(false)
+            : await ScalarDecimalParamSafeAsync(
+                connection, glSql, cancellationToken,
+                ("@dateFrom", dateFrom), ("@dateTo", dateTo)).ConfigureAwait(false);
+        return (purchase, revenueEx, salesIncl, due, completedOrders, confirmed, openPo, invDue, busy, head, processDone, glNet);
+    }
+
+    private static async Task<ErpInsightsCommerceStats> ReadInsightsCommerceAsync(
+        DbConnection connection, CancellationToken cancellationToken)
+    {
+        var now = DateTime.UtcNow.Date;
+        var today = new DateTimeOffset(now, TimeSpan.Zero).ToUnixTimeSeconds();
+        var week = new DateTimeOffset(now.AddDays(-6), TimeSpan.Zero).ToUnixTimeSeconds();
+        var prevWeekFrom = new DateTimeOffset(now.AddDays(-13), TimeSpan.Zero).ToUnixTimeSeconds();
+        var ordersToday = await ScalarIntParamSafeAsync(
+            connection, LegacySurfaceDashboardSql.CountErpInsightsOrdersSince, cancellationToken, ("@since", today)).ConfigureAwait(false);
+        var ordersWeek = await ScalarIntParamSafeAsync(
+            connection, LegacySurfaceDashboardSql.CountErpInsightsOrdersSince, cancellationToken, ("@since", week)).ConfigureAwait(false);
+        var ordersPrev = await ScalarIntParamSafeAsync(
+            connection, LegacySurfaceDashboardSql.CountErpInsightsOrdersBetween, cancellationToken,
+            ("@dateFrom", prevWeekFrom), ("@dateTo", week)).ConfigureAwait(false);
+        var open = await ScalarIntSafeAsync(connection, LegacySurfaceDashboardSql.CountErpInsightsOpenOrders, cancellationToken).ConfigureAwait(false);
+        var products = await ScalarIntSafeAsync(connection, LegacySurfaceDashboardSql.CountErpInsightsPublishedProducts, cancellationToken).ConfigureAwait(false);
+        var clients = await ScalarIntSafeAsync(connection, LegacySurfaceDashboardSql.CountErpInsightsCustomers, cancellationToken).ConfigureAwait(false);
+        var returns = await ScalarIntSafeAsync(connection, LegacySurfaceDashboardSql.CountErpInsightsOpenReturns, cancellationToken).ConfigureAwait(false);
+        var vin = await ScalarIntSafeAsync(connection, LegacySurfaceDashboardSql.CountErpInsightsVinOpen, cancellationToken).ConfigureAwait(false);
+        var warehouses = await ScalarIntSafeAsync(connection, LegacySurfaceDashboardSql.CountErpInsightsWarehouses, cancellationToken).ConfigureAwait(false);
+        var prices = await ScalarIntSafeAsync(connection, LegacySurfaceDashboardSql.CountErpInsightsPriceLists, cancellationToken).ConfigureAwait(false);
+        return new(ordersToday, ordersWeek, ordersPrev, open, products, clients, returns, vin, warehouses, prices);
     }
 
     private static ErpWorkspacePeriodKpis ToWorkspacePeriod(
         ErpDashboardSummary s,
-        (decimal PurchaseExVat, decimal SalesInclVat, decimal DueOrders, int ConfirmedSo, int OpenPo, int InvoicesDue, int Busy, int Headcount) x)
+        (decimal PurchaseExVat, decimal RevenueExVat, decimal SalesInclVat, decimal DueOrders, int CompletedOrders, int ConfirmedSo, int OpenPo, int InvoicesDue, int Busy, int Headcount, int ProcessDone, decimal GlNetProfit) x)
     {
         var purchase = x.PurchaseExVat;
-        var profit = Math.Round(s.RevenueExVat - purchase, 2);
+        var revenue = x.RevenueExVat;
+        var profit = Math.Round(revenue - purchase, 2);
         var ar = s.Receivables != 0 ? s.Receivables : s.ArBalance;
         var ap = s.Payables != 0 ? s.Payables : s.ApBalance;
         return new(
             s.CashPosition,
-            s.RevenueExVat,
+            revenue,
             purchase,
             profit,
             ar,
@@ -362,7 +471,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             x.DueOrders != 0 ? x.DueOrders : s.ArBalance,
             s.ArBalance,
             s.ApBalance,
-            s.OrdersCount,
+            x.CompletedOrders,
             s.InventoryItems,
             s.DraftSalesOrders,
             x.ConfirmedSo,
@@ -372,11 +481,12 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             s.UnpostedGlJournals,
             s.LowStockItems,
             s.ProcessOpen,
-            s.ProcessDone,
+            x.ProcessDone,
             s.ProcessOverdue,
             x.Busy,
             x.Headcount,
-            string.IsNullOrWhiteSpace(s.PeriodStatus) ? "open" : s.PeriodStatus);
+            string.IsNullOrWhiteSpace(s.PeriodStatus) ? "open" : s.PeriodStatus,
+            Math.Round(x.GlNetProfit, 2));
     }
 
     private static async Task<ErpDashboardSummary> ReadErpDashboardBatchAsync(

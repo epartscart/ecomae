@@ -39,10 +39,10 @@ public static class ErpNetsuiteDashboardCatalog
 
     public static readonly IReadOnlyDictionary<string, Tile> Tiles = new Dictionary<string, Tile>(StringComparer.OrdinalIgnoreCase)
     {
-        ["balance_sheet"] = new("balance_sheet", "Balance Sheet", "fa-balance-scale", "gold", "/erp/report-center-app"),
+        ["balance_sheet"] = new("balance_sheet", "Balance Sheet", "fa-balance-scale", "gold", "/erp/report-center-app?tab=balance_sheet"),
         ["gl"] = new("gl", "General Journal", "fa-book", "green", "/erp/gl-journals-app"),
         ["bank_recon"] = new("bank_recon", "Reconcile Bank", "fa-university", "rust", "/erp/bank-reconciliation-app"),
-        ["pl"] = new("pl", "Income Statement", "fa-line-chart", "slate", "/erp/report-center-app"),
+        ["pl"] = new("pl", "Income Statement", "fa-line-chart", "slate", "/erp/report-center-app?tab=pl"),
         ["sales_orders"] = new("sales_orders", "New Sales Order", "fa-shopping-cart", "gold", "/erp/sales-orders-app"),
         ["crm"] = new("crm", "CRM Pipeline", "fa-handshake-o", "green", "/cp/crm-tickets-app"),
         ["receivables"] = new("receivables", "Receivables", "fa-users", "rust", "/erp/receivables-app"),
@@ -62,9 +62,9 @@ public static class ErpNetsuiteDashboardCatalog
         ["marketing"] = new("marketing", "Marketing", "fa-bullhorn", "rust", "/erp/marketing-app"),
         ["processflow"] = new("processflow", "Process flow", "fa-sitemap", "green", "/erp/process-flow-tasks-app"),
         ["dashboard"] = new("dashboard", "Home", "fa-home", "slate", "/erp"),
-        ["ext_ifrs"] = new("ext_ifrs", "Financial Report (IFRS)", "fa-file-text-o", "qa-indigo", "/erp/tax-external-reporting-app"),
-        ["ext_vat"] = new("ext_vat", "VAT Return (VAT 201)", "fa-percent", "qa-green", "/erp/tax-external-reporting-app"),
-        ["ext_ct"] = new("ext_ct", "Corporate Tax Return", "fa-balance-scale", "qa-rust", "/erp/tax-external-reporting-app"),
+        ["ext_ifrs"] = new("ext_ifrs", "Financial Report (IFRS)", "fa-file-text-o", "qa-indigo", "/erp/tax-external-reporting-app?cat=audit&rep=audit__external_audit_report&fetch=1"),
+        ["ext_vat"] = new("ext_vat", "VAT Return (VAT 201)", "fa-percent", "qa-green", "/erp/tax-external-reporting-app?cat=tax&rep=tax__vat_return&fetch=1"),
+        ["ext_ct"] = new("ext_ct", "Corporate Tax Return", "fa-balance-scale", "qa-rust", "/erp/tax-external-reporting-app?cat=tax&rep=tax__corporate_income_tax_return&fetch=1"),
         ["customers"] = new("customers", "New Customer", "fa-user-plus", "qa-pink", "/erp/receivables-app"),
         ["vendors"] = new("vendors", "New Vendor", "fa-truck", "qa-teal", "/erp/suppliers-app"),
         ["coa"] = new("coa", "Chart of accounts", "fa-list", "qa-slate", "/erp/coa-accounts-app"),
@@ -140,13 +140,13 @@ public static class ErpNetsuiteDashboardCatalog
         ["purchase"] = P("purchase", "Purchase centre", "Procurement, suppliers and payables.", "fa-shopping-basket",
             Caps("purchases", "ap", "inventory", "aging_ap", "suppliers", "op_kpis"),
             ["purchases", "ap", "inventory", "open_po"],
-            ["dpo", "ap", "inventory"],
+            ["dpo", "ap", "inventory", "inv_turnover"],
             ["purchase_orders", "payables", "three_way_match", "aging_ap"],
             ["purchase_orders", "payables", "vendors", "inventory"]),
         ["logistics"] = P("logistics", "Logistics centre", "Fulfilment, stock and open order movement.", "fa-truck",
             Caps("inventory", "sales", "purchases", "op_kpis"),
             ["orders", "open_po", "inventory", "sales"],
-            ["inventory", "revenue"],
+            ["inventory", "revenue", "inv_turnover"],
             ["fulfilment", "inventory", "sales_orders", "purchase_orders"],
             ["fulfilment", "inventory", "sales_orders", "purchase_orders"]),
         ["hr"] = P("hr", "HR centre", "People, payroll and department workload.", "fa-users",
@@ -253,16 +253,16 @@ public static class ErpNetsuiteDashboardCatalog
         var reports = new List<NavLink>();
         if (Can(profile, "gl") || Can(profile, "profit"))
         {
-            reports.Add(new("Financial report (IFRS)", "fa-file-text-o", "/erp/tax-external-reporting-app"));
+            reports.Add(new("Financial report (IFRS)", "fa-file-text-o", Tiles["ext_ifrs"].Href));
         }
 
         if (Can(profile, "vat"))
         {
-            reports.Add(new("VAT return (VAT 201)", "fa-percent", "/erp/tax-external-reporting-app"));
-            reports.Add(new("Corporate tax return", "fa-balance-scale", "/erp/tax-external-reporting-app"));
+            reports.Add(new("VAT return (VAT 201)", "fa-percent", Tiles["ext_vat"].Href));
+            reports.Add(new("Corporate tax return", "fa-balance-scale", Tiles["ext_ct"].Href));
         }
 
-        if (Can(profile, "profit")) reports.Add(new("Profit & loss", "fa-line-chart", "/erp/report-center-app"));
+        if (Can(profile, "profit")) reports.Add(new("Profit & loss", "fa-line-chart", Tiles["pl"].Href));
         if (reports.Count > 0) groups.Add(new("Reports", "ns-mi-amber", reports));
 
         return groups;
@@ -335,7 +335,7 @@ public static class ErpNetsuiteDashboardCatalog
         {
             cells.Add(new("Gross profit %", gpPct.ToString("N1", CultureInfo.InvariantCulture) + "%"));
             cells.Add(new("Margin (ex VAT)", Money(prof) + " " + currency));
-            cells.Add(new("GL net profit", Money(prof) + " " + currency));
+            cells.Add(new("GL net profit", Money(cur.GlNetProfit) + " " + currency));
         }
 
         if (Can(profile, "cash")) cells.Add(new("Cash & bank", Money(cur.CashPosition) + " " + currency));
@@ -366,6 +366,23 @@ public static class ErpNetsuiteDashboardCatalog
 
     public static string Money(decimal value)
         => value.ToString("N2", CultureInfo.InvariantCulture);
+
+    /// <summary>
+    /// Inclusive calendar days for DSO/DPO. PHP <c>epc_bos_intelligence</c> uses
+    /// <c>round((date_to - date_from) / 86400)</c> on unix bounds that include now,
+    /// so the current calendar day counts. Midnight-to-midnight of yyyy-MM-dd strings
+    /// would drop today.
+    /// </summary>
+    public static int PeriodDaysInclusive(string? fromYmd, string? toYmd)
+    {
+        if (DateTime.TryParse(fromYmd, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out var from)
+            && DateTime.TryParse(toYmd, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out var to))
+        {
+            return Math.Max(1, (int)(to.Date - from.Date).TotalDays + 1);
+        }
+
+        return 1;
+    }
 
     public static string DepartmentName(string? code)
     {
@@ -418,7 +435,7 @@ public static class ErpNetsuiteDashboardCatalog
     {
         if (!Can(profile, "op_kpis")) return [];
 
-        var days = Math.Max(1, periodDays);
+        var days = Math.Max(1, periodDays); // inclusive calendar days (PHP round((to-from)/86400) includes today)
         var revenue = cur.RevenueExVat;
         var purchases = cur.PurchaseExVat;
         var profit = cur.ProfitExVat;
@@ -442,6 +459,9 @@ public static class ErpNetsuiteDashboardCatalog
             ["ap"] = new("ap", "AP outstanding", Money(ap), "money", "info", "Supplier ledger balance"),
             ["cash"] = new("cash", "Cash & bank", Money(cash), "money", cash >= 0 ? "good" : "bad", "Liquidity position"),
             ["inventory"] = new("inventory", "Inventory value", Money(inv), "money", "info", "Stock at weighted-avg cost"),
+            ["inv_turnover"] = new("inv_turnover", "Inventory turnover",
+                (inv > 0 ? purchases / inv : 0m).ToString("N2", CultureInfo.InvariantCulture) + "x",
+                "x", Health(inv > 0 ? purchases / inv : 0m, 4, 2, true), "Purchases / inventory value"),
         };
 
         var keys = profile.OpKpiKeys.Count > 0 ? profile.OpKpiKeys : all.Keys.ToArray();

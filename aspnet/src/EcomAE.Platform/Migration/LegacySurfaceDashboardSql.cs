@@ -4672,22 +4672,120 @@ public const string SelectCpOpsGuidesStats = """
         LIMIT @limit
         """;
 
-    /// <summary>PHP <c>epc_erp_dashboard</c> purchase ex-VAT for a period (purchases register).</summary>
+    /// <summary>
+    /// PHP <c>epc_erp_dashboard</c> / <c>epc_erp_order_sum_sql</c> purchase ex-VAT:
+    /// finished <c>shop_orders</c> COGS (<c>t2_price_purchase * count_need</c>) on counting
+    /// item lines in <c>for_finish</c> statuses. Open / non-counting lines stay out, matching
+    /// <c>order_complete_expr</c> + <c>item_finish_where</c> + <c>epc_erp_item_status_exclusion</c>.
+    /// </summary>
     public const string SumErpWorkspacePurchaseExVat = """
-        SELECT IFNULL(SUM(`amount_ex_vat`), 0) FROM `epc_erp_purchases`
-        WHERE `active` = 1 AND `purchase_date` >= @dateFrom AND `purchase_date` <= @dateTo
+        SELECT IFNULL(SUM(IFNULL((
+            SELECT SUM(i.`t2_price_purchase` * i.`count_need`)
+            FROM `shop_orders_items` i
+            WHERE i.`order_id` = o.`id`
+              AND i.`status` IN (SELECT `id` FROM `shop_orders_items_statuses_ref` WHERE `for_finish` = 1)
+              AND i.`status` NOT IN (SELECT `id` FROM `shop_orders_items_statuses_ref` WHERE `count_flag` = 0)
+        ), 0)), 0)
+        FROM `shop_orders` o
+        WHERE o.`successfully_created` = 1
+          AND o.`status` IN (SELECT `id` FROM `shop_orders_statuses_ref` WHERE `for_finish` = 1)
+          AND o.`time` >= @dateFrom AND o.`time` <= @dateTo
         """;
 
-    /// <summary>PHP sales incl. VAT from completed shop orders.</summary>
+    /// <summary>
+    /// PHP <c>epc_erp_dashboard</c> revenue ex-VAT: completed shop orders only
+    /// (<c>order_complete_expr</c> / order-status <c>for_finish</c>).
+    /// </summary>
+    public const string SumErpWorkspaceRevenueExVat = """
+        SELECT IFNULL(SUM(`price_total_wt` - `price_total_wt_vat`), 0)
+        FROM `shop_orders`
+        WHERE `successfully_created` = 1
+          AND `status` IN (SELECT `id` FROM `shop_orders_statuses_ref` WHERE `for_finish` = 1)
+          AND `time` >= @dateFrom AND `time` <= @dateTo
+        """;
+
+    /// <summary>
+    /// PHP <c>epc_erp_gl_pl_report</c> / <c>epc_erp_gl_all_coa_activity</c> net_profit
+    /// (revenue − expense signed period activity). Unscoped — only when resolved
+    /// company id is 0 (no legal entities / group view). Prefer
+    /// <see cref="BuildSumErpWorkspaceGlNetProfit"/>.
+    /// </summary>
+    public static string SumErpWorkspaceGlNetProfit => BuildSumErpWorkspaceGlNetProfit(0);
+
+    /// <summary>
+    /// PHP <c>epc_erp_gl_all_coa_activity</c> after <c>epc_erp_gl_backfill_company_id</c>.
+    /// When <paramref name="companyId"/> &gt; 0 add <c>AND j.company_id = ?</c>.
+    /// When <paramref name="includeUnassignedZero"/> is true (default company),
+    /// also keep <c>company_id = 0</c> journals that PHP would have backfilled.
+    /// <c>0</c> leaves journals unscoped.
+    /// </summary>
+    public static string BuildSumErpWorkspaceGlNetProfit(int companyId, bool includeUnassignedZero = false)
+    {
+        string companyFilter;
+        if (companyId <= 0)
+        {
+            companyFilter = string.Empty;
+        }
+        else if (includeUnassignedZero)
+        {
+            companyFilter = "\n              AND (j.`company_id` = @companyId OR IFNULL(j.`company_id`, 0) = 0)";
+        }
+        else
+        {
+            companyFilter = "\n              AND j.`company_id` = @companyId";
+        }
+        return $"""
+            SELECT IFNULL(SUM(
+                CASE
+                    WHEN a.`account_type` = 'revenue' THEN
+                        CASE WHEN IFNULL(a.`normal_side`,'credit') = 'credit'
+                             THEN IFNULL(x.credits,0) - IFNULL(x.debits,0)
+                             ELSE IFNULL(x.debits,0) - IFNULL(x.credits,0)
+                        END
+                    WHEN a.`account_type` = 'expense' THEN
+                        - CASE WHEN IFNULL(a.`normal_side`,'debit') = 'credit'
+                               THEN IFNULL(x.credits,0) - IFNULL(x.debits,0)
+                               ELSE IFNULL(x.debits,0) - IFNULL(x.credits,0)
+                          END
+                    ELSE 0
+                END
+            ), 0)
+            FROM `epc_erp_coa_accounts` a
+            LEFT JOIN (
+                SELECT l.`coa_id`, SUM(l.`debit`) AS debits, SUM(l.`credit`) AS credits
+                FROM `epc_erp_gl_lines` l
+                INNER JOIN `epc_erp_gl_journals` j ON j.`id` = l.`journal_id` AND j.`active` = 1
+                WHERE j.`journal_date` >= @dateFrom AND j.`journal_date` <= @dateTo{companyFilter}
+                GROUP BY l.`coa_id`
+            ) x ON x.`coa_id` = a.`id`
+            WHERE a.`active` = 1 AND a.`account_type` IN ('revenue','expense')
+            """;
+    }
+
+    /// <summary>PHP sales incl. VAT from completed shop orders (<c>for_finish</c>).</summary>
     public const string SumErpWorkspaceSalesInclVat = """
         SELECT IFNULL(SUM(`price_total_wt`), 0) FROM `shop_orders`
-        WHERE `successfully_created` = 1 AND `time` >= @dateFrom AND `time` <= @dateTo
+        WHERE `successfully_created` = 1
+          AND `status` IN (SELECT `id` FROM `shop_orders_statuses_ref` WHERE `for_finish` = 1)
+          AND `time` >= @dateFrom AND `time` <= @dateTo
         """;
 
     /// <summary>PHP <c>receivable_due_orders</c> approximation — unpaid completed orders in period.</summary>
     public const string SumErpWorkspaceReceivableDueOrders = """
         SELECT IFNULL(SUM(`price_total_wt`), 0) FROM `shop_orders`
         WHERE `successfully_created` = 1 AND IFNULL(`paid`, 0) = 0
+          AND `status` IN (SELECT `id` FROM `shop_orders_statuses_ref` WHERE `for_finish` = 1)
+          AND `time` >= @dateFrom AND `time` <= @dateTo
+        """;
+
+    /// <summary>
+    /// PHP <c>epc_erp_dashboard</c> <c>order_count</c>:
+    /// <c>SUM(IF(order_complete_expr, 1, 0))</c> — finished shop orders only.
+    /// </summary>
+    public const string CountErpWorkspaceCompletedOrders = """
+        SELECT COUNT(*) FROM `shop_orders`
+        WHERE `successfully_created` = 1
+          AND `status` IN (SELECT `id` FROM `shop_orders_statuses_ref` WHERE `for_finish` = 1)
           AND `time` >= @dateFrom AND `time` <= @dateTo
         """;
 
@@ -4716,15 +4814,29 @@ public const string SelectCpOpsGuidesStats = """
         ORDER BY n DESC
         """;
 
+    /// <summary>
+    /// PHP <c>epc_pf_workforce_data</c> — steps approved in the selected period,
+    /// grouped by actor only. Department comes from the staff profile, not the case.
+    /// </summary>
     public const string SelectErpWorkspaceTopPerformers = """
-        SELECT IFNULL(`current_assignee_id`,0) AS assignee,
-               IFNULL(`current_department`,'') AS dept,
+        SELECT IFNULL(s.`acted_by`,0) AS assignee,
+               IFNULL(MAX(p.`display_name`),'') AS staff_name,
+               IFNULL(MAX(p.`department_code`),'') AS dept,
                COUNT(*) AS n
-        FROM `epc_pf_cases`
-        WHERE `status` = 'done'
-        GROUP BY IFNULL(`current_assignee_id`,0), IFNULL(`current_department`,'')
+        FROM `epc_pf_case_steps` s
+        LEFT JOIN `epc_erp_staff_profiles` p ON p.`user_id` = s.`acted_by`
+        WHERE s.`status` = 'approved' AND s.`acted_by` > 0
+          AND s.`completed_at` >= @dateFrom AND s.`completed_at` <= @dateTo
+        GROUP BY s.`acted_by`
         ORDER BY n DESC
         LIMIT 8
+        """;
+
+    /// <summary>PHP <c>epc_pf_workforce_data</c> <c>doneTotal</c> — approved steps in the selected period.</summary>
+    public const string CountErpWorkspaceProcessDoneInPeriod = """
+        SELECT COUNT(*) FROM `epc_pf_case_steps`
+        WHERE `status` = 'approved' AND `acted_by` > 0
+          AND `completed_at` >= @dateFrom AND `completed_at` <= @dateTo
         """;
 
     public const string CountErpWorkspaceProcessBusy = """
@@ -4735,6 +4847,56 @@ public const string SelectCpOpsGuidesStats = """
     public const string CountErpWorkspaceProcessHeadcount = """
         SELECT COUNT(DISTINCT `current_assignee_id`) FROM `epc_pf_cases`
         WHERE `current_assignee_id` > 0
+        """;
+
+    /// <summary>PHP <c>epc_insights_suite_commerce_stats</c> — orders since a unix bound.</summary>
+    public const string CountErpInsightsOrdersSince = """
+        SELECT COUNT(*) FROM `shop_orders`
+        WHERE `successfully_created` = 1 AND `time` >= @since
+        """;
+
+    public const string CountErpInsightsOrdersBetween = """
+        SELECT COUNT(*) FROM `shop_orders`
+        WHERE `successfully_created` = 1 AND `time` >= @dateFrom AND `time` < @dateTo
+        """;
+
+    public const string CountErpInsightsOpenOrders = """
+        SELECT COUNT(*) FROM `shop_orders`
+        WHERE `successfully_created` = 1
+          AND `status` IN (
+                SELECT `id` FROM `shop_orders_statuses_ref`
+                WHERE `for_inverse` != 1 AND `for_finish` != 1 AND `for_created` != 1
+          )
+        """;
+
+    public const string CountErpInsightsPublishedProducts = """
+        SELECT COUNT(*) FROM `shop_catalogue_products` WHERE IFNULL(`published_flag`,0) = 1
+        """;
+
+    public const string CountErpInsightsCustomers = """
+        SELECT COUNT(*) FROM `users` u
+        WHERE u.`user_id` > 0
+          AND NOT EXISTS (
+                SELECT 1 FROM `users_groups_bind` b
+                INNER JOIN `groups` g ON g.`id` = b.`group_id`
+                WHERE b.`user_id` = u.`user_id` AND g.`for_backend` = 1
+          )
+        """;
+
+    public const string CountErpInsightsOpenReturns = """
+        SELECT COUNT(*) FROM `shop_orders_returns` WHERE COALESCE(`status`,0) NOT IN (2,3,9)
+        """;
+
+    public const string CountErpInsightsVinOpen = """
+        SELECT COUNT(*) FROM `shop_docpart_vin` WHERE COALESCE(`viewed`,0) = 0
+        """;
+
+    public const string CountErpInsightsWarehouses = """
+        SELECT COUNT(*) FROM `shop_storages`
+        """;
+
+    public const string CountErpInsightsPriceLists = """
+        SELECT COUNT(*) FROM `shop_docpart_prices`
         """;
 
 }

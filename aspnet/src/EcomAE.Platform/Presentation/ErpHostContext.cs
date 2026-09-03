@@ -82,6 +82,40 @@ public static class ErpHostContext
         return null;
     }
 
+    /// <summary>
+    /// PHP <c>epc_erp_gl_resolve_company_id</c>: requested <c>?company=</c> when it
+    /// belongs to the tenant list, otherwise the lowest-id legal entity.
+    /// Returns 0 when the tenant has no companies (unscoped / consolidated).
+    /// </summary>
+    public static int ResolveErpGlCompanyId(int? requestedCompanyId, IReadOnlyList<int> companyIds)
+    {
+        if (companyIds.Count == 0)
+        {
+            return 0;
+        }
+
+        if (requestedCompanyId is > 0)
+        {
+            foreach (var id in companyIds)
+            {
+                if (id == requestedCompanyId.Value)
+                {
+                    return id;
+                }
+            }
+        }
+
+        return companyIds[0];
+    }
+
+    /// <summary>
+    /// PHP <c>epc_erp_gl_backfill_company_id</c> assigns <c>company_id = 0</c>
+    /// journals to the lowest-id legal entity. Read path includes those rows
+    /// only when the resolved company is that default (no writes).
+    /// </summary>
+    public static bool IncludeUnassignedGlJournals(int resolvedCompanyId, IReadOnlyList<int> companyIds)
+        => resolvedCompanyId > 0 && companyIds.Count > 0 && resolvedCompanyId == companyIds[0];
+
     public static string SwitchCompanyHref(HttpRequest request, int companyId)
     {
         var path = request.Path.HasValue ? request.Path.Value! : "/erp";
