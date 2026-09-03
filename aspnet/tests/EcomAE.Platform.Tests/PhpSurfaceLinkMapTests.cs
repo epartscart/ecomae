@@ -13,6 +13,8 @@ public sealed class PhpSurfaceLinkMapTests
 
     [Theory]
     [InlineData("/CP/shop/orders/orders", "/cp/orders")]
+    [InlineData("/CP/shop/orders/orders?order_id=42", "/cp/orders?order_id=42")]
+    [InlineData("/CP/shop/orders/order?order_id=7", "/cp/orders?order_id=7")]
     [InlineData("/CP/shop/orders/carts", "/cp/abandoned-carts-app")]
     [InlineData("/CP/modules/modules_manager", "/cp/modules-app")]
     [InlineData("/CP/control/users", "/cp/users-app")]
@@ -60,6 +62,7 @@ public sealed class PhpSurfaceLinkMapTests
 
     [Theory]
     [InlineData("/CP/shop/orders/orders", "/cp/orders")]
+    [InlineData("/CP/shop/orders/order?order_id=9", "/cp/orders?order_id=9")]
     [InlineData("/ERP/?epc_erp_shell=1&area=sales&tab=sales_orders", "/erp/sales-orders-app")]
     [InlineData("/shop/part_search?q=abc", "/en/shop/part_search?q=abc")]
     public void TryMapIncomingPhpProductPath_DeepShells(string incoming, string expected)
