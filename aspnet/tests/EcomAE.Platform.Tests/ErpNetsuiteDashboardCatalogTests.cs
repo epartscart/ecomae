@@ -228,4 +228,13 @@ public sealed class ErpNetsuiteDashboardCatalogTests
         Assert.Contains("rep=tax__vat_return", ErpNetsuiteDashboardCatalog.Tiles["ext_vat"].Href, StringComparison.Ordinal);
         Assert.Contains("fetch=1", ErpNetsuiteDashboardCatalog.Tiles["ext_ct"].Href, StringComparison.Ordinal);
     }
+
+    [Fact]
+    public void InsightsOrderBoundsUseMysqlCurdate()
+    {
+        Assert.Contains("UNIX_TIMESTAMP(CURDATE())", LegacySurfaceDashboardSql.CountErpInsightsOrdersToday, StringComparison.Ordinal);
+        Assert.Contains("CURDATE() - INTERVAL 6 DAY", LegacySurfaceDashboardSql.CountErpInsightsOrdersWeek, StringComparison.Ordinal);
+        Assert.Contains("CURDATE() - INTERVAL 13 DAY", LegacySurfaceDashboardSql.CountErpInsightsOrdersPrevWeek, StringComparison.Ordinal);
+        Assert.Contains("`time` < UNIX_TIMESTAMP(CURDATE() - INTERVAL 6 DAY)", LegacySurfaceDashboardSql.CountErpInsightsOrdersPrevWeek, StringComparison.Ordinal);
+    }
 }

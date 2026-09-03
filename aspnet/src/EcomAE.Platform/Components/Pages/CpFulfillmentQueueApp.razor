@@ -421,7 +421,7 @@
             return;
         }
 
-        var result = await Dashboards.BuildCpFulfillmentQueueDigestAsync(200, ctx.RequestAborted);
+        var result = await Dashboards.BuildCpFulfillmentQueueDigestAsync(200, ctx.RequestAborted, _status);
         _queued = result.Summary.Queued;
         _picking = result.Summary.Picking;
         _shipping = result.Summary.Shipping;

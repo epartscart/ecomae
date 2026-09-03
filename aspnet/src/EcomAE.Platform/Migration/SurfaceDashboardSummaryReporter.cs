@@ -428,17 +428,12 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
     private static async Task<ErpInsightsCommerceStats> ReadInsightsCommerceAsync(
         DbConnection connection, CancellationToken cancellationToken)
     {
-        var now = DateTime.UtcNow.Date;
-        var today = new DateTimeOffset(now, TimeSpan.Zero).ToUnixTimeSeconds();
-        var week = new DateTimeOffset(now.AddDays(-6), TimeSpan.Zero).ToUnixTimeSeconds();
-        var prevWeekFrom = new DateTimeOffset(now.AddDays(-13), TimeSpan.Zero).ToUnixTimeSeconds();
-        var ordersToday = await ScalarIntParamSafeAsync(
-            connection, LegacySurfaceDashboardSql.CountErpInsightsOrdersSince, cancellationToken, ("@since", today)).ConfigureAwait(false);
-        var ordersWeek = await ScalarIntParamSafeAsync(
-            connection, LegacySurfaceDashboardSql.CountErpInsightsOrdersSince, cancellationToken, ("@since", week)).ConfigureAwait(false);
-        var ordersPrev = await ScalarIntParamSafeAsync(
-            connection, LegacySurfaceDashboardSql.CountErpInsightsOrdersBetween, cancellationToken,
-            ("@dateFrom", prevWeekFrom), ("@dateTo", week)).ConfigureAwait(false);
+        var ordersToday = await ScalarIntSafeAsync(
+            connection, LegacySurfaceDashboardSql.CountErpInsightsOrdersToday, cancellationToken).ConfigureAwait(false);
+        var ordersWeek = await ScalarIntSafeAsync(
+            connection, LegacySurfaceDashboardSql.CountErpInsightsOrdersWeek, cancellationToken).ConfigureAwait(false);
+        var ordersPrev = await ScalarIntSafeAsync(
+            connection, LegacySurfaceDashboardSql.CountErpInsightsOrdersPrevWeek, cancellationToken).ConfigureAwait(false);
         var open = await ScalarIntSafeAsync(connection, LegacySurfaceDashboardSql.CountErpInsightsOpenOrders, cancellationToken).ConfigureAwait(false);
         var products = await ScalarIntSafeAsync(connection, LegacySurfaceDashboardSql.CountErpInsightsPublishedProducts, cancellationToken).ConfigureAwait(false);
         var clients = await ScalarIntSafeAsync(connection, LegacySurfaceDashboardSql.CountErpInsightsCustomers, cancellationToken).ConfigureAwait(false);
@@ -12748,7 +12743,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
     }
 
 
-    public async Task<CpFulfillmentQueueDigestResult> BuildCpFulfillmentQueueDigestAsync(int limit, CancellationToken cancellationToken = default)
+    public async Task<CpFulfillmentQueueDigestResult> BuildCpFulfillmentQueueDigestAsync(int limit, CancellationToken cancellationToken = default, string? status = null)
     {
         var safeLimit = Math.Clamp(limit, 1, 500);
         var empty = new CpFulfillmentQueueSummary(0, 0, 0, 0, "migration", "TenantRegistry DB is not configured.");
@@ -12777,7 +12772,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             var rows = new List<CpFulfillmentQueueRowDigest>();
             await using (var list = connection.CreateCommand())
             {
-                list.CommandText = LegacySurfaceDashboardSql.SelectCpFulfillmentQueueRows;
+                list.CommandText = LegacySurfaceDashboardSql.BuildSelectCpFulfillmentQueueRows(status);
                 AddParameter(list, "@limit", safeLimit);
                 await using var reader = await list.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
                 while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))

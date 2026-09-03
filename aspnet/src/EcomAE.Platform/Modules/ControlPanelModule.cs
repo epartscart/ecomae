@@ -4104,6 +4104,7 @@ public sealed class ControlPanelModule : ISurfaceModule
         endpoints.MapGet(EcomAeRoutes.ControlPanelFulfillmentQueue, async (
             HttpContext context,
             int? limit,
+            string? status,
             ILegacySessionValidator validator,
             ISurfaceDashboardSummaryReporter dashboards,
             CancellationToken cancellationToken) =>
@@ -4114,7 +4115,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 return Unauthorized("Admin CP capability required for fulfillment-queue digest.");
             }
 
-            var result = await dashboards.BuildCpFulfillmentQueueDigestAsync(limit ?? 200, cancellationToken);
+            var result = await dashboards.BuildCpFulfillmentQueueDigestAsync(limit ?? 200, cancellationToken, status);
             return Results.Ok(new
             {
                 ok = true,
