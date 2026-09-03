@@ -4559,3 +4559,69 @@ public sealed record ErpPrintTemplatesListResult(
     int DocTypeCount,
     string Source,
     string Message);
+
+public sealed record ErpOrderRecommendationDigest(
+    long Id, long ItemId, string Sku, string ItemName, long WarehouseId,
+    decimal Roq, decimal OrderValue, string Status, string Supplier, long OrderedPoId, long TimeUpdated);
+
+public sealed record ErpPlanningParamDigest(
+    long ItemId, long WarehouseId, int LeadTimeDays, decimal TargetServiceLevel,
+    int ReviewPeriodDays, decimal MinOrderQty, decimal OrderMultiple, string Supplier, bool Stocked);
+
+public sealed record ErpOrderPlanningDigestResult(
+    IReadOnlyList<ErpOrderRecommendationDigest> Recommendations,
+    IReadOnlyList<ErpPlanningParamDigest> Params,
+    int Count, int PendingCount, decimal PendingValue, string Source, string Message);
+
+public sealed record ErpProcCategoryDigest(
+    long Id, string Code, string Name, long ParentId, string DefaultAccount, bool Active, long TimeCreated);
+
+public sealed record ErpProcPolicyDigest(
+    long Id, string Name, long CategoryId, decimal ApprovalThreshold, string PreferredVendor, bool Active);
+
+public sealed record ErpProcurementCategoriesDigestResult(
+    IReadOnlyList<ErpProcCategoryDigest> Categories,
+    IReadOnlyList<ErpProcPolicyDigest> Policies,
+    int Count, int ActiveCount, int PolicyCount, string Source, string Message);
+
+public sealed record ErpQmPlanDigest(long Id, string Code, string Name, bool Active, int TestCount, long TimeUpdated);
+public sealed record ErpQmOrderDigest(long Id, long PlanId, string RefType, string RefId, long ItemId, decimal Qty, string Status, string Verdict, long TimeCreated);
+public sealed record ErpQmNcrDigest(long Id, long OrderId, string Title, string Severity, string Disposition, string Status, long TimeCreated);
+
+public sealed record ErpQualityDigestResult(
+    IReadOnlyList<ErpQmPlanDigest> Plans,
+    IReadOnlyList<ErpQmOrderDigest> Orders,
+    IReadOnlyList<ErpQmNcrDigest> Ncrs,
+    int Count, int OpenOrderCount, int OpenNcrCount, string Source, string Message);
+
+public sealed record ErpRfidTagDigest(
+    long Id, string RfidEpc, string Sku, string ItemDescription, long WarehouseId,
+    string LocationZone, string Status, string LastScannedAt, long TimeCreated);
+
+public sealed record ErpRfidSessionDigest(
+    long Id, string SessionType, long WarehouseId, string Zone, int TotalScanned, int TotalExpected,
+    int TotalFound, int TotalMissing, string Status, string ScannedByName, long TimeStarted);
+
+public sealed record ErpRfidDigestResult(
+    IReadOnlyList<ErpRfidTagDigest> Tags,
+    IReadOnlyList<ErpRfidSessionDigest> Sessions,
+    int Count, int ActiveTagCount, int SessionCount, string Source, string Message);
+
+public sealed record ErpRecruitmentJobDigest(
+    long Id, string Title, string Department, int Headcount, int Hired, string Status, string HiringManager, long TimeCreated);
+
+public sealed record ErpRecruitmentApplicantDigest(
+    long Id, long JobId, string Name, string Email, string Phone, string Stage, int Rating, long TimeCreated);
+
+public sealed record ErpRecruitmentDigestResult(
+    IReadOnlyList<ErpRecruitmentJobDigest> Jobs,
+    IReadOnlyList<ErpRecruitmentApplicantDigest> Applicants,
+    int Count, int OpenJobCount, int ApplicantCount, string Source, string Message);
+
+public sealed record ErpCustomerGroupDigest(
+    long Id, string GroupCode, string GroupName, string GroupType, decimal DiscountPct,
+    decimal CreditLimit, int PaymentTermsDays, int MemberCount, bool IsActive, long TimeCreated);
+
+public sealed record ErpCustomerGroupsDigestResult(
+    IReadOnlyList<ErpCustomerGroupDigest> Groups,
+    int Count, int ActiveCount, int MemberTotal, string Source, string Message);

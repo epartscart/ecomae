@@ -2982,6 +2982,60 @@ public sealed class ErpModule : ISurfaceModule
             });
         });
 
+        endpoints.MapGet(EcomAeRoutes.ErpOrderPlanning, async (HttpContext context, int? limit, ILegacySessionValidator validator, ISurfaceDashboardSummaryReporter dashboards, CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+                return Unauthorized("Admin ERP capability required for order-planning digest.");
+            var result = await dashboards.BuildErpOrderPlanningDigestAsync(limit ?? 200, cancellationToken);
+            return Results.Ok(new { ok = true, surface = "erp", recommendations = result.Recommendations, @params = result.Params, count = result.Count, pendingCount = result.PendingCount, pendingValue = result.PendingValue, source = result.Source, message = result.Message, session = SessionPayload(session), note = "Read-only epc_erp_order_recommendations + planning params. PHP order_planning remains authoritative." });
+        });
+
+        endpoints.MapGet(EcomAeRoutes.ErpProcurementCategories, async (HttpContext context, int? limit, ILegacySessionValidator validator, ISurfaceDashboardSummaryReporter dashboards, CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+                return Unauthorized("Admin ERP capability required for procurement-categories digest.");
+            var result = await dashboards.BuildErpProcurementCategoriesDigestAsync(limit ?? 200, cancellationToken);
+            return Results.Ok(new { ok = true, surface = "erp", categories = result.Categories, policies = result.Policies, count = result.Count, activeCount = result.ActiveCount, policyCount = result.PolicyCount, source = result.Source, message = result.Message, session = SessionPayload(session), note = "Read-only epc_proc_category + epc_proc_policy. PHP procurement_categories remains authoritative." });
+        });
+
+        endpoints.MapGet(EcomAeRoutes.ErpQuality, async (HttpContext context, int? limit, ILegacySessionValidator validator, ISurfaceDashboardSummaryReporter dashboards, CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+                return Unauthorized("Admin ERP capability required for quality digest.");
+            var result = await dashboards.BuildErpQualityDigestAsync(limit ?? 200, cancellationToken);
+            return Results.Ok(new { ok = true, surface = "erp", plans = result.Plans, orders = result.Orders, ncrs = result.Ncrs, count = result.Count, openOrderCount = result.OpenOrderCount, openNcrCount = result.OpenNcrCount, source = result.Source, message = result.Message, session = SessionPayload(session), note = "Read-only epc_qm_plan/order/ncr. PHP quality tab remains authoritative." });
+        });
+
+        endpoints.MapGet(EcomAeRoutes.ErpRfid, async (HttpContext context, int? limit, ILegacySessionValidator validator, ISurfaceDashboardSummaryReporter dashboards, CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+                return Unauthorized("Admin ERP capability required for rfid digest.");
+            var result = await dashboards.BuildErpRfidDigestAsync(limit ?? 200, cancellationToken);
+            return Results.Ok(new { ok = true, surface = "erp", tags = result.Tags, sessions = result.Sessions, count = result.Count, activeTagCount = result.ActiveTagCount, sessionCount = result.SessionCount, source = result.Source, message = result.Message, session = SessionPayload(session), note = "Read-only epc_rfid_tags + scan sessions. PHP rfid tab remains authoritative." });
+        });
+
+        endpoints.MapGet(EcomAeRoutes.ErpRecruitment, async (HttpContext context, int? limit, ILegacySessionValidator validator, ISurfaceDashboardSummaryReporter dashboards, CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+                return Unauthorized("Admin ERP capability required for recruitment digest.");
+            var result = await dashboards.BuildErpRecruitmentDigestAsync(limit ?? 200, cancellationToken);
+            return Results.Ok(new { ok = true, surface = "erp", jobs = result.Jobs, applicants = result.Applicants, count = result.Count, openJobCount = result.OpenJobCount, applicantCount = result.ApplicantCount, source = result.Source, message = result.Message, session = SessionPayload(session), note = "Read-only epc_hrt_job + applicants. PHP recruitment tab remains authoritative." });
+        });
+
+        endpoints.MapGet(EcomAeRoutes.ErpCustomerGroups, async (HttpContext context, int? limit, ILegacySessionValidator validator, ISurfaceDashboardSummaryReporter dashboards, CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+                return Unauthorized("Admin ERP capability required for customer-groups digest.");
+            var result = await dashboards.ListErpCustomerGroupsAsync(limit ?? 200, cancellationToken);
+            return Results.Ok(new { ok = true, surface = "erp", groups = result.Groups, count = result.Count, activeCount = result.ActiveCount, memberTotal = result.MemberTotal, source = result.Source, message = result.Message, session = SessionPayload(session), note = "Read-only epc_customer_groups. PHP customer_groups tab remains authoritative." });
+        });
+
         endpoints.MapGet(EcomAeRoutes.ErpReportCenter, async (
             HttpContext context,
             string? key,

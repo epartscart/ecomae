@@ -4316,4 +4316,163 @@ public const string SelectCpOpsGuidesStats = """
         LIMIT @limit
         """;
 
+    public const string SelectErpOrderRecommendations = """
+        SELECT r.`id`, IFNULL(r.`item_id`,0) AS item_id,
+               IFNULL(i.`sku`,'') AS sku,
+               IFNULL(i.`name`,'') AS item_name,
+               IFNULL(r.`warehouse_id`,0) AS warehouse_id,
+               IFNULL(r.`roq`,0) AS roq,
+               IFNULL(r.`order_value`,0) AS order_value,
+               IFNULL(r.`status`,'pending') AS status,
+               IFNULL(r.`supplier`,'') AS supplier,
+               IFNULL(r.`ordered_po_id`,0) AS ordered_po_id,
+               IFNULL(r.`time_updated`,0) AS time_updated
+        FROM `epc_erp_order_recommendations` r
+        LEFT JOIN `epc_erp_inv_items` i ON i.`id` = r.`item_id`
+        ORDER BY FIELD(r.`status`,'pending','confirmed','rejected','ordered'), r.`id` DESC
+        LIMIT @limit
+        """;
+
+    public const string SelectErpPlanningParams = """
+        SELECT `item_id`, `warehouse_id`,
+               IFNULL(`lead_time_days`,30) AS lead_time_days,
+               IFNULL(`target_service_level`,90) AS target_service_level,
+               IFNULL(`review_period_days`,30) AS review_period_days,
+               IFNULL(`min_order_qty`,0) AS min_order_qty,
+               IFNULL(`order_multiple`,0) AS order_multiple,
+               IFNULL(`supplier`,'') AS supplier,
+               IFNULL(`stocked`,1) AS stocked
+        FROM `epc_erp_planning_params`
+        ORDER BY `item_id`, `warehouse_id`
+        LIMIT @limit
+        """;
+
+    public const string SelectErpProcCategories = """
+        SELECT `id`, IFNULL(`code`,'') AS code, IFNULL(`name`,'') AS name,
+               IFNULL(`parent_id`,0) AS parent_id,
+               IFNULL(`default_account`,'') AS default_account,
+               IFNULL(`active`,1) AS active,
+               IFNULL(`time_created`,0) AS time_created
+        FROM `epc_proc_category`
+        ORDER BY `code`, `id`
+        LIMIT @limit
+        """;
+
+    public const string SelectErpProcPolicies = """
+        SELECT `id`, IFNULL(`name`,'') AS name,
+               IFNULL(`category_id`,0) AS category_id,
+               IFNULL(`approval_threshold`,0) AS approval_threshold,
+               IFNULL(`preferred_vendor`,'') AS preferred_vendor,
+               IFNULL(`active`,1) AS active
+        FROM `epc_proc_policy`
+        ORDER BY `name`, `id`
+        LIMIT @limit
+        """;
+
+    public const string SelectErpQmPlans = """
+        SELECT p.`id`, IFNULL(p.`code`,'') AS code, IFNULL(p.`name`,'') AS name,
+               IFNULL(p.`active`,1) AS active, IFNULL(p.`time_updated`,0) AS time_updated,
+               IFNULL((SELECT COUNT(*) FROM `epc_qm_test` t WHERE t.`plan_id` = p.`id`),0) AS test_count
+        FROM `epc_qm_plan` p
+        ORDER BY p.`code`, p.`id`
+        LIMIT @limit
+        """;
+
+    public const string SelectErpQmOrders = """
+        SELECT `id`, IFNULL(`plan_id`,0) AS plan_id,
+               IFNULL(`ref_type`,'item') AS ref_type,
+               IFNULL(`ref_id`,'') AS ref_id,
+               IFNULL(`item_id`,0) AS item_id,
+               IFNULL(`qty`,0) AS qty,
+               IFNULL(`status`,'open') AS status,
+               IFNULL(`verdict`,'') AS verdict,
+               IFNULL(`time_created`,0) AS time_created
+        FROM `epc_qm_order`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
+    public const string SelectErpQmNcrs = """
+        SELECT `id`, IFNULL(`order_id`,0) AS order_id,
+               IFNULL(`title`,'') AS title,
+               IFNULL(`severity`,'minor') AS severity,
+               IFNULL(`disposition`,'') AS disposition,
+               IFNULL(`status`,'open') AS status,
+               IFNULL(`time_created`,0) AS time_created
+        FROM `epc_qm_ncr`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
+    public const string SelectErpRfidTags = """
+        SELECT `id`, IFNULL(`rfid_epc`,'') AS rfid_epc,
+               IFNULL(`sku`,'') AS sku,
+               IFNULL(`item_description`,'') AS item_description,
+               IFNULL(`warehouse_id`,0) AS warehouse_id,
+               IFNULL(`location_zone`,'') AS location_zone,
+               IFNULL(`status`,'active') AS status,
+               IFNULL(`last_scanned_at`,'') AS last_scanned_at,
+               IFNULL(`time_created`,0) AS time_created
+        FROM `epc_rfid_tags`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
+    public const string SelectErpRfidSessions = """
+        SELECT `id`, IFNULL(`session_type`,'stocktake') AS session_type,
+               IFNULL(`warehouse_id`,0) AS warehouse_id,
+               IFNULL(`zone`,'') AS zone,
+               IFNULL(`total_scanned`,0) AS total_scanned,
+               IFNULL(`total_expected`,0) AS total_expected,
+               IFNULL(`total_found`,0) AS total_found,
+               IFNULL(`total_missing`,0) AS total_missing,
+               IFNULL(`status`,'in_progress') AS status,
+               IFNULL(`scanned_by_name`,'') AS scanned_by_name,
+               IFNULL(`time_started`,0) AS time_started
+        FROM `epc_rfid_scan_sessions`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
+    public const string SelectErpRecruitmentJobs = """
+        SELECT `id`, IFNULL(`title`,'') AS title,
+               IFNULL(`department`,'') AS department,
+               IFNULL(`headcount`,1) AS headcount,
+               IFNULL(`hired`,0) AS hired,
+               IFNULL(`status`,'open') AS status,
+               IFNULL(`hiring_manager`,'') AS hiring_manager,
+               IFNULL(`time_created`,0) AS time_created
+        FROM `epc_hrt_job`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
+    public const string SelectErpRecruitmentApplicants = """
+        SELECT `id`, IFNULL(`job_id`,0) AS job_id,
+               IFNULL(`name`,'') AS name,
+               IFNULL(`email`,'') AS email,
+               IFNULL(`phone`,'') AS phone,
+               IFNULL(`stage`,'applied') AS stage,
+               IFNULL(`rating`,0) AS rating,
+               IFNULL(`time_created`,0) AS time_created
+        FROM `epc_hrt_applicant`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
+    public const string SelectErpCustomerGroups = """
+        SELECT g.`id`, IFNULL(g.`group_code`,'') AS group_code,
+               IFNULL(g.`group_name`,'') AS group_name,
+               IFNULL(g.`group_type`,'general') AS group_type,
+               IFNULL(g.`discount_pct`,0) AS discount_pct,
+               IFNULL(g.`credit_limit`,0) AS credit_limit,
+               IFNULL(g.`payment_terms_days`,30) AS payment_terms_days,
+               IFNULL(g.`is_active`,1) AS is_active,
+               IFNULL(g.`time_created`,0) AS time_created,
+               IFNULL((SELECT COUNT(*) FROM `epc_customer_group_members` m WHERE m.`group_id` = g.`id`),0) AS member_count
+        FROM `epc_customer_groups` g
+        ORDER BY g.`group_name`, g.`id`
+        LIMIT @limit
+        """;
+
 }

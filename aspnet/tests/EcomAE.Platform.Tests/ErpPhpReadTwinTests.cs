@@ -37,6 +37,15 @@ public sealed class ErpPhpReadTwinTests
         Assert.Contains("SelectErpMarketingCampaigns", sql, StringComparison.Ordinal);
         Assert.Contains("SelectErpPayrollRuns", sql, StringComparison.Ordinal);
         Assert.Contains("SelectErpPrintTemplates", sql, StringComparison.Ordinal);
+        Assert.Contains("SelectErpOrderRecommendations", sql, StringComparison.Ordinal);
+        Assert.Contains("SelectErpProcCategories", sql, StringComparison.Ordinal);
+        Assert.Contains("SelectErpQmPlans", sql, StringComparison.Ordinal);
+        Assert.Contains("SelectErpRfidTags", sql, StringComparison.Ordinal);
+        Assert.Contains("SelectErpRecruitmentJobs", sql, StringComparison.Ordinal);
+        Assert.Contains("SelectErpCustomerGroups", sql, StringComparison.Ordinal);
+        Assert.DoesNotContain("corrective_action", LegacySurfaceDashboardSql.SelectErpQmNcrs, StringComparison.Ordinal);
+        Assert.DoesNotContain("`notes`", LegacySurfaceDashboardSql.SelectErpRecruitmentJobs, StringComparison.Ordinal);
+        Assert.DoesNotContain("description", LegacySurfaceDashboardSql.SelectErpCustomerGroups, StringComparison.Ordinal);
         Assert.DoesNotContain("body_text", LegacySurfaceDashboardSql.SelectErpContracts, StringComparison.Ordinal);
         Assert.DoesNotContain("ocr_text", LegacySurfaceDashboardSql.SelectErpContracts, StringComparison.Ordinal);
         Assert.DoesNotContain("header_html", LegacySurfaceDashboardSql.SelectErpPrintTemplates, StringComparison.Ordinal);
@@ -50,6 +59,12 @@ public sealed class ErpPhpReadTwinTests
         Assert.True(File.Exists(Path.Combine(pages, "ErpMarketingApp.razor")));
         Assert.True(File.Exists(Path.Combine(pages, "ErpPayrollApp.razor")));
         Assert.True(File.Exists(Path.Combine(pages, "ErpPrintDesignerApp.razor")));
+        Assert.True(File.Exists(Path.Combine(pages, "ErpOrderPlanningApp.razor")));
+        Assert.True(File.Exists(Path.Combine(pages, "ErpProcurementCategoriesApp.razor")));
+        Assert.True(File.Exists(Path.Combine(pages, "ErpQualityApp.razor")));
+        Assert.True(File.Exists(Path.Combine(pages, "ErpRfidApp.razor")));
+        Assert.True(File.Exists(Path.Combine(pages, "ErpRecruitmentApp.razor")));
+        Assert.True(File.Exists(Path.Combine(pages, "ErpCustomerGroupsApp.razor")));
         Assert.Contains("BuildErpVatReturnDigestAsync", File.ReadAllText(Path.Combine(pages, "ErpVatApp.razor")), StringComparison.Ordinal);
         Assert.Contains("BuildErpWithholdingDigestAsync", File.ReadAllText(Path.Combine(pages, "ErpWithholdingApp.razor")), StringComparison.Ordinal);
         Assert.Contains("ListErpPettyCashAsync", File.ReadAllText(Path.Combine(pages, "ErpCashAccountsApp.razor")), StringComparison.Ordinal);
@@ -87,6 +102,21 @@ public sealed class ErpPhpReadTwinTests
         Assert.Equal("/erp/print-designer-app", EcomAeRoutes.ErpPrintDesignerApp);
         Assert.DoesNotContain("/cp/hr-overview-app", staff, StringComparison.Ordinal);
         Assert.DoesNotContain("/erp/module-app", print, StringComparison.Ordinal);
+
+        Assert.True(ErpPhpTabRouteMap.TryMapTab("order_planning", out var opl));
+        Assert.Equal("/erp/order-planning-app", opl);
+        Assert.True(ErpPhpTabRouteMap.TryMapTab("procurement_categories", out var proc));
+        Assert.Equal("/erp/procurement-categories-app", proc);
+        Assert.True(ErpPhpTabRouteMap.TryMapTab("quality", out var quality));
+        Assert.Equal("/erp/quality-app", quality);
+        Assert.True(ErpPhpTabRouteMap.TryMapTab("rfid", out var rfid));
+        Assert.Equal("/erp/rfid-app", rfid);
+        Assert.True(ErpPhpTabRouteMap.TryMapTab("recruitment", out var recruitment));
+        Assert.Equal("/erp/recruitment-app", recruitment);
+        Assert.True(ErpPhpTabRouteMap.TryMapTab("customer_groups", out var groups));
+        Assert.Equal("/erp/customer-groups-app", groups);
+        Assert.DoesNotContain("/cp/production-overview-app", opl, StringComparison.Ordinal);
+        Assert.DoesNotContain("/cp/hr-overview-app", recruitment, StringComparison.Ordinal);
     }
 
     [Fact]

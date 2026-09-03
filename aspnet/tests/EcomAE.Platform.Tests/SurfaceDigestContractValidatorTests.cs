@@ -335,6 +335,12 @@ public sealed class SurfaceDigestContractValidatorTests
             ["/erp/marketing"] = Envelope("erp", "campaigns", await reporter.ListErpMarketingCampaignsAsync(10), session),
             ["/erp/payroll"] = Envelope("erp", "runs", await reporter.ListErpPayrollRunsAsync(10), session),
             ["/erp/print-templates"] = Envelope("erp", "templates", await reporter.ListErpPrintTemplatesAsync(10), session),
+            ["/erp/order-planning"] = Envelope("erp", "recommendations", await reporter.BuildErpOrderPlanningDigestAsync(10), session),
+            ["/erp/procurement-categories"] = Envelope("erp", "categories", await reporter.BuildErpProcurementCategoriesDigestAsync(10), session),
+            ["/erp/quality"] = Envelope("erp", "plans", await reporter.BuildErpQualityDigestAsync(10), session),
+            ["/erp/rfid"] = Envelope("erp", "tags", await reporter.BuildErpRfidDigestAsync(10), session),
+            ["/erp/recruitment"] = Envelope("erp", "jobs", await reporter.BuildErpRecruitmentDigestAsync(10), session),
+            ["/erp/customer-groups"] = Envelope("erp", "groups", await reporter.ListErpCustomerGroupsAsync(10), session),
             ["/bos/tenants"] = Envelope("bos", "tenants", await reporter.ListPortalTenantsAsync(10), session),
             ["/bos/audit-log"] = Envelope("bos", "entries", await reporter.ListBosAuditLogAsync(null, 10), session),
             ["/storefront/orders"] = new

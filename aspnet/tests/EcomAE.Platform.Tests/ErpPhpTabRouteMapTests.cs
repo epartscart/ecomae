@@ -60,6 +60,12 @@ public sealed class ErpPhpTabRouteMapTests
     [InlineData("marketing", "/erp/marketing-app")]
     [InlineData("payroll", "/erp/payroll-app")]
     [InlineData("print_designer", "/erp/print-designer-app")]
+    [InlineData("order_planning", "/erp/order-planning-app")]
+    [InlineData("procurement_categories", "/erp/procurement-categories-app")]
+    [InlineData("quality", "/erp/quality-app")]
+    [InlineData("rfid", "/erp/rfid-app")]
+    [InlineData("recruitment", "/erp/recruitment-app")]
+    [InlineData("customer_groups", "/erp/customer-groups-app")]
     public void KnownTabsMapToDedicatedApps(string tab, string expected)
     {
         Assert.True(ErpPhpTabRouteMap.TryMapTab(tab, out var href));

@@ -1,0 +1,116 @@
+@page "/erp/order-planning-app"
+@layout Layout.PhpChromeLayout
+@using System.Globalization
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Migration
+@using EcomAE.Platform.Presentation
+@inject ISurfaceDashboardSummaryReporter Dashboards
+@inject ILegacySessionValidator Sessions
+@inject IErpOplParamsSaveDryRun OplSave
+@inject IHttpContextAccessor Http
+@inject NavigationManager Nav
+
+<PageTitle>@_title · ERP · eParts Cart</PageTitle>
+<PhpChromeStyles Surface="erp" />
+<PhpErpDesktopChrome IsAdmin="_isAdmin" Title="@_title" BreadcrumbArea="Planning" BreadcrumbTab="@_title">
+    <PhpErpModulePageHeader Title="@_title" Subtitle="Replenishment recommendations and item/warehouse planning parameters. Writes stay dry-run." PhpTabHref="@_phpTab" />
+    <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
+
+    <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Order planning KPIs">
+        <div class="kpi"><div class="lbl">Recommendations</div><div class="val">@_count.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Pending</div><div class="val">@_pending.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Pending value</div><div class="val">@_pendingValue.ToString("N2", CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Params</div><div class="val">@_params.Count.ToString(CultureInfo.InvariantCulture)</div></div>
+    </div>
+
+    @if (_isAdmin)
+    {
+        <form @onsubmit="OnSave" @onsubmit:preventDefault="true" style="margin:12px 0;padding:10px;border:1px solid #c5d4de;background:#fff;">
+            <strong>Planning param (dry-run)</strong>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;align-items:end;">
+                <label>Item / code <input class="form-control" @bind="_formCode" /></label>
+                <button type="submit" class="btn btn-primary">Validate save</button>
+            </div>
+            @if (!string.IsNullOrWhiteSpace(_formResult)) { <p style="margin:8px 0 0;font-size:12px;">@_formResult</p> }
+        </form>
+    }
+
+    <h2 style="font-size:16px;">Recommendations</h2>
+    <div class="epc-erp-table-wrap">
+        <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
+            <thead><tr><th>SKU</th><th>Item</th><th>WH</th><th class="text-right">ROQ</th><th class="text-right">Value</th><th>Supplier</th><th>Status</th><th>PO</th></tr></thead>
+            <tbody>
+                @if (_recs.Count == 0)
+                {
+                    <tr><td colspan="8">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? "No recommendations yet." : _message) : "Sign in with ERP capability for live rows.")</td></tr>
+                }
+                else
+                {
+                    @foreach (var row in _recs)
+                    {
+                        <tr>
+                            <td>@(string.IsNullOrWhiteSpace(row.Sku) ? "—" : row.Sku)</td>
+                            <td><strong>@(string.IsNullOrWhiteSpace(row.ItemName) ? $"#{row.ItemId.ToString(CultureInfo.InvariantCulture)}" : row.ItemName)</strong></td>
+                            <td>@row.WarehouseId.ToString(CultureInfo.InvariantCulture)</td>
+                            <td class="text-right">@row.Roq.ToString("N3", CultureInfo.InvariantCulture)</td>
+                            <td class="text-right">@row.OrderValue.ToString("N2", CultureInfo.InvariantCulture)</td>
+                            <td>@(string.IsNullOrWhiteSpace(row.Supplier) ? "—" : row.Supplier)</td>
+                            <td><span class="label label-default">@row.Status</span></td>
+                            <td>@(row.OrderedPoId > 0 ? row.OrderedPoId.ToString(CultureInfo.InvariantCulture) : "—")</td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="epc-erp-empty" style="display:block;margin-top:12px;padding:8px 10px;border:1px solid #c5d4de;background:#f8fafc;color:#475569;font-size:12px;">
+        Source: @_source. Dry-run: <code>opl_params_save</code> — writes=0.
+        @if (!string.IsNullOrWhiteSpace(_message)) { <span> @_message</span> }
+    </div>
+</PhpErpDesktopChrome>
+
+@code {
+    private string _phpTab = "/ERP/?epc_erp_shell=1&area=planning&tab=order_planning";
+    private string _title = "Order planning";
+    private bool _isAdmin;
+    private IReadOnlyList<ErpOrderRecommendationDigest> _recs = [];
+    private IReadOnlyList<ErpPlanningParamDigest> _params = [];
+    private int _count, _pending;
+    private decimal _pendingValue;
+    private string _source = "n/a";
+    private string _message = "";
+    private string _formCode = "";
+    private string _formResult = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null) return;
+        var tab = (ctx.Request.Query["tab"].ToString() ?? "").Trim().ToLowerInvariant();
+        if (tab == "master_planning")
+        {
+            _title = "Master planning";
+            _phpTab = "/ERP/?epc_erp_shell=1&area=planning&tab=master_planning";
+        }
+
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("erp");
+        if (!_isAdmin) { _message = "Sign in for live data."; return; }
+
+        var result = await Dashboards.BuildErpOrderPlanningDigestAsync(200, ctx.RequestAborted);
+        _recs = result.Recommendations;
+        _params = result.Params;
+        _count = result.Count;
+        _pending = result.PendingCount;
+        _pendingValue = result.PendingValue;
+        _source = result.Source;
+        _message = result.Message;
+    }
+
+    private void OnSave()
+    {
+        var result = OplSave.Evaluate(new ErpOplParamsSaveRequest(0, _formCode, false));
+        _formResult = $"{result.Status}: {result.Detail} (writes={result.Writes.ToString(CultureInfo.InvariantCulture)})";
+    }
+}
