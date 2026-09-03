@@ -276,17 +276,78 @@
 		document.body.appendChild(script);
 	}
 
-	function openFitment(article, brand) {
+	function closeFitmentPanel() {
+		var panel = document.getElementById("epc-fitment-panel");
+		if (!panel) return;
+		panel.classList.remove("is-open", "active", "epc-fitment-panel--centered", "epc-fitment-panel--anchored");
+		panel.style.top = "";
+		panel.style.left = "";
+		panel.style.right = "";
+		panel.style.bottom = "";
+		panel.style.width = "";
+		panel.style.height = "";
+		panel.style.maxHeight = "";
+		panel.style.transform = "";
+		document.body.style.overflow = "";
+	}
+
+	function positionFitmentPanel(anchorEl) {
+		// PHP positionFitmentPanel — centered modal for header Fitment check; anchored for row buttons.
+		var panel = document.getElementById("epc-fitment-panel");
+		if (!panel) return;
+		panel.classList.remove("epc-fitment-panel--anchored", "epc-fitment-panel--centered");
+		panel.style.top = "";
+		panel.style.left = "";
+		panel.style.right = "";
+		panel.style.bottom = "";
+		panel.style.width = "";
+		panel.style.height = "";
+		panel.style.maxHeight = "";
+		panel.style.transform = "";
+		if (!anchorEl || typeof anchorEl.getBoundingClientRect !== "function") {
+			panel.classList.add("epc-fitment-panel--centered");
+			return;
+		}
+		panel.classList.add("epc-fitment-panel--anchored");
+		var rect = anchorEl.getBoundingClientRect();
+		var panelW = Math.min(920, Math.max(320, window.innerWidth - 24));
+		var panelH = Math.min(Math.max(360, window.innerHeight * 0.72), window.innerHeight - 24);
+		var gap = 10;
+		var top = rect.bottom + gap;
+		if (top + panelH > window.innerHeight - 12) {
+			top = Math.max(12, rect.top - panelH - gap);
+		}
+		if (top < 12) {
+			top = 12;
+			panelH = Math.min(panelH, window.innerHeight - top - 12);
+		}
+		var left = rect.left + (rect.width / 2) - (panelW / 2);
+		left = Math.max(12, Math.min(left, window.innerWidth - panelW - 12));
+		panel.style.width = panelW + "px";
+		panel.style.height = panelH + "px";
+		panel.style.maxHeight = panelH + "px";
+		panel.style.top = top + "px";
+		panel.style.left = left + "px";
+	}
+
+	function openFitment(article, brand, anchorEl) {
+		// PHP openFitmentPanel / window.epcOpenFitmentCheck twin.
 		var panel = document.getElementById("epc-fitment-panel");
 		var brandsBox = document.getElementById("epc-fitment-brands");
 		var typesBox = document.getElementById("epc-fitment-types");
 		var shell = document.getElementById("epc-fitment-widget-shell");
 		var widget = document.getElementById("applicability_widget");
 		if (!panel || !brandsBox) return;
+		if (typeof window.epcCloseSpecSplash === "function") {
+			try { window.epcCloseSpecSplash(); } catch (e) { /* ignore */ }
+		}
 		if (panel.parentNode !== document.body) {
 			document.body.appendChild(panel);
 		}
-		panel.classList.add("is-open");
+		positionFitmentPanel(anchorEl || null);
+		// Professional shell shows panel on `.active` (+ `--centered`); parity also honors `.is-open`.
+		panel.classList.add("is-open", "active");
+		document.body.style.overflow = "hidden";
 		brandsBox.className = "epc-fitment-message";
 		brandsBox.textContent = "Loading matching brands from eparts catalog…";
 		if (typesBox) typesBox.style.display = "none";
@@ -335,6 +396,19 @@
 				if (shell) shell.style.display = "block";
 				loadEpartscrossFitmentFallback(article || "", widget);
 			});
+	}
+
+	function openFitmentCheckRow(btn) {
+		// PHP epcOpenFitmentCheckRow — read data-epc-fitment-* from the clicked control.
+		if (!btn) return;
+		var tr = btn.closest ? btn.closest("tr[data-offer-key]") : null;
+		var article = btn.getAttribute("data-epc-fitment-article")
+			|| (tr && (tr.getAttribute("data-article-show") || tr.getAttribute("data-article")))
+			|| "";
+		var brand = btn.getAttribute("data-epc-fitment-brand")
+			|| (tr && tr.getAttribute("data-manufacturer"))
+			|| "";
+		openFitment(article, brand, btn);
 	}
 
 	function loadFitmentFor(article, brand) {
@@ -696,12 +770,7 @@
 			if (tr.getAttribute("data-actions-wired") === "1") return;
 			tr.setAttribute("data-actions-wired", "1");
 			var aid = tr.getAttribute("data-aid") || "0";
-			var fit = tr.querySelector(".epc-btn-fitment");
-			if (fit) {
-				fit.addEventListener("click", function () {
-					openFitment(tr.getAttribute("data-article-show") || tr.getAttribute("data-article"), tr.getAttribute("data-manufacturer"));
-				});
-			}
+			// Row Fitment uses document-level delegation (data-epc-fitment-* / .epc-btn-fitment).
 			var minus = tr.querySelector(".count_need_minus");
 			var plus = tr.querySelector(".count_need_plus");
 			var max = parseInt(tr.getAttribute("data-exist") || "0", 10);
@@ -734,7 +803,7 @@
 				btn.onclick = function (ev) {
 					ev.preventDefault();
 					ev.stopPropagation();
-					window.open(url, "_blank", "noopener");
+					openImageLightbox(url, brand + " " + article);
 				};
 			}
 		});
@@ -753,9 +822,10 @@
 			triggerEl.innerHTML = '<i class="fa fa-ban"></i>';
 			triggerEl.title = "No photo available";
 		}
-		var endpoint = "/storefront/product-image?brand=" + encodeURIComponent(brand) +
+		// PHP ajax_epc_sku_media_public twin (+ product-image alias).
+		var endpoint = "/storefront/sku-media?brand=" + encodeURIComponent(brand) +
 			"&article=" + encodeURIComponent(article);
-		fetch(endpoint, { credentials: "same-origin" })
+		fetch(endpoint, { credentials: "same-origin", cache: "no-store" })
 			.then(function (r) { return r.ok ? r.json() : null; })
 			.then(function (data) {
 				var url = data && (data.url || data.imageUrl || (data.images && data.images[0] && (data.images[0].url || data.images[0])));
@@ -768,6 +838,68 @@
 			})
 			.catch(function () { finishEmpty(); });
 	}
+
+	function ensureImageLightbox() {
+		if (document.getElementById("epc-image-lightbox")) return;
+		var el = document.createElement("div");
+		el.id = "epc-image-lightbox";
+		el.className = "epc-image-lightbox";
+		el.innerHTML = '<div class="epc-image-lightbox__backdrop"></div><div class="epc-image-lightbox__panel"><button type="button" class="epc-image-lightbox__close" aria-label="Close photo">&times;</button><img src="" alt=""></div>';
+		document.body.appendChild(el);
+		el.querySelector(".epc-image-lightbox__backdrop").onclick = function () { closeImageLightbox(); };
+		el.querySelector(".epc-image-lightbox__close").onclick = function () { closeImageLightbox(); };
+	}
+
+	function closeImageLightbox() {
+		var el = document.getElementById("epc-image-lightbox");
+		if (el) el.classList.remove("active");
+	}
+
+	function openImageLightbox(url, alt) {
+		if (!url) return;
+		ensureImageLightbox();
+		var el = document.getElementById("epc-image-lightbox");
+		var img = el.querySelector("img");
+		img.src = url;
+		img.alt = alt || "";
+		el.classList.add("active");
+	}
+	window.epcOpenImageLightbox = openImageLightbox;
+	window.epcCloseImageLightbox = closeImageLightbox;
+
+	function closeSpecSplash() {
+		var panel = document.getElementById("epc-spec-panel");
+		if (!panel) return;
+		panel.classList.remove("active", "is-open", "epc-fitment-panel--centered", "epc-fitment-panel--anchored");
+		var fit = document.getElementById("epc-fitment-panel");
+		if (!fit || !fit.classList.contains("active")) {
+			document.body.style.overflow = "";
+		}
+	}
+
+	function openSpecSplash() {
+		var panel = document.getElementById("epc-spec-panel");
+		if (!panel) return;
+		if (typeof window.epcCloseFitmentPanel === "function") {
+			try { window.epcCloseFitmentPanel(); } catch (e) { /* ignore */ }
+		}
+		var fit = document.getElementById("epc-fitment-panel");
+		if (fit) fit.classList.remove("active", "is-open");
+		if (panel.parentNode !== document.body) document.body.appendChild(panel);
+		panel.classList.add("active", "is-open", "epc-fitment-panel--centered");
+		document.body.style.overflow = "hidden";
+	}
+	window.epcOpenSpecSplash = openSpecSplash;
+	window.epcCloseSpecSplash = closeSpecSplash;
+
+	window.epcFetchSkuMediaLookup = function (brand, article, productId) {
+		var qs = "brand=" + encodeURIComponent(brand || "") +
+			"&article=" + encodeURIComponent(article || "") +
+			"&product_id=" + encodeURIComponent(productId || 0);
+		return fetch("/storefront/sku-media?" + qs, { credentials: "same-origin", cache: "no-store" })
+			.then(function (r) { return r.json(); })
+			.catch(function () { return { ok: false, url: "", photos: [], specs: [] }; });
+	};
 
 	function bindSearchRowPhotoLoaders(root) {
 		var scope = root || document;
@@ -954,10 +1086,15 @@
 		applyFilters: applyFilters,
 		wireRowActions: wireRowActions,
 		openFitment: openFitment,
+		closeFitmentPanel: closeFitmentPanel,
 		bindSearchRowPhotoLoaders: bindSearchRowPhotoLoaders,
 		loadAspNetCrossSearch: loadAspNetCrossSearch,
 		fillRangeInputsFromOffers: function () { fillRangeInputsFromOffers(offerRows()); }
 	};
+	// PHP globals used by onclick="epcOpenFitmentCheckRow(this)" and brand-browse Fitment.
+	window.epcOpenFitmentCheck = openFitment;
+	window.epcOpenFitmentCheckRow = openFitmentCheckRow;
+	window.epcCloseFitmentPanel = closeFitmentPanel;
 
 	function boot() {
 		var toggle = document.getElementById("filter_div_a_text");
@@ -970,16 +1107,59 @@
 			if (el && el.tagName === "INPUT" && el.type !== "checkbox") el.addEventListener("input", applyFilters);
 		});
 		var fitBtn = document.getElementById("epc-fitment-check-btn");
-		if (fitBtn) {
+		if (fitBtn && fitBtn.getAttribute("data-epc-fitment-wired") !== "1") {
+			fitBtn.setAttribute("data-epc-fitment-wired", "1");
 			fitBtn.addEventListener("click", function () {
-				openFitment(fitBtn.getAttribute("data-article") || "", fitBtn.getAttribute("data-brand") || "");
+				closeSpecSplash();
+				var panel = document.getElementById("epc-fitment-panel");
+				if (panel && panel.classList.contains("active")) {
+					closeFitmentPanel();
+					return;
+				}
+				openFitment(fitBtn.getAttribute("data-article") || "", fitBtn.getAttribute("data-brand") || "", null);
 			});
 		}
 		var fitClose = document.getElementById("epc-fitment-close");
-		if (fitClose) {
-			fitClose.addEventListener("click", function () {
-				var panel = document.getElementById("epc-fitment-panel");
-				if (panel) panel.classList.remove("is-open");
+		if (fitClose && fitClose.getAttribute("data-epc-fitment-wired") !== "1") {
+			fitClose.setAttribute("data-epc-fitment-wired", "1");
+			fitClose.addEventListener("click", function () { closeFitmentPanel(); });
+		}
+		var specBtn = document.getElementById("epc-spec-check-btn");
+		if (specBtn && specBtn.getAttribute("data-epc-spec-wired") !== "1") {
+			specBtn.setAttribute("data-epc-spec-wired", "1");
+			specBtn.addEventListener("click", function () {
+				var panel = document.getElementById("epc-spec-panel");
+				if (panel && panel.classList.contains("active")) closeSpecSplash();
+				else openSpecSplash();
+			});
+		}
+		var specClose = document.getElementById("epc-spec-close");
+		if (specClose && specClose.getAttribute("data-epc-spec-wired") !== "1") {
+			specClose.setAttribute("data-epc-spec-wired", "1");
+			specClose.addEventListener("click", function () { closeSpecSplash(); });
+		}
+		if (!window.__epcSpecEscWired) {
+			window.__epcSpecEscWired = 1;
+			document.addEventListener("keydown", function (ev) {
+				if (ev.key === "Escape") {
+					closeSpecSplash();
+					closeImageLightbox();
+					closeFitmentPanel();
+				}
+			});
+		}
+		// Delegated click: Actions Fitment + info-cell car icon (data-epc-fitment-*).
+		if (!window.__epcFitmentDelegated) {
+			window.__epcFitmentDelegated = 1;
+			document.addEventListener("click", function (ev) {
+				var t = ev.target;
+				if (!t || !t.closest) return;
+				var btn = t.closest(".epc-fitment-check-btn--row, .epc-btn-fitment");
+				if (!btn) return;
+				// Header Fitment check is handled above (id=epc-fitment-check-btn).
+				if (btn.id === "epc-fitment-check-btn") return;
+				ev.preventDefault();
+				openFitmentCheckRow(btn);
 			});
 		}
 		var typesBox = document.getElementById("epc-fitment-types");

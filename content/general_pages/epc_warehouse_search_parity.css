@@ -13,7 +13,9 @@
 	width: 42px;
 }
 .epc-fitment-panel { display: none; }
-.epc-fitment-panel.is-open { display: block; }
+/* Match professional shell: visible panel uses flex + PHP `.active` (also keep `.is-open`). */
+.epc-fitment-panel.is-open,
+.epc-fitment-panel.active { display: flex; }
 .epc-seo-cross-refs.is-highlight {
 	outline: 2px solid #1e3a5f;
 	outline-offset: 2px;

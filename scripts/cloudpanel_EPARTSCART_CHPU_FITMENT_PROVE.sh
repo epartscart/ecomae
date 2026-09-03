@@ -22,7 +22,7 @@ PY
 curl -sk -o /tmp/fit-chpu.html -w 'CHPU_HTTP=%{http_code} TTFB=%{time_starttransfer}\n' --max-time 25 "$CHPU" || true
 grep -q 'epc-fitment-check-btn' /tmp/fit-chpu.html && ok "panel button in HTML" || bad "missing fitment button"
 grep -q 'applicability_widget' /tmp/fit-chpu.html && ok "applicability widget" || bad "missing applicability_widget"
-grep -q '20260812-fitment' /tmp/fit-chpu.html && ok "parity.js cache buster" || bad "stale parity.js (need republish)"
+grep -q '20260812-fitment-sku' /tmp/fit-chpu.html && ok "parity.js cache buster" || bad "stale parity.js (need republish)"
 grep -q 'epc_warehouse_search_parity.js' /tmp/fit-chpu.html && ok "parity script tag" || bad "missing parity script"
 
 curl -sk -o /tmp/fit-brands.json -w 'BRANDS_HTTP=%{http_code}\n' --max-time 20 \
@@ -68,8 +68,12 @@ else
 fi
 
 curl -sk -o /tmp/parity.js -w 'PARITY_HTTP=%{http_code}\n' --max-time 15 \
-  "${BASE}/platform-assets/epc_warehouse_search_parity.js?v=20260812-fitment" || true
+  "${BASE}/platform-assets/epc_warehouse_search_parity.js?v=20260812-fitment-sku" || true
 grep -q 'loadEpartscrossFitmentFallback' /tmp/parity.js && ok "live parity has fallback" || bad "live parity stale"
+grep -q 'window.epcOpenFitmentCheck = openFitment' /tmp/parity.js && ok "PHP epcOpenFitmentCheck global" || bad "missing epcOpenFitmentCheck"
+grep -q 'epc-fitment-panel--centered' /tmp/parity.js && ok "centered panel positioning" || bad "missing centered panel"
+grep -q 'panel.classList.add("is-open", "active")' /tmp/parity.js && ok "active+is-open open classes" || bad "missing .active open"
+grep -q '__epcFitmentDelegated' /tmp/parity.js && ok "row fitment delegation" || bad "missing row fitment delegation"
 grep -q 'Fitment action requires ASP.NET catalog route' /tmp/parity.js \
   && bad "live parity still hard-rejects analogs" || ok "analogs hard-reject removed"
 

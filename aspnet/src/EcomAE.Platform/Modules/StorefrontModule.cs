@@ -427,6 +427,60 @@ public sealed class StorefrontModule : ISurfaceModule
             });
         });
 
+        // PHP ajax_epc_sku_media_public lookup — CHPU Spec splash + Photos gallery + row photos.
+        async Task<IResult> SkuMediaLookup(
+            string? brand,
+            string? brend,
+            string? article,
+            IStorefrontSkuMediaService skuMedia,
+            CancellationToken cancellationToken)
+        {
+            var manufacturer = string.IsNullOrWhiteSpace(brand) ? brend : brand;
+            var result = await skuMedia.LookupAsync(
+                manufacturer ?? string.Empty,
+                article ?? string.Empty,
+                cancellationToken);
+            return Results.Ok(new
+            {
+                ok = result.Ok,
+                url = result.Url,
+                photos = result.Photos.Select(p => new
+                {
+                    url = p.Url,
+                    alt = p.Alt,
+                    caption = p.Caption,
+                    photo_type = p.PhotoType,
+                    is_primary = p.IsPrimary
+                }),
+                specs = result.Specs.Select(g => new
+                {
+                    name = g.Name,
+                    icon = g.Icon,
+                    rows = g.Rows.Select(r => new
+                    {
+                        label = r.Label,
+                        value = r.Value,
+                        value_type = r.ValueType
+                    })
+                }),
+                profile = result.Profile is null
+                    ? null
+                    : new
+                    {
+                        id = result.Profile.Id,
+                        brand = result.Profile.Brand,
+                        article = result.Profile.Article,
+                        title = result.Profile.Title
+                    },
+                source = result.Source,
+                message = result.Message,
+                note = "PHP ajax_epc_sku_media_public twin (CP sku_media, then UMAPI article cache)."
+            });
+        }
+
+        endpoints.MapGet(EcomAeRoutes.StorefrontSkuMedia, SkuMediaLookup);
+        endpoints.MapGet(EcomAeRoutes.StorefrontProductImage, SkuMediaLookup);
+
         // PHP part_search fitment: umapi analogs→article_links, else epartscross widget.
         endpoints.MapGet(EcomAeRoutes.StorefrontFitment, async (
             string? article,
