@@ -108,7 +108,7 @@ public sealed class StorefrontGuestPriceVisibilityTests
     public void HomeWidgets_PassPricesVisibleFlag()
     {
         var brands = Read("aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpEpartFrontSections.razor");
-        Assert.Contains("AvailableBrands(pricesVisible)", brands, StringComparison.Ordinal);
+        Assert.Contains("AvailableBrands(pricesVisible, lang)", brands, StringComparison.Ordinal);
         var depth = Read("aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpStorefrontHomeDepth.razor");
         Assert.Contains("StorefrontPriceAccess.SensitiveMask", depth, StringComparison.Ordinal);
         var html = PhpHomeWidgetHtml.Substitute(
