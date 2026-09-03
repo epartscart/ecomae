@@ -1,4 +1,8 @@
 @page "/storefront/product-app"
+@page "/en/shop/product"
+@page "/shop/product"
+@page "/en/shop/catalogue/product"
+@page "/shop/catalogue/product"
 @layout Layout.PhpChromeLayout
 @using System.Globalization
 @using EcomAE.Platform.Migration
@@ -41,7 +45,7 @@
 
 <StorefrontAnalytics Enabled="true" IncludeClarity="true" />
 
-<PhpStorefrontDesktopChrome>
+<StorefrontTenantChrome>
 
     @if (_product is null)
     {
@@ -63,8 +67,7 @@
     else
     {
         <PhpStorefrontPageHeader Title="@_product.Caption" Subtitle="@ProductSubtitle">
-            <a class="btn btn-sm btn-primary" href="@PhpProductCompareHref" title="Temporary PHP compare only">Compare PHP reference</a>
-            <a class="btn btn-sm btn-default" href="@BrandArticleSearchHref">Warehouse search</a>
+            <a class="btn btn-sm btn-primary" href="@BrandArticleSearchHref">Warehouse search</a>
             <a class="btn btn-sm btn-default" href="@StorefrontSurfaceLinks.Wishlist">Bookmarks</a>
             <a class="btn btn-sm btn-default" href="@StorefrontSurfaceLinks.Cart">Cart</a>
         </PhpStorefrontPageHeader>
@@ -135,26 +138,64 @@
 
         <div class="epc-sf-pd-card" style="margin-top:1rem">
             <h2>Actions</h2>
-            <p style="margin:0 0 .75rem;color:#64748b;font-size:.88rem">
-                Add to cart / bookmark / compare writes stay on PHP (session + cookies).
-            </p>
+            <form method="get" action="@StorefrontSurfaceLinks.Cart" style="margin:0 0 .85rem;display:flex;gap:.45rem;flex-wrap:wrap;align-items:end">
+                <input type="hidden" name="product_id" value="@_product.Id.ToString(CultureInfo.InvariantCulture)" />
+                <label>Qty <input type="number" name="count_need" value="1" min="1" style="width:5rem;margin-left:.35rem;padding:.35rem" /></label>
+                <button type="submit" style="padding:.5rem .85rem;border:0;border-radius:.4rem;background:#dc2626;color:#fff;font-weight:800;cursor:pointer">Add to cart</button>
+            </form>
             <div class="epc-sf-pd-cta" style="margin:0">
                 <a class="btn btn-sm btn-primary" href="@StorefrontSurfaceLinks.Cart">Cart</a>
                 <a class="btn btn-sm btn-default" href="@StorefrontSurfaceLinks.Wishlist">Bookmarks</a>
                 <a class="btn btn-sm btn-default" href="@StorefrontSurfaceLinks.Compare">Compare</a>
             </div>
         </div>
+
+        <div class="epc-sf-pd-card" style="margin-top:1rem">
+            <h2>Reviews</h2>
+            @if (_reviews.Count > 0)
+            {
+                <ul style="margin:0 0 1rem;padding:0;list-style:none">
+                    @foreach (var review in _reviews)
+                    {
+                        <li style="margin:0 0 .75rem;padding:.7rem .8rem;background:#f8fafc;border:1px solid #e2e8f0;border-radius:.45rem">
+                            <strong>@review.Rating / 5</strong>
+                            <span style="color:#64748b;font-size:.82rem"> · @review.Author · @review.Date</span>
+                            <p style="margin:.35rem 0 0;color:#334155">@review.Text</p>
+                        </li>
+                    }
+                </ul>
+            }
+            else
+            {
+                <p style="margin:0 0 .85rem;color:#64748b;font-size:.88rem">No reviews on this product yet.</p>
+            }
+            <form method="post" action="@PhpCustomerWrites.EvaluationWriteHref" style="margin:0">
+                <input type="hidden" name="product_id" value="@_product.Id.ToString(CultureInfo.InvariantCulture)" />
+                <label style="display:block;margin:.25rem 0">Rating
+                    <select name="mark" style="margin-left:.35rem;padding:.35rem">
+                        <option value="5">5</option>
+                        <option value="4">4</option>
+                        <option value="3">3</option>
+                        <option value="2">2</option>
+                        <option value="1">1</option>
+                    </select>
+                </label>
+                <label style="display:block;margin:.65rem 0 .25rem">Review</label>
+                <textarea name="text" rows="3" required style="width:100%;padding:.45rem"></textarea>
+                <button type="submit" style="margin-top:.75rem;padding:.5rem .85rem;border:0;border-radius:.4rem;background:#0f766e;color:#fff;font-weight:800;cursor:pointer">Submit review</button>
+            </form>
+        </div>
         <p class="epc-sf-pd-note">
-            ASP.NET product digest includes catalogue gallery + SKU media/specs (PHP <code>epc_sku_media</code>).
-            Cart / bookmark / compare writes remain PHP-authoritative under /php-reference/* until cutover.
+            Gallery and specs stay on this product card. Cart, bookmarks, and compare stay on this storefront.
         </p>
     }
-</PhpStorefrontDesktopChrome>
+</StorefrontTenantChrome>
 
 @code {
     private StorefrontProductDigest? _product;
     private string _source = "n/a";
     private string _message = "";
+    private IReadOnlyList<PhpProductReviews.Review> _reviews = [];
 
     [SupplyParameterFromQuery(Name = "id")]
     public int? ProductId { get; set; }
@@ -169,12 +210,6 @@
             return mfr + art;
         }
     }
-
-    private string PhpProductCompareHref =>
-        "/php-reference" + (
-            !string.IsNullOrWhiteSpace(_product?.Alias)
-                ? "/" + _product!.Alias.TrimStart('/')
-                : StorefrontPhpCanonical.PartSearch);
 
     private string BrandArticleSearchHref
     {
@@ -206,5 +241,6 @@
         _product = result.Product;
         _source = result.Source;
         _message = result.Message;
+        _reviews = PhpProductReviews.ForProduct(ProductId.Value);
     }
 }

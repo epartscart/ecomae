@@ -5,8 +5,9 @@
 @using EcomAE.Platform.Auth
 @using EcomAE.Platform.Presentation
 @inject NavigationManager Nav
+@inject IHttpContextAccessor Http
 
-<PageTitle>Customer login · eParts Cart</PageTitle>
+<PageTitle>Customer login · @_brand</PageTitle>
 <PhpSurfaceHead Surface="storefront" IncludeStorefrontAnalytics="true" ApplyStorefrontIndustryAttrs="true" />
 <PhpChromeBodyClass Surface="storefront" LoginChrome="true" />
 
@@ -29,19 +30,36 @@
 
 
 <div class="epc-login-sf">
-    <PhpStorefrontDesktopChrome>
+    <StorefrontTenantChrome>
         <div class="row login_form login_form--page">
             <div class="col-md-8 col-md-offset-2">
                 <h1>Customer login</h1>
-                <p class="lead">Sign in to your parts account to view orders, garage, and saved carts.</p>
+                <p class="lead">@_lead</p>
                 <LegacyAdminLoginForm Surface="LegacyLoginSurface.Storefront" SurfaceLabel="storefront" PhpLoginHref="/php-reference/home" ErrorMessage="@_error" SubmitLabel="Log in" Accent="red" />
                 <p class="epc-login-register">New customer? <a href="@StorefrontSurfaceLinks.Registration">Create an account</a></p>
+                <p class="epc-login-register"><a href="@StorefrontAspNetCanonical.ForgotPassword">Forgot password</a></p>
             </div>
         </div>
-    </PhpStorefrontDesktopChrome>
+    </StorefrontTenantChrome>
 </div>
 
 @code {
     private string? _error;
-    protected override void OnInitialized() => _error = LoginErrorHelper.FromUri(Nav.Uri);
+    private string _brand = "eParts Cart";
+    private string _lead = "Sign in to view orders, saved items, and your account.";
+
+    protected override void OnInitialized()
+    {
+        var host = Http.HttpContext?.Request.Host.Host ?? string.Empty;
+        _brand = StorefrontIndustryHostResolver.ResolveBrandLabel(host);
+        _lead = StorefrontIndustryHostResolver.ResolveIndustryCode(host) switch
+        {
+            "electronics" => "Sign in to track orders, wishlist, and your Electronicae account.",
+            "fashion" => "Sign in to track orders, wishlist, and your Style N Look account.",
+            "jewellery" => "Sign in to track orders, wishlist, and your jewellery account.",
+            "tax_advisory" => "Sign in to your client portal for filings, invoices, and messages.",
+            _ => "Sign in to your parts account to view orders, garage, and saved carts.",
+        };
+        _error = LoginErrorHelper.FromUri(Nav.Uri);
+    }
 }

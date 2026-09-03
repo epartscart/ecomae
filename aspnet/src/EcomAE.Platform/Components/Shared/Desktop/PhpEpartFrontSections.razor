@@ -210,6 +210,39 @@
 
 
 <div class="container epart-front-original-data">
+	<section class="epart-front-section" aria-label="Parts expert">
+		<div class="epart-front-section-head">
+			<h2 class="epart-front-section-title">Parts expert</h2>
+			<a class="epart-front-section-link" href="@StorefrontSurfaceLinks.AiPartsExpert">Open full search &rarr;</a>
+		</div>
+		<form method="get" action="@StorefrontSurfaceLinks.PartSearch" style="display:flex;flex-wrap:wrap;gap:.55rem;align-items:end">
+			<label style="flex:1 1 12rem">Part number
+				<input type="text" name="article" required maxlength="64" placeholder="e.g. C110J" style="display:block;width:100%;margin-top:.25rem;padding:.45rem" />
+			</label>
+			<label style="flex:0 1 10rem">Brand
+				<input type="text" name="brand" maxlength="48" style="display:block;width:100%;margin-top:.25rem;padding:.45rem" />
+			</label>
+			<button type="submit" class="btn btn-primary" style="height:42px">Search</button>
+		</form>
+	</section>
+
+	<section class="epart-front-section" aria-label="Special searches">
+		<div class="epart-front-section-head">
+			<h2 class="epart-front-section-title">Special searches</h2>
+			<a class="epart-front-section-link" href="@StorefrontSurfaceLinks.SpecialSearch">View all &rarr;</a>
+		</div>
+		<ul class="cat_blocks" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;list-style:none;margin:0;padding:0">
+			@foreach (var search in PhpSpecialSearches.All)
+			{
+				<li>
+					<a href="@(StorefrontAspNetCanonical.SpecialSearch + "?alias=" + Uri.EscapeDataString(search.Alias))" style="display:block;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:14px;text-decoration:none;color:#172536;font-weight:700">
+						@search.Title
+					</a>
+				</li>
+			}
+		</ul>
+	</section>
+
 	<!-- 1. Family Product -->
 	<section class="epart-front-section epart-front-section-family" aria-label="Family Product">
 		<div class="epart-front-section-head">

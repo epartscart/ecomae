@@ -1,0 +1,46 @@
+@page "/storefront/confirm-contact-app"
+@page "/en/users/confirm"
+@page "/users/confirm"
+@page "/en/users/confirm_contact"
+@page "/users/confirm_contact"
+@layout Layout.PhpChromeLayout
+@using EcomAE.Platform.Presentation
+@inject IHttpContextAccessor Http
+
+<PageTitle>Confirm contact · @_brand</PageTitle>
+<PhpSurfaceHead Surface="storefront" IncludeStorefrontAnalytics="true" ApplyStorefrontIndustryAttrs="true" />
+<PhpChromeBodyClass Surface="storefront" LoginChrome="true" />
+
+<StorefrontTenantChrome>
+    <section style="padding:2rem 0 3rem">
+        <div class="container" style="max-width:36rem">
+            <p style="margin:0 0 .35rem;color:#64748b;font-size:.85rem"><a href="@StorefrontSurfaceLinks.Login">Customer login</a></p>
+            <h1 style="margin:.1rem 0 .4rem">Confirm email or phone</h1>
+            <p style="color:#475569">Enter the code sent after registration or a contact change.</p>
+            <form method="post" action="@PhpVendorPortal.ConfirmWriteHref" style="background:#fff;border:1px solid #e2e8f0;border-radius:.55rem;padding:1.1rem 1.2rem">
+                <input type="hidden" name="u_id" value="@_userId" />
+                <input type="hidden" name="type" value="@_type" />
+                <label>Confirmation code</label>
+                <input type="text" name="code" value="@_code" required maxlength="32" style="width:100%;margin:.25rem 0 1rem;padding:.5rem" />
+                <button type="submit" style="width:100%;padding:.75rem 1rem;border:0;border-radius:.45rem;background:#dc2626;color:#fff;font-weight:800;cursor:pointer">Confirm contact</button>
+            </form>
+            <p style="margin-top:1rem"><a href="@StorefrontSurfaceLinks.Login">Back to login</a></p>
+        </div>
+    </section>
+</StorefrontTenantChrome>
+
+@code {
+    private string _brand = "eParts Cart";
+    private string _userId = "";
+    private string _type = "email";
+    private string _code = "";
+
+    protected override void OnInitialized()
+    {
+        var ctx = Http.HttpContext;
+        _brand = StorefrontIndustryHostResolver.ResolveBrandLabel(ctx?.Request.Host.Host);
+        _userId = ctx?.Request.Query["u_id"].ToString() ?? "";
+        _type = string.IsNullOrWhiteSpace(ctx?.Request.Query["type"]) ? "email" : ctx!.Request.Query["type"].ToString();
+        _code = ctx?.Request.Query["code"].ToString() ?? "";
+    }
+}

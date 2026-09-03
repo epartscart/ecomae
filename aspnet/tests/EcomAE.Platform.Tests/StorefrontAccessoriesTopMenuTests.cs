@@ -31,7 +31,7 @@ public sealed class StorefrontAccessoriesTopMenuTests
                 "/storefront/accessories-app?category=ev-hybrid",
                 StorefrontSurfaceLinks.ForCatalogBrowse("/accessories?category=ev-hybrid"));
             Assert.Equal(
-                "/storefront/app#epc-product-family",
+                "/storefront/product-family-app",
                 StorefrontSurfaceLinks.ForCatalogBrowse("/en/product-family"));
         }
         finally
@@ -47,12 +47,10 @@ public sealed class StorefrontAccessoriesTopMenuTests
         try
         {
             StorefrontSurfaceLinks.PreferAspNetApps = true;
-            Assert.True(PhpSurfaceLinkMap.TryMapIncomingPhpProductPath(
-                "/en/accessories-spare-parts", out var mapped));
-            Assert.Equal("/storefront/accessories-app", mapped);
-            Assert.True(PhpSurfaceLinkMap.TryMapIncomingPhpProductPath(
-                "/en/accessories-spare-parts?id=648", out var withId));
-            Assert.Equal("/storefront/accessories-app?id=648", withId);
+            Assert.False(PhpSurfaceLinkMap.TryMapIncomingPhpProductPath(
+                "/en/accessories-spare-parts", out _));
+            Assert.False(PhpSurfaceLinkMap.TryMapIncomingPhpProductPath(
+                "/en/accessories-spare-parts?id=648", out _));
             Assert.Equal(
                 "/storefront/accessories-app",
                 PhpSurfaceLinkMap.AspNetPrimaryHref("/en/accessories"));

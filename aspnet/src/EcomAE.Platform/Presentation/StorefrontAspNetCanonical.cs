@@ -19,25 +19,50 @@ public static class StorefrontAspNetCanonical
     public const string BulkUpload = "/storefront/bulk-upload-app";
     public const string Balance = "/storefront/account-summary-app";
 
-    // Home carries the full PHP catalog widgets — deep-link to the matching section
-    // anchor instead of the bare home URL (bare /storefront/app made every catalog
-    // click look like "nothing happened").
-    public const string ProductFamily = "/storefront/app#epc-product-family";
-    public const string AvailableBrands = "/storefront/app#epc-brands";
-    public const string PartsInStock = "/storefront/app#epc-brands";
+    /// <summary>Dedicated Product Family page (PHP twin: <c>/en/product-family</c>).</summary>
+    public const string ProductFamily = "/storefront/product-family-app";
+    /// <summary>Dedicated available-brands page (PHP twin: <c>/en/available-brands</c>).</summary>
+    public const string AvailableBrands = "/storefront/available-brands-app";
+    /// <summary>Brand-in-stock listing — same page as available brands (PHP <c>/en/parts</c>).</summary>
+    public const string PartsInStock = "/storefront/available-brands-app";
     /// <summary>Accessories marketplace (PHP twin: <c>/en/accessories-spare-parts</c>).</summary>
     public const string Accessories = "/storefront/accessories-app";
     /// <summary>Tenant own catalogue (PHP Catalog of products mega menu / category browse).</summary>
     public const string OwnCatalog = "/storefront/own-catalog-app";
-    public const string EpartsCata = "/storefront/app#epc-umapi";
-    public const string EpartsMod = "/storefront/app#epc-umapi";
-    public const string PartsApiCatalog = "/storefront/app#epc-umapi";
-    public const string LevamOem = "/storefront/app#epc-umapi";
-    public const string UmapiCatalog = "/storefront/app#epc-umapi";
-    public const string UcatsService = "/storefront/app#epc-umapi";
-    public const string OriginalCatalog = "/storefront/app#epc-vehicle-catalog";
-    public const string DemandIntelligence = "/storefront/app#epc-umapi";
-    public const string SellerRequest = "/storefront/search-app?mode=vin";
+    public const string EpartsCata = "/storefront/eparts-cata-app";
+    public const string EpartsMod = "/storefront/eparts-mod-app";
+    public const string PartsApiCatalog = "/storefront/eparts-cata-app";
+    public const string LevamOem = "/storefront/original-catalog-app";
+    public const string UmapiCatalog = "/storefront/umapi-catalog-app";
+    public const string UcatsService = "/storefront/ucats-app";
+    public const string OriginalCatalog = "/storefront/original-catalog-app";
+    public const string DemandIntelligence = "/storefront/demand-intelligence-app";
+    /// <summary>Industry package category (PHP seed slugs: /gaming, /women, /gold, /services/tax).</summary>
+    public const string IndustryCatalog = "/storefront/industry-catalog-app";
+    /// <summary>CMS twins /kontakty /o-dostavke /ob-oplate /o-vozvrate.</summary>
+    public const string IndustryCms = "/storefront/cms-page-app";
+    public const string IndustrySearch = "/storefront/industry-search-app";
+    public const string IndustryProduct = "/storefront/industry-product-app";
+    public const string VendorPortal = "/storefront/vendor-app";
+    public const string VendorRegister = "/storefront/vendor-register-app";
+    public const string VendorUpload = "/storefront/vendor-upload-app";
+    public const string ForgotPassword = "/storefront/forgot-password-app";
+    public const string ConfirmContact = "/storefront/confirm-contact-app";
+    public const string CustomerReturns = "/storefront/returns-app";
+    /// <summary>Seller VIN / part request (PHP twin: <c>/en/zapros-prodavczu</c>).</summary>
+    public const string SellerRequest = "/storefront/seller-request-app";
+    /// <summary>Customer VIN-request inbox (PHP twin: <c>/en/requests</c>). Not CP system-requests.</summary>
+    public const string CustomerRequests = "/storefront/customer-requests-app";
+    /// <summary>Customer order print (PHP <c>content/shop/print_docs/service/print.php</c>).</summary>
+    public const string CustomerPrint = "/storefront/print-app";
+    public const string News = "/storefront/news-app";
+    public const string GuestOrder = "/storefront/guest-order-app";
+    public const string Payment = "/storefront/payment-app";
+    public const string Sitemap = "/storefront/sitemap-app";
+    public const string Brochure = "/storefront/brochure-app";
+    public const string Offices = "/storefront/offices-app";
+    public const string SpecialSearch = "/storefront/special-search-app";
+    public const string AiPartsExpert = "/storefront/ai-parts-expert-app";
     public const string Cart = "/storefront/cart-app";
     public const string Checkout = "/storefront/checkout-app";
     public const string Orders = "/storefront/orders-app";
@@ -45,6 +70,9 @@ public static class StorefrontAspNetCanonical
     /// <summary>Customer registration (PHP twin: <c>/en/users/registration</c>).</summary>
     public const string Registration = "/storefront/register-app";
     public const string GarageLogin = "/storefront/garage-app";
+    public const string AutoWorkshop = "/storefront/auto-workshop-app";
+    public const string GarageManager = "/storefront/garage-manager-app";
+    public const string Newsletter = "/storefront/newsletter-app";
     /// <summary>Checkout delivery/pickup step (PHP <c>/en/shop/checkout/how_get</c>).</summary>
     public const string CheckoutHowGet = "/storefront/checkout-app?step=how_get";
     /// <summary>Checkout confirm step (PHP <c>/en/shop/checkout/confirm</c>).</summary>
@@ -53,4 +81,8 @@ public static class StorefrontAspNetCanonical
     public const string CheckoutLoginOffer = "/storefront/checkout-app?step=login_offer";
     /// <summary>Order detail (PHP <c>/en/shop/orders/order</c>).</summary>
     public const string OrderDetail = "/storefront/orders-app";
+    /// <summary>Customer profile (PHP <c>/en/users/profile</c> / <c>/users/editform</c>).</summary>
+    public const string Profile = "/storefront/profile-app";
+    /// <summary>Published markup-group CSV (PHP prices_download tab).</summary>
+    public const string PricesDownload = "/storefront/prices-download-app";
 }

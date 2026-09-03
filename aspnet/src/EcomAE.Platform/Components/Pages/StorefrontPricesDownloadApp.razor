@@ -1,0 +1,76 @@
+@page "/storefront/prices-download-app"
+@page "/en/shop/prices-download"
+@page "/shop/prices-download"
+@page "/en/users/prices"
+@page "/users/prices"
+@layout Layout.PhpChromeLayout
+@using System.Globalization
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Migration
+@using EcomAE.Platform.Presentation
+@inject ISurfaceDashboardSummaryReporter Dashboards
+@inject ILegacySessionValidator Sessions
+@inject IHttpContextAccessor Http
+
+<PageTitle>Price list · @_brand</PageTitle>
+<PhpSurfaceHead Surface="storefront" IncludeStorefrontAnalytics="true" ApplyStorefrontIndustryAttrs="true" />
+<PhpChromeBodyClass Surface="storefront" />
+
+<StorefrontTenantChrome>
+    <section style="padding:2rem 0 3rem">
+        <div class="container" style="max-width:40rem">
+            <p style="margin:0 0 .35rem;color:#64748b;font-size:.85rem">
+                <a href="@StorefrontSurfaceLinks.Balance">Account</a> · Price list
+            </p>
+            <h1 style="margin:.1rem 0 .4rem">Your price list</h1>
+            <p style="color:#475569">CSV with your account markup-group prices. Open in Excel or Google Sheets.</p>
+            @if (!_isCustomer)
+            {
+                <div style="padding:1.15rem 1.2rem;background:#fff;border:1px solid #e2e8f0;border-radius:.55rem">
+                    <p style="margin:0 0 .75rem">Sign in to download the list published for your group.</p>
+                    <a class="btn btn-primary" href="@StorefrontSurfaceLinks.Login">Sign in</a>
+                </div>
+            }
+            else if (_groupId > 0 && !string.IsNullOrWhiteSpace(_fileHref))
+            {
+                <div style="padding:1.15rem 1.2rem;background:#0f172a;color:#eff6ff;border-radius:.7rem">
+                    <p style="margin:0 0 .65rem">Group @_groupId.ToString(CultureInfo.InvariantCulture)</p>
+                    <a href="@_fileHref" style="display:inline-block;background:#fff;color:#1e3a8a;padding:.55rem .95rem;border-radius:.45rem;font-weight:700;text-decoration:none">Download price list</a>
+                </div>
+            }
+            else
+            {
+                <p style="color:#475569">No price list is published for your group yet. Write from the contact page.</p>
+                <p><a href="@(StorefrontAspNetCanonical.IndustryCms + "?slug=kontakty")">Contact</a></p>
+            }
+        </div>
+    </section>
+</StorefrontTenantChrome>
+
+@code {
+    private string _brand = "eParts Cart";
+    private bool _isCustomer;
+    private int _groupId;
+    private string _fileHref = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null)
+        {
+            return;
+        }
+
+        _brand = StorefrontIndustryHostResolver.ResolveBrandLabel(ctx.Request.Host.Host);
+        var session = await Sessions.ValidateCustomerAsync(ctx, ctx.RequestAborted);
+        _isCustomer = session.Kind == LegacySessionKind.Customer && session.UserId > 0;
+        if (!_isCustomer)
+        {
+            return;
+        }
+
+        var result = await Dashboards.GetStorefrontPriceListAsync(session.UserId, ctx.RequestAborted);
+        _groupId = result.GroupId;
+        _fileHref = result.FileHref;
+    }
+}

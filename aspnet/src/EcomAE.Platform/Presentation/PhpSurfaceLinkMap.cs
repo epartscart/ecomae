@@ -14,6 +14,7 @@ public static class PhpSurfaceLinkMap
         ("shop/logistics/custom_shipping", "/cp/carriers-app"),
         ("shop/logistics/carriers", "/cp/carriers-app"),
         ("shop/logistics/storages", "/cp/storages-app"),
+        ("shop/logistics/offices", "/cp/offices-app"),
         ("shop/logistics/logistics", "/cp/delivery-methods-app"),
         ("shop/logistics", "/cp/delivery-methods-app"),
         ("shop/marketing/seo", "/cp/seo-app"),
@@ -393,14 +394,121 @@ public static class PhpSurfaceLinkMap
             return StorefrontSurfaceLinks.Cart;
         }
 
+        if (value.Contains("checkout/how_get", StringComparison.OrdinalIgnoreCase))
+        {
+            return StorefrontSurfaceLinks.CheckoutHowGet;
+        }
+
+        if (value.Contains("checkout/login_offer", StringComparison.OrdinalIgnoreCase))
+        {
+            return StorefrontSurfaceLinks.CheckoutLoginOffer;
+        }
+
+        if (value.Contains("checkout/confirm", StringComparison.OrdinalIgnoreCase)
+            || value.Contains("checkout_confirm", StringComparison.OrdinalIgnoreCase))
+        {
+            return StorefrontSurfaceLinks.CheckoutConfirm;
+        }
+
         if (value.StartsWith("/shop/checkout", StringComparison.OrdinalIgnoreCase))
         {
             return StorefrontSurfaceLinks.Checkout;
         }
 
+        if (value.Equals("/shop/orders/guest", StringComparison.OrdinalIgnoreCase)
+            || value.StartsWith("/shop/orders/guest?", StringComparison.OrdinalIgnoreCase))
+        {
+            return StorefrontAspNetCanonical.GuestOrder;
+        }
+
         if (value.StartsWith("/shop/orders", StringComparison.OrdinalIgnoreCase))
         {
             return StorefrontSurfaceLinks.Orders;
+        }
+
+        if (value.Equals("/shop/pay", StringComparison.OrdinalIgnoreCase)
+            || value.StartsWith("/shop/pay?", StringComparison.OrdinalIgnoreCase)
+            || value.StartsWith("/shop/pay/", StringComparison.OrdinalIgnoreCase))
+        {
+            return StorefrontAspNetCanonical.Payment;
+        }
+
+        if (value.StartsWith("/shop/catalogue/product", StringComparison.OrdinalIgnoreCase)
+            || value.Equals("/shop/product", StringComparison.OrdinalIgnoreCase)
+            || value.StartsWith("/shop/product?", StringComparison.OrdinalIgnoreCase))
+        {
+            return StorefrontAspNetCanonical.Product;
+        }
+
+        if (value.Equals("/shop/catalogue", StringComparison.OrdinalIgnoreCase)
+            || value.StartsWith("/shop/catalogue?", StringComparison.OrdinalIgnoreCase)
+            || value.StartsWith("/shop/catalogue/", StringComparison.OrdinalIgnoreCase)
+            || value.Equals("/katalog", StringComparison.OrdinalIgnoreCase)
+            || value.StartsWith("/katalog?", StringComparison.OrdinalIgnoreCase))
+        {
+            return StorefrontAspNetCanonical.OwnCatalog;
+        }
+
+        if (value.Equals("/sitemap", StringComparison.OrdinalIgnoreCase)
+            || value.StartsWith("/sitemap?", StringComparison.OrdinalIgnoreCase)
+            || value.Equals("/shop/sitemap", StringComparison.OrdinalIgnoreCase)
+            || value.StartsWith("/shop/sitemap?", StringComparison.OrdinalIgnoreCase))
+        {
+            return StorefrontAspNetCanonical.Sitemap;
+        }
+
+        if (value.Equals("/ofisy", StringComparison.OrdinalIgnoreCase)
+            || value.StartsWith("/ofisy?", StringComparison.OrdinalIgnoreCase)
+            || value.Equals("/shop/offices", StringComparison.OrdinalIgnoreCase)
+            || value.StartsWith("/shop/offices?", StringComparison.OrdinalIgnoreCase))
+        {
+            return StorefrontAspNetCanonical.Offices;
+        }
+
+        if (value.Equals("/ai-parts-expert", StringComparison.OrdinalIgnoreCase)
+            || value.StartsWith("/ai-parts-expert?", StringComparison.OrdinalIgnoreCase))
+        {
+            return StorefrontAspNetCanonical.AiPartsExpert;
+        }
+
+        if (PhpSpecialSearches.IsAlias(value))
+        {
+            return StorefrontAspNetCanonical.SpecialSearch + "?alias=" + Uri.EscapeDataString(PhpSpecialSearches.Normalize(value));
+        }
+
+        if (PhpOwnCatalogSlugs.IsAlias(value))
+        {
+            return StorefrontAspNetCanonical.OwnCatalog + "?url=" + Uri.EscapeDataString(PhpOwnCatalogSlugs.Normalize(value));
+        }
+
+        if (value.Contains("/shop/quotes", StringComparison.OrdinalIgnoreCase)
+            || value.Equals("/shop/quotes", StringComparison.OrdinalIgnoreCase))
+        {
+            return StorefrontSurfaceLinks.Quotes;
+        }
+
+        if (value.Contains("zakladki", StringComparison.OrdinalIgnoreCase))
+        {
+            return StorefrontSurfaceLinks.Wishlist;
+        }
+
+        if (value.Contains("sravneniya", StringComparison.OrdinalIgnoreCase)
+            || value.Equals("/shop/compare", StringComparison.OrdinalIgnoreCase)
+            || value.StartsWith("/shop/compare?", StringComparison.OrdinalIgnoreCase))
+        {
+            return StorefrontSurfaceLinks.Compare;
+        }
+
+        if (value.Contains("/shop/balans", StringComparison.OrdinalIgnoreCase)
+            || value.Equals("/shop/balans", StringComparison.OrdinalIgnoreCase))
+        {
+            return StorefrontSurfaceLinks.Balance;
+        }
+
+        if (value.Contains("bulk-upload", StringComparison.OrdinalIgnoreCase)
+            || value.Contains("bulk_upload", StringComparison.OrdinalIgnoreCase))
+        {
+            return StorefrontSurfaceLinks.BulkUpload;
         }
 
         if (value.Contains("warehouse-search", StringComparison.OrdinalIgnoreCase))
@@ -420,10 +528,29 @@ public static class PhpSurfaceLinkMap
                 : "");
         }
 
-        if (value.Contains("katalog-laximo", StringComparison.OrdinalIgnoreCase)
+        if (value.Equals("/vin-zapros", StringComparison.OrdinalIgnoreCase)
+            || value.StartsWith("/vin-zapros?", StringComparison.OrdinalIgnoreCase)
+            || value.Equals("/vin_zapros", StringComparison.OrdinalIgnoreCase)
+            || value.StartsWith("/vin_zapros?", StringComparison.OrdinalIgnoreCase))
+        {
+            return StorefrontAspNetCanonical.SellerRequest;
+        }
+
+        if (value.Equals("/vin", StringComparison.OrdinalIgnoreCase)
+            || value.StartsWith("/vin?", StringComparison.OrdinalIgnoreCase)
+            || value.Contains("katalog-laximo", StringComparison.OrdinalIgnoreCase)
             || value.Contains("identString=", StringComparison.OrdinalIgnoreCase))
         {
             return StorefrontSurfaceLinks.ForVinSearch(value);
+        }
+
+        if (value.Equals("/shop/ucats", StringComparison.OrdinalIgnoreCase)
+            || value.StartsWith("/shop/ucats/", StringComparison.OrdinalIgnoreCase)
+            || value.StartsWith("/shop/ucats?", StringComparison.OrdinalIgnoreCase)
+            || value.Equals("/shop/katalogi-ucats", StringComparison.OrdinalIgnoreCase)
+            || value.StartsWith("/shop/katalogi-ucats/", StringComparison.OrdinalIgnoreCase))
+        {
+            return StorefrontSurfaceLinks.UcatsService;
         }
 
         if (value.Contains("vehicle-catalog", StringComparison.OrdinalIgnoreCase))
@@ -446,26 +573,90 @@ public static class PhpSurfaceLinkMap
             return brandArticleHref;
         }
 
+        if (value.Equals("/zapros-prodavczu", StringComparison.OrdinalIgnoreCase)
+            || value.StartsWith("/zapros-prodavczu?", StringComparison.OrdinalIgnoreCase))
+        {
+            return StorefrontAspNetCanonical.SellerRequest;
+        }
+
+        if (value.Equals("/requests", StringComparison.OrdinalIgnoreCase)
+            || value.StartsWith("/requests/", StringComparison.OrdinalIgnoreCase)
+            || value.StartsWith("/requests?", StringComparison.OrdinalIgnoreCase))
+        {
+            return StorefrontAspNetCanonical.CustomerRequests;
+        }
+
+        if (value.Equals("/shop/print", StringComparison.OrdinalIgnoreCase)
+            || value.StartsWith("/shop/print?", StringComparison.OrdinalIgnoreCase)
+            || value.Equals("/shop/print_docs", StringComparison.OrdinalIgnoreCase)
+            || value.StartsWith("/shop/print_docs", StringComparison.OrdinalIgnoreCase))
+        {
+            return StorefrontAspNetCanonical.CustomerPrint;
+        }
+
+        if (value.Equals("/shop/orders/guest", StringComparison.OrdinalIgnoreCase)
+            || value.StartsWith("/shop/orders/guest?", StringComparison.OrdinalIgnoreCase))
+        {
+            return StorefrontAspNetCanonical.GuestOrder;
+        }
+
+        if (value.Equals("/shop/pay", StringComparison.OrdinalIgnoreCase)
+            || value.StartsWith("/shop/pay?", StringComparison.OrdinalIgnoreCase)
+            || value.StartsWith("/shop/pay/", StringComparison.OrdinalIgnoreCase))
+        {
+            return StorefrontAspNetCanonical.Payment;
+        }
+
+        if (value.Equals("/novosti", StringComparison.OrdinalIgnoreCase)
+            || value.StartsWith("/novosti/", StringComparison.OrdinalIgnoreCase)
+            || value.StartsWith("/novosti?", StringComparison.OrdinalIgnoreCase)
+            || value.Equals("/news", StringComparison.OrdinalIgnoreCase)
+            || value.StartsWith("/news/", StringComparison.OrdinalIgnoreCase)
+            || value.StartsWith("/news?", StringComparison.OrdinalIgnoreCase))
+        {
+            return StorefrontAspNetCanonical.News;
+        }
+
         if (IsStorefrontCatalogBrowsePath(value))
         {
             return StorefrontSurfaceLinks.ForCatalogBrowse(value);
         }
 
-        if (value.Contains("garage", StringComparison.OrdinalIgnoreCase))
+        if (value.Contains("/garage/manager", StringComparison.OrdinalIgnoreCase)
+            || value.Equals("/garage/manager", StringComparison.OrdinalIgnoreCase))
+        {
+            return StorefrontAspNetCanonical.GarageManager;
+        }
+
+        if (value.Contains("garage", StringComparison.OrdinalIgnoreCase)
+            || value.Contains("garazh", StringComparison.OrdinalIgnoreCase))
         {
             return StorefrontSurfaceLinks.GarageLogin;
         }
 
+        if (value.Contains("auto-workshop", StringComparison.OrdinalIgnoreCase))
+        {
+            return StorefrontAspNetCanonical.AutoWorkshop;
+        }
+
         // Account/profile before blanket /users → login.
-        if (value.Contains("/users/profile", StringComparison.OrdinalIgnoreCase))
+        if (value.Contains("/users/logout", StringComparison.OrdinalIgnoreCase)
+            || value.Contains("/users/exit", StringComparison.OrdinalIgnoreCase))
+        {
+            return "/storefront/logout";
+        }
+
+        if (value.Contains("/users/profile", StringComparison.OrdinalIgnoreCase)
+            || value.Contains("/users/editform", StringComparison.OrdinalIgnoreCase))
         {
             return StorefrontSurfaceLinks.PreferAspNetApps
-                ? "/storefront/profile-app"
+                ? StorefrontAspNetCanonical.Profile
                 : StorefrontPhpCanonical.LangPrefix + "/users/profile";
         }
 
         if (value.Contains("/users/registration", StringComparison.OrdinalIgnoreCase)
-            || value.Contains("/users/register", StringComparison.OrdinalIgnoreCase))
+            || value.Contains("/users/register", StringComparison.OrdinalIgnoreCase)
+            || value.Contains("/users/regform", StringComparison.OrdinalIgnoreCase))
         {
             return StorefrontSurfaceLinks.Registration;
         }
@@ -485,8 +676,88 @@ public static class PhpSurfaceLinkMap
                 : StorefrontPhpCanonical.Balance;
         }
 
-        if (value.StartsWith("/users", StringComparison.OrdinalIgnoreCase)
-            || value.StartsWith("/vendor", StringComparison.OrdinalIgnoreCase))
+        if (value.StartsWith("/vendor/register", StringComparison.OrdinalIgnoreCase))
+        {
+            return StorefrontAspNetCanonical.VendorRegister;
+        }
+
+        if (value.StartsWith("/vendor/upload", StringComparison.OrdinalIgnoreCase))
+        {
+            return StorefrontAspNetCanonical.VendorUpload;
+        }
+
+        if (value.StartsWith("/vendor", StringComparison.OrdinalIgnoreCase))
+        {
+            return StorefrontAspNetCanonical.VendorPortal;
+        }
+
+        if (value.StartsWith("/users/forgot", StringComparison.OrdinalIgnoreCase)
+            || value.StartsWith("/users/new_password", StringComparison.OrdinalIgnoreCase))
+        {
+            return StorefrontAspNetCanonical.ForgotPassword;
+        }
+
+        if (value.StartsWith("/users/confirm", StringComparison.OrdinalIgnoreCase))
+        {
+            return StorefrontAspNetCanonical.ConfirmContact;
+        }
+
+        if (value.Equals("/shop/prices-download", StringComparison.OrdinalIgnoreCase)
+            || value.StartsWith("/shop/prices-download?", StringComparison.OrdinalIgnoreCase)
+            || value.Equals("/users/prices", StringComparison.OrdinalIgnoreCase)
+            || value.StartsWith("/users/prices?", StringComparison.OrdinalIgnoreCase))
+        {
+            return StorefrontAspNetCanonical.PricesDownload;
+        }
+
+        if (value.StartsWith("/shop/returns", StringComparison.OrdinalIgnoreCase))
+        {
+            return StorefrontAspNetCanonical.CustomerReturns;
+        }
+
+        if (value.Equals("/zapros-prodavczu", StringComparison.OrdinalIgnoreCase)
+            || value.StartsWith("/zapros-prodavczu?", StringComparison.OrdinalIgnoreCase))
+        {
+            return StorefrontAspNetCanonical.SellerRequest;
+        }
+
+        if (value.Equals("/requests", StringComparison.OrdinalIgnoreCase)
+            || value.StartsWith("/requests/", StringComparison.OrdinalIgnoreCase)
+            || value.StartsWith("/requests?", StringComparison.OrdinalIgnoreCase))
+        {
+            return StorefrontAspNetCanonical.CustomerRequests;
+        }
+
+        if (value.Equals("/shop/print", StringComparison.OrdinalIgnoreCase)
+            || value.StartsWith("/shop/print?", StringComparison.OrdinalIgnoreCase)
+            || value.Equals("/shop/print_docs", StringComparison.OrdinalIgnoreCase)
+            || value.StartsWith("/shop/print_docs", StringComparison.OrdinalIgnoreCase))
+        {
+            return StorefrontAspNetCanonical.CustomerPrint;
+        }
+
+        if (value.StartsWith("/auto-workshop", StringComparison.OrdinalIgnoreCase))
+        {
+            return StorefrontAspNetCanonical.AutoWorkshop;
+        }
+
+        if (value.StartsWith("/garage/manager", StringComparison.OrdinalIgnoreCase))
+        {
+            return StorefrontAspNetCanonical.GarageManager;
+        }
+
+        if (value.StartsWith("/garazh", StringComparison.OrdinalIgnoreCase))
+        {
+            return StorefrontAspNetCanonical.GarageLogin;
+        }
+
+        if (value.StartsWith("/newsletter", StringComparison.OrdinalIgnoreCase)
+            || value.Equals("/subscribe", StringComparison.OrdinalIgnoreCase))
+        {
+            return StorefrontAspNetCanonical.Newsletter;
+        }
+
+        if (value.StartsWith("/users", StringComparison.OrdinalIgnoreCase))
         {
             return StorefrontSurfaceLinks.Login;
         }
@@ -509,6 +780,12 @@ public static class PhpSurfaceLinkMap
         if (phpHash >= 0)
         {
             phpPathOnly = phpPathOnly[..phpHash];
+        }
+
+        if (phpPathOnly.Equals("/shop/erp", StringComparison.OrdinalIgnoreCase)
+            || phpPathOnly.Equals("/shop/erp/", StringComparison.OrdinalIgnoreCase))
+        {
+            return "/erp";
         }
 
         if (value.StartsWith("/shop/", StringComparison.OrdinalIgnoreCase)
@@ -563,25 +840,7 @@ public static class PhpSurfaceLinkMap
     }
 
     private static string StripStorefrontLangPrefix(string value)
-    {
-        var qIndex = value.IndexOf('?', StringComparison.Ordinal);
-        var path = qIndex < 0 ? value : value[..qIndex];
-        var query = qIndex < 0 ? string.Empty : value[qIndex..];
-        foreach (var lang in new[] { "/en", "/me", "/ru" })
-        {
-            if (path.Equals(lang, StringComparison.OrdinalIgnoreCase))
-            {
-                return "/" + query;
-            }
-
-            if (path.StartsWith(lang + "/", StringComparison.OrdinalIgnoreCase))
-            {
-                return path[lang.Length..] + query;
-            }
-        }
-
-        return value;
-    }
+        => StorefrontLangPrefix.Strip(value);
 
     private static string AppendQuery(string aspNetPath, string original, string requiredPair)
     {
@@ -875,9 +1134,12 @@ public static class PhpSurfaceLinkMap
 
         var value = pathAndQuery.Trim();
         var stripped = StripStorefrontLangPrefix(value);
-        // Blazor already owns same-URL CHPU / search aliases — leave the browser path alone
-        // (otherwise nginx→:5100 would 302 /en/parts/TOYOTA/… → /storefront/search-app).
-        if (IsBlazorOwnedStorefrontSameUrlPath(stripped))
+        // CHPU /parts/{brand}/{article} always stays on Blazor (with or without /en).
+        // Lang-prefixed aliases (/en/shop/part_search, /en/umapi_catalog, …) stay too.
+        // Bare /shop/part_search still remaps to /en/… when PreferAspNet is off.
+        if (IsBlazorOwnedChpuPartsPath(stripped)
+            || (IncomingHasStorefrontLangPrefix(value) && IsBlazorOwnedStorefrontSameUrlPath(stripped))
+            || (StorefrontSurfaceLinks.PreferAspNetApps && IsBlazorOwnedStorefrontSameUrlPath(stripped)))
         {
             return false;
         }
@@ -929,6 +1191,21 @@ public static class PhpSurfaceLinkMap
         var path = (qIndex < 0 ? strippedPathAndQuery : strippedPathAndQuery[..qIndex]).TrimEnd('/');
         if (path.Equals("/shop/part_search", StringComparison.OrdinalIgnoreCase)
             || path.Equals("/shop/warehouse-search", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/shop/search", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/shop/quotes", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/shop/zakladki", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/shop/sravneniya", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/shop/balans", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/shop/bulk-upload", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/garage/login", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/garage", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/garage/manager", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/garazh", StringComparison.OrdinalIgnoreCase)
+            || path.StartsWith("/garazh/", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/auto-workshop", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/newsletter", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/subscribe", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/users/profile", StringComparison.OrdinalIgnoreCase)
             || path.Equals("/shop/cart", StringComparison.OrdinalIgnoreCase)
             || path.Equals("/shop/orders", StringComparison.OrdinalIgnoreCase)
             || path.StartsWith("/shop/orders/", StringComparison.OrdinalIgnoreCase)
@@ -937,12 +1214,99 @@ public static class PhpSurfaceLinkMap
             || path.Equals("/shop/checkout_confirm", StringComparison.OrdinalIgnoreCase)
             || path.Equals("/users/login", StringComparison.OrdinalIgnoreCase)
             || path.Equals("/users/registration", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/users/register", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/users/regform", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/users/forgot", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/users/forgot_password", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/users/new_password", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/users/confirm", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/users/confirm_contact", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/vendor", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/vendor/login", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/vendor/register", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/vendor/upload", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/shop/returns", StringComparison.OrdinalIgnoreCase)
+            || path.StartsWith("/shop/returns/", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/zapros-prodavczu", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/requests", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/requests/request", StringComparison.OrdinalIgnoreCase)
+            || path.StartsWith("/requests/", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/shop/print", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/shop/print_docs", StringComparison.OrdinalIgnoreCase)
+            || path.StartsWith("/shop/print/", StringComparison.OrdinalIgnoreCase)
+            || path.StartsWith("/shop/print_docs/", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/shop/orders/guest", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/shop/pay", StringComparison.OrdinalIgnoreCase)
+            || path.StartsWith("/shop/pay/", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/novosti", StringComparison.OrdinalIgnoreCase)
+            || path.StartsWith("/novosti/", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/news", StringComparison.OrdinalIgnoreCase)
+            || path.StartsWith("/news/", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/kontakty", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/o-dostavke", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/ob-oplate", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/o-vozvrate", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/polzovatelskoe-soglashenie", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/politika-konfidencialnosti", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/sitemap", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/shop/sitemap", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/shop/catalogue", StringComparison.OrdinalIgnoreCase)
+            || path.StartsWith("/shop/catalogue/", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/katalog", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/shop/product", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/shop/compare", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/o-kompanii", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/chastye-voprosy", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/ofisy", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/shop/offices", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/users/account", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/ai-parts-expert", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/vin", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/vin-zapros", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/vin_zapros", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/kak-zakazat", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/garantii", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/dostavka", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/oplata", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/vozvrat", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/o-nas", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/users/editform", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/users/logout", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/users/exit", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/users/prices", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/shop/prices-download", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/shop/ucats", StringComparison.OrdinalIgnoreCase)
+            || path.StartsWith("/shop/ucats/", StringComparison.OrdinalIgnoreCase)
+            || PhpSpecialSearches.IsAlias(path)
+            || PhpOwnCatalogSlugs.IsAlias(path)
             || path.Equals("/katalog-laximo", StringComparison.OrdinalIgnoreCase)
-            || path.Equals("/vehicle-catalog", StringComparison.OrdinalIgnoreCase))
+            || path.Equals("/vehicle-catalog", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/umapi_catalog", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/product-family", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/available-brands", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/original-catalog", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/eparts-cata", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/eparts-mod", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/partsapi-catalog", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/levam-oem", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/demand-intelligence", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/accessories-spare-parts", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/accessories", StringComparison.OrdinalIgnoreCase)
+            // Exact /parts is brand-in-stock. /parts?article= remains part search (not this page).
+            || (path.Equals("/parts", StringComparison.OrdinalIgnoreCase) && qIndex < 0)
+            || path.Equals("/shop/katalogi-ucats", StringComparison.OrdinalIgnoreCase)
+            || path.StartsWith("/shop/katalogi-ucats/", StringComparison.OrdinalIgnoreCase))
         {
             return true;
         }
 
+        return IsBlazorOwnedChpuPartsPath(path);
+    }
+
+    private static bool IsBlazorOwnedChpuPartsPath(string strippedPath)
+    {
+        var qIndex = strippedPath.IndexOf('?', StringComparison.Ordinal);
+        var path = (qIndex < 0 ? strippedPath : strippedPath[..qIndex]).TrimEnd('/');
         if (!path.StartsWith("/parts/", StringComparison.OrdinalIgnoreCase))
         {
             return false;
@@ -950,8 +1314,23 @@ public static class PhpSurfaceLinkMap
 
         var rest = path["/parts/".Length..];
         var segments = rest.Split('/', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-        // /parts/{brand}/{article} and /parts/brands/{article} — Blazor @page aliases.
-        return segments.Length >= 2;
+        return segments.Length >= 1;
+    }
+
+    private static bool IncomingHasStorefrontLangPrefix(string pathAndQuery)
+    {
+        var q = pathAndQuery.IndexOf('?', StringComparison.Ordinal);
+        var path = (q < 0 ? pathAndQuery : pathAndQuery[..q]);
+        foreach (var lang in new[] { "/en", "/me", "/ru", "/ar" })
+        {
+            if (path.Equals(lang, StringComparison.OrdinalIgnoreCase)
+                || path.StartsWith(lang + "/", StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private static bool IsUpperPhpShell(string value, string shell)

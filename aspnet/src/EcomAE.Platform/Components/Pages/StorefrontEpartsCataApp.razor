@@ -1,0 +1,41 @@
+@page "/storefront/eparts-cata-app"
+@page "/en/eparts-cata"
+@page "/en/partsapi-catalog"
+@layout Layout.PhpChromeLayout
+@using EcomAE.Platform.Presentation
+
+<PageTitle>EParts CATA · eParts Cart</PageTitle>
+<PhpChromeStyles Surface="storefront" />
+<StorefrontAnalytics Enabled="true" IncludeClarity="true" />
+
+<StorefrontCatalogWidgetBody Title="EParts CATA"
+                            Subtitle="Unified parts catalog — vehicle tree plus aftermarket brand catalog."
+                            AnchorId="epc-eparts-cata"
+                            Html="@_html"
+                            PhpComparePath="@StorefrontPhpCanonical.EpartsCata">
+    <a class="btn btn-sm btn-primary" href="@StorefrontSurfaceLinks.VehicleCatalog">Vehicle catalog</a>
+    <a class="btn btn-sm btn-default" href="@StorefrontSurfaceLinks.UmapiCatalog">Epart Catalog</a>
+    <a class="btn btn-sm btn-default" href="@StorefrontSurfaceLinks.EpartsMod">EParts Mod</a>
+    <a class="btn btn-sm btn-default" href="@StorefrontSurfaceLinks.PartSearch">Part search</a>
+</StorefrontCatalogWidgetBody>
+
+@code {
+    private string _html = "";
+
+    protected override void OnInitialized()
+    {
+        var vehicle = PhpHomeWidgetHtml.VehicleCatalog();
+        var umapi = PhpHomeWidgetHtml.UmapiCatalog();
+        if (string.IsNullOrWhiteSpace(vehicle) && string.IsNullOrWhiteSpace(umapi))
+        {
+            _html = "<p style=\"margin:0;color:#64748b\">EParts CATA widgets are unavailable in this environment. "
+                  + "<a href=\"" + StorefrontSurfaceLinks.PartSearch + "\">Open part search</a>.</p>";
+            return;
+        }
+
+        _html = "<div class=\"epc-cata-stack\">"
+              + (string.IsNullOrWhiteSpace(vehicle) ? "" : "<section aria-label=\"Vehicle tree\">" + vehicle + "</section>")
+              + (string.IsNullOrWhiteSpace(umapi) ? "" : "<section aria-label=\"Aftermarket catalog\" style=\"margin-top:1rem\">" + umapi + "</section>")
+              + "</div>";
+    }
+}

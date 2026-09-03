@@ -1,0 +1,39 @@
+@page "/storefront/eparts-mod-app"
+@page "/en/eparts-mod"
+@layout Layout.PhpChromeLayout
+@using EcomAE.Platform.Presentation
+
+<PageTitle>EParts Mod · eParts Cart</PageTitle>
+<PhpChromeStyles Surface="storefront" />
+<StorefrontAnalytics Enabled="true" IncludeClarity="true" />
+
+<StorefrontCatalogWidgetBody Title="EParts Mod"
+                            Subtitle="Vehicle-mod catalog — same storefront family as EParts CATA."
+                            AnchorId="epc-eparts-mod"
+                            Html="@_html"
+                            PhpComparePath="@StorefrontPhpCanonical.EpartsMod">
+    <a class="btn btn-sm btn-primary" href="@StorefrontSurfaceLinks.EpartsCata">EParts CATA</a>
+    <a class="btn btn-sm btn-default" href="@StorefrontSurfaceLinks.LaximoVin">VIN / Frame</a>
+    <a class="btn btn-sm btn-default" href="@StorefrontSurfaceLinks.PartSearch">Part search</a>
+</StorefrontCatalogWidgetBody>
+
+@code {
+    private string _html = "";
+
+    protected override void OnInitialized()
+    {
+        var vehicle = PhpHomeWidgetHtml.VehicleCatalog();
+        var umapi = PhpHomeWidgetHtml.UmapiCatalog();
+        if (string.IsNullOrWhiteSpace(vehicle) && string.IsNullOrWhiteSpace(umapi))
+        {
+            _html = "<p style=\"margin:0;color:#64748b\">EParts Mod widgets are unavailable in this environment. "
+                  + "<a href=\"" + StorefrontSurfaceLinks.PartSearch + "\">Open part search</a>.</p>";
+            return;
+        }
+
+        _html = "<div class=\"epc-mod-stack\">"
+              + (string.IsNullOrWhiteSpace(vehicle) ? "" : "<section aria-label=\"Vehicle tree\">" + vehicle + "</section>")
+              + (string.IsNullOrWhiteSpace(umapi) ? "" : "<section aria-label=\"Aftermarket catalog\" style=\"margin-top:1rem\">" + umapi + "</section>")
+              + "</div>";
+    }
+}

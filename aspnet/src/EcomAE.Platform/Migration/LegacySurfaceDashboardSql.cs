@@ -324,6 +324,173 @@ public static class LegacySurfaceDashboardSql
         """;
 
     /// <summary>
+    /// Guest checkout lookup (PHP <c>ajax_check_order_not_authorized.php</c>).
+    /// Never omit <c>user_id = 0</c> — registered orders must not leak here.
+    /// Email/phone are matched in C# after fetch.
+    /// </summary>
+    public const string SelectGuestOrder = """
+        SELECT o.`id`,
+               IFNULL(o.`time`, 0) AS time,
+               IFNULL(o.`paid`, 0) AS paid,
+               IFNULL(o.`successfully_created`, 0) AS successfully_created,
+               IFNULL(o.`status`, 0) AS status,
+               IFNULL(o.`office_id`, 0) AS office_id,
+               IFNULL(o.`email_not_auth`, '') AS email_not_auth,
+               IFNULL(o.`phone_not_auth`, '') AS phone_not_auth,
+               IFNULL((
+                   SELECT SUM(i.`price` * i.`count_need`)
+                   FROM `shop_orders_items` i
+                   WHERE i.`order_id` = o.`id`
+               ), 0) AS sum,
+               IFNULL((
+                   SELECT m.`caption`
+                   FROM `shop_obtaining_modes` m
+                   WHERE m.`id` = o.`how_get`
+                   LIMIT 1
+               ), '') AS obtain_caption
+        FROM `shop_orders` o
+        WHERE o.`id` = @orderId
+          AND o.`user_id` = 0
+        LIMIT 1
+        """;
+
+    /// <summary>Customer-scoped order lines (PHP <c>my_orders_items.php</c>). Never omit the user join.</summary>
+    public const string SelectCustomerOrderItems = """
+        SELECT i.`id`, i.`order_id`,
+               IFNULL(i.`t2_manufacturer`, '') AS brand,
+               IFNULL(i.`t2_article`, '') AS article,
+               IFNULL(i.`t2_name`, '') AS name,
+               IFNULL(i.`price`, 0) AS price,
+               IFNULL(i.`count_need`, 0) AS count_need,
+               IFNULL(i.`status`, 0) AS status
+        FROM `shop_orders_items` i
+        INNER JOIN `shop_orders` o ON o.`id` = i.`order_id`
+        WHERE o.`user_id` = @userId
+          AND (@orderId = 0 OR i.`order_id` = @orderId)
+        ORDER BY i.`order_id` DESC, i.`id` ASC
+        LIMIT @limit
+        """;
+
+    /// <summary>Customer-scoped order thread (PHP <c>my_order.php</c> messages). Never omit the user join.</summary>
+    public const string SelectCustomerOrderMessages = """
+        SELECT m.`id`, IFNULL(m.`time`, 0) AS time, IFNULL(m.`text`, '') AS text, IFNULL(m.`is_customer`, 0) AS is_customer
+        FROM `shop_orders_messages` m
+        INNER JOIN `shop_orders` o ON o.`id` = m.`order_id`
+        WHERE o.`user_id` = @userId
+          AND m.`order_id` = @orderId
+          AND IFNULL(m.`return_id`, 0) = 0
+        ORDER BY m.`id` ASC
+        LIMIT @limit
+        """;
+
+    /// <summary>Customer-scoped returns list (PHP <c>shop/returns/returns.php</c>). Never omit user_id.</summary>
+    public const string SelectCustomerReturns = """
+        SELECT r.`id`,
+               IFNULL(r.`status_id`, 0) AS status_id,
+               IFNULL(s.`caption`, '') AS status,
+               0 AS time_unix,
+               IFNULL((
+                   SELECT i.`order_id`
+                   FROM `shop_orders_returns_items` ri
+                   INNER JOIN `shop_orders_items` i ON i.`id` = ri.`item_id`
+                   WHERE ri.`return_id` = r.`id`
+                   LIMIT 1
+               ), 0) AS order_id
+        FROM `shop_orders_returns` r
+        LEFT JOIN `shop_orders_returns_statuses` s ON s.`id` = r.`status_id`
+        WHERE r.`user_id` = @userId
+        ORDER BY r.`id` DESC
+        LIMIT @limit
+        """;
+
+    /// <summary>Customer-scoped return lines (PHP <c>shop/returns/return.php</c>).</summary>
+    public const string SelectCustomerReturnItems = """
+        SELECT ri.`id`, ri.`return_id`, ri.`item_id`,
+               IFNULL(ri.`reason_id`, 0) AS reason_id,
+               IFNULL(rs.`caption`, '') AS reason,
+               IFNULL(oi.`order_id`, 0) AS order_id,
+               IFNULL(oi.`t2_manufacturer`, '') AS brand,
+               IFNULL(oi.`t2_article`, '') AS article,
+               IFNULL(oi.`t2_name`, '') AS name,
+               IFNULL(oi.`price`, 0) AS price,
+               IFNULL(oi.`count_need`, 0) AS count_need
+        FROM `shop_orders_returns_items` ri
+        INNER JOIN `shop_orders_returns` r ON r.`id` = ri.`return_id`
+        LEFT JOIN `shop_orders_returns_reasons` rs ON rs.`id` = ri.`reason_id`
+        LEFT JOIN `shop_orders_items` oi ON oi.`id` = ri.`item_id`
+        WHERE r.`user_id` = @userId
+          AND ri.`return_id` = @returnId
+        ORDER BY ri.`id` ASC
+        LIMIT @limit
+        """;
+
+    /// <summary>Customer-scoped return thread. Never omit the user join. Does not mark messages read.</summary>
+    public const string SelectCustomerReturnMessages = """
+        SELECT m.`id`, IFNULL(m.`time`, 0) AS time, IFNULL(m.`text`, '') AS text, IFNULL(m.`is_customer`, 0) AS is_customer
+        FROM `shop_orders_messages` m
+        INNER JOIN `shop_orders_returns` r ON r.`id` = m.`return_id`
+        WHERE r.`user_id` = @userId
+          AND m.`return_id` = @returnId
+        ORDER BY m.`id` ASC
+        LIMIT @limit
+        """;
+
+    /// <summary>Customer VIN / seller-request inbox (PHP <c>content/requests/requests.php</c>).</summary>
+    public const string SelectCustomerVinRequests = """
+        SELECT `id`, IFNULL(`time`, 0) AS time_unix, IFNULL(`viewed_customer`, 0) AS viewed_customer
+        FROM `users_vin`
+        WHERE `user_id` = @userId
+        ORDER BY `viewed_customer` ASC, `id` DESC
+        LIMIT @limit
+        """;
+
+    /// <summary>One VIN request header. Text is HTML from PHP send_vin_email — shown as source only.</summary>
+    public const string SelectCustomerVinRequestById = """
+        SELECT `id`, IFNULL(`time`, 0) AS time_unix, IFNULL(`viewed_customer`, 0) AS viewed_customer,
+               IFNULL(`text`, '') AS text
+        FROM `users_vin`
+        WHERE `user_id` = @userId
+          AND `id` = @requestId
+        LIMIT 1
+        """;
+
+    /// <summary>Customer VIN request thread (PHP <c>ajax_get_message.php</c>). Ownership via users_vin join.</summary>
+    public const string SelectCustomerVinRequestMessages = """
+        SELECT m.`id`, IFNULL(m.`time`, 0) AS time, IFNULL(m.`text`, '') AS text, IFNULL(m.`is_customer`, 0) AS is_customer
+        FROM `users_vin_messages` m
+        INNER JOIN `users_vin` v ON v.`id` = m.`vin_id`
+        WHERE v.`user_id` = @userId
+          AND m.`vin_id` = @requestId
+        ORDER BY m.`id` ASC
+        LIMIT @limit
+        """;
+
+    /// <summary>Garage notepad lines (PHP <c>notepad.php</c>). Ownership via garage user_id join.</summary>
+    public const string SelectCustomerGarageNotepad = """
+        SELECT n.`id`, n.`garage_id`,
+               IFNULL(n.`brend`, '') AS brend,
+               IFNULL(n.`article`, '') AS article,
+               IFNULL(n.`name`, '') AS name,
+               IFNULL(n.`exist`, 0) AS exist,
+               IFNULL(n.`price`, 0) AS price,
+               IFNULL(n.`comment`, '') AS comment
+        FROM `shop_docpart_garage_notepad` n
+        INNER JOIN `shop_docpart_garage` g ON g.`id` = n.`garage_id` AND g.`user_id` = n.`user_id`
+        WHERE n.`user_id` = @userId
+          AND n.`garage_id` = @garageId
+        ORDER BY n.`id` DESC
+        LIMIT @limit
+        """;
+
+    public const string SelectCustomerPriceGroup = """
+        SELECT IFNULL(`group_id`, 0) AS group_id
+        FROM `users_groups_bind`
+        WHERE `user_id` = @userId
+        ORDER BY `group_id` ASC
+        LIMIT 1
+        """;
+
+    /// <summary>
     /// CP OMS recent orders (platform-wide read digest).
     /// Office-manager ACL filtering remains PHP-authoritative.
     /// </summary>
@@ -3056,6 +3223,19 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>PHP <c>epc_price_attr_search</c> against <c>epc_price_attr_index</c>.</summary>
+    public const string SelectStorefrontWarehouseAttrIndex = """
+        SELECT `price_data_id`, `price_id`, `field_key`, `value_raw`, `value_norm`,
+               `manufacturer`, `article`, `article_show`, `name`
+        FROM `epc_price_attr_index`
+        WHERE `value_norm` LIKE @like
+          AND (@field = '' OR @field = 'all' OR `field_key` = @field)
+        ORDER BY
+          CASE WHEN `value_norm` = @norm THEN 0 WHEN `value_norm` LIKE @like THEN 1 ELSE 2 END,
+          `manufacturer` ASC, `article_show` ASC
+        LIMIT @limit
+        """;
+
     /// <summary>Catalogue product card fields for wishlist/compare/product-app digests.</summary>
     public const string SelectStorefrontProductById = """
         SELECT p.`id`, IFNULL(p.`caption`,'') AS caption, IFNULL(p.`alias`,'') AS alias,
@@ -3758,6 +3938,707 @@ public const string SelectCpOpsGuidesStats = """
                IFNULL(`period_to`,0) AS period_to, IFNULL(`time_updated`,0) AS time_updated
         FROM `epc_erp_expense_reports`
         ORDER BY `time_updated` DESC
+        LIMIT @limit
+        """;
+
+    public const string SelectCpOfficesStats = """
+        SELECT
+            (SELECT COUNT(*) FROM `shop_offices`) AS office_count,
+            (SELECT COUNT(DISTINCT `office_id`) FROM `shop_offices_storages_map`) AS mapped_storage_count,
+            (SELECT COUNT(DISTINCT `office_id`) FROM `shop_offices_geo_map`) AS geo_mapped_count
+        """;
+
+    public const string SelectCpOffices = """
+        SELECT `id`, IFNULL(`caption`,'') AS caption, IFNULL(`city`,'') AS city,
+               IFNULL(`address`,'') AS address, IFNULL(`phone`,'') AS phone
+        FROM `shop_offices`
+        ORDER BY `id` ASC
+        LIMIT @limit
+        """;
+
+    /// <summary>PHP workshop_main_page / epc_ws_dashboard KPIs (phone/email/notes omitted).</summary>
+    public const string SelectCpWorkshopStats = """
+        SELECT
+            (SELECT COUNT(*) FROM `epc_ws_jobs` WHERE IFNULL(`status`,'') NOT IN ('delivered','cancelled')) AS open_count,
+            (SELECT COUNT(*) FROM `epc_ws_jobs` WHERE IFNULL(`status`,'') IN ('in_progress','qc')) AS in_progress_count,
+            (SELECT COUNT(*) FROM `epc_ws_jobs` WHERE IFNULL(`status`,'')='ready') AS ready_count,
+            (SELECT COUNT(*) FROM `epc_ws_jobs` WHERE IFNULL(`status`,'')='delivered' AND IFNULL(`time_updated`,0) >= UNIX_TIMESTAMP(CURRENT_DATE())) AS delivered_today,
+            (SELECT IFNULL(SUM(`grand_total`),0) FROM `epc_ws_jobs` WHERE IFNULL(`status`,'') NOT IN ('delivered','cancelled')) AS revenue_open
+        """;
+
+    public const string SelectCpWorkshopJobs = """
+        SELECT j.`id`, IFNULL(j.`job_no`,'') AS job_no, IFNULL(j.`status`,'') AS status,
+               IFNULL(j.`customer_name`,'') AS customer_name, IFNULL(j.`plate`,'') AS plate,
+               IFNULL(j.`make`,'') AS make, IFNULL(j.`model`,'') AS model,
+               IFNULL(j.`year`,'') AS year, IFNULL(b.`name`,'') AS bay_name,
+               IFNULL(t.`name`,'') AS tech_name, IFNULL(j.`grand_total`,0) AS grand_total
+        FROM `epc_ws_jobs` j
+        LEFT JOIN `epc_ws_bays` b ON b.`id` = j.`bay_id`
+        LEFT JOIN `epc_ws_technicians` t ON t.`id` = j.`tech_id`
+        ORDER BY j.`id` DESC
+        LIMIT @limit
+        """;
+
+    /// <summary>PHP devices.php / kkt_root_page — shop_kkt_devices + fiscal checks (customer contact omitted).</summary>
+    public const string SelectCpKktStats = """
+        SELECT
+            (SELECT COUNT(*) FROM `shop_kkt_devices`) AS device_count,
+            (SELECT COUNT(*) FROM `shop_kkt_devices` WHERE IFNULL(`handler`,'')!='') AS wired_device_count,
+            (SELECT COUNT(*) FROM `shop_kkt_checks`) AS check_count,
+            (SELECT COUNT(*) FROM `shop_kkt_checks` WHERE IFNULL(`sent_to_real_device_flag`,0)=1) AS sent_count
+        """;
+
+    public const string SelectCpKktDevices = """
+        SELECT d.`id`, IFNULL(d.`name`,'') AS name, IFNULL(d.`handler`,'') AS handler,
+               IFNULL((SELECT `description` FROM `shop_kkt_interfaces_types` WHERE `handler` = d.`handler` LIMIT 1),'') AS interface_description
+        FROM `shop_kkt_devices` d
+        ORDER BY d.`name` ASC
+        LIMIT @limit
+        """;
+
+    /// <summary>PHP bulk_upload_hub — operator history (all users; no file bodies).</summary>
+    public const string SelectCpBulkUploadStats = """
+        SELECT
+            (SELECT COUNT(*) FROM `epc_bulk_upload_history`) AS upload_count,
+            (SELECT IFNULL(SUM(`uploaded_count`),0) FROM `epc_bulk_upload_history`) AS uploaded_lines,
+            (SELECT IFNULL(SUM(`available_count`),0) FROM `epc_bulk_upload_history`) AS available_count,
+            (SELECT IFNULL(SUM(`notfound_count`),0) FROM `epc_bulk_upload_history`) AS notfound_count
+        """;
+
+    public const string SelectCpBulkUploadRows = """
+        SELECT `id`, IFNULL(`file_name`,'') AS file_name, IFNULL(`priority`,'') AS priority,
+               IFNULL(`uploaded_count`,0) AS uploaded_count, IFNULL(`available_count`,0) AS available_count,
+               IFNULL(`cross_count`,0) AS cross_count, IFNULL(`short_count`,0) AS short_count,
+               IFNULL(`notfound_count`,0) AS notfound_count, IFNULL(`created_at`,'') AS created_at
+        FROM `epc_bulk_upload_history`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
+    /// <summary>PHP <c>epc_erp_workflow_list</c> KPIs from <c>epc_erp_workflow_tasks</c>.</summary>
+    public const string SelectErpWorkflowTaskStats = """
+        SELECT
+            COUNT(*) AS task_count,
+            SUM(CASE WHEN `status` IN ('pending','in_progress') THEN 1 ELSE 0 END) AS open_count,
+            SUM(CASE WHEN `status` = 'done' THEN 1 ELSE 0 END) AS done_count,
+            SUM(CASE WHEN `status` IN ('pending','in_progress') AND `due_at` > 0 AND `due_at` < UNIX_TIMESTAMP() THEN 1 ELSE 0 END) AS overdue_count,
+            SUM(CASE WHEN `status` = 'cancelled' THEN 1 ELSE 0 END) AS cancelled_count
+        FROM `epc_erp_workflow_tasks`
+        """;
+
+    /// <summary>PHP <c>epc_erp_workflow_list</c> — department workflow board (writes remain PHP).</summary>
+    public const string SelectErpWorkflowTasks = """
+        SELECT t.`id`, IFNULL(t.`department_code`,'') AS department_code,
+               IFNULL(t.`workflow_step`,'') AS workflow_step,
+               IFNULL(t.`title`,'') AS title,
+               IFNULL(t.`description`,'') AS description,
+               IFNULL(t.`order_id`,0) AS order_id,
+               IFNULL(t.`status`,'') AS status,
+               IFNULL(t.`priority`,'') AS priority,
+               IFNULL(t.`assigned_user_id`,0) AS assigned_user_id,
+               IFNULL(p.`display_name`,'') AS assignee_name,
+               IFNULL(t.`due_at`,0) AS due_at,
+               IFNULL(t.`completed_at`,0) AS completed_at,
+               IFNULL(t.`time_created`,0) AS time_created
+        FROM `epc_erp_workflow_tasks` t
+        LEFT JOIN `epc_erp_staff_profiles` p ON p.`user_id` = t.`assigned_user_id`
+        ORDER BY FIELD(t.`status`, 'in_progress', 'pending', 'done', 'cancelled'),
+                 t.`priority` DESC, t.`due_at` ASC, t.`id` DESC
+        LIMIT @limit
+        """;
+
+    public const string SelectErpVatRatePercent = """
+        SELECT IFNULL(`setting_value`,'5.00') AS vat_percent
+        FROM `epc_price_settings`
+        WHERE `setting_key` = 'vat_percent'
+        LIMIT 1
+        """;
+
+    /// <summary>Operational VAT 201 sales box — completed shop orders in the period.</summary>
+    public const string SelectErpVatReturnSales = """
+        SELECT IFNULL(SUM(i.`price` * i.`count_need`), 0) AS sales_ex_vat
+        FROM `shop_orders` o
+        INNER JOIN `shop_orders_items` i ON i.`order_id` = o.`id`
+        WHERE o.`successfully_created` = 1
+          AND o.`time` >= @fromUnix
+          AND o.`time` <= @toUnix
+        """;
+
+    public const string SelectErpVatReturnPurchases = """
+        SELECT IFNULL(SUM(`amount_ex_vat`), 0) AS purchase_ex_vat,
+               IFNULL(SUM(`vat_amount`), 0) AS input_vat,
+               IFNULL(SUM(`total_amount`), 0) AS purchase_incl_vat
+        FROM `epc_erp_purchases`
+        WHERE `active` = 1
+          AND `purchase_date` >= @fromUnix
+          AND `purchase_date` <= @toUnix
+        """;
+
+    public const string SelectErpWithholdingCodes = """
+        SELECT `id`, IFNULL(`code`,'') AS code, IFNULL(`name`,'') AS name,
+               IFNULL(`rate`,0) AS rate, IFNULL(`account`,'') AS account,
+               IFNULL(`active`,1) AS active
+        FROM `epc_wht_code`
+        ORDER BY `code` ASC
+        LIMIT @limit
+        """;
+
+    public const string SelectErpWithholdingTxns = """
+        SELECT t.`id`, IFNULL(t.`code_id`,0) AS code_id,
+               IFNULL(c.`code`,'') AS code,
+               IFNULL(t.`vendor`,'') AS vendor,
+               IFNULL(t.`doc_ref`,'') AS doc_ref,
+               IFNULL(t.`txn_date`,'') AS txn_date,
+               IFNULL(t.`base_amount`,0) AS base_amount,
+               IFNULL(t.`wht_amount`,0) AS wht_amount,
+               IFNULL(t.`rate`,0) AS rate,
+               IFNULL(t.`certificate_no`,'') AS certificate_no,
+               IFNULL(t.`status`,'accrued') AS status,
+               IFNULL(t.`time_created`,0) AS time_created
+        FROM `epc_wht_txn` t
+        LEFT JOIN `epc_wht_code` c ON c.`id` = t.`code_id`
+        ORDER BY t.`id` DESC
+        LIMIT @limit
+        """;
+
+    /// <summary>PHP <c>epc_erp_petty_cash_list</c>.</summary>
+    public const string SelectErpPettyCash = """
+        SELECT pc.`id`, IFNULL(pc.`name`,'') AS name,
+               IFNULL(pc.`account_id`,0) AS account_id,
+               IFNULL(a.`name`,'') AS account_name,
+               IFNULL(pc.`float_amount`,0) AS float_amount,
+               IFNULL(a.`opening_balance`,0) AS account_balance,
+               IFNULL(pc.`custodian_user_id`,0) AS custodian_user_id,
+               IFNULL(pc.`active`,1) AS active,
+               IFNULL(pc.`time_created`,0) AS time_created
+        FROM `epc_erp_petty_cash` pc
+        LEFT JOIN `epc_erp_cash_bank_accounts` a ON a.`id` = pc.`account_id`
+        WHERE pc.`active` = 1
+        ORDER BY pc.`name` ASC
+        LIMIT @limit
+        """;
+
+    public const string SelectErpCashForecasts = """
+        SELECT `id`, IFNULL(`name`,'') AS name,
+               IFNULL(`opening_balance`,0) AS opening_balance,
+               IFNULL(`currency`,'') AS currency,
+               IFNULL(`notes`,'') AS notes,
+               IFNULL(`time_created`,0) AS time_created
+        FROM `epc_cft_forecast`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
+    public const string SelectErpCashForecastLines = """
+        SELECT `id`, `forecast_id`, IFNULL(`due_date`,'') AS due_date,
+               IFNULL(`direction`,'in') AS direction,
+               IFNULL(`amount`,0) AS amount,
+               IFNULL(`category`,'') AS category,
+               IFNULL(`source`,'') AS source,
+               IFNULL(`notes`,'') AS notes
+        FROM `epc_cft_line`
+        WHERE `forecast_id` = @forecastId
+        ORDER BY `due_date` ASC, `id` ASC
+        LIMIT @limit
+        """;
+
+    public const string SelectErpBankInstruments = """
+        SELECT `id`, IFNULL(`ref`,'') AS ref, IFNULL(`type`,'lc') AS type,
+               IFNULL(`beneficiary`,'') AS beneficiary,
+               IFNULL(`applicant`,'') AS applicant,
+               IFNULL(`bank`,'') AS bank,
+               IFNULL(`amount`,0) AS amount,
+               IFNULL(`currency`,'') AS currency,
+               IFNULL(`issue_date`,'') AS issue_date,
+               IFNULL(`expiry_date`,'') AS expiry_date,
+               IFNULL(`status`,'draft') AS status,
+               IFNULL(`time_created`,0) AS time_created
+        FROM `epc_cft_instrument`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
+    public const string SelectErpSubscriptions = """
+        SELECT `id`, IFNULL(`code`,'') AS code,
+               IFNULL(`customer`,'') AS customer,
+               IFNULL(`plan_name`,'') AS plan_name,
+               IFNULL(`amount`,0) AS amount,
+               IFNULL(`currency`,'AED') AS currency,
+               IFNULL(`cycle`,'monthly') AS cycle,
+               IFNULL(`term_months`,12) AS term_months,
+               IFNULL(`start_date`,0) AS start_date,
+               IFNULL(`next_bill_date`,0) AS next_bill_date,
+               IFNULL(`status`,'active') AS status,
+               IFNULL(`time_created`,0) AS time_created
+        FROM `epc_erp_subscriptions`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
+    public const string SelectErpSupplierPortalSuppliers = """
+        SELECT `id`, IFNULL(`name`,'') AS name,
+               IFNULL(`contact_email`,'') AS email,
+               IFNULL(`contact_phone`,'') AS phone
+        FROM `epc_erp_suppliers`
+        WHERE `active` = 1
+        ORDER BY `name` ASC
+        LIMIT @limit
+        """;
+
+    public const string SelectErpSupplierPortalPoAgg = """
+        SELECT `supplier_id`,
+               COUNT(*) AS po_count,
+               IFNULL(SUM(`total_amount`),0) AS spend,
+               SUM(CASE WHEN `status` = 'received' THEN 1 ELSE 0 END) AS received,
+               SUM(CASE WHEN `status` = 'received' AND `received_at` > 0 AND `approved_at` > 0 THEN (`received_at` - `approved_at`) ELSE 0 END) AS lead_sum,
+               SUM(CASE WHEN `status` = 'received' AND `received_at` > 0 AND `approved_at` > 0 THEN 1 ELSE 0 END) AS lead_n,
+               SUM(CASE WHEN `status` = 'received' AND `received_at` > 0 AND `approved_at` > 0 AND (`received_at` - `approved_at`) <= 2592000 THEN 1 ELSE 0 END) AS ontime
+        FROM `epc_erp_purchase_orders`
+        GROUP BY `supplier_id`
+        """;
+
+    public const string SelectErpSupplierPortalRfqAgg = """
+        SELECT `supplier_id`,
+               COUNT(*) AS rfq_count,
+               SUM(CASE WHEN `status` IN ('quoted','accepted','rejected') THEN 1 ELSE 0 END) AS responded,
+               SUM(CASE WHEN `status` = 'accepted' THEN 1 ELSE 0 END) AS won
+        FROM `epc_erp_rfq`
+        GROUP BY `supplier_id`
+        """;
+
+    public const string SelectErpSupplierPortalBalanceAgg = """
+        SELECT `supplier_id`,
+               IFNULL(SUM(CASE WHEN `is_credit` = 1 THEN `amount` ELSE -`amount` END),0) AS bal
+        FROM `epc_erp_supplier_accounting`
+        WHERE `active` = 1
+        GROUP BY `supplier_id`
+        """;
+
+    /// <summary>Virtual / exhibition / consignment locations from the warehouse master (no jewellery seed rows).</summary>
+    public const string SelectErpVirtualWarehouses = """
+        SELECT `id`, IFNULL(`storage_id`, 0) AS storage_id, IFNULL(`code`, '') AS code,
+               IFNULL(`name`, '') AS name, `active`, IFNULL(`time_created`, 0) AS time_created
+        FROM `epc_erp_inv_warehouses`
+        WHERE `active` = 1
+          AND (
+                `code` LIKE 'VW-%'
+             OR `code` LIKE 'VW_%'
+             OR LOWER(`name`) LIKE '%virtual%'
+             OR LOWER(`name`) LIKE '%exhibition%'
+             OR LOWER(`name`) LIKE '%display%'
+             OR LOWER(`name`) LIKE '%consignment%'
+          )
+        ORDER BY `name` ASC
+        LIMIT @limit
+        """;
+
+    /// <summary>PHP <c>epc_erp_staff_list</c> — staff profiles (HR notes omitted).</summary>
+    public const string SelectErpStaffProfiles = """
+        SELECT p.`id`, IFNULL(p.`user_id`,0) AS user_id,
+               IFNULL(p.`department_code`,'') AS department_code,
+               IFNULL(p.`display_name`,'') AS display_name,
+               IFNULL(p.`job_title`,'') AS job_title,
+               IFNULL(p.`email`,'') AS email,
+               IFNULL(p.`phone`,'') AS phone,
+               IFNULL(p.`active`,1) AS active,
+               IFNULL(p.`time_created`,0) AS time_created
+        FROM `epc_erp_staff_profiles` p
+        ORDER BY p.`department_code`, p.`display_name`, p.`id`
+        LIMIT @limit
+        """;
+
+    /// <summary>PHP contracts register — body_text / ocr_text omitted.</summary>
+    public const string SelectErpContracts = """
+        SELECT `id`, IFNULL(`code`,'') AS code,
+               IFNULL(`title`,'') AS title,
+               IFNULL(`counterparty`,'') AS counterparty,
+               IFNULL(`contract_value`,0) AS contract_value,
+               IFNULL(`currency`,'AED') AS currency,
+               IFNULL(`start_date`,0) AS start_date,
+               IFNULL(`end_date`,0) AS end_date,
+               IFNULL(`status`,'draft') AS status,
+               IFNULL(`version`,1) AS version,
+               IFNULL(`time_created`,0) AS time_created
+        FROM `epc_erp_contracts`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
+    /// <summary>PHP opening-balance batches + line totals (meta_json omitted).</summary>
+    public const string SelectErpOpeningBatches = """
+        SELECT b.`id`, IFNULL(b.`module`,'combined') AS module,
+               IFNULL(b.`as_of_date`,'') AS as_of_date,
+               IFNULL(b.`reference`,'') AS reference,
+               IFNULL(b.`status`,'draft') AS status,
+               IFNULL(b.`time_created`,0) AS time_created,
+               IFNULL(b.`time_posted`,0) AS time_posted,
+               IFNULL((SELECT COUNT(*) FROM `epc_erp_opening_lines` l WHERE l.`batch_id` = b.`id`),0) AS line_count,
+               IFNULL((SELECT SUM(l.`debit`) FROM `epc_erp_opening_lines` l WHERE l.`batch_id` = b.`id`),0) AS debit_total,
+               IFNULL((SELECT SUM(l.`credit`) FROM `epc_erp_opening_lines` l WHERE l.`batch_id` = b.`id`),0) AS credit_total
+        FROM `epc_erp_opening_batches` b
+        ORDER BY b.`as_of_date` DESC, b.`id` DESC
+        LIMIT @limit
+        """;
+
+    /// <summary>PHP <c>epc_erp_marketing_list</c> — notes omitted.</summary>
+    public const string SelectErpMarketingCampaigns = """
+        SELECT `id`, IFNULL(`name`,'') AS name,
+               IFNULL(`channel`,'') AS channel,
+               IFNULL(`budget`,0) AS budget,
+               IFNULL(`spent`,0) AS spent,
+               IFNULL(`leads`,0) AS leads,
+               IFNULL(`status`,'draft') AS status,
+               IFNULL(`time_start`,0) AS time_start,
+               IFNULL(`time_end`,0) AS time_end,
+               IFNULL(`time_created`,0) AS time_created
+        FROM `epc_erp_marketing_campaigns`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
+    /// <summary>PHP <c>epc_erp_payroll_list_runs</c> — notes omitted.</summary>
+    public const string SelectErpPayrollRuns = """
+        SELECT r.`id`, IFNULL(r.`period_label`,'') AS period_label,
+               IFNULL(r.`period_start`,0) AS period_start,
+               IFNULL(r.`period_end`,0) AS period_end,
+               IFNULL(r.`status`,'draft') AS status,
+               IFNULL(r.`total_gross`,0) AS total_gross,
+               IFNULL(r.`total_deductions`,0) AS total_deductions,
+               IFNULL(r.`total_net`,0) AS total_net,
+               IFNULL(r.`paid_at`,0) AS paid_at,
+               IFNULL(r.`time_created`,0) AS time_created,
+               IFNULL((SELECT COUNT(*) FROM `epc_erp_payroll_lines` l WHERE l.`run_id` = r.`id`),0) AS employee_count
+        FROM `epc_erp_payroll_runs` r
+        ORDER BY r.`period_start` DESC, r.`id` DESC
+        LIMIT @limit
+        """;
+
+    /// <summary>PHP print designer templates — HTML/CSS bodies omitted.</summary>
+    public const string SelectErpPrintTemplates = """
+        SELECT `id`, IFNULL(`doc_type`,'') AS doc_type,
+               IFNULL(`name`,'') AS name,
+               IFNULL(`is_default`,0) AS is_default,
+               IFNULL(`page_size`,'A4') AS page_size,
+               IFNULL(`orientation`,'portrait') AS orientation,
+               IFNULL(`active`,1) AS active,
+               IFNULL(`time_updated`,0) AS time_updated
+        FROM `epc_erp_print_templates`
+        ORDER BY `doc_type`, `is_default` DESC, `id`
+        LIMIT @limit
+        """;
+
+    public const string SelectErpOrderRecommendations = """
+        SELECT r.`id`, IFNULL(r.`item_id`,0) AS item_id,
+               IFNULL(i.`sku`,'') AS sku,
+               IFNULL(i.`name`,'') AS item_name,
+               IFNULL(r.`warehouse_id`,0) AS warehouse_id,
+               IFNULL(r.`roq`,0) AS roq,
+               IFNULL(r.`order_value`,0) AS order_value,
+               IFNULL(r.`status`,'pending') AS status,
+               IFNULL(r.`supplier`,'') AS supplier,
+               IFNULL(r.`ordered_po_id`,0) AS ordered_po_id,
+               IFNULL(r.`time_updated`,0) AS time_updated
+        FROM `epc_erp_order_recommendations` r
+        LEFT JOIN `epc_erp_inv_items` i ON i.`id` = r.`item_id`
+        ORDER BY FIELD(r.`status`,'pending','confirmed','rejected','ordered'), r.`id` DESC
+        LIMIT @limit
+        """;
+
+    public const string SelectErpPlanningParams = """
+        SELECT `item_id`, `warehouse_id`,
+               IFNULL(`lead_time_days`,30) AS lead_time_days,
+               IFNULL(`target_service_level`,90) AS target_service_level,
+               IFNULL(`review_period_days`,30) AS review_period_days,
+               IFNULL(`min_order_qty`,0) AS min_order_qty,
+               IFNULL(`order_multiple`,0) AS order_multiple,
+               IFNULL(`supplier`,'') AS supplier,
+               IFNULL(`stocked`,1) AS stocked
+        FROM `epc_erp_planning_params`
+        ORDER BY `item_id`, `warehouse_id`
+        LIMIT @limit
+        """;
+
+    public const string SelectErpProcCategories = """
+        SELECT `id`, IFNULL(`code`,'') AS code, IFNULL(`name`,'') AS name,
+               IFNULL(`parent_id`,0) AS parent_id,
+               IFNULL(`default_account`,'') AS default_account,
+               IFNULL(`active`,1) AS active,
+               IFNULL(`time_created`,0) AS time_created
+        FROM `epc_proc_category`
+        ORDER BY `code`, `id`
+        LIMIT @limit
+        """;
+
+    public const string SelectErpProcPolicies = """
+        SELECT `id`, IFNULL(`name`,'') AS name,
+               IFNULL(`category_id`,0) AS category_id,
+               IFNULL(`approval_threshold`,0) AS approval_threshold,
+               IFNULL(`preferred_vendor`,'') AS preferred_vendor,
+               IFNULL(`active`,1) AS active
+        FROM `epc_proc_policy`
+        ORDER BY `name`, `id`
+        LIMIT @limit
+        """;
+
+    public const string SelectErpQmPlans = """
+        SELECT p.`id`, IFNULL(p.`code`,'') AS code, IFNULL(p.`name`,'') AS name,
+               IFNULL(p.`active`,1) AS active, IFNULL(p.`time_updated`,0) AS time_updated,
+               IFNULL((SELECT COUNT(*) FROM `epc_qm_test` t WHERE t.`plan_id` = p.`id`),0) AS test_count
+        FROM `epc_qm_plan` p
+        ORDER BY p.`code`, p.`id`
+        LIMIT @limit
+        """;
+
+    public const string SelectErpQmOrders = """
+        SELECT `id`, IFNULL(`plan_id`,0) AS plan_id,
+               IFNULL(`ref_type`,'item') AS ref_type,
+               IFNULL(`ref_id`,'') AS ref_id,
+               IFNULL(`item_id`,0) AS item_id,
+               IFNULL(`qty`,0) AS qty,
+               IFNULL(`status`,'open') AS status,
+               IFNULL(`verdict`,'') AS verdict,
+               IFNULL(`time_created`,0) AS time_created
+        FROM `epc_qm_order`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
+    public const string SelectErpQmNcrs = """
+        SELECT `id`, IFNULL(`order_id`,0) AS order_id,
+               IFNULL(`title`,'') AS title,
+               IFNULL(`severity`,'minor') AS severity,
+               IFNULL(`disposition`,'') AS disposition,
+               IFNULL(`status`,'open') AS status,
+               IFNULL(`time_created`,0) AS time_created
+        FROM `epc_qm_ncr`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
+    public const string SelectErpRfidTags = """
+        SELECT `id`, IFNULL(`rfid_epc`,'') AS rfid_epc,
+               IFNULL(`sku`,'') AS sku,
+               IFNULL(`item_description`,'') AS item_description,
+               IFNULL(`warehouse_id`,0) AS warehouse_id,
+               IFNULL(`location_zone`,'') AS location_zone,
+               IFNULL(`status`,'active') AS status,
+               IFNULL(`last_scanned_at`,'') AS last_scanned_at,
+               IFNULL(`time_created`,0) AS time_created
+        FROM `epc_rfid_tags`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
+    public const string SelectErpRfidSessions = """
+        SELECT `id`, IFNULL(`session_type`,'stocktake') AS session_type,
+               IFNULL(`warehouse_id`,0) AS warehouse_id,
+               IFNULL(`zone`,'') AS zone,
+               IFNULL(`total_scanned`,0) AS total_scanned,
+               IFNULL(`total_expected`,0) AS total_expected,
+               IFNULL(`total_found`,0) AS total_found,
+               IFNULL(`total_missing`,0) AS total_missing,
+               IFNULL(`status`,'in_progress') AS status,
+               IFNULL(`scanned_by_name`,'') AS scanned_by_name,
+               IFNULL(`time_started`,0) AS time_started
+        FROM `epc_rfid_scan_sessions`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
+    public const string SelectErpRecruitmentJobs = """
+        SELECT `id`, IFNULL(`title`,'') AS title,
+               IFNULL(`department`,'') AS department,
+               IFNULL(`headcount`,1) AS headcount,
+               IFNULL(`hired`,0) AS hired,
+               IFNULL(`status`,'open') AS status,
+               IFNULL(`hiring_manager`,'') AS hiring_manager,
+               IFNULL(`time_created`,0) AS time_created
+        FROM `epc_hrt_job`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
+    public const string SelectErpRecruitmentApplicants = """
+        SELECT `id`, IFNULL(`job_id`,0) AS job_id,
+               IFNULL(`name`,'') AS name,
+               IFNULL(`email`,'') AS email,
+               IFNULL(`phone`,'') AS phone,
+               IFNULL(`stage`,'applied') AS stage,
+               IFNULL(`rating`,0) AS rating,
+               IFNULL(`time_created`,0) AS time_created
+        FROM `epc_hrt_applicant`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
+    public const string SelectErpCustomerGroups = """
+        SELECT g.`id`, IFNULL(g.`group_code`,'') AS group_code,
+               IFNULL(g.`group_name`,'') AS group_name,
+               IFNULL(g.`group_type`,'general') AS group_type,
+               IFNULL(g.`discount_pct`,0) AS discount_pct,
+               IFNULL(g.`credit_limit`,0) AS credit_limit,
+               IFNULL(g.`payment_terms_days`,30) AS payment_terms_days,
+               IFNULL(g.`is_active`,1) AS is_active,
+               IFNULL(g.`time_created`,0) AS time_created,
+               IFNULL((SELECT COUNT(*) FROM `epc_customer_group_members` m WHERE m.`group_id` = g.`id`),0) AS member_count
+        FROM `epc_customer_groups` g
+        ORDER BY g.`group_name`, g.`id`
+        LIMIT @limit
+        """;
+
+    public const string SelectErpPerformanceReviews = """
+        SELECT `id`, IFNULL(`employee_id`,0) AS employee_id,
+               IFNULL(`employee_name`,'') AS employee_name,
+               IFNULL(`period`,'') AS period,
+               IFNULL(`status`,'draft') AS status,
+               IFNULL(`reviewer`,'') AS reviewer,
+               IFNULL(`overall_rating`,0) AS overall_rating,
+               IFNULL(`time_updated`,0) AS time_updated
+        FROM `epc_hrt_review`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
+    public const string SelectErpPerformanceGoals = """
+        SELECT `id`, IFNULL(`review_id`,0) AS review_id,
+               IFNULL(`title`,'') AS title,
+               IFNULL(`weight`,1) AS weight,
+               IFNULL(`target`,'') AS target,
+               IFNULL(`rating`,0) AS rating
+        FROM `epc_hrt_goal`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
+    public const string SelectErpProductInfoItems = """
+        SELECT `id`, IFNULL(`sku`,'') AS sku,
+               IFNULL(`name`,'') AS name,
+               IFNULL(`product_id`,0) AS product_id,
+               IFNULL(`item_type`,'standard') AS item_type,
+               IFNULL(`unit`,'pcs') AS unit,
+               IFNULL(`sales_price`,0) AS sales_price,
+               IFNULL(`active`,1) AS active,
+               IFNULL(`time_created`,0) AS time_created
+        FROM `epc_erp_inv_items`
+        ORDER BY `sku`, `id`
+        LIMIT @limit
+        """;
+
+    public const string SelectErpProductInfoFieldDefs = """
+        SELECT `id`, IFNULL(`field_key`,'') AS field_key,
+               IFNULL(`label`,'') AS label,
+               IFNULL(`field_type`,'text') AS field_type,
+               IFNULL(`field_role`,'inventory') AS field_role,
+               IFNULL(`sort_order`,0) AS sort_order,
+               IFNULL(`active`,1) AS active
+        FROM `epc_erp_inv_field_defs`
+        ORDER BY `sort_order`, `id`
+        LIMIT @limit
+        """;
+
+    public const string SelectErpProductInfoVariants = """
+        SELECT `id`, IFNULL(`item_id`,0) AS item_id,
+               IFNULL(`base_sku`,'') AS base_sku,
+               IFNULL(`variant_sku`,'') AS variant_sku,
+               IFNULL(`variant_label`,'') AS variant_label,
+               IFNULL(`active`,1) AS active,
+               IFNULL(`time_created`,0) AS time_created
+        FROM `epc_erp_prod_variants`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
+    public const string SelectErpReportSchedules = """
+        SELECT `id`, IFNULL(`report_name`,'') AS report_name,
+               IFNULL(`report_type`,'') AS report_type,
+               IFNULL(`frequency`,'monthly') AS frequency,
+               IFNULL(`day_of_week`,1) AS day_of_week,
+               IFNULL(`day_of_month`,1) AS day_of_month,
+               IFNULL(`time_of_day`,'08:00') AS time_of_day,
+               IFNULL(`format`,'pdf') AS format,
+               IFNULL(`is_active`,1) AS is_active,
+               IFNULL(`last_status`,'') AS last_status,
+               IFNULL(`time_created`,0) AS time_created
+        FROM `epc_report_schedules`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
+    public const string SelectErpPrjaBudgets = """
+        SELECT `id`, IFNULL(`project_id`,0) AS project_id,
+               IFNULL(`category`,'general') AS category,
+               IFNULL(`cost_budget`,0) AS cost_budget,
+               IFNULL(`revenue_budget`,0) AS revenue_budget,
+               IFNULL(`time_created`,0) AS time_created
+        FROM `epc_prja_budget`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
+    public const string SelectErpPrjaTxns = """
+        SELECT `id`, IFNULL(`project_id`,0) AS project_id,
+               IFNULL(`txn_type`,'cost') AS txn_type,
+               IFNULL(`category`,'general') AS category,
+               IFNULL(`description`,'') AS description,
+               IFNULL(`amount`,0) AS amount,
+               IFNULL(`txn_date`,0) AS txn_date,
+               IFNULL(`time_created`,0) AS time_created
+        FROM `epc_prja_txn`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
+    public const string SelectErpPrjaRecognitions = """
+        SELECT `id`, IFNULL(`project_id`,0) AS project_id,
+               IFNULL(`method`,'poc') AS method,
+               IFNULL(`as_of`,0) AS as_of,
+               IFNULL(`pct_complete`,0) AS pct_complete,
+               IFNULL(`recognized_revenue`,0) AS recognized_revenue,
+               IFNULL(`recognized_cost`,0) AS recognized_cost,
+               IFNULL(`wip`,0) AS wip,
+               IFNULL(`time_created`,0) AS time_created
+        FROM `epc_prja_recognition`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
+    public const string SelectErpDocAttachments = """
+        SELECT `id`, IFNULL(`entity_type`,'') AS entity_type,
+               IFNULL(`entity_id`,0) AS entity_id,
+               IFNULL(`file_name`,'') AS file_name,
+               IFNULL(`file_size`,0) AS file_size,
+               IFNULL(`mime_type`,'') AS mime_type,
+               IFNULL(`description`,'') AS description,
+               IFNULL(`uploaded_by_name`,'') AS uploaded_by_name,
+               IFNULL(`time_created`,0) AS time_created
+        FROM `epc_doc_attachments`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
+    public const string SelectErpInventoryReportCategories = """
+        SELECT `id`, IFNULL(`parent_id`,0) AS parent_id,
+               IFNULL(`code`,'') AS code,
+               IFNULL(`name`,'') AS name,
+               IFNULL(`level`,1) AS level,
+               IFNULL(`sort_order`,0) AS sort_order,
+               IFNULL(`is_active`,1) AS is_active,
+               IFNULL(`time_created`,0) AS time_created
+        FROM `epc_inventory_categories`
+        ORDER BY `level`, `sort_order`, `name`, `id`
+        LIMIT @limit
+        """;
+
+    public const string SelectErpInventoryReportSnapshots = """
+        SELECT `id`, IFNULL(`snapshot_date`,'') AS snapshot_date,
+               IFNULL(`category_id`,0) AS category_id,
+               IFNULL(`total_skus`,0) AS total_skus,
+               IFNULL(`total_qty`,0) AS total_qty,
+               IFNULL(`total_value`,0) AS total_value,
+               IFNULL(`avg_age_days`,0) AS avg_age_days,
+               IFNULL(`time_created`,0) AS time_created
+        FROM `epc_inventory_snapshots`
+        ORDER BY `snapshot_date` DESC, `id` DESC
         LIMIT @limit
         """;
 

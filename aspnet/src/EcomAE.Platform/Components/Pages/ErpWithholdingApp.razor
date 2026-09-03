@@ -7,45 +7,90 @@
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
+@inject NavigationManager Nav
 
 <PageTitle>Withholding · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Withholding" BreadcrumbArea="Tax" BreadcrumbTab="Withholding">
 
-    
-    <PhpErpModulePageHeader Title="Withholding tax" Subtitle="ASP.NET Core digest — PHP compare only under /php-reference/*." PhpTabHref="@_phpTab" />
-
+    <PhpErpModulePageHeader Title="Withholding tax" Subtitle="Codes, vendor withholdings, certificates and settlements. Writes stay on ERP ajax." PhpTabHref="@_phpTab" />
+    <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
 
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Withholding KPIs">
-        <div class="kpi"><div class="lbl">Tax items shown</div><div class="val">@_items.Count.ToString(CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">Digest source</div><div class="val">@_source</div></div>
-        <div class="kpi"><div class="lbl">Session</div><div class="val">@(_isAdmin ? "live" : "guest")</div></div>
+        <div class="kpi"><div class="lbl">Codes</div><div class="val">@_summary.CodeCount.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Transactions</div><div class="val">@_summary.TxnCount.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Accrued</div><div class="val">@_summary.Accrued.ToString("N2", CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Settled</div><div class="val">@_summary.Settled.ToString("N2", CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Total withheld</div><div class="val">@_summary.TotalWithheld.ToString("N2", CultureInfo.InvariantCulture)</div></div>
     </div>
 
+    <h2 style="font-size:16px;margin-top:8px;">Codes</h2>
     <div class="epc-erp-table-wrap">
         <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
             <thead>
                 <tr>
-                    <th>Slug</th>
-                    <th>Title</th>
-                    <th>Category</th>
-                    <th></th>
+                    <th>Code</th>
+                    <th>Name</th>
+                    <th class="text-right">Rate %</th>
+                    <th>GL account</th>
+                    <th>Active</th>
                 </tr>
             </thead>
             <tbody>
-                @if (_items.Count == 0)
+                @if (_codes.Count == 0)
                 {
-                    <tr><td colspan="4">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? "Nothing to show yet." : _message) : "Sign in with ERP capability for live tax rows.")</td></tr>
+                    <tr><td colspan="5">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? "No codes yet." : _message) : "Sign in with ERP capability for live tax rows.")</td></tr>
                 }
                 else
                 {
-                    @foreach (var row in _items)
+                    @foreach (var row in _codes)
                     {
                         <tr>
-                            <td><strong>@row.Slug</strong></td>
-                            <td>@row.Title</td>
-                            <td>@row.TaxCategory</td>
-                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
+                            <td><strong>@row.Code</strong></td>
+                            <td>@row.Name</td>
+                            <td class="text-right">@row.Rate.ToString("0.00", CultureInfo.InvariantCulture)</td>
+                            <td>@(string.IsNullOrWhiteSpace(row.Account) ? "—" : row.Account)</td>
+                            <td>@(row.Active ? "active" : "inactive")</td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <h2 style="font-size:16px;margin-top:16px;">Transactions</h2>
+    <div class="epc-erp-table-wrap">
+        <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
+            <thead>
+                <tr>
+                    <th>Vendor</th>
+                    <th>Code</th>
+                    <th>Doc</th>
+                    <th>Date</th>
+                    <th class="text-right">Base</th>
+                    <th class="text-right">Withheld</th>
+                    <th>Certificate</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (_txns.Count == 0)
+                {
+                    <tr><td colspan="8">@(_isAdmin ? "No withholding transactions yet." : "Sign in with ERP capability for live tax rows.")</td></tr>
+                }
+                else
+                {
+                    @foreach (var row in _txns)
+                    {
+                        <tr>
+                            <td>@(string.IsNullOrWhiteSpace(row.Vendor) ? "—" : row.Vendor)</td>
+                            <td>@(string.IsNullOrWhiteSpace(row.Code) ? "—" : row.Code)</td>
+                            <td>@(string.IsNullOrWhiteSpace(row.DocRef) ? "—" : row.DocRef)</td>
+                            <td>@(string.IsNullOrWhiteSpace(row.TxnDate) ? "—" : row.TxnDate)</td>
+                            <td class="text-right">@row.BaseAmount.ToString("N2", CultureInfo.InvariantCulture)</td>
+                            <td class="text-right">@row.WhtAmount.ToString("N2", CultureInfo.InvariantCulture)</td>
+                            <td>@(string.IsNullOrWhiteSpace(row.CertificateNo) ? "—" : row.CertificateNo)</td>
+                            <td><span class="label label-default">@row.Status</span></td>
                         </tr>
                     }
                 }
@@ -54,14 +99,16 @@
     </div>
 
     <div class="epc-erp-empty" style="display:block;margin-top:12px;padding:8px 10px;border:1px solid #c5d4de;background:#f8fafc;color:#475569;font-size:12px;">
-        Dry-runs: <code>wht_code_save</code>, <code>wht_record</code>, <code>wht_certificate</code>, <code>wht_settle</code> — writes=0.
+        Source: @_source. Dry-runs: <code>wht_code_save</code>, <code>wht_record</code>, <code>wht_certificate</code>, <code>wht_settle</code> — writes=0.
     </div>
 </PhpErpDesktopChrome>
 
 @code {
     private const string _phpTab = "/ERP/?epc_erp_shell=1&area=tax&tab=withholding";
     private bool _isAdmin;
-    private IReadOnlyList<CpUaeTaxItemDigest> _items = [];
+    private ErpWithholdingSummary _summary = new(0, 0, 0, 0, 0, "n/a", "");
+    private IReadOnlyList<ErpWithholdingCodeDigest> _codes = [];
+    private IReadOnlyList<ErpWithholdingTxnDigest> _txns = [];
     private string _source = "n/a";
     private string _message = "";
 
@@ -77,8 +124,10 @@
             return;
         }
 
-        var result = await Dashboards.BuildCpUaeTaxComplianceDigestAsync(100, ctx.RequestAborted);
-        _items = result.Items;
+        var result = await Dashboards.BuildErpWithholdingDigestAsync(200, ctx.RequestAborted);
+        _summary = result.Summary;
+        _codes = result.Codes;
+        _txns = result.Txns;
         _source = result.Source;
         _message = result.Message;
     }

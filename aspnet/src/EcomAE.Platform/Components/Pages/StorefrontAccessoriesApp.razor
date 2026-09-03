@@ -1,4 +1,6 @@
 @page "/storefront/accessories-app"
+@page "/en/accessories-spare-parts"
+@page "/en/accessories"
 @layout Layout.PhpChromeLayout
 @using EcomAE.Platform.Presentation
 
@@ -10,7 +12,7 @@
 
 <StorefrontAnalytics Enabled="true" IncludeClarity="true" />
 
-<PhpStorefrontDesktopChrome>
+<StorefrontTenantChrome>
     <section class="epc-acc" id="epc-accessories"
              data-api="/content/shop/docpart/ajax_epc_accessories_search.php"
              data-lang="/en"
@@ -161,7 +163,7 @@
             </form>
         </dialog>
     </section>
-</PhpStorefrontDesktopChrome>
+</StorefrontTenantChrome>
 
 @* Marketplace JS (PHP twin). MarkupString so Blazor SSR does not strip the tag. *@
 @((MarkupString)"""<script src="/platform-assets/epc_accessories_marketplace.js?v=20260808acc"></script>""")

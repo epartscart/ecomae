@@ -1,0 +1,59 @@
+@page "/storefront/seller-request-app"
+@page "/en/zapros-prodavczu"
+@page "/zapros-prodavczu"
+@layout Layout.PhpChromeLayout
+@using EcomAE.Platform.Presentation
+@inject IHttpContextAccessor Http
+
+<PageTitle>Request to seller · @_brand</PageTitle>
+<PhpSurfaceHead Surface="storefront" IncludeStorefrontAnalytics="true" ApplyStorefrontIndustryAttrs="true" />
+<PhpChromeBodyClass Surface="storefront" />
+
+<StorefrontTenantChrome>
+    <section style="padding:2rem 0 3rem">
+        <div class="container" style="max-width:48rem">
+            <p style="margin:0 0 .35rem;color:#64748b;font-size:.85rem">
+                <a href="@StorefrontSurfaceLinks.CustomerRequests">My requests</a>
+                · Request to seller
+            </p>
+            <h1 style="margin:.1rem 0 .4rem">Send a request to seller</h1>
+            <p style="color:#475569">Describe the VIN or frame and the parts you need. The store replies on My requests.</p>
+            <form method="post" action="@PhpSellerRequest.SellerWriteHref" enctype="multipart/form-data" style="background:#fff;border:1px solid #e2e8f0;border-radius:.55rem;padding:1.1rem 1.2rem">
+                @foreach (var field in PhpSellerRequest.Fields)
+                {
+                    <label for="@field.Name">@field.Label@(field.Required ? " *" : "")</label>
+                    @if (field.Required)
+                    {
+                        <input id="@field.Name" type="text" name="@field.Name" placeholder="@field.Placeholder" required
+                               style="width:100%;margin:.25rem 0 .75rem;padding:.5rem" />
+                    }
+                    else
+                    {
+                        <input id="@field.Name" type="text" name="@field.Name" placeholder="@field.Placeholder"
+                               style="width:100%;margin:.25rem 0 .75rem;padding:.5rem" />
+                    }
+                }
+                <label for="client_parts">Parts needed</label>
+                <textarea id="client_parts" name="client_parts" rows="4" placeholder="Articles, names, quantities"
+                          style="width:100%;margin:.25rem 0 .75rem;padding:.5rem"></textarea>
+                <label for="capcha_input">Security code *</label>
+                <div style="display:flex;gap:.65rem;align-items:center;flex-wrap:wrap;margin:.25rem 0 .75rem">
+                    <input id="capcha_input" type="text" name="capcha_input" required autocomplete="off" style="flex:1 1 10rem;padding:.5rem" />
+                    <img src="/lib/captcha/captcha.php" alt="" width="120" height="40" style="border:1px solid #e2e8f0;border-radius:.3rem" />
+                </div>
+                <label for="client_img">Photos (png, jpeg, jpg, bmp)</label>
+                <input id="client_img" type="file" name="client_img[]" multiple accept="image/*" style="width:100%;margin:.25rem 0 1rem" />
+                <button type="submit" style="padding:.65rem 1.1rem;border:0;border-radius:.45rem;background:#dc2626;color:#fff;font-weight:800;cursor:pointer">Send request</button>
+            </form>
+        </div>
+    </section>
+</StorefrontTenantChrome>
+
+@code {
+    private string _brand = "eParts Cart";
+
+    protected override void OnInitialized()
+    {
+        _brand = StorefrontIndustryHostResolver.ResolveBrandLabel(Http.HttpContext?.Request.Host.Host);
+    }
+}

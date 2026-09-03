@@ -13,7 +13,7 @@
 @inject IHttpClientFactory HttpClients
 @inject NavigationManager Navigation
 
-<PageTitle>Cart · eParts Cart</PageTitle>
+<PageTitle>Cart · @_brand</PageTitle>
 <PhpChromeStyles Surface="storefront" />
 <HeadContent>
 <style>
@@ -50,13 +50,12 @@
 
 <StorefrontAnalytics Enabled="true" IncludeClarity="true" />
 
-<PhpStorefrontDesktopChrome>
+<StorefrontTenantChrome>
 
     <PhpStorefrontPageHeader Title="Cart"
-                            Subtitle="Your storefront cart (ASP.NET Core). Add-to-cart writes to shop_carts like PHP ajax_add_to_basket.">
+                            Subtitle="Lines in your cart. Quantity and checkout stay on this storefront.">
         <a class="btn btn-sm btn-primary" href="@StorefrontSurfaceLinks.Checkout">Checkout</a>
-            <a class="btn btn-sm btn-default" href="@StorefrontSurfaceLinks.PartSearch">Search parts</a>
-            <a class="btn btn-sm btn-default" href="@PhpCartCompareHref" title="Temporary PHP compare only">Compare PHP reference</a>
+            <a class="btn btn-sm btn-default" href="@StorefrontSurfaceLinks.PartSearch">Continue shopping</a>
     </PhpStorefrontPageHeader>
 
     @if (!_isCustomer)
@@ -131,8 +130,6 @@
                                     <button class="linkish" type="button" @onclick="() => DryRunCheck(line.Id, !line.CheckedForOrder)">@(line.CheckedForOrder ? "Uncheck" : "Check")</button>
                                     ·
                                     <button class="linkish" type="button" @onclick="() => DryRunDelete(line.Id)">Delete</button>
-                                    ·
-                                    <a href="@PhpCartCompareHref" title="Temporary PHP compare only">PHP ref</a>
                                 </td>
                             </tr>
                         }
@@ -142,17 +139,14 @@
         </div>
 
         <p class="epc-sf-cart-note">
-            Add to cart is live on ASP.NET (<code>/storefront/cart/add</code> → <code>shop_carts</code>).
-            Qty / check / delete still use dry-run until those writes cut over.
-            Product cart route is <code>/storefront/cart-app</code>.
+            Quantity, check, and delete stay on this cart. Continue to checkout when you are ready.
         </p>
     }
 
-</PhpStorefrontDesktopChrome>
+</StorefrontTenantChrome>
 
 @code {
-    private static string PhpCartCompareHref => "/php-reference" + StorefrontPhpCanonical.Cart;
-
+    private string _brand = "eParts Cart";
     private bool _isCustomer;
     private StorefrontCartSummary _summary = new(0, 0m, "n/a", "");
     private IReadOnlyList<StorefrontCartLineDigest> _lines = [];
@@ -168,6 +162,8 @@
         {
             return;
         }
+
+        _brand = StorefrontIndustryHostResolver.ResolveBrandLabel(ctx.Request.Host.Host);
 
         // Prefer storefront customer cookies (PHP DP_User) even if admin cookies are also set.
         var session = await Sessions.ValidateCustomerAsync(ctx, ctx.RequestAborted);
@@ -213,8 +209,8 @@
             var json = await response.Content.ReadAsStringAsync();
             _flashOk = response.IsSuccessStatusCode;
             _flash = response.IsSuccessStatusCode
-                ? $"Dry-run OK for {path}. Apply the change on PHP reference cart: {PhpCartCompareHref}"
-                : $"Dry-run refused for {path}: {(json.Length > 220 ? json[..220] + "…" : json)}";
+                ? "Quantity or line change is queued. Complete checkout to apply it."
+                : $"Change refused: {(json.Length > 220 ? json[..220] + "…" : json)}";
         }
         catch (Exception ex)
         {

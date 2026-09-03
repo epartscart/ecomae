@@ -1,0 +1,77 @@
+@page "/storefront/auto-workshop-app"
+@page "/en/storefront/auto-workshop-app"
+@layout Layout.PhpChromeLayout
+@using EcomAE.Platform.Presentation
+@inject IHttpContextAccessor Http
+
+<PageTitle>Repair workshop · @_brand</PageTitle>
+<PhpSurfaceHead Surface="storefront" IncludeStorefrontAnalytics="true" ApplyStorefrontIndustryAttrs="true" />
+<PhpChromeBodyClass Surface="storefront" />
+
+<StorefrontTenantChrome>
+    <section class="epc-awo" style="padding:0 0 2.5rem">
+        <div style="padding:2.2rem 1rem;color:#f8fafc;background:linear-gradient(120deg,#0b1220 0%,#164e63 42%,#0e7490 100%)">
+            <div class="container" style="max-width:46rem">
+                <p style="margin:0 0 .35rem;letter-spacing:.08em;text-transform:uppercase;font-size:.75rem;opacity:.85">@_brand · Auto workshop</p>
+                <h1 style="margin:.1rem 0 .5rem;font-size:1.85rem">Repair workshop</h1>
+                <p style="margin:0 0 1rem;opacity:.94">Book service, track your job, and keep parts and labour on one garage job card.</p>
+                <p>
+                    <a class="btn btn-default" href="#book" style="margin-right:.4rem">Book service</a>
+                    <a class="btn btn-default" href="#track">Track job</a>
+                </p>
+            </div>
+        </div>
+        <div class="container" style="max-width:68rem;padding-top:1.5rem">
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:.85rem;margin:0 0 1.25rem">
+                <div><strong>1. Check-in</strong><p style="color:#64748b;margin:.25rem 0 0">Plate, VIN, odometer, and what needs fixing.</p></div>
+                <div><strong>2. Estimate</strong><p style="color:#64748b;margin:.25rem 0 0">Labour hours and parts on one job card.</p></div>
+                <div><strong>3. Repair &amp; QC</strong><p style="color:#64748b;margin:.25rem 0 0">Bay and technician assigned before handover.</p></div>
+                <div><strong>4. Ready</strong><p style="color:#64748b;margin:.25rem 0 0">Collect the vehicle; the invoice stays with the job.</p></div>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1rem">
+                <form id="book" method="post" action="@PhpWorkshopPortal.BookWriteHref" style="background:#f4f7f5;border:1px solid #d9e2e0;border-radius:.7rem;padding:1.1rem 1.15rem">
+                    <h2 style="margin:.1rem 0 .75rem;font-size:1.1rem">Book a service</h2>
+                    <label>Your name *</label>
+                    <input name="customer_name" required style="width:100%;margin:0 0 .65rem;padding:.5rem" />
+                    <label>Phone *</label>
+                    <input name="customer_phone" required placeholder="+971…" style="width:100%;margin:0 0 .65rem;padding:.5rem" />
+                    <label>E-mail</label>
+                    <input name="customer_email" type="email" style="width:100%;margin:0 0 .65rem;padding:.5rem" />
+                    <label>Plate *</label>
+                    <input name="plate" required placeholder="D-12345" style="width:100%;margin:0 0 .65rem;padding:.5rem" />
+                    <label>Make / model / year</label>
+                    <input name="make" placeholder="Make" style="width:100%;margin:0 0 .4rem;padding:.5rem" />
+                    <input name="model" placeholder="Model" style="width:100%;margin:0 0 .4rem;padding:.5rem" />
+                    <input name="year" placeholder="Year" style="width:100%;margin:0 0 .65rem;padding:.5rem" />
+                    <label>VIN</label>
+                    <input name="vin" style="width:100%;margin:0 0 .65rem;padding:.5rem" />
+                    <label>What needs doing? *</label>
+                    <textarea name="complaint" rows="3" required style="width:100%;margin:0 0 .85rem;padding:.5rem"></textarea>
+                    <button type="submit" style="border:0;border-radius:.45rem;background:#0e7490;color:#fff;font-weight:800;padding:.65rem 1rem;cursor:pointer">Submit booking</button>
+                </form>
+                <form id="track" method="post" action="@PhpWorkshopPortal.TrackWriteHref" style="background:#f4f7f5;border:1px solid #d9e2e0;border-radius:.7rem;padding:1.1rem 1.15rem">
+                    <h2 style="margin:.1rem 0 .75rem;font-size:1.1rem">Track your job</h2>
+                    <label>Job number or plate *</label>
+                    <input name="ref" required placeholder="WS-… or D-12345" style="width:100%;margin:0 0 .65rem;padding:.5rem" />
+                    <label>Phone (optional)</label>
+                    <input name="phone" placeholder="+971…" style="width:100%;margin:0 0 .85rem;padding:.5rem" />
+                    <button type="submit" style="border:0;border-radius:.45rem;background:#0e7490;color:#fff;font-weight:800;padding:.65rem 1rem;cursor:pointer">Check status</button>
+                    <p style="margin:1rem 0 0;color:#64748b;font-size:.85rem">
+                        Need parts while you wait?
+                        <a href="@StorefrontSurfaceLinks.PartSearch">Parts search</a> ·
+                        <a href="@StorefrontSurfaceLinks.LaximoVin">OEM catalog</a>
+                    </p>
+                </form>
+            </div>
+        </div>
+    </section>
+</StorefrontTenantChrome>
+
+@code {
+    private string _brand = "eParts Cart";
+
+    protected override void OnInitialized()
+    {
+        _brand = StorefrontIndustryHostResolver.ResolveBrandLabel(Http.HttpContext?.Request.Host.Host);
+    }
+}

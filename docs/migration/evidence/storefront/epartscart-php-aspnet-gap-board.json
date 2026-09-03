@@ -37,16 +37,16 @@
     {
       "id": "name_search",
       "php": "/en/shop/search",
-      "aspnet": "/storefront/search-app?mode=name",
-      "status": "stub",
-      "notes": "Mode label only; catalogue name search still PHP-authoritative."
+      "aspnet": "/en/shop/search + /storefront/search-app?mode=name",
+      "status": "complete",
+      "notes": "Catalogue name search via ListStorefrontCatalogueProductsAsync (search_string). Cart writes remain PHP."
     },
     {
       "id": "warehouse_attr",
       "php": "/en/shop/warehouse-search",
-      "aspnet": "/storefront/search-app?mode=attr",
-      "status": "partial",
-      "notes": "Attr form present; fielded warehouse attr SQL not full PHP parity."
+      "aspnet": "/en/shop/warehouse-search + /storefront/search-app?mode=attr",
+      "status": "complete",
+      "notes": "Fielded warehouse attr search via epc_price_attr_index (PHP epc_price_attr_search). Index populate stays PHP ingest."
     },
     {
       "id": "vin_laximo",
@@ -74,28 +74,28 @@
       "php": "/en/shop/checkout",
       "aspnet": "/storefront/checkout-app",
       "status": "partial",
-      "notes": "Readiness KPIs + explicit PHP how_get / confirm / login_offer steps. Create/payment PHP."
+      "notes": "Readiness KPIs + cart line review on checkout/confirm. Create/payment writes stay PHP."
     },
     {
       "id": "orders",
       "php": "/en/shop/orders",
       "aspnet": "/storefront/orders-app",
       "status": "partial",
-      "notes": "List digest; detail/messages PHP."
+      "notes": "List + items + customer-scoped message thread. Send-message / pay-on-collection writes stay PHP."
     },
     {
       "id": "garage",
       "php": "/en/garazh + /en/garage/login",
       "aspnet": "/storefront/garage-app",
       "status": "partial",
-      "notes": "Shell + digests; car/notepad writes PHP."
+      "notes": "Vehicle list + notepad READ. Car/notepad writes stay PHP."
     },
     {
       "id": "account",
       "php": "/en/users/login|/profile",
       "aspnet": "/storefront/login|/storefront/account-summary-app|/storefront/account-app",
       "status": "partial",
-      "notes": "Chrome balance → account-summary; registration still PHP."
+      "notes": "Account summary + returns/requests inbox READ. Registration and return/request writes stay PHP."
     },
     {
       "id": "catalog_family",

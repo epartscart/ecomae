@@ -29,6 +29,16 @@ public static class StorefrontPhpCanonical
     public const string OriginalCatalog = LangPrefix + "/original-catalog";
     public const string DemandIntelligence = LangPrefix + "/demand-intelligence";
     public const string SellerRequest = LangPrefix + "/zapros-prodavczu";
+    public const string CustomerRequests = LangPrefix + "/requests";
+    public const string CustomerPrint = LangPrefix + "/shop/print";
+    public const string News = LangPrefix + "/novosti";
+    public const string GuestOrder = LangPrefix + "/shop/orders/guest";
+    public const string Payment = LangPrefix + "/shop/pay";
+    public const string Sitemap = LangPrefix + "/sitemap";
+    public const string Catalogue = LangPrefix + "/shop/catalogue";
+    public const string Brochure = "/brochure";
+    public const string Offices = LangPrefix + "/ofisy";
+    public const string AiPartsExpert = LangPrefix + "/ai-parts-expert";
     public const string Cart = LangPrefix + "/shop/cart";
     public const string Checkout = LangPrefix + "/shop/checkout";
     public const string Orders = LangPrefix + "/shop/orders";
@@ -87,10 +97,30 @@ public static class StorefrontPhpCanonical
             // Keep new wave apps on ASP.NET when PreferAspNetApps; thin-stub remap to PHP otherwise.
             "/storefront/vin-app" => LaximoVin + query,
             "/storefront/vehicle-catalog-app" => VehicleCatalog + query,
+            "/storefront/umapi-catalog-app" => UmapiCatalog + query,
+            "/storefront/product-family-app" => ProductFamily + query,
+            "/storefront/available-brands-app" => AvailableBrands + query,
+            "/storefront/original-catalog-app" => OriginalCatalog + query,
+            "/storefront/eparts-cata-app" => EpartsCata + query,
+            "/storefront/eparts-mod-app" => EpartsMod + query,
+            "/storefront/ucats-app" => UcatsService + query,
+            "/storefront/demand-intelligence-app" => DemandIntelligence + query,
             "/storefront/quotes-app" => Quotes + query,
             "/storefront/wishlist-app" => Wishlist + query,
             "/storefront/compare-app" => Compare + query,
-            "/storefront/product-app" => PartSearch + query,
+            "/storefront/product-app" => Catalogue + "/product" + query,
+            "/storefront/seller-request-app" => SellerRequest + query,
+            "/storefront/customer-requests-app" => CustomerRequests + query,
+            "/storefront/print-app" => CustomerPrint + query,
+            "/storefront/news-app" => News + query,
+            "/storefront/guest-order-app" => GuestOrder + query,
+            "/storefront/payment-app" => Payment + query,
+            "/storefront/sitemap-app" => Sitemap + query,
+            "/storefront/own-catalog-app" => Catalogue + query,
+            "/storefront/brochure-app" => Brochure + query,
+            "/storefront/offices-app" => Offices + query,
+            "/storefront/special-search-app" => LangPrefix + query,
+            "/storefront/ai-parts-expert-app" => AiPartsExpert + query,
             _ => "",
         };
 
@@ -120,6 +150,7 @@ public static class StorefrontPhpCanonical
             "/original-catalog" => OriginalCatalog + query,
             "/demand-intelligence" => DemandIntelligence + query,
             "/zapros-prodavczu" => SellerRequest + query,
+            "/requests" => CustomerRequests + query,
             _ when bare.Contains("katalogi-ucats", StringComparison.OrdinalIgnoreCase)
                 => UcatsService + query,
             _ => ProductFamily + query,

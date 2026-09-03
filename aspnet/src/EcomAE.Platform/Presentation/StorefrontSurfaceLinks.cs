@@ -34,6 +34,16 @@ public static class StorefrontSurfaceLinks
     public static string OriginalCatalog => PreferAspNetApps ? StorefrontAspNetCanonical.OriginalCatalog : StorefrontPhpCanonical.OriginalCatalog;
     public static string DemandIntelligence => PreferAspNetApps ? StorefrontAspNetCanonical.DemandIntelligence : StorefrontPhpCanonical.DemandIntelligence;
     public static string SellerRequest => PreferAspNetApps ? StorefrontAspNetCanonical.SellerRequest : StorefrontPhpCanonical.SellerRequest;
+    public static string CustomerRequests => PreferAspNetApps ? StorefrontAspNetCanonical.CustomerRequests : StorefrontPhpCanonical.CustomerRequests;
+    public static string CustomerPrint => PreferAspNetApps ? StorefrontAspNetCanonical.CustomerPrint : StorefrontPhpCanonical.CustomerPrint;
+    public static string News => PreferAspNetApps ? StorefrontAspNetCanonical.News : StorefrontPhpCanonical.News;
+    public static string GuestOrder => PreferAspNetApps ? StorefrontAspNetCanonical.GuestOrder : StorefrontPhpCanonical.GuestOrder;
+    public static string Payment => PreferAspNetApps ? StorefrontAspNetCanonical.Payment : StorefrontPhpCanonical.Payment;
+    public static string Sitemap => PreferAspNetApps ? StorefrontAspNetCanonical.Sitemap : StorefrontPhpCanonical.Sitemap;
+    public static string Brochure => PreferAspNetApps ? StorefrontAspNetCanonical.Brochure : StorefrontPhpCanonical.Brochure;
+    public static string Offices => PreferAspNetApps ? StorefrontAspNetCanonical.Offices : StorefrontPhpCanonical.Offices;
+    public static string SpecialSearch => PreferAspNetApps ? StorefrontAspNetCanonical.SpecialSearch : StorefrontPhpCanonical.PartSearch;
+    public static string AiPartsExpert => PreferAspNetApps ? StorefrontAspNetCanonical.AiPartsExpert : StorefrontPhpCanonical.AiPartsExpert;
     public static string Cart => PreferAspNetApps ? StorefrontAspNetCanonical.Cart : StorefrontPhpCanonical.Cart;
     public static string Checkout => PreferAspNetApps ? StorefrontAspNetCanonical.Checkout : StorefrontPhpCanonical.Checkout;
     public static string Orders => PreferAspNetApps ? StorefrontAspNetCanonical.Orders : StorefrontPhpCanonical.Orders;
@@ -90,17 +100,18 @@ public static class StorefrontSurfaceLinks
         return bare.ToLowerInvariant() switch
         {
             "/accessories-spare-parts" or "/accessories" => StorefrontAspNetCanonical.Accessories + query,
-            "/available-brands" => StorefrontAspNetCanonical.AvailableBrands,
-            "/parts" => StorefrontAspNetCanonical.PartsInStock,
-            "/eparts-cata" => StorefrontAspNetCanonical.EpartsCata,
-            "/eparts-mod" => StorefrontAspNetCanonical.EpartsMod,
-            "/partsapi-catalog" => StorefrontAspNetCanonical.PartsApiCatalog,
-            "/levam-oem" => StorefrontAspNetCanonical.LevamOem,
-            "/umapi_catalog" => StorefrontAspNetCanonical.UmapiCatalog,
-            "/original-catalog" => StorefrontAspNetCanonical.OriginalCatalog,
-            "/demand-intelligence" => StorefrontAspNetCanonical.DemandIntelligence,
-            "/zapros-prodavczu" => StorefrontAspNetCanonical.SellerRequest,
-            "/product-family" => StorefrontAspNetCanonical.ProductFamily,
+            "/available-brands" => StorefrontAspNetCanonical.AvailableBrands + query,
+            "/parts" => StorefrontAspNetCanonical.PartsInStock + query,
+            "/eparts-cata" => StorefrontAspNetCanonical.EpartsCata + query,
+            "/eparts-mod" => StorefrontAspNetCanonical.EpartsMod + query,
+            "/partsapi-catalog" => StorefrontAspNetCanonical.PartsApiCatalog + query,
+            "/levam-oem" => StorefrontAspNetCanonical.LevamOem + query,
+            "/umapi_catalog" => StorefrontAspNetCanonical.UmapiCatalog + query,
+            "/original-catalog" => StorefrontAspNetCanonical.OriginalCatalog + query,
+            "/demand-intelligence" => StorefrontAspNetCanonical.DemandIntelligence + query,
+            "/zapros-prodavczu" => StorefrontAspNetCanonical.SellerRequest + query,
+            "/requests" => StorefrontAspNetCanonical.CustomerRequests + query,
+            "/product-family" => StorefrontAspNetCanonical.ProductFamily + query,
             _ when bare.Contains("katalogi-ucats", StringComparison.OrdinalIgnoreCase)
                 => StorefrontAspNetCanonical.UcatsService,
             _ when bare.Contains("bulk-upload", StringComparison.OrdinalIgnoreCase)
@@ -208,6 +219,39 @@ public static class StorefrontSurfaceLinks
         => PreferAspNetApps
             ? StorefrontAspNetCanonical.UmapiCatalog + "?brand=" + Uri.EscapeDataString(brand.Trim().ToLowerInvariant())
             : StorefrontPhpCanonical.ForUmapiBrand(brand);
+
+    public static string ForCustomerRequest(int requestId)
+        => (PreferAspNetApps ? StorefrontAspNetCanonical.CustomerRequests : StorefrontPhpCanonical.CustomerRequests)
+           + "?id=" + requestId.ToString(System.Globalization.CultureInfo.InvariantCulture);
+
+    public static string ForNews(string url)
+    {
+        var slug = (url ?? string.Empty).Trim().Trim('/');
+        if (slug.Length == 0)
+        {
+            return News;
+        }
+
+        return PreferAspNetApps
+            ? StorefrontAspNetCanonical.News + "?url=" + Uri.EscapeDataString(slug)
+            : StorefrontPhpCanonical.LangPrefix + "/" + slug;
+    }
+
+    public static string ForOrder(long orderId)
+        => (PreferAspNetApps ? StorefrontAspNetCanonical.Orders : StorefrontPhpCanonical.OrderDetail)
+           + "?order_id=" + orderId.ToString(System.Globalization.CultureInfo.InvariantCulture);
+
+    public static string ForPrint(long orderId, string? docName = null)
+    {
+        var basePath = CustomerPrint;
+        var query = "order_id=" + orderId.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        if (!string.IsNullOrWhiteSpace(docName))
+        {
+            query += "&doc_name=" + Uri.EscapeDataString(docName.Trim());
+        }
+
+        return basePath + "?" + query;
+    }
 
     private static string AppendQuery(string basePath, string? original)
     {

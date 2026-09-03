@@ -1,4 +1,8 @@
 @page "/storefront/compare-app"
+@page "/en/shop/sravneniya"
+@page "/shop/sravneniya"
+@page "/en/shop/compare"
+@page "/shop/compare"
 @layout Layout.PhpChromeLayout
 @using System.Text.Json
 @using EcomAE.Platform.Migration
@@ -6,7 +10,7 @@
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject IHttpContextAccessor Http
 
-<PageTitle>Compare · eParts Cart</PageTitle>
+<PageTitle>Compare · @_brand</PageTitle>
 <PhpChromeStyles Surface="storefront" />
 <HeadContent>
 <style>
@@ -30,12 +34,11 @@
 
 <StorefrontAnalytics Enabled="true" IncludeClarity="true" />
 
-<PhpStorefrontDesktopChrome>
+<StorefrontTenantChrome>
 
     <PhpStorefrontPageHeader Title="Compare"
-                            Subtitle="Products saved in the classic compare cookie.">
-        <a class="btn btn-sm btn-primary" href="@StorefrontPhpCanonical.Compare">Open classic compare</a>
-            <a class="btn btn-sm btn-default" href="@StorefrontSurfaceLinks.Wishlist">Bookmarks</a>
+                            Subtitle="Products saved in the compare cookie.">
+        <a class="btn btn-sm btn-primary" href="@StorefrontSurfaceLinks.Wishlist">Bookmarks</a>
             <a class="btn btn-sm btn-default" href="@StorefrontSurfaceLinks.PartSearch">Search</a>
     </PhpStorefrontPageHeader>
 
@@ -58,7 +61,7 @@
                 <tbody>
                     @if (_products.Count == 0)
                     {
-                        <tr><td colspan="4">Compare cookie has @_ids.Count id(s); catalogue rows unavailable (<code>@_source</code>). <a href="@StorefrontPhpCanonical.Compare">Open PHP</a></td></tr>
+                        <tr><td colspan="4">Compare cookie has @_ids.Count id(s); catalogue rows unavailable (<code>@_source</code>). <a href="@StorefrontSurfaceLinks.OwnCatalog">Own catalog</a></td></tr>
                     }
                     else
                     {
@@ -78,11 +81,12 @@
     }
 
     <p class="epc-sf-cmp-note">
-        Compare list is the PHP <code>compare</code> cookie. Spec-matrix writes remain on the classic module.
+        Compared products stay on this page. Add or remove them from a product card.
     </p>
-</PhpStorefrontDesktopChrome>
+</StorefrontTenantChrome>
 
 @code {
+    private string _brand = "eParts Cart";
     private List<int> _ids = [];
     private IReadOnlyList<StorefrontProductDigest> _products = [];
     private string _source = "n/a";
@@ -94,6 +98,8 @@
         {
             return;
         }
+
+        _brand = StorefrontIndustryHostResolver.ResolveBrandLabel(ctx.Request.Host.Host);
 
         if (ctx.Request.Cookies.TryGetValue("compare", out var raw) && !string.IsNullOrWhiteSpace(raw))
         {

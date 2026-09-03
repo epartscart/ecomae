@@ -1,9 +1,14 @@
 @page "/storefront/checkout-app"
 @page "/en/shop/checkout"
+@page "/shop/checkout"
 @page "/en/shop/checkout/how_get"
+@page "/shop/checkout/how_get"
 @page "/en/shop/checkout/confirm"
+@page "/shop/checkout/confirm"
 @page "/en/shop/checkout/login_offer"
+@page "/shop/checkout/login_offer"
 @page "/en/shop/checkout_confirm"
+@page "/shop/checkout_confirm"
 @layout Layout.PhpChromeLayout
 @using System.Globalization
 @using EcomAE.Platform.Auth
@@ -14,7 +19,7 @@
 @inject IHttpContextAccessor Http
 @inject NavigationManager Nav
 
-<PageTitle>Checkout · eParts Cart</PageTitle>
+<PageTitle>Checkout · @_brand</PageTitle>
 <PhpChromeStyles Surface="storefront" />
 <HeadContent>
 <style>
@@ -50,7 +55,7 @@
 
 <StorefrontAnalytics Enabled="true" IncludeClarity="true" />
 
-<PhpStorefrontDesktopChrome>
+<StorefrontTenantChrome>
 
     <PhpStorefrontPageHeader Title="@_heroTitle"
                             Subtitle="@_heroLead">
@@ -65,21 +70,59 @@
         <div class="epc-sf-co-gate" style="margin-bottom:1rem">
             <p style="margin:0 0 .65rem;color:#334155;font-weight:700">@_stepHeading</p>
             <p style="margin:0 0 .75rem;color:#64748b;font-size:.9rem">@_stepHelp</p>
-            <p style="margin:0 0 .75rem;color:#334155;font-size:.9rem;line-height:1.45">
-                This step is served by <strong>ASP.NET Core</strong>. Live order writes remain gated
-                (<code>POST /storefront/checkout/create</code> dry-run until cutover).
-                PHP is temporary compare only under <code>/php-reference/*</code> — not the product body.
-            </p>
+            @if (_step is "how_get")
+            {
+                <form method="post" action="@PhpCustomerWrites.CheckoutHowGetWriteHref" style="margin:0 0 .85rem">
+                    @foreach (var mode in _obtainModes)
+                    {
+                        <label style="display:block;margin:.35rem 0">
+                            <input type="radio" name="how_get" value="@mode.Code" />
+                            @mode.Label
+                        </label>
+                    }
+                    <label style="display:block;margin:.65rem 0 .25rem">City / area</label>
+                    <input type="text" name="city" style="width:100%;max-width:22rem;padding:.45rem" />
+                    <p style="margin:.75rem 0 .35rem"><a href="@StorefrontSurfaceLinks.Offices">Pickup points</a></p>
+                    <button type="submit" style="margin-top:.75rem;padding:.5rem .85rem;border:0;border-radius:.4rem;background:#0f766e;color:#fff;font-weight:800;cursor:pointer">Save delivery option</button>
+                </form>
+            }
+            else if (_step is "confirm")
+            {
+                @if (_lines.Count > 0)
+                {
+                    <table style="width:100%;border-collapse:collapse;font-size:.86rem;margin:0 0 .85rem">
+                        <thead>
+                            <tr>
+                                <th style="text-align:left;padding:.35rem .4rem">Brand</th>
+                                <th style="text-align:left;padding:.35rem .4rem">Article</th>
+                                <th style="text-align:left;padding:.35rem .4rem">Name</th>
+                                <th style="text-align:left;padding:.35rem .4rem">Qty</th>
+                                <th style="text-align:left;padding:.35rem .4rem">Price</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var line in _lines)
+                            {
+                                <tr>
+                                    <td style="padding:.35rem .4rem">@(string.IsNullOrWhiteSpace(line.Manufacturer) ? "—" : line.Manufacturer)</td>
+                                    <td style="padding:.35rem .4rem">@(string.IsNullOrWhiteSpace(line.Article) ? "—" : line.Article)</td>
+                                    <td style="padding:.35rem .4rem">@(string.IsNullOrWhiteSpace(line.Name) ? "—" : line.Name)</td>
+                                    <td style="padding:.35rem .4rem">@line.CountNeed.ToString("0.##", CultureInfo.InvariantCulture)</td>
+                                    <td style="padding:.35rem .4rem">@line.Price.ToString("N2", CultureInfo.InvariantCulture)</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+                <form method="post" action="@PhpCustomerWrites.CheckoutConfirmWriteHref" style="margin:0 0 .85rem">
+                    <label>Order note</label>
+                    <textarea name="order_message" rows="3" style="width:100%;margin:.25rem 0 .75rem;padding:.45rem"></textarea>
+                    <button type="submit" style="padding:.5rem .85rem;border:0;border-radius:.4rem;background:#dc2626;color:#fff;font-weight:800;cursor:pointer">Place order</button>
+                </form>
+            }
             <p style="margin:0">
                 <a href="@StorefrontSurfaceLinks.Cart" style="display:inline-flex;padding:.5rem .85rem;border-radius:.4rem;background:#dc2626;color:#fff;font-weight:700;text-decoration:none;margin-right:.35rem">Back to cart</a>
-                <a href="@_phpStepSrc" style="display:inline-flex;padding:.5rem .85rem;border-radius:.4rem;border:1px solid #d1d5db;color:#111;font-weight:700;text-decoration:none">Compare PHP reference</a>
             </p>
-            @if (_showPhpCompare)
-            {
-                <iframe title="@_stepHeading (PHP compare)"
-                        src="@_phpStepSrc"
-                        style="width:100%;min-height:640px;margin-top:.75rem;border:1px solid #e5e7eb;border-radius:.45rem;background:#fff"></iframe>
-            }
         </div>
     }
 
@@ -104,6 +147,33 @@
             <div class="epc-sf-co-kpi"><strong>@_readiness</strong><span>Readiness</span></div>
         </div>
 
+        @if (_lines.Count > 0 && _step is not "confirm")
+        {
+            <table style="width:100%;border-collapse:collapse;font-size:.86rem;margin:0 0 1rem;background:#fff">
+                <thead>
+                    <tr>
+                        <th style="text-align:left;padding:.4rem .5rem">Brand</th>
+                        <th style="text-align:left;padding:.4rem .5rem">Article</th>
+                        <th style="text-align:left;padding:.4rem .5rem">Name</th>
+                        <th style="text-align:left;padding:.4rem .5rem">Qty</th>
+                        <th style="text-align:left;padding:.4rem .5rem">Price</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var line in _lines)
+                    {
+                        <tr>
+                            <td style="padding:.4rem .5rem">@(string.IsNullOrWhiteSpace(line.Manufacturer) ? "—" : line.Manufacturer)</td>
+                            <td style="padding:.4rem .5rem">@(string.IsNullOrWhiteSpace(line.Article) ? "—" : line.Article)</td>
+                            <td style="padding:.4rem .5rem">@(string.IsNullOrWhiteSpace(line.Name) ? "—" : line.Name)</td>
+                            <td style="padding:.4rem .5rem">@line.CountNeed.ToString("0.##", CultureInfo.InvariantCulture)</td>
+                            <td style="padding:.4rem .5rem">@line.Price.ToString("N2", CultureInfo.InvariantCulture)</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+
         <div class="epc-sf-co-steps" aria-label="Checkout steps">
             <div class="epc-sf-co-step">
                 <span class="epc-sf-co-step__n">1</span>
@@ -116,7 +186,7 @@
                 <span class="epc-sf-co-step__n">2</span>
                 <div>
                     <h3>How to obtain</h3>
-                    <p>Choose delivery or pickup (PHP-authoritative write).</p>
+                    <p>Choose delivery or pickup.</p>
                     <p style="margin:.35rem 0 0"><a href="@StorefrontSurfaceLinks.CheckoutHowGet">Select delivery / pickup</a></p>
                 </div>
             </div>
@@ -124,7 +194,7 @@
                 <span class="epc-sf-co-step__n">3</span>
                 <div>
                     <h3>Confirm &amp; pay</h3>
-                    <p>Create order and payment stay on PHP (<code>ajax_checkout_create</code>).</p>
+                    <p>Review totals and place the order.</p>
                     <p style="margin:.35rem 0 0">
                         <a href="@StorefrontSurfaceLinks.CheckoutConfirm">Confirm order</a>
                         ·
@@ -134,16 +204,17 @@
             </div>
         </div>
         <p class="epc-sf-co-note">
-            Readiness: <strong>@_readiness</strong> (<code>@_source</code>). ASP.NET dry-run
-            <code>POST /storefront/checkout/create</code> refuses live writes until cutover locks change.
+            Readiness: <strong>@_readiness</strong>. Payment completes on the confirm step.
         </p>
     }
 
-</PhpStorefrontDesktopChrome>
+</StorefrontTenantChrome>
 
 @code {
+    private string _brand = "eParts Cart";
     private bool _isCustomer;
     private StorefrontCartSummary _summary = new(0, 0m, "n/a", "");
+    private IReadOnlyList<StorefrontCartLineDigest> _lines = [];
     private int _checkedCount;
     private string _source = "n/a";
     private string _readiness = "n/a";
@@ -152,20 +223,13 @@
     private string _heroLead = "Review your cart and continue to delivery and payment.";
     private string _stepHeading = "";
     private string _stepHelp = "";
-    private string _phpStepSrc = "/php-reference/en/shop/checkout";
-    private bool _showPhpCompare;
-
+    private IReadOnlyList<(string Code, string Label)> _obtainModes = PhpCustomerWrites.ObtainModes;
     protected override async Task OnInitializedAsync()
     {
         ResolveStep();
         var ctx = Http.HttpContext;
         if (ctx is null) return;
-
-        var q = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(Nav.ToAbsoluteUri(Nav.Uri).Query);
-        _showPhpCompare = q.TryGetValue("php", out var phpVal)
-                          && (phpVal == "1"
-                              || phpVal.ToString().Equals("true", StringComparison.OrdinalIgnoreCase)
-                              || phpVal.ToString().StartsWith("/php-reference", StringComparison.OrdinalIgnoreCase));
+        _brand = StorefrontIndustryHostResolver.ResolveBrandLabel(ctx.Request.Host.Host);
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         if (session.Kind != LegacySessionKind.Customer || session.UserId <= 0)
@@ -177,11 +241,36 @@
         _isCustomer = true;
         var result = await Dashboards.ListStorefrontCartAsync(session.UserId, 100, ctx.RequestAborted);
         _summary = result.Summary;
+        _lines = result.Lines;
         _source = result.Source;
         _checkedCount = result.Lines.Count(l => l.CheckedForOrder);
         _readiness = result.Summary.Count > 0
-            ? (result.Lines.Any(l => l.CheckedForOrder) ? "ready-for-php-how-get" : "cart-has-lines")
-            : "empty-cart";
+            ? (result.Lines.Any(l => l.CheckedForOrder) ? "ready for delivery" : "cart has lines")
+            : "empty cart";
+
+        try
+        {
+            var methods = await Dashboards.BuildCpDeliveryMethodsDigestAsync(20, ctx.RequestAborted);
+            if (methods.Modes.Count > 0)
+            {
+                _obtainModes = methods.Modes
+                    .Where(m => m.Available)
+                    .OrderBy(m => m.SortOrder)
+                    .Select(m => (
+                        m.Id.ToString(CultureInfo.InvariantCulture),
+                        string.IsNullOrWhiteSpace(m.Caption) ? m.Handler : m.Caption))
+                    .ToArray();
+            }
+        }
+        catch (Exception)
+        {
+            _obtainModes = PhpCustomerWrites.ObtainModes;
+        }
+
+        if (_obtainModes.Count == 0)
+        {
+            _obtainModes = PhpCustomerWrites.ObtainModes;
+        }
     }
 
     private void ResolveStep()
@@ -205,19 +294,16 @@
             _step = "login_offer";
         }
 
-        (_heroTitle, _heroLead, _stepHeading, _stepHelp, _phpStepSrc) = _step switch
+        (_heroTitle, _heroLead, _stepHeading, _stepHelp) = _step switch
         {
             "how_get" => ("Delivery / pickup", "Choose how you want to receive this order.",
-                "How to obtain", "ASP.NET checkout step — compare PHP reference only if needed (?php=1).",
-                "/php-reference/en/shop/checkout/how_get"),
+                "How to obtain", "Pick courier delivery or warehouse collection."),
             "confirm" => ("Confirm order", "Review totals and place the order.",
-                "Confirm & pay", "ASP.NET checkout step — live create stays dry-run gated until cutover.",
-                "/php-reference/en/shop/checkout/confirm"),
+                "Confirm & pay", "Review the cart and confirm the order."),
             "login_offer" => ("Guest checkout", "Continue without an account, or sign in / register.",
-                "Login offer", "ASP.NET guest/login offer — PHP compare under /php-reference only.",
-                "/php-reference/en/shop/checkout/login_offer"),
+                "Login offer", "Sign in, register, or continue as a guest."),
             _ => ("Checkout readiness", "Review your cart and continue to delivery and payment.",
-                "", "", "/php-reference/en/shop/checkout")
+                "", "")
         };
     }
 }
