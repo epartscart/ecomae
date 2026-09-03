@@ -31,6 +31,7 @@ public sealed class PhpProductPathRedirectMiddleware
 
         // /php-reference/* is the only intentional PHP compare entry — do not rewrite.
         // Asset bridges (/epc-static.php, *_css.php) stay on ASP.NET MapGet handlers.
+        // Exact multilang homes (/en/, /ar/) are StorefrontPreviewApp — never 302 to /.
         if (path.StartsWith("/php-reference", StringComparison.OrdinalIgnoreCase)
             || path.StartsWith("/epc-static", StringComparison.OrdinalIgnoreCase)
             || path.StartsWith("/content/general_pages/", StringComparison.OrdinalIgnoreCase)
@@ -41,6 +42,15 @@ public sealed class PhpProductPathRedirectMiddleware
             || path.EndsWith(".png", StringComparison.OrdinalIgnoreCase)
             || path.EndsWith(".jpg", StringComparison.OrdinalIgnoreCase)
             || path.EndsWith(".woff2", StringComparison.OrdinalIgnoreCase))
+        {
+            return _next(context);
+        }
+
+        var langHome = path.TrimEnd('/');
+        if (langHome.Equals("/en", StringComparison.OrdinalIgnoreCase)
+            || langHome.Equals("/ar", StringComparison.OrdinalIgnoreCase)
+            || langHome.Equals("/me", StringComparison.OrdinalIgnoreCase)
+            || langHome.Equals("/ru", StringComparison.OrdinalIgnoreCase))
         {
             return _next(context);
         }

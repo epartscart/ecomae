@@ -146,6 +146,9 @@ public sealed class ErpPhpReadTwinTests
         Assert.Equal("/erp/doc-attachments-app", docs);
         Assert.True(ErpPhpTabRouteMap.TryMapTab("inventory_report", out var invReport));
         Assert.Equal("/erp/inventory-report-app", invReport);
+        Assert.True(ErpPhpTabRouteMap.TryMapTab("ext_reports", out var extReports));
+        Assert.Equal("/erp/tax-external-reporting-app", extReports);
+        Assert.DoesNotContain("/cp/tax-external-reporting-app", extReports, StringComparison.Ordinal);
         Assert.DoesNotContain("/cp/production-overview-app", opl, StringComparison.Ordinal);
         Assert.DoesNotContain("/cp/hr-overview-app", recruitment, StringComparison.Ordinal);
         Assert.DoesNotContain("/cp/hr-overview-app", performance, StringComparison.Ordinal);

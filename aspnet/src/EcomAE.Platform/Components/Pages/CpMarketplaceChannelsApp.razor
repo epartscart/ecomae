@@ -62,31 +62,41 @@
     <table class="epc-w16-table">
         <thead>
             <tr>
+                    <th>ID</th>
                     <th>Channel</th>
+                    <th>Marketplace id</th>
                     <th>Family</th>
                     <th>Region</th>
                     <th>API</th>
+                    <th>Blurb</th>
                     <th>Active</th>
                     <th>Demo</th>
+                    <th>Last sync</th>
+                    <th>Created</th>
                     <th></th>
             </tr>
         </thead>
         <tbody>
             @if (_rows.Count == 0)
             {
-                <tr><td colspan="7">No marketplace channels seeded yet.</td></tr>
+                <tr><td colspan="12">No marketplace channels seeded yet.</td></tr>
             }
             else
             {
                 @foreach (var row in _rows)
                 {
                     <tr>
+                            <td>@row.Id.ToString(CultureInfo.InvariantCulture)</td>
                             <td>@(!string.IsNullOrWhiteSpace(row.Name) ? row.Name : row.Code)</td>
+                            <td>@(!string.IsNullOrWhiteSpace(row.MarketplaceId) ? row.MarketplaceId : "—")</td>
                             <td>@(!string.IsNullOrWhiteSpace(row.Family) ? row.Family : "—")</td>
                             <td>@(!string.IsNullOrWhiteSpace(row.Region) ? row.Region : "—")</td>
                             <td>@(!string.IsNullOrWhiteSpace(row.Api) ? row.Api : "—")</td>
+                            <td>@(!string.IsNullOrWhiteSpace(row.Blurb) ? row.Blurb : "—")</td>
                             <td>@(row.Active != 0 ? "yes" : "no")</td>
                             <td>@(row.DemoMode != 0 ? "yes" : "no")</td>
+                            <td>@row.LastSyncAt.ToString(CultureInfo.InvariantCulture)</td>
+                            <td>@row.TimeCreated.ToString(CultureInfo.InvariantCulture)</td>
                             <td><a href="@_configureHref">Configure</a></td>
                     </tr>
                 }

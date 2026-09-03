@@ -80,7 +80,7 @@
                                 <td><span class="epc-scp-badge @(t.IsActive ? "epc-scp-badge--ok" : "epc-scp-badge--off")">@(t.IsActive ? "yes" : "no")</span></td>
                                 <td><span class="epc-scp-badge @(t.HasDb ? "epc-scp-badge--ok" : "epc-scp-badge--off")">@(t.HasDb ? "yes" : "no")</span></td>
                                 <td><span class="epc-scp-badge">@(t.ErpOnly ? "yes" : "no")</span></td>
-                                <td class="epc-scp-actions-cell"><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
+                                <td class="epc-scp-actions-cell"><a href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Open</a></td>
                             </tr>
                         }
                     }

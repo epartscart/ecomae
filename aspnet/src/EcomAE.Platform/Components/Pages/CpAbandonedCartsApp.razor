@@ -71,6 +71,8 @@
                     <th>Price</th>
                     <th>Qty</th>
                     <th>Sum</th>
+                    <th>Checked</th>
+                    <th>Product type</th>
                     <th>When</th>
                     <th>User</th>
                     <th>Session</th>
@@ -80,7 +82,7 @@
         <tbody>
             @if (_rows.Count == 0)
             {
-                <tr><td colspan="11">Nothing to show yet.</td></tr>
+                <tr><td colspan="13">Nothing to show yet.</td></tr>
             }
             else
             {
@@ -94,6 +96,8 @@
                             <td>@row.Price.ToString("N2", CultureInfo.InvariantCulture)</td>
                             <td>@row.CountNeed.ToString(CultureInfo.InvariantCulture)</td>
                             <td>@row.PriceSum.ToString("N2", CultureInfo.InvariantCulture)</td>
+                            <td>@row.CheckedForOrder.ToString(CultureInfo.InvariantCulture)</td>
+                            <td>@row.ProductType.ToString(CultureInfo.InvariantCulture)</td>
                             <td>@FormatTime(row.TimeUnix)</td>
                             <td>@row.UserId.ToString(CultureInfo.InvariantCulture)</td>
                             <td>@row.SessionId.ToString(CultureInfo.InvariantCulture)</td>

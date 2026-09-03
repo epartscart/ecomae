@@ -62,9 +62,9 @@ public static class ErpNetsuiteDashboardCatalog
         ["marketing"] = new("marketing", "Marketing", "fa-bullhorn", "rust", "/erp/marketing-app"),
         ["processflow"] = new("processflow", "Process flow", "fa-sitemap", "green", "/erp/process-flow-tasks-app"),
         ["dashboard"] = new("dashboard", "Home", "fa-home", "slate", "/erp"),
-        ["ext_ifrs"] = new("ext_ifrs", "Financial Report (IFRS)", "fa-file-text-o", "qa-indigo", "/cp/tax-external-reporting-app"),
-        ["ext_vat"] = new("ext_vat", "VAT Return (VAT 201)", "fa-percent", "qa-green", "/cp/tax-external-reporting-app"),
-        ["ext_ct"] = new("ext_ct", "Corporate Tax Return", "fa-balance-scale", "qa-rust", "/cp/tax-external-reporting-app"),
+        ["ext_ifrs"] = new("ext_ifrs", "Financial Report (IFRS)", "fa-file-text-o", "qa-indigo", "/erp/tax-external-reporting-app"),
+        ["ext_vat"] = new("ext_vat", "VAT Return (VAT 201)", "fa-percent", "qa-green", "/erp/tax-external-reporting-app"),
+        ["ext_ct"] = new("ext_ct", "Corporate Tax Return", "fa-balance-scale", "qa-rust", "/erp/tax-external-reporting-app"),
         ["customers"] = new("customers", "New Customer", "fa-user-plus", "qa-pink", "/erp/receivables-app"),
         ["vendors"] = new("vendors", "New Vendor", "fa-truck", "qa-teal", "/erp/suppliers-app"),
         ["coa"] = new("coa", "Chart of accounts", "fa-list", "qa-slate", "/erp/coa-accounts-app"),
@@ -253,13 +253,13 @@ public static class ErpNetsuiteDashboardCatalog
         var reports = new List<NavLink>();
         if (Can(profile, "gl") || Can(profile, "profit"))
         {
-            reports.Add(new("Financial report (IFRS)", "fa-file-text-o", "/cp/tax-external-reporting-app"));
+            reports.Add(new("Financial report (IFRS)", "fa-file-text-o", "/erp/tax-external-reporting-app"));
         }
 
         if (Can(profile, "vat"))
         {
-            reports.Add(new("VAT return (VAT 201)", "fa-percent", "/cp/tax-external-reporting-app"));
-            reports.Add(new("Corporate tax return", "fa-balance-scale", "/cp/tax-external-reporting-app"));
+            reports.Add(new("VAT return (VAT 201)", "fa-percent", "/erp/tax-external-reporting-app"));
+            reports.Add(new("Corporate tax return", "fa-balance-scale", "/erp/tax-external-reporting-app"));
         }
 
         if (Can(profile, "profit")) reports.Add(new("Profit & loss", "fa-line-chart", "/erp/report-center-app"));

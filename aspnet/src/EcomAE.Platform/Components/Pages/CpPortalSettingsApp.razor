@@ -78,7 +78,7 @@
                                 <td>@(!string.IsNullOrWhiteSpace(row.AccessMode) ? row.AccessMode : "—")</td>
                                 <td>@(!string.IsNullOrWhiteSpace(row.CpDefaultLang) ? row.CpDefaultLang : "—")</td>
                                 <td>@(!string.IsNullOrWhiteSpace(row.CountryCode) ? row.CountryCode : "—")</td>
-                                <td class="epc-scp-actions-cell"><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
+                                <td class="epc-scp-actions-cell"><a href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Open</a></td>
                             </tr>
                         }
                     }

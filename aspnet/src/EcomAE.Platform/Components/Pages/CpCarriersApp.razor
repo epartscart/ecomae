@@ -62,29 +62,35 @@
         <table class="epc-car-table">
             <thead>
                 <tr>
+                    <th>ID</th>
                     <th>Code</th>
                     <th>Name</th>
                     <th>Region</th>
+                    <th>Blurb</th>
                     <th>Active</th>
                     <th>Demo</th>
+                    <th>Created</th>
                     <th></th>
                 </tr>
             </thead>
             <tbody>
                 @if (_carriers.Count == 0)
                 {
-                    <tr><td colspan="6">No courier accounts yet. Seed partners from Manage carriers.</td></tr>
+                    <tr><td colspan="9">No courier accounts yet. Seed partners from Manage carriers.</td></tr>
                 }
                 else
                 {
                     @foreach (var row in _carriers)
                     {
                         <tr>
+                            <td>@row.Id.ToString(CultureInfo.InvariantCulture)</td>
                             <td>@(!string.IsNullOrWhiteSpace(row.Code) ? row.Code : "—")</td>
                             <td>@(!string.IsNullOrWhiteSpace(row.Name) ? row.Name : "—")</td>
                             <td>@(!string.IsNullOrWhiteSpace(row.Region) ? row.Region : "—")</td>
+                            <td>@(!string.IsNullOrWhiteSpace(row.Blurb) ? row.Blurb : "—")</td>
                             <td>@(row.Active ? "yes" : "no")</td>
                             <td>@(row.DemoMode ? "yes" : "no")</td>
+                            <td>@row.TimeCreated.ToString(CultureInfo.InvariantCulture)</td>
                             <td><a href="@_configureHref">Configure</a></td>
                         </tr>
                     }

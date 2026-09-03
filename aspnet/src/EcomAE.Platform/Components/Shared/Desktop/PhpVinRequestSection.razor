@@ -107,9 +107,13 @@
                     <p>Send a request with your VIN or vehicle details — the seller will identify the exact spare part and reply with price and delivery time.</p>
                 </div>
                 <div class="section-vin__btn">
-                    <a href="@StorefrontSurfaceLinks.SellerRequest" class="btn btn-ar btn-primary">Send a request to seller</a>
+                    <a href="@SellerHref" class="btn btn-ar btn-primary">Send a request to seller</a>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+@code {
+    [Parameter] public string SellerHref { get; set; } = "/en/zapros-prodavczu";
+}

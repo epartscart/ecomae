@@ -63,18 +63,21 @@
         <thead>
             <tr>
                     <th>Id</th>
+                    <th>Company</th>
+                    <th>Customer id</th>
                     <th>Customer</th>
                     <th>Id type</th>
                     <th>Risk</th>
                     <th>PEP</th>
                     <th>Status</th>
+                    <th>Created</th>
                     <th></th>
             </tr>
         </thead>
         <tbody>
             @if (_rows.Count == 0)
             {
-                <tr><td colspan="7">Nothing to show yet.</td></tr>
+                <tr><td colspan="10">Nothing to show yet.</td></tr>
             }
             else
             {
@@ -82,11 +85,14 @@
                 {
                     <tr>
                             <td>@row.Id.ToString(CultureInfo.InvariantCulture)</td>
+                            <td>@row.CompanyId.ToString(CultureInfo.InvariantCulture)</td>
+                            <td>@row.CustomerId.ToString(CultureInfo.InvariantCulture)</td>
                             <td>@(!string.IsNullOrWhiteSpace(row.CustomerName) ? row.CustomerName : "—")</td>
                             <td>@(!string.IsNullOrWhiteSpace(row.IdType) ? row.IdType : "—")</td>
                             <td>@(!string.IsNullOrWhiteSpace(row.RiskLevel) ? row.RiskLevel : "—")</td>
                             <td>@row.PepStatus.ToString(CultureInfo.InvariantCulture)</td>
                             <td>@(!string.IsNullOrWhiteSpace(row.VerificationStatus) ? row.VerificationStatus : "—")</td>
+                            <td>@row.TimeCreated.ToString(CultureInfo.InvariantCulture)</td>
                             <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
                     </tr>
                 }

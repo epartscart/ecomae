@@ -7830,6 +7830,51 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    public async Task<ErpReceivablesDigestResult> BuildErpReceivablesDigestAsync(int limit, CancellationToken cancellationToken = default)
+    {
+        var safeLimit = Math.Clamp(limit, 1, 500);
+        var empty = new ErpReceivablesSummary(0, 0, 0, 0, 0, "migration", "TenantRegistry DB is not configured.");
+        if (!_connections.IsConfigured)
+        {
+            return new(empty, [], 0, "migration", empty.Message);
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            await using var command = connection.CreateCommand();
+            command.CommandText = LegacySurfaceDashboardSql.SelectErpReceivables;
+            AddParameter(command, "@limit", safeLimit);
+            var rows = new List<ErpReceivableDigest>();
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                rows.Add(new ErpReceivableDigest(
+                    Convert.ToInt64(reader["user_id"] is DBNull ? 0 : reader["user_id"], CultureInfo.InvariantCulture),
+                    Convert.ToString(reader["email"] is DBNull ? string.Empty : reader["email"], CultureInfo.InvariantCulture) ?? string.Empty,
+                    Convert.ToDecimal(reader["balance"] is DBNull ? 0m : reader["balance"], CultureInfo.InvariantCulture),
+                    Convert.ToDecimal(reader["order_receivable_due"] is DBNull ? 0m : reader["order_receivable_due"], CultureInfo.InvariantCulture),
+                    Convert.ToInt32(reader["order_count"] is DBNull ? 0 : reader["order_count"], CultureInfo.InvariantCulture),
+                    Convert.ToInt32(reader["complete_order_count"] is DBNull ? 0 : reader["complete_order_count"], CultureInfo.InvariantCulture)));
+            }
+
+            var summary = new ErpReceivablesSummary(
+                rows.Count,
+                rows.Count(r => r.Balance != 0m || r.OrderReceivableDue != 0m),
+                rows.Sum(r => r.Balance),
+                rows.Sum(r => r.OrderReceivableDue),
+                rows.Sum(r => r.OrderCount),
+                "database",
+                string.Empty);
+            return new(summary, rows, rows.Count, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            var err = empty with { Source = "database-error", Message = ex.Message };
+            return new(err, [], 0, "database-error", ex.Message);
+        }
+    }
+
     public async Task<ErpAgingDigestResult> BuildErpAgingDigestAsync(int limit, CancellationToken cancellationToken = default)
     {
         var safeLimit = Math.Clamp(limit, 1, 500);

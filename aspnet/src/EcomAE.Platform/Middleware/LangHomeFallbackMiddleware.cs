@@ -56,4 +56,22 @@ public sealed class LangHomeFallbackMiddleware
 
         return false;
     }
+
+    public static string RequestCmsLang(HttpContext? http, string fallback = "en")
+    {
+        if (http?.Items[LangItem] is string stored && stored.Length == 2)
+        {
+            return stored;
+        }
+
+        var path = http?.Request.Path.Value ?? "/";
+        if (http?.Items[OriginalPathItem] is string original && !string.IsNullOrWhiteSpace(original))
+        {
+            path = original;
+        }
+
+        var m = System.Text.RegularExpressions.Regex.Match(
+            path, "^/([a-z]{2})(?:/|$)", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+        return m.Success ? m.Groups[1].Value.ToLowerInvariant() : fallback;
+    }
 }
