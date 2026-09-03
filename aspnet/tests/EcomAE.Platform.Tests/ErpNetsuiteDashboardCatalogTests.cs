@@ -162,4 +162,55 @@ public sealed class ErpNetsuiteDashboardCatalogTests
         Assert.Equal("Purchasing", ErpNetsuiteDashboardCatalog.DepartmentName("purchase"));
         Assert.Equal("Sales", ErpNetsuiteDashboardCatalog.DepartmentName("sales"));
     }
+
+    [Fact]
+    public void InsightsSuiteAlwaysRendersPhpBandsAndZeroEmptyStates()
+    {
+        var zero = new ErpWorkspacePeriodKpis(
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "open");
+        var suite = ErpInsightsSuiteCatalog.Build(
+            zero, zero, ErpInsightsSuiteCatalog.EmptyCommerce, 0, [0, 0, 0, 0, 0],
+            "AED", "2026-09-01", "2026-09-03", autoParts: true);
+        Assert.Equal(3, suite.Bands.Count);
+        Assert.Contains(suite.Bands, b => b.Key == "financial" && b.Items.Count == 6);
+        Assert.Contains(suite.Bands, b => b.Key == "business" && b.Items.Count == 5);
+        Assert.Contains(suite.Bands, b => b.Key == "cp" && b.Items.Any(c => c.Key == "vin"));
+        Assert.Contains(suite.Bands.SelectMany(b => b.Items), c => c.Key == "revenue" && c.Narrative.Contains("No MTD sales", StringComparison.Ordinal));
+        Assert.Contains(suite.Alerts, a => a.Title == "Pricing not ready");
+        Assert.Equal("Ready", ErpInsightsSuiteCatalog.FormatValue(suite.Bands.SelectMany(b => b.Items).First(c => c.Key == "sku_media"), "AED"));
+    }
+
+    [Fact]
+    public void InsightsVinCardStaysOffForJewelleryWhenNoOpenRequests()
+    {
+        var zero = new ErpWorkspacePeriodKpis(
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "open");
+        var suite = ErpInsightsSuiteCatalog.Build(
+            zero, zero, ErpInsightsSuiteCatalog.EmptyCommerce, 0, [0, 0, 0, 0, 0],
+            "AED", "2026-09-01", "2026-09-03", autoParts: false);
+        Assert.DoesNotContain(suite.Bands.SelectMany(b => b.Items), c => c.Key == "vin");
+    }
+
+    [Fact]
+    public void PurchaseCentreIncludesInventoryTurnover()
+    {
+        var profile = ErpNetsuiteDashboardCatalog.Profiles["purchase"];
+        var cur = new ErpWorkspacePeriodKpis(
+            0, 0, 400, 0, 0, 0, 100, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "open");
+        var kpis = ErpNetsuiteDashboardCatalog.OperationalKpis(profile, cur, 3);
+        Assert.Contains(kpis, k => k.Key == "inv_turnover" && k.Value.StartsWith("4.00", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void StatutoryTilesDeepLinkLikePhpExtUrl()
+    {
+        Assert.Contains("tab=pl", ErpNetsuiteDashboardCatalog.Tiles["pl"].Href, StringComparison.Ordinal);
+        Assert.Contains("tab=balance_sheet", ErpNetsuiteDashboardCatalog.Tiles["balance_sheet"].Href, StringComparison.Ordinal);
+        Assert.Contains("cat=audit", ErpNetsuiteDashboardCatalog.Tiles["ext_ifrs"].Href, StringComparison.Ordinal);
+        Assert.Contains("rep=tax__vat_return", ErpNetsuiteDashboardCatalog.Tiles["ext_vat"].Href, StringComparison.Ordinal);
+        Assert.Contains("fetch=1", ErpNetsuiteDashboardCatalog.Tiles["ext_ct"].Href, StringComparison.Ordinal);
+    }
 }

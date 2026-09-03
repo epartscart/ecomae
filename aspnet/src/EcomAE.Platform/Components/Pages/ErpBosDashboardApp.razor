@@ -79,6 +79,79 @@
             </div>
         </div>
 
+        <div class="ns-port">
+            <div class="bd" style="padding:12px">
+                <div class="epc-insights epc-insights--erp" id="epc-insights">
+                    <div class="epc-insights__head">
+                        <div class="epc-insights__head-main">
+                            <span class="epc-insights__badge"><i class="fa fa-lightbulb-o"></i></span>
+                            <div>
+                                <strong>Insights</strong>
+                                <span class="epc-insights__period">@_insights.PeriodLabel@if (!string.IsNullOrWhiteSpace(_insights.FromLabel) && !string.IsNullOrWhiteSpace(_insights.ToLabel)) { <text> · @_insights.FromLabel → @_insights.ToLabel</text> }</span>
+                            </div>
+                        </div>
+                        <a class="epc-insights__erp" href="@WithCompany("/erp")">Open ERP Command Centre <i class="fa fa-arrow-right"></i></a>
+                    </div>
+                    @if (_insights.Alerts.Count > 0)
+                    {
+                        <div class="epc-insights__alerts">
+                            @foreach (var a in _insights.Alerts)
+                            {
+                                <a class="epc-insights__alert epc-insights__alert--@a.Tone" href="@WithCompany(a.Href)">
+                                    <span class="epc-insights__alert-ico"><i class="fa fa-exclamation-circle"></i></span>
+                                    <span class="epc-insights__alert-txt">
+                                        <strong>@a.Title</strong>
+                                        <span>@a.Body</span>
+                                    </span>
+                                </a>
+                            }
+                        </div>
+                    }
+                    <div class="epc-insights__bands">
+                        @foreach (var band in _insights.Bands)
+                        {
+                            <section class="epc-insights__band epc-insights__band--@band.Key">
+                                <header class="epc-insights__band-head">
+                                    <h4><i class="fa @band.Icon"></i> @band.Title</h4>
+                                    <span class="epc-insights__band-count">@band.Items.Count</span>
+                                </header>
+                                <div class="epc-insights__tiles">
+                                    @foreach (var card in band.Items)
+                                    {
+                                        var meter = ErpInsightsSuiteCatalog.MeterWidth(card);
+                                        var ghost = ErpInsightsSuiteCatalog.MeterGhost(card);
+                                        var deltaCss = ErpInsightsSuiteCatalog.DeltaCss(card);
+                                        <article class="epc-insights__tile is-@card.Health">
+                                            <div class="epc-insights__tile-top">
+                                                <span class="epc-insights__tile-ico" aria-hidden="true"><i class="fa @card.Icon"></i></span>
+                                                <span class="epc-insights__health">@card.Health</span>
+                                            </div>
+                                            <span class="epc-insights__label">@card.Label</span>
+                                            <div class="epc-insights__value">
+                                                @ErpInsightsSuiteCatalog.FormatValue(card, _insights.Currency)
+                                                @if (!string.IsNullOrWhiteSpace(card.DeltaLabel))
+                                                {
+                                                    <span class="epc-insights__delta @deltaCss">
+                                                        <i class="fa fa-caret-@(ErpInsightsSuiteCatalog.DeltaUp(card) ? "up" : "down")"></i>
+                                                        @card.DeltaLabel
+                                                    </span>
+                                                }
+                                            </div>
+                                            <div class="epc-insights__meter@(ghost ? " epc-insights__meter--ghost" : "")" aria-hidden="true">
+                                                <span class="epc-insights__meter-fill" style="width:@meter.ToString("0.##", CultureInfo.InvariantCulture)%"></span>
+                                            </div>
+                                            <p class="epc-insights__narrative">@card.Narrative</p>
+                                            <a class="epc-insights__action" href="@WithCompany(card.Href)">@card.Action <i class="fa fa-angle-right"></i></a>
+                                        </article>
+                                    }
+                                </div>
+                            </section>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
         @if (_jewellery)
         {
             <div class="ns-port">
@@ -349,7 +422,7 @@
                             <a class="list-group-item" href="@WithCompany("/erp/guide-app?tab=ai_advisor")"><i class="fa fa-magic"></i> AI advisor &amp; forecasts</a>
                             @if (ErpNetsuiteDashboardCatalog.Can(_profile, "profit"))
                             {
-                                <a class="list-group-item" href="@WithCompany("/erp/report-center-app")"><i class="fa fa-bar-chart"></i> Profit &amp; loss</a>
+                                <a class="list-group-item" href="@WithCompany("/erp/report-center-app?tab=pl")"><i class="fa fa-bar-chart"></i> Profit &amp; loss</a>
                             }
                             <a class="list-group-item" href="@WithCompany("/erp/order-planning-app")"><i class="fa fa-cubes"></i> Order planning</a>
                             @if (ErpNetsuiteDashboardCatalog.Can(_profile, "suppliers"))
@@ -367,70 +440,67 @@
                     <small class="text-muted" style="font-weight:400;">· auto-tracked customer orders, purchase orders &amp; your own processes</small>
                     <a href="@WithCompany("/erp/process-flow-tasks-app")" class="btn btn-xs btn-default" style="float:right;"><i class="fa fa-external-link"></i> Open process flow</a>
                 </h3>
+                <div class="ns-pf-kpis">
+                    <div class="ns-pf-card"><div class="v">@_cur.ProcessOpen</div><div class="l">Open tasks</div></div>
+                    <div class="ns-pf-card @(_cur.ProcessOverdue > 0 ? "bad" : "")"><div class="v">@_cur.ProcessOverdue</div><div class="l">Overdue (SLA)</div></div>
+                    <div class="ns-pf-card good"><div class="v">@_cur.ProcessDone</div><div class="l">Tasks completed in period</div></div>
+                    <div class="ns-pf-card"><div class="v">@_cur.ProcessBusy<small>/@_cur.ProcessHeadcount</small></div><div class="l">Staff busy now</div></div>
+                </div>
                 @if (!_hasTasks)
                 {
                     <div class="ns-port"><div class="bd">
                         <p class="text-muted" style="margin:0;">No tasks tracked yet. Customer orders, purchase orders and your own processes auto-create cases and appear here as soon as work starts flowing. <a href="@WithCompany("/erp/process-flow-tasks-app")">Open process flow »</a></p>
                     </div></div>
                 }
-                else
-                {
-                    <div class="ns-pf-kpis">
-                        <div class="ns-pf-card"><div class="v">@_cur.ProcessOpen</div><div class="l">Open tasks</div></div>
-                        <div class="ns-pf-card @(_cur.ProcessOverdue > 0 ? "bad" : "")"><div class="v">@_cur.ProcessOverdue</div><div class="l">Overdue (SLA)</div></div>
-                        <div class="ns-pf-card good"><div class="v">@_cur.ProcessDone</div><div class="l">Tasks completed in period</div></div>
-                        <div class="ns-pf-card"><div class="v">@_cur.ProcessBusy<small>/@_cur.ProcessHeadcount</small></div><div class="l">Staff busy now</div></div>
-                    </div>
-                    <div class="ns-exec-grid" style="margin-top:16px;">
-                        <div class="ns-port">
-                            <h4><i class="fa fa-building-o"></i> Open workload by department</h4>
-                            <div class="bd">
-                                @if (_home.DepartmentLoad.Count == 0)
+                <div class="ns-exec-grid" style="margin-top:16px;">
+                    <div class="ns-port">
+                        <h4><i class="fa fa-building-o"></i> Open workload by department</h4>
+                        <div class="bd">
+                            @if (_home.DepartmentLoad.Count == 0)
+                            {
+                                <p class="text-muted" style="margin:0;">No open tasks.</p>
+                            }
+                            else
+                            {
+                                var deptMax = _home.DepartmentLoad.Max(d => d.OpenCount);
+                                @foreach (var d in _home.DepartmentLoad)
                                 {
-                                    <p class="text-muted" style="margin:0;">No open tasks.</p>
+                                    var w = deptMax > 0 ? Math.Max(4, (int)Math.Round(d.OpenCount * 100.0 / deptMax)) : 0;
+                                    <div class="ns-pf-bar">
+                                        <div class="nm">@d.Name</div>
+                                        <div class="tr"><div class="fl" style="width:@w%;"></div></div>
+                                        <div class="ct">@d.OpenCount</div>
+                                    </div>
                                 }
-                                else
-                                {
-                                    var deptMax = _home.DepartmentLoad.Max(d => d.OpenCount);
-                                    @foreach (var d in _home.DepartmentLoad)
-                                    {
-                                        var w = deptMax > 0 ? Math.Max(4, (int)Math.Round(d.OpenCount * 100.0 / deptMax)) : 0;
-                                        <div class="ns-pf-bar">
-                                            <div class="nm">@d.Name</div>
-                                            <div class="tr"><div class="fl" style="width:@w%;"></div></div>
-                                            <div class="ct">@d.OpenCount</div>
-                                        </div>
-                                    }
-                                }
-                            </div>
-                        </div>
-                        <div class="ns-port">
-                            <h4><i class="fa fa-trophy"></i> Top performers <small class="text-muted" style="font-weight:400;">(tasks completed)</small></h4>
-                            <div class="bd">
-                                @if (_home.TopPerformers.Count == 0)
-                                {
-                                    <p class="text-muted" style="margin:0;">No completed tasks in this period yet.</p>
-                                }
-                                else
-                                {
-                                    var topMax = _home.TopPerformers.Max(p => p.Done);
-                                    var rank = 0;
-                                    @foreach (var p in _home.TopPerformers)
-                                    {
-                                        rank++;
-                                        var w = topMax > 0 ? Math.Max(4, (int)Math.Round(p.Done * 100.0 / topMax)) : 0;
-                                        <div class="ns-pf-perf">
-                                            <span class="rk">@rank</span>
-                                            <div class="who"><span class="n">@p.Name</span><span class="d">@p.Department</span></div>
-                                            <div class="tr"><div class="fl" style="width:@w%;"></div></div>
-                                            <span class="ct">@p.Done</span>
-                                        </div>
-                                    }
-                                }
-                            </div>
+                            }
                         </div>
                     </div>
-                }
+                    <div class="ns-port">
+                        <h4><i class="fa fa-trophy"></i> Top performers <small class="text-muted" style="font-weight:400;">(tasks completed)</small></h4>
+                        <div class="bd">
+                            @if (_home.TopPerformers.Count == 0)
+                            {
+                                <p class="text-muted" style="margin:0;">No completed tasks in this period yet.</p>
+                            }
+                            else
+                            {
+                                var topMax = _home.TopPerformers.Max(p => p.Done);
+                                var rank = 0;
+                                @foreach (var p in _home.TopPerformers)
+                                {
+                                    rank++;
+                                    var w = topMax > 0 ? Math.Max(4, (int)Math.Round(p.Done * 100.0 / topMax)) : 0;
+                                    <div class="ns-pf-perf">
+                                        <span class="rk">@rank</span>
+                                        <div class="who"><span class="n">@p.Name</span><span class="d">@p.Department</span></div>
+                                        <div class="tr"><div class="fl" style="width:@w%;"></div></div>
+                                        <span class="ct">@p.Done</span>
+                                    </div>
+                                }
+                            }
+                        </div>
+                    </div>
+                </div>
             }
 
             <h3 class="ns-exec-h" id="ns-industry-controls" style="margin-top:22px;"><i class="fa fa-check-square-o"></i> Industry intelligence — recommended controls
@@ -620,6 +690,11 @@
     private IReadOnlyList<ErpNetsuiteDashboardCatalog.FinCell> _fin = [];
     private IReadOnlyList<ErpWorkspaceOpKpi> _opKpis = [];
     private IReadOnlyList<ErpNetsuiteDashboardCatalog.IndustryControl> _controls = [];
+    private ErpInsightsSuite _insights = ErpInsightsSuiteCatalog.Build(
+        new(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "open"),
+        new(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "open"),
+        ErpInsightsSuiteCatalog.EmptyCommerce, 0, [0, 0, 0, 0, 0], "AED",
+        DateTime.UtcNow.ToString("yyyy-MM-01"), DateTime.UtcNow.ToString("yyyy-MM-dd"), autoParts: true);
 
     private string WithCompany(string href)
     {
@@ -731,6 +806,12 @@
         var days = ErpNetsuiteDashboardCatalog.PeriodDaysInclusive(_periodFrom, _periodTo);
         _opKpis = ErpNetsuiteDashboardCatalog.OperationalKpis(_profile, _cur, days);
         _controls = ErpNetsuiteDashboardCatalog.IndustryControls(_industryCode, _jewellery);
+        var autoParts = !_jewellery && (
+            string.Equals(_industryCode, "auto_parts", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(_industryCode, "core", StringComparison.OrdinalIgnoreCase));
+        _insights = ErpInsightsSuiteCatalog.Build(
+            _cur, prev, _home.Commerce ?? ErpInsightsSuiteCatalog.EmptyCommerce,
+            _arGrand, _arTotals, _currency, _periodFrom, _periodTo, autoParts);
     }
 
     private void RecalcGauge()

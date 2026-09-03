@@ -284,6 +284,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             }
 
             var alerts = new ErpWorkspacePlanningAlerts(danger, warning, info, dead, danger + warning + info + dead);
+            var commerce = await ReadInsightsCommerceAsync(connection, cancellationToken).ConfigureAwait(false);
             return new(
                 current,
                 previous,
@@ -298,7 +299,8 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                 periodFromStr,
                 periodToStr,
                 currentSummary.Source,
-                currentSummary.Message);
+                currentSummary.Message,
+                commerce);
         }
         catch (Exception ex)
         {
@@ -356,6 +358,30 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             connection, LegacySurfaceDashboardSql.SumErpWorkspaceGlNetProfit, cancellationToken,
             ("@dateFrom", dateFrom), ("@dateTo", dateTo)).ConfigureAwait(false);
         return (purchase, revenueEx, salesIncl, due, completedOrders, confirmed, openPo, invDue, busy, head, processDone, glNet);
+    }
+
+    private static async Task<ErpInsightsCommerceStats> ReadInsightsCommerceAsync(
+        DbConnection connection, CancellationToken cancellationToken)
+    {
+        var now = DateTime.UtcNow.Date;
+        var today = new DateTimeOffset(now, TimeSpan.Zero).ToUnixTimeSeconds();
+        var week = new DateTimeOffset(now.AddDays(-6), TimeSpan.Zero).ToUnixTimeSeconds();
+        var prevWeekFrom = new DateTimeOffset(now.AddDays(-13), TimeSpan.Zero).ToUnixTimeSeconds();
+        var ordersToday = await ScalarIntParamSafeAsync(
+            connection, LegacySurfaceDashboardSql.CountErpInsightsOrdersSince, cancellationToken, ("@since", today)).ConfigureAwait(false);
+        var ordersWeek = await ScalarIntParamSafeAsync(
+            connection, LegacySurfaceDashboardSql.CountErpInsightsOrdersSince, cancellationToken, ("@since", week)).ConfigureAwait(false);
+        var ordersPrev = await ScalarIntParamSafeAsync(
+            connection, LegacySurfaceDashboardSql.CountErpInsightsOrdersBetween, cancellationToken,
+            ("@dateFrom", prevWeekFrom), ("@dateTo", week)).ConfigureAwait(false);
+        var open = await ScalarIntSafeAsync(connection, LegacySurfaceDashboardSql.CountErpInsightsOpenOrders, cancellationToken).ConfigureAwait(false);
+        var products = await ScalarIntSafeAsync(connection, LegacySurfaceDashboardSql.CountErpInsightsPublishedProducts, cancellationToken).ConfigureAwait(false);
+        var clients = await ScalarIntSafeAsync(connection, LegacySurfaceDashboardSql.CountErpInsightsCustomers, cancellationToken).ConfigureAwait(false);
+        var returns = await ScalarIntSafeAsync(connection, LegacySurfaceDashboardSql.CountErpInsightsOpenReturns, cancellationToken).ConfigureAwait(false);
+        var vin = await ScalarIntSafeAsync(connection, LegacySurfaceDashboardSql.CountErpInsightsVinOpen, cancellationToken).ConfigureAwait(false);
+        var warehouses = await ScalarIntSafeAsync(connection, LegacySurfaceDashboardSql.CountErpInsightsWarehouses, cancellationToken).ConfigureAwait(false);
+        var prices = await ScalarIntSafeAsync(connection, LegacySurfaceDashboardSql.CountErpInsightsPriceLists, cancellationToken).ConfigureAwait(false);
+        return new(ordersToday, ordersWeek, ordersPrev, open, products, clients, returns, vin, warehouses, prices);
     }
 
     private static ErpWorkspacePeriodKpis ToWorkspacePeriod(
