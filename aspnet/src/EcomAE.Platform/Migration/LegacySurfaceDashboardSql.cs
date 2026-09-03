@@ -1073,6 +1073,36 @@ public static class LegacySurfaceDashboardSql
         LIMIT 2000
         """;
 
+    /// <summary>PHP <c>epc_erp_receivables</c> — customer AR (email is the PHP AR identifier).</summary>
+    public const string SelectErpReceivables = """
+        SELECT
+            `users`.`user_id`,
+            IFNULL(`users`.`email`, '') AS email,
+            IFNULL((SELECT SUM(`amount`) FROM `shop_users_accounting` WHERE `user_id` = `users`.`user_id` AND `active` = 1 AND `income` = 1), 0)
+            - IFNULL((SELECT SUM(`amount`) FROM `shop_users_accounting` WHERE `user_id` = `users`.`user_id` AND `active` = 1 AND `income` = 0), 0) AS balance,
+            IFNULL((
+                SELECT SUM(GREATEST(
+                    IFNULL((SELECT SUM(i.`price` * i.`count_need`) FROM `shop_orders_items` i WHERE i.`order_id` = o.`id`), 0)
+                    - (
+                        IFNULL((SELECT SUM(`amount`) FROM `shop_users_accounting` WHERE `active` = 1 AND `income` = 0 AND `order_id` = o.`id`), 0)
+                        - IFNULL((SELECT SUM(`amount`) FROM `shop_users_accounting` WHERE `active` = 1 AND `income` = 1 AND `order_id` = o.`id`), 0)
+                    )
+                , 0))
+                FROM `shop_orders` o
+                WHERE o.`user_id` = `users`.`user_id` AND o.`successfully_created` = 1
+            ), 0) AS order_receivable_due,
+            (SELECT COUNT(*) FROM `shop_orders` WHERE `user_id` = `users`.`user_id` AND `successfully_created` = 1) AS order_count,
+            IFNULL((
+                SELECT COUNT(*) FROM `shop_orders` o
+                WHERE o.`user_id` = `users`.`user_id` AND o.`successfully_created` = 1
+                  AND o.`status` IN (SELECT `id` FROM `shop_orders_statuses_ref` WHERE `for_finish` = 1)
+            ), 0) AS complete_order_count
+        FROM `users`
+        HAVING balance != 0 OR order_count > 0 OR order_receivable_due != 0
+        ORDER BY order_receivable_due DESC, balance DESC
+        LIMIT @limit
+        """;
+
     public const string SelectErpCreditProfiles = """
         SELECT `customer_id`, IFNULL(`customer_account`, '') AS customer_account,
                IFNULL(`customer_name`, '') AS customer_name,

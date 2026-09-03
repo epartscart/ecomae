@@ -820,6 +820,31 @@ public sealed record ErpAgingDigestResult(
     string Source,
     string Message);
 
+/// <summary>PHP <c>epc_erp_receivables</c> customer AR row (email is the PHP AR identifier).</summary>
+public sealed record ErpReceivableDigest(
+    long UserId,
+    string Email,
+    decimal Balance,
+    decimal OrderReceivableDue,
+    int OrderCount,
+    int CompleteOrderCount);
+
+public sealed record ErpReceivablesSummary(
+    int CustomerCount,
+    int WithOpenBalance,
+    decimal BalanceTotal,
+    decimal DueTotal,
+    int OrderCount,
+    string Source,
+    string Message);
+
+public sealed record ErpReceivablesDigestResult(
+    ErpReceivablesSummary Summary,
+    IReadOnlyList<ErpReceivableDigest> Customers,
+    int Count,
+    string Source,
+    string Message);
+
 public sealed record CpCurrencyDigest(
     int Id,
     string IsoCode,

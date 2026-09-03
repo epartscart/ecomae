@@ -707,6 +707,9 @@ public static class EcomAeRoutes
     public const string ErpAging = "/erp/aging";
     /// <summary>Aging Blazor list (JSON digest remains <see cref="ErpAging"/>).</summary>
     public const string ErpAgingApp = "/erp/aging-app";
+    /// <summary>Read-only AR customers (PHP <c>epc_erp_receivables</c>).</summary>
+    public const string ErpReceivables = "/erp/receivables";
+    public const string ErpReceivablesApp = "/erp/receivables-app";
     /// <summary>Read-only inventory movement ledger (PHP <c>epc_erp_inventory_ledger</c>).</summary>
     public const string ErpStockMovements = "/erp/stock-movements";
     /// <summary>Stock movements Blazor list (JSON digest remains <see cref="ErpStockMovements"/>).</summary>
