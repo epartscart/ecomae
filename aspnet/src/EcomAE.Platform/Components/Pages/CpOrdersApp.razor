@@ -1,5 +1,7 @@
 @page "/cp/orders"
 @page "/cp/orders-app"
+@page "/cp/shop/orders/orders"
+@page "/cp/shop/orders/order"
 @layout Layout.PhpChromeLayout
 @using System.Globalization
 @using EcomAE.Platform.Auth
@@ -8,7 +10,6 @@
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
-@inject NavigationManager Nav
 
 <PageTitle>Orders · OMS · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="cp" />
@@ -19,7 +20,7 @@
 
 <PhpCpDesktopChrome IsAdmin="_isAdmin">
 
-<div class="col-lg-12 epc-scp-panel epc-scp-orders-page epc-orders-page">
+<div class="col-lg-12 epc-scp-panel epc-scp-orders-page epc-orders-page" data-epc-oms-ssr="1">
     <div class="epc-orders-page__hero">
         <div>
             <h2><i class="fa fa-shopping-basket"></i> Orders · OMS</h2>
@@ -29,35 +30,35 @@
             <a class="btn btn-primary btn-sm" href="/cp/fulfillment-queue-app"><i class="fa fa-truck"></i> Fulfilment queue</a>
             <a class="btn btn-default btn-sm" href="/cp/returns-rma-app"><i class="fa fa-undo"></i> Returns</a>
             <a class="btn btn-default btn-sm" href="/cp/sao-app"><i class="fa fa-cogs"></i> SAO</a>
-            <button type="button" class="btn btn-default btn-sm" @onclick='() => SetSort("id")'><i class="fa fa-sort-numeric-desc"></i> By order #</button>
-            <button type="button" class="btn btn-default btn-sm" @onclick='() => SetSort("last_modified")'><i class="fa fa-clock-o"></i> By last modified</button>
+            <a class="btn btn-default btn-sm" href="@OrdersHref(sort: "id")"><i class="fa fa-sort-numeric-desc"></i> By order #</a>
+            <a class="btn btn-default btn-sm" href="@OrdersHref(sort: "last_modified")"><i class="fa fa-clock-o"></i> By last modified</a>
         </div>
     </div>
 
     <div class="epc-scp-kpi epc-scp-orders-kpi" aria-label="OMS KPIs">
-        <div class="epc-scp-kpi__card is-clickable" role="button" tabindex="0" @onclick='() => SetTab("open")' title="Show open orders">
+        <a class="epc-scp-kpi__card is-clickable" href="@OrdersHref(tab: "open")" title="Show open orders">
             <div class="epc-scp-kpi__label">Open orders</div>
             <div class="epc-scp-kpi__val">@_summary.Open</div>
             <div class="epc-scp-kpi__hint">Click to filter · active pipeline</div>
-        </div>
-        <div class="epc-scp-kpi__card is-clickable" role="button" tabindex="0" @onclick='() => SetTab("today")' title="Orders created today">
+        </a>
+        <a class="epc-scp-kpi__card is-clickable" href="@OrdersHref(tab: "today")" title="Orders created today">
             <div class="epc-scp-kpi__label">Today</div>
             <div class="epc-scp-kpi__val">@_summary.Today</div>
             <div class="epc-scp-kpi__hint">Click to filter · new today</div>
-        </div>
-        <div class="epc-scp-kpi__card is-clickable" role="button" tabindex="0" @onclick='() => SetTab("pending")' title="Paid orders not finished">
+        </a>
+        <a class="epc-scp-kpi__card is-clickable" href="@OrdersHref(tab: "pending")" title="Paid orders not finished">
             <div class="epc-scp-kpi__label">Pending ship</div>
             <div class="epc-scp-kpi__val">@_summary.PendingShip</div>
             <div class="epc-scp-kpi__hint">Click to filter · paid, not finished</div>
-        </div>
+        </a>
     </div>
 
     <p class="epc-oms-keys-hint"><i class="fa fa-keyboard-o"></i> Shortcuts: click a row for OMS console · tabs Manage → Messages · writes stay on PHP OMS until cutover</p>
 
     <div class="epc-orders-tabs" role="tablist" aria-label="Orders tabs">
-        <button type="button" class="epc-orders-tab @(_tab == "open" ? "is-active" : null)" @onclick='() => SetTab("open")'>Open <span class="epc-tab-count">@_summary.Open</span></button>
-        <button type="button" class="epc-orders-tab is-completed @(_tab == "completed" ? "is-active" : null)" @onclick='() => SetTab("completed")'>Completed <span class="epc-tab-count">@_summary.Completed</span></button>
-        <button type="button" class="epc-orders-tab @(_tab == "all" || _tab == "today" || _tab == "pending" ? "is-active" : null)" @onclick='() => SetTab("all")'>All</button>
+        <a class="epc-orders-tab @(_tab == "open" ? "is-active" : null)" href="@OrdersHref(tab: "open")">Open <span class="epc-tab-count">@_summary.Open</span></a>
+        <a class="epc-orders-tab is-completed @(_tab == "completed" ? "is-active" : null)" href="@OrdersHref(tab: "completed")">Completed <span class="epc-tab-count">@_summary.Completed</span></a>
+        <a class="epc-orders-tab @(_tab == "all" || _tab == "today" || _tab == "pending" ? "is-active" : null)" href="@OrdersHref(tab: "all")">All</a>
     </div>
 
     <div class="epc-orders-toolbar">
@@ -89,9 +90,9 @@
                         <thead>
                             <tr>
                                 <th></th>
-                                <th><a href="javascript:void(0);" @onclick='() => SetSort("id")' @onclick:preventDefault>Order #</a></th>
-                                <th><a href="javascript:void(0);" @onclick='() => SetSort("time")' @onclick:preventDefault>Created</a></th>
-                                <th data-hide="phone"><a href="javascript:void(0);" @onclick='() => SetSort("last_modified")' @onclick:preventDefault>Modified</a></th>
+                                <th><a href="@OrdersHref(sort: "id")">Order #</a></th>
+                                <th><a href="@OrdersHref(sort: "time")">Created</a></th>
+                                <th data-hide="phone"><a href="@OrdersHref(sort: "last_modified")">Modified</a></th>
                                 <th>Items</th>
                                 <th>Sum</th>
                                 <th data-hide="phone,tablet">Purchase</th>
@@ -116,9 +117,9 @@
                                         + (o.ViewedFlag == 0 ? " not_viewed" : "")
                                         + (_selectedId == o.Id ? " is-selected" : "");
                                     var margin = o.OrderSum - o.PurchaseSum;
-                                    <tr class="@rowClass" data-order-id="@o.Id" @onclick="() => SelectOrderAsync(o.Id)">
+                                    <tr class="@rowClass" data-order-id="@o.Id" onclick="location.href='@OrdersHref(o.Id, detailTab: "manage")'">
                                         <td></td>
-                                        <td><a class="epc-scp-orders-link" href="javascript:void(0);"><strong>#@o.Id</strong></a></td>
+                                        <td><a class="epc-scp-orders-link" href="@OrdersHref(o.Id, detailTab: "manage")"><strong>#@o.Id</strong></a></td>
                                         <td>@FormatTime(o.TimeUnix)</td>
                                         <td>@FormatTime(o.LastModifiedUnix > 0 ? o.LastModifiedUnix : o.TimeUnix)</td>
                                         <td>@o.CountItems</td>
@@ -140,12 +141,24 @@
         </div>
 
         <div class="epc-scp-orders-workspace__detail" id="epc_orders_detail_pane">
-            @if (_detail is null)
+            @if (_detail is null && _selectedId <= 0)
             {
                 <div class="epc-scp-orders-detail__empty">
                     <i class="fa fa-hand-pointer-o"></i>
                     <p>Select an order to manage</p>
                     <span class="text-muted small">One-window OMS: summary, items, customer, payment, invoices &amp; documents</span>
+                </div>
+            }
+            else if (_detail is null)
+            {
+                <div class="epc-od epc-od--oms" data-order-id="@_selectedId">
+                    <div class="epc-od__head">
+                        <div class="epc-od__title-row">
+                            <h3 class="epc-od__title">Order #@_selectedId <span class="epc-od__oms-tag">OMS</span></h3>
+                            <a class="epc-scp-orders-link" href="@OrdersHref(orderId: 0)" style="margin-left:auto;font-weight:500;">Close</a>
+                        </div>
+                        <p class="text-muted">Order #@_selectedId is not in this shop digest — shop DB is not configured or this id is not on this tenant.</p>
+                    </div>
                 </div>
             }
             else
@@ -156,6 +169,7 @@
                     <div class="epc-od__head">
                         <div class="epc-od__title-row">
                             <h3 class="epc-od__title">Order #@o.Id <span class="epc-od__oms-tag">OMS</span></h3>
+                            <a class="epc-scp-orders-link" href="@OrdersHref(orderId: 0)" style="margin-left:auto;font-weight:500;">Close</a>
                             <span class="epc-scp-badge @o.StatusBadgeClass">@(string.IsNullOrWhiteSpace(o.StatusName) ? $"#{o.Status}" : o.StatusName)</span>
                         </div>
                         <div class="epc-od__meta">
@@ -196,7 +210,7 @@
                         {
                             var key = tab.Key;
                             var label = tab.Label;
-                            <button type="button" class="@(_detailTab == key ? "is-active" : null)" data-epc-od-tab="@key" @onclick="() => _detailTab = key">@label</button>
+                            <a class="@(_detailTab == key ? "is-active" : null)" data-epc-od-tab="@key" href="@OrdersHref(_selectedId, detailTab: key)">@label</a>
                         }
                     </nav>
 
@@ -205,10 +219,10 @@
                             <div class="epc-od__edit-title">Update order</div>
                             <p class="text-muted small">Status / notes / fulfillment writes remain on the PHP OMS console until cutover. This pane is the same graphical shell.</p>
                             <div class="epc-od__actions">
-                                <button type="button" class="btn btn-primary btn-sm" @onclick='() => _detailTab = "fulfillment"'><i class="fa fa-random"></i> Fulfillment</button>
-                                <button type="button" class="btn btn-default btn-sm" @onclick='() => _detailTab = "payment"'><i class="fa fa-credit-card"></i> Payment</button>
-                                <button type="button" class="btn btn-default btn-sm" @onclick='() => _detailTab = "docs"'><i class="fa fa-file-text-o"></i> Invoice / docs</button>
-                                <button type="button" class="btn btn-default btn-sm" @onclick='() => _detailTab = "customer"'><i class="fa fa-user"></i> Customer</button>
+                                <a class="btn btn-primary btn-sm" href="@OrdersHref(_selectedId, detailTab: "fulfillment")"><i class="fa fa-random"></i> Fulfillment</a>
+                                <a class="btn btn-default btn-sm" href="@OrdersHref(_selectedId, detailTab: "payment")"><i class="fa fa-credit-card"></i> Payment</a>
+                                <a class="btn btn-default btn-sm" href="@OrdersHref(_selectedId, detailTab: "docs")"><i class="fa fa-file-text-o"></i> Invoice / docs</a>
+                                <a class="btn btn-default btn-sm" href="@OrdersHref(_selectedId, detailTab: "customer")"><i class="fa fa-user"></i> Customer</a>
                                 <a class="btn btn-default btn-sm" href="@ClassicCardHref(o.Id)"><i class="fa fa-external-link"></i> Classic full card</a>
                             </div>
                         </div>
@@ -403,7 +417,17 @@
                 "last_modified" => q.OrderByDescending(o => o.LastModifiedUnix > 0 ? o.LastModifiedUnix : o.TimeUnix),
                 _ => q.OrderByDescending(o => o.Id),
             };
-            return q.ToList();
+            var list = q.ToList();
+            if (_selectedId > 0 && list.All(o => o.Id != _selectedId))
+            {
+                var extra = _orders.FirstOrDefault(o => o.Id == _selectedId) ?? _detail?.Order;
+                if (extra is not null)
+                {
+                    list.Insert(0, extra);
+                }
+            }
+
+            return list;
         }
     }
 
@@ -418,13 +442,28 @@
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
 
-        if (Uri.TryCreate(Nav.Uri, UriKind.Absolute, out var uri))
+        var q = ctx.Request.Query;
+        if (long.TryParse(q["order_id"].ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var oid) && oid > 0)
         {
-            var qs = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query);
-            if (qs.TryGetValue("order_id", out var raw) && long.TryParse(raw, out var oid) && oid > 0)
-            {
-                _selectedId = oid;
-            }
+            _selectedId = oid;
+        }
+
+        var tab = q["tab"].ToString();
+        if (tab is "open" or "completed" or "all" or "today" or "pending")
+        {
+            _tab = tab;
+        }
+
+        var sort = q["sort"].ToString();
+        if (sort is "id" or "time" or "last_modified")
+        {
+            _sort = sort;
+        }
+
+        var od = q["od"].ToString();
+        if (DetailTabs.Any(t => t.Key == od))
+        {
+            _detailTab = od;
         }
 
         if (!_isAdmin)
@@ -438,21 +477,20 @@
 
         if (_selectedId > 0)
         {
-            await SelectOrderAsync(_selectedId);
+            await LoadOrderDetailAsync(_selectedId, ctx.RequestAborted);
         }
     }
 
-    private async Task SelectOrderAsync(long orderId)
+    private async Task LoadOrderDetailAsync(long orderId, CancellationToken cancellationToken)
     {
         _selectedId = orderId;
-        _detailTab = "manage";
         if (!_isAdmin)
         {
             _detail = null;
             return;
         }
 
-        _detail = await Dashboards.GetCpOrderDetailAsync(orderId);
+        _detail = await Dashboards.GetCpOrderDetailAsync(orderId, cancellationToken);
         if (_detail is null)
         {
             var row = _orders.FirstOrDefault(o => o.Id == orderId);
@@ -465,12 +503,36 @@
         }
     }
 
-    private void SetTab(string tab) => _tab = tab;
+    private string OrdersHref(long? orderId = null, string? tab = null, string? sort = null, string? detailTab = null)
+    {
+        var q = new List<string>();
+        void Add(string key, string? value)
+        {
+            if (!string.IsNullOrWhiteSpace(value))
+            {
+                q.Add(Uri.EscapeDataString(key) + "=" + Uri.EscapeDataString(value));
+            }
+        }
 
-    private void SetSort(string sort) => _sort = sort;
+        var oid = orderId ?? _selectedId;
+        if (oid > 0)
+        {
+            q.Add("order_id=" + oid.ToString(CultureInfo.InvariantCulture));
+        }
 
-    private static string ClassicCardHref(long orderId)
-        => PhpSurfaceLinkMap.AspNetPrimaryHref($"/CP/shop/orders/order?order_id={orderId.ToString(CultureInfo.InvariantCulture)}");
+        Add("tab", tab ?? _tab);
+        Add("sort", sort ?? _sort);
+        var od = detailTab ?? (_selectedId > 0 ? _detailTab : null);
+        if (!string.IsNullOrWhiteSpace(od) && od != "manage")
+        {
+            Add("od", od);
+        }
+
+        return "/cp/orders" + (q.Count == 0 ? "" : "?" + string.Join("&", q));
+    }
+
+    private string ClassicCardHref(long orderId)
+        => OrdersHref(orderId);
 
     private static string PaidBadgeHtml(int paid) => paid switch
     {

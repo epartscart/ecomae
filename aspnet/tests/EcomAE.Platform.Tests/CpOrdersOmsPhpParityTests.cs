@@ -33,6 +33,13 @@ public sealed class CpOrdersOmsPhpParityTests
         Assert.Contains("epc-scp-orders-detail__erp-fulfillment", text, StringComparison.Ordinal);
         Assert.Contains("epc-od__supplier-fulfillment", text, StringComparison.Ordinal);
         Assert.Contains("CpOrdersOmsStylesheets", text, StringComparison.Ordinal);
+        Assert.Contains("order_id=", text, StringComparison.Ordinal);
+        Assert.Contains("data-epc-oms-ssr", text, StringComparison.Ordinal);
+        Assert.Contains("@page \"/cp/shop/orders/orders\"", text, StringComparison.Ordinal);
+        Assert.Contains("@page \"/cp/shop/orders/order\"", text, StringComparison.Ordinal);
+        Assert.Contains("GetCpOrderDetailAsync", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("@onclick", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("javascript:void(0)", text, StringComparison.Ordinal);
         Assert.DoesNotContain("epc-oms-hero", text, StringComparison.Ordinal);
         Assert.DoesNotContain("Open PHP reference OMS", text, StringComparison.Ordinal);
         Assert.DoesNotContain("ASP.NET OMS dry-runs", text, StringComparison.Ordinal);

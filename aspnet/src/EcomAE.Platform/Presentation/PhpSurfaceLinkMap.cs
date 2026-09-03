@@ -879,6 +879,23 @@ public static class PhpSurfaceLinkMap
     }
 
     /// <summary>
+    /// PHP <c>/CP/shop/orders/orders?order_id=</c> / <c>/shop/orders/order?order_id=</c>
+    /// → ASP.NET OMS console with detail query preserved.
+    /// </summary>
+    private static string MapCpOrdersHref(string original)
+    {
+        var raw = ExtractQuery(original, "order_id");
+        if (!string.IsNullOrWhiteSpace(raw)
+            && long.TryParse(raw, System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture, out var orderId)
+            && orderId > 0)
+        {
+            return "/cp/orders?order_id=" + orderId.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        }
+
+        return "/cp/orders";
+    }
+
+    /// <summary>
     /// PHP CHPU <c>/parts/{BRAND}/{ARTICLE}</c> (and <c>/parts/brands/{ARTICLE}</c>) → search-app query.
     /// </summary>
     private static bool TryMapPartsBrandArticlePath(string value, out string href)
@@ -1443,6 +1460,12 @@ public static class PhpSurfaceLinkMap
                 if (aspNet.Equals("/cp/users-app", StringComparison.OrdinalIgnoreCase))
                 {
                     return MapCpUsersAppHref(value);
+                }
+
+                // Preserve ?order_id= so PHP OMS / classic card open the dual-pane detail.
+                if (aspNet.Equals("/cp/orders", StringComparison.OrdinalIgnoreCase))
+                {
+                    return MapCpOrdersHref(value);
                 }
 
                 return aspNet;
