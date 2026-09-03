@@ -44,6 +44,7 @@ public sealed class CpPhpParityTests
     [InlineData("/CP/control/portal/epc_tenant_features", "/cp/tenant-features-app")]
     [InlineData("/CP/control/portal/epc_super_cp_customer_board", "/cp/customer-board-app")]
     [InlineData("/CP/shop/finance/epc_fulfillment_queue", "/cp/fulfillment-queue-app")]
+    [InlineData("/CP/shop/finance/epc_fulfillment_queue?fulfillment_id=4", "/cp/fulfillment-queue-app?fulfillment_id=4")]
     [InlineData("/CP/control/portal/epc_sso_saml", "/cp/sso-saml-app")]
     [InlineData("/CP/control/portal/epc_event_bus", "/cp/event-bus-app")]
     [InlineData("/CP/shop/order_process/orders", "/cp/orders")]

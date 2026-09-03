@@ -896,6 +896,23 @@ public static class PhpSurfaceLinkMap
     }
 
     /// <summary>
+    /// PHP <c>/CP/shop/finance/epc_fulfillment_queue?fulfillment_id=</c>
+    /// → ASP.NET fulfilment queue with detail query preserved.
+    /// </summary>
+    private static string MapCpFulfillmentQueueHref(string original)
+    {
+        var raw = ExtractQuery(original, "fulfillment_id");
+        if (!string.IsNullOrWhiteSpace(raw)
+            && long.TryParse(raw, System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture, out var fulfillmentId)
+            && fulfillmentId > 0)
+        {
+            return "/cp/fulfillment-queue-app?fulfillment_id=" + fulfillmentId.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        }
+
+        return "/cp/fulfillment-queue-app";
+    }
+
+    /// <summary>
     /// PHP CHPU <c>/parts/{BRAND}/{ARTICLE}</c> (and <c>/parts/brands/{ARTICLE}</c>) → search-app query.
     /// </summary>
     private static bool TryMapPartsBrandArticlePath(string value, out string href)
@@ -1466,6 +1483,12 @@ public static class PhpSurfaceLinkMap
                 if (aspNet.Equals("/cp/orders", StringComparison.OrdinalIgnoreCase))
                 {
                     return MapCpOrdersHref(value);
+                }
+
+                // Preserve ?fulfillment_id= so PHP queue deep links open the dual-pane.
+                if (aspNet.Equals("/cp/fulfillment-queue-app", StringComparison.OrdinalIgnoreCase))
+                {
+                    return MapCpFulfillmentQueueHref(value);
                 }
 
                 return aspNet;

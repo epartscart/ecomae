@@ -3929,8 +3929,60 @@ public sealed record CpCustomerBoardRowDigest(int Id, string Email, string Name,
 public sealed record CpCustomerBoardDigestResult(CpCustomerBoardSummary Summary, IReadOnlyList<CpCustomerBoardRowDigest> Rows, int Count, string Source, string Message);
 
 public sealed record CpFulfillmentQueueSummary(int Queued, int Picking, int Shipping, int Delivered, string Source, string Message);
-public sealed record CpFulfillmentQueueRowDigest(long Id, string OrderNumber, string CustomerName, string Status, string Priority, string Warehouse, string Carrier);
+public sealed record CpFulfillmentQueueRowDigest(
+    long Id,
+    string OrderNumber,
+    string CustomerName,
+    string Status,
+    string Priority,
+    string Warehouse,
+    string Carrier,
+    long OrderId = 0,
+    string AssignedName = "",
+    string TrackingNumber = "",
+    int TotalItems = 0,
+    long WaveId = 0);
 public sealed record CpFulfillmentQueueDigestResult(CpFulfillmentQueueSummary Summary, IReadOnlyList<CpFulfillmentQueueRowDigest> Rows, int Count, string Source, string Message);
+
+/// <summary>PHP <c>epc_fulfillment_get</c> line from <c>epc_fulfillment_items</c>.</summary>
+public sealed record CpFulfillmentItemDigest(
+    long Id,
+    string Sku,
+    string ProductName,
+    int QtyOrdered,
+    int QtyPicked,
+    int QtyPacked,
+    string BinLocation,
+    decimal Weight,
+    string PickStatus,
+    string Notes);
+
+/// <summary>PHP <c>epc_fulfillment_get</c> + packing-slip fields. Writes remain PHP.</summary>
+public sealed record CpFulfillmentDetailDigest(
+    long Id,
+    long OrderId,
+    string OrderNumber,
+    string CustomerName,
+    string Status,
+    string Priority,
+    string Warehouse,
+    string AssignedName,
+    long WaveId,
+    string Carrier,
+    string TrackingNumber,
+    string ShippingMethod,
+    int TotalItems,
+    decimal TotalWeight,
+    string ShipAddressJson,
+    string Notes,
+    string CreatedAt,
+    string PickStartedAt,
+    string PickCompletedAt,
+    string PackCompletedAt,
+    string ShipDate,
+    IReadOnlyList<CpFulfillmentItemDigest> Items,
+    string Source,
+    string Message);
 
 public sealed record CpSsoSamlSummary(int ProviderCount, int ActiveProviders, int SessionCount, int ActiveSessions, string Source, string Message);
 public sealed record CpSsoSamlRowDigest(string ProviderName, string ProviderType, bool Active, string Email, string Status);

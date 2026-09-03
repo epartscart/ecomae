@@ -446,6 +446,8 @@ public interface ISurfaceDashboardSummaryReporter
     Task<CpCustomerBoardDigestResult> BuildCpCustomerBoardDigestAsync(int limit, CancellationToken cancellationToken = default);
     /// <summary>Next-wave: fulfillment queue digest (OMS stage writes remain dry-run).</summary>
     Task<CpFulfillmentQueueDigestResult> BuildCpFulfillmentQueueDigestAsync(int limit, CancellationToken cancellationToken = default);
+    /// <summary>PHP <c>epc_fulfillment_get</c> read-only detail. Writes remain PHP / OMS dry-run.</summary>
+    Task<CpFulfillmentDetailDigest?> GetCpFulfillmentDetailAsync(long fulfillmentId, CancellationToken cancellationToken = default);
     /// <summary>Next-wave Super-only: SSO/SAML providers (certs/metadata omitted).</summary>
     Task<CpSsoSamlDigestResult> BuildCpSsoSamlDigestAsync(int limit, CancellationToken cancellationToken = default);
     /// <summary>Next-wave Super-only: MySQL epc_events bus peek (no Kafka/Rabbit).</summary>

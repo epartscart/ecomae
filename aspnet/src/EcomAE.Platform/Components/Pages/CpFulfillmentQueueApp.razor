@@ -1,122 +1,421 @@
 @page "/cp/fulfillment-queue-app"
+@page "/cp/shop/finance/epc_fulfillment_queue"
 @layout Layout.PhpChromeLayout
 @using System.Globalization
+@using System.Text.Json
 @using EcomAE.Platform.Auth
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
-@inject NavigationManager Nav
 
 <PageTitle>Fulfilment queue · Control Panel · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="cp" />
+@foreach (var href in LegacyPresentationAssets.CpOrdersOmsStylesheets)
+{
+    <link rel="stylesheet" href="@href" />
+}
 
 <PhpCpDesktopChrome IsAdmin="_isAdmin">
-    <style>
-        .epc-nw-hero {
-            margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
-            background:linear-gradient(135deg,#0c4a6e 0%,#2563eb 45%,#0ea5e9 100%);
-        }
-        .epc-nw-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
-        .epc-nw-hero p { margin:0; color:rgba(255,255,255,.88); max-width:44rem; font-size:.92rem; line-height:1.45; }
-        .epc-nw-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
-        .epc-nw-cta a {
-            display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
-            text-decoration:none; color:#0f172a; background:#fff;
-        }
-        .epc-nw-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); color:#fff; }
-        .epc-nw-kpis { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
-        .epc-nw-kpi { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; padding:.85rem .9rem; }
-        .epc-nw-kpi strong { display:block; font-size:1.2rem; word-break:break-word; }
-        .epc-nw-kpi span { color:#64748b; font-size:.78rem; }
-        .epc-nw-table-wrap { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; overflow:auto; }
-        .epc-nw-table { width:100%; border-collapse:collapse; font-size:.86rem; }
-        .epc-nw-table th, .epc-nw-table td { padding:.55rem .7rem; border-bottom:1px solid #f1f5f9; text-align:left; white-space:nowrap; }
-        .epc-nw-table th { background:#f8fafc; color:#475569; font-size:.75rem; text-transform:uppercase; letter-spacing:.03em; }
-        .epc-nw-note { margin-top:1rem; padding:.75rem .9rem; background:#f8fafc; border:1px solid #cbd5e1; border-radius:.45rem; color:#334155; font-size:.86rem; }
-        @@media (max-width:900px){ .epc-nw-kpis{grid-template-columns:1fr 1fr;} }
-    </style>
 
-    <section class="epc-nw-hero">
-        <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
-        <h1>Fulfilment queue</h1>
-        <p>Manage store operations, catalogue, and partner integrations from one control panel.</p>
-        <div class="epc-nw-cta">
-            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
-            <a class="ghost" href="/cp/orders">Orders</a>
-            <a class="ghost" href="/cp/orders/fulfillment-set-stage">Set stage dry-run</a>
+<div class="col-lg-12 epc-scp-panel epc-scp-orders-page epc-orders-page" data-epc-fulfillment-ssr="1">
+    <div class="epc-orders-page__hero">
+        <div>
+            <h2><i class="fa fa-truck"></i> Fulfilment queue</h2>
+            <p>Pick / pack / ship queue from the warehouse board. List on the left, fulfilment card on the right — lines, tracking, and packing slip. Click KPI cards to filter.</p>
         </div>
-    </section>
-
-    <div class="epc-nw-kpis" aria-label="Fulfilment queue stats">
-        <div class="epc-nw-kpi"><strong>@_queued.ToString(CultureInfo.InvariantCulture)</strong><span>Queued</span></div>
-        <div class="epc-nw-kpi"><strong>@_picking.ToString(CultureInfo.InvariantCulture)</strong><span>Picking</span></div>
-        <div class="epc-nw-kpi"><strong>@_shipping.ToString(CultureInfo.InvariantCulture)</strong><span>Shipping</span></div>
-        <div class="epc-nw-kpi"><strong>@_delivered.ToString(CultureInfo.InvariantCulture)</strong><span>Delivered</span></div>
+        <div class="epc-orders-page__hero-actions">
+            <a class="btn btn-primary btn-sm" href="/cp/orders"><i class="fa fa-shopping-basket"></i> Orders · OMS</a>
+            <a class="btn btn-default btn-sm" href="/cp/returns-rma-app"><i class="fa fa-undo"></i> Returns</a>
+            <a class="btn btn-default btn-sm" href="/cp/sao-app"><i class="fa fa-cogs"></i> SAO</a>
+        </div>
     </div>
 
-    <div class="epc-nw-table-wrap">
-    <table class="epc-nw-table">
-        <thead>
-            <tr>
-                    <th>Id</th>
-                    <th>Order</th>
-                    <th>Customer</th>
-                    <th>Status</th>
-                    <th>Priority</th>
-                    <th>Warehouse</th>
-                    <th>Carrier</th>
-                    <th></th>
-            </tr>
-        </thead>
-        <tbody>
-            @if (_rows.Count == 0)
+    <div class="epc-scp-kpi epc-scp-orders-kpi" aria-label="Fulfilment queue KPIs">
+        <a class="epc-scp-kpi__card is-clickable" href="@QueueHref(status: "queued")" title="Show queued jobs">
+            <div class="epc-scp-kpi__label">Queued</div>
+            <div class="epc-scp-kpi__val">@_queued.ToString(CultureInfo.InvariantCulture)</div>
+            <div class="epc-scp-kpi__hint">Click to filter · waiting to pick</div>
+        </a>
+        <a class="epc-scp-kpi__card is-clickable" href="@QueueHref(status: "picking")" title="Show picking / packing">
+            <div class="epc-scp-kpi__label">Picking</div>
+            <div class="epc-scp-kpi__val">@_picking.ToString(CultureInfo.InvariantCulture)</div>
+            <div class="epc-scp-kpi__hint">Click to filter · pick / pack</div>
+        </a>
+        <a class="epc-scp-kpi__card is-clickable" href="@QueueHref(status: "shipping")" title="Show shipping">
+            <div class="epc-scp-kpi__label">Shipping</div>
+            <div class="epc-scp-kpi__val">@_shipping.ToString(CultureInfo.InvariantCulture)</div>
+            <div class="epc-scp-kpi__hint">Click to filter · in transit</div>
+        </a>
+        <a class="epc-scp-kpi__card is-clickable" href="@QueueHref(status: "delivered")" title="Show delivered">
+            <div class="epc-scp-kpi__label">Delivered</div>
+            <div class="epc-scp-kpi__val">@_delivered.ToString(CultureInfo.InvariantCulture)</div>
+            <div class="epc-scp-kpi__hint">Click to filter · complete</div>
+        </a>
+    </div>
+
+    <p class="epc-oms-keys-hint"><i class="fa fa-keyboard-o"></i> Shortcuts: click a row for the fulfilment card · writes stay on the PHP queue until cutover</p>
+
+    <div class="epc-orders-tabs" role="tablist" aria-label="Fulfilment status tabs">
+        <a class="epc-orders-tab @(_status == "queued" ? "is-active" : null)" href="@QueueHref(status: "queued")">Queued <span class="epc-tab-count">@_queued</span></a>
+        <a class="epc-orders-tab @(_status == "picking" ? "is-active" : null)" href="@QueueHref(status: "picking")">Picking <span class="epc-tab-count">@_picking</span></a>
+        <a class="epc-orders-tab @(_status == "shipping" ? "is-active" : null)" href="@QueueHref(status: "shipping")">Shipping <span class="epc-tab-count">@_shipping</span></a>
+        <a class="epc-orders-tab is-completed @(_status == "delivered" ? "is-active" : null)" href="@QueueHref(status: "delivered")">Delivered <span class="epc-tab-count">@_delivered</span></a>
+        <a class="epc-orders-tab @(_status == "all" ? "is-active" : null)" href="@QueueHref(status: "all")">All</a>
+    </div>
+
+    <div class="epc-orders-toolbar">
+        <span class="epc-scp-badge epc-scp-badge--high">In progress @_picking</span>
+        <span class="epc-scp-badge epc-scp-badge--urgent">Queued @_queued</span>
+        <span class="epc-orders-toolbar__hint"><i class="fa fa-columns"></i> Click a row to open fulfilment on the right</span>
+    </div>
+
+    @if (!_isAdmin)
+    {
+        <div class="alert alert-info" role="status">Sign in with a Control Panel admin session to load live fulfilment digests. Guest browse shows the PHP-parity shell.</div>
+    }
+
+    <div class="epc-scp-orders-workspace @(_selectedId > 0 ? "is-oms-active" : null)">
+        <div class="epc-scp-orders-workspace__list">
+            <div class="epc-scp-table-card">
+                <div class="epc-scp-table-card__head epc-orders-workspace-head">
+                    <div>
+                        <h3>@ListHeading</h3>
+                        <p class="epc-oms-hint">Select a row — fulfilment card opens on the right</p>
+                    </div>
+                    <span>
+                        <a class="btn btn-default btn-xs" href="/cp/orders"><i class="fa fa-shopping-basket"></i> OMS</a>
+                        <a class="btn btn-default btn-xs" href="/cp/returns-rma-app"><i class="fa fa-undo"></i> Returns</a>
+                    </span>
+                </div>
+                <div class="table-responsive">
+                    <table class="footable table table-hover toggle-arrow epc-scp-data-table" data-sort="false">
+                        <thead>
+                            <tr>
+                                <th>Id</th>
+                                <th>Order</th>
+                                <th>Customer</th>
+                                <th>Status</th>
+                                <th>Priority</th>
+                                <th data-hide="phone">Warehouse</th>
+                                <th data-hide="phone,tablet">Carrier</th>
+                                <th data-hide="phone,tablet">Items</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (_visibleRows.Count == 0)
+                            {
+                                <tr><td colspan="9">Nothing to show yet.</td></tr>
+                            }
+                            else
+                            {
+                                @foreach (var row in _visibleRows)
+                                {
+                                    var rowClass = "epc-scp-orders-row" + (_selectedId == row.Id ? " is-selected" : "");
+                                    <tr class="@rowClass" data-fulfillment-id="@row.Id" onclick="location.href='@QueueHref(row.Id, detailTab: "overview")'">
+                                        <td>@row.Id.ToString(CultureInfo.InvariantCulture)</td>
+                                        <td><a class="epc-scp-orders-link" href="@QueueHref(row.Id, detailTab: "overview")"><strong>@(string.IsNullOrWhiteSpace(row.OrderNumber) ? $"#{row.Id}" : row.OrderNumber)</strong></a></td>
+                                        <td>@(string.IsNullOrWhiteSpace(row.CustomerName) ? "—" : row.CustomerName)</td>
+                                        <td><span class="epc-scp-badge @StatusBadgeClass(row.Status)">@(string.IsNullOrWhiteSpace(row.Status) ? "—" : row.Status)</span></td>
+                                        <td><span class="epc-scp-badge @PriorityBadgeClass(row.Priority)">@(string.IsNullOrWhiteSpace(row.Priority) ? "—" : row.Priority)</span></td>
+                                        <td>@(string.IsNullOrWhiteSpace(row.Warehouse) ? "—" : row.Warehouse)</td>
+                                        <td>@(string.IsNullOrWhiteSpace(row.Carrier) ? "—" : row.Carrier)</td>
+                                        <td>@row.TotalItems.ToString(CultureInfo.InvariantCulture)</td>
+                                        <td><a class="epc-scp-orders-link" href="@QueueHref(row.Id)">Open</a></td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="epc-scp-orders-workspace__detail" id="epc_fulfillment_detail_pane">
+            @if (_detail is null && _selectedId <= 0)
             {
-                <tr><td colspan="8">Nothing to show yet.</td></tr>
+                <div class="epc-scp-orders-detail__empty">
+                    <i class="fa fa-hand-pointer-o"></i>
+                    <p>Select a fulfilment job</p>
+                    <span class="text-muted small">One-window queue: header, pick lines, tracking, packing slip</span>
+                </div>
+            }
+            else if (_detail is null)
+            {
+                <div class="epc-od epc-od--oms" data-fulfillment-id="@_selectedId">
+                    <div class="epc-od__head">
+                        <div class="epc-od__title-row">
+                            <h3 class="epc-od__title">Fulfilment #@_selectedId <span class="epc-od__oms-tag">Queue</span></h3>
+                            <a class="epc-scp-orders-link" href="@QueueHref(fulfillmentId: 0)" style="margin-left:auto;font-weight:500;">Close</a>
+                        </div>
+                        <p class="text-muted">Fulfilment #@_selectedId is not in this shop digest — shop DB is not configured or this id is not on this tenant.</p>
+                    </div>
+                </div>
             }
             else
             {
-                @foreach (var row in _rows)
-                {
-                    <tr>
-                            <td>@row.Id.ToString(CultureInfo.InvariantCulture)</td>
-                            <td>@(!string.IsNullOrWhiteSpace(row.OrderNumber) ? row.OrderNumber : "—")</td>
-                            <td>@(!string.IsNullOrWhiteSpace(row.CustomerName) ? row.CustomerName : "—")</td>
-                            <td>@(!string.IsNullOrWhiteSpace(row.Status) ? row.Status : "—")</td>
-                            <td>@(!string.IsNullOrWhiteSpace(row.Priority) ? row.Priority : "—")</td>
-                            <td>@(!string.IsNullOrWhiteSpace(row.Warehouse) ? row.Warehouse : "—")</td>
-                            <td>@(!string.IsNullOrWhiteSpace(row.Carrier) ? row.Carrier : "—")</td>
-                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
-                    </tr>
-                }
-            }
-        </tbody>
-    </table>
-    </div>
+                var d = _detail;
+                <div class="epc-od epc-od--oms" data-fulfillment-id="@d.Id">
+                    <div class="epc-od__head">
+                        <div class="epc-od__title-row">
+                            <h3 class="epc-od__title">@(string.IsNullOrWhiteSpace(d.OrderNumber) ? $"Fulfilment #{d.Id}" : d.OrderNumber) <span class="epc-od__oms-tag">Queue</span></h3>
+                            <a class="epc-scp-orders-link" href="@QueueHref(fulfillmentId: 0)" style="margin-left:auto;font-weight:500;">Close</a>
+                            <span class="epc-scp-badge @StatusBadgeClass(d.Status)">@(string.IsNullOrWhiteSpace(d.Status) ? "—" : d.Status)</span>
+                        </div>
+                        <div class="epc-od__meta">
+                            <span><i class="fa fa-user"></i> @(string.IsNullOrWhiteSpace(d.CustomerName) ? "—" : d.CustomerName)</span>
+                            <span><i class="fa fa-building-o"></i> @(string.IsNullOrWhiteSpace(d.Warehouse) ? "main" : d.Warehouse)</span>
+                            <span><i class="fa fa-flag"></i> @(string.IsNullOrWhiteSpace(d.Priority) ? "normal" : d.Priority)</span>
+                            @if (d.WaveId > 0)
+                            {
+                                <span><i class="fa fa-sitemap"></i> Wave @d.WaveId.ToString(CultureInfo.InvariantCulture)</span>
+                            }
+                        </div>
+                        <div class="epc-od__chips">
+                            <span class="epc-scp-badge @PriorityBadgeClass(d.Priority)">@(string.IsNullOrWhiteSpace(d.Priority) ? "normal" : d.Priority)</span>
+                            <span class="epc-scp-badge epc-scp-badge--normal">@d.Items.Count lines</span>
+                            @if (d.TotalItems > 0)
+                            {
+                                <span class="epc-scp-badge epc-scp-badge--normal">@d.TotalItems.ToString(CultureInfo.InvariantCulture) items</span>
+                            }
+                        </div>
+                        <div class="epc-od__customer">
+                            @if (!string.IsNullOrWhiteSpace(d.AssignedName))
+                            {
+                                <strong>@d.AssignedName</strong>
+                                <text> · picker</text>
+                            }
+                            else
+                            {
+                                <span class="text-muted">Unassigned</span>
+                            }
+                            @if (d.OrderId > 0)
+                            {
+                                <text> · </text>
+                                <a class="epc-scp-orders-link" href="/cp/orders?order_id=@d.OrderId.ToString(CultureInfo.InvariantCulture)">OMS order #@d.OrderId</a>
+                            }
+                        </div>
+                        <div class="epc-od__totals epc-od__totals--primary">
+                            <div><span>Carrier</span><strong>@(string.IsNullOrWhiteSpace(d.Carrier) ? "—" : d.Carrier)</strong></div>
+                            <div><span>Tracking</span><strong>@(string.IsNullOrWhiteSpace(d.TrackingNumber) ? "—" : d.TrackingNumber)</strong></div>
+                            <div><span>Method</span><strong>@(string.IsNullOrWhiteSpace(d.ShippingMethod) ? "standard" : d.ShippingMethod)</strong></div>
+                        </div>
+                    </div>
 
-    <div class="epc-nw-note">Queue is read-only. Stage set/advance stay OMS dry-run; price/customer/OMS writes remain PHP.</div>
+                    <nav class="epc-od__tabs" role="tablist">
+                        @foreach (var tab in DetailTabs)
+                        {
+                            <a class="@(_detailTab == tab.Key ? "is-active" : null)" data-epc-od-tab="@tab.Key" href="@QueueHref(_selectedId, detailTab: tab.Key)">@tab.Label</a>
+                        }
+                    </nav>
+
+                    <section class="epc-od__panel @(_detailTab == "overview" ? "is-active" : null)" data-epc-od-panel="overview" style="@(_detailTab == "overview" ? null : "display:none")">
+                        <div class="epc-od__edit">
+                            <div class="epc-od__edit-title">Fulfilment</div>
+                            <p class="text-muted small">Status / assign / wave writes remain on the PHP queue until cutover. This pane is the same graphical shell.</p>
+                            <div class="epc-od__actions">
+                                <a class="btn btn-primary btn-sm" href="@QueueHref(_selectedId, detailTab: "lines")"><i class="fa fa-list"></i> Lines</a>
+                                <a class="btn btn-default btn-sm" href="@QueueHref(_selectedId, detailTab: "slip")"><i class="fa fa-file-text-o"></i> Packing slip</a>
+                                @if (d.OrderId > 0)
+                                {
+                                    <a class="btn btn-default btn-sm" href="/cp/orders?order_id=@d.OrderId.ToString(CultureInfo.InvariantCulture)"><i class="fa fa-external-link"></i> Open OMS order</a>
+                                }
+                            </div>
+                        </div>
+                        <div class="epc-scp-orders-detail__erp-fulfillment">
+                            <div class="epc-od__edit-title">Timeline</div>
+                            <ol class="epc-od__erp-chain">
+                                <li><strong>Created</strong> @Blank(d.CreatedAt)</li>
+                                <li><strong>Pick started</strong> @Blank(d.PickStartedAt)</li>
+                                <li><strong>Pick completed</strong> @Blank(d.PickCompletedAt)</li>
+                                <li><strong>Packed</strong> @Blank(d.PackCompletedAt)</li>
+                                <li><strong>Shipped</strong> @Blank(d.ShipDate)</li>
+                            </ol>
+                            @if (!string.IsNullOrWhiteSpace(d.Notes))
+                            {
+                                <p style="margin-top:10px">@d.Notes</p>
+                            }
+                        </div>
+                    </section>
+
+                    <section class="epc-od__panel @(_detailTab == "lines" ? "is-active" : null)" data-epc-od-panel="lines" style="@(_detailTab == "lines" ? null : "display:none")">
+                        <div class="epc-od__items">
+                            <table class="table table-condensed epc-od__lines">
+                                <thead>
+                                    <tr>
+                                        <th>SKU</th>
+                                        <th>Name</th>
+                                        <th>Ordered</th>
+                                        <th>Picked</th>
+                                        <th>Packed</th>
+                                        <th>Bin</th>
+                                        <th>Pick status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @if (d.Items.Count == 0)
+                                    {
+                                        <tr><td colspan="7">No line items.</td></tr>
+                                    }
+                                    else
+                                    {
+                                        @foreach (var line in d.Items)
+                                        {
+                                            <tr class="epc-od__line">
+                                                <td>@Blank(line.Sku)</td>
+                                                <td>@Blank(line.ProductName)</td>
+                                                <td>@line.QtyOrdered.ToString(CultureInfo.InvariantCulture)</td>
+                                                <td>@line.QtyPicked.ToString(CultureInfo.InvariantCulture)</td>
+                                                <td>@line.QtyPacked.ToString(CultureInfo.InvariantCulture)</td>
+                                                <td>@Blank(line.BinLocation)</td>
+                                                <td>@Blank(line.PickStatus)</td>
+                                            </tr>
+                                        }
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </section>
+
+                    <section class="epc-od__panel @(_detailTab == "slip" ? "is-active" : null)" data-epc-od-panel="slip" style="@(_detailTab == "slip" ? null : "display:none")">
+                        <div class="epc-od__edit-title">Packing slip</div>
+                        <p><strong>@(string.IsNullOrWhiteSpace(d.OrderNumber) ? $"#{d.Id}" : d.OrderNumber)</strong> · @(string.IsNullOrWhiteSpace(d.CustomerName) ? "—" : d.CustomerName)</p>
+                        <p>Carrier: @(string.IsNullOrWhiteSpace(d.Carrier) ? "—" : d.Carrier) · Tracking: @(string.IsNullOrWhiteSpace(d.TrackingNumber) ? "—" : d.TrackingNumber)</p>
+                        <div class="epc-od__doc-grid">
+                            @foreach (var part in AddressParts(d.ShipAddressJson))
+                            {
+                                <div class="epc-od__doc-btn"><span>@part.Key</span> @part.Value</div>
+                            }
+                        </div>
+                        @if (AddressParts(d.ShipAddressJson).Count == 0)
+                        {
+                            <p class="text-muted">No ship address on this fulfilment.</p>
+                        }
+                        <table class="table table-condensed epc-od__lines" style="margin-top:12px">
+                            <thead>
+                                <tr>
+                                    <th>SKU</th>
+                                    <th>Name</th>
+                                    <th>Qty</th>
+                                    <th>Bin</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (d.Items.Count == 0)
+                                {
+                                    <tr><td colspan="4">No packing lines.</td></tr>
+                                }
+                                else
+                                {
+                                    @foreach (var line in d.Items)
+                                    {
+                                        var qty = line.QtyPacked > 0 ? line.QtyPacked : (line.QtyPicked > 0 ? line.QtyPicked : line.QtyOrdered);
+                                        <tr>
+                                            <td>@Blank(line.Sku)</td>
+                                            <td>@Blank(line.ProductName)</td>
+                                            <td>@qty.ToString(CultureInfo.InvariantCulture)</td>
+                                            <td>@Blank(line.BinLocation)</td>
+                                        </tr>
+                                    }
+                                }
+                            </tbody>
+                        </table>
+                        <p class="text-muted small">Packed at @Blank(d.PackCompletedAt). Live label / slip writes remain PHP.</p>
+                    </section>
+                </div>
+            }
+        </div>
+    </div>
+</div>
 
 </PhpCpDesktopChrome>
 
 @code {
-    private const string _phpTab = "/CP/shop/finance/epc_fulfillment_queue";
     private bool _isAdmin;
-    private int _queued = 0;
-    private int _picking = 0;
-    private int _shipping = 0;
-    private int _delivered = 0;
+    private int _queued;
+    private int _picking;
+    private int _shipping;
+    private int _delivered;
     private IReadOnlyList<CpFulfillmentQueueRowDigest> _rows = [];
-    private string _source = "n/a";
-    private string _message = "";
+    private long _selectedId;
+    private CpFulfillmentDetailDigest? _detail;
+    private string _status = "queued";
+    private string _detailTab = "overview";
+
+    private static readonly (string Key, string Label)[] DetailTabs =
+    [
+        ("overview", "Overview"),
+        ("lines", "Lines"),
+        ("slip", "Packing slip"),
+    ];
+
+    private string ListHeading => _status switch
+    {
+        "picking" => "Picking / packing",
+        "shipping" => "Shipping",
+        "delivered" => "Delivered",
+        "all" => "All fulfilment jobs",
+        _ => "Queued jobs",
+    };
+
+    private IReadOnlyList<CpFulfillmentQueueRowDigest> _visibleRows
+    {
+        get
+        {
+            IEnumerable<CpFulfillmentQueueRowDigest> q = _rows;
+            q = _status switch
+            {
+                "picking" => q.Where(MatchesPicking),
+                "shipping" => q.Where(MatchesShipping),
+                "delivered" => q.Where(r => StatusKey(r.Status) == "delivered"),
+                "all" => q,
+                _ => q.Where(r => StatusKey(r.Status) == "queued"),
+            };
+            var list = q.ToList();
+            if (_selectedId > 0 && list.All(r => r.Id != _selectedId))
+            {
+                var extra = _rows.FirstOrDefault(r => r.Id == _selectedId);
+                if (extra is not null)
+                {
+                    list.Insert(0, extra);
+                }
+            }
+
+            return list;
+        }
+    }
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
-        if (ctx is null) return;
+        if (ctx is null)
+        {
+            return;
+        }
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
+
+        var q = ctx.Request.Query;
+        if (long.TryParse(q["fulfillment_id"].ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var fid) && fid > 0)
+        {
+            _selectedId = fid;
+        }
+
+        var status = q["status"].ToString();
+        if (status is "queued" or "picking" or "shipping" or "delivered" or "all")
+        {
+            _status = status;
+        }
+
+        var od = q["od"].ToString();
+        if (DetailTabs.Any(t => t.Key == od))
+        {
+            _detailTab = od;
+        }
+
         if (!_isAdmin)
         {
             return;
@@ -128,7 +427,140 @@
         _shipping = result.Summary.Shipping;
         _delivered = result.Summary.Delivered;
         _rows = result.Rows;
-        _source = result.Source;
-        _message = result.Message;
+
+        if (_selectedId > 0)
+        {
+            await LoadDetailAsync(_selectedId, ctx.RequestAborted);
+        }
+    }
+
+    private async Task LoadDetailAsync(long fulfillmentId, CancellationToken cancellationToken)
+    {
+        _selectedId = fulfillmentId;
+        if (!_isAdmin)
+        {
+            _detail = null;
+            return;
+        }
+
+        _detail = await Dashboards.GetCpFulfillmentDetailAsync(fulfillmentId, cancellationToken);
+        if (_detail is null)
+        {
+            var row = _rows.FirstOrDefault(r => r.Id == fulfillmentId);
+            if (row is not null)
+            {
+                _detail = DetailFromRow(row);
+            }
+        }
+    }
+
+    private string QueueHref(long? fulfillmentId = null, string? status = null, string? detailTab = null)
+    {
+        var q = new List<string>();
+        void Add(string key, string? value)
+        {
+            if (!string.IsNullOrWhiteSpace(value))
+            {
+                q.Add(Uri.EscapeDataString(key) + "=" + Uri.EscapeDataString(value));
+            }
+        }
+
+        var fid = fulfillmentId ?? _selectedId;
+        if (fid > 0)
+        {
+            q.Add("fulfillment_id=" + fid.ToString(CultureInfo.InvariantCulture));
+        }
+
+        Add("status", status ?? _status);
+        var od = detailTab ?? (_selectedId > 0 ? _detailTab : null);
+        if (!string.IsNullOrWhiteSpace(od) && od != "overview")
+        {
+            Add("od", od);
+        }
+
+        return "/cp/fulfillment-queue-app" + (q.Count == 0 ? "" : "?" + string.Join("&", q));
+    }
+
+    private static CpFulfillmentDetailDigest DetailFromRow(CpFulfillmentQueueRowDigest row)
+        => new(
+            row.Id, row.OrderId, row.OrderNumber, row.CustomerName, row.Status, row.Priority, row.Warehouse,
+            row.AssignedName, row.WaveId, row.Carrier, row.TrackingNumber, "standard", row.TotalItems, 0m,
+            "", "", "", "", "", "", "",
+            [], "list", "Detail unavailable — showing list row.");
+
+    private static bool MatchesPicking(CpFulfillmentQueueRowDigest row)
+    {
+        var status = StatusKey(row.Status);
+        return status is "picking" or "picked" or "packing" or "packed";
+    }
+
+    private static bool MatchesShipping(CpFulfillmentQueueRowDigest row)
+    {
+        var status = StatusKey(row.Status);
+        return status is "shipping" or "shipped";
+    }
+
+    private static string StatusKey(string? status)
+        => (status ?? string.Empty).Trim().ToLowerInvariant();
+
+    private static string StatusBadgeClass(string? status) => StatusKey(status) switch
+    {
+        "delivered" or "shipped" => "epc-scp-badge--tenant",
+        "shipping" or "packed" or "packing" => "epc-scp-badge--high",
+        "picking" or "picked" => "epc-scp-badge--high",
+        "cancelled" => "epc-scp-badge--urgent",
+        _ => "epc-scp-badge--normal",
+    };
+
+    private static string PriorityBadgeClass(string? priority) => (priority ?? string.Empty).Trim().ToLowerInvariant() switch
+    {
+        "urgent" => "epc-scp-badge--urgent",
+        "high" => "epc-scp-badge--high",
+        "low" => "epc-scp-badge--tenant",
+        _ => "epc-scp-badge--normal",
+    };
+
+    private static string Blank(string? value)
+        => string.IsNullOrWhiteSpace(value) ? "—" : value;
+
+    private static IReadOnlyList<(string Key, string Value)> AddressParts(string? json)
+    {
+        if (string.IsNullOrWhiteSpace(json) || json is "{}" or "[]" or "null")
+        {
+            return [];
+        }
+
+        try
+        {
+            using var doc = JsonDocument.Parse(json);
+            if (doc.RootElement.ValueKind != JsonValueKind.Object)
+            {
+                return [("address", json)];
+            }
+
+            var parts = new List<(string, string)>();
+            foreach (var prop in doc.RootElement.EnumerateObject())
+            {
+                var value = prop.Value.ValueKind switch
+                {
+                    JsonValueKind.String => prop.Value.GetString() ?? string.Empty,
+                    JsonValueKind.Number => prop.Value.ToString(),
+                    JsonValueKind.True => "yes",
+                    JsonValueKind.False => "no",
+                    JsonValueKind.Null => string.Empty,
+                    _ => prop.Value.GetRawText(),
+                };
+                if (!string.IsNullOrWhiteSpace(value))
+                {
+                    parts.Add((prop.Name, value));
+                }
+            }
+
+            return parts;
+        }
+        catch (JsonException)
+        {
+            return [("address", json)];
+        }
     }
 }

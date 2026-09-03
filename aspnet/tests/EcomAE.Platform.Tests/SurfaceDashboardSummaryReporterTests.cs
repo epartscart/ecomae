@@ -164,6 +164,7 @@ public sealed class SurfaceDashboardSummaryReporterTests
         var tenantFeatures = await reporter.BuildCpTenantFeaturesDigestAsync(10);
         var customerBoard = await reporter.BuildCpCustomerBoardDigestAsync(10);
         var fulfillmentQueue = await reporter.BuildCpFulfillmentQueueDigestAsync(10);
+        var fulfillmentDetail = await reporter.GetCpFulfillmentDetailAsync(1);
         var ssoSaml = await reporter.BuildCpSsoSamlDigestAsync(10);
         var eventBus = await reporter.BuildCpEventBusDigestAsync(10);
         var abandonedCarts = await reporter.BuildCpAbandonedCartsDigestAsync(10);
@@ -379,6 +380,7 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.Equal("migration", tenantFeatures.Source);
         Assert.Equal("migration", customerBoard.Source);
         Assert.Equal("migration", fulfillmentQueue.Source);
+        Assert.Null(fulfillmentDetail);
         Assert.Equal("migration", ssoSaml.Source);
         Assert.Equal("migration", eventBus.Source);
         Assert.Equal("migration", abandonedCarts.Source);

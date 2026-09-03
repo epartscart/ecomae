@@ -4129,6 +4129,38 @@ public sealed class ControlPanelModule : ISurfaceModule
             });
         });
 
+        endpoints.MapGet(EcomAeRoutes.ControlPanelFulfillmentQueueDetailDigest, async (
+            HttpContext context,
+            long fulfillmentId,
+            ILegacySessionValidator validator,
+            ISurfaceDashboardSummaryReporter dashboards,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return Unauthorized("Admin CP capability required for fulfillment-queue detail digest.");
+            }
+
+            var detail = await dashboards.GetCpFulfillmentDetailAsync(fulfillmentId, cancellationToken);
+            if (detail is null)
+            {
+                return Results.NotFound(new { ok = false, message = "Fulfillment order not found." });
+            }
+
+            return Results.Ok(new
+            {
+                ok = true,
+                surface = "cp",
+                fulfillment = detail,
+                items = detail.Items,
+                source = detail.Source,
+                message = detail.Message,
+                session = SessionPayload(session),
+                note = "Read-only PHP epc_fulfillment_get digest. Stage set/advance remain OMS dry-run; writes remain PHP."
+            });
+        });
+
 
         endpoints.MapGet(EcomAeRoutes.ControlPanelSsoSaml, async (
             HttpContext context,
