@@ -156,9 +156,9 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             var prevSummary = await ReadErpDashboardForPeriodAsync(
                 connection, prevFrom, prevTo, periodKey, overdueBefore, cancellationToken).ConfigureAwait(false);
 
-            var glCompanyId = await ResolveWorkspaceGlCompanyIdAsync(connection, cancellationToken).ConfigureAwait(false);
-            var curExtras = await ReadWorkspaceExtrasAsync(connection, monthStart, now, glCompanyId, cancellationToken).ConfigureAwait(false);
-            var prevExtras = await ReadWorkspaceExtrasAsync(connection, prevFrom, prevTo, glCompanyId, cancellationToken).ConfigureAwait(false);
+            var glScope = await ResolveWorkspaceGlScopeAsync(connection, cancellationToken).ConfigureAwait(false);
+            var curExtras = await ReadWorkspaceExtrasAsync(connection, monthStart, now, glScope, cancellationToken).ConfigureAwait(false);
+            var prevExtras = await ReadWorkspaceExtrasAsync(connection, prevFrom, prevTo, glScope, cancellationToken).ConfigureAwait(false);
 
             var current = ToWorkspacePeriod(currentSummary, curExtras);
             var previous = ToWorkspacePeriod(prevSummary, prevExtras);
@@ -330,10 +330,11 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
     }
 
     /// <summary>
-    /// PHP <c>epc_erp_gl_resolve_company_id</c>: <c>?company=</c> when it is a
-    /// tenant legal entity, else the lowest-id company. 0 = unscoped.
+    /// PHP <c>epc_erp_gl_resolve_company_id</c> + read-only equivalent of
+    /// <c>epc_erp_gl_backfill_company_id</c>. Missing <c>company_id</c> column
+    /// stays unscoped (PHP would ADD the column; we do not write).
     /// </summary>
-    private async Task<int> ResolveWorkspaceGlCompanyIdAsync(
+    private async Task<(int CompanyId, bool IncludeUnassignedZero)> ResolveWorkspaceGlScopeAsync(
         DbConnection connection,
         CancellationToken cancellationToken)
     {
@@ -355,11 +356,39 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             // companies table optional — PHP resolve returns 0 (unscoped)
         }
 
-        return ErpHostContext.ResolveErpGlCompanyId(requested, ids);
+        if (!await HasGlJournalCompanyIdAsync(connection, cancellationToken).ConfigureAwait(false))
+        {
+            return (0, false);
+        }
+
+        var companyId = ErpHostContext.ResolveErpGlCompanyId(requested, ids);
+        return (companyId, ErpHostContext.IncludeUnassignedGlJournals(companyId, ids));
+    }
+
+    private static async Task<bool> HasGlJournalCompanyIdAsync(
+        DbConnection connection,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            await using var cmd = connection.CreateCommand();
+            cmd.CommandText = "SELECT `company_id` FROM `epc_erp_gl_journals` LIMIT 0";
+            _ = await cmd.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
     }
 
     private static async Task<(decimal PurchaseExVat, decimal RevenueExVat, decimal SalesInclVat, decimal DueOrders, int CompletedOrders, int ConfirmedSo, int OpenPo, int InvoicesDue, int Busy, int Headcount, int ProcessDone, decimal GlNetProfit)>
-        ReadWorkspaceExtrasAsync(DbConnection connection, long dateFrom, long dateTo, int glCompanyId, CancellationToken cancellationToken)
+        ReadWorkspaceExtrasAsync(
+            DbConnection connection,
+            long dateFrom,
+            long dateTo,
+            (int CompanyId, bool IncludeUnassignedZero) glScope,
+            CancellationToken cancellationToken)
     {
         var purchase = await ScalarDecimalParamSafeAsync(
             connection, LegacySurfaceDashboardSql.SumErpWorkspacePurchaseExVat, cancellationToken,
@@ -384,11 +413,12 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         var processDone = await ScalarIntParamSafeAsync(
             connection, LegacySurfaceDashboardSql.CountErpWorkspaceProcessDoneInPeriod, cancellationToken,
             ("@dateFrom", dateFrom), ("@dateTo", dateTo)).ConfigureAwait(false);
-        var glSql = LegacySurfaceDashboardSql.BuildSumErpWorkspaceGlNetProfit(glCompanyId);
-        var glNet = glCompanyId > 0
+        var glSql = LegacySurfaceDashboardSql.BuildSumErpWorkspaceGlNetProfit(
+            glScope.CompanyId, glScope.IncludeUnassignedZero);
+        var glNet = glScope.CompanyId > 0
             ? await ScalarDecimalParamSafeAsync(
                 connection, glSql, cancellationToken,
-                ("@dateFrom", dateFrom), ("@dateTo", dateTo), ("@companyId", glCompanyId)).ConfigureAwait(false)
+                ("@dateFrom", dateFrom), ("@dateTo", dateTo), ("@companyId", glScope.CompanyId)).ConfigureAwait(false)
             : await ScalarDecimalParamSafeAsync(
                 connection, glSql, cancellationToken,
                 ("@dateFrom", dateFrom), ("@dateTo", dateTo)).ConfigureAwait(false);
