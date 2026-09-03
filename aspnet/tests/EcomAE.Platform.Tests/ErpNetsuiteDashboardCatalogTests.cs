@@ -22,6 +22,9 @@ public sealed class ErpNetsuiteDashboardCatalogTests
         Assert.Contains(quick, q => q.Key == "ext_ifrs");
         Assert.Contains(quick, q => q.Key == "receivables");
         Assert.Contains(quick, q => q.Key == "payables");
+        Assert.All(quick, q => Assert.StartsWith("qa-", q.Tone, StringComparison.Ordinal));
+        Assert.Equal("qa-indigo", ErpNetsuiteDashboardCatalog.ShortcutTone("qa-indigo"));
+        Assert.Equal("qa-blue", ErpNetsuiteDashboardCatalog.ShortcutTone("gold"));
 
         var nav = ErpNetsuiteDashboardCatalog.ResolveNav(profile);
         Assert.Contains(nav, g => g.Title == "Lists");
