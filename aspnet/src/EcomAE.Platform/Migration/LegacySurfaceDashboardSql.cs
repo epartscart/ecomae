@@ -4854,4 +4854,54 @@ public const string SelectCpOpsGuidesStats = """
         WHERE `current_assignee_id` > 0
         """;
 
+    /// <summary>PHP <c>epc_insights_suite_commerce_stats</c> — orders since a unix bound.</summary>
+    public const string CountErpInsightsOrdersSince = """
+        SELECT COUNT(*) FROM `shop_orders`
+        WHERE `successfully_created` = 1 AND `time` >= @since
+        """;
+
+    public const string CountErpInsightsOrdersBetween = """
+        SELECT COUNT(*) FROM `shop_orders`
+        WHERE `successfully_created` = 1 AND `time` >= @dateFrom AND `time` < @dateTo
+        """;
+
+    public const string CountErpInsightsOpenOrders = """
+        SELECT COUNT(*) FROM `shop_orders`
+        WHERE `successfully_created` = 1
+          AND `status` IN (
+                SELECT `id` FROM `shop_orders_statuses_ref`
+                WHERE `for_inverse` != 1 AND `for_finish` != 1 AND `for_created` != 1
+          )
+        """;
+
+    public const string CountErpInsightsPublishedProducts = """
+        SELECT COUNT(*) FROM `shop_catalogue_products` WHERE IFNULL(`published_flag`,0) = 1
+        """;
+
+    public const string CountErpInsightsCustomers = """
+        SELECT COUNT(*) FROM `users` u
+        WHERE u.`user_id` > 0
+          AND NOT EXISTS (
+                SELECT 1 FROM `users_groups_bind` b
+                INNER JOIN `groups` g ON g.`id` = b.`group_id`
+                WHERE b.`user_id` = u.`user_id` AND g.`for_backend` = 1
+          )
+        """;
+
+    public const string CountErpInsightsOpenReturns = """
+        SELECT COUNT(*) FROM `shop_orders_returns` WHERE COALESCE(`status`,0) NOT IN (2,3,9)
+        """;
+
+    public const string CountErpInsightsVinOpen = """
+        SELECT COUNT(*) FROM `shop_docpart_vin` WHERE COALESCE(`viewed`,0) = 0
+        """;
+
+    public const string CountErpInsightsWarehouses = """
+        SELECT COUNT(*) FROM `shop_storages`
+        """;
+
+    public const string CountErpInsightsPriceLists = """
+        SELECT COUNT(*) FROM `shop_docpart_prices`
+        """;
+
 }

@@ -4833,4 +4833,46 @@ public sealed record ErpWorkspaceHomeDigest(
     string PeriodFrom,
     string PeriodTo,
     string Source,
-    string Message);
+    string Message,
+    ErpInsightsCommerceStats? Commerce = null);
+
+/// <summary>PHP <c>epc_insights_suite_commerce_stats</c>.</summary>
+public sealed record ErpInsightsCommerceStats(
+    int OrdersToday,
+    int OrdersWeek,
+    int OrdersPrevWeek,
+    int OpenOrders,
+    int Products,
+    int Clients,
+    int ReturnsOpen,
+    int VinOpen,
+    int Warehouses,
+    int PriceLists);
+
+/// <summary>PHP <c>epc_insights_card</c> / <c>epc_insights_suite_render</c>.</summary>
+public sealed record ErpInsightsCard(
+    string Key,
+    string Label,
+    decimal Value,
+    string Format,
+    decimal? Previous,
+    string? DeltaLabel,
+    double? DeltaPct,
+    bool GoodWhenUp,
+    string Health,
+    string Narrative,
+    string Href,
+    string Action,
+    string Icon);
+
+public sealed record ErpInsightsAlert(string Title, string Body, string Href, string Tone);
+
+public sealed record ErpInsightsBand(string Key, string Title, string Icon, IReadOnlyList<ErpInsightsCard> Items);
+
+public sealed record ErpInsightsSuite(
+    string Currency,
+    string PeriodLabel,
+    string FromLabel,
+    string ToLabel,
+    IReadOnlyList<ErpInsightsAlert> Alerts,
+    IReadOnlyList<ErpInsightsBand> Bands);
