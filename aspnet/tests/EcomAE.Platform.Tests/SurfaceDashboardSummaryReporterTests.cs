@@ -101,7 +101,7 @@ public sealed class SurfaceDashboardSummaryReporterTests
         var staff = await reporter.ListErpStaffAsync(10);
         var contracts = await reporter.ListErpContractsAsync(10);
         var opening = await reporter.ListErpOpeningBatchesAsync(10);
-        var marketing = await reporter.ListErpMarketingCampaignsAsync(10);
+        var erpMarketing = await reporter.ListErpMarketingCampaignsAsync(10);
         var payroll = await reporter.ListErpPayrollRunsAsync(10);
         var printTemplates = await reporter.ListErpPrintTemplatesAsync(10);
         var reportCenter = await reporter.BuildErpReportCenterDigestAsync(null, 10);
@@ -273,13 +273,13 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.Equal("migration", staff.Source);
         Assert.Equal("migration", contracts.Source);
         Assert.Equal("migration", opening.Source);
-        Assert.Equal("migration", marketing.Source);
+        Assert.Equal("migration", erpMarketing.Source);
         Assert.Equal("migration", payroll.Source);
         Assert.Equal("migration", printTemplates.Source);
         Assert.Equal(0, staff.Count);
         Assert.Equal(0, contracts.Count);
         Assert.Equal(0, opening.Count);
-        Assert.Equal(0, marketing.Count);
+        Assert.Equal(0, erpMarketing.Count);
         Assert.Equal(0, payroll.Count);
         Assert.Equal(0, printTemplates.Count);
         Assert.Equal(0, workflowTasks.Count);
