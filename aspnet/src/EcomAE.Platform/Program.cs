@@ -303,6 +303,7 @@ builder.Services.AddSingleton<IErpEinvoiceSaveAspDryRun, ErpEinvoiceSaveAspDryRu
 builder.Services.AddSingleton<IErpEinvoiceSubmitDryRun, ErpEinvoiceSubmitDryRun>();
 builder.Services.AddSingleton<IErpEinvoiceCreditNoteDryRun, ErpEinvoiceCreditNoteDryRun>();
 builder.Services.AddSingleton<IErpEinvoicePollAspDryRun, ErpEinvoicePollAspDryRun>();
+builder.Services.AddSingleton<IErpExternalReportingFetchDryRun, ErpExternalReportingFetchDryRun>();
 builder.Services.AddSingleton<IErpOrderFulfillmentBootstrapDryRun, ErpOrderFulfillmentBootstrapDryRun>();
 builder.Services.AddSingleton<IErpOrderFulfillmentStatusDryRun, ErpOrderFulfillmentStatusDryRun>();
 builder.Services.AddSingleton<IErpOrderFulfillmentSyncDryRun, ErpOrderFulfillmentSyncDryRun>();

@@ -1,0 +1,529 @@
+@page "/erp/tax-external-reporting-app"
+@page "/cp/tax-external-reporting-app"
+@layout Layout.PhpChromeLayout
+@using System.Globalization
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Migration
+@using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Routing
+@inject ILegacySessionValidator Sessions
+@inject IErpExternalReportingFetchDryRun FetchDryRun
+@inject IHttpContextAccessor Http
+@inject NavigationManager Nav
+
+<PageTitle>External Reporting · ERP · eParts Cart</PageTitle>
+<PhpChromeStyles Surface="erp" />
+<HeadContent>
+<style>
+.epc-ext-banner{margin-bottom:14px;}
+.epc-ext-banner-row{display:flex;flex-wrap:wrap;gap:14px;align-items:center;justify-content:space-between;}
+.epc-ext-ifrs{margin-bottom:14px;background:#f3fafd;border:1px solid #0b6e99;border-radius:8px;padding:12px 16px;}
+.epc-ext-ifrs strong{color:#0b6e99;}
+.epc-ext-tool{margin-bottom:14px;border-radius:8px;padding:14px 16px;display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;}
+.epc-ext-tool.is-import{background:#f5f8ff;border:1px solid #d6e4ff;}
+.epc-ext-tool.is-intake{background:#fdeef0;border:1px solid #f0c6cd;}
+.epc-ext-grid{display:flex;flex-wrap:wrap;margin:0 -8px;}
+.epc-ext-col{width:33.333%;padding:0 8px 12px;box-sizing:border-box;}
+@@media (max-width:992px){.epc-ext-col{width:50%;}}
+@@media (max-width:640px){.epc-ext-col{width:100%;}}
+.epc-ext-cat,.epc-ext-card{display:block;border:1px solid #e2e6ee;border-radius:8px;padding:14px 16px;background:#fff;color:#1d2740!important;text-decoration:none!important;height:100%;}
+.epc-ext-cat:hover,.epc-ext-card:hover{border-color:#2b6cb0;box-shadow:0 2px 8px rgba(43,108,176,.12);}
+.epc-ext-cat .ttl{font-weight:700;font-size:14px;}
+.epc-ext-card .ttl{font-weight:700;}
+.epc-ext-doc{background:#fff;border:1px solid #e2e6ee;padding:26px;margin-bottom:14px;}
+.epc-ext-doc-head{display:flex;justify-content:space-between;border-bottom:3px solid #2b3a55;padding-bottom:12px;margin-bottom:16px;gap:16px;}
+.epc-ext-sum{display:flex;flex-wrap:wrap;gap:10px;margin:12px 0;}
+.epc-ext-sum>div{background:#f5f7fa;border:1px solid #e2e6ee;border-radius:6px;padding:8px 14px;min-width:140px;}
+.epc-ext-sum .k{font-size:11px;color:#7a869a;text-transform:uppercase;letter-spacing:.5px;}
+.epc-ext-sum .v{font-size:16px;font-weight:700;color:#1d2740;}
+.epc-ext-steps{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;}
+.epc-ext-panel{flex:1;min-width:300px;border:1px solid #e2e6ee;border-radius:6px;padding:14px;}
+.epc-ext-actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:14px;}
+</style>
+</HeadContent>
+
+<PhpErpDesktopChrome IsAdmin="_isAdmin" Title="External Reporting" BreadcrumbArea="Tax" BreadcrumbTab="External Reporting">
+    <PhpErpModulePageHeader Title="External Reporting" Subtitle="@_subtitle" PhpTabHref="@_phpTab" />
+    <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
+
+    <div class="epc-erp-section epc-ext-banner">
+        <div class="epc-ext-banner-row">
+            <div>
+                <span class="label label-primary" style="font-size:13px;"><i class="fa fa-globe"></i> Registration country: @_regName (@_regCountry)</span>
+                @if (_regCountry == "AE")
+                {
+                    <span class="label label-success" style="font-size:12px;margin-left:6px;"><i class="fa fa-check-circle"></i> UAE statutory sub-layer active (FTA · MOHRE · goAML · MoEC)</span>
+                }
+                <div class="text-muted" style="margin-top:6px;font-size:12px;">All generated reports use your registered country. The selector below is a preview/look-up only.</div>
+            </div>
+            <form method="get" action="@_self" class="form-inline" style="margin:0;">
+                @if (_companyId > 0) { <input type="hidden" name="company" value="@_companyId.ToString(CultureInfo.InvariantCulture)" /> }
+                @if (!string.IsNullOrWhiteSpace(_selCat)) { <input type="hidden" name="cat" value="@_selCat" /> }
+                @if (!string.IsNullOrWhiteSpace(_selRep)) { <input type="hidden" name="rep" value="@_selRep" /> }
+                @if (!string.IsNullOrWhiteSpace(_selTool)) { <input type="hidden" name="tool" value="@_selTool" /> }
+                <label style="font-size:12px;margin-right:6px;">Preview jurisdiction</label>
+                <select name="rep_country" class="form-control input-sm" onchange="this.form.submit()">
+                    @foreach (var cc in ErpExternalReportingCatalog.PreviewCountries)
+                    {
+                        <option value="@cc" selected="@(cc == _prevCountry)">@ErpExternalReportingCatalog.CountryName(cc) (@cc)</option>
+                    }
+                </select>
+            </form>
+        </div>
+    </div>
+
+    @if (_selTool == "import")
+    {
+        <p style="margin-bottom:10px;"><a href="@Href()" class="btn btn-default btn-sm"><i class="fa fa-arrow-left"></i> All categories</a></p>
+        <div class="epc-erp-section" style="margin-bottom:14px;">
+            <h3 style="margin-top:0;color:#1d2740;"><i class="fa fa-upload"></i> Import from Excel → Return / Report (off-system)</h3>
+            <p class="text-muted" style="font-size:12.5px;max-width:900px;">
+                Prepare a <strong>VAT 201</strong>, <strong>Corporate Tax</strong> return, or <strong>IFRS financial statements &amp; audit report</strong> from an uploaded spreadsheet.
+                Completely <strong>outside the ERP</strong>: nothing is read from or written to your live data — use it for other clients too.
+            </p>
+            @if (_impKind == "fin")
+            {
+                <div class="alert alert-info" style="font-size:12px;margin:10px 0 0;">
+                    <i class="fa fa-bookmark"></i> <strong>IFRS Financials:</strong> for periods ending in FY2026+, the builder <strong>early-applies IFRS 18</strong>
+                    (five P&amp;L categories, three mandatory subtotals, OCI, MPM assessment). IAS 1 is superseded for presentation &amp; disclosure.
+                    Need a guided PDF path instead? Use <a href="@Href(tool: "intake")">Guided IFRS intake</a>.
+                </div>
+            }
+            else if (_impKind == "ct")
+            {
+                <div class="alert alert-info" style="font-size:12px;margin:10px 0 0;">
+                    <i class="fa fa-balance-scale"></i> <strong>Corporate Tax:</strong> Federal Decree-Law 47/2022 — taxable income reconciliation, interest cap (Art. 30),
+                    loss relief (Art. 37), non-deductible donations/fines (Art. 33), 0%/9% bands, SBR (MD 73/2023).
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-info" style="font-size:12px;margin:10px 0 0;">
+                    <i class="fa fa-balance-scale"></i> <strong>VAT 201:</strong> Federal Decree-Law 8/2017 &amp; Executive Regulations — emirate boxes, reverse charge, zero-rated / exempt treatments, filing within 28 days.
+                </div>
+            }
+            <div style="display:flex;flex-wrap:wrap;gap:18px;margin-top:10px;">
+                <div class="epc-ext-panel">
+                    <div style="font-weight:700;color:#1d2740;margin-bottom:6px;">1 · Download a template</div>
+                    <p class="text-muted" style="font-size:12px;">Keep the <code>Code</code> column unchanged; edit the values. Choosing a template also selects the matching upload type.</p>
+                    <div style="margin-bottom:6px;">
+                        <button type="button" class="btn btn-success btn-sm" @onclick='() => OnPickKind("vat")'><i class="fa fa-file-excel-o"></i> VAT 201 workbook (.csv)</button>
+                        <button type="button" class="btn btn-success btn-sm" @onclick='() => OnPickKind("ct")'><i class="fa fa-file-excel-o"></i> Corporate Tax workbook (.csv)</button>
+                        <button type="button" class="btn btn-success btn-sm" @onclick='() => OnPickKind("fin")'><i class="fa fa-file-excel-o"></i> IFRS 18 Financials workbook (.csv)</button>
+                    </div>
+                    <button type="button" class="btn btn-default btn-xs" @onclick="DownloadTemplate"><i class="fa fa-file-text-o"></i> Download @_impKind.ToUpperInvariant() CSV</button>
+                    <textarea id="epcTplCsv" style="display:none;">@_templateCsv</textarea>
+                </div>
+                <div class="epc-ext-panel">
+                    <div style="font-weight:700;color:#1d2740;margin-bottom:6px;">2 · Upload &amp; build</div>
+                    <div class="form-inline" style="margin:0;">
+                        <select class="form-control input-sm" style="margin:4px 6px 4px 0;" value="@_impKind" @onchange="OnKindChange">
+                            <option value="vat">VAT Return (FTA VAT 201)</option>
+                            <option value="ct">Corporate Tax Return</option>
+                            <option value="fin">IFRS 18 Financial Statements &amp; Audit Report</option>
+                        </select>
+                        <input type="file" accept=".xlsx,.csv" class="form-control input-sm" style="margin:4px 6px 4px 0;" />
+                        <button type="button" class="btn btn-primary btn-sm" @onclick="OnImport"><i class="fa fa-cogs"></i> @(_impKind == "fin" ? "Build report" : "Build return")</button>
+                    </div>
+                    <p class="text-muted" style="font-size:11px;margin-top:8px;">@_impHint Accepts <code>.xlsx</code> or <code>.csv</code>. Off-system — parsed in-memory, not stored. Live generate stays on the PHP tab.</p>
+                </div>
+            </div>
+        </div>
+    }
+    else if (_selTool == "intake")
+    {
+        <p style="margin-bottom:10px;"><a href="@Href()" class="btn btn-default btn-sm"><i class="fa fa-arrow-left"></i> All categories</a></p>
+        <div class="epc-erp-section" style="margin-bottom:14px;">
+            <h3 style="margin-top:0;color:#b3122a;"><i class="fa fa-magic"></i> Guided IFRS report builder — upload your accounts, the system tells you what it needs</h3>
+            <p class="text-muted" style="font-size:12.5px;max-width:980px;">
+                A multi-step engagement: <strong>upload your latest financials (PDF)</strong> → the system <strong>reviews them against IFRS and your country's legal requirements</strong> →
+                it then <strong>requests exactly the Trial Balance / data it needs</strong> →
+                it <strong>generates a fully IFRS-compliant report</strong> under <strong>IFRS 18</strong>. Off-system: your PDF is read in memory and not stored.
+                Country &amp; law resolve from your registration: <strong>@_regName (@_regCountry)</strong>.
+            </p>
+            <div class="alert alert-info" style="font-size:12px;margin:10px 0 0;">
+                <i class="fa fa-bookmark"></i> <strong>FY@(_targetYear) presentation:</strong> IFRS 18 early applied — five P&amp;L categories, three mandatory subtotals, separate OCI, MPM assessment. Mandatory IFRS 18 periods begin on/after 1 Jan 2027; earlier application is permitted.
+            </div>
+            <div class="epc-ext-steps">
+                @foreach (var sn in new[] { 1, 2, 3, 4, 5 })
+                {
+                    var on = sn == 1;
+                    <span class="label" style="font-size:12px;padding:6px 10px;@(on ? "background:#b3122a;color:#fff;" : "background:#f1e3e6;color:#7a0c1c;")">
+                        @sn · @_stepNames[sn]
+                    </span>
+                }
+            </div>
+        </div>
+        <div class="epc-erp-section" style="margin-bottom:14px;">
+            <div style="display:flex;flex-wrap:wrap;gap:18px;">
+                <div class="epc-ext-panel">
+                    <div style="font-weight:700;color:#b3122a;margin-bottom:8px;">1 · Your latest signed financials (PDF)</div>
+                    <p class="text-muted" style="font-size:12px;">Attach the most recent accounts (e.g. <strong>FY@(_targetYear - 1)</strong> with its comparative). You can attach several prior years at once.</p>
+                    <input type="file" accept="application/pdf,.pdf" class="form-control input-sm" multiple />
+                </div>
+                <div class="epc-ext-panel">
+                    <div style="font-weight:700;color:#b3122a;margin-bottom:8px;">2 · The report you need</div>
+                    <label style="font-size:12px;display:block;margin-bottom:4px;">Entity legal name</label>
+                    <input type="text" class="form-control input-sm" style="margin-bottom:8px;" placeholder="e.g. Acme Trading LLC" @bind="_intakeEntity" />
+                    <label style="font-size:12px;display:block;margin-bottom:4px;">Target reporting year</label>
+                    <select class="form-control input-sm" @bind="_targetYear">
+                        @for (var yy = DateTime.UtcNow.Year + 1; yy >= DateTime.UtcNow.Year - 4; yy--)
+                        {
+                            <option value="@yy">FY@(yy) (comparative FY@(yy - 1))</option>
+                        }
+                    </select>
+                    <label style="font-size:12px;display:block;margin:8px 0 4px;">Business units / divisions <span class="text-muted">(optional — comma-separated)</span></label>
+                    <input type="text" class="form-control input-sm" placeholder="e.g. Trading, Contracting, Real Estate" @bind="_intakeUnits" />
+                </div>
+            </div>
+            <button type="button" class="btn btn-primary btn-sm" style="margin-top:12px;background:#b3122a;border-color:#7a0c1c;" @onclick="OnIntake"><i class="fa fa-search"></i> Upload &amp; review against IFRS 18</button>
+        </div>
+    }
+    else if (_report is not null)
+    {
+        var def = _report;
+        var auth = ErpExternalReportingCatalog.ResolveAuthority(_prevCountry, def.Cat);
+        var ifrs = ErpExternalReportingCatalog.Ifrs(def.Std);
+        var isPreview = !string.Equals(_prevCountry, _regCountry, StringComparison.OrdinalIgnoreCase);
+        var live = def.Builder.Length > 0;
+        if (isPreview)
+        {
+            <div class="alert alert-info" style="padding:8px 12px;margin-bottom:10px;">
+                <i class="fa fa-eye"></i> <strong>Preview — @_prevName.</strong>
+                Figures, rates, authority &amp; format are localized to @_prevCountry for evaluation.
+                Your compliance country of record is <strong>@_regName</strong> (set it in Setup → Company).
+            </div>
+        }
+        <p style="margin-bottom:10px;">
+            <a href="@Href(cat: def.Cat)" class="btn btn-default btn-sm"><i class="fa fa-arrow-left"></i> Back to @(_catLabel ?? "catalogue")</a>
+        </p>
+        <div class="epc-erp-section" style="margin-bottom:14px;">
+            <div class="epc-ext-actions">
+                <button type="button" class="btn btn-primary btn-sm" @onclick="OnFetch"><i class="fa fa-refresh"></i> Fetch &amp; build</button>
+                <a class="btn btn-default btn-sm" href="@auth.Url" target="_blank" rel="noopener noreferrer"><i class="fa fa-university"></i> Official source — @auth.Name</a>
+                <a class="btn btn-default btn-sm" href="@auth.Format" target="_blank" rel="noopener noreferrer"><i class="fa fa-file-o"></i> Official format / filing portal</a>
+                @if (ifrs is not null)
+                {
+                    <a class="btn btn-default btn-sm" href="@ifrs.Url" target="_blank" rel="noopener noreferrer"><i class="fa fa-book"></i> @ifrs.Label</a>
+                }
+                <form method="get" action="@_self" class="form-inline" style="margin:0;display:inline-block;">
+                    @if (_companyId > 0) { <input type="hidden" name="company" value="@_companyId.ToString(CultureInfo.InvariantCulture)" /> }
+                    <input type="hidden" name="cat" value="@def.Cat" />
+                    <input type="hidden" name="rep" value="@def.Key" />
+                    <input type="hidden" name="rep_country" value="@_prevCountry" />
+                    <label style="font-size:12px;margin:0 6px;"><i class="fa fa-calendar"></i> Reporting period</label>
+                    <select name="basis" class="form-control input-sm" onchange="this.form.submit()">
+                        @foreach (var b in _periodBases)
+                        {
+                            <option value="@b" selected="@(b == _selBasis)">@BasisLabel(b)</option>
+                        }
+                    </select>
+                    @if (_selBasis == "custom")
+                    {
+                        <input type="date" name="pfrom" class="form-control input-sm" style="margin:0 4px;" value="@_period.From.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)" />
+                        <input type="date" name="pto" class="form-control input-sm" style="margin:0 4px;" value="@_period.To.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)" />
+                    }
+                    else
+                    {
+                        <select name="period" class="form-control input-sm" style="margin-left:4px;" onchange="this.form.submit()">
+                            @foreach (var opt in _period.Options)
+                            {
+                                <option value="@opt.Token" selected="@(opt.Token == _period.Token)">@opt.Label</option>
+                            }
+                        </select>
+                    }
+                    <button type="submit" class="btn btn-success btn-sm" style="margin-left:6px;"><i class="fa fa-calculator"></i> Run / Recalculate</button>
+                </form>
+            </div>
+            <div style="margin-top:8px;font-size:12px;" class="text-muted">
+                <strong>Governing law:</strong> @auth.Law
+                &nbsp;·&nbsp; <strong>Frequency:</strong> @ErpExternalReportingCatalog.Frequency(def.Cat)
+                &nbsp;·&nbsp; <strong>Period:</strong> @_period.Label (@_period.From.ToString("dd MMM yyyy") — @_period.To.ToString("dd MMM yyyy"))
+                &nbsp;·&nbsp; @if (live) { <span class="label label-success">Live build</span> } else { <span class="label label-default">Formatted template</span> }
+            </div>
+        </div>
+        <div id="epc_ext_doc" class="epc-erp-section epc-ext-doc">
+            <div class="epc-ext-doc-head">
+                <div>
+                    <div style="font-size:20px;font-weight:800;color:#1d2740;">@_companyLabel</div>
+                    <div class="text-muted" style="font-size:12px;">@_regName · TRN on file in company profile</div>
+                </div>
+                <div style="text-align:right;">
+                    <div style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#7a869a;">Statutory report</div>
+                    <div style="font-weight:700;">@_prevName</div>
+                    <div style="font-size:12px;color:#1d2740;font-weight:600;">Reporting period: @_period.Label</div>
+                    <div class="text-muted" style="font-size:12px;">@_period.From.ToString("dd MMM yyyy")  —  @_period.To.ToString("dd MMM yyyy")</div>
+                </div>
+            </div>
+            <h3 style="margin-top:0;color:#1d2740;">@def.Name</h3>
+            <div class="text-muted" style="font-size:12px;margin-bottom:6px;">
+                <strong>To:</strong> @auth.Name &nbsp;·&nbsp; <strong>Under:</strong> @auth.Law
+            </div>
+            <div class="epc-ext-sum">
+                <div><div class="k">Jurisdiction</div><div class="v">@_prevName</div></div>
+                <div><div class="k">Standard</div><div class="v">@(string.IsNullOrWhiteSpace(def.Std) ? "Local statute" : def.Std)</div></div>
+                <div><div class="k">Builder</div><div class="v">@(live ? "Live ERP data" : "Template")</div></div>
+                <div><div class="k">Company</div><div class="v">@(_companyId > 0 ? _companyId.ToString(CultureInfo.InvariantCulture) : "default")</div></div>
+            </div>
+            <p style="font-size:13px;line-height:1.55;max-width:52rem;">
+                This is the statutory pack for <strong>@def.Name</strong> under <strong>@auth.Name</strong>.
+                @if (live)
+                {
+                    <span>Priority reports (VAT, Corporate Tax, IFRS financial statements, WPS, UBO, Economic Substance) rebuild from posted ERP data when you Fetch &amp; build.</span>
+                }
+                else
+                {
+                    <span>This type is a formatted statutory structure with the correct authority, law and filing-portal links for @_prevName.</span>
+                }
+                Live file generate, FTA submit and Excel/Word packs stay on the PHP External Reporting tab until that write path is cut over.
+            </p>
+            <div style="margin-top:28px;display:flex;justify-content:space-between;gap:30px;">
+                <div style="flex:1;border-top:1px solid #aaa;padding-top:6px;font-size:12px;color:#555;">Prepared by &amp; date</div>
+                <div style="flex:1;border-top:1px solid #aaa;padding-top:6px;font-size:12px;color:#555;">Authorised signatory &amp; stamp</div>
+            </div>
+            <p class="text-muted" style="font-size:11px;margin-top:18px;border-top:1px dashed #ccc;padding-top:8px;">
+                Generated by External Reporting from posted ERP data. Informational — verify figures and the latest format against the official source (@auth.Name) before filing.
+            </p>
+        </div>
+    }
+    else if (_category is not null)
+    {
+        <p style="margin-bottom:10px;"><a href="@Href()" class="btn btn-default btn-sm"><i class="fa fa-arrow-left"></i> All categories</a></p>
+        <div class="epc-erp-section">
+            <h4 style="margin-top:0;">@_category.Label</h4>
+            <div class="epc-ext-grid">
+                @foreach (var def in ErpExternalReportingCatalog.ReportsIn(_category.Key))
+                {
+                    <div class="epc-ext-col">
+                        <a href="@Href(cat: def.Cat, rep: def.Key)" class="epc-ext-card">
+                            <div class="ttl"><i class="fa fa-file-text-o text-primary"></i> @def.Name</div>
+                            <div style="margin-top:4px;">
+                                @if (def.Builder.Length > 0) { <span class="label label-success" style="font-size:10px;">Live build</span> } else { <span class="label label-default" style="font-size:10px;">Formatted template</span> }
+                                @if (def.Std == "IFRS18") { <span class="label" style="font-size:10px;background:#0b6e99;">IFRS 18</span> }
+                                else if (def.Std.Length > 0) { <span class="label label-info" style="font-size:10px;">@def.Std</span> }
+                            </div>
+                        </a>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="epc-erp-section" style="margin-bottom:12px;">
+            <p class="text-muted" style="margin:0;"><strong>@ErpExternalReportingCatalog.CategoryCount</strong> categories · <strong>@ErpExternalReportingCatalog.ReportCount</strong> report types. Priority statutory reports (VAT, Corporate Tax, IFRS financial statements, WPS, UBO, Economic Substance ...) build from live ERP data; the rest provide the formatted statutory structure with the correct authority, law &amp; format links for @_regName.</p>
+        </div>
+        @if (ErpExternalReportingCatalog.Ifrs18Applies(DateTime.UtcNow.Year))
+        {
+            <div class="epc-erp-section epc-ext-ifrs">
+                <div style="font-weight:800;color:#0b6e99;font-size:14px;"><i class="fa fa-balance-scale"></i> New laws refresh — FY@(DateTime.UtcNow.Year) reporting pack</div>
+                <div class="text-muted" style="font-size:12px;margin-top:6px;line-height:1.55;">
+                    <strong>IFRS 18</strong> early applied for financial statements &amp; audit packs (five P&amp;L categories, three mandatory subtotals; IAS 1 superseded for presentation). Mandatory IFRS 18 periods begin on/after 1 Jan 2027.
+                    @if (_regCountry == "AE")
+                    {
+                        <text>&nbsp;·&nbsp; <strong>UAE Corporate Tax</strong> — Federal Decree-Law 47/2022 (incl. Art. 33 add-backs).
+                        &nbsp;·&nbsp; <strong>UAE VAT</strong> — Federal Decree-Law 8/2017 &amp; Executive Regulations (bad-debt relief Art. 64; filing Art. 65).</text>
+                    }
+                    Open a report and use <em>Fetch &amp; build</em> to regenerate under the refreshed standards.
+                </div>
+            </div>
+        }
+        <div class="epc-erp-section epc-ext-tool is-import">
+            <div>
+                <div style="font-weight:700;color:#1d2740;"><i class="fa fa-upload"></i> Import from Excel → VAT / CT return (off-system)</div>
+                <div class="text-muted" style="font-size:12px;margin-top:4px;">Build a VAT 201 or Corporate Tax return from an uploaded spreadsheet (summary figures only) — for checking / reporting other clients, outside your ERP data.</div>
+            </div>
+            <a href="@Href(tool: "import")" class="btn btn-primary btn-sm"><i class="fa fa-cogs"></i> Open import tool</a>
+        </div>
+        <div class="epc-erp-section epc-ext-tool is-intake">
+            <div>
+                <div style="font-weight:700;color:#7a0c1c;"><i class="fa fa-magic"></i> Guided IFRS report builder (upload prior PDF → system reviews → requests data → builds report)</div>
+                <div class="text-muted" style="font-size:12px;margin-top:4px;">Upload your latest accounts (PDF — incl. consolidated/combined). The system reviews them against IFRS &amp; @_regName law, then asks for exactly the trial balance / data it needs (multi-business-unit supported) and builds a fully compliant report.</div>
+            </div>
+            <a href="@Href(tool: "intake")" class="btn btn-sm" style="background:#b3122a;border-color:#7a0c1c;color:#fff;"><i class="fa fa-magic"></i> Start guided intake</a>
+        </div>
+        <div class="epc-ext-grid">
+            @foreach (var cat in ErpExternalReportingCatalog.Categories)
+            {
+                var stats = ErpExternalReportingCatalog.CategoryStats(cat.Key);
+                <div class="epc-ext-col">
+                    <a href="@Href(cat: cat.Key)" class="epc-ext-cat">
+                        <div class="ttl">@cat.Label</div>
+                        <div class="text-muted" style="font-size:12px;margin-top:6px;">@stats.Count report type@(stats.Count == 1 ? "" : "s")
+                            @if (stats.HasLive)
+                            {
+                                <text> · <span class="text-success">live builds</span></text>
+                            }
+                        </div>
+                    </a>
+                </div>
+            }
+        </div>
+    }
+
+    @if (!string.IsNullOrWhiteSpace(_actionResult))
+    {
+        <div class="epc-erp-empty" style="display:block;margin-top:12px;padding:8px 10px;border:1px solid #c5d4de;background:#f8fafc;color:#475569;font-size:12px;">@_actionResult</div>
+    }
+</PhpErpDesktopChrome>
+
+@code {
+    private static readonly Dictionary<int, string> _stepNames = new()
+    {
+        [1] = "Upload financials",
+        [2] = "IFRS review",
+        [3] = "Compliance advice",
+        [4] = "Provide new-year data",
+        [5] = "Compliant report",
+    };
+
+    private bool _isAdmin;
+    private string _self = EcomAeRoutes.ErpTaxExternalReportingApp;
+    private string _phpTab = "/ERP/?epc_erp_shell=1&area=tax&tab=ext_reports";
+    private string _subtitle = "Statutory & regulatory reports — auto-formatted from your ERP data and localized to your registration country.";
+    private string _regCountry = "AE";
+    private string _regName = "United Arab Emirates";
+    private string _prevCountry = "AE";
+    private string _prevName = "United Arab Emirates";
+    private string _selCat = "";
+    private string _selRep = "";
+    private string _selTool = "";
+    private string _impKind = "vat";
+    private string _impHint = "VAT 201 — codes BOX1A…BOX14 (FDL 8/2017).";
+    private string _templateCsv = ErpExternalReportingCatalog.ImportTemplateCsv("vat");
+    private string _actionResult = "";
+    private string _companyLabel = "Company";
+    private string _intakeEntity = "";
+    private string _intakeUnits = "";
+    private int _companyId;
+    private int _targetYear = DateTime.UtcNow.Year;
+    private string _selBasis = "year";
+    private IReadOnlyList<string> _periodBases = ["year", "quarter", "month", "custom"];
+    private ErpExternalReportingCatalog.Period _period = ErpExternalReportingCatalog.ResolvePeriod("year", null);
+    private ErpExternalReportingCatalog.Report? _report;
+    private ErpExternalReportingCatalog.Category? _category;
+    private string? _catLabel;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null) return;
+
+        var path = ctx.Request.Path.Value ?? EcomAeRoutes.ErpTaxExternalReportingApp;
+        _self = path.StartsWith("/cp/", StringComparison.OrdinalIgnoreCase)
+            ? EcomAeRoutes.ControlPanelTaxExternalReportingApp
+            : EcomAeRoutes.ErpTaxExternalReportingApp;
+
+        _companyId = ErpHostContext.ActiveCompanyIdFromQuery(ctx.Request) ?? 0;
+        var companyQs = _companyId > 0 ? "&company=" + _companyId.ToString(CultureInfo.InvariantCulture) : "";
+        _phpTab = "/ERP/?epc_erp_shell=1&area=tax&tab=ext_reports" + companyQs;
+        _companyLabel = _companyId > 0 ? "Company " + _companyId.ToString(CultureInfo.InvariantCulture) : "Company";
+
+        _regCountry = ErpExternalReportingCatalog.NormalizeCountry(ctx.Request.Query["reg_country"].ToString());
+        if (string.IsNullOrWhiteSpace(ctx.Request.Query["reg_country"].ToString())) _regCountry = "AE";
+        _regName = ErpExternalReportingCatalog.CountryName(_regCountry);
+        _prevCountry = ErpExternalReportingCatalog.NormalizeCountry(ctx.Request.Query["rep_country"].ToString());
+        if (string.IsNullOrWhiteSpace(ctx.Request.Query["rep_country"].ToString())) _prevCountry = _regCountry;
+        _prevName = ErpExternalReportingCatalog.CountryName(_prevCountry);
+        _subtitle = "Statutory & regulatory reports — auto-formatted from your ERP data and localized to your registration country (" + _regName + ").";
+
+        _selCat = System.Text.RegularExpressions.Regex.Replace(ctx.Request.Query["cat"].ToString(), "[^a-z]", "");
+        _selRep = System.Text.RegularExpressions.Regex.Replace(ctx.Request.Query["rep"].ToString(), "[^a-z0-9_]", "");
+        _selTool = System.Text.RegularExpressions.Regex.Replace(ctx.Request.Query["tool"].ToString(), "[^a-z]", "");
+        var kind = ctx.Request.Query["kind"].ToString();
+        if (kind is "vat" or "ct" or "fin")
+        {
+            _impKind = kind;
+            OnPickKind(kind);
+        }
+
+        _report = ErpExternalReportingCatalog.Find(_selRep);
+        _category = _report is null ? ErpExternalReportingCatalog.FindCategory(_selCat) : ErpExternalReportingCatalog.FindCategory(_report.Cat);
+        _catLabel = _category?.Label;
+
+        if (_report is not null)
+        {
+            var natural = ErpExternalReportingCatalog.PeriodType(_report.Cat, _report.Key);
+            _periodBases = ErpExternalReportingCatalog.PeriodBases(natural);
+            var basis = ctx.Request.Query["basis"].ToString();
+            _selBasis = _periodBases.Contains(basis, StringComparer.Ordinal) ? basis : natural;
+            DateTime? cFrom = DateTime.TryParse(ctx.Request.Query["pfrom"].ToString(), out var pf) ? pf : null;
+            DateTime? cTo = DateTime.TryParse(ctx.Request.Query["pto"].ToString(), out var pt) ? pt : null;
+            _period = ErpExternalReportingCatalog.ResolvePeriod(_selBasis, ctx.Request.Query["period"].ToString(), cFrom, cTo);
+        }
+
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        _isAdmin = session.Kind == LegacySessionKind.Admin
+            && (session.Capabilities.Contains("cp") || session.Capabilities.Contains("erp"));
+        if (!_isAdmin)
+        {
+            _actionResult = "Sign in for live data.";
+        }
+    }
+
+    private string Href(string? cat = null, string? rep = null, string? tool = null)
+    {
+        var q = new List<string>();
+        if (_companyId > 0) q.Add("company=" + _companyId.ToString(CultureInfo.InvariantCulture));
+        if (!string.IsNullOrWhiteSpace(_prevCountry) && !string.Equals(_prevCountry, _regCountry, StringComparison.OrdinalIgnoreCase))
+            q.Add("rep_country=" + Uri.EscapeDataString(_prevCountry));
+        if (!string.IsNullOrWhiteSpace(cat)) q.Add("cat=" + Uri.EscapeDataString(cat));
+        if (!string.IsNullOrWhiteSpace(rep)) q.Add("rep=" + Uri.EscapeDataString(rep));
+        if (!string.IsNullOrWhiteSpace(tool)) q.Add("tool=" + Uri.EscapeDataString(tool));
+        return q.Count == 0 ? _self : _self + "?" + string.Join("&", q);
+    }
+
+    private static string BasisLabel(string b) => b switch
+    {
+        "month" => "Monthly",
+        "quarter" => "Quarterly",
+        "year" => "Annual",
+        "custom" => "Custom range…",
+        _ => b,
+    };
+
+    private void OnPickKind(string kind)
+    {
+        _impKind = kind;
+        _templateCsv = ErpExternalReportingCatalog.ImportTemplateCsv(kind);
+        _impHint = kind == "fin"
+            ? "IFRS 18 Financials — codes FIN_… + META_PERIOD_TO for presentation year."
+            : kind == "ct"
+                ? "Corporate Tax — codes ACCT_PROFIT, FINES, … (FDL 47/2022)."
+                : "VAT 201 — codes BOX1A…BOX14 (FDL 8/2017).";
+    }
+
+    private void OnKindChange(ChangeEventArgs e)
+    {
+        OnPickKind((e.Value as string) ?? "vat");
+    }
+
+    private void OnFetch()
+    {
+        var result = FetchDryRun.Evaluate(new ErpExternalReportingFetchRequest("fetch", _selRep, false));
+        _actionResult = result.Detail + " writes=" + result.Writes.ToString(CultureInfo.InvariantCulture) + ".";
+    }
+
+    private void OnImport()
+    {
+        var result = FetchDryRun.Evaluate(new ErpExternalReportingFetchRequest("import", _impKind, false));
+        _actionResult = result.Detail + " writes=" + result.Writes.ToString(CultureInfo.InvariantCulture) + ".";
+    }
+
+    private void OnIntake()
+    {
+        var result = FetchDryRun.Evaluate(new ErpExternalReportingFetchRequest("intake", "fin", false));
+        _actionResult = result.Detail + " writes=" + result.Writes.ToString(CultureInfo.InvariantCulture) + ".";
+    }
+
+    private void DownloadTemplate()
+    {
+        var name = _impKind switch
+        {
+            "ct" => "CT_return_import_template.csv",
+            "fin" => "IFRS18_financials_import_template.csv",
+            _ => "VAT201_import_template.csv",
+        };
+        _actionResult = "CSV template (" + name + ") — copy from the hidden field or use the PHP tab for the full multi-sheet workbook.";
+    }
+}
