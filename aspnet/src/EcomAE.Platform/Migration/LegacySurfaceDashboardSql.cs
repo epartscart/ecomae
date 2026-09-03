@@ -2399,6 +2399,113 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>PHP <c>epc_einvoice_dashboard</c> period KPIs.</summary>
+    public const string SelectCpEinvoiceDashboardKpis = """
+        SELECT
+            COUNT(*) AS total,
+            SUM(`status` = 'draft') AS draft,
+            SUM(`status` = 'validated') AS validated,
+            SUM(`status` IN ('queued','submitted')) AS submitted,
+            SUM(`status` = 'accepted') AS accepted,
+            SUM(`status` = 'rejected') AS rejected,
+            IFNULL(SUM(`total_incl_vat`),0) AS amount_incl_vat
+        FROM `epc_einvoice_documents`
+        WHERE IFNULL(`active`,0)=1
+        """;
+
+    /// <summary>Seller/ASP settings — omits asp_api_key.</summary>
+    public const string SelectCpEinvoiceSettings = """
+        SELECT IFNULL(`setting_key`,'') AS setting_key, IFNULL(`setting_value`,'') AS setting_value
+        FROM `epc_einvoice_settings`
+        WHERE `setting_key` <> 'asp_api_key'
+        """;
+
+    public const string SelectCpEinvoiceHasApiKey = """
+        SELECT COUNT(*) FROM `epc_einvoice_settings`
+        WHERE `setting_key` = 'asp_api_key' AND IFNULL(`setting_value`,'') <> ''
+        """;
+
+    /// <summary>Buyer Peppol/TRN rows — omits phone/email.</summary>
+    public const string SelectCpEinvoiceBuyers = """
+        SELECT IFNULL(`user_id`,0) AS user_id, IFNULL(`buyer_name`,'') AS buyer_name,
+               IFNULL(`trn`,'') AS trn, IFNULL(`legal_reg_no`,'') AS legal_reg_no,
+               IFNULL(`legal_reg_type`,'TL') AS legal_reg_type,
+               IFNULL(`address_line1`,'') AS address_line1, IFNULL(`city`,'') AS city,
+               IFNULL(`peppol_endpoint`,'') AS peppol_endpoint,
+               IFNULL(`buyer_onboarded`,0) AS buyer_onboarded
+        FROM `epc_einvoice_buyer_profiles`
+        ORDER BY `time_updated` DESC
+        LIMIT @limit
+        """;
+
+    public const string SelectCpEinvoiceBuyerTrnCount = """
+        SELECT COUNT(*) FROM `epc_einvoice_buyer_profiles` WHERE IFNULL(`trn`,'') <> ''
+        """;
+
+    public const string SelectCpEinvoiceSubmittedCount = """
+        SELECT COUNT(*) FROM `epc_einvoice_documents`
+        WHERE IFNULL(`status`,'') IN ('submitted','accepted')
+        """;
+
+    /// <summary>Document list with PHP invoice columns — omits seller_json/buyer_json/xml/validation/tax_breakdown.</summary>
+    public const string SelectCpEinvoiceDocumentRows = """
+        SELECT `id`, IFNULL(`uuid`,'') AS uuid, IFNULL(`invoice_number`,'') AS invoice_number,
+               IFNULL(`order_id`,0) AS order_id, IFNULL(`user_id`,0) AS user_id,
+               IFNULL(`doc_category`,'') AS doc_category,
+               IFNULL(`invoice_type_code`,'380') AS invoice_type_code,
+               IFNULL(`issue_date`,0) AS issue_date, IFNULL(`payment_due_date`,0) AS payment_due_date,
+               IFNULL(`currency_code`,'') AS currency_code,
+               IFNULL(`transaction_type_code`,'00000000') AS transaction_type_code,
+               IFNULL(`payment_means_code`,'30') AS payment_means_code,
+               IFNULL(`payment_terms`,'') AS payment_terms, IFNULL(`bank_account`,'') AS bank_account,
+               IFNULL(`status`,'') AS status,
+               IFNULL(`subtotal_ex_vat`,0) AS subtotal_ex_vat, IFNULL(`total_vat`,0) AS total_vat,
+               IFNULL(`total_incl_vat`,0) AS total_incl_vat, IFNULL(`paid_amount`,0) AS paid_amount,
+               IFNULL(`amount_due`,0) AS amount_due, IFNULL(`validation_ok`,0) AS validation_ok,
+               IFNULL(`asp_name`,'') AS asp_name, IFNULL(`asp_reference`,'') AS asp_reference,
+               IFNULL(`fta_report_status`,'') AS fta_report_status,
+               IFNULL(`time_created`,0) AS time_created
+        FROM `epc_einvoice_documents`
+        WHERE IFNULL(`active`,0)=1
+        ORDER BY `issue_date` DESC, `id` DESC
+        LIMIT @limit
+        """;
+
+    /// <summary>Line items — no extra payloads.</summary>
+    public const string SelectCpEinvoiceLines = """
+        SELECT `id`, IFNULL(`document_id`,0) AS document_id, IFNULL(`line_no`,1) AS line_no,
+               IFNULL(`item_name`,'') AS item_name, IFNULL(`item_description`,'') AS item_description,
+               IFNULL(`quantity`,0) AS quantity, IFNULL(`uom_code`,'C62') AS uom_code,
+               IFNULL(`unit_price`,0) AS unit_price, IFNULL(`line_net`,0) AS line_net,
+               IFNULL(`tax_category`,'S') AS tax_category, IFNULL(`tax_rate`,0) AS tax_rate,
+               IFNULL(`vat_line_aed`,0) AS vat_line_aed, IFNULL(`gross_amount`,0) AS gross_amount
+        FROM `epc_einvoice_lines`
+        ORDER BY `document_id`, `line_no`
+        LIMIT @limit
+        """;
+
+    /// <summary>Transmission log — omits payload_json.</summary>
+    public const string SelectCpEinvoiceEvents = """
+        SELECT `id`, IFNULL(`document_id`,0) AS document_id, IFNULL(`event_type`,'') AS event_type,
+               IFNULL(`status`,'') AS status, IFNULL(`message`,'') AS message,
+               IFNULL(`time_created`,0) AS time_created
+        FROM `epc_einvoice_events`
+        ORDER BY `time_created` DESC
+        LIMIT @limit
+        """;
+
+    /// <summary>FTA items that mention e-invoice / Peppol / PINT (titles only).</summary>
+    public const string SelectCpEinvoiceLegislation = """
+        SELECT `id`, IFNULL(`title`,'') AS title, IFNULL(`issue_date`,'') AS issue_date,
+               IFNULL(`category`,'') AS category, IFNULL(`is_new`,0) AS is_new,
+               IFNULL(`is_updated`,0) AS is_updated
+        FROM `epc_uae_tax_legislation_items`
+        WHERE LOWER(CONCAT(IFNULL(`title`,''),' ',IFNULL(`category`,''),' ',IFNULL(`tax_category`,'')))
+              REGEXP 'e.?invoice|peppol|pint|accredited|electronic[[:space:]]*invoic'
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
     /// <summary>Jewellery repair KPIs from epc_jewel_repair (CREATE TABLE in epc_erp_jewellery.php).</summary>
     public const string SelectCpJewelleryRepairStats = """
         SELECT

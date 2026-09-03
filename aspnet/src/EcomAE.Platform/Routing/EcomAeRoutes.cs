@@ -226,6 +226,8 @@ public static class EcomAeRoutes
     public const string ControlPanelEinvoiceDocuments = "/cp/einvoice-documents";
     /// <summary>CP e-invoice documents Blazor list (JSON digest remains <see cref="ControlPanelEinvoiceDocuments"/>).</summary>
     public const string ControlPanelEinvoiceDocumentsApp = "/cp/einvoice-documents-app";
+    /// <summary>ERP twin of PHP tax einvoice tab (same workspace as <see cref="ControlPanelEinvoiceDocumentsApp"/>).</summary>
+    public const string ErpEinvoiceApp = "/erp/einvoice-app";
     /// <summary>CP jewellery repairs (customer PII/narration omitted).</summary>
     public const string ControlPanelJewelleryRepairs = "/cp/jewellery-repairs";
     /// <summary>CP jewellery repairs Blazor list (JSON digest remains <see cref="ControlPanelJewelleryRepairs"/>).</summary>

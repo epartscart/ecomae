@@ -2219,6 +2219,129 @@ public sealed record CpEinvoiceDocumentsDigestResult(
     string Source,
     string Message);
 
+/// <summary>PHP <c>epc_einvoice_dashboard</c> KPIs (period counts, not lifetime).</summary>
+public sealed record CpEinvoiceDashboardKpis(
+    int Total,
+    int Draft,
+    int Validated,
+    int Submitted,
+    int Accepted,
+    int Rejected,
+    decimal AmountInclVat,
+    bool SellerConfigured,
+    string AspName);
+
+public sealed record CpEinvoiceSellerDigest(
+    string SellerName,
+    string SellerTrn,
+    string SellerTin,
+    string SellerLegalRegNo,
+    string SellerLegalRegType,
+    string SellerAuthorityName,
+    string SellerAddressLine1,
+    string SellerCity,
+    string SellerEmirate,
+    string SellerCountryCode,
+    string SellerPhone,
+    string SellerEmail,
+    string SellerBankAccount,
+    string PaymentTerms,
+    string SellerPeppolEndpoint);
+
+public sealed record CpEinvoiceAspDigest(
+    string AspName,
+    string AspApiMode,
+    string AspApiUrl,
+    bool HasApiKey);
+
+public sealed record CpEinvoiceBuyerDigest(
+    long UserId,
+    string BuyerName,
+    string Trn,
+    string LegalRegNo,
+    string LegalRegType,
+    string AddressLine1,
+    string City,
+    string PeppolEndpoint,
+    bool BuyerOnboarded);
+
+public sealed record CpEinvoiceDocumentRow(
+    long Id,
+    string Uuid,
+    string InvoiceNumber,
+    long OrderId,
+    long UserId,
+    string DocCategory,
+    string InvoiceTypeCode,
+    long IssueDate,
+    long PaymentDueDate,
+    string CurrencyCode,
+    string TransactionTypeCode,
+    string PaymentMeansCode,
+    string PaymentTerms,
+    string BankAccount,
+    string Status,
+    decimal SubtotalExVat,
+    decimal TotalVat,
+    decimal TotalInclVat,
+    decimal PaidAmount,
+    decimal AmountDue,
+    bool ValidationOk,
+    string AspName,
+    string AspReference,
+    string FtaReportStatus,
+    long TimeCreated);
+
+public sealed record CpEinvoiceLineDigest(
+    long Id,
+    long DocumentId,
+    int LineNo,
+    string ItemName,
+    string ItemDescription,
+    decimal Quantity,
+    string UomCode,
+    decimal UnitPrice,
+    decimal LineNet,
+    string TaxCategory,
+    decimal TaxRate,
+    decimal VatLineAed,
+    decimal GrossAmount);
+
+public sealed record CpEinvoiceEventDigest(
+    long Id,
+    long DocumentId,
+    string EventType,
+    string Status,
+    string Message,
+    long TimeCreated);
+
+public sealed record CpEinvoiceReadinessItem(string Id, string Label, bool Done);
+
+public sealed record CpEinvoiceLegislationDigest(
+    long Id,
+    string Title,
+    string IssueDate,
+    string Category,
+    bool IsNew,
+    bool IsUpdated);
+
+public sealed record CpEinvoiceWorkspaceDigestResult(
+    CpEinvoiceDocumentsSummary Summary,
+    CpEinvoiceDashboardKpis Dashboard,
+    CpEinvoiceSellerDigest Seller,
+    CpEinvoiceAspDigest Asp,
+    IReadOnlyList<CpEinvoiceDocumentRow> Documents,
+    IReadOnlyList<CpEinvoiceBuyerDigest> Buyers,
+    IReadOnlyList<CpEinvoiceLineDigest> Lines,
+    IReadOnlyList<CpEinvoiceEventDigest> Events,
+    IReadOnlyList<CpEinvoiceReadinessItem> Readiness,
+    int ReadinessPercent,
+    IReadOnlyList<CpEinvoiceLegislationDigest> Legislation,
+    int BuyerTrnCount,
+    int SubmittedOrAcceptedCount,
+    string Source,
+    string Message);
+
 public sealed record CpJewelleryRepairsSummary(
     int RepairCount,
     int OpenCount,

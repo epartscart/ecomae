@@ -8032,6 +8032,324 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    public async Task<CpEinvoiceWorkspaceDigestResult> BuildCpEinvoiceWorkspaceDigestAsync(int limit, CancellationToken cancellationToken = default)
+    {
+        var safeLimit = Math.Clamp(limit, 1, 500);
+        var emptySummary = new CpEinvoiceDocumentsSummary(0, 0, 0, 0, "migration", "TenantRegistry DB is not configured.");
+        var emptyDash = new CpEinvoiceDashboardKpis(0, 0, 0, 0, 0, 0, 0, false, "");
+        var emptySeller = DefaultEinvoiceSeller();
+        var emptyAsp = new CpEinvoiceAspDigest("", "manual", "", false);
+        var emptyReady = EinvoiceReadiness(emptySeller, "", 0, 0);
+        if (!_connections.IsConfigured)
+        {
+            return new(emptySummary, emptyDash, emptySeller, emptyAsp, [], [], [], [], emptyReady.Items, emptyReady.Percent, [], 0, 0, "migration", emptySummary.Message);
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            var list = await BuildCpEinvoiceDocumentsDigestAsync(safeLimit, cancellationToken).ConfigureAwait(false);
+
+            var dash = emptyDash;
+            try
+            {
+                await using var cmd = connection.CreateCommand();
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectCpEinvoiceDashboardKpis;
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    dash = new CpEinvoiceDashboardKpis(
+                        ToInt(reader, "total"),
+                        ToInt(reader, "draft"),
+                        ToInt(reader, "validated"),
+                        ToInt(reader, "submitted"),
+                        ToInt(reader, "accepted"),
+                        ToInt(reader, "rejected"),
+                        ToDec(reader, "amount_incl_vat"),
+                        false,
+                        "");
+                }
+            }
+            catch { /* table may be missing */ }
+
+            var settings = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            try
+            {
+                await using var cmd = connection.CreateCommand();
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectCpEinvoiceSettings;
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    var key = Convert.ToString(reader["setting_key"], CultureInfo.InvariantCulture) ?? "";
+                    if (key.Length == 0) continue;
+                    settings[key] = Convert.ToString(reader["setting_value"], CultureInfo.InvariantCulture) ?? "";
+                }
+            }
+            catch { /* settings optional */ }
+
+            var hasKey = 0;
+            try { hasKey = await ScalarIntSafeAsync(connection, LegacySurfaceDashboardSql.SelectCpEinvoiceHasApiKey, cancellationToken).ConfigureAwait(false); }
+            catch { /* ignore */ }
+
+            var seller = EinvoiceSellerFromSettings(settings);
+            var aspName = Setting(settings, "asp_name");
+            var asp = new CpEinvoiceAspDigest(aspName, Setting(settings, "asp_api_mode", "manual"), Setting(settings, "asp_api_url"), hasKey > 0);
+            dash = dash with { SellerConfigured = seller.SellerTrn.Length > 0 && seller.SellerPeppolEndpoint.Length > 0, AspName = aspName };
+
+            var docs = new List<CpEinvoiceDocumentRow>();
+            try
+            {
+                await using var cmd = connection.CreateCommand();
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectCpEinvoiceDocumentRows;
+                AddParameter(cmd, "@limit", safeLimit);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    docs.Add(new CpEinvoiceDocumentRow(
+                        ToLong(reader, "id"),
+                        ToStr(reader, "uuid"),
+                        ToStr(reader, "invoice_number"),
+                        ToLong(reader, "order_id"),
+                        ToLong(reader, "user_id"),
+                        ToStr(reader, "doc_category"),
+                        ToStr(reader, "invoice_type_code", "380"),
+                        ToLong(reader, "issue_date"),
+                        ToLong(reader, "payment_due_date"),
+                        ToStr(reader, "currency_code"),
+                        ToStr(reader, "transaction_type_code"),
+                        ToStr(reader, "payment_means_code"),
+                        ToStr(reader, "payment_terms"),
+                        ToStr(reader, "bank_account"),
+                        ToStr(reader, "status"),
+                        ToDec(reader, "subtotal_ex_vat"),
+                        ToDec(reader, "total_vat"),
+                        ToDec(reader, "total_incl_vat"),
+                        ToDec(reader, "paid_amount"),
+                        ToDec(reader, "amount_due"),
+                        ToInt(reader, "validation_ok") != 0,
+                        ToStr(reader, "asp_name"),
+                        ToStr(reader, "asp_reference"),
+                        ToStr(reader, "fta_report_status"),
+                        ToLong(reader, "time_created")));
+                }
+            }
+            catch { /* documents already in list digest */ }
+
+            var buyers = new List<CpEinvoiceBuyerDigest>();
+            try
+            {
+                await using var cmd = connection.CreateCommand();
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectCpEinvoiceBuyers;
+                AddParameter(cmd, "@limit", Math.Min(safeLimit, 100));
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    buyers.Add(new CpEinvoiceBuyerDigest(
+                        ToLong(reader, "user_id"),
+                        ToStr(reader, "buyer_name"),
+                        ToStr(reader, "trn"),
+                        ToStr(reader, "legal_reg_no"),
+                        ToStr(reader, "legal_reg_type", "TL"),
+                        ToStr(reader, "address_line1"),
+                        ToStr(reader, "city"),
+                        ToStr(reader, "peppol_endpoint"),
+                        ToInt(reader, "buyer_onboarded") != 0));
+                }
+            }
+            catch { /* buyers optional */ }
+
+            var lines = new List<CpEinvoiceLineDigest>();
+            try
+            {
+                await using var cmd = connection.CreateCommand();
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectCpEinvoiceLines;
+                AddParameter(cmd, "@limit", 800);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    lines.Add(new CpEinvoiceLineDigest(
+                        ToLong(reader, "id"),
+                        ToLong(reader, "document_id"),
+                        ToInt(reader, "line_no"),
+                        ToStr(reader, "item_name"),
+                        ToStr(reader, "item_description"),
+                        ToDec(reader, "quantity"),
+                        ToStr(reader, "uom_code", "C62"),
+                        ToDec(reader, "unit_price"),
+                        ToDec(reader, "line_net"),
+                        ToStr(reader, "tax_category", "S"),
+                        ToDec(reader, "tax_rate"),
+                        ToDec(reader, "vat_line_aed"),
+                        ToDec(reader, "gross_amount")));
+                }
+            }
+            catch { /* lines optional */ }
+
+            var events = new List<CpEinvoiceEventDigest>();
+            try
+            {
+                await using var cmd = connection.CreateCommand();
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectCpEinvoiceEvents;
+                AddParameter(cmd, "@limit", 200);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    events.Add(new CpEinvoiceEventDigest(
+                        ToLong(reader, "id"),
+                        ToLong(reader, "document_id"),
+                        ToStr(reader, "event_type"),
+                        ToStr(reader, "status"),
+                        ToStr(reader, "message"),
+                        ToLong(reader, "time_created")));
+                }
+            }
+            catch { /* events optional */ }
+
+            var legislation = new List<CpEinvoiceLegislationDigest>();
+            try
+            {
+                await using var cmd = connection.CreateCommand();
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectCpEinvoiceLegislation;
+                AddParameter(cmd, "@limit", 12);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    legislation.Add(new CpEinvoiceLegislationDigest(
+                        ToLong(reader, "id"),
+                        ToStr(reader, "title"),
+                        ToStr(reader, "issue_date"),
+                        ToStr(reader, "category"),
+                        ToInt(reader, "is_new") != 0,
+                        ToInt(reader, "is_updated") != 0));
+                }
+            }
+            catch { /* legislation optional */ }
+
+            var buyerTrn = 0;
+            var submitted = 0;
+            try { buyerTrn = await ScalarIntSafeAsync(connection, LegacySurfaceDashboardSql.SelectCpEinvoiceBuyerTrnCount, cancellationToken).ConfigureAwait(false); } catch { /* ignore */ }
+            try { submitted = await ScalarIntSafeAsync(connection, LegacySurfaceDashboardSql.SelectCpEinvoiceSubmittedCount, cancellationToken).ConfigureAwait(false); } catch { /* ignore */ }
+
+            var ready = EinvoiceReadiness(seller, aspName, buyerTrn, submitted);
+            return new(
+                list.Summary,
+                dash,
+                seller,
+                asp,
+                docs,
+                buyers,
+                lines,
+                events,
+                ready.Items,
+                ready.Percent,
+                legislation,
+                buyerTrn,
+                submitted,
+                list.Source,
+                list.Message);
+        }
+        catch (Exception ex)
+        {
+            var err = emptySummary with { Source = "database-error", Message = ex.Message };
+            return new(err, emptyDash, emptySeller, emptyAsp, [], [], [], [], emptyReady.Items, emptyReady.Percent, [], 0, 0, "database-error", ex.Message);
+        }
+    }
+
+    private static CpEinvoiceSellerDigest DefaultEinvoiceSeller() =>
+        new("ePartsCart LLC", "", "", "", "TL", "Dubai Economy and Tourism", "", "Dubai", "Dubai", "AE", "", "", "", "Within 7 days", "");
+
+    private static CpEinvoiceSellerDigest EinvoiceSellerFromSettings(IReadOnlyDictionary<string, string> settings)
+    {
+        var def = DefaultEinvoiceSeller();
+        var trn = Setting(settings, "seller_trn");
+        var tin = Setting(settings, "seller_tin");
+        if (tin.Length == 0)
+        {
+            var digits = new string(trn.Where(char.IsDigit).ToArray());
+            tin = digits.Length >= 10 ? digits[..10] : digits;
+        }
+
+        var peppol = tin.Length == 0 ? "" : "0235:" + tin;
+        return new(
+            Setting(settings, "seller_name", def.SellerName),
+            trn,
+            tin,
+            Setting(settings, "seller_legal_reg_no"),
+            Setting(settings, "seller_legal_reg_type", "TL"),
+            Setting(settings, "seller_authority_name", def.SellerAuthorityName),
+            Setting(settings, "seller_address_line1"),
+            Setting(settings, "seller_city", def.SellerCity),
+            Setting(settings, "seller_emirate", def.SellerEmirate),
+            Setting(settings, "seller_country_code", "AE"),
+            Setting(settings, "seller_phone"),
+            Setting(settings, "seller_email"),
+            Setting(settings, "seller_bank_account"),
+            Setting(settings, "payment_terms", def.PaymentTerms),
+            peppol);
+    }
+
+    private static (IReadOnlyList<CpEinvoiceReadinessItem> Items, int Percent) EinvoiceReadiness(
+        CpEinvoiceSellerDigest seller, string aspName, int buyerTrnCount, int submittedCount)
+    {
+        var items = new List<CpEinvoiceReadinessItem>
+        {
+            new("guidelines", "Reviewed UAE e-Invoicing Guidelines V1.0 (Feb 2026)", true),
+            new("mandatory_fields", "ERP captures all PINT-AE mandatory fields", true),
+            new("seller_trn", "Seller TRN configured", seller.SellerTrn.Length > 0),
+            new("seller_peppol", "Seller Peppol ID (0235:TIN) configured", seller.SellerPeppolEndpoint.Length > 0),
+            new("asp", "Accredited Service Provider (ASP) selected", aspName.Length > 0),
+            new("emaratax", "Onboarded with ASP via EmaraTax (external)", false),
+            new("buyer_profiles", "Buyer TRN / Peppol IDs captured for B2B customers", buyerTrnCount > 0),
+            new("test", "End-to-end test with ASP completed", submittedCount > 0),
+        };
+        var done = items.Count(i => i.Done);
+        var percent = items.Count == 0 ? 0 : (int)Math.Round(done * 100.0 / items.Count);
+        return (items, percent);
+    }
+
+    private static string Setting(IReadOnlyDictionary<string, string> settings, string key, string fallback = "") =>
+        settings.TryGetValue(key, out var value) && !string.IsNullOrWhiteSpace(value) ? value.Trim() : fallback;
+
+    private static string ToStr(DbDataReader reader, string column, string fallback = "")
+    {
+        try
+        {
+            var value = reader[column];
+            return value is DBNull or null ? fallback : Convert.ToString(value, CultureInfo.InvariantCulture) ?? fallback;
+        }
+        catch { return fallback; }
+    }
+
+    private static int ToInt(DbDataReader reader, string column)
+    {
+        try
+        {
+            var value = reader[column];
+            return value is DBNull or null ? 0 : Convert.ToInt32(value, CultureInfo.InvariantCulture);
+        }
+        catch { return 0; }
+    }
+
+    private static long ToLong(DbDataReader reader, string column)
+    {
+        try
+        {
+            var value = reader[column];
+            return value is DBNull or null ? 0 : Convert.ToInt64(value, CultureInfo.InvariantCulture);
+        }
+        catch { return 0; }
+    }
+
+    private static decimal ToDec(DbDataReader reader, string column)
+    {
+        try
+        {
+            var value = reader[column];
+            return value is DBNull or null ? 0 : Convert.ToDecimal(value, CultureInfo.InvariantCulture);
+        }
+        catch { return 0; }
+    }
+
     public async Task<CpJewelleryRepairsDigestResult> BuildCpJewelleryRepairsDigestAsync(int limit, CancellationToken cancellationToken = default)
     {
         var safeLimit = Math.Clamp(limit, 1, 500);

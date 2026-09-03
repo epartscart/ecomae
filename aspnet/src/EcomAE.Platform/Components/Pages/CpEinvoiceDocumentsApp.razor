@@ -1,128 +1,646 @@
 @page "/cp/einvoice-documents-app"
+@page "/erp/einvoice-app"
 @layout Layout.PhpChromeLayout
 @using System.Globalization
 @using EcomAE.Platform.Auth
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Routing
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
+@inject IErpEinvoiceCreateDryRun CreateDryRun
+@inject IErpEinvoiceSaveSellerDryRun SaveSellerDryRun
+@inject IErpEinvoiceSaveBuyerDryRun SaveBuyerDryRun
+@inject IErpEinvoiceSaveAspDryRun SaveAspDryRun
+@inject IErpEinvoiceSubmitDryRun SubmitDryRun
+@inject IErpEinvoiceCreditNoteDryRun CreditDryRun
+@inject IErpEinvoicePollAspDryRun PollDryRun
+@inject IErpUaeTaxFtaFetchDryRun FtaFetchDryRun
 @inject IHttpContextAccessor Http
 @inject NavigationManager Nav
 
-<PageTitle>E-invoice documents · Control Panel · eParts Cart</PageTitle>
-<PhpChromeStyles Surface="cp" />
+<PageTitle>UAE Electronic Invoicing · ERP · eParts Cart</PageTitle>
+<PhpChromeStyles Surface="erp" />
 <HeadContent>
 <style>
-        .epc-ei-hero {
-            margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
-            background:linear-gradient(135deg,#0c4a6e 0%,#2563eb 45%,#0ea5e9 100%);
-        }
-        .epc-ei-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
-        .epc-ei-hero p { margin:0; color:rgba(255,255,255,.88); max-width:44rem; font-size:.92rem; line-height:1.45; }
-        .epc-ei-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
-        .epc-ei-cta a {
-            display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
-            text-decoration:none; color:#0b3d2e; background:#e0f2fe;
-        }
-        .epc-ei-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); color:#fff; }
-        .epc-ei-kpis { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
-        .epc-ei-kpi { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; padding:.85rem .9rem; }
-        .epc-ei-kpi strong { display:block; font-size:1.2rem; word-break:break-word; }
-        .epc-ei-kpi span { color:#64748b; font-size:.78rem; }
-        .epc-ei-table-wrap { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; overflow:auto; }
-        .epc-ei-table { width:100%; border-collapse:collapse; font-size:.86rem; }
-        .epc-ei-table th, .epc-ei-table td { padding:.55rem .7rem; border-bottom:1px solid #f1f5f9; text-align:left; white-space:nowrap; }
-        .epc-ei-table th { background:#f8fafc; color:#475569; font-size:.75rem; text-transform:uppercase; letter-spacing:.03em; }
-        .epc-ei-note { margin-top:1rem; padding:.75rem .9rem; background:#f0fdfa; border:1px solid #5eead4; border-radius:.45rem; color:#115e59; font-size:.86rem; }
-        @@media (max-width:900px){ .epc-ei-kpis{grid-template-columns:1fr 1fr;} }
-    
+.epc-einv-hero{position:relative;overflow:hidden;border-radius:14px;padding:22px 24px 18px;margin:0 0 18px;background:linear-gradient(125deg,#0a0a0a 0%,#1c1917 42%,#7f1d1d 100%);color:#fff;box-shadow:0 10px 28px rgba(0,0,0,.14);}
+.epc-einv-hero h2{margin:0 0 6px;font-size:22px;font-weight:800;color:#fff;}
+.epc-einv-hero p{margin:0;max-width:720px;font-size:13px;line-height:1.5;color:rgba(255,255,255,.88);}
+.epc-einv-chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;}
+.epc-einv-chip{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:999px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);font-size:11px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;}
+.epc-einv-actions{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin:0 0 18px;}
+.epc-einv-steps{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px;margin:0 0 20px;}
+@@media(max-width:1100px){.epc-einv-steps{grid-template-columns:repeat(3,minmax(0,1fr));}}
+@@media(max-width:640px){.epc-einv-steps{grid-template-columns:1fr 1fr;}}
+.epc-einv-step{display:flex;flex-direction:column;gap:8px;padding:14px 12px 12px;border-radius:12px;background:#fff;border:1px solid #e5e5e5;text-decoration:none!important;color:#0a0a0a!important;min-height:128px;box-shadow:0 4px 14px rgba(0,0,0,.04);position:relative;}
+.epc-einv-step.is-done{border-color:#86efac;background:linear-gradient(180deg,#f0fdf4,#fff);}
+.epc-einv-step.is-current{border-color:#dc2626;box-shadow:0 0 0 2px rgba(220,38,38,.18);}
+.epc-einv-step__n{width:28px;height:28px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;background:#0a0a0a;color:#fff;}
+.epc-einv-step.is-done .epc-einv-step__n{background:#16a34a;}
+.epc-einv-step.is-current .epc-einv-step__n{background:#dc2626;}
+.epc-einv-step__t{font-size:13px;font-weight:800;line-height:1.25;}
+.epc-einv-step__b{font-size:11.5px;color:#737373;line-height:1.35;flex:1;}
+.epc-einv-step__cta{font-size:11px;font-weight:700;color:#dc2626;}
+.epc-einv-flow{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:6px 4px;margin:0 0 20px;padding:16px;border-radius:12px;background:#fafafa;border:1px solid #e5e5e5;}
+.epc-einv-flow__node{display:inline-flex;align-items:center;gap:7px;padding:8px 12px;border-radius:999px;background:#fff;border:1px solid #e5e5e5;font-size:12px;font-weight:700;}
+.epc-einv-kpi-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin:0 0 18px;}
+.epc-einv-kpi{padding:14px;border-radius:12px;background:#fff;border:1px solid #e5e5e5;}
+.epc-einv-kpi .lbl{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#737373;}
+.epc-einv-kpi .val{font-size:22px;font-weight:800;color:#0a0a0a;margin-top:4px;line-height:1.1;}
+.epc-einv-kpi .val.ok{color:#16a34a;} .epc-einv-kpi .val.bad{color:#dc2626;}
+.epc-einv-panel-card{background:#fff;border:1px solid #e5e5e5;border-radius:12px;padding:16px 18px;margin:0 0 16px;}
+.epc-einvoice-nav{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 18px;padding:0;list-style:none;}
+.epc-einvoice-nav>li>a{display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border-radius:8px;border:1px solid #e5e5e5;background:#fff;color:#404040!important;font-size:12px;font-weight:700;text-decoration:none!important;}
+.epc-einvoice-nav>li.active>a,.epc-einvoice-nav>li>a:hover{background:#0a0a0a;border-color:#0a0a0a;color:#fff!important;}
+.epc-einv-leg__list{list-style:none;margin:12px 0 0;padding:0;display:grid;gap:8px;}
+.epc-einv-leg__list li{display:flex;gap:10px;padding:10px 12px;border-radius:10px;background:#fafafa;border:1px solid #f0f0f0;}
 </style>
 </HeadContent>
 
+<PhpErpDesktopChrome IsAdmin="_isAdmin" Title="E-invoice" BreadcrumbArea="Tax" BreadcrumbTab="E-invoice">
+    <PhpErpModulePageHeader Title="UAE Electronic Invoicing" Subtitle="5-corner Peppol model — Supplier → ASP → Buyer ASP → Buyer, with parallel FTA Tax Data reporting." PhpTabHref="@_phpTab" />
+    <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
 
-<PhpCpDesktopChrome IsAdmin="_isAdmin">
-
-    <section class="epc-ei-hero">
-        <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
-        <h1>E-invoice documents</h1>
-        <p>Manage store operations, catalogue, and partner integrations from one control panel.</p>
-        <div class="epc-ei-cta">
-            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
+    <div class="epc-erp-section epc-einvoice-panel">
+        <div class="epc-einv-hero">
+            <h2><i class="fa fa-file-code-o"></i> UAE Electronic Invoicing</h2>
+            <p>5-corner Peppol model — Supplier → ASP → Buyer ASP → Buyer, with parallel FTA Tax Data reporting. Follow the steps below to go live with PINT-AE.</p>
+            <div class="epc-einv-chips">
+                <span class="epc-einv-chip"><i class="fa fa-book"></i> Guidelines V1.0 · 23 Feb 2026</span>
+                <span class="epc-einv-chip"><i class="fa fa-calendar"></i> Voluntary 1 Jul 2026</span>
+                <span class="epc-einv-chip"><i class="fa fa-flag"></i> Mandatory ≥ AED 50M · 1 Jan 2027</span>
+                <span class="epc-einv-chip"><i class="fa fa-code"></i> PINT-AE XML</span>
+            </div>
         </div>
-    </section>
 
-    <div class="epc-ei-kpis" aria-label="E-invoice documents stats">
-        <div class="epc-ei-kpi"><strong>@_summary.DocumentCount.ToString(CultureInfo.InvariantCulture)</strong><span>Documents</span></div>
-        <div class="epc-ei-kpi"><strong>@_summary.OpenCount.ToString(CultureInfo.InvariantCulture)</strong><span>Open</span></div>
-        <div class="epc-ei-kpi"><strong>@_summary.SubmittedCount.ToString(CultureInfo.InvariantCulture)</strong><span>Submitted</span></div>
-        <div class="epc-ei-kpi"><strong>@_summary.TotalInclVat.ToString("0.00", CultureInfo.InvariantCulture)</strong><span>Total incl VAT</span></div>
-    </div>
+        <div class="epc-einv-actions">
+            <button type="button" class="btn btn-sm btn-primary" @onclick="OnFetchLegislation"><i class="fa fa-refresh"></i> Fetch new legislation for e-invoice</button>
+            <a class="btn btn-default btn-sm" href="https://tax.gov.ae/en/legislation.aspx" target="_blank" rel="noopener"><i class="fa fa-external-link"></i> FTA legislation.aspx</a>
+            <a class="btn btn-default btn-sm" href="@Href("guide")"><i class="fa fa-book"></i> Guide</a>
+            @if (!string.IsNullOrWhiteSpace(_actionResult)) { <span class="text-muted" style="font-size:12px;">@_actionResult</span> }
+        </div>
 
-    <div class="epc-ei-table-wrap">
-        <table class="epc-ei-table">
-            <thead>
-                <tr>
-                    <th>Id</th>
-                    <th>Invoice</th>
-                    <th>Category</th>
-                    <th>Status</th>
-                    <th>CCY</th>
-                    <th>Total</th>
-                    <th>Valid</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody>
-                @if (_rows.Count == 0)
+        <div class="epc-einv-flow" aria-label="5-corner Peppol model">
+            <span class="epc-einv-flow__node"><i class="fa fa-building"></i> You (Supplier)</span>
+            <span class="epc-einv-flow__arrow"><i class="fa fa-long-arrow-right"></i></span>
+            <span class="epc-einv-flow__node"><i class="fa fa-cloud"></i> Your ASP</span>
+            <span class="epc-einv-flow__arrow"><i class="fa fa-long-arrow-right"></i></span>
+            <span class="epc-einv-flow__node"><i class="fa fa-exchange"></i> Buyer ASP</span>
+            <span class="epc-einv-flow__arrow"><i class="fa fa-long-arrow-right"></i></span>
+            <span class="epc-einv-flow__node"><i class="fa fa-user"></i> Buyer</span>
+            <span class="epc-einv-flow__arrow">+</span>
+            <span class="epc-einv-flow__node"><i class="fa fa-university"></i> FTA report</span>
+        </div>
+
+        <div class="epc-einv-steps" role="navigation" aria-label="E-invoice go-live steps">
+            @foreach (var step in _steps)
+            {
+                var cls = "epc-einv-step" + (step.Done ? " is-done" : "") + (step.Key == _activeStep ? " is-current" : "");
+                <a class="@cls" href="@Href(step.Section)">
+                    <span class="epc-einv-step__n">@(step.Done ? (MarkupString)"<i class=\"fa fa-check\"></i>" : (MarkupString)step.N.ToString(CultureInfo.InvariantCulture))</span>
+                    <span class="epc-einv-step__t">Step @step.N · @step.Title</span>
+                    <span class="epc-einv-step__b">@step.Blurb</span>
+                    <span class="epc-einv-step__cta">@step.Cta <i class="fa fa-angle-right"></i></span>
+                </a>
+            }
+        </div>
+
+        <ul class="epc-einvoice-nav">
+            <li class="@Active("dashboard")"><a href="@Href("dashboard")"><i class="fa fa-th-large"></i> Overview</a></li>
+            <li class="@Active("invoices", "view")"><a href="@Href("invoices")"><i class="fa fa-list"></i> Invoices</a></li>
+            <li class="@Active("create")"><a href="@Href("create")"><i class="fa fa-plus-circle"></i> Generate</a></li>
+            <li class="@Active("seller")"><a href="@Href("seller")"><i class="fa fa-building"></i> Seller</a></li>
+            <li class="@Active("buyers")"><a href="@Href("buyers")"><i class="fa fa-users"></i> Buyers</a></li>
+            <li class="@Active("asp")"><a href="@Href("asp")"><i class="fa fa-cloud-upload"></i> ASP</a></li>
+            <li class="@Active("guide")"><a href="@Href("guide")"><i class="fa fa-book"></i> Guide</a></li>
+        </ul>
+
+        @if (_section is "dashboard")
+        {
+            <div class="epc-einv-kpi-strip">
+                <div class="epc-einv-kpi"><div class="lbl">Readiness</div><div class="val">@_readinessPercent.ToString(CultureInfo.InvariantCulture)%</div></div>
+                <div class="epc-einv-kpi"><div class="lbl">E-invoices</div><div class="val">@_dash.Total.ToString(CultureInfo.InvariantCulture)</div></div>
+                <div class="epc-einv-kpi"><div class="lbl">Validated</div><div class="val ok">@_dash.Validated.ToString(CultureInfo.InvariantCulture)</div></div>
+                <div class="epc-einv-kpi"><div class="lbl">Submitted</div><div class="val">@_dash.Submitted.ToString(CultureInfo.InvariantCulture)</div></div>
+                <div class="epc-einv-kpi"><div class="lbl">Accepted</div><div class="val ok">@_dash.Accepted.ToString(CultureInfo.InvariantCulture)</div></div>
+                <div class="epc-einv-kpi"><div class="lbl">Rejected</div><div class="val bad">@_dash.Rejected.ToString(CultureInfo.InvariantCulture)</div></div>
+                <div class="epc-einv-kpi"><div class="lbl">Incl. VAT</div><div class="val" style="font-size:16px;">@_dash.AmountInclVat.ToString("N2", CultureInfo.InvariantCulture)</div></div>
+            </div>
+
+            <div class="epc-einv-panel-card">
+                <h4><i class="fa fa-gavel"></i> E-invoice legislation</h4>
+                <p class="text-muted" style="margin:0;font-size:12.5px;">Filtered from FTA legislation.aspx — Peppol / PINT-AE / e-invoicing decisions.</p>
+                @if (_legislation.Count == 0)
                 {
-                    <tr><td colspan="8">Nothing to show yet.</td></tr>
+                    <p class="text-muted" style="margin:12px 0 0;">No e-invoice legislation in cache yet. Click <strong>Fetch new legislation for e-invoice</strong> to pull the latest from FTA.</p>
                 }
                 else
                 {
-                    @foreach (var row in _rows)
-                    {
-                        <tr>
-                            <td>@row.Id.ToString(CultureInfo.InvariantCulture)</td>
-                            <td>@(!string.IsNullOrWhiteSpace(row.InvoiceNumber) ? row.InvoiceNumber : "—")</td>
-                            <td>@(!string.IsNullOrWhiteSpace(row.DocCategory) ? row.DocCategory : "—")</td>
-                            <td>@(!string.IsNullOrWhiteSpace(row.Status) ? row.Status : "—")</td>
-                            <td>@(!string.IsNullOrWhiteSpace(row.CurrencyCode) ? row.CurrencyCode : "—")</td>
-                            <td>@row.TotalInclVat.ToString("0.00", CultureInfo.InvariantCulture)</td>
-                            <td>@(row.ValidationOk ? "yes" : "no")</td>
-                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
-                        </tr>
-                    }
+                    <ul class="epc-einv-leg__list">
+                        @foreach (var leg in _legislation)
+                        {
+                            <li>
+                                <span><i class="fa fa-file-text-o" style="color:#dc2626;"></i></span>
+                                <span>
+                                    @if (leg.IsNew) { <span class="label label-danger">New</span> }
+                                    @if (leg.IsUpdated) { <span class="label label-warning">Updated</span> }
+                                    <strong>@leg.Title</strong>
+                                    @if (!string.IsNullOrWhiteSpace(leg.IssueDate)) { <span class="text-muted" style="font-size:11px;"> · @leg.IssueDate</span> }
+                                </span>
+                            </li>
+                        }
+                    </ul>
                 }
-            </tbody>
-        </table>
-    </div>
+            </div>
 
-</PhpCpDesktopChrome>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="epc-einv-panel-card">
+                        <h4><i class="fa fa-check-square-o"></i> Readiness checklist</h4>
+                        <div class="progress" style="height:22px;margin-bottom:12px;">
+                            <div class="progress-bar progress-bar-success" style="width:@_readinessPercent%;line-height:22px;">@_readinessPercent%</div>
+                        </div>
+                        <ul class="list-group" style="margin-bottom:0;">
+                            @foreach (var it in _readiness)
+                            {
+                                <li class="list-group-item">
+                                    <i class="fa @(it.Done ? "fa-check-circle text-success" : "fa-circle-o text-muted")"></i>
+                                    @it.Label
+                                </li>
+                            }
+                        </ul>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="epc-einv-panel-card">
+                        <h4><i class="fa fa-building"></i> Seller status</h4>
+                        <table class="table table-condensed table-bordered" style="margin-bottom:10px;">
+                            <tr><td>Legal name</td><td><strong>@(string.IsNullOrWhiteSpace(_seller.SellerName) ? "—" : _seller.SellerName)</strong></td></tr>
+                            <tr><td>TRN</td><td>@(string.IsNullOrWhiteSpace(_seller.SellerTrn) ? "— configure in Seller profile" : _seller.SellerTrn)</td></tr>
+                            <tr><td>Peppol endpoint</td><td><code>@(string.IsNullOrWhiteSpace(_seller.SellerPeppolEndpoint) ? "0235:__________" : _seller.SellerPeppolEndpoint)</code></td></tr>
+                            <tr><td>ASP</td><td>@(string.IsNullOrWhiteSpace(_asp.AspName) ? "— not selected" : _asp.AspName)</td></tr>
+                            <tr><td>Specification</td><td><small><code>urn:peppol:pint:billing-1@@ae-1</code></small></td></tr>
+                        </table>
+                        <p class="text-muted" style="margin:0;font-size:12.5px;">Next incomplete step is highlighted in red above. Onboard via <a href="https://tax.gov.ae" target="_blank" rel="noopener">EmaraTax</a> → E-Invoicing.</p>
+                    </div>
+                </div>
+            </div>
+        }
+        else if (_section is "invoices" || _section is "view")
+        {
+            @if (_viewDoc is not null)
+            {
+                <p>
+                    <a class="btn btn-default btn-sm" href="@Href("invoices")"><i class="fa fa-arrow-left"></i> Back to list</a>
+                    <button type="button" class="btn btn-success btn-sm" @onclick="() => OnSubmit(_viewDoc.Id)"><i class="fa fa-cloud-upload"></i> Submit to ASP</button>
+                    <button type="button" class="btn btn-warning btn-sm" @onclick="() => OnCredit(_viewDoc.Id)"><i class="fa fa-undo"></i> Issue credit note (381)</button>
+                </p>
+                <div class="epc-einv-panel-card">
+                    <h3 style="text-align:center;margin-top:0;">@(_viewDoc.InvoiceTypeCode == "381" ? "Tax Credit Note" : "Tax Invoice")</h3>
+                    <p style="text-align:center;color:#64748b;font-size:12px;"><code>urn:peppol:bis:billing</code> · <code>urn:peppol:pint:billing-1@@ae-1</code></p>
+                    <div class="row">
+                        <div class="col-sm-6">
+                            <h5>SELLER</h5>
+                            <table class="table table-condensed">
+                                <tr><td>Name</td><td>@_seller.SellerName</td></tr>
+                                <tr><td>TRN</td><td>@_seller.SellerTrn</td></tr>
+                                <tr><td>Address</td><td>@_seller.SellerAddressLine1, @_seller.SellerCity, UAE</td></tr>
+                                <tr><td>Electronic address</td><td><code>@_seller.SellerPeppolEndpoint</code></td></tr>
+                            </table>
+                        </div>
+                        <div class="col-sm-6">
+                            <h5>INVOICE METADATA</h5>
+                            <table class="table table-condensed">
+                                <tr><td>Invoice number</td><td><strong>@_viewDoc.InvoiceNumber</strong></td></tr>
+                                <tr><td>Issue date</td><td>@FormatDate(_viewDoc.IssueDate)</td></tr>
+                                <tr><td>Type code</td><td>@_viewDoc.InvoiceTypeCode</td></tr>
+                                <tr><td>Currency</td><td>@_viewDoc.CurrencyCode</td></tr>
+                                <tr><td>Due date</td><td>@FormatDate(_viewDoc.PaymentDueDate)</td></tr>
+                                <tr><td>UUID</td><td><small><code>@_viewDoc.Uuid</code></small></td></tr>
+                                <tr><td>Status</td><td><span class="label label-info">@_viewDoc.Status.ToUpperInvariant()</span></td></tr>
+                            </table>
+                        </div>
+                    </div>
+                    <table class="table table-bordered table-condensed" style="font-size:12px;margin-top:16px;">
+                        <thead><tr><th>No.</th><th>Item</th><th>Qty</th><th>UoM</th><th>Unit</th><th>Net</th><th>Tax</th><th>VAT</th><th>Gross</th></tr></thead>
+                        <tbody>
+                            @foreach (var ln in _viewLines)
+                            {
+                                <tr>
+                                    <td>@ln.LineNo</td>
+                                    <td>@ln.ItemName</td>
+                                    <td>@ln.Quantity.ToString("0", CultureInfo.InvariantCulture)</td>
+                                    <td>@ln.UomCode</td>
+                                    <td class="text-right">@ln.UnitPrice.ToString("N2", CultureInfo.InvariantCulture)</td>
+                                    <td class="text-right">@ln.LineNet.ToString("N2", CultureInfo.InvariantCulture)</td>
+                                    <td>@ln.TaxCategory @ln.TaxRate.ToString("0.00", CultureInfo.InvariantCulture)%</td>
+                                    <td class="text-right">@ln.VatLineAed.ToString("N2", CultureInfo.InvariantCulture)</td>
+                                    <td class="text-right">@ln.GrossAmount.ToString("N2", CultureInfo.InvariantCulture)</td>
+                                </tr>
+                            }
+                            @if (_viewLines.Count == 0) { <tr><td colspan="9" class="text-muted">Line items omitted from this digest when the shop table is empty.</td></tr> }
+                        </tbody>
+                    </table>
+                    <table class="table" style="font-size:14px;max-width:420px;margin-left:auto;">
+                        <tr><td>Total excluding VAT</td><td class="text-right">@_viewDoc.SubtotalExVat.ToString("N2", CultureInfo.InvariantCulture)</td></tr>
+                        <tr><td>Total VAT</td><td class="text-right">@_viewDoc.TotalVat.ToString("N2", CultureInfo.InvariantCulture)</td></tr>
+                        <tr><td>Total including VAT</td><td class="text-right"><strong>@_viewDoc.TotalInclVat.ToString("N2", CultureInfo.InvariantCulture)</strong></td></tr>
+                        <tr><td>Paid</td><td class="text-right">@_viewDoc.PaidAmount.ToString("N2", CultureInfo.InvariantCulture)</td></tr>
+                        <tr class="active"><td><strong>Total payable</strong></td><td class="text-right"><strong>@_viewDoc.AmountDue.ToString("N2", CultureInfo.InvariantCulture) AED</strong></td></tr>
+                    </table>
+                    @if (_viewEvents.Count > 0)
+                    {
+                        <h5><i class="fa fa-history"></i> Transmission log</h5>
+                        <table class="table table-condensed table-striped">
+                            <thead><tr><th>Time</th><th>Event</th><th>Status</th><th>Message</th></tr></thead>
+                            <tbody>
+                                @foreach (var ev in _viewEvents)
+                                {
+                                    <tr>
+                                        <td>@FormatDateTime(ev.TimeCreated)</td>
+                                        <td>@ev.EventType</td>
+                                        <td>@ev.Status</td>
+                                        <td>@ev.Message</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    }
+                </div>
+            }
+            else
+            {
+                <div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px;">
+                    <h4 style="margin:0;"><i class="fa fa-list"></i> Electronic invoices</h4>
+                    <div>
+                        <button type="button" class="btn btn-default btn-sm" @onclick="OnPoll"><i class="fa fa-refresh"></i> Poll ASP statuses</button>
+                        <a class="btn btn-primary btn-sm" href="@Href("create")"><i class="fa fa-plus"></i> Generate</a>
+                    </div>
+                </div>
+                <div class="epc-erp-table-wrap">
+                    <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
+                        <thead><tr><th>Invoice</th><th>Type</th><th>Date</th><th>Order</th><th>Customer</th><th>Ex VAT</th><th>VAT</th><th>Incl VAT</th><th>Due</th><th>Status</th><th></th></tr></thead>
+                        <tbody>
+                            @if (_docs.Count == 0)
+                            {
+                                <tr><td colspan="11" class="text-muted text-center">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? "No e-invoices yet. Generate from a completed order." : _message) : "Sign in for live e-invoice rows.")</td></tr>
+                            }
+                            else
+                            {
+                                @foreach (var d in _docs)
+                                {
+                                    <tr>
+                                        <td><strong>@d.InvoiceNumber</strong><br /><small class="text-muted"><code>@(d.Uuid.Length > 8 ? d.Uuid[..8] : d.Uuid)…</code></small></td>
+                                        <td><span class="label @(d.InvoiceTypeCode == "381" ? "label-warning" : "label-info")">@d.InvoiceTypeCode</span></td>
+                                        <td>@FormatDate(d.IssueDate)</td>
+                                        <td>@(d.OrderId > 0 ? "#" + d.OrderId.ToString(CultureInfo.InvariantCulture) : "—")</td>
+                                        <td>@(d.UserId > 0 ? "ID " + d.UserId.ToString(CultureInfo.InvariantCulture) : "Guest")</td>
+                                        <td>@d.SubtotalExVat.ToString("N2", CultureInfo.InvariantCulture)</td>
+                                        <td>@d.TotalVat.ToString("N2", CultureInfo.InvariantCulture)</td>
+                                        <td>@d.TotalInclVat.ToString("N2", CultureInfo.InvariantCulture)</td>
+                                        <td>@d.AmountDue.ToString("N2", CultureInfo.InvariantCulture)</td>
+                                        <td><span class="label label-default">@d.Status</span></td>
+                                        <td><a class="btn btn-xs btn-primary" href="@Href("view", "einv_doc=" + d.Id.ToString(CultureInfo.InvariantCulture))">View</a></td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        }
+        else if (_section is "create")
+        {
+            <h4><i class="fa fa-plus-circle"></i> Generate electronic Tax Invoice from order</h4>
+            <p class="text-muted">Builds PINT-AE XML with all mandatory fields. Buyer Peppol ID defaults to <code>0235:9900000098</code> if customer not onboarded.</p>
+            <form class="form-horizontal well" @onsubmit="OnCreate" @onsubmit:preventDefault="true">
+                <div class="form-group">
+                    <label class="col-sm-3 control-label">Order ID</label>
+                    <div class="col-sm-4"><input type="number" class="form-control" @bind="_orderId" placeholder="e.g. 1234" /></div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-3 control-label">Transaction scenarios</label>
+                    <div class="col-sm-8">
+                        @foreach (var flag in Flags)
+                        {
+                            <label class="checkbox-inline" style="display:block;"><input type="checkbox" /> @flag</label>
+                        }
+                        <p class="help-block">8-digit transaction type code built from checked flags (MoF mandatory field #5).</p>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-sm-offset-3 col-sm-8"><button type="submit" class="btn btn-primary"><i class="fa fa-magic"></i> Generate &amp; validate</button></div>
+                </div>
+            </form>
+        }
+        else if (_section is "seller")
+        {
+            <h4><i class="fa fa-building"></i> Seller profile (mandatory fields 10–20)</h4>
+            <form class="form-horizontal" @onsubmit="OnSaveSeller" @onsubmit:preventDefault="true">
+                <div class="form-group"><label class="col-sm-3 control-label">Legal name</label><div class="col-sm-6"><input class="form-control" @bind="_sellerName" /></div></div>
+                <div class="form-group"><label class="col-sm-3 control-label">TRN (15 digits)</label><div class="col-sm-6"><input class="form-control" @bind="_sellerTrn" /></div></div>
+                <div class="form-group"><label class="col-sm-3 control-label">Trade license</label><div class="col-sm-6"><input class="form-control" @bind="_sellerLegal" /></div></div>
+                <div class="form-group"><label class="col-sm-3 control-label">City</label><div class="col-sm-6"><input class="form-control" @bind="_sellerCity" /></div></div>
+                <div class="form-group">
+                    <label class="col-sm-3 control-label">Peppol endpoint</label>
+                    <div class="col-sm-6"><p class="form-control-static"><code>@(string.IsNullOrWhiteSpace(_seller.SellerPeppolEndpoint) ? "0235:" : _seller.SellerPeppolEndpoint)</code></p>
+                    <p class="help-block">Auto: 0235 + TIN (first 10 digits of TRN). Country must stay <strong>AE</strong>.</p></div>
+                </div>
+                <div class="form-group"><div class="col-sm-offset-3 col-sm-6"><button type="submit" class="btn btn-primary">Save seller profile</button></div></div>
+            </form>
+        }
+        else if (_section is "buyers")
+        {
+            <h4><i class="fa fa-users"></i> Buyer Peppol / TRN profiles</h4>
+            <p class="text-muted">B2B buyers need TRN and Peppol endpoint (<code>0235:TIN</code>). If not onboarded, system uses <code>0235:9900000098</code>.</p>
+            <form class="form-horizontal well" @onsubmit="OnSaveBuyer" @onsubmit:preventDefault="true">
+                <div class="form-group"><label class="col-sm-2 control-label">Customer user ID</label><div class="col-sm-3"><input type="number" class="form-control" @bind="_buyerUserId" /></div></div>
+                <div class="form-group"><label class="col-sm-2 control-label">Buyer name</label><div class="col-sm-4"><input class="form-control" @bind="_buyerName" /></div></div>
+                <div class="form-group"><label class="col-sm-2 control-label">TRN</label><div class="col-sm-4"><input class="form-control" @bind="_buyerTrn" placeholder="15-digit TRN" /></div></div>
+                <div class="form-group"><div class="col-sm-offset-2"><button type="submit" class="btn btn-primary">Save buyer profile</button></div></div>
+            </form>
+            <table class="table table-condensed table-bordered">
+                <thead><tr><th>User</th><th>Name</th><th>TRN</th><th>Peppol</th><th>Onboarded</th></tr></thead>
+                <tbody>
+                    @if (_buyers.Count == 0) { <tr><td colspan="5" class="text-muted">No buyer profiles yet.</td></tr> }
+                    else
+                    {
+                        @foreach (var b in _buyers)
+                        {
+                            <tr>
+                                <td>@b.UserId.ToString(CultureInfo.InvariantCulture)</td>
+                                <td>@b.BuyerName</td>
+                                <td>@(string.IsNullOrWhiteSpace(b.Trn) ? "—" : b.Trn)</td>
+                                <td><code>@(string.IsNullOrWhiteSpace(b.PeppolEndpoint) ? "—" : b.PeppolEndpoint)</code></td>
+                                <td>@(b.BuyerOnboarded ? "Yes" : "No")</td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        }
+        else if (_section is "asp")
+        {
+            <h4><i class="fa fa-cloud-upload"></i> Accredited Service Provider (ASP) &amp; FTA reporting</h4>
+            <div class="alert alert-warning"><strong>5-corner model:</strong> Your ASP validates XML, transmits to buyer's ASP, and reports Tax Data to FTA in parallel. Select one ASP via <a href="https://tax.gov.ae" target="_blank" rel="noopener">EmaraTax</a>.</div>
+            <form class="form-horizontal well" @onsubmit="OnSaveAsp" @onsubmit:preventDefault="true">
+                <div class="form-group"><label class="col-sm-3 control-label">ASP name</label><div class="col-sm-5"><input class="form-control" @bind="_aspName" placeholder="Your accredited ASP" /></div></div>
+                <div class="form-group"><label class="col-sm-3 control-label">Transmission mode</label><div class="col-sm-4">
+                    <select class="form-control" @bind="_aspMode">
+                        <option value="manual">Manual — download XML, upload via ASP portal</option>
+                        <option value="api">API — automated queue (configure URL)</option>
+                    </select>
+                </div></div>
+                <div class="form-group"><label class="col-sm-3 control-label">ASP API base URL</label><div class="col-sm-6"><input class="form-control" @bind="_aspUrl" placeholder="https://asp.example/api" /></div></div>
+                <div class="form-group"><div class="col-sm-offset-3"><button type="submit" class="btn btn-primary">Save ASP settings</button></div></div>
+            </form>
+            <h5>Predefined Peppol endpoints (MoF scenarios)</h5>
+            <table class="table table-condensed table-bordered">
+                <tr><td>Buyer not onboarded</td><td><code>0235:9900000098</code></td></tr>
+                <tr><td>Deemed supply</td><td><code>0235:9900000097</code></td></tr>
+                <tr><td>Exports (buyer no Peppol ID)</td><td><code>0235:9900000099</code></td></tr>
+            </table>
+            @if (_asp.HasApiKey) { <p class="text-muted" style="font-size:12px;">API key is stored (value omitted from this page).</p> }
+        }
+        else if (_section is "guide")
+        {
+            <div class="epc-einv-panel-card">
+                <h4 style="margin-top:0;"><i class="fa fa-book"></i> UAE e-Invoicing complete guide</h4>
+                <p style="margin:0;font-size:13px;line-height:1.5;">This ERP module implements the MoF <strong>Electronic Invoicing Guidelines V1.0 (23 Feb 2026)</strong>, <strong>Mandatory Fields V1.0</strong>, and Peppol <strong>PINT-AE</strong> (<code>urn:peppol:pint:billing-1@@ae-1</code>) under Ministerial Decisions <strong>243/2025</strong> and <strong>244/2025</strong>.</p>
+                <p style="margin:10px 0 0;font-size:13px;">Readiness checklist <strong>@_readinessPercent%</strong> · <a href="https://www.mof.gov.ae/eInvoicing" target="_blank" rel="noopener">mof.gov.ae/eInvoicing</a></p>
+            </div>
+            <div class="epc-einv-panel-card">
+                <h4><i class="fa fa-calendar"></i> Implementation timeline (MD 244/2025)</h4>
+                <table class="table table-bordered table-condensed">
+                    <thead><tr><th>Phase</th><th>ASP by</th><th>Go-live</th></tr></thead>
+                    <tbody>
+                        <tr><td>Pilot (invitation)</td><td>—</td><td>1 Jul 2026</td></tr>
+                        <tr><td>Voluntary (all businesses)</td><td>—</td><td>1 Jul 2026</td></tr>
+                        <tr><td>Mandatory · revenue ≥ AED 50M</td><td>31 Jul 2026</td><td>1 Jan 2027</td></tr>
+                        <tr><td>Mandatory · revenue &lt; AED 50M</td><td>31 Mar 2027</td><td>1 Jul 2027</td></tr>
+                        <tr><td>Government entities</td><td>31 Mar 2027</td><td>1 Oct 2027</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="epc-einv-panel-card">
+                <h4><i class="fa fa-sitemap"></i> 5-corner Peppol model</h4>
+                <ol style="font-size:13px;line-height:1.55;margin-bottom:0;">
+                    <li><strong>Corner 1 — You (supplier)</strong> create the e-invoice in this ERP.</li>
+                    <li><strong>Corner 2 — Your ASP</strong> validates PINT-AE XML and routes it on Peppol.</li>
+                    <li><strong>Corner 3 — Buyer ASP</strong> receives and delivers to the buyer.</li>
+                    <li><strong>Corner 4 — Buyer</strong> gets the structured invoice.</li>
+                    <li><strong>Corner 5 — FTA</strong> receives Tax Data reporting from your ASP in parallel.</li>
+                </ol>
+            </div>
+            <div class="epc-einv-panel-card">
+                <h4><i class="fa fa-road"></i> How to use this ERP module</h4>
+                <ol style="font-size:13px;line-height:1.55;">
+                    <li>Read this guide, then fetch FTA legislation from the Overview bar.</li>
+                    <li>Complete <a href="@Href("seller")">Seller profile</a> (15-digit TRN → Peppol <code>0235:TIN</code>).</li>
+                    <li>Capture <a href="@Href("buyers")">Buyer Peppol / TRN</a> for B2B customers.</li>
+                    <li>Select your <a href="@Href("asp")">ASP</a> — manual portal upload or live API.</li>
+                    <li><a href="@Href("create")">Generate</a> a Tax Invoice (380) from a completed order.</li>
+                    <li>Open the invoice → <strong>Submit to ASP</strong>. Poll statuses from the invoice list.</li>
+                    <li>Issue a <strong>Credit Note (381)</strong> from the invoice view when you need an output-tax reduction.</li>
+                </ol>
+            </div>
+            <div class="epc-einv-panel-card">
+                <h4><i class="fa fa-file-text-o"></i> Document types &amp; tax categories</h4>
+                <ul style="font-size:13px;"><li><strong>380 Tax Invoice</strong></li><li><strong>381 Tax Credit Note</strong></li><li><strong>Commercial invoice</strong></li></ul>
+                <table class="table table-condensed table-bordered" style="margin-bottom:0;">
+                    <tr><td><code>S</code></td><td>Standard Rate</td></tr>
+                    <tr><td><code>Z</code></td><td>Zero rated</td></tr>
+                    <tr><td><code>E</code></td><td>Exempt from VAT</td></tr>
+                    <tr><td><code>O</code></td><td>Outside scope of VAT</td></tr>
+                    <tr><td><code>AE</code></td><td>Reverse Charge</td></tr>
+                    <tr><td><code>M</code></td><td>Margin scheme</td></tr>
+                </table>
+            </div>
+        }
+
+        <div class="epc-erp-empty" style="display:block;margin-top:12px;padding:8px 10px;border:1px solid #c5d4de;background:#f8fafc;color:#475569;font-size:12px;">
+            Source: @_source. Live ASP submit / XML download / FTA fetch stay on PHP ERP ajax. Dry-runs under <code>/erp/ajax/einvoice-*</code> with writes=0.
+            @if (!string.IsNullOrWhiteSpace(_message)) { <span> @_message</span> }
+            @if (!string.IsNullOrWhiteSpace(_actionResult)) { <span> @_actionResult</span> }
+        </div>
+    </div>
+</PhpErpDesktopChrome>
 
 @code {
-    private const string _phpTab = "/ERP/?epc_erp_shell=1&area=tax&tab=einvoice";
+    private static readonly string[] Flags = ["Free Trade Zone", "Deemed Supply", "Margin Scheme", "Summary Invoice", "Continuous Supply", "Disclosed Agent Billing", "Supply through e-commerce", "Exports"];
+
+    private string _phpTab = "/ERP/?epc_erp_shell=1&area=tax&tab=einvoice";
+    private string _self = EcomAeRoutes.ControlPanelEinvoiceDocumentsApp;
+    private string _section = "dashboard";
+    private string _activeStep = "learn";
+    private string _companyQs = "";
     private bool _isAdmin;
-    private CpEinvoiceDocumentsSummary _summary = new(0, 0, 0, 0, "n/a", "");
-    private IReadOnlyList<CpEinvoiceDocumentDigest> _rows = [];
+    private CpEinvoiceDashboardKpis _dash = new(0, 0, 0, 0, 0, 0, 0, false, "");
+    private CpEinvoiceSellerDigest _seller = new("ePartsCart LLC", "", "", "", "TL", "Dubai Economy and Tourism", "", "Dubai", "Dubai", "AE", "", "", "", "Within 7 days", "");
+    private CpEinvoiceAspDigest _asp = new("", "manual", "", false);
+    private IReadOnlyList<CpEinvoiceDocumentRow> _docs = [];
+    private IReadOnlyList<CpEinvoiceBuyerDigest> _buyers = [];
+    private IReadOnlyList<CpEinvoiceReadinessItem> _readiness = [];
+    private IReadOnlyList<CpEinvoiceLegislationDigest> _legislation = [];
+    private IReadOnlyList<JourneyStep> _steps = [];
+    private IReadOnlyList<CpEinvoiceLineDigest> _viewLines = [];
+    private IReadOnlyList<CpEinvoiceEventDigest> _viewEvents = [];
+    private CpEinvoiceDocumentRow? _viewDoc;
+    private int _readinessPercent;
     private string _source = "n/a";
     private string _message = "";
+    private string _actionResult = "";
+    private long _orderId;
+    private string _sellerName = "";
+    private string _sellerTrn = "";
+    private string _sellerLegal = "";
+    private string _sellerCity = "Dubai";
+    private long _buyerUserId;
+    private string _buyerName = "";
+    private string _buyerTrn = "";
+    private string _aspName = "";
+    private string _aspMode = "manual";
+    private string _aspUrl = "";
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
 
+        var path = ctx.Request.Path.Value ?? EcomAeRoutes.ControlPanelEinvoiceDocumentsApp;
+        _self = path.StartsWith("/erp/", StringComparison.OrdinalIgnoreCase)
+            ? EcomAeRoutes.ErpEinvoiceApp
+            : EcomAeRoutes.ControlPanelEinvoiceDocumentsApp;
+        var company = ctx.Request.Query["company"].ToString();
+        _companyQs = long.TryParse(company, out var cid) && cid > 0 ? "&company=" + cid.ToString(CultureInfo.InvariantCulture) : "";
+        _phpTab = "/ERP/?epc_erp_shell=1&area=tax&tab=einvoice" + _companyQs.Replace("&", "&", StringComparison.Ordinal);
+
+        _section = (ctx.Request.Query["einv_section"].ToString() is { Length: > 0 } s ? s : ctx.Request.Query["section"].ToString()).Trim().ToLowerInvariant();
+        if (string.IsNullOrWhiteSpace(_section)) _section = "dashboard";
+
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
-        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
+        _isAdmin = session.Kind == LegacySessionKind.Admin
+            && (session.Capabilities.Contains("cp") || session.Capabilities.Contains("erp"));
         if (!_isAdmin)
         {
-            return; // guest browse — Sign in for live data
+            _message = "Sign in for live data.";
+            _steps = BuildSteps(false, false, false, false);
+            _activeStep = FirstOpenStep();
+            return;
         }
 
-        var result = await Dashboards.BuildCpEinvoiceDocumentsDigestAsync(200, ctx.RequestAborted);
-        _summary = result.Summary;
-        _rows = result.Documents;
-        _source = result.Source;
-        _message = result.Message;
+        var ws = await Dashboards.BuildCpEinvoiceWorkspaceDigestAsync(200, ctx.RequestAborted);
+        _dash = ws.Dashboard;
+        _seller = ws.Seller;
+        _asp = ws.Asp;
+        _docs = ws.Documents;
+        _buyers = ws.Buyers;
+        _readiness = ws.Readiness;
+        _readinessPercent = ws.ReadinessPercent;
+        _legislation = ws.Legislation;
+        _source = ws.Source;
+        _message = ws.Message;
+        _sellerName = _seller.SellerName;
+        _sellerTrn = _seller.SellerTrn;
+        _sellerLegal = _seller.SellerLegalRegNo;
+        _sellerCity = string.IsNullOrWhiteSpace(_seller.SellerCity) ? "Dubai" : _seller.SellerCity;
+        _aspName = _asp.AspName;
+        _aspMode = string.IsNullOrWhiteSpace(_asp.AspApiMode) ? "manual" : _asp.AspApiMode;
+        _aspUrl = _asp.AspApiUrl;
+
+        var sellerDone = _seller.SellerTrn.Length > 0 && _seller.SellerPeppolEndpoint.Length > 0;
+        _steps = BuildSteps(sellerDone, ws.BuyerTrnCount > 0, _asp.AspName.Length > 0, _docs.Count > 0);
+        _activeStep = FirstOpenStep();
+
+        if (_section is "view" && long.TryParse(ctx.Request.Query["einv_doc"].ToString(), out var docId) && docId > 0)
+        {
+            _viewDoc = _docs.FirstOrDefault(d => d.Id == docId);
+            _viewLines = ws.Lines.Where(l => l.DocumentId == docId).ToList();
+            _viewEvents = ws.Events.Where(e => e.DocumentId == docId).ToList();
+        }
     }
+
+    private string Href(string section, string extra = "")
+    {
+        var q = "einv_section=" + Uri.EscapeDataString(section) + _companyQs;
+        if (!string.IsNullOrWhiteSpace(extra)) q += "&" + extra;
+        return _self + "?" + q;
+    }
+
+    private string Active(params string[] keys) => keys.Contains(_section) ? "active" : "";
+
+    private IReadOnlyList<JourneyStep> BuildSteps(bool sellerDone, bool buyersDone, bool aspDone, bool hasDocs) =>
+    [
+        new("learn", 1, "Learn the rules", "MoF guidelines, timeline and PINT-AE mandatory fields.", "guide", true, "Open guide"),
+        new("seller", 2, "Seller profile", "Legal name, 15-digit TRN, Peppol 0235:TIN endpoint.", "seller", sellerDone, "Configure seller"),
+        new("buyers", 3, "Buyer Peppol IDs", "Capture B2B customer TRN and Peppol endpoints.", "buyers", buyersDone, "Manage buyers"),
+        new("asp", 4, "Choose ASP", "Accredited Service Provider for Peppol + FTA reporting.", "asp", aspDone, "ASP settings"),
+        new("generate", 5, "Generate invoice", "Build & validate PINT-AE XML from a completed order.", "create", hasDocs, "Generate"),
+        new("submit", 6, "Submit & monitor", "Send to ASP, track accepted / rejected statuses.", "invoices", _dash.Accepted + _dash.Submitted > 0, "View invoices"),
+    ];
+
+    private string FirstOpenStep()
+    {
+        foreach (var step in _steps)
+        {
+            if (!step.Done) return step.Key;
+        }
+        return _steps.Count > 0 ? _steps[^1].Key : "learn";
+    }
+
+    private void OnCreate()
+    {
+        var result = CreateDryRun.Evaluate(new ErpEinvoiceCreateRequest(_orderId, null, false));
+        _actionResult = $"{result.Status}: {result.Detail} (writes={result.Writes.ToString(CultureInfo.InvariantCulture)})";
+    }
+
+    private void OnSaveSeller()
+    {
+        var result = SaveSellerDryRun.Evaluate(new ErpEinvoiceSaveSellerRequest(0, _sellerTrn, false));
+        _actionResult = $"{result.Status}: {result.Detail} (writes={result.Writes.ToString(CultureInfo.InvariantCulture)})";
+    }
+
+    private void OnSaveBuyer()
+    {
+        var result = SaveBuyerDryRun.Evaluate(new ErpEinvoiceSaveBuyerRequest(_buyerUserId, _buyerTrn, false));
+        _actionResult = $"{result.Status}: {result.Detail} (writes={result.Writes.ToString(CultureInfo.InvariantCulture)})";
+    }
+
+    private void OnSaveAsp()
+    {
+        var result = SaveAspDryRun.Evaluate(new ErpEinvoiceSaveAspRequest(0, _aspName, false));
+        _actionResult = $"{result.Status}: {result.Detail} (writes={result.Writes.ToString(CultureInfo.InvariantCulture)})";
+    }
+
+    private void OnSubmit(long id)
+    {
+        var result = SubmitDryRun.Evaluate(new ErpEinvoiceSubmitRequest(id, false));
+        _actionResult = $"{result.Status}: {result.Detail} (writes={result.Writes.ToString(CultureInfo.InvariantCulture)})";
+    }
+
+    private void OnCredit(long id)
+    {
+        var result = CreditDryRun.Evaluate(new ErpEinvoiceCreditNoteRequest(false));
+        _actionResult = $"{result.Status}: {result.Detail} (writes={result.Writes.ToString(CultureInfo.InvariantCulture)})";
+    }
+
+    private void OnPoll()
+    {
+        var result = PollDryRun.Evaluate(new ErpEinvoicePollAspRequest(false));
+        _actionResult = $"{result.Status}: {result.Detail} (writes={result.Writes.ToString(CultureInfo.InvariantCulture)})";
+    }
+
+    private void OnFetchLegislation()
+    {
+        var result = FtaFetchDryRun.Evaluate(new ErpUaeTaxFtaFetchRequest(false));
+        _actionResult = $"{result.Status}: {result.Detail} (writes={result.Writes.ToString(CultureInfo.InvariantCulture)})";
+    }
+
+    private static string FormatDate(long unix) =>
+        unix <= 0 ? "—" : DateTimeOffset.FromUnixTimeSeconds(unix).ToLocalTime().ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+
+    private static string FormatDateTime(long unix) =>
+        unix <= 0 ? "—" : DateTimeOffset.FromUnixTimeSeconds(unix).ToLocalTime().ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture);
+
+    private sealed record JourneyStep(string Key, int N, string Title, string Blurb, string Section, bool Done, string Cta);
 }

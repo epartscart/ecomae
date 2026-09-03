@@ -200,6 +200,9 @@ public interface ISurfaceDashboardSummaryReporter
     /// <summary>Read-only e-invoice documents (payload JSON/XML omitted).</summary>
     Task<CpEinvoiceDocumentsDigestResult> BuildCpEinvoiceDocumentsDigestAsync(int limit, CancellationToken cancellationToken = default);
 
+    /// <summary>PHP tax einvoice workspace (settings/buyers/lines/events; XML and API key omitted).</summary>
+    Task<CpEinvoiceWorkspaceDigestResult> BuildCpEinvoiceWorkspaceDigestAsync(int limit, CancellationToken cancellationToken = default);
+
     /// <summary>Read-only jewellery repairs (customer PII/narration omitted).</summary>
     Task<CpJewelleryRepairsDigestResult> BuildCpJewelleryRepairsDigestAsync(int limit, CancellationToken cancellationToken = default);
 
