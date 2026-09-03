@@ -517,7 +517,7 @@
         var oid = orderId ?? _selectedId;
         if (oid > 0)
         {
-            Add("order_id", oid.ToString(CultureInfo.InvariantCulture));
+            q.Add("order_id=" + oid.ToString(CultureInfo.InvariantCulture));
         }
 
         Add("tab", tab ?? _tab);
