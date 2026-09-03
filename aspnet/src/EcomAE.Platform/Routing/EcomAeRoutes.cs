@@ -743,6 +743,19 @@ public static class EcomAeRoutes
     public const string ErpExpenseReportsApp = "/erp/expense-reports-app";
     public const string ErpVatApp = "/erp/vat-app";
     public const string ErpWithholdingApp = "/erp/withholding-app";
+    /// <summary>Department workflow board from <c>epc_erp_workflow_tasks</c> (not process-flow cases).</summary>
+    public const string ErpWorkflowTasks = "/erp/workflow-tasks";
+    public const string ErpWorkflowApp = "/erp/workflow-app";
+    /// <summary>Operational VAT 201 boxes (shop orders + purchases). FTA filing stays PHP.</summary>
+    public const string ErpVatReturn = "/erp/vat-return";
+    /// <summary>Withholding codes + transactions (PHP <c>epc_wht_*</c>).</summary>
+    public const string ErpWithholding = "/erp/withholding";
+    public const string ErpPettyCash = "/erp/petty-cash";
+    public const string ErpCashForecast = "/erp/cash-forecast";
+    public const string ErpBankInstruments = "/erp/bank-instruments";
+    public const string ErpSubscriptions = "/erp/subscriptions";
+    public const string ErpSupplierPortal = "/erp/supplier-portal";
+    public const string ErpVirtualWarehouses = "/erp/virtual-warehouses";
 
     /// <summary>ERP tab→app coverage board.</summary>
     public const string ErpTabCoverage = "/erp/tab-coverage";

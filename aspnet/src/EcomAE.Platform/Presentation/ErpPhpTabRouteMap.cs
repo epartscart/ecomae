@@ -214,7 +214,7 @@ public static class ErpPhpTabRouteMap
         ["warehouse"] = "/erp/warehouses-app",
         ["withholding"] = "/erp/withholding-app",
         ["wms"] = "/cp/warehouse-wms-app",
-        ["workflow"] = "/erp/process-flow-tasks-app",
+        ["workflow"] = "/erp/workflow-app",
         ["workflow_automation"] = "/cp/workflows-app",
         ["workspace"] = "/erp/workspace-favorites-app",
         ["year_end"] = "/erp/period-close-app",

@@ -13139,6 +13139,627 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         return new(useTenant, host, port, encryption, fromName, fromEmail, hasPassword, source, message);
     }
 
+    public async Task<ErpWorkflowTasksDigestResult> BuildErpWorkflowTasksDigestAsync(int limit, CancellationToken cancellationToken = default)
+    {
+        var safeLimit = Math.Clamp(limit, 1, 500);
+        var empty = new ErpWorkflowTasksSummary(0, 0, 0, 0, 0, "migration", "TenantRegistry DB is not configured.");
+        if (!_connections.IsConfigured)
+        {
+            return new(empty, [], 0, "migration", empty.Message);
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            var tasks = 0; var open = 0; var done = 0; var overdue = 0; var cancelled = 0;
+            await using (var stats = connection.CreateCommand())
+            {
+                stats.CommandText = LegacySurfaceDashboardSql.SelectErpWorkflowTaskStats;
+                await using var reader = await stats.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    tasks = Convert.ToInt32(reader["task_count"] is DBNull ? 0 : reader["task_count"], CultureInfo.InvariantCulture);
+                    open = Convert.ToInt32(reader["open_count"] is DBNull ? 0 : reader["open_count"], CultureInfo.InvariantCulture);
+                    done = Convert.ToInt32(reader["done_count"] is DBNull ? 0 : reader["done_count"], CultureInfo.InvariantCulture);
+                    overdue = Convert.ToInt32(reader["overdue_count"] is DBNull ? 0 : reader["overdue_count"], CultureInfo.InvariantCulture);
+                    cancelled = Convert.ToInt32(reader["cancelled_count"] is DBNull ? 0 : reader["cancelled_count"], CultureInfo.InvariantCulture);
+                }
+            }
+
+            var rows = new List<ErpWorkflowTaskDigest>();
+            await using (var list = connection.CreateCommand())
+            {
+                list.CommandText = LegacySurfaceDashboardSql.SelectErpWorkflowTasks;
+                AddParameter(list, "@limit", safeLimit);
+                await using var reader = await list.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    rows.Add(new ErpWorkflowTaskDigest(
+                        Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                        ReadStr(reader, "department_code"),
+                        ReadStr(reader, "workflow_step"),
+                        ReadStr(reader, "title"),
+                        ReadStr(reader, "description"),
+                        Convert.ToInt64(reader["order_id"] is DBNull ? 0 : reader["order_id"], CultureInfo.InvariantCulture),
+                        ReadStr(reader, "status"),
+                        ReadStr(reader, "priority"),
+                        Convert.ToInt64(reader["assigned_user_id"] is DBNull ? 0 : reader["assigned_user_id"], CultureInfo.InvariantCulture),
+                        ReadStr(reader, "assignee_name"),
+                        Convert.ToInt64(reader["due_at"] is DBNull ? 0 : reader["due_at"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["completed_at"] is DBNull ? 0 : reader["completed_at"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["time_created"] is DBNull ? 0 : reader["time_created"], CultureInfo.InvariantCulture)));
+                }
+            }
+
+            var summary = new ErpWorkflowTasksSummary(tasks, open, done, overdue, cancelled, "database", string.Empty);
+            return new(summary, rows, rows.Count, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            var err = empty with { Source = "database-error", Message = ex.Message };
+            return new(err, [], 0, "database-error", ex.Message);
+        }
+    }
+
+    public async Task<ErpVatReturnDigestResult> BuildErpVatReturnDigestAsync(long? fromUnix = null, long? toUnix = null, CancellationToken cancellationToken = default)
+    {
+        var to = toUnix is > 0 ? toUnix.Value : DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        var from = fromUnix is > 0 ? fromUnix.Value : to - (90L * 86400L);
+        var empty = new ErpVatReturnSummary(from, to, 5.00m, 0, 0, 0, 0, 0, 0, 0, "payable_to_fta", "FTA VAT 201", "migration", "TenantRegistry DB is not configured.");
+        if (!_connections.IsConfigured)
+        {
+            return new(empty, "migration", empty.Message);
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            var rate = 5.00m;
+            try
+            {
+                await using var rateCmd = connection.CreateCommand();
+                rateCmd.CommandText = LegacySurfaceDashboardSql.SelectErpVatRatePercent;
+                var raw = await rateCmd.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
+                if (raw is not null and not DBNull
+                    && decimal.TryParse(Convert.ToString(raw, CultureInfo.InvariantCulture), NumberStyles.Any, CultureInfo.InvariantCulture, out var parsed)
+                    && parsed >= 0m && parsed <= 100m)
+                {
+                    rate = parsed;
+                }
+            }
+            catch
+            {
+                // default 5% when settings table is missing
+            }
+
+            var salesEx = 0m;
+            try
+            {
+                await using var sales = connection.CreateCommand();
+                sales.CommandText = LegacySurfaceDashboardSql.SelectErpVatReturnSales;
+                AddParameter(sales, "@fromUnix", from);
+                AddParameter(sales, "@toUnix", to);
+                var raw = await sales.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
+                salesEx = raw is null or DBNull ? 0m : Convert.ToDecimal(raw, CultureInfo.InvariantCulture);
+            }
+            catch
+            {
+                salesEx = 0m;
+            }
+
+            var purchaseEx = 0m;
+            var inputVat = 0m;
+            var purchaseIncl = 0m;
+            try
+            {
+                await using var purch = connection.CreateCommand();
+                purch.CommandText = LegacySurfaceDashboardSql.SelectErpVatReturnPurchases;
+                AddParameter(purch, "@fromUnix", from);
+                AddParameter(purch, "@toUnix", to);
+                await using var reader = await purch.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    purchaseEx = Convert.ToDecimal(reader["purchase_ex_vat"] is DBNull ? 0m : reader["purchase_ex_vat"], CultureInfo.InvariantCulture);
+                    inputVat = Convert.ToDecimal(reader["input_vat"] is DBNull ? 0m : reader["input_vat"], CultureInfo.InvariantCulture);
+                    purchaseIncl = Convert.ToDecimal(reader["purchase_incl_vat"] is DBNull ? 0m : reader["purchase_incl_vat"], CultureInfo.InvariantCulture);
+                }
+            }
+            catch
+            {
+                // purchases table may be absent
+            }
+
+            var outputVat = Math.Round(salesEx * (rate / 100m), 2, MidpointRounding.AwayFromZero);
+            var salesIncl = Math.Round(salesEx + outputVat, 2, MidpointRounding.AwayFromZero);
+            var net = Math.Round(outputVat - inputVat, 2, MidpointRounding.AwayFromZero);
+            var status = net >= 0m ? "payable_to_fta" : "recoverable_from_fta";
+            var summary = new ErpVatReturnSummary(from, to, rate, salesEx, outputVat, salesIncl, purchaseEx, inputVat, purchaseIncl, net, status, "FTA VAT 201", "database", string.Empty);
+            return new(summary, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            var err = empty with { Source = "database-error", Message = ex.Message };
+            return new(err, "database-error", ex.Message);
+        }
+    }
+
+    public async Task<ErpWithholdingDigestResult> BuildErpWithholdingDigestAsync(int limit, CancellationToken cancellationToken = default)
+    {
+        var safeLimit = Math.Clamp(limit, 1, 500);
+        var empty = new ErpWithholdingSummary(0, 0, 0, 0, 0, "migration", "TenantRegistry DB is not configured.");
+        if (!_connections.IsConfigured)
+        {
+            return new(empty, [], [], 0, "migration", empty.Message);
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            var codes = new List<ErpWithholdingCodeDigest>();
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectErpWithholdingCodes;
+                AddParameter(cmd, "@limit", safeLimit);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    codes.Add(new ErpWithholdingCodeDigest(
+                        Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                        ReadStr(reader, "code"),
+                        ReadStr(reader, "name"),
+                        Convert.ToDecimal(reader["rate"] is DBNull ? 0m : reader["rate"], CultureInfo.InvariantCulture),
+                        ReadStr(reader, "account"),
+                        Convert.ToInt32(reader["active"] is DBNull ? 1 : reader["active"], CultureInfo.InvariantCulture) == 1));
+                }
+            }
+
+            var txns = new List<ErpWithholdingTxnDigest>();
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectErpWithholdingTxns;
+                AddParameter(cmd, "@limit", safeLimit);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    txns.Add(new ErpWithholdingTxnDigest(
+                        Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["code_id"] is DBNull ? 0 : reader["code_id"], CultureInfo.InvariantCulture),
+                        ReadStr(reader, "code"),
+                        ReadStr(reader, "vendor"),
+                        ReadStr(reader, "doc_ref"),
+                        ReadStr(reader, "txn_date"),
+                        Convert.ToDecimal(reader["base_amount"] is DBNull ? 0m : reader["base_amount"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(reader["wht_amount"] is DBNull ? 0m : reader["wht_amount"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(reader["rate"] is DBNull ? 0m : reader["rate"], CultureInfo.InvariantCulture),
+                        ReadStr(reader, "certificate_no"),
+                        ReadStr(reader, "status"),
+                        Convert.ToInt64(reader["time_created"] is DBNull ? 0 : reader["time_created"], CultureInfo.InvariantCulture)));
+                }
+            }
+
+            var accrued = txns.Where(t => string.Equals(t.Status, "accrued", StringComparison.OrdinalIgnoreCase)).Sum(t => t.WhtAmount);
+            var settled = txns.Where(t => string.Equals(t.Status, "settled", StringComparison.OrdinalIgnoreCase)).Sum(t => t.WhtAmount);
+            var summary = new ErpWithholdingSummary(codes.Count, txns.Count, accrued, settled, txns.Sum(t => t.WhtAmount), "database", string.Empty);
+            return new(summary, codes, txns, txns.Count, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            var err = empty with { Source = "database-error", Message = ex.Message };
+            return new(err, [], [], 0, "database-error", ex.Message);
+        }
+    }
+
+    public async Task<ErpPettyCashListResult> ListErpPettyCashAsync(int limit, CancellationToken cancellationToken = default)
+    {
+        var safeLimit = Math.Clamp(limit, 1, 500);
+        if (!_connections.IsConfigured)
+        {
+            return new([], 0, "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            await using var command = connection.CreateCommand();
+            command.CommandText = LegacySurfaceDashboardSql.SelectErpPettyCash;
+            AddParameter(command, "@limit", safeLimit);
+            var rows = new List<ErpPettyCashDigest>();
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                rows.Add(new ErpPettyCashDigest(
+                    Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                    ReadStr(reader, "name"),
+                    Convert.ToInt64(reader["account_id"] is DBNull ? 0 : reader["account_id"], CultureInfo.InvariantCulture),
+                    ReadStr(reader, "account_name"),
+                    Convert.ToDecimal(reader["float_amount"] is DBNull ? 0m : reader["float_amount"], CultureInfo.InvariantCulture),
+                    Convert.ToDecimal(reader["account_balance"] is DBNull ? 0m : reader["account_balance"], CultureInfo.InvariantCulture),
+                    Convert.ToInt64(reader["custodian_user_id"] is DBNull ? 0 : reader["custodian_user_id"], CultureInfo.InvariantCulture),
+                    Convert.ToInt32(reader["active"] is DBNull ? 1 : reader["active"], CultureInfo.InvariantCulture) == 1,
+                    Convert.ToInt64(reader["time_created"] is DBNull ? 0 : reader["time_created"], CultureInfo.InvariantCulture)));
+            }
+
+            return new(rows, rows.Count, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new([], 0, "database-error", ex.Message);
+        }
+    }
+
+    public async Task<ErpCashForecastDigestResult> BuildErpCashForecastDigestAsync(int limit, long? forecastId = null, CancellationToken cancellationToken = default)
+    {
+        var safeLimit = Math.Clamp(limit, 1, 500);
+        var empty = new ErpCashForecastSummary(0, 0, 0, 0, 0, 0, "migration", "TenantRegistry DB is not configured.");
+        if (!_connections.IsConfigured)
+        {
+            return new(empty, [], [], 0, "migration", empty.Message);
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            var forecasts = new List<ErpCashForecastDigest>();
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectErpCashForecasts;
+                AddParameter(cmd, "@limit", safeLimit);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    forecasts.Add(new ErpCashForecastDigest(
+                        Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                        ReadStr(reader, "name"),
+                        Convert.ToDecimal(reader["opening_balance"] is DBNull ? 0m : reader["opening_balance"], CultureInfo.InvariantCulture),
+                        ReadStr(reader, "currency"),
+                        ReadStr(reader, "notes"),
+                        Convert.ToInt64(reader["time_created"] is DBNull ? 0 : reader["time_created"], CultureInfo.InvariantCulture)));
+                }
+            }
+
+            var selected = forecastId is > 0
+                ? forecasts.FirstOrDefault(f => f.Id == forecastId.Value) ?? forecasts.FirstOrDefault()
+                : forecasts.FirstOrDefault();
+            var lines = new List<ErpCashForecastLineDigest>();
+            var opening = selected?.OpeningBalance ?? 0m;
+            if (selected is not null)
+            {
+                await using var cmd = connection.CreateCommand();
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectErpCashForecastLines;
+                AddParameter(cmd, "@forecastId", selected.Id);
+                AddParameter(cmd, "@limit", safeLimit);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                var running = opening;
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    var dir = ReadStr(reader, "direction");
+                    var amt = Convert.ToDecimal(reader["amount"] is DBNull ? 0m : reader["amount"], CultureInfo.InvariantCulture);
+                    running += string.Equals(dir, "out", StringComparison.OrdinalIgnoreCase) ? -amt : amt;
+                    lines.Add(new ErpCashForecastLineDigest(
+                        Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["forecast_id"], CultureInfo.InvariantCulture),
+                        ReadStr(reader, "due_date"),
+                        dir,
+                        amt,
+                        ReadStr(reader, "category"),
+                        ReadStr(reader, "source"),
+                        ReadStr(reader, "notes"),
+                        running));
+                }
+            }
+
+            var totalIn = lines.Where(l => !string.Equals(l.Direction, "out", StringComparison.OrdinalIgnoreCase)).Sum(l => l.Amount);
+            var totalOut = lines.Where(l => string.Equals(l.Direction, "out", StringComparison.OrdinalIgnoreCase)).Sum(l => l.Amount);
+            var closing = opening + totalIn - totalOut;
+            var minBal = lines.Count == 0 ? opening : lines.Min(l => l.RunningBalance);
+            if (opening < minBal) minBal = opening;
+            var summary = new ErpCashForecastSummary(forecasts.Count, opening, totalIn, totalOut, closing, minBal, "database", string.Empty);
+            return new(summary, forecasts, lines, forecasts.Count, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            var err = empty with { Source = "database-error", Message = ex.Message };
+            return new(err, [], [], 0, "database-error", ex.Message);
+        }
+    }
+
+    public async Task<ErpBankInstrumentsDigestResult> BuildErpBankInstrumentsDigestAsync(int limit, CancellationToken cancellationToken = default)
+    {
+        var safeLimit = Math.Clamp(limit, 1, 500);
+        var empty = new ErpBankInstrumentsSummary(0, 0, 0, 0, 0, "migration", "TenantRegistry DB is not configured.");
+        if (!_connections.IsConfigured)
+        {
+            return new(empty, [], 0, "migration", empty.Message);
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            var rows = new List<ErpBankInstrumentDigest>();
+            await using var command = connection.CreateCommand();
+            command.CommandText = LegacySurfaceDashboardSql.SelectErpBankInstruments;
+            AddParameter(command, "@limit", safeLimit);
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                rows.Add(new ErpBankInstrumentDigest(
+                    Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                    ReadStr(reader, "ref"),
+                    ReadStr(reader, "type"),
+                    ReadStr(reader, "beneficiary"),
+                    ReadStr(reader, "applicant"),
+                    ReadStr(reader, "bank"),
+                    Convert.ToDecimal(reader["amount"] is DBNull ? 0m : reader["amount"], CultureInfo.InvariantCulture),
+                    ReadStr(reader, "currency"),
+                    ReadStr(reader, "issue_date"),
+                    ReadStr(reader, "expiry_date"),
+                    ReadStr(reader, "status"),
+                    Convert.ToInt64(reader["time_created"] is DBNull ? 0 : reader["time_created"], CultureInfo.InvariantCulture)));
+            }
+
+            var issued = rows.Count(r => string.Equals(r.Status, "issued", StringComparison.OrdinalIgnoreCase) || string.Equals(r.Status, "amended", StringComparison.OrdinalIgnoreCase));
+            var utilized = rows.Count(r => string.Equals(r.Status, "utilized", StringComparison.OrdinalIgnoreCase));
+            var closed = rows.Count(r => string.Equals(r.Status, "closed", StringComparison.OrdinalIgnoreCase) || string.Equals(r.Status, "expired", StringComparison.OrdinalIgnoreCase) || string.Equals(r.Status, "cancelled", StringComparison.OrdinalIgnoreCase));
+            var exposure = rows.Where(r => r.Status is "issued" or "amended" or "utilized").Sum(r => r.Amount);
+            var summary = new ErpBankInstrumentsSummary(rows.Count, issued, utilized, closed, exposure, "database", string.Empty);
+            return new(summary, rows, rows.Count, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            var err = empty with { Source = "database-error", Message = ex.Message };
+            return new(err, [], 0, "database-error", ex.Message);
+        }
+    }
+
+    public async Task<ErpSubscriptionsDigestResult> BuildErpSubscriptionsDigestAsync(int limit, CancellationToken cancellationToken = default)
+    {
+        var safeLimit = Math.Clamp(limit, 1, 500);
+        var empty = new ErpSubscriptionsSummary(0, 0, 0, 0, 0, "migration", "TenantRegistry DB is not configured.");
+        if (!_connections.IsConfigured)
+        {
+            return new(empty, [], 0, "migration", empty.Message);
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            var rows = new List<ErpSubscriptionDigest>();
+            await using var command = connection.CreateCommand();
+            command.CommandText = LegacySurfaceDashboardSql.SelectErpSubscriptions;
+            AddParameter(command, "@limit", safeLimit);
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                var amount = Convert.ToDecimal(reader["amount"] is DBNull ? 0m : reader["amount"], CultureInfo.InvariantCulture);
+                var cycle = ReadStr(reader, "cycle");
+                var term = Convert.ToInt32(reader["term_months"] is DBNull ? 12 : reader["term_months"], CultureInfo.InvariantCulture);
+                var start = Convert.ToInt64(reader["start_date"] is DBNull ? 0 : reader["start_date"], CultureInfo.InvariantCulture);
+                var created = Convert.ToInt64(reader["time_created"] is DBNull ? 0 : reader["time_created"], CultureInfo.InvariantCulture);
+                var mrr = SubscriptionMrr(amount, cycle);
+                var origin = start > 0 ? start : created;
+                var elapsed = 0;
+                if (now > origin)
+                {
+                    elapsed = (int)Math.Floor((now - origin) / (30.4375 * 86400));
+                }
+
+                elapsed = Math.Min(elapsed, Math.Max(1, term));
+                var recognized = Math.Round(mrr * elapsed, 2, MidpointRounding.AwayFromZero);
+                var contract = Math.Round(mrr * Math.Max(1, term), 2, MidpointRounding.AwayFromZero);
+                var deferred = Math.Round(Math.Max(0m, contract - recognized), 2, MidpointRounding.AwayFromZero);
+                rows.Add(new ErpSubscriptionDigest(
+                    Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                    ReadStr(reader, "code"),
+                    ReadStr(reader, "customer"),
+                    ReadStr(reader, "plan_name"),
+                    amount,
+                    ReadStr(reader, "currency"),
+                    cycle,
+                    term,
+                    start,
+                    Convert.ToInt64(reader["next_bill_date"] is DBNull ? 0 : reader["next_bill_date"], CultureInfo.InvariantCulture),
+                    ReadStr(reader, "status"),
+                    mrr,
+                    recognized,
+                    deferred));
+            }
+
+            var activeRows = rows.Where(s => string.Equals(s.Status, "active", StringComparison.OrdinalIgnoreCase)).ToList();
+            var mrrSum = activeRows.Sum(s => s.Mrr);
+            var summary = new ErpSubscriptionsSummary(
+                activeRows.Count,
+                mrrSum,
+                Math.Round(mrrSum * 12m, 2, MidpointRounding.AwayFromZero),
+                rows.Sum(s => s.Recognized),
+                rows.Sum(s => s.Deferred),
+                "database",
+                string.Empty);
+            return new(summary, rows, rows.Count, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            var err = empty with { Source = "database-error", Message = ex.Message };
+            return new(err, [], 0, "database-error", ex.Message);
+        }
+    }
+
+    public async Task<ErpSupplierPortalDigestResult> BuildErpSupplierPortalDigestAsync(int limit, CancellationToken cancellationToken = default)
+    {
+        var safeLimit = Math.Clamp(limit, 1, 500);
+        var empty = new ErpSupplierPortalSummary(0, 0, 0, 0, "migration", "TenantRegistry DB is not configured.");
+        if (!_connections.IsConfigured)
+        {
+            return new(empty, [], 0, "migration", empty.Message);
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            var suppliers = new List<(long Id, string Name, string Email, string Phone)>();
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectErpSupplierPortalSuppliers;
+                AddParameter(cmd, "@limit", safeLimit);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    suppliers.Add((
+                        Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                        ReadStr(reader, "name"),
+                        ReadStr(reader, "email"),
+                        ReadStr(reader, "phone")));
+                }
+            }
+
+            var po = new Dictionary<long, (int Count, decimal Spend, int Received, long LeadSum, int LeadN, int Ontime)>();
+            try
+            {
+                await using var cmd = connection.CreateCommand();
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectErpSupplierPortalPoAgg;
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    po[Convert.ToInt64(reader["supplier_id"], CultureInfo.InvariantCulture)] = (
+                        Convert.ToInt32(reader["po_count"] is DBNull ? 0 : reader["po_count"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(reader["spend"] is DBNull ? 0m : reader["spend"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["received"] is DBNull ? 0 : reader["received"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["lead_sum"] is DBNull ? 0 : reader["lead_sum"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["lead_n"] is DBNull ? 0 : reader["lead_n"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["ontime"] is DBNull ? 0 : reader["ontime"], CultureInfo.InvariantCulture));
+                }
+            }
+            catch
+            {
+                // PO table optional
+            }
+
+            var rfq = new Dictionary<long, (int Count, int Responded, int Won)>();
+            try
+            {
+                await using var cmd = connection.CreateCommand();
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectErpSupplierPortalRfqAgg;
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    rfq[Convert.ToInt64(reader["supplier_id"], CultureInfo.InvariantCulture)] = (
+                        Convert.ToInt32(reader["rfq_count"] is DBNull ? 0 : reader["rfq_count"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["responded"] is DBNull ? 0 : reader["responded"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["won"] is DBNull ? 0 : reader["won"], CultureInfo.InvariantCulture));
+                }
+            }
+            catch
+            {
+                // RFQ table optional
+            }
+
+            var bal = new Dictionary<long, decimal>();
+            try
+            {
+                await using var cmd = connection.CreateCommand();
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectErpSupplierPortalBalanceAgg;
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    bal[Convert.ToInt64(reader["supplier_id"], CultureInfo.InvariantCulture)] =
+                        Convert.ToDecimal(reader["bal"] is DBNull ? 0m : reader["bal"], CultureInfo.InvariantCulture);
+                }
+            }
+            catch
+            {
+                // payables optional
+            }
+
+            var cards = new List<ErpSupplierPortalCardDigest>(suppliers.Count);
+            foreach (var s in suppliers)
+            {
+                po.TryGetValue(s.Id, out var p);
+                rfq.TryGetValue(s.Id, out var r);
+                bal.TryGetValue(s.Id, out var balance);
+                decimal? ontimePct = p.LeadN > 0 ? Math.Round(100m * p.Ontime / p.LeadN, 1, MidpointRounding.AwayFromZero) : null;
+                decimal? responsePct = r.Count > 0 ? Math.Round(100m * r.Responded / (decimal)r.Count, 1, MidpointRounding.AwayFromZero) : null;
+                decimal? winPct = r.Responded > 0 ? Math.Round(100m * r.Won / (decimal)r.Responded, 1, MidpointRounding.AwayFromZero) : null;
+                var avgLead = p.LeadN > 0 ? Math.Round((decimal)p.LeadSum / p.LeadN / 86400m, 1, MidpointRounding.AwayFromZero) : 0m;
+                var delivery = ontimePct is { } ot ? ot * 0.40m : 28m;
+                var resp = responsePct is { } rp ? rp * 0.30m : 21m;
+                var activity = Math.Min(20m, p.Count * 2m);
+                var winScore = winPct is { } wp ? wp * 0.10m : 7m;
+                var score = Math.Round(Math.Min(100m, delivery + resp + activity + winScore), 1, MidpointRounding.AwayFromZero);
+                var rating = score >= 80m ? "A" : score >= 65m ? "B" : score >= 50m ? "C" : "D";
+                cards.Add(new ErpSupplierPortalCardDigest(
+                    s.Id, s.Name, s.Email, s.Phone,
+                    p.Count, p.Received, Math.Round(p.Spend, 2, MidpointRounding.AwayFromZero),
+                    avgLead, ontimePct, r.Count, responsePct, winPct,
+                    Math.Round(balance, 2, MidpointRounding.AwayFromZero), score, rating));
+            }
+
+            cards.Sort((a, b) => b.Score.CompareTo(a.Score));
+            var summary = new ErpSupplierPortalSummary(
+                cards.Count,
+                cards.Sum(c => c.Spend),
+                cards.Sum(c => c.Balance),
+                cards.Count == 0 ? 0 : Math.Round(cards.Average(c => c.Score), 1, MidpointRounding.AwayFromZero),
+                "database",
+                string.Empty);
+            return new(summary, cards, cards.Count, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            var err = empty with { Source = "database-error", Message = ex.Message };
+            return new(err, [], 0, "database-error", ex.Message);
+        }
+    }
+
+    public async Task<ErpVirtualWarehouseDigestResult> BuildErpVirtualWarehouseDigestAsync(int limit, CancellationToken cancellationToken = default)
+    {
+        var safeLimit = Math.Clamp(limit, 1, 500);
+        var emptyTransfers = new ErpStockTransfersDigestResult(
+            new ErpStockTransfersSummary(0, 0, 0, 0, 0, "migration", "TenantRegistry DB is not configured."),
+            [], 0, "migration", "TenantRegistry DB is not configured.");
+        if (!_connections.IsConfigured)
+        {
+            return new(0, [], emptyTransfers, 0, "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            var rows = new List<ErpWarehouseDigest>();
+            await using var command = connection.CreateCommand();
+            command.CommandText = LegacySurfaceDashboardSql.SelectErpVirtualWarehouses;
+            AddParameter(command, "@limit", safeLimit);
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                rows.Add(new ErpWarehouseDigest(
+                    Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                    Convert.ToInt64(reader["storage_id"] is DBNull ? 0 : reader["storage_id"], CultureInfo.InvariantCulture),
+                    ReadStr(reader, "code"),
+                    ReadStr(reader, "name"),
+                    Convert.ToInt32(reader["active"] is DBNull ? 1 : reader["active"], CultureInfo.InvariantCulture) == 1,
+                    Convert.ToInt64(reader["time_created"] is DBNull ? 0 : reader["time_created"], CultureInfo.InvariantCulture)));
+            }
+
+            var transfers = await BuildErpStockTransfersDigestAsync(safeLimit, cancellationToken).ConfigureAwait(false);
+            return new(rows.Count, rows, transfers, rows.Count, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(0, [], emptyTransfers with { Source = "database-error", Message = ex.Message }, 0, "database-error", ex.Message);
+        }
+    }
+
+    private static decimal SubscriptionMrr(decimal amount, string cycle) =>
+        cycle.ToLowerInvariant() switch
+        {
+            "annual" => Math.Round(amount / 12m, 2, MidpointRounding.AwayFromZero),
+            "quarterly" => Math.Round(amount / 3m, 2, MidpointRounding.AwayFromZero),
+            _ => amount
+        };
+
+    private static string ReadStr(System.Data.Common.DbDataReader reader, string column)
+        => Convert.ToString(reader[column] is DBNull ? string.Empty : reader[column], CultureInfo.InvariantCulture) ?? string.Empty;
+
     public static string MaskOnPremisesLicenseKey(string? key)
     {
         var k = (key ?? string.Empty).Trim();

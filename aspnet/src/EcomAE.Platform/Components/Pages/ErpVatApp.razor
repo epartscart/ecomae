@@ -7,72 +7,138 @@
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
+@inject NavigationManager Nav
 
 <PageTitle>VAT · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
-<PhpErpDesktopChrome IsAdmin="_isAdmin" Title="VAT" BreadcrumbArea="Tax" BreadcrumbTab="VAT">
+<PhpErpDesktopChrome IsAdmin="_isAdmin" Title="VAT" BreadcrumbArea="Tax" BreadcrumbTab="@_tabLabel">
 
-    
-    <PhpErpModulePageHeader Title="VAT return" Subtitle="ASP.NET Core digest — PHP compare only under /php-reference/*." PhpTabHref="@_phpTab" />
+    <PhpErpModulePageHeader Title="@_title" Subtitle="@_subtitle" PhpTabHref="@_phpTab" />
+    <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
 
+    <p class="text-muted" style="margin:8px 0 12px;">
+        <a href="/erp/vat-app">VAT</a>
+        · <a href="/erp/vat-app?tab=vat_return">VAT return</a>
+        · <a href="/erp/vat-app?tab=vat_refund">VAT refund</a>
+        · <a href="/erp/vat-app?tab=tourist_refund">Tourist refund</a>
+    </p>
 
-    <div class="epc-erp-kpi epc-erp-stat-row" aria-label="VAT KPIs">
-        <div class="kpi"><div class="lbl">Legislation</div><div class="val">@_summary.LegislationCount.ToString(CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">VAT advance</div><div class="val">@_summary.VatAdvanceRows.ToString(CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">VAT refund</div><div class="val">@_summary.VatRefundRows.ToString(CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">Digest source</div><div class="val">@_source</div></div>
+    <div class="epc-erp-kpi epc-erp-stat-row" aria-label="VAT return KPIs">
+        <div class="kpi"><div class="lbl">Rate</div><div class="val">@_vat.VatRatePercent.ToString("0.00", CultureInfo.InvariantCulture)%</div></div>
+        <div class="kpi"><div class="lbl">Sales ex VAT</div><div class="val">@_vat.SalesExVat.ToString("N2", CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Output VAT</div><div class="val">@_vat.OutputVat.ToString("N2", CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Input VAT</div><div class="val">@_vat.InputVat.ToString("N2", CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Net (@_netLabel)</div><div class="val">@_vat.NetVatPayable.ToString("N2", CultureInfo.InvariantCulture)</div></div>
     </div>
 
     <div class="epc-erp-table-wrap">
         <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
             <thead>
                 <tr>
-                    <th>Slug</th>
-                    <th>Title</th>
-                    <th>Category</th>
-                    <th>Tax</th>
-                    <th></th>
+                    <th>Box</th>
+                    <th class="text-right">Amount</th>
                 </tr>
             </thead>
             <tbody>
-                @if (_items.Count == 0)
-                {
-                    <tr><td colspan="5">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? "Nothing to show yet." : _message) : "Sign in with ERP capability for live tax rows.")</td></tr>
-                }
-                else
-                {
-                    @foreach (var row in _items)
-                    {
-                        <tr>
-                            <td><strong>@row.Slug</strong></td>
-                            <td>@row.Title</td>
-                            <td>@row.Category</td>
-                            <td>@row.TaxCategory</td>
-                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
-                        </tr>
-                    }
-                }
+                <tr><td>Sales (ex VAT)</td><td class="text-right">@_vat.SalesExVat.ToString("N2", CultureInfo.InvariantCulture)</td></tr>
+                <tr><td>Output VAT</td><td class="text-right">@_vat.OutputVat.ToString("N2", CultureInfo.InvariantCulture)</td></tr>
+                <tr><td>Sales incl. VAT</td><td class="text-right">@_vat.SalesInclVat.ToString("N2", CultureInfo.InvariantCulture)</td></tr>
+                <tr><td>Purchases (ex VAT)</td><td class="text-right">@_vat.PurchaseExVat.ToString("N2", CultureInfo.InvariantCulture)</td></tr>
+                <tr><td>Input VAT</td><td class="text-right">@_vat.InputVat.ToString("N2", CultureInfo.InvariantCulture)</td></tr>
+                <tr><td>Purchases incl. VAT</td><td class="text-right">@_vat.PurchaseInclVat.ToString("N2", CultureInfo.InvariantCulture)</td></tr>
+                <tr>
+                    <td><strong>@_netLabel</strong> <span class="text-muted">(@_vat.Form)</span></td>
+                    <td class="text-right"><strong>@_vat.NetVatPayable.ToString("N2", CultureInfo.InvariantCulture)</strong></td>
+                </tr>
             </tbody>
         </table>
     </div>
 
+    @if (_showLegislation)
+    {
+        <h2 style="font-size:16px;margin-top:18px;">Tax legislation</h2>
+        <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Legislation KPIs">
+            <div class="kpi"><div class="lbl">Legislation</div><div class="val">@_tax.LegislationCount.ToString(CultureInfo.InvariantCulture)</div></div>
+            <div class="kpi"><div class="lbl">VAT advance</div><div class="val">@_tax.VatAdvanceRows.ToString(CultureInfo.InvariantCulture)</div></div>
+            <div class="kpi"><div class="lbl">VAT refund</div><div class="val">@_tax.VatRefundRows.ToString(CultureInfo.InvariantCulture)</div></div>
+        </div>
+        <div class="epc-erp-table-wrap">
+            <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
+                <thead>
+                    <tr>
+                        <th>Slug</th>
+                        <th>Title</th>
+                        <th>Category</th>
+                        <th>Tax</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (_items.Count == 0)
+                    {
+                        <tr><td colspan="4">@(_isAdmin ? (string.IsNullOrWhiteSpace(_taxMessage) ? "No legislation rows." : _taxMessage) : "Sign in with ERP capability for live tax rows.")</td></tr>
+                    }
+                    else
+                    {
+                        @foreach (var row in _items)
+                        {
+                            <tr>
+                                <td><strong>@row.Slug</strong></td>
+                                <td>@row.Title</td>
+                                <td>@row.Category</td>
+                                <td>@row.TaxCategory</td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+
     <div class="epc-erp-empty" style="display:block;margin-top:12px;padding:8px 10px;border:1px solid #c5d4de;background:#f8fafc;color:#475569;font-size:12px;">
-        PHP authoritative for returns/refunds. Dry-runs remain under <code>/erp/ajax/*</code> with writes=0.
+        Period: @FormatDate(_vat.DateFromUnix) — @FormatDate(_vat.DateToUnix). Source: @_source. FTA filing / EmaraTax submit stay on ERP ajax. Dry-runs remain under <code>/erp/ajax/*</code> with writes=0.
+        @if (!string.IsNullOrWhiteSpace(_message)) { <span> @_message</span> }
     </div>
 </PhpErpDesktopChrome>
 
 @code {
-    private const string _phpTab = "/ERP/?epc_erp_shell=1&area=tax&tab=vat";
+    private string _phpTab = "/ERP/?epc_erp_shell=1&area=tax&tab=vat";
     private bool _isAdmin;
-    private CpUaeTaxComplianceSummary _summary = new(0, 0, 0, "n/a", "");
+    private bool _showLegislation = true;
+    private string _tabLabel = "VAT";
+    private string _title = "VAT return";
+    private string _subtitle = "Operational output − input for the selected period. File on the tax authority portal.";
+    private ErpVatReturnSummary _vat = new(0, 0, 5, 0, 0, 0, 0, 0, 0, 0, "payable_to_fta", "FTA VAT 201", "n/a", "");
+    private CpUaeTaxComplianceSummary _tax = new(0, 0, 0, "n/a", "");
     private IReadOnlyList<CpUaeTaxItemDigest> _items = [];
     private string _source = "n/a";
     private string _message = "";
+    private string _taxMessage = "";
+    private string _netLabel = "Payable";
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
+
+        var tab = (ctx.Request.Query["tab"].ToString() ?? "").Trim().ToLowerInvariant();
+        _showLegislation = tab is "" or "vat";
+        _tabLabel = tab switch
+        {
+            "vat_refund" => "VAT refund",
+            "tourist_refund" => "Tourist refund",
+            "vat_return" => "VAT return",
+            _ => "VAT"
+        };
+        _title = _tabLabel == "VAT" ? "VAT return" : _tabLabel;
+        _subtitle = tab switch
+        {
+            "vat_refund" => "Refundable VAT from the operational return. Authority filing stays on ERP ajax.",
+            "tourist_refund" => "Tourist refund overlay on the operational VAT return. Filing stays on ERP ajax.",
+            _ => "Operational output − input for the selected period. File on the tax authority portal."
+        };
+        var phpTabKey = tab is "" or "vat" ? "vat" : tab;
+        _phpTab = $"/ERP/?epc_erp_shell=1&area=tax&tab={phpTabKey}";
+
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("erp");
         if (!_isAdmin)
@@ -81,10 +147,26 @@
             return;
         }
 
-        var result = await Dashboards.BuildCpUaeTaxComplianceDigestAsync(100, ctx.RequestAborted);
-        _summary = result.Summary;
-        _items = result.Items;
-        _source = result.Source;
-        _message = result.Message;
+        var vat = await Dashboards.BuildErpVatReturnDigestAsync(cancellationToken: ctx.RequestAborted);
+        _vat = vat.Summary;
+        _source = vat.Source;
+        _message = vat.Message;
+        _netLabel = string.Equals(_vat.NetStatus, "recoverable_from_fta", StringComparison.OrdinalIgnoreCase)
+            ? "Recoverable"
+            : "Payable";
+
+        if (_showLegislation)
+        {
+            var result = await Dashboards.BuildCpUaeTaxComplianceDigestAsync(100, ctx.RequestAborted);
+            _tax = result.Summary;
+            _items = result.Items;
+            _taxMessage = result.Message;
+        }
+    }
+
+    private static string FormatDate(long unix)
+    {
+        if (unix <= 0) return "—";
+        return DateTimeOffset.FromUnixTimeSeconds(unix).ToLocalTime().ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
     }
 }

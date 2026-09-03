@@ -4004,4 +4004,221 @@ public const string SelectCpOpsGuidesStats = """
         LIMIT @limit
         """;
 
+    /// <summary>PHP <c>epc_erp_workflow_list</c> KPIs from <c>epc_erp_workflow_tasks</c>.</summary>
+    public const string SelectErpWorkflowTaskStats = """
+        SELECT
+            COUNT(*) AS task_count,
+            SUM(CASE WHEN `status` IN ('pending','in_progress') THEN 1 ELSE 0 END) AS open_count,
+            SUM(CASE WHEN `status` = 'done' THEN 1 ELSE 0 END) AS done_count,
+            SUM(CASE WHEN `status` IN ('pending','in_progress') AND `due_at` > 0 AND `due_at` < UNIX_TIMESTAMP() THEN 1 ELSE 0 END) AS overdue_count,
+            SUM(CASE WHEN `status` = 'cancelled' THEN 1 ELSE 0 END) AS cancelled_count
+        FROM `epc_erp_workflow_tasks`
+        """;
+
+    /// <summary>PHP <c>epc_erp_workflow_list</c> — department workflow board (writes remain PHP).</summary>
+    public const string SelectErpWorkflowTasks = """
+        SELECT t.`id`, IFNULL(t.`department_code`,'') AS department_code,
+               IFNULL(t.`workflow_step`,'') AS workflow_step,
+               IFNULL(t.`title`,'') AS title,
+               IFNULL(t.`description`,'') AS description,
+               IFNULL(t.`order_id`,0) AS order_id,
+               IFNULL(t.`status`,'') AS status,
+               IFNULL(t.`priority`,'') AS priority,
+               IFNULL(t.`assigned_user_id`,0) AS assigned_user_id,
+               IFNULL(p.`display_name`,'') AS assignee_name,
+               IFNULL(t.`due_at`,0) AS due_at,
+               IFNULL(t.`completed_at`,0) AS completed_at,
+               IFNULL(t.`time_created`,0) AS time_created
+        FROM `epc_erp_workflow_tasks` t
+        LEFT JOIN `epc_erp_staff_profiles` p ON p.`user_id` = t.`assigned_user_id`
+        ORDER BY FIELD(t.`status`, 'in_progress', 'pending', 'done', 'cancelled'),
+                 t.`priority` DESC, t.`due_at` ASC, t.`id` DESC
+        LIMIT @limit
+        """;
+
+    public const string SelectErpVatRatePercent = """
+        SELECT IFNULL(`setting_value`,'5.00') AS vat_percent
+        FROM `epc_price_settings`
+        WHERE `setting_key` = 'vat_percent'
+        LIMIT 1
+        """;
+
+    /// <summary>Operational VAT 201 sales box — completed shop orders in the period.</summary>
+    public const string SelectErpVatReturnSales = """
+        SELECT IFNULL(SUM(i.`price` * i.`count_need`), 0) AS sales_ex_vat
+        FROM `shop_orders` o
+        INNER JOIN `shop_orders_items` i ON i.`order_id` = o.`id`
+        WHERE o.`successfully_created` = 1
+          AND o.`time` >= @fromUnix
+          AND o.`time` <= @toUnix
+        """;
+
+    public const string SelectErpVatReturnPurchases = """
+        SELECT IFNULL(SUM(`amount_ex_vat`), 0) AS purchase_ex_vat,
+               IFNULL(SUM(`vat_amount`), 0) AS input_vat,
+               IFNULL(SUM(`total_amount`), 0) AS purchase_incl_vat
+        FROM `epc_erp_purchases`
+        WHERE `active` = 1
+          AND `purchase_date` >= @fromUnix
+          AND `purchase_date` <= @toUnix
+        """;
+
+    public const string SelectErpWithholdingCodes = """
+        SELECT `id`, IFNULL(`code`,'') AS code, IFNULL(`name`,'') AS name,
+               IFNULL(`rate`,0) AS rate, IFNULL(`account`,'') AS account,
+               IFNULL(`active`,1) AS active
+        FROM `epc_wht_code`
+        ORDER BY `code` ASC
+        LIMIT @limit
+        """;
+
+    public const string SelectErpWithholdingTxns = """
+        SELECT t.`id`, IFNULL(t.`code_id`,0) AS code_id,
+               IFNULL(c.`code`,'') AS code,
+               IFNULL(t.`vendor`,'') AS vendor,
+               IFNULL(t.`doc_ref`,'') AS doc_ref,
+               IFNULL(t.`txn_date`,'') AS txn_date,
+               IFNULL(t.`base_amount`,0) AS base_amount,
+               IFNULL(t.`wht_amount`,0) AS wht_amount,
+               IFNULL(t.`rate`,0) AS rate,
+               IFNULL(t.`certificate_no`,'') AS certificate_no,
+               IFNULL(t.`status`,'accrued') AS status,
+               IFNULL(t.`time_created`,0) AS time_created
+        FROM `epc_wht_txn` t
+        LEFT JOIN `epc_wht_code` c ON c.`id` = t.`code_id`
+        ORDER BY t.`id` DESC
+        LIMIT @limit
+        """;
+
+    /// <summary>PHP <c>epc_erp_petty_cash_list</c>.</summary>
+    public const string SelectErpPettyCash = """
+        SELECT pc.`id`, IFNULL(pc.`name`,'') AS name,
+               IFNULL(pc.`account_id`,0) AS account_id,
+               IFNULL(a.`name`,'') AS account_name,
+               IFNULL(pc.`float_amount`,0) AS float_amount,
+               IFNULL(a.`opening_balance`,0) AS account_balance,
+               IFNULL(pc.`custodian_user_id`,0) AS custodian_user_id,
+               IFNULL(pc.`active`,1) AS active,
+               IFNULL(pc.`time_created`,0) AS time_created
+        FROM `epc_erp_petty_cash` pc
+        LEFT JOIN `epc_erp_cash_bank_accounts` a ON a.`id` = pc.`account_id`
+        WHERE pc.`active` = 1
+        ORDER BY pc.`name` ASC
+        LIMIT @limit
+        """;
+
+    public const string SelectErpCashForecasts = """
+        SELECT `id`, IFNULL(`name`,'') AS name,
+               IFNULL(`opening_balance`,0) AS opening_balance,
+               IFNULL(`currency`,'') AS currency,
+               IFNULL(`notes`,'') AS notes,
+               IFNULL(`time_created`,0) AS time_created
+        FROM `epc_cft_forecast`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
+    public const string SelectErpCashForecastLines = """
+        SELECT `id`, `forecast_id`, IFNULL(`due_date`,'') AS due_date,
+               IFNULL(`direction`,'in') AS direction,
+               IFNULL(`amount`,0) AS amount,
+               IFNULL(`category`,'') AS category,
+               IFNULL(`source`,'') AS source,
+               IFNULL(`notes`,'') AS notes
+        FROM `epc_cft_line`
+        WHERE `forecast_id` = @forecastId
+        ORDER BY `due_date` ASC, `id` ASC
+        LIMIT @limit
+        """;
+
+    public const string SelectErpBankInstruments = """
+        SELECT `id`, IFNULL(`ref`,'') AS ref, IFNULL(`type`,'lc') AS type,
+               IFNULL(`beneficiary`,'') AS beneficiary,
+               IFNULL(`applicant`,'') AS applicant,
+               IFNULL(`bank`,'') AS bank,
+               IFNULL(`amount`,0) AS amount,
+               IFNULL(`currency`,'') AS currency,
+               IFNULL(`issue_date`,'') AS issue_date,
+               IFNULL(`expiry_date`,'') AS expiry_date,
+               IFNULL(`status`,'draft') AS status,
+               IFNULL(`time_created`,0) AS time_created
+        FROM `epc_cft_instrument`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
+    public const string SelectErpSubscriptions = """
+        SELECT `id`, IFNULL(`code`,'') AS code,
+               IFNULL(`customer`,'') AS customer,
+               IFNULL(`plan_name`,'') AS plan_name,
+               IFNULL(`amount`,0) AS amount,
+               IFNULL(`currency`,'AED') AS currency,
+               IFNULL(`cycle`,'monthly') AS cycle,
+               IFNULL(`term_months`,12) AS term_months,
+               IFNULL(`start_date`,0) AS start_date,
+               IFNULL(`next_bill_date`,0) AS next_bill_date,
+               IFNULL(`status`,'active') AS status,
+               IFNULL(`time_created`,0) AS time_created
+        FROM `epc_erp_subscriptions`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
+    public const string SelectErpSupplierPortalSuppliers = """
+        SELECT `id`, IFNULL(`name`,'') AS name,
+               IFNULL(`contact_email`,'') AS email,
+               IFNULL(`contact_phone`,'') AS phone
+        FROM `epc_erp_suppliers`
+        WHERE `active` = 1
+        ORDER BY `name` ASC
+        LIMIT @limit
+        """;
+
+    public const string SelectErpSupplierPortalPoAgg = """
+        SELECT `supplier_id`,
+               COUNT(*) AS po_count,
+               IFNULL(SUM(`total_amount`),0) AS spend,
+               SUM(CASE WHEN `status` = 'received' THEN 1 ELSE 0 END) AS received,
+               SUM(CASE WHEN `status` = 'received' AND `received_at` > 0 AND `approved_at` > 0 THEN (`received_at` - `approved_at`) ELSE 0 END) AS lead_sum,
+               SUM(CASE WHEN `status` = 'received' AND `received_at` > 0 AND `approved_at` > 0 THEN 1 ELSE 0 END) AS lead_n,
+               SUM(CASE WHEN `status` = 'received' AND `received_at` > 0 AND `approved_at` > 0 AND (`received_at` - `approved_at`) <= 2592000 THEN 1 ELSE 0 END) AS ontime
+        FROM `epc_erp_purchase_orders`
+        GROUP BY `supplier_id`
+        """;
+
+    public const string SelectErpSupplierPortalRfqAgg = """
+        SELECT `supplier_id`,
+               COUNT(*) AS rfq_count,
+               SUM(CASE WHEN `status` IN ('quoted','accepted','rejected') THEN 1 ELSE 0 END) AS responded,
+               SUM(CASE WHEN `status` = 'accepted' THEN 1 ELSE 0 END) AS won
+        FROM `epc_erp_rfq`
+        GROUP BY `supplier_id`
+        """;
+
+    public const string SelectErpSupplierPortalBalanceAgg = """
+        SELECT `supplier_id`,
+               IFNULL(SUM(CASE WHEN `is_credit` = 1 THEN `amount` ELSE -`amount` END),0) AS bal
+        FROM `epc_erp_supplier_accounting`
+        WHERE `active` = 1
+        GROUP BY `supplier_id`
+        """;
+
+    /// <summary>Virtual / exhibition / consignment locations from the warehouse master (no jewellery seed rows).</summary>
+    public const string SelectErpVirtualWarehouses = """
+        SELECT `id`, IFNULL(`storage_id`, 0) AS storage_id, IFNULL(`code`, '') AS code,
+               IFNULL(`name`, '') AS name, `active`, IFNULL(`time_created`, 0) AS time_created
+        FROM `epc_erp_inv_warehouses`
+        WHERE `active` = 1
+          AND (
+                `code` LIKE 'VW-%'
+             OR `code` LIKE 'VW_%'
+             OR LOWER(`name`) LIKE '%virtual%'
+             OR LOWER(`name`) LIKE '%exhibition%'
+             OR LOWER(`name`) LIKE '%display%'
+             OR LOWER(`name`) LIKE '%consignment%'
+          )
+        ORDER BY `name` ASC
+        LIMIT @limit
+        """;
+
 }

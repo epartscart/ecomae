@@ -472,6 +472,33 @@ public interface ISurfaceDashboardSummaryReporter
 
     /// <summary>Read-only tenant SMTP settings (password/username omitted).</summary>
     Task<CpTenantEmailDigestResult> BuildCpTenantEmailDigestAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>Read-only department workflow board from PHP <c>epc_erp_workflow_tasks</c> (writes remain PHP).</summary>
+    Task<ErpWorkflowTasksDigestResult> BuildErpWorkflowTasksDigestAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Operational VAT 201 boxes (shop orders + purchases). FTA filing stays PHP.</summary>
+    Task<ErpVatReturnDigestResult> BuildErpVatReturnDigestAsync(long? fromUnix = null, long? toUnix = null, CancellationToken cancellationToken = default);
+
+    /// <summary>Read-only withholding codes + transactions (PHP <c>epc_wht_*</c>; writes remain PHP).</summary>
+    Task<ErpWithholdingDigestResult> BuildErpWithholdingDigestAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Read-only petty cash floats (PHP <c>epc_erp_petty_cash</c>).</summary>
+    Task<ErpPettyCashListResult> ListErpPettyCashAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Read-only cash-flow forecasts + projection (PHP <c>epc_cft_forecast</c>).</summary>
+    Task<ErpCashForecastDigestResult> BuildErpCashForecastDigestAsync(int limit, long? forecastId = null, CancellationToken cancellationToken = default);
+
+    /// <summary>Read-only bank instruments LC/BG/SBLC (PHP <c>epc_cft_instrument</c>).</summary>
+    Task<ErpBankInstrumentsDigestResult> BuildErpBankInstrumentsDigestAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Read-only subscription billing list + MRR/ARR (PHP <c>epc_erp_subscriptions</c>).</summary>
+    Task<ErpSubscriptionsDigestResult> BuildErpSubscriptionsDigestAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Read-only supplier performance scorecards (PHP <c>epc_sp_scorecards</c>).</summary>
+    Task<ErpSupplierPortalDigestResult> BuildErpSupplierPortalDigestAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Read-only virtual/exhibition warehouse locations + transfer history.</summary>
+    Task<ErpVirtualWarehouseDigestResult> BuildErpVirtualWarehouseDigestAsync(int limit, CancellationToken cancellationToken = default);
 }
 
 

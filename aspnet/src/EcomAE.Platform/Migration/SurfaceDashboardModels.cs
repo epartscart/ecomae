@@ -4182,3 +4182,252 @@ public sealed record CpTenantEmailDigestResult(
     CpTenantEmailSummary Summary,
     string Source,
     string Message);
+
+/// <summary>PHP <c>epc_erp_workflow_list</c> / <c>epc_erp_workflow_tasks</c> (writes remain PHP).</summary>
+public sealed record ErpWorkflowTasksSummary(
+    int TaskCount,
+    int OpenCount,
+    int DoneCount,
+    int OverdueCount,
+    int CancelledCount,
+    string Source,
+    string Message);
+
+public sealed record ErpWorkflowTaskDigest(
+    long Id,
+    string DepartmentCode,
+    string WorkflowStep,
+    string Title,
+    string Description,
+    long OrderId,
+    string Status,
+    string Priority,
+    long AssignedUserId,
+    string AssigneeName,
+    long DueAt,
+    long CompletedAt,
+    long TimeCreated);
+
+public sealed record ErpWorkflowTasksDigestResult(
+    ErpWorkflowTasksSummary Summary,
+    IReadOnlyList<ErpWorkflowTaskDigest> Tasks,
+    int Count,
+    string Source,
+    string Message);
+
+/// <summary>Operational FTA VAT 201 boxes from shop orders + purchases (filing stays PHP).</summary>
+public sealed record ErpVatReturnSummary(
+    long DateFromUnix,
+    long DateToUnix,
+    decimal VatRatePercent,
+    decimal SalesExVat,
+    decimal OutputVat,
+    decimal SalesInclVat,
+    decimal PurchaseExVat,
+    decimal InputVat,
+    decimal PurchaseInclVat,
+    decimal NetVatPayable,
+    string NetStatus,
+    string Form,
+    string Source,
+    string Message);
+
+public sealed record ErpVatReturnDigestResult(
+    ErpVatReturnSummary Summary,
+    string Source,
+    string Message);
+
+public sealed record ErpWithholdingSummary(
+    int CodeCount,
+    int TxnCount,
+    decimal Accrued,
+    decimal Settled,
+    decimal TotalWithheld,
+    string Source,
+    string Message);
+
+public sealed record ErpWithholdingCodeDigest(
+    long Id,
+    string Code,
+    string Name,
+    decimal Rate,
+    string Account,
+    bool Active);
+
+public sealed record ErpWithholdingTxnDigest(
+    long Id,
+    long CodeId,
+    string Code,
+    string Vendor,
+    string DocRef,
+    string TxnDate,
+    decimal BaseAmount,
+    decimal WhtAmount,
+    decimal Rate,
+    string CertificateNo,
+    string Status,
+    long TimeCreated);
+
+public sealed record ErpWithholdingDigestResult(
+    ErpWithholdingSummary Summary,
+    IReadOnlyList<ErpWithholdingCodeDigest> Codes,
+    IReadOnlyList<ErpWithholdingTxnDigest> Txns,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record ErpPettyCashDigest(
+    long Id,
+    string Name,
+    long AccountId,
+    string AccountName,
+    decimal FloatAmount,
+    decimal AccountBalance,
+    long CustodianUserId,
+    bool Active,
+    long TimeCreated);
+
+public sealed record ErpPettyCashListResult(
+    IReadOnlyList<ErpPettyCashDigest> Floats,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record ErpCashForecastDigest(
+    long Id,
+    string Name,
+    decimal OpeningBalance,
+    string Currency,
+    string Notes,
+    long TimeCreated);
+
+public sealed record ErpCashForecastLineDigest(
+    long Id,
+    long ForecastId,
+    string DueDate,
+    string Direction,
+    decimal Amount,
+    string Category,
+    string Source,
+    string Notes,
+    decimal RunningBalance);
+
+public sealed record ErpCashForecastSummary(
+    int ForecastCount,
+    decimal Opening,
+    decimal TotalIn,
+    decimal TotalOut,
+    decimal Closing,
+    decimal MinBalance,
+    string Source,
+    string Message);
+
+public sealed record ErpCashForecastDigestResult(
+    ErpCashForecastSummary Summary,
+    IReadOnlyList<ErpCashForecastDigest> Forecasts,
+    IReadOnlyList<ErpCashForecastLineDigest> Lines,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record ErpBankInstrumentDigest(
+    long Id,
+    string Ref,
+    string Type,
+    string Beneficiary,
+    string Applicant,
+    string Bank,
+    decimal Amount,
+    string Currency,
+    string IssueDate,
+    string ExpiryDate,
+    string Status,
+    long TimeCreated);
+
+public sealed record ErpBankInstrumentsSummary(
+    int Count,
+    int Issued,
+    int Utilized,
+    int Closed,
+    decimal Exposure,
+    string Source,
+    string Message);
+
+public sealed record ErpBankInstrumentsDigestResult(
+    ErpBankInstrumentsSummary Summary,
+    IReadOnlyList<ErpBankInstrumentDigest> Instruments,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record ErpSubscriptionDigest(
+    long Id,
+    string Code,
+    string Customer,
+    string PlanName,
+    decimal Amount,
+    string Currency,
+    string Cycle,
+    int TermMonths,
+    long StartDate,
+    long NextBillDate,
+    string Status,
+    decimal Mrr,
+    decimal Recognized,
+    decimal Deferred);
+
+public sealed record ErpSubscriptionsSummary(
+    int Active,
+    decimal Mrr,
+    decimal Arr,
+    decimal Recognized,
+    decimal Deferred,
+    string Source,
+    string Message);
+
+public sealed record ErpSubscriptionsDigestResult(
+    ErpSubscriptionsSummary Summary,
+    IReadOnlyList<ErpSubscriptionDigest> Subscriptions,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record ErpSupplierPortalCardDigest(
+    long Id,
+    string Name,
+    string Email,
+    string Phone,
+    int PoCount,
+    int Received,
+    decimal Spend,
+    decimal AvgLeadDays,
+    decimal? OntimePct,
+    int RfqCount,
+    decimal? ResponsePct,
+    decimal? WinPct,
+    decimal Balance,
+    decimal Score,
+    string Rating);
+
+public sealed record ErpSupplierPortalSummary(
+    int SupplierCount,
+    decimal TotalSpend,
+    decimal OpenPayable,
+    decimal AvgScore,
+    string Source,
+    string Message);
+
+public sealed record ErpSupplierPortalDigestResult(
+    ErpSupplierPortalSummary Summary,
+    IReadOnlyList<ErpSupplierPortalCardDigest> Cards,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record ErpVirtualWarehouseDigestResult(
+    int LocationCount,
+    IReadOnlyList<ErpWarehouseDigest> Locations,
+    ErpStockTransfersDigestResult Transfers,
+    int Count,
+    string Source,
+    string Message);

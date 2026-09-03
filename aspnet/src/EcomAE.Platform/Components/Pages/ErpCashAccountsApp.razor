@@ -14,10 +14,133 @@
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Cash & Bank" BreadcrumbArea="Cash & Treasury" BreadcrumbTab="Cash & bank">
 
     
-    <PhpErpModulePageHeader Title="Cash & Bank" Subtitle="ASP.NET Core digest — PHP compare only under /php-reference/*." PhpTabHref="@_phpTab" />
+    <PhpErpModulePageHeader Title="@_title" Subtitle="@_subtitle" PhpTabHref="@_phpTab" />
     <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
 
+    <p class="text-muted" style="margin:8px 0 12px;">
+        <a href="/erp/cash-accounts-app">Cash &amp; bank</a>
+        · <a href="/erp/cash-accounts-app?tab=petty_cash">Petty cash</a>
+        · <a href="/erp/cash-accounts-app?tab=cash_forecast">Cash forecast</a>
+    </p>
 
+    @if (_view == "petty_cash")
+    {
+        <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Petty cash KPIs">
+            <div class="kpi"><div class="lbl">Active floats</div><div class="val">@_floats.Count.ToString(CultureInfo.InvariantCulture)</div></div>
+            <div class="kpi"><div class="lbl">Float total</div><div class="val">@_floats.Sum(f => f.FloatAmount).ToString("N2", CultureInfo.InvariantCulture)</div></div>
+        </div>
+        <div class="epc-erp-table-wrap">
+            <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th class="text-right">Float</th>
+                        <th>Account</th>
+                        <th class="text-right">Account opening</th>
+                        <th>Custodian</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (_floats.Count == 0)
+                    {
+                        <tr><td colspan="5">@(_isAdmin ? (string.IsNullOrWhiteSpace(_accountsMessage) ? "No petty cash floats configured." : _accountsMessage) : "Sign in with ERP capability for live rows.")</td></tr>
+                    }
+                    else
+                    {
+                        @foreach (var f in _floats)
+                        {
+                            <tr>
+                                <td><strong>@f.Name</strong></td>
+                                <td class="text-right">@f.FloatAmount.ToString("N2", CultureInfo.InvariantCulture)</td>
+                                <td>@(string.IsNullOrWhiteSpace(f.AccountName) ? (f.AccountId > 0 ? $"#{f.AccountId}" : "—") : f.AccountName)</td>
+                                <td class="text-right">@f.AccountBalance.ToString("N2", CultureInfo.InvariantCulture)</td>
+                                <td>@(f.CustodianUserId > 0 ? f.CustodianUserId.ToString(CultureInfo.InvariantCulture) : "—")</td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+    else if (_view == "cash_forecast")
+    {
+        <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Cash forecast KPIs">
+            <div class="kpi"><div class="lbl">Forecasts</div><div class="val">@_forecast.ForecastCount.ToString(CultureInfo.InvariantCulture)</div></div>
+            <div class="kpi"><div class="lbl">Opening</div><div class="val">@_forecast.Opening.ToString("N2", CultureInfo.InvariantCulture)</div></div>
+            <div class="kpi"><div class="lbl">Total in</div><div class="val">@_forecast.TotalIn.ToString("N2", CultureInfo.InvariantCulture)</div></div>
+            <div class="kpi"><div class="lbl">Total out</div><div class="val">@_forecast.TotalOut.ToString("N2", CultureInfo.InvariantCulture)</div></div>
+            <div class="kpi"><div class="lbl">Closing</div><div class="val">@_forecast.Closing.ToString("N2", CultureInfo.InvariantCulture)</div></div>
+            <div class="kpi"><div class="lbl">Min balance</div><div class="val">@_forecast.MinBalance.ToString("N2", CultureInfo.InvariantCulture)</div></div>
+        </div>
+        <h2 style="font-size:16px;">Forecasts</h2>
+        <div class="epc-erp-table-wrap">
+            <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th class="text-right">Opening</th>
+                        <th>Currency</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (_forecasts.Count == 0)
+                    {
+                        <tr><td colspan="3">@(_isAdmin ? (string.IsNullOrWhiteSpace(_accountsMessage) ? "No cash-flow forecasts yet." : _accountsMessage) : "Sign in with ERP capability for live rows.")</td></tr>
+                    }
+                    else
+                    {
+                        @foreach (var f in _forecasts)
+                        {
+                            <tr>
+                                <td><strong>@f.Name</strong></td>
+                                <td class="text-right">@f.OpeningBalance.ToString("N2", CultureInfo.InvariantCulture)</td>
+                                <td>@(string.IsNullOrWhiteSpace(f.Currency) ? "—" : f.Currency)</td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+        <h2 style="font-size:16px;margin-top:16px;">Projection lines</h2>
+        <div class="epc-erp-table-wrap">
+            <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Category</th>
+                        <th>Source</th>
+                        <th class="text-right">In</th>
+                        <th class="text-right">Out</th>
+                        <th class="text-right">Balance</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (_forecastLines.Count == 0)
+                    {
+                        <tr><td colspan="6">No forecast lines on the selected forecast.</td></tr>
+                    }
+                    else
+                    {
+                        @foreach (var line in _forecastLines)
+                        {
+                            var inflow = string.Equals(line.Direction, "out", StringComparison.OrdinalIgnoreCase) ? 0m : line.Amount;
+                            var outflow = string.Equals(line.Direction, "out", StringComparison.OrdinalIgnoreCase) ? line.Amount : 0m;
+                            <tr>
+                                <td>@(string.IsNullOrWhiteSpace(line.DueDate) ? "—" : line.DueDate)</td>
+                                <td>@(string.IsNullOrWhiteSpace(line.Category) ? "—" : line.Category)</td>
+                                <td>@(string.IsNullOrWhiteSpace(line.Source) ? "—" : line.Source)</td>
+                                <td class="text-right">@(inflow == 0m ? "—" : inflow.ToString("N2", CultureInfo.InvariantCulture))</td>
+                                <td class="text-right">@(outflow == 0m ? "—" : outflow.ToString("N2", CultureInfo.InvariantCulture))</td>
+                                <td class="text-right">@line.RunningBalance.ToString("N2", CultureInfo.InvariantCulture)</td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+    else
+    {
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Cash KPIs">
         <div class="kpi"><div class="lbl">Accounts (limit @_limit)</div><div class="val">@_accounts.Count</div></div>
         <div class="kpi"><div class="lbl">Sum of balances</div><div class="val">@_totalBalance.ToString("N2", CultureInfo.InvariantCulture)</div></div>
@@ -103,14 +226,22 @@
             </table>
         </div>
     </div>
+    }
 
 </PhpErpDesktopChrome>
 
 @code {
-    private const string _phpTab = "/ERP/?epc_erp_shell=1&area=banking&tab=cash_bank";
+    private string _phpTab = "/ERP/?epc_erp_shell=1&area=banking&tab=cash_bank";
+    private string _title = "Cash & Bank";
+    private string _subtitle = "Cash and bank accounts with recent ledger entries.";
+    private string _view = "cash_bank";
     private bool _isAdmin;
     private IReadOnlyList<ErpCashAccountDigest> _accounts = [];
     private IReadOnlyList<ErpCashEntryDigest> _entries = [];
+    private IReadOnlyList<ErpPettyCashDigest> _floats = [];
+    private ErpCashForecastSummary _forecast = new(0, 0, 0, 0, 0, 0, "n/a", "");
+    private IReadOnlyList<ErpCashForecastDigest> _forecasts = [];
+    private IReadOnlyList<ErpCashForecastLineDigest> _forecastLines = [];
     private decimal _totalBalance;
     private int _limit = 100;
     private string _accountsSource = "n/a";
@@ -123,11 +254,54 @@
         var ctx = Http.HttpContext;
         if (ctx is null) return;
 
+        var tab = (ctx.Request.Query["tab"].ToString() ?? "").Trim().ToLowerInvariant();
+        _view = tab is "petty_cash" or "jw_petty_cash" ? "petty_cash"
+            : tab == "cash_forecast" ? "cash_forecast"
+            : "cash_bank";
+        _phpTab = _view switch
+        {
+            "petty_cash" => "/ERP/?epc_erp_shell=1&area=banking&tab=petty_cash",
+            "cash_forecast" => "/ERP/?epc_erp_shell=1&area=banking&tab=cash_forecast",
+            _ => "/ERP/?epc_erp_shell=1&area=banking&tab=cash_bank"
+        };
+        _title = _view switch
+        {
+            "petty_cash" => "Petty cash",
+            "cash_forecast" => "Cash flow forecast",
+            _ => "Cash & Bank"
+        };
+        _subtitle = _view switch
+        {
+            "petty_cash" => "Small cash floats with custodian and linked cash account.",
+            "cash_forecast" => "Opening balance plus dated inflows and outflows.",
+            _ => "Cash and bank accounts with recent ledger entries."
+        };
+
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("erp");
         if (!_isAdmin)
         {
             return; // guest browse — Sign in for live data
+        }
+
+        if (_view == "petty_cash")
+        {
+            var floats = await Dashboards.ListErpPettyCashAsync(_limit, ctx.RequestAborted);
+            _floats = floats.Floats;
+            _accountsSource = floats.Source;
+            _accountsMessage = floats.Message;
+            return;
+        }
+
+        if (_view == "cash_forecast")
+        {
+            var fc = await Dashboards.BuildErpCashForecastDigestAsync(_limit, forecastId: null, ctx.RequestAborted);
+            _forecast = fc.Summary;
+            _forecasts = fc.Forecasts;
+            _forecastLines = fc.Lines;
+            _accountsSource = fc.Source;
+            _accountsMessage = fc.Message;
+            return;
         }
 
         var accounts = await Dashboards.ListErpCashAccountsAsync(_limit, ctx.RequestAborted);
