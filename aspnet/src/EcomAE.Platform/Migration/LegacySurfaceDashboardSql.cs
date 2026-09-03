@@ -4704,33 +4704,50 @@ public const string SelectCpOpsGuidesStats = """
           AND `time` >= @dateFrom AND `time` <= @dateTo
         """;
 
-    /// <summary>PHP <c>epc_erp_gl_pl_report</c> net_profit (revenue − expense signed period activity).</summary>
-    public const string SumErpWorkspaceGlNetProfit = """
-        SELECT IFNULL(SUM(
-            CASE
-                WHEN a.`account_type` = 'revenue' THEN
-                    CASE WHEN IFNULL(a.`normal_side`,'credit') = 'credit'
-                         THEN IFNULL(x.credits,0) - IFNULL(x.debits,0)
-                         ELSE IFNULL(x.debits,0) - IFNULL(x.credits,0)
-                    END
-                WHEN a.`account_type` = 'expense' THEN
-                    - CASE WHEN IFNULL(a.`normal_side`,'debit') = 'credit'
-                           THEN IFNULL(x.credits,0) - IFNULL(x.debits,0)
-                           ELSE IFNULL(x.debits,0) - IFNULL(x.credits,0)
-                      END
-                ELSE 0
-            END
-        ), 0)
-        FROM `epc_erp_coa_accounts` a
-        LEFT JOIN (
-            SELECT l.`coa_id`, SUM(l.`debit`) AS debits, SUM(l.`credit`) AS credits
-            FROM `epc_erp_gl_lines` l
-            INNER JOIN `epc_erp_gl_journals` j ON j.`id` = l.`journal_id` AND j.`active` = 1
-            WHERE j.`journal_date` >= @dateFrom AND j.`journal_date` <= @dateTo
-            GROUP BY l.`coa_id`
-        ) x ON x.`coa_id` = a.`id`
-        WHERE a.`active` = 1 AND a.`account_type` IN ('revenue','expense')
-        """;
+    /// <summary>
+    /// PHP <c>epc_erp_gl_pl_report</c> / <c>epc_erp_gl_all_coa_activity</c> net_profit
+    /// (revenue − expense signed period activity). Unscoped — only when resolved
+    /// company id is 0 (no legal entities / group view). Prefer
+    /// <see cref="BuildSumErpWorkspaceGlNetProfit"/>.
+    /// </summary>
+    public static string SumErpWorkspaceGlNetProfit => BuildSumErpWorkspaceGlNetProfit(0);
+
+    /// <summary>
+    /// PHP <c>epc_erp_gl_all_coa_activity</c>: when <paramref name="companyId"/> &gt; 0
+    /// add <c>AND j.company_id = ?</c>; <c>0</c> leaves journals unscoped.
+    /// </summary>
+    public static string BuildSumErpWorkspaceGlNetProfit(int companyId)
+    {
+        var companyFilter = companyId > 0
+            ? "\n              AND j.`company_id` = @companyId"
+            : string.Empty;
+        return $"""
+            SELECT IFNULL(SUM(
+                CASE
+                    WHEN a.`account_type` = 'revenue' THEN
+                        CASE WHEN IFNULL(a.`normal_side`,'credit') = 'credit'
+                             THEN IFNULL(x.credits,0) - IFNULL(x.debits,0)
+                             ELSE IFNULL(x.debits,0) - IFNULL(x.credits,0)
+                        END
+                    WHEN a.`account_type` = 'expense' THEN
+                        - CASE WHEN IFNULL(a.`normal_side`,'debit') = 'credit'
+                               THEN IFNULL(x.credits,0) - IFNULL(x.debits,0)
+                               ELSE IFNULL(x.debits,0) - IFNULL(x.credits,0)
+                          END
+                    ELSE 0
+                END
+            ), 0)
+            FROM `epc_erp_coa_accounts` a
+            LEFT JOIN (
+                SELECT l.`coa_id`, SUM(l.`debit`) AS debits, SUM(l.`credit`) AS credits
+                FROM `epc_erp_gl_lines` l
+                INNER JOIN `epc_erp_gl_journals` j ON j.`id` = l.`journal_id` AND j.`active` = 1
+                WHERE j.`journal_date` >= @dateFrom AND j.`journal_date` <= @dateTo{companyFilter}
+                GROUP BY l.`coa_id`
+            ) x ON x.`coa_id` = a.`id`
+            WHERE a.`active` = 1 AND a.`account_type` IN ('revenue','expense')
+            """;
+    }
 
     /// <summary>PHP sales incl. VAT from completed shop orders (<c>for_finish</c>).</summary>
     public const string SumErpWorkspaceSalesInclVat = """

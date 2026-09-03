@@ -156,8 +156,9 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             var prevSummary = await ReadErpDashboardForPeriodAsync(
                 connection, prevFrom, prevTo, periodKey, overdueBefore, cancellationToken).ConfigureAwait(false);
 
-            var curExtras = await ReadWorkspaceExtrasAsync(connection, monthStart, now, cancellationToken).ConfigureAwait(false);
-            var prevExtras = await ReadWorkspaceExtrasAsync(connection, prevFrom, prevTo, cancellationToken).ConfigureAwait(false);
+            var glCompanyId = await ResolveWorkspaceGlCompanyIdAsync(connection, cancellationToken).ConfigureAwait(false);
+            var curExtras = await ReadWorkspaceExtrasAsync(connection, monthStart, now, glCompanyId, cancellationToken).ConfigureAwait(false);
+            var prevExtras = await ReadWorkspaceExtrasAsync(connection, prevFrom, prevTo, glCompanyId, cancellationToken).ConfigureAwait(false);
 
             var current = ToWorkspacePeriod(currentSummary, curExtras);
             var previous = ToWorkspacePeriod(prevSummary, prevExtras);
@@ -328,8 +329,37 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    /// <summary>
+    /// PHP <c>epc_erp_gl_resolve_company_id</c>: <c>?company=</c> when it is a
+    /// tenant legal entity, else the lowest-id company. 0 = unscoped.
+    /// </summary>
+    private async Task<int> ResolveWorkspaceGlCompanyIdAsync(
+        DbConnection connection,
+        CancellationToken cancellationToken)
+    {
+        var requested = ErpHostContext.ActiveCompanyIdFromQuery(_httpContextAccessor?.HttpContext?.Request);
+        var ids = new List<int>();
+        try
+        {
+            await using var cmd = connection.CreateCommand();
+            cmd.CommandText = LegacySurfaceDashboardSql.SelectErpCompanies;
+            AddParameter(cmd, "@limit", 50);
+            await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                ids.Add(Convert.ToInt32(reader["id"], CultureInfo.InvariantCulture));
+            }
+        }
+        catch
+        {
+            // companies table optional — PHP resolve returns 0 (unscoped)
+        }
+
+        return ErpHostContext.ResolveErpGlCompanyId(requested, ids);
+    }
+
     private static async Task<(decimal PurchaseExVat, decimal RevenueExVat, decimal SalesInclVat, decimal DueOrders, int CompletedOrders, int ConfirmedSo, int OpenPo, int InvoicesDue, int Busy, int Headcount, int ProcessDone, decimal GlNetProfit)>
-        ReadWorkspaceExtrasAsync(DbConnection connection, long dateFrom, long dateTo, CancellationToken cancellationToken)
+        ReadWorkspaceExtrasAsync(DbConnection connection, long dateFrom, long dateTo, int glCompanyId, CancellationToken cancellationToken)
     {
         var purchase = await ScalarDecimalParamSafeAsync(
             connection, LegacySurfaceDashboardSql.SumErpWorkspacePurchaseExVat, cancellationToken,
@@ -354,9 +384,14 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         var processDone = await ScalarIntParamSafeAsync(
             connection, LegacySurfaceDashboardSql.CountErpWorkspaceProcessDoneInPeriod, cancellationToken,
             ("@dateFrom", dateFrom), ("@dateTo", dateTo)).ConfigureAwait(false);
-        var glNet = await ScalarDecimalParamSafeAsync(
-            connection, LegacySurfaceDashboardSql.SumErpWorkspaceGlNetProfit, cancellationToken,
-            ("@dateFrom", dateFrom), ("@dateTo", dateTo)).ConfigureAwait(false);
+        var glSql = LegacySurfaceDashboardSql.BuildSumErpWorkspaceGlNetProfit(glCompanyId);
+        var glNet = glCompanyId > 0
+            ? await ScalarDecimalParamSafeAsync(
+                connection, glSql, cancellationToken,
+                ("@dateFrom", dateFrom), ("@dateTo", dateTo), ("@companyId", glCompanyId)).ConfigureAwait(false)
+            : await ScalarDecimalParamSafeAsync(
+                connection, glSql, cancellationToken,
+                ("@dateFrom", dateFrom), ("@dateTo", dateTo)).ConfigureAwait(false);
         return (purchase, revenueEx, salesIncl, due, completedOrders, confirmed, openPo, invDue, busy, head, processDone, glNet);
     }
 
