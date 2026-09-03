@@ -136,6 +136,22 @@ public sealed record StorefrontOrdersResult(
     string Source,
     string Message);
 
+/// <summary>Guest checkout digest (PHP <c>ajax_check_order_not_authorized.php</c>). <c>UserId</c> is always 0.</summary>
+public sealed record StorefrontGuestOrderDigest(
+    long Id,
+    long TimeUnix,
+    int Paid,
+    int SuccessfullyCreated,
+    int Status,
+    int OfficeId,
+    decimal Sum,
+    string ObtainCaption);
+
+public sealed record StorefrontGuestOrderResult(
+    StorefrontGuestOrderDigest? Order,
+    string Source,
+    string Message);
+
 public sealed record StorefrontOrderItemDigest(
     long Id,
     long OrderId,

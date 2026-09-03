@@ -2,8 +2,11 @@
 @page "/en/available-brands"
 @page "/en/parts"
 @layout Layout.PhpChromeLayout
+@using System.Net
+@using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
 @using EcomAE.Platform.Storefront
+@inject ISurfaceDashboardSummaryReporter Dashboards
 @inject IStorefrontPriceAccess PriceAccess
 @inject IHttpContextAccessor Http
 
@@ -26,11 +29,19 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var pricesVisible = false;
         var ctx = Http.HttpContext;
+        var cancellation = ctx?.RequestAborted ?? default;
+        var brands = await Dashboards.ListStorefrontGenuineBrandsAsync(cancellation);
+        if (brands.Brands.Count > 0)
+        {
+            _html = RenderBrandGrid(brands.Brands);
+            return;
+        }
+
+        var pricesVisible = false;
         if (ctx is not null)
         {
-            var access = await PriceAccess.ResolveAsync(ctx, ctx.RequestAborted);
+            var access = await PriceAccess.ResolveAsync(ctx, cancellation);
             pricesVisible = access.PricesVisible;
         }
 
@@ -40,5 +51,22 @@
             _html = "<p style=\"margin:0;color:#64748b\">Available brands widget is unavailable in this environment. "
                   + "<a href=\"" + StorefrontSurfaceLinks.PartSearch + "\">Open part search</a>.</p>";
         }
+    }
+
+    private static string RenderBrandGrid(IReadOnlyList<string> brands)
+    {
+        var sb = new System.Text.StringBuilder();
+        sb.Append("<div class=\"epc-sf-brand-grid\" style=\"display:grid;grid-template-columns:repeat(auto-fill,minmax(8.5rem,1fr));gap:.45rem\">");
+        foreach (var brand in brands)
+        {
+            var safe = WebUtility.HtmlEncode(brand);
+            var href = StorefrontSurfaceLinks.PartSearch + "?brend=" + Uri.EscapeDataString(brand);
+            sb.Append("<a href=\"").Append(href).Append("\" style=\"display:block;padding:.55rem .65rem;background:#fff;border:1px solid #e2e8f0;border-radius:.4rem;color:#0f172a;font-weight:700;text-decoration:none\">")
+              .Append(safe)
+              .Append("</a>");
+        }
+
+        sb.Append("</div>");
+        return sb.ToString();
     }
 }

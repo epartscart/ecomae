@@ -1,5 +1,6 @@
 using System.Data.Common;
 using System.Globalization;
+using System.Linq;
 using System.Text.RegularExpressions;
 using EcomAE.Platform.Api.Catalog;
 using EcomAE.Platform.Data;
@@ -430,6 +431,79 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         {
             return new(userId, [], 0, "database-error", ex.Message);
         }
+    }
+
+    public async Task<StorefrontGuestOrderResult> GetStorefrontGuestOrderAsync(
+        long orderId,
+        string? email,
+        string? phone,
+        CancellationToken cancellationToken = default)
+    {
+        var safeOrder = orderId < 0 ? 0 : orderId;
+        var emailNorm = NormalizeGuestContact(email);
+        var phoneNorm = NormalizeGuestPhone(phone);
+        if (!_connections.IsConfigured)
+        {
+            return new(null, "migration", "TenantRegistry DB is not configured.");
+        }
+
+        if (safeOrder <= 0 || (emailNorm.Length == 0 && phoneNorm.Length == 0))
+        {
+            return new(null, "rejected", "Guest order number and email or phone are required.");
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            await using var command = connection.CreateCommand();
+            command.CommandText = LegacySurfaceDashboardSql.SelectGuestOrder;
+            AddParameter(command, "@orderId", safeOrder);
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            if (!await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                return new(null, "empty", "Guest order not found. Signed-in orders are on My orders.");
+            }
+
+            var storedEmail = NormalizeGuestContact(
+                Convert.ToString(reader["email_not_auth"] is DBNull ? string.Empty : reader["email_not_auth"], CultureInfo.InvariantCulture));
+            var storedPhone = NormalizeGuestPhone(
+                Convert.ToString(reader["phone_not_auth"] is DBNull ? string.Empty : reader["phone_not_auth"], CultureInfo.InvariantCulture));
+            var emailOk = emailNorm.Length > 0 && string.Equals(emailNorm, storedEmail, StringComparison.Ordinal);
+            var phoneOk = phoneNorm.Length > 0 && string.Equals(phoneNorm, storedPhone, StringComparison.Ordinal);
+            if (!emailOk && !phoneOk)
+            {
+                return new(null, "empty", "Guest order not found. Signed-in orders are on My orders.");
+            }
+
+            var digest = new StorefrontGuestOrderDigest(
+                Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                Convert.ToInt64(reader["time"] is DBNull ? 0 : reader["time"], CultureInfo.InvariantCulture),
+                Convert.ToInt32(reader["paid"] is DBNull ? 0 : reader["paid"], CultureInfo.InvariantCulture),
+                Convert.ToInt32(reader["successfully_created"] is DBNull ? 0 : reader["successfully_created"], CultureInfo.InvariantCulture),
+                Convert.ToInt32(reader["status"] is DBNull ? 0 : reader["status"], CultureInfo.InvariantCulture),
+                Convert.ToInt32(reader["office_id"] is DBNull ? 0 : reader["office_id"], CultureInfo.InvariantCulture),
+                Convert.ToDecimal(reader["sum"] is DBNull ? 0 : reader["sum"], CultureInfo.InvariantCulture),
+                Convert.ToString(reader["obtain_caption"] is DBNull ? string.Empty : reader["obtain_caption"], CultureInfo.InvariantCulture) ?? string.Empty);
+            return new(digest, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(null, "database-error", ex.Message);
+        }
+    }
+
+    private static string NormalizeGuestContact(string? value)
+        => (value ?? string.Empty).Trim().ToLowerInvariant();
+
+    private static string NormalizeGuestPhone(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return string.Empty;
+        }
+
+        var chars = (value ?? string.Empty).Where(char.IsDigit).ToArray();
+        return new string(chars);
     }
 
     public async Task<StorefrontOrderItemsResult> ListStorefrontOrderItemsAsync(int userId, long orderId, int limit, CancellationToken cancellationToken = default)

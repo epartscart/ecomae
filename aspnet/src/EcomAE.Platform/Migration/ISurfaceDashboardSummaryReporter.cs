@@ -18,6 +18,9 @@ public interface ISurfaceDashboardSummaryReporter
 
     Task<StorefrontOrdersResult> ListStorefrontOrdersAsync(int userId, int limit, CancellationToken cancellationToken = default);
 
+    /// <summary>Guest checkout lookup (PHP <c>ajax_check_order_not_authorized</c>). Always <c>user_id = 0</c>. Writes stay PHP.</summary>
+    Task<StorefrontGuestOrderResult> GetStorefrontGuestOrderAsync(long orderId, string? email, string? phone, CancellationToken cancellationToken = default);
+
     /// <summary>Customer-scoped order lines (PHP <c>shop/orders/items</c>). Writes stay PHP.</summary>
     Task<StorefrontOrderItemsResult> ListStorefrontOrderItemsAsync(int userId, long orderId, int limit, CancellationToken cancellationToken = default);
     Task<StorefrontOrderMessagesResult> ListStorefrontOrderMessagesAsync(int userId, long orderId, int limit, CancellationToken cancellationToken = default);

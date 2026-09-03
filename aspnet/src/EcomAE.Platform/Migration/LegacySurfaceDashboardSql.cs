@@ -323,6 +323,37 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>
+    /// Guest checkout lookup (PHP <c>ajax_check_order_not_authorized.php</c>).
+    /// Never omit <c>user_id = 0</c> — registered orders must not leak here.
+    /// Email/phone are matched in C# after fetch.
+    /// </summary>
+    public const string SelectGuestOrder = """
+        SELECT o.`id`,
+               IFNULL(o.`time`, 0) AS time,
+               IFNULL(o.`paid`, 0) AS paid,
+               IFNULL(o.`successfully_created`, 0) AS successfully_created,
+               IFNULL(o.`status`, 0) AS status,
+               IFNULL(o.`office_id`, 0) AS office_id,
+               IFNULL(o.`email_not_auth`, '') AS email_not_auth,
+               IFNULL(o.`phone_not_auth`, '') AS phone_not_auth,
+               IFNULL((
+                   SELECT SUM(i.`price` * i.`count_need`)
+                   FROM `shop_orders_items` i
+                   WHERE i.`order_id` = o.`id`
+               ), 0) AS sum,
+               IFNULL((
+                   SELECT m.`caption`
+                   FROM `shop_obtaining_modes` m
+                   WHERE m.`id` = o.`how_get`
+                   LIMIT 1
+               ), '') AS obtain_caption
+        FROM `shop_orders` o
+        WHERE o.`id` = @orderId
+          AND o.`user_id` = 0
+        LIMIT 1
+        """;
+
     /// <summary>Customer-scoped order lines (PHP <c>my_orders_items.php</c>). Never omit the user join.</summary>
     public const string SelectCustomerOrderItems = """
         SELECT i.`id`, i.`order_id`,

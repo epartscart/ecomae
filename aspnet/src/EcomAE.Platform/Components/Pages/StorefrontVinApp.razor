@@ -1,6 +1,9 @@
 @page "/storefront/vin-app"
 @layout Layout.PhpChromeLayout
+@using System.Text.Json
+@using EcomAE.Platform.Api.Catalog
 @using EcomAE.Platform.Presentation
+@inject ICatalogOfflineCacheService OfflineCache
 @inject IHttpContextAccessor Http
 @inject NavigationManager Navigation
 
@@ -47,9 +50,21 @@
     {
         <div class="epc-sf-vin-panel" style="padding:1.1rem 1.2rem;color:#334155" aria-label="VIN decode workspace">
             <p style="margin:0 0 .65rem;font-weight:700">VIN / frame: @_vin</p>
-            <p style="margin:0 0 .85rem;color:#64748b;font-size:.9rem;line-height:1.45">
-                Continue to live stock, a seller request, or the vehicle catalog.
-            </p>
+            @if (_cacheHit)
+            {
+                <p style="margin:0 0 .35rem;color:#166534;font-weight:700">Cached decode</p>
+                <p style="margin:0 0 .35rem">Make: @(_manufacturer.Length > 0 ? _manufacturer : "—")</p>
+                <p style="margin:0 0 .85rem">Model: @(_modelLabel.Length > 0 ? _modelLabel : "—")</p>
+            }
+            else
+            {
+                <p style="margin:0 0 .65rem;color:#b45309;font-weight:700">
+                    @(_cacheCode == "invalid_vin" ? "Enter a VIN of 11–17 characters." : "Not in cache. Live Laximo decode stays on the classic catalog.")
+                </p>
+                <p style="margin:0 0 .85rem;color:#64748b;font-size:.9rem;line-height:1.45">
+                    Continue to live stock, a seller request, or the vehicle catalog.
+                </p>
+            }
             <p>
                 <a class="btn btn-sm btn-primary" href="@StorefrontSurfaceLinks.PartSearch">Part search</a>
                 <a class="btn btn-sm btn-default" href="@StorefrontSurfaceLinks.SellerRequest">Request to seller</a>
@@ -68,6 +83,10 @@
 @code {
     private string _brand = "eParts Cart";
     private string _vin = "";
+    private bool _cacheHit;
+    private string _cacheCode = "";
+    private string _manufacturer = "";
+    private string _modelLabel = "";
 
     [SupplyParameterFromQuery(Name = "identString")]
     public string? IdentString { get; set; }
@@ -75,12 +94,45 @@
     [SupplyParameterFromQuery(Name = "vin")]
     public string? VinAlias { get; set; }
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
         _vin = FirstNonEmpty(IdentString, VinAlias);
         var ctx = Http.HttpContext;
-        if (ctx is null) return;
-        _brand = StorefrontIndustryHostResolver.ResolveBrandLabel(ctx.Request.Host.Host);
+        if (ctx is not null)
+        {
+            _brand = StorefrontIndustryHostResolver.ResolveBrandLabel(ctx.Request.Host.Host);
+        }
+
+        if (string.IsNullOrWhiteSpace(_vin))
+        {
+            return;
+        }
+
+        var result = await OfflineCache.LookupVinAsync(_vin, "en", "WWW", ctx?.RequestAborted ?? default);
+        _cacheHit = result.Ok;
+        _cacheCode = result.Code ?? string.Empty;
+        if (result.Ok && result.Payload is not null)
+        {
+            try
+            {
+                using var doc = JsonDocument.Parse(JsonSerializer.Serialize(result.Payload));
+                var root = doc.RootElement;
+                if (root.TryGetProperty("manufacturer", out var make) && make.ValueKind == JsonValueKind.String)
+                {
+                    _manufacturer = make.GetString() ?? string.Empty;
+                }
+
+                if (root.TryGetProperty("model_label", out var model) && model.ValueKind == JsonValueKind.String)
+                {
+                    _modelLabel = model.GetString() ?? string.Empty;
+                }
+            }
+            catch (JsonException)
+            {
+                _cacheHit = false;
+                _cacheCode = "vin_cache_invalid";
+            }
+        }
     }
 
     private void OnSubmit()

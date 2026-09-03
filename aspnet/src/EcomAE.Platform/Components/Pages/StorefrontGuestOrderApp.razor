@@ -2,7 +2,10 @@
 @page "/en/shop/orders/guest"
 @page "/shop/orders/guest"
 @layout Layout.PhpChromeLayout
+@using System.Globalization
+@using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
+@inject ISurfaceDashboardSummaryReporter Dashboards
 @inject IHttpContextAccessor Http
 
 <PageTitle>Track order · @_brand</PageTitle>
@@ -18,15 +21,41 @@
             </p>
             <h1 style="margin:.1rem 0 .4rem">Track a guest order</h1>
             <p style="color:#475569">Use the order number from checkout if you placed the order without signing in.</p>
-            <form method="post" action="@PhpCustomerWrites.GuestOrderWriteHref" style="background:#fff;border:1px solid #e2e8f0;border-radius:.55rem;padding:1.1rem 1.2rem">
+            <form method="get" style="background:#fff;border:1px solid #e2e8f0;border-radius:.55rem;padding:1.1rem 1.2rem">
                 <label for="order_id">Order number</label>
                 <input id="order_id" type="number" name="order_id" min="1" required value="@OrderId" style="width:100%;margin:.25rem 0 .75rem;padding:.5rem" />
                 <label for="email_not_auth">Email on the order</label>
-                <input id="email_not_auth" type="email" name="email_not_auth" required style="width:100%;margin:.25rem 0 .75rem;padding:.5rem" />
+                <input id="email_not_auth" type="email" name="email_not_auth" value="@EmailNotAuth" style="width:100%;margin:.25rem 0 .75rem;padding:.5rem" />
                 <label for="phone_not_auth">Phone on the order</label>
-                <input id="phone_not_auth" type="text" name="phone_not_auth" style="width:100%;margin:.25rem 0 1rem;padding:.5rem" />
-                <button type="submit" style="padding:.65rem 1.1rem;border:0;border-radius:.45rem;background:#0f766e;color:#fff;font-weight:800;cursor:pointer">Open order</button>
+                <input id="phone_not_auth" type="text" name="phone_not_auth" value="@PhoneNotAuth" style="width:100%;margin:.25rem 0 1rem;padding:.5rem" />
+                <button type="submit" style="padding:.65rem 1.1rem;border:0;border-radius:.45rem;background:#0f766e;color:#fff;font-weight:800;cursor:pointer">Look up order</button>
             </form>
+            @if (_lookedUp)
+            {
+                @if (_order is not null)
+                {
+                    <article style="margin-top:1rem;background:#fff;border:1px solid #e2e8f0;border-radius:.55rem;padding:1.1rem 1.2rem">
+                        <h2 style="margin:0 0 .65rem;font-size:1.05rem">Order #@_order.Id.ToString(CultureInfo.InvariantCulture)</h2>
+                        <p style="margin:0 0 .35rem;color:#334155">Created @_created</p>
+                        <p style="margin:0 0 .35rem;color:#334155">Status @_order.Status.ToString(CultureInfo.InvariantCulture) · Paid @(_order.Paid != 0 ? "Yes" : "No")</p>
+                        @if (!string.IsNullOrWhiteSpace(_order.ObtainCaption))
+                        {
+                            <p style="margin:0 0 .35rem;color:#334155">Collection @_order.ObtainCaption</p>
+                        }
+                        <p style="margin:0;color:#334155;font-weight:700">Sum @_order.Sum.ToString("0.00", CultureInfo.InvariantCulture)</p>
+                    </article>
+                    <form method="post" action="@PhpCustomerWrites.GuestOrderWriteHref" style="margin-top:.85rem">
+                        <input type="hidden" name="order_id" value="@_order.Id.ToString(CultureInfo.InvariantCulture)" />
+                        <input type="hidden" name="email_not_auth" value="@EmailNotAuth" />
+                        <input type="hidden" name="phone_not_auth" value="@PhoneNotAuth" />
+                        <button type="submit" style="padding:.55rem 1rem;border:1px solid #0f766e;border-radius:.45rem;background:#fff;color:#0f766e;font-weight:700;cursor:pointer">Pay / open classic order</button>
+                    </form>
+                }
+                else
+                {
+                    <p style="margin-top:1rem;color:#b45309">@(_message.Length > 0 ? _message : "Guest order not found. Signed-in orders are on My orders.")</p>
+                }
+            }
             <p style="margin-top:1rem"><a href="@StorefrontSurfaceLinks.Login">Sign in for a full order history</a></p>
         </div>
     </section>
@@ -34,12 +63,40 @@
 
 @code {
     private string _brand = "eParts Cart";
+    private bool _lookedUp;
+    private string _message = "";
+    private string _created = "";
+    private StorefrontGuestOrderDigest? _order;
 
     [SupplyParameterFromQuery(Name = "order_id")]
     public int? OrderId { get; set; }
 
-    protected override void OnInitialized()
+    [SupplyParameterFromQuery(Name = "email_not_auth")]
+    public string? EmailNotAuth { get; set; }
+
+    [SupplyParameterFromQuery(Name = "phone_not_auth")]
+    public string? PhoneNotAuth { get; set; }
+
+    protected override async Task OnInitializedAsync()
     {
         _brand = StorefrontIndustryHostResolver.ResolveBrandLabel(Http.HttpContext?.Request.Host.Host);
+        if (OrderId is not > 0)
+        {
+            return;
+        }
+
+        _lookedUp = true;
+        var result = await Dashboards.GetStorefrontGuestOrderAsync(
+            OrderId.Value,
+            EmailNotAuth,
+            PhoneNotAuth,
+            Http.HttpContext?.RequestAborted ?? default);
+        _order = result.Order;
+        _message = result.Message ?? string.Empty;
+        if (_order is not null && _order.TimeUnix > 0)
+        {
+            var created = DateTimeOffset.FromUnixTimeSeconds(_order.TimeUnix).ToLocalTime();
+            _created = created.ToString("dd.MM.yyyy HH:mm", CultureInfo.InvariantCulture);
+        }
     }
 }

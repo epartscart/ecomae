@@ -4,7 +4,9 @@
 @page "/en/shop/offices"
 @page "/shop/offices"
 @layout Layout.PhpChromeLayout
+@using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
+@inject ISurfaceDashboardSummaryReporter Dashboards
 @inject IHttpContextAccessor Http
 
 <PageTitle>Pickup points · @_brand</PageTitle>
@@ -40,7 +42,7 @@
     private string _lead = "Collect your order from a warehouse counter.";
     private IReadOnlyList<PhpStorefrontOffices.Office> _offices = [];
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
         var host = Http.HttpContext?.Request.Host.Host;
         var industry = StorefrontIndustryHostResolver.ResolveIndustryCode(host);
@@ -54,5 +56,20 @@
             "tax_advisory" or "consultancy" => ("Offices", "Meet an advisor at a Taxofinca desk."),
             _ => ("Pickup points", "Collect spare-parts orders from a warehouse counter."),
         };
+
+        var digest = await Dashboards.BuildCpOfficesDigestAsync(40, Http.HttpContext?.RequestAborted ?? default);
+        if (digest.Offices.Count == 0)
+        {
+            return;
+        }
+
+        _offices = digest.Offices
+            .Select(o => new PhpStorefrontOffices.Office(
+                string.IsNullOrWhiteSpace(o.Caption) ? ("Office #" + o.Id.ToString(System.Globalization.CultureInfo.InvariantCulture)) : o.Caption,
+                o.City,
+                o.Address,
+                "See store",
+                o.Phone))
+            .ToList();
     }
 }
