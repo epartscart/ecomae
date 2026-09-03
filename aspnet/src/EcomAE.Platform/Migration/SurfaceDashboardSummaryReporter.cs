@@ -12386,14 +12386,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                 await using var reader = await list.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
                 while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
                 {
-                    rows.Add(new CpFulfillmentQueueRowDigest(
-                        Convert.ToInt64(reader["id"] is DBNull ? 0 : reader["id"], CultureInfo.InvariantCulture),
-                        Convert.ToString(reader["order_number"] is DBNull ? string.Empty : reader["order_number"], CultureInfo.InvariantCulture) ?? string.Empty,
-                        Convert.ToString(reader["customer_name"] is DBNull ? string.Empty : reader["customer_name"], CultureInfo.InvariantCulture) ?? string.Empty,
-                        Convert.ToString(reader["status"] is DBNull ? string.Empty : reader["status"], CultureInfo.InvariantCulture) ?? string.Empty,
-                        Convert.ToString(reader["priority"] is DBNull ? string.Empty : reader["priority"], CultureInfo.InvariantCulture) ?? string.Empty,
-                        Convert.ToString(reader["warehouse"] is DBNull ? string.Empty : reader["warehouse"], CultureInfo.InvariantCulture) ?? string.Empty,
-                        Convert.ToString(reader["carrier"] is DBNull ? string.Empty : reader["carrier"], CultureInfo.InvariantCulture) ?? string.Empty));
+                    rows.Add(ReadCpFulfillmentQueueRow(reader));
                 }
             }
 
@@ -12405,6 +12398,153 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             var err = empty with { Source = "database-error", Message = ex.Message };
             return new(err, [], 0, "database-error", ex.Message);
         }
+    }
+
+    public async Task<CpFulfillmentDetailDigest?> GetCpFulfillmentDetailAsync(long fulfillmentId, CancellationToken cancellationToken = default)
+    {
+        if (fulfillmentId <= 0 || !_connections.IsConfigured)
+        {
+            return null;
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            await using var headerCmd = connection.CreateCommand();
+            headerCmd.CommandText = LegacySurfaceDashboardSql.SelectCpFulfillmentOrderById;
+            AddParameter(headerCmd, "@fulfillmentId", fulfillmentId);
+            await using var headerReader = await headerCmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            if (!await headerReader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                return null;
+            }
+
+            var header = ReadCpFulfillmentDetailHeader(headerReader);
+            await headerReader.DisposeAsync().ConfigureAwait(false);
+
+            var items = new List<CpFulfillmentItemDigest>();
+            try
+            {
+                await using var itemsCmd = connection.CreateCommand();
+                itemsCmd.CommandText = LegacySurfaceDashboardSql.SelectCpFulfillmentItems;
+                AddParameter(itemsCmd, "@fulfillmentId", fulfillmentId);
+                await using var itemsReader = await itemsCmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await itemsReader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    items.Add(new CpFulfillmentItemDigest(
+                        ReaderInt64(itemsReader, "id"),
+                        ReaderString(itemsReader, "sku"),
+                        ReaderString(itemsReader, "product_name"),
+                        ReaderInt32(itemsReader, "qty_ordered"),
+                        ReaderInt32(itemsReader, "qty_picked"),
+                        ReaderInt32(itemsReader, "qty_packed"),
+                        ReaderString(itemsReader, "bin_location"),
+                        ReaderDecimal(itemsReader, "weight"),
+                        ReaderString(itemsReader, "pick_status"),
+                        ReaderString(itemsReader, "notes")));
+                }
+            }
+            catch
+            {
+                // Item columns vary by tenant schema — header pane still works.
+            }
+
+            return header with { Items = items, Source = "database", Message = string.Empty };
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    private static CpFulfillmentQueueRowDigest ReadCpFulfillmentQueueRow(System.Data.Common.DbDataReader reader)
+    {
+        return new CpFulfillmentQueueRowDigest(
+            ReaderInt64(reader, "id"),
+            ReaderString(reader, "order_number"),
+            ReaderString(reader, "customer_name"),
+            ReaderString(reader, "status"),
+            ReaderString(reader, "priority"),
+            ReaderString(reader, "warehouse"),
+            ReaderString(reader, "carrier"),
+            ReaderInt64(reader, "order_id"),
+            ReaderString(reader, "assigned_name"),
+            ReaderString(reader, "tracking_number"),
+            ReaderInt32(reader, "total_items"),
+            ReaderInt64(reader, "wave_id"));
+    }
+
+    private static CpFulfillmentDetailDigest ReadCpFulfillmentDetailHeader(System.Data.Common.DbDataReader reader)
+    {
+        return new CpFulfillmentDetailDigest(
+            ReaderInt64(reader, "id"),
+            ReaderInt64(reader, "order_id"),
+            ReaderString(reader, "order_number"),
+            ReaderString(reader, "customer_name"),
+            ReaderString(reader, "status"),
+            ReaderString(reader, "priority"),
+            ReaderString(reader, "warehouse"),
+            ReaderString(reader, "assigned_name"),
+            ReaderInt64(reader, "wave_id"),
+            ReaderString(reader, "carrier"),
+            ReaderString(reader, "tracking_number"),
+            ReaderString(reader, "shipping_method"),
+            ReaderInt32(reader, "total_items"),
+            ReaderDecimal(reader, "total_weight"),
+            ReaderString(reader, "ship_address"),
+            ReaderString(reader, "notes"),
+            ReaderString(reader, "created_at"),
+            ReaderString(reader, "pick_started_at"),
+            ReaderString(reader, "pick_completed_at"),
+            ReaderString(reader, "pack_completed_at"),
+            ReaderString(reader, "ship_date"),
+            [],
+            "database",
+            string.Empty);
+    }
+
+    private static string ReaderString(System.Data.Common.DbDataReader reader, string name)
+    {
+        if (!HasColumn(reader, name))
+        {
+            return string.Empty;
+        }
+
+        var value = reader[name];
+        return Convert.ToString(value is DBNull ? string.Empty : value, CultureInfo.InvariantCulture) ?? string.Empty;
+    }
+
+    private static long ReaderInt64(System.Data.Common.DbDataReader reader, string name)
+    {
+        if (!HasColumn(reader, name))
+        {
+            return 0;
+        }
+
+        var value = reader[name];
+        return Convert.ToInt64(value is DBNull ? 0 : value, CultureInfo.InvariantCulture);
+    }
+
+    private static int ReaderInt32(System.Data.Common.DbDataReader reader, string name)
+    {
+        if (!HasColumn(reader, name))
+        {
+            return 0;
+        }
+
+        var value = reader[name];
+        return Convert.ToInt32(value is DBNull ? 0 : value, CultureInfo.InvariantCulture);
+    }
+
+    private static decimal ReaderDecimal(System.Data.Common.DbDataReader reader, string name)
+    {
+        if (!HasColumn(reader, name))
+        {
+            return 0m;
+        }
+
+        var value = reader[name];
+        return Convert.ToDecimal(value is DBNull ? 0m : value, CultureInfo.InvariantCulture);
     }
 
 

@@ -488,6 +488,8 @@ public static class EcomAeRoutes
     public const string ControlPanelCustomerBoardApp = "/cp/customer-board-app";
     public const string ControlPanelFulfillmentQueue = "/cp/fulfillment-queue";
     public const string ControlPanelFulfillmentQueueApp = "/cp/fulfillment-queue-app";
+    /// <summary>Read-only PHP <c>epc_fulfillment_get</c> digest for one fulfillment order.</summary>
+    public const string ControlPanelFulfillmentQueueDetailDigest = "/cp/fulfillment-queue-detail-digest/{fulfillmentId:long}";
     public const string ControlPanelSsoSaml = "/cp/sso-saml";
     public const string ControlPanelSsoSamlApp = "/cp/sso-saml-app";
     public const string ControlPanelEventBus = "/cp/event-bus";

@@ -55,6 +55,8 @@ public sealed class PhpSurfaceLinkMapTests
     [InlineData("https://www.ecomae.com/bos/what-is-a-business-operating-system", "/bos/what-is-a-business-operating-system")]
     [InlineData("/CP/shop/tenant_hub/tenant_hub", "/cp/tenants-app")]
     [InlineData("/CP/control/portal/epc_platform_health_checkup", "/cp/failover-status-app")]
+    [InlineData("/CP/shop/finance/epc_fulfillment_queue", "/cp/fulfillment-queue-app")]
+    [InlineData("/CP/shop/finance/epc_fulfillment_queue?fulfillment_id=12", "/cp/fulfillment-queue-app?fulfillment_id=12")]
     public void AspNetPrimaryHref_MapsPhpProductToAspNet(string phpHref, string expected)
     {
         Assert.Equal(expected, PhpSurfaceLinkMap.AspNetPrimaryHref(phpHref));

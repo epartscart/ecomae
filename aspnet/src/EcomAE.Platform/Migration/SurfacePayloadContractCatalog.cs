@@ -1127,7 +1127,7 @@ public static class SurfacePayloadContractCatalog
         new("cp", "social-hub Blazor list", "/cp/social-hub-app", "presentation-shell-scaffolded", "Read UI over /cp/social-hub digest; credentials omitted; portal_social dry-run; tenant chrome stays PHP."),
         new("cp", "tenant-features Blazor list", "/cp/tenant-features-app", "presentation-shell-scaffolded", "Super-only read UI over /cp/tenant-features; save_feature_flags dry-run."),
         new("cp", "customer-board Blazor list", "/cp/customer-board-app", "presentation-shell-scaffolded", "Super-only read UI over /cp/customer-board; customer writes remain PHP."),
-        new("cp", "fulfillment-queue Blazor list", "/cp/fulfillment-queue-app", "presentation-shell-scaffolded", "Read UI over /cp/fulfillment-queue; OMS stage dry-run; PHP remains authoritative."),
+        new("cp", "fulfillment-queue Blazor list", "/cp/fulfillment-queue-app", "digest-wired-awaiting-dual-sample", "PHP-parity dual-pane fulfilment queue (epc_fulfillment_get) + KPI/detail digests; OMS stage dry-run; writes remain PHP."),
         new("cp", "sso-saml Blazor list", "/cp/sso-saml-app", "presentation-shell-scaffolded", "Super-only read UI over /cp/sso-saml; certs/metadata omitted."),
         new("cp", "event-bus Blazor list", "/cp/event-bus-app", "presentation-shell-scaffolded", "Super-only MySQL epc_events peek; no Kafka/Rabbit."),
 

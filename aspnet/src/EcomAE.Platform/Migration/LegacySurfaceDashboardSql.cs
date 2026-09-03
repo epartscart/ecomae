@@ -1988,10 +1988,45 @@ public static class LegacySurfaceDashboardSql
     public const string SelectCpFulfillmentQueueRows = """
         SELECT `id`, IFNULL(`order_number`,'') AS order_number, IFNULL(`customer_name`,'') AS customer_name,
                IFNULL(`status`,'') AS status, IFNULL(`priority`,'') AS priority,
-               IFNULL(`warehouse`,'') AS warehouse, IFNULL(`carrier`,'') AS carrier
+               IFNULL(`warehouse`,'') AS warehouse, IFNULL(`carrier`,'') AS carrier,
+               IFNULL(`order_id`,0) AS order_id, IFNULL(`assigned_name`,'') AS assigned_name,
+               IFNULL(`tracking_number`,'') AS tracking_number, IFNULL(`total_items`,0) AS total_items,
+               IFNULL(`wave_id`,0) AS wave_id
         FROM `epc_fulfillment_orders`
-        ORDER BY `id` DESC
+        ORDER BY FIELD(`priority`, 'urgent', 'high', 'normal', 'low'), `created_at` ASC, `id` ASC
         LIMIT @limit
+        """;
+
+    /// <summary>PHP <c>epc_fulfillment_get</c> header from <c>epc_fulfillment_orders</c>.</summary>
+    public const string SelectCpFulfillmentOrderById = """
+        SELECT `id`, IFNULL(`order_id`,0) AS order_id, IFNULL(`order_number`,'') AS order_number,
+               IFNULL(`customer_name`,'') AS customer_name, IFNULL(`status`,'') AS status,
+               IFNULL(`priority`,'') AS priority, IFNULL(`warehouse`,'') AS warehouse,
+               IFNULL(`assigned_name`,'') AS assigned_name, IFNULL(`wave_id`,0) AS wave_id,
+               IFNULL(`carrier`,'') AS carrier, IFNULL(`tracking_number`,'') AS tracking_number,
+               IFNULL(`shipping_method`,'') AS shipping_method, IFNULL(`total_items`,0) AS total_items,
+               IFNULL(`total_weight`,0) AS total_weight, IFNULL(`ship_address`,'') AS ship_address,
+               IFNULL(`notes`,'') AS notes,
+               DATE_FORMAT(`created_at`, '%Y-%m-%d %H:%i:%s') AS created_at,
+               DATE_FORMAT(`pick_started_at`, '%Y-%m-%d %H:%i:%s') AS pick_started_at,
+               DATE_FORMAT(`pick_completed_at`, '%Y-%m-%d %H:%i:%s') AS pick_completed_at,
+               DATE_FORMAT(`pack_completed_at`, '%Y-%m-%d %H:%i:%s') AS pack_completed_at,
+               DATE_FORMAT(`ship_date`, '%Y-%m-%d %H:%i:%s') AS ship_date
+        FROM `epc_fulfillment_orders`
+        WHERE `id` = @fulfillmentId
+        LIMIT 1
+        """;
+
+    /// <summary>PHP <c>epc_fulfillment_get</c> lines from <c>epc_fulfillment_items</c>.</summary>
+    public const string SelectCpFulfillmentItems = """
+        SELECT `id`, IFNULL(`sku`,'') AS sku, IFNULL(`product_name`,'') AS product_name,
+               IFNULL(`qty_ordered`,0) AS qty_ordered, IFNULL(`qty_picked`,0) AS qty_picked,
+               IFNULL(`qty_packed`,0) AS qty_packed, IFNULL(`bin_location`,'') AS bin_location,
+               IFNULL(`weight`,0) AS weight, IFNULL(`pick_status`,'') AS pick_status,
+               IFNULL(`notes`,'') AS notes
+        FROM `epc_fulfillment_items`
+        WHERE `fulfillment_id` = @fulfillmentId
+        ORDER BY `sku`
         """;
 
     public const string SelectCpSsoSamlStats = """
