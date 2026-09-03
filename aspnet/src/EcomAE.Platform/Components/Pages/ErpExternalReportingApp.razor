@@ -142,7 +142,7 @@
                 Country &amp; law resolve from your registration: <strong>@_regName (@_regCountry)</strong>.
             </p>
             <div class="alert alert-info" style="font-size:12px;margin:10px 0 0;">
-                <i class="fa fa-bookmark"></i> <strong>FY@_targetYear presentation:</strong> IFRS 18 early applied — five P&amp;L categories, three mandatory subtotals, separate OCI, MPM assessment. Mandatory IFRS 18 periods begin on/after 1 Jan 2027; earlier application is permitted.
+                <i class="fa fa-bookmark"></i> <strong>FY@(_targetYear) presentation:</strong> IFRS 18 early applied — five P&amp;L categories, three mandatory subtotals, separate OCI, MPM assessment. Mandatory IFRS 18 periods begin on/after 1 Jan 2027; earlier application is permitted.
             </div>
             <div class="epc-ext-steps">
                 @foreach (var sn in new[] { 1, 2, 3, 4, 5 })
@@ -169,7 +169,7 @@
                     <select class="form-control input-sm" @bind="_targetYear">
                         @for (var yy = DateTime.UtcNow.Year + 1; yy >= DateTime.UtcNow.Year - 4; yy--)
                         {
-                            <option value="@yy">FY@yy (comparative FY@(yy - 1))</option>
+                            <option value="@yy">FY@(yy) (comparative FY@(yy - 1))</option>
                         }
                     </select>
                     <label style="font-size:12px;display:block;margin:8px 0 4px;">Business units / divisions <span class="text-muted">(optional — comma-separated)</span></label>
@@ -316,7 +316,7 @@
         @if (ErpExternalReportingCatalog.Ifrs18Applies(DateTime.UtcNow.Year))
         {
             <div class="epc-erp-section epc-ext-ifrs">
-                <div style="font-weight:800;color:#0b6e99;font-size:14px;"><i class="fa fa-balance-scale"></i> New laws refresh — FY@DateTime.UtcNow.Year reporting pack</div>
+                <div style="font-weight:800;color:#0b6e99;font-size:14px;"><i class="fa fa-balance-scale"></i> New laws refresh — FY@(DateTime.UtcNow.Year) reporting pack</div>
                 <div class="text-muted" style="font-size:12px;margin-top:6px;line-height:1.55;">
                     <strong>IFRS 18</strong> early applied for financial statements &amp; audit packs (five P&amp;L categories, three mandatory subtotals; IAS 1 superseded for presentation). Mandatory IFRS 18 periods begin on/after 1 Jan 2027.
                     @if (_regCountry == "AE")
