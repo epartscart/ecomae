@@ -123,6 +123,262 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    public async Task<ErpWorkspaceHomeDigest> BuildErpWorkspaceHomeAsync(CancellationToken cancellationToken = default)
+    {
+        using var activity = EcomAeActivitySources.Surfaces.StartActivity("surface.erp.workspace-home");
+        activity?.SetTag("ecomae.surface", "erp");
+        activity?.SetTag("ecomae.digest", "/erp/workspace-home");
+
+        var nowDt = DateTime.UtcNow;
+        var periodFrom = new DateTime(nowDt.Year, nowDt.Month, 1, 0, 0, 0, DateTimeKind.Utc);
+        var periodTo = nowDt;
+        var periodFromStr = periodFrom.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+        var periodToStr = periodTo.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+        var empty = EmptyErpWorkspaceHome("migration", "TenantRegistry DB is not configured.", periodFromStr, periodToStr);
+        if (!_connections.IsConfigured)
+        {
+            return empty;
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            var now = new DateTimeOffset(periodTo).ToUnixTimeSeconds();
+            var monthStart = new DateTimeOffset(periodFrom).ToUnixTimeSeconds();
+            var span = Math.Max(1, now - monthStart);
+            var prevTo = monthStart - 1;
+            var prevFrom = prevTo - span;
+            var periodKey = nowDt.ToString("yyyy-MM", CultureInfo.InvariantCulture);
+            var overdueBefore = now - (86400L * 30);
+
+            var currentSummary = await ReadErpDashboardForPeriodAsync(
+                connection, monthStart, now, periodKey, overdueBefore, cancellationToken).ConfigureAwait(false);
+            var prevSummary = await ReadErpDashboardForPeriodAsync(
+                connection, prevFrom, prevTo, periodKey, overdueBefore, cancellationToken).ConfigureAwait(false);
+
+            var curExtras = await ReadWorkspaceExtrasAsync(connection, monthStart, now, cancellationToken).ConfigureAwait(false);
+            var prevExtras = await ReadWorkspaceExtrasAsync(connection, prevFrom, prevTo, cancellationToken).ConfigureAwait(false);
+
+            var current = ToWorkspacePeriod(currentSummary, curExtras);
+            var previous = ToWorkspacePeriod(prevSummary, prevExtras);
+
+            var trend = new List<ErpWorkspaceTrendPoint>(6);
+            for (var i = 5; i >= 0; i--)
+            {
+                var m = new DateTime(nowDt.Year, nowDt.Month, 1, 0, 0, 0, DateTimeKind.Utc).AddMonths(-i);
+                var mFrom = new DateTimeOffset(m).ToUnixTimeSeconds();
+                var mTo = new DateTimeOffset(m.AddMonths(1).AddSeconds(-1)).ToUnixTimeSeconds();
+                var rev = await ScalarDecimalParamSafeAsync(
+                    connection, LegacySurfaceDashboardSql.SumErpCcRevenueExVat, cancellationToken,
+                    ("@dateFrom", mFrom), ("@dateTo", mTo)).ConfigureAwait(false);
+                var purch = await ScalarDecimalParamSafeAsync(
+                    connection, LegacySurfaceDashboardSql.SumErpWorkspacePurchaseExVat, cancellationToken,
+                    ("@dateFrom", mFrom), ("@dateTo", mTo)).ConfigureAwait(false);
+                trend.Add(new(m.ToString("MMM yy", CultureInfo.InvariantCulture), Math.Round(rev, 2), Math.Round(rev - purch, 2)));
+            }
+
+            var depts = new List<ErpWorkspaceDeptLoad>();
+            try
+            {
+                await using var cmd = connection.CreateCommand();
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectErpWorkspaceProcessByDepartment;
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    var code = Convert.ToString(reader["dept"] is DBNull ? string.Empty : reader["dept"], CultureInfo.InvariantCulture) ?? string.Empty;
+                    var n = Convert.ToInt32(reader["n"] is DBNull ? 0 : reader["n"], CultureInfo.InvariantCulture);
+                    depts.Add(new(code, ErpNetsuiteDashboardCatalog.DepartmentName(code), n));
+                }
+            }
+            catch
+            {
+                // process-flow table optional
+            }
+
+            var performers = new List<ErpWorkspacePerformer>();
+            try
+            {
+                await using var cmd = connection.CreateCommand();
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectErpWorkspaceTopPerformers;
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    var assignee = Convert.ToInt64(reader["assignee"] is DBNull ? 0 : reader["assignee"], CultureInfo.InvariantCulture);
+                    var dept = Convert.ToString(reader["dept"] is DBNull ? string.Empty : reader["dept"], CultureInfo.InvariantCulture) ?? string.Empty;
+                    var n = Convert.ToInt32(reader["n"] is DBNull ? 0 : reader["n"], CultureInfo.InvariantCulture);
+                    if (n <= 0) continue;
+                    var name = assignee > 0 ? "Staff #" + assignee.ToString(CultureInfo.InvariantCulture) : "Unassigned";
+                    performers.Add(new(name, ErpNetsuiteDashboardCatalog.DepartmentName(dept), n));
+                }
+            }
+            catch
+            {
+                // process-flow table optional
+            }
+
+            var arLabels = new[] { "Not due", "1-30", "31-60", "61-90", "90+" };
+            var arTotals = new decimal[] { 0, 0, 0, 0, 0 };
+            var arGrand = 0m;
+            try
+            {
+                var aging = await BuildErpAgingDigestAsync(200, cancellationToken).ConfigureAwait(false);
+                if (aging.ArLabels.Count > 0)
+                {
+                    arLabels = aging.ArLabels.ToArray();
+                }
+
+                arGrand = aging.Summary.ArGrand;
+                var totals = new decimal[Math.Max(5, arLabels.Length)];
+                foreach (var row in aging.ArRows)
+                {
+                    if (totals.Length > 0) totals[0] += row.Bucket0;
+                    if (totals.Length > 1) totals[1] += row.Bucket1;
+                    if (totals.Length > 2) totals[2] += row.Bucket2;
+                    if (totals.Length > 3) totals[3] += row.Bucket3;
+                    if (totals.Length > 4) totals[4] += row.Bucket4;
+                }
+
+                arTotals = totals;
+                if (arGrand <= 0 && totals.Sum() > 0)
+                {
+                    arGrand = totals.Sum();
+                }
+            }
+            catch
+            {
+                // aging optional
+            }
+
+            var topSuppliers = new List<ErpWorkspaceSupplierSpend>();
+            try
+            {
+                var portal = await BuildErpSupplierPortalDigestAsync(20, cancellationToken).ConfigureAwait(false);
+                topSuppliers.AddRange(
+                    portal.Cards
+                        .OrderByDescending(c => c.Spend)
+                        .Take(5)
+                        .Select(c => new ErpWorkspaceSupplierSpend(c.Name, c.Rating, c.Spend, c.PoCount, c.Score)));
+            }
+            catch
+            {
+                // supplier portal optional
+            }
+
+            var danger = current.LowStockItems;
+            var warning = 0;
+            var info = 0;
+            var dead = 0;
+            try
+            {
+                var planning = await BuildErpOrderPlanningDigestAsync(200, cancellationToken).ConfigureAwait(false);
+                warning = planning.PendingCount;
+            }
+            catch
+            {
+                // planning optional
+            }
+
+            var alerts = new ErpWorkspacePlanningAlerts(danger, warning, info, dead, danger + warning + info + dead);
+            return new(
+                current,
+                previous,
+                trend,
+                arLabels,
+                arTotals,
+                arGrand,
+                topSuppliers,
+                alerts,
+                depts,
+                performers,
+                periodFromStr,
+                periodToStr,
+                currentSummary.Source,
+                currentSummary.Message);
+        }
+        catch (Exception ex)
+        {
+            return EmptyErpWorkspaceHome("database-error", ex.Message, periodFromStr, periodToStr);
+        }
+    }
+
+    private async Task<ErpDashboardSummary> ReadErpDashboardForPeriodAsync(
+        DbConnection connection,
+        long dateFrom,
+        long dateTo,
+        string periodKey,
+        long overdueBefore,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            return await ReadErpDashboardBatchAsync(
+                connection, dateFrom, dateTo, periodKey, overdueBefore, cancellationToken).ConfigureAwait(false);
+        }
+        catch
+        {
+            return await ReadErpDashboardScalarsAsync(
+                connection, dateFrom, dateTo, periodKey, overdueBefore, cancellationToken).ConfigureAwait(false);
+        }
+    }
+
+    private static async Task<(decimal PurchaseExVat, decimal SalesInclVat, decimal DueOrders, int ConfirmedSo, int OpenPo, int InvoicesDue, int Busy, int Headcount)>
+        ReadWorkspaceExtrasAsync(DbConnection connection, long dateFrom, long dateTo, CancellationToken cancellationToken)
+    {
+        var purchase = await ScalarDecimalParamSafeAsync(
+            connection, LegacySurfaceDashboardSql.SumErpWorkspacePurchaseExVat, cancellationToken,
+            ("@dateFrom", dateFrom), ("@dateTo", dateTo)).ConfigureAwait(false);
+        var salesIncl = await ScalarDecimalParamSafeAsync(
+            connection, LegacySurfaceDashboardSql.SumErpWorkspaceSalesInclVat, cancellationToken,
+            ("@dateFrom", dateFrom), ("@dateTo", dateTo)).ConfigureAwait(false);
+        var due = await ScalarDecimalParamSafeAsync(
+            connection, LegacySurfaceDashboardSql.SumErpWorkspaceReceivableDueOrders, cancellationToken,
+            ("@dateFrom", dateFrom), ("@dateTo", dateTo)).ConfigureAwait(false);
+        var confirmed = await ScalarIntSafeAsync(connection, LegacySurfaceDashboardSql.CountErpWorkspaceConfirmedSalesOrders, cancellationToken).ConfigureAwait(false);
+        var openPo = await ScalarIntSafeAsync(connection, LegacySurfaceDashboardSql.CountErpWorkspaceOpenPurchaseOrders, cancellationToken).ConfigureAwait(false);
+        var invDue = await ScalarIntSafeAsync(connection, LegacySurfaceDashboardSql.CountErpWorkspaceInvoicesDue, cancellationToken).ConfigureAwait(false);
+        var busy = await ScalarIntSafeAsync(connection, LegacySurfaceDashboardSql.CountErpWorkspaceProcessBusy, cancellationToken).ConfigureAwait(false);
+        var head = await ScalarIntSafeAsync(connection, LegacySurfaceDashboardSql.CountErpWorkspaceProcessHeadcount, cancellationToken).ConfigureAwait(false);
+        return (purchase, salesIncl, due, confirmed, openPo, invDue, busy, head);
+    }
+
+    private static ErpWorkspacePeriodKpis ToWorkspacePeriod(
+        ErpDashboardSummary s,
+        (decimal PurchaseExVat, decimal SalesInclVat, decimal DueOrders, int ConfirmedSo, int OpenPo, int InvoicesDue, int Busy, int Headcount) x)
+    {
+        var purchase = x.PurchaseExVat;
+        var profit = Math.Round(s.RevenueExVat - purchase, 2);
+        var ar = s.Receivables != 0 ? s.Receivables : s.ArBalance;
+        var ap = s.Payables != 0 ? s.Payables : s.ApBalance;
+        return new(
+            s.CashPosition,
+            s.RevenueExVat,
+            purchase,
+            profit,
+            ar,
+            ap,
+            s.StockValue,
+            s.VatNetPayable,
+            x.SalesInclVat,
+            x.DueOrders != 0 ? x.DueOrders : s.ArBalance,
+            s.ArBalance,
+            s.ApBalance,
+            s.OrdersCount,
+            s.InventoryItems,
+            s.DraftSalesOrders,
+            x.ConfirmedSo,
+            x.OpenPo > 0 ? x.OpenPo : s.PendingPurchaseOrders,
+            x.InvoicesDue,
+            s.OverdueInvoices,
+            s.UnpostedGlJournals,
+            s.LowStockItems,
+            s.ProcessOpen,
+            s.ProcessDone,
+            s.ProcessOverdue,
+            x.Busy,
+            x.Headcount,
+            string.IsNullOrWhiteSpace(s.PeriodStatus) ? "open" : s.PeriodStatus);
+    }
+
     private static async Task<ErpDashboardSummary> ReadErpDashboardBatchAsync(
         DbConnection connection,
         long monthStart,
@@ -9804,6 +10060,36 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             0, 0, 0, 0, 0, 0,
             0, 0, 0,
             source, message);
+
+    private static ErpWorkspaceHomeDigest EmptyErpWorkspaceHome(string source, string message, string periodFrom, string periodTo)
+    {
+        var zero = new ErpWorkspacePeriodKpis(
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "open");
+        var now = DateTime.UtcNow;
+        var trend = new ErpWorkspaceTrendPoint[6];
+        for (var i = 5; i >= 0; i--)
+        {
+            var m = new DateTime(now.Year, now.Month, 1, 0, 0, 0, DateTimeKind.Utc).AddMonths(-i);
+            trend[5 - i] = new(m.ToString("MMM yy", CultureInfo.InvariantCulture), 0, 0);
+        }
+
+        return new(
+            zero,
+            zero,
+            trend,
+            ["Not due", "1-30", "31-60", "61-90", "90+"],
+            [0, 0, 0, 0, 0],
+            0,
+            [],
+            new ErpWorkspacePlanningAlerts(0, 0, 0, 0, 0),
+            [],
+            [],
+            periodFrom,
+            periodTo,
+            source,
+            message);
+    }
 
     /// <summary>Mirrors PHP <c>epc_erp_cc_approval_queue</c> — only emits rows when count &gt; 0.</summary>
     public static IReadOnlyList<ErpApprovalQueueItemDigest> BuildErpApprovalQueue(ErpDashboardSummary s)

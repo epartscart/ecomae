@@ -4722,3 +4722,62 @@ public sealed record ErpInventoryReportDigestResult(
     IReadOnlyList<ErpInventoryReportCategoryDigest> Categories,
     IReadOnlyList<ErpInventoryReportSnapshotDigest> Snapshots,
     int Count, int SnapshotCount, decimal TotalValue, string Source, string Message);
+
+/// <summary>PHP <c>erp_dashboard_netsuite.php</c> period pulse (current or prior equal-length window).</summary>
+public sealed record ErpWorkspacePeriodKpis(
+    decimal CashPosition,
+    decimal RevenueExVat,
+    decimal PurchaseExVat,
+    decimal ProfitExVat,
+    decimal Receivables,
+    decimal Payables,
+    decimal StockValue,
+    decimal VatNetPayable,
+    decimal SalesInclVat,
+    decimal ReceivableDueOrders,
+    decimal ArBalance,
+    decimal ApBalance,
+    int OrdersCount,
+    int InventoryItems,
+    int DraftSalesOrders,
+    int ConfirmedSalesOrders,
+    int OpenPurchaseOrders,
+    int InvoicesDue,
+    int OverdueInvoices,
+    int UnpostedGlJournals,
+    int LowStockItems,
+    int ProcessOpen,
+    int ProcessDone,
+    int ProcessOverdue,
+    int ProcessBusy,
+    int ProcessHeadcount,
+    string PeriodStatus);
+
+public sealed record ErpWorkspaceTrendPoint(string Label, decimal Revenue, decimal Profit);
+
+public sealed record ErpWorkspaceSupplierSpend(string Name, string Rating, decimal Spend, int PoCount, decimal Score);
+
+public sealed record ErpWorkspacePlanningAlerts(int Danger, int Warning, int Info, int Dead, int Total);
+
+public sealed record ErpWorkspaceDeptLoad(string Code, string Name, int OpenCount);
+
+public sealed record ErpWorkspacePerformer(string Name, string Department, int Done);
+
+public sealed record ErpWorkspaceOpKpi(string Key, string Label, string Value, string Format, string Health, string Hint);
+
+/// <summary>Company ERP home digest — PHP NetSuite dashboard + executive cockpit.</summary>
+public sealed record ErpWorkspaceHomeDigest(
+    ErpWorkspacePeriodKpis Current,
+    ErpWorkspacePeriodKpis Previous,
+    IReadOnlyList<ErpWorkspaceTrendPoint> Trend,
+    IReadOnlyList<string> ArAgingLabels,
+    IReadOnlyList<decimal> ArAgingTotals,
+    decimal ArGrand,
+    IReadOnlyList<ErpWorkspaceSupplierSpend> TopSuppliers,
+    ErpWorkspacePlanningAlerts Alerts,
+    IReadOnlyList<ErpWorkspaceDeptLoad> DepartmentLoad,
+    IReadOnlyList<ErpWorkspacePerformer> TopPerformers,
+    string PeriodFrom,
+    string PeriodTo,
+    string Source,
+    string Message);
