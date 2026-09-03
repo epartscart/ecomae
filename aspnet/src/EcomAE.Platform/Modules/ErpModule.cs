@@ -1650,6 +1650,45 @@ public sealed class ErpModule : ISurfaceModule
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(false); return Results.Ok(dryRun.Evaluate(new ErpEinvoiceCreditNoteRequest(body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxEinvoicePollAsp, async (HttpContext context, ErpEinvoicePollAspBody? body, ILegacySessionValidator validator, IErpEinvoicePollAspDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(false); return Results.Ok(dryRun.Evaluate(new ErpEinvoicePollAspRequest(body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapGet(EcomAeRoutes.ErpTaxExternalReporting, async (
+            HttpContext context,
+            string? country,
+            ILegacySessionValidator validator,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+            {
+                return Unauthorized("Admin ERP capability required for external-reporting digest.");
+            }
+
+            var cc = ErpExternalReportingCatalog.NormalizeCountry(country);
+            var cats = ErpExternalReportingCatalog.Categories.Select(c =>
+            {
+                var stats = ErpExternalReportingCatalog.CategoryStats(c.Key);
+                return new { key = c.Key, label = c.Label, reports = stats.Count, live = stats.HasLive };
+            }).ToList();
+            return Results.Ok(new
+            {
+                ok = true,
+                surface = "erp",
+                summary = new
+                {
+                    categories = ErpExternalReportingCatalog.CategoryCount,
+                    reports = ErpExternalReportingCatalog.ReportCount,
+                    country = cc,
+                    country_name = ErpExternalReportingCatalog.CountryName(cc),
+                    ifrs18 = ErpExternalReportingCatalog.Ifrs18Applies(DateTime.UtcNow.Year),
+                },
+                categories = cats,
+                source = "catalog",
+                message = string.Empty,
+                session = SessionPayload(session),
+                note = "Read-only PHP epc_ext_reports_* catalogue. Fetch / import / intake generate stay PHP (writes=0 dry-run)."
+            });
+        });
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxExternalReportingFetch, async (HttpContext context, ErpExternalReportingFetchBody? body, ILegacySessionValidator validator, IErpExternalReportingFetchDryRun dryRun, CancellationToken cancellationToken) =>
+        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new("fetch", null, false); return Results.Ok(dryRun.Evaluate(new ErpExternalReportingFetchRequest(body.Action, body.ReportKey, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxOrderFulfillmentBootstrap, async (HttpContext context, ErpOrderFulfillmentBootstrapBody? body, ILegacySessionValidator validator, IErpOrderFulfillmentBootstrapDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(false); return Results.Ok(dryRun.Evaluate(new ErpOrderFulfillmentBootstrapRequest(body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxOrderFulfillmentStatus, async (HttpContext context, ErpOrderFulfillmentStatusBody? body, ILegacySessionValidator validator, IErpOrderFulfillmentStatusDryRun dryRun, CancellationToken cancellationToken) =>
@@ -3732,6 +3771,7 @@ public sealed class ErpModule : ISurfaceModule
     private sealed record ErpEinvoiceSubmitBody(long Id = 0, bool ConfirmWrites = false);
     private sealed record ErpEinvoiceCreditNoteBody(bool ConfirmWrites = false);
     private sealed record ErpEinvoicePollAspBody(bool ConfirmWrites = false);
+    private sealed record ErpExternalReportingFetchBody(string? Action = "fetch", string? ReportKey = null, bool ConfirmWrites = false);
     private sealed record ErpOrderFulfillmentBootstrapBody(bool ConfirmWrites = false);
     private sealed record ErpOrderFulfillmentStatusBody(long Id, string? TargetStatus = null, bool ConfirmWrites = false);
     private sealed record ErpOrderFulfillmentSyncBody(bool ConfirmWrites = false);
