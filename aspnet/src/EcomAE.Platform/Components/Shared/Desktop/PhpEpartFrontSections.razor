@@ -247,7 +247,7 @@
 	<section class="epart-front-section epart-front-section-family" aria-label="Family Product">
 		<div class="epart-front-section-head">
 			<h2 class="epart-front-section-title">Family Product</h2>
-			<a class="epart-front-section-link" href="@StorefrontSurfaceLinks.ProductFamily">View all families &rarr;</a>
+			<a class="epart-front-section-link" href="@_familyHref">View all families &rarr;</a>
 		</div>
 		@if (!string.IsNullOrEmpty(_family))
 		{
@@ -255,7 +255,7 @@
 		}
 		else
 		{
-			<div class="alert alert-warning">Family Product catalog is loading. <a href="@StorefrontSurfaceLinks.ProductFamily">Open catalog</a></div>
+			<div class="alert alert-warning">Family Product catalog is loading. <a href="@_familyHref">Open catalog</a></div>
 		}
 	</section>
 
@@ -263,7 +263,7 @@
 	<section class="epart-front-section epart-front-section-catalog" aria-label="Epart Catalog">
 		<div class="epart-front-section-head">
 			<h2 class="epart-front-section-title">Epart Catalog</h2>
-			<a class="epart-front-section-link" href="@StorefrontSurfaceLinks.UmapiCatalog">Open full catalog &rarr;</a>
+			<a class="epart-front-section-link" href="@_umapiHref">Open full catalog &rarr;</a>
 		</div>
 		@if (!string.IsNullOrEmpty(_catalog))
 		{
@@ -271,7 +271,7 @@
 		}
 		else
 		{
-			<div class="alert alert-warning">Epart Catalog is temporarily unavailable. <a href="@StorefrontSurfaceLinks.UmapiCatalog">Open catalog page</a></div>
+			<div class="alert alert-warning">Epart Catalog is temporarily unavailable. <a href="@_umapiHref">Open catalog page</a></div>
 		}
 	</section>
 
@@ -279,7 +279,7 @@
 	<section class="epart-front-section epart-front-section-brands" aria-label="Available brands">
 		<div class="epart-front-section-head">
 			<h2 class="epart-front-section-title">Available Brands</h2>
-			<a class="epart-front-section-link" href="@StorefrontSurfaceLinks.AvailableBrands">View all brands &rarr;</a>
+			<a class="epart-front-section-link" href="@_brandsHref">View all brands &rarr;</a>
 		</div>
 		@if (!string.IsNullOrEmpty(_brands))
 		{
@@ -287,7 +287,7 @@
 		}
 		else
 		{
-			<div class="alert alert-warning">Available brands are temporarily unavailable. <a href="@StorefrontSurfaceLinks.AvailableBrands">Open brands page</a></div>
+			<div class="alert alert-warning">Available brands are temporarily unavailable. <a href="@_brandsHref">Open brands page</a></div>
 		}
 	</section>
 
@@ -297,12 +297,12 @@
 		<section class="epart-front-section epart-front-section-own-brand" aria-label="Own Brand">
 			<div class="epart-front-section-head">
 				<h2 class="epart-front-section-title">Own Brand</h2>
-				<a class="epart-front-section-link" href="@StorefrontSurfaceLinks.AvailableBrands">View all &rarr;</a>
+				<a class="epart-front-section-link" href="@_brandsHref">View all &rarr;</a>
 			</div>
 			<div class="epc-own-brand-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;">
 				@foreach (var row in _ownBrand)
 				{
-					<a href="@(StorefrontSurfaceLinks.AvailableBrands + (StorefrontSurfaceLinks.AvailableBrands.Contains('?') ? "&" : "?") + "brand=" + Uri.EscapeDataString(row.Brand))" style="display:block;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:14px;text-align:center;text-decoration:none;transition:border-color .15s,box-shadow .15s;">
+					<a href="@(_brandsHref + (_brandsHref.Contains('?') ? "&" : "?") + "brand=" + Uri.EscapeDataString(row.Brand))" style="display:block;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:14px;text-align:center;text-decoration:none;transition:border-color .15s,box-shadow .15s;">
 						<strong style="display:block;color:#172536;font-size:14px;">@row.Brand</strong>
 						<small style="color:#64748b;font-size:12px;">@row.Count.ToString("N0") items</small>
 					</a>
@@ -315,7 +315,7 @@
 	<section class="epart-front-section epart-front-section-original" aria-label="Original Catalog">
 		<div class="epart-front-section-head">
 			<h2 class="epart-front-section-title">Original Catalog</h2>
-			<a class="epart-front-section-link" href="@StorefrontSurfaceLinks.VehicleCatalog">Open vehicle catalog &rarr;</a>
+			<a class="epart-front-section-link" href="@_vehicleHref">Open vehicle catalog &rarr;</a>
 		</div>
 		@if (!string.IsNullOrEmpty(_vehicle))
 		{
@@ -323,21 +323,35 @@
 		}
 		else
 		{
-			<div class="alert alert-warning">Original Catalog is loading. <a href="@StorefrontSurfaceLinks.VehicleCatalog">Open catalog</a></div>
+			<div class="alert alert-warning">Original Catalog is loading. <a href="@_vehicleHref">Open catalog</a></div>
 		}
 	</section>
 
 	</div>
 
 @code {
+    [Parameter] public string LangHref { get; set; } = "/en";
+
     private string _family = string.Empty;
     private string _catalog = string.Empty;
     private string _brands = string.Empty;
     private string _vehicle = string.Empty;
     private IReadOnlyList<EpartOwnBrandRow> _ownBrand = [];
+    private string _familyHref = "/en/product-family";
+    private string _umapiHref = "/en/umapi_catalog";
+    private string _brandsHref = "/en/available-brands";
+    private string _vehicleHref = "/en/vehicle-catalog";
 
     protected override async Task OnInitializedAsync()
     {
+        var lang = string.IsNullOrWhiteSpace(LangHref)
+            ? StorefrontPhpHomeLinks.LangHref(Http.HttpContext)
+            : LangHref.TrimEnd('/');
+        _familyHref = StorefrontPhpHomeLinks.ProductFamily(lang);
+        _umapiHref = StorefrontPhpHomeLinks.UmapiCatalog(lang);
+        _brandsHref = StorefrontPhpHomeLinks.AvailableBrands(lang);
+        _vehicleHref = StorefrontPhpHomeLinks.VehicleCatalog(lang);
+
         var pricesVisible = false;
         if (Http.HttpContext is not null)
         {
@@ -345,10 +359,10 @@
             pricesVisible = access.PricesVisible;
         }
 
-        _family = PhpHomeWidgetHtml.ProductFamily();
-        _catalog = PhpHomeWidgetHtml.UmapiCatalog();
-        _brands = PhpHomeWidgetHtml.AvailableBrands(pricesVisible);
-        _vehicle = PhpHomeWidgetHtml.VehicleCatalog();
+        _family = PhpHomeWidgetHtml.ProductFamily(lang);
+        _catalog = PhpHomeWidgetHtml.UmapiCatalog(lang);
+        _brands = PhpHomeWidgetHtml.AvailableBrands(pricesVisible, lang);
+        _vehicle = PhpHomeWidgetHtml.VehicleCatalog(lang);
         _ownBrand = await OwnBrand.GetAsync();
     }
 }

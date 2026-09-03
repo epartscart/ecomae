@@ -35,14 +35,17 @@ public static class PhpHomeWidgetHtml
     private static readonly Dictionary<string, (DateTime StampUtc, string Html)> Cache = new(StringComparer.Ordinal);
     private static string? _repoRoot;
 
-    public static string ProductFamily() => Render("content/product_family_catalog.php");
+    public static string ProductFamily(string? langHref = null)
+        => Render("content/product_family_catalog.php", langHref: langHref);
 
-    public static string UmapiCatalog() => Render("content/umapi_catalog.php");
+    public static string UmapiCatalog(string? langHref = null)
+        => Render("content/umapi_catalog.php", langHref: langHref);
 
-    public static string AvailableBrands(bool pricesVisible = false)
-        => Render("content/available_brands.php", pricesVisible: pricesVisible);
+    public static string AvailableBrands(bool pricesVisible = false, string? langHref = null)
+        => Render("content/available_brands.php", pricesVisible: pricesVisible, langHref: langHref);
 
-    public static string VehicleCatalog() => Render("content/vehicle_catalog.php");
+    public static string VehicleCatalog(string? langHref = null)
+        => Render("content/vehicle_catalog.php", langHref: langHref);
 
     /// <summary>Read a pre-rendered HTML file from the monorepo (no PHP substitution).</summary>
     public static string RenderStatic(string relativePath)
@@ -70,7 +73,7 @@ public static class PhpHomeWidgetHtml
     }
 
     /// <summary>Empty string when the widget source is unavailable — caller shows the PHP fallback alert.</summary>
-    public static string Render(string relativePath, bool pricesVisible = false)
+    public static string Render(string relativePath, bool pricesVisible = false, string? langHref = null)
     {
         var root = RepoRoot();
         if (root is null)
@@ -84,7 +87,8 @@ public static class PhpHomeWidgetHtml
             return string.Empty;
         }
 
-        var cacheKey = relativePath + (pricesVisible ? "|pv1" : "|pv0");
+        var lang = string.IsNullOrWhiteSpace(langHref) ? DefaultLangHref : langHref.TrimEnd('/');
+        var cacheKey = relativePath + (pricesVisible ? "|pv1" : "|pv0") + "|" + lang;
         var stamp = File.GetLastWriteTimeUtc(path);
         lock (Gate)
         {
@@ -97,7 +101,7 @@ public static class PhpHomeWidgetHtml
         string html;
         try
         {
-            html = Substitute(File.ReadAllText(path), DefaultLangHref, pricesVisible);
+            html = Substitute(File.ReadAllText(path), lang, pricesVisible);
         }
         catch (IOException)
         {

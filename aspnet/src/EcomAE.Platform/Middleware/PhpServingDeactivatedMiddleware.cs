@@ -48,11 +48,13 @@ public sealed class PhpServingDeactivatedMiddleware
             return;
         }
 
-        // Interim /en/* commerce URLs while paused: map into the ASP.NET apps
+        // Interim /en/* and /ar/* commerce URLs while paused: map into the ASP.NET apps
         // (search/warehouse/catalog/cart) instead of the PHP warm-up splash;
         // anything unmapped goes home rather than dead-ending.
         if (path.StartsWith("/en/", StringComparison.OrdinalIgnoreCase)
-            || path.Equals("/en", StringComparison.OrdinalIgnoreCase))
+            || path.Equals("/en", StringComparison.OrdinalIgnoreCase)
+            || path.StartsWith("/ar/", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/ar", StringComparison.OrdinalIgnoreCase))
         {
             var pathAndQuery = path + context.Request.QueryString.Value;
             if (PhpSurfaceLinkMap.TryMapIncomingPhpProductPath(pathAndQuery, out var mapped)
