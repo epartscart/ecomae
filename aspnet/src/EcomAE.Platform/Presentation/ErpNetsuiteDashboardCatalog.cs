@@ -215,11 +215,23 @@ public static class ErpNetsuiteDashboardCatalog
         {
             if (!Tiles.TryGetValue(key, out var tile)) continue;
             if (!Can(profile, Need(key))) continue;
-            list.Add(tile);
+            list.Add(tile with { Tone = ShortcutTone(tile.Tone) });
         }
 
         return list;
     }
+
+    /// <summary>PHP shortcut strip uses <c>.ns-qa .qa-*</c>, not <c>.ns-tile.gold</c>.</summary>
+    public static string ShortcutTone(string tone)
+        => tone switch
+        {
+            "gold" => "qa-blue",
+            "green" => "qa-teal",
+            "rust" => "qa-rust",
+            "slate" => "qa-slate",
+            var t when t.StartsWith("qa-", StringComparison.Ordinal) => t,
+            _ => "qa-slate",
+        };
 
     public static IReadOnlyList<NavGroup> ResolveNav(Profile profile)
     {

@@ -67,12 +67,12 @@
         <div class="ns-port">
             <div class="bd" style="padding-top:14px">
                 <h4 style="margin:0 0 12px;"><i class="fa fa-bolt"></i> Quick actions</h4>
-                <div class="ns-tiles" style="margin:0">
+                <div class="ns-qa-grid">
                     @foreach (var qa in _quick)
                     {
-                        <a class="ns-tile @qa.Tone" href="@WithCompany(qa.Href)">
-                            <i class="fa @qa.Icon ic"></i>
-                            <span class="tl">@qa.Label</span>
+                        <a class="ns-qa" href="@WithCompany(qa.Href)">
+                            <span class="qa-ic @qa.Tone"><i class="fa @qa.Icon"></i></span>
+                            <span class="qa-lb">@qa.Label</span>
                         </a>
                     }
                 </div>
