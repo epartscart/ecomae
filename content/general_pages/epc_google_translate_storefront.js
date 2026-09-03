@@ -111,6 +111,35 @@
 		return "";
 	}
 
+	/** Explicit /{lang}/ path when lang is an active CMS locale (PHP multilang URL wins). */
+	function epcReadExplicitUrlCmsLanguage() {
+		var path = window.location.pathname || "/";
+		if (epcIsAspNetAppPath(path)) {
+			return "";
+		}
+		var m = path.match(/^\/([a-z]{2})(?:\/|$)/i);
+		if (!m) {
+			return "";
+		}
+		var lang = m[1].toLowerCase();
+		return epcCmsActiveLangs().indexOf(lang) === -1 ? "" : lang;
+	}
+
+	/**
+	 * Sticky language that must NOT be overridden by IP geo.
+	 * PHP-parity: explicit URL /{lang}/ → translate UI (epc_lang / localStorage).
+	 * Do NOT treat the CMS `lang` cookie alone as sticky — IP auto used to write
+	 * lang=ar then lock Arabic on every later visit.
+	 * IP/geo default only when this returns empty.
+	 */
+	function epcReadStickyLanguage() {
+		var urlLang = epcReadExplicitUrlCmsLanguage();
+		if (urlLang) {
+			return urlLang;
+		}
+		return epcReadManualLanguage();
+	}
+
 	function epcWriteManualLanguage(lang) {
 		lang = String(lang || "en").toLowerCase();
 		try {
@@ -122,7 +151,23 @@
 			var d = domains[i] ? "; domain=" + domains[i] : "";
 			document.cookie = "epc_lang=" + encodeURIComponent(lang) + "; path=/; max-age=31536000; SameSite=Lax" + d;
 		}
+		// Mirror PHP multilang_init / lang_selected — keeps AJAX + bare `/` on the same locale.
+		var date = new Date(new Date().getTime() + 15552000 * 1000);
+		document.cookie = "lang=" + lang + "; path=/; expires=" + date.toUTCString();
 		epcSetTranslateCookie(lang);
+	}
+
+	/** Persist explicit URL CMS lang so IP cannot flip it after leaving /en/… */
+	function epcAdoptExplicitUrlCmsLanguage() {
+		var urlLang = epcReadExplicitUrlCmsLanguage();
+		if (!urlLang) {
+			return "";
+		}
+		var existing = epcReadManualLanguage();
+		if (existing !== urlLang) {
+			epcWriteManualLanguage(urlLang);
+		}
+		return urlLang;
 	}
 
 	/** ASP.NET app paths must not be rewritten to /en/storefront/... */
@@ -382,16 +427,21 @@
 	}
 
 	function epcAutoTranslateByCountry() {
-		var manualLanguage = epcReadManualLanguage();
-		if (manualLanguage) {
-			var select = document.getElementById("epc_native_translate_select");
-			if (select && select.querySelector('option[value="' + manualLanguage + '"]')) {
-				select.value = manualLanguage;
+		var stickyLanguage = epcReadStickyLanguage();
+		if (stickyLanguage) {
+			var selectSticky = document.getElementById("epc_native_translate_select");
+			if (selectSticky && selectSticky.querySelector('option[value="' + stickyLanguage + '"]')) {
+				selectSticky.value = stickyLanguage;
 			}
-			epcTranslateStatus("Language set manually: " + manualLanguage);
-			// Re-apply non-English manual GT if cookie was cleared.
-			if (manualLanguage !== "en" && epcTranslateCookieLanguage() !== manualLanguage) {
-				epcApplyNativeTranslate(manualLanguage);
+			var fromUrl = !!epcReadExplicitUrlCmsLanguage();
+			epcTranslateStatus(fromUrl
+				? ("Language from URL: " + stickyLanguage)
+				: ("Language set manually: " + stickyLanguage));
+			// Re-apply non-English sticky GT if cookie was cleared (never for English /en/).
+			if (stickyLanguage !== "en" && epcTranslateCookieLanguage() !== stickyLanguage) {
+				if (epcReadManualLanguage() === stickyLanguage || fromUrl) {
+					epcSetTranslateCookie(stickyLanguage);
+				}
 			}
 			return;
 		}
@@ -402,9 +452,10 @@
 
 		epcDetectVisitorCountryWithRetry(0)
 			.then(function (data) {
-				// Bail if user picked a language while the geo lookup was in flight.
-				if (epcReadManualLanguage()) {
-					epcTranslateStatus("Language set manually: " + epcReadManualLanguage());
+				// Bail if user chose a language (URL / cookie / UI) while geo was in flight.
+				var stickyNow = epcReadStickyLanguage();
+				if (stickyNow) {
+					epcTranslateStatus("Language set manually: " + stickyNow);
 					return;
 				}
 				var lang = "";
@@ -448,7 +499,7 @@
 				}
 			})
 			.catch(function () {
-				if (epcReadManualLanguage()) {
+				if (epcReadStickyLanguage()) {
 					return;
 				}
 				var lang = epcBrowserLanguage() || "en";
@@ -467,8 +518,11 @@
 			return;
 		}
 
-		var manual = epcReadManualLanguage();
-		var preferred = manual || epcTranslateCookieLanguage() || epcCmsCurrentLang() || "en";
+		// Explicit /en/ (or /ar/, …) must stick — adopt before any IP geo runs.
+		epcAdoptExplicitUrlCmsLanguage();
+
+		var sticky = epcReadStickyLanguage();
+		var preferred = sticky || epcTranslateCookieLanguage() || epcCmsCurrentLang() || "en";
 		if (select.querySelector('option[value="' + preferred + '"]')) {
 			select.value = preferred;
 		} else {
@@ -479,8 +533,10 @@
 			epcApplyNativeTranslate(this.value || "en");
 		});
 
-		if (manual) {
-			epcTranslateStatus("Language set manually: " + manual);
+		if (sticky) {
+			epcTranslateStatus(epcReadExplicitUrlCmsLanguage()
+				? ("Language from URL: " + sticky)
+				: ("Language set manually: " + sticky));
 			return;
 		}
 

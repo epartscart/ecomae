@@ -1,7 +1,8 @@
+@using EcomAE.Platform.Middleware
 @using EcomAE.Platform.Presentation
 @inject IHttpContextAccessor Http
 <!DOCTYPE html>
-<html lang="en">
+<html lang="@_htmlLang" dir="@_htmlDir">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -19,3 +20,14 @@
     <Routes />
 </body>
 </html>
+
+@code {
+    private string _htmlLang = "en";
+    private string _htmlDir = "ltr";
+
+    protected override void OnInitialized()
+    {
+        _htmlLang = LangHomeFallbackMiddleware.RequestCmsLang(Http.HttpContext, "en");
+        _htmlDir = _htmlLang == "ar" ? "rtl" : "ltr";
+    }
+}

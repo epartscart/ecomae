@@ -10,22 +10,22 @@
 <section class="epc-home-banners epc-asp-home-banners">
     <div class="container">
         <div class="epc-home-banners__grid">
-            <a class="epc-home-banner epc-home-banner--red" href="@StorefrontSurfaceLinks.PartSearch">
+            <a class="epc-home-banner epc-home-banner--red" href="@PartsHref">
                 <span class="epc-home-banner__icon"><i class="fa fa-barcode"></i></span>
                 <strong>Search by part number</strong>
                 <span>Quickly check price, availability and delivery time.</span>
             </a>
-            <a class="epc-home-banner epc-home-banner--blue" href="@StorefrontSurfaceLinks.AvailableBrands">
+            <a class="epc-home-banner epc-home-banner--blue" href="@BrandsHref">
                 <span class="epc-home-banner__icon"><i class="fa fa-shield"></i></span>
                 <strong>Trusted brands</strong>
                 <span>Browse available manufacturers and product lines.</span>
             </a>
-            <a class="epc-home-banner epc-home-banner--green" href="@StorefrontSurfaceLinks.UmapiCatalog">
+            <a class="epc-home-banner epc-home-banner--green" href="@CatalogHref">
                 <span class="epc-home-banner__icon"><i class="fa fa-sitemap"></i></span>
                 <strong>Electronic catalog</strong>
                 <span>Find parts through vehicle catalog navigation.</span>
             </a>
-            <a class="epc-home-banner epc-home-banner--dark" href="@StorefrontSurfaceLinks.SellerRequest">
+            <a class="epc-home-banner epc-home-banner--dark" href="@VinHref">
                 <span class="epc-home-banner__icon"><i class="fa fa-car"></i></span>
                 <strong>VIN request</strong>
                 <span>Ask sellers to identify the exact spare part.</span>
@@ -33,3 +33,10 @@
         </div>
     </div>
 </section>
+
+@code {
+    [Parameter] public string PartsHref { get; set; } = "/en/parts";
+    [Parameter] public string BrandsHref { get; set; } = "/en/available-brands";
+    [Parameter] public string CatalogHref { get; set; } = "/en/umapi_catalog";
+    [Parameter] public string VinHref { get; set; } = "/en/zapros-prodavczu";
+}
