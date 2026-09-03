@@ -1,10 +1,12 @@
 @page "/cp/web-tracker-app"
+@page "/cp/shop/statistics/web_tracker"
 @layout Layout.PhpChromeLayout
 @using System.Globalization
 @using EcomAE.Platform.Auth
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
 @using EcomAE.Platform.Services
+@inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
 
@@ -17,197 +19,602 @@
 
 <PhpCpDesktopChrome IsAdmin="_isAdmin">
 
-<div class="epc-web-tracker epc-wt" data-epc-web-tracker="1">
+<div class="epc-web-tracker epc-wt" data-epc-web-tracker="1" data-epc-wt-ssr="1">
     <div class="wt-hero">
         <div class="wt-hero__badge">@(_isSuper ? "Super CP · all tenants" : "Tenant traffic")</div>
         <h1>Website tracker</h1>
-        <p>Pageviews, clicks, search, geography, devices, and full session timelines for guests and registered users — PHP same-to-same presentation with clearer charts and filters.</p>
+        <p>Pageviews, clicks, search, geography, devices, and full session timelines for guests and registered users.</p>
         <div class="wt-hero__meta">
             <span><i class="fa fa-broadcast-tower"></i> Beacon <code>/epc-web-tracker-collect.php</code></span>
-            <span><i class="fa fa-database"></i> Live digest <code>/cp/web-tracker/dashboard</code></span>
+            <span><i class="fa fa-filter"></i> Apply filters reloads this page</span>
         </div>
     </div>
 
     @if (!_isAdmin)
     {
-        <div class="wt-status alert alert-info" role="status">Sign in with a Control Panel admin session to load live tracker data. Guest browse shows the PHP-parity shell.</div>
+        <div class="wt-status alert alert-info" role="status">Sign in with a Control Panel admin session to load live tracker data.</div>
     }
-
-    <div class="wt-filters">
-        @if (_isSuper)
-        {
-            <div>
-                <label for="wt_site">Site / tenant</label>
-                <select id="wt_site" class="form-control">
-                    @foreach (var sk in _siteOptions)
-                    {
-                        if (sk == _defaultSite)
+    else
+    {
+        <form class="wt-filters" method="get" action="/cp/web-tracker-app" id="wt_filter_form">
+            @if (_isSuper)
+            {
+                <div>
+                    <label for="wt_site">Site / tenant</label>
+                    <select id="wt_site" name="site_key" class="form-control">
+                        @foreach (var sk in _siteOptions)
                         {
-                            <option value="@sk" selected>@(sk == "_all" ? "All sites (Super)" : sk)</option>
+                            if (sk == _filters.SiteKey)
+                            {
+                                <option value="@sk" selected>@(sk == "_all" ? "All sites (Super)" : sk)</option>
+                            }
+                            else
+                            {
+                                <option value="@sk">@(sk == "_all" ? "All sites (Super)" : sk)</option>
+                            }
+                        }
+                    </select>
+                </div>
+            }
+            else
+            {
+                <input type="hidden" id="wt_site" name="site_key" value="@_filters.SiteKey" />
+                <div>
+                    <label>Site</label>
+                    <div class="form-control wt-site-locked">@_filters.SiteKey</div>
+                </div>
+            }
+            <div>
+                <label for="wt_from">From</label>
+                <input type="date" id="wt_from" name="from" class="form-control" value="@_filters.FromDate" />
+            </div>
+            <div>
+                <label for="wt_to">To</label>
+                <input type="date" id="wt_to" name="to" class="form-control" value="@_filters.ToDate" />
+            </div>
+            <div>
+                <label for="wt_device">Device</label>
+                <select id="wt_device" name="device" class="form-control">
+                    @if (string.IsNullOrEmpty(_filters.Device))
+                    {
+                        <option value="" selected>All devices</option>
+                    }
+                    else
+                    {
+                        <option value="">All devices</option>
+                    }
+                    @foreach (var d in DeviceChoices())
+                    {
+                        if (d.Value == _filters.Device)
+                        {
+                            <option value="@d.Value" selected>@d.Label</option>
                         }
                         else
                         {
-                            <option value="@sk">@(sk == "_all" ? "All sites (Super)" : sk)</option>
+                            <option value="@d.Value">@d.Label</option>
                         }
                     }
                 </select>
             </div>
-        }
-        else
-        {
-            <input type="hidden" id="wt_site" value="@_defaultSite" />
             <div>
-                <label>Site</label>
-                <div class="form-control wt-site-locked">@_defaultSite</div>
+                <label for="wt_country">Country</label>
+                <select id="wt_country" name="country" class="form-control">
+                    <option value="">All countries</option>
+                    @foreach (var c in _dash.Facets.Countries)
+                    {
+                        if (c.Value == _filters.Country)
+                        {
+                            <option value="@c.Value" selected>@FacetLabel(c)</option>
+                        }
+                        else
+                        {
+                            <option value="@c.Value">@FacetLabel(c)</option>
+                        }
+                    }
+                </select>
+            </div>
+            <div>
+                <label for="wt_ip">IP address</label>
+                <input type="text" id="wt_ip" name="ip" class="form-control" value="@_filters.Ip" placeholder="e.g. 86.96." autocomplete="off" />
+            </div>
+            <div>
+                <label for="wt_user_id">User ID</label>
+                <input type="text" id="wt_user_id" name="user_id" class="form-control" value="@_filters.UserId" placeholder="e.g. 5" inputmode="numeric" autocomplete="off" />
+            </div>
+            <div>
+                <label for="wt_user_type">Who</label>
+                <select id="wt_user_type" name="user_type" class="form-control">
+                    @if (string.IsNullOrEmpty(_filters.UserType))
+                    {
+                        <option value="" selected>All visitors</option>
+                    }
+                    else
+                    {
+                        <option value="">All visitors</option>
+                    }
+                    @if (_filters.UserType == "guest")
+                    {
+                        <option value="guest" selected>Guests only</option>
+                    }
+                    else
+                    {
+                        <option value="guest">Guests only</option>
+                    }
+                    @if (_filters.UserType == "registered")
+                    {
+                        <option value="registered" selected>Registered only</option>
+                    }
+                    else
+                    {
+                        <option value="registered">Registered only</option>
+                    }
+                </select>
+            </div>
+            <div>
+                <label for="wt_browser">Browser</label>
+                <select id="wt_browser" name="browser" class="form-control">
+                    <option value="">All browsers</option>
+                    @foreach (var b in _dash.Facets.Browsers)
+                    {
+                        if (b.Value == _filters.Browser)
+                        {
+                            <option value="@b.Value" selected>@FacetLabel(b)</option>
+                        }
+                        else
+                        {
+                            <option value="@b.Value">@FacetLabel(b)</option>
+                        }
+                    }
+                </select>
+            </div>
+            <div>
+                <label for="wt_path">Page path contains</label>
+                <input type="text" id="wt_path" name="path" class="form-control" value="@_filters.Path" placeholder="/en/parts/" autocomplete="off" />
+            </div>
+            <div class="wt-filter-actions">
+                <button type="submit" class="btn btn-primary" id="wt_reload"><i class="fa fa-refresh"></i> Apply filters</button>
+                <a class="btn btn-default" id="wt_clear_filters" href="/cp/web-tracker-app">Clear filters</a>
+                <a class="btn btn-default" id="wt_csv" href="@CsvHref()"><i class="fa fa-download"></i> Download full report (CSV)</a>
+            </div>
+        </form>
+
+        <div class="wt-status @StatusClass()" id="wt_status" data-epc-wt-status="@_dash.Source">@StatusText()</div>
+
+        <div class="wt-kpis" id="wt_kpis" aria-label="Website tracker KPIs">
+            @Kpi("Sessions", _dash.Summary.Sessions)
+            @Kpi("Visitors", _dash.Summary.Visitors)
+            @Kpi("Pageviews", _dash.Summary.Pageviews)
+            @Kpi("Clicks", _dash.Summary.Clicks)
+            @Kpi("Searches", _dash.Summary.Searches)
+            @Kpi("Guests", _dash.Summary.GuestSessions)
+            @Kpi("Registered", _dash.Summary.RegisteredSessions)
+            @Kpi("Avg time", Dur(_dash.Summary.AvgDurationMs))
+            @Kpi("Avg pages", _dash.Summary.AvgPages.ToString("0.##", CultureInfo.InvariantCulture))
+            @Kpi("Bounce %", _dash.Summary.BounceRate.ToString("0.##", CultureInfo.InvariantCulture))
+        </div>
+
+        <div class="wt-grid">
+            <div class="wt-panel">
+                <h4>Traffic by day</h4>
+                <div class="wt-body" id="wt_daily">
+                    @if (_dash.Daily.Count == 0)
+                    {
+                        <p class="wt-muted">No data for this range/filters.</p>
+                    }
+                    else
+                    {
+                        var maxPv = Math.Max(1, _dash.Daily.Max(d => d.Pageviews));
+                        <div class="wt-bars" title="Pageviews by day">
+                            @foreach (var d in _dash.Daily)
+                            {
+                                var h = Math.Max(4, (int)Math.Round(80.0 * d.Pageviews / maxPv));
+                                <i style="height:@(h.ToString(CultureInfo.InvariantCulture))px" title="@d.Date: @d.Pageviews views / @d.Sessions sessions"></i>
+                            }
+                        </div>
+                        <table class="wt-table">
+                            <thead><tr><th>Date</th><th>Sessions</th><th>Pageviews</th></tr></thead>
+                            <tbody>
+                            @foreach (var d in _dash.Daily)
+                            {
+                                <tr>
+                                    <td>@d.Date</td>
+                                    <td>@d.Sessions.ToString(CultureInfo.InvariantCulture)</td>
+                                    <td>@d.Pageviews.ToString(CultureInfo.InvariantCulture)</td>
+                                </tr>
+                            }
+                            </tbody>
+                        </table>
+                    }
+                </div>
+            </div>
+            <div class="wt-panel">
+                <h4>@(_isSuper ? "By tenant / hostname" : "Devices & browsers")</h4>
+                <div class="wt-body" id="wt_side_a">
+                    @if (_isSuper && (_dash.SiteKey == "_all" || _dash.ByTenant.Count > 0))
+                    {
+                        <table class="wt-table">
+                            <thead><tr><th>Site</th><th>Host</th><th>Sessions</th><th>Views</th><th>Visitors</th></tr></thead>
+                            <tbody>
+                            @if (_dash.ByTenant.Count == 0)
+                            {
+                                <tr><td colspan="5" class="wt-muted">No tenant traffic yet.</td></tr>
+                            }
+                            else
+                            {
+                                @foreach (var t in _dash.ByTenant)
+                                {
+                                    <tr>
+                                        <td><a class="wt-link" href="@FilterHref(siteKey: t.SiteKey)">@EmptyDash(t.SiteKey)</a></td>
+                                        <td>@EmptyDash(t.Hostname)</td>
+                                        <td>@t.Sessions.ToString(CultureInfo.InvariantCulture)</td>
+                                        <td>@t.Pageviews.ToString(CultureInfo.InvariantCulture)</td>
+                                        <td>@t.Visitors.ToString(CultureInfo.InvariantCulture)</td>
+                                    </tr>
+                                }
+                            }
+                            </tbody>
+                        </table>
+                    }
+                    else
+                    {
+                        @DeviceTable()
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="wt-grid">
+            <div class="wt-panel">
+                <h4>Top pages (experience)</h4>
+                <div class="wt-body" id="wt_pages">
+                    <table class="wt-table">
+                        <thead><tr><th>Path</th><th>Views</th><th>Sessions</th><th>Avg time</th><th>Scroll %</th></tr></thead>
+                        <tbody>
+                        @if (_dash.TopPages.Count == 0)
+                        {
+                            <tr><td colspan="5" class="wt-muted">—</td></tr>
+                        }
+                        else
+                        {
+                            @foreach (var p in _dash.TopPages)
+                            {
+                                <tr>
+                                    <td>
+                                        <a class="wt-link wt-page-link" href="@PageHref(p.Path)" target="_blank" rel="noopener">@EmptyDash(p.Path, "/")</a>
+                                        <a class="wt-device-click" href="@FilterHref(path: p.Path)">filter</a>
+                                    </td>
+                                    <td>@p.Views.ToString(CultureInfo.InvariantCulture)</td>
+                                    <td>@p.Sessions.ToString(CultureInfo.InvariantCulture)</td>
+                                    <td>@Dur(p.AvgTimeMs)</td>
+                                    <td>@p.AvgScroll.ToString(CultureInfo.InvariantCulture)</td>
+                                </tr>
+                            }
+                        }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="wt-panel">
+                <h4>Geography</h4>
+                <div class="wt-body" id="wt_geo">
+                    @if (_dash.Geo.Count > 0)
+                    {
+                        var maxG = Math.Max(1, _dash.Geo.Take(8).Max(g => g.Sessions));
+                        <div class="wt-hbar" aria-label="Top countries">
+                            @foreach (var g in _dash.Geo.Take(8))
+                            {
+                                var pct = Math.Max(4, (int)Math.Round(100.0 * g.Sessions / maxG));
+                                <div class="wt-hbar__row">
+                                    <a class="wt-geo-click" href="@FilterHref(country: g.CountryCode)">@EmptyDash(g.CountryCode, "??")</a>
+                                    <div class="wt-hbar__track"><div class="wt-hbar__fill" style="width:@(pct.ToString(CultureInfo.InvariantCulture))%"></div></div>
+                                    <span>@g.Sessions.ToString(CultureInfo.InvariantCulture)</span>
+                                </div>
+                            }
+                        </div>
+                    }
+                    <table class="wt-table">
+                        <thead><tr><th>Country</th><th>City</th><th>Sessions</th></tr></thead>
+                        <tbody>
+                        @if (_dash.Geo.Count == 0)
+                        {
+                            <tr><td colspan="3" class="wt-muted">—</td></tr>
+                        }
+                        else
+                        {
+                            @foreach (var g in _dash.Geo)
+                            {
+                                var label = string.IsNullOrWhiteSpace(g.CountryName) ? g.CountryCode : g.CountryName;
+                                if (!string.IsNullOrWhiteSpace(g.CountryCode)) label += " (" + g.CountryCode + ")";
+                                <tr>
+                                    <td><a class="wt-geo-click" href="@FilterHref(country: g.CountryCode)">@EmptyDash(label, "Unknown")</a></td>
+                                    <td>@EmptyDash(g.City)</td>
+                                    <td>@g.Sessions.ToString(CultureInfo.InvariantCulture)</td>
+                                </tr>
+                            }
+                        }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="wt-grid">
+            <div class="wt-panel">
+                <h4>Search terms</h4>
+                <div class="wt-body" id="wt_search">
+                    <table class="wt-table">
+                        <thead><tr><th>Query</th><th>Context</th><th>Hits</th><th>Sessions</th></tr></thead>
+                        <tbody>
+                        @if (_dash.Searches.Count == 0)
+                        {
+                            <tr><td colspan="4" class="wt-muted">No searches captured yet.</td></tr>
+                        }
+                        else
+                        {
+                            @foreach (var s in _dash.Searches)
+                            {
+                                <tr>
+                                    <td><strong>@EmptyDash(s.SearchQuery)</strong></td>
+                                    <td>@EmptyDash(s.SearchContext)</td>
+                                    <td>@s.Hits.ToString(CultureInfo.InvariantCulture)</td>
+                                    <td>@s.Sessions.ToString(CultureInfo.InvariantCulture)</td>
+                                </tr>
+                            }
+                        }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="wt-panel">
+                <h4>Top clicks</h4>
+                <div class="wt-body" id="wt_clicks">
+                    <table class="wt-table">
+                        <thead><tr><th>Path</th><th>Element</th><th>Text / href</th><th>Hits</th></tr></thead>
+                        <tbody>
+                        @if (_dash.TopClicks.Count == 0)
+                        {
+                            <tr><td colspan="4" class="wt-muted">—</td></tr>
+                        }
+                        else
+                        {
+                            @foreach (var c in _dash.TopClicks)
+                            {
+                                var el = c.ElementTag + (string.IsNullOrWhiteSpace(c.ElementId) ? "" : "#" + c.ElementId);
+                                var tx = string.IsNullOrWhiteSpace(c.ElementText) ? c.ElementHref : c.ElementText;
+                                <tr>
+                                    <td><a class="wt-link wt-page-link" href="@PageHref(c.Path)" target="_blank" rel="noopener">@EmptyDash(c.Path, "/")</a></td>
+                                    <td>@EmptyDash(el)</td>
+                                    <td>
+                                        @if (!string.IsNullOrWhiteSpace(c.ElementHref))
+                                        {
+                                            <a class="wt-link wt-page-link" href="@c.ElementHref" target="_blank" rel="noopener">@EmptyDash(tx)</a>
+                                        }
+                                        else
+                                        {
+                                            @EmptyDash(tx)
+                                        }
+                                    </td>
+                                    <td>@c.Hits.ToString(CultureInfo.InvariantCulture)</td>
+                                </tr>
+                            }
+                        }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="wt-grid">
+            <div class="wt-panel">
+                <h4>Referrers &amp; UTM</h4>
+                <div class="wt-body" id="wt_refs">
+                    <table class="wt-table">
+                        <thead><tr><th>Referrer</th><th>UTM source</th><th>Medium</th><th>Campaign</th><th>Sessions</th></tr></thead>
+                        <tbody>
+                        @if (_dash.Referrers.Count == 0)
+                        {
+                            <tr><td colspan="5" class="wt-muted">—</td></tr>
+                        }
+                        else
+                        {
+                            @foreach (var r in _dash.Referrers)
+                            {
+                                <tr>
+                                    <td>@EmptyDash(r.Host)</td>
+                                    <td>@EmptyDash(r.UtmSource)</td>
+                                    <td>@EmptyDash(r.UtmMedium)</td>
+                                    <td>@EmptyDash(r.UtmCampaign)</td>
+                                    <td>@r.Sessions.ToString(CultureInfo.InvariantCulture)</td>
+                                </tr>
+                            }
+                        }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="wt-panel">
+                <h4>@(_isSuper ? "Devices & browsers" : "Filter tips")</h4>
+                <div class="wt-body" id="wt_side_b">
+                    @if (_isSuper)
+                    {
+                        @DeviceTable()
+                    }
+                    else
+                    {
+                        <p class="wt-muted">Use filters above (device, country, IP, user, path). Click a country, IP, device, or user in the tables to filter. Charts update after Apply filters.</p>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="wt-panel" style="margin-bottom:20px;">
+            <h4>Recent sessions — IP shown · click page links to open that page · click Timeline for the full visit</h4>
+            <div class="wt-body" id="wt_sessions" style="max-height:520px;">
+                <table class="wt-table">
+                    <thead>
+                        <tr>
+                            <th>When</th><th>Who</th><th>IP</th><th>Geo</th><th>Device</th>
+                            <th>Land → Exit</th><th>Pages</th><th>Clicks</th><th>Time</th><th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    @if (_dash.RecentSessions.Count == 0)
+                    {
+                        <tr><td colspan="10" class="wt-muted">No sessions for these filters.</td></tr>
+                    }
+                    else
+                    {
+                        @foreach (var s in _dash.RecentSessions)
+                        {
+                            var geo = string.Join(", ", new[] { s.City, s.CountryCode }.Where(x => !string.IsNullOrWhiteSpace(x)));
+                            <tr class="wt-row-click">
+                                <td>@FmtTs(s.LastSeenAt)</td>
+                                <td>
+                                    @if (s.IsRegistered)
+                                    {
+                                        <a class="wt-pill reg wt-user-click" href="@FilterHref(userId: s.UserId.ToString(CultureInfo.InvariantCulture))">User #@s.UserId.ToString(CultureInfo.InvariantCulture)</a>
+                                    }
+                                    else
+                                    {
+                                        <a class="wt-pill guest wt-user-click" href="@FilterHref(userType: "guest")">Guest</a>
+                                    }
+                                    @if (_isSuper)
+                                    {
+                                        <span class="wt-pill">@s.SiteKey</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (string.IsNullOrWhiteSpace(s.Ip))
+                                    {
+                                        <text>—</text>
+                                    }
+                                    else
+                                    {
+                                        <a class="wt-ip wt-ip-click" href="@FilterHref(ip: s.Ip)">@s.Ip</a>
+                                    }
+                                </td>
+                                <td>
+                                    @if (string.IsNullOrWhiteSpace(s.CountryCode))
+                                    {
+                                        @EmptyDash(geo)
+                                    }
+                                    else
+                                    {
+                                        <a class="wt-geo-click" href="@FilterHref(country: s.CountryCode)">@EmptyDash(geo)</a>
+                                    }
+                                </td>
+                                <td>
+                                    <a class="wt-device-click" href="@FilterHref(device: s.DeviceType)">@EmptyDash((s.DeviceType + " / " + s.Browser).Trim(' ', '/'))</a>
+                                </td>
+                                <td class="wt-paths">
+                                    <a class="wt-link wt-page-link" href="@PageHref(s.LandingPath, s.Hostname)" target="_blank" rel="noopener">@EmptyDash(s.LandingPath, "/")</a>
+                                    @if (!string.IsNullOrWhiteSpace(s.ExitPath) && !string.Equals(s.ExitPath, s.LandingPath, StringComparison.Ordinal))
+                                    {
+                                        <text> → </text>
+                                        <a class="wt-link wt-page-link" href="@PageHref(s.ExitPath, s.Hostname)" target="_blank" rel="noopener">@s.ExitPath</a>
+                                    }
+                                </td>
+                                <td>@s.PageviewCount.ToString(CultureInfo.InvariantCulture)</td>
+                                <td>@s.EventCount.ToString(CultureInfo.InvariantCulture)</td>
+                                <td>@Dur(s.DurationMs)</td>
+                                <td><a class="wt-link wt-open" href="@FilterHref(sessionId: s.Id)">Timeline</a></td>
+                            </tr>
+                        }
+                    }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        @if (_session is not null)
+        {
+            var s = _session.Session!;
+            <div class="wt-panel" id="wt_session_timeline" style="margin-bottom:20px;">
+                <h4>Session timeline <a class="wt-link" href="@FilterHref(sessionId: 0)" style="float:right;font-weight:500;">Close</a></h4>
+                <div class="wt-body">
+                    <p>
+                        <strong>@s.SiteKey</strong> · @EmptyDash(s.Hostname)
+                        · <span class="wt-ip">IP @EmptyDash(s.Ip)</span>
+                        · @(s.IsRegistered ? "Registered user #" + s.UserId.ToString(CultureInfo.InvariantCulture) : "Guest")
+                        · @EmptyDash(s.City) @EmptyDash(s.Region) @EmptyDash(string.IsNullOrWhiteSpace(s.CountryName) ? s.CountryCode : s.CountryName)
+                        · @EmptyDash(s.DeviceType) / @EmptyDash(s.Browser) / @EmptyDash(s.Os)
+                    </p>
+                    <p class="wt-muted">
+                        Landed @FmtTs(s.FirstSeenAt) · Last @FmtTs(s.LastSeenAt)
+                        · Duration @Dur(s.DurationMs)
+                        · Referrer @EmptyDash(s.ReferrerHost, "(direct)")
+                        @if (!string.IsNullOrWhiteSpace(s.UtmSource))
+                        {
+                            <text> · UTM @s.UtmSource</text>
+                        }
+                    </p>
+                    <h5>Page experience</h5>
+                    <ul class="wt-timeline">
+                        @if (_session.Pageviews.Count == 0)
+                        {
+                            <li class="wt-muted">No pageviews.</li>
+                        }
+                        else
+                        {
+                            @foreach (var p in _session.Pageviews)
+                            {
+                                var href = PageHref(p.Path + (string.IsNullOrWhiteSpace(p.Query) ? "" : "?" + p.Query), s.Hostname);
+                                <li>
+                                    <strong>@FmtTs(p.Ts)</strong>
+                                    <a class="wt-link wt-page-link" href="@href" target="_blank" rel="noopener">@EmptyDash(p.Path, "/")</a>
+                                    <span class="wt-muted">· @EmptyDash(p.Title) · on-page @Dur(p.TimeOnPageMs) · scroll @p.ScrollMaxPct.ToString(CultureInfo.InvariantCulture)% · load @p.LoadTimeMs.ToString(CultureInfo.InvariantCulture)ms</span>
+                                </li>
+                            }
+                        }
+                    </ul>
+                    <h5>Clicks &amp; events</h5>
+                    <ul class="wt-timeline">
+                        @if (_session.Events.Count == 0)
+                        {
+                            <li class="wt-muted">No click/search events.</li>
+                        }
+                        else
+                        {
+                            @foreach (var e in _session.Events)
+                            {
+                                <li>
+                                    <strong>@FmtTs(e.Ts)</strong> <span class="wt-pill">@EmptyDash(e.EventType)</span>
+                                    @if (e.EventType == "search")
+                                    {
+                                        <text> search “@e.SearchQuery” <span class="wt-muted">(@EmptyDash(e.SearchContext))</span></text>
+                                    }
+                                    else if (e.EventType is "click" or "outbound")
+                                    {
+                                        <text> @e.ElementTag@(string.IsNullOrWhiteSpace(e.ElementId) ? "" : "#" + e.ElementId) “@e.ElementText” </text>
+                                        @if (!string.IsNullOrWhiteSpace(e.ElementHref))
+                                        {
+                                            <a class="wt-link wt-page-link" href="@e.ElementHref" target="_blank" rel="noopener">→ @e.ElementHref</a>
+                                        }
+                                        <span class="wt-muted">@e.X.ToString(CultureInfo.InvariantCulture),@e.Y.ToString(CultureInfo.InvariantCulture) on <a class="wt-link" href="@PageHref(e.Path, s.Hostname)" target="_blank" rel="noopener">@EmptyDash(e.Path, "/")</a></span>
+                                    }
+                                    else if (!string.IsNullOrWhiteSpace(e.Path))
+                                    {
+                                        <a class="wt-link" href="@PageHref(e.Path, s.Hostname)" target="_blank" rel="noopener">@e.Path</a>
+                                    }
+                                </li>
+                            }
+                        }
+                    </ul>
+                </div>
             </div>
         }
-        <div>
-            <label for="wt_from">From</label>
-            <input type="date" id="wt_from" class="form-control" value="@_from" />
-        </div>
-        <div>
-            <label for="wt_to">To</label>
-            <input type="date" id="wt_to" class="form-control" value="@_to" />
-        </div>
-        <div>
-            <label for="wt_device">Device</label>
-            <select id="wt_device" class="form-control">
-                <option value="">All devices</option>
-                <option value="desktop">Desktop</option>
-                <option value="mobile">Mobile</option>
-                <option value="tablet">Tablet</option>
-            </select>
-        </div>
-        <div>
-            <label for="wt_country">Country</label>
-            <select id="wt_country" class="form-control">
-                <option value="">All countries</option>
-            </select>
-        </div>
-        <div>
-            <label for="wt_ip">IP address</label>
-            <input type="text" id="wt_ip" class="form-control" placeholder="e.g. 86.96." autocomplete="off" />
-        </div>
-        <div>
-            <label for="wt_user_id">User ID</label>
-            <input type="text" id="wt_user_id" class="form-control" placeholder="e.g. 5" inputmode="numeric" autocomplete="off" />
-        </div>
-        <div>
-            <label for="wt_user_type">Who</label>
-            <select id="wt_user_type" class="form-control">
-                <option value="">All visitors</option>
-                <option value="guest">Guests only</option>
-                <option value="registered">Registered only</option>
-            </select>
-        </div>
-        <div>
-            <label for="wt_browser">Browser</label>
-            <select id="wt_browser" class="form-control">
-                <option value="">All browsers</option>
-            </select>
-        </div>
-        <div>
-            <label for="wt_path">Page path contains</label>
-            <input type="text" id="wt_path" class="form-control" placeholder="/en/parts/" autocomplete="off" />
-        </div>
-        <div class="wt-filter-actions">
-            <button type="button" class="btn btn-primary" id="wt_reload"><i class="fa fa-refresh"></i> Apply filters</button>
-            <button type="button" class="btn btn-default" id="wt_clear_filters" title="Clear device / country / IP / user filters">Clear filters</button>
-            <button type="button" class="btn btn-default" id="wt_csv" title="Download full report (CSV)"><i class="fa fa-download"></i> Download CSV</button>
-        </div>
-    </div>
-
-    <div class="wt-status alert alert-info" id="wt_status">@(_isAdmin ? "Loading traffic…" : "Sign in to load traffic.")</div>
-    <div class="wt-kpis" id="wt_kpis" aria-label="Website tracker KPIs"></div>
-
-    <div class="wt-visual-row">
-        <div class="wt-panel wt-panel--chart">
-            <h4>Traffic by day</h4>
-            <div class="wt-body" id="wt_daily"></div>
-        </div>
-        <div class="wt-panel wt-panel--chart">
-            <h4>Visitor mix</h4>
-            <div class="wt-body" id="wt_mix"></div>
-        </div>
-        <div class="wt-panel wt-panel--chart">
-            <h4>@(_isSuper ? "By tenant / hostname" : "Devices & browsers")</h4>
-            <div class="wt-body" id="wt_side_a"></div>
-        </div>
-    </div>
-
-    <div class="wt-grid">
-        <div class="wt-panel">
-            <h4>Top pages (experience)</h4>
-            <div class="wt-body" id="wt_pages"></div>
-        </div>
-        <div class="wt-panel">
-            <h4>Geography</h4>
-            <div class="wt-body" id="wt_geo"></div>
-        </div>
-    </div>
-
-    <div class="wt-grid">
-        <div class="wt-panel">
-            <h4>Search terms</h4>
-            <div class="wt-body" id="wt_search"></div>
-        </div>
-        <div class="wt-panel">
-            <h4>Top clicks</h4>
-            <div class="wt-body" id="wt_clicks"></div>
-        </div>
-    </div>
-
-    <div class="wt-grid">
-        <div class="wt-panel">
-            <h4>Referrers &amp; UTM</h4>
-            <div class="wt-body" id="wt_refs"></div>
-        </div>
-        <div class="wt-panel">
-            <h4>@(_isSuper ? "Devices & browsers" : "Filter tips")</h4>
-            <div class="wt-body" id="wt_side_b"></div>
-        </div>
-    </div>
-
-    <div class="wt-panel" style="margin-bottom:20px;">
-        <h4>Recent sessions — IP shown · click page links to open that page · click a row for full timeline</h4>
-        <div class="wt-body" id="wt_sessions" style="max-height:520px;"></div>
-    </div>
-</div>
-
-<div class="modal fade wt-modal" id="wt_session_modal" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog modal-lg" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <button type="button" class="close" id="wt_session_close" aria-label="Close"><span>&times;</span></button>
-                <h4 class="modal-title">Session timeline</h4>
-            </div>
-            <div class="modal-body" id="wt_session_body">Loading…</div>
-        </div>
-    </div>
+    }
 </div>
 
 </PhpCpDesktopChrome>
 
-<script>
-window.EPC_WEB_TRACKER_CP = {
-  isSuper: @(_isSuper ? "true" : "false"),
-  ownSiteKey: @System.Text.Json.JsonSerializer.Serialize(_defaultSite),
-  endpoints: {
-    dashboard: '/cp/web-tracker/dashboard',
-    session: '/cp/web-tracker/session',
-    csv: '/cp/web-tracker/csv'
-  }
-};
-</script>
-<script src="/platform-assets/epc_web_tracker_aspnet.js?v=20260812wt1"></script>
-
 @code {
     private bool _isAdmin;
     private bool _isSuper;
-    private string _defaultSite = "epartscart";
-    private string _from = DateTime.UtcNow.Date.AddDays(-7).ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
-    private string _to = DateTime.UtcNow.Date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+    private CpWebTrackerFilterQuery _filters = new("epartscart", "", "", "", "", "", "", "", "", "", false);
+    private CpWebTrackerDashboardResult _dash = EmptyDashResult();
     private IReadOnlyList<string> _siteOptions = ["_all", "ecomae", "epartscart"];
+    private CpWebTrackerSessionDetailResult? _session;
 
     protected override async Task OnInitializedAsync()
     {
@@ -218,14 +625,205 @@ window.EPC_WEB_TRACKER_CP = {
         }
 
         var host = ctx.Request.Host.Host;
-        _defaultSite = CpWebTrackerDashboardBuilder.ResolveOwnSiteKey(host);
+        var own = CpWebTrackerDashboardBuilder.ResolveOwnSiteKey(host);
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
-        // Super fleet tracker only on platform hosts — never from bos capability on tenant CP.
         _isSuper = PlatformHostPolicy.IsSuperCpHost(host);
-        if (_isSuper)
+        var q = ctx.Request.Query;
+        _filters = CpWebTrackerDashboardBuilder.NormalizeFilters(
+            q["site_key"], q["from"], q["to"], q["device"], q["country"], q["ip"],
+            q["user_id"], q["user_type"], q["browser"], q["path"], _isSuper, own);
+
+        if (!_isAdmin)
         {
-            _defaultSite = "_all";
+            return;
         }
+
+        _dash = await Dashboards.BuildCpWebTrackerDashboardAsync(_filters, ctx.RequestAborted);
+        if (_dash.SiteOptions.Count > 0)
+        {
+            _siteOptions = _dash.SiteOptions;
+        }
+
+        if (long.TryParse(q["session"].ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var sid) && sid > 0)
+        {
+            _session = await Dashboards.BuildCpWebTrackerSessionDetailAsync(sid, _filters.SiteKey, _isSuper, ctx.RequestAborted);
+            if (_session is { Ok: false } || _session.Session is null)
+            {
+                _session = null;
+            }
+        }
+    }
+
+    private RenderFragment DeviceTable() => __builder =>
+    {
+        <table class="wt-table">
+            <thead><tr><th>Device</th><th>Browser</th><th>OS</th><th>Sessions</th></tr></thead>
+            <tbody>
+            @if (_dash.Devices.Count == 0)
+            {
+                <tr><td colspan="4" class="wt-muted">—</td></tr>
+            }
+            else
+            {
+                @foreach (var d in _dash.Devices)
+                {
+                    <tr>
+                        <td><a class="wt-device-click" href="@FilterHref(device: d.DeviceType)">@EmptyDash(d.DeviceType)</a></td>
+                        <td><a class="wt-device-click" href="@FilterHref(browser: d.Browser)">@EmptyDash(d.Browser)</a></td>
+                        <td>@EmptyDash(d.Os)</td>
+                        <td>@d.Sessions.ToString(CultureInfo.InvariantCulture)</td>
+                    </tr>
+                }
+            }
+            </tbody>
+        </table>
+    };
+
+    private RenderFragment Kpi(string label, object value) => __builder =>
+    {
+        <div class="wt-kpi"><b>@Convert.ToString(value, CultureInfo.InvariantCulture)</b><span>@label</span></div>
+    };
+
+    private IEnumerable<(string Value, string Label)> DeviceChoices()
+    {
+        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var preset in new[] { "desktop", "mobile", "tablet" })
+        {
+            seen.Add(preset);
+            var facet = _dash.Facets.Devices.FirstOrDefault(d => string.Equals(d.Value, preset, StringComparison.OrdinalIgnoreCase));
+            yield return (preset, facet is null ? char.ToUpperInvariant(preset[0]) + preset[1..] : FacetLabel(facet));
+        }
+
+        foreach (var d in _dash.Facets.Devices)
+        {
+            if (seen.Add(d.Value))
+            {
+                yield return (d.Value, FacetLabel(d));
+            }
+        }
+    }
+
+    private static string FacetLabel(CpWebTrackerFacetRow row)
+        => string.IsNullOrWhiteSpace(row.Label) ? row.Value : $"{row.Label} ({row.Sessions.ToString(CultureInfo.InvariantCulture)})";
+
+    private string StatusClass()
+        => _dash.Ok ? "wt-status alert alert-success" : "wt-status alert alert-warning";
+
+    private string StatusText()
+    {
+        if (!_dash.Ok)
+        {
+            return string.IsNullOrWhiteSpace(_dash.Message)
+                ? "Tracker digest is empty for this range."
+                : _dash.Message;
+        }
+
+        var chips = new List<string>();
+        if (!string.IsNullOrWhiteSpace(_filters.Device)) chips.Add("device " + _filters.Device);
+        if (!string.IsNullOrWhiteSpace(_filters.Country)) chips.Add("country " + _filters.Country);
+        if (!string.IsNullOrWhiteSpace(_filters.Ip)) chips.Add("IP " + _filters.Ip);
+        if (!string.IsNullOrWhiteSpace(_filters.UserId)) chips.Add("user #" + _filters.UserId);
+        if (!string.IsNullOrWhiteSpace(_filters.UserType)) chips.Add(_filters.UserType);
+        if (!string.IsNullOrWhiteSpace(_filters.Browser)) chips.Add("browser " + _filters.Browser);
+        if (!string.IsNullOrWhiteSpace(_filters.Path)) chips.Add("path " + _filters.Path);
+        return "Updated · site " + _dash.SiteKey
+            + " · " + FmtTs(_dash.FromUnix) + " → " + FmtTs(_dash.ToUnix)
+            + (string.IsNullOrWhiteSpace(_dash.Db) ? "" : " · db " + _dash.Db)
+            + (chips.Count == 0 ? " · no extra filters" : " · filters " + string.Join(", ", chips));
+    }
+
+    private string FilterHref(
+        string? siteKey = null,
+        string? device = null,
+        string? country = null,
+        string? ip = null,
+        string? userId = null,
+        string? userType = null,
+        string? browser = null,
+        string? path = null,
+        long? sessionId = null)
+    {
+        var q = new List<string>();
+        void Add(string key, string? value)
+        {
+            if (!string.IsNullOrWhiteSpace(value))
+            {
+                q.Add(Uri.EscapeDataString(key) + "=" + Uri.EscapeDataString(value));
+            }
+        }
+
+        Add("site_key", siteKey ?? _filters.SiteKey);
+        Add("from", _filters.FromDate);
+        Add("to", _filters.ToDate);
+        Add("device", device ?? _filters.Device);
+        Add("country", country ?? _filters.Country);
+        Add("ip", ip ?? _filters.Ip);
+        Add("user_id", userId ?? _filters.UserId);
+        Add("user_type", userType ?? _filters.UserType);
+        Add("browser", browser ?? _filters.Browser);
+        Add("path", path ?? _filters.Path);
+        if (sessionId is > 0)
+        {
+            Add("session", sessionId.Value.ToString(CultureInfo.InvariantCulture));
+        }
+
+        return "/cp/web-tracker-app" + (q.Count == 0 ? "" : "?" + string.Join("&", q));
+    }
+
+    private string CsvHref()
+    {
+        var href = FilterHref();
+        var q = href.Contains('?', StringComparison.Ordinal) ? href[(href.IndexOf('?', StringComparison.Ordinal) + 1)..] : "";
+        return "/cp/web-tracker/csv" + (q.Length == 0 ? "" : "?" + q);
+    }
+
+    private static string PageHref(string? path, string? hostname = null)
+    {
+        var p = string.IsNullOrWhiteSpace(path) ? "/" : path.Trim();
+        if (!p.StartsWith('/') && !p.StartsWith("http", StringComparison.OrdinalIgnoreCase))
+        {
+            p = "/" + p;
+        }
+
+        if (p.StartsWith("http://", StringComparison.OrdinalIgnoreCase) || p.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
+        {
+            return p;
+        }
+
+        var host = (hostname ?? string.Empty).Replace("https://", "", StringComparison.OrdinalIgnoreCase)
+            .Replace("http://", "", StringComparison.OrdinalIgnoreCase).Trim().TrimEnd('/');
+        return string.IsNullOrEmpty(host) ? p : "https://" + host + p;
+    }
+
+    private static string Dur(long ms)
+    {
+        if (ms < 1000) return ms.ToString(CultureInfo.InvariantCulture) + " ms";
+        var s = (int)Math.Round(ms / 1000.0);
+        if (s < 60) return s.ToString(CultureInfo.InvariantCulture) + "s";
+        var m = s / 60;
+        var r = s % 60;
+        if (m < 60) return m.ToString(CultureInfo.InvariantCulture) + "m " + r.ToString(CultureInfo.InvariantCulture) + "s";
+        return (m / 60).ToString(CultureInfo.InvariantCulture) + "h " + (m % 60).ToString(CultureInfo.InvariantCulture) + "m";
+    }
+
+    private static string FmtTs(long unix)
+    {
+        if (unix <= 0) return "—";
+        return DateTimeOffset.FromUnixTimeSeconds(unix).ToLocalTime().ToString("g", CultureInfo.InvariantCulture);
+    }
+
+    private static string EmptyDash(string? value, string fallback = "—")
+        => string.IsNullOrWhiteSpace(value) ? fallback : value;
+
+    private static CpWebTrackerDashboardResult EmptyDashResult()
+    {
+        var filters = new CpWebTrackerFilterQuery("epartscart", "", "", "", "", "", "", "", "", "", false);
+        return new(
+            false, "epartscart", 0, 0, false, "none",
+            new CpWebTrackerDashSummary(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+            [], [], [], [], [], [], [], [], [],
+            new CpWebTrackerFacets([], [], []),
+            filters, [], "n/a", string.Empty);
     }
 }

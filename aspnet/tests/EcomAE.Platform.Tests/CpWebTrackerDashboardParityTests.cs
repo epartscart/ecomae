@@ -109,9 +109,26 @@ public class CpWebTrackerDashboardParityTests
         Assert.Contains("epc-web-tracker", razor);
         Assert.Contains("wt_kpis", razor);
         Assert.Contains("wt_sessions", razor);
-        Assert.Contains("wt_mix", razor);
-        Assert.Contains("epc_web_tracker_aspnet.js", razor);
+        Assert.Contains("wt-table", razor);
+        Assert.Contains("method=\"get\"", razor);
+        Assert.Contains("BuildCpWebTrackerDashboardAsync", razor);
+        Assert.Contains("BuildCpWebTrackerSessionDetailAsync", razor);
+        Assert.Contains("data-epc-wt-ssr", razor);
         Assert.Contains("CpWebTrackerStylesheets", razor);
+        Assert.Contains("@page \"/cp/shop/statistics/web_tracker\"", razor);
+        Assert.DoesNotContain("Loading traffic", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("epc_web_tracker_aspnet.js", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("Compare PHP reference", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("ASP.NET", razor, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Tracker_builder_prefers_docpart_when_richer_than_open_null()
+    {
+        var src = File.ReadAllText(Path.Combine(FindRepoRoot(),
+            "aspnet/src/EcomAE.Platform/Migration/CpWebTrackerDashboardBuilder.cs"));
+        Assert.Contains("OpenAsync(\"docpart\"", src, StringComparison.Ordinal);
+        Assert.Contains("CommandTimeout = 12", src, StringComparison.Ordinal);
     }
 
     private static string FindRepoRoot()
