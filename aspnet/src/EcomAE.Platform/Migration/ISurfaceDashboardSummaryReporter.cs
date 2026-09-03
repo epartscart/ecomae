@@ -6,6 +6,9 @@ public interface ISurfaceDashboardSummaryReporter
 
     Task<ErpDashboardDigestResult> BuildErpAsync(CancellationToken cancellationToken = default);
 
+    /// <summary>PHP <c>erp_dashboard_netsuite.php</c> company-home digest (prior period, trend, alerts, process analytics).</summary>
+    Task<ErpWorkspaceHomeDigest> BuildErpWorkspaceHomeAsync(CancellationToken cancellationToken = default);
+
     Task<BosFleetSummary> BuildBosAsync(CancellationToken cancellationToken = default);
 
     Task<StorefrontAccountDigestResult> BuildStorefrontAccountAsync(int userId, int recentLimit = 10, CancellationToken cancellationToken = default);

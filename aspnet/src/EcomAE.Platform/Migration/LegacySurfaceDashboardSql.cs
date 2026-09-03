@@ -4642,4 +4642,69 @@ public const string SelectCpOpsGuidesStats = """
         LIMIT @limit
         """;
 
+    /// <summary>PHP <c>epc_erp_dashboard</c> purchase ex-VAT for a period (purchases register).</summary>
+    public const string SumErpWorkspacePurchaseExVat = """
+        SELECT IFNULL(SUM(`amount_ex_vat`), 0) FROM `epc_erp_purchases`
+        WHERE `active` = 1 AND `purchase_date` >= @dateFrom AND `purchase_date` <= @dateTo
+        """;
+
+    /// <summary>PHP sales incl. VAT from completed shop orders.</summary>
+    public const string SumErpWorkspaceSalesInclVat = """
+        SELECT IFNULL(SUM(`price_total_wt`), 0) FROM `shop_orders`
+        WHERE `successfully_created` = 1 AND `time` >= @dateFrom AND `time` <= @dateTo
+        """;
+
+    /// <summary>PHP <c>receivable_due_orders</c> approximation — unpaid completed orders in period.</summary>
+    public const string SumErpWorkspaceReceivableDueOrders = """
+        SELECT IFNULL(SUM(`price_total_wt`), 0) FROM `shop_orders`
+        WHERE `successfully_created` = 1 AND IFNULL(`paid`, 0) = 0
+          AND `time` >= @dateFrom AND `time` <= @dateTo
+        """;
+
+    public const string CountErpWorkspaceConfirmedSalesOrders = """
+        SELECT COUNT(*) FROM `epc_erp_sales_orders` WHERE `status` = 'confirmed'
+        """;
+
+    /// <summary>PHP NetSuite reminder — open POs in draft/sent/confirmed.</summary>
+    public const string CountErpWorkspaceOpenPurchaseOrders = """
+        SELECT COUNT(*) FROM `epc_erp_purchase_orders`
+        WHERE `status` IN ('draft','sent','confirmed')
+        """;
+
+    /// <summary>PHP NetSuite reminder — e-invoices with balance due.</summary>
+    public const string CountErpWorkspaceInvoicesDue = """
+        SELECT COUNT(*) FROM `epc_einvoice_documents`
+        WHERE `active` = 1 AND `status` <> 'cancelled'
+          AND (`total_incl_vat` - `paid_amount`) > 0.005
+        """;
+
+    public const string SelectErpWorkspaceProcessByDepartment = """
+        SELECT IFNULL(`current_department`,'') AS dept, COUNT(*) AS n
+        FROM `epc_pf_cases`
+        WHERE `status` = 'open'
+        GROUP BY IFNULL(`current_department`,'')
+        ORDER BY n DESC
+        """;
+
+    public const string SelectErpWorkspaceTopPerformers = """
+        SELECT IFNULL(`current_assignee_id`,0) AS assignee,
+               IFNULL(`current_department`,'') AS dept,
+               COUNT(*) AS n
+        FROM `epc_pf_cases`
+        WHERE `status` = 'done'
+        GROUP BY IFNULL(`current_assignee_id`,0), IFNULL(`current_department`,'')
+        ORDER BY n DESC
+        LIMIT 8
+        """;
+
+    public const string CountErpWorkspaceProcessBusy = """
+        SELECT COUNT(DISTINCT `current_assignee_id`) FROM `epc_pf_cases`
+        WHERE `status` = 'open' AND `current_assignee_id` > 0
+        """;
+
+    public const string CountErpWorkspaceProcessHeadcount = """
+        SELECT COUNT(DISTINCT `current_assignee_id`) FROM `epc_pf_cases`
+        WHERE `current_assignee_id` > 0
+        """;
+
 }
