@@ -18,15 +18,13 @@
   NOT the fleet command page. Fleet lives at /erp/fleet-app (Super CP operator tool).
 *@
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Dashboard" BreadcrumbArea="Home" BreadcrumbTab="Dashboard">
-    @* PHP erp_dashboard_netsuite.php — .ns-dash so erp_dashboard_premium.css applies *@
-    <div class="ns-dash" data-dashboard-profile="@(_jewellery ? "jewellery" : "finance")" data-epc-industry="@_industryCode">
+    <div class="ns-dash" data-dashboard-profile="@_profile.Key" data-epc-industry="@_industryCode">
         <div class="ns-hero">
             <div class="ns-hero-panel">
-                <div class="ns-hero-kicker"><i class="fa fa-dashboard"></i> @_ctx.BrandLabel · @_companyLabel · @_industryLabel</div>
-                <h2 class="ns-hero-title">@(_jewellery ? "Jewellery operations" : "Operations")</h2>
+                <div class="ns-hero-kicker"><i class="fa @_profile.Icon"></i> @_profile.Label</div>
+                <h2 class="ns-hero-title">@_heroEntity</h2>
                 <p class="ns-hero-sub">
-                    Live KPIs for the active company. Use the company picker above to switch legal entities —
-                    jewellery companies expose jewellery modules; MAIN keeps core finance modules only.
+                    @_profile.Subtitle
                     @if (_isSuperHost)
                     {
                         <text> Operator fleet view: <a href="/erp/fleet-app">/erp/fleet-app</a>.</text>
@@ -34,47 +32,30 @@
                 </p>
                 <div class="ns-hero-meta">
                     <span class="ns-chip"><i class="fa fa-calendar"></i> @_periodFrom → @_periodTo</span>
-                    <span class="ns-chip"><i class="fa fa-money"></i> AED</span>
+                    <span class="ns-chip"><i class="fa fa-money"></i> @_currency</span>
+                    <span class="ns-chip"><i class="fa fa-user"></i> @_profile.Label</span>
                     <span class="ns-chip"><i class="fa fa-building"></i> @_companyLabel</span>
-                    <span class="ns-chip"><i class="fa fa-industry"></i> @_industryLabel</span>
+                    @if (!ErpNetsuiteDashboardCatalog.Can(_profile, "profit"))
+                    {
+                        <span class="ns-chip" title="Profit and margin are hidden for this profile"><i class="fa fa-lock"></i> Profit restricted</span>
+                    }
                 </div>
             </div>
             <div class="ns-hero-metrics">
-                <div class="ns-metric3d">
-                    <div class="ml">Cash &amp; bank</div>
-                    <div class="mv">@_s.CashPosition.ToString("N2")</div>
-                    <div class="md">Live cash position</div>
-                </div>
-                <div class="ns-metric3d">
-                    <div class="ml">Sales (ex VAT)</div>
-                    <div class="mv">@_s.RevenueExVat.ToString("N2")</div>
-                    <div class="md">Period revenue</div>
-                </div>
-                <div class="ns-metric3d">
-                    <div class="ml">Receivables</div>
-                    <div class="mv">@_s.Receivables.ToString("N2")</div>
-                    <div class="md">Customer ledger</div>
-                </div>
-                <div class="ns-metric3d">
-                    <div class="ml">Payables</div>
-                    <div class="mv">@_s.Payables.ToString("N2")</div>
-                    <div class="md">Supplier balance</div>
-                </div>
-                <div class="ns-metric3d">
-                    <div class="ml">Inventory value</div>
-                    <div class="mv">@_s.StockValue.ToString("N2")</div>
-                    <div class="md">On-hand stock</div>
-                </div>
-                <div class="ns-metric3d">
-                    <div class="ml">Completed orders</div>
-                    <div class="mv">@_s.OrdersCount.ToString("N0")</div>
-                    <div class="md">Period orders</div>
-                </div>
+                @foreach (var hm in _hero)
+                {
+                    var chg = ErpNetsuiteDashboardCatalog.Change(hm.Current, hm.Previous, hm.GoodWhenUp);
+                    <div class="ns-metric3d">
+                        <div class="ml">@hm.Label</div>
+                        <div class="mv">@(hm.Money ? ErpNetsuiteDashboardCatalog.Money(hm.Current) : hm.Current.ToString("N0", CultureInfo.InvariantCulture))</div>
+                        <div class="md"><span class="@chg.Css">@chg.Text</span> vs prior period</div>
+                    </div>
+                }
             </div>
         </div>
 
         <div class="ns-tiles">
-            @foreach (var tile in ActiveTiles)
+            @foreach (var tile in _tiles)
             {
                 <a class="ns-tile @tile.Tone" href="@WithCompany(tile.Href)">
                     <i class="fa @tile.Icon ic"></i>
@@ -86,12 +67,12 @@
         <div class="ns-port">
             <div class="bd" style="padding-top:14px">
                 <h4 style="margin:0 0 12px;"><i class="fa fa-bolt"></i> Quick actions</h4>
-                <div class="ns-tiles" style="margin:0">
-                    @foreach (var qa in ActiveQuick)
+                <div class="ns-qa-grid">
+                    @foreach (var qa in _quick)
                     {
-                        <a class="ns-tile @qa.Tone" href="@WithCompany(qa.Href)">
-                            <i class="fa @qa.Icon ic"></i>
-                            <span class="tl">@qa.Label</span>
+                        <a class="ns-qa" href="@WithCompany(qa.Href)">
+                            <span class="qa-ic @qa.Tone"><i class="fa @qa.Icon"></i></span>
+                            <span class="qa-lb">@qa.Label</span>
                         </a>
                     }
                 </div>
@@ -106,26 +87,34 @@
                     <div class="ns-tiles" style="margin:0">
                         <a class="ns-tile gold" href="@WithCompany("/cp/jewellery-retail-app")"><i class="fa fa-diamond ic"></i><span class="tl">Jewellery retail</span></a>
                         <a class="ns-tile green" href="@WithCompany("/cp/jewellery-repairs-app")"><i class="fa fa-wrench ic"></i><span class="tl">Repair jobs</span></a>
-                        <a class="ns-tile slate" href="@WithCompany("/erp")"><i class="fa fa-line-chart ic"></i><span class="tl">Gold rate board</span></a>
-                        <a class="ns-tile rust" href="@WithCompany("/erp")"><i class="fa fa-tags ic"></i><span class="tl">Jewellery tags</span></a>
+                        <a class="ns-tile slate" href="@WithCompany("/cp/jewellery-masters-app?tab=gold_rate")"><i class="fa fa-line-chart ic"></i><span class="tl">Gold rate board</span></a>
+                        <a class="ns-tile rust" href="@WithCompany("/cp/jewellery-masters-app?tab=jewellery_tag")"><i class="fa fa-tags ic"></i><span class="tl">Jewellery tags</span></a>
                     </div>
                 </div>
             </div>
         }
 
-        <div class="ns-port">
-            <h4><i class="fa fa-tachometer"></i> Operational KPIs <span style="font-weight:400;color:var(--ns-muted,#64748b);font-size:11px;">— live period pulse</span></h4>
-            <div class="bd">
-                <div class="ns-kpi-grid">
-                    <div class="ns-kpi-card"><span class="dot"></span><div class="kl">Draft sales orders</div><div class="kv">@_s.DraftSalesOrders</div><div class="kh">Open SO queue</div></div>
-                    <div class="ns-kpi-card"><span class="dot"></span><div class="kl">Pending purchase orders</div><div class="kv">@_s.PendingPurchaseOrders</div><div class="kh">PO awaiting receipt</div></div>
-                    <div class="ns-kpi-card @(_s.OverdueInvoices > 0 ? "warn" : "")"><span class="dot"></span><div class="kl">Overdue invoices</div><div class="kv">@_s.OverdueInvoices</div><div class="kh">Collections focus</div></div>
-                    <div class="ns-kpi-card"><span class="dot"></span><div class="kl">Unposted GL</div><div class="kv">@_s.UnpostedGlJournals</div><div class="kh">Journals to post</div></div>
-                    <div class="ns-kpi-card @(_s.LowStockItems > 0 ? "warn" : "")"><span class="dot"></span><div class="kl">Low stock items</div><div class="kv">@_s.LowStockItems</div><div class="kh">Reorder candidates</div></div>
-                    <div class="ns-kpi-card"><span class="dot"></span><div class="kl">Process open / done / overdue</div><div class="kv">@_s.ProcessOpen / @_s.ProcessDone / @_s.ProcessOverdue</div><div class="kh">Task analytics</div></div>
+        @if (_opKpis.Count > 0)
+        {
+            <div class="ns-port">
+                <h4><i class="fa fa-tachometer"></i> Operational KPIs <span style="font-weight:400;color:var(--ns-muted,#64748b);font-size:11px;">— live, period @_periodFrom to @_periodTo</span>
+                    <a href="#ns-industry-controls" style="float:right;font-weight:400;font-size:11px;">Industry controls ↓</a>
+                </h4>
+                <div class="bd">
+                    <div class="ns-kpi-grid">
+                        @foreach (var k in _opKpis)
+                        {
+                            <div class="ns-kpi-card @k.Health" title="@k.Hint">
+                                <span class="dot"></span>
+                                <div class="kl">@k.Label</div>
+                                <div class="kv">@k.Value</div>
+                                <div class="kh">@k.Hint</div>
+                            </div>
+                        }
+                    </div>
                 </div>
             </div>
-        </div>
+        }
 
         @if (!_isAdmin)
         {
@@ -136,6 +125,14 @@
                 </div>
             </div>
         }
+        else if (!string.IsNullOrWhiteSpace(_home.Message) || (_home.Source != "database" && _home.Source != "n/a"))
+        {
+            <div class="ns-port">
+                <div class="bd" style="font-size:13px;color:#92400e;background:#fffbeb;border:1px solid #fde68a;border-radius:6px;padding:.75rem .9rem;">
+                    Source: @_home.Source@if (!string.IsNullOrWhiteSpace(_home.Message)) { <text> — @_home.Message</text> }
+                </div>
+            </div>
+        }
 
         <div class="ns-grid">
             <div class="ns-col-left">
@@ -143,121 +140,336 @@
                     <h4><i class="fa fa-bell-o"></i> Reminders</h4>
                     <div class="bd">
                         <ul class="ns-rem">
-                            <li><span class="cnt@(_s.DraftSalesOrders == 0 ? " zero" : "")">@_s.DraftSalesOrders</span> <a href="/erp/sales-orders-app">Draft sales orders</a></li>
-                            <li><span class="cnt@(_s.PendingPurchaseOrders == 0 ? " zero" : "")">@_s.PendingPurchaseOrders</span> <a href="/erp/purchase-orders-app">Pending purchase orders</a></li>
-                            <li><span class="cnt@(_s.OverdueInvoices == 0 ? " zero" : "")">@_s.OverdueInvoices</span> <a href="/erp/invoices-app">Overdue invoices</a></li>
-                            <li><span class="cnt@(_s.UnpostedGlJournals == 0 ? " zero" : "")">@_s.UnpostedGlJournals</span> <a href="/erp/gl-journals-app">Unposted GL journals</a></li>
-                            <li><span class="cnt@(_s.LowStockItems == 0 ? " zero" : "")">@_s.LowStockItems</span> <a href="/erp/inventory-stock-app">Low stock items</a></li>
-                            <li><span class="cnt@(_s.ProcessOverdue == 0 ? " zero" : "")">@_s.ProcessOverdue</span> <a href="/erp/process-flow-tasks-app">Overdue process tasks</a></li>
+                            @if (ErpNetsuiteDashboardCatalog.Can(_profile, "sales"))
+                            {
+                                <li><span class="cnt@(_cur.DraftSalesOrders == 0 ? " zero" : "")">@_cur.DraftSalesOrders</span> <a href="@WithCompany("/erp/sales-orders-app")">Draft sales orders to confirm</a></li>
+                                <li><span class="cnt@(_cur.ConfirmedSalesOrders == 0 ? " zero" : "")">@_cur.ConfirmedSalesOrders</span> <a href="@WithCompany("/erp/sales-orders-app")">Confirmed orders to invoice</a></li>
+                            }
+                            @if (ErpNetsuiteDashboardCatalog.Can(_profile, "purchases"))
+                            {
+                                <li><span class="cnt@(_cur.OpenPurchaseOrders == 0 ? " zero" : "")">@_cur.OpenPurchaseOrders</span> <a href="@WithCompany("/erp/purchase-orders-app")">Open purchase orders</a></li>
+                            }
+                            @if (ErpNetsuiteDashboardCatalog.Can(_profile, "ar"))
+                            {
+                                <li><span class="cnt@(_cur.InvoicesDue == 0 ? " zero" : "")">@_cur.InvoicesDue</span> <a href="@WithCompany("/erp/aging-app")">Invoices with balance due</a></li>
+                            }
+                            @if (ErpNetsuiteDashboardCatalog.Can(_profile, "gl"))
+                            {
+                                <li><span class="cnt@(_cur.UnpostedGlJournals == 0 ? " zero" : "")">@_cur.UnpostedGlJournals</span> <a href="@WithCompany("/erp/gl-journals-app")">Unposted GL journals</a></li>
+                            }
+                            @if (ErpNetsuiteDashboardCatalog.Can(_profile, "inventory"))
+                            {
+                                <li><span class="cnt@(_cur.LowStockItems == 0 ? " zero" : "")">@_cur.LowStockItems</span> <a href="@WithCompany("/erp/inventory-stock-app")">Low stock items</a></li>
+                            }
+                            @if (ErpNetsuiteDashboardCatalog.Can(_profile, "hr_tasks"))
+                            {
+                                <li><span class="cnt@(_cur.ProcessOverdue == 0 ? " zero" : "")">@_cur.ProcessOverdue</span> <a href="@WithCompany("/erp/process-flow-tasks-app")">Overdue process tasks</a></li>
+                            }
                         </ul>
                     </div>
                 </div>
                 <div class="ns-port ns-nav">
                     <h4><i class="fa fa-bars"></i> Navigation shortcuts</h4>
                     <div class="bd">
-                        <h5>Lists</h5>
-                        <div class="ns-mini-grid">
-                            <a class="ns-mini" href="/erp/coa-accounts-app"><span class="mi ns-mi-teal"><i class="fa fa-list"></i></span><span class="ml">Chart of accounts</span></a>
-                            <a class="ns-mini" href="/erp/inventory-stock-app"><span class="mi ns-mi-teal"><i class="fa fa-cubes"></i></span><span class="ml">Inventory stock</span></a>
-                        </div>
-                        <h5>Transactions</h5>
-                        <div class="ns-mini-grid">
-                            <a class="ns-mini" href="/erp/sales-orders-app"><span class="mi ns-mi-blue"><i class="fa fa-shopping-cart"></i></span><span class="ml">Sales orders</span></a>
-                            <a class="ns-mini" href="/erp/purchase-orders-app"><span class="mi ns-mi-blue"><i class="fa fa-truck"></i></span><span class="ml">Purchase orders</span></a>
-                            <a class="ns-mini" href="/erp/gl-journals-app"><span class="mi ns-mi-blue"><i class="fa fa-book"></i></span><span class="ml">General journal</span></a>
-                        </div>
-                        <h5>Reports</h5>
-                        <div class="ns-mini-grid">
-                            <a class="ns-mini" href="/erp/report-center-app"><span class="mi ns-mi-amber"><i class="fa fa-bar-chart"></i></span><span class="ml">Report center</span></a>
-                            <a class="ns-mini" href="/erp/aging-app"><span class="mi ns-mi-amber"><i class="fa fa-clock-o"></i></span><span class="ml">AR / AP aging</span></a>
-                        </div>
+                        @foreach (var grp in _nav)
+                        {
+                            <h5>@grp.Title</h5>
+                            <div class="ns-mini-grid">
+                                @foreach (var l in grp.Links)
+                                {
+                                    <a class="ns-mini" href="@WithCompany(l.Href)"><span class="mi @grp.Tone"><i class="fa @l.Icon"></i></span><span class="ml">@l.Label</span></a>
+                                }
+                            </div>
+                        }
                     </div>
                 </div>
             </div>
 
             <div class="ns-col-mid">
-                <div class="ns-port">
-                    <h4><i class="fa fa-tachometer"></i> Key performance indicators</h4>
-                    <div class="bd" style="padding:0">
-                        <table class="ns-kpi-tbl">
-                            <thead><tr><th>Indicator</th><th>Current</th><th>Previous</th><th>Change</th></tr></thead>
-                            <tbody>
-                                <tr><td>Payables</td><td>@_s.Payables.ToString("N2")</td><td>—</td><td><span class="ns-chg flat">—</span></td></tr>
-                                <tr><td>Sales (ex VAT)</td><td>@_s.RevenueExVat.ToString("N2")</td><td>—</td><td><span class="ns-chg flat">—</span></td></tr>
-                                <tr><td>Receivables</td><td>@_s.Receivables.ToString("N2")</td><td>—</td><td><span class="ns-chg flat">—</span></td></tr>
-                                <tr><td>Total bank balance</td><td>@_s.CashPosition.ToString("N2")</td><td>—</td><td><span class="ns-chg flat">—</span></td></tr>
-                                <tr><td>Net VAT</td><td>@_s.VatNetPayable.ToString("N2")</td><td>—</td><td><span class="ns-chg flat">—</span></td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-                <div class="ns-port">
-                    <h4><i class="fa fa-money"></i> Financials</h4>
-                    <div class="bd">
-                        <div class="ns-fin">
-                            <div class="cell"><div class="l">Cash &amp; bank</div><div class="v">@_s.CashPosition.ToString("N2") AED</div></div>
-                            <div class="cell"><div class="l">Net VAT</div><div class="v">@_s.VatNetPayable.ToString("N2") AED</div></div>
-                            <div class="cell"><div class="l">AR balance</div><div class="v">@_s.ArBalance.ToString("N2") AED</div></div>
-                            <div class="cell"><div class="l">AP balance</div><div class="v">@_s.ApBalance.ToString("N2") AED</div></div>
-                            <div class="cell"><div class="l">Completed orders</div><div class="v">@_s.OrdersCount.ToString("N0")</div></div>
-                            <div class="cell"><div class="l">Stock value</div><div class="v">@_s.StockValue.ToString("N2") AED</div></div>
+                @if (_kpiRows.Count > 0)
+                {
+                    <div class="ns-port">
+                        <h4><i class="fa fa-tachometer"></i> Key performance indicators</h4>
+                        <div class="bd" style="padding:0">
+                            <table class="ns-kpi-tbl">
+                                <thead><tr><th>Indicator</th><th>Current</th><th>Previous</th><th>Change</th></tr></thead>
+                                <tbody>
+                                    @foreach (var k in _kpiRows)
+                                    {
+                                        var chg = ErpNetsuiteDashboardCatalog.Change(k.Current, k.Previous, k.GoodWhenUp);
+                                        <tr>
+                                            <td>@k.Name</td>
+                                            <td>@ErpNetsuiteDashboardCatalog.Money(k.Current)</td>
+                                            <td>@ErpNetsuiteDashboardCatalog.Money(k.Previous)</td>
+                                            <td><span class="@chg.Css">@chg.Text</span></td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
                         </div>
                     </div>
-                </div>
+                }
+                @if (ErpNetsuiteDashboardCatalog.Can(_profile, "financials") && _fin.Count > 0)
+                {
+                    <div class="ns-port">
+                        <h4><i class="fa fa-money"></i> Financials</h4>
+                        <div class="bd">
+                            <div class="ns-fin">
+                                @foreach (var f in _fin)
+                                {
+                                    <div class="cell"><div class="l">@f.Label</div><div class="v">@f.Value</div></div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                }
             </div>
 
             <div class="ns-col-right">
-                <div class="ns-port">
-                    <h4><i class="fa fa-dashboard"></i> KPI meter — Total bank balance</h4>
-                    <div class="bd">
-                        <div class="ns-gauge">
-                            <svg viewBox="0 0 200 120" width="100%" height="120" aria-hidden="true">
-                                <defs>
-                                    <linearGradient id="nsGaugeGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                                        <stop offset="0%" stop-color="#0f766e"/>
-                                        <stop offset="55%" stop-color="#1d4f91"/>
-                                        <stop offset="100%" stop-color="#b45309"/>
-                                    </linearGradient>
-                                </defs>
-                                <path d="M20 110 A80 80 0 0 1 180 110" fill="none" stroke="#d9e4ec" stroke-width="16" stroke-linecap="round"/>
-                                <path d="M20 110 A80 80 0 0 1 180 110" fill="none" stroke="url(#nsGaugeGrad)" stroke-width="16" stroke-linecap="round"
-                                      stroke-dasharray="@_gaugeDash 251.3"/>
-                                <g transform="rotate(@_gaugeAngle.ToString("0.0", CultureInfo.InvariantCulture) 100 110)">
-                                    <line x1="100" y1="110" x2="100" y2="40" stroke="#102a43" stroke-width="3"/>
-                                </g>
-                                <circle cx="100" cy="110" r="7" fill="#102a43"/>
-                                <circle cx="100" cy="110" r="3" fill="#1d4f91"/>
-                            </svg>
-                            <div class="gval" style="color:@(_s.CashPosition >= 0 ? "#1a7f4b" : "#b42318")">@_s.CashPosition.ToString("N2")</div>
-                            <div class="gsub">AED · live cash &amp; bank position</div>
+                @if (ErpNetsuiteDashboardCatalog.Can(_profile, "gauge") && ErpNetsuiteDashboardCatalog.Can(_profile, "cash"))
+                {
+                    <div class="ns-port">
+                        <h4><i class="fa fa-dashboard"></i> KPI meter — Total bank balance</h4>
+                        <div class="bd">
+                            <div class="ns-gauge">
+                                <svg viewBox="0 0 200 120" width="100%" height="120" aria-hidden="true">
+                                    <defs>
+                                        <linearGradient id="nsGaugeGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                                            <stop offset="0%" stop-color="#0f766e"/>
+                                            <stop offset="55%" stop-color="#1d4f91"/>
+                                            <stop offset="100%" stop-color="#b45309"/>
+                                        </linearGradient>
+                                    </defs>
+                                    <path d="M20 110 A80 80 0 0 1 180 110" fill="none" stroke="#d9e4ec" stroke-width="16" stroke-linecap="round"/>
+                                    <path d="M20 110 A80 80 0 0 1 180 110" fill="none" stroke="url(#nsGaugeGrad)" stroke-width="16" stroke-linecap="round"
+                                          stroke-dasharray="@_gaugeDash 251.3"/>
+                                    <g transform="rotate(@_gaugeAngle.ToString("0.0", CultureInfo.InvariantCulture) 100 110)">
+                                        <line x1="100" y1="110" x2="100" y2="40" stroke="#102a43" stroke-width="3"/>
+                                    </g>
+                                    <circle cx="100" cy="110" r="7" fill="#102a43"/>
+                                    <circle cx="100" cy="110" r="3" fill="#1d4f91"/>
+                                </svg>
+                                <div class="gval" style="color:@(_cur.CashPosition >= 0 ? "#1a7f4b" : "#b42318")">@ErpNetsuiteDashboardCatalog.Money(_cur.CashPosition)</div>
+                                <div class="gsub">@_currency · live cash &amp; bank position</div>
+                            </div>
                         </div>
                     </div>
-                </div>
-                <div class="ns-port">
-                    <h4><i class="fa fa-bar-chart"></i> A/R aging — graphical</h4>
-                    <div class="bd">
-                        <div class="ns-chart-wrap"><canvas id="nsChartAr" aria-label="A/R aging chart"></canvas></div>
-                        <div class="ns-total">Total receivable: <strong>@_arGrand.ToString("N2") AED</strong></div>
+                }
+                @if (ErpNetsuiteDashboardCatalog.Can(_profile, "aging_ar"))
+                {
+                    <div class="ns-port">
+                        <h4><i class="fa fa-bar-chart"></i> A/R aging — graphical</h4>
+                        <div class="bd">
+                            @if (_arGrand <= 0 && _arTotals.All(v => v == 0))
+                            {
+                                <p class="text-muted" style="margin:0 0 10px;">No open receivables in this company yet. Aging buckets stay at zero until invoices have a balance due.</p>
+                            }
+                            <div class="ns-chart-wrap"><canvas id="nsChartAr" aria-label="A/R aging chart"></canvas></div>
+                            <div class="ns-total">Total receivable: <strong>@ErpNetsuiteDashboardCatalog.Money(_arGrand) @_currency</strong></div>
+                        </div>
                     </div>
-                </div>
+                }
             </div>
         </div>
     </div>
 
-    <div class="ns-dash ns-exec">
-        <h3 class="ns-exec-h"><i class="fa fa-line-chart"></i> Executive trend</h3>
-        <div class="ns-port">
-            <div class="bd">
-                <div class="ns-chart-wrap tall"><canvas id="nsChartTrend" aria-label="Revenue trend chart"></canvas></div>
+    @if (ErpNetsuiteDashboardCatalog.Can(_profile, "exec"))
+    {
+        <div class="ns-dash ns-exec">
+            <h3 class="ns-exec-h"><i class="fa fa-dashboard"></i> Executive cockpit — full-system analytics</h3>
+
+            <div class="ns-exec-grid">
+                <div class="ns-port">
+                    <h4><i class="fa fa-line-chart"></i> @(ErpNetsuiteDashboardCatalog.Can(_profile, "profit") ? "Revenue & profit — last 6 months" : "Revenue — last 6 months")</h4>
+                    <div class="bd">
+                        @if (!_hasTrend)
+                        {
+                            <p class="text-muted" style="margin:0 0 10px;">No monthly revenue recorded yet. The chart stays at zero until completed orders land in the period.</p>
+                        }
+                        <div class="ns-chart-wrap tall"><canvas id="nsChartTrend" aria-label="Revenue trend"></canvas></div>
+                        <div class="ns-leg"><span class="sq" style="background:#1d4f91;"></span>Revenue@if (ErpNetsuiteDashboardCatalog.Can(_profile, "profit")) { <text>&nbsp; <span class="sq" style="background:#0f766e;"></span>Profit (ex-VAT)</text> }</div>
+                    </div>
+                </div>
+                <div class="ns-port">
+                    <h4><i class="fa fa-exclamation-triangle"></i> Planning alerts</h4>
+                    <div class="bd">
+                        <table class="table table-condensed table-bordered" style="margin-bottom:8px;">
+                            <tbody>
+                                <tr class="danger"><th>Stock-out / critical</th><td class="text-right">@_home.Alerts.Danger</td></tr>
+                                <tr class="warning"><th>Below safety stock</th><td class="text-right">@_home.Alerts.Warning</td></tr>
+                                <tr class="info"><th>Excess stock</th><td class="text-right">@_home.Alerts.Info</td></tr>
+                                <tr><th>Dead stock</th><td class="text-right">@_home.Alerts.Dead</td></tr>
+                                <tr><th>Total exceptions</th><td class="text-right"><strong>@_home.Alerts.Total</strong></td></tr>
+                            </tbody>
+                        </table>
+                        @if (_home.Alerts.Total == 0)
+                        {
+                            <p class="text-muted" style="margin:0 0 8px;">No planning exceptions yet. Low-stock items and pending reorder recommendations appear here when stock rules are in use.</p>
+                        }
+                        <a href="@WithCompany("/erp/order-planning-app")">View exceptions »</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="ns-exec-grid" style="margin-top:16px;">
+                @if (ErpNetsuiteDashboardCatalog.Can(_profile, "suppliers"))
+                {
+                    <div class="ns-port">
+                        <h4><i class="fa fa-truck"></i> Top suppliers by spend</h4>
+                        <div class="bd">
+                            @if (_home.TopSuppliers.Count == 0)
+                            {
+                                <p class="text-muted">No supplier spend recorded yet.</p>
+                            }
+                            else
+                            {
+                                <table class="table table-condensed table-bordered table-hover" style="margin-bottom:0;">
+                                    <thead><tr><th>Supplier</th><th class="text-center">Rating</th><th class="text-right">Spend</th><th class="text-right">POs</th><th class="text-right">Score</th></tr></thead>
+                                    <tbody>
+                                    @foreach (var s in _home.TopSuppliers)
+                                    {
+                                        <tr>
+                                            <td>@s.Name</td>
+                                            <td class="text-center">@s.Rating</td>
+                                            <td class="text-right">@ErpNetsuiteDashboardCatalog.Money(s.Spend)</td>
+                                            <td class="text-right">@s.PoCount</td>
+                                            <td class="text-right">@ErpNetsuiteDashboardCatalog.Money(s.Score)</td>
+                                        </tr>
+                                    }
+                                    </tbody>
+                                </table>
+                            }
+                        </div>
+                    </div>
+                }
+                <div class="ns-port">
+                    <h4><i class="fa fa-link"></i> Quick links</h4>
+                    <div class="bd">
+                        <div class="list-group" style="margin-bottom:0;">
+                            <a class="list-group-item" href="@WithCompany("/erp/guide-app?tab=ai_advisor")"><i class="fa fa-magic"></i> AI advisor &amp; forecasts</a>
+                            @if (ErpNetsuiteDashboardCatalog.Can(_profile, "profit"))
+                            {
+                                <a class="list-group-item" href="@WithCompany("/erp/report-center-app")"><i class="fa fa-bar-chart"></i> Profit &amp; loss</a>
+                            }
+                            <a class="list-group-item" href="@WithCompany("/erp/order-planning-app")"><i class="fa fa-cubes"></i> Order planning</a>
+                            @if (ErpNetsuiteDashboardCatalog.Can(_profile, "suppliers"))
+                            {
+                                <a class="list-group-item" href="@WithCompany("/erp/suppliers-app?tab=supplier_portal")"><i class="fa fa-handshake-o"></i> Supplier portal</a>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            @if (ErpNetsuiteDashboardCatalog.Can(_profile, "hr_tasks"))
+            {
+                <h3 class="ns-exec-h" id="ns-task-analytics" style="margin-top:22px;"><i class="fa fa-sitemap"></i> Task analytics — process flow across every department
+                    <small class="text-muted" style="font-weight:400;">· auto-tracked customer orders, purchase orders &amp; your own processes</small>
+                    <a href="@WithCompany("/erp/process-flow-tasks-app")" class="btn btn-xs btn-default" style="float:right;"><i class="fa fa-external-link"></i> Open process flow</a>
+                </h3>
+                @if (!_hasTasks)
+                {
+                    <div class="ns-port"><div class="bd">
+                        <p class="text-muted" style="margin:0;">No tasks tracked yet. Customer orders, purchase orders and your own processes auto-create cases and appear here as soon as work starts flowing. <a href="@WithCompany("/erp/process-flow-tasks-app")">Open process flow »</a></p>
+                    </div></div>
+                }
+                else
+                {
+                    <div class="ns-pf-kpis">
+                        <div class="ns-pf-card"><div class="v">@_cur.ProcessOpen</div><div class="l">Open tasks</div></div>
+                        <div class="ns-pf-card @(_cur.ProcessOverdue > 0 ? "bad" : "")"><div class="v">@_cur.ProcessOverdue</div><div class="l">Overdue (SLA)</div></div>
+                        <div class="ns-pf-card good"><div class="v">@_cur.ProcessDone</div><div class="l">Tasks completed in period</div></div>
+                        <div class="ns-pf-card"><div class="v">@_cur.ProcessBusy<small>/@_cur.ProcessHeadcount</small></div><div class="l">Staff busy now</div></div>
+                    </div>
+                    <div class="ns-exec-grid" style="margin-top:16px;">
+                        <div class="ns-port">
+                            <h4><i class="fa fa-building-o"></i> Open workload by department</h4>
+                            <div class="bd">
+                                @if (_home.DepartmentLoad.Count == 0)
+                                {
+                                    <p class="text-muted" style="margin:0;">No open tasks.</p>
+                                }
+                                else
+                                {
+                                    var deptMax = _home.DepartmentLoad.Max(d => d.OpenCount);
+                                    @foreach (var d in _home.DepartmentLoad)
+                                    {
+                                        var w = deptMax > 0 ? Math.Max(4, (int)Math.Round(d.OpenCount * 100.0 / deptMax)) : 0;
+                                        <div class="ns-pf-bar">
+                                            <div class="nm">@d.Name</div>
+                                            <div class="tr"><div class="fl" style="width:@w%;"></div></div>
+                                            <div class="ct">@d.OpenCount</div>
+                                        </div>
+                                    }
+                                }
+                            </div>
+                        </div>
+                        <div class="ns-port">
+                            <h4><i class="fa fa-trophy"></i> Top performers <small class="text-muted" style="font-weight:400;">(tasks completed)</small></h4>
+                            <div class="bd">
+                                @if (_home.TopPerformers.Count == 0)
+                                {
+                                    <p class="text-muted" style="margin:0;">No completed tasks in this period yet.</p>
+                                }
+                                else
+                                {
+                                    var topMax = _home.TopPerformers.Max(p => p.Done);
+                                    var rank = 0;
+                                    @foreach (var p in _home.TopPerformers)
+                                    {
+                                        rank++;
+                                        var w = topMax > 0 ? Math.Max(4, (int)Math.Round(p.Done * 100.0 / topMax)) : 0;
+                                        <div class="ns-pf-perf">
+                                            <span class="rk">@rank</span>
+                                            <div class="who"><span class="n">@p.Name</span><span class="d">@p.Department</span></div>
+                                            <div class="tr"><div class="fl" style="width:@w%;"></div></div>
+                                            <span class="ct">@p.Done</span>
+                                        </div>
+                                    }
+                                }
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+
+            <h3 class="ns-exec-h" id="ns-industry-controls" style="margin-top:22px;"><i class="fa fa-check-square-o"></i> Industry intelligence — recommended controls
+                <small class="text-muted" style="font-weight:400;">· @_industryLabel</small>
+            </h3>
+            <div class="ns-port">
+                <div class="bd">
+                    <p class="text-muted" style="margin-top:0;">Best-practice operational controls for your industry. Tick-to-save remains on the PHP workspace; this list is the same recommended set so the section is never blank.</p>
+                    <table class="table table-bordered table-condensed" style="margin-bottom:0;">
+                        <thead><tr><th style="width:70px;">In place</th><th>Control</th><th>What to do</th></tr></thead>
+                        <tbody>
+                        @foreach (var c in _controls)
+                        {
+                            <tr>
+                                <td style="text-align:center;"><i class="fa fa-square-o" aria-hidden="true"></i></td>
+                                <td><strong>@c.Title</strong></td>
+                                <td><small class="text-muted">@c.Desc</small></td>
+                            </tr>
+                        }
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
-        <div class="ns-pf-kpis">
-            <div class="ns-pf-card"><div class="v">@_s.ProcessOpen</div><div class="l">Open tasks</div></div>
-            <div class="ns-pf-card @(_s.ProcessOverdue > 0 ? "bad" : "")"><div class="v">@_s.ProcessOverdue</div><div class="l">Overdue (SLA)</div></div>
-            <div class="ns-pf-card good"><div class="v">@_s.ProcessDone</div><div class="l">Tasks completed</div></div>
-            <div class="ns-pf-card"><div class="v">@_s.InventoryItems</div><div class="l">Active items</div></div>
+    }
+    else if (ErpNetsuiteDashboardCatalog.Can(_profile, "hr_tasks"))
+    {
+        <div class="ns-dash ns-exec">
+            <h3 class="ns-exec-h" id="ns-task-analytics"><i class="fa fa-sitemap"></i> Task analytics
+                <a href="@WithCompany("/erp/process-flow-tasks-app")" class="btn btn-xs btn-default" style="float:right;"><i class="fa fa-external-link"></i> Open process flow</a>
+            </h3>
+            <div class="ns-pf-kpis">
+                <div class="ns-pf-card"><div class="v">@_cur.ProcessOpen</div><div class="l">Open tasks</div></div>
+                <div class="ns-pf-card @(_cur.ProcessOverdue > 0 ? "bad" : "")"><div class="v">@_cur.ProcessOverdue</div><div class="l">Overdue (SLA)</div></div>
+                <div class="ns-pf-card good"><div class="v">@_cur.ProcessDone</div><div class="l">Tasks completed in period</div></div>
+                <div class="ns-pf-card"><div class="v">@_cur.ProcessBusy</div><div class="l">Staff busy now</div></div>
+            </div>
         </div>
-    </div>
+    }
 </PhpErpDesktopChrome>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" crossorigin="anonymous"></script>
@@ -267,7 +479,9 @@
     var arTotals = @((MarkupString)JsonSerializer.Serialize(_arTotals));
     var trendLabels = @((MarkupString)JsonSerializer.Serialize(_trendLabels));
     var trendRev = @((MarkupString)JsonSerializer.Serialize(_trendRev));
-    var currency = 'AED';
+    var trendProf = @((MarkupString)JsonSerializer.Serialize(_trendProf));
+    var showProfitTrend = @(_showProfitTrend ? "true" : "false");
+    var currency = @((MarkupString)JsonSerializer.Serialize(_currency));
 
     function nsFmt(n) {
         try { return Number(n).toLocaleString(undefined, { maximumFractionDigits: 0 }); }
@@ -316,34 +530,45 @@
             var g = ctx.createLinearGradient(0, 0, 0, 200);
             g.addColorStop(0, 'rgba(29,79,145,0.22)');
             g.addColorStop(1, 'rgba(29,79,145,0.02)');
+            var datasets = [{
+                label: 'Revenue',
+                data: trendRev,
+                borderColor: '#1d4f91',
+                backgroundColor: g,
+                fill: true,
+                tension: 0.35,
+                borderWidth: 2.5,
+                pointRadius: 3,
+                pointBackgroundColor: '#1d4f91'
+            }];
+            if (showProfitTrend) {
+                datasets.push({
+                    label: 'Profit',
+                    data: trendProf,
+                    borderColor: '#0f766e',
+                    backgroundColor: 'transparent',
+                    fill: false,
+                    tension: 0.35,
+                    borderWidth: 2.5,
+                    pointRadius: 3,
+                    pointBackgroundColor: '#0f766e'
+                });
+            }
             trEl._nsChart = new Chart(ctx, {
                 type: 'line',
-                data: {
-                    labels: trendLabels,
-                    datasets: [{
-                        label: 'Revenue',
-                        data: trendRev,
-                        borderColor: '#1d4f91',
-                        backgroundColor: g,
-                        fill: true,
-                        tension: 0.35,
-                        borderWidth: 2.5,
-                        pointRadius: 3,
-                        pointBackgroundColor: '#1d4f91'
-                    }]
-                },
+                data: { labels: trendLabels, datasets: datasets },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
-                        legend: { display: true, position: 'bottom' },
+                        legend: { display: false },
                         tooltip: { callbacks: { label: function (c) { return c.dataset.label + ': ' + currency + ' ' + nsFmt(c.parsed.y); } } }
                     },
                     scales: {
-                        x: { grid: { display: false } },
+                        x: { grid: { color: grid } },
                         y: { grid: { color: grid }, ticks: { callback: function (v) { return nsFmt(v); } } }
                     },
-                    animation: { duration: 1100, easing: 'easeOutCubic' }
+                    animation: { duration: 1200, easing: 'easeOutCubic' }
                 }
             });
         }
@@ -354,24 +579,20 @@
     } else {
         drawCharts();
     }
-    // Chart.js CDN may load after this inline script.
     window.addEventListener('load', drawCharts);
 })();
 </script>
 
 @code {
-    private ErpDashboardSummary _s = new(
-        0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0,
-        0, 0, 0, 0, 0, "open", 0,
-        0, 0, 0, 0, 0, 0,
-        0, 0, 0,
-        "n/a", "");
+    private ErpWorkspaceHomeDigest _home = EmptyHome();
+    private ErpWorkspacePeriodKpis _cur = EmptyPeriod();
     private bool _isAdmin;
     private bool _isSuperHost;
     private bool _jewellery;
     private long _activeCompanyId;
     private string _companyLabel = "MAIN";
+    private string _heroEntity = "Operations";
+    private string _currency = "AED";
     private string _industryCode = "core";
     private string _industryLabel = "Core / multi-industry";
     private ErpHostContext.Context _ctx = ErpHostContext.Resolve(null);
@@ -386,39 +607,19 @@
     private decimal[] _arTotals = [0, 0, 0, 0, 0];
     private string[] _trendLabels = [];
     private decimal[] _trendRev = [];
-
-    private static readonly NsTile[] CoreTiles =
-    [
-        new("Income Statement", "fa-line-chart", "/erp/dashboard-summary-app", "gold"),
-        new("Balance Sheet / COA", "fa-university", "/erp/coa-accounts-app", "green"),
-        new("Sales Order", "fa-shopping-cart", "/erp/sales-orders-app", "rust"),
-        new("Purchase Order", "fa-truck", "/erp/purchase-orders-app", "slate"),
-    ];
-
-    private static readonly NsTile[] JewelleryTiles =
-    [
-        new("Jewellery retail", "fa-diamond", "/cp/jewellery-retail-app", "gold"),
-        new("Repair jobs", "fa-wrench", "/cp/jewellery-repairs-app", "green"),
-        new("Sales Order", "fa-shopping-cart", "/erp/sales-orders-app", "rust"),
-        new("Metal / stock", "fa-cubes", "/erp/inventory-stock-app", "slate"),
-    ];
-
-    private static readonly NsTile[] CoreQuick =
-    [
-        new("General Journal", "fa-book", "/erp/gl-journals-app", "slate"),
-        new("Customer Invoices", "fa-file-text-o", "/erp/invoices-app", "gold"),
-        new("Inventory Stock", "fa-cubes", "/erp/inventory-stock-app", "green"),
-        new("Bank Reconciliation", "fa-exchange", "/erp/bank-reconciliation-app", "rust"),
-        new("AR / AP Aging", "fa-clock-o", "/erp/aging-app", "slate"),
-        new("Report Center", "fa-bar-chart", "/erp/report-center-app", "gold"),
-        new("Process Flow", "fa-sitemap", "/erp/process-flow-tasks-app", "green"),
-        new("Stock Movements", "fa-random", "/erp/stock-movements-app", "rust"),
-    ];
-
-    private IEnumerable<NsTile> ActiveTiles => _jewellery ? JewelleryTiles : CoreTiles;
-    private IEnumerable<NsTile> ActiveQuick => CoreQuick;
-
-    private sealed record NsTile(string Label, string Icon, string Href, string Tone);
+    private decimal[] _trendProf = [];
+    private bool _showProfitTrend = true;
+    private bool _hasTrend;
+    private bool _hasTasks;
+    private ErpNetsuiteDashboardCatalog.Profile _profile = ErpNetsuiteDashboardCatalog.Profiles["finance"];
+    private IReadOnlyList<ErpNetsuiteDashboardCatalog.Tile> _tiles = [];
+    private IReadOnlyList<ErpNetsuiteDashboardCatalog.Tile> _quick = [];
+    private IReadOnlyList<ErpNetsuiteDashboardCatalog.NavGroup> _nav = [];
+    private IReadOnlyList<ErpNetsuiteDashboardCatalog.HeroMetric> _hero = [];
+    private IReadOnlyList<ErpNetsuiteDashboardCatalog.KpiRow> _kpiRows = [];
+    private IReadOnlyList<ErpNetsuiteDashboardCatalog.FinCell> _fin = [];
+    private IReadOnlyList<ErpWorkspaceOpKpi> _opKpis = [];
+    private IReadOnlyList<ErpNetsuiteDashboardCatalog.IndustryControl> _controls = [];
 
     private string WithCompany(string href)
     {
@@ -433,7 +634,6 @@
 
     protected override async Task OnInitializedAsync()
     {
-        BuildTrendPlaceholder(0);
         var ctx = Http.HttpContext;
         _ctx = ErpHostContext.Resolve(ctx?.Request.Host.Host);
         _isSuperHost = Services.PlatformHostPolicy.IsSuperCpHost(ctx?.Request.Host.Host);
@@ -456,6 +656,12 @@
             {
                 _activeCompanyId = active.Id;
                 _companyLabel = $"{active.Code} · {active.Name}";
+                _heroEntity = string.IsNullOrWhiteSpace(active.Name) ? "Operations" : active.Name;
+                if (!string.IsNullOrWhiteSpace(active.CurrencyCode))
+                {
+                    _currency = active.CurrencyCode;
+                }
+
                 _jewellery = ErpIndustryNav.IsJewelleryCompany(active);
                 _industryCode = _jewellery ? "jewellery" : (string.IsNullOrWhiteSpace(active.IndustryPack) ? "core" : active.IndustryPack);
                 _industryLabel = ErpIndustryNav.IndustryLabelForPack(active.IndustryPack, _jewellery);
@@ -463,81 +669,99 @@
             else
             {
                 _jewellery = ErpIndustryNav.IsJewelleryFromHostOrPack(_ctx.IndustryCode, null, null);
+                _heroEntity = string.IsNullOrWhiteSpace(_ctx.BrandLabel) ? "Operations" : _ctx.BrandLabel;
             }
         }
 
-        if (ctx is null) return;
-        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
-        _isAdmin = session.Kind == LegacySessionKind.Admin;
-        if (!_isAdmin)
+        if (ctx is null)
         {
+            ApplyProfile(false, null);
             RecalcGauge();
             return;
         }
 
-        // Platform Super host still uses company ERP digests for /erp home (fleet is /erp/fleet-app).
-        _s = (await Dashboards.BuildErpAsync(ctx.RequestAborted)).Summary;
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        _isAdmin = session.Kind == LegacySessionKind.Admin;
+        ApplyProfile(_isAdmin || _isSuperHost, ctx.Request.Query["dash_profile"].ToString());
+
+        if (_isAdmin)
+        {
+            _home = await Dashboards.BuildErpWorkspaceHomeAsync(ctx.RequestAborted);
+            _cur = _home.Current;
+            _periodFrom = _home.PeriodFrom;
+            _periodTo = _home.PeriodTo;
+            _arLabels = _home.ArAgingLabels.ToArray();
+            _arTotals = _home.ArAgingTotals.ToArray();
+            _arGrand = _home.ArGrand;
+            _trendLabels = _home.Trend.Select(t => t.Label).ToArray();
+            _trendRev = _home.Trend.Select(t => t.Revenue).ToArray();
+            _trendProf = _home.Trend.Select(t => t.Profit).ToArray();
+            _hasTrend = _home.Trend.Any(t => t.Revenue != 0 || t.Profit != 0);
+            _hasTasks = _cur.ProcessOpen + _cur.ProcessDone + _cur.ProcessOverdue > 0;
+        }
+        else
+        {
+            _home = EmptyHome();
+            _cur = _home.Current;
+            _trendLabels = _home.Trend.Select(t => t.Label).ToArray();
+            _trendRev = _home.Trend.Select(t => t.Revenue).ToArray();
+            _trendProf = _home.Trend.Select(t => t.Profit).ToArray();
+        }
+
+        BindProfileViews();
         RecalcGauge();
-        BuildTrendPlaceholder(_s.RevenueExVat);
+    }
 
-        try
-        {
-            var aging = await Dashboards.BuildErpAgingDigestAsync(200, ctx.RequestAborted);
-            if (aging.ArLabels.Count > 0)
-            {
-                _arLabels = aging.ArLabels.ToArray();
-            }
+    private void ApplyProfile(bool fullAdmin, string? requested)
+    {
+        _profile = ErpNetsuiteDashboardCatalog.Resolve(requested, fullAdmin);
+        _showProfitTrend = ErpNetsuiteDashboardCatalog.Can(_profile, "profit");
+        BindProfileViews();
+    }
 
-            _arGrand = aging.Summary.ArGrand;
-            var totals = new decimal[Math.Max(5, _arLabels.Length)];
-            foreach (var row in aging.ArRows)
-            {
-                if (totals.Length > 0) totals[0] += row.Bucket0;
-                if (totals.Length > 1) totals[1] += row.Bucket1;
-                if (totals.Length > 2) totals[2] += row.Bucket2;
-                if (totals.Length > 3) totals[3] += row.Bucket3;
-                if (totals.Length > 4) totals[4] += row.Bucket4;
-            }
-
-            _arTotals = totals;
-            if (_arGrand <= 0 && totals.Sum() > 0)
-            {
-                _arGrand = totals.Sum();
-            }
-        }
-        catch
-        {
-            // Aging digest optional — charts render empty buckets.
-        }
+    private void BindProfileViews()
+    {
+        var prev = _home.Previous;
+        _tiles = ErpNetsuiteDashboardCatalog.ResolveTiles(_profile);
+        _quick = ErpNetsuiteDashboardCatalog.ResolveQuick(_profile);
+        _nav = ErpNetsuiteDashboardCatalog.ResolveNav(_profile);
+        _hero = ErpNetsuiteDashboardCatalog.ResolveHero(_profile, _cur, prev);
+        _kpiRows = ErpNetsuiteDashboardCatalog.ResolveKpiRows(_profile, _cur, prev);
+        _fin = ErpNetsuiteDashboardCatalog.ResolveFinancials(_profile, _cur, _currency);
+        var days = ErpNetsuiteDashboardCatalog.PeriodDaysInclusive(_periodFrom, _periodTo);
+        _opKpis = ErpNetsuiteDashboardCatalog.OperationalKpis(_profile, _cur, days);
+        _controls = ErpNetsuiteDashboardCatalog.IndustryControls(_industryCode, _jewellery);
     }
 
     private void RecalcGauge()
     {
-        var gaugeVal = (double)_s.CashPosition;
-        var gaugeScale = Math.Max(Math.Max(Math.Abs(gaugeVal), Math.Abs((double)_s.RevenueExVat)), 1.0) * 1.25;
+        var gaugeVal = (double)_cur.CashPosition;
+        var gaugeScale = Math.Max(Math.Max(Math.Abs(gaugeVal), Math.Abs((double)_cur.RevenueExVat)), 1.0) * 1.25;
         _gaugeFrac = Math.Max(0.0, Math.Min(1.0, (gaugeVal + gaugeScale) / (2 * gaugeScale)));
         _gaugeAngle = -90 + (_gaugeFrac * 180);
         _gaugeDash = (_gaugeFrac * 251.3).ToString("0.0", CultureInfo.InvariantCulture);
     }
 
-    private void BuildTrendPlaceholder(decimal periodRevenue)
+    private static ErpWorkspacePeriodKpis EmptyPeriod()
+        => new(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "open");
+
+    private static ErpWorkspaceHomeDigest EmptyHome()
     {
-        // No monthly series on ErpDashboardSummary yet — distribute period revenue as a 6-point sparkline
-        // so Chart.js always has a correct graphic shape (PHP epc_exec_trend parity pending).
-        var labels = new string[6];
-        var rev = new decimal[6];
         var now = DateTime.UtcNow;
-        var baseAmt = periodRevenue > 0 ? periodRevenue / 6m : 0m;
+        var trend = new ErpWorkspaceTrendPoint[6];
         for (var i = 5; i >= 0; i--)
         {
-            var m = now.AddMonths(-i);
-            labels[5 - i] = m.ToString("MMM yy", CultureInfo.InvariantCulture);
-            // Slight synthetic shape so the line is visible when live monthly digests are absent.
-            var weight = 0.7m + (0.1m * (5 - i));
-            rev[5 - i] = Math.Round(baseAmt * weight, 2);
+            var m = new DateTime(now.Year, now.Month, 1, 0, 0, 0, DateTimeKind.Utc).AddMonths(-i);
+            trend[5 - i] = new(m.ToString("MMM yy", CultureInfo.InvariantCulture), 0, 0);
         }
 
-        _trendLabels = labels;
-        _trendRev = rev;
+        var zero = EmptyPeriod();
+        return new(
+            zero, zero, trend,
+            ["Not due", "1-30", "31-60", "61-90", "90+"],
+            [0, 0, 0, 0, 0],
+            0, [], new ErpWorkspacePlanningAlerts(0, 0, 0, 0, 0), [], [],
+            now.ToString("yyyy-MM-01"), now.ToString("yyyy-MM-dd"),
+            "n/a", "");
     }
 }

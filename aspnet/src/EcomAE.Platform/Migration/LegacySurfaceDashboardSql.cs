@@ -4707,4 +4707,151 @@ public const string SelectCpOpsGuidesStats = """
         LIMIT @limit
         """;
 
+    /// <summary>
+    /// PHP <c>epc_erp_dashboard</c> / <c>epc_erp_order_sum_sql</c> purchase ex-VAT:
+    /// finished <c>shop_orders</c> COGS (<c>t2_price_purchase * count_need</c>) on counting
+    /// item lines in <c>for_finish</c> statuses. Open / non-counting lines stay out, matching
+    /// <c>order_complete_expr</c> + <c>item_finish_where</c> + <c>epc_erp_item_status_exclusion</c>.
+    /// </summary>
+    public const string SumErpWorkspacePurchaseExVat = """
+        SELECT IFNULL(SUM(IFNULL((
+            SELECT SUM(i.`t2_price_purchase` * i.`count_need`)
+            FROM `shop_orders_items` i
+            WHERE i.`order_id` = o.`id`
+              AND i.`status` IN (SELECT `id` FROM `shop_orders_items_statuses_ref` WHERE `for_finish` = 1)
+              AND i.`status` NOT IN (SELECT `id` FROM `shop_orders_items_statuses_ref` WHERE `count_flag` = 0)
+        ), 0)), 0)
+        FROM `shop_orders` o
+        WHERE o.`successfully_created` = 1
+          AND o.`status` IN (SELECT `id` FROM `shop_orders_statuses_ref` WHERE `for_finish` = 1)
+          AND o.`time` >= @dateFrom AND o.`time` <= @dateTo
+        """;
+
+    /// <summary>
+    /// PHP <c>epc_erp_dashboard</c> revenue ex-VAT: completed shop orders only
+    /// (<c>order_complete_expr</c> / order-status <c>for_finish</c>).
+    /// </summary>
+    public const string SumErpWorkspaceRevenueExVat = """
+        SELECT IFNULL(SUM(`price_total_wt` - `price_total_wt_vat`), 0)
+        FROM `shop_orders`
+        WHERE `successfully_created` = 1
+          AND `status` IN (SELECT `id` FROM `shop_orders_statuses_ref` WHERE `for_finish` = 1)
+          AND `time` >= @dateFrom AND `time` <= @dateTo
+        """;
+
+    /// <summary>PHP <c>epc_erp_gl_pl_report</c> net_profit (revenue − expense signed period activity).</summary>
+    public const string SumErpWorkspaceGlNetProfit = """
+        SELECT IFNULL(SUM(
+            CASE
+                WHEN a.`account_type` = 'revenue' THEN
+                    CASE WHEN IFNULL(a.`normal_side`,'credit') = 'credit'
+                         THEN IFNULL(x.credits,0) - IFNULL(x.debits,0)
+                         ELSE IFNULL(x.debits,0) - IFNULL(x.credits,0)
+                    END
+                WHEN a.`account_type` = 'expense' THEN
+                    - CASE WHEN IFNULL(a.`normal_side`,'debit') = 'credit'
+                           THEN IFNULL(x.credits,0) - IFNULL(x.debits,0)
+                           ELSE IFNULL(x.debits,0) - IFNULL(x.credits,0)
+                      END
+                ELSE 0
+            END
+        ), 0)
+        FROM `epc_erp_coa_accounts` a
+        LEFT JOIN (
+            SELECT l.`coa_id`, SUM(l.`debit`) AS debits, SUM(l.`credit`) AS credits
+            FROM `epc_erp_gl_lines` l
+            INNER JOIN `epc_erp_gl_journals` j ON j.`id` = l.`journal_id` AND j.`active` = 1
+            WHERE j.`journal_date` >= @dateFrom AND j.`journal_date` <= @dateTo
+            GROUP BY l.`coa_id`
+        ) x ON x.`coa_id` = a.`id`
+        WHERE a.`active` = 1 AND a.`account_type` IN ('revenue','expense')
+        """;
+
+    /// <summary>PHP sales incl. VAT from completed shop orders (<c>for_finish</c>).</summary>
+    public const string SumErpWorkspaceSalesInclVat = """
+        SELECT IFNULL(SUM(`price_total_wt`), 0) FROM `shop_orders`
+        WHERE `successfully_created` = 1
+          AND `status` IN (SELECT `id` FROM `shop_orders_statuses_ref` WHERE `for_finish` = 1)
+          AND `time` >= @dateFrom AND `time` <= @dateTo
+        """;
+
+    /// <summary>PHP <c>receivable_due_orders</c> approximation — unpaid completed orders in period.</summary>
+    public const string SumErpWorkspaceReceivableDueOrders = """
+        SELECT IFNULL(SUM(`price_total_wt`), 0) FROM `shop_orders`
+        WHERE `successfully_created` = 1 AND IFNULL(`paid`, 0) = 0
+          AND `status` IN (SELECT `id` FROM `shop_orders_statuses_ref` WHERE `for_finish` = 1)
+          AND `time` >= @dateFrom AND `time` <= @dateTo
+        """;
+
+    /// <summary>
+    /// PHP <c>epc_erp_dashboard</c> <c>order_count</c>:
+    /// <c>SUM(IF(order_complete_expr, 1, 0))</c> — finished shop orders only.
+    /// </summary>
+    public const string CountErpWorkspaceCompletedOrders = """
+        SELECT COUNT(*) FROM `shop_orders`
+        WHERE `successfully_created` = 1
+          AND `status` IN (SELECT `id` FROM `shop_orders_statuses_ref` WHERE `for_finish` = 1)
+          AND `time` >= @dateFrom AND `time` <= @dateTo
+        """;
+
+    public const string CountErpWorkspaceConfirmedSalesOrders = """
+        SELECT COUNT(*) FROM `epc_erp_sales_orders` WHERE `status` = 'confirmed'
+        """;
+
+    /// <summary>PHP NetSuite reminder — open POs in draft/sent/confirmed.</summary>
+    public const string CountErpWorkspaceOpenPurchaseOrders = """
+        SELECT COUNT(*) FROM `epc_erp_purchase_orders`
+        WHERE `status` IN ('draft','sent','confirmed')
+        """;
+
+    /// <summary>PHP NetSuite reminder — e-invoices with balance due.</summary>
+    public const string CountErpWorkspaceInvoicesDue = """
+        SELECT COUNT(*) FROM `epc_einvoice_documents`
+        WHERE `active` = 1 AND `status` <> 'cancelled'
+          AND (`total_incl_vat` - `paid_amount`) > 0.005
+        """;
+
+    public const string SelectErpWorkspaceProcessByDepartment = """
+        SELECT IFNULL(`current_department`,'') AS dept, COUNT(*) AS n
+        FROM `epc_pf_cases`
+        WHERE `status` = 'open'
+        GROUP BY IFNULL(`current_department`,'')
+        ORDER BY n DESC
+        """;
+
+    /// <summary>
+    /// PHP <c>epc_pf_workforce_data</c> — steps approved in the selected period,
+    /// grouped by actor only. Department comes from the staff profile, not the case.
+    /// </summary>
+    public const string SelectErpWorkspaceTopPerformers = """
+        SELECT IFNULL(s.`acted_by`,0) AS assignee,
+               IFNULL(MAX(p.`display_name`),'') AS staff_name,
+               IFNULL(MAX(p.`department_code`),'') AS dept,
+               COUNT(*) AS n
+        FROM `epc_pf_case_steps` s
+        LEFT JOIN `epc_erp_staff_profiles` p ON p.`user_id` = s.`acted_by`
+        WHERE s.`status` = 'approved' AND s.`acted_by` > 0
+          AND s.`completed_at` >= @dateFrom AND s.`completed_at` <= @dateTo
+        GROUP BY s.`acted_by`
+        ORDER BY n DESC
+        LIMIT 8
+        """;
+
+    /// <summary>PHP <c>epc_pf_workforce_data</c> <c>doneTotal</c> — approved steps in the selected period.</summary>
+    public const string CountErpWorkspaceProcessDoneInPeriod = """
+        SELECT COUNT(*) FROM `epc_pf_case_steps`
+        WHERE `status` = 'approved' AND `acted_by` > 0
+          AND `completed_at` >= @dateFrom AND `completed_at` <= @dateTo
+        """;
+
+    public const string CountErpWorkspaceProcessBusy = """
+        SELECT COUNT(DISTINCT `current_assignee_id`) FROM `epc_pf_cases`
+        WHERE `status` = 'open' AND `current_assignee_id` > 0
+        """;
+
+    public const string CountErpWorkspaceProcessHeadcount = """
+        SELECT COUNT(DISTINCT `current_assignee_id`) FROM `epc_pf_cases`
+        WHERE `current_assignee_id` > 0
+        """;
+
 }

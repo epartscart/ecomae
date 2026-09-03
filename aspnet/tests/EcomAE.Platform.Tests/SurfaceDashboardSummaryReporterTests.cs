@@ -181,6 +181,7 @@ public sealed class SurfaceDashboardSummaryReporterTests
         var partSearch = await reporter.SearchStorefrontPartsAsync("0986424590", 10);
         var cartRejected = await reporter.ListStorefrontCartAsync(0, 10);
         var cart = await reporter.ListStorefrontCartAsync(9, 10);
+        var workspace = await reporter.BuildErpWorkspaceHomeAsync();
 
         Assert.Equal("empty", partSearchEmpty.Source);
         Assert.Equal("migration", partSearch.Source);
@@ -188,6 +189,11 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.Equal("migration", cart.Source);
         Assert.Equal("migration", cp.Source);
         Assert.Equal("migration", erp.Source);
+        Assert.Equal("migration", workspace.Source);
+        Assert.Equal(6, workspace.Trend.Count);
+        Assert.Equal(5, workspace.ArAgingLabels.Count);
+        Assert.Equal(0, workspace.Alerts.Total);
+        Assert.Empty(workspace.TopSuppliers);
         Assert.Equal("migration", bos.Source);
         Assert.Equal("migration", tenants.Source);
         Assert.Equal("migration", health.Source);

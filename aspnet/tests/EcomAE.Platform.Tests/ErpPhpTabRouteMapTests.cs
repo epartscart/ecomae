@@ -72,6 +72,8 @@ public sealed class ErpPhpTabRouteMapTests
     [InlineData("project_accounting", "/erp/project-accounting-app")]
     [InlineData("doc_attachment", "/erp/doc-attachments-app")]
     [InlineData("inventory_report", "/erp/inventory-report-app")]
+    [InlineData("dashboard", "/erp")]
+    [InlineData("exec_dashboard", "/erp")]
     [InlineData("ext_reports", "/erp/tax-external-reporting-app")]
     [InlineData("external_reports", "/erp/tax-external-reporting-app")]
     public void KnownTabsMapToDedicatedApps(string tab, string expected)
