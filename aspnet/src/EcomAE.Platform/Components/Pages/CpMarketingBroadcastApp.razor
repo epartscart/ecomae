@@ -63,19 +63,24 @@
             <thead>
                 <tr>
                     <th>ID</th>
+                    <th>Created</th>
                     <th>Channel</th>
+                    <th>Template</th>
                     <th>Subject</th>
+                    <th>Preview</th>
                     <th>Audience</th>
+                    <th>Audience meta</th>
                     <th>Targets</th>
                     <th>OK / Fail</th>
                     <th>Status</th>
+                    <th>Operator</th>
                     <th></th>
                 </tr>
             </thead>
             <tbody>
                 @if (_campaigns.Count == 0)
                 {
-                    <tr><td colspan="8">Nothing to show yet.</td></tr>
+                    <tr><td colspan="13">Nothing to show yet.</td></tr>
                 }
                 else
                 {
@@ -83,12 +88,17 @@
                     {
                         <tr>
                             <td><strong>@c.Id.ToString(CultureInfo.InvariantCulture)</strong></td>
+                            <td>@c.CreatedAt.ToString(CultureInfo.InvariantCulture)</td>
                             <td>@(string.IsNullOrWhiteSpace(c.Channel) ? "—" : c.Channel)</td>
+                            <td>@(string.IsNullOrWhiteSpace(c.TemplateKey) ? "—" : c.TemplateKey)</td>
                             <td>@(string.IsNullOrWhiteSpace(c.Subject) ? "—" : c.Subject)</td>
+                            <td>@(string.IsNullOrWhiteSpace(c.Preview) ? "—" : c.Preview)</td>
                             <td>@(string.IsNullOrWhiteSpace(c.AudienceMode) ? "—" : c.AudienceMode)</td>
+                            <td>@(string.IsNullOrWhiteSpace(c.AudienceMeta) ? "—" : c.AudienceMeta)</td>
                             <td>@c.TotalTargets.ToString(CultureInfo.InvariantCulture)</td>
                             <td>@c.SentOk.ToString(CultureInfo.InvariantCulture) / @c.SentFail.ToString(CultureInfo.InvariantCulture)</td>
                             <td>@(string.IsNullOrWhiteSpace(c.Status) ? "—" : c.Status)</td>
+                            <td>@c.OperatorId.ToString(CultureInfo.InvariantCulture)</td>
                             <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
                         </tr>
                     }
