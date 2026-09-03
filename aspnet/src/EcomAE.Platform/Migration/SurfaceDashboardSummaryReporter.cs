@@ -169,7 +169,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                 var mFrom = new DateTimeOffset(m).ToUnixTimeSeconds();
                 var mTo = new DateTimeOffset(m.AddMonths(1).AddSeconds(-1)).ToUnixTimeSeconds();
                 var rev = await ScalarDecimalParamSafeAsync(
-                    connection, LegacySurfaceDashboardSql.SumErpCcRevenueExVat, cancellationToken,
+                    connection, LegacySurfaceDashboardSql.SumErpWorkspaceRevenueExVat, cancellationToken,
                     ("@dateFrom", mFrom), ("@dateTo", mTo)).ConfigureAwait(false);
                 var purch = await ScalarDecimalParamSafeAsync(
                     connection, LegacySurfaceDashboardSql.SumErpWorkspacePurchaseExVat, cancellationToken,
@@ -206,10 +206,13 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                 while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
                 {
                     var assignee = Convert.ToInt64(reader["assignee"] is DBNull ? 0 : reader["assignee"], CultureInfo.InvariantCulture);
+                    var staffName = Convert.ToString(reader["staff_name"] is DBNull ? string.Empty : reader["staff_name"], CultureInfo.InvariantCulture) ?? string.Empty;
                     var dept = Convert.ToString(reader["dept"] is DBNull ? string.Empty : reader["dept"], CultureInfo.InvariantCulture) ?? string.Empty;
                     var n = Convert.ToInt32(reader["n"] is DBNull ? 0 : reader["n"], CultureInfo.InvariantCulture);
                     if (n <= 0) continue;
-                    var name = assignee > 0 ? "Staff #" + assignee.ToString(CultureInfo.InvariantCulture) : "Unassigned";
+                    var name = !string.IsNullOrWhiteSpace(staffName)
+                        ? staffName.Trim()
+                        : (assignee > 0 ? "Staff #" + assignee.ToString(CultureInfo.InvariantCulture) : "Unassigned");
                     performers.Add(new(name, ErpNetsuiteDashboardCatalog.DepartmentName(dept), n));
                 }
             }
@@ -323,11 +326,14 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
-    private static async Task<(decimal PurchaseExVat, decimal SalesInclVat, decimal DueOrders, int ConfirmedSo, int OpenPo, int InvoicesDue, int Busy, int Headcount, int ProcessDone, decimal GlNetProfit)>
+    private static async Task<(decimal PurchaseExVat, decimal RevenueExVat, decimal SalesInclVat, decimal DueOrders, int ConfirmedSo, int OpenPo, int InvoicesDue, int Busy, int Headcount, int ProcessDone, decimal GlNetProfit)>
         ReadWorkspaceExtrasAsync(DbConnection connection, long dateFrom, long dateTo, CancellationToken cancellationToken)
     {
         var purchase = await ScalarDecimalParamSafeAsync(
             connection, LegacySurfaceDashboardSql.SumErpWorkspacePurchaseExVat, cancellationToken,
+            ("@dateFrom", dateFrom), ("@dateTo", dateTo)).ConfigureAwait(false);
+        var revenueEx = await ScalarDecimalParamSafeAsync(
+            connection, LegacySurfaceDashboardSql.SumErpWorkspaceRevenueExVat, cancellationToken,
             ("@dateFrom", dateFrom), ("@dateTo", dateTo)).ConfigureAwait(false);
         var salesIncl = await ScalarDecimalParamSafeAsync(
             connection, LegacySurfaceDashboardSql.SumErpWorkspaceSalesInclVat, cancellationToken,
@@ -346,20 +352,21 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         var glNet = await ScalarDecimalParamSafeAsync(
             connection, LegacySurfaceDashboardSql.SumErpWorkspaceGlNetProfit, cancellationToken,
             ("@dateFrom", dateFrom), ("@dateTo", dateTo)).ConfigureAwait(false);
-        return (purchase, salesIncl, due, confirmed, openPo, invDue, busy, head, processDone, glNet);
+        return (purchase, revenueEx, salesIncl, due, confirmed, openPo, invDue, busy, head, processDone, glNet);
     }
 
     private static ErpWorkspacePeriodKpis ToWorkspacePeriod(
         ErpDashboardSummary s,
-        (decimal PurchaseExVat, decimal SalesInclVat, decimal DueOrders, int ConfirmedSo, int OpenPo, int InvoicesDue, int Busy, int Headcount, int ProcessDone, decimal GlNetProfit) x)
+        (decimal PurchaseExVat, decimal RevenueExVat, decimal SalesInclVat, decimal DueOrders, int ConfirmedSo, int OpenPo, int InvoicesDue, int Busy, int Headcount, int ProcessDone, decimal GlNetProfit) x)
     {
         var purchase = x.PurchaseExVat;
-        var profit = Math.Round(s.RevenueExVat - purchase, 2);
+        var revenue = x.RevenueExVat;
+        var profit = Math.Round(revenue - purchase, 2);
         var ar = s.Receivables != 0 ? s.Receivables : s.ArBalance;
         var ap = s.Payables != 0 ? s.Payables : s.ApBalance;
         return new(
             s.CashPosition,
-            s.RevenueExVat,
+            revenue,
             purchase,
             profit,
             ar,

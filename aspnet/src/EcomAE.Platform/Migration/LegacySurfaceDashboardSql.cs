@@ -4674,17 +4674,34 @@ public const string SelectCpOpsGuidesStats = """
 
     /// <summary>
     /// PHP <c>epc_erp_dashboard</c> / <c>epc_erp_order_sum_sql</c> purchase ex-VAT:
-    /// completed <c>shop_orders</c> COGS (<c>t2_price_purchase * count_need</c>), not the supplier-invoice register.
+    /// finished <c>shop_orders</c> COGS (<c>t2_price_purchase * count_need</c>) on counting
+    /// item lines in <c>for_finish</c> statuses. Open / non-counting lines stay out, matching
+    /// <c>order_complete_expr</c> + <c>item_finish_where</c> + <c>epc_erp_item_status_exclusion</c>.
     /// </summary>
     public const string SumErpWorkspacePurchaseExVat = """
         SELECT IFNULL(SUM(IFNULL((
             SELECT SUM(i.`t2_price_purchase` * i.`count_need`)
             FROM `shop_orders_items` i
             WHERE i.`order_id` = o.`id`
+              AND i.`status` IN (SELECT `id` FROM `shop_orders_items_statuses_ref` WHERE `for_finish` = 1)
+              AND i.`status` NOT IN (SELECT `id` FROM `shop_orders_items_statuses_ref` WHERE `count_flag` = 0)
         ), 0)), 0)
         FROM `shop_orders` o
         WHERE o.`successfully_created` = 1
+          AND o.`status` IN (SELECT `id` FROM `shop_orders_statuses_ref` WHERE `for_finish` = 1)
           AND o.`time` >= @dateFrom AND o.`time` <= @dateTo
+        """;
+
+    /// <summary>
+    /// PHP <c>epc_erp_dashboard</c> revenue ex-VAT: completed shop orders only
+    /// (<c>order_complete_expr</c> / order-status <c>for_finish</c>).
+    /// </summary>
+    public const string SumErpWorkspaceRevenueExVat = """
+        SELECT IFNULL(SUM(`price_total_wt` - `price_total_wt_vat`), 0)
+        FROM `shop_orders`
+        WHERE `successfully_created` = 1
+          AND `status` IN (SELECT `id` FROM `shop_orders_statuses_ref` WHERE `for_finish` = 1)
+          AND `time` >= @dateFrom AND `time` <= @dateTo
         """;
 
     /// <summary>PHP <c>epc_erp_gl_pl_report</c> net_profit (revenue − expense signed period activity).</summary>
@@ -4715,16 +4732,19 @@ public const string SelectCpOpsGuidesStats = """
         WHERE a.`active` = 1 AND a.`account_type` IN ('revenue','expense')
         """;
 
-    /// <summary>PHP sales incl. VAT from completed shop orders.</summary>
+    /// <summary>PHP sales incl. VAT from completed shop orders (<c>for_finish</c>).</summary>
     public const string SumErpWorkspaceSalesInclVat = """
         SELECT IFNULL(SUM(`price_total_wt`), 0) FROM `shop_orders`
-        WHERE `successfully_created` = 1 AND `time` >= @dateFrom AND `time` <= @dateTo
+        WHERE `successfully_created` = 1
+          AND `status` IN (SELECT `id` FROM `shop_orders_statuses_ref` WHERE `for_finish` = 1)
+          AND `time` >= @dateFrom AND `time` <= @dateTo
         """;
 
     /// <summary>PHP <c>receivable_due_orders</c> approximation — unpaid completed orders in period.</summary>
     public const string SumErpWorkspaceReceivableDueOrders = """
         SELECT IFNULL(SUM(`price_total_wt`), 0) FROM `shop_orders`
         WHERE `successfully_created` = 1 AND IFNULL(`paid`, 0) = 0
+          AND `status` IN (SELECT `id` FROM `shop_orders_statuses_ref` WHERE `for_finish` = 1)
           AND `time` >= @dateFrom AND `time` <= @dateTo
         """;
 
@@ -4753,16 +4773,20 @@ public const string SelectCpOpsGuidesStats = """
         ORDER BY n DESC
         """;
 
-    /// <summary>PHP <c>epc_pf_workforce_data</c> — steps approved in the selected period.</summary>
+    /// <summary>
+    /// PHP <c>epc_pf_workforce_data</c> — steps approved in the selected period,
+    /// grouped by actor only. Department comes from the staff profile, not the case.
+    /// </summary>
     public const string SelectErpWorkspaceTopPerformers = """
         SELECT IFNULL(s.`acted_by`,0) AS assignee,
-               IFNULL(c.`current_department`,'') AS dept,
+               IFNULL(MAX(p.`display_name`),'') AS staff_name,
+               IFNULL(MAX(p.`department_code`),'') AS dept,
                COUNT(*) AS n
         FROM `epc_pf_case_steps` s
-        LEFT JOIN `epc_pf_cases` c ON c.`id` = s.`case_id`
+        LEFT JOIN `epc_erp_staff_profiles` p ON p.`user_id` = s.`acted_by`
         WHERE s.`status` = 'approved' AND s.`acted_by` > 0
           AND s.`completed_at` >= @dateFrom AND s.`completed_at` <= @dateTo
-        GROUP BY IFNULL(s.`acted_by`,0), IFNULL(c.`current_department`,'')
+        GROUP BY s.`acted_by`
         ORDER BY n DESC
         LIMIT 8
         """;

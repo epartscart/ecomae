@@ -134,9 +134,21 @@ public sealed class ErpNetsuiteDashboardCatalogTests
     {
         Assert.Contains("t2_price_purchase", LegacySurfaceDashboardSql.SumErpWorkspacePurchaseExVat, StringComparison.Ordinal);
         Assert.Contains("shop_orders", LegacySurfaceDashboardSql.SumErpWorkspacePurchaseExVat, StringComparison.Ordinal);
+        Assert.Contains("for_finish", LegacySurfaceDashboardSql.SumErpWorkspacePurchaseExVat, StringComparison.Ordinal);
+        Assert.Contains("count_flag", LegacySurfaceDashboardSql.SumErpWorkspacePurchaseExVat, StringComparison.Ordinal);
+        Assert.Contains("shop_orders_items_statuses_ref", LegacySurfaceDashboardSql.SumErpWorkspacePurchaseExVat, StringComparison.Ordinal);
         Assert.DoesNotContain("epc_erp_purchases", LegacySurfaceDashboardSql.SumErpWorkspacePurchaseExVat, StringComparison.Ordinal);
+
+        Assert.Contains("for_finish", LegacySurfaceDashboardSql.SumErpWorkspaceRevenueExVat, StringComparison.Ordinal);
+        Assert.Contains("for_finish", LegacySurfaceDashboardSql.SumErpWorkspaceSalesInclVat, StringComparison.Ordinal);
+        Assert.Contains("for_finish", LegacySurfaceDashboardSql.SumErpWorkspaceReceivableDueOrders, StringComparison.Ordinal);
+
         Assert.Contains("epc_erp_coa_accounts", LegacySurfaceDashboardSql.SumErpWorkspaceGlNetProfit, StringComparison.Ordinal);
         Assert.Contains("completed_at", LegacySurfaceDashboardSql.SelectErpWorkspaceTopPerformers, StringComparison.Ordinal);
+        Assert.Contains("department_code", LegacySurfaceDashboardSql.SelectErpWorkspaceTopPerformers, StringComparison.Ordinal);
+        Assert.Contains("epc_erp_staff_profiles", LegacySurfaceDashboardSql.SelectErpWorkspaceTopPerformers, StringComparison.Ordinal);
+        Assert.Contains("GROUP BY s.`acted_by`", LegacySurfaceDashboardSql.SelectErpWorkspaceTopPerformers, StringComparison.Ordinal);
+        Assert.DoesNotContain("current_department", LegacySurfaceDashboardSql.SelectErpWorkspaceTopPerformers, StringComparison.Ordinal);
         Assert.Contains("@dateFrom", LegacySurfaceDashboardSql.CountErpWorkspaceProcessDoneInPeriod, StringComparison.Ordinal);
         Assert.Contains("epc_pf_case_steps", LegacySurfaceDashboardSql.CountErpWorkspaceProcessDoneInPeriod, StringComparison.Ordinal);
     }
