@@ -54,9 +54,18 @@
 
     <div class="epc-pbi-kpis" aria-label="Power BI config">
         <div class="epc-pbi-kpi"><strong>@(_summary.Active ? "active" : "off")</strong><span>Config (@(string.IsNullOrWhiteSpace(_summary.SiteKey) ? "—" : _summary.SiteKey))</span></div>
+        <div class="epc-pbi-kpi"><strong>@(string.IsNullOrWhiteSpace(_summary.WorkspaceId) ? "—" : _summary.WorkspaceId)</strong><span>Workspace</span></div>
+        <div class="epc-pbi-kpi"><strong>@(string.IsNullOrWhiteSpace(_summary.AzureTenantId) ? "—" : _summary.AzureTenantId)</strong><span>Azure tenant</span></div>
         <div class="epc-pbi-kpi"><strong>@(string.IsNullOrWhiteSpace(_summary.EmbedMode) ? "—" : _summary.EmbedMode)</strong><span>Embed mode</span></div>
         <div class="epc-pbi-kpi"><strong>@_reports.Count.ToString(CultureInfo.InvariantCulture)</strong><span>Reports shown</span></div>
     </div>
+    @if (!string.IsNullOrWhiteSpace(_summary.EmbedUrl) || !string.IsNullOrWhiteSpace(_summary.Notes))
+    {
+        <div class="epc-pbi-note">
+            <div><strong>Embed URL:</strong> @(string.IsNullOrWhiteSpace(_summary.EmbedUrl) ? "—" : _summary.EmbedUrl)</div>
+            <div><strong>Notes:</strong> @(string.IsNullOrWhiteSpace(_summary.Notes) ? "—" : _summary.Notes)</div>
+        </div>
+    }
 
     <div class="epc-pbi-table-wrap">
         <table class="epc-pbi-table">
@@ -68,6 +77,7 @@
                     <th>Category</th>
                     <th>Report id</th>
                     <th>Dataset</th>
+                    <th>Embed URL</th>
                     <th>Active</th>
                     <th></th>
                 </tr>
@@ -75,7 +85,7 @@
             <tbody>
                 @if (_reports.Count == 0)
                 {
-                    <tr><td colspan="8">Nothing to show yet.</td></tr>
+                    <tr><td colspan="9">Nothing to show yet.</td></tr>
                 }
                 else
                 {
@@ -88,6 +98,7 @@
                             <td>@(string.IsNullOrWhiteSpace(r.Category) ? "—" : r.Category)</td>
                             <td>@(string.IsNullOrWhiteSpace(r.ReportId) ? "—" : r.ReportId)</td>
                             <td>@(string.IsNullOrWhiteSpace(r.DatasetId) ? "—" : r.DatasetId)</td>
+                            <td>@(string.IsNullOrWhiteSpace(r.EmbedUrl) ? "—" : r.EmbedUrl)</td>
                             <td>@(r.Active ? "yes" : "no")</td>
                             <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
                         </tr>

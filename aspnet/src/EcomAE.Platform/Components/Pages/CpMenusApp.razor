@@ -11,100 +11,143 @@
 
 <PageTitle>Menus · Control Panel · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="cp" />
-<HeadContent>
-<style>
-        .epc-mn-hero {
-            margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
-            background:linear-gradient(135deg,#0c4a6e 0%,#2563eb 45%,#0ea5e9 100%);
-        }
-        .epc-mn-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
-        .epc-mn-hero p { margin:0; color:#e7e5e4; max-width:40rem; font-size:.92rem; line-height:1.45; }
-        .epc-mn-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
-        .epc-mn-cta a {
-            display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
-            text-decoration:none; color:#1c1917; background:#e0f2fe;
-        }
-        .epc-mn-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); color:#fff; }
-        .epc-mn-kpis { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
-        .epc-mn-kpi { background:#fff; border:1px solid #e5e7eb; border-radius:.55rem; padding:.85rem .9rem; }
-        .epc-mn-kpi strong { display:block; font-size:1.45rem; font-variant-numeric:tabular-nums; }
-        .epc-mn-kpi span { color:#64748b; font-size:.78rem; }
-        .epc-mn-table-wrap { background:#fff; border:1px solid #e5e7eb; border-radius:.55rem; overflow:auto; }
-        .epc-mn-table { width:100%; border-collapse:collapse; font-size:.86rem; }
-        .epc-mn-table th, .epc-mn-table td { padding:.55rem .7rem; border-bottom:1px solid #f1f5f9; text-align:left; white-space:nowrap; }
-        .epc-mn-table th { background:#f8fafc; color:#475569; font-size:.75rem; text-transform:uppercase; letter-spacing:.03em; }
-        .epc-mn-table a { color:#a16207; font-weight:700; text-decoration:none; }
-        .epc-mn-badge { display:inline-flex; padding:.15rem .45rem; border-radius:.3rem; font-size:.72rem; font-weight:700; background:#e0f2fe; color:#78350f; }
-        .epc-mn-note { margin-top:1rem; padding:.75rem .9rem; background:#fafaf9; border:1px solid #d6d3d1; border-radius:.45rem; color:#44403c; font-size:.86rem; }
-        @@media (max-width:900px){ .epc-mn-kpis{grid-template-columns:1fr;} }
-    
-</style>
-</HeadContent>
-
+@foreach (var href in LegacyPresentationAssets.CpUsersConsoleStylesheets)
+{
+    <link rel="stylesheet" href="@href" />
+}
 
 <PhpCpDesktopChrome IsAdmin="_isAdmin">
 
-    <section class="epc-mn-hero">
-        <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
-        <h1>Menus</h1>
-        <p>Manage store operations, catalogue, and partner integrations from one control panel.</p>
-        <div class="epc-mn-cta">
-            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
-            <a class="ghost" href="/cp/pages-app">Pages list</a>
-            <a class="ghost" href="/cp/modules-app">Modules list</a>
+    <PhpCpModulePageHeader Title="Menus"
+                           Subtitle="PHP menu_manager parity — menu list with node counts, depth, and URL/content link tallies. Drag-tree editor remains classic PHP."
+                           PhpTabHref="@_phpTab">
+        <a class="ghost" href="/cp/pages-app">Pages</a>
+        <a class="ghost" href="/cp/modules-app">Modules</a>
+    </PhpCpModulePageHeader>
+
+    @if (!_isAdmin)
+    {
+        <div class="alert alert-info" role="status">Sign in with a Control Panel admin session to load live menus.</div>
+    }
+    else if (!string.IsNullOrWhiteSpace(_message))
+    {
+        <div class="alert alert-warning" role="status">@_message <span class="text-muted small">(@_source)</span></div>
+    }
+
+    <div class="epc-scp-kpi" aria-label="Menus KPIs">
+        <div class="epc-scp-kpi__card">
+            <div class="epc-scp-kpi__label">Shown (limit @_limit)</div>
+            <div class="epc-scp-kpi__val">@_menus.Count</div>
         </div>
-    </section>
-
-    <div class="epc-mn-kpis" aria-label="Menus KPIs">
-        <div class="epc-mn-kpi"><strong>@_menus.Count</strong><span>Shown (limit @_limit)</span></div>
-        <div class="epc-mn-kpi"><strong>@_frontend</strong><span>Frontend menus</span></div>
-        <div class="epc-mn-kpi"><strong>@_nodes</strong><span>Structure nodes (sum)</span></div>
+        <div class="epc-scp-kpi__card">
+            <div class="epc-scp-kpi__label">Frontend menus</div>
+            <div class="epc-scp-kpi__val">@_frontend</div>
+        </div>
+        <div class="epc-scp-kpi__card">
+            <div class="epc-scp-kpi__label">Structure nodes (sum)</div>
+            <div class="epc-scp-kpi__val">@_nodes</div>
+        </div>
     </div>
 
-    <div class="epc-mn-table-wrap">
-        <table class="epc-mn-table">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Caption</th>
-                    <th>Frontend</th>
-                    <th>Nodes</th>
-                    <th>Depth</th>
-                    <th>URL / content</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody>
-                @if (_menus.Count == 0)
-                {
-                    <tr><td colspan="7">Nothing to show yet.</td></tr>
-                }
-                else
-                {
-                    @foreach (var m in _menus)
-                    {
-                        var phpHref = $"/CP/menu/menu_edit?menu_id={m.Id.ToString(CultureInfo.InvariantCulture)}";
-                        <tr>
-                            <td><strong>@m.Id</strong></td>
-                            <td>@(string.IsNullOrWhiteSpace(m.Caption) ? "—" : m.Caption)</td>
-                            <td><span class="epc-mn-badge">@(m.IsFrontend ? "yes" : "no")</span></td>
-                            <td>@(m.StructurePresent ? m.NodeCount.ToString(CultureInfo.InvariantCulture) : "—")</td>
-                            <td>@(m.StructurePresent ? m.MaxDepth.ToString(CultureInfo.InvariantCulture) : "—")</td>
-                            <td>@m.UrlLinkCount / @m.ContentLinkCount</td>
-                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(phpHref)">Open</a></td>
-                        </tr>
-                    }
-                }
-            </tbody>
-        </table>
-    </div>
+    <div class="epc-scp-users-workspace @(_selectedId > 0 ? "is-detail-active" : null)">
+        <div class="epc-scp-users-workspace__list">
+            <div class="epc-scp-table-card">
+                <div class="epc-scp-table-card__head">
+                    <div>
+                        <h3>Menus</h3>
+                        <p class="epc-users-hint">Structure summary from digest — full tree edit is PHP menu_edit</p>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="epc-scp-data-table table table-epc-pro table-hover">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Caption</th>
+                                <th>Frontend</th>
+                                <th>Nodes</th>
+                                <th>Depth</th>
+                                <th>URL / content</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (_menus.Count == 0)
+                            {
+                                <tr><td colspan="7">Nothing to show yet.</td></tr>
+                            }
+                            else
+                            {
+                                @foreach (var m in _menus)
+                                {
+                                    <tr class="@(_selectedId == m.Id ? "active" : null)">
+                                        <td><strong>@m.Id</strong></td>
+                                        <td>@(string.IsNullOrWhiteSpace(m.Caption) ? "—" : m.Caption)</td>
+                                        <td><span class="epc-scp-badge">@(m.IsFrontend ? "yes" : "no")</span></td>
+                                        <td>@(m.StructurePresent ? m.NodeCount.ToString(CultureInfo.InvariantCulture) : "—")</td>
+                                        <td>@(m.StructurePresent ? m.MaxDepth.ToString(CultureInfo.InvariantCulture) : "—")</td>
+                                        <td>@m.UrlLinkCount / @m.ContentLinkCount</td>
+                                        <td class="epc-scp-actions-cell">
+                                            <a href="/cp/menus-app?menu_id=@m.Id.ToString(CultureInfo.InvariantCulture)">Open</a>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
 
+        @if (_selected is not null)
+        {
+            <div class="epc-scp-users-workspace__detail">
+                <div class="epc-scp-table-card">
+                    <div class="epc-scp-table-card__head">
+                        <div>
+                            <h3>@_selected.Caption</h3>
+                            <p class="epc-users-hint">Menu structure summary</p>
+                        </div>
+                        <a class="btn btn-default btn-xs" href="/cp/menus-app">Close</a>
+                    </div>
+                    <dl style="display:grid;grid-template-columns:9rem 1fr;gap:.35rem .75rem;margin:0;font-size:.9rem;">
+                        <dt>ID</dt><dd>@_selected.Id.ToString(CultureInfo.InvariantCulture)</dd>
+                        <dt>Frontend</dt><dd>@(_selected.IsFrontend ? "yes" : "no")</dd>
+                        <dt>UL class / id</dt>
+                        <dd>
+                            <code>@(_selected.MenuUlClass is { Length: > 0 } ? _selected.MenuUlClass : "—")</code>
+                            /
+                            <code>@(_selected.MenuUlId is { Length: > 0 } ? _selected.MenuUlId : "—")</code>
+                        </dd>
+                        <dt>Structure</dt>
+                        <dd>
+                            @if (_selected.StructurePresent)
+                            {
+                                <span>@_selected.NodeCount nodes · depth @_selected.MaxDepth · parse @(_selected.StructureParseOk ? "ok" : "error")</span>
+                            }
+                            else
+                            {
+                                <span>not present</span>
+                            }
+                        </dd>
+                        <dt>Links</dt>
+                        <dd>URL @_selected.UrlLinkCount · content @_selected.ContentLinkCount · unknown @_selected.UnknownLinkCount</dd>
+                    </dl>
+                    <p style="margin:.85rem 0 0;font-size:.86rem;">
+                        <a href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref($"/CP/menu/menu_edit?menu_id={_selected.Id.ToString(CultureInfo.InvariantCulture)}")">Edit tree in PHP menu_edit</a>
+                    </p>
+                </div>
+            </div>
+        }
+    </div>
 </PhpCpDesktopChrome>
 
 @code {
     private const string _phpTab = "/CP/menu/menu_manager";
     private bool _isAdmin;
+    private int _selectedId;
     private IReadOnlyList<CpMenuDigest> _menus = [];
+    private CpMenuDigest? _selected;
     private int _frontend;
     private int _nodes;
     private int _limit = 200;
@@ -118,9 +161,18 @@
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
+
+        var uri = Nav.ToAbsoluteUri(Nav.Uri);
+        var query = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query);
+        if (query.TryGetValue("menu_id", out var idRaw)
+            && int.TryParse(idRaw.ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var id))
+        {
+            _selectedId = id;
+        }
+
         if (!_isAdmin)
         {
-            return; // guest browse — Sign in for live data
+            return;
         }
 
         var result = await Dashboards.ListCpMenusAsync(_limit, ctx.RequestAborted);
@@ -129,5 +181,9 @@
         _nodes = _menus.Sum(m => m.NodeCount);
         _source = result.Source;
         _message = result.Message;
+        if (_selectedId > 0)
+        {
+            _selected = _menus.FirstOrDefault(m => m.Id == _selectedId);
+        }
     }
 }

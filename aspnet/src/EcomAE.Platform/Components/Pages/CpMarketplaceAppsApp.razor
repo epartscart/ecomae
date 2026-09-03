@@ -65,10 +65,16 @@
                     <th>Id</th>
                     <th>Key</th>
                     <th>Name</th>
+                    <th>Short desc</th>
                     <th>Category</th>
+                    <th>Developer</th>
+                    <th>Version</th>
                     <th>Pricing</th>
+                    <th>Monthly</th>
                     <th>Downloads</th>
                     <th>Rating</th>
+                    <th>Reviews</th>
+                    <th>Published</th>
                     <th>Status</th>
                     <th></th>
             </tr>
@@ -76,7 +82,7 @@
         <tbody>
             @if (_rows.Count == 0)
             {
-                <tr><td colspan="9">Nothing to show yet.</td></tr>
+                <tr><td colspan="15">Nothing to show yet.</td></tr>
             }
             else
             {
@@ -86,10 +92,16 @@
                             <td>@row.Id.ToString(CultureInfo.InvariantCulture)</td>
                             <td>@(!string.IsNullOrWhiteSpace(row.AppKey) ? row.AppKey : "—")</td>
                             <td>@(!string.IsNullOrWhiteSpace(row.Name) ? row.Name : "—")</td>
+                            <td>@(!string.IsNullOrWhiteSpace(row.ShortDesc) ? row.ShortDesc : "—")</td>
                             <td>@(!string.IsNullOrWhiteSpace(row.Category) ? row.Category : "—")</td>
+                            <td>@(!string.IsNullOrWhiteSpace(row.Developer) ? row.Developer : "—")</td>
+                            <td>@(!string.IsNullOrWhiteSpace(row.Version) ? row.Version : "—")</td>
                             <td>@(!string.IsNullOrWhiteSpace(row.Pricing) ? row.Pricing : "—")</td>
+                            <td>@row.PriceMonthly.ToString(CultureInfo.InvariantCulture)</td>
                             <td>@row.Downloads.ToString(CultureInfo.InvariantCulture)</td>
                             <td>@row.AvgRating.ToString(CultureInfo.InvariantCulture)</td>
+                            <td>@row.ReviewCount.ToString(CultureInfo.InvariantCulture)</td>
+                            <td>@(!string.IsNullOrWhiteSpace(row.PublishedAt) ? row.PublishedAt : "—")</td>
                             <td>@(!string.IsNullOrWhiteSpace(row.Status) ? row.Status : "—")</td>
                             <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
                     </tr>

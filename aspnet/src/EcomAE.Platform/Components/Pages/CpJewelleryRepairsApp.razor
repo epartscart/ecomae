@@ -63,19 +63,24 @@
             <thead>
                 <tr>
                     <th>Id</th>
+                    <th>Company</th>
+                    <th>Branch</th>
+                    <th>Voc type</th>
                     <th>Voc #</th>
                     <th>Date</th>
+                    <th>Delivery</th>
                     <th>Customer</th>
                     <th>Status</th>
                     <th>CCY</th>
                     <th>Auth</th>
+                    <th>Created</th>
                     <th></th>
                 </tr>
             </thead>
             <tbody>
                 @if (_rows.Count == 0)
                 {
-                    <tr><td colspan="8">Nothing to show yet.</td></tr>
+                    <tr><td colspan="13">Nothing to show yet.</td></tr>
                 }
                 else
                 {
@@ -83,12 +88,17 @@
                     {
                         <tr>
                             <td>@row.Id.ToString(CultureInfo.InvariantCulture)</td>
+                            <td>@row.CompanyId.ToString(CultureInfo.InvariantCulture)</td>
+                            <td>@(!string.IsNullOrWhiteSpace(row.Branch) ? row.Branch : "—")</td>
+                            <td>@(!string.IsNullOrWhiteSpace(row.VocType) ? row.VocType : "—")</td>
                             <td>@row.VocNo.ToString(CultureInfo.InvariantCulture)</td>
                             <td>@(!string.IsNullOrWhiteSpace(row.VocDate) ? row.VocDate : "—")</td>
+                            <td>@(!string.IsNullOrWhiteSpace(row.DeliveryDate) ? row.DeliveryDate : "—")</td>
                             <td>@(!string.IsNullOrWhiteSpace(row.CustomerName) ? row.CustomerName : "—")</td>
                             <td>@(!string.IsNullOrWhiteSpace(row.Status) ? row.Status : "—")</td>
                             <td>@(!string.IsNullOrWhiteSpace(row.Currency) ? row.Currency : "—")</td>
                             <td>@(row.Authorized ? "yes" : "no")</td>
+                            <td>@(!string.IsNullOrWhiteSpace(row.CreatedAt) ? row.CreatedAt : "—")</td>
                             <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
                         </tr>
                     }

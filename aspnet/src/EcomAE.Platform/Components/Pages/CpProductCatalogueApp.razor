@@ -11,95 +11,158 @@
 
 <PageTitle>Product catalogue · Control Panel · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="cp" />
-<HeadContent>
-<style>
-        .epc-pc-hero {
-            margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
-            background:linear-gradient(135deg,#0c4a6e 0%,#2563eb 45%,#0ea5e9 100%);
-        }
-        .epc-pc-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
-        .epc-pc-hero p { margin:0; color:rgba(255,255,255,.85); max-width:44rem; font-size:.92rem; line-height:1.45; }
-        .epc-pc-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
-        .epc-pc-cta a {
-            display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
-            text-decoration:none; color:#14532d; background:#dcfce7;
-        }
-        .epc-pc-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); color:#fff; }
-        .epc-pc-kpis { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
-        .epc-pc-kpi { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; padding:.85rem .9rem; }
-        .epc-pc-kpi strong { display:block; font-size:1.2rem; word-break:break-word; }
-        .epc-pc-kpi span { color:#64748b; font-size:.78rem; }
-        .epc-pc-table-wrap { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; overflow:auto; }
-        .epc-pc-table { width:100%; border-collapse:collapse; font-size:.86rem; }
-        .epc-pc-table th, .epc-pc-table td { padding:.55rem .7rem; border-bottom:1px solid #f1f5f9; text-align:left; white-space:nowrap; }
-        .epc-pc-table th { background:#f8fafc; color:#475569; font-size:.75rem; text-transform:uppercase; letter-spacing:.03em; }
-        .epc-pc-note { margin-top:1rem; padding:.75rem .9rem; background:#f0fdf4; border:1px solid #86efac; border-radius:.45rem; color:#14532d; font-size:.86rem; }
-        @@media (max-width:900px){ .epc-pc-kpis{grid-template-columns:1fr 1fr;} }
-    
-</style>
-</HeadContent>
-
+@foreach (var href in LegacyPresentationAssets.CpUsersConsoleStylesheets)
+{
+    <link rel="stylesheet" href="@href" />
+}
 
 <PhpCpDesktopChrome IsAdmin="_isAdmin">
 
-    <section class="epc-pc-hero">
-        <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
-        <h1>Product catalogue</h1>
-        <p>Manage store operations, catalogue, and partner integrations from one control panel.</p>
-        <div class="epc-pc-cta">
-            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
+    <PhpCpModulePageHeader Title="Product catalogue"
+                           Subtitle="PHP catalogue_editor parity — category KPIs and product rows from shop_catalogue_products. Tree editor / SKU media writes stay on classic PHP."
+                           PhpTabHref="@_phpTab">
+        <a class="ghost" href="/cp/prices-upload-app">Prices upload</a>
+        <a class="ghost" href="/cp/crosses-app">Crosses</a>
+        <a class="ghost" href="/cp/accessories-app">Accessories</a>
+    </PhpCpModulePageHeader>
+
+    <div class="epc-scp-tool-grid" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.75rem;margin-bottom:1rem;">
+        <a class="epc-scp-table-card" style="padding:1rem;text-decoration:none;color:inherit;" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref("/CP/shop/catalogue/tree_lists")">
+            <h3 style="margin:0 0 .35rem;font-size:1rem;">Tree lists</h3>
+            <p style="margin:0;color:#475569;font-size:.86rem;">PHP tree_lists_manager</p>
+        </a>
+        <a class="epc-scp-table-card" style="padding:1rem;text-decoration:none;color:inherit;" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref("/CP/shop/catalogue/main_page_products")">
+            <h3 style="margin:0 0 .35rem;font-size:1rem;">Homepage slots</h3>
+            <p style="margin:0;color:#475569;font-size:.86rem;">PHP main_page_products</p>
+        </a>
+        <a class="epc-scp-table-card" style="padding:1rem;text-decoration:none;color:inherit;" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref("/CP/shop/catalogue/related_products")">
+            <h3 style="margin:0 0 .35rem;font-size:1rem;">Related</h3>
+            <p style="margin:0;color:#475569;font-size:.86rem;">PHP related_products</p>
+        </a>
+        <a class="epc-scp-table-card" style="padding:1rem;text-decoration:none;color:inherit;" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref("/CP/shop/catalogue/reviews")">
+            <h3 style="margin:0 0 .35rem;font-size:1rem;">Reviews</h3>
+            <p style="margin:0;color:#475569;font-size:.86rem;">PHP reviews</p>
+        </a>
+        <a class="epc-scp-table-card" style="padding:1rem;text-decoration:none;color:inherit;" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref("/CP/shop/catalogue/sku_media")">
+            <h3 style="margin:0 0 .35rem;font-size:1rem;">SKU media</h3>
+            <p style="margin:0;color:#475569;font-size:.86rem;">PHP epc_sku_media_manager</p>
+        </a>
+        <a class="epc-scp-table-card" style="padding:1rem;text-decoration:none;color:inherit;" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref("/CP/shop/catalogue/special_searches")">
+            <h3 style="margin:0 0 .35rem;font-size:1rem;">Special searches</h3>
+            <p style="margin:0;color:#475569;font-size:.86rem;">PHP special_searches</p>
+        </a>
+    </div>
+
+    @if (!_isAdmin)
+    {
+        <div class="alert alert-info" role="status">Sign in with a Control Panel admin session to load the live catalogue.</div>
+    }
+    else if (!string.IsNullOrWhiteSpace(_message))
+    {
+        <div class="alert alert-warning" role="status">@_message <span class="text-muted small">(@_source)</span></div>
+    }
+
+    <div class="epc-scp-kpi" aria-label="Product catalogue stats">
+        <div class="epc-scp-kpi__card">
+            <div class="epc-scp-kpi__label">Products</div>
+            <div class="epc-scp-kpi__val">@_summary.ProductCount.ToString(CultureInfo.InvariantCulture)</div>
         </div>
-    </section>
-
-    <div class="epc-pc-kpis" aria-label="Product catalogue stats">
-        <div class="epc-pc-kpi"><strong>@_summary.ProductCount.ToString(CultureInfo.InvariantCulture)</strong><span>Products</span></div>
-        <div class="epc-pc-kpi"><strong>@_summary.PublishedCount.ToString(CultureInfo.InvariantCulture)</strong><span>Published</span></div>
-        <div class="epc-pc-kpi"><strong>@_summary.UnpublishedCount.ToString(CultureInfo.InvariantCulture)</strong><span>Unpublished</span></div>
-        <div class="epc-pc-kpi"><strong>@_summary.CategoryCount.ToString(CultureInfo.InvariantCulture)</strong><span>Categories</span></div>
+        <div class="epc-scp-kpi__card">
+            <div class="epc-scp-kpi__label">Published</div>
+            <div class="epc-scp-kpi__val">@_summary.PublishedCount.ToString(CultureInfo.InvariantCulture)</div>
+        </div>
+        <div class="epc-scp-kpi__card">
+            <div class="epc-scp-kpi__label">Unpublished</div>
+            <div class="epc-scp-kpi__val">@_summary.UnpublishedCount.ToString(CultureInfo.InvariantCulture)</div>
+        </div>
+        <div class="epc-scp-kpi__card">
+            <div class="epc-scp-kpi__label">Categories</div>
+            <div class="epc-scp-kpi__val">@_summary.CategoryCount.ToString(CultureInfo.InvariantCulture)</div>
+        </div>
     </div>
 
-    <div class="epc-pc-table-wrap">
-        <table class="epc-pc-table">
-            <thead>
-                <tr>
-                    <th>Id</th>
-                    <th>Category</th>
-                    <th>Caption</th>
-                    <th>Alias</th>
-                    <th>Published</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody>
-                @if (_products.Count == 0)
-                {
-                    <tr><td colspan="6">Nothing to show yet.</td></tr>
-                }
-                else
-                {
-                    @foreach (var row in _products)
-                    {
-                        <tr>
-                            <td>@row.Id.ToString(CultureInfo.InvariantCulture)</td>
-                            <td>@row.CategoryId.ToString(CultureInfo.InvariantCulture)</td>
-                            <td>@(!string.IsNullOrWhiteSpace(row.Caption) ? row.Caption : "—")</td>
-                            <td>@(!string.IsNullOrWhiteSpace(row.Alias) ? row.Alias : "—")</td>
-                            <td>@(row.PublishedFlag ? "yes" : "no")</td>
-                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
-                        </tr>
-                    }
-                }
-            </tbody>
-        </table>
-    </div>
+    <div class="epc-scp-users-workspace @(_selectedId > 0 ? "is-detail-active" : null)">
+        <div class="epc-scp-users-workspace__list">
+            <div class="epc-scp-table-card">
+                <div class="epc-scp-table-card__head">
+                    <div>
+                        <h3>Catalogue products</h3>
+                        <p class="epc-users-hint">Open a row for read console — full tree/editor is PHP catalogue_editor</p>
+                    </div>
+                    <a class="btn btn-primary btn-xs" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Open PHP editor</a>
+                </div>
+                <div class="table-responsive">
+                    <table class="epc-scp-data-table table table-epc-pro table-hover">
+                        <thead>
+                            <tr>
+                                <th>Id</th>
+                                <th>Category</th>
+                                <th>Caption</th>
+                                <th>Alias</th>
+                                <th>Published</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (_products.Count == 0)
+                            {
+                                <tr><td colspan="6">Nothing to show yet — bind shop DB / seed catalogue, or open the PHP editor.</td></tr>
+                            }
+                            else
+                            {
+                                @foreach (var row in _products)
+                                {
+                                    <tr class="@(_selectedId == row.Id ? "active" : null)">
+                                        <td>@row.Id.ToString(CultureInfo.InvariantCulture)</td>
+                                        <td>@row.CategoryId.ToString(CultureInfo.InvariantCulture)</td>
+                                        <td>@(!string.IsNullOrWhiteSpace(row.Caption) ? row.Caption : "—")</td>
+                                        <td>@(!string.IsNullOrWhiteSpace(row.Alias) ? row.Alias : "—")</td>
+                                        <td>@(row.PublishedFlag ? "yes" : "no")</td>
+                                        <td class="epc-scp-actions-cell">
+                                            <a href="/cp/product-catalogue-app?product_id=@row.Id.ToString(CultureInfo.InvariantCulture)">Open</a>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
 
+        @if (_selected is not null)
+        {
+            <div class="epc-scp-users-workspace__detail">
+                <div class="epc-scp-table-card">
+                    <div class="epc-scp-table-card__head">
+                        <div>
+                            <h3>@_selected.Caption</h3>
+                            <p class="epc-users-hint">Product read console</p>
+                        </div>
+                        <a class="btn btn-default btn-xs" href="/cp/product-catalogue-app">Close</a>
+                    </div>
+                    <dl style="display:grid;grid-template-columns:8rem 1fr;gap:.35rem .75rem;margin:0;font-size:.9rem;">
+                        <dt>Id</dt><dd>@_selected.Id.ToString(CultureInfo.InvariantCulture)</dd>
+                        <dt>Category</dt><dd>@_selected.CategoryId.ToString(CultureInfo.InvariantCulture)</dd>
+                        <dt>Alias</dt><dd><code>@(_selected.Alias is { Length: > 0 } ? _selected.Alias : "—")</code></dd>
+                        <dt>Published</dt><dd>@(_selected.PublishedFlag ? "yes" : "no")</dd>
+                    </dl>
+                    <p style="margin:.85rem 0 0;font-size:.86rem;">
+                        <a href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref($"{_phpTab}?product_id={_selected.Id.ToString(CultureInfo.InvariantCulture)}")">Edit in PHP catalogue_editor</a>
+                    </p>
+                </div>
+            </div>
+        }
+    </div>
 </PhpCpDesktopChrome>
 
 @code {
     private const string _phpTab = "/CP/shop/catalogue/catalogue_editor";
     private bool _isAdmin;
+    private long _selectedId;
     private CpProductCatalogueSummary _summary = new(0, 0, 0, 0, "n/a", "");
     private IReadOnlyList<CpProductCatalogueDigest> _products = [];
+    private CpProductCatalogueDigest? _selected;
     private string _source = "n/a";
     private string _message = "";
 
@@ -110,9 +173,18 @@
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
+
+        var uri = Nav.ToAbsoluteUri(Nav.Uri);
+        var query = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query);
+        if (query.TryGetValue("product_id", out var idRaw)
+            && long.TryParse(idRaw.ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var id))
+        {
+            _selectedId = id;
+        }
+
         if (!_isAdmin)
         {
-            return; // guest browse — Sign in for live data
+            return;
         }
 
         var result = await Dashboards.BuildCpProductCatalogueDigestAsync(200, ctx.RequestAborted);
@@ -120,5 +192,9 @@
         _products = result.Products;
         _source = result.Source;
         _message = result.Message;
+        if (_selectedId > 0)
+        {
+            _selected = _products.FirstOrDefault(p => p.Id == _selectedId);
+        }
     }
 }

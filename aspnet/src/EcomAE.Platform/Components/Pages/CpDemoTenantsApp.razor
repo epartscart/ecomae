@@ -57,17 +57,21 @@
                     <th>Site</th>
                     <th>Hostname</th>
                     <th>Trade name</th>
+                    <th>Hub</th>
+                    <th>Hosted on</th>
                     <th>Industry</th>
                     <th>Status</th>
+                    <th>ERP only</th>
                     <th>Active</th>
                     <th>Expires</th>
+                    <th>Contact</th>
                     <th></th>
                 </tr>
             </thead>
             <tbody>
                 @if (_tenants.Count == 0)
                 {
-                    <tr><td colspan="8">Nothing to show yet.</td></tr>
+                    <tr><td colspan="12">Nothing to show yet.</td></tr>
                 }
                 else
                 {
@@ -77,10 +81,14 @@
                             <td><strong>@(string.IsNullOrWhiteSpace(t.SiteKey) ? "—" : t.SiteKey)</strong></td>
                             <td>@(string.IsNullOrWhiteSpace(t.Hostname) ? "—" : t.Hostname)</td>
                             <td>@(string.IsNullOrWhiteSpace(t.TradeName) ? "—" : t.TradeName)</td>
+                            <td>@(string.IsNullOrWhiteSpace(t.HubName) ? "—" : t.HubName)</td>
+                            <td>@(string.IsNullOrWhiteSpace(t.HostedOn) ? "—" : t.HostedOn)</td>
                             <td>@(string.IsNullOrWhiteSpace(t.IndustryCode) ? "—" : t.IndustryCode)</td>
                             <td>@(string.IsNullOrWhiteSpace(t.Status) ? "—" : t.Status)</td>
+                            <td>@(t.ErpOnly ? "yes" : "no")</td>
                             <td>@(t.IsActive ? "yes" : "no")</td>
                             <td>@(t.DemoExpiresAt > 0 ? t.DemoExpiresAt.ToString(CultureInfo.InvariantCulture) : "—")</td>
+                            <td>@(string.IsNullOrWhiteSpace(t.DemoContactEmail) ? "—" : t.DemoContactEmail)</td>
                             <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
                         </tr>
                     }
