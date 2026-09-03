@@ -108,6 +108,14 @@ public static class ErpHostContext
         return companyIds[0];
     }
 
+    /// <summary>
+    /// PHP <c>epc_erp_gl_backfill_company_id</c> assigns <c>company_id = 0</c>
+    /// journals to the lowest-id legal entity. Read path includes those rows
+    /// only when the resolved company is that default (no writes).
+    /// </summary>
+    public static bool IncludeUnassignedGlJournals(int resolvedCompanyId, IReadOnlyList<int> companyIds)
+        => resolvedCompanyId > 0 && companyIds.Count > 0 && resolvedCompanyId == companyIds[0];
+
     public static string SwitchCompanyHref(HttpRequest request, int companyId)
     {
         var path = request.Path.HasValue ? request.Path.Value! : "/erp";

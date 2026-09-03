@@ -149,12 +149,18 @@ public sealed class ErpNetsuiteDashboardCatalogTests
         Assert.DoesNotContain("@companyId", LegacySurfaceDashboardSql.SumErpWorkspaceGlNetProfit, StringComparison.Ordinal);
         var scopedGl = LegacySurfaceDashboardSql.BuildSumErpWorkspaceGlNetProfit(7);
         Assert.Contains("j.`company_id` = @companyId", scopedGl, StringComparison.Ordinal);
+        Assert.DoesNotContain("IFNULL(j.`company_id`", scopedGl, StringComparison.Ordinal);
         Assert.Contains("@dateFrom", scopedGl, StringComparison.Ordinal);
+        var defaultGl = LegacySurfaceDashboardSql.BuildSumErpWorkspaceGlNetProfit(3, includeUnassignedZero: true);
+        Assert.Contains("IFNULL(j.`company_id`, 0) = 0", defaultGl, StringComparison.Ordinal);
         Assert.DoesNotContain("j.`company_id`", LegacySurfaceDashboardSql.BuildSumErpWorkspaceGlNetProfit(0), StringComparison.Ordinal);
         Assert.Equal(7, ErpHostContext.ResolveErpGlCompanyId(7, [3, 7, 9]));
         Assert.Equal(3, ErpHostContext.ResolveErpGlCompanyId(99, [3, 7, 9]));
         Assert.Equal(3, ErpHostContext.ResolveErpGlCompanyId(null, [3, 7]));
         Assert.Equal(0, ErpHostContext.ResolveErpGlCompanyId(5, []));
+        Assert.True(ErpHostContext.IncludeUnassignedGlJournals(3, [3, 7, 9]));
+        Assert.False(ErpHostContext.IncludeUnassignedGlJournals(7, [3, 7, 9]));
+        Assert.False(ErpHostContext.IncludeUnassignedGlJournals(0, []));
         Assert.Contains("completed_at", LegacySurfaceDashboardSql.SelectErpWorkspaceTopPerformers, StringComparison.Ordinal);
         Assert.Contains("department_code", LegacySurfaceDashboardSql.SelectErpWorkspaceTopPerformers, StringComparison.Ordinal);
         Assert.Contains("epc_erp_staff_profiles", LegacySurfaceDashboardSql.SelectErpWorkspaceTopPerformers, StringComparison.Ordinal);

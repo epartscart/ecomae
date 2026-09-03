@@ -4713,14 +4713,27 @@ public const string SelectCpOpsGuidesStats = """
     public static string SumErpWorkspaceGlNetProfit => BuildSumErpWorkspaceGlNetProfit(0);
 
     /// <summary>
-    /// PHP <c>epc_erp_gl_all_coa_activity</c>: when <paramref name="companyId"/> &gt; 0
-    /// add <c>AND j.company_id = ?</c>; <c>0</c> leaves journals unscoped.
+    /// PHP <c>epc_erp_gl_all_coa_activity</c> after <c>epc_erp_gl_backfill_company_id</c>.
+    /// When <paramref name="companyId"/> &gt; 0 add <c>AND j.company_id = ?</c>.
+    /// When <paramref name="includeUnassignedZero"/> is true (default company),
+    /// also keep <c>company_id = 0</c> journals that PHP would have backfilled.
+    /// <c>0</c> leaves journals unscoped.
     /// </summary>
-    public static string BuildSumErpWorkspaceGlNetProfit(int companyId)
+    public static string BuildSumErpWorkspaceGlNetProfit(int companyId, bool includeUnassignedZero = false)
     {
-        var companyFilter = companyId > 0
-            ? "\n              AND j.`company_id` = @companyId"
-            : string.Empty;
+        string companyFilter;
+        if (companyId <= 0)
+        {
+            companyFilter = string.Empty;
+        }
+        else if (includeUnassignedZero)
+        {
+            companyFilter = "\n              AND (j.`company_id` = @companyId OR IFNULL(j.`company_id`, 0) = 0)";
+        }
+        else
+        {
+            companyFilter = "\n              AND j.`company_id` = @companyId";
+        }
         return $"""
             SELECT IFNULL(SUM(
                 CASE
