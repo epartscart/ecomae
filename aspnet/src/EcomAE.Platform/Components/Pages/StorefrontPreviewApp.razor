@@ -37,12 +37,16 @@ else
                    BEFORE #sb-site so professional-shell #Container ink rules never
                    darken the hero/VIN text (invisible-text live bug). *@
                 <PhpAspPistonBanner
-                    SearchHref="@StorefrontSurfaceLinks.PartSearch"
-                    CatalogHref="@StorefrontSurfaceLinks.UmapiCatalog"
-                    BrandsHref="@StorefrontSurfaceLinks.AvailableBrands" />
-                <PhpAspHomeBanners />
-                <PhpVinRequestSection />
-                <PhpEpartFrontSections />
+                    SearchHref="@_home.Parts"
+                    CatalogHref="@_home.Umapi"
+                    BrandsHref="@_home.Brands" />
+                <PhpAspHomeBanners
+                    PartsHref="@_home.Parts"
+                    BrandsHref="@_home.Brands"
+                    CatalogHref="@_home.Umapi"
+                    VinHref="@_home.Vin" />
+                <PhpVinRequestSection SellerHref="@_home.Vin" />
+                <PhpEpartFrontSections LangHref="@_home.Lang" />
             }
         </HomeContent>
         <ChildContent>
@@ -61,6 +65,8 @@ else
     private string? _phpHref;
     private string _pageTitle = "eParts Cart (Autoparts)";
     private string _tenantSnapshotHtml = string.Empty;
+    private (string Lang, string Parts, string Umapi, string Brands, string Vin) _home =
+        ("/en", "/en/parts", "/en/umapi_catalog", "/en/available-brands", "/en/zapros-prodavczu");
 
     protected override void OnInitialized()
     {
@@ -72,6 +78,14 @@ else
         {
             _tenantSnapshotHtml = PhpTenantHomeSnapshots.HtmlFor(attrs.StorefrontPackage);
         }
+
+        var lang = StorefrontPhpHomeLinks.LangHref(ctx);
+        _home = (
+            lang,
+            StorefrontPhpHomeLinks.Parts(lang),
+            StorefrontPhpHomeLinks.UmapiCatalog(lang),
+            StorefrontPhpHomeLinks.AvailableBrands(lang),
+            StorefrontPhpHomeLinks.SellerRequest(lang));
 
         if (ctx?.Request.Query.TryGetValue("php", out var php) == true && !string.IsNullOrWhiteSpace(php))
         {

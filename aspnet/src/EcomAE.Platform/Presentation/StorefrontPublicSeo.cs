@@ -73,9 +73,14 @@ public static class StorefrontPublicSeo
         }
 
         // ASP.NET-primary storefront home (nginx / → /storefront/app).
+        // Explicit multilang homes (/en/, /ar/) are the same page — must stay indexable.
         if (value.Equals("/", StringComparison.OrdinalIgnoreCase)
             || value.Equals("/storefront", StringComparison.OrdinalIgnoreCase)
-            || value.Equals("/storefront/app", StringComparison.OrdinalIgnoreCase))
+            || value.Equals("/storefront/app", StringComparison.OrdinalIgnoreCase)
+            || value.Equals("/en", StringComparison.OrdinalIgnoreCase)
+            || value.Equals("/ar", StringComparison.OrdinalIgnoreCase)
+            || value.Equals("/me", StringComparison.OrdinalIgnoreCase)
+            || value.Equals("/ru", StringComparison.OrdinalIgnoreCase))
         {
             return true;
         }
