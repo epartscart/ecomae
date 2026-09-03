@@ -4751,7 +4751,8 @@ public sealed record ErpWorkspacePeriodKpis(
     int ProcessOverdue,
     int ProcessBusy,
     int ProcessHeadcount,
-    string PeriodStatus);
+    string PeriodStatus,
+    decimal GlNetProfit = 0);
 
 public sealed record ErpWorkspaceTrendPoint(string Label, decimal Revenue, decimal Profit);
 

@@ -98,6 +98,26 @@ public sealed class ErpNetsuiteDashboardCatalogTests
     }
 
     [Fact]
+    public void GlNetProfitIsNotGrossMargin()
+    {
+        var profile = ErpNetsuiteDashboardCatalog.Profiles["finance"];
+        var cur = new ErpWorkspacePeriodKpis(
+            0, 1000, 400, 600, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "open", 180);
+        var fin = ErpNetsuiteDashboardCatalog.ResolveFinancials(profile, cur, "AED");
+        Assert.Contains(fin, f => f.Label == "Margin (ex VAT)" && f.Value.StartsWith("600.00", StringComparison.Ordinal));
+        Assert.Contains(fin, f => f.Label == "GL net profit" && f.Value.StartsWith("180.00", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void PeriodDaysInclusiveCountsCurrentCalendarDay()
+    {
+        Assert.Equal(3, ErpNetsuiteDashboardCatalog.PeriodDaysInclusive("2026-09-01", "2026-09-03"));
+        Assert.Equal(1, ErpNetsuiteDashboardCatalog.PeriodDaysInclusive("2026-09-03", "2026-09-03"));
+        Assert.Equal(1, ErpNetsuiteDashboardCatalog.PeriodDaysInclusive(null, null));
+    }
+
+    [Fact]
     public void IndustryControlsStayGenericUnlessJewellery()
     {
         var core = ErpNetsuiteDashboardCatalog.IndustryControls("auto_parts", jewellery: false);
@@ -107,6 +127,18 @@ public sealed class ErpNetsuiteDashboardCatalogTests
 
         var jw = ErpNetsuiteDashboardCatalog.IndustryControls("jewellery", jewellery: true);
         Assert.Contains(jw, c => c.Code == "metal_weighbridge");
+    }
+
+    [Fact]
+    public void WorkspaceSqlMatchesPhpCogsTasksAndGlPl()
+    {
+        Assert.Contains("t2_price_purchase", LegacySurfaceDashboardSql.SumErpWorkspacePurchaseExVat, StringComparison.Ordinal);
+        Assert.Contains("shop_orders", LegacySurfaceDashboardSql.SumErpWorkspacePurchaseExVat, StringComparison.Ordinal);
+        Assert.DoesNotContain("epc_erp_purchases", LegacySurfaceDashboardSql.SumErpWorkspacePurchaseExVat, StringComparison.Ordinal);
+        Assert.Contains("epc_erp_coa_accounts", LegacySurfaceDashboardSql.SumErpWorkspaceGlNetProfit, StringComparison.Ordinal);
+        Assert.Contains("completed_at", LegacySurfaceDashboardSql.SelectErpWorkspaceTopPerformers, StringComparison.Ordinal);
+        Assert.Contains("@dateFrom", LegacySurfaceDashboardSql.CountErpWorkspaceProcessDoneInPeriod, StringComparison.Ordinal);
+        Assert.Contains("epc_pf_case_steps", LegacySurfaceDashboardSql.CountErpWorkspaceProcessDoneInPeriod, StringComparison.Ordinal);
     }
 
     [Fact]

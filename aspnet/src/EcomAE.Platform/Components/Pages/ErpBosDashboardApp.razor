@@ -728,13 +728,7 @@
         _hero = ErpNetsuiteDashboardCatalog.ResolveHero(_profile, _cur, prev);
         _kpiRows = ErpNetsuiteDashboardCatalog.ResolveKpiRows(_profile, _cur, prev);
         _fin = ErpNetsuiteDashboardCatalog.ResolveFinancials(_profile, _cur, _currency);
-        var days = 1;
-        if (DateTime.TryParse(_periodFrom, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out var from)
-            && DateTime.TryParse(_periodTo, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out var to))
-        {
-            days = Math.Max(1, (int)Math.Round((to - from).TotalDays));
-        }
-
+        var days = ErpNetsuiteDashboardCatalog.PeriodDaysInclusive(_periodFrom, _periodTo);
         _opKpis = ErpNetsuiteDashboardCatalog.OperationalKpis(_profile, _cur, days);
         _controls = ErpNetsuiteDashboardCatalog.IndustryControls(_industryCode, _jewellery);
     }

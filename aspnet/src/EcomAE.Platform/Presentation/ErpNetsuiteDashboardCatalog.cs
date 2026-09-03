@@ -335,7 +335,7 @@ public static class ErpNetsuiteDashboardCatalog
         {
             cells.Add(new("Gross profit %", gpPct.ToString("N1", CultureInfo.InvariantCulture) + "%"));
             cells.Add(new("Margin (ex VAT)", Money(prof) + " " + currency));
-            cells.Add(new("GL net profit", Money(prof) + " " + currency));
+            cells.Add(new("GL net profit", Money(cur.GlNetProfit) + " " + currency));
         }
 
         if (Can(profile, "cash")) cells.Add(new("Cash & bank", Money(cur.CashPosition) + " " + currency));
@@ -366,6 +366,23 @@ public static class ErpNetsuiteDashboardCatalog
 
     public static string Money(decimal value)
         => value.ToString("N2", CultureInfo.InvariantCulture);
+
+    /// <summary>
+    /// Inclusive calendar days for DSO/DPO. PHP <c>epc_bos_intelligence</c> uses
+    /// <c>round((date_to - date_from) / 86400)</c> on unix bounds that include now,
+    /// so the current calendar day counts. Midnight-to-midnight of yyyy-MM-dd strings
+    /// would drop today.
+    /// </summary>
+    public static int PeriodDaysInclusive(string? fromYmd, string? toYmd)
+    {
+        if (DateTime.TryParse(fromYmd, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out var from)
+            && DateTime.TryParse(toYmd, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out var to))
+        {
+            return Math.Max(1, (int)(to.Date - from.Date).TotalDays + 1);
+        }
+
+        return 1;
+    }
 
     public static string DepartmentName(string? code)
     {
@@ -418,7 +435,7 @@ public static class ErpNetsuiteDashboardCatalog
     {
         if (!Can(profile, "op_kpis")) return [];
 
-        var days = Math.Max(1, periodDays);
+        var days = Math.Max(1, periodDays); // inclusive calendar days (PHP round((to-from)/86400) includes today)
         var revenue = cur.RevenueExVat;
         var purchases = cur.PurchaseExVat;
         var profit = cur.ProfitExVat;

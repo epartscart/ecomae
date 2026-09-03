@@ -4672,10 +4672,47 @@ public const string SelectCpOpsGuidesStats = """
         LIMIT @limit
         """;
 
-    /// <summary>PHP <c>epc_erp_dashboard</c> purchase ex-VAT for a period (purchases register).</summary>
+    /// <summary>
+    /// PHP <c>epc_erp_dashboard</c> / <c>epc_erp_order_sum_sql</c> purchase ex-VAT:
+    /// completed <c>shop_orders</c> COGS (<c>t2_price_purchase * count_need</c>), not the supplier-invoice register.
+    /// </summary>
     public const string SumErpWorkspacePurchaseExVat = """
-        SELECT IFNULL(SUM(`amount_ex_vat`), 0) FROM `epc_erp_purchases`
-        WHERE `active` = 1 AND `purchase_date` >= @dateFrom AND `purchase_date` <= @dateTo
+        SELECT IFNULL(SUM(IFNULL((
+            SELECT SUM(i.`t2_price_purchase` * i.`count_need`)
+            FROM `shop_orders_items` i
+            WHERE i.`order_id` = o.`id`
+        ), 0)), 0)
+        FROM `shop_orders` o
+        WHERE o.`successfully_created` = 1
+          AND o.`time` >= @dateFrom AND o.`time` <= @dateTo
+        """;
+
+    /// <summary>PHP <c>epc_erp_gl_pl_report</c> net_profit (revenue − expense signed period activity).</summary>
+    public const string SumErpWorkspaceGlNetProfit = """
+        SELECT IFNULL(SUM(
+            CASE
+                WHEN a.`account_type` = 'revenue' THEN
+                    CASE WHEN IFNULL(a.`normal_side`,'credit') = 'credit'
+                         THEN IFNULL(x.credits,0) - IFNULL(x.debits,0)
+                         ELSE IFNULL(x.debits,0) - IFNULL(x.credits,0)
+                    END
+                WHEN a.`account_type` = 'expense' THEN
+                    - CASE WHEN IFNULL(a.`normal_side`,'debit') = 'credit'
+                           THEN IFNULL(x.credits,0) - IFNULL(x.debits,0)
+                           ELSE IFNULL(x.debits,0) - IFNULL(x.credits,0)
+                      END
+                ELSE 0
+            END
+        ), 0)
+        FROM `epc_erp_coa_accounts` a
+        LEFT JOIN (
+            SELECT l.`coa_id`, SUM(l.`debit`) AS debits, SUM(l.`credit`) AS credits
+            FROM `epc_erp_gl_lines` l
+            INNER JOIN `epc_erp_gl_journals` j ON j.`id` = l.`journal_id` AND j.`active` = 1
+            WHERE j.`journal_date` >= @dateFrom AND j.`journal_date` <= @dateTo
+            GROUP BY l.`coa_id`
+        ) x ON x.`coa_id` = a.`id`
+        WHERE a.`active` = 1 AND a.`account_type` IN ('revenue','expense')
         """;
 
     /// <summary>PHP sales incl. VAT from completed shop orders.</summary>
@@ -4716,15 +4753,25 @@ public const string SelectCpOpsGuidesStats = """
         ORDER BY n DESC
         """;
 
+    /// <summary>PHP <c>epc_pf_workforce_data</c> — steps approved in the selected period.</summary>
     public const string SelectErpWorkspaceTopPerformers = """
-        SELECT IFNULL(`current_assignee_id`,0) AS assignee,
-               IFNULL(`current_department`,'') AS dept,
+        SELECT IFNULL(s.`acted_by`,0) AS assignee,
+               IFNULL(c.`current_department`,'') AS dept,
                COUNT(*) AS n
-        FROM `epc_pf_cases`
-        WHERE `status` = 'done'
-        GROUP BY IFNULL(`current_assignee_id`,0), IFNULL(`current_department`,'')
+        FROM `epc_pf_case_steps` s
+        LEFT JOIN `epc_pf_cases` c ON c.`id` = s.`case_id`
+        WHERE s.`status` = 'approved' AND s.`acted_by` > 0
+          AND s.`completed_at` >= @dateFrom AND s.`completed_at` <= @dateTo
+        GROUP BY IFNULL(s.`acted_by`,0), IFNULL(c.`current_department`,'')
         ORDER BY n DESC
         LIMIT 8
+        """;
+
+    /// <summary>PHP <c>epc_pf_workforce_data</c> <c>doneTotal</c> — approved steps in the selected period.</summary>
+    public const string CountErpWorkspaceProcessDoneInPeriod = """
+        SELECT COUNT(*) FROM `epc_pf_case_steps`
+        WHERE `status` = 'approved' AND `acted_by` > 0
+          AND `completed_at` >= @dateFrom AND `completed_at` <= @dateTo
         """;
 
     public const string CountErpWorkspaceProcessBusy = """
