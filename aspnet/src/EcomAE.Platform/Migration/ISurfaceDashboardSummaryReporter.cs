@@ -499,6 +499,24 @@ public interface ISurfaceDashboardSummaryReporter
 
     /// <summary>Read-only virtual/exhibition warehouse locations + transfer history.</summary>
     Task<ErpVirtualWarehouseDigestResult> BuildErpVirtualWarehouseDigestAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Read-only staff profiles (PHP <c>epc_erp_staff_profiles</c>; writes remain PHP).</summary>
+    Task<ErpStaffListResult> ListErpStaffAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Read-only contracts register (PHP <c>epc_erp_contracts</c>; body/OCR omitted).</summary>
+    Task<ErpContractsListResult> ListErpContractsAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Read-only opening-balance batches (PHP <c>epc_erp_opening_batches</c>).</summary>
+    Task<ErpOpeningListResult> ListErpOpeningBatchesAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Read-only marketing campaigns (PHP <c>epc_erp_marketing_campaigns</c>).</summary>
+    Task<ErpMarketingListResult> ListErpMarketingCampaignsAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Read-only payroll runs (PHP <c>epc_erp_payroll_runs</c>).</summary>
+    Task<ErpPayrollListResult> ListErpPayrollRunsAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Read-only print templates (PHP <c>epc_erp_print_templates</c>; HTML/CSS omitted).</summary>
+    Task<ErpPrintTemplatesListResult> ListErpPrintTemplatesAsync(int limit, CancellationToken cancellationToken = default);
 }
 
 

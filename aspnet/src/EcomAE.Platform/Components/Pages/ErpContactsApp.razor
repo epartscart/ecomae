@@ -14,7 +14,7 @@
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Contacts" BreadcrumbArea="Master Data" BreadcrumbTab="Contacts">
 
     
-    <PhpErpModulePageHeader Title="Contacts" Subtitle="Live shop digest. Writes stay on ERP ajax." PhpTabHref="@_phpTab" />
+    <PhpErpModulePageHeader Title="@_title" Subtitle="@_subtitle" PhpTabHref="@_phpTab" />
 
 
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Contacts KPIs">
@@ -70,7 +70,9 @@
 </PhpErpDesktopChrome>
 
 @code {
-    private const string _phpTab = "/ERP/?epc_erp_shell=1&area=common&tab=contacts";
+    private string _phpTab = "/ERP/?epc_erp_shell=1&area=common&tab=contacts";
+    private string _title = "Contacts";
+    private string _subtitle = "Customer and vendor contacts. Writes stay on ERP ajax.";
     private bool _isAdmin;
     private IReadOnlyList<ErpContactDigest> _contacts = [];
     private int _limit = 100;
@@ -81,6 +83,14 @@
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
+
+        var tab = (ctx.Request.Query["tab"].ToString() ?? "").Trim().ToLowerInvariant();
+        if (tab == "ar_setup")
+        {
+            _phpTab = "/ERP/?epc_erp_shell=1&area=ar&tab=ar_setup";
+            _title = "AR setup";
+            _subtitle = "Customer contacts used for receivable posting.";
+        }
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("erp");

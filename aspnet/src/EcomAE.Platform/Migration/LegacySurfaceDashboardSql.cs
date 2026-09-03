@@ -4221,4 +4221,99 @@ public const string SelectCpOpsGuidesStats = """
         LIMIT @limit
         """;
 
+    /// <summary>PHP <c>epc_erp_staff_list</c> — staff profiles (HR notes omitted).</summary>
+    public const string SelectErpStaffProfiles = """
+        SELECT p.`id`, IFNULL(p.`user_id`,0) AS user_id,
+               IFNULL(p.`department_code`,'') AS department_code,
+               IFNULL(p.`display_name`,'') AS display_name,
+               IFNULL(p.`job_title`,'') AS job_title,
+               IFNULL(p.`email`,'') AS email,
+               IFNULL(p.`phone`,'') AS phone,
+               IFNULL(p.`active`,1) AS active,
+               IFNULL(p.`time_created`,0) AS time_created
+        FROM `epc_erp_staff_profiles` p
+        ORDER BY p.`department_code`, p.`display_name`, p.`id`
+        LIMIT @limit
+        """;
+
+    /// <summary>PHP contracts register — body_text / ocr_text omitted.</summary>
+    public const string SelectErpContracts = """
+        SELECT `id`, IFNULL(`code`,'') AS code,
+               IFNULL(`title`,'') AS title,
+               IFNULL(`counterparty`,'') AS counterparty,
+               IFNULL(`contract_value`,0) AS contract_value,
+               IFNULL(`currency`,'AED') AS currency,
+               IFNULL(`start_date`,0) AS start_date,
+               IFNULL(`end_date`,0) AS end_date,
+               IFNULL(`status`,'draft') AS status,
+               IFNULL(`version`,1) AS version,
+               IFNULL(`time_created`,0) AS time_created
+        FROM `epc_erp_contracts`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
+    /// <summary>PHP opening-balance batches + line totals (meta_json omitted).</summary>
+    public const string SelectErpOpeningBatches = """
+        SELECT b.`id`, IFNULL(b.`module`,'combined') AS module,
+               IFNULL(b.`as_of_date`,'') AS as_of_date,
+               IFNULL(b.`reference`,'') AS reference,
+               IFNULL(b.`status`,'draft') AS status,
+               IFNULL(b.`time_created`,0) AS time_created,
+               IFNULL(b.`time_posted`,0) AS time_posted,
+               IFNULL((SELECT COUNT(*) FROM `epc_erp_opening_lines` l WHERE l.`batch_id` = b.`id`),0) AS line_count,
+               IFNULL((SELECT SUM(l.`debit`) FROM `epc_erp_opening_lines` l WHERE l.`batch_id` = b.`id`),0) AS debit_total,
+               IFNULL((SELECT SUM(l.`credit`) FROM `epc_erp_opening_lines` l WHERE l.`batch_id` = b.`id`),0) AS credit_total
+        FROM `epc_erp_opening_batches` b
+        ORDER BY b.`as_of_date` DESC, b.`id` DESC
+        LIMIT @limit
+        """;
+
+    /// <summary>PHP <c>epc_erp_marketing_list</c> — notes omitted.</summary>
+    public const string SelectErpMarketingCampaigns = """
+        SELECT `id`, IFNULL(`name`,'') AS name,
+               IFNULL(`channel`,'') AS channel,
+               IFNULL(`budget`,0) AS budget,
+               IFNULL(`spent`,0) AS spent,
+               IFNULL(`leads`,0) AS leads,
+               IFNULL(`status`,'draft') AS status,
+               IFNULL(`time_start`,0) AS time_start,
+               IFNULL(`time_end`,0) AS time_end,
+               IFNULL(`time_created`,0) AS time_created
+        FROM `epc_erp_marketing_campaigns`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
+    /// <summary>PHP <c>epc_erp_payroll_list_runs</c> — notes omitted.</summary>
+    public const string SelectErpPayrollRuns = """
+        SELECT r.`id`, IFNULL(r.`period_label`,'') AS period_label,
+               IFNULL(r.`period_start`,0) AS period_start,
+               IFNULL(r.`period_end`,0) AS period_end,
+               IFNULL(r.`status`,'draft') AS status,
+               IFNULL(r.`total_gross`,0) AS total_gross,
+               IFNULL(r.`total_deductions`,0) AS total_deductions,
+               IFNULL(r.`total_net`,0) AS total_net,
+               IFNULL(r.`paid_at`,0) AS paid_at,
+               IFNULL(r.`time_created`,0) AS time_created,
+               IFNULL((SELECT COUNT(*) FROM `epc_erp_payroll_lines` l WHERE l.`run_id` = r.`id`),0) AS employee_count
+        FROM `epc_erp_payroll_runs` r
+        ORDER BY r.`period_start` DESC, r.`id` DESC
+        LIMIT @limit
+        """;
+
+    /// <summary>PHP print designer templates — HTML/CSS bodies omitted.</summary>
+    public const string SelectErpPrintTemplates = """
+        SELECT `id`, IFNULL(`doc_type`,'') AS doc_type,
+               IFNULL(`name`,'') AS name,
+               IFNULL(`is_default`,0) AS is_default,
+               IFNULL(`page_size`,'A4') AS page_size,
+               IFNULL(`orientation`,'portrait') AS orientation,
+               IFNULL(`active`,1) AS active,
+               IFNULL(`time_updated`,0) AS time_updated
+        FROM `epc_erp_print_templates`
+        ORDER BY `doc_type`, `is_default` DESC, `id`
+        LIMIT @limit
+        """;
+
 }

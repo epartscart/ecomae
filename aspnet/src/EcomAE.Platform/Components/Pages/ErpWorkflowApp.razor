@@ -6,6 +6,7 @@
 @using EcomAE.Platform.Presentation
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
+@inject IErpWorkflowCreateDryRun WorkflowCreate
 @inject IHttpContextAccessor Http
 @inject NavigationManager Nav
 
@@ -15,6 +16,29 @@
 
     <PhpErpModulePageHeader Title="Department workflow board" Subtitle="Sales → Purchase → Logistics → Finance → Accounts. Task create and status writes stay on ERP ajax." PhpTabHref="@_phpTab" />
     <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
+
+    @if (_isAdmin)
+    {
+        <form @onsubmit="OnCreate" @onsubmit:preventDefault="true" style="margin:0 0 12px;padding:10px;border:1px solid #c5d4de;background:#fff;">
+            <strong>New task (dry-run)</strong>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;align-items:end;">
+                <label>Title <input class="form-control" @bind="_formTitle" /></label>
+                <label>Dept <input class="form-control" @bind="_formDept" /></label>
+                <label>Priority
+                    <select class="form-control" @bind="_formPriority">
+                        <option value="normal">normal</option>
+                        <option value="low">low</option>
+                        <option value="high">high</option>
+                    </select>
+                </label>
+                <button type="submit" class="btn btn-primary">Validate create</button>
+            </div>
+            @if (!string.IsNullOrWhiteSpace(_formResult))
+            {
+                <p style="margin:8px 0 0;font-size:12px;">@_formResult</p>
+            }
+        </form>
+    }
 
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Workflow KPIs">
         <div class="kpi"><div class="lbl">Tasks</div><div class="val">@_summary.TaskCount.ToString(CultureInfo.InvariantCulture)</div></div>
@@ -84,6 +108,16 @@
     private IReadOnlyList<ErpWorkflowTaskDigest> _tasks = [];
     private string _source = "n/a";
     private string _message = "";
+    private string _formTitle = "";
+    private string _formDept = "admin";
+    private string _formPriority = "normal";
+    private string _formResult = "";
+
+    private void OnCreate()
+    {
+        var result = WorkflowCreate.Evaluate(new ErpWorkflowCreateRequest(_formTitle, _formDept, _formPriority, 0, false));
+        _formResult = $"{result.Status}: {result.Detail} (writes={result.Writes.ToString(CultureInfo.InvariantCulture)})";
+    }
 
     protected override async Task OnInitializedAsync()
     {

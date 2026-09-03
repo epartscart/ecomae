@@ -2805,6 +2805,183 @@ public sealed class ErpModule : ISurfaceModule
             });
         });
 
+        endpoints.MapGet(EcomAeRoutes.ErpStaff, async (
+            HttpContext context,
+            int? limit,
+            ILegacySessionValidator validator,
+            ISurfaceDashboardSummaryReporter dashboards,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+            {
+                return Unauthorized("Admin ERP capability required for staff digest.");
+            }
+
+            var result = await dashboards.ListErpStaffAsync(limit ?? 200, cancellationToken);
+            return Results.Ok(new
+            {
+                ok = true,
+                surface = "erp",
+                staff = result.Staff,
+                count = result.Count,
+                activeCount = result.ActiveCount,
+                departmentCount = result.DepartmentCount,
+                source = result.Source,
+                message = result.Message,
+                session = SessionPayload(session),
+                note = "Read-only epc_erp_staff_profiles. PHP staff tab / ajax_erp.php remain authoritative."
+            });
+        });
+
+        endpoints.MapGet(EcomAeRoutes.ErpContracts, async (
+            HttpContext context,
+            int? limit,
+            ILegacySessionValidator validator,
+            ISurfaceDashboardSummaryReporter dashboards,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+            {
+                return Unauthorized("Admin ERP capability required for contracts digest.");
+            }
+
+            var result = await dashboards.ListErpContractsAsync(limit ?? 200, cancellationToken);
+            return Results.Ok(new
+            {
+                ok = true,
+                surface = "erp",
+                contracts = result.Contracts,
+                count = result.Count,
+                activeCount = result.ActiveCount,
+                valueTotal = result.ValueTotal,
+                source = result.Source,
+                message = result.Message,
+                session = SessionPayload(session),
+                note = "Read-only epc_erp_contracts (body/OCR omitted). PHP contracts tab remains authoritative."
+            });
+        });
+
+        endpoints.MapGet(EcomAeRoutes.ErpOpening, async (
+            HttpContext context,
+            int? limit,
+            ILegacySessionValidator validator,
+            ISurfaceDashboardSummaryReporter dashboards,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+            {
+                return Unauthorized("Admin ERP capability required for opening digest.");
+            }
+
+            var result = await dashboards.ListErpOpeningBatchesAsync(limit ?? 200, cancellationToken);
+            return Results.Ok(new
+            {
+                ok = true,
+                surface = "erp",
+                batches = result.Batches,
+                count = result.Count,
+                postedCount = result.PostedCount,
+                debitTotal = result.DebitTotal,
+                creditTotal = result.CreditTotal,
+                source = result.Source,
+                message = result.Message,
+                session = SessionPayload(session),
+                note = "Read-only epc_erp_opening_batches. PHP opening tab remains authoritative."
+            });
+        });
+
+        endpoints.MapGet(EcomAeRoutes.ErpMarketing, async (
+            HttpContext context,
+            int? limit,
+            ILegacySessionValidator validator,
+            ISurfaceDashboardSummaryReporter dashboards,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+            {
+                return Unauthorized("Admin ERP capability required for marketing digest.");
+            }
+
+            var result = await dashboards.ListErpMarketingCampaignsAsync(limit ?? 200, cancellationToken);
+            return Results.Ok(new
+            {
+                ok = true,
+                surface = "erp",
+                campaigns = result.Campaigns,
+                count = result.Count,
+                activeCount = result.ActiveCount,
+                budgetTotal = result.BudgetTotal,
+                leadTotal = result.LeadTotal,
+                source = result.Source,
+                message = result.Message,
+                session = SessionPayload(session),
+                note = "Read-only epc_erp_marketing_campaigns. PHP marketing tab remains authoritative."
+            });
+        });
+
+        endpoints.MapGet(EcomAeRoutes.ErpPayroll, async (
+            HttpContext context,
+            int? limit,
+            ILegacySessionValidator validator,
+            ISurfaceDashboardSummaryReporter dashboards,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+            {
+                return Unauthorized("Admin ERP capability required for payroll digest.");
+            }
+
+            var result = await dashboards.ListErpPayrollRunsAsync(limit ?? 200, cancellationToken);
+            return Results.Ok(new
+            {
+                ok = true,
+                surface = "erp",
+                runs = result.Runs,
+                count = result.Count,
+                paidCount = result.PaidCount,
+                grossTotal = result.GrossTotal,
+                netTotal = result.NetTotal,
+                source = result.Source,
+                message = result.Message,
+                session = SessionPayload(session),
+                note = "Read-only epc_erp_payroll_runs. PHP payroll tab remains authoritative."
+            });
+        });
+
+        endpoints.MapGet(EcomAeRoutes.ErpPrintTemplates, async (
+            HttpContext context,
+            int? limit,
+            ILegacySessionValidator validator,
+            ISurfaceDashboardSummaryReporter dashboards,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+            {
+                return Unauthorized("Admin ERP capability required for print-templates digest.");
+            }
+
+            var result = await dashboards.ListErpPrintTemplatesAsync(limit ?? 200, cancellationToken);
+            return Results.Ok(new
+            {
+                ok = true,
+                surface = "erp",
+                templates = result.Templates,
+                count = result.Count,
+                defaultCount = result.DefaultCount,
+                docTypeCount = result.DocTypeCount,
+                source = result.Source,
+                message = result.Message,
+                session = SessionPayload(session),
+                note = "Read-only epc_erp_print_templates (HTML/CSS omitted). PHP print_designer tab remains authoritative."
+            });
+        });
+
         endpoints.MapGet(EcomAeRoutes.ErpReportCenter, async (
             HttpContext context,
             string? key,

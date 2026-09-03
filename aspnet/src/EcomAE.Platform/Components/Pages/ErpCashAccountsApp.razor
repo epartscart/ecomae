@@ -19,6 +19,7 @@
 
     <p class="text-muted" style="margin:8px 0 12px;">
         <a href="/erp/cash-accounts-app">Cash &amp; bank</a>
+        · <a href="/erp/cash-accounts-app?tab=bank_setup">Bank setup</a>
         · <a href="/erp/cash-accounts-app?tab=petty_cash">Petty cash</a>
         · <a href="/erp/cash-accounts-app?tab=cash_forecast">Cash forecast</a>
     </p>
@@ -257,23 +258,27 @@
         var tab = (ctx.Request.Query["tab"].ToString() ?? "").Trim().ToLowerInvariant();
         _view = tab is "petty_cash" or "jw_petty_cash" ? "petty_cash"
             : tab == "cash_forecast" ? "cash_forecast"
+            : tab == "bank_setup" ? "bank_setup"
             : "cash_bank";
         _phpTab = _view switch
         {
             "petty_cash" => "/ERP/?epc_erp_shell=1&area=banking&tab=petty_cash",
             "cash_forecast" => "/ERP/?epc_erp_shell=1&area=banking&tab=cash_forecast",
+            "bank_setup" => "/ERP/?epc_erp_shell=1&area=banking&tab=bank_setup",
             _ => "/ERP/?epc_erp_shell=1&area=banking&tab=cash_bank"
         };
         _title = _view switch
         {
             "petty_cash" => "Petty cash",
             "cash_forecast" => "Cash flow forecast",
+            "bank_setup" => "Bank setup",
             _ => "Cash & Bank"
         };
         _subtitle = _view switch
         {
             "petty_cash" => "Small cash floats with custodian and linked cash account.",
             "cash_forecast" => "Opening balance plus dated inflows and outflows.",
+            "bank_setup" => "Bank account names, currencies and opening balances.",
             _ => "Cash and bank accounts with recent ledger entries."
         };
 
@@ -303,6 +308,8 @@
             _accountsMessage = fc.Message;
             return;
         }
+
+        // bank_setup uses the same cash-account master as cash_bank.
 
         var accounts = await Dashboards.ListErpCashAccountsAsync(_limit, ctx.RequestAborted);
         _accounts = accounts.Accounts;

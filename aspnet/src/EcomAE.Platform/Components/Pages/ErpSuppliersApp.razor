@@ -18,6 +18,7 @@
 
     <p class="text-muted" style="margin:8px 0 12px;">
         <a href="/erp/suppliers-app">Suppliers</a>
+        · <a href="/erp/suppliers-app?tab=ap_setup">AP setup</a>
         · <a href="/erp/suppliers-app?tab=supplier_portal">Supplier portal</a>
     </p>
 
@@ -132,14 +133,25 @@
         if (ctx is null) return;
 
         var tab = (ctx.Request.Query["tab"].ToString() ?? "").Trim().ToLowerInvariant();
-        _view = tab == "supplier_portal" ? "supplier_portal" : "suppliers";
-        _phpTab = _view == "supplier_portal"
-            ? "/ERP/?epc_erp_shell=1&area=purchasing&tab=supplier_portal"
-            : "/ERP/?epc_erp_shell=1&area=purchasing&tab=vendors";
-        _title = _view == "supplier_portal" ? "Supplier portal" : "Suppliers";
-        _subtitle = _view == "supplier_portal"
-            ? "Delivery, responsiveness, spend and payables scorecards."
-            : "Supplier master and balances.";
+        _view = tab == "supplier_portal" ? "supplier_portal" : tab == "ap_setup" ? "ap_setup" : "suppliers";
+        _phpTab = _view switch
+        {
+            "supplier_portal" => "/ERP/?epc_erp_shell=1&area=purchasing&tab=supplier_portal",
+            "ap_setup" => "/ERP/?epc_erp_shell=1&area=ap&tab=ap_setup",
+            _ => "/ERP/?epc_erp_shell=1&area=purchasing&tab=vendors"
+        };
+        _title = _view switch
+        {
+            "supplier_portal" => "Supplier portal",
+            "ap_setup" => "AP setup",
+            _ => "Suppliers"
+        };
+        _subtitle = _view switch
+        {
+            "supplier_portal" => "Delivery, responsiveness, spend and payables scorecards.",
+            "ap_setup" => "Supplier master used for payable posting.",
+            _ => "Supplier master and balances."
+        };
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("erp");

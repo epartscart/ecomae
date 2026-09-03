@@ -4431,3 +4431,131 @@ public sealed record ErpVirtualWarehouseDigestResult(
     int Count,
     string Source,
     string Message);
+
+/// <summary>PHP <c>epc_erp_staff_list</c> / <c>epc_erp_staff_profiles</c> (writes remain PHP).</summary>
+public sealed record ErpStaffProfileDigest(
+    long Id,
+    long UserId,
+    string DepartmentCode,
+    string DisplayName,
+    string JobTitle,
+    string Email,
+    string Phone,
+    bool Active,
+    long TimeCreated);
+
+public sealed record ErpStaffListResult(
+    IReadOnlyList<ErpStaffProfileDigest> Staff,
+    int Count,
+    int ActiveCount,
+    int DepartmentCount,
+    string Source,
+    string Message);
+
+/// <summary>PHP <c>epc_erp_contracts</c> register (body/OCR text omitted).</summary>
+public sealed record ErpContractDigest(
+    long Id,
+    string Code,
+    string Title,
+    string Counterparty,
+    decimal ContractValue,
+    string Currency,
+    long StartDate,
+    long EndDate,
+    string Status,
+    int Version,
+    long TimeCreated);
+
+public sealed record ErpContractsListResult(
+    IReadOnlyList<ErpContractDigest> Contracts,
+    int Count,
+    int ActiveCount,
+    decimal ValueTotal,
+    string Source,
+    string Message);
+
+/// <summary>PHP <c>epc_erp_opening_batches</c> (line meta omitted).</summary>
+public sealed record ErpOpeningBatchDigest(
+    long Id,
+    string Module,
+    string AsOfDate,
+    string Reference,
+    string Status,
+    int LineCount,
+    decimal DebitTotal,
+    decimal CreditTotal,
+    long TimeCreated,
+    long TimePosted);
+
+public sealed record ErpOpeningListResult(
+    IReadOnlyList<ErpOpeningBatchDigest> Batches,
+    int Count,
+    int PostedCount,
+    decimal DebitTotal,
+    decimal CreditTotal,
+    string Source,
+    string Message);
+
+/// <summary>PHP <c>epc_erp_marketing_campaigns</c> (notes omitted).</summary>
+public sealed record ErpMarketingCampaignDigest(
+    long Id,
+    string Name,
+    string Channel,
+    decimal Budget,
+    decimal Spent,
+    int Leads,
+    string Status,
+    long TimeStart,
+    long TimeEnd,
+    long TimeCreated);
+
+public sealed record ErpMarketingListResult(
+    IReadOnlyList<ErpMarketingCampaignDigest> Campaigns,
+    int Count,
+    int ActiveCount,
+    decimal BudgetTotal,
+    int LeadTotal,
+    string Source,
+    string Message);
+
+/// <summary>PHP <c>epc_erp_payroll_runs</c> (notes omitted).</summary>
+public sealed record ErpPayrollRunDigest(
+    long Id,
+    string PeriodLabel,
+    long PeriodStart,
+    long PeriodEnd,
+    string Status,
+    int EmployeeCount,
+    decimal TotalGross,
+    decimal TotalDeductions,
+    decimal TotalNet,
+    long PaidAt,
+    long TimeCreated);
+
+public sealed record ErpPayrollListResult(
+    IReadOnlyList<ErpPayrollRunDigest> Runs,
+    int Count,
+    int PaidCount,
+    decimal GrossTotal,
+    decimal NetTotal,
+    string Source,
+    string Message);
+
+/// <summary>PHP <c>epc_erp_print_templates</c> (HTML/CSS bodies omitted).</summary>
+public sealed record ErpPrintTemplateDigest(
+    long Id,
+    string DocType,
+    string Name,
+    bool IsDefault,
+    string PageSize,
+    string Orientation,
+    bool Active,
+    long TimeUpdated);
+
+public sealed record ErpPrintTemplatesListResult(
+    IReadOnlyList<ErpPrintTemplateDigest> Templates,
+    int Count,
+    int DefaultCount,
+    int DocTypeCount,
+    string Source,
+    string Message);
