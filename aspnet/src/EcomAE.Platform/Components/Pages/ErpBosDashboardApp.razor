@@ -153,9 +153,18 @@
                             {
                                 <li><span class="cnt@(_cur.InvoicesDue == 0 ? " zero" : "")">@_cur.InvoicesDue</span> <a href="@WithCompany("/erp/aging-app")">Invoices with balance due</a></li>
                             }
-                            <li><span class="cnt@(_cur.UnpostedGlJournals == 0 ? " zero" : "")">@_cur.UnpostedGlJournals</span> <a href="@WithCompany("/erp/gl-journals-app")">Unposted GL journals</a></li>
-                            <li><span class="cnt@(_cur.LowStockItems == 0 ? " zero" : "")">@_cur.LowStockItems</span> <a href="@WithCompany("/erp/inventory-stock-app")">Low stock items</a></li>
-                            <li><span class="cnt@(_cur.ProcessOverdue == 0 ? " zero" : "")">@_cur.ProcessOverdue</span> <a href="@WithCompany("/erp/process-flow-tasks-app")">Overdue process tasks</a></li>
+                            @if (ErpNetsuiteDashboardCatalog.Can(_profile, "gl"))
+                            {
+                                <li><span class="cnt@(_cur.UnpostedGlJournals == 0 ? " zero" : "")">@_cur.UnpostedGlJournals</span> <a href="@WithCompany("/erp/gl-journals-app")">Unposted GL journals</a></li>
+                            }
+                            @if (ErpNetsuiteDashboardCatalog.Can(_profile, "inventory"))
+                            {
+                                <li><span class="cnt@(_cur.LowStockItems == 0 ? " zero" : "")">@_cur.LowStockItems</span> <a href="@WithCompany("/erp/inventory-stock-app")">Low stock items</a></li>
+                            }
+                            @if (ErpNetsuiteDashboardCatalog.Can(_profile, "hr_tasks"))
+                            {
+                                <li><span class="cnt@(_cur.ProcessOverdue == 0 ? " zero" : "")">@_cur.ProcessOverdue</span> <a href="@WithCompany("/erp/process-flow-tasks-app")">Overdue process tasks</a></li>
+                            }
                         </ul>
                     </div>
                 </div>
