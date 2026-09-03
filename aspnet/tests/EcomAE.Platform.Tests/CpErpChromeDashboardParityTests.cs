@@ -68,6 +68,13 @@ public sealed class CpErpChromeDashboardParityTests
         Assert.Contains("id=\"nsChartTrend\"", src);
         Assert.Contains("chart.js@4.4.1", src);
         Assert.Contains("A/R aging", src);
+        Assert.Contains("Executive cockpit", src);
+        Assert.Contains("Planning alerts", src);
+        Assert.Contains("Top suppliers by spend", src);
+        Assert.Contains("Task analytics", src);
+        Assert.Contains("Industry intelligence", src);
+        Assert.Contains("No supplier spend recorded yet.", src);
+        Assert.Contains("No tasks tracked yet.", src);
         Assert.DoesNotContain("PhpHybridModuleDirectory", src);
         Assert.DoesNotContain("epc-erp-banner", src);
     }
