@@ -63,20 +63,24 @@
         <thead>
             <tr>
                     <th>Id</th>
+                    <th>Company</th>
                     <th>Policy</th>
                     <th>Class</th>
                     <th>Title</th>
                     <th>Insurer</th>
                     <th>Sum</th>
+                    <th>Premium</th>
+                    <th>CCY</th>
                     <th>Status</th>
                     <th>Expiry</th>
+                    <th>Created</th>
                     <th></th>
             </tr>
         </thead>
         <tbody>
             @if (_rows.Count == 0)
             {
-                <tr><td colspan="9">Nothing to show yet.</td></tr>
+                <tr><td colspan="13">Nothing to show yet.</td></tr>
             }
             else
             {
@@ -84,13 +88,17 @@
                 {
                     <tr>
                             <td>@row.Id.ToString(CultureInfo.InvariantCulture)</td>
+                            <td>@row.CompanyId.ToString(CultureInfo.InvariantCulture)</td>
                             <td>@(!string.IsNullOrWhiteSpace(row.PolicyNo) ? row.PolicyNo : "—")</td>
                             <td>@(!string.IsNullOrWhiteSpace(row.Class) ? row.Class : "—")</td>
                             <td>@(!string.IsNullOrWhiteSpace(row.Title) ? row.Title : "—")</td>
                             <td>@(!string.IsNullOrWhiteSpace(row.Insurer) ? row.Insurer : "—")</td>
                             <td>@row.SumInsured.ToString(CultureInfo.InvariantCulture)</td>
+                            <td>@row.Premium.ToString(CultureInfo.InvariantCulture)</td>
+                            <td>@(!string.IsNullOrWhiteSpace(row.Currency) ? row.Currency : "—")</td>
                             <td>@(!string.IsNullOrWhiteSpace(row.Status) ? row.Status : "—")</td>
                             <td>@row.ExpiryDate.ToString(CultureInfo.InvariantCulture)</td>
+                            <td>@row.TimeCreated.ToString(CultureInfo.InvariantCulture)</td>
                             <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
                     </tr>
                 }

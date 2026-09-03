@@ -63,11 +63,14 @@
             <thead>
                 <tr>
                     <th>Id</th>
+                    <th>Site</th>
+                    <th>User</th>
                     <th>Service</th>
                     <th>Intent</th>
                     <th>Status</th>
                     <th>Tokens</th>
                     <th>Ms</th>
+                    <th>PII stripped</th>
                     <th>Created</th>
                     <th></th>
                 </tr>
@@ -75,7 +78,7 @@
             <tbody>
                 @if (_rows.Count == 0)
                 {
-                    <tr><td colspan="8">Nothing to show yet.</td></tr>
+                    <tr><td colspan="11">Nothing to show yet.</td></tr>
                 }
                 else
                 {
@@ -83,11 +86,14 @@
                     {
                         <tr>
                             <td>@row.Id.ToString(CultureInfo.InvariantCulture)</td>
+                            <td>@(!string.IsNullOrWhiteSpace(row.SiteKey) ? row.SiteKey : "—")</td>
+                            <td>@row.UserId.ToString(CultureInfo.InvariantCulture)</td>
                             <td>@(!string.IsNullOrWhiteSpace(row.Service) ? row.Service : "—")</td>
                             <td>@(!string.IsNullOrWhiteSpace(row.Intent) ? row.Intent : "—")</td>
                             <td>@(!string.IsNullOrWhiteSpace(row.Status) ? row.Status : "—")</td>
                             <td>@row.TokensUsed.ToString(CultureInfo.InvariantCulture)</td>
                             <td>@row.ExecutionMs.ToString(CultureInfo.InvariantCulture)</td>
+                            <td>@row.PiiStripped.ToString(CultureInfo.InvariantCulture)</td>
                             <td>@(!string.IsNullOrWhiteSpace(row.CreatedAt) ? row.CreatedAt : "—")</td>
                             <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
                         </tr>

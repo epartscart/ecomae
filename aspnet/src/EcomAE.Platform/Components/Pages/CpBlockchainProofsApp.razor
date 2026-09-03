@@ -64,17 +64,21 @@
                 <tr>
                     <th>Id</th>
                     <th>Proof UID</th>
+                    <th>Tenant</th>
                     <th>Type</th>
                     <th>Record</th>
                     <th>Status</th>
+                    <th>Batch</th>
+                    <th>Anchor</th>
                     <th>Hash</th>
+                    <th>Created</th>
                     <th></th>
                 </tr>
             </thead>
             <tbody>
                 @if (_rows.Count == 0)
                 {
-                    <tr><td colspan="7">Nothing to show yet.</td></tr>
+                    <tr><td colspan="11">Nothing to show yet.</td></tr>
                 }
                 else
                 {
@@ -83,10 +87,14 @@
                         <tr>
                             <td>@row.Id.ToString(CultureInfo.InvariantCulture)</td>
                             <td>@(!string.IsNullOrWhiteSpace(row.ProofUid) ? row.ProofUid : "—")</td>
+                            <td>@(!string.IsNullOrWhiteSpace(row.TenantKey) ? row.TenantKey : "—")</td>
                             <td>@(!string.IsNullOrWhiteSpace(row.RecordType) ? row.RecordType : "—")</td>
                             <td>@(!string.IsNullOrWhiteSpace(row.RecordId) ? row.RecordId : "—")</td>
                             <td>@(!string.IsNullOrWhiteSpace(row.Status) ? row.Status : "—")</td>
+                            <td>@(row.BatchId.HasValue ? row.BatchId.Value.ToString(CultureInfo.InvariantCulture) : "—")</td>
+                            <td>@(!string.IsNullOrWhiteSpace(row.AnchorRef) ? row.AnchorRef : "—")</td>
                             <td>@(!string.IsNullOrWhiteSpace(row.PayloadHash) ? row.PayloadHash : "—")</td>
+                            <td>@(!string.IsNullOrWhiteSpace(row.CreatedAt) ? row.CreatedAt : "—")</td>
                             <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
                         </tr>
                     }
