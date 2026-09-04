@@ -853,6 +853,8 @@ public static class EcomAeRoutes
     public const string ErpMultiEntityApp = "/erp/multi-entity-app";
     public const string ErpMultiCurrencyGl = "/erp/multi-currency-gl";
     public const string ErpMultiCurrencyGlApp = "/erp/multi-currency-gl-app";
+    /// <summary>Live PHP <c>epc_mcgl_set_rate</c> UPSERT.</summary>
+    public const string ErpMultiCurrencyGlSetRate = "/erp/multi-currency-gl/set-rate";
 
     /// <summary>ERP tab→app coverage board.</summary>
     public const string ErpTabCoverage = "/erp/tab-coverage";

@@ -468,6 +468,28 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(ccyDb.Succeeded);
         Assert.Equal("db", ccyDb.Code);
 
+        var fxInvalid = await new ErpMultiCurrencyGlWriteService(new ConfiguredNeverOpened())
+            .SetRateAsync("US", "AED", 3.67m, "2026-09-04", "manual");
+        Assert.False(fxInvalid.Succeeded);
+        Assert.Equal("invalid", fxInvalid.Code);
+
+        var fxRate = await new ErpMultiCurrencyGlWriteService(new ConfiguredNeverOpened())
+            .SetRateAsync("USD", "AED", 0, "2026-09-04", "manual");
+        Assert.False(fxRate.Succeeded);
+        Assert.Equal("invalid", fxRate.Code);
+
+        var fxDate = await new ErpMultiCurrencyGlWriteService(new ConfiguredNeverOpened())
+            .SetRateAsync("USD", "AED", 3.67m, "04-09-2026", "manual");
+        Assert.False(fxDate.Succeeded);
+        Assert.Equal("invalid", fxDate.Code);
+
+        var fxDb = await new ErpMultiCurrencyGlWriteService(new UnconfiguredConnections())
+            .SetRateAsync("USD", "AED", 3.67m, "2026-09-04", "manual");
+        Assert.False(fxDb.Succeeded);
+        Assert.Equal("db", fxDb.Code);
+
+        Assert.Contains("KWD", ErpMultiCurrencyGlWriteService.AllowedCurrencies);
+
         var catEnable = await new CpCatalogueWriteService(new ConfiguredNeverOpened())
             .SetMinLimitEnableAsync(0, 1);
         Assert.False(catEnable.Succeeded);

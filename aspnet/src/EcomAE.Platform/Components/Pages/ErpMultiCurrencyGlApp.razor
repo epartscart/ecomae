@@ -3,6 +3,7 @@
 @layout Layout.PhpChromeLayout
 @using System.Globalization
 @using EcomAE.Platform.Auth
+@using EcomAE.Platform.Erp
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
 @inject ISurfaceDashboardSummaryReporter Dashboards
@@ -14,8 +15,56 @@
 <PhpChromeStyles Surface="erp" />
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Multi-currency GL" BreadcrumbArea="Finance" BreadcrumbTab="Multi-currency GL">
 
-    <PhpErpModulePageHeader Title="Multi-currency GL" Subtitle="Read-only FX rates and currency journal entries. Revaluation stays on PHP." />
+    <PhpErpModulePageHeader Title="Multi-currency GL" Subtitle="FX rate write here. Revaluation, journal, and seed stay on the Classic twin." />
     <PhpErpD365ActionPane RefreshHref="@Nav.Uri" />
+
+    @if (!string.IsNullOrWhiteSpace(_flash))
+    {
+        <div class="alert @(_flashOk ? "alert-success" : "alert-warning")" style="margin:0 0 12px">@_flash</div>
+    }
+
+    @if (_isAdmin)
+    {
+        <form method="post" action="/erp/multi-currency-gl/set-rate" class="form-inline" style="margin:0 0 12px;padding:10px;border:1px solid #c5d4de;background:#fff">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/erp/multi-currency-gl-app" />
+            <input type="hidden" name="action" value="set_rate" />
+            <label style="margin-right:8px">Base
+                <select name="baseCurrency">
+                    @foreach (var iso in ErpMultiCurrencyGlWriteService.AllowedCurrencies)
+                    {
+                        @if (iso == "AED")
+                        {
+                            <option value="@iso" selected>@iso</option>
+                        }
+                        else
+                        {
+                            <option value="@iso">@iso</option>
+                        }
+                    }
+                </select>
+            </label>
+            <label style="margin-right:8px">Target
+                <select name="targetCurrency">
+                    @foreach (var iso in ErpMultiCurrencyGlWriteService.AllowedCurrencies)
+                    {
+                        @if (iso == "USD")
+                        {
+                            <option value="@iso" selected>@iso</option>
+                        }
+                        else
+                        {
+                            <option value="@iso">@iso</option>
+                        }
+                    }
+                </select>
+            </label>
+            <label style="margin-right:8px">Rate <input type="number" name="rate" min="0.00000001" step="0.00000001" required style="width:8rem" /></label>
+            <label style="margin-right:8px">Effective <input type="date" name="effectiveDate" value="@_today" required /></label>
+            <input type="hidden" name="source" value="manual" />
+            <button type="submit" class="btn btn-sm btn-primary">Set FX rate</button>
+        </form>
+    }
 
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Multi-currency GL KPIs">
         <div class="kpi"><div class="lbl">FX pairs</div><div class="val">@_count.ToString(CultureInfo.InvariantCulture)</div></div>
@@ -27,11 +76,11 @@
     <h2 style="font-size:16px;">FX rates</h2>
     <div class="epc-erp-table-wrap">
         <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
-            <thead><tr><th>Base</th><th>Target</th><th class="text-right">Rate</th><th class="text-right">Inverse</th><th>Source</th><th>Effective</th></tr></thead>
+            <thead><tr><th>Base</th><th>Target</th><th class="text-right">Rate</th><th class="text-right">Inverse</th><th>Source</th><th>Effective</th><th></th></tr></thead>
             <tbody>
                 @if (_rates.Count == 0)
                 {
-                    <tr><td colspan="6">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? "No FX rates yet." : _message) : "Sign in with ERP capability for live rows.")</td></tr>
+                    <tr><td colspan="7">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? "No FX rates yet." : _message) : "Sign in with ERP capability for live rows.")</td></tr>
                 }
                 else
                 {
@@ -44,6 +93,22 @@
                             <td class="text-right">@row.InverseRate.ToString("N8", CultureInfo.InvariantCulture)</td>
                             <td>@(string.IsNullOrWhiteSpace(row.Source) ? "—" : row.Source)</td>
                             <td>@(string.IsNullOrWhiteSpace(row.EffectiveDate) ? "—" : row.EffectiveDate)</td>
+                            <td>
+                                @if (_isAdmin)
+                                {
+                                    <form method="post" action="/erp/multi-currency-gl/set-rate" style="display:inline-flex;flex-wrap:wrap;gap:.25rem;align-items:end;margin:0">
+                                        <input type="hidden" name="confirmWrites" value="true" />
+                                        <input type="hidden" name="returnUrl" value="/erp/multi-currency-gl-app" />
+                                        <input type="hidden" name="action" value="set_rate" />
+                                        <input type="hidden" name="baseCurrency" value="@row.BaseCurrency" />
+                                        <input type="hidden" name="targetCurrency" value="@row.TargetCurrency" />
+                                        <input type="hidden" name="effectiveDate" value="@row.EffectiveDate" />
+                                        <input type="hidden" name="source" value="manual" />
+                                        <input type="number" name="rate" min="0.00000001" step="0.00000001" value="@row.Rate.ToString(CultureInfo.InvariantCulture)" required style="width:7rem" title="Rate" />
+                                        <button type="submit" class="btn btn-xs btn-default">Set</button>
+                                    </form>
+                                }
+                            </td>
                         </tr>
                     }
                 }
@@ -92,6 +157,9 @@
     private decimal _reval;
     private string _source = "n/a";
     private string _message = "";
+    private string _flash = "";
+    private bool _flashOk;
+    private string _today = DateTime.UtcNow.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
 
     protected override async Task OnInitializedAsync()
     {
@@ -99,6 +167,10 @@
         if (ctx is null) return;
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("erp");
+        var ok = ctx.Request.Query["ok"].ToString();
+        var err = ctx.Request.Query["err"].ToString();
+        if (!string.IsNullOrWhiteSpace(ok)) { _flash = ok; _flashOk = true; }
+        else if (!string.IsNullOrWhiteSpace(err)) { _flash = err; _flashOk = false; }
         if (!_isAdmin)
         {
             _message = "Sign in for live data.";
