@@ -4001,7 +4001,7 @@ public sealed record CpFulfillmentItemDigest(
     string PickStatus,
     string Notes);
 
-/// <summary>PHP <c>epc_fulfillment_get</c> + packing-slip fields. Writes remain PHP.</summary>
+/// <summary>PHP <c>epc_fulfillment_get</c> + packing-slip fields. Queue mutations write on ASP.NET; slip PDF stays PHP.</summary>
 public sealed record CpFulfillmentDetailDigest(
     long Id,
     long OrderId,

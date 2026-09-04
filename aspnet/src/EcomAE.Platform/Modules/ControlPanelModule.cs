@@ -1622,6 +1622,85 @@ public sealed class ControlPanelModule : ISurfaceModule
 
             return Results.Ok(dryRun.Evaluate(new CpWorkshopWriteRequest(action, false)).ToPayload(SessionPayload(session)));
         }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.CpFulfillmentQueueWrite, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpFulfillmentQueueWriteDryRun dryRun,
+            ICpFulfillmentQueueWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/fulfillment-queue-app", "Admin CP capability required for fulfillment-queue write.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpFulfillmentQueueWriteBody>(context, cancellationToken)
+                       ?? new();
+            var action = body.Action;
+            var fulfillmentId = body.FulfillmentId;
+            var itemId = body.ItemId;
+            var assignedTo = body.AssignedTo;
+            var assignedName = body.AssignedName;
+            var status = body.Status;
+            var pickStatus = body.PickStatus;
+            var qtyPicked = body.QtyPicked;
+            var qtyPacked = body.QtyPacked;
+            var carrier = body.Carrier;
+            var trackingNumber = body.TrackingNumber;
+            var siteKey = body.SiteKey;
+            var fulfillmentIds = body.FulfillmentIds ?? [];
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                action = LiveWriteFormBinder.Text(form, "action");
+                fulfillmentId = LiveWriteFormBinder.Long(form, "fulfillmentId", "fulfillment_id");
+                itemId = LiveWriteFormBinder.Long(form, "itemId", "item_id");
+                assignedTo = LiveWriteFormBinder.Long(form, "assignedTo", "assigned_to");
+                assignedName = LiveWriteFormBinder.Text(form, "assignedName", "assigned_name");
+                status = LiveWriteFormBinder.Text(form, "status", "newStatus", "new_status");
+                pickStatus = LiveWriteFormBinder.Text(form, "pickStatus", "pick_status");
+                qtyPicked = LiveWriteFormBinder.Int(form, "qtyPicked", "qty_picked");
+                qtyPacked = LiveWriteFormBinder.Int(form, "qtyPacked", "qty_packed");
+                carrier = LiveWriteFormBinder.Text(form, "carrier");
+                trackingNumber = LiveWriteFormBinder.Text(form, "trackingNumber", "tracking_number");
+                siteKey = LiveWriteFormBinder.Text(form, "siteKey", "site_key");
+                fulfillmentIds = LiveWriteFormBinder.Longs(form, "fulfillmentIds", "fulfillment_ids", "fulfillmentId", "fulfillment_id");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (string.IsNullOrWhiteSpace(siteKey)
+                && context.Items[TenantResolutionMiddleware.HttpContextItemKey] is TenantContext tenant
+                && !string.IsNullOrWhiteSpace(tenant.SiteKey))
+            {
+                siteKey = tenant.SiteKey;
+            }
+
+            if (confirm)
+            {
+                var key = (action ?? string.Empty).Trim();
+                var waveIds = fulfillmentIds.Count > 0 ? fulfillmentIds : (fulfillmentId > 0 ? [fulfillmentId] : Array.Empty<long>());
+                ErpSimpleWriteResult written = key switch
+                {
+                    "transition" or "set_status" or "set-status" => await writes.TransitionAsync(
+                        fulfillmentId, status, assignedTo, assignedName, carrier, trackingNumber, cancellationToken),
+                    "assign" => await writes.AssignAsync(fulfillmentId, assignedTo, assignedName, cancellationToken),
+                    "pick_item" or "pick-item" => await writes.PickItemAsync(itemId, qtyPicked, pickStatus, cancellationToken),
+                    "pack_item" or "pack-item" => await writes.PackItemAsync(itemId, qtyPacked, cancellationToken),
+                    "create_wave" or "create-wave" => await writes.CreateWaveAsync(siteKey, waveIds, cancellationToken),
+                    _ => ErpSimpleWriteResult.Fail("invalid", "Unknown fulfillment action. transition / assign / pick_item / pack_item / create_wave are live; queue-from-order and packing-slip stay PHP."),
+                };
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    "/cp/fulfillment-queue-app",
+                    written.Succeeded,
+                    written.Message,
+                    new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+            }
+
+            return Results.Ok(dryRun.Evaluate(new CpFulfillmentQueueWriteRequest(action, false)).ToPayload(SessionPayload(session)));
+        }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.CpCatalogueSetMinLimit, async (
             HttpContext context,
             ILegacySessionValidator validator,
@@ -5883,7 +5962,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only epc_fulfillment_orders queue. Stage advance remains OMS fulfillment dry-run + PHP."
+                note = "epc_fulfillment_orders digest. transition / assign / pick / pack / wave write on POST /cp/fulfillment-queue/write when confirmWrites=true. Queue-from-order and packing-slip PDF stay PHP."
             });
         });
 
@@ -5915,7 +5994,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = detail.Source,
                 message = detail.Message,
                 session = SessionPayload(session),
-                note = "Read-only PHP epc_fulfillment_get digest. Stage set/advance remain OMS dry-run; writes remain PHP."
+                note = "PHP epc_fulfillment_get digest. transition / assign / pick / pack / wave write on POST /cp/fulfillment-queue/write when confirmWrites=true. Packing-slip PDF stays PHP."
             });
         });
 
@@ -6279,6 +6358,21 @@ public sealed class ControlPanelModule : ISurfaceModule
         string? Status = null,
         int Active = 1,
         int SortOrder = 0);
+    private sealed record CpFulfillmentQueueWriteBody(
+        string? Action = null,
+        bool ConfirmWrites = false,
+        long FulfillmentId = 0,
+        long ItemId = 0,
+        long AssignedTo = 0,
+        string? AssignedName = null,
+        string? Status = null,
+        string? PickStatus = null,
+        int QtyPicked = 0,
+        int QtyPacked = 0,
+        string? Carrier = null,
+        string? TrackingNumber = null,
+        string? SiteKey = null,
+        IReadOnlyList<long>? FulfillmentIds = null);
     private sealed record CpCurrenciesSetRateBody(string? IsoCode = null, decimal Rate = 0, bool ConfirmWrites = false);
     private sealed record CpPricesEditWriteBody(
         string? Action = null,
