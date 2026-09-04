@@ -57,6 +57,11 @@ public sealed class PhpSurfaceLinkMapTests
     [InlineData("/CP/control/portal/epc_platform_health_checkup", "/cp/failover-status-app")]
     [InlineData("/CP/shop/finance/epc_fulfillment_queue", "/cp/fulfillment-queue-app")]
     [InlineData("/CP/shop/finance/epc_fulfillment_queue?fulfillment_id=12", "/cp/fulfillment-queue-app?fulfillment_id=12")]
+    [InlineData("/CP/shop/finance/epc_credit_limit", "/cp/credit-limits-app")]
+    [InlineData("/CP/shop/finance/epc_order_erp_pipeline", "/erp/order-pipeline-app")]
+    [InlineData("/CP/shop/finance/epc_inventory_forecast", "/erp/inventory-forecast-app")]
+    [InlineData("/CP/shop/finance/epc_multi_entity", "/erp/multi-entity-app")]
+    [InlineData("/CP/shop/finance/epc_multi_currency_gl", "/erp/multi-currency-gl-app")]
     public void AspNetPrimaryHref_MapsPhpProductToAspNet(string phpHref, string expected)
     {
         Assert.Equal(expected, PhpSurfaceLinkMap.AspNetPrimaryHref(phpHref));

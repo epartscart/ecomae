@@ -22,6 +22,8 @@ public static class EcomAeRoutes
     public const string SurfaceParity = "/migration/surface-parity";
     public const string PresentationParity = "/migration/presentation-parity";
     public const string PhpModuleCatalog = "/migration/php-module-catalog";
+    /// <summary>Living PHP vs ASP.NET product-surface matrix. PHP deletion stays locked.</summary>
+    public const string PhpVsAspNetMatrix = "/migration/php-vs-aspnet-matrix";
     public const string LiveSurfaceLinks = "/migration/live-surface-links";
     /// <summary>Named live tenants that must keep PHP presentation identical (no ASP.NET hybrid).</summary>
     public const string LiveTenantPresentationLock = "/migration/live-tenant-presentation-lock";
@@ -803,6 +805,14 @@ public static class EcomAeRoutes
     public const string ErpDocAttachmentsApp = "/erp/doc-attachments-app";
     public const string ErpInventoryReport = "/erp/inventory-report";
     public const string ErpInventoryReportApp = "/erp/inventory-report-app";
+    public const string ErpOrderPipeline = "/erp/order-pipeline";
+    public const string ErpOrderPipelineApp = "/erp/order-pipeline-app";
+    public const string ErpInventoryForecast = "/erp/inventory-forecast";
+    public const string ErpInventoryForecastApp = "/erp/inventory-forecast-app";
+    public const string ErpMultiEntity = "/erp/multi-entity";
+    public const string ErpMultiEntityApp = "/erp/multi-entity-app";
+    public const string ErpMultiCurrencyGl = "/erp/multi-currency-gl";
+    public const string ErpMultiCurrencyGlApp = "/erp/multi-currency-gl-app";
 
     /// <summary>ERP tab→app coverage board.</summary>
     public const string ErpTabCoverage = "/erp/tab-coverage";

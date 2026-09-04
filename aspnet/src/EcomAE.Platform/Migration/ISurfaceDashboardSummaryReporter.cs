@@ -538,6 +538,18 @@ public interface ISurfaceDashboardSummaryReporter
     Task<ErpProjectAccountingDigestResult> BuildErpProjectAccountingDigestAsync(int limit, CancellationToken cancellationToken = default);
     Task<ErpDocAttachmentsDigestResult> ListErpDocAttachmentsAsync(int limit, CancellationToken cancellationToken = default);
     Task<ErpInventoryReportDigestResult> BuildErpInventoryReportDigestAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Read-only order→ERP pipeline log (PHP <c>epc_order_erp_log</c>; details JSON omitted).</summary>
+    Task<ErpOrderPipelineListResult> ListErpOrderPipelineLogAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Read-only inventory forecast (PHP <c>epc_inventory_forecast</c>; recompute stays PHP).</summary>
+    Task<ErpInventoryForecastListResult> ListErpInventoryForecastAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Read-only multi-entity groups + IC txns (PHP <c>epc_entity_groups</c>).</summary>
+    Task<ErpMultiEntityListResult> ListErpMultiEntityAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Read-only FX rates + multi-currency GL entries (PHP <c>epc_fx_rates</c>).</summary>
+    Task<ErpMultiCurrencyGlListResult> ListErpMultiCurrencyGlAsync(int limit, CancellationToken cancellationToken = default);
 }
 
 

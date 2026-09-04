@@ -4618,6 +4618,121 @@ public sealed record ErpPayrollListResult(
     string Source,
     string Message);
 
+/// <summary>PHP <c>epc_order_erp_log</c> (details JSON omitted).</summary>
+public sealed record ErpOrderPipelineLogDigest(
+    long Id,
+    string SiteKey,
+    long OrderId,
+    string Step,
+    string Status,
+    string ErrorMessage,
+    int DurationMs,
+    string CreatedAt);
+
+public sealed record ErpOrderPipelineListResult(
+    IReadOnlyList<ErpOrderPipelineLogDigest> Logs,
+    int Count,
+    int SuccessCount,
+    int FailedCount,
+    int PendingCount,
+    int AvgDurationMs,
+    string Source,
+    string Message);
+
+/// <summary>PHP <c>epc_inventory_forecast</c>.</summary>
+public sealed record ErpInventoryForecastDigest(
+    long Id,
+    string Sku,
+    string ProductName,
+    int CurrentStock,
+    decimal AvgDailyDemand,
+    int LeadTimeDays,
+    int SafetyStock,
+    int ReorderPoint,
+    int Eoq,
+    int DaysOfStock,
+    string StockoutDate,
+    string ForecastStatus,
+    string LastComputed);
+
+public sealed record ErpInventoryForecastListResult(
+    IReadOnlyList<ErpInventoryForecastDigest> Forecasts,
+    int Count,
+    int HealthyCount,
+    int LowCount,
+    int CriticalCount,
+    int StockoutCount,
+    string Source,
+    string Message);
+
+/// <summary>PHP <c>epc_entity_groups</c>.</summary>
+public sealed record ErpEntityGroupDigest(
+    long Id,
+    string GroupCode,
+    string GroupName,
+    string ParentEntity,
+    string BaseCurrency,
+    string FiscalYearEnd,
+    string Status,
+    int MemberCount);
+
+public sealed record ErpIntercompanyTxnDigest(
+    long Id,
+    long GroupId,
+    string FromSiteKey,
+    string ToSiteKey,
+    decimal Amount,
+    string Currency,
+    string Description,
+    string Status,
+    string CreatedAt);
+
+public sealed record ErpMultiEntityListResult(
+    IReadOnlyList<ErpEntityGroupDigest> Groups,
+    IReadOnlyList<ErpIntercompanyTxnDigest> Intercompany,
+    int Count,
+    int MemberTotal,
+    int IcTxnCount,
+    int PendingIcCount,
+    string Source,
+    string Message);
+
+/// <summary>PHP <c>epc_fx_rates</c>.</summary>
+public sealed record ErpFxRateDigest(
+    long Id,
+    string BaseCurrency,
+    string TargetCurrency,
+    decimal Rate,
+    decimal InverseRate,
+    string Source,
+    string EffectiveDate);
+
+/// <summary>PHP <c>epc_gl_currency_entries</c>.</summary>
+public sealed record ErpGlCurrencyEntryDigest(
+    long Id,
+    string JournalRef,
+    string AccountCode,
+    string AccountName,
+    string EntryDate,
+    string TxnCurrency,
+    decimal TxnAmount,
+    decimal FxRate,
+    string BaseCurrency,
+    decimal BaseAmount,
+    string EntryType,
+    bool Revalued,
+    decimal RevalGainLoss);
+
+public sealed record ErpMultiCurrencyGlListResult(
+    IReadOnlyList<ErpFxRateDigest> Rates,
+    IReadOnlyList<ErpGlCurrencyEntryDigest> Entries,
+    int Count,
+    int EntryCount,
+    int UnrevaluedCount,
+    decimal RevalGainLossTotal,
+    string Source,
+    string Message);
+
 /// <summary>PHP <c>epc_erp_print_templates</c> (HTML/CSS bodies omitted).</summary>
 public sealed record ErpPrintTemplateDigest(
     long Id,

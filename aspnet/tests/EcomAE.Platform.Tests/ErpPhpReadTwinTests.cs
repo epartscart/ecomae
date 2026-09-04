@@ -49,6 +49,10 @@ public sealed class ErpPhpReadTwinTests
         Assert.Contains("SelectErpPrjaBudgets", sql, StringComparison.Ordinal);
         Assert.Contains("SelectErpDocAttachments", sql, StringComparison.Ordinal);
         Assert.Contains("SelectErpInventoryReportCategories", sql, StringComparison.Ordinal);
+        Assert.Contains("SelectErpOrderPipelineLog", sql, StringComparison.Ordinal);
+        Assert.Contains("SelectErpInventoryForecast", sql, StringComparison.Ordinal);
+        Assert.Contains("SelectErpEntityGroups", sql, StringComparison.Ordinal);
+        Assert.Contains("SelectErpFxRates", sql, StringComparison.Ordinal);
         Assert.DoesNotContain("corrective_action", LegacySurfaceDashboardSql.SelectErpQmNcrs, StringComparison.Ordinal);
         Assert.DoesNotContain("`notes`", LegacySurfaceDashboardSql.SelectErpRecruitmentJobs, StringComparison.Ordinal);
         Assert.DoesNotContain("description", LegacySurfaceDashboardSql.SelectErpCustomerGroups, StringComparison.Ordinal);
@@ -84,6 +88,10 @@ public sealed class ErpPhpReadTwinTests
         Assert.True(File.Exists(Path.Combine(pages, "ErpProjectAccountingApp.razor")));
         Assert.True(File.Exists(Path.Combine(pages, "ErpDocAttachmentsApp.razor")));
         Assert.True(File.Exists(Path.Combine(pages, "ErpInventoryReportApp.razor")));
+        Assert.True(File.Exists(Path.Combine(pages, "ErpOrderPipelineApp.razor")));
+        Assert.True(File.Exists(Path.Combine(pages, "ErpInventoryForecastApp.razor")));
+        Assert.True(File.Exists(Path.Combine(pages, "ErpMultiEntityApp.razor")));
+        Assert.True(File.Exists(Path.Combine(pages, "ErpMultiCurrencyGlApp.razor")));
         Assert.Contains("BuildErpVatReturnDigestAsync", File.ReadAllText(Path.Combine(pages, "ErpVatApp.razor")), StringComparison.Ordinal);
         Assert.Contains("BuildErpWithholdingDigestAsync", File.ReadAllText(Path.Combine(pages, "ErpWithholdingApp.razor")), StringComparison.Ordinal);
         Assert.Contains("ListErpPettyCashAsync", File.ReadAllText(Path.Combine(pages, "ErpCashAccountsApp.razor")), StringComparison.Ordinal);

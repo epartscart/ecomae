@@ -4,6 +4,8 @@ Status values: `php-only` · `digest-only` · `hybrid-deeplink` · `aspnet-compl
 
 ASP.NET **aspnet-complete** count today for interactive product modules: **0**.
 
+Living PHP vs ASP.NET matrix (browse/digest twins, not a deletion gate): `GET /migration/php-vs-aspnet-matrix` and `docs/migration/inventory/PHP_VS_ASPNET_REMOVAL_MATRIX.md`. Flags stay `readyForPhpRemoval=false` / `phpSourceDeletionAllowed=false`.
+
 Hybrid directory (Batch 0): every tracked module is listed on ASP.NET shells with PHP deeplinks + optional iframe workspace (`?php=`). See `docs/migration/PHP_LEVEL_FULL_PARITY_PLAN.md` and `GET /migration/php-module-catalog`.
 
 | Catalog | Count | Status |

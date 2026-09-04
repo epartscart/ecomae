@@ -821,6 +821,8 @@ app.MapGet(EcomAeRoutes.PresentationParity, (IPresentationParityReporter reporte
 
 app.MapGet(EcomAeRoutes.PhpModuleCatalog, () => Results.Ok(PhpModuleCatalog.BuildSummary()));
 
+app.MapGet(EcomAeRoutes.PhpVsAspNetMatrix, () => Results.Ok(PhpVsAspNetRemovalMatrix.BuildReport()));
+
 app.MapGet(EcomAeRoutes.LiveSurfaceLinks, (ILiveSurfaceLinkReporter reporter) => Results.Ok(reporter.BuildReport()));
 
 app.MapGet(EcomAeRoutes.LiveTenantPresentationLock, () => Results.Ok(LiveTenantPresentationLock.BuildSummary()));

@@ -318,6 +318,30 @@
       "module": "expense_reports",
       "aspnetApp": "/erp/expense-reports-app",
       "status": "aspnet-read"
+    },
+    {
+      "module": "order_erp_pipeline",
+      "aspnetApp": "/erp/order-pipeline-app",
+      "phpHref": "/CP/shop/finance/epc_order_erp_pipeline",
+      "status": "aspnet-read"
+    },
+    {
+      "module": "inventory_forecast",
+      "aspnetApp": "/erp/inventory-forecast-app",
+      "phpHref": "/CP/shop/finance/epc_inventory_forecast",
+      "status": "aspnet-read"
+    },
+    {
+      "module": "multi_entity",
+      "aspnetApp": "/erp/multi-entity-app",
+      "phpHref": "/CP/shop/finance/epc_multi_entity",
+      "status": "aspnet-read"
+    },
+    {
+      "module": "multi_currency_gl",
+      "aspnetApp": "/erp/multi-currency-gl-app",
+      "phpHref": "/CP/shop/finance/epc_multi_currency_gl",
+      "status": "aspnet-read"
     }
   ],
   "superErpModules": [
@@ -347,6 +371,10 @@
     "ErpDeliveryNotesApp.razor",
     "ErpDocumentsApp.razor",
     "ErpExpenseReportsApp.razor",
+    "ErpInventoryForecastApp.razor",
+    "ErpMultiCurrencyGlApp.razor",
+    "ErpMultiEntityApp.razor",
+    "ErpOrderPipelineApp.razor",
     "ErpFixedAssetsApp.razor",
     "ErpFleetApp.razor",
     "ErpGlJournalsApp.razor",

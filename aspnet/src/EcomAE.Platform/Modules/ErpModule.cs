@@ -3129,6 +3129,42 @@ public sealed class ErpModule : ISurfaceModule
             return Results.Ok(new { ok = true, surface = "erp", categories = result.Categories, snapshots = result.Snapshots, count = result.Count, snapshotCount = result.SnapshotCount, totalValue = result.TotalValue, source = result.Source, message = result.Message, session = SessionPayload(session), note = "Read-only epc_inventory_categories + snapshots. PHP inventory_report remains authoritative." });
         });
 
+        endpoints.MapGet(EcomAeRoutes.ErpOrderPipeline, async (HttpContext context, int? limit, ILegacySessionValidator validator, ISurfaceDashboardSummaryReporter dashboards, CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+                return Unauthorized("Admin ERP capability required for order-pipeline digest.");
+            var result = await dashboards.ListErpOrderPipelineLogAsync(limit ?? 200, cancellationToken);
+            return Results.Ok(new { ok = true, surface = "erp", logs = result.Logs, count = result.Count, successCount = result.SuccessCount, failedCount = result.FailedCount, pendingCount = result.PendingCount, avgDurationMs = result.AvgDurationMs, source = result.Source, message = result.Message, session = SessionPayload(session), note = "Read-only epc_order_erp_log. PHP order→ERP pipeline remains authoritative." });
+        });
+
+        endpoints.MapGet(EcomAeRoutes.ErpInventoryForecast, async (HttpContext context, int? limit, ILegacySessionValidator validator, ISurfaceDashboardSummaryReporter dashboards, CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+                return Unauthorized("Admin ERP capability required for inventory-forecast digest.");
+            var result = await dashboards.ListErpInventoryForecastAsync(limit ?? 200, cancellationToken);
+            return Results.Ok(new { ok = true, surface = "erp", forecasts = result.Forecasts, count = result.Count, healthyCount = result.HealthyCount, lowCount = result.LowCount, criticalCount = result.CriticalCount, stockoutCount = result.StockoutCount, source = result.Source, message = result.Message, session = SessionPayload(session), note = "Read-only epc_inventory_forecast. PHP forecast recompute remains authoritative." });
+        });
+
+        endpoints.MapGet(EcomAeRoutes.ErpMultiEntity, async (HttpContext context, int? limit, ILegacySessionValidator validator, ISurfaceDashboardSummaryReporter dashboards, CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+                return Unauthorized("Admin ERP capability required for multi-entity digest.");
+            var result = await dashboards.ListErpMultiEntityAsync(limit ?? 200, cancellationToken);
+            return Results.Ok(new { ok = true, surface = "erp", groups = result.Groups, intercompany = result.Intercompany, count = result.Count, memberTotal = result.MemberTotal, icTxnCount = result.IcTxnCount, pendingIcCount = result.PendingIcCount, source = result.Source, message = result.Message, session = SessionPayload(session), note = "Read-only epc_entity_groups + epc_intercompany_txns. PHP consolidation remains authoritative." });
+        });
+
+        endpoints.MapGet(EcomAeRoutes.ErpMultiCurrencyGl, async (HttpContext context, int? limit, ILegacySessionValidator validator, ISurfaceDashboardSummaryReporter dashboards, CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+                return Unauthorized("Admin ERP capability required for multi-currency-gl digest.");
+            var result = await dashboards.ListErpMultiCurrencyGlAsync(limit ?? 200, cancellationToken);
+            return Results.Ok(new { ok = true, surface = "erp", rates = result.Rates, entries = result.Entries, count = result.Count, entryCount = result.EntryCount, unrevaluedCount = result.UnrevaluedCount, revalGainLossTotal = result.RevalGainLossTotal, source = result.Source, message = result.Message, session = SessionPayload(session), note = "Read-only epc_fx_rates + epc_gl_currency_entries. PHP revaluation remains authoritative." });
+        });
+
         endpoints.MapGet(EcomAeRoutes.ErpReportCenter, async (
             HttpContext context,
             string? key,

@@ -348,6 +348,10 @@ public sealed class SurfaceDigestContractValidatorTests
             ["/erp/project-accounting"] = Envelope("erp", "budgets", await reporter.BuildErpProjectAccountingDigestAsync(10), session),
             ["/erp/doc-attachments"] = Envelope("erp", "attachments", await reporter.ListErpDocAttachmentsAsync(10), session),
             ["/erp/inventory-report"] = Envelope("erp", "categories", await reporter.BuildErpInventoryReportDigestAsync(10), session),
+            ["/erp/order-pipeline"] = Envelope("erp", "logs", await reporter.ListErpOrderPipelineLogAsync(10), session),
+            ["/erp/inventory-forecast"] = Envelope("erp", "forecasts", await reporter.ListErpInventoryForecastAsync(10), session),
+            ["/erp/multi-entity"] = Envelope("erp", "groups", await reporter.ListErpMultiEntityAsync(10), session),
+            ["/erp/multi-currency-gl"] = Envelope("erp", "rates", await reporter.ListErpMultiCurrencyGlAsync(10), session),
             ["/bos/tenants"] = Envelope("bos", "tenants", await reporter.ListPortalTenantsAsync(10), session),
             ["/bos/audit-log"] = Envelope("bos", "entries", await reporter.ListBosAuditLogAsync(null, 10), session),
             ["/storefront/orders"] = new
