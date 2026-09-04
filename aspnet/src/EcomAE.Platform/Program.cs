@@ -663,6 +663,7 @@ builder.Services.AddScoped<EcomAE.Platform.Cp.ICpLogisticsWriteService, EcomAE.P
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpWorkshopWriteService, EcomAE.Platform.Cp.CpWorkshopWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpCatalogueWriteService, EcomAE.Platform.Cp.CpCatalogueWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpManufacturerSynonymWriteService, EcomAE.Platform.Cp.CpManufacturerSynonymWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Cp.ICpCrossWriteService, EcomAE.Platform.Cp.CpCrossWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpReturnWriteService, EcomAE.Platform.Cp.CpReturnWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpCreditLimitWriteService, EcomAE.Platform.Cp.CpCreditLimitWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpPoApprovalWriteService, EcomAE.Platform.Cp.CpPoApprovalWriteService>();

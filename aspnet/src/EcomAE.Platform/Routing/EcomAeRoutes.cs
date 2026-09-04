@@ -148,6 +148,8 @@ public static class EcomAeRoutes
     public const string ControlPanelCrosses = "/cp/crosses";
     /// <summary>CP crosses Blazor list (JSON digest remains <see cref="ControlPanelCrosses"/>).</summary>
     public const string ControlPanelCrossesApp = "/cp/crosses-app";
+    /// <summary>Cross pair save/delete. <c>confirmWrites=true</c> is the live twin of PHP crosses/ajax_operations.php save/del.</summary>
+    public const string CpCrossesWrite = "/cp/crosses/write";
     /// <summary>CP HR overview KPIs + employees (salary/PII detail omitted).</summary>
     public const string ControlPanelHrOverview = "/cp/hr-overview";
     /// <summary>CP HR Blazor overview (JSON digest remains <see cref="ControlPanelHrOverview"/>).</summary>

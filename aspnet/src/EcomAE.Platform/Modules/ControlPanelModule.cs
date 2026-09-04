@@ -2392,9 +2392,72 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only shop_docpart_articles_analogs_list pairs. Import/edit remains PHP /CP/shop/crosses."
+                note = "shop_docpart_articles_analogs_list digest. Save/delete POST /cp/crosses/write when confirmWrites=true. Add, brand resolve, and search-delete stay PHP."
             });
         });
+        endpoints.MapPost(EcomAeRoutes.CpCrossesWrite, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpCrossWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/crosses-app", "Admin CP capability required for crosses write.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpCrossesWriteBody>(context, cancellationToken)
+                       ?? new();
+            var action = body.Action;
+            var id = body.Id;
+            var article = body.Article;
+            var manufacturerArticle = body.ManufacturerArticle;
+            var analog = body.Analog;
+            var manufacturerAnalog = body.ManufacturerAnalog;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                action = LiveWriteFormBinder.Text(form, "action");
+                id = LiveWriteFormBinder.Long(form, "id");
+                article = LiveWriteFormBinder.Text(form, "article");
+                manufacturerArticle = LiveWriteFormBinder.Text(form, "manufacturer_article", "manufacturerArticle");
+                analog = LiveWriteFormBinder.Text(form, "analog");
+                manufacturerAnalog = LiveWriteFormBinder.Text(form, "manufacturer_analog", "manufacturerAnalog");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(new
+                {
+                    status = "dry-run",
+                    writes = 0,
+                    writesBlocked = true,
+                    phpAuthoritative = true,
+                    validation_code = "dry_run",
+                    message = "Set confirmWrites=true to write crosses on ASP.NET.",
+                    session = SessionPayload(session)
+                });
+            }
+
+            var key = (action ?? string.Empty).Trim();
+            ErpSimpleWriteResult written = key switch
+            {
+                "save_crosses" or "save-crosses" or "save" =>
+                    await writes.SaveAsync(id, article, manufacturerArticle, analog, manufacturerAnalog, cancellationToken),
+                "del_crosses" or "delete_crosses" or "del-crosses" or "delete" =>
+                    await writes.DeleteAsync(id, cancellationToken),
+                _ => ErpSimpleWriteResult.Fail("invalid", "Unknown crosses action."),
+            };
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/cp/crosses-app",
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
 
         endpoints.MapGet(EcomAeRoutes.ControlPanelHrOverview, async (
             HttpContext context,
@@ -5618,6 +5681,14 @@ public sealed class ControlPanelModule : ISurfaceModule
         int Enabled = -1,
         decimal Value = -1);
     private sealed record CpSynonymsWriteBody(string? Action = null, bool ConfirmWrites = false, long Id = 0, string? Name = null);
+    private sealed record CpCrossesWriteBody(
+        string? Action = null,
+        bool ConfirmWrites = false,
+        long Id = 0,
+        string? Article = null,
+        string? ManufacturerArticle = null,
+        string? Analog = null,
+        string? ManufacturerAnalog = null);
     private sealed record CpTemplatesActionsBody(string? Action = null, bool ConfirmWrites = false);
     private sealed record CpPriceReviewWriteBody(string? Action = null, bool ConfirmWrites = false);
     private sealed record CpPriceReviewCreateCsvBody(string? Action = null, bool ConfirmWrites = false);

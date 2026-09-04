@@ -44,6 +44,7 @@ public sealed class PhpVsAspNetRemovalMatrixTests
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "cp-carriers" && r.WritesOwner == "aspnet");
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "cp-workshop" && r.WritesOwner == "aspnet");
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "cp-synonyms" && r.WritesOwner == "aspnet");
+        Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "cp-crosses" && r.WritesOwner == "aspnet");
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "cp-catalogue" && r.WritesOwner == "aspnet");
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "cp-warranty-rma" && r.WritesOwner == "aspnet");
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "cp-vin-requests" && r.WritesOwner == "aspnet");
@@ -118,6 +119,7 @@ public sealed class PhpVsAspNetRemovalMatrixTests
             ("CpCarriersApp.razor", "/cp/logistics/write"),
             ("CpWorkshopApp.razor", "/cp/workshop/write"),
             ("CpSynonymsApp.razor", "/cp/synonyms/write"),
+            ("CpCrossesApp.razor", "/cp/crosses/write"),
             ("CpProductCatalogueApp.razor", "/cp/catalogue/set-min-limit"),
             ("CpReturnsRmaApp.razor", "/cp/returns/action"),
             ("CpSystemRequestsApp.razor", "/cp/requests/set-vin-viewed"),

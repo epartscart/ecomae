@@ -463,6 +463,26 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(synDb.Succeeded);
         Assert.Equal("db", synDb.Code);
 
+        var crossSave = await new CpCrossWriteService(new ConfiguredNeverOpened())
+            .SaveAsync(0, "ABC", "Bosch", "XYZ", "Febi");
+        Assert.False(crossSave.Succeeded);
+        Assert.Equal("invalid", crossSave.Code);
+
+        var crossSaveEmpty = await new CpCrossWriteService(new ConfiguredNeverOpened())
+            .SaveAsync(9, "ABC", "", "XYZ", "Febi");
+        Assert.False(crossSaveEmpty.Succeeded);
+        Assert.Equal("invalid", crossSaveEmpty.Code);
+
+        var crossDel = await new CpCrossWriteService(new ConfiguredNeverOpened())
+            .DeleteAsync(0);
+        Assert.False(crossDel.Succeeded);
+        Assert.Equal("invalid", crossDel.Code);
+
+        var crossDb = await new CpCrossWriteService(new UnconfiguredConnections())
+            .SaveAsync(9, "ABC", "Bosch", "XYZ", "Febi");
+        Assert.False(crossDb.Succeeded);
+        Assert.Equal("db", crossDb.Code);
+
         var retStatus = await new CpReturnWriteService(new ConfiguredNeverOpened())
             .SetStatusAsync(0, 0);
         Assert.False(retStatus.Succeeded);
