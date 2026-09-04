@@ -4312,6 +4312,25 @@ public const string SelectCpOpsGuidesStats = """
         LIMIT @limit
         """;
 
+    /// <summary>PHP <c>epc_erp_hr_list</c> — notes omitted; bank account last-4 only.</summary>
+    public const string SelectErpHrRecords = """
+        SELECT h.`id`, IFNULL(h.`staff_profile_id`,0) AS staff_profile_id,
+               IFNULL(p.`display_name`,'') AS display_name,
+               IFNULL(p.`department_code`,'') AS department_code,
+               IFNULL(p.`job_title`,'') AS job_title,
+               IFNULL(h.`basic_salary`,0) AS basic_salary,
+               IFNULL(h.`allowances`,0) AS allowances,
+               IFNULL(h.`days_worked`,30) AS days_worked,
+               IFNULL(h.`leave_balance_days`,0) AS leave_balance_days,
+               IFNULL(h.`hire_date`,0) AS hire_date,
+               IFNULL(h.`bank_name`,'') AS bank_name,
+               RIGHT(IFNULL(h.`bank_account`,''), 4) AS bank_account_preview
+        FROM `epc_erp_hr_records` h
+        INNER JOIN `epc_erp_staff_profiles` p ON p.`id` = h.`staff_profile_id`
+        ORDER BY p.`department_code`, p.`display_name`, h.`id`
+        LIMIT @limit
+        """;
+
     /// <summary>PHP contracts register — body_text / ocr_text omitted.</summary>
     public const string SelectErpContracts = """
         SELECT `id`, IFNULL(`code`,'') AS code,

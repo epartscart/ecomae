@@ -1,0 +1,21 @@
+@namespace EcomAE.Platform.Components.Shared
+@using EcomAE.Platform.Presentation
+
+<div class="btn-group btn-group-sm pm-module-tabs" style="margin-bottom:10px;" role="tablist">
+    @foreach (var tab in Tabs)
+    {
+        var href = QueryName + "=" + Uri.EscapeDataString(tab.Key);
+        var full = string.IsNullOrWhiteSpace(BaseHref)
+            ? "?" + href
+            : BaseHref + (BaseHref.Contains('?', StringComparison.Ordinal) ? "&" : "?") + href;
+        var active = string.Equals(Active, tab.Key, StringComparison.OrdinalIgnoreCase);
+        <a class="btn btn-@(active ? "primary" : "default")" href="@full">@tab.Label</a>
+    }
+</div>
+
+@code {
+    [Parameter] public string QueryName { get; set; } = "qv";
+    [Parameter] public string Active { get; set; } = "";
+    [Parameter] public string BaseHref { get; set; } = "";
+    [Parameter] public IReadOnlyList<(string Key, string Label)> Tabs { get; set; } = [];
+}

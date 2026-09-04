@@ -14370,6 +14370,47 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    public async Task<ErpHrListResult> ListErpHrRecordsAsync(int limit, CancellationToken cancellationToken = default)
+    {
+        var safeLimit = Math.Clamp(limit, 1, 500);
+        if (!_connections.IsConfigured)
+        {
+            return new([], 0, "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            var rows = new List<ErpHrRecordDigest>();
+            await using var command = connection.CreateCommand();
+            command.CommandText = LegacySurfaceDashboardSql.SelectErpHrRecords;
+            AddParameter(command, "@limit", safeLimit);
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                rows.Add(new ErpHrRecordDigest(
+                    Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                    Convert.ToInt64(reader["staff_profile_id"] is DBNull ? 0 : reader["staff_profile_id"], CultureInfo.InvariantCulture),
+                    ReadStr(reader, "display_name"),
+                    ReadStr(reader, "department_code"),
+                    ReadStr(reader, "job_title"),
+                    Convert.ToDecimal(reader["basic_salary"] is DBNull ? 0m : reader["basic_salary"], CultureInfo.InvariantCulture),
+                    Convert.ToDecimal(reader["allowances"] is DBNull ? 0m : reader["allowances"], CultureInfo.InvariantCulture),
+                    Convert.ToDecimal(reader["days_worked"] is DBNull ? 30m : reader["days_worked"], CultureInfo.InvariantCulture),
+                    Convert.ToDecimal(reader["leave_balance_days"] is DBNull ? 0m : reader["leave_balance_days"], CultureInfo.InvariantCulture),
+                    Convert.ToInt64(reader["hire_date"] is DBNull ? 0 : reader["hire_date"], CultureInfo.InvariantCulture),
+                    ReadStr(reader, "bank_name"),
+                    ReadStr(reader, "bank_account_preview")));
+            }
+
+            return new(rows, rows.Count, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new([], 0, "database-error", ex.Message);
+        }
+    }
+
     public async Task<ErpContractsListResult> ListErpContractsAsync(int limit, CancellationToken cancellationToken = default)
     {
         var safeLimit = Math.Clamp(limit, 1, 500);

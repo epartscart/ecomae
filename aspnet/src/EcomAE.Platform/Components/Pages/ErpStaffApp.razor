@@ -13,33 +13,53 @@
 <PhpChromeStyles Surface="erp" />
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Staff" BreadcrumbArea="People" BreadcrumbTab="Staff">
 
-    <PhpErpModulePageHeader Title="Staff directory" Subtitle="Department profiles from the shop staff register. Profile writes stay on ERP ajax." PhpTabHref="@_phpTab" />
+    <PhpErpModulePageHeader Title="Staff &amp; departments" Subtitle="Each department has its own ERP tabs and workflow queue. Dashboard centres (CEO, CFO, Sales, …) are controlled by staff profile — sales cannot see profit." PhpTabHref="@_phpTab" />
     <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
 
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Staff KPIs">
+        <div class="kpi"><div class="lbl">Active staff</div><div class="val">@_active.ToString(CultureInfo.InvariantCulture)</div></div>
         <div class="kpi"><div class="lbl">Shown</div><div class="val">@_count.ToString(CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">Active</div><div class="val">@_active.ToString(CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">Departments</div><div class="val">@_departments.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Departments</div><div class="val">@ErpStaffDepartmentCatalog.All.Count.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Open workflow tasks</div><div class="val">0</div></div>
     </div>
 
+    <h5>Department map</h5>
     <div class="epc-erp-table-wrap">
-        <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
+        <table class="table table-bordered table-condensed table-epc epc-erp-table">
+            <thead><tr><th>Department</th><th>ERP tabs</th><th>Open tasks</th><th>Standard workflow</th></tr></thead>
+            <tbody>
+                @foreach (var d in ErpStaffDepartmentCatalog.All)
+                {
+                    <tr>
+                        <td><i class="fa @d.Icon" style="color:@d.Color" aria-hidden="true"></i> <strong>@d.Name</strong></td>
+                        <td><small>@d.TabsLabel</small></td>
+                        <td>0</td>
+                        <td><small>@string.Join(" → ", d.Workflows)</small></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <h5>Staff directory &amp; dashboard centres</h5>
+    <p class="text-muted" style="margin-top:0;">Dashboard centre is resolved from: explicit override → job title (CEO/CFO) → department default. Example: Sales Executive never sees profit.</p>
+    <div class="epc-erp-table-wrap">
+        <table class="table table-striped table-condensed table-epc epc-erp-table">
             <thead>
                 <tr>
                     <th>Name</th>
                     <th>Department</th>
-                    <th>Title</th>
-                    <th>Email</th>
+                    <th>Job title</th>
+                    <th>Dashboard centre</th>
+                    <th>Login e-mail</th>
                     <th>Phone</th>
-                    <th>User</th>
                     <th>Status</th>
-                    <th></th>
                 </tr>
             </thead>
             <tbody>
                 @if (_staff.Count == 0)
                 {
-                    <tr><td colspan="8">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? "No staff profiles yet." : _message) : "Sign in with ERP capability for live rows.")</td></tr>
+                    <tr><td colspan="7" class="text-muted">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? "No staff — run staff setup on the shop database." : _message) : "Sign in with ERP capability for live rows.")</td></tr>
                 }
                 else
                 {
@@ -47,13 +67,12 @@
                     {
                         <tr>
                             <td><strong>@(string.IsNullOrWhiteSpace(row.DisplayName) ? $"#{row.Id.ToString(CultureInfo.InvariantCulture)}" : row.DisplayName)</strong></td>
-                            <td>@(string.IsNullOrWhiteSpace(row.DepartmentCode) ? "—" : row.DepartmentCode)</td>
+                            <td>@ErpStaffDepartmentCatalog.NameFor(row.DepartmentCode)</td>
                             <td>@(string.IsNullOrWhiteSpace(row.JobTitle) ? "—" : row.JobTitle)</td>
-                            <td>@(string.IsNullOrWhiteSpace(row.Email) ? "—" : row.Email)</td>
+                            <td>Auto (dept/title)</td>
+                            <td><code>@(string.IsNullOrWhiteSpace(row.Email) ? "—" : row.Email)</code></td>
                             <td>@(string.IsNullOrWhiteSpace(row.Phone) ? "—" : row.Phone)</td>
-                            <td>@(row.UserId > 0 ? row.UserId.ToString(CultureInfo.InvariantCulture) : "—")</td>
                             <td><span class="label label-default">@(row.Active ? "active" : "inactive")</span></td>
-                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
                         </tr>
                     }
                 }
@@ -62,7 +81,7 @@
     </div>
 
     <div class="epc-erp-empty" style="display:block;margin-top:12px;padding:8px 10px;border:1px solid #c5d4de;background:#f8fafc;color:#475569;font-size:12px;">
-        Source: @_source. Payroll runs stay on <a href="/erp/payroll-app">payroll</a>.
+        Source: @_source. Department map is PHP <code>epc_erp_departments_config</code> (static). Payroll stays on <a href="/erp/payroll-app">payroll</a>. HR salaries stay on <a href="/cp/hr-overview-app">HR</a>.
         @if (!string.IsNullOrWhiteSpace(_message)) { <span> @_message</span> }
     </div>
 </PhpErpDesktopChrome>
@@ -73,7 +92,6 @@
     private IReadOnlyList<ErpStaffProfileDigest> _staff = [];
     private int _count;
     private int _active;
-    private int _departments;
     private string _source = "n/a";
     private string _message = "";
 
@@ -93,7 +111,6 @@
         _staff = result.Staff;
         _count = result.Count;
         _active = result.ActiveCount;
-        _departments = result.DepartmentCount;
         _source = result.Source;
         _message = result.Message;
     }

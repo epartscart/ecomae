@@ -99,6 +99,7 @@ public sealed class SurfaceDashboardSummaryReporterTests
         var supplierPortal = await reporter.BuildErpSupplierPortalDigestAsync(10);
         var virtualWarehouse = await reporter.BuildErpVirtualWarehouseDigestAsync(10);
         var staff = await reporter.ListErpStaffAsync(10);
+        var hrRecords = await reporter.ListErpHrRecordsAsync(10);
         var contracts = await reporter.ListErpContractsAsync(10);
         var opening = await reporter.ListErpOpeningBatchesAsync(10);
         var erpMarketing = await reporter.ListErpMarketingCampaignsAsync(10);
@@ -291,6 +292,8 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.Equal("migration", supplierPortal.Source);
         Assert.Equal("migration", virtualWarehouse.Source);
         Assert.Equal("migration", staff.Source);
+        Assert.Equal("migration", hrRecords.Source);
+        Assert.Empty(hrRecords.Records);
         Assert.Equal("migration", contracts.Source);
         Assert.Equal("migration", opening.Source);
         Assert.Equal("migration", erpMarketing.Source);

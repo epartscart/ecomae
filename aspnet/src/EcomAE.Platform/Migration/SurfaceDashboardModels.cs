@@ -4529,6 +4529,27 @@ public sealed record ErpStaffListResult(
     string Source,
     string Message);
 
+/// <summary>PHP <c>epc_erp_hr_list</c> (notes omitted; bank last-4).</summary>
+public sealed record ErpHrRecordDigest(
+    long Id,
+    long StaffProfileId,
+    string DisplayName,
+    string DepartmentCode,
+    string JobTitle,
+    decimal BasicSalary,
+    decimal Allowances,
+    decimal DaysWorked,
+    decimal LeaveBalanceDays,
+    long HireDate,
+    string BankName,
+    string BankAccountPreview);
+
+public sealed record ErpHrListResult(
+    IReadOnlyList<ErpHrRecordDigest> Records,
+    int Count,
+    string Source,
+    string Message);
+
 /// <summary>PHP <c>epc_erp_contracts</c> register (body/OCR text omitted).</summary>
 public sealed record ErpContractDigest(
     long Id,

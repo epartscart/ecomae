@@ -1737,6 +1737,49 @@ public sealed class ErpModule : ISurfaceModule
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpQmNcrCreateRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxQmNcrUpdate, async (HttpContext context, ErpQmNcrUpdateBody? body, ILegacySessionValidator validator, IErpQmNcrUpdateDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpQmNcrUpdateRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+
+        endpoints.MapPost(EcomAeRoutes.ErpQualityPlanSaveForm, async (HttpContext context, ILegacySessionValidator validator, IErpQmPlanSaveDryRun dryRun, CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            var ret = DryRunHtmlForm.SafeReturnUrl(context.Request, "/erp/quality-app?qv=plans");
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+                return Results.Redirect("/erp/login");
+            var code = DryRunHtmlForm.Read(context.Request, "code");
+            var result = dryRun.Evaluate(new ErpQmPlanSaveRequest(0, code, false));
+            return DryRunHtmlForm.Redirect(ret, result.ValidationCode == "ok", result.Detail);
+        }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpQualityOrderCreateForm, async (HttpContext context, ILegacySessionValidator validator, IErpQmOrderCreateDryRun dryRun, CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            var ret = DryRunHtmlForm.SafeReturnUrl(context.Request, "/erp/quality-app?qv=orders");
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+                return Results.Redirect("/erp/login");
+            var code = DryRunHtmlForm.Read(context.Request, "ref_id");
+            if (string.IsNullOrWhiteSpace(code)) code = DryRunHtmlForm.Read(context.Request, "code");
+            var result = dryRun.Evaluate(new ErpQmOrderCreateRequest(0, code, false));
+            return DryRunHtmlForm.Redirect(ret, result.ValidationCode == "ok", result.Detail);
+        }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpQualityNcrCreateForm, async (HttpContext context, ILegacySessionValidator validator, IErpQmNcrCreateDryRun dryRun, CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            var ret = DryRunHtmlForm.SafeReturnUrl(context.Request, "/erp/quality-app?qv=ncr");
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+                return Results.Redirect("/erp/login");
+            var code = DryRunHtmlForm.Read(context.Request, "title");
+            var result = dryRun.Evaluate(new ErpQmNcrCreateRequest(0, code, false));
+            return DryRunHtmlForm.Redirect(ret, result.ValidationCode == "ok", result.Detail);
+        }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpProductInfoCreateItemForm, async (HttpContext context, ILegacySessionValidator validator, IErpInvCreateItemDryRun dryRun, CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            var ret = DryRunHtmlForm.SafeReturnUrl(context.Request, "/erp/product-info-app");
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+                return Results.Redirect("/erp/login");
+            var code = DryRunHtmlForm.Read(context.Request, "code");
+            if (string.IsNullOrWhiteSpace(code)) code = DryRunHtmlForm.Read(context.Request, "sku");
+            var result = dryRun.Evaluate(new ErpInvCreateItemRequest(0, code, false));
+            return DryRunHtmlForm.Redirect(ret, result.ValidationCode == "ok", result.Detail);
+        }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxRbacPrivSave, async (HttpContext context, ErpRbacPrivSaveBody? body, ILegacySessionValidator validator, IErpRbacPrivSaveDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpRbacPrivSaveRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxRbacDutySave, async (HttpContext context, ErpRbacDutySaveBody? body, ILegacySessionValidator validator, IErpRbacDutySaveDryRun dryRun, CancellationToken cancellationToken) =>

@@ -1,0 +1,11 @@
+@namespace EcomAE.Platform.Components.Shared
+
+<div class="well well-sm epc-erp-section" style="margin:12px 0;padding:10px;border:1px solid #c5d4de;background:#fff;">
+    <h5 style="margin:0 0 8px;font-size:14px;"><i class="fa fa-plus-circle" aria-hidden="true"></i> @Title</h5>
+    @ChildContent
+</div>
+
+@code {
+    [Parameter] public string Title { get; set; } = "New record";
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+}

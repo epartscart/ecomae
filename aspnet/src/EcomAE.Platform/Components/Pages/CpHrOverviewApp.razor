@@ -18,7 +18,7 @@
             background:linear-gradient(135deg,#0c4a6e 0%,#2563eb 45%,#0ea5e9 100%);
         }
         .epc-hr-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
-        .epc-hr-hero p { margin:0; color:#ccfbf1; max-width:44rem; font-size:.92rem; line-height:1.45; }
+        .epc-hr-hero p { margin:0; color:#ccfbf1; max-width:52rem; font-size:.92rem; line-height:1.45; }
         .epc-hr-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
         .epc-hr-cta a {
             display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
@@ -44,84 +44,206 @@
 
     <section class="epc-hr-hero">
         <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
-        <h1>HR Overview</h1>
-        <p>Manage store operations, catalogue, and partner integrations from one control panel.</p>
+        <h1>HR — employee records &amp; salaries</h1>
+        <p>@CpPhpModuleCopy.PurposeFor("/cp/hr-overview-app")</p>
         <div class="epc-hr-cta">
-            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
-            <a class="ghost" href="/cp/projects-overview-app">Projects overview</a>
+            <a href="/cp/hr-overview-app?hv=salaries">Salaries</a>
+            <a class="ghost" href="/cp/hr-overview-app?hv=statutory">End-of-service &amp; leave</a>
+            <a class="ghost" href="/erp/staff-app">Staff directory</a>
+            <a class="ghost" href="/erp/payroll-app">Payroll</a>
         </div>
     </section>
+
+    <ErpPhpViewTabs QueryName="hv" Active="@_view" BaseHref="/cp/hr-overview-app" Tabs="@_views" />
 
     <div class="epc-hr-kpis" aria-label="HR stats">
         <div class="epc-hr-kpi"><strong>@_summary.ActiveEmployees.ToString(CultureInfo.InvariantCulture)</strong><span>Active employees</span></div>
         <div class="epc-hr-kpi"><strong>@_summary.PendingLeave.ToString(CultureInfo.InvariantCulture)</strong><span>Pending leave</span></div>
         <div class="epc-hr-kpi"><strong>@_summary.PayrollRuns.ToString(CultureInfo.InvariantCulture)</strong><span>Payroll runs</span></div>
-        <div class="epc-hr-kpi"><strong>@_summary.AttendanceRows.ToString(CultureInfo.InvariantCulture)</strong><span>Attendance rows</span></div>
+        <div class="epc-hr-kpi"><strong>@_hr.Count.ToString(CultureInfo.InvariantCulture)</strong><span>HR salary records</span></div>
     </div>
 
-    <div class="epc-hr-table-wrap">
-        <table class="epc-hr-table">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Code</th>
-                    <th>Name</th>
-                    <th>Department</th>
-                    <th>Status</th>
-                    <th>Join date</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody>
-                @if (_employees.Count == 0)
-                {
-                    <tr><td colspan="7">Nothing to show yet.</td></tr>
-                }
-                else
-                {
-                    @foreach (var e in _employees)
+    @if (_view == "statutory")
+    {
+        <h4>End-of-service &amp; statutory leave <small class="text-muted">— country-aware (United Arab Emirates · AE)</small></h4>
+        <p class="text-muted">Gratuity / end-of-service and annual-leave entitlement follow <strong>United Arab Emirates</strong> labour law. Amounts in <strong>AED</strong>.</p>
+        <div class="epc-hr-table-wrap">
+            <table class="epc-hr-table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Joined</th>
+                        <th>Service</th>
+                        <th>Gratuity (accrued)</th>
+                        <th>Annual leave</th>
+                        <th>Leave accrued</th>
+                        <th>Leave salary (accrued)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (_statRows.Count == 0)
                     {
-                        <tr>
-                            <td><strong>@e.Id.ToString(CultureInfo.InvariantCulture)</strong></td>
-                            <td>@(string.IsNullOrWhiteSpace(e.Code) ? "—" : e.Code)</td>
-                            <td>@(string.IsNullOrWhiteSpace(e.Name) ? "—" : e.Name)</td>
-                            <td>@(string.IsNullOrWhiteSpace(e.Department) ? "—" : e.Department)</td>
-                            <td>@(string.IsNullOrWhiteSpace(e.Status) ? "—" : e.Status)</td>
-                            <td>@(e.JoinDate > 0 ? e.JoinDate.ToString(CultureInfo.InvariantCulture) : "—")</td>
-                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
-                        </tr>
+                        <tr><td colspan="7">No HR records.</td></tr>
                     }
-                }
-            </tbody>
-        </table>
-    </div>
+                    else
+                    {
+                        @foreach (var row in _statRows)
+                        {
+                            <tr>
+                                <td>@row.Name</td>
+                                <td>@row.Joined</td>
+                                <td>@row.Service</td>
+                                <td>@((MarkupString)row.GratuityHtml)</td>
+                                <td>@row.AnnualLeave</td>
+                                <td>@row.LeaveAccrued</td>
+                                <td>@row.LeaveSalary</td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+        <p class="text-muted"><small><i class="fa fa-info-circle"></i> UAE Federal Decree-Law 33/2021 arts. 51–52: 21 days basic/yr first 5 yrs, 30 days/yr beyond; capped at 2 years’ basic wage; accrued after 1 year continuous service.</small></p>
+    }
+    else
+    {
+        <h4>HR — employee records &amp; salaries</h4>
+        <p class="text-muted"><strong>Basic + allowances</strong> = fixed monthly salary for a @ErpHrStatutory.StandardDays.ToString(CultureInfo.InvariantCulture)-day month. Set <strong>days worked</strong> before generating payroll (pro-rata: salary ÷ @ErpHrStatutory.StandardDays.ToString(CultureInfo.InvariantCulture) × days). Salaries feed the <a href="/erp/payroll-app">Payroll</a> tab.</p>
+        <div class="epc-hr-table-wrap">
+            <table class="epc-hr-table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Department</th>
+                        <th>Job title</th>
+                        <th>Fixed basic</th>
+                        <th>Allowances</th>
+                        <th>Monthly (30d)</th>
+                        <th>Days worked</th>
+                        <th>Est. pay</th>
+                        <th>Bank</th>
+                        <th>Leave</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (_salaryRows.Count == 0)
+                    {
+                        <tr><td colspan="10">@(_isAdmin ? (string.IsNullOrWhiteSpace(_hrMessage) ? "No HR records — run staff setup with sample=1" : _hrMessage) : "Sign in for live data.")</td></tr>
+                    }
+                    else
+                    {
+                        @foreach (var row in _salaryRows)
+                        {
+                            <tr>
+                                <td>@row.Name</td>
+                                <td>@row.Department</td>
+                                <td>@row.JobTitle</td>
+                                <td>@row.Basic</td>
+                                <td>@row.Allowances</td>
+                                <td><strong>@row.Monthly</strong></td>
+                                <td>@row.DaysWorked</td>
+                                <td><strong>@row.EstPay</strong></td>
+                                <td><small>@row.Bank</small></td>
+                                <td>@row.Leave</td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
 
+    <p class="epc-hr-note">Source: @_source / @_hrSource. CP employee KPIs stay on <code>epc_hr_*</code>; salary/statutory rows bind <code>epc_erp_hr_records</code>.</p>
 </PhpCpDesktopChrome>
 
 @code {
     private const string _phpTab = "/CP/shop/finance/erp?area=people&tab=hr&epc_erp_shell=1";
+    private static readonly IReadOnlyList<(string Key, string Label)> _views =
+        [("salaries", "Salaries"), ("statutory", "End-of-service & leave")];
     private bool _isAdmin;
+    private string _view = "salaries";
     private CpHrOverviewSummary _summary = new(0, 0, 0, 0, "n/a", "");
-    private IReadOnlyList<CpHrEmployeeDigest> _employees = [];
+    private IReadOnlyList<ErpHrRecordDigest> _hr = [];
+    private IReadOnlyList<SalaryRow> _salaryRows = [];
+    private IReadOnlyList<StatRow> _statRows = [];
     private string _source = "n/a";
-    private string _message = "";
+    private string _hrSource = "n/a";
+    private string _hrMessage = "";
+
+    private sealed record SalaryRow(string Name, string Department, string JobTitle, string Basic, string Allowances, string Monthly, string DaysWorked, string EstPay, string Bank, string Leave);
+    private sealed record StatRow(string Name, string Joined, string Service, string GratuityHtml, string AnnualLeave, string LeaveAccrued, string LeaveSalary);
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
+        var hv = ctx.Request.Query["hv"].ToString();
+        _view = hv is "statutory" or "salaries" ? hv : "salaries";
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
-        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
+        _isAdmin = session.Kind == LegacySessionKind.Admin && (session.Capabilities.Contains("cp") || session.Capabilities.Contains("erp"));
         if (!_isAdmin)
         {
-            return; // guest browse — Sign in for live data
+            return;
         }
 
         var result = await Dashboards.BuildCpHrOverviewDigestAsync(200, ctx.RequestAborted);
         _summary = result.Summary;
-        _employees = result.Employees;
         _source = result.Source;
-        _message = result.Message;
+
+        var hr = await Dashboards.ListErpHrRecordsAsync(200, ctx.RequestAborted);
+        _hr = hr.Records;
+        _hrSource = hr.Source;
+        _hrMessage = hr.Message;
+        BuildRows();
+    }
+
+    private void BuildRows()
+    {
+        var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        var salaries = new List<SalaryRow>();
+        var stats = new List<StatRow>();
+        foreach (var h in _hr)
+        {
+            var name = string.IsNullOrWhiteSpace(h.DisplayName) ? "—" : h.DisplayName;
+            var monthly = h.BasicSalary + h.Allowances;
+            var days = h.DaysWorked > 0 ? h.DaysWorked : ErpHrStatutory.StandardDays;
+            var est = ErpHrStatutory.EstPay(h.BasicSalary, h.Allowances, days);
+            var bank = string.IsNullOrWhiteSpace(h.BankName) ? "—" : h.BankName;
+            if (!string.IsNullOrWhiteSpace(h.BankAccountPreview)) bank += " · …" + h.BankAccountPreview;
+            salaries.Add(new(
+                name,
+                ErpStaffDepartmentCatalog.NameFor(h.DepartmentCode),
+                string.IsNullOrWhiteSpace(h.JobTitle) ? "—" : h.JobTitle,
+                h.BasicSalary.ToString("N2", CultureInfo.InvariantCulture) + " AED",
+                h.Allowances.ToString("N2", CultureInfo.InvariantCulture) + " AED",
+                monthly.ToString("N2", CultureInfo.InvariantCulture) + " AED",
+                days.ToString("0.0", CultureInfo.InvariantCulture),
+                est.ToString("N2", CultureInfo.InvariantCulture) + " AED",
+                bank,
+                h.LeaveBalanceDays.ToString("0.0", CultureInfo.InvariantCulture) + " d"));
+
+            var years = ErpHrStatutory.ServiceYears(h.HireDate, now);
+            var grat = ErpHrStatutory.GratuityAe(h.BasicSalary, years);
+            var leave = ErpHrStatutory.LeaveAe(years * 12.0);
+            var leaveSal = ErpHrStatutory.LeaveSalary(h.BasicSalary, leave.AccruedDays);
+            var joined = h.HireDate > 0
+                ? DateTimeOffset.FromUnixTimeSeconds(h.HireDate).UtcDateTime.ToString("dd MMM yyyy", CultureInfo.InvariantCulture)
+                : "—";
+            var gratHtml = grat.Eligible
+                ? $"<strong>{grat.Amount.ToString("N2", CultureInfo.InvariantCulture)}</strong> AED <small class=\"text-muted\">({grat.Days.ToString("0", CultureInfo.InvariantCulture)} days)</small>"
+                : "<span class=\"text-muted\">Not yet eligible</span>";
+            stats.Add(new(
+                name,
+                joined,
+                years.ToString("0.0", CultureInfo.InvariantCulture) + " yr",
+                gratHtml,
+                leave.AnnualDays.ToString("0", CultureInfo.InvariantCulture) + " d/yr",
+                leave.AccruedDays.ToString("0.0", CultureInfo.InvariantCulture) + " d",
+                leaveSal.ToString("N2", CultureInfo.InvariantCulture) + " AED"));
+        }
+
+        _salaryRows = salaries;
+        _statRows = stats;
     }
 }

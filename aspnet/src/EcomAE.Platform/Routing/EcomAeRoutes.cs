@@ -785,6 +785,14 @@ public static class EcomAeRoutes
     public const string ErpProcurementCategoriesApp = "/erp/procurement-categories-app";
     public const string ErpQuality = "/erp/quality";
     public const string ErpQualityApp = "/erp/quality-app";
+    /// <summary>HTML form POST for PHP <c>qm_plan_save</c> dry-run (redirects with ?ok= / ?err=).</summary>
+    public const string ErpQualityPlanSaveForm = "/erp/quality/plan-save";
+    /// <summary>HTML form POST for PHP <c>qm_order_create</c> dry-run.</summary>
+    public const string ErpQualityOrderCreateForm = "/erp/quality/order-create";
+    /// <summary>HTML form POST for PHP <c>qm_ncr_create</c> dry-run.</summary>
+    public const string ErpQualityNcrCreateForm = "/erp/quality/ncr-create";
+    /// <summary>HTML form POST for PHP <c>inv_create_item</c> dry-run.</summary>
+    public const string ErpProductInfoCreateItemForm = "/erp/product-info/create-item";
     public const string ErpRfid = "/erp/rfid";
     public const string ErpRfidApp = "/erp/rfid-app";
     public const string ErpRecruitment = "/erp/recruitment";
