@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Microsoft.AspNetCore.Http;
 
 namespace EcomAE.Platform.Storefront;
 
@@ -13,6 +14,81 @@ public static class StorefrontIntListCookie
     public const int BookmarksMax = 80;
     public const int CompareMax = 40;
     public static readonly TimeSpan Lifetime = TimeSpan.FromSeconds(15_552_000);
+
+    public static string? RawValue(HttpRequest request, string name)
+    {
+        var header = request.Headers.Cookie.ToString();
+        var extracted = ExtractFromHeader(header, name);
+        if (!string.IsNullOrWhiteSpace(extracted))
+        {
+            return extracted;
+        }
+
+        return request.Cookies.TryGetValue(name, out var typed) ? typed : null;
+    }
+
+    public static List<int> Read(HttpRequest request, string name, int maxItems)
+        => Parse(RawValue(request, name), maxItems);
+
+    /// <summary>
+    /// PHP writes <c>bookmarks=[1,2]</c> without encoding. ASP.NET's cookie map
+    /// splits on commas, so the raw header must be scanned for the JSON array.
+    /// </summary>
+    public static string? ExtractFromHeader(string? cookieHeader, string name)
+    {
+        if (string.IsNullOrWhiteSpace(cookieHeader) || string.IsNullOrWhiteSpace(name))
+        {
+            return null;
+        }
+
+        var key = name + "=";
+        var start = 0;
+        while (start < cookieHeader.Length)
+        {
+            var idx = cookieHeader.IndexOf(key, start, StringComparison.OrdinalIgnoreCase);
+            if (idx < 0)
+            {
+                return null;
+            }
+
+            if (idx > 0)
+            {
+                var prev = cookieHeader[idx - 1];
+                if (prev is not ';' and not ' ' and not ',')
+                {
+                    start = idx + key.Length;
+                    continue;
+                }
+            }
+
+            var valueStart = idx + key.Length;
+            if (valueStart >= cookieHeader.Length)
+            {
+                return "";
+            }
+
+            if (cookieHeader[valueStart] == '[')
+            {
+                var close = cookieHeader.IndexOf(']', valueStart);
+                return close >= valueStart
+                    ? cookieHeader[valueStart..(close + 1)]
+                    : cookieHeader[valueStart..];
+            }
+
+            var end = cookieHeader.IndexOf(';', valueStart);
+            var raw = end < 0 ? cookieHeader[valueStart..] : cookieHeader[valueStart..end];
+            try
+            {
+                return Uri.UnescapeDataString(raw);
+            }
+            catch (UriFormatException)
+            {
+                return raw;
+            }
+        }
+
+        return null;
+    }
 
     public static List<int> Parse(string? raw, int maxItems)
     {

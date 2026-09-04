@@ -3,7 +3,6 @@
 @page "/shop/zakladki"
 @layout Layout.PhpChromeLayout
 @using System.Globalization
-@using System.Text.Json
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
 @inject ISurfaceDashboardSummaryReporter Dashboards
@@ -123,21 +122,7 @@
         _flashErr = ctx.Request.Query["err"].ToString() ?? "";
         _brand = StorefrontIndustryHostResolver.ResolveBrandLabel(ctx.Request.Host.Host);
 
-        if (ctx.Request.Cookies.TryGetValue("bookmarks", out var raw) && !string.IsNullOrWhiteSpace(raw))
-        {
-            try
-            {
-                var parsed = JsonSerializer.Deserialize<List<int>>(raw);
-                if (parsed is not null)
-                {
-                    _ids = parsed.Where(id => id > 0).Distinct().Take(80).ToList();
-                }
-            }
-            catch
-            {
-                _ids = [];
-            }
-        }
+        _ids = StorefrontIntListCookie.Read(ctx.Request, StorefrontIntListCookie.BookmarksName, StorefrontIntListCookie.BookmarksMax);
 
         if (_ids.Count == 0)
         {

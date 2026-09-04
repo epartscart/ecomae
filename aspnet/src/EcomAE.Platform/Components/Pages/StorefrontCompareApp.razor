@@ -5,7 +5,6 @@
 @page "/shop/compare"
 @layout Layout.PhpChromeLayout
 @using System.Globalization
-@using System.Text.Json
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
 @inject ISurfaceDashboardSummaryReporter Dashboards
@@ -124,21 +123,7 @@
         _flashErr = ctx.Request.Query["err"].ToString() ?? "";
         _brand = StorefrontIndustryHostResolver.ResolveBrandLabel(ctx.Request.Host.Host);
 
-        if (ctx.Request.Cookies.TryGetValue("compare", out var raw) && !string.IsNullOrWhiteSpace(raw))
-        {
-            try
-            {
-                var parsed = JsonSerializer.Deserialize<List<int>>(raw);
-                if (parsed is not null)
-                {
-                    _ids = parsed.Where(id => id > 0).Distinct().Take(40).ToList();
-                }
-            }
-            catch
-            {
-                _ids = [];
-            }
-        }
+        _ids = StorefrontIntListCookie.Read(ctx.Request, StorefrontIntListCookie.CompareName, StorefrontIntListCookie.CompareMax);
 
         if (_ids.Count == 0)
         {

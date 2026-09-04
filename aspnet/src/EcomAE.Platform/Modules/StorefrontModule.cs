@@ -1950,8 +1950,7 @@ public sealed class StorefrontModule : ISurfaceModule
             });
         }
 
-        context.Request.Cookies.TryGetValue(cookieName, out var raw);
-        var current = StorefrontIntListCookie.Parse(raw, maxItems);
+        var current = StorefrontIntListCookie.Read(context.Request, cookieName, maxItems);
         var next = add
             ? StorefrontIntListCookie.Add(current, (int)productId, maxItems)
             : StorefrontIntListCookie.Remove(current, (int)productId);

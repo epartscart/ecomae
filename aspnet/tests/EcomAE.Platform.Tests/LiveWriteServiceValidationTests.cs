@@ -245,6 +245,11 @@ public sealed class LiveWriteServiceValidationTests
 
         Assert.Empty(StorefrontIntListCookie.Parse("not-json", 8));
         Assert.Empty(StorefrontIntListCookie.Add([], 0, 8));
+
+        Assert.Equal("[42,99]", StorefrontIntListCookie.ExtractFromHeader("bookmarks=[42,99]; path=/", "bookmarks"));
+        Assert.Equal("[42,99]", StorefrontIntListCookie.ExtractFromHeader("session=x; bookmarks=[42,99]", "bookmarks"));
+        Assert.Equal("[12,99]", StorefrontIntListCookie.ExtractFromHeader("bookmarks=%5B12%2C99%5D", "bookmarks"));
+        Assert.Equal(new[] { 42, 99 }, StorefrontIntListCookie.Parse(StorefrontIntListCookie.ExtractFromHeader("bookmarks=[42,99]", "bookmarks"), 80));
     }
 
     [Fact]

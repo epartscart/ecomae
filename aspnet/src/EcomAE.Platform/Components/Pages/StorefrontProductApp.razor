@@ -289,15 +289,8 @@
         _flashErr = ctx?.Request.Query["err"].ToString() ?? "";
         if (ctx is not null && ProductId is > 0)
         {
-            if (ctx.Request.Cookies.TryGetValue(StorefrontIntListCookie.BookmarksName, out var bookmarksRaw))
-            {
-                _inWishlist = StorefrontIntListCookie.Parse(bookmarksRaw, StorefrontIntListCookie.BookmarksMax).Contains(ProductId.Value);
-            }
-
-            if (ctx.Request.Cookies.TryGetValue(StorefrontIntListCookie.CompareName, out var compareRaw))
-            {
-                _inCompare = StorefrontIntListCookie.Parse(compareRaw, StorefrontIntListCookie.CompareMax).Contains(ProductId.Value);
-            }
+            _inWishlist = StorefrontIntListCookie.Read(ctx.Request, StorefrontIntListCookie.BookmarksName, StorefrontIntListCookie.BookmarksMax).Contains(ProductId.Value);
+            _inCompare = StorefrontIntListCookie.Read(ctx.Request, StorefrontIntListCookie.CompareName, StorefrontIntListCookie.CompareMax).Contains(ProductId.Value);
         }
 
         if (ProductId is null or <= 0)
