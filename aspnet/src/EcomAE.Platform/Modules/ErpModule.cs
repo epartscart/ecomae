@@ -1815,14 +1815,60 @@ public sealed class ErpModule : ISurfaceModule
             return Results.Ok(dryRun.Evaluate(new ErpWmsReceiveRequest(body.Item, body.Qty, body.ReceiveLocationId, body.PutawayLocationId, body.ConfirmWrites)).ToPayload(SessionPayload(session)));
         });
 
-        endpoints.MapPost(EcomAeRoutes.ErpWmsLocationSave, async (HttpContext context, ErpWmsLocationSaveBody? body, ILegacySessionValidator validator, IErpWmsLocationSaveDryRun dryRun, CancellationToken cancellationToken) =>
+        endpoints.MapPost(EcomAeRoutes.ErpWmsLocationSave, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IErpWmsLocationSaveDryRun dryRun,
+            EcomAE.Platform.Erp.IErpWmsLocationWriteService writes,
+            CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateAsync(context, cancellationToken);
             if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
-                return Unauthorized("Admin ERP capability required for WMS location save dry-run.");
-            body ??= new ErpWmsLocationSaveBody(null, 0, false);
-            return Results.Ok(dryRun.Evaluate(new ErpWmsLocationSaveRequest(body.Code, body.Id, body.ConfirmWrites)).ToPayload(SessionPayload(session)));
-        });
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/cp/warehouse-wms-app", "Admin ERP capability required for WMS location save.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpWmsLocationSaveBody>(context, cancellationToken)
+                       ?? new();
+            var code = body.Code;
+            var warehouse = body.Warehouse;
+            var zone = body.Zone;
+            var type = body.Type;
+            var capacity = body.Capacity;
+            var active = body.Active;
+            var companyId = body.CompanyId;
+            var id = body.Id;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                code = LiveWriteFormBinder.Text(form, "code");
+                warehouse = LiveWriteFormBinder.Text(form, "warehouse");
+                zone = LiveWriteFormBinder.Text(form, "zone");
+                type = LiveWriteFormBinder.Text(form, "type");
+                capacity = LiveWriteFormBinder.Int(form, "capacity");
+                active = form.ContainsKey("active") || form.ContainsKey("is_active")
+                    ? LiveWriteFormBinder.Int(form, "active", "is_active")
+                    : 1;
+                companyId = LiveWriteFormBinder.Int(form, "companyId", "company_id");
+                id = LiveWriteFormBinder.Long(form, "id", "locationId", "location_id");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (confirm)
+            {
+                var written = await writes.SaveAsync(
+                    code, warehouse, zone, type, capacity, active, companyId, id, cancellationToken);
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    "/cp/warehouse-wms-app",
+                    written.Succeeded,
+                    written.Message,
+                    new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+            }
+
+            return Results.Ok(dryRun.Evaluate(new ErpWmsLocationSaveRequest(code, id, false)).ToPayload(SessionPayload(session)));
+        }).DisableAntiforgery();
 
         endpoints.MapPost(EcomAeRoutes.ErpCollectionsCaseSave, async (HttpContext context, ErpCollectionsCaseSaveBody? body, ILegacySessionValidator validator, IErpCollectionsCaseSaveDryRun dryRun, CancellationToken cancellationToken) =>
         {
@@ -5226,7 +5272,16 @@ public sealed class ErpModule : ISurfaceModule
     private sealed record ErpSubscriptionSaveBody(string? Code, string? Customer, long Id = 0, bool ConfirmWrites = false);
     private sealed record ErpContractSaveBody(string? Code, string? Title, long Id = 0, bool ConfirmWrites = false);
     private sealed record ErpWmsReceiveBody(string? Item, decimal Qty, long ReceiveLocationId = 0, long PutawayLocationId = 0, bool ConfirmWrites = false);
-    private sealed record ErpWmsLocationSaveBody(string? Code, long Id = 0, bool ConfirmWrites = false);
+    private sealed record ErpWmsLocationSaveBody(
+        string? Code = null,
+        long Id = 0,
+        bool ConfirmWrites = false,
+        string? Warehouse = null,
+        string? Zone = null,
+        string? Type = null,
+        int Capacity = 0,
+        int Active = 1,
+        int CompanyId = 0);
     private sealed record ErpCollectionsCaseSaveBody(long CustomerId = 0, long Id = 0, bool ConfirmWrites = false);
     private sealed record ErpProcReqSaveBody(string? Requester, long Id = 0, bool ConfirmWrites = false);
     private sealed record ErpFinPeriodStatusBody(int Fy, int PeriodNo, string? Status = "open", bool ConfirmWrites = false);

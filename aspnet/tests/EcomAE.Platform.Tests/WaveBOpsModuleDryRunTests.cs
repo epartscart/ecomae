@@ -35,6 +35,12 @@ public sealed class WaveBOpsModuleDryRunTests
     {
         var r = new ErpWmsLocationSaveDryRun().Evaluate(new ErpWmsLocationSaveRequest("A-01-01"));
         Assert.Equal("dry-run-validated", r.Status);
+        Assert.Equal(0, r.Writes);
+        Assert.False(r.PhpAuthoritative);
+        var missing = new ErpWmsLocationSaveDryRun().Evaluate(new ErpWmsLocationSaveRequest(""));
+        Assert.Equal("code_required", missing.ValidationCode);
+        var refused = new ErpWmsLocationSaveDryRun().Evaluate(new ErpWmsLocationSaveRequest("A-01-01", ConfirmWrites: true));
+        Assert.Equal("dry-run-confirm-refused", refused.Status);
     }
 
     [Fact] public void CollectionsCaseSaveValidated()
