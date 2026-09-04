@@ -652,11 +652,11 @@ public static class EcomAeRoutes
     public const string ErpWmsWorkComplete = "/erp/wms/work/complete";
     /// <summary>PHP epc_sub_set_status. <c>confirmWrites=true</c> writes via <c>IErpSubscriptionStatusWriteService</c>.</summary>
     public const string ErpSubscriptionsStatus = "/erp/subscriptions/status";
-    /// <summary>Wave B dry-run for PHP coll_case_status (writes=0).</summary>
+    /// <summary>PHP epc_coll_case_set_status. <c>confirmWrites=true</c> writes via <c>IErpCollectionsCaseStatusWriteService</c>.</summary>
     public const string ErpCollectionsCaseStatus = "/erp/collections/cases/status";
-    /// <summary>Wave B dry-run for PHP proc_req_submit (writes=0).</summary>
+    /// <summary>PHP epc_proc_req_submit. <c>confirmWrites=true</c> writes via <c>IErpProcurementReqWriteService</c>.</summary>
     public const string ErpProcurementReqSubmit = "/erp/procurement/requisitions/submit";
-    /// <summary>Wave B dry-run for PHP proc_req_decision (writes=0).</summary>
+    /// <summary>PHP epc_proc_req_decision. <c>confirmWrites=true</c> writes via <c>IErpProcurementReqWriteService</c>.</summary>
     public const string ErpProcurementReqDecision = "/erp/procurement/requisitions/decision";
     /// <summary>PHP epc_wms_location_delete. <c>confirmWrites=true</c> writes via <c>IErpWmsLocationWriteService</c>.</summary>
     public const string ErpWmsLocationDelete = "/erp/wms/locations/delete";

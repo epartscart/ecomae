@@ -827,6 +827,41 @@ public sealed class LiveWriteServiceValidationTests
             .SetStatusAsync(9, "done");
         Assert.False(wfDb.Succeeded);
         Assert.Equal("db", wfDb.Code);
+
+        var collInvalid = await new ErpCollectionsCaseStatusWriteService(new ConfiguredNeverOpened())
+            .SetStatusAsync(0, "new");
+        Assert.False(collInvalid.Succeeded);
+        Assert.Equal("invalid", collInvalid.Code);
+
+        var collStatus = await new ErpCollectionsCaseStatusWriteService(new ConfiguredNeverOpened())
+            .SetStatusAsync(9, "bogus");
+        Assert.False(collStatus.Succeeded);
+        Assert.Equal("invalid", collStatus.Code);
+
+        var collDb = await new ErpCollectionsCaseStatusWriteService(new UnconfiguredConnections())
+            .SetStatusAsync(9, "escalated");
+        Assert.False(collDb.Succeeded);
+        Assert.Equal("db", collDb.Code);
+
+        var procSubmitInvalid = await new ErpProcurementReqWriteService(new ConfiguredNeverOpened())
+            .SubmitAsync(0);
+        Assert.False(procSubmitInvalid.Succeeded);
+        Assert.Equal("invalid", procSubmitInvalid.Code);
+
+        var procSubmitDb = await new ErpProcurementReqWriteService(new UnconfiguredConnections())
+            .SubmitAsync(9);
+        Assert.False(procSubmitDb.Succeeded);
+        Assert.Equal("db", procSubmitDb.Code);
+
+        var procDecideInvalid = await new ErpProcurementReqWriteService(new ConfiguredNeverOpened())
+            .DecideAsync(0, true, "admin", "ok");
+        Assert.False(procDecideInvalid.Succeeded);
+        Assert.Equal("invalid", procDecideInvalid.Code);
+
+        var procDecideDb = await new ErpProcurementReqWriteService(new UnconfiguredConnections())
+            .DecideAsync(9, false, "admin", "no");
+        Assert.False(procDecideDb.Succeeded);
+        Assert.Equal("db", procDecideDb.Code);
     }
 
     [Fact]
