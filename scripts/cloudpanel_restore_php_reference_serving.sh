@@ -112,6 +112,42 @@ for base in (Path("/etc/nginx/sites-enabled"), Path("/etc/nginx/conf.d")):
 print("NOTE: product /en/* stays on ASP.NET; only /php-reference/* archive is restored")
 PY
 
+# Strip STOP-PRODUCT-PHP archive 503 on /php-reference (exact live body:
+# "Archive paused for platform deep test."). Keep classic-entry boot.php rewrites.
+python3 - <<'PY'
+import re
+from pathlib import Path
+
+ARCHIVE_503 = re.compile(
+    r"[ \t]*# Archive / interim commerce[^\n]*\n"
+    r"[ \t]*location \^~ /php-reference\s*\{[^{}]*return 503[^{}]*\}\n?",
+    re.S,
+)
+BARE_503 = re.compile(
+    r"[ \t]*location \^~ /php-reference\s*\{\s*"
+    r"default_type\s+text/plain;\s*"
+    r"(?:add_header[^\n]+\n\s*)*"
+    r"return 503[^{}]*\}\n?",
+    re.S,
+)
+
+for base in (Path("/etc/nginx/sites-enabled"), Path("/etc/nginx/conf.d")):
+    if not base.exists():
+        continue
+    for conf in sorted(base.iterdir()):
+        if not conf.is_file() or not conf.name.endswith(".conf"):
+            continue
+        try:
+            text = conf.read_text(errors="ignore")
+        except Exception:
+            continue
+        new = ARCHIVE_503.sub("", text)
+        new = BARE_503.sub("", new)
+        if new != text:
+            conf.write_text(new)
+            print("removed /php-reference archive 503:", conf)
+PY
+
 nginx -t && systemctl reload nginx
 
 # PHP-FPM must be up — incomplete restore left /en/* and index.php on warm-up splash.
@@ -128,7 +164,7 @@ sleep 3
 
 Q="epc_php_on=$(date +%s)"
 fail=0
-for path in /en/shop/part_search /index.php /php-reference/storefront; do
+for path in /en/shop/part_search /index.php /php-reference/storefront /php-reference/cp /php-reference/erp; do
   body=$(mktemp)
   code="$(curl -sS -o "$body" -w '%{http_code}' -A 'Mozilla/5.0' --max-time 30 \
     "https://www.epartscart.com${path}?${Q}" || echo 000)"

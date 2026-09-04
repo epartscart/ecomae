@@ -1,143 +1,156 @@
 @page "/cp/jewellery-fixing-app"
+@page "/erp/jewellery-fixing-app"
 @layout Layout.PhpChromeLayout
 @using System.Globalization
 @using EcomAE.Platform.Auth
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Routing
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
-@inject NavigationManager Nav
 
-<PageTitle>Jewellery fixing · Control Panel · eParts Cart</PageTitle>
-<PhpChromeStyles Surface="cp" />
-<HeadContent>
-<style>
-        .epc-w18-hero {
-            margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
-            background:linear-gradient(135deg,#0c4a6e 0%,#2563eb 45%,#0ea5e9 100%);
-        }
-        .epc-w18-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
-        .epc-w18-hero p { margin:0; color:rgba(255,255,255,.88); max-width:44rem; font-size:.92rem; line-height:1.45; }
-        .epc-w18-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
-        .epc-w18-cta a {
-            display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
-            text-decoration:none; color:#0f172a; background:#fff;
-        }
-        .epc-w18-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); color:#fff; }
-        .epc-w18-kpis { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
-        .epc-w18-kpi { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; padding:.85rem .9rem; }
-        .epc-w18-kpi strong { display:block; font-size:1.2rem; word-break:break-word; }
-        .epc-w18-kpi span { color:#64748b; font-size:.78rem; }
-        .epc-w18-table-wrap { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; overflow:auto; }
-        .epc-w18-table { width:100%; border-collapse:collapse; font-size:.86rem; }
-        .epc-w18-table th, .epc-w18-table td { padding:.55rem .7rem; border-bottom:1px solid #f1f5f9; text-align:left; white-space:nowrap; }
-        .epc-w18-table th { background:#f8fafc; color:#475569; font-size:.75rem; text-transform:uppercase; letter-spacing:.03em; }
-        .epc-w18-note { margin-top:1rem; padding:.75rem .9rem; background:#f8fafc; border:1px solid #cbd5e1; border-radius:.45rem; color:#334155; font-size:.86rem; }
-        @@media (max-width:900px){ .epc-w18-kpis{grid-template-columns:1fr 1fr;} }
-    
-</style>
-</HeadContent>
+<PageTitle>Jewellery fixing · ERP · eParts Cart</PageTitle>
+<PhpChromeStyles Surface="erp" />
 
+<PhpErpDesktopChrome IsAdmin="_isAdmin" Title="@_spec.Title" BreadcrumbArea="Jewellery" BreadcrumbTab="@_spec.Label">
+    <PhpErpModulePageHeader Title="@_spec.Title" Subtitle="@_spec.Subtitle" />
+    <ErpPhpFlash Ok="@_ok" Err="@_err" />
 
-<PhpCpDesktopChrome IsAdmin="_isAdmin">
-
-    <section class="epc-w18-hero">
-        <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
-        <h1>Jewellery fixing</h1>
-        <p>Manage store operations, catalogue, and partner integrations from one control panel.</p>
-        <div class="epc-w18-cta">
-            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
-        </div>
-    </section>
-
-    <div class="epc-w18-kpis" aria-label="Jewellery fixing stats">
-        <div class="epc-w18-kpi"><strong>@_summary.FixingCount.ToString(CultureInfo.InvariantCulture)</strong><span>Fixings</span></div>
-        <div class="epc-w18-kpi"><strong>@_summary.OpenFixingCount.ToString(CultureInfo.InvariantCulture)</strong><span>Open</span></div>
-        <div class="epc-w18-kpi"><strong>@_summary.PurchaseFixCount.ToString(CultureInfo.InvariantCulture)</strong><span>Purchases</span></div>
-        <div class="epc-w18-kpi"><strong>@_summary.SettlementCount.ToString(CultureInfo.InvariantCulture)</strong><span>Settlements</span></div>
-        <div class="epc-w18-kpi"><strong>@_summary.PettyCashCount.ToString(CultureInfo.InvariantCulture)</strong><span>Petty cash</span></div>
+    <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Jewellery fixing stats">
+        <div class="kpi"><div class="lbl">Fixings</div><div class="val">@_summary.FixingCount.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Open</div><div class="val">@_summary.OpenFixingCount.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Purchases</div><div class="val">@_summary.PurchaseFixCount.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Settlements</div><div class="val">@_summary.SettlementCount.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Petty cash</div><div class="val">@_summary.PettyCashCount.ToString(CultureInfo.InvariantCulture)</div></div>
     </div>
 
-    <div class="epc-w18-table-wrap">
-    <table class="epc-w18-table">
-        <thead>
-            <tr>
-                    <th>Id</th>
-                    <th>Co</th>
-                    <th>Branch</th>
-                    <th>Type</th>
-                    <th>Date</th>
-                    <th>No</th>
-                    <th>Party</th>
-                    <th>Name</th>
-                    <th>Metal</th>
-                    <th>Karat</th>
-                    <th>Qty gms</th>
-                    <th>Amount</th>
-                    <th>Status</th>
-                    <th>By</th>
-                    <th></th>
-            </tr>
-        </thead>
-        <tbody>
-            @if (_rows.Count == 0)
-            {
-                <tr><td colspan="15">Nothing to show yet.</td></tr>
-            }
-            else
-            {
-                @foreach (var row in _rows)
+    <ErpPhpViewTabs QueryName="tab" Active="@_tab" BaseHref="@_tabBase" Tabs="@ErpJewelleryModuleChrome.FixingTabs" />
+
+    @if (_isAdmin)
+    {
+        <ErpPhpCreateWell Title="New Fixing">
+            <form method="post" action="@EcomAeRoutes.ErpJewelleryModuleSaveForm" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+                <input type="hidden" name="returnUrl" value="@_returnHere" />
+                <input type="hidden" name="action" value="jw_purchase_fixing_save" />
+                <label>Fix No <input class="form-control input-sm" name="fix_no" placeholder="Auto" /></label>
+                <label>Ref Voc <input class="form-control input-sm" name="code" /></label>
+                <label>Party Code <input class="form-control input-sm" name="party_code" /></label>
+                <label>Metal
+                    <select class="form-control input-sm" name="metal">
+                        <option value="Gold">Gold</option>
+                        <option value="Silver">Silver</option>
+                        <option value="Platinum">Platinum</option>
+                    </select>
+                </label>
+                <label>Karat <input class="form-control input-sm" name="karat" placeholder="22" style="width:70px;" /></label>
+                <label>Fixed Rate <input class="form-control input-sm" name="fixed_rate" type="number" step="0.00001" value="0" /></label>
+                <label>Net Wt <input class="form-control input-sm" name="net_wt" type="number" step="0.001" value="0" /></label>
+                <button type="submit" class="btn btn-primary btn-sm">Save</button>
+            </form>
+        </ErpPhpCreateWell>
+    }
+
+    <div class="epc-erp-table-wrap">
+        <table class="table table-bordered table-condensed table-epc epc-erp-table">
+            <thead>
+                <tr>
+                    @foreach (var col in _spec.Columns)
+                    {
+                        <th>@col</th>
+                    }
+                </tr>
+            </thead>
+            <tbody>
+                @if (_display.Count == 0)
                 {
-                    <tr>
-                            <td>@row.Id.ToString(CultureInfo.InvariantCulture)</td>
-                            <td>@row.CompanyId.ToString(CultureInfo.InvariantCulture)</td>
-                            <td>@(!string.IsNullOrWhiteSpace(row.Branch) ? row.Branch : "—")</td>
-                            <td>@(!string.IsNullOrWhiteSpace(row.FixType) ? row.FixType : "—")</td>
-                            <td>@(!string.IsNullOrWhiteSpace(row.FixDate) ? row.FixDate : "—")</td>
-                            <td>@row.FixNo.ToString(CultureInfo.InvariantCulture)</td>
-                            <td>@(!string.IsNullOrWhiteSpace(row.PartyCode) ? row.PartyCode : "—")</td>
-                            <td>@(!string.IsNullOrWhiteSpace(row.PartyName) ? row.PartyName : "—")</td>
-                            <td>@(!string.IsNullOrWhiteSpace(row.Metal) ? row.Metal : "—")</td>
-                            <td>@(!string.IsNullOrWhiteSpace(row.Karat) ? row.Karat : "—")</td>
-                            <td>@row.FixQtyGms.ToString(CultureInfo.InvariantCulture)</td>
-                            <td>@row.FixAmount.ToString(CultureInfo.InvariantCulture)</td>
-                            <td>@(!string.IsNullOrWhiteSpace(row.Status) ? row.Status : "—")</td>
-                            <td>@(!string.IsNullOrWhiteSpace(row.CreatedBy) ? row.CreatedBy : "—")</td>
-                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
-                    </tr>
+                    <tr><td colspan="@_spec.Columns.Count" class="text-muted">@(_isAdmin ? _spec.EmptyCopy : "Sign in with ERP or Control Panel capability for live rows.")</td></tr>
                 }
-            }
-        </tbody>
-    </table>
+                else
+                {
+                    @foreach (var row in _display)
+                    {
+                        <tr>
+                            <td>@row.No</td>
+                            <td><strong>@row.FixNo</strong></td>
+                            <td>@row.FixDate</td>
+                            <td>@row.PartyCode</td>
+                            <td>@row.PartyCode</td>
+                            <td>@row.Metal</td>
+                            <td class="text-right">@row.Rate</td>
+                            <td class="text-right">@row.Qty</td>
+                            <td class="text-right">@row.Amount</td>
+                            <td>@row.Status</td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
     </div>
 
-</PhpCpDesktopChrome>
+    <div class="epc-erp-empty" style="display:block;margin-top:12px;padding:8px 10px;border:1px solid #c5d4de;background:#f8fafc;color:#475569;font-size:12px;">
+        Source: @_source. Fixings bind from <code>epc_jewel_fixing</code>. Form posts are dry-run — writes=0.
+        @if (!string.IsNullOrWhiteSpace(_message)) { <span> @_message</span> }
+    </div>
+</PhpErpDesktopChrome>
 
 @code {
-    private const string _phpTab = "/ERP/?epc_erp_shell=1&area=purchasing&tab=jw_purchase_fixing";
     private bool _isAdmin;
+    private int _company;
+    private string _tab = "jw_purchase_fixing";
+    private string _appPath = "/cp/jewellery-fixing-app";
+    private string _tabBase = "/cp/jewellery-fixing-app";
+    private string _returnHere = "/cp/jewellery-fixing-app?tab=jw_purchase_fixing";
+    private ErpJewelleryModuleChrome.TabSpec _spec = ErpJewelleryModuleChrome.FixingSpec("jw_purchase_fixing");
     private CpJewelleryFixingSummary _summary = new(0, 0, 0, 0, 0, "n/a", "");
-    private IReadOnlyList<CpJewelleryFixingRowDigest> _rows = [];
+    private IReadOnlyList<FixRow> _display = [];
     private string _source = "n/a";
     private string _message = "";
+    private string _ok = "";
+    private string _err = "";
+
+    private sealed record FixRow(string No, string FixNo, string FixDate, string PartyCode, string Metal, string Rate, string Qty, string Amount, string Status);
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
+        var path = ctx.Request.Path.Value ?? "/cp/jewellery-fixing-app";
+        _appPath = path.StartsWith("/erp/", StringComparison.OrdinalIgnoreCase)
+            ? "/erp/jewellery-fixing-app"
+            : "/cp/jewellery-fixing-app";
+        _company = ErpJewelleryModuleChrome.CompanyFromQuery(ctx.Request.Query["company"].ToString());
+        _tab = ErpJewelleryModuleChrome.NormalizeTab(ctx.Request.Query["tab"].ToString(), ErpJewelleryModuleChrome.FixingTabs, "jw_purchase_fixing");
+        _ok = ctx.Request.Query["ok"].ToString();
+        _err = ctx.Request.Query["err"].ToString();
+        _spec = ErpJewelleryModuleChrome.FixingSpec(_tab);
+        _tabBase = ErpJewelleryModuleChrome.AppHref(_appPath, _company);
+        _returnHere = ErpJewelleryModuleChrome.AppHref(_appPath, _company, ("tab", _tab));
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
-        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
+        _isAdmin = ErpJewelleryModuleChrome.HasJewelleryStaffAccess(session);
         if (!_isAdmin)
         {
-            return; // guest browse — Sign in for live data
+            _message = "Sign in with ERP or Control Panel capability for live rows.";
+            return;
         }
 
         var result = await Dashboards.BuildCpJewelleryFixingDigestAsync(200, ctx.RequestAborted);
         _summary = result.Summary;
-        _rows = result.Fixings;
         _source = result.Source;
         _message = result.Message;
+        var showFixings = _tab is "jw_purchase_fixing" or "jw_sales_fixing" or "fix_unfix";
+        _display = showFixings
+            ? result.Fixings.Select((r, i) => new FixRow(
+            (i + 1).ToString(CultureInfo.InvariantCulture),
+            r.FixNo.ToString(CultureInfo.InvariantCulture),
+            string.IsNullOrWhiteSpace(r.FixDate) ? "—" : r.FixDate,
+            string.IsNullOrWhiteSpace(r.PartyCode) ? "—" : r.PartyCode,
+            string.IsNullOrWhiteSpace(r.Metal) ? "—" : r.Metal,
+            r.FixAmount == 0 && r.FixQtyGms == 0 ? "0.00000" : r.FixAmount.ToString("N5", CultureInfo.InvariantCulture),
+            r.FixQtyGms.ToString("N3", CultureInfo.InvariantCulture),
+            r.FixAmount.ToString("N2", CultureInfo.InvariantCulture),
+            string.IsNullOrWhiteSpace(r.Status) ? "—" : r.Status)).ToList()
+            : [];
     }
 }

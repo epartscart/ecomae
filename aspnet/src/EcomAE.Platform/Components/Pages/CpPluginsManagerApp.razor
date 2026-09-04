@@ -45,11 +45,13 @@
     <section class="epc-w22-hero">
         <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
         <h1>Plugins manager</h1>
-        <p>Manage store operations from the control panel.</p>
+        <p>@CpPhpModuleCopy.PurposeFor(Nav.Uri)</p>
         <div class="epc-w22-cta">
             <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
         </div>
     </section>
+    <PhpParityModuleBody AppPath="/cp/plugins-manager-app" IsAdmin="_isAdmin" />
+
 
     <div class="epc-w22-kpis" aria-label="Plugins manager stats">
         <div class="epc-w22-kpi"><strong>@_summary.PluginCount.ToString(CultureInfo.InvariantCulture)</strong><span>Plugins</span></div>
@@ -74,7 +76,7 @@
         <tbody>
             @if (_rows.Count == 0)
             {
-                <tr><td colspan="7">Nothing to show yet.</td></tr>
+                <tr><td colspan="7">No records yet.</td></tr>
             }
             else
             {
@@ -111,7 +113,7 @@
         if (ctx is null) return;
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
-        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
+        _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
         if (!_isAdmin)
         {
             return; // guest browse — Sign in for live data

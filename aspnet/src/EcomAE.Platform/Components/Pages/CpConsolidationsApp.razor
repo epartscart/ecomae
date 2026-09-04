@@ -45,11 +45,37 @@
     <section class="epc-w14-hero">
         <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
         <h1>Consolidations</h1>
-        <p>Manage store operations, catalogue, and partner integrations from one control panel.</p>
+        <p>@CpPhpModuleCopy.PurposeFor(Nav.Uri)</p>
         <div class="epc-w14-cta">
             <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
         </div>
     </section>
+    <PhpParityModuleBody AppPath="/cp/consolidations-app" IsAdmin="_isAdmin" />
+
+
+    @if (!string.IsNullOrWhiteSpace(_flashOk))
+    {
+        <div class="alert alert-success" role="status" style="margin:0 0 1rem;padding:.7rem .9rem;border-radius:.4rem;background:#ecfdf5;color:#065f46">@_flashOk</div>
+    }
+    @if (!string.IsNullOrWhiteSpace(_flashErr))
+    {
+        <div class="alert alert-danger" role="status" style="margin:0 0 1rem;padding:.7rem .9rem;border-radius:.4rem;background:#fef2f2;color:#991b1b">@_flashErr</div>
+    }
+    @if (_isAdmin)
+    {
+        <form method="post" action="/erp/ajax/cons-entity-delete" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/consolidations-app" />
+            <label>Entity id <input type="number" name="id" min="1" required style="width:6rem" /></label>
+            <button type="submit">Remove entity</button>
+        </form>
+        <form method="post" action="/erp/ajax/cons-ic-delete" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/consolidations-app" />
+            <label>IC id <input type="number" name="id" min="1" required style="width:6rem" /></label>
+            <button type="submit">Remove IC txn</button>
+        </form>
+    }
 
     <div class="epc-w14-kpis" aria-label="Consolidations stats">
         <div class="epc-w14-kpi"><strong>@_summary.EntityCount.ToString(CultureInfo.InvariantCulture)</strong><span>Entities</span></div>
@@ -75,7 +101,7 @@
         <tbody>
             @if (_rows.Count == 0)
             {
-                <tr><td colspan="8">Nothing to show yet.</td></tr>
+                <tr><td colspan="8">No records yet.</td></tr>
             }
             else
             {
@@ -106,14 +132,18 @@
     private IReadOnlyList<CpConsolidationsEntityDigest> _rows = [];
     private string _source = "n/a";
     private string _message = "";
+    private string _flashOk = "";
+    private string _flashErr = "";
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
+        _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
+        _flashErr = ctx.Request.Query["err"].ToString() ?? "";
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
-        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
+        _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
         if (!_isAdmin)
         {
             return; // guest browse — Sign in for live data

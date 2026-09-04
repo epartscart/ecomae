@@ -17,14 +17,46 @@
 }
 
 <PhpCpDesktopChrome IsAdmin="_isAdmin">
+    <PhpParityModuleBody AppPath="/cp/pages-app" IsAdmin="_isAdmin" />
+
 
     <PhpCpModulePageHeader Title="Content Pages"
-                           Subtitle="PHP content_manager parity — page list with caption, alias, URL, publish flags. Body/HTML editor remains classic PHP."
-                           PhpTabHref="@_phpTab">
+                           Subtitle="Publish and main-page flags write here. Body/HTML editor stays on the classic twin.">
         <a class="ghost" href="/cp/menus-app">Menus</a>
         <a class="ghost" href="/cp/modules-app">Modules</a>
         <a class="ghost" href="/cp/page-builder-app">Page builder</a>
     </PhpCpModulePageHeader>
+
+    @if (!string.IsNullOrWhiteSpace(_flashOk))
+    {
+        <div class="alert alert-success" role="status" style="margin:0 0 1rem;padding:.7rem .9rem;border-radius:.4rem;background:#ecfdf5;color:#065f46">@_flashOk</div>
+    }
+    @if (!string.IsNullOrWhiteSpace(_flashErr))
+    {
+        <div class="alert alert-danger" role="status" style="margin:0 0 1rem;padding:.7rem .9rem;border-radius:.4rem;background:#fef2f2;color:#991b1b">@_flashErr</div>
+    }
+    @if (_isAdmin)
+    {
+        <form method="post" action="/cp/content/published" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 .65rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/pages-app" />
+            <label>Page id <input type="number" name="contentId" min="1" required style="width:6rem" /></label>
+            <label>Published
+                <select name="publishedFlag">
+                    <option value="1">Yes</option>
+                    <option value="0">No</option>
+                </select>
+            </label>
+            <button type="submit">Set published</button>
+        </form>
+        <form method="post" action="/cp/content/main" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/pages-app" />
+            <input type="hidden" name="isFrontend" value="1" />
+            <label>Page id <input type="number" name="contentId" min="1" required style="width:6rem" /></label>
+            <button type="submit">Set as main page</button>
+        </form>
+    }
 
     @if (!_isAdmin)
     {
@@ -77,7 +109,7 @@
                         <tbody>
                             @if (_pages.Count == 0)
                             {
-                                <tr><td colspan="9">Nothing to show yet.</td></tr>
+                                <tr><td colspan="9">No records yet.</td></tr>
                             }
                             else
                             {
@@ -134,7 +166,6 @@
                     </dl>
                     <p style="margin:.85rem 0 0;font-size:.86rem;">
                         Body HTML is intentionally omitted from digests.
-                        <a href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref($"{_phpTab}/content?content_id={_selected.Id.ToString(CultureInfo.InvariantCulture)}")">Edit body in PHP content_manager</a>
                     </p>
                 </div>
             </div>
@@ -143,7 +174,6 @@
 </PhpCpDesktopChrome>
 
 @code {
-    private const string _phpTab = "/CP/content/content_manager";
     private bool _isAdmin;
     private int _selectedId;
     private IReadOnlyList<CpPageDigest> _pages = [];
@@ -153,14 +183,18 @@
     private int _limit = 200;
     private string _source = "n/a";
     private string _message = "";
+    private string _flashOk = "";
+    private string _flashErr = "";
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
 
+        _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
+        _flashErr = ctx.Request.Query["err"].ToString() ?? "";
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
-        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
+        _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
 
         var uri = Nav.ToAbsoluteUri(Nav.Uri);
         var query = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query);

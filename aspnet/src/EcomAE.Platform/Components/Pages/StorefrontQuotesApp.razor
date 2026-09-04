@@ -37,11 +37,19 @@
 <StorefrontTenantChrome>
 
     <PhpStorefrontPageHeader Title="My quotes"
-                            Subtitle="Customer quote requests — submit and accept remain on the classic quotes module.">
-        <a class="btn btn-sm btn-primary" href="@StorefrontPhpCanonical.Quotes">Open classic quotes</a>
-            <a class="btn btn-sm btn-default" href="@StorefrontSurfaceLinks.Cart">Cart</a>
+                            Subtitle="Request pricing, submit a draft, and accept a quoted offer on this storefront.">
+        <a class="btn btn-sm btn-default" href="@StorefrontSurfaceLinks.Cart">Cart</a>
             <a class="btn btn-sm btn-default" href="@StorefrontSurfaceLinks.PartSearch">Search parts</a>
     </PhpStorefrontPageHeader>
+
+    @if (!string.IsNullOrWhiteSpace(_flashOk))
+    {
+        <p style="margin:0 0 .75rem;padding:.65rem .8rem;background:#ecfdf3;border:1px solid #86efac;color:#166534">@_flashOk</p>
+    }
+    @if (!string.IsNullOrWhiteSpace(_flashErr))
+    {
+        <p style="margin:0 0 .75rem;padding:.65rem .8rem;background:#fef2f2;border:1px solid #fecaca;color:#991b1b">@_flashErr</p>
+    }
 
     @if (!_isCustomer)
     {
@@ -67,7 +75,7 @@
                 <tbody>
                     @if (_rows.Count == 0)
                     {
-                        <tr><td colspan="6">No quote requests yet. Add lines from part search, then open classic quotes to submit.</td></tr>
+                        <tr><td colspan="6">No quote requests yet. Add a brand/part below or from part search.</td></tr>
                     }
                     else
                     {
@@ -124,14 +132,43 @@
                     </tbody>
                 </table>
             </div>
-            <form method="post" action="@PhpCustomerWrites.QuotesWriteHref" style="margin-top:.75rem">
-                <input type="hidden" name="id" value="@_detail.Id.ToString(CultureInfo.InvariantCulture)" />
-                <button type="submit" name="action" value="submit" style="padding:.5rem .85rem;border:0;border-radius:.4rem;background:#dc2626;color:#fff;font-weight:800;cursor:pointer">Submit quote</button>
-            </form>
+            @if (string.Equals(_detail.Status, "draft", StringComparison.OrdinalIgnoreCase))
+            {
+                <form method="post" action="@PhpCustomerWrites.QuotesWriteHref" style="margin-top:.75rem">
+                    <input type="hidden" name="confirmWrites" value="true" />
+                    <input type="hidden" name="returnUrl" value="@("/storefront/quotes-app?id=" + _detail.Id.ToString(CultureInfo.InvariantCulture))" />
+                    <input type="hidden" name="quoteId" value="@_detail.Id.ToString(CultureInfo.InvariantCulture)" />
+                    <label style="display:block;margin:0 0 .45rem">Customer note</label>
+                    <textarea name="customerNote" rows="2" style="width:100%;margin:0 0 .65rem;padding:.45rem"></textarea>
+                    <button type="submit" style="padding:.5rem .85rem;border:0;border-radius:.4rem;background:#dc2626;color:#fff;font-weight:800;cursor:pointer">Submit quote</button>
+                </form>
+            }
+            @if (string.Equals(_detail.Status, "quoted", StringComparison.OrdinalIgnoreCase))
+            {
+                <form method="post" action="@PhpCustomerWrites.QuotesAcceptHref" style="margin-top:.75rem">
+                    <input type="hidden" name="confirmWrites" value="true" />
+                    <input type="hidden" name="returnUrl" value="/storefront/cart-app" />
+                    <input type="hidden" name="quoteId" value="@_detail.Id.ToString(CultureInfo.InvariantCulture)" />
+                    <button type="submit" style="padding:.5rem .85rem;border:0;border-radius:.4rem;background:#0f766e;color:#fff;font-weight:800;cursor:pointer">Accept quote — add to cart</button>
+                </form>
+            }
         }
 
+        <form method="post" action="@PhpCustomerWrites.QuotesAddManualHref" style="margin-top:1.1rem;background:#fff;border:1px solid #e5e7eb;border-radius:.55rem;padding:1.1rem 1.2rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/storefront/quotes-app" />
+            <p style="margin:0 0 .75rem;font-weight:700">Add a manual quote line</p>
+            <label>Brand</label>
+            <input name="manufacturer" required style="width:100%;margin:.25rem 0 .75rem;padding:.45rem" />
+            <label>Part number</label>
+            <input name="article" required style="width:100%;margin:.25rem 0 .75rem;padding:.45rem" />
+            <label>Qty</label>
+            <input type="number" name="countNeed" value="1" min="1" style="width:6rem;margin:.25rem 0 .75rem;padding:.45rem" />
+            <button type="submit" style="padding:.5rem .85rem;border:0;border-radius:.4rem;background:#dc2626;color:#fff;font-weight:800;cursor:pointer">Add to quote</button>
+        </form>
+
         <p class="epc-sf-q-note">
-            Open a quote to review lines, then submit it from this page.
+            Open a quote to review lines. Submit a draft, or accept a quoted offer to add priced lines to the cart.
         </p>
     }
 </StorefrontTenantChrome>
@@ -142,6 +179,8 @@
     private IReadOnlyList<StorefrontQuoteDigest> _rows = [];
     private StorefrontQuoteDetailDigest? _detail;
     private string _source = "n/a";
+    private string _flashOk = "";
+    private string _flashErr = "";
 
     [SupplyParameterFromQuery(Name = "id")]
     public int? QuoteId { get; set; }
@@ -155,6 +194,8 @@
         }
 
         _brand = StorefrontIndustryHostResolver.ResolveBrandLabel(ctx.Request.Host.Host);
+        _flashOk = ctx.Request.Query["ok"].ToString();
+        _flashErr = ctx.Request.Query["err"].ToString();
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         if (session.Kind != LegacySessionKind.Customer || session.UserId <= 0)

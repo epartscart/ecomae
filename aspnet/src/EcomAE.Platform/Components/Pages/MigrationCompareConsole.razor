@@ -136,6 +136,45 @@
     <a class="cta cta-ghost" href="/migration/presentation-parity">Presentation parity</a>
 </div>
 
+<section class="section">
+    <h2>Open CP / ERP side by side</h2>
+    <p>
+        Same admin session. Product <code>/cp</code> and <code>/erp</code> stay on ASP.NET.
+        Classic twins open under <code>/php-reference/*</code> only — never product <code>/CP/</code> or <code>/ERP/</code>.
+    </p>
+    <table class="compare">
+        <thead>
+            <tr>
+                <th>Surface</th>
+                <th>ASP.NET (this tab)</th>
+                <th>Classic twin (new tab)</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Tenant CP</td>
+                <td><a href="@tenantPhp/cp" target="_blank" rel="noopener">@tenantPhp/cp</a> <span class="stack aspnet">ASP.NET</span></td>
+                <td><a href="@tenantPhp/php-reference/cp" target="_blank" rel="noopener">@tenantPhp/php-reference/cp</a> <span class="stack php">Classic CP</span></td>
+            </tr>
+            <tr>
+                <td>Tenant ERP</td>
+                <td><a href="@tenantPhp/erp" target="_blank" rel="noopener">@tenantPhp/erp</a> <span class="stack aspnet">ASP.NET</span></td>
+                <td><a href="@tenantPhp/php-reference/erp" target="_blank" rel="noopener">@tenantPhp/php-reference/erp</a> <span class="stack php">Classic ERP</span></td>
+            </tr>
+            <tr>
+                <td>Super CP</td>
+                <td><a href="@aspNet/cp" target="_blank" rel="noopener">@aspNet/cp</a> <span class="stack aspnet">ASP.NET</span></td>
+                <td><a href="@wwwPhp/php-reference/cp" target="_blank" rel="noopener">@wwwPhp/php-reference/cp</a> <span class="stack php">Classic CP</span></td>
+            </tr>
+            <tr>
+                <td>Super ERP</td>
+                <td><a href="@aspNet/erp" target="_blank" rel="noopener">@aspNet/erp</a> <span class="stack aspnet">ASP.NET</span></td>
+                <td><a href="@wwwPhp/php-reference/erp" target="_blank" rel="noopener">@wwwPhp/php-reference/erp</a> <span class="stack php">Classic ERP</span></td>
+            </tr>
+        </tbody>
+    </table>
+</section>
+
 <div class="banner">
     <strong>Confirmed architecture:</strong> ASP.NET Core becomes live primary; PHP stays installed as <strong>reference</strong> so you can still see previous results and spot gaps.
     Status: <code>@phpRef.Status</code>. Locks: <code>cutoverAllowed=@phpRef.CutoverAllowed.ToString().ToLowerInvariant()</code>,
@@ -186,26 +225,26 @@
             </tr>
             <tr>
                 <td>CP</td>
-                <td><a href="@wwwPhp/CP/" target="_blank" rel="noopener">@wwwPhp/CP/</a></td>
-                <td><span class="stack php">PHP ref</span></td>
+                <td><a href="@wwwPhp/php-reference/cp" target="_blank" rel="noopener">@wwwPhp/php-reference/cp</a></td>
+                <td><span class="stack php">Classic CP</span></td>
                 <td>Login graphics, desktop chrome, menus</td>
             </tr>
             <tr>
                 <td>ERP</td>
-                <td><a href="@wwwPhp/ERP/" target="_blank" rel="noopener">@wwwPhp/ERP/</a></td>
-                <td><span class="stack php">PHP ref</span></td>
+                <td><a href="@wwwPhp/php-reference/erp" target="_blank" rel="noopener">@wwwPhp/php-reference/erp</a></td>
+                <td><span class="stack php">Classic ERP</span></td>
                 <td>Finance desktop, areas, branding</td>
             </tr>
             <tr>
                 <td>BOS</td>
-                <td><a href="@wwwPhp/BOS/" target="_blank" rel="noopener">@wwwPhp/BOS/</a></td>
-                <td><span class="stack php">PHP ref</span></td>
+                <td><a href="@wwwPhp/php-reference/bos" target="_blank" rel="noopener">@wwwPhp/php-reference/bos</a></td>
+                <td><span class="stack php">Classic BOS</span></td>
                 <td>Particles, rings, role tabs, full modules</td>
             </tr>
             <tr>
                 <td>Dedicated CP host</td>
-                <td><a href="@dedicatedCp/CP/" target="_blank" rel="noopener">@dedicatedCp/CP/</a></td>
-                <td><span class="stack php">PHP ref</span></td>
+                <td><a href="@dedicatedCp/php-reference/cp" target="_blank" rel="noopener">@dedicatedCp/php-reference/cp</a></td>
+                <td><span class="stack php">Classic CP</span></td>
                 <td>Same Super CP chrome on dedicated host</td>
             </tr>
         </tbody>
@@ -296,17 +335,17 @@
             </tr>
             <tr>
                 <td>CP</td>
-                <td><a href="@tenantPhp/CP/" target="_blank" rel="noopener">@tenantPhp/CP/</a> <span class="stack php">PHP ref</span></td>
-                <td>Tenant <code>/cp/app</code> → expect <span class="stack safe">404</span> until unlocked</td>
+                <td><a href="@tenantPhp/php-reference/cp" target="_blank" rel="noopener">@tenantPhp/php-reference/cp</a> <span class="stack php">Classic CP</span></td>
+                <td>Product <code>@tenantPhp/cp</code> is ASP.NET — open the classic twin next to it</td>
             </tr>
             <tr>
                 <td>ERP</td>
-                <td><a href="@tenantPhp/ERP/" target="_blank" rel="noopener">@tenantPhp/ERP/</a> <span class="stack php">PHP ref</span></td>
-                <td>Tenant <code>/health</code> → expect <span class="stack safe">404</span> until unlocked</td>
+                <td><a href="@tenantPhp/php-reference/erp" target="_blank" rel="noopener">@tenantPhp/php-reference/erp</a> <span class="stack php">Classic ERP</span></td>
+                <td>Product <code>@tenantPhp/erp</code> is ASP.NET — open the classic twin next to it</td>
             </tr>
             <tr>
                 <td>BOS</td>
-                <td>Privileged BOS reference: <a href="@wwwPhp/BOS/" target="_blank" rel="noopener">@wwwPhp/BOS/</a></td>
+                <td>Privileged BOS reference: <a href="@wwwPhp/php-reference/bos" target="_blank" rel="noopener">@wwwPhp/php-reference/bos</a></td>
                 <td><span class="stack safe">tenant ASP.NET BOS off</span></td>
             </tr>
         </tbody>

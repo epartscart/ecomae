@@ -7,15 +7,46 @@
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
-@inject NavigationManager Nav
 
 <PageTitle>Period Close · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Period Close" BreadcrumbArea="Finance" BreadcrumbTab="Year end">
+    <PhpParityModuleBody AppPath="/erp/period-close-app" IsAdmin="_isAdmin" />
 
-    
-    <PhpErpModulePageHeader Title="Period Close" Subtitle="Live shop digest. Writes stay on ERP ajax." PhpTabHref="@_phpTab" />
 
+    <PhpErpModulePageHeader Title="Period Close" Subtitle="Reopen a closed year or set period status here. Year create and year-end close stay on the classic twin." />
+
+    @if (!string.IsNullOrWhiteSpace(_flashOk))
+    {
+        <div class="alert alert-success" role="status" style="margin:0 0 1rem;padding:.7rem .9rem;border-radius:.4rem;background:#ecfdf5;color:#065f46">@_flashOk</div>
+    }
+    @if (!string.IsNullOrWhiteSpace(_flashErr))
+    {
+        <div class="alert alert-danger" role="status" style="margin:0 0 1rem;padding:.7rem .9rem;border-radius:.4rem;background:#fef2f2;color:#991b1b">@_flashErr</div>
+    }
+    @if (_isAdmin)
+    {
+        <form method="post" action="/erp/ajax/fy-reopen" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/erp/period-close-app" />
+            <label>Year id <input type="number" name="year_id" min="1" required style="width:6rem" /></label>
+            <button type="submit">Reopen year</button>
+        </form>
+        <form method="post" action="/erp/ajax/fy-period-status" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/erp/period-close-app" />
+            <label>Year id <input type="number" name="year_id" min="1" required style="width:6rem" /></label>
+            <label>Period no <input type="number" name="period_no" min="1" required style="width:5rem" /></label>
+            <label>Status
+                <select name="status">
+                    <option value="open">open</option>
+                    <option value="closed">closed</option>
+                    <option value="locked">locked</option>
+                </select>
+            </label>
+            <button type="submit">Set period status</button>
+        </form>
+    }
 
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Period Close KPIs">
         <div class="kpi"><div class="lbl">Shown (limit @_limit)</div><div class="val">@_periods.Count</div></div>
@@ -38,7 +69,7 @@
             <tbody>
                 @if (_periods.Count == 0)
                 {
-                    <tr><td colspan="6">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? "Nothing to show yet." : _message) : "Sign in with ERP capability for live rows.")</td></tr>
+                    <tr><td colspan="6">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? "No records yet." : _message) : "Sign in with ERP capability for live rows.")</td></tr>
                 }
                 else
                 {
@@ -72,14 +103,18 @@
     private int _limit = 100;
     private string _source = "n/a";
     private string _message = "";
+    private string _flashOk = "";
+    private string _flashErr = "";
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
+        _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
+        _flashErr = ctx.Request.Query["err"].ToString() ?? "";
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
-        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("erp");
+        _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
         if (!_isAdmin)
         {
             _message = "Sign in for live data.";

@@ -44,12 +44,14 @@
     <section class="epc-nw-hero">
         <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
         <h1>Event bus</h1>
-        <p>Manage store operations, catalogue, and partner integrations from one control panel.</p>
+        <p>@CpPhpModuleCopy.PurposeFor(Nav.Uri)</p>
         <div class="epc-nw-cta">
             <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
 
         </div>
     </section>
+    <PhpParityModuleBody AppPath="/cp/event-bus-app" IsAdmin="_isAdmin" />
+
 
     <div class="epc-nw-kpis" aria-label="Event bus stats">
         <div class="epc-nw-kpi"><strong>@_eventCount.ToString(CultureInfo.InvariantCulture)</strong><span>Events</span></div>
@@ -73,7 +75,7 @@
         <tbody>
             @if (_rows.Count == 0)
             {
-                <tr><td colspan="6">Nothing to show yet.</td></tr>
+                <tr><td colspan="6">No records yet.</td></tr>
             }
             else
             {
@@ -128,7 +130,7 @@ else
         }
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
-        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
+        _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
         if (!_isAdmin)
         {
             return;

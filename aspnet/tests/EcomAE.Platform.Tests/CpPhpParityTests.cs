@@ -21,7 +21,7 @@ public sealed class CpPhpParityTests
     [InlineData("/CP/shop/tenant_hub/tenant_hub", "/cp/tenants-app")]
     [InlineData("/CP/control/portal/epc_tenant_control_center", "/cp/tenants-app")]
     [InlineData("/CP/shop/finance/erp/uae-tax-compliance?epc_erp_shell=1", "/cp/uae-tax-compliance-app")]
-    [InlineData("/CP/control/portal/epc_erp_only_onboard_guide", "/cp/ops-guides-app")]
+    [InlineData("/CP/control/portal/epc_erp_only_onboard_guide", "/cp/guides-app?g=erp-only-onboard")]
     [InlineData("/CP/control", "/cp/control")]
     [InlineData("/CP/control/portal/epc_tenant_config", "/cp/tenant-config-app")]
     [InlineData("/CP/control/portal/epc_design_tokens", "/cp/design-tokens-app")]
@@ -151,7 +151,11 @@ public sealed class CpPhpParityTests
     public void PricesUpload_DoesNotCollapseToPriceLists()
     {
         Assert.Equal("/cp/prices-upload-app", PhpSurfaceLinkMap.MapCpPhpPath("/CP/shop/prices_upload/ajax_5_import_csv_to_db.php"));
+        Assert.Equal("/cp/prices-upload-app", PhpSurfaceLinkMap.MapCpPhpPath("/CP/shop/prices"));
+        Assert.Equal("/cp/prices-upload-app", PhpSurfaceLinkMap.MapCpPhpPath("/CP/shop/prices/guide"));
+        Assert.Equal("/cp/shop/prices/price?price_id=4", PhpSurfaceLinkMap.MapCpPhpPath("/CP/shop/prices/price?price_id=4"));
         Assert.Equal("/cp/price-lists-app", PhpSurfaceLinkMap.MapCpPhpPath("/CP/shop/price-management"));
+        Assert.Equal("/cp/price-lists-app", PhpSurfaceLinkMap.MapCpPhpPath("/CP/shop/pricing"));
     }
 
     [Fact]

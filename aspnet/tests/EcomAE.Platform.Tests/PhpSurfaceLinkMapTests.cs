@@ -21,7 +21,8 @@ public sealed class PhpSurfaceLinkMapTests
     [InlineData("/CP/control", "/cp/control")]
     [InlineData("/cp/control", "/cp/control")]
     [InlineData("/CP/shop/crm/crm_main", "/cp/crm-board-app")]
-    [InlineData("/CP/shop/prices", "/cp/price-lists-app")]
+    [InlineData("/CP/shop/prices", "/cp/prices-upload-app")]
+    [InlineData("/CP/shop/prices/price?price_id=4", "/cp/shop/prices/price?price_id=4")]
     [InlineData("/CP/shop/payments/payments", "/cp/payment-gateways-app")]
     [InlineData("/ERP/?epc_erp_shell=1&area=sales&tab=sales_orders", "/erp/sales-orders-app")]
     [InlineData("/ERP/?epc_erp_shell=1&area=finance", "/erp/gl-journals-app")]
@@ -93,8 +94,15 @@ public sealed class PhpSurfaceLinkMapTests
     [Fact]
     public void PhpReferenceOnlyHref_StaysUnderPhpReference()
     {
-        Assert.Equal("/php-reference/cp", PhpSurfaceLinkMap.PhpReferenceOnlyHref("/CP/shop/orders/orders"));
-        Assert.Equal("/php-reference/erp", PhpSurfaceLinkMap.PhpReferenceOnlyHref("/ERP/?epc_erp_shell=1"));
+        Assert.Equal("/php-reference/cp", PhpSurfaceLinkMap.PhpReferenceOnlyHref("/CP/"));
+        Assert.Equal("/php-reference/cp", PhpSurfaceLinkMap.PhpReferenceOnlyHref("/cp"));
+        Assert.Equal("/php-reference/CP/shop/orders/orders", PhpSurfaceLinkMap.PhpReferenceOnlyHref("/CP/shop/orders/orders"));
+        Assert.Equal("/php-reference/erp", PhpSurfaceLinkMap.PhpReferenceOnlyHref("/erp"));
+        Assert.Equal("/php-reference/ERP/?epc_erp_shell=1", PhpSurfaceLinkMap.PhpReferenceOnlyHref("/ERP/?epc_erp_shell=1"));
+        Assert.Equal(
+            "/php-reference/ERP/?epc_erp_shell=1&area=finance&tab=ledger",
+            PhpSurfaceLinkMap.PhpReferenceOnlyHref("/ERP/?epc_erp_shell=1&area=finance&tab=ledger"));
         Assert.Equal("/php-reference/home", PhpSurfaceLinkMap.PhpReferenceOnlyHref("/shop/part_search"));
+        Assert.Equal("/php-reference/cp", PhpSurfaceLinkMap.PhpReferenceOnlyHref("/php-reference/cp"));
     }
 }

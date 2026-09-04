@@ -37,7 +37,46 @@ public sealed class PhpVsAspNetRemovalMatrixTests
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.WritesOwner == "php");
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "sf-cart" && r.WritesOwner == "aspnet");
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "cp-orders" && r.WritesOwner == "aspnet");
+        Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "sf-returns" && r.WritesOwner == "aspnet");
+        Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "cp-users" && r.WritesOwner == "aspnet");
+        Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "cp-lang" && r.WritesOwner == "aspnet");
+        Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "cp-channels" && r.WritesOwner == "aspnet");
+        Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "cp-carriers" && r.WritesOwner == "aspnet");
+        Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "cp-workshop" && r.WritesOwner == "aspnet");
+        Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "cp-currencies" && r.WritesOwner == "aspnet");
+        Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "cp-prices-edit" && r.WritesOwner == "aspnet");
+        Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "cp-synonyms" && r.WritesOwner == "aspnet");
+        Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "cp-crosses" && r.WritesOwner == "aspnet");
+        Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "cp-catalogue" && r.WritesOwner == "aspnet");
+        Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "cp-warranty-rma" && r.WritesOwner == "aspnet");
+        Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "cp-vin-requests" && r.WritesOwner == "aspnet");
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "erp-payroll" && r.WritesOwner == "aspnet");
+        Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "erp-inventory" && r.WritesOwner == "aspnet");
+        Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "erp-workspace-favorites" && r.WritesOwner == "aspnet");
+        Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "erp-jw-repairs" && r.WritesOwner == "aspnet");
+        Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "cp-prices-upload" && r.WritesOwner == "aspnet");
+        Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "cp-storages" && r.WritesOwner == "aspnet");
+        Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "cp-quote-requests" && r.WritesOwner == "aspnet");
+        Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "cp-vendor-approvals" && r.WritesOwner == "aspnet");
+        Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "cp-api-clients" && r.WritesOwner == "aspnet");
+        Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "cp-price-storage-rules" && r.WritesOwner == "aspnet");
+        Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "cp-content-pages" && r.WritesOwner == "aspnet");
+        Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "erp-offices-cash" && r.WritesOwner == "aspnet");
+        Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "erp-wms-locations" && r.WritesOwner == "aspnet");
+        Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "erp-subscriptions" && r.WritesOwner == "aspnet");
+        Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "erp-contracts" && r.WritesOwner == "aspnet");
+        Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "erp-workflow" && r.WritesOwner == "aspnet");
+        Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "erp-collections-cases" && r.WritesOwner == "aspnet");
+        Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "erp-procurement-reqs" && r.WritesOwner == "aspnet");
+        Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "erp-ins-claims" && r.WritesOwner == "aspnet");
+        Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "erp-vat-refund-status" && r.WritesOwner == "aspnet");
+        Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "erp-pf-case-cancel" && r.WritesOwner == "aspnet");
+        Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "erp-bos-wf-disable-rule" && r.WritesOwner == "aspnet");
+        Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "erp-bos-compliance-disable" && r.WritesOwner == "aspnet");
+        Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "erp-hr-leave-expense" && r.WritesOwner == "aspnet");
+        Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "erp-cons-deletes" && r.WritesOwner == "aspnet");
+        Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "erp-fy-reopen-period" && r.WritesOwner == "aspnet");
+        Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "erp-wht-settle" && r.WritesOwner == "aspnet");
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "write-storefront-cart" && r.WritesOwner == "php");
     }
 
@@ -89,6 +128,79 @@ public sealed class PhpVsAspNetRemovalMatrixTests
             ("CpCreditLimitsApp.razor", "/cp/credit-limits/set"),
             ("CpPoApprovalsApp.razor", "/cp/po-approvals/approve"),
             ("CpOrdersApp.razor", "/cp/orders/set-item-status"),
+            ("CpOrdersApp.razor", "/cp/orders/set-items-status"),
+            ("CpOrdersApp.razor", "/cp/orders/add-comment"),
+            ("CpOrdersApp.razor", "/cp/orders/fulfillment-set-stage"),
+            ("StorefrontReturnsApp.razor", "ReturnsMessageHref"),
+            ("StorefrontReturnsApp.razor", "ReturnsCreateHref"),
+            ("CpOrdersApp.razor", "/cp/orders/update-item"),
+            ("CpUsersApp.razor", "/cp/users/set-comment"),
+            ("CpUsersApp.razor", "/cp/users/set-unlocked"),
+            ("CpUsersApp.razor", "/cp/vendors/approvals"),
+            ("CpQuoteRequestsApp.razor", "/cp/quote-requests/note"),
+            ("CpQuoteRequestsApp.razor", "/cp/quote-requests/send"),
+            ("CpApiClientsApp.razor", "/cp/api-clients/toggle"),
+            ("CpPriceListsApp.razor", "/cp/prices/storage-rules"),
+            ("CpPagesApp.razor", "/cp/content/published"),
+            ("CpPagesApp.razor", "/cp/content/main"),
+            ("ErpCashAccountsApp.razor", "/erp/offices-cash/add"),
+            ("ErpCashAccountsApp.razor", "/erp/offices-cash/codes/delete"),
+            ("CpWarehouseWmsApp.razor", "/erp/wms/locations/delete"),
+            ("CpWarehouseWmsApp.razor", "/erp/wms/waves/release"),
+            ("ErpSalesOrdersApp.razor", "/erp/subscriptions/status"),
+            ("ErpContractsApp.razor", "/erp/ajax/ctr-status"),
+            ("ErpWorkflowApp.razor", "/erp/workflow/status"),
+            ("CpCollectionsDunningApp.razor", "/erp/collections/cases/status"),
+            ("CpPurchaseRequestsApp.razor", "/erp/procurement/requisitions/submit"),
+            ("CpPurchaseRequestsApp.razor", "/erp/procurement/requisitions/decision"),
+            ("CpPurchaseRequestsApp.razor", "/erp/ajax/proc-req-convert"),
+            ("CpInsuranceComplianceApp.razor", "/erp/ajax/ins-claim-status"),
+            ("CpInsuranceComplianceApp.razor", "/erp/ajax/ins-doc-delete"),
+            ("CpHrOverviewApp.razor", "/erp/ajax/hr-leave-status"),
+            ("CpHrOverviewApp.razor", "/erp/ajax/hr-expense-status"),
+            ("CpConsolidationsApp.razor", "/erp/ajax/cons-entity-delete"),
+            ("CpConsolidationsApp.razor", "/erp/ajax/cons-ic-delete"),
+            ("ErpVatApp.razor", "/erp/ajax/bos-vat-refund-status"),
+            ("ErpSalesOrdersApp.razor", "/erp/ajax/sub-invoice-paid"),
+            ("ErpProcessFlowTasksApp.razor", "/erp/ajax/pf-case-cancel"),
+            ("ErpProcessFlowTasksApp.razor", "/erp/ajax/pf-step-delete"),
+            ("ErpApprovalsApp.razor", "/erp/ajax/bos-wf-disable-rule"),
+            ("CpSoc2ComplianceApp.razor", "/erp/ajax/bos-compliance-disable-obligation"),
+            ("ErpPeriodCloseApp.razor", "/erp/ajax/fy-reopen"),
+            ("ErpPeriodCloseApp.razor", "/erp/ajax/fy-period-status"),
+            ("ErpWithholdingApp.razor", "/erp/ajax/wht-settle"),
+            ("CpLanguagesApp.razor", "/cp/lang/set-is-custom"),
+            ("CpLanguagesApp.razor", "/cp/lang/set-is-error"),
+            ("CpLanguagesApp.razor", "/cp/lang/set-same"),
+            ("CpLanguagesApp.razor", "/cp/lang/set-used-found"),
+            ("CpLanguagesApp.razor", "/cp/lang/save-translation"),
+            ("CpLanguagesApp.razor", "/cp/lang/save-description"),
+            ("CpLanguagesApp.razor", "/cp/lang/delete-not-used"),
+            ("CpMarketplaceChannelsApp.razor", "/cp/channels/write"),
+            ("CpCarriersApp.razor", "/cp/logistics/write"),
+            ("CpWorkshopApp.razor", "/cp/workshop/write"),
+            ("CpSynonymsApp.razor", "/cp/synonyms/write"),
+            ("CpCrossesApp.razor", "/cp/crosses/write"),
+            ("CpPricesEditApp.razor", "/cp/prices-edit/write"),
+            ("CpCurrenciesApp.razor", "/cp/currencies/set-rate"),
+            ("CpProductCatalogueApp.razor", "/cp/catalogue/set-min-limit"),
+            ("CpProductCatalogueApp.razor", "/cp/catalogue/templates-actions"),
+            ("ErpWorkspaceFavoritesApp.razor", "/erp/ajax/erp-fav-add"),
+            ("ErpWorkspaceFavoritesApp.razor", "/erp/ajax/erp-fav-remove"),
+            ("ErpWorkspaceFavoritesApp.razor", "/erp/ajax/shortcut-delete"),
+            ("ErpWorkspaceFavoritesApp.razor", "/erp/ajax/shortcut-delete-key"),
+            ("ErpWorkspaceFavoritesApp.razor", "/erp/ajax/shortcut-reset"),
+            ("CpStoragesApp.razor", "/cp/storages/groups"),
+            ("CpPricesUploadApp.razor", "/cp/prices/complete-session"),
+            ("ErpPayrollApp.razor", "/erp/ajax/hr-update-days"),
+            ("CpHrOverviewApp.razor", "/erp/ajax/hr-update-days"),
+            ("ErpInventoryStockApp.razor", "/erp/ajax/inv-set-reorder-level"),
+            ("CpJewelleryRepairsApp.razor", "/erp/ajax/jw-repair-update-status"),
+            ("CpReturnsRmaApp.razor", "/cp/returns/action"),
+            ("CpSystemRequestsApp.razor", "/cp/requests/set-vin-viewed"),
+            ("StorefrontWishlistApp.razor", "WishlistRemoveHref"),
+            ("StorefrontCompareApp.razor", "CompareRemoveHref"),
+            ("StorefrontProfileApp.razor", "ProfileWriteHref"),
         };
         foreach (var (name, needle) in cases)
         {

@@ -2,7 +2,7 @@ namespace EcomAE.Platform.Presentation;
 
 /// <summary>
 /// Seeded returns-list twin for PHP <c>shop/returns/returns_list</c>.
-/// New returns still POST to <see cref="PhpVendorPortal.ReturnsWriteHref"/>.
+/// Full-qty create-return POSTs to <see cref="PhpCustomerWrites.ReturnsCreateHref"/>. Partial-qty / photos stay on the classic form.
 /// </summary>
 public static class PhpCustomerReturns
 {

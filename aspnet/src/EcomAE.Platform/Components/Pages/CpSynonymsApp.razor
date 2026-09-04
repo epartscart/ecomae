@@ -11,9 +11,8 @@
 
 <PageTitle>Brand synonyms · Control Panel · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="cp" />
-
-<PhpCpDesktopChrome IsAdmin="_isAdmin">
-    <style>
+<HeadContent>
+<style>
         .epc-nw-hero {
             margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
             background:linear-gradient(135deg,#0c4a6e 0%,#2563eb 45%,#0ea5e9 100%);
@@ -36,17 +35,81 @@
         .epc-nw-table th { background:#f8fafc; color:#475569; font-size:.75rem; text-transform:uppercase; letter-spacing:.03em; }
         .epc-nw-note { margin-top:1rem; padding:.75rem .9rem; background:#f8fafc; border:1px solid #cbd5e1; border-radius:.45rem; color:#334155; font-size:.86rem; }
         @@media (max-width:900px){ .epc-nw-kpis{grid-template-columns:1fr 1fr;} }
-    </style>
+</style>
+</HeadContent>
 
+<PhpCpDesktopChrome IsAdmin="_isAdmin">
     <section class="epc-nw-hero">
         <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
         <h1>Brand synonyms</h1>
-        <p>Manage store operations, catalogue, and partner integrations from one control panel.</p>
+        <p>@CpPhpModuleCopy.PurposeFor(Nav.Uri)</p>
+        <p>Manufacturer and synonym add/save/delete write here when confirmWrites is set. List and get stay on the digest.</p>
         <div class="epc-nw-cta">
             <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
             <a class="ghost" href="/cp/module-ajax/writes/catalog">Write catalog</a>
         </div>
     </section>
+    <PhpParityModuleBody AppPath="/cp/synonyms-app" IsAdmin="_isAdmin" />
+
+
+    @if (!string.IsNullOrWhiteSpace(_flashOk))
+    {
+        <div class="alert alert-success" role="status" style="margin:0 0 1rem;padding:.7rem .9rem;border-radius:.4rem;background:#ecfdf5;color:#065f46">@_flashOk</div>
+    }
+    @if (!string.IsNullOrWhiteSpace(_flashErr))
+    {
+        <div class="alert alert-danger" role="status" style="margin:0 0 1rem;padding:.7rem .9rem;border-radius:.4rem;background:#fef2f2;color:#991b1b">@_flashErr</div>
+    }
+    @if (_isAdmin)
+    {
+        <div style="display:grid;gap:.65rem;margin:0 0 1rem">
+            <form method="post" action="/cp/synonyms/write" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="/cp/synonyms-app" />
+                <input type="hidden" name="action" value="add_manufacturer" />
+                <label>Manufacturer name <input type="text" name="name" required maxlength="255" /></label>
+                <button type="submit">Add manufacturer</button>
+            </form>
+            <form method="post" action="/cp/synonyms/write" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="/cp/synonyms-app" />
+                <input type="hidden" name="action" value="save_manufacturer" />
+                <label>Manufacturer id <input type="number" name="id" min="1" required /></label>
+                <label>Name <input type="text" name="name" required maxlength="255" /></label>
+                <button type="submit">Save manufacturer</button>
+            </form>
+            <form method="post" action="/cp/synonyms/write" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="/cp/synonyms-app" />
+                <input type="hidden" name="action" value="del_manufacturer" />
+                <label>Manufacturer id <input type="number" name="id" min="1" required /></label>
+                <button type="submit">Delete manufacturer</button>
+            </form>
+            <form method="post" action="/cp/synonyms/write" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="/cp/synonyms-app" />
+                <input type="hidden" name="action" value="add_synonym" />
+                <label>Manufacturer id <input type="number" name="manufacturerId" min="1" required /></label>
+                <label>Synonym <input type="text" name="name" required maxlength="255" /></label>
+                <button type="submit">Add synonym</button>
+            </form>
+            <form method="post" action="/cp/synonyms/write" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="/cp/synonyms-app" />
+                <input type="hidden" name="action" value="save_synonym" />
+                <label>Synonym id <input type="number" name="id" min="1" required /></label>
+                <label>Synonym <input type="text" name="name" required maxlength="255" /></label>
+                <button type="submit">Save synonym</button>
+            </form>
+            <form method="post" action="/cp/synonyms/write" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="/cp/synonyms-app" />
+                <input type="hidden" name="action" value="del_synonym" />
+                <label>Synonym id <input type="number" name="id" min="1" required /></label>
+                <button type="submit">Delete synonym</button>
+            </form>
+        </div>
+    }
 
     <div class="epc-nw-kpis" aria-label="Brand synonyms stats">
         <div class="epc-nw-kpi"><strong>@_manufacturerCount.ToString(CultureInfo.InvariantCulture)</strong><span>Manufacturers</span></div>
@@ -68,7 +131,7 @@
         <tbody>
             @if (_rows.Count == 0)
             {
-                <tr><td colspan="4">Nothing to show yet.</td></tr>
+                <tr><td colspan="4">No records yet.</td></tr>
             }
             else
             {
@@ -86,7 +149,7 @@
     </table>
     </div>
 
-    <div class="epc-nw-note">Synonym add/save/delete stay on manufacturers_synonyms module-ajax dry-run + PHP.</div>
+    <div class="epc-nw-note">Add, save, and delete manufacturer and synonym write when confirmWrites is set. List and get stay on the digest.</div>
 
 </PhpCpDesktopChrome>
 
@@ -100,14 +163,18 @@
     private IReadOnlyList<CpSynonymsRowDigest> _rows = [];
     private string _source = "n/a";
     private string _message = "";
+    private string _flashOk = "";
+    private string _flashErr = "";
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
 
+        _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
+        _flashErr = ctx.Request.Query["err"].ToString() ?? "";
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
-        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
+        _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
         if (!_isAdmin)
         {
             return;

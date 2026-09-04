@@ -12,6 +12,8 @@
 <PageTitle>Aging · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Aging" BreadcrumbArea="Finance" BreadcrumbTab="Aging">
+    <PhpParityModuleBody AppPath="/erp/aging-app" IsAdmin="_isAdmin" />
+
 
     
     <PhpErpModulePageHeader Title="AR / AP / Inventory aging" Subtitle="Live shop digest. Writes stay on ERP ajax." PhpTabHref="@_phpTab" />
@@ -58,7 +60,7 @@
                     <tbody>
                         @if (rows.Count == 0)
                         {
-                            <tr><td colspan="@(labels.Count + 2)">Nothing to show yet.</td></tr>
+                            <tr><td colspan="@(labels.Count + 2)">No records yet.</td></tr>
                         }
                         else
                         {
@@ -86,7 +88,7 @@
         var ctx = Http.HttpContext;
         if (ctx is null) return;
         var session = await Sessions.ValidateAsync(ctx);
-        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("erp");
+        _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
         if (!_isAdmin)
         {
             return; // guest browse — Sign in for live data

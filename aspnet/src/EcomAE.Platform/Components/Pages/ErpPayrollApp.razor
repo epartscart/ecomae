@@ -29,6 +29,13 @@
             <label>Run id <input type="number" name="id" min="1" required style="width:6rem;margin:0 8px" /></label>
             <button type="submit" class="btn btn-sm btn-primary">Approve run</button>
         </form>
+        <form method="post" action="/erp/ajax/hr-update-days" class="form-inline" style="margin:0 0 12px;padding:10px;border:1px solid #c5d4de;background:#fff">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/erp/payroll-app" />
+            <label>Staff profile id <input type="number" name="staffProfileId" min="1" required style="width:6rem;margin:0 8px" /></label>
+            <label>Days worked <input type="text" name="daysWorked" required style="width:5rem;margin:0 8px" /></label>
+            <button type="submit" class="btn btn-sm btn-default">Save days</button>
+        </form>
     }
 
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Payroll KPIs">

@@ -24,6 +24,10 @@ public static class PhpSurfaceLinkMap
         ("shop/parts_agent_chats", "/cp/parts-agent-chats-app"),
         ("shop/parts_agent", "/cp/parts-agent-chats-app"),
         ("shop/prices/multivendor", "/cp/prices-upload-app"),
+        ("shop/prices/upload", "/cp/prices-upload-app"),
+        ("shop/prices/guide", "/cp/prices-upload-app"),
+        ("shop/prices/review", "/cp/prices-upload-app"),
+        ("shop/prices/price", "/cp/shop/prices/price"),
         ("shop/prices_upload", "/cp/prices-upload-app"),
         ("shop/prices_edit", "/cp/prices-edit-app"),
         ("shop/prices_send", "/cp/prices-send-app"),
@@ -120,6 +124,7 @@ public static class PhpSurfaceLinkMap
         ("registracionnye-varianty", "/cp/users-app"),
         ("users/usergroups", "/cp/groups-app"),
         ("users/user_manager", "/cp/users-app"),
+        ("users/vendor_approvals", "/cp/users-app"),
         // After usergroups — "users/user" would otherwise steal usergroups.
         ("users/user", "/cp/users-app"),
         ("users/approvals", "/cp/users-app"),
@@ -251,7 +256,7 @@ public static class PhpSurfaceLinkMap
         ("shop/crm", "/cp/crm-board-app"),
         ("shop/pos", "/cp/pos-overview-app"),
         ("shop/crosses", "/cp/crosses-app"),
-        ("shop/prices", "/cp/price-lists-app"),
+        ("shop/prices", "/cp/prices-upload-app"),
         ("modules/modules_manager", "/cp/modules-app"),
         ("content/content_manager", "/cp/pages-app"),
         ("menu/menu_manager", "/cp/menus-app"),
@@ -929,6 +934,23 @@ public static class PhpSurfaceLinkMap
     }
 
     /// <summary>
+    /// PHP <c>/CP/shop/prices/price?price_id=</c> and wizard/review <c>?price_id=</c>
+    /// keep the list id so the ASP.NET manager opens the same row.
+    /// </summary>
+    private static string MapCpDocpartPricesHref(string original, string aspNet)
+    {
+        var raw = ExtractQuery(original, "price_id");
+        if (!string.IsNullOrWhiteSpace(raw)
+            && long.TryParse(raw, System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture, out var priceId)
+            && priceId > 0)
+        {
+            return aspNet + "?price_id=" + priceId.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        }
+
+        return aspNet;
+    }
+
+    /// <summary>
     /// PHP CHPU <c>/parts/{BRAND}/{ARTICLE}</c> (and <c>/parts/brands/{ARTICLE}</c>) → search-app query.
     /// </summary>
     private static bool TryMapPartsBrandArticlePath(string value, out string href)
@@ -1109,30 +1131,39 @@ public static class PhpSurfaceLinkMap
         }
 
         var value = href.Trim();
-        if (Uri.TryCreate(value, UriKind.Absolute, out var absolute))
+        // Only strip scheme/host on real http(s) URLs. A leading "/ERP/?…" must not go
+        // through System.Uri — it encodes '?' into the path (%3F) and drops the tab.
+        if (Uri.TryCreate(value, UriKind.Absolute, out var absolute)
+            && (absolute.Scheme == Uri.UriSchemeHttp || absolute.Scheme == Uri.UriSchemeHttps)
+            && !string.IsNullOrEmpty(absolute.Host))
         {
-            value = absolute.AbsolutePath;
+            value = absolute.AbsolutePath + absolute.Query;
+        }
+
+        if (value.StartsWith("/php-reference", StringComparison.OrdinalIgnoreCase))
+        {
+            return value;
         }
 
         if (IsUpperPhpShell(value, "CP")
             || value.StartsWith("/cp/", StringComparison.OrdinalIgnoreCase)
             || value.Equals("/cp", StringComparison.OrdinalIgnoreCase))
         {
-            return "/php-reference/cp";
+            return PrefixPhpReferenceShell(value, "cp", "CP");
         }
 
         if (IsUpperPhpShell(value, "ERP")
             || value.StartsWith("/erp/", StringComparison.OrdinalIgnoreCase)
             || value.Equals("/erp", StringComparison.OrdinalIgnoreCase))
         {
-            return "/php-reference/erp";
+            return PrefixPhpReferenceShell(value, "erp", "ERP");
         }
 
         if (IsUpperPhpShell(value, "BOS")
             || value.StartsWith("/bos/", StringComparison.OrdinalIgnoreCase)
             || value.Equals("/bos", StringComparison.OrdinalIgnoreCase))
         {
-            return "/php-reference/bos";
+            return PrefixPhpReferenceShell(value, "bos", "BOS");
         }
 
         if (value.StartsWith("/shop/", StringComparison.OrdinalIgnoreCase)
@@ -1145,6 +1176,38 @@ public static class PhpSurfaceLinkMap
         }
 
         return "/php-reference/storefront";
+    }
+
+    /// <summary>
+    /// Shell roots stay on the exact nginx aliases (/php-reference/cp|erp|bos).
+    /// Deep uppercase PHP paths keep the same screen: /php-reference/CP/… or /php-reference/ERP/?…
+    /// </summary>
+    private static string PrefixPhpReferenceShell(string value, string alias, string upper)
+    {
+        var qAt = value.IndexOf('?');
+        var path = qAt >= 0 ? value[..qAt] : value;
+        var query = qAt >= 0 ? value[qAt..] : "";
+        var trimmed = path.TrimEnd('/');
+        if (trimmed.Equals("/" + alias, StringComparison.OrdinalIgnoreCase)
+            || trimmed.Equals("/" + upper, StringComparison.Ordinal))
+        {
+            // Bare shell → exact nginx alias. Query (ERP area/tab) must stay on
+            // /php-reference/ERP/… so the prefix rewrite keeps $args.
+            if (string.IsNullOrEmpty(query))
+            {
+                return "/php-reference/" + alias;
+            }
+
+            return "/php-reference/" + upper + "/" + query;
+        }
+
+        if (path.StartsWith("/" + upper, StringComparison.Ordinal)
+            || path.StartsWith("/" + upper + "/", StringComparison.Ordinal))
+        {
+            return "/php-reference" + path + query;
+        }
+
+        return "/php-reference/" + alias + query;
     }
 
     public static bool IsPhpProductHref(string? href)
@@ -1395,6 +1458,12 @@ public static class PhpSurfaceLinkMap
     /// <summary>Maps a PHP /CP/… (or /cp/…) path to an ASP.NET Control app.</summary>
     public static string MapCpPhpPath(string value)
     {
+        // Operator guides (any *guide* URL) before module hubs and the ops|guide catch-all.
+        if (OperatorGuidesCatalog.TryMapPhpPath(value, out var guideHref))
+        {
+            return guideHref;
+        }
+
         // UAE tax lives under /finance/erp/… but must NOT be swallowed by the ERP shell remap.
         if (value.Contains("uae-tax-compliance", StringComparison.OrdinalIgnoreCase))
         {
@@ -1507,6 +1576,12 @@ public static class PhpSurfaceLinkMap
                     return MapCpFulfillmentQueueHref(value);
                 }
 
+                if (aspNet.Equals("/cp/shop/prices/price", StringComparison.OrdinalIgnoreCase)
+                    || aspNet.Equals("/cp/prices-upload-app", StringComparison.OrdinalIgnoreCase))
+                {
+                    return MapCpDocpartPricesHref(value, aspNet);
+                }
+
                 return aspNet;
             }
         }
@@ -1522,8 +1597,44 @@ public static class PhpSurfaceLinkMap
 
     private static string MapErpPhpPath(string value)
     {
+        if (OperatorGuidesCatalog.TryMapPhpPath(value, out var guideHref))
+        {
+            return guideHref;
+        }
+
         var pathOnly = value.Split('?', 2)[0];
         var path = pathOnly.ToLowerInvariant();
+        if (path.Contains("erp_full_guide", StringComparison.Ordinal)
+            || path.Contains("/erp/guide/full", StringComparison.Ordinal))
+        {
+            return "/erp/guide-app?book=full";
+        }
+
+        if (path.Contains("erp_advanced_guide", StringComparison.Ordinal)
+            || path.Contains("/erp/guide/advanced", StringComparison.Ordinal))
+        {
+            return "/erp/guide-app?book=advanced";
+        }
+
+        if (path.Contains("erp_only_operator", StringComparison.Ordinal)
+            || path.Contains("/erp/guide/erp-only", StringComparison.Ordinal))
+        {
+            return "/erp/guide-app?book=erp-only";
+        }
+
+        if (path.Contains("custom_shipping_guide", StringComparison.Ordinal)
+            || path.Contains("custom-shipping-guide", StringComparison.Ordinal)
+            || path.Contains("/erp/guide/customs", StringComparison.Ordinal))
+        {
+            return "/erp/guide-app?book=customs";
+        }
+
+        if (path.Contains("shop/finance/erp/guide", StringComparison.Ordinal)
+            || path.Contains("/erp/guide/howto", StringComparison.Ordinal))
+        {
+            return "/erp/guide-app?book=howto";
+        }
+
         if (path.Contains("erp/guide", StringComparison.Ordinal)
             || path.Equals("/erp/guide", StringComparison.Ordinal)
             || path.EndsWith("/guide", StringComparison.Ordinal)

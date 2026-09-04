@@ -31,7 +31,7 @@
         <div class="epc-users-page__hero">
             <div>
                 <h2><i class="fa fa-users"></i> Users · account console</h2>
-                <p>Same-to-same with PHP <code>users/usermanager</code> and <code>users/usermanager/user</code>: open a row to inspect profile, groups, balance, recent orders, and linked modules. Writes stay on the classic PHP editor until cutover.</p>
+                <p>Same-to-same with PHP <code>users/usermanager</code> and <code>users/usermanager/user</code>: open a row to inspect profile, groups, balance, recent orders, and linked modules. Staff comment, lock/unlock, and vendor suspend/reject write on ASP.NET. Password / create / vendor approve stay on the classic editor.</p>
             </div>
             <div class="epc-users-page__hero-actions">
                 <a class="btn btn-primary btn-sm" href="/cp/groups-app"><i class="fa fa-sitemap"></i> Groups</a>
@@ -76,6 +76,48 @@
             <span class="epc-users-toolbar__hint"><i class="fa fa-columns"></i> Open a row — detail console loads on the right</span>
         </div>
 
+        @if (!string.IsNullOrWhiteSpace(_flashOk))
+        {
+            <div class="alert alert-success" role="status">@_flashOk</div>
+        }
+        @if (!string.IsNullOrWhiteSpace(_flashErr))
+        {
+            <div class="alert alert-danger" role="status">@_flashErr</div>
+        }
+        @if (_isAdmin)
+        {
+            <form method="post" action="/cp/users/set-comment" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="@(_selectedId > 0 ? DetailHref(_selectedId, _query, "profile") : "/cp/users-app")" />
+                <label>User id <input type="number" name="userId" min="1" required value="@(_selectedId > 0 ? _selectedId.ToString(CultureInfo.InvariantCulture) : "")" style="width:6rem" /></label>
+                <label>Staff comment <input type="text" name="comment" maxlength="4000" style="width:18rem" /></label>
+                <button type="submit" class="btn btn-xs btn-primary">Save comment</button>
+            </form>
+            <form method="post" action="/cp/users/set-unlocked" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="@(_selectedId > 0 ? DetailHref(_selectedId, _query, "profile") : "/cp/users-app")" />
+                <label>User id <input type="number" name="userId" min="1" required value="@(_selectedId > 0 ? _selectedId.ToString(CultureInfo.InvariantCulture) : "")" style="width:6rem" /></label>
+                <label>Account
+                    <select name="unlocked">
+                        <option value="1">Unlock</option>
+                        <option value="0">Lock (ends sessions)</option>
+                    </select>
+                </label>
+                <button type="submit" class="btn btn-xs btn-default">Apply lock</button>
+            </form>
+            <form method="post" action="/cp/vendors/approvals" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="@(_selectedId > 0 ? DetailHref(_selectedId, _query, "profile") : "/cp/users-app")" />
+                <label>Vendor account id <input type="number" name="id" min="1" required style="width:6rem" /></label>
+                <label>Action
+                    <select name="action">
+                        <option value="suspend">Suspend</option>
+                        <option value="reject">Reject</option>
+                    </select>
+                </label>
+                <button type="submit" class="btn btn-xs btn-default">Apply vendor status</button>
+            </form>
+        }
         @if (!_isAdmin)
         {
             <div class="alert alert-info" role="status">Sign in with a Control Panel admin session to load live users. Guest browse shows the PHP-parity shell.</div>
@@ -114,7 +156,7 @@
                             <tbody>
                                 @if (_visibleUsers.Count == 0)
                                 {
-                                    <tr><td colspan="7">Nothing to show yet.</td></tr>
+                                    <tr><td colspan="7">No records yet.</td></tr>
                                 }
                                 else
                                 {
@@ -249,8 +291,10 @@
                                     <a class="btn btn-default btn-sm" href="/cp/orders"><i class="fa fa-shopping-basket"></i> Orders · OMS</a>
                                     <a class="btn btn-default btn-sm" href="@DetailHref(0, _query)"><i class="fa fa-times"></i> Close detail</a>
                                 </div>
-                                <p class="text-muted small" style="margin-top:10px">Save / unlock / password / auth-as-user writes remain on PHP <code>users/usermanager/user</code> until cutover. This pane is the same graphical management shell.</p>
+                                <p class="text-muted small" style="margin-top:10px">Password / create / auth-as-user writes remain on PHP <code>users/usermanager/user</code>. Lock/unlock and staff comment write on ASP.NET.</p>
                             </section>
+    <PhpParityModuleBody AppPath="/cp/users-app" IsAdmin="_isAdmin" />
+
                         }
                         else if (tab == "groups")
                         {
@@ -388,6 +432,8 @@
     private string _message = "";
     private string _query = "";
     private string _detailTab = "profile";
+    private string _flashOk = "";
+    private string _flashErr = "";
 
     protected override async Task OnInitializedAsync()
     {
@@ -397,8 +443,10 @@
             return;
         }
 
+        _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
+        _flashErr = ctx.Request.Query["err"].ToString() ?? "";
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
-        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
+        _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
 
         if (ctx.Request.Query.TryGetValue("user_id", out var userRaw)
             && int.TryParse(userRaw, NumberStyles.Integer, CultureInfo.InvariantCulture, out var uid)

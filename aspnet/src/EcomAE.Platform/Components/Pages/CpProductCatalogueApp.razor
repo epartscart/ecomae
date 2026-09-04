@@ -17,9 +17,11 @@
 }
 
 <PhpCpDesktopChrome IsAdmin="_isAdmin">
+    <PhpParityModuleBody AppPath="/cp/product-catalogue-app" IsAdmin="_isAdmin" />
+
 
     <PhpCpModulePageHeader Title="Product catalogue"
-                           Subtitle="PHP catalogue_editor parity — category KPIs and product rows from shop_catalogue_products. Tree editor / SKU media writes stay on classic PHP."
+                           Subtitle="Min-limit flag/value and category-template delete write here. Tree editor, SKU media, and template create stay on the compare twin."
                            PhpTabHref="@_phpTab">
         <a class="ghost" href="/cp/prices-upload-app">Prices upload</a>
         <a class="ghost" href="/cp/crosses-app">Crosses</a>
@@ -53,6 +55,45 @@
         </a>
     </div>
 
+    @if (!string.IsNullOrWhiteSpace(_flashOk))
+    {
+        <div class="alert alert-success" role="status">@_flashOk</div>
+    }
+    @if (!string.IsNullOrWhiteSpace(_flashErr))
+    {
+        <div class="alert alert-danger" role="status">@_flashErr</div>
+    }
+    @if (_isAdmin)
+    {
+        <form method="post" action="/cp/catalogue/set-min-limit" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 .65rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="@(_selectedId > 0 ? "/cp/product-catalogue-app?product_id=" + _selectedId.ToString(CultureInfo.InvariantCulture) : "/cp/product-catalogue-app")" />
+            <input type="hidden" name="action" value="enable" />
+            <label>Product id <input type="number" name="productId" min="1" required value="@(_selectedId > 0 ? _selectedId.ToString(CultureInfo.InvariantCulture) : "")" style="width:6rem" /></label>
+            <label>min_limit_enable
+                <select name="enabled">
+                    <option value="1">1 · on</option>
+                    <option value="0">0 · off</option>
+                </select>
+            </label>
+            <button type="submit" class="btn btn-xs btn-primary">Save flag</button>
+        </form>
+        <form method="post" action="/cp/catalogue/set-min-limit" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="@(_selectedId > 0 ? "/cp/product-catalogue-app?product_id=" + _selectedId.ToString(CultureInfo.InvariantCulture) : "/cp/product-catalogue-app")" />
+            <input type="hidden" name="action" value="value" />
+            <label>Product id <input type="number" name="productId" min="1" required value="@(_selectedId > 0 ? _selectedId.ToString(CultureInfo.InvariantCulture) : "")" style="width:6rem" /></label>
+            <label>min_limit <input type="number" name="value" min="0" step="1" required style="width:6rem" /></label>
+            <button type="submit" class="btn btn-xs btn-default">Save value</button>
+        </form>
+        <form method="post" action="/cp/catalogue/templates-actions" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/product-catalogue-app" />
+            <input type="hidden" name="action" value="delete" />
+            <label>Category template id <input type="number" name="templateId" min="1" required style="width:6rem" /></label>
+            <button type="submit" class="btn btn-xs btn-default">Delete template</button>
+        </form>
+    }
     @if (!_isAdmin)
     {
         <div class="alert alert-info" role="status">Sign in with a Control Panel admin session to load the live catalogue.</div>
@@ -165,14 +206,18 @@
     private CpProductCatalogueDigest? _selected;
     private string _source = "n/a";
     private string _message = "";
+    private string _flashOk = "";
+    private string _flashErr = "";
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
 
+        _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
+        _flashErr = ctx.Request.Query["err"].ToString() ?? "";
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
-        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
+        _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
 
         var uri = Nav.ToAbsoluteUri(Nav.Uri);
         var query = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query);

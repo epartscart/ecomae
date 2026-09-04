@@ -7,6 +7,7 @@
 @using System.Globalization
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Storefront
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject IHttpContextAccessor Http
 
@@ -46,6 +47,15 @@
 <StorefrontAnalytics Enabled="true" IncludeClarity="true" />
 
 <StorefrontTenantChrome>
+
+    @if (!string.IsNullOrWhiteSpace(_flashOk))
+    {
+        <p style="margin:0 0 .75rem;padding:.65rem .8rem;background:#ecfdf3;border:1px solid #86efac;color:#166534">@_flashOk</p>
+    }
+    @if (!string.IsNullOrWhiteSpace(_flashErr))
+    {
+        <p style="margin:0 0 .75rem;padding:.65rem .8rem;background:#fef2f2;border:1px solid #fecaca;color:#991b1b">@_flashErr</p>
+    }
 
     @if (_product is null)
     {
@@ -143,8 +153,44 @@
                 <label>Qty <input type="number" name="count_need" value="1" min="1" style="width:5rem;margin-left:.35rem;padding:.35rem" /></label>
                 <button type="submit" style="padding:.5rem .85rem;border:0;border-radius:.4rem;background:#dc2626;color:#fff;font-weight:800;cursor:pointer">Add to cart</button>
             </form>
-            <div class="epc-sf-pd-cta" style="margin:0">
+            <div class="epc-sf-pd-cta" style="margin:0;align-items:center">
                 <a class="btn btn-sm btn-primary" href="@StorefrontSurfaceLinks.Cart">Cart</a>
+                @if (_inWishlist)
+                {
+                    <form method="post" action="@PhpCustomerWrites.WishlistRemoveHref" style="margin:0">
+                        <input type="hidden" name="confirmWrites" value="true" />
+                        <input type="hidden" name="returnUrl" value="@("/storefront/product-app?id=" + _product.Id.ToString(CultureInfo.InvariantCulture))" />
+                        <input type="hidden" name="product_id" value="@_product.Id.ToString(CultureInfo.InvariantCulture)" />
+                        <button type="submit" style="padding:.5rem .85rem;border:1px solid #d1d5db;border-radius:.4rem;background:#fff;font-weight:700;cursor:pointer">Remove bookmark</button>
+                    </form>
+                }
+                else
+                {
+                    <form method="post" action="@PhpCustomerWrites.WishlistWriteHref" style="margin:0">
+                        <input type="hidden" name="confirmWrites" value="true" />
+                        <input type="hidden" name="returnUrl" value="@("/storefront/product-app?id=" + _product.Id.ToString(CultureInfo.InvariantCulture))" />
+                        <input type="hidden" name="product_id" value="@_product.Id.ToString(CultureInfo.InvariantCulture)" />
+                        <button type="submit" style="padding:.5rem .85rem;border:0;border-radius:.4rem;background:#0f766e;color:#fff;font-weight:800;cursor:pointer">Add bookmark</button>
+                    </form>
+                }
+                @if (_inCompare)
+                {
+                    <form method="post" action="@PhpCustomerWrites.CompareRemoveHref" style="margin:0">
+                        <input type="hidden" name="confirmWrites" value="true" />
+                        <input type="hidden" name="returnUrl" value="@("/storefront/product-app?id=" + _product.Id.ToString(CultureInfo.InvariantCulture))" />
+                        <input type="hidden" name="product_id" value="@_product.Id.ToString(CultureInfo.InvariantCulture)" />
+                        <button type="submit" style="padding:.5rem .85rem;border:1px solid #d1d5db;border-radius:.4rem;background:#fff;font-weight:700;cursor:pointer">Remove compare</button>
+                    </form>
+                }
+                else
+                {
+                    <form method="post" action="@PhpCustomerWrites.CompareWriteHref" style="margin:0">
+                        <input type="hidden" name="confirmWrites" value="true" />
+                        <input type="hidden" name="returnUrl" value="@("/storefront/product-app?id=" + _product.Id.ToString(CultureInfo.InvariantCulture))" />
+                        <input type="hidden" name="product_id" value="@_product.Id.ToString(CultureInfo.InvariantCulture)" />
+                        <button type="submit" style="padding:.5rem .85rem;border:0;border-radius:.4rem;background:#334155;color:#fff;font-weight:800;cursor:pointer">Add to compare</button>
+                    </form>
+                }
                 <a class="btn btn-sm btn-default" href="@StorefrontSurfaceLinks.Wishlist">Bookmarks</a>
                 <a class="btn btn-sm btn-default" href="@StorefrontSurfaceLinks.Compare">Compare</a>
             </div>
@@ -170,6 +216,8 @@
                 <p style="margin:0 0 .85rem;color:#64748b;font-size:.88rem">No reviews on this product yet.</p>
             }
             <form method="post" action="@PhpCustomerWrites.EvaluationWriteHref" style="margin:0">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="@("/storefront/product-app?id=" + _product.Id.ToString(CultureInfo.InvariantCulture))" />
                 <input type="hidden" name="product_id" value="@_product.Id.ToString(CultureInfo.InvariantCulture)" />
                 <label style="display:block;margin:.25rem 0">Rating
                     <select name="mark" style="margin-left:.35rem;padding:.35rem">
@@ -196,6 +244,10 @@
     private string _source = "n/a";
     private string _message = "";
     private IReadOnlyList<PhpProductReviews.Review> _reviews = [];
+    private string _flashOk = "";
+    private string _flashErr = "";
+    private bool _inWishlist;
+    private bool _inCompare;
 
     [SupplyParameterFromQuery(Name = "id")]
     public int? ProductId { get; set; }
@@ -232,12 +284,21 @@
 
     protected override async Task OnInitializedAsync()
     {
+        var ctx = Http.HttpContext;
+        _flashOk = ctx?.Request.Query["ok"].ToString() ?? "";
+        _flashErr = ctx?.Request.Query["err"].ToString() ?? "";
+        if (ctx is not null && ProductId is > 0)
+        {
+            _inWishlist = StorefrontIntListCookie.Read(ctx.Request, StorefrontIntListCookie.BookmarksName, StorefrontIntListCookie.BookmarksMax).Contains(ProductId.Value);
+            _inCompare = StorefrontIntListCookie.Read(ctx.Request, StorefrontIntListCookie.CompareName, StorefrontIntListCookie.CompareMax).Contains(ProductId.Value);
+        }
+
         if (ProductId is null or <= 0)
         {
             return;
         }
 
-        var result = await Dashboards.GetStorefrontProductAsync(ProductId.Value, Http.HttpContext?.RequestAborted ?? default);
+        var result = await Dashboards.GetStorefrontProductAsync(ProductId.Value, ctx?.RequestAborted ?? default);
         _product = result.Product;
         _source = result.Source;
         _message = result.Message;

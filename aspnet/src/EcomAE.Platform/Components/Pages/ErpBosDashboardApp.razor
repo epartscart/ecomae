@@ -718,11 +718,10 @@
 
         if (ctx is not null)
         {
-            var companies = (await Dashboards.BuildErpCompaniesDigestAsync(50, ctx.RequestAborted)).Companies;
-            if (companies.Count == 0 && _isSuperHost)
-            {
-                companies = ErpIndustryNav.FallbackCompanies(_ctx.BrandLabel);
-            }
+            var companies = ErpIndustryNav.EnsureSwitchableCompanies(
+                (await Dashboards.BuildErpCompaniesDigestAsync(50, ctx.RequestAborted)).Companies,
+                _isSuperHost,
+                _ctx.BrandLabel);
 
             var activeQ = ErpHostContext.ActiveCompanyIdFromQuery(ctx.Request);
             var active = companies.FirstOrDefault(c => activeQ is > 0 && c.Id == activeQ)

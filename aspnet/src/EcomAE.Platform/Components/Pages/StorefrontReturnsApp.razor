@@ -108,17 +108,35 @@
                         </div>
                     }
                     <p style="margin:0 0 .85rem"><a class="btn btn-primary" href="@StorefrontSurfaceLinks.Orders">Choose an order</a></p>
-                    <form method="post" action="@PhpVendorPortal.ReturnsWriteHref">
+                    <form method="post" action="@PhpCustomerWrites.ReturnsCreateHref">
+                        <input type="hidden" name="confirmWrites" value="true" />
+                        <input type="hidden" name="returnUrl" value="/storefront/returns-app" />
                         <label>Order number</label>
-                        <input type="text" name="order_id" required value="@OrderId" style="width:100%;margin:.25rem 0 .75rem;padding:.5rem" />
-                        <label>Reason</label>
-                        <textarea name="reason" rows="3" style="width:100%;margin:.25rem 0 1rem;padding:.5rem"></textarea>
+                        <input type="number" name="order_id" required min="1" value="@OrderId" style="width:100%;margin:.25rem 0 .75rem;padding:.5rem" />
+                        <label>Order item id</label>
+                        <input type="number" name="item_id" required min="1" style="width:100%;margin:.25rem 0 .75rem;padding:.5rem" />
+                        <label>Reason id</label>
+                        <input type="number" name="reason_id" required min="1" style="width:100%;margin:.25rem 0 .75rem;padding:.5rem" />
+                        <label>Quantity (full line only)</label>
+                        <input type="number" name="count" required min="1" value="1" style="width:100%;margin:.25rem 0 .75rem;padding:.5rem" />
+                        <label>Comment</label>
+                        <textarea name="comment" rows="3" style="width:100%;margin:.25rem 0 1rem;padding:.5rem"></textarea>
                         <button type="submit" style="padding:.65rem 1rem;border:0;border-radius:.45rem;background:#0f766e;color:#fff;font-weight:800;cursor:pointer">Submit return request</button>
                     </form>
+                    @if (!string.IsNullOrWhiteSpace(_flashOk))
+                    {
+                        <p style="margin:0 0 .75rem;padding:.65rem .8rem;background:#ecfdf3;border:1px solid #86efac;color:#166534">@_flashOk</p>
+                    }
+                    @if (!string.IsNullOrWhiteSpace(_flashErr))
+                    {
+                        <p style="margin:0 0 .75rem;padding:.65rem .8rem;background:#fef2f2;border:1px solid #fecaca;color:#991b1b">@_flashErr</p>
+                    }
                     @if (ReturnId is > 0)
                     {
-                        <form method="get" action="@PhpCustomerWrites.ReturnsMessageHref" style="margin-top:1rem;padding-top:1rem;border-top:1px solid #e2e8f0">
-                            <input type="hidden" name="return_id" value="@ReturnId" />
+                        <form method="post" action="@PhpCustomerWrites.ReturnsMessageHref" style="margin-top:1rem;padding-top:1rem;border-top:1px solid #e2e8f0">
+                            <input type="hidden" name="confirmWrites" value="true" />
+                            <input type="hidden" name="returnUrl" value="@("/storefront/returns-app?return_id=" + ReturnId.Value.ToString(CultureInfo.InvariantCulture))" />
+                            <input type="hidden" name="return_id" value="@ReturnId.Value.ToString(CultureInfo.InvariantCulture)" />
                             <label>Message on return #@ReturnId</label>
                             <textarea name="text" rows="3" required style="width:100%;margin:.25rem 0 1rem;padding:.5rem"></textarea>
                             <button type="submit" style="padding:.55rem .9rem;border:0;border-radius:.4rem;background:#0f766e;color:#fff;font-weight:800;cursor:pointer">Send message</button>
@@ -138,6 +156,8 @@
     private IReadOnlyList<StorefrontReturnItemDigest> _items = [];
     private IReadOnlyList<StorefrontOrderMessageDigest> _messages = [];
     private string _listMessage = "";
+    private string _flashOk = "";
+    private string _flashErr = "";
 
     [SupplyParameterFromQuery(Name = "order_id")]
     public string? OrderId { get; set; }
@@ -153,6 +173,8 @@
             return;
         }
 
+        _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
+        _flashErr = ctx.Request.Query["err"].ToString() ?? "";
         _brand = StorefrontIndustryHostResolver.ResolveBrandLabel(ctx.Request.Host.Host);
         var session = await Sessions.ValidateCustomerAsync(ctx, ctx.RequestAborted);
         _isCustomer = session.Kind == LegacySessionKind.Customer && session.UserId > 0;

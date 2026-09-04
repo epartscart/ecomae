@@ -49,13 +49,40 @@
     <section class="epc-ac-hero">
         <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
         <h1>API Clients</h1>
-        <p>Manage store operations, catalogue, and partner integrations from one control panel.</p>
+        <p>@CpPhpModuleCopy.PurposeFor(Nav.Uri)</p>
+        <p>Revoke or re-activate a client key on Super CP. Create / rotate stay on the compare twin.</p>
         <div class="epc-ac-cta">
             <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
             <a class="ghost" href="/cp/admin-sessions-app">Admin sessions</a>
             <a class="ghost" href="/cp/tenants-app">Tenants list</a>
         </div>
     </section>
+    <PhpParityModuleBody AppPath="/cp/api-clients-app" IsAdmin="_isAdmin" />
+
+
+    @if (!string.IsNullOrWhiteSpace(_flashOk))
+    {
+        <div class="alert alert-success" role="status" style="margin:0 0 1rem;padding:.7rem .9rem;border-radius:.4rem;background:#ecfdf5;color:#065f46">@_flashOk</div>
+    }
+    @if (!string.IsNullOrWhiteSpace(_flashErr))
+    {
+        <div class="alert alert-danger" role="status" style="margin:0 0 1rem;padding:.7rem .9rem;border-radius:.4rem;background:#fef2f2;color:#991b1b">@_flashErr</div>
+    }
+    @if (_isAdmin)
+    {
+        <form method="post" action="/cp/api-clients/toggle" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/api-clients-app" />
+            <label>Client id <input type="number" name="clientId" min="1" required style="width:6rem" /></label>
+            <label>Action
+                <select name="action">
+                    <option value="revoke">Revoke</option>
+                    <option value="activate">Activate</option>
+                </select>
+            </label>
+            <button type="submit">Apply</button>
+        </form>
+    }
 
     <div class="epc-ac-kpis" aria-label="API clients KPIs">
         <div class="epc-ac-kpi"><strong>@_clients.Count</strong><span>Shown (limit @_limit)</span></div>
@@ -82,7 +109,7 @@
             <tbody>
                 @if (_clients.Count == 0)
                 {
-                    <tr><td colspan="10">Nothing to show yet.</td></tr>
+                    <tr><td colspan="10">No records yet.</td></tr>
                 }
                 else
                 {
@@ -117,14 +144,18 @@
     private int _limit = 200;
     private string _source = "n/a";
     private string _message = "";
+    private string _flashOk = "";
+    private string _flashErr = "";
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
 
+        _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
+        _flashErr = ctx.Request.Query["err"].ToString() ?? "";
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
-        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
+        _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
         if (!_isAdmin)
         {
             return; // guest browse — Sign in for live data

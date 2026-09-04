@@ -45,12 +45,55 @@
     <section class="epc-rma-hero">
         <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
         <h1>Returns RMA</h1>
-        <p>Manage store operations, catalogue, and partner integrations from one control panel.</p>
+        <p>@CpPhpModuleCopy.PurposeFor(Nav.Uri)</p>
+        <p>Set return status, decide a line, or close a return on ASP.NET. Status seeding stays on the classic processor.</p>
         <div class="epc-rma-cta">
             <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
         </div>
     </section>
+    <PhpParityModuleBody AppPath="/cp/returns-rma-app" IsAdmin="_isAdmin" />
 
+
+    @if (!string.IsNullOrWhiteSpace(_flashOk))
+    {
+        <div class="alert alert-success" role="status">@_flashOk</div>
+    }
+    @if (!string.IsNullOrWhiteSpace(_flashErr))
+    {
+        <div class="alert alert-danger" role="status">@_flashErr</div>
+    }
+    @if (_isAdmin)
+    {
+        <form method="post" action="/cp/returns/action" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 .75rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/returns-rma-app" />
+            <input type="hidden" name="action" value="set_return_status" />
+            <label>Return id <input type="number" name="returnId" min="1" required style="width:5rem" /></label>
+            <label>Status id <input type="number" name="statusId" min="1" required style="width:5rem" /></label>
+            <button type="submit" class="btn btn-xs btn-primary">Set status</button>
+        </form>
+        <form method="post" action="/cp/returns/action" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 .75rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/returns-rma-app" />
+            <input type="hidden" name="action" value="decide_line" />
+            <label>Return id <input type="number" name="returnId" min="1" required style="width:5rem" /></label>
+            <label>Line id <input type="number" name="lineId" min="1" required style="width:5rem" /></label>
+            <label>Decide
+                <select name="decide">
+                    <option value="1">Approve</option>
+                    <option value="0">Deny</option>
+                </select>
+            </label>
+            <button type="submit" class="btn btn-xs btn-default">Decide line</button>
+        </form>
+        <form method="post" action="/cp/returns/action" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/returns-rma-app" />
+            <input type="hidden" name="action" value="finalize_return" />
+            <label>Return id <input type="number" name="returnId" min="1" required style="width:5rem" /></label>
+            <button type="submit" class="btn btn-xs btn-primary">Close return</button>
+        </form>
+    }
     <div class="epc-rma-kpis" aria-label="Returns RMA stats">
         <div class="epc-rma-kpi"><strong>@_summary.RmaCount.ToString(CultureInfo.InvariantCulture)</strong><span>RMAs</span></div>
         <div class="epc-rma-kpi"><strong>@_summary.OpenCount.ToString(CultureInfo.InvariantCulture)</strong><span>Open</span></div>
@@ -75,7 +118,7 @@
             <tbody>
                 @if (_rows.Count == 0)
                 {
-                    <tr><td colspan="8">Nothing to show yet.</td></tr>
+                    <tr><td colspan="8">No records yet.</td></tr>
                 }
                 else
                 {
@@ -106,14 +149,18 @@
     private IReadOnlyList<CpReturnsRmaRequestDigest> _rows = [];
     private string _source = "n/a";
     private string _message = "";
+    private string _flashOk = "";
+    private string _flashErr = "";
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
 
+        _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
+        _flashErr = ctx.Request.Query["err"].ToString() ?? "";
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
-        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
+        _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
         if (!_isAdmin)
         {
             return; // guest browse — Sign in for live data

@@ -41,7 +41,7 @@
                             <label>Qty <input type="number" name="count_need" value="1" min="1" style="width:4.5rem;margin-left:.35rem;padding:.35rem" /></label>
                             <button type="submit" class="btn btn-primary" style="margin-left:.45rem">Add to cart</button>
                         </form>
-                        <form method="get" action="@PhpCustomerWrites.EvaluationWriteHref" style="margin:0 0 .65rem">
+                        <form method="get" action="/php-reference/content/shop/catalogue/evaluations/ajax_add_evaluation.php" style="margin:0 0 .65rem">
                             <input type="hidden" name="product_alias" value="@_product.Alias" />
                             <label>Review</label>
                             <textarea name="text" rows="2" required style="width:100%;margin:.25rem 0 .55rem;padding:.45rem"></textarea>

@@ -65,6 +65,15 @@
             <a class="btn btn-sm btn-default" href="@StorefrontSurfaceLinks.Login">Sign in</a>
     </PhpStorefrontPageHeader>
 
+    @if (!string.IsNullOrWhiteSpace(_flashOk))
+    {
+        <p style="margin:0 0 .75rem;padding:.65rem .8rem;background:#ecfdf3;border:1px solid #86efac;color:#166534">@_flashOk</p>
+    }
+    @if (!string.IsNullOrWhiteSpace(_flashErr))
+    {
+        <p style="margin:0 0 .75rem;padding:.65rem .8rem;background:#fef2f2;border:1px solid #fecaca;color:#991b1b">@_flashErr</p>
+    }
+
     @if (_step is "how_get" or "confirm" or "login_offer")
     {
         <div class="epc-sf-co-gate" style="margin-bottom:1rem">
@@ -115,8 +124,26 @@
                     </table>
                 }
                 <form method="post" action="@PhpCustomerWrites.CheckoutConfirmWriteHref" style="margin:0 0 .85rem">
-                    <label>Order note</label>
-                    <textarea name="order_message" rows="3" style="width:100%;margin:.25rem 0 .75rem;padding:.45rem"></textarea>
+                    <input type="hidden" name="confirmWrites" value="true" />
+                    <input type="hidden" name="returnUrl" value="/storefront/checkout-app?step=confirm" />
+                    <p style="margin:0 0 .5rem;font-weight:700">How to obtain</p>
+                    @foreach (var mode in _obtainModes)
+                    {
+                        <label style="display:block;margin:.3rem 0">
+                            <input type="radio" name="howGetMode" value="@mode.Code" required />
+                            @mode.Label
+                        </label>
+                    }
+                    <label style="display:block;margin:.65rem 0 .25rem">Pickup office id (mode 1)</label>
+                    <input type="number" name="officeId" min="0" style="width:8rem;padding:.4rem" />
+                    <label style="display:block;margin:.65rem 0 .25rem">Purchase order</label>
+                    <input type="text" name="buyerPoNumber" maxlength="64" style="width:100%;max-width:22rem;padding:.45rem" />
+                    <label style="display:block;margin:.65rem 0 .25rem">Order note</label>
+                    <textarea name="orderMessage" rows="3" style="width:100%;margin:.25rem 0 .75rem;padding:.45rem"></textarea>
+                    <label style="display:block;margin:0 0 .75rem">
+                        <input type="checkbox" name="usersAgreement" value="1" required />
+                        I accept the user agreement
+                    </label>
                     <button type="submit" style="padding:.5rem .85rem;border:0;border-radius:.4rem;background:#dc2626;color:#fff;font-weight:800;cursor:pointer">Place order</button>
                 </form>
             }
@@ -224,10 +251,14 @@
     private string _stepHeading = "";
     private string _stepHelp = "";
     private IReadOnlyList<(string Code, string Label)> _obtainModes = PhpCustomerWrites.ObtainModes;
+    private string _flashOk = "";
+    private string _flashErr = "";
     protected override async Task OnInitializedAsync()
     {
         ResolveStep();
         var ctx = Http.HttpContext;
+        _flashOk = ctx?.Request.Query["ok"].ToString() ?? "";
+        _flashErr = ctx?.Request.Query["err"].ToString() ?? "";
         if (ctx is null) return;
         _brand = StorefrontIndustryHostResolver.ResolveBrandLabel(ctx.Request.Host.Host);
 

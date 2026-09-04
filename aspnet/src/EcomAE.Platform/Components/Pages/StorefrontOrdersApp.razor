@@ -57,6 +57,15 @@
             <a class="btn btn-sm btn-default" href="@StorefrontSurfaceLinks.Login">Customer login</a>
     </PhpStorefrontPageHeader>
 
+    @if (!string.IsNullOrWhiteSpace(_flashOk))
+    {
+        <p style="margin:0 0 .75rem;padding:.65rem .8rem;background:#ecfdf3;border:1px solid #86efac;color:#166534">@_flashOk</p>
+    }
+    @if (!string.IsNullOrWhiteSpace(_flashErr))
+    {
+        <p style="margin:0 0 .75rem;padding:.65rem .8rem;background:#fef2f2;border:1px solid #fecaca;color:#991b1b">@_flashErr</p>
+    }
+
     @if (!_isCustomer)
     {
         <div class="epc-sf-ord-gate">
@@ -190,7 +199,9 @@
                         }
                     </ul>
                 }
-                <form method="get" action="@PhpCustomerWrites.OrderMessageHref">
+                <form method="post" action="@PhpCustomerWrites.OrderMessageHref">
+                    <input type="hidden" name="confirmWrites" value="true" />
+                    <input type="hidden" name="returnUrl" value="@("/storefront/orders-app?order_id=" + _selected.Id.ToString(CultureInfo.InvariantCulture))" />
                     <input type="hidden" name="order_id" value="@_selected.Id.ToString(CultureInfo.InvariantCulture)" />
                     <label for="order_message">Message to the store</label>
                     <textarea id="order_message" name="text" rows="3" required style="width:100%;margin:.25rem 0 .75rem;padding:.5rem"></textarea>
@@ -220,6 +231,8 @@
     private IReadOnlyList<StorefrontOrderItemDigest> _items = [];
     private IReadOnlyList<StorefrontOrderMessageDigest> _messages = [];
     private bool _showItems;
+    private string _flashOk = "";
+    private string _flashErr = "";
 
     [SupplyParameterFromQuery(Name = "order_id")]
     public long? OrderId { get; set; }
@@ -232,6 +245,8 @@
         var ctx = Http.HttpContext;
         if (ctx is null) return;
         _brand = StorefrontIndustryHostResolver.ResolveBrandLabel(ctx.Request.Host.Host);
+        _flashOk = ctx.Request.Query["ok"].ToString();
+        _flashErr = ctx.Request.Query["err"].ToString();
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         if (session.Kind != LegacySessionKind.Customer || session.UserId <= 0)

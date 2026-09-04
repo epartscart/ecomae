@@ -45,11 +45,13 @@
     <section class="epc-ct-hero">
         <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
         <h1>CRM tickets</h1>
-        <p>Manage store operations, catalogue, and partner integrations from one control panel.</p>
+        <p>@CpPhpModuleCopy.PurposeFor(Nav.Uri)</p>
         <div class="epc-ct-cta">
             <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
         </div>
     </section>
+    <PhpParityModuleBody AppPath="/cp/crm-tickets-app" IsAdmin="_isAdmin" />
+
 
     <div class="epc-ct-kpis" aria-label="CRM tickets stats">
         <div class="epc-ct-kpi"><strong>@_summary.TicketCount.ToString(CultureInfo.InvariantCulture)</strong><span>Tickets</span></div>
@@ -75,7 +77,7 @@
             <tbody>
                 @if (_rows.Count == 0)
                 {
-                    <tr><td colspan="8">Nothing to show yet.</td></tr>
+                    <tr><td colspan="8">No records yet.</td></tr>
                 }
                 else
                 {
@@ -113,7 +115,7 @@
         if (ctx is null) return;
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
-        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
+        _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
         if (!_isAdmin)
         {
             return; // guest browse — Sign in for live data

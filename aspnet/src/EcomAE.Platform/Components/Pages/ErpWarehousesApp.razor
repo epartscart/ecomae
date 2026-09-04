@@ -12,6 +12,8 @@
 <PageTitle>Warehouses · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Warehouses" BreadcrumbArea="Inventory & Fulfilment" BreadcrumbTab="Inventory">
+    <PhpParityModuleBody AppPath="/erp/warehouses-app" IsAdmin="_isAdmin" />
+
 
     
     <PhpErpModulePageHeader Title="@_title" Subtitle="@_subtitle" PhpTabHref="@_phpTab" />
@@ -118,7 +120,7 @@
             <tbody>
                 @if (_warehouses.Count == 0)
                 {
-                    <tr><td colspan="6">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? "Nothing to show yet." : _message) : "Sign in with ERP capability for live rows.")</td></tr>
+                    <tr><td colspan="6">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? "No records yet." : _message) : "Sign in with ERP capability for live rows.")</td></tr>
                 }
                 else
                 {
@@ -173,7 +175,7 @@
             : "Warehouse master linked to shop storage.";
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
-        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("erp");
+        _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
         if (!_isAdmin)
         {
             return; // guest browse — Sign in for live data

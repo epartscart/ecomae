@@ -2,14 +2,15 @@
 # NUCLEAR: stop product legacy docroot for /cp /erp /storefront — force :5100.
 #
 # Why you still see old /cp/control login after "pause PHP":
-#   Pause only stops /php-reference + /en. Product /cp/control was never cut over
+#   Pause used to stop /php-reference + /en. Product /cp/control was never cut over
 #   on this host (nginx still served Homer login from docroot).
 #
 # This script:
 #   1) Pulls latest main
 #   2) Rewrites epartscart (+ www) server blocks with HARD platform locations
 #      (location = /cp/control → :5100 first — cannot miss)
-#   3) 503s residual /en + /php-reference (archive pause)
+#   3) residual /en commerce stays on :5100 (no splash).
+#      /php-reference/* stays available for CP/ERP side-by-side compare.
 #   4) Restarts platform + reloads nginx
 #   5) PROVES /cp/control is NOT bootstrap_admin legacy login
 #
@@ -320,11 +321,8 @@ PACK_TEMPLATE = r'''
         proxy_set_header Cookie $http_cookie;
         proxy_set_header X-EcomAE-Route-Cutover stop-product-php-assets;
     }
-    # Archive / interim commerce — paused for platform deep test
-    location ^~ /php-reference {
-        default_type text/plain;
-        return 503 "Archive paused for platform deep test.\n";
-    }
+    # Product /en commerce stays on the platform. Do NOT 503 /php-reference —
+    # that prefix is the only CP/ERP classic-twin compare path.
     location ^~ /en/ {
         # Paused mode: platform maps /en commerce links into the apps (no splash).
         proxy_pass http://127.0.0.1:5100;
@@ -537,7 +535,7 @@ cat <<EOF
 #####################################################################
 #  RESULT=PASS — product PHP STOPPED for /cp /erp /storefront
 #  /cp/control is PLATFORM (not old Homer login)
-#  Archive /php-reference + /en/ return 503
+#  Product /en/ stays on :5100. /php-reference/* stays up for compare.
 #  Test in browser:
 #    https://www.epartscart.com/cp/login
 #    https://www.epartscart.com/cp

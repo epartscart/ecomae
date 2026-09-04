@@ -48,10 +48,10 @@
     },
     {
       "id": "cart-checkout-quote-writes",
-      "aspnet": "dry-run endpoints + Blazor shells",
-      "php": "content/shop/order_process/* ajax_*",
-      "status": "php-authoritative-writes",
-      "note": "Reads/digests ASP.NET; live writes remain PHP until dual-sample green."
+      "aspnet": "POST /storefront/checkout/create + quotes + cart + garage + evaluations + order/return messages + create-return (full qty) + newsletter + geo city + wishlist/compare cookies + profile UPSERT",
+      "php": "guest checkout cookies + payment go_to_pay + profile password/contact confirm + partial-qty return split + return photos",
+      "status": "partial-ported",
+      "note": "Signed-in checkout, quotes, garage, reviews, order/return messages, full-qty create-return, newsletter, city cookie, wishlist/compare cookies, and users_profiles UPSERT are ASP.NET-live when confirmWrites=true. Guest checkout, payment notify, profile password, return line-split, and return photos stay PHP."
     },
     {
       "id": "home-widget-ajax",
@@ -62,10 +62,10 @@
     },
     {
       "id": "cp-erp-interactive-writes",
-      "aspnet": "read digests + module-ajax dry-runs",
-      "php": "cp/content/** ajax_*",
-      "status": "php-authoritative-writes",
-      "note": "Boards show aspNetInteractiveComplete=0 until write ports land."
+      "aspnet": "OMS item + bulk items status / update_item / update_items / message / courier / unpaid delete / comment / viewed / supplier fulfillment stage + staff user comment + user lock/unlock + VIN viewed + return set-status/decide/finalize + lang flags/description/translation UPSERT/unused-custom delete + channel/carrier toggle + workshop assign/bay/tech/status + catalogue min-limit + category-template delete + manufacturer/synonym add/save/delete + cross save/delete + price-row add/save/del + currency rate + ERP fav add/remove + shortcut delete/delete-key/reset + inventory reorder level + jewellery repair status + HR days-worked + storage-group add/delete + price-list complete-session + quote admin-note/send + vendor suspend/reject + Super-CP API client revoke/activate + price-storage rule save/delete + content published/main + office cash add + unused cash-code delete + WMS location delete + subscription/contract/workflow status + payroll / credit / PO / forecast",
+      "php": "remaining ~430 CP module ajax + residual ajax_erp.php + payment notify + fulfillment bootstrap-from-items + warehouse reprice + refresh_item_cost + return status seeding + lang create-string + used-found scan + channel seed/sync + workshop create-job + cross add/brand-resolve/search-delete + price del_search + currency available/live FX + category-template create + inventory movements + jewellery create/seed + offices cash-code add + content body editor + subscription save/generate + contract save/sign",
+      "status": "partial-ported",
+      "note": "Wired OMS twins, staff users.comment, users.unlocked, users_vin.viewed, return set/decide/finalize, lang editor writes, channel/carrier toggle, workshop assign/bay/tech/status, catalogue min-limit, category-template delete, manufacturer/synonym add/save/delete, cross save/delete, price-row add/save/del, currency rate, ERP fav add/remove, inventory reorder level, jewellery repair status, price-storage rule save/delete, content published/main, office cash add/code delete, and WMS location delete when confirmWrites=true. Remaining CP/ERP ajax catalogs stay PHP."
     }
   ],
   "completedThisWave": [

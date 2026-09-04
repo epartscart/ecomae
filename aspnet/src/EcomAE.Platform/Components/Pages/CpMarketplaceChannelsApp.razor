@@ -44,12 +44,37 @@
     <section class="epc-w16-hero">
         <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
         <h1>Marketplace channels</h1>
-        <p>Amazon, eBay, noon, and regional sell channels — sync listings, map SKUs, and import marketplace orders.</p>
+        <p>Amazon, eBay, noon, and regional sell channels. Toggle active writes on ASP.NET. Seed / inventory sync / order import stay PHP.</p>
         <div class="epc-w16-cta">
             <a href="@_configureHref">Manage channels</a>
             <a class="ghost" href="@_carriersHref">Couriers</a>
         </div>
     </section>
+
+    @if (!string.IsNullOrWhiteSpace(_flashOk))
+    {
+        <div class="alert alert-success" role="status" style="margin:0 0 1rem;padding:.7rem .9rem;border-radius:.4rem;background:#ecfdf5;color:#065f46">@_flashOk</div>
+    }
+    @if (!string.IsNullOrWhiteSpace(_flashErr))
+    {
+        <div class="alert alert-danger" role="status" style="margin:0 0 1rem;padding:.7rem .9rem;border-radius:.4rem;background:#fef2f2;color:#991b1b">@_flashErr</div>
+    }
+    @if (_isAdmin)
+    {
+        <form method="post" action="/cp/channels/write" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/marketplace-channels-app" />
+            <input type="hidden" name="action" value="toggle_channel" />
+            <label>Channel code <input type="text" name="code" required maxlength="64" /></label>
+            <label>Enabled
+                <select name="enabled">
+                    <option value="1">1 · on</option>
+                    <option value="0">0 · off</option>
+                </select>
+            </label>
+            <button type="submit">Toggle channel</button>
+        </form>
+    }
 
     <div class="epc-w16-kpis" aria-label="Marketplace channels stats">
         <div class="epc-w16-kpi"><strong>@_summary.ChannelCount.ToString(CultureInfo.InvariantCulture)</strong><span>Channels</span></div>
@@ -112,12 +137,16 @@
     private bool _isAdmin;
     private CpMarketplaceChannelsSummary _summary = new(0, 0, 0, 0, "n/a", "");
     private IReadOnlyList<CpMarketplaceChannelsChannelDigest> _rows = [];
+    private string _flashOk = "";
+    private string _flashErr = "";
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
 
+        _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
+        _flashErr = ctx.Request.Query["err"].ToString() ?? "";
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
         if (!_isAdmin)

@@ -17,6 +17,8 @@
 }
 
 <PhpCpDesktopChrome IsAdmin="_isAdmin">
+    <PhpParityModuleBody AppPath="/cp/menus-app" IsAdmin="_isAdmin" />
+
 
     <PhpCpModulePageHeader Title="Menus"
                            Subtitle="PHP menu_manager parity — menu list with node counts, depth, and URL/content link tallies. Drag-tree editor remains classic PHP."
@@ -74,7 +76,7 @@
                         <tbody>
                             @if (_menus.Count == 0)
                             {
-                                <tr><td colspan="7">Nothing to show yet.</td></tr>
+                                <tr><td colspan="7">No records yet.</td></tr>
                             }
                             else
                             {
@@ -160,7 +162,7 @@
         if (ctx is null) return;
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
-        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
+        _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
 
         var uri = Nav.ToAbsoluteUri(Nav.Uri);
         var query = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query);
