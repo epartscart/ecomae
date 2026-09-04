@@ -1,7 +1,7 @@
 namespace EcomAE.Platform.Presentation;
 
 /// <summary>
-/// Customer write hrefs for storefront twins. PHP remains authoritative.
+/// Customer write hrefs for storefront twins. Cart add is ASP.NET-live; other writes stay PHP.
 /// </summary>
 public static class PhpCustomerWrites
 {
@@ -13,7 +13,7 @@ public static class PhpCustomerWrites
     public static string OrderMessageHref => "/php-reference/content/shop/messager/ajax_send_message.php";
     public static string GuestOrderWriteHref => "/php-reference/en/shop/orders/order";
     public static string PaymentDemoHref => "/php-reference/content/shop/finance/payment_systems/epc_demo/go_to_pay.php";
-    public static string CartAddHref => "/php-reference/content/shop/order_process/ajax_add_to_basket.php";
+    public static string CartAddHref => "/storefront/cart/add";
     public static string QuoteAddHref => "/php-reference/content/shop/order_process/ajax_add_to_quote.php";
     public static string CheckoutHowGetWriteHref => "/php-reference/en/shop/checkout/how_get";
     public static string CheckoutConfirmWriteHref => "/php-reference/en/shop/checkout/confirm";

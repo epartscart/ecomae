@@ -316,6 +316,8 @@ public static class EcomAeRoutes
     public const string ControlPanelCreditLimits = "/cp/credit-limits";
     /// <summary>CP credit limits Blazor list (JSON digest remains <see cref="ControlPanelCreditLimits"/>).</summary>
     public const string ControlPanelCreditLimitsApp = "/cp/credit-limits-app";
+    /// <summary>Live PHP <c>epc_credit_set_limit</c> UPSERT. <c>confirmWrites=false</c> is refused (no dry-run twin).</summary>
+    public const string ControlPanelCreditLimitsSet = "/cp/credit-limits/set";
 
     public const string ControlPanelInsuranceCompliance = "/cp/insurance-compliance";
     /// <summary>CP insurance compliance Blazor list (JSON digest remains <see cref="ControlPanelInsuranceCompliance"/>).</summary>
@@ -348,6 +350,10 @@ public static class EcomAeRoutes
     public const string ControlPanelPoApprovals = "/cp/po-approvals";
     /// <summary>CP PO approvals Blazor list (JSON digest remains <see cref="ControlPanelPoApprovals"/>).</summary>
     public const string ControlPanelPoApprovalsApp = "/cp/po-approvals-app";
+    /// <summary>Live PHP <c>epc_po_approve</c>.</summary>
+    public const string ControlPanelPoApprovalsApprove = "/cp/po-approvals/approve";
+    /// <summary>Live PHP <c>epc_po_reject</c>.</summary>
+    public const string ControlPanelPoApprovalsReject = "/cp/po-approvals/reject";
     public const string ControlPanelFinanceClose = "/cp/finance-close";
     /// <summary>CP Finance close Blazor list (JSON digest remains <see cref="ControlPanelFinanceClose"/>).</summary>
     public const string ControlPanelFinanceCloseApp = "/cp/finance-close-app";
@@ -504,7 +510,7 @@ public static class EcomAeRoutes
 
     /// <summary>Read-only OMS detail console digest for one order (PHP epc_orders_detail_pane).</summary>
     public const string ControlPanelOrdersDetailDigest = "/cp/orders-detail-digest/{orderId:long}";
-    /// <summary>Wave B dry-run OMS set_item_status (PHP ajax_epc_orders_oms.php remains authoritative).</summary>
+    /// <summary>OMS set_item_status. <c>confirmWrites=true</c> is the live ASP.NET twin of PHP ajax_epc_orders_oms.php.</summary>
     public const string ControlPanelOmsSetItemStatus = "/cp/orders/set-item-status";
     /// <summary>Wave B dry-run OMS set_items_status bulk (PHP ajax_epc_orders_oms.php remains authoritative).</summary>
     public const string ControlPanelOmsSetItemsStatus = "/cp/orders/set-items-status";
@@ -809,6 +815,8 @@ public static class EcomAeRoutes
     public const string ErpOrderPipelineApp = "/erp/order-pipeline-app";
     public const string ErpInventoryForecast = "/erp/inventory-forecast";
     public const string ErpInventoryForecastApp = "/erp/inventory-forecast-app";
+    /// <summary>Live PHP <c>epc_forecast_compute</c> UPSERT.</summary>
+    public const string ErpInventoryForecastRecompute = "/erp/inventory-forecast/recompute";
     public const string ErpMultiEntity = "/erp/multi-entity";
     public const string ErpMultiEntityApp = "/erp/multi-entity-app";
     public const string ErpMultiCurrencyGl = "/erp/multi-currency-gl";
@@ -1173,7 +1181,7 @@ public static class EcomAeRoutes
     public const string ErpAjaxMfgWoComplete = "/erp/ajax/mfg-wo-complete";
     /// <summary>Wave B dry-run for PHP payroll_generate (writes=0).</summary>
     public const string ErpAjaxPayrollGenerate = "/erp/ajax/payroll-generate";
-    /// <summary>Wave B dry-run for PHP payroll_approve (writes=0).</summary>
+    /// <summary>PHP payroll_approve. <c>confirmWrites=true</c> writes via <c>IErpPayrollWriteService</c>.</summary>
     public const string ErpAjaxPayrollApprove = "/erp/ajax/payroll-approve";
     /// <summary>Wave B dry-run for PHP payroll_pay (writes=0).</summary>
     public const string ErpAjaxPayrollPay = "/erp/ajax/payroll-pay";
@@ -1826,11 +1834,11 @@ public static class EcomAeRoutes
     public const string StorefrontRegisterApp = "/storefront/register-app";
     /// <summary>Storefront checkout readiness JSON digest over authenticated cart.</summary>
     public const string StorefrontCheckout = "/storefront/checkout";
-    /// <summary>Wave B dry-run cart qty write (PHP ajax_change_count_need.php remains authoritative).</summary>
+    /// <summary>Cart qty write. <c>confirmWrites=true</c> is the live type-2 twin of PHP ajax_change_count_need.php.</summary>
     public const string StorefrontCartChangeCountNeed = "/storefront/cart/change-count-need";
-    /// <summary>Wave B dry-run cart checked_for_order toggle (PHP ajax_check_for_order.php remains authoritative).</summary>
+    /// <summary>Cart checked_for_order. <c>confirmWrites=true</c> is the live twin of PHP ajax_check_for_order.php.</summary>
     public const string StorefrontCartCheckForOrder = "/storefront/cart/check-for-order";
-    /// <summary>Wave B dry-run cart delete (PHP ajax_delete_cart_record.php remains authoritative).</summary>
+    /// <summary>Cart delete. <c>confirmWrites=true</c> is the live type-2 twin of PHP ajax_delete_cart_record.php.</summary>
     public const string StorefrontCartDelete = "/storefront/cart/delete";
     /// <summary>Live add-to-cart type-2 (PHP <c>ajax_add_to_basket.php</c> twin). <c>confirmWrites=false</c> stays dry-run.</summary>
     public const string StorefrontCartAdd = "/storefront/cart/add";

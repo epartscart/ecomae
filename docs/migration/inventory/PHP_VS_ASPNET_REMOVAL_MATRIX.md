@@ -16,7 +16,7 @@ Evidence snapshot: `docs/migration/evidence/php-vs-aspnet-removal-matrix.json`
 | `bos/` | 2 | BOS shell |
 | **Product-facing approx.** | **2083** | |
 
-ASP.NET already has **312** Blazor `@page` apps (CP 131, ERP 62+, storefront 52, marketing 37, LifeOS 18, BOS 7). Navigation coverage is high. **Interactive write complete count is 0.**
+ASP.NET already has **312** Blazor `@page` apps (CP 131, ERP 62+, storefront 52, marketing 37, LifeOS 18, BOS 7). Navigation coverage is high. **Interactive write complete count stays 0** until dual-sample evidence. Type-2 cart, OMS item status, payroll approve, credit limits, PO approve/reject, and forecast recompute now write on ASP.NET when `confirmWrites=true`.
 
 ## Status key
 
@@ -26,6 +26,7 @@ ASP.NET already has **312** Blazor `@page` apps (CP 131, ERP 62+, storefront 52,
 | `aspnet-routed` | PHP href remaps to a related existing app. |
 | `aspnet-hub` | PHP href remaps to `/erp` or `/cp` hub only. |
 | `php-writes` | Ajax / cron / gateway still PHP-authoritative. |
+| `writesOwner=aspnet` | Primary mutation for that row now posts to an ASP.NET live twin. |
 
 ## Closed this wave (finance hrefs that used to collapse to `/erp`)
 
@@ -50,14 +51,16 @@ New JSON digests: `/erp/order-pipeline`, `/erp/inventory-forecast`, `/erp/multi-
 
 These families have ASP.NET shells or remaps but **writes stay PHP**:
 
-- Storefront cart / checkout / pay (`content/shop/order_process/ajax_*`, payment `go_to_pay.php`)
+- Storefront type-1 cart + checkout/create (`content/shop/order_process` residual ajax)
+- Payment `go_to_pay.php` / notify
 - Live Laximo VIN decode (`content/laximo` Guayaquil SDK)
 - UMAPI miss-fill
-- CP OMS status/item writes
+- Remaining OMS ajax (message / courier / delete / fulfillment stage)
 - CP PyPrices ingest + cron
 - ~430 CP module ajax actions (`CpModuleAjaxWriteCatalog`)
-- ERP `ajax_erp.php` tab writes
-- Payment gateway notify / capture
+- ERP `ajax_erp.php` residual tab writes (generate/pay payroll, GL residual)
 - Theme `desktop.php` compare-only chrome (CSS already reused)
+
+**Now ASP.NET-live** (`confirmWrites=true` + native forms): type-2 cart qty/delete/check, cart add, OMS `set_item_status`, payroll approve, credit-limit set, PO approve/reject, forecast recompute.
 
 Do not flip removal flags until each family has a human `MODULE_FUNCTION_PARITY_PASS` plus dual-sample evidence.

@@ -35,6 +35,10 @@ public sealed class PhpVsAspNetRemovalMatrixTests
         Assert.True(PhpVsAspNetRemovalMatrix.Rows.Count >= 40);
         Assert.DoesNotContain(PhpVsAspNetRemovalMatrix.Rows, r => r.Status == "missing-app");
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.WritesOwner == "php");
+        Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "sf-cart" && r.WritesOwner == "aspnet");
+        Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "cp-orders" && r.WritesOwner == "aspnet");
+        Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "erp-payroll" && r.WritesOwner == "aspnet");
+        Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "write-storefront-cart" && r.WritesOwner == "php");
     }
 
     [Theory]
@@ -70,6 +74,30 @@ public sealed class PhpVsAspNetRemovalMatrixTests
             var text = File.ReadAllText(path);
             Assert.DoesNotContain("Compare PHP reference", text, StringComparison.Ordinal);
             Assert.DoesNotContain("@onclick", text, StringComparison.Ordinal);
+        }
+    }
+
+    [Fact]
+    public void LiveWriteAppsUseNativeFormsNotBlazorHandlers()
+    {
+        var root = FindRepoRoot();
+        var cases = new (string File, string Needle)[]
+        {
+            ("StorefrontCartApp.razor", "/storefront/cart/change-count-need"),
+            ("ErpPayrollApp.razor", "/erp/ajax/payroll-approve"),
+            ("ErpInventoryForecastApp.razor", "/erp/inventory-forecast/recompute"),
+            ("CpCreditLimitsApp.razor", "/cp/credit-limits/set"),
+            ("CpPoApprovalsApp.razor", "/cp/po-approvals/approve"),
+            ("CpOrdersApp.razor", "/cp/orders/set-item-status"),
+        };
+        foreach (var (name, needle) in cases)
+        {
+            var path = Path.Combine(root, "aspnet", "src", "EcomAE.Platform", "Components", "Pages", name);
+            var text = File.ReadAllText(path);
+            Assert.Contains(needle, text, StringComparison.Ordinal);
+            Assert.Contains("confirmWrites", text, StringComparison.Ordinal);
+            Assert.DoesNotContain("@onclick", text, StringComparison.Ordinal);
+            Assert.DoesNotContain("@onchange", text, StringComparison.Ordinal);
         }
     }
 

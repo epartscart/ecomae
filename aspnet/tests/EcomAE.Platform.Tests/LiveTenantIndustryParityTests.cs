@@ -354,7 +354,7 @@ public sealed class LiveTenantIndustryParityTests
     {
         Assert.StartsWith("/php-reference/", PhpCustomerWrites.CheckoutHowGetWriteHref);
         Assert.StartsWith("/php-reference/", PhpCustomerWrites.CheckoutConfirmWriteHref);
-        Assert.StartsWith("/php-reference/", PhpCustomerWrites.CartAddHref);
+        Assert.Equal("/storefront/cart/add", PhpCustomerWrites.CartAddHref);
         Assert.StartsWith("/php-reference/", PhpCustomerWrites.ReturnsMessageHref);
         Assert.StartsWith("/php-reference/", PhpCustomerWrites.EvaluationWriteHref);
         Assert.Equal(StorefrontAspNetCanonical.CustomerReturns, PhpSurfaceLinkMap.AspNetPrimaryHref("/en/shop/returns_list"));

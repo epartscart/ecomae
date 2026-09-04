@@ -648,6 +648,12 @@ builder.Services.AddSingleton<IErpSalesOrderDeleteDryRun, ErpSalesOrderDeleteDry
 builder.Services.AddSingleton<IErpPoDeleteDryRun, ErpPoDeleteDryRun>();
 builder.Services.AddSingleton<IStorefrontCartAddDryRun, StorefrontCartAddDryRun>();
 builder.Services.AddSingleton<EcomAE.Platform.Storefront.IStorefrontCartAddService, EcomAE.Platform.Storefront.StorefrontCartAddService>();
+builder.Services.AddSingleton<EcomAE.Platform.Storefront.IStorefrontCartWriteService, EcomAE.Platform.Storefront.StorefrontCartWriteService>();
+builder.Services.AddSingleton<EcomAE.Platform.Erp.IErpPayrollWriteService, EcomAE.Platform.Erp.ErpPayrollWriteService>();
+builder.Services.AddSingleton<EcomAE.Platform.Erp.IErpInventoryForecastWriteService, EcomAE.Platform.Erp.ErpInventoryForecastWriteService>();
+builder.Services.AddSingleton<EcomAE.Platform.Cp.ICpOmsWriteService, EcomAE.Platform.Cp.CpOmsWriteService>();
+builder.Services.AddSingleton<EcomAE.Platform.Cp.ICpCreditLimitWriteService, EcomAE.Platform.Cp.CpCreditLimitWriteService>();
+builder.Services.AddSingleton<EcomAE.Platform.Cp.ICpPoApprovalWriteService, EcomAE.Platform.Cp.CpPoApprovalWriteService>();
 builder.Services.AddSingleton<IStorefrontGarageNotepadAddDryRun, StorefrontGarageNotepadAddDryRun>();
 builder.Services.AddSingleton<IStorefrontQuoteSubmitDryRun, StorefrontQuoteSubmitDryRun>();
 builder.Services.AddSingleton<IStorefrontQuoteAcceptDryRun, StorefrontQuoteAcceptDryRun>();

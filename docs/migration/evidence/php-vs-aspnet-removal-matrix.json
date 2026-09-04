@@ -17,6 +17,12 @@
     "note": "Exclude vendor/node_modules/pyprices venv and repo-root setup scripts."
   },
   "closedThisWave": [
+    "Type-2 cart qty/delete/check + cart add → ASP.NET live writes",
+    "OMS set_item_status → /cp/orders/set-item-status live",
+    "Payroll approve → /erp/ajax/payroll-approve live",
+    "Credit limit set → /cp/credit-limits/set live",
+    "PO approve/reject → /cp/po-approvals/approve|reject live",
+    "Inventory forecast recompute → /erp/inventory-forecast/recompute live",
     "shop/finance/epc_credit_limit → /cp/credit-limits-app",
     "shop/finance/epc_po_approval → /cp/po-approvals-app",
     "shop/finance/epc_warranty_rma → /cp/returns-rma-app",
@@ -28,8 +34,8 @@
     "shop/finance/epc_multi_currency_gl → /erp/multi-currency-gl-app"
   ],
   "stillBlockingPhpRemoval": [
-    "Interactive writes remain PHP (CP ajax ~430, ERP ajax_erp, storefront cart/pay, Laximo decode, PyPrices ingest).",
-    "aspnet-complete interactive module count is 0.",
+    "Remaining PHP writes: CP ajax ~430, ERP ajax_erp residual, storefront type-1/checkout/pay, Laximo decode, PyPrices ingest, UMAPI miss-fill.",
+    "aspnet-complete interactive module count is 0 (no dual-sample deletion gate).",
     "Digests + href remaps are not a deletion gate.",
     "Human MODULE_FUNCTION_TEST_PASS + dual-sample evidence required per family."
   ]

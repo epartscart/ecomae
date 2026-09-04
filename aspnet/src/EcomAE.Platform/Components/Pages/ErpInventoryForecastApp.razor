@@ -14,8 +14,27 @@
 <PhpChromeStyles Surface="erp" />
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Inventory forecast" BreadcrumbArea="Inventory" BreadcrumbTab="Forecast">
 
-    <PhpErpModulePageHeader Title="Inventory forecast" Subtitle="Read-only reorder points and stockout dates from epc_inventory_forecast. Recompute stays on PHP." />
-    <PhpErpD365ActionPane RefreshHref="@Nav.Uri" />
+    <PhpErpModulePageHeader Title="Inventory forecast" Subtitle="Reorder points and stockout dates from epc_inventory_forecast. Recompute writes on ASP.NET." />
+    <PhpErpD365ActionPane RefreshHref="/erp/inventory-forecast-app" />
+
+    @if (!string.IsNullOrWhiteSpace(_flash))
+    {
+        <div class="alert @(_flashOk ? "alert-success" : "alert-warning")" style="margin:0 0 12px">@_flash</div>
+    }
+
+    @if (_isAdmin)
+    {
+        <form method="post" action="/erp/inventory-forecast/recompute" class="form-inline" style="margin:0 0 12px;padding:10px;border:1px solid #c5d4de;background:#fff">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/erp/inventory-forecast-app" />
+            <label style="margin-right:8px">Site <input name="siteKey" value="@_defaultSite" required style="width:9rem" /></label>
+            <label style="margin-right:8px">SKU <input name="sku" required style="width:9rem" /></label>
+            <label style="margin-right:8px">Stock <input type="number" name="currentStock" value="0" min="0" style="width:5rem" /></label>
+            <label style="margin-right:8px">Name <input name="productName" style="width:10rem" /></label>
+            <label style="margin-right:8px">Lead days <input type="number" name="leadTimeDays" value="7" min="1" style="width:4rem" /></label>
+            <button type="submit" class="btn btn-sm btn-primary">Recompute</button>
+        </form>
+    }
 
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Inventory forecast KPIs">
         <div class="kpi"><div class="lbl">SKUs</div><div class="val">@_count.ToString(CultureInfo.InvariantCulture)</div></div>
@@ -38,12 +57,13 @@
                     <th>Status</th>
                     <th>Stockout</th>
                     <th>Computed</th>
+                    <th></th>
                 </tr>
             </thead>
             <tbody>
                 @if (_forecasts.Count == 0)
                 {
-                    <tr><td colspan="9">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? "No forecast rows yet." : _message) : "Sign in with ERP capability for live rows.")</td></tr>
+                    <tr><td colspan="10">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? "No forecast rows yet." : _message) : "Sign in with ERP capability for live rows.")</td></tr>
                 }
                 else
                 {
@@ -59,6 +79,18 @@
                             <td><span class="label label-default">@row.ForecastStatus</span></td>
                             <td>@(string.IsNullOrWhiteSpace(row.StockoutDate) ? "—" : row.StockoutDate)</td>
                             <td>@(string.IsNullOrWhiteSpace(row.LastComputed) ? "—" : row.LastComputed)</td>
+                            <td>
+                                <form method="post" action="/erp/inventory-forecast/recompute" style="margin:0">
+                                    <input type="hidden" name="confirmWrites" value="true" />
+                                    <input type="hidden" name="returnUrl" value="/erp/inventory-forecast-app" />
+                                    <input type="hidden" name="siteKey" value="@_defaultSite" />
+                                    <input type="hidden" name="sku" value="@row.Sku" />
+                                    <input type="hidden" name="currentStock" value="@row.CurrentStock.ToString(CultureInfo.InvariantCulture)" />
+                                    <input type="hidden" name="productName" value="@row.ProductName" />
+                                    <input type="hidden" name="leadTimeDays" value="@row.LeadTimeDays.ToString(CultureInfo.InvariantCulture)" />
+                                    <button type="submit" class="btn btn-xs btn-default">Recompute</button>
+                                </form>
+                            </td>
                         </tr>
                     }
                 }
@@ -67,7 +99,7 @@
     </div>
 
     <div class="epc-erp-empty" style="display:block;margin-top:12px;padding:8px 10px;border:1px solid #c5d4de;background:#f8fafc;color:#475569;font-size:12px;">
-        Source: @_source. Demand history write stays PHP. Digest: <code>/erp/inventory-forecast</code>.
+        Source: @_source. Recompute is live on <code>/erp/inventory-forecast/recompute</code>. Demand-history ingest stays PHP.
         @if (!string.IsNullOrWhiteSpace(_message)) { <span> @_message</span> }
     </div>
 </PhpErpDesktopChrome>
@@ -82,6 +114,9 @@
     private int _stockout;
     private string _source = "n/a";
     private string _message = "";
+    private string _flash = "";
+    private bool _flashOk;
+    private string _defaultSite = "epartscart";
 
     protected override async Task OnInitializedAsync()
     {
@@ -94,6 +129,11 @@
             _message = "Sign in for live data.";
             return;
         }
+
+        var ok = ctx.Request.Query["ok"].ToString();
+        var err = ctx.Request.Query["err"].ToString();
+        if (!string.IsNullOrWhiteSpace(ok)) { _flash = ok; _flashOk = true; }
+        else if (!string.IsNullOrWhiteSpace(err)) { _flash = err; _flashOk = false; }
 
         var result = await Dashboards.ListErpInventoryForecastAsync(200, ctx.RequestAborted);
         _forecasts = result.Forecasts;

@@ -774,63 +774,173 @@ public sealed class StorefrontModule : ISurfaceModule
             StorefrontCartChangeCountNeedBody? body,
             ILegacySessionValidator validator,
             IStorefrontCartChangeCountNeedDryRun dryRun,
+            IStorefrontCartWriteService writes,
             CancellationToken cancellationToken) =>
         {
-            var session = await validator.ValidateAsync(context, cancellationToken);
+            var session = await validator.ValidateCustomerAsync(context, cancellationToken);
             if (session.Kind != LegacySessionKind.Customer || session.UserId <= 0)
             {
-                return Unauthorized("Customer session required for cart qty dry-run.");
+                return LiveWriteFormBinder.LoginRedirect(context, "/storefront/login?returnUrl=/storefront/cart-app", "Please log in or register to continue.");
             }
 
-            body ??= new StorefrontCartChangeCountNeedBody(0, 0, false);
+            var id = (long)(body?.Id ?? 0);
+            var qty = body?.CountNeed ?? 0;
+            var confirm = body?.ConfirmWrites ?? false;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                id = LiveWriteFormBinder.Long(form, "id");
+                qty = LiveWriteFormBinder.Dec(form, "countNeed", "count_need");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (confirm)
+            {
+                var written = await writes.ChangeCountNeedAsync(session.UserId, id, qty, cancellationToken);
+                var status = written.Code is "auth" or "unauthorized"
+                    ? StatusCodes.Status401Unauthorized
+                    : StatusCodes.Status400BadRequest;
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    "/storefront/cart-app",
+                    written.Ok,
+                    written.Message,
+                    written.ToPayload(SessionPayload(session)),
+                    status);
+            }
+
             var result = await dryRun.EvaluateAsync(
                 session.UserId,
-                new StorefrontCartChangeCountNeedRequest(body.Id, body.CountNeed, body.ConfirmWrites),
+                new StorefrontCartChangeCountNeedRequest(id > int.MaxValue ? 0 : (int)id, qty, false),
                 cancellationToken);
             return Results.Ok(result.ToPayload(SessionPayload(session)));
-        });
+        }).DisableAntiforgery();
 
         endpoints.MapPost(EcomAeRoutes.StorefrontCartCheckForOrder, async (
             HttpContext context,
             StorefrontCartCheckForOrderBody? body,
             ILegacySessionValidator validator,
             IStorefrontCartCheckForOrderDryRun dryRun,
+            IStorefrontCartWriteService writes,
             CancellationToken cancellationToken) =>
         {
-            var session = await validator.ValidateAsync(context, cancellationToken);
+            var session = await validator.ValidateCustomerAsync(context, cancellationToken);
             if (session.Kind != LegacySessionKind.Customer || session.UserId <= 0)
             {
-                return Unauthorized("Customer session required for cart check-for-order dry-run.");
+                return LiveWriteFormBinder.LoginRedirect(context, "/storefront/login?returnUrl=/storefront/cart-app", "Please log in or register to continue.");
             }
 
-            body ??= new StorefrontCartCheckForOrderBody([], false);
+            var records = body?.Records ?? [];
+            var id = body?.Id ?? 0;
+            var checkedForOrder = body?.Checked ?? body?.CheckedForOrder ?? 1;
+            var confirm = body?.ConfirmWrites ?? false;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                id = LiveWriteFormBinder.Long(form, "id");
+                checkedForOrder = LiveWriteFormBinder.Int(form, "checked", "checkedForOrder", "checked_for_order");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+                var rawRecords = LiveWriteFormBinder.Text(form, "records", "recordsToDel");
+                if (rawRecords.Length > 0 && long.TryParse(rawRecords, NumberStyles.Integer, CultureInfo.InvariantCulture, out var one))
+                {
+                    records = [one];
+                }
+            }
+
+            if (confirm)
+            {
+                StorefrontCartWriteResult written;
+                if (id > 0)
+                {
+                    written = await writes.CheckForOrderAsync(session.UserId, id, checkedForOrder != 0, cancellationToken);
+                }
+                else
+                {
+                    written = new(false, "error", "invalid", "Cart line is required.", 0);
+                    foreach (var cartId in records.Where(x => x > 0))
+                    {
+                        written = await writes.CheckForOrderAsync(session.UserId, cartId, checkedForOrder != 0, cancellationToken);
+                        if (!written.Ok)
+                        {
+                            break;
+                        }
+                    }
+                }
+
+                var status = written.Code is "auth" or "unauthorized"
+                    ? StatusCodes.Status401Unauthorized
+                    : StatusCodes.Status400BadRequest;
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    "/storefront/cart-app",
+                    written.Ok,
+                    written.Message,
+                    written.ToPayload(SessionPayload(session)),
+                    status);
+            }
+
+            var dryIds = id > 0 ? new[] { id } : (records ?? []).ToArray();
             var result = await dryRun.EvaluateAsync(
                 session.UserId,
-                new StorefrontCartCheckForOrderRequest(body.Records ?? [], body.ConfirmWrites),
+                new StorefrontCartCheckForOrderRequest(dryIds, false),
                 cancellationToken);
             return Results.Ok(result.ToPayload(SessionPayload(session)));
-        });
+        }).DisableAntiforgery();
 
         endpoints.MapPost(EcomAeRoutes.StorefrontCartDelete, async (
             HttpContext context,
             StorefrontCartDeleteBody? body,
             ILegacySessionValidator validator,
             IStorefrontCartDeleteDryRun dryRun,
+            IStorefrontCartWriteService writes,
             CancellationToken cancellationToken) =>
         {
-            var session = await validator.ValidateAsync(context, cancellationToken);
+            var session = await validator.ValidateCustomerAsync(context, cancellationToken);
             if (session.Kind != LegacySessionKind.Customer || session.UserId <= 0)
             {
-                return Unauthorized("Customer session required for cart delete dry-run.");
+                return LiveWriteFormBinder.LoginRedirect(context, "/storefront/login?returnUrl=/storefront/cart-app", "Please log in or register to continue.");
             }
 
-            body ??= new StorefrontCartDeleteBody([], false);
+            var ids = (body?.RecordsToDel ?? []).ToList();
+            var confirm = body?.ConfirmWrites ?? false;
+            if (body is { Id: > 0 })
+            {
+                ids.Add(body.Id);
+            }
+
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                var formId = LiveWriteFormBinder.Long(form, "id", "recordsToDel", "records_to_del");
+                if (formId > 0)
+                {
+                    ids.Add(formId);
+                }
+
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (confirm)
+            {
+                var written = await writes.DeleteAsync(session.UserId, ids, cancellationToken);
+                var status = written.Code is "auth" or "unauthorized"
+                    ? StatusCodes.Status401Unauthorized
+                    : StatusCodes.Status400BadRequest;
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    "/storefront/cart-app",
+                    written.Ok,
+                    written.Message,
+                    written.ToPayload(SessionPayload(session)),
+                    status);
+            }
+
             var result = await dryRun.EvaluateAsync(
                 session.UserId,
-                new StorefrontCartDeleteRequest(body.RecordsToDel ?? [], body.ConfirmWrites),
+                new StorefrontCartDeleteRequest(ids, false),
                 cancellationToken);
             return Results.Ok(result.ToPayload(SessionPayload(session)));
-        });
+        }).DisableAntiforgery();
 
         endpoints.MapPost(EcomAeRoutes.StorefrontCartAdd, async (
             HttpContext context,
@@ -1232,8 +1342,13 @@ public sealed class StorefrontModule : ISurfaceModule
     }
 
     private sealed record StorefrontCartChangeCountNeedBody(int Id, decimal CountNeed, bool ConfirmWrites = false);
-    private sealed record StorefrontCartCheckForOrderBody(IReadOnlyList<long>? Records, bool ConfirmWrites = false);
-    private sealed record StorefrontCartDeleteBody(IReadOnlyList<long>? RecordsToDel, bool ConfirmWrites = false);
+    private sealed record StorefrontCartCheckForOrderBody(
+        IReadOnlyList<long>? Records,
+        long Id = 0,
+        int Checked = 1,
+        int? CheckedForOrder = null,
+        bool ConfirmWrites = false);
+    private sealed record StorefrontCartDeleteBody(IReadOnlyList<long>? RecordsToDel, long Id = 0, bool ConfirmWrites = false);
     private sealed record StorefrontCartAddBody(
         int ProductType,
         string? Manufacturer,

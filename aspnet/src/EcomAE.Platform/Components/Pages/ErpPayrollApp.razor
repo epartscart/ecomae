@@ -13,8 +13,13 @@
 <PhpChromeStyles Surface="erp" />
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Payroll" BreadcrumbArea="People" BreadcrumbTab="Payroll">
 
-    <PhpErpModulePageHeader Title="Payroll runs" Subtitle="Period totals from the shop payroll register. Approve and pay stay on ERP ajax." PhpTabHref="@_phpTab" />
-    <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
+    <PhpErpModulePageHeader Title="Payroll runs" Subtitle="Period totals from the shop payroll register. Approve writes on ASP.NET." />
+    <PhpErpD365ActionPane RefreshHref="/erp/payroll-app" />
+
+    @if (!string.IsNullOrWhiteSpace(_flash))
+    {
+        <div class="alert @(_flashOk ? "alert-success" : "alert-warning")" style="margin:0 0 12px">@_flash</div>
+    }
 
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Payroll KPIs">
         <div class="kpi"><div class="lbl">Runs</div><div class="val">@_count.ToString(CultureInfo.InvariantCulture)</div></div>
@@ -58,7 +63,17 @@
                             <td class="text-right">@row.TotalDeductions.ToString("N2", CultureInfo.InvariantCulture)</td>
                             <td class="text-right">@row.TotalNet.ToString("N2", CultureInfo.InvariantCulture)</td>
                             <td>@FormatDate(row.PaidAt)</td>
-                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
+                            <td>
+                                @if (!string.Equals(row.Status, "paid", StringComparison.OrdinalIgnoreCase))
+                                {
+                                    <form method="post" action="/erp/ajax/payroll-approve" style="margin:0">
+                                        <input type="hidden" name="confirmWrites" value="true" />
+                                        <input type="hidden" name="returnUrl" value="/erp/payroll-app" />
+                                        <input type="hidden" name="id" value="@row.Id.ToString(CultureInfo.InvariantCulture)" />
+                                        <button type="submit" class="btn btn-xs btn-primary">Approve</button>
+                                    </form>
+                                }
+                            </td>
                         </tr>
                     }
                 }
@@ -67,13 +82,12 @@
     </div>
 
     <div class="epc-erp-empty" style="display:block;margin-top:12px;padding:8px 10px;border:1px solid #c5d4de;background:#f8fafc;color:#475569;font-size:12px;">
-        Source: @_source. Staff directory stays on <a href="/erp/staff-app">staff</a>. Dry-run: <code>payroll_approve</code> — writes=0.
+        Source: @_source. Staff directory stays on <a href="/erp/staff-app">staff</a>. Approve is live on <code>/erp/ajax/payroll-approve</code>.
         @if (!string.IsNullOrWhiteSpace(_message)) { <span> @_message</span> }
     </div>
 </PhpErpDesktopChrome>
 
 @code {
-    private const string _phpTab = "/ERP/?epc_erp_shell=1&area=hr&tab=payroll";
     private bool _isAdmin;
     private IReadOnlyList<ErpPayrollRunDigest> _runs = [];
     private int _count;
@@ -82,6 +96,8 @@
     private decimal _net;
     private string _source = "n/a";
     private string _message = "";
+    private string _flash = "";
+    private bool _flashOk;
 
     protected override async Task OnInitializedAsync()
     {
@@ -95,6 +111,7 @@
             return;
         }
 
+        ReadFlash(ctx);
         var result = await Dashboards.ListErpPayrollRunsAsync(200, ctx.RequestAborted);
         _runs = result.Runs;
         _count = result.Count;
@@ -103,6 +120,14 @@
         _net = result.NetTotal;
         _source = result.Source;
         _message = result.Message;
+    }
+
+    private void ReadFlash(HttpContext ctx)
+    {
+        var ok = ctx.Request.Query["ok"].ToString();
+        var err = ctx.Request.Query["err"].ToString();
+        if (!string.IsNullOrWhiteSpace(ok)) { _flash = ok; _flashOk = true; }
+        else if (!string.IsNullOrWhiteSpace(err)) { _flash = err; _flashOk = false; }
     }
 
     private static string FormatDate(long unix)

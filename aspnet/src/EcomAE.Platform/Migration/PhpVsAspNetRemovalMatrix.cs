@@ -18,10 +18,10 @@ public static class PhpVsAspNetRemovalMatrix
     public static IReadOnlyList<PhpVsAspNetMatrixRow> Rows { get; } =
     [
         // Storefront
-        Row("sf-home", "storefront", "templates/*/desktop.php + content/general_pages", "/", "/storefront/app", "aspnet-digest", "php", "Homepage chrome is ASP.NET; cart/checkout writes stay PHP."),
-        Row("sf-search", "storefront", "content/shop/docpart/ajax_part_search.php", "/shop/part_search", "/en/shop/part_search", "aspnet-digest", "php", "Offer list is ASP.NET; live supplier poll / cart add stay PHP."),
+        Row("sf-home", "storefront", "templates/*/desktop.php + content/general_pages", "/", "/storefront/app", "aspnet-digest", "php", "Homepage chrome is ASP.NET; checkout/pay writes stay PHP."),
+        Row("sf-search", "storefront", "content/shop/docpart/ajax_part_search.php", "/shop/part_search", "/en/shop/part_search", "aspnet-digest", "php", "Offer list is ASP.NET; live supplier poll stays PHP. Cart add is /storefront/cart/add."),
         Row("sf-vin", "storefront", "content/laximo + content/general_pages/vin_zapros.php", "/en/katalog-laximo", "/storefront/vin-app", "aspnet-digest", "php", "VIN cache reader only. Live Laximo decode stays PHP."),
-        Row("sf-cart", "storefront", "content/shop/order_process", "/shop/cart", "/en/shop/cart", "aspnet-digest", "php", "Cart summary is ASP.NET; line mutations stay PHP ajax."),
+        Row("sf-cart", "storefront", "content/shop/order_process", "/shop/cart", "/en/shop/cart", "aspnet-digest", "aspnet", "Type-2 qty / delete / check-for-order write on ASP.NET. Type-1 and checkout stay PHP."),
         Row("sf-checkout", "storefront", "content/shop/order_process", "/shop/checkout", "/storefront/checkout-app", "aspnet-digest", "php", "Checkout shell exists; pay / place-order stay PHP."),
         Row("sf-orders", "storefront", "content/shop/order_process", "/shop/orders", "/storefront/orders-app", "aspnet-digest", "php", "Customer order list digest; detail writes PHP."),
         Row("sf-garage", "storefront", "content/shop/docpart garage", "/shop/garage", "/storefront/garage-app", "aspnet-digest", "php", "Garage list digest; add/edit PHP."),
@@ -34,7 +34,7 @@ public static class PhpVsAspNetRemovalMatrix
         Row("sf-workshop-gms", "storefront", "content/shop/workshop/garage_manager_portal.php", "/shop/workshop", "/storefront/garage-manager-app", "aspnet-digest", "php", "GMS board is thin; portal writes stay PHP."),
 
         // CP shop families
-        Row("cp-orders", "cp", "cp/content/shop/orders + order_process", "/CP/shop/orders/orders", "/cp/orders", "aspnet-digest", "php", "OMS read UI; status/item writes stay PHP."),
+        Row("cp-orders", "cp", "cp/content/shop/orders + order_process", "/CP/shop/orders/orders", "/cp/orders", "aspnet-digest", "aspnet", "OMS set_item_status is ASP.NET-live. Other OMS ajax (message/courier/delete) stay PHP."),
         Row("cp-users", "cp", "cp/content/users", "/CP/users/user_manager", "/cp/users-app", "aspnet-digest", "php", "User list digest; create/edit PHP."),
         Row("cp-catalogue", "cp", "cp/content/shop/catalogue", "/CP/shop/catalogue/products", "/cp/product-catalogue-app", "aspnet-digest", "php", "SKU/media writes stay PHP."),
         Row("cp-prices-upload", "cp", "cp/content/shop/prices_upload", "/CP/shop/prices_upload", "/cp/prices-upload-app", "aspnet-digest", "php", "PyPrices cron/tasks stay PHP."),
@@ -42,8 +42,8 @@ public static class PhpVsAspNetRemovalMatrix
         Row("cp-payments", "cp", "cp/content/shop/payments", "/CP/shop/payments", "/cp/payment-gateways-app", "aspnet-digest", "php", "Gateway secrets/config writes stay PHP."),
         Row("cp-fulfillment", "cp", "content/shop/finance/epc_fulfillment_queue.php", "/CP/shop/finance/epc_fulfillment_queue", "/cp/fulfillment-queue-app", "aspnet-digest", "php", "Queue mutations stay PHP."),
         Row("cp-collections", "cp", "content/shop/finance/epc_collections_dunning.php", "/CP/shop/finance/epc_collections_dunning", "/cp/collections-dunning-app", "aspnet-digest", "php", "Dunning letters stay PHP."),
-        Row("cp-credit-limits", "cp", "content/shop/finance/epc_credit_limit.php", "/CP/shop/finance/epc_credit_limit", "/cp/credit-limits-app", "aspnet-digest", "php", "Limit engine writes stay PHP."),
-        Row("cp-po-approvals", "cp", "content/shop/finance/epc_po_approval.php", "/CP/shop/finance/epc_po_approval", "/cp/po-approvals-app", "aspnet-digest", "php", "Approve/reject stay PHP."),
+        Row("cp-credit-limits", "cp", "content/shop/finance/epc_credit_limit.php", "/CP/shop/finance/epc_credit_limit", "/cp/credit-limits-app", "aspnet-digest", "aspnet", "epc_credit_set_limit UPSERT is ASP.NET-live."),
+        Row("cp-po-approvals", "cp", "content/shop/finance/epc_po_approval.php", "/CP/shop/finance/epc_po_approval", "/cp/po-approvals-app", "aspnet-digest", "aspnet", "epc_po_approve / epc_po_reject are ASP.NET-live."),
         Row("cp-warranty-rma", "cp", "content/shop/finance/epc_warranty_rma.php", "/CP/shop/finance/epc_warranty_rma", "/cp/returns-rma-app", "aspnet-digest", "php", "RMA writes stay PHP."),
         Row("cp-account-ops", "cp", "content/shop/finance/account_operations", "/CP/shop/finance/account_operations", "/cp/credit-limits-app", "aspnet-routed", "php", "Closest twin is credit-limits; account-op ajax stays PHP."),
         Row("cp-payment-systems", "cp", "content/shop/finance/payment_systems", "/CP/shop/finance/payment_systems", "/cp/payment-gateways-app", "aspnet-routed", "php", "Per-gateway go_to_pay stays PHP."),
@@ -55,10 +55,10 @@ public static class PhpVsAspNetRemovalMatrix
 
         // ERP standalone finance pages closed in this wave
         Row("erp-order-pipeline", "erp", "content/shop/finance/epc_order_erp_pipeline.php", "/CP/shop/finance/epc_order_erp_pipeline", "/erp/order-pipeline-app", "aspnet-digest", "php", "Read-only epc_order_erp_log. Pipeline run stays PHP."),
-        Row("erp-inventory-forecast", "erp", "content/shop/finance/epc_inventory_forecast.php", "/CP/shop/finance/epc_inventory_forecast", "/erp/inventory-forecast-app", "aspnet-digest", "php", "Read-only epc_inventory_forecast. Recompute stays PHP."),
+        Row("erp-inventory-forecast", "erp", "content/shop/finance/epc_inventory_forecast.php", "/CP/shop/finance/epc_inventory_forecast", "/erp/inventory-forecast-app", "aspnet-digest", "aspnet", "epc_forecast_compute UPSERT is ASP.NET-live. Demand-history ingest stays PHP."),
         Row("erp-multi-entity", "erp", "content/shop/finance/epc_multi_entity.php", "/CP/shop/finance/epc_multi_entity", "/erp/multi-entity-app", "aspnet-digest", "php", "Read-only epc_entity_groups / members / IC txns. Consolidation write stays PHP."),
         Row("erp-multi-currency-gl", "erp", "content/shop/finance/epc_multi_currency_gl.php", "/CP/shop/finance/epc_multi_currency_gl", "/erp/multi-currency-gl-app", "aspnet-digest", "php", "Read-only epc_fx_rates + epc_gl_currency_entries. Revaluation stays PHP."),
-        Row("erp-payroll", "erp", "content/shop/finance/epc_wps_payroll.php + erp_tabs_payroll.php", "/CP/shop/finance/epc_wps_payroll", "/erp/payroll-app", "aspnet-digest", "php", "WPS page and ERP payroll tab share the payroll digest."),
+        Row("erp-payroll", "erp", "content/shop/finance/epc_wps_payroll.php + erp_tabs_payroll.php", "/CP/shop/finance/epc_wps_payroll", "/erp/payroll-app", "aspnet-digest", "aspnet", "payroll_approve is ASP.NET-live. Generate/pay stay PHP dry-run."),
         Row("erp-subscriptions", "erp", "content/shop/finance/epc_subscription_billing.php", "/CP/shop/finance/epc_subscription_billing", "/erp/sales-orders-app?tab=subscriptions", "aspnet-routed", "php", "Subscription billing lands on sales-orders subscriptions tab."),
         Row("erp-insights", "erp", "content/shop/finance/epc_insights_suite.php", "/CP/shop/finance/epc_insights_suite", "/erp/dashboard-summary-app", "aspnet-routed", "php", "Insights suite routed to ERP dashboard digest."),
         Row("erp-sales-orders", "erp", "cp/content/shop/finance/erp/erp_tabs_sales_orders.php", "/ERP/?epc_erp_shell=1&area=sales&tab=sales_orders", "/erp/sales-orders-app", "aspnet-digest", "php", "SO list digest; create/post stay PHP ajax_erp."),
@@ -74,7 +74,7 @@ public static class PhpVsAspNetRemovalMatrix
         // Write families that block PHP removal
         Row("write-cp-ajax", "writes", "cp/content/**/ajax_*.php (~430 catalogued)", "CP module ajax", "dry-run /cp/ajax/*", "php-writes", "php", "CpModuleAjaxWriteCatalog: writes=0, phpAuthoritative=true."),
         Row("write-erp-ajax", "writes", "cp/content/shop/finance/erp/ajax_erp.php", "ajax_erp.php", "dry-run /erp/ajax/*", "php-writes", "php", "ErpAjaxWriteCatalog: writes=0. Live GL/SO helpers stay gated."),
-        Row("write-storefront-cart", "writes", "content/shop/order_process/ajax_*.php", "cart/checkout ajax", "/php-reference/content/shop/order_process/", "php-writes", "php", "Cart add/update/checkout remain PHP-authoritative."),
+        Row("write-storefront-cart", "writes", "content/shop/order_process/ajax_*.php", "cart/checkout ajax", "/storefront/cart/add", "php-writes", "php", "Type-2 add/qty/delete/check are ASP.NET-live. Type-1 + checkout/create stay PHP."),
         Row("write-payments", "writes", "content/shop/finance/payment_systems/*/go_to_pay.php", "payment notify", "/php-reference/content/shop/finance/payment_systems/", "php-writes", "php", "Gateway capture/notify cannot move without PCI + live dual-sample."),
         Row("write-laximo", "writes", "content/laximo/com_guayaquil", "Laximo VIN decode", "/storefront/vin-app", "php-writes", "php", "Guayaquil SDK is not ported. Cache-only on ASP.NET."),
         Row("write-pyprices", "writes", "cp/content/shop/prices_upload + pyprices", "price ingest cron", "/cp/prices-upload-app", "php-writes", "php", "Price file ingest + cron stay PHP/Python."),
@@ -146,13 +146,19 @@ public static class PhpVsAspNetRemovalMatrix
             },
             ["stillBlockingPhpRemoval"] = new[]
             {
-                "Interactive writes remain PHP (CP ajax ~430, ERP ajax_erp, storefront cart/pay, Laximo decode, PyPrices ingest).",
-                "aspnet-complete interactive module count is 0.",
+                "Remaining PHP writes: CP ajax ~430, ERP ajax_erp residual, storefront type-1/checkout/pay, Laximo decode, PyPrices ingest, UMAPI miss-fill.",
+                "aspnet-complete interactive module count is 0 (no dual-sample deletion gate).",
                 "Digests + href remaps are not a deletion gate.",
                 "Human MODULE_FUNCTION_TEST_PASS + dual-sample evidence required per family."
             },
             ["closedThisWave"] = new[]
             {
+                "Type-2 cart qty/delete/check + cart add → ASP.NET live writes",
+                "OMS set_item_status → /cp/orders/set-item-status live",
+                "Payroll approve → /erp/ajax/payroll-approve live",
+                "Credit limit set → /cp/credit-limits/set live",
+                "PO approve/reject → /cp/po-approvals/approve|reject live",
+                "Inventory forecast recompute → /erp/inventory-forecast/recompute live",
                 "shop/finance/epc_credit_limit → /cp/credit-limits-app",
                 "shop/finance/epc_po_approval → /cp/po-approvals-app",
                 "shop/finance/epc_warranty_rma → /cp/returns-rma-app",

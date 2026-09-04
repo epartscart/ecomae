@@ -98,8 +98,55 @@ public sealed class ErpModule : ISurfaceModule
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpMfgWoCompleteRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxPayrollGenerate, async (HttpContext context, ErpPayrollGenerateBody? body, ILegacySessionValidator validator, IErpPayrollGenerateDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(false); return Results.Ok(dryRun.Evaluate(new ErpPayrollGenerateRequest(body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxPayrollApprove, async (HttpContext context, ErpPayrollApproveBody? body, ILegacySessionValidator validator, IErpPayrollApproveDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpPayrollApproveRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxPayrollApprove, async (
+            HttpContext context,
+            ErpPayrollApproveBody? body,
+            ILegacySessionValidator validator,
+            IErpPayrollApproveDryRun dryRun,
+            IErpPayrollWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/payroll-app", "Admin ERP capability required.");
+            }
+
+            body ??= new(0, null, false);
+            var id = body.Id;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                id = LiveWriteFormBinder.Long(form, "id", "runId", "run_id");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(dryRun.Evaluate(new ErpPayrollApproveRequest(id, body.Code, false)).ToPayload(SessionPayload(session)));
+            }
+
+            var written = await writes.ApproveRunAsync(id, cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/erp/payroll-app",
+                written.Succeeded,
+                written.Message,
+                new
+                {
+                    ok = written.Succeeded,
+                    status = written.Succeeded,
+                    surface = "erp",
+                    writes = written.Writes,
+                    writesBlocked = false,
+                    phpAuthoritative = false,
+                    validation_code = written.Code,
+                    message = written.Message,
+                    result = new { id = written.Id },
+                    session = SessionPayload(session),
+                });
+        }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxPayrollPay, async (HttpContext context, ErpPayrollPayBody? body, ILegacySessionValidator validator, IErpPayrollPayDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpPayrollPayRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxPayrollUpdateDays, async (HttpContext context, ErpPayrollUpdateDaysBody? body, ILegacySessionValidator validator, IErpPayrollUpdateDaysDryRun dryRun, CancellationToken cancellationToken) =>
@@ -3144,8 +3191,74 @@ public sealed class ErpModule : ISurfaceModule
             if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
                 return Unauthorized("Admin ERP capability required for inventory-forecast digest.");
             var result = await dashboards.ListErpInventoryForecastAsync(limit ?? 200, cancellationToken);
-            return Results.Ok(new { ok = true, surface = "erp", forecasts = result.Forecasts, count = result.Count, healthyCount = result.HealthyCount, lowCount = result.LowCount, criticalCount = result.CriticalCount, stockoutCount = result.StockoutCount, source = result.Source, message = result.Message, session = SessionPayload(session), note = "Read-only epc_inventory_forecast. PHP forecast recompute remains authoritative." });
+            return Results.Ok(new { ok = true, surface = "erp", forecasts = result.Forecasts, count = result.Count, healthyCount = result.HealthyCount, lowCount = result.LowCount, criticalCount = result.CriticalCount, stockoutCount = result.StockoutCount, source = result.Source, message = result.Message, session = SessionPayload(session), note = "Read-only epc_inventory_forecast. POST /erp/inventory-forecast/recompute is the ASP.NET live twin of epc_forecast_compute." });
         });
+
+        endpoints.MapPost(EcomAeRoutes.ErpInventoryForecastRecompute, async (
+            HttpContext context,
+            ErpInventoryForecastRecomputeBody? body,
+            ILegacySessionValidator validator,
+            IErpInventoryForecastWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/inventory-forecast-app", "Admin ERP capability required.");
+            }
+
+            body ??= new();
+            var siteKey = body.SiteKey ?? string.Empty;
+            var sku = body.Sku ?? string.Empty;
+            var stock = body.CurrentStock;
+            var name = body.ProductName ?? string.Empty;
+            var lead = body.LeadTimeDays;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                siteKey = LiveWriteFormBinder.Text(form, "siteKey", "site_key");
+                sku = LiveWriteFormBinder.Text(form, "sku");
+                stock = LiveWriteFormBinder.Int(form, "currentStock", "current_stock");
+                name = LiveWriteFormBinder.Text(form, "productName", "product_name", "name");
+                lead = LiveWriteFormBinder.Int(form, "leadTimeDays", "lead_time_days");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(new
+                {
+                    ok = false,
+                    status = false,
+                    surface = "erp",
+                    writes = 0,
+                    writesBlocked = true,
+                    phpAuthoritative = false,
+                    message = "Set confirmWrites=true to recompute the forecast on ASP.NET.",
+                    session = SessionPayload(session),
+                });
+            }
+
+            var written = await writes.RecomputeSkuAsync(siteKey, sku, stock, name, lead, cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/erp/inventory-forecast-app",
+                written.Succeeded,
+                written.Message,
+                new
+                {
+                    ok = written.Succeeded,
+                    status = written.Succeeded,
+                    surface = "erp",
+                    writes = written.Writes,
+                    writesBlocked = false,
+                    phpAuthoritative = false,
+                    validation_code = written.Code,
+                    message = written.Message,
+                    session = SessionPayload(session),
+                });
+        }).DisableAntiforgery();
 
         endpoints.MapGet(EcomAeRoutes.ErpMultiEntity, async (HttpContext context, int? limit, ILegacySessionValidator validator, ISurfaceDashboardSummaryReporter dashboards, CancellationToken cancellationToken) =>
         {
@@ -3962,6 +4075,13 @@ public sealed class ErpModule : ISurfaceModule
     private sealed record ErpMfgWoCompleteBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpPayrollGenerateBody(bool ConfirmWrites = false);
     private sealed record ErpPayrollApproveBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
+    private sealed record ErpInventoryForecastRecomputeBody(
+        string? SiteKey = null,
+        string? Sku = null,
+        int CurrentStock = 0,
+        string? ProductName = null,
+        int LeadTimeDays = 7,
+        bool ConfirmWrites = false);
     private sealed record ErpPayrollPayBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpPayrollUpdateDaysBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpUaeTaxFtaFetchBody(bool ConfirmWrites = false);
