@@ -665,6 +665,9 @@ builder.Services.AddScoped<EcomAE.Platform.Cp.ICpQuoteWriteService, EcomAE.Platf
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpVendorApprovalWriteService, EcomAE.Platform.Cp.CpVendorApprovalWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpApiClientWriteService, EcomAE.Platform.Cp.CpApiClientWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpPriceStorageRuleWriteService, EcomAE.Platform.Cp.CpPriceStorageRuleWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Cp.ICpContentManagerWriteService, EcomAE.Platform.Cp.CpContentManagerWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpOfficesCashWriteService, EcomAE.Platform.Erp.ErpOfficesCashWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpWmsLocationWriteService, EcomAE.Platform.Erp.ErpWmsLocationWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpOmsWriteService, EcomAE.Platform.Cp.CpOmsWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpUserWriteService, EcomAE.Platform.Cp.CpUserWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpLangWriteService, EcomAE.Platform.Cp.CpLangWriteService>();

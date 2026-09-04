@@ -45,7 +45,7 @@
     <section class="epc-pl-hero">
         <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
         <h1>Price Lists</h1>
-        <p>Delete a supplier margin rule here. Rule create/upsert stays on the compare twin.</p>
+        <p>Save or delete a supplier margin rule (overall, brand, or article). Price CSV import stays PHP.</p>
         <div class="epc-pl-cta">
             <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
             <a class="ghost" href="/cp/auto-price-app">Auto-price</a>
@@ -74,6 +74,36 @@
                 </select>
             </label>
             <button type="submit">Delete rule</button>
+        </form>
+        <form method="post" action="/cp/prices/storage-rules" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/price-lists-app" />
+            <input type="hidden" name="action" value="save_storage_rule" />
+            <label>Storage id <input type="number" name="storageId" min="1" required style="width:6rem" /></label>
+            <label>Margin % <input type="text" name="marginPercent" value="0" required style="width:6rem" /></label>
+            <label><input type="checkbox" name="visible" value="1" /> Visible</label>
+            <button type="submit">Save overall rule</button>
+        </form>
+        <form method="post" action="/cp/prices/storage-rules" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/price-lists-app" />
+            <input type="hidden" name="action" value="save_storage_brand_rule" />
+            <label>Storage id <input type="number" name="storageId" min="1" required style="width:6rem" /></label>
+            <label>Brand <input type="text" name="manufacturer" required /></label>
+            <label>Margin % <input type="text" name="marginPercent" value="0" required style="width:6rem" /></label>
+            <label><input type="checkbox" name="visible" value="1" /> Visible</label>
+            <button type="submit">Save brand rule</button>
+        </form>
+        <form method="post" action="/cp/prices/storage-rules" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/price-lists-app" />
+            <input type="hidden" name="action" value="save_storage_article_rule" />
+            <label>Storage id <input type="number" name="storageId" min="1" required style="width:6rem" /></label>
+            <label>Brand <input type="text" name="manufacturer" required /></label>
+            <label>Article <input type="text" name="article" required /></label>
+            <label>Margin % <input type="text" name="marginPercent" value="0" required style="width:6rem" /></label>
+            <label><input type="checkbox" name="visible" value="1" /> Visible</label>
+            <button type="submit">Save article rule</button>
         </form>
     }
 

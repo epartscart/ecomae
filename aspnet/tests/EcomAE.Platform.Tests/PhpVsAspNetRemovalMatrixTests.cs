@@ -60,6 +60,9 @@ public sealed class PhpVsAspNetRemovalMatrixTests
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "cp-vendor-approvals" && r.WritesOwner == "aspnet");
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "cp-api-clients" && r.WritesOwner == "aspnet");
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "cp-price-storage-rules" && r.WritesOwner == "aspnet");
+        Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "cp-content-pages" && r.WritesOwner == "aspnet");
+        Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "erp-offices-cash" && r.WritesOwner == "aspnet");
+        Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "erp-wms-locations" && r.WritesOwner == "aspnet");
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "write-storefront-cart" && r.WritesOwner == "php");
     }
 
@@ -124,6 +127,11 @@ public sealed class PhpVsAspNetRemovalMatrixTests
             ("CpQuoteRequestsApp.razor", "/cp/quote-requests/send"),
             ("CpApiClientsApp.razor", "/cp/api-clients/toggle"),
             ("CpPriceListsApp.razor", "/cp/prices/storage-rules"),
+            ("CpPagesApp.razor", "/cp/content/published"),
+            ("CpPagesApp.razor", "/cp/content/main"),
+            ("ErpCashAccountsApp.razor", "/erp/offices-cash/add"),
+            ("ErpCashAccountsApp.razor", "/erp/offices-cash/codes/delete"),
+            ("CpWarehouseWmsApp.razor", "/erp/wms/locations/delete"),
             ("CpLanguagesApp.razor", "/cp/lang/set-is-custom"),
             ("CpLanguagesApp.razor", "/cp/lang/set-is-error"),
             ("CpLanguagesApp.razor", "/cp/lang/set-same"),

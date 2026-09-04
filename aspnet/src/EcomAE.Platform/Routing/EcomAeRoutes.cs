@@ -658,7 +658,7 @@ public static class EcomAeRoutes
     public const string ErpProcurementReqSubmit = "/erp/procurement/requisitions/submit";
     /// <summary>Wave B dry-run for PHP proc_req_decision (writes=0).</summary>
     public const string ErpProcurementReqDecision = "/erp/procurement/requisitions/decision";
-    /// <summary>Wave B dry-run for PHP wms_location_delete (writes=0).</summary>
+    /// <summary>PHP epc_wms_location_delete. <c>confirmWrites=true</c> writes via <c>IErpWmsLocationWriteService</c>.</summary>
     public const string ErpWmsLocationDelete = "/erp/wms/locations/delete";
     /// <summary>Wave B dry-run for PHP invoice_delete draft (writes=0).</summary>
     public const string ErpInvoicesDelete = "/erp/invoices/delete";
@@ -981,8 +981,16 @@ public static class EcomAeRoutes
     public const string CpVendorApprovals = "/cp/vendors/approvals";
     /// <summary>PHP epc_api_clients_manage.php revoke/activate. Super CP only.</summary>
     public const string CpApiClientsToggle = "/cp/api-clients/toggle";
-    /// <summary>PHP epc_pm_storage_panel.php rule DELETE. Save/upsert stay PHP.</summary>
+    /// <summary>PHP epc_pm_storage_panel.php rule save (ON DUPLICATE KEY) and DELETE.</summary>
     public const string CpPriceStorageRules = "/cp/prices/storage-rules";
+    /// <summary>PHP content_manager.php set_published_flag (single id). System pages stay locked.</summary>
+    public const string CpContentPublished = "/cp/content/published";
+    /// <summary>PHP content_manager.php set_main_flag. Body editor stays PHP.</summary>
+    public const string CpContentMain = "/cp/content/main";
+    /// <summary>PHP offices_cash.php action=add. Manager must belong to the office.</summary>
+    public const string ErpOfficesCashAdd = "/erp/offices-cash/add";
+    /// <summary>PHP offices_cash_editor.php action=del. Code add stays PHP.</summary>
+    public const string ErpOfficesCashCodeDelete = "/erp/offices-cash/codes/delete";
 
     /// <summary>Wave B dry-run for PHP period_log (writes=0).</summary>
     public const string ErpAjaxPeriodLog = "/erp/ajax/period-log";

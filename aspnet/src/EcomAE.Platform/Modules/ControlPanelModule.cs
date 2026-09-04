@@ -2268,12 +2268,22 @@ public sealed class ControlPanelModule : ISurfaceModule
             var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpPriceStorageRulesBody>(context, cancellationToken) ?? new();
             var kind = body.Action ?? body.Kind;
             var ruleId = body.RuleId;
+            var storageId = body.StorageId;
+            var manufacturer = body.Manufacturer;
+            var article = body.Article;
+            var margin = body.MarginPercent;
+            var visible = body.Visible;
             var confirm = body.ConfirmWrites;
             if (context.Request.HasFormContentType)
             {
                 var form = await context.Request.ReadFormAsync(cancellationToken);
                 kind = LiveWriteFormBinder.Text(form, "action", "kind");
                 ruleId = LiveWriteFormBinder.Long(form, "ruleId", "rule_id", "id");
+                storageId = LiveWriteFormBinder.Long(form, "storageId", "storage_id");
+                manufacturer = LiveWriteFormBinder.Text(form, "manufacturer", "brand");
+                article = LiveWriteFormBinder.Text(form, "article");
+                margin = LiveWriteFormBinder.Text(form, "marginPercent", "margin_percent");
+                visible = LiveWriteFormBinder.Flag(form, "visible") ? 1 : 0;
                 confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
             }
 
@@ -2286,15 +2296,107 @@ public sealed class ControlPanelModule : ISurfaceModule
                     writesBlocked = true,
                     phpAuthoritative = true,
                     validation_code = "dry_run",
-                    message = "Set confirmWrites=true to delete a price storage rule on ASP.NET.",
+                    message = "Set confirmWrites=true to save or delete a price storage rule on ASP.NET.",
                     session = SessionPayload(session)
                 });
             }
 
-            var written = await writes.DeleteAsync(kind, ruleId, cancellationToken);
+            var written = await writes.ApplyAsync(kind, ruleId, storageId, manufacturer, article, margin, visible, cancellationToken);
             return LiveWriteFormBinder.Complete(
                 context,
                 "/cp/price-lists-app",
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.CpContentPublished, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpContentManagerWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/pages-app", "Admin CP capability required for content publish.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpContentPublishedBody>(context, cancellationToken) ?? new();
+            var contentId = body.ContentId;
+            var published = body.PublishedFlag;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                contentId = LiveWriteFormBinder.Long(form, "contentId", "content_id", "id");
+                published = LiveWriteFormBinder.Int(form, "publishedFlag", "published_flag", "published");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(new
+                {
+                    status = "dry-run",
+                    writes = 0,
+                    writesBlocked = true,
+                    phpAuthoritative = true,
+                    validation_code = "dry_run",
+                    message = "Set confirmWrites=true to change a content publish flag on ASP.NET.",
+                    session = SessionPayload(session)
+                });
+            }
+
+            var written = await writes.SetPublishedAsync(contentId, published, cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/cp/pages-app",
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.CpContentMain, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpContentManagerWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/pages-app", "Admin CP capability required for content main flag.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpContentMainBody>(context, cancellationToken) ?? new();
+            var contentId = body.ContentId;
+            var isFrontend = body.IsFrontend;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                contentId = LiveWriteFormBinder.Long(form, "contentId", "content_id", "id");
+                isFrontend = LiveWriteFormBinder.IntOrNull(form, "isFrontend", "is_frontend") ?? 1;
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(new
+                {
+                    status = "dry-run",
+                    writes = 0,
+                    writesBlocked = true,
+                    phpAuthoritative = true,
+                    validation_code = "dry_run",
+                    message = "Set confirmWrites=true to set the main content page on ASP.NET.",
+                    session = SessionPayload(session)
+                });
+            }
+
+            var written = await writes.SetMainAsync(contentId, isFrontend, cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/cp/pages-app",
                 written.Succeeded,
                 written.Message,
                 new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
@@ -6198,5 +6300,16 @@ public sealed class ControlPanelModule : ISurfaceModule
     private sealed record CpQuoteSendBody(long QuoteId = 0, bool ConfirmWrites = false);
     private sealed record CpVendorApprovalsBody(long Id = 0, string? Action = null, bool ConfirmWrites = false);
     private sealed record CpApiClientsToggleBody(long ClientId = 0, string? Action = null, bool ConfirmWrites = false);
-    private sealed record CpPriceStorageRulesBody(string? Action = null, string? Kind = null, long RuleId = 0, bool ConfirmWrites = false);
+    private sealed record CpPriceStorageRulesBody(
+        string? Action = null,
+        string? Kind = null,
+        long RuleId = 0,
+        long StorageId = 0,
+        string? Manufacturer = null,
+        string? Article = null,
+        string? MarginPercent = null,
+        int Visible = 0,
+        bool ConfirmWrites = false);
+    private sealed record CpContentPublishedBody(long ContentId = 0, int PublishedFlag = 0, bool ConfirmWrites = false);
+    private sealed record CpContentMainBody(long ContentId = 0, int IsFrontend = 1, bool ConfirmWrites = false);
 }

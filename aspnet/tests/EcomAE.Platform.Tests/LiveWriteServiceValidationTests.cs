@@ -722,6 +722,76 @@ public sealed class LiveWriteServiceValidationTests
             .DeleteAsync("delete_storage_rule", 9);
         Assert.False(ruleDb.Succeeded);
         Assert.Equal("db", ruleDb.Code);
+
+        var ruleSaveInvalid = await new CpPriceStorageRuleWriteService(new ConfiguredNeverOpened())
+            .ApplyAsync("save_storage_rule", 0, 0, null, null, "10", 1);
+        Assert.False(ruleSaveInvalid.Succeeded);
+        Assert.Equal("invalid", ruleSaveInvalid.Code);
+
+        var ruleSaveMargin = await new CpPriceStorageRuleWriteService(new ConfiguredNeverOpened())
+            .ApplyAsync("save_storage_brand_rule", 0, 4, "bosch", null, "2000", 1);
+        Assert.False(ruleSaveMargin.Succeeded);
+        Assert.Equal("invalid", ruleSaveMargin.Code);
+
+        var ruleSaveDb = await new CpPriceStorageRuleWriteService(new UnconfiguredConnections())
+            .ApplyAsync("save_storage_rule", 0, 4, null, null, "10,5", 1);
+        Assert.False(ruleSaveDb.Succeeded);
+        Assert.Equal("db", ruleSaveDb.Code);
+
+        var cashInvalid = await new ErpOfficesCashWriteService(new ConfiguredNeverOpened())
+            .AddEntryAsync(1, 0, 1, 10, 3, "note");
+        Assert.False(cashInvalid.Succeeded);
+        Assert.Equal("invalid", cashInvalid.Code);
+
+        var cashAmount = await new ErpOfficesCashWriteService(new ConfiguredNeverOpened())
+            .AddEntryAsync(1, 2, 1, 0, 3, "note");
+        Assert.False(cashAmount.Succeeded);
+        Assert.Equal("invalid", cashAmount.Code);
+
+        var cashDb = await new ErpOfficesCashWriteService(new UnconfiguredConnections())
+            .AddEntryAsync(1, 2, 1, 10, 3, "note");
+        Assert.False(cashDb.Succeeded);
+        Assert.Equal("db", cashDb.Code);
+
+        var cashCodeInvalid = await new ErpOfficesCashWriteService(new ConfiguredNeverOpened())
+            .DeleteCodeAsync(1, 2, 0);
+        Assert.False(cashCodeInvalid.Succeeded);
+        Assert.Equal("invalid", cashCodeInvalid.Code);
+
+        var cashCodeDb = await new ErpOfficesCashWriteService(new UnconfiguredConnections())
+            .DeleteCodeAsync(1, 2, 9);
+        Assert.False(cashCodeDb.Succeeded);
+        Assert.Equal("db", cashCodeDb.Code);
+
+        var contentInvalid = await new CpContentManagerWriteService(new ConfiguredNeverOpened())
+            .SetPublishedAsync(0, 1);
+        Assert.False(contentInvalid.Succeeded);
+        Assert.Equal("invalid", contentInvalid.Code);
+
+        var contentDb = await new CpContentManagerWriteService(new UnconfiguredConnections())
+            .SetPublishedAsync(9, 1);
+        Assert.False(contentDb.Succeeded);
+        Assert.Equal("db", contentDb.Code);
+
+        var contentMainDb = await new CpContentManagerWriteService(new UnconfiguredConnections())
+            .SetMainAsync(9, 1);
+        Assert.False(contentMainDb.Succeeded);
+        Assert.Equal("db", contentMainDb.Code);
+
+        var wmsInvalid = await new ErpWmsLocationWriteService(new ConfiguredNeverOpened())
+            .DeleteAsync(0);
+        Assert.False(wmsInvalid.Succeeded);
+        Assert.Equal("invalid", wmsInvalid.Code);
+
+        var wmsDb = await new ErpWmsLocationWriteService(new UnconfiguredConnections())
+            .DeleteAsync(4);
+        Assert.False(wmsDb.Succeeded);
+        Assert.Equal("db", wmsDb.Code);
+
+        var brandMissing = await new CpPriceStorageRuleWriteService(new ConfiguredNeverOpened())
+            .ApplyAsync("save_storage_article_rule", 0, 4, "bosch", "---", "10", 1);
+        Assert.False(brandMissing.Succeeded);
+        Assert.Equal("invalid", brandMissing.Code);
     }
 
     [Fact]
