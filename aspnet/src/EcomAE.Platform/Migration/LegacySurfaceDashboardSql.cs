@@ -1985,17 +1985,34 @@ public static class LegacySurfaceDashboardSql
             (SELECT COUNT(*) FROM `epc_fulfillment_orders` WHERE IFNULL(`status`,'')='delivered') AS delivered
         """;
 
-    public const string SelectCpFulfillmentQueueRows = """
-        SELECT `id`, IFNULL(`order_number`,'') AS order_number, IFNULL(`customer_name`,'') AS customer_name,
-               IFNULL(`status`,'') AS status, IFNULL(`priority`,'') AS priority,
-               IFNULL(`warehouse`,'') AS warehouse, IFNULL(`carrier`,'') AS carrier,
-               IFNULL(`order_id`,0) AS order_id, IFNULL(`assigned_name`,'') AS assigned_name,
-               IFNULL(`tracking_number`,'') AS tracking_number, IFNULL(`total_items`,0) AS total_items,
-               IFNULL(`wave_id`,0) AS wave_id
-        FROM `epc_fulfillment_orders`
-        ORDER BY FIELD(`priority`, 'urgent', 'high', 'normal', 'low'), `created_at` ASC, `id` ASC
-        LIMIT @limit
-        """;
+    /// <summary>
+    /// PHP <c>epc_fulfillment_list</c> applies <c>status</c> in SQL before
+    /// <c>LIMIT</c>. Tab groups match the KPI cards (picking/packing, shipping).
+    /// </summary>
+    public static string SelectCpFulfillmentQueueRows => BuildSelectCpFulfillmentQueueRows(null);
+
+    public static string BuildSelectCpFulfillmentQueueRows(string? statusTab)
+    {
+        var where = statusTab switch
+        {
+            "queued" => "WHERE IFNULL(`status`,'') = 'queued'\n        ",
+            "picking" => "WHERE IFNULL(`status`,'') IN ('picking','picked','packing','packed')\n        ",
+            "shipping" => "WHERE IFNULL(`status`,'') IN ('shipping','shipped')\n        ",
+            "delivered" => "WHERE IFNULL(`status`,'') = 'delivered'\n        ",
+            _ => string.Empty,
+        };
+        return $"""
+            SELECT `id`, IFNULL(`order_number`,'') AS order_number, IFNULL(`customer_name`,'') AS customer_name,
+                   IFNULL(`status`,'') AS status, IFNULL(`priority`,'') AS priority,
+                   IFNULL(`warehouse`,'') AS warehouse, IFNULL(`carrier`,'') AS carrier,
+                   IFNULL(`order_id`,0) AS order_id, IFNULL(`assigned_name`,'') AS assigned_name,
+                   IFNULL(`tracking_number`,'') AS tracking_number, IFNULL(`total_items`,0) AS total_items,
+                   IFNULL(`wave_id`,0) AS wave_id
+            FROM `epc_fulfillment_orders`
+            {where}ORDER BY FIELD(`priority`, 'urgent', 'high', 'normal', 'low'), `created_at` ASC, `id` ASC
+            LIMIT @limit
+            """;
+    }
 
     /// <summary>PHP <c>epc_fulfillment_get</c> header from <c>epc_fulfillment_orders</c>.</summary>
     public const string SelectCpFulfillmentOrderById = """
@@ -4884,15 +4901,25 @@ public const string SelectCpOpsGuidesStats = """
         WHERE `current_assignee_id` > 0
         """;
 
-    /// <summary>PHP <c>epc_insights_suite_commerce_stats</c> — orders since a unix bound.</summary>
-    public const string CountErpInsightsOrdersSince = """
+    /// <summary>
+    /// PHP <c>epc_insights_suite_commerce_stats</c> — MySQL session-local
+    /// <c>CURDATE()</c>, not UTC midnight from the app host.
+    /// </summary>
+    public const string CountErpInsightsOrdersToday = """
         SELECT COUNT(*) FROM `shop_orders`
-        WHERE `successfully_created` = 1 AND `time` >= @since
+        WHERE `successfully_created` = 1 AND `time` >= UNIX_TIMESTAMP(CURDATE())
         """;
 
-    public const string CountErpInsightsOrdersBetween = """
+    public const string CountErpInsightsOrdersWeek = """
         SELECT COUNT(*) FROM `shop_orders`
-        WHERE `successfully_created` = 1 AND `time` >= @dateFrom AND `time` < @dateTo
+        WHERE `successfully_created` = 1 AND `time` >= UNIX_TIMESTAMP(CURDATE() - INTERVAL 6 DAY)
+        """;
+
+    public const string CountErpInsightsOrdersPrevWeek = """
+        SELECT COUNT(*) FROM `shop_orders`
+        WHERE `successfully_created` = 1
+          AND `time` >= UNIX_TIMESTAMP(CURDATE() - INTERVAL 13 DAY)
+          AND `time` < UNIX_TIMESTAMP(CURDATE() - INTERVAL 6 DAY)
         """;
 
     public const string CountErpInsightsOpenOrders = """

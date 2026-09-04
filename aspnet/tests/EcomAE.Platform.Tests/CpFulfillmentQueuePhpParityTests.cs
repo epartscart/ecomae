@@ -35,6 +35,7 @@ public sealed class CpFulfillmentQueuePhpParityTests
         Assert.Contains("data-epc-fulfillment-ssr", text, StringComparison.Ordinal);
         Assert.Contains("@page \"/cp/shop/finance/epc_fulfillment_queue\"", text, StringComparison.Ordinal);
         Assert.Contains("GetCpFulfillmentDetailAsync", text, StringComparison.Ordinal);
+        Assert.Contains("BuildCpFulfillmentQueueDigestAsync(200, ctx.RequestAborted, _status)", text, StringComparison.Ordinal);
         Assert.Contains("QtyOrdered", text, StringComparison.Ordinal);
         Assert.Contains("QtyPicked", text, StringComparison.Ordinal);
         Assert.Contains("QtyPacked", text, StringComparison.Ordinal);
@@ -56,6 +57,13 @@ public sealed class CpFulfillmentQueuePhpParityTests
         Assert.Contains("SelectCpFulfillmentOrderById", sql, StringComparison.Ordinal);
         Assert.Contains("SelectCpFulfillmentItems", sql, StringComparison.Ordinal);
         Assert.Contains("epc_fulfillment_items", sql, StringComparison.Ordinal);
+        Assert.Contains("BuildSelectCpFulfillmentQueueRows", sql, StringComparison.Ordinal);
+        var queued = LegacySurfaceDashboardSql.BuildSelectCpFulfillmentQueueRows("queued");
+        Assert.Contains("WHERE IFNULL(`status`,'') = 'queued'", queued, StringComparison.Ordinal);
+        Assert.Contains("LIMIT @limit", queued, StringComparison.Ordinal);
+        var picking = LegacySurfaceDashboardSql.BuildSelectCpFulfillmentQueueRows("picking");
+        Assert.Contains("'picking','picked','packing','packed'", picking, StringComparison.Ordinal);
+        Assert.DoesNotContain("WHERE IFNULL(`status`,'') = 'queued'", LegacySurfaceDashboardSql.BuildSelectCpFulfillmentQueueRows("all"), StringComparison.Ordinal);
         var routes = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs"));
         Assert.Contains("ControlPanelFulfillmentQueueDetailDigest", routes, StringComparison.Ordinal);
         Assert.Contains("/cp/fulfillment-queue-detail-digest/{fulfillmentId:long}", routes, StringComparison.Ordinal);

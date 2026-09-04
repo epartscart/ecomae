@@ -445,7 +445,7 @@ public interface ISurfaceDashboardSummaryReporter
     /// <summary>Next-wave Super-only: customer board user peek (writes remain PHP).</summary>
     Task<CpCustomerBoardDigestResult> BuildCpCustomerBoardDigestAsync(int limit, CancellationToken cancellationToken = default);
     /// <summary>Next-wave: fulfillment queue digest (OMS stage writes remain dry-run).</summary>
-    Task<CpFulfillmentQueueDigestResult> BuildCpFulfillmentQueueDigestAsync(int limit, CancellationToken cancellationToken = default);
+    Task<CpFulfillmentQueueDigestResult> BuildCpFulfillmentQueueDigestAsync(int limit, CancellationToken cancellationToken = default, string? status = null);
     /// <summary>PHP <c>epc_fulfillment_get</c> read-only detail. Writes remain PHP / OMS dry-run.</summary>
     Task<CpFulfillmentDetailDigest?> GetCpFulfillmentDetailAsync(long fulfillmentId, CancellationToken cancellationToken = default);
     /// <summary>Next-wave Super-only: SSO/SAML providers (certs/metadata omitted).</summary>
