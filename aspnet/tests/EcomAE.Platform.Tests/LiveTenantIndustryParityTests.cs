@@ -352,8 +352,8 @@ public sealed class LiveTenantIndustryParityTests
     [Fact]
     public void Checkout_returns_and_review_write_hrefs_stay_on_php()
     {
-        Assert.StartsWith("/php-reference/", PhpCustomerWrites.CheckoutHowGetWriteHref);
-        Assert.StartsWith("/php-reference/", PhpCustomerWrites.CheckoutConfirmWriteHref);
+        Assert.StartsWith("/storefront/checkout-app", PhpCustomerWrites.CheckoutHowGetWriteHref);
+        Assert.Equal("/storefront/checkout/create", PhpCustomerWrites.CheckoutConfirmWriteHref);
         Assert.Equal("/storefront/cart/add", PhpCustomerWrites.CartAddHref);
         Assert.StartsWith("/php-reference/", PhpCustomerWrites.ReturnsMessageHref);
         Assert.StartsWith("/php-reference/", PhpCustomerWrites.EvaluationWriteHref);

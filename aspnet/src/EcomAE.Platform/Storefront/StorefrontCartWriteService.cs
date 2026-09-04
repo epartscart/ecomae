@@ -95,24 +95,27 @@ public sealed class StorefrontCartWriteService : IStorefrontCartWriteService
 
         await reader.DisposeAsync();
 
-        if (productType != 2)
+        if (productType is not 1 and not 2)
         {
-            return Fail("unsupported", "Only warehouse cart lines can be updated here.");
+            return Fail("unsupported", "Only catalogue or warehouse cart lines can be updated here.");
         }
 
         var qty = countNeed;
-        if (exist > 0 && qty > exist)
+        if (productType == 2)
         {
-            return Fail("not_enough", "Requested quantity exceeds available stock.");
-        }
+            if (exist > 0 && qty > exist)
+            {
+                return Fail("not_enough", "Requested quantity exceeds available stock.");
+            }
 
-        if (qty < minOrder)
-        {
-            qty = minOrder;
+            if (qty < minOrder)
+            {
+                qty = minOrder;
+            }
         }
 
         await using var update = connection.CreateCommand();
-        update.CommandText = "UPDATE `shop_carts` SET `count_need` = @qty WHERE `id` = @id AND `user_id` = @userId AND `session_id` = 0 AND `product_type` = 2";
+        update.CommandText = "UPDATE `shop_carts` SET `count_need` = @qty WHERE `id` = @id AND `user_id` = @userId AND `session_id` = 0 AND `product_type` IN (1, 2)";
         Add(update, "@qty", qty);
         Add(update, "@id", cartId);
         Add(update, "@userId", userId);
@@ -151,7 +154,7 @@ public sealed class StorefrontCartWriteService : IStorefrontCartWriteService
         foreach (var id in ids)
         {
             await using var cmd = connection.CreateCommand();
-            cmd.CommandText = "DELETE FROM `shop_carts` WHERE `id` = @id AND `user_id` = @userId AND `session_id` = 0 AND `product_type` = 2";
+            cmd.CommandText = "DELETE FROM `shop_carts` WHERE `id` = @id AND `user_id` = @userId AND `session_id` = 0 AND `product_type` IN (1, 2)";
             Add(cmd, "@id", id);
             Add(cmd, "@userId", userId);
             writes += await cmd.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
@@ -159,7 +162,7 @@ public sealed class StorefrontCartWriteService : IStorefrontCartWriteService
 
         if (writes <= 0)
         {
-            return Fail("not_found", "Cart line not found or is not a warehouse line.");
+            return Fail("not_found", "Cart line not found.");
         }
 
         return new(true, "written", "ok", "Removed from cart.", writes);

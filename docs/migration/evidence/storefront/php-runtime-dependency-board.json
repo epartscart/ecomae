@@ -48,10 +48,10 @@
     },
     {
       "id": "cart-checkout-quote-writes",
-      "aspnet": "dry-run endpoints + Blazor shells",
-      "php": "content/shop/order_process/* ajax_*",
-      "status": "php-authoritative-writes",
-      "note": "Reads/digests ASP.NET; live writes remain PHP until dual-sample green."
+      "aspnet": "POST /storefront/checkout/create + /storefront/quotes/submit + cart type-1/2 qty/delete",
+      "php": "guest checkout cookies + payment go_to_pay + quote accept/add",
+      "status": "partial-ported",
+      "note": "Signed-in checkout create, quote submit, and type-1 cart qty/delete are ASP.NET-live when confirmWrites=true. Guest checkout, payment notify, and quote accept/add stay PHP."
     },
     {
       "id": "home-widget-ajax",
@@ -62,10 +62,10 @@
     },
     {
       "id": "cp-erp-interactive-writes",
-      "aspnet": "read digests + module-ajax dry-runs",
-      "php": "cp/content/** ajax_*",
-      "status": "php-authoritative-writes",
-      "note": "Boards show aspNetInteractiveComplete=0 until write ports land."
+      "aspnet": "OMS item status / message / courier / unpaid delete + payroll / credit / PO / forecast",
+      "php": "remaining ~430 CP module ajax + residual ajax_erp.php + payment notify",
+      "status": "partial-ported",
+      "note": "Wired OMS twins write when confirmWrites=true. Remaining CP/ERP ajax catalogs stay PHP."
     }
   ],
   "completedThisWave": [

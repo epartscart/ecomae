@@ -125,8 +125,12 @@
                 </table>
             </div>
             <form method="post" action="@PhpCustomerWrites.QuotesWriteHref" style="margin-top:.75rem">
-                <input type="hidden" name="id" value="@_detail.Id.ToString(CultureInfo.InvariantCulture)" />
-                <button type="submit" name="action" value="submit" style="padding:.5rem .85rem;border:0;border-radius:.4rem;background:#dc2626;color:#fff;font-weight:800;cursor:pointer">Submit quote</button>
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="@("/storefront/quotes-app?id=" + _detail.Id.ToString(CultureInfo.InvariantCulture))" />
+                <input type="hidden" name="quoteId" value="@_detail.Id.ToString(CultureInfo.InvariantCulture)" />
+                <label style="display:block;margin:0 0 .45rem">Customer note</label>
+                <textarea name="customerNote" rows="2" style="width:100%;margin:0 0 .65rem;padding:.45rem"></textarea>
+                <button type="submit" style="padding:.5rem .85rem;border:0;border-radius:.4rem;background:#dc2626;color:#fff;font-weight:800;cursor:pointer">Submit quote</button>
             </form>
         }
 

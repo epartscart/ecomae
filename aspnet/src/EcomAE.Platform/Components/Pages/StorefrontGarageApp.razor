@@ -109,9 +109,21 @@
                                 <td>@(string.IsNullOrWhiteSpace(v.Vin) ? "—" : v.Vin)</td>
                                 <td><span class="epc-sf-gar-badge @(v.Active != 0 ? "epc-sf-gar-badge--ok" : "epc-sf-gar-badge--off")">@(v.Active != 0 ? "yes" : "no")</span></td>
                                 <td>
-                                    <a href="@StorefrontSurfaceLinks.PartSearch">Search</a>
+                                    <form method="post" action="/storefront/garage/set-active" style="display:inline">
+                                        <input type="hidden" name="confirmWrites" value="true" />
+                                        <input type="hidden" name="returnUrl" value="/storefront/garage-app" />
+                                        <input type="hidden" name="carId" value="@v.Id.ToString(CultureInfo.InvariantCulture)" />
+                                        <button type="submit" style="border:0;background:none;color:#a16207;font-weight:700;cursor:pointer;padding:0">Set active</button>
+                                    </form>
                                     ·
-                                    <a href="@(StorefrontAspNetCanonical.GarageLogin + "?garage=" + v.Id.ToString(CultureInfo.InvariantCulture))">Notepad</a>
+                                    <form method="post" action="/storefront/garage/delete" style="display:inline" onsubmit="return confirm('Remove this car?');">
+                                        <input type="hidden" name="confirmWrites" value="true" />
+                                        <input type="hidden" name="returnUrl" value="/storefront/garage-app" />
+                                        <input type="hidden" name="carId" value="@v.Id.ToString(CultureInfo.InvariantCulture)" />
+                                        <button type="submit" style="border:0;background:none;color:#991b1b;font-weight:700;cursor:pointer;padding:0">Delete</button>
+                                    </form>
+                                    ·
+                                    <a href="@StorefrontSurfaceLinks.PartSearch">Search</a>
                                 </td>
                             </tr>
                         }

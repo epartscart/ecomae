@@ -514,11 +514,11 @@ public static class EcomAeRoutes
     public const string ControlPanelOmsSetItemStatus = "/cp/orders/set-item-status";
     /// <summary>Wave B dry-run OMS set_items_status bulk (PHP ajax_epc_orders_oms.php remains authoritative).</summary>
     public const string ControlPanelOmsSetItemsStatus = "/cp/orders/set-items-status";
-    /// <summary>Wave B dry-run OMS send_message (PHP ajax_epc_orders_oms.php remains authoritative).</summary>
+    /// <summary>OMS send_message. <c>confirmWrites=true</c> is the live twin of PHP ajax_epc_orders_oms.php.</summary>
     public const string ControlPanelOmsSendMessage = "/cp/orders/send-message";
-    /// <summary>Wave B dry-run OMS set_courier (PHP ajax_epc_orders_oms.php remains authoritative).</summary>
+    /// <summary>OMS set_courier. <c>confirmWrites=true</c> updates how_get_json (VAT notify stays PHP).</summary>
     public const string ControlPanelOmsSetCourier = "/cp/orders/set-courier";
-    /// <summary>Wave B dry-run OMS delete orders (PHP ajax_delete_orders.php remains authoritative).</summary>
+    /// <summary>OMS delete unpaid orders. <c>confirmWrites=true</c> is the live twin of PHP ajax_delete_orders.php.</summary>
     public const string ControlPanelOmsDeleteOrders = "/cp/orders/delete";
     /// <summary>Wave B dry-run OMS add comment to log (PHP ajax_add_comment_to_log.php remains authoritative).</summary>
     public const string ControlPanelOmsAddComment = "/cp/orders/add-comment";
@@ -1844,7 +1844,7 @@ public static class EcomAeRoutes
     public const string StorefrontCartAdd = "/storefront/cart/add";
     /// <summary>Wave B dry-run garage notepad add (PHP ajax_add_to_notepad.php remains authoritative).</summary>
     public const string StorefrontGarageNotepadAdd = "/storefront/garage/notepad-add";
-    /// <summary>Wave B dry-run quote submit (PHP ajax_quote_submit.php remains authoritative).</summary>
+    /// <summary>Quote submit. <c>confirmWrites=true</c> is the live twin of PHP ajax_quote_submit.php.</summary>
     public const string StorefrontQuoteSubmit = "/storefront/quotes/submit";
     /// <summary>Wave B dry-run quote accept (PHP ajax_quote_accept.php remains authoritative; cart INSERT stays PHP).</summary>
     public const string StorefrontQuoteAccept = "/storefront/quotes/accept";
@@ -1852,13 +1852,13 @@ public static class EcomAeRoutes
     public const string StorefrontQuoteAddItem = "/storefront/quotes/add-item";
     /// <summary>Wave B dry-run quote add-manual (PHP ajax_add_to_quote_manual.php remains authoritative).</summary>
     public const string StorefrontQuoteAddManual = "/storefront/quotes/add-manual";
-    /// <summary>Wave B dry-run garage set-active (PHP ajax_operations_cars.php action=active_car remains authoritative).</summary>
+    /// <summary>Garage set-active. <c>confirmWrites=true</c> is the live twin of PHP ajax_operations_cars.php action=active_car.</summary>
     public const string StorefrontGarageSetActive = "/storefront/garage/set-active";
-    /// <summary>Wave B dry-run garage delete (PHP ajax_operations_cars.php action=delete_car remains authoritative).</summary>
+    /// <summary>Garage delete. <c>confirmWrites=true</c> is the live twin of PHP ajax_operations_cars.php action=delete_car.</summary>
     public const string StorefrontGarageDelete = "/storefront/garage/delete";
     /// <summary>Wave B dry-run garage check_car toggle (PHP ajax_operations_cars.php action=check_car remains authoritative).</summary>
     public const string StorefrontGarageCheckCar = "/storefront/garage/check-car";
-    /// <summary>Wave B dry-run for PHP ajax_checkout_create.php (writes=0; PHP authoritative).</summary>
+    /// <summary>Signed-in checkout create. <c>confirmWrites=true</c> is the live twin of PHP ajax_checkout_create.php. Guest stays PHP.</summary>
     public const string StorefrontCheckoutCreate = "/storefront/checkout/create";
     /// <summary>Wave B dry-run customer order message (PHP ajax_send_message.php customer path remains authoritative).</summary>
     public const string StorefrontOrderSendMessage = "/storefront/orders/send-message";

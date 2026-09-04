@@ -1,7 +1,7 @@
 namespace EcomAE.Platform.Presentation;
 
 /// <summary>
-/// Customer write hrefs for storefront twins. Cart add is ASP.NET-live; other writes stay PHP.
+/// Customer write hrefs for storefront twins. Cart / checkout / quote submit / garage writes are ASP.NET-live.
 /// </summary>
 public static class PhpCustomerWrites
 {
@@ -15,17 +15,17 @@ public static class PhpCustomerWrites
     public static string PaymentDemoHref => "/php-reference/content/shop/finance/payment_systems/epc_demo/go_to_pay.php";
     public static string CartAddHref => "/storefront/cart/add";
     public static string QuoteAddHref => "/php-reference/content/shop/order_process/ajax_add_to_quote.php";
-    public static string CheckoutHowGetWriteHref => "/php-reference/en/shop/checkout/how_get";
-    public static string CheckoutConfirmWriteHref => "/php-reference/en/shop/checkout/confirm";
+    public static string CheckoutHowGetWriteHref => "/storefront/checkout-app?step=how_get";
+    public static string CheckoutConfirmWriteHref => "/storefront/checkout/create";
     public static string ReturnsMessageHref => "/php-reference/content/shop/messager/ajax_send_message.php";
-    public static string QuotesWriteHref => "/php-reference/en/shop/quotes";
+    public static string QuotesWriteHref => "/storefront/quotes/submit";
     public static string WishlistWriteHref => "/php-reference/en/shop/zakladki";
     public static string EvaluationWriteHref => "/php-reference/content/shop/catalogue/evaluations/ajax_add_evaluation.php";
 
     public static readonly IReadOnlyList<(string Code, string Label)> ObtainModes =
     [
-        ("pickup", "Collect from warehouse"),
-        ("delivery", "Courier delivery"),
+        ("1", "Collect from warehouse"),
+        ("2", "Courier delivery"),
     ];
 
     public static readonly IReadOnlyList<(string Code, string Label)> PayGateways =
