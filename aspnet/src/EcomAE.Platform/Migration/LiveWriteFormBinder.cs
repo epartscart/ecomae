@@ -114,6 +114,31 @@ public static class LiveWriteFormBinder
         return string.Empty;
     }
 
+    public static IReadOnlyList<long> Longs(IFormCollection form, params string[] names)
+    {
+        var ids = new List<long>();
+        foreach (var name in names)
+        {
+            foreach (var raw in form[name])
+            {
+                if (string.IsNullOrWhiteSpace(raw))
+                {
+                    continue;
+                }
+
+                foreach (var part in raw.Split([',', ' ', ';', '\n', '\r', '\t'], StringSplitOptions.RemoveEmptyEntries))
+                {
+                    if (long.TryParse(part, NumberStyles.Integer, CultureInfo.InvariantCulture, out var id) && id > 0)
+                    {
+                        ids.Add(id);
+                    }
+                }
+            }
+        }
+
+        return ids.Distinct().ToArray();
+    }
+
     public static IResult Complete(
         HttpContext context,
         string fallbackReturnUrl,

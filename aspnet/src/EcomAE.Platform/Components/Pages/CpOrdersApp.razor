@@ -253,6 +253,18 @@
 
                     <section class="epc-od__panel @(_detailTab == "items" ? "is-active" : null)" data-epc-od-panel="items" style="@(_detailTab == "items" ? null : "display:none")">
                         <div class="epc-od__items">
+                            @if (d.Items.Count > 0)
+                            {
+                                var itemIdsCsv = string.Join(",", d.Items.Select(i => i.Id.ToString(CultureInfo.InvariantCulture)));
+                                <form method="post" action="/cp/orders/set-items-status" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 .75rem">
+                                    <input type="hidden" name="confirmWrites" value="true" />
+                                    <input type="hidden" name="returnUrl" value="@OrdersHref(o.Id, detailTab: "items")" />
+                                    <input type="hidden" name="orderId" value="@o.Id.ToString(CultureInfo.InvariantCulture)" />
+                                    <input type="hidden" name="itemIds" value="@itemIdsCsv" />
+                                    <label>Set all items to status <input type="number" name="status" min="1" value="1" style="width:4rem" /></label>
+                                    <button type="submit" class="btn btn-xs btn-primary">Apply</button>
+                                </form>
+                            }
                             <table class="table table-condensed epc-od__lines">
                                 <thead>
                                     <tr>

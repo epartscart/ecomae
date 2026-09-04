@@ -298,7 +298,8 @@ public sealed class LiveTenantIndustryParityTests
         Assert.Equal(StorefrontAspNetCanonical.GuestOrder, PhpSurfaceLinkMap.AspNetPrimaryHref("/shop/orders/guest"));
         Assert.Equal(StorefrontAspNetCanonical.Payment, PhpSurfaceLinkMap.AspNetPrimaryHref("/en/shop/pay"));
         Assert.Equal("/cp/system-requests-app", PhpSurfaceLinkMap.AspNetPrimaryHref("/CP/requests"));
-        Assert.Equal("/php-reference/en/users/profile", PhpCustomerWrites.ProfileWriteHref);
+        Assert.Equal("/storefront/profile/save", PhpCustomerWrites.ProfileWriteHref);
+        Assert.StartsWith("/php-reference/", PhpCustomerWrites.ProfilePasswordHref);
     }
 
     [Fact]
@@ -364,6 +365,12 @@ public sealed class LiveTenantIndustryParityTests
         Assert.Equal("/storefront/garage/save", PhpCustomerWrites.GarageCarWriteHref);
         Assert.Equal("/storefront/orders/send-message", PhpCustomerWrites.OrderMessageHref);
         Assert.Equal("/storefront/newsletter/subscribe", PhpVendorPortal.NewsletterWriteHref);
+        Assert.Equal("/storefront/wishlist/add", PhpCustomerWrites.WishlistWriteHref);
+        Assert.Equal("/storefront/wishlist/remove", PhpCustomerWrites.WishlistRemoveHref);
+        Assert.Equal("/storefront/compare/add", PhpCustomerWrites.CompareWriteHref);
+        Assert.Equal("/storefront/compare/remove", PhpCustomerWrites.CompareRemoveHref);
+        Assert.Equal("/storefront/profile/save", PhpCustomerWrites.ProfileWriteHref);
+        Assert.StartsWith("/php-reference/", PhpCustomerWrites.ProfilePasswordHref);
         Assert.Equal(StorefrontAspNetCanonical.CustomerReturns, PhpSurfaceLinkMap.AspNetPrimaryHref("/en/shop/returns_list"));
         Assert.True(PhpIndustryCmsPages.IsSlug("o-kompanii"));
         Assert.Contains("eParts Cart", PhpIndustryCmsPages.Resolve("o-kompanii", "auto_parts").Title, StringComparison.Ordinal);

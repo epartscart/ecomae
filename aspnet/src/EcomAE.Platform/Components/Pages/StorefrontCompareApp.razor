@@ -4,6 +4,7 @@
 @page "/en/shop/compare"
 @page "/shop/compare"
 @layout Layout.PhpChromeLayout
+@using System.Globalization
 @using System.Text.Json
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
@@ -42,6 +43,15 @@
             <a class="btn btn-sm btn-default" href="@StorefrontSurfaceLinks.PartSearch">Search</a>
     </PhpStorefrontPageHeader>
 
+    @if (!string.IsNullOrWhiteSpace(_flashOk))
+    {
+        <p style="margin:0 0 .75rem;padding:.65rem .8rem;background:#ecfdf3;border:1px solid #86efac;color:#166534">@_flashOk</p>
+    }
+    @if (!string.IsNullOrWhiteSpace(_flashErr))
+    {
+        <p style="margin:0 0 .75rem;padding:.65rem .8rem;background:#fef2f2;border:1px solid #fecaca;color:#991b1b">@_flashErr</p>
+    }
+
     @if (_ids.Count == 0)
     {
         <div class="epc-sf-cmp-empty">No products in compare yet.</div>
@@ -71,7 +81,16 @@
                                 <td><strong>@(string.IsNullOrWhiteSpace(p.Caption) ? ("#" + p.Id) : p.Caption)</strong></td>
                                 <td>@(string.IsNullOrWhiteSpace(p.Manufacturer) ? "—" : p.Manufacturer)</td>
                                 <td>@(string.IsNullOrWhiteSpace(p.Article) ? "—" : p.Article)</td>
-                                <td><a href="@StorefrontSurfaceLinks.ForProduct(p.Id)">View</a></td>
+                                <td>
+                                    <a href="@StorefrontSurfaceLinks.ForProduct(p.Id)">View</a>
+                                    ·
+                                    <form method="post" action="@PhpCustomerWrites.CompareRemoveHref" style="display:inline">
+                                        <input type="hidden" name="confirmWrites" value="true" />
+                                        <input type="hidden" name="returnUrl" value="/storefront/compare-app" />
+                                        <input type="hidden" name="product_id" value="@p.Id.ToString(CultureInfo.InvariantCulture)" />
+                                        <button type="submit" class="btn btn-sm btn-default" style="padding:.15rem .5rem;font-size:.78rem">Remove</button>
+                                    </form>
+                                </td>
                             </tr>
                         }
                     }
@@ -90,6 +109,8 @@
     private List<int> _ids = [];
     private IReadOnlyList<StorefrontProductDigest> _products = [];
     private string _source = "n/a";
+    private string _flashOk = "";
+    private string _flashErr = "";
 
     protected override async Task OnInitializedAsync()
     {
@@ -99,6 +120,8 @@
             return;
         }
 
+        _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
+        _flashErr = ctx.Request.Query["err"].ToString() ?? "";
         _brand = StorefrontIndustryHostResolver.ResolveBrandLabel(ctx.Request.Host.Host);
 
         if (ctx.Request.Cookies.TryGetValue("compare", out var raw) && !string.IsNullOrWhiteSpace(raw))

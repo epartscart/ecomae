@@ -1644,6 +1644,67 @@ public sealed class StorefrontModule : ISurfaceModule
 
             return Results.Ok(dryRun.Evaluate(new StorefrontSetMyCityRequest(cityId, false)).ToPayload(SessionPayload(session)));
         }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.StorefrontWishlistAdd, (HttpContext context, ILegacySessionValidator validator, CancellationToken cancellationToken)
+            => MapWishlistCookieAsync(context, validator, add: true, cancellationToken)).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.StorefrontWishlistRemove, (HttpContext context, ILegacySessionValidator validator, CancellationToken cancellationToken)
+            => MapWishlistCookieAsync(context, validator, add: false, cancellationToken)).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.StorefrontCompareAdd, (HttpContext context, ILegacySessionValidator validator, CancellationToken cancellationToken)
+            => MapCompareCookieAsync(context, validator, add: true, cancellationToken)).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.StorefrontCompareRemove, (HttpContext context, ILegacySessionValidator validator, CancellationToken cancellationToken)
+            => MapCompareCookieAsync(context, validator, add: false, cancellationToken)).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.StorefrontProfileSave, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IStorefrontCustomerWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Customer || session.UserId <= 0)
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/storefront/login?returnUrl=/storefront/profile-app", "Customer session required.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<StorefrontProfileSaveBody>(context, cancellationToken)
+                       ?? new(null, false);
+            var fields = body.Fields is null
+                ? new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+                : new Dictionary<string, string>(body.Fields, StringComparer.OrdinalIgnoreCase);
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+                foreach (var key in StorefrontCustomerWriteService.AllowedProfileFieldNames)
+                {
+                    var value = LiveWriteFormBinder.Text(form, key);
+                    if (value.Length > 0)
+                    {
+                        fields[key] = value;
+                    }
+                }
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(new
+                {
+                    ok = false,
+                    writes = 0,
+                    writesBlocked = true,
+                    phpAuthoritative = false,
+                    message = "Set confirmWrites=true to save the profile on ASP.NET.",
+                    session = SessionPayload(session),
+                });
+            }
+
+            var written = await writes.SaveProfileAsync(session.UserId, fields, cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/storefront/profile-app",
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.StorefrontLoginSendCode, async (
             HttpContext context,
             StorefrontLoginSendCodeBody? body,
@@ -1808,8 +1869,110 @@ public sealed class StorefrontModule : ISurfaceModule
     private sealed record StorefrontCheckOrderNotAuthorizedBody(long OrderId, bool ConfirmWrites = false);
     private sealed record StorefrontSetUserOptionBody(string? OptionKey, string? OptionValue, bool ConfirmWrites = false);
     private sealed record StorefrontSetMyCityBody(long CityId, bool ConfirmWrites = false);
+    private sealed record StorefrontCookieProductBody(long ProductId = 0, bool ConfirmWrites = false);
+    private sealed record StorefrontProfileSaveBody(Dictionary<string, string>? Fields = null, bool ConfirmWrites = false);
     private sealed record StorefrontLoginSendCodeBody(string? Phone, bool ConfirmWrites = false);
     private sealed record StorefrontLoginCheckCodeBody(string? Code, bool ConfirmWrites = false);
+
+    private static async Task<IResult> MapWishlistCookieAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        bool add,
+        CancellationToken cancellationToken)
+        => await MapIntListCookieAsync(
+            context,
+            validator,
+            add,
+            StorefrontIntListCookie.BookmarksName,
+            StorefrontIntListCookie.BookmarksMax,
+            "/storefront/wishlist-app",
+            add ? "Saved to bookmarks." : "Removed from bookmarks.",
+            cancellationToken);
+
+    private static async Task<IResult> MapCompareCookieAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        bool add,
+        CancellationToken cancellationToken)
+        => await MapIntListCookieAsync(
+            context,
+            validator,
+            add,
+            StorefrontIntListCookie.CompareName,
+            StorefrontIntListCookie.CompareMax,
+            "/storefront/compare-app",
+            add ? "Added to compare." : "Removed from compare.",
+            cancellationToken);
+
+    private static async Task<IResult> MapIntListCookieAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        bool add,
+        string cookieName,
+        int maxItems,
+        string fallbackReturnUrl,
+        string okMessage,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<StorefrontCookieProductBody>(context, cancellationToken)
+                   ?? new();
+        var productId = body.ProductId;
+        var confirm = body.ConfirmWrites;
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            productId = LiveWriteFormBinder.Long(form, "productId", "product_id", "id");
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+        }
+
+        if (productId <= 0)
+        {
+            return LiveWriteFormBinder.Complete(
+                context,
+                fallbackReturnUrl,
+                false,
+                "A product is required.",
+                new { ok = false, validation_code = "invalid", message = "A product is required.", session = SessionPayload(session) });
+        }
+
+        if (!confirm)
+        {
+            return Results.Ok(new
+            {
+                ok = false,
+                writes = 0,
+                writesBlocked = true,
+                phpAuthoritative = false,
+                message = "Set confirmWrites=true to update the " + cookieName + " cookie on ASP.NET.",
+                product_id = productId,
+                session = SessionPayload(session),
+            });
+        }
+
+        context.Request.Cookies.TryGetValue(cookieName, out var raw);
+        var current = StorefrontIntListCookie.Parse(raw, maxItems);
+        var next = add
+            ? StorefrontIntListCookie.Add(current, (int)productId, maxItems)
+            : StorefrontIntListCookie.Remove(current, (int)productId);
+        context.Response.Cookies.Append(cookieName, StorefrontIntListCookie.Serialize(next), StorefrontIntListCookie.Options());
+        return LiveWriteFormBinder.Complete(
+            context,
+            fallbackReturnUrl,
+            true,
+            okMessage,
+            new
+            {
+                ok = true,
+                writes = 1,
+                phpAuthoritative = false,
+                validation_code = "ok",
+                message = okMessage,
+                product_id = productId,
+                count = next.Count,
+                session = SessionPayload(session),
+            });
+    }
 
     private static IResult Unauthorized(string message) => Results.Json(
         new { ok = false, error = new { code = "unauthorized", message } },

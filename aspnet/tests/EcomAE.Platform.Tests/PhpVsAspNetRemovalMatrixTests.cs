@@ -89,6 +89,10 @@ public sealed class PhpVsAspNetRemovalMatrixTests
             ("CpCreditLimitsApp.razor", "/cp/credit-limits/set"),
             ("CpPoApprovalsApp.razor", "/cp/po-approvals/approve"),
             ("CpOrdersApp.razor", "/cp/orders/set-item-status"),
+            ("CpOrdersApp.razor", "/cp/orders/set-items-status"),
+            ("StorefrontWishlistApp.razor", "WishlistRemoveHref"),
+            ("StorefrontCompareApp.razor", "CompareRemoveHref"),
+            ("StorefrontProfileApp.razor", "ProfileWriteHref"),
         };
         foreach (var (name, needle) in cases)
         {

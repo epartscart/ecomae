@@ -202,5 +202,69 @@ public sealed class LiveWriteServiceValidationTests
             .SetUserOptionAsync(1, "forbidden", "x");
         Assert.False(option.Succeeded);
         Assert.Equal("invalid", option.Code);
+
+        var profileEmpty = await new StorefrontCustomerWriteService(new ConfiguredNeverOpened())
+            .SaveProfileAsync(1, new Dictionary<string, string> { ["password"] = "secret" });
+        Assert.False(profileEmpty.Succeeded);
+        Assert.Equal("invalid", profileEmpty.Code);
+
+        var profileGuest = await new StorefrontCustomerWriteService(new UnconfiguredConnections())
+            .SaveProfileAsync(0, new Dictionary<string, string> { ["name"] = "Ada" });
+        Assert.False(profileGuest.Succeeded);
+        Assert.Equal("auth", profileGuest.Code);
+
+        var profileDb = await new StorefrontCustomerWriteService(new UnconfiguredConnections())
+            .SaveProfileAsync(1, new Dictionary<string, string> { ["name"] = "Ada" });
+        Assert.False(profileDb.Succeeded);
+        Assert.Equal("db", profileDb.Code);
+
+        var bulkOms = await new CpOmsWriteService(new ConfiguredNeverOpened())
+            .SetItemsStatusAsync(0, 0, [], 1);
+        Assert.False(bulkOms.Succeeded);
+        Assert.Equal("invalid", bulkOms.Code);
+
+        var bulkOmsDb = await new CpOmsWriteService(new UnconfiguredConnections())
+            .SetItemsStatusAsync(9, 2, [11, 12], 1);
+        Assert.False(bulkOmsDb.Succeeded);
+        Assert.Equal("db", bulkOmsDb.Code);
+    }
+
+    [Fact]
+    public void Wishlist_and_compare_cookie_helpers_match_php_json_int_array()
+    {
+        var parsed = StorefrontIntListCookie.Parse("[12,0,-3,12,44]", StorefrontIntListCookie.BookmarksMax);
+        Assert.Equal(new[] { 12, 44 }, parsed);
+
+        var added = StorefrontIntListCookie.Add(parsed, 99, StorefrontIntListCookie.BookmarksMax);
+        Assert.Equal(new[] { 12, 44, 99 }, added);
+        Assert.Equal(added, StorefrontIntListCookie.Add(added, 99, StorefrontIntListCookie.BookmarksMax));
+
+        var removed = StorefrontIntListCookie.Remove(added, 44);
+        Assert.Equal(new[] { 12, 99 }, removed);
+        Assert.Equal("[12,99]", StorefrontIntListCookie.Serialize(removed));
+
+        Assert.Empty(StorefrontIntListCookie.Parse("not-json", 8));
+        Assert.Empty(StorefrontIntListCookie.Add([], 0, 8));
+    }
+
+    [Fact]
+    public void Profile_field_allow_list_rejects_password_email_and_docs()
+    {
+        Assert.False(StorefrontCustomerWriteService.IsAllowedProfileKey("password"));
+        Assert.False(StorefrontCustomerWriteService.IsAllowedProfileKey("email"));
+        Assert.False(StorefrontCustomerWriteService.IsAllowedProfileKey("phone"));
+        Assert.False(StorefrontCustomerWriteService.IsAllowedProfileKey("epc_doc_trade_licence"));
+        Assert.True(StorefrontCustomerWriteService.IsAllowedProfileKey("name"));
+        Assert.True(StorefrontCustomerWriteService.IsAllowedProfileKey("company_name"));
+
+        var clean = StorefrontCustomerWriteService.NormalizeProfileFields(new Dictionary<string, string>
+        {
+            ["name"] = "Ada <b>Lovelace</b>",
+            ["password"] = "nope",
+            ["email"] = "ada@example.com",
+            ["  "] = "x",
+        });
+        Assert.Single(clean);
+        Assert.Equal("Ada &lt;b&gt;Lovelace&lt;/b&gt;", clean["name"]);
     }
 }

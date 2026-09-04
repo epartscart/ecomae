@@ -937,6 +937,16 @@ public static class EcomAeRoutes
     public const string StorefrontSetUserOption = "/storefront/users/set-option";
     /// <summary>Set city cookie. <c>confirmWrites=true</c> is the live twin of PHP ajax_set_my_city.php.</summary>
     public const string StorefrontSetMyCity = "/storefront/geo/set-my-city";
+    /// <summary>Wishlist cookie add. Twin of PHP <c>addToBookmarks</c> in bottom_panel.php.</summary>
+    public const string StorefrontWishlistAdd = "/storefront/wishlist/add";
+    /// <summary>Wishlist cookie remove. Twin of PHP <c>removeBookmark</c> in bottom_panel.php.</summary>
+    public const string StorefrontWishlistRemove = "/storefront/wishlist/remove";
+    /// <summary>Compare cookie add. Twin of PHP <c>addToCompare</c> in bottom_panel.php.</summary>
+    public const string StorefrontCompareAdd = "/storefront/compare/add";
+    /// <summary>Compare cookie remove. Twin of PHP <c>removeCompare</c> in bottom_panel.php.</summary>
+    public const string StorefrontCompareRemove = "/storefront/compare/remove";
+    /// <summary>Profile <c>users_profiles</c> UPSERT. Password / email / phone stay PHP.</summary>
+    public const string StorefrontProfileSave = "/storefront/profile/save";
     /// <summary>Wave B dry-run for PHP modules/login/code/frontAjax/ajax_sendCode.php (writes=0).</summary>
     public const string StorefrontLoginSendCode = "/storefront/login/send-code";
     /// <summary>Wave B dry-run for PHP modules/login/code/frontAjax/ajax_checkCode.php (writes=0).</summary>

@@ -392,23 +392,61 @@ public sealed class ControlPanelModule : ISurfaceModule
 
         endpoints.MapPost(EcomAeRoutes.ControlPanelOmsSetItemsStatus, async (
             HttpContext context,
-            CpOmsSetItemsStatusBody? body,
             ILegacySessionValidator validator,
             ICpOmsSetItemsStatusDryRun dryRun,
+            ICpOmsWriteService writes,
             CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateAsync(context, cancellationToken);
             if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
             {
-                return Unauthorized("Admin CP capability required for OMS set-items-status dry-run.");
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/orders", "Admin CP capability required for OMS set-items-status.");
             }
 
-            body ??= new CpOmsSetItemsStatusBody(0, 0, [], false);
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpOmsSetItemsStatusBody>(context, cancellationToken)
+                       ?? new(0, 0, [], false);
+            var orderId = body.OrderId;
+            var status = body.Status;
+            var itemIds = body.ItemIds ?? [];
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                orderId = LiveWriteFormBinder.Long(form, "orderId", "order_id");
+                status = LiveWriteFormBinder.Int(form, "status");
+                itemIds = LiveWriteFormBinder.Longs(form, "itemIds", "item_ids", "itemId", "item_id");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (confirm)
+            {
+                var written = await writes.SetItemsStatusAsync(orderId, status, itemIds, session.UserId, cancellationToken);
+                var dest = "/cp/orders?order_id=" + orderId.ToString(CultureInfo.InvariantCulture) + "&od=items";
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    dest,
+                    written.Succeeded,
+                    written.Message,
+                    new
+                    {
+                        ok = written.Succeeded,
+                        status = written.Succeeded,
+                        surface = "cp",
+                        writes = written.Writes,
+                        writesBlocked = false,
+                        phpAuthoritative = false,
+                        validation_code = written.Code,
+                        message = written.Message,
+                        result = new { id = written.Id, order_id = orderId, item_ids = itemIds },
+                        session = SessionPayload(session),
+                    });
+            }
+
             var result = await dryRun.EvaluateAsync(
-                new CpOmsSetItemsStatusRequest(body.OrderId, body.Status, body.ItemIds ?? [], body.ConfirmWrites),
+                new CpOmsSetItemsStatusRequest(orderId, status, itemIds, false),
                 cancellationToken);
             return Results.Ok(result.ToPayload(SessionPayload(session)));
-        });
+        }).DisableAntiforgery();
 
         endpoints.MapPost(EcomAeRoutes.ControlPanelOmsSendMessage, async (
             HttpContext context,

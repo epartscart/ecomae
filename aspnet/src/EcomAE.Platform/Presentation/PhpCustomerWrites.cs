@@ -1,11 +1,12 @@
 namespace EcomAE.Platform.Presentation;
 
 /// <summary>
-/// Customer write hrefs for storefront twins. Cart / checkout / quote / garage notepad / reviews / order messages are ASP.NET-live.
+/// Customer write hrefs for storefront twins. Cart / checkout / quote / garage / reviews / wishlist / compare / profile UPSERT are ASP.NET-live.
 /// </summary>
 public static class PhpCustomerWrites
 {
-    public static string ProfileWriteHref => "/php-reference/en/users/profile";
+    public static string ProfileWriteHref => "/storefront/profile/save";
+    public static string ProfilePasswordHref => "/php-reference/en/users/editform";
     public static string BalanceTopUpHref => "/php-reference/content/shop/finance/ajax_create_operation.php";
     public static string GarageCarWriteHref => "/storefront/garage/save";
     public static string GarageNotepadWriteHref => "/storefront/garage/notepad-add";
@@ -21,7 +22,10 @@ public static class PhpCustomerWrites
     public static string CheckoutConfirmWriteHref => "/storefront/checkout/create";
     public static string ReturnsMessageHref => "/php-reference/content/shop/messager/ajax_send_message.php";
     public static string QuotesWriteHref => "/storefront/quotes/submit";
-    public static string WishlistWriteHref => "/php-reference/en/shop/zakladki";
+    public static string WishlistWriteHref => "/storefront/wishlist/add";
+    public static string WishlistRemoveHref => "/storefront/wishlist/remove";
+    public static string CompareWriteHref => "/storefront/compare/add";
+    public static string CompareRemoveHref => "/storefront/compare/remove";
     public static string EvaluationWriteHref => "/storefront/evaluations/add";
 
     public static readonly IReadOnlyList<(string Code, string Label)> ObtainModes =

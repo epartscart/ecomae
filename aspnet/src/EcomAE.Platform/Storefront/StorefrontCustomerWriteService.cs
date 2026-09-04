@@ -31,6 +31,11 @@ public interface IStorefrontCustomerWriteService
         string? optionKey,
         string? optionValue,
         CancellationToken cancellationToken = default);
+
+    Task<ErpSimpleWriteResult> SaveProfileAsync(
+        int userId,
+        IReadOnlyDictionary<string, string>? fields,
+        CancellationToken cancellationToken = default);
 }
 
 public sealed class StorefrontCustomerWriteService : IStorefrontCustomerWriteService
@@ -235,6 +240,124 @@ public sealed class StorefrontCustomerWriteService : IStorefrontCustomerWriteSer
 
         return ErpSimpleWriteResult.Ok("Setting saved.", userId);
     }
+
+    public async Task<ErpSimpleWriteResult> SaveProfileAsync(
+        int userId,
+        IReadOnlyDictionary<string, string>? fields,
+        CancellationToken cancellationToken = default)
+    {
+        if (userId <= 0)
+        {
+            return ErpSimpleWriteResult.Fail("auth", "Please log in or register to continue.");
+        }
+
+        var clean = NormalizeProfileFields(fields);
+        if (clean.Count == 0)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "At least one profile field is required.");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return ErpSimpleWriteResult.Fail("db", "Account database is not configured.");
+        }
+
+        await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        var writes = 0;
+        foreach (var (key, value) in clean)
+        {
+            var exists = await ErpDb.LongAsync(
+                connection,
+                null,
+                ErpDb.Positional("SELECT COUNT(*) FROM `users_profiles` WHERE `user_id` = ? AND `data_key` = ?"),
+                cancellationToken,
+                userId, key);
+            if (exists > 0)
+            {
+                writes += await ErpDb.ExecuteAsync(
+                    connection,
+                    null,
+                    ErpDb.Positional("UPDATE `users_profiles` SET `data_value` = ? WHERE `user_id` = ? AND `data_key` = ?"),
+                    cancellationToken,
+                    value, userId, key);
+            }
+            else
+            {
+                writes += await ErpDb.ExecuteAsync(
+                    connection,
+                    null,
+                    ErpDb.Positional("INSERT INTO `users_profiles` (`user_id`, `data_key`, `data_value`) VALUES (?, ?, ?)"),
+                    cancellationToken,
+                    userId, key, value);
+            }
+        }
+
+        return new ErpSimpleWriteResult(true, "ok", "Profile saved.", userId, writes);
+    }
+
+    public static Dictionary<string, string> NormalizeProfileFields(IReadOnlyDictionary<string, string>? fields)
+    {
+        var clean = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        if (fields is null)
+        {
+            return clean;
+        }
+
+        foreach (var (rawKey, rawValue) in fields)
+        {
+            var key = (rawKey ?? string.Empty).Trim();
+            if (!IsAllowedProfileKey(key))
+            {
+                continue;
+            }
+
+            var value = WebUtility.HtmlEncode((rawValue ?? string.Empty).Trim());
+            if (value.Length == 0)
+            {
+                continue;
+            }
+
+            if (value.Length > 255)
+            {
+                value = value[..255];
+            }
+
+            clean[key] = value;
+        }
+
+        return clean;
+    }
+
+    public static bool IsAllowedProfileKey(string key)
+    {
+        if (string.IsNullOrWhiteSpace(key)
+            || key.Contains("password", StringComparison.OrdinalIgnoreCase)
+            || key.Contains("secret", StringComparison.OrdinalIgnoreCase)
+            || key.Contains("token", StringComparison.OrdinalIgnoreCase)
+            || key.Contains("csrf", StringComparison.OrdinalIgnoreCase)
+            || key.StartsWith("epc_doc_", StringComparison.OrdinalIgnoreCase)
+            || key.Equals("email", StringComparison.OrdinalIgnoreCase)
+            || key.Equals("phone", StringComparison.OrdinalIgnoreCase)
+            || key.Equals("epc_trade_approval_status", StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        return AllowedProfileKeys.Contains(key);
+    }
+
+    internal static IReadOnlyCollection<string> AllowedProfileFieldNames => AllowedProfileKeys;
+
+    private static readonly HashSet<string> AllowedProfileKeys = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "name", "surname", "fio", "full_name", "company_name",
+        "epc_reg_job_title", "epc_emirates_id_no", "epc_passport_no", "epc_nationality",
+        "epc_reg_legal_name", "epc_reg_business_type", "epc_reg_country", "epc_reg_emirate",
+        "epc_reg_city", "epc_reg_address", "epc_reg_postal", "epc_reg_website",
+        "epc_reg_trn", "epc_reg_trn_mode", "epc_reg_trade_licence", "epc_legal_reg_type", "epc_tin",
+        "epc_authorized_signatory", "epc_authorized_signatory_id", "epc_ubo_name",
+        "epc_source_of_funds", "epc_pep_declaration", "epc_sanctions_declaration",
+    };
 
     private static bool IsAllowedOptionKey(string key)
     {

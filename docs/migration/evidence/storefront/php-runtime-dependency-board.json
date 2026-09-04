@@ -48,10 +48,10 @@
     },
     {
       "id": "cart-checkout-quote-writes",
-      "aspnet": "POST /storefront/checkout/create + quotes + cart + garage save/notepad + evaluations + order messages + newsletter + geo city cookie",
-      "php": "guest checkout cookies + payment go_to_pay + profile password + wishlist",
+      "aspnet": "POST /storefront/checkout/create + quotes + cart + garage + evaluations + order messages + newsletter + geo city + wishlist/compare cookies + profile UPSERT",
+      "php": "guest checkout cookies + payment go_to_pay + profile password/contact confirm",
       "status": "partial-ported",
-      "note": "Signed-in checkout, quotes, garage save/notepad, reviews, order messages, newsletter, and city cookie are ASP.NET-live when confirmWrites=true. Guest checkout and payment notify stay PHP."
+      "note": "Signed-in checkout, quotes, garage, reviews, order messages, newsletter, city cookie, wishlist/compare cookies, and users_profiles UPSERT are ASP.NET-live when confirmWrites=true. Guest checkout, payment notify, and profile password stay PHP."
     },
     {
       "id": "home-widget-ajax",
@@ -62,10 +62,10 @@
     },
     {
       "id": "cp-erp-interactive-writes",
-      "aspnet": "OMS item status / message / courier / unpaid delete + payroll / credit / PO / forecast",
+      "aspnet": "OMS item + bulk items status / message / courier / unpaid delete + payroll / credit / PO / forecast",
       "php": "remaining ~430 CP module ajax + residual ajax_erp.php + payment notify",
       "status": "partial-ported",
-      "note": "Wired OMS twins write when confirmWrites=true. Remaining CP/ERP ajax catalogs stay PHP."
+      "note": "Wired OMS twins including set-items-status write when confirmWrites=true. Remaining CP/ERP ajax catalogs stay PHP."
     }
   ],
   "completedThisWave": [

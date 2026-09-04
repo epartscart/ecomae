@@ -109,18 +109,34 @@
             </table>
         </div>
 
+        @if (!string.IsNullOrWhiteSpace(_flashOk))
+        {
+            <p style="margin:0 0 .75rem;padding:.65rem .8rem;background:#ecfdf3;border:1px solid #86efac;color:#166534">@_flashOk</p>
+        }
+        @if (!string.IsNullOrWhiteSpace(_flashErr))
+        {
+            <p style="margin:0 0 .75rem;padding:.65rem .8rem;background:#fef2f2;border:1px solid #fecaca;color:#991b1b">@_flashErr</p>
+        }
+
         <form method="post" action="@PhpCustomerWrites.ProfileWriteHref" style="background:#fff;border:1px solid #e2e8f0;border-radius:.55rem;padding:1.1rem 1.2rem;margin-bottom:1rem">
-            <input type="hidden" name="edit_user" value="edit_user" />
-            <label>Email</label>
-            <input type="email" name="email" value="@_email" style="width:100%;margin:.25rem 0 .75rem;padding:.5rem" />
-            <label>Phone</label>
-            <input type="text" name="phone" value="@_phone" style="width:100%;margin:.25rem 0 .75rem;padding:.5rem" />
-            <label>New password</label>
-            <input type="password" name="password" style="width:100%;margin:.25rem 0 .75rem;padding:.5rem" />
-            <label>Repeat password</label>
-            <input type="password" name="password_repeat" style="width:100%;margin:.25rem 0 1rem;padding:.5rem" />
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/storefront/profile-app" />
+            <label>First name</label>
+            <input type="text" name="name" value="@Field("name")" maxlength="80" style="width:100%;margin:.25rem 0 .75rem;padding:.5rem" />
+            <label>Last name</label>
+            <input type="text" name="surname" value="@Field("surname")" maxlength="80" style="width:100%;margin:.25rem 0 .75rem;padding:.5rem" />
+            <label>Company / trade name</label>
+            <input type="text" name="company_name" value="@Field("company_name")" maxlength="160" style="width:100%;margin:.25rem 0 .75rem;padding:.5rem" />
+            <label>City</label>
+            <input type="text" name="epc_reg_city" value="@Field("epc_reg_city")" maxlength="80" style="width:100%;margin:.25rem 0 .75rem;padding:.5rem" />
+            <label>Address</label>
+            <input type="text" name="epc_reg_address" value="@Field("epc_reg_address")" maxlength="255" style="width:100%;margin:.25rem 0 1rem;padding:.5rem" />
             <button type="submit" style="padding:.55rem .95rem;border:0;border-radius:.4rem;background:#dc2626;color:#fff;font-weight:800;cursor:pointer">Save profile</button>
         </form>
+        <p class="epc-sf-pf-note">
+            Email, phone confirmation, and password stay on the classic account form until the PHP contact/password twins are ported.
+            <a href="@PhpCustomerWrites.ProfilePasswordHref">Password / contacts</a>
+        </p>
     }
 
 </StorefrontTenantChrome>
@@ -138,11 +154,18 @@
     private IReadOnlyDictionary<string, string> _fields = new Dictionary<string, string>();
     private string _source = "n/a";
     private string _message = "";
+    private string _flashOk = "";
+    private string _flashErr = "";
+
+    private string Field(string key)
+        => _fields.TryGetValue(key, out var value) ? value : "";
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
+        _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
+        _flashErr = ctx.Request.Query["err"].ToString() ?? "";
         _brand = StorefrontIndustryHostResolver.ResolveBrandLabel(ctx.Request.Host.Host);
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);

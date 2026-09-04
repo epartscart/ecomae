@@ -46,6 +46,15 @@
             <a class="btn btn-sm btn-default" href="@StorefrontSurfaceLinks.Cart">Cart</a>
     </PhpStorefrontPageHeader>
 
+    @if (!string.IsNullOrWhiteSpace(_flashOk))
+    {
+        <p style="margin:0 0 .75rem;padding:.65rem .8rem;background:#ecfdf3;border:1px solid #86efac;color:#166534">@_flashOk</p>
+    }
+    @if (!string.IsNullOrWhiteSpace(_flashErr))
+    {
+        <p style="margin:0 0 .75rem;padding:.65rem .8rem;background:#fef2f2;border:1px solid #fecaca;color:#991b1b">@_flashErr</p>
+    }
+
     @if (_ids.Count == 0)
     {
         <div class="epc-sf-wl-empty">
@@ -77,13 +86,20 @@
                         <input type="hidden" name="count_need" value="1" />
                         <button type="submit" class="btn btn-sm btn-primary" style="padding:.15rem .5rem;font-size:.78rem">Add to cart</button>
                     </form>
+                    ·
+                    <form method="post" action="@PhpCustomerWrites.WishlistRemoveHref" style="display:inline">
+                        <input type="hidden" name="confirmWrites" value="true" />
+                        <input type="hidden" name="returnUrl" value="/storefront/wishlist-app" />
+                        <input type="hidden" name="product_id" value="@p.Id.ToString(CultureInfo.InvariantCulture)" />
+                        <button type="submit" class="btn btn-sm btn-default" style="padding:.15rem .5rem;font-size:.78rem">Remove</button>
+                    </form>
                 </article>
             }
         </div>
     }
 
     <p class="epc-sf-wl-note">
-        Bookmarks are the products you saved from the catalogue. Add or remove them from a product card.
+        Bookmarks are the products you saved from the catalogue. Add or remove them on this page or a product card.
     </p>
 </StorefrontTenantChrome>
 
@@ -92,6 +108,8 @@
     private List<int> _ids = [];
     private IReadOnlyList<StorefrontProductDigest> _products = [];
     private string _source = "n/a";
+    private string _flashOk = "";
+    private string _flashErr = "";
 
     protected override async Task OnInitializedAsync()
     {
@@ -101,6 +119,8 @@
             return;
         }
 
+        _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
+        _flashErr = ctx.Request.Query["err"].ToString() ?? "";
         _brand = StorefrontIndustryHostResolver.ResolveBrandLabel(ctx.Request.Host.Host);
 
         if (ctx.Request.Cookies.TryGetValue("bookmarks", out var raw) && !string.IsNullOrWhiteSpace(raw))

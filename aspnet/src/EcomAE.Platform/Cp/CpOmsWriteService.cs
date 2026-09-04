@@ -11,6 +11,8 @@ public interface ICpOmsWriteService
 {
     Task<ErpSimpleWriteResult> SetItemStatusAsync(long orderId, long itemId, int status, int adminUserId, CancellationToken cancellationToken = default);
 
+    Task<ErpSimpleWriteResult> SetItemsStatusAsync(long orderId, int status, IReadOnlyList<long> itemIds, int adminUserId, CancellationToken cancellationToken = default);
+
     Task<ErpSimpleWriteResult> SendMessageAsync(long orderId, string text, long itemId, int adminUserId, CancellationToken cancellationToken = default);
 
     Task<ErpSimpleWriteResult> SetCourierAsync(long orderId, decimal deliveryPrice, string? country, int adminUserId, CancellationToken cancellationToken = default);
@@ -34,14 +36,14 @@ public sealed class CpOmsWriteService : ICpOmsWriteService
         int adminUserId,
         CancellationToken cancellationToken = default)
     {
-        if (!_connections.IsConfigured)
-        {
-            return ErpSimpleWriteResult.Fail("db", "TenantRegistry DB is not configured.");
-        }
-
         if (orderId <= 0 || itemId <= 0 || status <= 0)
         {
             return ErpSimpleWriteResult.Fail("invalid", "Invalid item status.");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return ErpSimpleWriteResult.Fail("db", "TenantRegistry DB is not configured.");
         }
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
@@ -78,6 +80,39 @@ public sealed class CpOmsWriteService : ICpOmsWriteService
         await log.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
 
         return ErpSimpleWriteResult.Ok("Item status updated.", itemId);
+    }
+
+    public async Task<ErpSimpleWriteResult> SetItemsStatusAsync(
+        long orderId,
+        int status,
+        IReadOnlyList<long> itemIds,
+        int adminUserId,
+        CancellationToken cancellationToken = default)
+    {
+        var ids = (itemIds ?? []).Where(id => id > 0).Distinct().ToArray();
+        if (orderId <= 0 || status <= 0 || ids.Length == 0)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Select items and a status.");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return ErpSimpleWriteResult.Fail("db", "TenantRegistry DB is not configured.");
+        }
+
+        var writes = 0;
+        foreach (var itemId in ids)
+        {
+            var one = await SetItemStatusAsync(orderId, itemId, status, adminUserId, cancellationToken).ConfigureAwait(false);
+            if (!one.Succeeded)
+            {
+                return one;
+            }
+
+            writes += one.Writes;
+        }
+
+        return new ErpSimpleWriteResult(true, "ok", "Item statuses updated.", orderId, writes);
     }
 
     public async Task<ErpSimpleWriteResult> SendMessageAsync(

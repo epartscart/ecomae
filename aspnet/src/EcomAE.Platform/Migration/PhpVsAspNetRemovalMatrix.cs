@@ -25,7 +25,9 @@ public static class PhpVsAspNetRemovalMatrix
         Row("sf-checkout", "storefront", "content/shop/order_process", "/shop/checkout", "/storefront/checkout-app", "aspnet-digest", "php", "Checkout shell exists; pay / place-order stay PHP."),
         Row("sf-orders", "storefront", "content/shop/order_process", "/shop/orders", "/storefront/orders-app", "aspnet-digest", "php", "Customer order list digest; detail writes PHP."),
         Row("sf-garage", "storefront", "content/shop/docpart garage", "/shop/garage", "/storefront/garage-app", "aspnet-digest", "php", "Garage list digest; add/edit PHP."),
-        Row("sf-profile", "storefront", "content/users/profileform.php", "/users/profile", "/storefront/profile-app", "aspnet-digest", "php", "Profile read; edits PHP."),
+        Row("sf-profile", "storefront", "content/users/profileform.php", "/users/profile", "/storefront/profile-app", "aspnet-digest", "aspnet", "users_profiles UPSERT is ASP.NET-live. Password / email / phone confirm stay PHP."),
+        Row("sf-wishlist", "storefront", "modules/shop/bottom_panel/bottom_panel.php", "/shop/zakladki", "/storefront/wishlist-app", "aspnet-digest", "aspnet", "bookmarks cookie add/remove is ASP.NET-live."),
+        Row("sf-compare", "storefront", "modules/shop/bottom_panel/bottom_panel.php", "/shop/sravneniya", "/storefront/compare-app", "aspnet-digest", "aspnet", "compare cookie add/remove is ASP.NET-live."),
         Row("sf-bulk-upload", "storefront", "content/shop/bulk_upload", "/shop/bulk-upload", "/storefront/bulk-upload-app", "aspnet-digest", "php", "Excel check/cross/add-selected may be ASP.NET on later branches; history INSERT + /process stay PHP."),
         Row("sf-balance", "storefront", "content/shop/finance/my_balance.php", "/shop/finance/my_balance", "/storefront/account-summary-app", "aspnet-routed", "php", "Customer balance / top-up writes stay PHP ajax_create_operation."),
         Row("sf-pay-order", "storefront", "content/shop/finance/pay_for_order.php", "/shop/finance/pay_for_order", "/storefront/checkout-app", "aspnet-routed", "php", "Gateway go_to_pay / notify stay PHP."),
@@ -34,7 +36,7 @@ public static class PhpVsAspNetRemovalMatrix
         Row("sf-workshop-gms", "storefront", "content/shop/workshop/garage_manager_portal.php", "/shop/workshop", "/storefront/garage-manager-app", "aspnet-digest", "php", "GMS board is thin; portal writes stay PHP."),
 
         // CP shop families
-        Row("cp-orders", "cp", "cp/content/shop/orders + order_process", "/CP/shop/orders/orders", "/cp/orders", "aspnet-digest", "aspnet", "OMS set_item_status is ASP.NET-live. Other OMS ajax (message/courier/delete) stay PHP."),
+        Row("cp-orders", "cp", "cp/content/shop/orders + order_process", "/CP/shop/orders/orders", "/cp/orders", "aspnet-digest", "aspnet", "OMS item / items status, message, courier, unpaid delete are ASP.NET-live. Payment notify stays PHP."),
         Row("cp-users", "cp", "cp/content/users", "/CP/users/user_manager", "/cp/users-app", "aspnet-digest", "php", "User list digest; create/edit PHP."),
         Row("cp-catalogue", "cp", "cp/content/shop/catalogue", "/CP/shop/catalogue/products", "/cp/product-catalogue-app", "aspnet-digest", "php", "SKU/media writes stay PHP."),
         Row("cp-prices-upload", "cp", "cp/content/shop/prices_upload", "/CP/shop/prices_upload", "/cp/prices-upload-app", "aspnet-digest", "php", "PyPrices cron/tasks stay PHP."),
