@@ -170,6 +170,8 @@ public static class EcomAeRoutes
     public const string ControlPanelPriceLists = "/cp/price-lists";
     /// <summary>CP price lists Blazor list (JSON digest remains <see cref="ControlPanelPriceLists"/>).</summary>
     public const string ControlPanelPriceListsApp = "/cp/price-lists-app";
+    /// <summary>PHP prices_manager Docpart lists (shop_docpart_prices), not epc_pl_lists.</summary>
+    public const string ControlPanelDocpartPriceLists = "/cp/docpart-price-lists";
     /// <summary>CP auto-price rules (config_json/notes/meta omitted).</summary>
     public const string ControlPanelAutoPrice = "/cp/auto-price";
     /// <summary>CP auto-price Blazor list (JSON digest remains <see cref="ControlPanelAutoPrice"/>).</summary>

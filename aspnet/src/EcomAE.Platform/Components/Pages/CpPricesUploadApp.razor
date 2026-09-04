@@ -1,88 +1,298 @@
 @page "/cp/prices-upload-app"
+@page "/cp/shop/prices"
+@page "/cp/shop/prices_upload"
+@page "/cp/shop/prices/upload"
+@page "/cp/shop/prices/multivendor"
+@page "/cp/shop/prices/guide"
+@page "/cp/shop/prices/review"
+@page "/cp/shop/prices/price"
 @layout Layout.PhpChromeLayout
+@using System.Globalization
 @using EcomAE.Platform.Auth
+@using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
 @inject ILegacySessionValidator Sessions
+@inject ISurfaceDashboardSummaryReporter Dashboards
 @inject IHttpContextAccessor Http
 
-<PageTitle>Prices upload · Control Panel · eParts Cart</PageTitle>
+<PageTitle>Price lists · Control Panel · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="cp" />
 <HeadContent>
-<style>
-    .epc-cpmod-hero {
-        margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
-        background:linear-gradient(135deg,#0c4a6e 0%,#2563eb 45%,#0ea5e9 100%);
-    }
-    .epc-cpmod-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
-    .epc-cpmod-hero p { margin:0; color:rgba(255,255,255,.9); max-width:46rem; font-size:.92rem; line-height:1.45; }
-    .epc-cpmod-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
-    .epc-cpmod-cta a {
-        display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
-        text-decoration:none; color:#0f172a; background:#fff;
-    }
-    .epc-cpmod-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); color:#fff; }
-    .epc-cpmod-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:.75rem; }
-    .epc-cpmod-card { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; padding:1rem; }
-    .epc-cpmod-card h3 { margin:0 0 .4rem; font-size:1rem; }
-    .epc-cpmod-card p, .epc-cpmod-card li { margin:0; color:#475569; font-size:.86rem; line-height:1.45; }
-    .epc-cpmod-card ul { margin:.35rem 0 0; padding-left:1.1rem; }
-    .epc-cpmod-note { margin-top:1rem; padding:.75rem .9rem; background:#eff6ff; border:1px solid #93c5fd; border-radius:.45rem; color:#1e3a8a; font-size:.86rem; }
-    @@media (max-width:900px){ .epc-cpmod-grid{grid-template-columns:1fr;} }
-</style>
+    <link rel="stylesheet" href="/epc-static.php?f=cp/content/shop/prices_upload/epc_prices_cp.css&amp;v=20260904ways" />
+    <style>
+        .epc-prices-page { --epc-p-ink:#0f172a; --epc-p-muted:#64748b; --epc-p-line:#e2e8f0; --epc-p-soft:#f8fafc; }
+        .epc-prices-kpis { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
+        .epc-prices-kpi { background:#fff; border:1px solid var(--epc-p-line); border-radius:.55rem; padding:.85rem .9rem; }
+        .epc-prices-kpi strong { display:block; font-size:1.2rem; }
+        .epc-prices-kpi span { color:var(--epc-p-muted); font-size:.78rem; }
+        .epc-prices-ways { display:grid; grid-template-columns:repeat(auto-fill,minmax(15rem,1fr)); gap:.65rem; margin:0 0 1rem; }
+        .epc-price-way { display:block; text-decoration:none; background:#fff; border:1px solid var(--epc-p-line); border-radius:.55rem; padding:.75rem .85rem; color:inherit; }
+        .epc-price-way:hover { border-color:#93c5fd; box-shadow:0 4px 14px rgba(37,99,235,.12); }
+        .epc-price-way.is-active { border-color:#2563eb; box-shadow:0 0 0 2px rgba(37,99,235,.15); }
+        .epc-price-way i { color:#2563eb; margin-right:.35rem; }
+        .epc-price-way strong { display:block; margin:.2rem 0 .25rem; }
+        .epc-price-way p { margin:0; color:var(--epc-p-muted); font-size:.8rem; line-height:1.4; }
+        .epc-prices-toolbar { display:flex; flex-wrap:wrap; gap:.5rem; margin:0 0 1rem; }
+        .epc-prices-toolbar a { display:inline-flex; align-items:center; gap:.4rem; padding:.5rem .75rem; border-radius:.45rem; background:#fff; border:1px solid var(--epc-p-line); text-decoration:none; color:#0f172a; font-weight:700; font-size:.82rem; }
+        .epc-prices-table-wrap { background:#fff; border:1px solid var(--epc-p-line); border-radius:.55rem; overflow:auto; }
+        .epc-prices-table { width:100%; border-collapse:collapse; font-size:.84rem; }
+        .epc-prices-table th, .epc-prices-table td { padding:.5rem .65rem; border-bottom:1px solid #f1f5f9; text-align:left; vertical-align:top; }
+        .epc-prices-table th { background:#f8fafc; color:#475569; font-size:.72rem; text-transform:uppercase; letter-spacing:.03em; }
+        .epc-prices-dl { display:grid; grid-template-columns:10rem 1fr; gap:.4rem .75rem; background:#fff; border:1px solid var(--epc-p-line); border-radius:.55rem; padding:1rem; }
+        .epc-prices-dl dt { color:#64748b; font-size:.78rem; }
+        .epc-prices-dl dd { margin:0; font-weight:600; }
+        .epc-prices-note { margin-top:1rem; padding:.75rem .9rem; background:#eff6ff; border:1px solid #93c5fd; border-radius:.45rem; color:#1e3a8a; font-size:.86rem; }
+        .epc-prices-empty { padding:1.1rem; color:#64748b; }
+        .epc-price-wh-empty { color:#94a3b8; font-style:italic; }
+        @@media (max-width:900px){ .epc-prices-kpis{grid-template-columns:1fr;} .epc-prices-dl{grid-template-columns:1fr;} }
+    </style>
 </HeadContent>
 
 <PhpCpDesktopChrome IsAdmin="_isAdmin">
-
-    <section class="epc-cpmod-hero">
-        <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
-        <h1>Prices upload</h1>
-        <p>Supplier price-list ingest pipeline (prepare → extract → convert → import). Live import steps remain PHP/ajax.</p>
-        <div class="epc-cpmod-cta">
-            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open PHP reference module</a>
-            <a class="ghost" href="/cp/prices-edit-app">Prices edit</a>
-            <a class="ghost" href="/cp/price-lists-app">Price lists</a>
-            <a class="ghost" href="/cp/bulk-upload-app">Bulk upload</a>
-            <a class="ghost" href="/cp">Command centre</a>
-        </div>
-    </section>
-
-    <div class="epc-cpmod-grid">
-        <div class="epc-cpmod-card">
-            <h3>ASP.NET-primary surface</h3>
-            <p>Route: <code>/cp/prices-upload-app</code></p>
-            <p style="margin-top:.4rem;">PHP path: <code>/CP/shop/prices_upload</code></p>
-            <p style="margin-top:.4rem;">Product locks: cutoverAllowed=false · readyForPhpRemoval=false · PHP authoritative for writes.</p>
+    <div class="epc-prices-page" data-epc-prices-ssr="1">
+        <div class="epc-prices-toolbar" role="navigation" aria-label="Price list tools">
+            <a href="/cp/shop/prices"><i class="fa fa-list"></i> Price lists</a>
+            <a href="/cp/shop/prices/price"><i class="fa fa-plus"></i> Add list</a>
+            <a href="/cp/prices-edit-app"><i class="fa fa-pencil"></i> Prices edit</a>
+            <a href="/cp/shop/prices/multivendor"><i class="fa fa-sitemap"></i> Multi-vendor</a>
+            <a href="/cp/shop/prices/guide"><i class="fa fa-book"></i> Upload guide</a>
+            <a href="/cp/price-lists-app"><i class="fa fa-tags"></i> Commerce lists</a>
+            <a href="/cp">Command centre</a>
         </div>
 
-    <div class="epc-cpmod-card">
-        <h3>PHP ajax reference</h3>
-        <ul>
-            <li><code>ajax_1_prepare_tmp_dir</code></li>
-            <li><code>ajax_2_extract_files</code></li>
-            <li><code>ajax_3_excel_convert</code></li>
-            <li><code>ajax_4_prepare_csv</code></li>
-            <li><code>ajax_5_import_csv_to_db</code></li>
-            <li><code>ajax_6_complete_session</code></li>
-            <li><code>ajax_7_enable_keys</code></li>
-        </ul>
-        <p>ASP.NET dry-runs validate payloads with writes=0; live execution stays on PHP.</p>
-    </div>
-    </div>
+        <div class="epc-prices-kpis" aria-label="Price upload stats">
+            <div class="epc-prices-kpi"><strong>@_summary.ActiveLists.ToString(CultureInfo.InvariantCulture)</strong><span>Docpart price lists</span></div>
+            <div class="epc-prices-kpi"><strong>@_summary.PriceRows.ToString(CultureInfo.InvariantCulture)</strong><span>Warehouse offer rows</span></div>
+            <div class="epc-prices-kpi"><strong>@_summary.UploadCount.ToString(CultureInfo.InvariantCulture)</strong><span>Upload history</span></div>
+        </div>
 
-    <div class="epc-cpmod-note">
-        ePartsCart tenant CP maps this PHP module here so mega-menu / deep links no longer collapse to Command Centre.
+        @if (_view != "price")
+        {
+            <h2 style="margin:0 0 .55rem;font-size:1.05rem;">Upload ways</h2>
+            <div class="epc-prices-ways" aria-label="All price upload ways">
+                @foreach (var way in CpPricesUploadWaysCatalog.All)
+                {
+                    <a class="epc-price-way @(_way == way.Key ? "is-active" : null)" href="@way.Href">
+                        <i class="fa @way.Icon" aria-hidden="true"></i>
+                        <strong>@way.Label</strong>
+                        <p>@way.Hint</p>
+                    </a>
+                }
+            </div>
+        }
+
+        @if (_view == "guide")
+        {
+            <div class="epc-prices-note">
+                Upload guide: PC file, FTP, e-mail, URL, cron, classic wizard, multi-vendor, vendor portal, review, and APIs.
+                Live import still posts to PHP pyprices (<code>cutoverAllowed=false</code>).
+            </div>
+        }
+        else if (_view == "multivendor")
+        {
+            <div class="epc-prices-note">
+                Multi-vendor ingest is PHP <code>ajax_epc_multivendor_ingest</code>
+                (<code>cp/content/shop/prices_upload/for_multivendor/form.php</code>).
+                Drop a combined Excel/CSV there. Writes stay PHP.
+            </div>
+        }
+        else if (_view == "price")
+        {
+            <h2 style="margin:0 0 .55rem;font-size:1.05rem;">@( _detail is null ? "Add price list" : ("Edit list · " + _detail.Name) )</h2>
+            @if (_detail is null)
+            {
+                <div class="epc-prices-note">
+                    Creating a list writes to <code>shop_docpart_prices</code> via PHP <code>price.php</code>.
+                    This console is read-only. Use the live PHP manager to add FTP / e-mail / URL credentials.
+                </div>
+            }
+            else
+            {
+                <dl class="epc-prices-dl" data-epc-price-detail="@_detail.Id.ToString(CultureInfo.InvariantCulture)">
+                    <dt>ID</dt><dd>@_detail.Id.ToString(CultureInfo.InvariantCulture)</dd>
+                    <dt>Name</dt><dd>@_detail.Name</dd>
+                    <dt>Mode</dt><dd>@_detail.LoadModeLabel</dd>
+                    <dt>Warehouse</dt><dd>@_detail.Warehouses</dd>
+                    <dt>Updated</dt><dd>@(string.IsNullOrWhiteSpace(_detail.LastUpdated) ? "—" : _detail.LastUpdated)</dd>
+                    <dt>Rows</dt><dd>@_detail.RecordsCount.ToString(CultureInfo.InvariantCulture)</dd>
+                    <dt>FTP host</dt><dd>@(string.IsNullOrWhiteSpace(_detail.FtpHost) ? "—" : _detail.FtpHost)</dd>
+                    <dt>FTP user</dt><dd>@(string.IsNullOrWhiteSpace(_detail.FtpUser) ? "—" : _detail.FtpUser)</dd>
+                    <dt>FTP folder</dt><dd>@(string.IsNullOrWhiteSpace(_detail.FtpFolder) ? "—" : _detail.FtpFolder)</dd>
+                    <dt>Sender e-mail</dt><dd>@(string.IsNullOrWhiteSpace(_detail.SenderEmail) ? "—" : _detail.SenderEmail)</dd>
+                    <dt>Subject contains</dt><dd>@(string.IsNullOrWhiteSpace(_detail.MessageHeaderSubstring) ? "—" : _detail.MessageHeaderSubstring)</dd>
+                    <dt>Filename contains</dt><dd>@(string.IsNullOrWhiteSpace(_detail.FileNameSubstring) ? "—" : _detail.FileNameSubstring)</dd>
+                    <dt>URL</dt><dd>@(string.IsNullOrWhiteSpace(_detail.Link) ? "—" : _detail.Link)</dd>
+                    <dt>Encoding / separator</dt><dd>@(string.IsNullOrWhiteSpace(_detail.Encoding) ? "UTF-8" : _detail.Encoding) / @(string.IsNullOrWhiteSpace(_detail.Separator) ? ";" : _detail.Separator)</dd>
+                </dl>
+                <div class="epc-price-actions" style="margin-top:.75rem;">
+                    <form method="post" action="@CpPricesUploadWaysCatalog.PhpUploadFileAction" enctype="multipart/form-data">
+                        <input type="hidden" name="price_id" value="@_detail.Id.ToString(CultureInfo.InvariantCulture)" />
+                        <label class="epc-price-action epc-price-action--pc">
+                            <i class="fa fa-desktop"></i> PC file
+                            <input type="file" name="@($"file_{_detail.Id}")" accept=".csv,.txt,.xls,.xlsx,.zip,.rar,.7z,.tar" style="display:none" onchange="this.form.submit()" />
+                        </label>
+                    </form>
+                    <a class="epc-price-action epc-price-action--ftp" href="/cp/shop/prices/price?price_id=@_detail.Id.ToString(CultureInfo.InvariantCulture)&amp;way=ftp">FTP</a>
+                    <a class="epc-price-action epc-price-action--email" href="/cp/shop/prices/price?price_id=@_detail.Id.ToString(CultureInfo.InvariantCulture)&amp;way=email">E-mail</a>
+                    <a class="epc-price-action epc-price-action--url" href="/cp/shop/prices/price?price_id=@_detail.Id.ToString(CultureInfo.InvariantCulture)&amp;way=url">URL</a>
+                    <a class="epc-price-action" href="@CpPricesUploadWaysCatalog.WizardHref(_detail.Id)">Wizard</a>
+                    <a class="epc-price-action" href="@CpPricesUploadWaysCatalog.ReviewHref(_detail.Id)">Review</a>
+                </div>
+                <div class="epc-prices-note">
+                    FTP password and save/create stay on PHP <code>price.php</code>. This page is the read-only config digest.
+                </div>
+            }
+        }
+
+        @if (_view != "price")
+        {
+            <h2 style="margin:1rem 0 .55rem;font-size:1.05rem;">Price lists</h2>
+            <div class="epc-prices-table-wrap">
+                <table class="epc-prices-table footable table table-hover" id="prices_table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Warehouse</th>
+                            <th>Updated</th>
+                            <th>Rows</th>
+                            <th class="text-left">Manual update</th>
+                            <th class="text-left">Auto-update</th>
+                            <th class="text-left">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (!_isAdmin)
+                        {
+                            <tr><td colspan="8" class="epc-prices-empty">Sign in with a Control Panel admin session to load live price lists.</td></tr>
+                        }
+                        else if (_lists.Count == 0)
+                        {
+                            <tr><td colspan="8" class="epc-prices-empty">No Docpart price lists in this shop digest. Add a list, then upload via PC / FTP / e-mail / URL. Source: @_source</td></tr>
+                        }
+                        else
+                        {
+                            @foreach (var row in _lists)
+                            {
+                                var editHref = CpPricesUploadWaysCatalog.EditListHref(row.Id);
+                                <tr data-epc-price-id="@row.Id.ToString(CultureInfo.InvariantCulture)">
+                                    <td><a href="@editHref">@row.Id.ToString(CultureInfo.InvariantCulture)</a></td>
+                                    <td><a href="@editHref">@row.Name</a></td>
+                                    <td>
+                                        @if (string.IsNullOrWhiteSpace(row.Warehouses) || row.Warehouses == "—")
+                                        {
+                                            <a href="@editHref"><span class="epc-price-wh-empty">Not linked</span></a>
+                                        }
+                                        else
+                                        {
+                                            <a href="@editHref">@row.Warehouses</a>
+                                        }
+                                    </td>
+                                    <td><a id="@($"last_updated_{row.Id}")" href="@editHref">@(string.IsNullOrWhiteSpace(row.LastUpdated) ? "—" : row.LastUpdated)</a></td>
+                                    <td><a id="@($"records_count_{row.Id}")" href="@editHref">@row.RecordsCount.ToString(CultureInfo.InvariantCulture)</a></td>
+                                    <td class="text-left">
+                                        <div class="epc-price-actions">
+                                            <form method="post" action="@CpPricesUploadWaysCatalog.PhpUploadFileAction" enctype="multipart/form-data" style="display:inline;">
+                                                <input type="hidden" name="price_id" value="@row.Id.ToString(CultureInfo.InvariantCulture)" />
+                                                <label class="epc-price-action epc-price-action--pc" title="Upload from PC">
+                                                    <i class="fa fa-desktop"></i> PC
+                                                    <input type="file" name="@($"file_{row.Id}")" accept=".csv,.txt,.xls,.xlsx,.zip,.rar,.7z,.tar" style="display:none" onchange="this.form.submit()" />
+                                                </label>
+                                            </form>
+                                            <a class="epc-price-action epc-price-action--ftp" href="@editHref">FTP</a>
+                                            <a class="epc-price-action epc-price-action--email" href="@editHref">E-mail</a>
+                                            <a class="epc-price-action epc-price-action--url" href="@editHref">URL</a>
+                                        </div>
+                                    </td>
+                                    <td class="text-left">
+                                        <a class="epc-price-action" href="/cp/prices-upload-app?way=cron">@row.LoadModeLabel cron</a>
+                                    </td>
+                                    <td class="text-left">
+                                        <div class="epc-price-actions">
+                                            <a class="epc-price-action" href="@CpPricesUploadWaysCatalog.WizardHref(row.Id)">Wizard</a>
+                                            <a class="epc-price-action" href="@CpPricesUploadWaysCatalog.ReviewHref(row.Id)">Review</a>
+                                            <a class="epc-price-action" href="@editHref">Edit</a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+
+        <div class="epc-prices-note">
+            Uploaded amounts are supplier purchase. Storefront customer price = purchase + group markup
+            (<code>shop_offices_storages_map</code>). Staff with <code>for_percentage</code> see purchase under the sell price.
+            Writes stay PHP / pyprices. This console does not invent an upload engine.
+        </div>
     </div>
 </PhpCpDesktopChrome>
 
 @code {
-    private const string _phpTab = "/CP/shop/prices_upload";
     private bool _isAdmin;
+    private string _way = "";
+    private string _view = "";
+    private string _source = "migration";
+    private CpPriceListsSummary _summary = new(0, 0, 0, "migration", "");
+    private IReadOnlyList<CpDocpartPriceListDigest> _lists = [];
+    private CpDocpartPriceListDetail? _detail;
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
-        if (ctx is null) return;
+        if (ctx is null)
+        {
+            return;
+        }
+
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
-        _isAdmin = session.Kind == LegacySessionKind.Admin;
+        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
+
+        var path = ctx.Request.Path.Value ?? "";
+        if (path.Contains("/multivendor", StringComparison.OrdinalIgnoreCase))
+        {
+            _view = "multivendor";
+            _way = "multivendor";
+        }
+        else if (path.Contains("/guide", StringComparison.OrdinalIgnoreCase))
+        {
+            _view = "guide";
+        }
+        else if (path.Contains("/review", StringComparison.OrdinalIgnoreCase))
+        {
+            _view = "review";
+            _way = "review";
+        }
+        else if (path.EndsWith("/price", StringComparison.OrdinalIgnoreCase)
+                 || path.Contains("/prices/price", StringComparison.OrdinalIgnoreCase))
+        {
+            _view = "price";
+            _way = "edit";
+        }
+
+        var qWay = ctx.Request.Query["way"].ToString();
+        if (!string.IsNullOrWhiteSpace(qWay))
+        {
+            _way = qWay;
+        }
+
+        if (!_isAdmin)
+        {
+            return;
+        }
+
+        var digest = await Dashboards.BuildCpDocpartPriceListsDigestAsync(200, ctx.RequestAborted);
+        _summary = digest.Summary;
+        _lists = digest.Lists;
+        _source = digest.Source;
+
+        if (_view == "price"
+            && long.TryParse(ctx.Request.Query["price_id"].ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var priceId)
+            && priceId > 0)
+        {
+            _detail = await Dashboards.BuildCpDocpartPriceListDetailAsync(priceId, ctx.RequestAborted);
+        }
     }
 }

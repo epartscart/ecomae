@@ -24,6 +24,10 @@ public static class PhpSurfaceLinkMap
         ("shop/parts_agent_chats", "/cp/parts-agent-chats-app"),
         ("shop/parts_agent", "/cp/parts-agent-chats-app"),
         ("shop/prices/multivendor", "/cp/prices-upload-app"),
+        ("shop/prices/upload", "/cp/prices-upload-app"),
+        ("shop/prices/guide", "/cp/prices-upload-app"),
+        ("shop/prices/review", "/cp/prices-upload-app"),
+        ("shop/prices/price", "/cp/shop/prices/price"),
         ("shop/prices_upload", "/cp/prices-upload-app"),
         ("shop/prices_edit", "/cp/prices-edit-app"),
         ("shop/prices_send", "/cp/prices-send-app"),
@@ -235,7 +239,7 @@ public static class PhpSurfaceLinkMap
         ("shop/crm", "/cp/crm-board-app"),
         ("shop/pos", "/cp/pos-overview-app"),
         ("shop/crosses", "/cp/crosses-app"),
-        ("shop/prices", "/cp/price-lists-app"),
+        ("shop/prices", "/cp/prices-upload-app"),
         ("modules/modules_manager", "/cp/modules-app"),
         ("content/content_manager", "/cp/pages-app"),
         ("menu/menu_manager", "/cp/menus-app"),
@@ -913,6 +917,23 @@ public static class PhpSurfaceLinkMap
     }
 
     /// <summary>
+    /// PHP <c>/CP/shop/prices/price?price_id=</c> and wizard/review <c>?price_id=</c>
+    /// keep the list id so the ASP.NET manager opens the same row.
+    /// </summary>
+    private static string MapCpDocpartPricesHref(string original, string aspNet)
+    {
+        var raw = ExtractQuery(original, "price_id");
+        if (!string.IsNullOrWhiteSpace(raw)
+            && long.TryParse(raw, System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture, out var priceId)
+            && priceId > 0)
+        {
+            return aspNet + "?price_id=" + priceId.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        }
+
+        return aspNet;
+    }
+
+    /// <summary>
     /// PHP CHPU <c>/parts/{BRAND}/{ARTICLE}</c> (and <c>/parts/brands/{ARTICLE}</c>) → search-app query.
     /// </summary>
     private static bool TryMapPartsBrandArticlePath(string value, out string href)
@@ -1489,6 +1510,12 @@ public static class PhpSurfaceLinkMap
                 if (aspNet.Equals("/cp/fulfillment-queue-app", StringComparison.OrdinalIgnoreCase))
                 {
                     return MapCpFulfillmentQueueHref(value);
+                }
+
+                if (aspNet.Equals("/cp/shop/prices/price", StringComparison.OrdinalIgnoreCase)
+                    || aspNet.Equals("/cp/prices-upload-app", StringComparison.OrdinalIgnoreCase))
+                {
+                    return MapCpDocpartPricesHref(value, aspNet);
                 }
 
                 return aspNet;

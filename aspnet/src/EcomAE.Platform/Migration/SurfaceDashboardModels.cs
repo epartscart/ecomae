@@ -1373,6 +1373,42 @@ public sealed record CpPriceListsDigestResult(
     string Source,
     string Message);
 
+/// <summary>PHP <c>shop_docpart_prices</c> row for the CP prices-upload manager.</summary>
+public sealed record CpDocpartPriceListDigest(
+    long Id,
+    string Name,
+    int LoadMode,
+    string LoadModeLabel,
+    int RecordsCount,
+    string LastUpdated,
+    string Warehouses);
+
+public sealed record CpDocpartPriceListsDigestResult(
+    CpPriceListsSummary Summary,
+    IReadOnlyList<CpDocpartPriceListDigest> Lists,
+    int Count,
+    string Source,
+    string Message);
+
+/// <summary>PHP <c>price.php</c> read-only list config (FTP password omitted).</summary>
+public sealed record CpDocpartPriceListDetail(
+    long Id,
+    string Name,
+    int LoadMode,
+    string LoadModeLabel,
+    int RecordsCount,
+    string LastUpdated,
+    string Warehouses,
+    string FtpHost,
+    string FtpUser,
+    string FtpFolder,
+    string SenderEmail,
+    string MessageHeaderSubstring,
+    string FileNameSubstring,
+    string Link,
+    string Encoding,
+    string Separator);
+
 public sealed record CpAutoPriceSummary(
     int ActiveRules,
     int ActiveSources,

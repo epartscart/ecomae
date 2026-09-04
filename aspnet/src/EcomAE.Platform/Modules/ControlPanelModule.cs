@@ -1534,7 +1534,36 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only epc_pl_lists KPIs + lists (stats_json/error_text/stored_relpath omitted). PHP /CP/shop/prices remains authoritative."
+                note = "Read-only epc_pl_lists KPIs + lists (stats_json/error_text/stored_relpath omitted). PHP commerce profiles remain authoritative."
+            });
+        });
+
+        endpoints.MapGet(EcomAeRoutes.ControlPanelDocpartPriceLists, async (
+            HttpContext context,
+            int? limit,
+            ILegacySessionValidator validator,
+            ISurfaceDashboardSummaryReporter dashboards,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return Unauthorized("Admin CP capability required for Docpart price-lists digest.");
+            }
+
+            var result = await dashboards.BuildCpDocpartPriceListsDigestAsync(limit ?? 200, cancellationToken);
+            return Results.Ok(new
+            {
+                ok = true,
+                surface = "cp",
+                summary = result.Summary,
+                lists = result.Lists,
+                ways = CpPricesUploadWaysCatalog.All,
+                count = result.Count,
+                source = result.Source,
+                message = result.Message,
+                session = SessionPayload(session),
+                note = "Read-only shop_docpart_prices + linked warehouses. PC/FTP/e-mail/URL writes stay PHP."
             });
         });
 
