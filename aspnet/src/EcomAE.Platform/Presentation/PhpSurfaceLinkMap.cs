@@ -1131,11 +1131,13 @@ public static class PhpSurfaceLinkMap
         }
 
         var value = href.Trim();
-        if (Uri.TryCreate(value, UriKind.Absolute, out var absolute))
+        // Only strip scheme/host on real http(s) URLs. A leading "/ERP/?…" must not go
+        // through System.Uri — it encodes '?' into the path (%3F) and drops the tab.
+        if (Uri.TryCreate(value, UriKind.Absolute, out var absolute)
+            && (absolute.Scheme == Uri.UriSchemeHttp || absolute.Scheme == Uri.UriSchemeHttps)
+            && !string.IsNullOrEmpty(absolute.Host))
         {
-            value = string.IsNullOrEmpty(absolute.Query)
-                ? absolute.AbsolutePath
-                : absolute.AbsolutePath + absolute.Query;
+            value = absolute.AbsolutePath + absolute.Query;
         }
 
         if (value.StartsWith("/php-reference", StringComparison.OrdinalIgnoreCase))
