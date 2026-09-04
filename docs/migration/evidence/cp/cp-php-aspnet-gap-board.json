@@ -253,7 +253,7 @@
       "phpMarker": "shop/manufacturers_synonyms",
       "aspNet": "/cp/synonyms-app",
       "status": "mapped",
-      "note": "Add/save/del remain manufacturers_synonyms dry-run."
+      "note": "Add/save/delete manufacturer and synonym are ASP.NET-live when confirmWrites=true. List/get stay digest."
     },
     {
       "phpMarker": "shop/marketing/seo|seo_main",

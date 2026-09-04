@@ -428,6 +428,41 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(catValueDb.Succeeded);
         Assert.Equal("db", catValueDb.Code);
 
+        var synAdd = await new CpManufacturerSynonymWriteService(new ConfiguredNeverOpened())
+            .AddManufacturerAsync("   ");
+        Assert.False(synAdd.Succeeded);
+        Assert.Equal("invalid", synAdd.Code);
+
+        var synSave = await new CpManufacturerSynonymWriteService(new ConfiguredNeverOpened())
+            .SaveManufacturerAsync(0, "Bosch");
+        Assert.False(synSave.Succeeded);
+        Assert.Equal("invalid", synSave.Code);
+
+        var synDel = await new CpManufacturerSynonymWriteService(new ConfiguredNeverOpened())
+            .DeleteManufacturerAsync(0);
+        Assert.False(synDel.Succeeded);
+        Assert.Equal("invalid", synDel.Code);
+
+        var synAddSyn = await new CpManufacturerSynonymWriteService(new ConfiguredNeverOpened())
+            .AddSynonymAsync(0, "BOSCH");
+        Assert.False(synAddSyn.Succeeded);
+        Assert.Equal("invalid", synAddSyn.Code);
+
+        var synSaveSyn = await new CpManufacturerSynonymWriteService(new ConfiguredNeverOpened())
+            .SaveSynonymAsync(3, "\t");
+        Assert.False(synSaveSyn.Succeeded);
+        Assert.Equal("invalid", synSaveSyn.Code);
+
+        var synDelSyn = await new CpManufacturerSynonymWriteService(new ConfiguredNeverOpened())
+            .DeleteSynonymAsync(0);
+        Assert.False(synDelSyn.Succeeded);
+        Assert.Equal("invalid", synDelSyn.Code);
+
+        var synDb = await new CpManufacturerSynonymWriteService(new UnconfiguredConnections())
+            .AddManufacturerAsync("Bosch");
+        Assert.False(synDb.Succeeded);
+        Assert.Equal("db", synDb.Code);
+
         var retStatus = await new CpReturnWriteService(new ConfiguredNeverOpened())
             .SetStatusAsync(0, 0);
         Assert.False(retStatus.Succeeded);

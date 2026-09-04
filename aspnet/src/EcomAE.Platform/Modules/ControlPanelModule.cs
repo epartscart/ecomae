@@ -4986,9 +4986,74 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only shop_docpart_manufacturers_synonyms. Add/save/del remain manufacturers_synonyms module-ajax dry-run."
+                note = "Manufacturer synonyms digest. Add/save/del POST /cp/synonyms/write when confirmWrites=true. PHP manufacturers_synonyms remains the compare twin."
             });
         });
+        endpoints.MapPost(EcomAeRoutes.CpSynonymsWrite, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpManufacturerSynonymWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/synonyms-app", "Admin CP capability required for synonyms write.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpSynonymsWriteBody>(context, cancellationToken)
+                       ?? new();
+            var action = body.Action;
+            var id = body.Id;
+            var name = body.Name;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                action = LiveWriteFormBinder.Text(form, "action");
+                id = LiveWriteFormBinder.Long(form, "id", "manufacturerId", "manufacturer_id");
+                name = LiveWriteFormBinder.Text(form, "name", "synonym");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(new
+                {
+                    status = "dry-run",
+                    writes = 0,
+                    writesBlocked = true,
+                    phpAuthoritative = true,
+                    validation_code = "dry_run",
+                    message = "Set confirmWrites=true to write manufacturer synonyms on ASP.NET.",
+                    session = SessionPayload(session)
+                });
+            }
+
+            var key = (action ?? string.Empty).Trim();
+            ErpSimpleWriteResult written = key switch
+            {
+                "add_manufacturer" or "add-manufacturer" =>
+                    await writes.AddManufacturerAsync(name, cancellationToken),
+                "save_manufacturer" or "save-manufacturer" =>
+                    await writes.SaveManufacturerAsync(id, name, cancellationToken),
+                "del_manufacturer" or "delete_manufacturer" or "del-manufacturer" =>
+                    await writes.DeleteManufacturerAsync(id, cancellationToken),
+                "add_synonym" or "add-synonym" =>
+                    await writes.AddSynonymAsync(id, name, cancellationToken),
+                "save_synonym" or "save-synonym" =>
+                    await writes.SaveSynonymAsync(id, name, cancellationToken),
+                "del_synonym" or "delete_synonym" or "del-synonym" =>
+                    await writes.DeleteSynonymAsync(id, cancellationToken),
+                _ => ErpSimpleWriteResult.Fail("invalid", "Unknown synonyms action."),
+            };
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/cp/synonyms-app",
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
 
 
         endpoints.MapGet(EcomAeRoutes.ControlPanelSeo, async (
@@ -5552,6 +5617,7 @@ public sealed class ControlPanelModule : ISurfaceModule
         long ProductId = 0,
         int Enabled = -1,
         decimal Value = -1);
+    private sealed record CpSynonymsWriteBody(string? Action = null, bool ConfirmWrites = false, long Id = 0, string? Name = null);
     private sealed record CpTemplatesActionsBody(string? Action = null, bool ConfirmWrites = false);
     private sealed record CpPriceReviewWriteBody(string? Action = null, bool ConfirmWrites = false);
     private sealed record CpPriceReviewCreateCsvBody(string? Action = null, bool ConfirmWrites = false);

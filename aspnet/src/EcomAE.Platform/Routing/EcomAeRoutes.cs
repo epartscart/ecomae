@@ -486,6 +486,8 @@ public static class EcomAeRoutes
     public const string ControlPanelAccessoriesApp = "/cp/accessories-app";
     public const string ControlPanelSynonyms = "/cp/synonyms";
     public const string ControlPanelSynonymsApp = "/cp/synonyms-app";
+    /// <summary>Manufacturer / synonym CRUD. <c>confirmWrites=true</c> is the live twin of PHP manufacturers_synonyms/ajax_operations.php.</summary>
+    public const string CpSynonymsWrite = "/cp/synonyms/write";
     public const string ControlPanelSeo = "/cp/seo";
     public const string ControlPanelSeoApp = "/cp/seo-app";
     public const string ControlPanelSocialHub = "/cp/social-hub";
