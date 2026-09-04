@@ -84,7 +84,7 @@ public sealed class ErpModuleBodyParityTests
             "aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpErpModulePageHeader.razor"));
         Assert.Contains("btn-primary", header, StringComparison.Ordinal);
         Assert.Contains("AspNetPrimaryHref", header, StringComparison.Ordinal);
-        Assert.Contains("Compare PHP reference", header, StringComparison.Ordinal);
+        Assert.Contains("Classic twin", header, StringComparison.Ordinal);
         Assert.Contains("PhpReferenceOnlyHref", header, StringComparison.Ordinal);
         // Primary button must not use PhpReferenceOnlyHref
         var primaryIdx = header.IndexOf("btn-primary", StringComparison.Ordinal);
@@ -96,7 +96,7 @@ public sealed class ErpModuleBodyParityTests
             "aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpErpD365ActionPane.razor"));
         Assert.Contains("is-primary", pane, StringComparison.Ordinal);
         Assert.Contains("AspNetPrimaryHref", pane, StringComparison.Ordinal);
-        Assert.Contains("Compare PHP", pane, StringComparison.Ordinal);
+        Assert.Contains("Classic twin", pane, StringComparison.Ordinal);
     }
 
     [Theory]

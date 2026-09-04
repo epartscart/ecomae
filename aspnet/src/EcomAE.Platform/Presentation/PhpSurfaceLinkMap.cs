@@ -1131,30 +1131,39 @@ public static class PhpSurfaceLinkMap
         }
 
         var value = href.Trim();
-        if (Uri.TryCreate(value, UriKind.Absolute, out var absolute))
+        // Only strip scheme/host on real http(s) URLs. A leading "/ERP/?…" must not go
+        // through System.Uri — it encodes '?' into the path (%3F) and drops the tab.
+        if (Uri.TryCreate(value, UriKind.Absolute, out var absolute)
+            && (absolute.Scheme == Uri.UriSchemeHttp || absolute.Scheme == Uri.UriSchemeHttps)
+            && !string.IsNullOrEmpty(absolute.Host))
         {
-            value = absolute.AbsolutePath;
+            value = absolute.AbsolutePath + absolute.Query;
+        }
+
+        if (value.StartsWith("/php-reference", StringComparison.OrdinalIgnoreCase))
+        {
+            return value;
         }
 
         if (IsUpperPhpShell(value, "CP")
             || value.StartsWith("/cp/", StringComparison.OrdinalIgnoreCase)
             || value.Equals("/cp", StringComparison.OrdinalIgnoreCase))
         {
-            return "/php-reference/cp";
+            return PrefixPhpReferenceShell(value, "cp", "CP");
         }
 
         if (IsUpperPhpShell(value, "ERP")
             || value.StartsWith("/erp/", StringComparison.OrdinalIgnoreCase)
             || value.Equals("/erp", StringComparison.OrdinalIgnoreCase))
         {
-            return "/php-reference/erp";
+            return PrefixPhpReferenceShell(value, "erp", "ERP");
         }
 
         if (IsUpperPhpShell(value, "BOS")
             || value.StartsWith("/bos/", StringComparison.OrdinalIgnoreCase)
             || value.Equals("/bos", StringComparison.OrdinalIgnoreCase))
         {
-            return "/php-reference/bos";
+            return PrefixPhpReferenceShell(value, "bos", "BOS");
         }
 
         if (value.StartsWith("/shop/", StringComparison.OrdinalIgnoreCase)
@@ -1167,6 +1176,38 @@ public static class PhpSurfaceLinkMap
         }
 
         return "/php-reference/storefront";
+    }
+
+    /// <summary>
+    /// Shell roots stay on the exact nginx aliases (/php-reference/cp|erp|bos).
+    /// Deep uppercase PHP paths keep the same screen: /php-reference/CP/… or /php-reference/ERP/?…
+    /// </summary>
+    private static string PrefixPhpReferenceShell(string value, string alias, string upper)
+    {
+        var qAt = value.IndexOf('?');
+        var path = qAt >= 0 ? value[..qAt] : value;
+        var query = qAt >= 0 ? value[qAt..] : "";
+        var trimmed = path.TrimEnd('/');
+        if (trimmed.Equals("/" + alias, StringComparison.OrdinalIgnoreCase)
+            || trimmed.Equals("/" + upper, StringComparison.Ordinal))
+        {
+            // Bare shell → exact nginx alias. Query (ERP area/tab) must stay on
+            // /php-reference/ERP/… so the prefix rewrite keeps $args.
+            if (string.IsNullOrEmpty(query))
+            {
+                return "/php-reference/" + alias;
+            }
+
+            return "/php-reference/" + upper + "/" + query;
+        }
+
+        if (path.StartsWith("/" + upper, StringComparison.Ordinal)
+            || path.StartsWith("/" + upper + "/", StringComparison.Ordinal))
+        {
+            return "/php-reference" + path + query;
+        }
+
+        return "/php-reference/" + alias + query;
     }
 
     public static bool IsPhpProductHref(string? href)

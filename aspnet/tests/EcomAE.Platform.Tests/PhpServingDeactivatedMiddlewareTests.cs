@@ -21,6 +21,32 @@ public sealed class PhpServingDeactivatedMiddlewareTests : IDisposable
     }
 
     [Fact]
+    public async Task PreferAspNetAppsAloneDoesNotBlockPhpReferenceCompare()
+    {
+        StorefrontSurfaceLinks.PreferAspNetApps = true;
+        var calledNext = false;
+        var mw = new PhpServingDeactivatedMiddleware(
+            _ =>
+            {
+                calledNext = true;
+                return Task.CompletedTask;
+            },
+            Options.Create(new PhpReferenceOptions
+            {
+                TemporarilyDeactivatePhpServing = false,
+                KeepPhpProjectAvailable = true,
+            }));
+
+        var ctx = new DefaultHttpContext();
+        ctx.Request.Path = "/php-reference/cp";
+        await mw.InvokeAsync(ctx);
+
+        Assert.True(calledNext);
+        Assert.Equal(StatusCodes.Status200OK, ctx.Response.StatusCode);
+        Assert.True(string.IsNullOrEmpty(ctx.Response.Headers[PhpServingDeactivatedMiddleware.FlagHeader].ToString()));
+    }
+
+    [Fact]
     public async Task PhpReferenceReturns503WhenTemporarilyDeactivated()
     {
         StorefrontSurfaceLinks.PreferAspNetApps = true;

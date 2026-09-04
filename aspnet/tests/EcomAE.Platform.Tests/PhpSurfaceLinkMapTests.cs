@@ -94,8 +94,15 @@ public sealed class PhpSurfaceLinkMapTests
     [Fact]
     public void PhpReferenceOnlyHref_StaysUnderPhpReference()
     {
-        Assert.Equal("/php-reference/cp", PhpSurfaceLinkMap.PhpReferenceOnlyHref("/CP/shop/orders/orders"));
-        Assert.Equal("/php-reference/erp", PhpSurfaceLinkMap.PhpReferenceOnlyHref("/ERP/?epc_erp_shell=1"));
+        Assert.Equal("/php-reference/cp", PhpSurfaceLinkMap.PhpReferenceOnlyHref("/CP/"));
+        Assert.Equal("/php-reference/cp", PhpSurfaceLinkMap.PhpReferenceOnlyHref("/cp"));
+        Assert.Equal("/php-reference/CP/shop/orders/orders", PhpSurfaceLinkMap.PhpReferenceOnlyHref("/CP/shop/orders/orders"));
+        Assert.Equal("/php-reference/erp", PhpSurfaceLinkMap.PhpReferenceOnlyHref("/erp"));
+        Assert.Equal("/php-reference/ERP/?epc_erp_shell=1", PhpSurfaceLinkMap.PhpReferenceOnlyHref("/ERP/?epc_erp_shell=1"));
+        Assert.Equal(
+            "/php-reference/ERP/?epc_erp_shell=1&area=finance&tab=ledger",
+            PhpSurfaceLinkMap.PhpReferenceOnlyHref("/ERP/?epc_erp_shell=1&area=finance&tab=ledger"));
         Assert.Equal("/php-reference/home", PhpSurfaceLinkMap.PhpReferenceOnlyHref("/shop/part_search"));
+        Assert.Equal("/php-reference/cp", PhpSurfaceLinkMap.PhpReferenceOnlyHref("/php-reference/cp"));
     }
 }

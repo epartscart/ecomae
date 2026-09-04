@@ -215,8 +215,9 @@ def parse_example(
             or route_l.startswith("/ip/")
             or route_l.startswith("/lifeos/")
         ) and bool(re.search(r"(?m)^\s*return\s+404\s*;", block_raw))
-        if not is_proxy and not is_super_cp_prefix_deny:
-            raise SystemExit(f"ERROR: prefix location {route} must proxy_pass :5100 or return 404")
+        is_php_ref_prefix = route.startswith("/php-reference") and _is_php_rewrite(block_raw)
+        if not is_proxy and not is_super_cp_prefix_deny and not is_php_ref_prefix:
+            raise SystemExit(f"ERROR: prefix location {route} must proxy_pass :5100, return 404, or rewrite php-reference")
         # Never allow stub→/en redirects to sneak back in as exact overrides — those are gone.
         if "return 302 /en/" in block_raw:
             raise SystemExit(f"ERROR: refusing stub→/en redirect inside prefix {route}")
@@ -420,6 +421,9 @@ def strip_classic_entry_from_host_servers(conf_text: str, host: str | None = Non
         "/php-reference/storefront",
     ]
     prefix_routes = [
+        "/php-reference/CP",
+        "/php-reference/ERP",
+        "/php-reference/",
         "/aspnet-php-assets/",
         "/_framework/",
         "/cp/",
