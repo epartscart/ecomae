@@ -23,6 +23,12 @@ public sealed class WaveBOpsModuleDryRunTests
     {
         var r = new ErpContractSaveDryRun().Evaluate(new ErpContractSaveRequest("CTR-1", "MSA"));
         Assert.Equal("dry-run-validated", r.Status);
+        Assert.Equal(0, r.Writes);
+        Assert.False(r.PhpAuthoritative);
+        var missing = new ErpContractSaveDryRun().Evaluate(new ErpContractSaveRequest("CTR-1", ""));
+        Assert.Equal("code_title_required", missing.ValidationCode);
+        var refused = new ErpContractSaveDryRun().Evaluate(new ErpContractSaveRequest("CTR-1", "MSA", ConfirmWrites: true));
+        Assert.Equal("dry-run-confirm-refused", refused.Status);
     }
 
     [Fact] public void WmsReceiveRequiresItem()

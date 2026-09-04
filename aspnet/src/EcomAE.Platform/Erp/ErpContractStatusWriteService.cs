@@ -1,7 +1,7 @@
 namespace EcomAE.Platform.Erp;
 
 /// <summary>
-/// Live PHP <c>epc_ctr_set_status</c> twin. Schema ensure, save, sign, and OCR stay PHP.
+/// Live PHP <c>epc_ctr_set_status</c> twin. Schema ensure, sign, and OCR stay PHP.
 /// </summary>
 public interface IErpContractStatusWriteService
 {
