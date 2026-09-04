@@ -80,6 +80,12 @@
             <label>Note <input type="text" name="note" maxlength="255" style="width:14rem" /></label>
             <button type="submit">Record decision</button>
         </form>
+        <form method="post" action="/erp/ajax/proc-req-convert" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/purchase-requests-app" />
+            <label>Req id <input type="number" name="id" min="1" required style="width:6rem" /></label>
+            <button type="submit">Convert to PO</button>
+        </form>
     }
 
     <div class="epc-prq-kpis" aria-label="Purchase requests stats">

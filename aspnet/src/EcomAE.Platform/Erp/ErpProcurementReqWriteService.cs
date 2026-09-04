@@ -14,6 +14,8 @@ public interface IErpProcurementReqWriteService
         string? by,
         string? note,
         CancellationToken cancellationToken = default);
+
+    Task<ErpSimpleWriteResult> ConvertAsync(long id, CancellationToken cancellationToken = default);
 }
 
 public sealed class ErpProcurementReqWriteService : IErpProcurementReqWriteService
@@ -126,6 +128,51 @@ public sealed class ErpProcurementReqWriteService : IErpProcurementReqWriteServi
             next, decidedBy, decisionNote, DateTimeOffset.UtcNow.ToUnixTimeSeconds(), id);
 
         return ErpSimpleWriteResult.Ok(approve ? "Requisition approved" : "Requisition rejected", id);
+    }
+
+    public async Task<ErpSimpleWriteResult> ConvertAsync(long id, CancellationToken cancellationToken = default)
+    {
+        if (id <= 0)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "A requisition id is required.");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return ErpSimpleWriteResult.Fail("db", "TenantRegistry DB is not configured.");
+        }
+
+        await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        var status = await ErpDb.StringAsync(
+            connection,
+            null,
+            ErpDb.Positional("SELECT `status` FROM `epc_proc_req` WHERE `id` = ?"),
+            cancellationToken,
+            id);
+        if (status is null)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Requisition not found");
+        }
+
+        if (!string.Equals(status, "approved", StringComparison.Ordinal))
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Only an approved requisition can be converted to a PO");
+        }
+
+        var reqNumber = await ErpDb.StringAsync(
+            connection,
+            null,
+            ErpDb.Positional("SELECT `req_number` FROM `epc_proc_req` WHERE `id` = ?"),
+            cancellationToken,
+            id) ?? string.Empty;
+        var poRef = "PO-" + reqNumber;
+        await ErpDb.ExecuteAsync(
+            connection,
+            null,
+            ErpDb.Positional("UPDATE `epc_proc_req` SET `status` = 'converted', `po_ref` = ?, `time_updated` = ? WHERE `id` = ?"),
+            cancellationToken,
+            poRef, DateTimeOffset.UtcNow.ToUnixTimeSeconds(), id);
+        return ErpSimpleWriteResult.Ok("Converted to " + poRef, id);
     }
 
     /// <summary>PHP <c>epc_proc_req_recalc</c> + <c>epc_proc_requires_approval</c> (no schema ensure).</summary>

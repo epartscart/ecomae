@@ -14,8 +14,25 @@
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Process flow" BreadcrumbArea="Overview" BreadcrumbTab="Process flow">
 
     
-    <PhpErpModulePageHeader Title="Process flow cases" Subtitle="Live shop digest. Writes stay on ERP ajax." PhpTabHref="@_phpTab" />
+    <PhpErpModulePageHeader Title="Process flow cases" Subtitle="Cancel an open case here. Start, act, and reassign stay on the classic twin." />
 
+    @if (!string.IsNullOrWhiteSpace(_flashOk))
+    {
+        <div class="alert alert-success" role="status" style="margin:0 0 1rem;padding:.7rem .9rem;border-radius:.4rem;background:#ecfdf5;color:#065f46">@_flashOk</div>
+    }
+    @if (!string.IsNullOrWhiteSpace(_flashErr))
+    {
+        <div class="alert alert-danger" role="status" style="margin:0 0 1rem;padding:.7rem .9rem;border-radius:.4rem;background:#fef2f2;color:#991b1b">@_flashErr</div>
+    }
+    @if (_isAdmin)
+    {
+        <form method="post" action="/erp/ajax/pf-case-cancel" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/erp/process-flow-tasks-app" />
+            <label>Case id <input type="number" name="id" min="1" required style="width:6rem" /></label>
+            <button type="submit">Cancel case</button>
+        </form>
+    }
 
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Process flow stats">
         <div class="kpi"><div class="lbl">Cases</div><div class="val">@_summary.TaskCount.ToString(CultureInfo.InvariantCulture)</div></div>
@@ -75,7 +92,8 @@
     private string _message = "";
     private ErpProcessFlowTasksSummary _summary = new(0, 0, 0, 0, 0, "migration", string.Empty);
     private IReadOnlyList<ErpProcessFlowTaskDigest> _tasks = [];
-    private readonly string _phpTab = "/ERP/?epc_erp_shell=1&area=overview&tab=processflow";
+    private string _flashOk = "";
+    private string _flashErr = "";
 
     protected override async Task OnInitializedAsync()
     {
@@ -84,6 +102,8 @@
         {
             return;
         }
+        _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
+        _flashErr = ctx.Request.Query["err"].ToString() ?? "";
 
         var session = await Sessions.ValidateAsync(ctx);
         _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("erp");

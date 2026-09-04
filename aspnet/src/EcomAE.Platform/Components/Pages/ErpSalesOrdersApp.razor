@@ -47,6 +47,12 @@
                 </label>
                 <button type="submit">Set status</button>
             </form>
+            <form method="post" action="/erp/ajax/sub-invoice-paid" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="/erp/sales-orders-app?tab=subscriptions" />
+                <label>Invoice id <input type="number" name="id" min="1" required style="width:6rem" /></label>
+                <button type="submit">Mark invoice paid</button>
+            </form>
         }
         <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Subscription KPIs">
             <div class="kpi"><div class="lbl">Active</div><div class="val">@_subs.Active.ToString(CultureInfo.InvariantCulture)</div></div>

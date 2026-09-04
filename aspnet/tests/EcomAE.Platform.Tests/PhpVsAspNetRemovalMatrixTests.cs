@@ -68,6 +68,9 @@ public sealed class PhpVsAspNetRemovalMatrixTests
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "erp-workflow" && r.WritesOwner == "aspnet");
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "erp-collections-cases" && r.WritesOwner == "aspnet");
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "erp-procurement-reqs" && r.WritesOwner == "aspnet");
+        Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "erp-ins-claims" && r.WritesOwner == "aspnet");
+        Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "erp-vat-refund-status" && r.WritesOwner == "aspnet");
+        Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "erp-pf-case-cancel" && r.WritesOwner == "aspnet");
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "write-storefront-cart" && r.WritesOwner == "php");
     }
 
@@ -144,6 +147,11 @@ public sealed class PhpVsAspNetRemovalMatrixTests
             ("CpCollectionsDunningApp.razor", "/erp/collections/cases/status"),
             ("CpPurchaseRequestsApp.razor", "/erp/procurement/requisitions/submit"),
             ("CpPurchaseRequestsApp.razor", "/erp/procurement/requisitions/decision"),
+            ("CpPurchaseRequestsApp.razor", "/erp/ajax/proc-req-convert"),
+            ("CpInsuranceComplianceApp.razor", "/erp/ajax/ins-claim-status"),
+            ("ErpVatApp.razor", "/erp/ajax/bos-vat-refund-status"),
+            ("ErpSalesOrdersApp.razor", "/erp/ajax/sub-invoice-paid"),
+            ("ErpProcessFlowTasksApp.razor", "/erp/ajax/pf-case-cancel"),
             ("CpLanguagesApp.razor", "/cp/lang/set-is-custom"),
             ("CpLanguagesApp.razor", "/cp/lang/set-is-error"),
             ("CpLanguagesApp.razor", "/cp/lang/set-same"),

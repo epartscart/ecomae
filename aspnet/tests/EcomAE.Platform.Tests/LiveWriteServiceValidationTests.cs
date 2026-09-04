@@ -872,6 +872,56 @@ public sealed class LiveWriteServiceValidationTests
             .ReleaseAsync(9);
         Assert.False(waveDb.Succeeded);
         Assert.Equal("db", waveDb.Code);
+
+        var insInvalid = await new ErpInsClaimStatusWriteService(new ConfiguredNeverOpened())
+            .SetStatusAsync(9, "nope");
+        Assert.False(insInvalid.Succeeded);
+        Assert.Equal("invalid", insInvalid.Code);
+
+        var insDb = await new ErpInsClaimStatusWriteService(new UnconfiguredConnections())
+            .SetStatusAsync(9, "settled");
+        Assert.False(insDb.Succeeded);
+        Assert.Equal("db", insDb.Code);
+
+        var vatInvalid = await new ErpBosVatRefundStatusWriteService(new ConfiguredNeverOpened())
+            .SetStatusAsync(9, "nope");
+        Assert.False(vatInvalid.Succeeded);
+        Assert.Equal("invalid", vatInvalid.Code);
+
+        var vatDb = await new ErpBosVatRefundStatusWriteService(new UnconfiguredConnections())
+            .SetStatusAsync(9, "refunded");
+        Assert.False(vatDb.Succeeded);
+        Assert.Equal("db", vatDb.Code);
+
+        var invInvalid = await new ErpSubInvoicePaidWriteService(new ConfiguredNeverOpened())
+            .MarkPaidAsync(0);
+        Assert.False(invInvalid.Succeeded);
+        Assert.Equal("invalid", invInvalid.Code);
+
+        var invDb = await new ErpSubInvoicePaidWriteService(new UnconfiguredConnections())
+            .MarkPaidAsync(9);
+        Assert.False(invDb.Succeeded);
+        Assert.Equal("db", invDb.Code);
+
+        var pfInvalid = await new ErpPfCaseCancelWriteService(new ConfiguredNeverOpened())
+            .CancelAsync(0);
+        Assert.False(pfInvalid.Succeeded);
+        Assert.Equal("invalid", pfInvalid.Code);
+
+        var pfDb = await new ErpPfCaseCancelWriteService(new UnconfiguredConnections())
+            .CancelAsync(9);
+        Assert.False(pfDb.Succeeded);
+        Assert.Equal("db", pfDb.Code);
+
+        var convInvalid = await new ErpProcurementReqWriteService(new ConfiguredNeverOpened())
+            .ConvertAsync(0);
+        Assert.False(convInvalid.Succeeded);
+        Assert.Equal("invalid", convInvalid.Code);
+
+        var convDb = await new ErpProcurementReqWriteService(new UnconfiguredConnections())
+            .ConvertAsync(9);
+        Assert.False(convDb.Succeeded);
+        Assert.Equal("db", convDb.Code);
     }
 
     [Fact]
