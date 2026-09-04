@@ -1092,4 +1092,18 @@ public sealed class LiveWriteServiceValidationTests
         Assert.Single(clean);
         Assert.Equal("Ada &lt;b&gt;Lovelace&lt;/b&gt;", clean["name"]);
     }
+
+    [Fact]
+    public async Task Marketing_rejects_unconfigured_db_and_defaults_like_php()
+    {
+        var missingDb = await new ErpMarketingWriteService(new UnconfiguredConnections())
+            .CreateAsync("Spring", "digital", 100, "active", "2026-09-04", "2026-10-04", "");
+        Assert.False(missingDb.Succeeded);
+        Assert.Equal("db", missingDb.Code);
+
+        Assert.Contains("active", ErpMarketingWriteService.AllowedStatuses);
+        Assert.Contains("completed", ErpMarketingWriteService.AllowedStatuses);
+        Assert.Equal(1_788_480_000, ErpMarketingWriteService.ResolveStartUnix("2026-09-04", 1));
+        Assert.Equal(1_788_566_399, ErpMarketingWriteService.ResolveEndUnix("2026-09-04", 1));
+    }
 }
