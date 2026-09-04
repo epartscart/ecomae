@@ -1763,21 +1763,56 @@ public sealed class ErpModule : ISurfaceModule
 
         endpoints.MapPost(EcomAeRoutes.ErpWorkflowCreate, async (
             HttpContext context,
-            ErpWorkflowCreateBody? body,
             ILegacySessionValidator validator,
             IErpWorkflowCreateDryRun dryRun,
+            EcomAE.Platform.Erp.IErpWorkflowCreateWriteService writes,
             CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateAsync(context, cancellationToken);
             if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
             {
-                return Unauthorized("Admin ERP capability required for workflow create dry-run.");
+                return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/workflow-app", "Admin ERP capability required for workflow create.");
             }
-            body ??= new ErpWorkflowCreateBody(null, "admin", "normal", 0, false);
-            var result = dryRun.Evaluate(new ErpWorkflowCreateRequest(
-                body.Title, body.DepartmentCode, body.Priority, body.OrderId, body.ConfirmWrites));
-            return Results.Ok(result.ToPayload(SessionPayload(session)));
-        });
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpWorkflowCreateBody>(context, cancellationToken)
+                       ?? new();
+            var title = body.Title;
+            var departmentCode = body.DepartmentCode;
+            var priority = body.Priority;
+            var orderId = body.OrderId;
+            var description = body.Description;
+            var workflowStep = body.WorkflowStep;
+            var assignedUserId = body.AssignedUserId;
+            var dueAt = body.DueAt;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                title = LiveWriteFormBinder.Text(form, "title");
+                departmentCode = LiveWriteFormBinder.Text(form, "departmentCode", "department_code", "department");
+                priority = LiveWriteFormBinder.Text(form, "priority");
+                orderId = LiveWriteFormBinder.Long(form, "orderId", "order_id");
+                description = LiveWriteFormBinder.Text(form, "description");
+                workflowStep = LiveWriteFormBinder.Text(form, "workflowStep", "workflow_step", "step");
+                assignedUserId = LiveWriteFormBinder.Int(form, "assignedUserId", "assigned_user_id");
+                dueAt = LiveWriteFormBinder.Text(form, "dueAt", "due_at", "due");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (confirm)
+            {
+                var written = await writes.CreateAsync(
+                    title, departmentCode, priority, orderId, description, workflowStep, assignedUserId, dueAt, session.UserId, cancellationToken);
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    "/erp/workflow-app",
+                    written.Succeeded,
+                    written.Message,
+                    new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+            }
+
+            return Results.Ok(dryRun.Evaluate(new ErpWorkflowCreateRequest(title, departmentCode, priority, orderId, false)).ToPayload(SessionPayload(session)));
+        }).DisableAntiforgery();
 
         endpoints.MapPost(EcomAeRoutes.ErpMarketingCreate, async (HttpContext context, ErpMarketingCreateBody? body, ILegacySessionValidator validator, IErpMarketingCreateDryRun dryRun, CancellationToken cancellationToken) =>
         {
@@ -3992,7 +4027,7 @@ public sealed class ErpModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only epc_erp_workflow_tasks KPIs + board. PHP epc_erp_staff.php / ajax_erp.php remain authoritative."
+                note = "epc_erp_workflow_tasks. Create on POST /erp/workflow/create when confirmWrites=true. Staff schema seed stays PHP."
             });
         });
 
@@ -5217,11 +5252,15 @@ public sealed class ErpModule : ISurfaceModule
     private sealed record ErpGlSyncUnpostedBody(bool ConfirmWrites = false);
     private sealed record ErpWorkflowStatusBody(long TaskId, string? Status = "done", bool ConfirmWrites = false);
     private sealed record ErpWorkflowCreateBody(
-        string? Title,
+        string? Title = null,
         string? DepartmentCode = "admin",
         string? Priority = "normal",
         long OrderId = 0,
-        bool ConfirmWrites = false);
+        bool ConfirmWrites = false,
+        string? Description = null,
+        string? WorkflowStep = null,
+        int AssignedUserId = 0,
+        string? DueAt = null);
     private sealed record ErpMarketingCreateBody(string? Name, bool ConfirmWrites = false);
     private sealed record ErpSubscriptionSaveBody(string? Code, string? Customer, long Id = 0, bool ConfirmWrites = false);
     private sealed record ErpContractSaveBody(string? Code, string? Title, long Id = 0, bool ConfirmWrites = false);

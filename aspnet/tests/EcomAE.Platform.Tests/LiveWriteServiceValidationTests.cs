@@ -1092,4 +1092,18 @@ public sealed class LiveWriteServiceValidationTests
         Assert.Single(clean);
         Assert.Equal("Ada &lt;b&gt;Lovelace&lt;/b&gt;", clean["name"]);
     }
+
+    [Fact]
+    public async Task Workflow_create_rejects_empty_title_and_unconfigured_db()
+    {
+        var invalid = await new ErpWorkflowCreateWriteService(new ConfiguredNeverOpened())
+            .CreateAsync("  ", "admin", "normal", 0, "", "", 0, "", 1);
+        Assert.False(invalid.Succeeded);
+        Assert.Equal("invalid", invalid.Code);
+
+        var missingDb = await new ErpWorkflowCreateWriteService(new UnconfiguredConnections())
+            .CreateAsync("Pick parts", "warehouse", "high", 9, "", "", 0, "", 1);
+        Assert.False(missingDb.Succeeded);
+        Assert.Equal("db", missingDb.Code);
+    }
 }

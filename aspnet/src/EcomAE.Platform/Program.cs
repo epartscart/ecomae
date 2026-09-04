@@ -673,6 +673,7 @@ builder.Services.AddScoped<EcomAE.Platform.Erp.IErpWmsLocationWriteService, Ecom
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpSubscriptionStatusWriteService, EcomAE.Platform.Erp.ErpSubscriptionStatusWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpContractStatusWriteService, EcomAE.Platform.Erp.ErpContractStatusWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpWorkflowStatusWriteService, EcomAE.Platform.Erp.ErpWorkflowStatusWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpWorkflowCreateWriteService, EcomAE.Platform.Erp.ErpWorkflowCreateWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpCollectionsCaseStatusWriteService, EcomAE.Platform.Erp.ErpCollectionsCaseStatusWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpProcurementReqWriteService, EcomAE.Platform.Erp.ErpProcurementReqWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpWmsWaveReleaseWriteService, EcomAE.Platform.Erp.ErpWmsWaveReleaseWriteService>();

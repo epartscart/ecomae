@@ -13,7 +13,7 @@
 <PhpChromeStyles Surface="erp" />
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Workflow" BreadcrumbArea="Overview" BreadcrumbTab="Workflow">
 
-    <PhpErpModulePageHeader Title="Department workflow board" Subtitle="Set task status here. Task create stays on the classic twin." />
+    <PhpErpModulePageHeader Title="Department workflow board" Subtitle="Create a task or set status here. Process-flow cases stay on the Classic twin." />
     <PhpErpD365ActionPane RefreshHref="@Nav.Uri" />
 
     @if (!string.IsNullOrWhiteSpace(_flashOk))
@@ -26,6 +26,21 @@
     }
     @if (_isAdmin)
     {
+        <form method="post" action="/erp/workflow/create" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/erp/workflow-app" />
+            <label>Title <input name="title" required maxlength="255" style="width:12rem" /></label>
+            <label>Dept <input name="department_code" value="admin" maxlength="32" style="width:6rem" /></label>
+            <label>Priority
+                <select name="priority">
+                    <option value="normal" selected>normal</option>
+                    <option value="low">low</option>
+                    <option value="high">high</option>
+                </select>
+            </label>
+            <label>Order id <input type="number" name="order_id" min="0" style="width:6rem" /></label>
+            <button type="submit">Create task</button>
+        </form>
         <form method="post" action="/erp/workflow/status" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
             <input type="hidden" name="returnUrl" value="/erp/workflow-app" />
@@ -98,7 +113,7 @@
     </div>
 
     <div class="epc-erp-empty" style="display:block;margin-top:12px;padding:8px 10px;border:1px solid #c5d4de;background:#f8fafc;color:#475569;font-size:12px;">
-        Source: @_source. Process-flow cases stay on <a href="/erp/process-flow-tasks-app">process flow</a>. Task create stays PHP.
+        Source: @_source. Process-flow cases stay on <a href="/erp/process-flow-tasks-app">process flow</a>.
         @if (!string.IsNullOrWhiteSpace(_message)) { <span> @_message</span> }
     </div>
 </PhpErpDesktopChrome>
