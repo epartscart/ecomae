@@ -4934,4 +4934,98 @@ public const string SelectCpOpsGuidesStats = """
         SELECT COUNT(*) FROM `shop_docpart_prices`
         """;
 
+    /// <summary>PHP <c>epc_order_erp_log</c> — details JSON omitted.</summary>
+    public const string SelectErpOrderPipelineLog = """
+        SELECT `id`, IFNULL(`site_key`,'') AS site_key,
+               IFNULL(`order_id`,0) AS order_id,
+               IFNULL(`step`,'') AS step,
+               IFNULL(`status`,'pending') AS status,
+               IFNULL(`error_message`,'') AS error_message,
+               IFNULL(`duration_ms`,0) AS duration_ms,
+               IFNULL(DATE_FORMAT(`created_at`, '%Y-%m-%d %H:%i:%s'),'') AS created_at
+        FROM `epc_order_erp_log`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
+    /// <summary>PHP <c>epc_inventory_forecast</c>.</summary>
+    public const string SelectErpInventoryForecast = """
+        SELECT `id`, IFNULL(`sku`,'') AS sku,
+               IFNULL(`product_name`,'') AS product_name,
+               IFNULL(`current_stock`,0) AS current_stock,
+               IFNULL(`avg_daily_demand`,0) AS avg_daily_demand,
+               IFNULL(`lead_time_days`,0) AS lead_time_days,
+               IFNULL(`safety_stock`,0) AS safety_stock,
+               IFNULL(`reorder_point`,0) AS reorder_point,
+               IFNULL(`eoq`,0) AS eoq,
+               IFNULL(`days_of_stock`,0) AS days_of_stock,
+               IFNULL(DATE_FORMAT(`stockout_date`, '%Y-%m-%d'),'') AS stockout_date,
+               IFNULL(`forecast_status`,'healthy') AS forecast_status,
+               IFNULL(DATE_FORMAT(`last_computed`, '%Y-%m-%d %H:%i:%s'),'') AS last_computed
+        FROM `epc_inventory_forecast`
+        ORDER BY FIELD(`forecast_status`,'stockout','critical','low','healthy'), `days_of_stock` ASC, `id` DESC
+        LIMIT @limit
+        """;
+
+    /// <summary>PHP <c>epc_entity_groups</c> + member count.</summary>
+    public const string SelectErpEntityGroups = """
+        SELECT g.`id`, IFNULL(g.`group_code`,'') AS group_code,
+               IFNULL(g.`group_name`,'') AS group_name,
+               IFNULL(g.`parent_entity`,'') AS parent_entity,
+               IFNULL(g.`base_currency`,'AED') AS base_currency,
+               IFNULL(g.`fiscal_year_end`,'12-31') AS fiscal_year_end,
+               IFNULL(g.`status`,'active') AS status,
+               IFNULL((SELECT COUNT(*) FROM `epc_entity_members` m WHERE m.`group_id` = g.`id`),0) AS member_count
+        FROM `epc_entity_groups` g
+        ORDER BY g.`id` DESC
+        LIMIT @limit
+        """;
+
+    /// <summary>PHP <c>epc_intercompany_txns</c>.</summary>
+    public const string SelectErpIntercompanyTxns = """
+        SELECT `id`, IFNULL(`group_id`,0) AS group_id,
+               IFNULL(`from_site_key`,'') AS from_site_key,
+               IFNULL(`to_site_key`,'') AS to_site_key,
+               IFNULL(`amount`,0) AS amount,
+               IFNULL(`currency`,'AED') AS currency,
+               IFNULL(`description`,'') AS description,
+               IFNULL(`status`,'pending') AS status,
+               IFNULL(DATE_FORMAT(`created_at`, '%Y-%m-%d %H:%i:%s'),'') AS created_at
+        FROM `epc_intercompany_txns`
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
+    /// <summary>PHP <c>epc_fx_rates</c>.</summary>
+    public const string SelectErpFxRates = """
+        SELECT `id`, IFNULL(`base_currency`,'AED') AS base_currency,
+               IFNULL(`target_currency`,'') AS target_currency,
+               IFNULL(`rate`,0) AS rate,
+               IFNULL(`inverse_rate`,0) AS inverse_rate,
+               IFNULL(`source`,'manual') AS source,
+               IFNULL(DATE_FORMAT(`effective_date`, '%Y-%m-%d'),'') AS effective_date
+        FROM `epc_fx_rates`
+        ORDER BY `effective_date` DESC, `id` DESC
+        LIMIT @limit
+        """;
+
+    /// <summary>PHP <c>epc_gl_currency_entries</c>.</summary>
+    public const string SelectErpGlCurrencyEntries = """
+        SELECT `id`, IFNULL(`journal_ref`,'') AS journal_ref,
+               IFNULL(`account_code`,'') AS account_code,
+               IFNULL(`account_name`,'') AS account_name,
+               IFNULL(DATE_FORMAT(`entry_date`, '%Y-%m-%d'),'') AS entry_date,
+               IFNULL(`txn_currency`,'') AS txn_currency,
+               IFNULL(`txn_amount`,0) AS txn_amount,
+               IFNULL(`fx_rate`,0) AS fx_rate,
+               IFNULL(`base_currency`,'AED') AS base_currency,
+               IFNULL(`base_amount`,0) AS base_amount,
+               IFNULL(`entry_type`,'debit') AS entry_type,
+               IFNULL(`revalued`,0) AS revalued,
+               IFNULL(`reval_gain_loss`,0) AS reval_gain_loss
+        FROM `epc_gl_currency_entries`
+        ORDER BY `entry_date` DESC, `id` DESC
+        LIMIT @limit
+        """;
+
 }

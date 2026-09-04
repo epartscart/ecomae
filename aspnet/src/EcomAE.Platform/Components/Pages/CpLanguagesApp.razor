@@ -45,11 +45,89 @@
     <section class="epc-w22-hero">
         <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
         <h1>Languages</h1>
-        <p>Manage store operations from the control panel.</p>
+        <p>Language list digest plus native editor writes. Flags, translation UPSERT, description, and unused-custom delete write on ASP.NET. String create (domain_path key) and used-found scan stay PHP.</p>
         <div class="epc-w22-cta">
             <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
         </div>
     </section>
+
+    @if (!string.IsNullOrWhiteSpace(_flashOk))
+    {
+        <div class="alert alert-success" role="status" style="margin:0 0 1rem;padding:.7rem .9rem;border-radius:.4rem;background:#ecfdf5;color:#065f46">@_flashOk</div>
+    }
+    @if (!string.IsNullOrWhiteSpace(_flashErr))
+    {
+        <div class="alert alert-danger" role="status" style="margin:0 0 1rem;padding:.7rem .9rem;border-radius:.4rem;background:#fef2f2;color:#991b1b">@_flashErr</div>
+    }
+    @if (_isAdmin)
+    {
+        <div style="display:grid;gap:.65rem;margin:0 0 1rem">
+            <form method="post" action="/cp/lang/set-is-custom" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="/cp/languages-app" />
+                <label>String key <input type="text" name="strKey" required maxlength="190" /></label>
+                <label>is_custom
+                    <select name="isCustom">
+                        <option value="1">1 · custom</option>
+                        <option value="0">0 · not custom</option>
+                    </select>
+                </label>
+                <button type="submit">Save is_custom</button>
+            </form>
+            <form method="post" action="/cp/lang/set-is-error" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="/cp/languages-app" />
+                <label>String key <input type="text" name="strKey" required maxlength="190" /></label>
+                <label>is_error
+                    <select name="isError">
+                        <option value="1">1 · error</option>
+                        <option value="0">0 · not error</option>
+                    </select>
+                </label>
+                <button type="submit">Save is_error</button>
+            </form>
+            <form method="post" action="/cp/lang/set-same" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="/cp/languages-app" />
+                <label>String key <input type="text" name="strKey" required maxlength="190" /></label>
+                <label>same <input type="text" name="same" required placeholder="no or lang code" maxlength="16" /></label>
+                <button type="submit">Save same</button>
+            </form>
+            <form method="post" action="/cp/lang/set-used-found" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="/cp/languages-app" />
+                <label>String key <input type="text" name="strKey" required maxlength="190" /></label>
+                <label>used_found
+                    <select name="usedFound">
+                        <option value="0">0 · unknown</option>
+                        <option value="1">1 · found</option>
+                        <option value="2">2 · not found</option>
+                    </select>
+                </label>
+                <button type="submit">Save used_found</button>
+            </form>
+            <form method="post" action="/cp/lang/save-translation" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="/cp/languages-app" />
+                <label>String key <input type="text" name="strKey" required maxlength="190" /></label>
+                <label>Lang <input type="text" name="langCode" required maxlength="16" placeholder="en" /></label>
+                <label>Translation <input type="text" name="value" required maxlength="8000" style="width:18rem" /></label>
+                <button type="submit">Save translation</button>
+            </form>
+            <form method="post" action="/cp/lang/save-description" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="/cp/languages-app" />
+                <label>String key <input type="text" name="strKey" required maxlength="190" /></label>
+                <label>Description <input type="text" name="value" required maxlength="8000" style="width:18rem" /></label>
+                <button type="submit">Save description</button>
+            </form>
+            <form method="post" action="/cp/lang/delete-not-used" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="/cp/languages-app" />
+                <button type="submit">Delete unused custom strings</button>
+            </form>
+        </div>
+    }
 
     <div class="epc-w22-kpis" aria-label="Languages stats">
         <div class="epc-w22-kpi"><strong>@_summary.LanguageCount.ToString(CultureInfo.InvariantCulture)</strong><span>Languages</span></div>
@@ -98,12 +176,16 @@
     private IReadOnlyList<CpLanguagesRowDigest> _rows = [];
     private string _source = "n/a";
     private string _message = "";
+    private string _flashOk = "";
+    private string _flashErr = "";
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
 
+        _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
+        _flashErr = ctx.Request.Query["err"].ToString() ?? "";
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
         if (!_isAdmin)

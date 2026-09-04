@@ -15152,6 +15152,241 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             _ => amount
         };
 
+    public async Task<ErpOrderPipelineListResult> ListErpOrderPipelineLogAsync(int limit, CancellationToken cancellationToken = default)
+    {
+        var safeLimit = Math.Clamp(limit, 1, 500);
+        if (!_connections.IsConfigured)
+        {
+            return new([], 0, 0, 0, 0, 0, "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            var rows = new List<ErpOrderPipelineLogDigest>();
+            await using var command = connection.CreateCommand();
+            command.CommandText = LegacySurfaceDashboardSql.SelectErpOrderPipelineLog;
+            AddParameter(command, "@limit", safeLimit);
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                rows.Add(new ErpOrderPipelineLogDigest(
+                    Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                    ReadStr(reader, "site_key"),
+                    Convert.ToInt64(reader["order_id"] is DBNull ? 0 : reader["order_id"], CultureInfo.InvariantCulture),
+                    ReadStr(reader, "step"),
+                    ReadStr(reader, "status"),
+                    ReadStr(reader, "error_message"),
+                    Convert.ToInt32(reader["duration_ms"] is DBNull ? 0 : reader["duration_ms"], CultureInfo.InvariantCulture),
+                    ReadStr(reader, "created_at")));
+            }
+
+            var avg = rows.Count == 0 ? 0 : (int)Math.Round(rows.Average(r => r.DurationMs), MidpointRounding.AwayFromZero);
+            return new(
+                rows,
+                rows.Count,
+                rows.Count(r => string.Equals(r.Status, "success", StringComparison.OrdinalIgnoreCase)),
+                rows.Count(r => string.Equals(r.Status, "failed", StringComparison.OrdinalIgnoreCase)),
+                rows.Count(r => string.Equals(r.Status, "pending", StringComparison.OrdinalIgnoreCase)),
+                avg,
+                "database",
+                string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new([], 0, 0, 0, 0, 0, "database-error", ex.Message);
+        }
+    }
+
+    public async Task<ErpInventoryForecastListResult> ListErpInventoryForecastAsync(int limit, CancellationToken cancellationToken = default)
+    {
+        var safeLimit = Math.Clamp(limit, 1, 500);
+        if (!_connections.IsConfigured)
+        {
+            return new([], 0, 0, 0, 0, 0, "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            var rows = new List<ErpInventoryForecastDigest>();
+            await using var command = connection.CreateCommand();
+            command.CommandText = LegacySurfaceDashboardSql.SelectErpInventoryForecast;
+            AddParameter(command, "@limit", safeLimit);
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                rows.Add(new ErpInventoryForecastDigest(
+                    Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                    ReadStr(reader, "sku"),
+                    ReadStr(reader, "product_name"),
+                    Convert.ToInt32(reader["current_stock"] is DBNull ? 0 : reader["current_stock"], CultureInfo.InvariantCulture),
+                    Convert.ToDecimal(reader["avg_daily_demand"] is DBNull ? 0m : reader["avg_daily_demand"], CultureInfo.InvariantCulture),
+                    Convert.ToInt32(reader["lead_time_days"] is DBNull ? 0 : reader["lead_time_days"], CultureInfo.InvariantCulture),
+                    Convert.ToInt32(reader["safety_stock"] is DBNull ? 0 : reader["safety_stock"], CultureInfo.InvariantCulture),
+                    Convert.ToInt32(reader["reorder_point"] is DBNull ? 0 : reader["reorder_point"], CultureInfo.InvariantCulture),
+                    Convert.ToInt32(reader["eoq"] is DBNull ? 0 : reader["eoq"], CultureInfo.InvariantCulture),
+                    Convert.ToInt32(reader["days_of_stock"] is DBNull ? 0 : reader["days_of_stock"], CultureInfo.InvariantCulture),
+                    ReadStr(reader, "stockout_date"),
+                    ReadStr(reader, "forecast_status"),
+                    ReadStr(reader, "last_computed")));
+            }
+
+            return new(
+                rows,
+                rows.Count,
+                rows.Count(r => string.Equals(r.ForecastStatus, "healthy", StringComparison.OrdinalIgnoreCase)),
+                rows.Count(r => string.Equals(r.ForecastStatus, "low", StringComparison.OrdinalIgnoreCase)),
+                rows.Count(r => string.Equals(r.ForecastStatus, "critical", StringComparison.OrdinalIgnoreCase)),
+                rows.Count(r => string.Equals(r.ForecastStatus, "stockout", StringComparison.OrdinalIgnoreCase)),
+                "database",
+                string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new([], 0, 0, 0, 0, 0, "database-error", ex.Message);
+        }
+    }
+
+    public async Task<ErpMultiEntityListResult> ListErpMultiEntityAsync(int limit, CancellationToken cancellationToken = default)
+    {
+        var safeLimit = Math.Clamp(limit, 1, 500);
+        if (!_connections.IsConfigured)
+        {
+            return new([], [], 0, 0, 0, 0, "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            var groups = new List<ErpEntityGroupDigest>();
+            await using (var command = connection.CreateCommand())
+            {
+                command.CommandText = LegacySurfaceDashboardSql.SelectErpEntityGroups;
+                AddParameter(command, "@limit", safeLimit);
+                await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    groups.Add(new ErpEntityGroupDigest(
+                        Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                        ReadStr(reader, "group_code"),
+                        ReadStr(reader, "group_name"),
+                        ReadStr(reader, "parent_entity"),
+                        ReadStr(reader, "base_currency"),
+                        ReadStr(reader, "fiscal_year_end"),
+                        ReadStr(reader, "status"),
+                        Convert.ToInt32(reader["member_count"] is DBNull ? 0 : reader["member_count"], CultureInfo.InvariantCulture)));
+                }
+            }
+
+            var ic = new List<ErpIntercompanyTxnDigest>();
+            await using (var command = connection.CreateCommand())
+            {
+                command.CommandText = LegacySurfaceDashboardSql.SelectErpIntercompanyTxns;
+                AddParameter(command, "@limit", safeLimit);
+                await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    ic.Add(new ErpIntercompanyTxnDigest(
+                        Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["group_id"] is DBNull ? 0 : reader["group_id"], CultureInfo.InvariantCulture),
+                        ReadStr(reader, "from_site_key"),
+                        ReadStr(reader, "to_site_key"),
+                        Convert.ToDecimal(reader["amount"] is DBNull ? 0m : reader["amount"], CultureInfo.InvariantCulture),
+                        ReadStr(reader, "currency"),
+                        ReadStr(reader, "description"),
+                        ReadStr(reader, "status"),
+                        ReadStr(reader, "created_at")));
+                }
+            }
+
+            return new(
+                groups,
+                ic,
+                groups.Count,
+                groups.Sum(g => g.MemberCount),
+                ic.Count,
+                ic.Count(t => string.Equals(t.Status, "pending", StringComparison.OrdinalIgnoreCase)),
+                "database",
+                string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new([], [], 0, 0, 0, 0, "database-error", ex.Message);
+        }
+    }
+
+    public async Task<ErpMultiCurrencyGlListResult> ListErpMultiCurrencyGlAsync(int limit, CancellationToken cancellationToken = default)
+    {
+        var safeLimit = Math.Clamp(limit, 1, 500);
+        if (!_connections.IsConfigured)
+        {
+            return new([], [], 0, 0, 0, 0m, "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            var rates = new List<ErpFxRateDigest>();
+            await using (var command = connection.CreateCommand())
+            {
+                command.CommandText = LegacySurfaceDashboardSql.SelectErpFxRates;
+                AddParameter(command, "@limit", safeLimit);
+                await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    rates.Add(new ErpFxRateDigest(
+                        Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                        ReadStr(reader, "base_currency"),
+                        ReadStr(reader, "target_currency"),
+                        Convert.ToDecimal(reader["rate"] is DBNull ? 0m : reader["rate"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(reader["inverse_rate"] is DBNull ? 0m : reader["inverse_rate"], CultureInfo.InvariantCulture),
+                        ReadStr(reader, "source"),
+                        ReadStr(reader, "effective_date")));
+                }
+            }
+
+            var entries = new List<ErpGlCurrencyEntryDigest>();
+            await using (var command = connection.CreateCommand())
+            {
+                command.CommandText = LegacySurfaceDashboardSql.SelectErpGlCurrencyEntries;
+                AddParameter(command, "@limit", safeLimit);
+                await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    entries.Add(new ErpGlCurrencyEntryDigest(
+                        Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                        ReadStr(reader, "journal_ref"),
+                        ReadStr(reader, "account_code"),
+                        ReadStr(reader, "account_name"),
+                        ReadStr(reader, "entry_date"),
+                        ReadStr(reader, "txn_currency"),
+                        Convert.ToDecimal(reader["txn_amount"] is DBNull ? 0m : reader["txn_amount"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(reader["fx_rate"] is DBNull ? 0m : reader["fx_rate"], CultureInfo.InvariantCulture),
+                        ReadStr(reader, "base_currency"),
+                        Convert.ToDecimal(reader["base_amount"] is DBNull ? 0m : reader["base_amount"], CultureInfo.InvariantCulture),
+                        ReadStr(reader, "entry_type"),
+                        Convert.ToInt32(reader["revalued"] is DBNull ? 0 : reader["revalued"], CultureInfo.InvariantCulture) == 1,
+                        Convert.ToDecimal(reader["reval_gain_loss"] is DBNull ? 0m : reader["reval_gain_loss"], CultureInfo.InvariantCulture)));
+                }
+            }
+
+            return new(
+                rates,
+                entries,
+                rates.Count,
+                entries.Count,
+                entries.Count(e => !e.Revalued),
+                entries.Sum(e => e.RevalGainLoss),
+                "database",
+                string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new([], [], 0, 0, 0, 0m, "database-error", ex.Message);
+        }
+    }
+
     private static string ReadStr(System.Data.Common.DbDataReader reader, string column)
         => Convert.ToString(reader[column] is DBNull ? string.Empty : reader[column], CultureInfo.InvariantCulture) ?? string.Empty;
 

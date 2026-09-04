@@ -47,9 +47,27 @@
         <h1>Credit limits</h1>
         <p>Manage store operations, catalogue, and partner integrations from one control panel.</p>
         <div class="epc-w16-cta">
-            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
+            <a href="/cp/credit-limits-app">Refresh</a>
         </div>
     </section>
+
+    @if (!string.IsNullOrWhiteSpace(_flash))
+    {
+        <p class="epc-w16-note" style="@(_flashOk ? "background:#ecfdf5;border-color:#a7f3d0;color:#065f46" : "background:#fffbeb;border-color:#fde68a;color:#92400e")">@_flash</p>
+    }
+
+    @if (_isAdmin)
+    {
+        <form method="post" action="/cp/credit-limits/set" style="margin:0 0 1rem;padding:.85rem .9rem;background:#fff;border:1px solid #e2e8f0;border-radius:.55rem;display:flex;gap:.55rem;flex-wrap:wrap;align-items:end">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/credit-limits-app" />
+            <label>Site <input name="siteKey" value="epartscart" required style="display:block;margin-top:.25rem" /></label>
+            <label>Customer id <input type="number" name="customerId" min="1" required style="display:block;margin-top:.25rem;width:7rem" /></label>
+            <label>Limit <input type="number" name="limit" min="0" step="0.01" required style="display:block;margin-top:.25rem;width:7rem" /></label>
+            <label>Currency <input name="currency" value="AED" maxlength="8" style="display:block;margin-top:.25rem;width:5rem" /></label>
+            <button type="submit" class="btn btn-sm btn-primary">Save limit</button>
+        </form>
+    }
 
     <div class="epc-w16-kpis" aria-label="Credit limits stats">
         <div class="epc-w16-kpi"><strong>@_summary.LimitCount.ToString(CultureInfo.InvariantCulture)</strong><span>Limits</span></div>
@@ -91,7 +109,17 @@
                             <td>@(!string.IsNullOrWhiteSpace(row.Currency) ? row.Currency : "—")</td>
                             <td>@(!string.IsNullOrWhiteSpace(row.Status) ? row.Status : "—")</td>
                             <td>@row.RiskScore.ToString(CultureInfo.InvariantCulture)</td>
-                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
+                            <td>
+                                <form method="post" action="/cp/credit-limits/set" style="display:flex;gap:.3rem;align-items:center;margin:0">
+                                    <input type="hidden" name="confirmWrites" value="true" />
+                                    <input type="hidden" name="returnUrl" value="/cp/credit-limits-app" />
+                                    <input type="hidden" name="siteKey" value="@row.SiteKey" />
+                                    <input type="hidden" name="customerId" value="@row.CustomerId.ToString(CultureInfo.InvariantCulture)" />
+                                    <input type="hidden" name="currency" value="@row.Currency" />
+                                    <input type="number" name="limit" min="0" step="0.01" value="@row.CreditLimit.ToString(CultureInfo.InvariantCulture)" style="width:6rem" />
+                                    <button type="submit" class="btn btn-xs btn-default">Save</button>
+                                </form>
+                            </td>
                     </tr>
                 }
             }
@@ -102,12 +130,13 @@
 </PhpCpDesktopChrome>
 
 @code {
-    private const string _phpTab = "/CP/shop/finance/epc_credit_limit";
     private bool _isAdmin;
     private CpCreditLimitsSummary _summary = new(0, 0, 0, 0, "n/a", "");
     private IReadOnlyList<CpCreditLimitsLimitDigest> _rows = [];
     private string _source = "n/a";
     private string _message = "";
+    private string _flash = "";
+    private bool _flashOk;
 
     protected override async Task OnInitializedAsync()
     {
@@ -120,6 +149,11 @@
         {
             return; // guest browse — Sign in for live data
         }
+
+        var ok = ctx.Request.Query["ok"].ToString();
+        var err = ctx.Request.Query["err"].ToString();
+        if (!string.IsNullOrWhiteSpace(ok)) { _flash = ok; _flashOk = true; }
+        else if (!string.IsNullOrWhiteSpace(err)) { _flash = err; _flashOk = false; }
 
         var result = await Dashboards.BuildCpCreditLimitsDigestAsync(200, ctx.RequestAborted);
         _summary = result.Summary;

@@ -144,16 +144,17 @@ public sealed class StorefrontFrontendParityWaveTests
     }
 
     [Fact]
-    public void CartApp_WiresDryRunQtyCheckDelete()
+    public void CartApp_WiresNativeQtyCheckDeleteForms()
     {
         var text = Read("aspnet/src/EcomAE.Platform/Components/Pages/StorefrontCartApp.razor");
         Assert.Contains("/storefront/cart/change-count-need", text, StringComparison.Ordinal);
         Assert.Contains("/storefront/cart/check-for-order", text, StringComparison.Ordinal);
         Assert.Contains("/storefront/cart/delete", text, StringComparison.Ordinal);
-        Assert.Contains("StorefrontPhpCanonical.Cart", text, StringComparison.Ordinal);
-        Assert.Contains("/php-reference", text, StringComparison.Ordinal);
-        Assert.Contains("Compare PHP reference", text, StringComparison.Ordinal);
-        Assert.DoesNotContain("href=\"@StorefrontPhpCanonical.Cart\"", text, StringComparison.Ordinal);
+        Assert.Contains("confirmWrites", text, StringComparison.Ordinal);
+        Assert.Contains("method=\"post\"", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("@onclick", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("@onchange", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("Compare PHP reference", text, StringComparison.Ordinal);
     }
 
     [Fact]

@@ -1,0 +1,117 @@
+@page "/erp/multi-entity-app"
+@page "/cp/shop/finance/epc_multi_entity"
+@layout Layout.PhpChromeLayout
+@using System.Globalization
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Migration
+@using EcomAE.Platform.Presentation
+@inject ISurfaceDashboardSummaryReporter Dashboards
+@inject ILegacySessionValidator Sessions
+@inject IHttpContextAccessor Http
+@inject NavigationManager Nav
+
+<PageTitle>Multi-entity · ERP · eParts Cart</PageTitle>
+<PhpChromeStyles Surface="erp" />
+<PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Multi-entity" BreadcrumbArea="Finance" BreadcrumbTab="Multi-entity">
+
+    <PhpErpModulePageHeader Title="Multi-entity consolidation" Subtitle="Read-only entity groups and inter-company transactions. Elimination and group close stay on PHP." />
+    <PhpErpD365ActionPane RefreshHref="@Nav.Uri" />
+
+    <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Multi-entity KPIs">
+        <div class="kpi"><div class="lbl">Groups</div><div class="val">@_count.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Members</div><div class="val">@_members.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">IC txns</div><div class="val">@_icCount.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Pending IC</div><div class="val">@_pendingIc.ToString(CultureInfo.InvariantCulture)</div></div>
+    </div>
+
+    <h2 style="font-size:16px;">Entity groups</h2>
+    <div class="epc-erp-table-wrap">
+        <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
+            <thead><tr><th>Code</th><th>Name</th><th>Currency</th><th>FY end</th><th class="text-right">Members</th><th>Status</th></tr></thead>
+            <tbody>
+                @if (_groups.Count == 0)
+                {
+                    <tr><td colspan="6">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? "No entity groups yet." : _message) : "Sign in with ERP capability for live rows.")</td></tr>
+                }
+                else
+                {
+                    @foreach (var row in _groups)
+                    {
+                        <tr>
+                            <td><strong>@(string.IsNullOrWhiteSpace(row.GroupCode) ? $"#{row.Id.ToString(CultureInfo.InvariantCulture)}" : row.GroupCode)</strong></td>
+                            <td>@(string.IsNullOrWhiteSpace(row.GroupName) ? "—" : row.GroupName)</td>
+                            <td>@(string.IsNullOrWhiteSpace(row.BaseCurrency) ? "—" : row.BaseCurrency)</td>
+                            <td>@(string.IsNullOrWhiteSpace(row.FiscalYearEnd) ? "—" : row.FiscalYearEnd)</td>
+                            <td class="text-right">@row.MemberCount.ToString(CultureInfo.InvariantCulture)</td>
+                            <td><span class="label label-default">@row.Status</span></td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <h2 style="font-size:16px;">Inter-company transactions</h2>
+    <div class="epc-erp-table-wrap">
+        <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
+            <thead><tr><th>From</th><th>To</th><th class="text-right">Amount</th><th>Currency</th><th>Status</th><th>When</th></tr></thead>
+            <tbody>
+                @if (_ic.Count == 0) { <tr><td colspan="6">No inter-company transactions yet.</td></tr> }
+                else
+                {
+                    @foreach (var row in _ic)
+                    {
+                        <tr>
+                            <td>@(string.IsNullOrWhiteSpace(row.FromSiteKey) ? "—" : row.FromSiteKey)</td>
+                            <td>@(string.IsNullOrWhiteSpace(row.ToSiteKey) ? "—" : row.ToSiteKey)</td>
+                            <td class="text-right">@row.Amount.ToString("N2", CultureInfo.InvariantCulture)</td>
+                            <td>@(string.IsNullOrWhiteSpace(row.Currency) ? "—" : row.Currency)</td>
+                            <td><span class="label label-default">@row.Status</span></td>
+                            <td>@(string.IsNullOrWhiteSpace(row.CreatedAt) ? "—" : row.CreatedAt)</td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="epc-erp-empty" style="display:block;margin-top:12px;padding:8px 10px;border:1px solid #c5d4de;background:#f8fafc;color:#475569;font-size:12px;">
+        Source: @_source. Distinct from CP consolidations (<code>epc_cons_*</code>). Digest: <code>/erp/multi-entity</code>.
+        @if (!string.IsNullOrWhiteSpace(_message)) { <span> @_message</span> }
+    </div>
+</PhpErpDesktopChrome>
+
+@code {
+    private bool _isAdmin;
+    private IReadOnlyList<ErpEntityGroupDigest> _groups = [];
+    private IReadOnlyList<ErpIntercompanyTxnDigest> _ic = [];
+    private int _count;
+    private int _members;
+    private int _icCount;
+    private int _pendingIc;
+    private string _source = "n/a";
+    private string _message = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null) return;
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("erp");
+        if (!_isAdmin)
+        {
+            _message = "Sign in for live data.";
+            return;
+        }
+
+        var result = await Dashboards.ListErpMultiEntityAsync(200, ctx.RequestAborted);
+        _groups = result.Groups;
+        _ic = result.Intercompany;
+        _count = result.Count;
+        _members = result.MemberTotal;
+        _icCount = result.IcTxnCount;
+        _pendingIc = result.PendingIcCount;
+        _source = result.Source;
+        _message = result.Message;
+    }
+}

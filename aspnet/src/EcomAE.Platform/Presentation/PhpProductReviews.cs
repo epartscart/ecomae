@@ -2,7 +2,7 @@ namespace EcomAE.Platform.Presentation;
 
 /// <summary>
 /// Seeded product-review read twin for PHP <c>product_evaluations.php</c>.
-/// Writes stay on <see cref="PhpCustomerWrites.EvaluationWriteHref"/>.
+/// Writes POST to <see cref="PhpCustomerWrites.EvaluationWriteHref"/> (ASP.NET live).
 /// </summary>
 public static class PhpProductReviews
 {

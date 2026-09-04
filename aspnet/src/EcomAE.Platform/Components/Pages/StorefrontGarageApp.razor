@@ -61,6 +61,15 @@
             <a class="btn btn-sm btn-default" href="/storefront/login">Customer login</a>
     </PhpStorefrontPageHeader>
 
+    @if (!string.IsNullOrWhiteSpace(_flashOk))
+    {
+        <p style="margin:0 0 .75rem;padding:.65rem .8rem;background:#ecfdf3;border:1px solid #86efac;color:#166534">@_flashOk</p>
+    }
+    @if (!string.IsNullOrWhiteSpace(_flashErr))
+    {
+        <p style="margin:0 0 .75rem;padding:.65rem .8rem;background:#fef2f2;border:1px solid #fecaca;color:#991b1b">@_flashErr</p>
+    }
+
     @if (!_isCustomer)
     {
         <div class="epc-sf-gar-gate">
@@ -109,9 +118,21 @@
                                 <td>@(string.IsNullOrWhiteSpace(v.Vin) ? "—" : v.Vin)</td>
                                 <td><span class="epc-sf-gar-badge @(v.Active != 0 ? "epc-sf-gar-badge--ok" : "epc-sf-gar-badge--off")">@(v.Active != 0 ? "yes" : "no")</span></td>
                                 <td>
-                                    <a href="@StorefrontSurfaceLinks.PartSearch">Search</a>
+                                    <form method="post" action="/storefront/garage/set-active" style="display:inline">
+                                        <input type="hidden" name="confirmWrites" value="true" />
+                                        <input type="hidden" name="returnUrl" value="/storefront/garage-app" />
+                                        <input type="hidden" name="carId" value="@v.Id.ToString(CultureInfo.InvariantCulture)" />
+                                        <button type="submit" style="border:0;background:none;color:#a16207;font-weight:700;cursor:pointer;padding:0">Set active</button>
+                                    </form>
                                     ·
-                                    <a href="@(StorefrontAspNetCanonical.GarageLogin + "?garage=" + v.Id.ToString(CultureInfo.InvariantCulture))">Notepad</a>
+                                    <form method="post" action="/storefront/garage/delete" style="display:inline" onsubmit="return confirm('Remove this car?');">
+                                        <input type="hidden" name="confirmWrites" value="true" />
+                                        <input type="hidden" name="returnUrl" value="/storefront/garage-app" />
+                                        <input type="hidden" name="carId" value="@v.Id.ToString(CultureInfo.InvariantCulture)" />
+                                        <button type="submit" style="border:0;background:none;color:#991b1b;font-weight:700;cursor:pointer;padding:0">Delete</button>
+                                    </form>
+                                    ·
+                                    <a href="@StorefrontSurfaceLinks.PartSearch">Search</a>
                                 </td>
                             </tr>
                         }
@@ -160,6 +181,8 @@
         }
 
         <form method="post" action="@PhpCustomerWrites.GarageCarWriteHref" style="margin-top:1.1rem;background:#fff;border:1px solid #e7e5e4;border-radius:.55rem;padding:1.1rem 1.2rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/storefront/garage-app" />
             <input type="hidden" name="save_action" value="1" />
             <input type="hidden" name="car_id" value="0" />
             <p style="margin:0 0 .75rem;font-weight:700">Add a vehicle</p>
@@ -174,8 +197,9 @@
             <button type="submit" style="margin-top:.9rem;padding:.55rem .95rem;border:0;border-radius:.4rem;background:#dc2626;color:#fff;font-weight:800;cursor:pointer">Save vehicle</button>
         </form>
 
-        <form method="post" action="@(PhpCustomerWrites.GarageNotepadWriteHref + (GarageId is > 0 ? "?garage=" + GarageId.Value.ToString(CultureInfo.InvariantCulture) : ""))" style="margin-top:1.1rem;background:#fff;border:1px solid #e7e5e4;border-radius:.55rem;padding:1.1rem 1.2rem">
-            <input type="hidden" name="action" value="add" />
+        <form method="post" action="@PhpCustomerWrites.GarageNotepadWriteHref" style="margin-top:1.1rem;background:#fff;border:1px solid #e7e5e4;border-radius:.55rem;padding:1.1rem 1.2rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="@(GarageId is > 0 ? "/storefront/garage-app?garage=" + GarageId.Value.ToString(CultureInfo.InvariantCulture) : "/storefront/garage-app")" />
             <p style="margin:0 0 .75rem;font-weight:700">Add a notepad line</p>
             <label>Garage id</label>
             <input type="number" name="garage" value="@GarageId" required style="width:100%;margin:.25rem 0 .75rem;padding:.45rem" />
@@ -203,6 +227,8 @@
     private int _limit = 50;
     private string _source = "n/a";
     private string _message = "";
+    private string _flashOk = "";
+    private string _flashErr = "";
 
     [SupplyParameterFromQuery(Name = "garage")]
     public int? GarageId { get; set; }
@@ -213,6 +239,8 @@
         if (ctx is null) return;
         _brand = StorefrontIndustryHostResolver.ResolveBrandLabel(ctx.Request.Host.Host);
         _showWorkshop = StorefrontIndustryHostResolver.ResolveIndustryCode(ctx.Request.Host.Host) == "auto_parts";
+        _flashOk = ctx.Request.Query["ok"].ToString();
+        _flashErr = ctx.Request.Query["err"].ToString();
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         if (session.Kind != LegacySessionKind.Customer || session.UserId <= 0)

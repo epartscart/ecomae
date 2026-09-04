@@ -1,0 +1,42 @@
+{
+  "role": "php-vs-aspnet-removal-matrix",
+  "asOfUtc": "2026-09-04",
+  "sourceOfTruth": "aspnet/src/EcomAE.Platform/Migration/PhpVsAspNetRemovalMatrix.cs",
+  "endpoint": "/migration/php-vs-aspnet-matrix",
+  "readyForPhpRemoval": false,
+  "phpSourceDeletionAllowed": false,
+  "cutoverAllowed": false,
+  "keepPhpProjectAvailable": true,
+  "aspNetInteractiveCompleteCount": 0,
+  "phpFileInventory": {
+    "content": 1437,
+    "cp": 638,
+    "templates": 6,
+    "bos": 2,
+    "productFacingApprox": 2083,
+    "note": "Exclude vendor/node_modules/pyprices venv and repo-root setup scripts."
+  },
+  "closedThisWave": [
+    "Type-2 cart qty/delete/check + cart add → ASP.NET live writes",
+    "OMS set_item_status → /cp/orders/set-item-status live",
+    "Payroll approve → /erp/ajax/payroll-approve live",
+    "Credit limit set → /cp/credit-limits/set live",
+    "PO approve/reject → /cp/po-approvals/approve|reject live",
+    "Inventory forecast recompute → /erp/inventory-forecast/recompute live",
+    "shop/finance/epc_credit_limit → /cp/credit-limits-app",
+    "shop/finance/epc_po_approval → /cp/po-approvals-app",
+    "shop/finance/epc_warranty_rma → /cp/returns-rma-app",
+    "shop/finance/epc_wps_payroll → /erp/payroll-app",
+    "shop/finance/epc_subscription_billing → /erp/sales-orders-app?tab=subscriptions",
+    "shop/finance/epc_order_erp_pipeline → /erp/order-pipeline-app",
+    "shop/finance/epc_inventory_forecast → /erp/inventory-forecast-app",
+    "shop/finance/epc_multi_entity → /erp/multi-entity-app",
+    "shop/finance/epc_multi_currency_gl → /erp/multi-currency-gl-app"
+  ],
+  "stillBlockingPhpRemoval": [
+    "Remaining PHP writes: CP ajax ~430, ERP ajax_erp residual, storefront type-1/checkout/pay, Laximo decode, PyPrices ingest, UMAPI miss-fill.",
+    "aspnet-complete interactive module count is 0 (no dual-sample deletion gate).",
+    "Digests + href remaps are not a deletion gate.",
+    "Human MODULE_FUNCTION_TEST_PASS + dual-sample evidence required per family."
+  ]
+}

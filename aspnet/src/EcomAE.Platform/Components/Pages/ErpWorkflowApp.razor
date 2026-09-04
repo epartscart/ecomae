@@ -6,7 +6,6 @@
 @using EcomAE.Platform.Presentation
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
-@inject IErpWorkflowCreateDryRun WorkflowCreate
 @inject IHttpContextAccessor Http
 @inject NavigationManager Nav
 
@@ -14,29 +13,32 @@
 <PhpChromeStyles Surface="erp" />
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Workflow" BreadcrumbArea="Overview" BreadcrumbTab="Workflow">
 
-    <PhpErpModulePageHeader Title="Department workflow board" Subtitle="Sales → Purchase → Logistics → Finance → Accounts. Task create and status writes stay on ERP ajax." PhpTabHref="@_phpTab" />
-    <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
+    <PhpErpModulePageHeader Title="Department workflow board" Subtitle="Set task status here. Task create stays on the classic twin." />
+    <PhpErpD365ActionPane RefreshHref="@Nav.Uri" />
 
+    @if (!string.IsNullOrWhiteSpace(_flashOk))
+    {
+        <div class="alert alert-success" role="status" style="margin:0 0 1rem;padding:.7rem .9rem;border-radius:.4rem;background:#ecfdf5;color:#065f46">@_flashOk</div>
+    }
+    @if (!string.IsNullOrWhiteSpace(_flashErr))
+    {
+        <div class="alert alert-danger" role="status" style="margin:0 0 1rem;padding:.7rem .9rem;border-radius:.4rem;background:#fef2f2;color:#991b1b">@_flashErr</div>
+    }
     @if (_isAdmin)
     {
-        <form @onsubmit="OnCreate" @onsubmit:preventDefault="true" style="margin:0 0 12px;padding:10px;border:1px solid #c5d4de;background:#fff;">
-            <strong>New task (dry-run)</strong>
-            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;align-items:end;">
-                <label>Title <input class="form-control" @bind="_formTitle" /></label>
-                <label>Dept <input class="form-control" @bind="_formDept" /></label>
-                <label>Priority
-                    <select class="form-control" @bind="_formPriority">
-                        <option value="normal">normal</option>
-                        <option value="low">low</option>
-                        <option value="high">high</option>
-                    </select>
-                </label>
-                <button type="submit" class="btn btn-primary">Validate create</button>
-            </div>
-            @if (!string.IsNullOrWhiteSpace(_formResult))
-            {
-                <p style="margin:8px 0 0;font-size:12px;">@_formResult</p>
-            }
+        <form method="post" action="/erp/workflow/status" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/erp/workflow-app" />
+            <label>Task id <input type="number" name="taskId" min="1" required style="width:6rem" /></label>
+            <label>Status
+                <select name="status">
+                    <option value="pending">pending</option>
+                    <option value="in_progress">in_progress</option>
+                    <option value="done">done</option>
+                    <option value="cancelled">cancelled</option>
+                </select>
+            </label>
+            <button type="submit">Set status</button>
         </form>
     }
 
@@ -87,7 +89,7 @@
                             <td><span class="label label-default">@row.Priority</span></td>
                             <td><span class="label label-default">@row.Status</span></td>
                             <td>@FormatDate(row.DueAt)</td>
-                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
+                            <td><a href="/erp/workflow-app">Open</a></td>
                         </tr>
                     }
                 }
@@ -96,33 +98,26 @@
     </div>
 
     <div class="epc-erp-empty" style="display:block;margin-top:12px;padding:8px 10px;border:1px solid #c5d4de;background:#f8fafc;color:#475569;font-size:12px;">
-        Source: @_source. Process-flow cases stay on <a href="/erp/process-flow-tasks-app">process flow</a>. Dry-runs: <code>workflow_create</code>, <code>workflow_status</code> — writes=0.
+        Source: @_source. Process-flow cases stay on <a href="/erp/process-flow-tasks-app">process flow</a>. Task create stays PHP.
         @if (!string.IsNullOrWhiteSpace(_message)) { <span> @_message</span> }
     </div>
 </PhpErpDesktopChrome>
 
 @code {
-    private const string _phpTab = "/ERP/?epc_erp_shell=1&area=overview&tab=workflow";
     private bool _isAdmin;
     private ErpWorkflowTasksSummary _summary = new(0, 0, 0, 0, 0, "n/a", "");
     private IReadOnlyList<ErpWorkflowTaskDigest> _tasks = [];
     private string _source = "n/a";
     private string _message = "";
-    private string _formTitle = "";
-    private string _formDept = "admin";
-    private string _formPriority = "normal";
-    private string _formResult = "";
-
-    private void OnCreate()
-    {
-        var result = WorkflowCreate.Evaluate(new ErpWorkflowCreateRequest(_formTitle, _formDept, _formPriority, 0, false));
-        _formResult = $"{result.Status}: {result.Detail} (writes={result.Writes.ToString(CultureInfo.InvariantCulture)})";
-    }
+    private string _flashOk = "";
+    private string _flashErr = "";
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
+        _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
+        _flashErr = ctx.Request.Query["err"].ToString() ?? "";
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("erp");
         if (!_isAdmin)

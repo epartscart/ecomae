@@ -1,0 +1,118 @@
+@page "/erp/multi-currency-gl-app"
+@page "/cp/shop/finance/epc_multi_currency_gl"
+@layout Layout.PhpChromeLayout
+@using System.Globalization
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Migration
+@using EcomAE.Platform.Presentation
+@inject ISurfaceDashboardSummaryReporter Dashboards
+@inject ILegacySessionValidator Sessions
+@inject IHttpContextAccessor Http
+@inject NavigationManager Nav
+
+<PageTitle>Multi-currency GL · ERP · eParts Cart</PageTitle>
+<PhpChromeStyles Surface="erp" />
+<PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Multi-currency GL" BreadcrumbArea="Finance" BreadcrumbTab="Multi-currency GL">
+
+    <PhpErpModulePageHeader Title="Multi-currency GL" Subtitle="Read-only FX rates and currency journal entries. Revaluation stays on PHP." />
+    <PhpErpD365ActionPane RefreshHref="@Nav.Uri" />
+
+    <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Multi-currency GL KPIs">
+        <div class="kpi"><div class="lbl">FX pairs</div><div class="val">@_count.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Entries</div><div class="val">@_entryCount.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Unrevalued</div><div class="val">@_unrevalued.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Reval P/L</div><div class="val">@_reval.ToString("N2", CultureInfo.InvariantCulture)</div></div>
+    </div>
+
+    <h2 style="font-size:16px;">FX rates</h2>
+    <div class="epc-erp-table-wrap">
+        <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
+            <thead><tr><th>Base</th><th>Target</th><th class="text-right">Rate</th><th class="text-right">Inverse</th><th>Source</th><th>Effective</th></tr></thead>
+            <tbody>
+                @if (_rates.Count == 0)
+                {
+                    <tr><td colspan="6">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? "No FX rates yet." : _message) : "Sign in with ERP capability for live rows.")</td></tr>
+                }
+                else
+                {
+                    @foreach (var row in _rates)
+                    {
+                        <tr>
+                            <td><strong>@(string.IsNullOrWhiteSpace(row.BaseCurrency) ? "—" : row.BaseCurrency)</strong></td>
+                            <td>@(string.IsNullOrWhiteSpace(row.TargetCurrency) ? "—" : row.TargetCurrency)</td>
+                            <td class="text-right">@row.Rate.ToString("N8", CultureInfo.InvariantCulture)</td>
+                            <td class="text-right">@row.InverseRate.ToString("N8", CultureInfo.InvariantCulture)</td>
+                            <td>@(string.IsNullOrWhiteSpace(row.Source) ? "—" : row.Source)</td>
+                            <td>@(string.IsNullOrWhiteSpace(row.EffectiveDate) ? "—" : row.EffectiveDate)</td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <h2 style="font-size:16px;">Currency journal entries</h2>
+    <div class="epc-erp-table-wrap">
+        <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
+            <thead><tr><th>Date</th><th>Account</th><th>Type</th><th>Txn</th><th class="text-right">Txn amt</th><th class="text-right">Base amt</th><th>Revalued</th></tr></thead>
+            <tbody>
+                @if (_entries.Count == 0) { <tr><td colspan="7">No currency journal entries yet.</td></tr> }
+                else
+                {
+                    @foreach (var row in _entries)
+                    {
+                        <tr>
+                            <td>@(string.IsNullOrWhiteSpace(row.EntryDate) ? "—" : row.EntryDate)</td>
+                            <td>@(string.IsNullOrWhiteSpace(row.AccountCode) ? "—" : row.AccountCode) @(string.IsNullOrWhiteSpace(row.AccountName) ? "" : row.AccountName)</td>
+                            <td><span class="label label-default">@row.EntryType</span></td>
+                            <td>@(string.IsNullOrWhiteSpace(row.TxnCurrency) ? "—" : row.TxnCurrency)</td>
+                            <td class="text-right">@row.TxnAmount.ToString("N2", CultureInfo.InvariantCulture)</td>
+                            <td class="text-right">@row.BaseAmount.ToString("N2", CultureInfo.InvariantCulture)</td>
+                            <td>@(row.Revalued ? "yes" : "no")</td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="epc-erp-empty" style="display:block;margin-top:12px;padding:8px 10px;border:1px solid #c5d4de;background:#f8fafc;color:#475569;font-size:12px;">
+        Source: @_source. Distinct from shop currency rates on <a href="/cp/currencies-app">currencies</a>. Digest: <code>/erp/multi-currency-gl</code>.
+        @if (!string.IsNullOrWhiteSpace(_message)) { <span> @_message</span> }
+    </div>
+</PhpErpDesktopChrome>
+
+@code {
+    private bool _isAdmin;
+    private IReadOnlyList<ErpFxRateDigest> _rates = [];
+    private IReadOnlyList<ErpGlCurrencyEntryDigest> _entries = [];
+    private int _count;
+    private int _entryCount;
+    private int _unrevalued;
+    private decimal _reval;
+    private string _source = "n/a";
+    private string _message = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null) return;
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("erp");
+        if (!_isAdmin)
+        {
+            _message = "Sign in for live data.";
+            return;
+        }
+
+        var result = await Dashboards.ListErpMultiCurrencyGlAsync(200, ctx.RequestAborted);
+        _rates = result.Rates;
+        _entries = result.Entries;
+        _count = result.Count;
+        _entryCount = result.EntryCount;
+        _unrevalued = result.UnrevaluedCount;
+        _reval = result.RevalGainLossTotal;
+        _source = result.Source;
+        _message = result.Message;
+    }
+}

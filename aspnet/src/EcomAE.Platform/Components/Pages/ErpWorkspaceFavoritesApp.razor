@@ -7,15 +7,69 @@
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
-@inject NavigationManager Nav
 
 <PageTitle>Workspace favorites · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Workspace favorites" BreadcrumbArea="Home" BreadcrumbTab="Dashboard">
 
     
-    <PhpErpModulePageHeader Title="Workspace favorites" Subtitle="Live shop digest. Writes stay on ERP ajax." PhpTabHref="@_phpTab" />
+    <PhpErpModulePageHeader Title="Workspace favorites" Subtitle="Add or remove a favourite tab, or delete/reset shortcuts for the signed-in ERP user. Shortcut add/reorder stays on ERP ajax." />
 
+    @if (!string.IsNullOrWhiteSpace(_flashOk))
+    {
+        <div class="alert alert-success" role="status" style="margin:0 0 12px;padding:.7rem .9rem;border-radius:.4rem;background:#ecfdf5;color:#065f46">@_flashOk</div>
+    }
+    @if (!string.IsNullOrWhiteSpace(_flashErr))
+    {
+        <div class="alert alert-danger" role="status" style="margin:0 0 12px;padding:.7rem .9rem;border-radius:.4rem;background:#fef2f2;color:#991b1b">@_flashErr</div>
+    }
+    @if (_isAdmin)
+    {
+        <form method="post" action="/erp/ajax/erp-fav-add" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 .65rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/erp/workspace-favorites-app" />
+            <label>Area key <input type="text" name="areaKey" maxlength="60" /></label>
+            <label>Tab key <input type="text" name="tabKey" required maxlength="60" /></label>
+            <button type="submit" class="btn btn-sm btn-primary">Add favourite</button>
+        </form>
+        <form method="post" action="/erp/ajax/erp-fav-remove" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/erp/workspace-favorites-app" />
+            <label>Tab key <input type="text" name="tabKey" required maxlength="60" /></label>
+            <button type="submit" class="btn btn-sm btn-default">Remove favourite</button>
+        </form>
+        <form method="post" action="/erp/ajax/shortcut-delete" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/erp/workspace-favorites-app" />
+            <label>Shortcut id <input type="number" name="id" min="1" required style="width:6rem" /></label>
+            <button type="submit" class="btn btn-sm btn-default">Delete shortcut</button>
+        </form>
+        <form method="post" action="/erp/ajax/shortcut-delete-key" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 .65rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/erp/workspace-favorites-app" />
+            <label>Shortcut key <input type="text" name="shortcutKey" required /></label>
+            <label>Surface
+                <select name="surface">
+                    <option value="">any</option>
+                    <option value="erp">erp</option>
+                    <option value="cp">cp</option>
+                </select>
+            </label>
+            <button type="submit" class="btn btn-sm btn-default">Delete by key</button>
+        </form>
+        <form method="post" action="/erp/ajax/shortcut-reset" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/erp/workspace-favorites-app" />
+            <label>Surface
+                <select name="surface">
+                    <option value="">all</option>
+                    <option value="erp">erp</option>
+                    <option value="cp">cp</option>
+                </select>
+            </label>
+            <button type="submit" class="btn btn-sm btn-default">Reset shortcuts</button>
+        </form>
+    }
 
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Workspace favorites stats">
         <div class="kpi"><div class="lbl">Shortcuts</div><div class="val">@_summary.ShortcutCount.ToString(CultureInfo.InvariantCulture)</div></div>
@@ -74,12 +128,16 @@
     private IReadOnlyList<ErpWorkspaceFavoriteDigest> _favorites = [];
     private string _source = "n/a";
     private string _message = "";
+    private string _flashOk = "";
+    private string _flashErr = "";
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
 
+        _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
+        _flashErr = ctx.Request.Query["err"].ToString() ?? "";
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("erp");
         if (!_isAdmin)

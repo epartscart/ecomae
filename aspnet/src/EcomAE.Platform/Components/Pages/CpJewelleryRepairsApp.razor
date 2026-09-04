@@ -7,7 +7,6 @@
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
-@inject NavigationManager Nav
 
 <PageTitle>Jewellery repairs · Control Panel · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="cp" />
@@ -45,11 +44,38 @@
     <section class="epc-jr-hero">
         <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
         <h1>Jewellery repairs</h1>
-        <p>Manage store operations, catalogue, and partner integrations from one control panel.</p>
+        <p>Save one ERP repair status when confirmWrites is set. Create and sample seed stay on the compare twin. The list below is the shop repair digest.</p>
         <div class="epc-jr-cta">
             <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
         </div>
     </section>
+
+    @if (!string.IsNullOrWhiteSpace(_flashOk))
+    {
+        <div class="alert alert-success" role="status" style="margin:0 0 1rem;padding:.7rem .9rem;border-radius:.4rem;background:#ecfdf5;color:#065f46">@_flashOk</div>
+    }
+    @if (!string.IsNullOrWhiteSpace(_flashErr))
+    {
+        <div class="alert alert-danger" role="status" style="margin:0 0 1rem;padding:.7rem .9rem;border-radius:.4rem;background:#fef2f2;color:#991b1b">@_flashErr</div>
+    }
+    @if (_isAdmin)
+    {
+        <form method="post" action="/erp/ajax/jw-repair-update-status" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/jewellery-repairs-app" />
+            <label>ERP repair id <input type="number" name="repairId" min="1" required style="width:6rem" /></label>
+            <label>Status
+                <select name="newStatus">
+                    <option value="received">received</option>
+                    <option value="in_progress">in_progress</option>
+                    <option value="ready">ready</option>
+                    <option value="delivered">delivered</option>
+                    <option value="invoiced">invoiced</option>
+                </select>
+            </label>
+            <button type="submit">Save status</button>
+        </form>
+    }
 
     <div class="epc-jr-kpis" aria-label="Jewellery repairs stats">
         <div class="epc-jr-kpi"><strong>@_summary.RepairCount.ToString(CultureInfo.InvariantCulture)</strong><span>Repairs</span></div>
@@ -116,12 +142,16 @@
     private IReadOnlyList<CpJewelleryRepairDigest> _rows = [];
     private string _source = "n/a";
     private string _message = "";
+    private string _flashOk = "";
+    private string _flashErr = "";
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
 
+        _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
+        _flashErr = ctx.Request.Query["err"].ToString() ?? "";
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
         if (!_isAdmin)

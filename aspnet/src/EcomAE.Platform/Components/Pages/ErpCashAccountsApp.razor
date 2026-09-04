@@ -14,8 +14,42 @@
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Cash & Bank" BreadcrumbArea="Cash & Treasury" BreadcrumbTab="Cash & bank">
 
     
-    <PhpErpModulePageHeader Title="@_title" Subtitle="@_subtitle" PhpTabHref="@_phpTab" />
-    <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
+    <PhpErpModulePageHeader Title="@_title" Subtitle="@_subtitle" />
+    <PhpErpD365ActionPane RefreshHref="@Nav.Uri" />
+
+    @if (!string.IsNullOrWhiteSpace(_flashOk))
+    {
+        <div class="alert alert-success" role="status" style="margin:0 0 1rem;padding:.7rem .9rem;border-radius:.4rem;background:#ecfdf5;color:#065f46">@_flashOk</div>
+    }
+    @if (!string.IsNullOrWhiteSpace(_flashErr))
+    {
+        <div class="alert alert-danger" role="status" style="margin:0 0 1rem;padding:.7rem .9rem;border-radius:.4rem;background:#fef2f2;color:#991b1b">@_flashErr</div>
+    }
+    @if (_isAdmin && _view == "cash_bank")
+    {
+        <form method="post" action="/erp/offices-cash/add" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 .65rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/erp/cash-accounts-app" />
+            <label>Office id <input type="number" name="officeId" min="1" required style="width:6rem" /></label>
+            <label>Income
+                <select name="income">
+                    <option value="1">In</option>
+                    <option value="0">Out</option>
+                </select>
+            </label>
+            <label>Amount <input type="text" name="amount" required style="width:6rem" /></label>
+            <label>Code id <input type="number" name="name" min="1" required style="width:6rem" /></label>
+            <label>Comment <input type="text" name="comment" /></label>
+            <button type="submit">Add office cash</button>
+        </form>
+        <form method="post" action="/erp/offices-cash/codes/delete" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/erp/cash-accounts-app" />
+            <label>Office id <input type="number" name="officeId" min="1" required style="width:6rem" /></label>
+            <label>Code id <input type="number" name="id" min="1" required style="width:6rem" /></label>
+            <button type="submit">Delete cash code</button>
+        </form>
+    }
 
     <p class="text-muted" style="margin:8px 0 12px;">
         <a href="/erp/cash-accounts-app">Cash &amp; bank</a>
@@ -249,11 +283,16 @@
     private string _accountsMessage = "";
     private string _entriesSource = "n/a";
     private string _entriesMessage = "";
+    private string _flashOk = "";
+    private string _flashErr = "";
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
+
+        _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
+        _flashErr = ctx.Request.Query["err"].ToString() ?? "";
 
         var tab = (ctx.Request.Query["tab"].ToString() ?? "").Trim().ToLowerInvariant();
         _view = tab is "petty_cash" or "jw_petty_cash" ? "petty_cash"

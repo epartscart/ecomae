@@ -14,16 +14,86 @@
 <PhpCpDesktopChrome IsAdmin="_isAdmin">
 
     <PhpCpModulePageHeader Title="Workshop &amp; service desk"
-                           Subtitle="PHP workshop_main_page / epc_ws_dashboard parity — open, in-progress, ready, delivered today, and open job value. Writes stay PHP ajax."
+                           Subtitle="Assign, save bay, save tech, and set status write here. Seed, create-job, lines, and appointments stay on the PHP twin."
                            PhpTabHref="@_phpTab">
         <a class="ghost" href="/cp/sao-app">SAO</a>
         <a class="ghost" href="/cp/orders">Orders</a>
         <a class="ghost" href="/cp/storages-app">Storages</a>
     </PhpCpModulePageHeader>
 
+    @if (!string.IsNullOrWhiteSpace(_flashOk))
+    {
+        <div class="alert alert-success" role="status">@_flashOk</div>
+    }
+    @if (!string.IsNullOrWhiteSpace(_flashErr))
+    {
+        <div class="alert alert-danger" role="status">@_flashErr</div>
+    }
     @if (!_isAdmin)
     {
         <div class="alert alert-info" role="status">Sign in with a Control Panel admin session to load live tenant data. Guest browse shows the PHP-parity shell.</div>
+    }
+    else
+    {
+        <form method="post" action="/cp/workshop/write" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 .65rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/workshop-app" />
+            <input type="hidden" name="action" value="assign" />
+            <label>Job id <input type="number" name="jobId" min="1" required style="width:6rem" /></label>
+            <label>Bay id <input type="number" name="bayId" min="0" value="0" style="width:6rem" /></label>
+            <label>Tech id <input type="number" name="techId" min="0" value="0" style="width:6rem" /></label>
+            <button type="submit" class="btn btn-xs btn-primary">Assign</button>
+        </form>
+        <form method="post" action="/cp/workshop/write" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 .65rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/workshop-app" />
+            <input type="hidden" name="action" value="save_bay" />
+            <label>Bay id (0=new) <input type="number" name="id" min="0" value="0" style="width:6rem" /></label>
+            <label>Code <input type="text" name="code" required maxlength="32" /></label>
+            <label>Name <input type="text" name="name" required maxlength="190" /></label>
+            <label>Active
+                <select name="active">
+                    <option value="1">1</option>
+                    <option value="0">0</option>
+                </select>
+            </label>
+            <button type="submit" class="btn btn-xs btn-default">Save bay</button>
+        </form>
+        <form method="post" action="/cp/workshop/write" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/workshop-app" />
+            <input type="hidden" name="action" value="save_tech" />
+            <label>Tech id (0=new) <input type="number" name="id" min="0" value="0" style="width:6rem" /></label>
+            <label>Name <input type="text" name="name" required maxlength="190" /></label>
+            <label>Phone <input type="text" name="phone" maxlength="64" /></label>
+            <label>Skill <input type="text" name="skill" maxlength="190" /></label>
+            <label>Active
+                <select name="active">
+                    <option value="1">1</option>
+                    <option value="0">0</option>
+                </select>
+            </label>
+            <button type="submit" class="btn btn-xs btn-default">Save tech</button>
+        </form>
+        <form method="post" action="/cp/workshop/write" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/workshop-app" />
+            <input type="hidden" name="action" value="set_status" />
+            <label>Job id <input type="number" name="jobId" min="1" required style="width:6rem" /></label>
+            <label>Status
+                <select name="status">
+                    <option value="checkin">checkin</option>
+                    <option value="estimate">estimate</option>
+                    <option value="approved">approved</option>
+                    <option value="in_progress">in_progress</option>
+                    <option value="qc">qc</option>
+                    <option value="ready">ready</option>
+                    <option value="delivered">delivered</option>
+                    <option value="cancelled">cancelled</option>
+                </select>
+            </label>
+            <button type="submit" class="btn btn-xs btn-primary">Set status</button>
+        </form>
     }
 
     <div class="epc-scp-kpi" aria-label="Workshop KPIs">
@@ -131,12 +201,16 @@
     private bool _isAdmin;
     private CpWorkshopSummary _summary = new(0, 0, 0, 0, 0m, "n/a", "");
     private IReadOnlyList<CpWorkshopJobDigest> _jobs = [];
+    private string _flashOk = "";
+    private string _flashErr = "";
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
 
+        _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
+        _flashErr = ctx.Request.Query["err"].ToString() ?? "";
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
         if (!_isAdmin)

@@ -298,7 +298,8 @@ public sealed class LiveTenantIndustryParityTests
         Assert.Equal(StorefrontAspNetCanonical.GuestOrder, PhpSurfaceLinkMap.AspNetPrimaryHref("/shop/orders/guest"));
         Assert.Equal(StorefrontAspNetCanonical.Payment, PhpSurfaceLinkMap.AspNetPrimaryHref("/en/shop/pay"));
         Assert.Equal("/cp/system-requests-app", PhpSurfaceLinkMap.AspNetPrimaryHref("/CP/requests"));
-        Assert.Equal("/php-reference/en/users/profile", PhpCustomerWrites.ProfileWriteHref);
+        Assert.Equal("/storefront/profile/save", PhpCustomerWrites.ProfileWriteHref);
+        Assert.StartsWith("/php-reference/", PhpCustomerWrites.ProfilePasswordHref);
     }
 
     [Fact]
@@ -352,11 +353,26 @@ public sealed class LiveTenantIndustryParityTests
     [Fact]
     public void Checkout_returns_and_review_write_hrefs_stay_on_php()
     {
-        Assert.StartsWith("/php-reference/", PhpCustomerWrites.CheckoutHowGetWriteHref);
-        Assert.StartsWith("/php-reference/", PhpCustomerWrites.CheckoutConfirmWriteHref);
-        Assert.StartsWith("/php-reference/", PhpCustomerWrites.CartAddHref);
-        Assert.StartsWith("/php-reference/", PhpCustomerWrites.ReturnsMessageHref);
-        Assert.StartsWith("/php-reference/", PhpCustomerWrites.EvaluationWriteHref);
+        Assert.StartsWith("/storefront/checkout-app", PhpCustomerWrites.CheckoutHowGetWriteHref);
+        Assert.Equal("/storefront/checkout/create", PhpCustomerWrites.CheckoutConfirmWriteHref);
+        Assert.Equal("/storefront/cart/add", PhpCustomerWrites.CartAddHref);
+        Assert.Equal("/storefront/returns/send-message", PhpCustomerWrites.ReturnsMessageHref);
+        Assert.Equal("/storefront/returns/create", PhpCustomerWrites.ReturnsCreateHref);
+        Assert.Equal("/storefront/returns/create", PhpVendorPortal.ReturnsWriteHref);
+        Assert.Equal("/storefront/evaluations/add", PhpCustomerWrites.EvaluationWriteHref);
+        Assert.Equal("/storefront/quotes/add-item", PhpCustomerWrites.QuoteAddHref);
+        Assert.Equal("/storefront/quotes/accept", PhpCustomerWrites.QuotesAcceptHref);
+        Assert.Equal("/storefront/quotes/add-manual", PhpCustomerWrites.QuotesAddManualHref);
+        Assert.Equal("/storefront/garage/notepad-add", PhpCustomerWrites.GarageNotepadWriteHref);
+        Assert.Equal("/storefront/garage/save", PhpCustomerWrites.GarageCarWriteHref);
+        Assert.Equal("/storefront/orders/send-message", PhpCustomerWrites.OrderMessageHref);
+        Assert.Equal("/storefront/newsletter/subscribe", PhpVendorPortal.NewsletterWriteHref);
+        Assert.Equal("/storefront/wishlist/add", PhpCustomerWrites.WishlistWriteHref);
+        Assert.Equal("/storefront/wishlist/remove", PhpCustomerWrites.WishlistRemoveHref);
+        Assert.Equal("/storefront/compare/add", PhpCustomerWrites.CompareWriteHref);
+        Assert.Equal("/storefront/compare/remove", PhpCustomerWrites.CompareRemoveHref);
+        Assert.Equal("/storefront/profile/save", PhpCustomerWrites.ProfileWriteHref);
+        Assert.StartsWith("/php-reference/", PhpCustomerWrites.ProfilePasswordHref);
         Assert.Equal(StorefrontAspNetCanonical.CustomerReturns, PhpSurfaceLinkMap.AspNetPrimaryHref("/en/shop/returns_list"));
         Assert.True(PhpIndustryCmsPages.IsSlug("o-kompanii"));
         Assert.Contains("eParts Cart", PhpIndustryCmsPages.Resolve("o-kompanii", "auto_parts").Title, StringComparison.Ordinal);

@@ -47,9 +47,14 @@
         <h1>PO approvals</h1>
         <p>Manage store operations, catalogue, and partner integrations from one control panel.</p>
         <div class="epc-w18-cta">
-            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
+            <a href="/cp/po-approvals-app">Refresh</a>
         </div>
     </section>
+
+    @if (!string.IsNullOrWhiteSpace(_flash))
+    {
+        <p class="epc-w18-note" style="@(_flashOk ? "background:#ecfdf5;border-color:#a7f3d0;color:#065f46" : "background:#fffbeb;border-color:#fde68a;color:#92400e")">@_flash</p>
+    }
 
     <div class="epc-w18-kpis" aria-label="PO approvals stats">
         <div class="epc-w18-kpi"><strong>@_summary.RequestCount.ToString(CultureInfo.InvariantCulture)</strong><span>Requests</span></div>
@@ -97,7 +102,26 @@
                             <td>@row.CurrentTier.ToString(CultureInfo.InvariantCulture)</td>
                             <td>@(!string.IsNullOrWhiteSpace(row.Priority) ? row.Priority : "—")</td>
                             <td>@(!string.IsNullOrWhiteSpace(row.CreatedAt) ? row.CreatedAt : "—")</td>
-                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
+                            <td>
+                                @if (string.Equals(row.Status, "pending", StringComparison.OrdinalIgnoreCase))
+                                {
+                                    <form method="post" action="/cp/po-approvals/approve" style="display:inline;margin:0">
+                                        <input type="hidden" name="confirmWrites" value="true" />
+                                        <input type="hidden" name="returnUrl" value="/cp/po-approvals-app" />
+                                        <input type="hidden" name="poId" value="@row.Id.ToString(CultureInfo.InvariantCulture)" />
+                                        <input type="hidden" name="tier" value="@row.CurrentTier.ToString(CultureInfo.InvariantCulture)" />
+                                        <button type="submit" class="btn btn-xs btn-primary">Approve</button>
+                                    </form>
+                                    <form method="post" action="/cp/po-approvals/reject" style="display:inline;margin:0 0 0 .3rem">
+                                        <input type="hidden" name="confirmWrites" value="true" />
+                                        <input type="hidden" name="returnUrl" value="/cp/po-approvals-app" />
+                                        <input type="hidden" name="poId" value="@row.Id.ToString(CultureInfo.InvariantCulture)" />
+                                        <input type="hidden" name="tier" value="@row.CurrentTier.ToString(CultureInfo.InvariantCulture)" />
+                                        <input type="hidden" name="reason" value="Rejected from CP" />
+                                        <button type="submit" class="btn btn-xs btn-default">Reject</button>
+                                    </form>
+                                }
+                            </td>
                     </tr>
                 }
             }
@@ -108,12 +132,13 @@
 </PhpCpDesktopChrome>
 
 @code {
-    private const string _phpTab = "/CP/shop/finance/epc_po_approval";
     private bool _isAdmin;
     private CpPoApprovalsSummary _summary = new(0, 0, 0, 0, "n/a", "");
     private IReadOnlyList<CpPoApprovalsRowDigest> _rows = [];
     private string _source = "n/a";
     private string _message = "";
+    private string _flash = "";
+    private bool _flashOk;
 
     protected override async Task OnInitializedAsync()
     {
@@ -126,6 +151,11 @@
         {
             return; // guest browse — Sign in for live data
         }
+
+        var ok = ctx.Request.Query["ok"].ToString();
+        var err = ctx.Request.Query["err"].ToString();
+        if (!string.IsNullOrWhiteSpace(ok)) { _flash = ok; _flashOk = true; }
+        else if (!string.IsNullOrWhiteSpace(err)) { _flash = err; _flashOk = false; }
 
         var result = await Dashboards.BuildCpPoApprovalsDigestAsync(200, ctx.RequestAborted);
         _summary = result.Summary;

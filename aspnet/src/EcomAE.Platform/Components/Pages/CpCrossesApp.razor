@@ -45,12 +45,44 @@
     <section class="epc-x-hero">
         <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
         <h1>Crosses</h1>
-        <p>Manage store operations, catalogue, and partner integrations from one control panel.</p>
+        <p>Save and delete a single analog pair here when confirmWrites is set. Add, brand auto-resolve, and search-delete stay on the PHP twin.</p>
         <div class="epc-x-cta">
             <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
             <a class="ghost" href="/cp/parts-agent-chats-app">Parts agent</a>
         </div>
     </section>
+
+    @if (!string.IsNullOrWhiteSpace(_flashOk))
+    {
+        <div class="alert alert-success" role="status" style="margin:0 0 1rem;padding:.7rem .9rem;border-radius:.4rem;background:#ecfdf5;color:#065f46">@_flashOk</div>
+    }
+    @if (!string.IsNullOrWhiteSpace(_flashErr))
+    {
+        <div class="alert alert-danger" role="status" style="margin:0 0 1rem;padding:.7rem .9rem;border-radius:.4rem;background:#fef2f2;color:#991b1b">@_flashErr</div>
+    }
+    @if (_isAdmin)
+    {
+        <div style="display:grid;gap:.65rem;margin:0 0 1rem">
+            <form method="post" action="/cp/crosses/write" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="/cp/crosses-app" />
+                <input type="hidden" name="action" value="save_crosses" />
+                <label>Id <input type="number" name="id" min="1" required /></label>
+                <label>Article <input type="text" name="article" required maxlength="255" /></label>
+                <label>Manufacturer <input type="text" name="manufacturer_article" required maxlength="255" /></label>
+                <label>Analog <input type="text" name="analog" required maxlength="255" /></label>
+                <label>Analog manufacturer <input type="text" name="manufacturer_analog" required maxlength="255" /></label>
+                <button type="submit">Save cross</button>
+            </form>
+            <form method="post" action="/cp/crosses/write" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="/cp/crosses-app" />
+                <input type="hidden" name="action" value="del_crosses" />
+                <label>Id <input type="number" name="id" min="1" required /></label>
+                <button type="submit">Delete cross</button>
+            </form>
+        </div>
+    }
 
     <div class="epc-x-kpis" aria-label="Crosses stats">
         <div class="epc-x-kpi"><strong>@_summary.TotalPairs.ToString(CultureInfo.InvariantCulture)</strong><span>Total pairs</span></div>
@@ -92,6 +124,8 @@
         </table>
     </div>
 
+    <div class="epc-x-note">Save and delete write when confirmWrites is set. Add, brand auto-resolve, and search-delete stay on the PHP twin.</div>
+
 </PhpCpDesktopChrome>
 
 @code {
@@ -101,12 +135,16 @@
     private IReadOnlyList<CpCrossPairDigest> _pairs = [];
     private string _source = "n/a";
     private string _message = "";
+    private string _flashOk = "";
+    private string _flashErr = "";
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
 
+        _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
+        _flashErr = ctx.Request.Query["err"].ToString() ?? "";
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
         if (!_isAdmin)

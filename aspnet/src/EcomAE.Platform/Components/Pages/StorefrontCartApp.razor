@@ -3,15 +3,12 @@
 @page "/shop/cart"
 @layout Layout.PhpChromeLayout
 @using System.Globalization
-@using System.Net.Http.Json
 @using EcomAE.Platform.Auth
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
-@inject IHttpClientFactory HttpClients
-@inject NavigationManager Navigation
 
 <PageTitle>Cart · @_brand</PageTitle>
 <PhpChromeStyles Surface="storefront" />
@@ -109,9 +106,14 @@
                                 <td>@(string.IsNullOrWhiteSpace(line.Article) ? "—" : line.Article)</td>
                                 <td>@(string.IsNullOrWhiteSpace(line.Name) ? "—" : line.Name)</td>
                                 <td>
-                                    <input class="epc-sf-cart-qty" type="number" min="1" step="1"
-                                           value="@line.CountNeed.ToString("0.###", CultureInfo.InvariantCulture)"
-                                           @onchange="e => OnQtyChanged(line.Id, e)" />
+                                    <form method="post" action="/storefront/cart/change-count-need" style="display:flex;gap:.3rem;align-items:center;margin:0">
+                                        <input type="hidden" name="confirmWrites" value="true" />
+                                        <input type="hidden" name="returnUrl" value="/storefront/cart-app" />
+                                        <input type="hidden" name="id" value="@line.Id.ToString(CultureInfo.InvariantCulture)" />
+                                        <input class="epc-sf-cart-qty" type="number" min="1" step="1" name="countNeed"
+                                               value="@line.CountNeed.ToString("0.###", CultureInfo.InvariantCulture)" />
+                                        <button class="linkish" type="submit">Update</button>
+                                    </form>
                                 </td>
                                 <td>@line.Price.ToString("N2", CultureInfo.InvariantCulture)</td>
                                 <td>@lineTotal.ToString("N2", CultureInfo.InvariantCulture)</td>
@@ -127,9 +129,20 @@
                                     }
                                 </td>
                                 <td>
-                                    <button class="linkish" type="button" @onclick="() => DryRunCheck(line.Id, !line.CheckedForOrder)">@(line.CheckedForOrder ? "Uncheck" : "Check")</button>
+                                    <form method="post" action="/storefront/cart/check-for-order" style="display:inline;margin:0">
+                                        <input type="hidden" name="confirmWrites" value="true" />
+                                        <input type="hidden" name="returnUrl" value="/storefront/cart-app" />
+                                        <input type="hidden" name="id" value="@line.Id.ToString(CultureInfo.InvariantCulture)" />
+                                        <input type="hidden" name="checked" value="@(line.CheckedForOrder ? "0" : "1")" />
+                                        <button class="linkish" type="submit">@(line.CheckedForOrder ? "Uncheck" : "Check")</button>
+                                    </form>
                                     ·
-                                    <button class="linkish" type="button" @onclick="() => DryRunDelete(line.Id)">Delete</button>
+                                    <form method="post" action="/storefront/cart/delete" style="display:inline;margin:0">
+                                        <input type="hidden" name="confirmWrites" value="true" />
+                                        <input type="hidden" name="returnUrl" value="/storefront/cart-app" />
+                                        <input type="hidden" name="id" value="@line.Id.ToString(CultureInfo.InvariantCulture)" />
+                                        <button class="linkish" type="submit">Delete</button>
+                                    </form>
                                 </td>
                             </tr>
                         }
@@ -139,7 +152,7 @@
         </div>
 
         <p class="epc-sf-cart-note">
-            Quantity, check, and delete stay on this cart. Continue to checkout when you are ready.
+            Add to cart is live on ASP.NET. Quantity, check, and delete write here. Continue to checkout when you are ready.
         </p>
     }
 
@@ -174,48 +187,21 @@
         }
 
         _isCustomer = true;
+        var ok = ctx.Request.Query["ok"].ToString();
+        var err = ctx.Request.Query["err"].ToString();
+        if (!string.IsNullOrWhiteSpace(ok))
+        {
+            _flash = ok;
+            _flashOk = true;
+        }
+        else if (!string.IsNullOrWhiteSpace(err))
+        {
+            _flash = err;
+            _flashOk = false;
+        }
+
         var result = await Dashboards.ListStorefrontCartAsync(session.UserId, 100, ctx.RequestAborted);
         _summary = result.Summary;
         _lines = result.Lines;
-    }
-
-    private async Task OnQtyChanged(long id, ChangeEventArgs e)
-    {
-        if (!decimal.TryParse(Convert.ToString(e.Value, CultureInfo.InvariantCulture), NumberStyles.Any, CultureInfo.InvariantCulture, out var qty)
-            || qty <= 0)
-        {
-            _flash = "Enter a positive quantity.";
-            _flashOk = false;
-            return;
-        }
-
-        await PostDryRunAsync("/storefront/cart/change-count-need", new { id, count_need = qty, confirm_writes = false });
-    }
-
-    private Task DryRunCheck(long id, bool checkedForOrder)
-        => PostDryRunAsync("/storefront/cart/check-for-order", new { records = new[] { new { id, checked_for_order = checkedForOrder ? 1 : 0 } }, confirm_writes = false });
-
-    private Task DryRunDelete(long id)
-        => PostDryRunAsync("/storefront/cart/delete", new { records_to_del = new[] { id }, confirm_writes = false });
-
-    private async Task PostDryRunAsync(string path, object body)
-    {
-        try
-        {
-            var client = HttpClients.CreateClient();
-            client.BaseAddress = new Uri(Navigation.BaseUri);
-            client.Timeout = TimeSpan.FromSeconds(8);
-            using var response = await client.PostAsJsonAsync(path, body);
-            var json = await response.Content.ReadAsStringAsync();
-            _flashOk = response.IsSuccessStatusCode;
-            _flash = response.IsSuccessStatusCode
-                ? "Quantity or line change is queued. Complete checkout to apply it."
-                : $"Change refused: {(json.Length > 220 ? json[..220] + "…" : json)}";
-        }
-        catch (Exception ex)
-        {
-            _flashOk = false;
-            _flash = "Dry-run failed: " + ex.Message;
-        }
     }
 }
