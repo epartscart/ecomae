@@ -19,6 +19,10 @@ public sealed class LiveSurfaceLinkReporterTests
         Assert.Contains(report.Links, link => link.HostClass == "super-cp" && link.Url.Contains("/BOS/", StringComparison.OrdinalIgnoreCase));
         Assert.Contains(report.Links, link => link.HostClass == "super-cp" && link.Url.Contains("/CP/", StringComparison.OrdinalIgnoreCase));
         Assert.Contains(report.Links, link => link.HostClass == "super-cp" && link.Url.Contains("/ERP/", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(report.Links, link => link.Url == "https://www.ecomae.com/php-reference/cp");
+        Assert.Contains(report.Links, link => link.Url == "https://www.ecomae.com/php-reference/erp");
+        Assert.Contains(report.Links, link => link.Url == "https://www.epartscart.com/php-reference/cp");
+        Assert.Contains(report.Links, link => link.Url == "https://www.epartscart.com/php-reference/erp");
         Assert.Contains(report.Links, link => link.HostClass == "tenant" && link.Url.Contains("electronicae.com", StringComparison.OrdinalIgnoreCase));
         Assert.Contains(report.Links, link => link.HostClass == "aspnet-diagnostics" && link.StackToday == "aspnet");
         Assert.Contains(report.Links, link => link.AspNetRouteHint == "/migration/php-reference-mode");
