@@ -44,7 +44,7 @@
     <section class="epc-hr-hero">
         <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
         <h1>HR Overview</h1>
-        <p>Save days worked on an HR record for the next payroll run. Leave, expenses, and payroll generate stay on the compare twin.</p>
+        <p>Save days worked and set leave or expense status here. Leave request, expense save, and payroll generate stay on the classic twin.</p>
         <div class="epc-hr-cta">
             <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
             <a class="ghost" href="/cp/projects-overview-app">Projects overview</a>
@@ -67,6 +67,33 @@
             <label>Staff profile id <input type="number" name="staffProfileId" min="1" required style="width:6rem" /></label>
             <label>Days worked <input type="text" name="daysWorked" required /></label>
             <button type="submit">Save days</button>
+        </form>
+        <form method="post" action="/erp/ajax/hr-leave-status" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/hr-overview-app" />
+            <label>Leave id <input type="number" name="id" min="1" required style="width:6rem" /></label>
+            <label>Status
+                <select name="status">
+                    <option value="pending">pending</option>
+                    <option value="approved">approved</option>
+                    <option value="rejected">rejected</option>
+                </select>
+            </label>
+            <button type="submit">Set leave status</button>
+        </form>
+        <form method="post" action="/erp/ajax/hr-expense-status" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/hr-overview-app" />
+            <label>Expense id <input type="number" name="id" min="1" required style="width:6rem" /></label>
+            <label>Status
+                <select name="status">
+                    <option value="draft">draft</option>
+                    <option value="approved">approved</option>
+                    <option value="rejected">rejected</option>
+                    <option value="paid">paid</option>
+                </select>
+            </label>
+            <button type="submit">Set expense status</button>
         </form>
     }
 

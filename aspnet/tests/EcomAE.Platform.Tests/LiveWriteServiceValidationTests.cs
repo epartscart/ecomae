@@ -952,6 +952,61 @@ public sealed class LiveWriteServiceValidationTests
             .DisableAsync(9);
         Assert.False(oblDb.Succeeded);
         Assert.Equal("db", oblDb.Code);
+
+        var leaveInvalid = await new ErpHrStatusWriteService(new ConfiguredNeverOpened())
+            .SetLeaveStatusAsync(0, "approved");
+        Assert.False(leaveInvalid.Succeeded);
+        Assert.Equal("invalid", leaveInvalid.Code);
+
+        var leaveEmpty = await new ErpHrStatusWriteService(new ConfiguredNeverOpened())
+            .SetLeaveStatusAsync(9, "  ");
+        Assert.False(leaveEmpty.Succeeded);
+        Assert.Equal("invalid", leaveEmpty.Code);
+
+        var leaveDb = await new ErpHrStatusWriteService(new UnconfiguredConnections())
+            .SetLeaveStatusAsync(9, "approved");
+        Assert.False(leaveDb.Succeeded);
+        Assert.Equal("db", leaveDb.Code);
+
+        var expInvalid = await new ErpHrStatusWriteService(new ConfiguredNeverOpened())
+            .SetExpenseStatusAsync(0, "approved");
+        Assert.False(expInvalid.Succeeded);
+        Assert.Equal("invalid", expInvalid.Code);
+
+        var expDb = await new ErpHrStatusWriteService(new UnconfiguredConnections())
+            .SetExpenseStatusAsync(9, "paid");
+        Assert.False(expDb.Succeeded);
+        Assert.Equal("db", expDb.Code);
+
+        var consEntInvalid = await new ErpConsDeleteWriteService(new ConfiguredNeverOpened())
+            .DeleteEntityAsync(0);
+        Assert.False(consEntInvalid.Succeeded);
+        Assert.Equal("invalid", consEntInvalid.Code);
+
+        var consEntDb = await new ErpConsDeleteWriteService(new UnconfiguredConnections())
+            .DeleteEntityAsync(9);
+        Assert.False(consEntDb.Succeeded);
+        Assert.Equal("db", consEntDb.Code);
+
+        var consIcInvalid = await new ErpConsDeleteWriteService(new ConfiguredNeverOpened())
+            .DeleteIcAsync(0);
+        Assert.False(consIcInvalid.Succeeded);
+        Assert.Equal("invalid", consIcInvalid.Code);
+
+        var consIcDb = await new ErpConsDeleteWriteService(new UnconfiguredConnections())
+            .DeleteIcAsync(9);
+        Assert.False(consIcDb.Succeeded);
+        Assert.Equal("db", consIcDb.Code);
+
+        var insDocInvalid = await new ErpInsDocDeleteWriteService(new ConfiguredNeverOpened())
+            .DeleteAsync(0);
+        Assert.False(insDocInvalid.Succeeded);
+        Assert.Equal("invalid", insDocInvalid.Code);
+
+        var insDocDb = await new ErpInsDocDeleteWriteService(new UnconfiguredConnections())
+            .DeleteAsync(9);
+        Assert.False(insDocDb.Succeeded);
+        Assert.Equal("db", insDocDb.Code);
     }
 
     [Fact]

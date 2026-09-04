@@ -78,6 +78,12 @@
             </label>
             <button type="submit">Set claim status</button>
         </form>
+        <form method="post" action="/erp/ajax/ins-doc-delete" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/insurance-compliance-app" />
+            <label>Document id <input type="number" name="id" min="1" required style="width:6rem" /></label>
+            <button type="submit">Remove document</button>
+        </form>
     }
 
     <div class="epc-w16-kpis" aria-label="Insurance compliance stats">

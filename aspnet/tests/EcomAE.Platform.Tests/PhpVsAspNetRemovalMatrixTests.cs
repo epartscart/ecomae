@@ -73,6 +73,8 @@ public sealed class PhpVsAspNetRemovalMatrixTests
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "erp-pf-case-cancel" && r.WritesOwner == "aspnet");
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "erp-bos-wf-disable-rule" && r.WritesOwner == "aspnet");
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "erp-bos-compliance-disable" && r.WritesOwner == "aspnet");
+        Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "erp-hr-leave-expense" && r.WritesOwner == "aspnet");
+        Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "erp-cons-deletes" && r.WritesOwner == "aspnet");
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "write-storefront-cart" && r.WritesOwner == "php");
     }
 
@@ -151,6 +153,11 @@ public sealed class PhpVsAspNetRemovalMatrixTests
             ("CpPurchaseRequestsApp.razor", "/erp/procurement/requisitions/decision"),
             ("CpPurchaseRequestsApp.razor", "/erp/ajax/proc-req-convert"),
             ("CpInsuranceComplianceApp.razor", "/erp/ajax/ins-claim-status"),
+            ("CpInsuranceComplianceApp.razor", "/erp/ajax/ins-doc-delete"),
+            ("CpHrOverviewApp.razor", "/erp/ajax/hr-leave-status"),
+            ("CpHrOverviewApp.razor", "/erp/ajax/hr-expense-status"),
+            ("CpConsolidationsApp.razor", "/erp/ajax/cons-entity-delete"),
+            ("CpConsolidationsApp.razor", "/erp/ajax/cons-ic-delete"),
             ("ErpVatApp.razor", "/erp/ajax/bos-vat-refund-status"),
             ("ErpSalesOrdersApp.razor", "/erp/ajax/sub-invoice-paid"),
             ("ErpProcessFlowTasksApp.razor", "/erp/ajax/pf-case-cancel"),
