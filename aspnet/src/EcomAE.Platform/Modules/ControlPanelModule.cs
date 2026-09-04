@@ -918,17 +918,43 @@ public sealed class ControlPanelModule : ISurfaceModule
         });
         endpoints.MapPost(EcomAeRoutes.CpSetUserComment, async (
             HttpContext context,
-            CpSetUserCommentBody? body,
             ILegacySessionValidator validator,
             ICpSetUserCommentDryRun dryRun,
+            ICpUserWriteService writes,
             CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateAsync(context, cancellationToken);
-            if (session.Kind != LegacySessionKind.Admin)
-                return Unauthorized("Admin session required.");
-            body ??= new CpSetUserCommentBody(0,null,false);
-            return Results.Ok(dryRun.Evaluate(new CpSetUserCommentRequest(body.UserId, body.Comment, body.ConfirmWrites)).ToPayload(SessionPayload(session)));
-        });
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/users-app", "Admin CP capability required for set-user-comment.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpSetUserCommentBody>(context, cancellationToken)
+                       ?? new(0, null, false);
+            var userId = body.UserId;
+            var comment = body.Comment;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                userId = LiveWriteFormBinder.Long(form, "userId", "user_id");
+                comment = LiveWriteFormBinder.Text(form, "comment");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (confirm)
+            {
+                var written = await writes.SetCommentAsync(userId, comment, cancellationToken);
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    "/cp/users-app?user_id=" + userId.ToString(CultureInfo.InvariantCulture) + "&tab=profile",
+                    written.Succeeded,
+                    written.Message,
+                    new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+            }
+
+            return Results.Ok(dryRun.Evaluate(new CpSetUserCommentRequest(userId, comment, false)).ToPayload(SessionPayload(session)));
+        }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.CpPricesImportCsv, async (
             HttpContext context,
             CpPricesImportCsvBody? body,

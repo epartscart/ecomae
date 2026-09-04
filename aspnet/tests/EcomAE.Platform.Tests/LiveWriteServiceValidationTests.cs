@@ -292,6 +292,16 @@ public sealed class LiveWriteServiceValidationTests
             .CreateReturnAsync(1, 9, 3, 1, 1, "broken");
         Assert.False(createReturnDb.Succeeded);
         Assert.Equal("db", createReturnDb.Code);
+
+        var staffComment = await new CpUserWriteService(new ConfiguredNeverOpened())
+            .SetCommentAsync(0, "note");
+        Assert.False(staffComment.Succeeded);
+        Assert.Equal("invalid", staffComment.Code);
+
+        var staffCommentDb = await new CpUserWriteService(new UnconfiguredConnections())
+            .SetCommentAsync(4, "note");
+        Assert.False(staffCommentDb.Succeeded);
+        Assert.Equal("db", staffCommentDb.Code);
     }
 
     [Fact]

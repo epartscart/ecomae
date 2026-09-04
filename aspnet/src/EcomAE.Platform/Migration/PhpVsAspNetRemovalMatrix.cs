@@ -38,7 +38,7 @@ public static class PhpVsAspNetRemovalMatrix
 
         // CP shop families
         Row("cp-orders", "cp", "cp/content/shop/orders + order_process", "/CP/shop/orders/orders", "/cp/orders", "aspnet-digest", "aspnet", "OMS item/items status, update_item/update_items, message, courier, delete, comment, viewed, supplier fulfillment stage are ASP.NET-live. Payment notify and warehouse reprice stay PHP."),
-        Row("cp-users", "cp", "cp/content/users", "/CP/users/user_manager", "/cp/users-app", "aspnet-digest", "php", "User list digest; create/edit PHP."),
+        Row("cp-users", "cp", "cp/content/users", "/CP/users/user_manager", "/cp/users-app", "aspnet-digest", "aspnet", "Staff users.comment UPDATE is ASP.NET-live. Create / unlock / password stay PHP."),
         Row("cp-catalogue", "cp", "cp/content/shop/catalogue", "/CP/shop/catalogue/products", "/cp/product-catalogue-app", "aspnet-digest", "php", "SKU/media writes stay PHP."),
         Row("cp-prices-upload", "cp", "cp/content/shop/prices_upload", "/CP/shop/prices_upload", "/cp/prices-upload-app", "aspnet-digest", "php", "PyPrices cron/tasks stay PHP."),
         Row("cp-currencies", "cp", "content/shop/finance/nastrojka-kursov-valyut.php", "/CP/shop/finance/nastrojka-kursov-valyut", "/cp/currencies-app", "aspnet-digest", "php", "FX rate writes stay PHP."),

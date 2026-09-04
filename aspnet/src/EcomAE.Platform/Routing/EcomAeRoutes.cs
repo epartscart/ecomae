@@ -955,7 +955,7 @@ public static class EcomAeRoutes
     public const string CpReturnAction = "/cp/returns/action";
     /// <summary>Wave B dry-run for PHP cp/content/requests/ajax_set_users_vin_viewed.php (writes=0).</summary>
     public const string CpSetUsersVinViewed = "/cp/requests/set-vin-viewed";
-    /// <summary>Wave B dry-run for PHP cp/content/users/ajax_set_user_comment.php (writes=0).</summary>
+    /// <summary>Staff user comment. <c>confirmWrites=true</c> is the live twin of PHP ajax_set_user_comment.php.</summary>
     public const string CpSetUserComment = "/cp/users/set-comment";
     /// <summary>Wave B dry-run for PHP cp/content/shop/prices_upload/ajax_5_import_csv_to_db.php (writes=0).</summary>
     public const string CpPricesImportCsv = "/cp/prices/import-csv";
