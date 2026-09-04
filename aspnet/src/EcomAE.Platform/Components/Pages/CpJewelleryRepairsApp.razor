@@ -1,105 +1,234 @@
 @page "/cp/jewellery-repairs-app"
+@page "/erp/jewellery-repairs-app"
 @layout Layout.PhpChromeLayout
 @using System.Globalization
 @using EcomAE.Platform.Auth
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Routing
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
 @inject NavigationManager Nav
 
-<PageTitle>Jewellery repairs · Control Panel · eParts Cart</PageTitle>
-<PhpChromeStyles Surface="cp" />
+<PageTitle>Jewellery repairs · ERP · eParts Cart</PageTitle>
+<PhpChromeStyles Surface="erp" />
 <HeadContent>
 <style>
-        .epc-jr-hero {
-            margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
-            background:linear-gradient(135deg,#0c4a6e 0%,#2563eb 45%,#0ea5e9 100%);
-        }
-        .epc-jr-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
-        .epc-jr-hero p { margin:0; color:rgba(255,255,255,.88); max-width:44rem; font-size:.92rem; line-height:1.45; }
-        .epc-jr-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
-        .epc-jr-cta a {
-            display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
-            text-decoration:none; color:#3b1f0b; background:#e0f2fe;
-        }
-        .epc-jr-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); color:#fff; }
-        .epc-jr-kpis { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
-        .epc-jr-kpi { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; padding:.85rem .9rem; }
-        .epc-jr-kpi strong { display:block; font-size:1.2rem; word-break:break-word; }
-        .epc-jr-kpi span { color:#64748b; font-size:.78rem; }
-        .epc-jr-table-wrap { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; overflow:auto; }
-        .epc-jr-table { width:100%; border-collapse:collapse; font-size:.86rem; }
-        .epc-jr-table th, .epc-jr-table td { padding:.55rem .7rem; border-bottom:1px solid #f1f5f9; text-align:left; white-space:nowrap; }
-        .epc-jr-table th { background:#f8fafc; color:#475569; font-size:.75rem; text-transform:uppercase; letter-spacing:.03em; }
-        .epc-jr-note { margin-top:1rem; padding:.75rem .9rem; background:#fffbeb; border:1px solid #fcd34d; border-radius:.45rem; color:#78350f; font-size:.86rem; }
-        @@media (max-width:900px){ .epc-jr-kpis{grid-template-columns:1fr 1fr;} }
-    
+    .jw-status-row { display:flex; gap:10px; margin-bottom:12px; flex-wrap:wrap; }
+    .jw-status-card { flex:1; min-width:120px; padding:10px 14px; background:#f0f4f7; border:1px solid #8faabc; border-radius:3px; text-align:center; }
+    .jw-status-card .n { font-size:22px; font-weight:700; }
+    .jw-status-card .l { font-size:11px; color:#4a6a7a; font-weight:600; }
+    .jw-badge { display:inline-block; padding:1px 8px; border-radius:3px; font-size:10px; font-weight:600; color:#fff; }
 </style>
 </HeadContent>
 
+<PhpErpDesktopChrome IsAdmin="_isAdmin" Title="@_spec.Title" BreadcrumbArea="Jewellery" BreadcrumbTab="@_spec.Label">
+    <PhpErpModulePageHeader Title="@_spec.Title" Subtitle="@_spec.Subtitle" />
+    <ErpPhpFlash Ok="@_ok" Err="@_err" />
 
-<PhpCpDesktopChrome IsAdmin="_isAdmin">
-
-    <section class="epc-jr-hero">
-        <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
-        <h1>Jewellery repairs</h1>
-        <p>@CpPhpModuleCopy.PurposeFor(Nav.Uri)</p>
-        <div class="epc-jr-cta">
-            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
-        </div>
-    </section>
-
-    <div class="epc-jr-kpis" aria-label="Jewellery repairs stats">
-        <div class="epc-jr-kpi"><strong>@_summary.RepairCount.ToString(CultureInfo.InvariantCulture)</strong><span>Repairs</span></div>
-        <div class="epc-jr-kpi"><strong>@_summary.OpenCount.ToString(CultureInfo.InvariantCulture)</strong><span>Open</span></div>
-        <div class="epc-jr-kpi"><strong>@_summary.AuthorizedCount.ToString(CultureInfo.InvariantCulture)</strong><span>Authorized</span></div>
-        <div class="epc-jr-kpi"><strong>@_summary.ItemCount.ToString(CultureInfo.InvariantCulture)</strong><span>Items</span></div>
+    <div class="jw-status-row" aria-label="Repair status counts">
+        @foreach (var st in ErpJewelleryModuleChrome.RepairStatuses)
+        {
+            var n = StatusCount(st.Key);
+            <div class="jw-status-card" style="border-left:4px solid @st.Color">
+                <div class="n" style="color:@st.Color">@n.ToString(CultureInfo.InvariantCulture)</div>
+                <div class="l">@st.Label</div>
+            </div>
+        }
     </div>
 
-    <div class="epc-jr-table-wrap">
-        <table class="epc-jr-table">
+    <ErpPhpViewTabs QueryName="tab" Active="@_tab" BaseHref="@_tabBase" Tabs="@ErpJewelleryModuleChrome.RepairTabs" />
+
+    @if (_isAdmin && (_tab == "jw_repairs" || _tab == "jw_repair_receipt"))
+    {
+        <ErpPhpCreateWell Title="@(_tab == "jw_repair_receipt" ? "New Receipt" : "New Repair Receipt")">
+            <form method="post" action="@EcomAeRoutes.ErpJewelleryRepairCreateForm" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+                <input type="hidden" name="returnUrl" value="@_returnHere" />
+                <label>Customer Name <input class="form-control input-sm" name="customer_name" required /></label>
+                <label>Phone <input class="form-control input-sm" name="customer_phone" /></label>
+                <label>Item Description <input class="form-control input-sm" name="item_description" required style="width:200px;" /></label>
+                <label>Metal
+                    <select class="form-control input-sm" name="metal_type">
+                        <option value="Gold">Gold</option>
+                        <option value="Silver">Silver</option>
+                        <option value="Platinum">Platinum</option>
+                    </select>
+                </label>
+                <label>Karat <input class="form-control input-sm" name="karat" placeholder="22K" style="width:70px;" /></label>
+                <label>Gross Wt (g) <input class="form-control input-sm" name="gross_wt_in" type="number" step="0.001" value="0.000" style="width:90px;" /></label>
+                <label>Net Wt (g) <input class="form-control input-sm" name="net_wt_in" type="number" step="0.001" value="0.000" style="width:90px;" /></label>
+                <label>Repair Type
+                    <select class="form-control input-sm" name="repair_type">
+                        <option value="Ring Resize">Ring Resize</option>
+                        <option value="Clasp Repair">Clasp Repair</option>
+                        <option value="Stone Setting">Stone Setting</option>
+                        <option value="Polish &amp; Clean">Polish &amp; Clean</option>
+                        <option value="Chain Repair">Chain Repair</option>
+                        <option value="Engraving">Engraving</option>
+                        <option value="Rhodium Plating">Rhodium Plating</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </label>
+                <label>Est. Cost (AED) <input class="form-control input-sm" name="estimated_cost" type="number" step="0.01" value="0.00" style="width:90px;" /></label>
+                <label>Stone Details <input class="form-control input-sm" name="stone_details" /></label>
+                <button type="submit" class="btn btn-primary btn-sm">Create</button>
+            </form>
+        </ErpPhpCreateWell>
+    }
+    else if (_isAdmin && _tab == "jw_repair_sale")
+    {
+        <ErpPhpCreateWell Title="Invoice repair">
+            <form method="post" action="@EcomAeRoutes.ErpJewelleryModuleSaveForm" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+                <input type="hidden" name="returnUrl" value="@_returnHere" />
+                <input type="hidden" name="action" value="jw_repair_sale_save" />
+                <label>Repair # <input class="form-control input-sm" name="code" required /></label>
+                <label>Customer <input class="form-control input-sm" name="customer_name" /></label>
+                <button type="submit" class="btn btn-primary btn-sm">Invoice</button>
+            </form>
+        </ErpPhpCreateWell>
+    }
+    else if (_isAdmin && _tab == "jw_repair_transfer")
+    {
+        <ErpPhpCreateWell Title="Transfer to workshop">
+            <form method="post" action="@EcomAeRoutes.ErpJewelleryModuleSaveForm" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+                <input type="hidden" name="returnUrl" value="@_returnHere" />
+                <input type="hidden" name="action" value="jw_repair_transfer_save" />
+                <label>Repair # <input class="form-control input-sm" name="code" required /></label>
+                <label>To branch <input class="form-control input-sm" name="branch" value="HO" /></label>
+                <button type="submit" class="btn btn-primary btn-sm">Transfer</button>
+            </form>
+        </ErpPhpCreateWell>
+    }
+    else if (_isAdmin && _tab == "jw_workshop_receive")
+    {
+        <ErpPhpCreateWell Title="Workshop receive">
+            <form method="post" action="@EcomAeRoutes.ErpJewelleryModuleSaveForm" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+                <input type="hidden" name="returnUrl" value="@_returnHere" />
+                <input type="hidden" name="action" value="jw_workshop_receive_save" />
+                <label>Repair # <input class="form-control input-sm" name="code" required /></label>
+                <button type="submit" class="btn btn-primary btn-sm">Receive</button>
+            </form>
+        </ErpPhpCreateWell>
+    }
+    else if (_isAdmin && _tab == "jw_repair_delivery")
+    {
+        <ErpPhpCreateWell Title="Deliver to customer">
+            <form method="post" action="@EcomAeRoutes.ErpJewelleryModuleSaveForm" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+                <input type="hidden" name="returnUrl" value="@_returnHere" />
+                <input type="hidden" name="action" value="jw_repair_delivery_save" />
+                <label>Repair # <input class="form-control input-sm" name="code" required /></label>
+                <button type="submit" class="btn btn-primary btn-sm">Deliver</button>
+            </form>
+        </ErpPhpCreateWell>
+    }
+
+    @if (_tab == "jw_repairs" || _tab == "jw_repair_register" || _tab == "jw_repair_search")
+    {
+        <form method="get" action="@_appPath" class="form-inline" style="margin:8px 0;display:flex;flex-wrap:wrap;gap:8px;align-items:center;">
+            @if (_company > 0)
+            {
+                <input type="hidden" name="company" value="@_company.ToString(CultureInfo.InvariantCulture)" />
+            }
+            <input type="hidden" name="tab" value="@_tab" />
+            <label style="font-size:11px;font-weight:600;color:#4a6a7a;margin:0">Status:</label>
+            <select name="repair_status" class="form-control input-sm">
+                <option value="">All</option>
+                @foreach (var st in ErpJewelleryModuleChrome.RepairStatuses)
+                {
+                    if (string.Equals(_statusFilter, st.Key, StringComparison.OrdinalIgnoreCase))
+                    {
+                        <option value="@st.Key" selected>@st.Label</option>
+                    }
+                    else
+                    {
+                        <option value="@st.Key">@st.Label</option>
+                    }
+                }
+            </select>
+            @if (_tab == "jw_repair_search")
+            {
+                <input class="form-control input-sm" name="q" value="@_search" placeholder="Repair #, customer, phone" />
+            }
+            <button type="submit" class="btn btn-default btn-sm">Filter</button>
+        </form>
+    }
+
+    <div class="epc-erp-table-wrap">
+        <table class="table table-bordered table-condensed table-epc epc-erp-table">
             <thead>
                 <tr>
-                    <th>Id</th>
-                    <th>Company</th>
-                    <th>Branch</th>
-                    <th>Voc type</th>
-                    <th>Voc #</th>
-                    <th>Date</th>
-                    <th>Delivery</th>
-                    <th>Customer</th>
-                    <th>Status</th>
-                    <th>CCY</th>
-                    <th>Auth</th>
-                    <th>Created</th>
-                    <th></th>
+                    @foreach (var col in _spec.Columns)
+                    {
+                        <th>@col</th>
+                    }
                 </tr>
             </thead>
             <tbody>
-                @if (_rows.Count == 0)
+                @if (_visible.Count == 0)
                 {
-                    <tr><td colspan="13">Nothing to show yet.</td></tr>
+                    <tr><td colspan="@_spec.Columns.Count" class="text-muted">@(_isAdmin ? _spec.EmptyCopy : "Sign in with ERP or Control Panel capability for live rows.")</td></tr>
                 }
                 else
                 {
-                    @foreach (var row in _rows)
+                    @foreach (var row in _visibleDisplay)
                     {
                         <tr>
-                            <td>@row.Id.ToString(CultureInfo.InvariantCulture)</td>
-                            <td>@row.CompanyId.ToString(CultureInfo.InvariantCulture)</td>
-                            <td>@(!string.IsNullOrWhiteSpace(row.Branch) ? row.Branch : "—")</td>
-                            <td>@(!string.IsNullOrWhiteSpace(row.VocType) ? row.VocType : "—")</td>
-                            <td>@row.VocNo.ToString(CultureInfo.InvariantCulture)</td>
-                            <td>@(!string.IsNullOrWhiteSpace(row.VocDate) ? row.VocDate : "—")</td>
-                            <td>@(!string.IsNullOrWhiteSpace(row.DeliveryDate) ? row.DeliveryDate : "—")</td>
-                            <td>@(!string.IsNullOrWhiteSpace(row.CustomerName) ? row.CustomerName : "—")</td>
-                            <td>@(!string.IsNullOrWhiteSpace(row.Status) ? row.Status : "—")</td>
-                            <td>@(!string.IsNullOrWhiteSpace(row.Currency) ? row.Currency : "—")</td>
-                            <td>@(row.Authorized ? "yes" : "no")</td>
-                            <td>@(!string.IsNullOrWhiteSpace(row.CreatedAt) ? row.CreatedAt : "—")</td>
-                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
+                            @if (_tab is "jw_repair_receipt" or "jw_repair_delivery")
+                            {
+                                <td>@row.No</td>
+                                <td><strong>@row.RepairNo</strong></td>
+                                <td>@row.VocDate</td>
+                                <td>@row.Customer</td>
+                                <td>@row.Phone</td>
+                                <td>@row.Item</td>
+                                <td>@row.Delivery</td>
+                                <td><span class="jw-badge" style="background:@row.StatusColor">@row.StatusLabel</span></td>
+                            }
+                            else if (_tab == "jw_repair_sale")
+                            {
+                                <td><strong>@row.RepairNo</strong></td>
+                                <td>@row.Customer</td>
+                                <td>@row.Item</td>
+                                <td class="text-right">@row.Cost</td>
+                                <td>—</td>
+                                <td><span class="jw-badge" style="background:@row.StatusColor">@row.StatusLabel</span></td>
+                            }
+                            else if (_tab is "jw_repair_transfer" or "jw_workshop_receive")
+                            {
+                                <td><strong>@row.RepairNo</strong></td>
+                                <td>@row.Branch</td>
+                                <td>@row.Item</td>
+                                <td>@row.Metal</td>
+                                <td><span class="jw-badge" style="background:@row.StatusColor">@row.StatusLabel</span></td>
+                            }
+                            else
+                            {
+                                <td>@row.No</td>
+                                <td><strong>@row.RepairNo</strong></td>
+                                <td>@row.Customer</td>
+                                <td>@row.Phone</td>
+                                <td>@row.Item</td>
+                                <td>@row.Metal</td>
+                                <td>@row.Karat</td>
+                                <td class="text-right">@row.Weight</td>
+                                <td>@row.RepairType</td>
+                                <td class="text-right">@row.Cost</td>
+                                <td><span class="jw-badge" style="background:@row.StatusColor">@row.StatusLabel</span></td>
+                                <td>@row.CompanyId</td>
+                                <td>@row.Branch</td>
+                                <td>
+                                    @if (_isAdmin && row.NextStatus is not null)
+                                    {
+                                        <form method="post" action="@EcomAeRoutes.ErpJewelleryRepairStatusForm" style="display:inline">
+                                            <input type="hidden" name="returnUrl" value="@_returnHere" />
+                                            <input type="hidden" name="repair_id" value="@row.Id" />
+                                            <input type="hidden" name="new_status" value="@row.NextStatus" />
+                                            <button type="submit" class="btn btn-xs @row.NextCss">@row.NextLabel</button>
+                                        </form>
+                                    }
+                                </td>
+                            }
                         </tr>
                     }
                 }
@@ -107,26 +236,61 @@
         </table>
     </div>
 
-</PhpCpDesktopChrome>
+    <div class="epc-erp-empty" style="display:block;margin-top:12px;padding:8px 10px;border:1px solid #c5d4de;background:#f8fafc;color:#475569;font-size:12px;">
+        Source: @_source. Jobs bind from <code>epc_jewel_repair</code> and <code>epc_erp_jw_repairs</code>. Form posts are dry-run — writes=0.
+        @if (!string.IsNullOrWhiteSpace(_message)) { <span> @_message</span> }
+    </div>
+</PhpErpDesktopChrome>
 
 @code {
-    private const string _phpTab = "/ERP/?epc_erp_shell=1&area=service_mgmt&tab=jw_repairs";
     private bool _isAdmin;
+    private int _company;
+    private string _tab = "jw_repairs";
+    private string _statusFilter = "";
+    private string _search = "";
+    private string _appPath = "/cp/jewellery-repairs-app";
+    private string _tabBase = "/cp/jewellery-repairs-app";
+    private string _returnHere = "/cp/jewellery-repairs-app?tab=jw_repairs";
+    private ErpJewelleryModuleChrome.TabSpec _spec = ErpJewelleryModuleChrome.RepairSpec("jw_repairs");
     private CpJewelleryRepairsSummary _summary = new(0, 0, 0, 0, "n/a", "");
     private IReadOnlyList<CpJewelleryRepairDigest> _rows = [];
+    private IReadOnlyList<CpJewelleryRepairDigest> _visible = [];
+    private IReadOnlyList<RepairRow> _visibleDisplay = [];
     private string _source = "n/a";
     private string _message = "";
+    private string _ok = "";
+    private string _err = "";
+
+    private sealed record RepairRow(
+        string Id, string No, string RepairNo, string Customer, string Phone, string Item,
+        string Metal, string Karat, string Weight, string RepairType, string Cost,
+        string StatusLabel, string StatusColor, string CompanyId, string Branch,
+        string VocDate, string Delivery, string? NextStatus, string NextLabel, string NextCss);
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
+        var path = ctx.Request.Path.Value ?? "/cp/jewellery-repairs-app";
+        _appPath = path.StartsWith("/erp/", StringComparison.OrdinalIgnoreCase)
+            ? "/erp/jewellery-repairs-app"
+            : "/cp/jewellery-repairs-app";
+        _company = ErpJewelleryModuleChrome.CompanyFromQuery(ctx.Request.Query["company"].ToString());
+        _tab = ErpJewelleryModuleChrome.NormalizeTab(ctx.Request.Query["tab"].ToString(), ErpJewelleryModuleChrome.RepairTabs, "jw_repairs");
+        _statusFilter = (ctx.Request.Query["repair_status"].ToString() ?? string.Empty).Trim();
+        _search = (ctx.Request.Query["q"].ToString() ?? string.Empty).Trim();
+        _ok = ctx.Request.Query["ok"].ToString();
+        _err = ctx.Request.Query["err"].ToString();
+        _spec = ErpJewelleryModuleChrome.RepairSpec(_tab);
+        _tabBase = ErpJewelleryModuleChrome.AppHref(_appPath, _company);
+        _returnHere = ErpJewelleryModuleChrome.AppHref(_appPath, _company, ("tab", _tab), ("repair_status", _statusFilter));
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
-        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
+        _isAdmin = ErpJewelleryModuleChrome.HasJewelleryStaffAccess(session);
         if (!_isAdmin)
         {
-            return; // guest browse — Sign in for live data
+            _message = "Sign in with ERP or Control Panel capability for live rows.";
+            return;
         }
 
         var result = await Dashboards.BuildCpJewelleryRepairsDigestAsync(200, ctx.RequestAborted);
@@ -134,5 +298,63 @@
         _rows = result.Repairs;
         _source = result.Source;
         _message = result.Message;
+        _visible = FilterRows(_rows, _statusFilter, _search);
+        _visibleDisplay = _visible.Select((row, i) =>
+        {
+            var next = NextStatus(row.Status);
+            var repairNo = string.IsNullOrWhiteSpace(row.RepairNo)
+                ? (row.VocNo > 0 ? row.VocNo.ToString(CultureInfo.InvariantCulture) : "#" + row.Id.ToString(CultureInfo.InvariantCulture))
+                : row.RepairNo;
+            return new RepairRow(
+                row.Id.ToString(CultureInfo.InvariantCulture),
+                (i + 1).ToString(CultureInfo.InvariantCulture),
+                repairNo,
+                string.IsNullOrWhiteSpace(row.CustomerName) ? "—" : row.CustomerName,
+                string.IsNullOrWhiteSpace(row.CustomerPhone) ? "—" : row.CustomerPhone,
+                string.IsNullOrWhiteSpace(row.ItemDescription) ? "—" : row.ItemDescription,
+                string.IsNullOrWhiteSpace(row.Metal) ? "—" : row.Metal,
+                string.IsNullOrWhiteSpace(row.Karat) ? "—" : row.Karat,
+                row.WeightIn.ToString("N3", CultureInfo.InvariantCulture),
+                string.IsNullOrWhiteSpace(row.RepairType) ? "—" : row.RepairType,
+                row.EstimatedCost.ToString("N2", CultureInfo.InvariantCulture),
+                ErpJewelleryModuleChrome.StatusLabel(row.Status),
+                ErpJewelleryModuleChrome.StatusColor(row.Status),
+                row.CompanyId.ToString(CultureInfo.InvariantCulture),
+                string.IsNullOrWhiteSpace(row.Branch) ? "—" : row.Branch,
+                string.IsNullOrWhiteSpace(row.VocDate) ? "—" : row.VocDate,
+                string.IsNullOrWhiteSpace(row.DeliveryDate) ? "—" : row.DeliveryDate,
+                next?.Value,
+                next?.Label ?? "",
+                next?.Css ?? "");
+        }).ToList();
     }
+
+    private int StatusCount(string status)
+        => _rows.Count(r => string.Equals(r.Status, status, StringComparison.OrdinalIgnoreCase));
+
+    private static IReadOnlyList<CpJewelleryRepairDigest> FilterRows(IReadOnlyList<CpJewelleryRepairDigest> rows, string status, string search)
+    {
+        IEnumerable<CpJewelleryRepairDigest> q = rows;
+        if (!string.IsNullOrWhiteSpace(status))
+            q = q.Where(r => string.Equals(r.Status, status, StringComparison.OrdinalIgnoreCase));
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            q = q.Where(r =>
+                (r.RepairNo ?? string.Empty).Contains(search, StringComparison.OrdinalIgnoreCase)
+                || (r.CustomerName ?? string.Empty).Contains(search, StringComparison.OrdinalIgnoreCase)
+                || (r.CustomerPhone ?? string.Empty).Contains(search, StringComparison.OrdinalIgnoreCase)
+                || (r.ItemDescription ?? string.Empty).Contains(search, StringComparison.OrdinalIgnoreCase));
+        }
+
+        return q.ToList();
+    }
+
+    private static (string Value, string Label, string Css)? NextStatus(string? status)
+        => (status ?? string.Empty).Trim().ToLowerInvariant() switch
+        {
+            "received" => ("in_progress", "Start", "btn-warning"),
+            "in_progress" => ("ready", "Mark ready", "btn-success"),
+            "ready" => ("delivered", "Deliver", "btn-primary"),
+            _ => null,
+        };
 }

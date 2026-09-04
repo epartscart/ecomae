@@ -2264,7 +2264,15 @@ public sealed record CpJewelleryRepairDigest(
     string Currency,
     string DeliveryDate,
     bool Authorized,
-    string CreatedAt);
+    string CreatedAt,
+    string RepairNo = "",
+    string CustomerPhone = "",
+    string ItemDescription = "",
+    string Metal = "",
+    string Karat = "",
+    decimal WeightIn = 0,
+    string RepairType = "",
+    decimal EstimatedCost = 0);
 
 public sealed record CpJewelleryRepairsDigestResult(
     CpJewelleryRepairsSummary Summary,

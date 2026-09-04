@@ -8456,41 +8456,82 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         {
             await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
             var repairs = 0; var open = 0; var authorized = 0; var items = 0;
-            await using (var stats = connection.CreateCommand())
+            var rows = new List<CpJewelleryRepairDigest>();
+            var sourcesOk = 0;
+            string? lastError = null;
+
+            // Suntech epc_jewel_repair (repair receipt / register).
+            try
             {
-                stats.CommandText = LegacySurfaceDashboardSql.SelectCpJewelleryRepairStats;
-                await using var reader = await stats.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
-                if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                await using (var stats = connection.CreateCommand())
                 {
-                    repairs = Convert.ToInt32(reader["repair_count"] is DBNull ? 0 : reader["repair_count"], CultureInfo.InvariantCulture);
-                    open = Convert.ToInt32(reader["open_count"] is DBNull ? 0 : reader["open_count"], CultureInfo.InvariantCulture);
-                    authorized = Convert.ToInt32(reader["authorized_count"] is DBNull ? 0 : reader["authorized_count"], CultureInfo.InvariantCulture);
-                    items = Convert.ToInt32(reader["item_count"] is DBNull ? 0 : reader["item_count"], CultureInfo.InvariantCulture);
+                    stats.CommandText = LegacySurfaceDashboardSql.SelectCpJewelleryRepairStats;
+                    await using var reader = await stats.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                    if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                    {
+                        repairs += Convert.ToInt32(reader["repair_count"] is DBNull ? 0 : reader["repair_count"], CultureInfo.InvariantCulture);
+                        open += Convert.ToInt32(reader["open_count"] is DBNull ? 0 : reader["open_count"], CultureInfo.InvariantCulture);
+                        authorized += Convert.ToInt32(reader["authorized_count"] is DBNull ? 0 : reader["authorized_count"], CultureInfo.InvariantCulture);
+                        items += Convert.ToInt32(reader["item_count"] is DBNull ? 0 : reader["item_count"], CultureInfo.InvariantCulture);
+                    }
                 }
+
+                await using (var list = connection.CreateCommand())
+                {
+                    list.CommandText = LegacySurfaceDashboardSql.SelectCpJewelleryRepairs;
+                    AddParameter(list, "@limit", safeLimit);
+                    await using var reader = await list.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                    while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                    {
+                        rows.Add(MapJewelleryRepairRow(reader));
+                    }
+                }
+
+                sourcesOk++;
+            }
+            catch (Exception ex)
+            {
+                lastError = ex.Message;
             }
 
-            var rows = new List<CpJewelleryRepairDigest>();
-            await using (var list = connection.CreateCommand())
+            // PHP repairs tab (epc_jw_repair_list) reads epc_erp_jw_repairs.
+            try
             {
-                list.CommandText = LegacySurfaceDashboardSql.SelectCpJewelleryRepairs;
-                AddParameter(list, "@limit", safeLimit);
-                await using var reader = await list.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
-                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                await using (var stats = connection.CreateCommand())
                 {
-                    rows.Add(new CpJewelleryRepairDigest(
-                        Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
-                        Convert.ToInt64(reader["company_id"] is DBNull ? 0 : reader["company_id"], CultureInfo.InvariantCulture),
-                        Convert.ToString(reader["branch"] is DBNull ? string.Empty : reader["branch"], CultureInfo.InvariantCulture) ?? string.Empty,
-                        Convert.ToString(reader["voc_type"] is DBNull ? string.Empty : reader["voc_type"], CultureInfo.InvariantCulture) ?? string.Empty,
-                        Convert.ToString(reader["voc_date"] is DBNull ? string.Empty : reader["voc_date"], CultureInfo.InvariantCulture) ?? string.Empty,
-                        Convert.ToInt64(reader["voc_no"] is DBNull ? 0 : reader["voc_no"], CultureInfo.InvariantCulture),
-                        Convert.ToString(reader["customer_name"] is DBNull ? string.Empty : reader["customer_name"], CultureInfo.InvariantCulture) ?? string.Empty,
-                        Convert.ToString(reader["status"] is DBNull ? string.Empty : reader["status"], CultureInfo.InvariantCulture) ?? string.Empty,
-                        Convert.ToString(reader["currency"] is DBNull ? string.Empty : reader["currency"], CultureInfo.InvariantCulture) ?? string.Empty,
-                        Convert.ToString(reader["delivery_date"] is DBNull ? string.Empty : reader["delivery_date"], CultureInfo.InvariantCulture) ?? string.Empty,
-                        Convert.ToInt32(reader["authorized"] is DBNull ? 0 : reader["authorized"], CultureInfo.InvariantCulture) != 0,
-                        Convert.ToString(reader["created_at"] is DBNull ? string.Empty : reader["created_at"], CultureInfo.InvariantCulture) ?? string.Empty));
+                    stats.CommandText = LegacySurfaceDashboardSql.SelectCpJewelleryIntegrationRepairStats;
+                    await using var reader = await stats.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                    if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                    {
+                        repairs += Convert.ToInt32(reader["repair_count"] is DBNull ? 0 : reader["repair_count"], CultureInfo.InvariantCulture);
+                        open += Convert.ToInt32(reader["open_count"] is DBNull ? 0 : reader["open_count"], CultureInfo.InvariantCulture);
+                        authorized += Convert.ToInt32(reader["authorized_count"] is DBNull ? 0 : reader["authorized_count"], CultureInfo.InvariantCulture);
+                        items += Convert.ToInt32(reader["item_count"] is DBNull ? 0 : reader["item_count"], CultureInfo.InvariantCulture);
+                    }
                 }
+
+                await using (var list = connection.CreateCommand())
+                {
+                    list.CommandText = LegacySurfaceDashboardSql.SelectCpJewelleryIntegrationRepairs;
+                    AddParameter(list, "@limit", safeLimit);
+                    await using var reader = await list.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                    while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                    {
+                        rows.Add(MapJewelleryRepairRow(reader));
+                    }
+                }
+
+                sourcesOk++;
+            }
+            catch (Exception ex)
+            {
+                lastError = ex.Message;
+            }
+
+            if (sourcesOk == 0)
+            {
+                var err = empty with { Source = "database-error", Message = lastError ?? "Jewellery repair tables are not available." };
+                return new(err, [], 0, "database-error", err.Message);
             }
 
             var summary = new CpJewelleryRepairsSummary(repairs, open, authorized, items, "database", string.Empty);
@@ -8501,6 +8542,59 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             var err = empty with { Source = "database-error", Message = ex.Message };
             return new(err, [], 0, "database-error", ex.Message);
         }
+    }
+
+    private static CpJewelleryRepairDigest MapJewelleryRepairRow(System.Data.Common.DbDataReader reader)
+    {
+        string Text(string col)
+        {
+            try
+            {
+                var ord = reader.GetOrdinal(col);
+                return reader.IsDBNull(ord)
+                    ? string.Empty
+                    : Convert.ToString(reader.GetValue(ord), CultureInfo.InvariantCulture) ?? string.Empty;
+            }
+            catch (IndexOutOfRangeException)
+            {
+                return string.Empty;
+            }
+        }
+
+        decimal Dec(string col)
+        {
+            try
+            {
+                var ord = reader.GetOrdinal(col);
+                return reader.IsDBNull(ord) ? 0 : Convert.ToDecimal(reader.GetValue(ord), CultureInfo.InvariantCulture);
+            }
+            catch (IndexOutOfRangeException)
+            {
+                return 0;
+            }
+        }
+
+        return new CpJewelleryRepairDigest(
+            Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+            Convert.ToInt64(reader["company_id"] is DBNull ? 0 : reader["company_id"], CultureInfo.InvariantCulture),
+            Text("branch"),
+            Text("voc_type"),
+            Text("voc_date"),
+            Convert.ToInt64(reader["voc_no"] is DBNull ? 0 : reader["voc_no"], CultureInfo.InvariantCulture),
+            Text("customer_name"),
+            Text("status"),
+            Text("currency"),
+            Text("delivery_date"),
+            Convert.ToInt32(reader["authorized"] is DBNull ? 0 : reader["authorized"], CultureInfo.InvariantCulture) != 0,
+            Text("created_at"),
+            Text("repair_no"),
+            Text("customer_phone"),
+            Text("item_description"),
+            Text("metal"),
+            Text("karat"),
+            Dec("weight_in"),
+            Text("repair_type"),
+            Dec("estimated_cost"));
     }
 
     public async Task<CpCrmTicketsDigestResult> BuildCpCrmTicketsDigestAsync(int limit, CancellationToken cancellationToken = default)

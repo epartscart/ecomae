@@ -1,125 +1,185 @@
 @page "/cp/jewellery-masters-app"
+@page "/erp/jewellery-masters-app"
 @layout Layout.PhpChromeLayout
 @using System.Globalization
 @using EcomAE.Platform.Auth
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Routing
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
-@inject NavigationManager Nav
 
-<PageTitle>Jewellery masters · Control Panel · eParts Cart</PageTitle>
-<PhpChromeStyles Surface="cp" />
-<HeadContent>
-<style>
-        .epc-w14-hero {
-            margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
-            background:linear-gradient(135deg,#0c4a6e 0%,#2563eb 45%,#0ea5e9 100%);
-        }
-        .epc-w14-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
-        .epc-w14-hero p { margin:0; color:rgba(255,255,255,.88); max-width:44rem; font-size:.92rem; line-height:1.45; }
-        .epc-w14-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
-        .epc-w14-cta a {
-            display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
-            text-decoration:none; color:#0f172a; background:#fff;
-        }
-        .epc-w14-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); color:#fff; }
-        .epc-w14-kpis { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
-        .epc-w14-kpi { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; padding:.85rem .9rem; }
-        .epc-w14-kpi strong { display:block; font-size:1.2rem; word-break:break-word; }
-        .epc-w14-kpi span { color:#64748b; font-size:.78rem; }
-        .epc-w14-table-wrap { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; overflow:auto; }
-        .epc-w14-table { width:100%; border-collapse:collapse; font-size:.86rem; }
-        .epc-w14-table th, .epc-w14-table td { padding:.55rem .7rem; border-bottom:1px solid #f1f5f9; text-align:left; white-space:nowrap; }
-        .epc-w14-table th { background:#f8fafc; color:#475569; font-size:.75rem; text-transform:uppercase; letter-spacing:.03em; }
-        .epc-w14-note { margin-top:1rem; padding:.75rem .9rem; background:#f8fafc; border:1px solid #cbd5e1; border-radius:.45rem; color:#334155; font-size:.86rem; }
-        @@media (max-width:900px){ .epc-w14-kpis{grid-template-columns:1fr 1fr;} }
-    
-</style>
-</HeadContent>
+<PageTitle>Jewellery masters · ERP · eParts Cart</PageTitle>
+<PhpChromeStyles Surface="erp" />
 
+<PhpErpDesktopChrome IsAdmin="_isAdmin" Title="@_spec.Title" BreadcrumbArea="Jewellery" BreadcrumbTab="@_spec.Label">
+    <PhpErpModulePageHeader Title="@_spec.Title" Subtitle="@_spec.Subtitle" />
+    <ErpPhpFlash Ok="@_ok" Err="@_err" />
 
-<PhpCpDesktopChrome IsAdmin="_isAdmin">
-
-    <section class="epc-w14-hero">
-        <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
-        <h1>Jewellery masters</h1>
-        <p>@CpPhpModuleCopy.PurposeFor(Nav.Uri)</p>
-        <div class="epc-w14-cta">
-            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
-        </div>
-    </section>
-
-    <div class="epc-w14-kpis" aria-label="Jewellery masters stats">
-        <div class="epc-w14-kpi"><strong>@_summary.KaratCount.ToString(CultureInfo.InvariantCulture)</strong><span>Karats</span></div>
-        <div class="epc-w14-kpi"><strong>@_summary.RateTypeCount.ToString(CultureInfo.InvariantCulture)</strong><span>Rate types</span></div>
-        <div class="epc-w14-kpi"><strong>@_summary.BarcodeCount.ToString(CultureInfo.InvariantCulture)</strong><span>Barcodes</span></div>
-        <div class="epc-w14-kpi"><strong>@_summary.DiamondCount.ToString(CultureInfo.InvariantCulture)</strong><span>Diamonds</span></div>
+    <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Jewellery master KPIs">
+        <div class="kpi"><div class="lbl">Karats</div><div class="val">@_summary.KaratCount.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Rate types</div><div class="val">@_summary.RateTypeCount.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Barcodes</div><div class="val">@_summary.BarcodeCount.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Diamonds</div><div class="val">@_summary.DiamondCount.ToString(CultureInfo.InvariantCulture)</div></div>
     </div>
 
-    <div class="epc-w14-table-wrap">
-    <table class="epc-w14-table">
-        <thead>
-            <tr>
-                    <th>Id</th>
-                    <th>Karat</th>
-                    <th>Purity</th>
-                    <th>From</th>
-                    <th>To</th>
-                    <th>Division</th>
-                    <th></th>
-            </tr>
-        </thead>
-        <tbody>
-            @if (_rows.Count == 0)
-            {
-                <tr><td colspan="7">Nothing to show yet.</td></tr>
-            }
-            else
-            {
-                @foreach (var row in _rows)
+    <ErpPhpViewTabs QueryName="tab" Active="@_tab" BaseHref="@_tabBase" Tabs="@ErpJewelleryModuleChrome.MasterTabs" />
+
+    @if (_isAdmin && _tab == "jw_karat")
+    {
+        <ErpPhpCreateWell Title="Add / Edit Karat">
+            <form method="post" action="@EcomAeRoutes.ErpJewelleryKaratSaveForm" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+                <input type="hidden" name="returnUrl" value="@_returnHere" />
+                <label>Karat Code <input class="form-control input-sm" name="karat_code" required placeholder="22" /></label>
+                <label>Description <input class="form-control input-sm" name="description" placeholder="22 Karat" /></label>
+                <label>Division
+                    <select class="form-control input-sm" name="division">
+                        <option value="G">G Gold</option>
+                        <option value="D">D Diamond</option>
+                        <option value="S">S Silver</option>
+                    </select>
+                </label>
+                <label>STD. Purity <input class="form-control input-sm" name="std_purity" type="number" step="0.000001" value="0.917000" /></label>
+                <label>Range From <input class="form-control input-sm" name="range_from" type="number" step="0.000001" value="0.916000" /></label>
+                <label>Range To <input class="form-control input-sm" name="range_to" type="number" step="0.000001" value="0.918000" /></label>
+                <label>Sp Gravity <input class="form-control input-sm" name="sp_gravity" type="number" step="0.0001" value="0" /></label>
+                <button type="submit" class="btn btn-primary btn-sm">Save</button>
+            </form>
+        </ErpPhpCreateWell>
+        @if (_rows.Count == 0)
+        {
+            <form method="post" action="@EcomAeRoutes.ErpJewelleryKaratSeedForm" style="margin-bottom:10px;">
+                <input type="hidden" name="returnUrl" value="@_returnHere" />
+                <button type="submit" class="btn btn-success btn-sm">Seed defaults</button>
+            </form>
+        }
+    }
+    else if (_isAdmin && _tab == "gold_rate")
+    {
+        <ErpPhpCreateWell Title="Rate provider">
+            <form method="post" action="@EcomAeRoutes.ErpJewelleryModuleSaveForm" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+                <input type="hidden" name="returnUrl" value="@_returnHere" />
+                <input type="hidden" name="action" value="jw_gold_rate_refresh" />
+                <label>Provider
+                    <select class="form-control input-sm" name="code">
+                        <option value="metals-api">Metals API</option>
+                        <option value="goldapi">GoldAPI</option>
+                        <option value="manual">Manual</option>
+                    </select>
+                </label>
+                <button type="submit" class="btn btn-success btn-sm">Refresh rates</button>
+            </form>
+        </ErpPhpCreateWell>
+        <p class="text-muted">Live rates bind when the shop gold-rate board is configured. Demo figures from the PHP sample page are not shown as KPIs.</p>
+    }
+    else if (_isAdmin && _tab == "jw_seed_data")
+    {
+        <ErpPhpCreateWell Title="Seed jewellery defaults">
+            <form method="post" action="@EcomAeRoutes.ErpJewelleryKaratSeedForm">
+                <input type="hidden" name="returnUrl" value="@_returnHere" />
+                <button type="submit" class="btn btn-success btn-sm">Seed sample data</button>
+            </form>
+        </ErpPhpCreateWell>
+    }
+    else if (_isAdmin && _tab != "jw_karat")
+    {
+        <ErpPhpCreateWell Title="@("New " + _spec.Label)">
+            <form method="post" action="@EcomAeRoutes.ErpJewelleryModuleSaveForm" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+                <input type="hidden" name="returnUrl" value="@_returnHere" />
+                <input type="hidden" name="action" value="@(_tab + "_save")" />
+                <label>Code <input class="form-control input-sm" name="code" required /></label>
+                <label>Name <input class="form-control input-sm" name="name" /></label>
+                <button type="submit" class="btn btn-primary btn-sm">Save</button>
+            </form>
+        </ErpPhpCreateWell>
+    }
+
+    <div class="epc-erp-table-wrap">
+        <table class="table table-bordered table-condensed table-epc epc-erp-table">
+            <thead>
+                <tr>
+                    @foreach (var col in _spec.Columns)
+                    {
+                        <th>@col</th>
+                    }
+                </tr>
+            </thead>
+            <tbody>
+                @if (_tab == "jw_karat" && _rows.Count > 0)
                 {
-                    <tr>
-                            <td>@row.Id.ToString(CultureInfo.InvariantCulture)</td>
-                            <td>@(!string.IsNullOrWhiteSpace(row.KaratCode) ? row.KaratCode : "—")</td>
-                            <td>@row.StdPurity.ToString(CultureInfo.InvariantCulture)</td>
-                            <td>@row.RangeFrom.ToString(CultureInfo.InvariantCulture)</td>
-                            <td>@row.RangeTo.ToString(CultureInfo.InvariantCulture)</td>
-                            <td>@(!string.IsNullOrWhiteSpace(row.Division) ? row.Division : "—")</td>
-                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
-                    </tr>
+                    @foreach (var row in _karatDisplay)
+                    {
+                        <tr>
+                            <td>@row.No</td>
+                            <td><strong>@(string.IsNullOrWhiteSpace(row.Row.KaratCode) ? "—" : row.Row.KaratCode)</strong></td>
+                            <td>@(string.IsNullOrWhiteSpace(row.Row.KaratCode) ? "—" : row.Row.KaratCode + " Karat")</td>
+                            <td>@row.Row.StdPurity.ToString("N6", CultureInfo.InvariantCulture)</td>
+                            <td>@row.Row.SpGravity.ToString("N4", CultureInfo.InvariantCulture)</td>
+                            <td>@(string.IsNullOrWhiteSpace(row.Row.Division) ? "—" : row.Row.Division)</td>
+                        </tr>
+                    }
                 }
-            }
-        </tbody>
-    </table>
+                else
+                {
+                    <tr><td colspan="@_spec.Columns.Count" class="text-muted">@(_isAdmin ? _spec.EmptyCopy : "Sign in with ERP or Control Panel capability for live rows.")</td></tr>
+                }
+            </tbody>
+        </table>
     </div>
 
-</PhpCpDesktopChrome>
+    <div class="epc-erp-empty" style="display:block;margin-top:12px;padding:8px 10px;border:1px solid #c5d4de;background:#f8fafc;color:#475569;font-size:12px;">
+        Source: @_source. Karat rows bind from <code>epc_jewel_karat_master</code>. Form posts are dry-run — writes=0.
+        @if (!string.IsNullOrWhiteSpace(_message)) { <span> @_message</span> }
+    </div>
+</PhpErpDesktopChrome>
 
 @code {
-    private const string _phpTab = "/ERP/?epc_erp_shell=1&area=inventory_mgmt&tab=jw_karat";
     private bool _isAdmin;
+    private int _company;
+    private string _tab = "jw_karat";
+    private string _appPath = "/cp/jewellery-masters-app";
+    private string _tabBase = "/cp/jewellery-masters-app";
+    private string _returnHere = "/cp/jewellery-masters-app?tab=jw_karat";
+    private ErpJewelleryModuleChrome.TabSpec _spec = ErpJewelleryModuleChrome.MasterSpec("jw_karat");
     private CpJewelleryMastersSummary _summary = new(0, 0, 0, 0, "n/a", "");
     private IReadOnlyList<CpJewelleryMastersKaratDigest> _rows = [];
+    private IReadOnlyList<KaratRow> _karatDisplay = [];
     private string _source = "n/a";
     private string _message = "";
+    private string _ok = "";
+    private string _err = "";
+
+    private sealed record KaratRow(string No, CpJewelleryMastersKaratDigest Row);
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
+        var path = ctx.Request.Path.Value ?? "/cp/jewellery-masters-app";
+        _appPath = path.StartsWith("/erp/", StringComparison.OrdinalIgnoreCase)
+            ? "/erp/jewellery-masters-app"
+            : "/cp/jewellery-masters-app";
+        _company = ErpJewelleryModuleChrome.CompanyFromQuery(ctx.Request.Query["company"].ToString());
+        _tab = ErpJewelleryModuleChrome.NormalizeTab(ctx.Request.Query["tab"].ToString(), ErpJewelleryModuleChrome.MasterTabs, "jw_karat");
+        _ok = ctx.Request.Query["ok"].ToString();
+        _err = ctx.Request.Query["err"].ToString();
+        _spec = ErpJewelleryModuleChrome.MasterSpec(_tab);
+        _tabBase = ErpJewelleryModuleChrome.AppHref(_appPath, _company);
+        _returnHere = ErpJewelleryModuleChrome.AppHref(_appPath, _company, ("tab", _tab));
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
-        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
+        _isAdmin = ErpJewelleryModuleChrome.HasJewelleryStaffAccess(session);
         if (!_isAdmin)
         {
-            return; // guest browse — Sign in for live data
+            _message = "Sign in with ERP or Control Panel capability for live rows.";
+            return;
         }
 
         var result = await Dashboards.BuildCpJewelleryMastersDigestAsync(200, ctx.RequestAborted);
         _summary = result.Summary;
         _rows = result.Karats;
+        _karatDisplay = _rows.Select((r, i) => new KaratRow((i + 1).ToString(CultureInfo.InvariantCulture), r)).ToList();
         _source = result.Source;
         _message = result.Message;
     }

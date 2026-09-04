@@ -1,132 +1,158 @@
 @page "/cp/jewellery-stock-verification-app"
+@page "/erp/jewellery-stock-verification-app"
 @layout Layout.PhpChromeLayout
 @using System.Globalization
 @using EcomAE.Platform.Auth
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Routing
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
-@inject NavigationManager Nav
 
-<PageTitle>Jewellery stock verification · Control Panel · eParts Cart</PageTitle>
-<PhpChromeStyles Surface="cp" />
-<HeadContent>
-<style>
-        .epc-w17-hero {
-            margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
-            background:linear-gradient(135deg,#0c4a6e 0%,#2563eb 45%,#0ea5e9 100%);
-        }
-        .epc-w17-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
-        .epc-w17-hero p { margin:0; color:rgba(255,255,255,.88); max-width:44rem; font-size:.92rem; line-height:1.45; }
-        .epc-w17-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
-        .epc-w17-cta a {
-            display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
-            text-decoration:none; color:#0f172a; background:#fff;
-        }
-        .epc-w17-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); color:#fff; }
-        .epc-w17-kpis { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
-        .epc-w17-kpi { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; padding:.85rem .9rem; }
-        .epc-w17-kpi strong { display:block; font-size:1.2rem; word-break:break-word; }
-        .epc-w17-kpi span { color:#64748b; font-size:.78rem; }
-        .epc-w17-table-wrap { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; overflow:auto; }
-        .epc-w17-table { width:100%; border-collapse:collapse; font-size:.86rem; }
-        .epc-w17-table th, .epc-w17-table td { padding:.55rem .7rem; border-bottom:1px solid #f1f5f9; text-align:left; white-space:nowrap; }
-        .epc-w17-table th { background:#f8fafc; color:#475569; font-size:.75rem; text-transform:uppercase; letter-spacing:.03em; }
-        .epc-w17-note { margin-top:1rem; padding:.75rem .9rem; background:#f8fafc; border:1px solid #cbd5e1; border-radius:.45rem; color:#334155; font-size:.86rem; }
-        @@media (max-width:900px){ .epc-w17-kpis{grid-template-columns:1fr 1fr;} }
-    
-</style>
-</HeadContent>
+<PageTitle>Jewellery stock verification · ERP · eParts Cart</PageTitle>
+<PhpChromeStyles Surface="erp" />
 
+<PhpErpDesktopChrome IsAdmin="_isAdmin" Title="@_spec.Title" BreadcrumbArea="Jewellery" BreadcrumbTab="@_spec.Label">
+    <PhpErpModulePageHeader Title="@_spec.Title" Subtitle="@_spec.Subtitle" />
+    <ErpPhpFlash Ok="@_ok" Err="@_err" />
 
-<PhpCpDesktopChrome IsAdmin="_isAdmin">
-
-    <section class="epc-w17-hero">
-        <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
-        <h1>Jewellery stock verification</h1>
-        <p>@CpPhpModuleCopy.PurposeFor(Nav.Uri)</p>
-        <div class="epc-w17-cta">
-            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
-        </div>
-    </section>
-
-    <div class="epc-w17-kpis" aria-label="Jewellery stock verification stats">
-        <div class="epc-w17-kpi"><strong>@_summary.VerificationCount.ToString(CultureInfo.InvariantCulture)</strong><span>Verifications</span></div>
-        <div class="epc-w17-kpi"><strong>@_summary.InProgressCount.ToString(CultureInfo.InvariantCulture)</strong><span>In progress</span></div>
-        <div class="epc-w17-kpi"><strong>@_summary.CompleteCount.ToString(CultureInfo.InvariantCulture)</strong><span>Complete</span></div>
-        <div class="epc-w17-kpi"><strong>@_summary.LineCount.ToString(CultureInfo.InvariantCulture)</strong><span>Lines</span></div>
+    <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Jewellery stock verification stats">
+        <div class="kpi"><div class="lbl">Verifications</div><div class="val">@_summary.VerificationCount.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">In progress</div><div class="val">@_summary.InProgressCount.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Complete</div><div class="val">@_summary.CompleteCount.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Lines</div><div class="val">@_summary.LineCount.ToString(CultureInfo.InvariantCulture)</div></div>
     </div>
 
-    <div class="epc-w17-table-wrap">
-    <table class="epc-w17-table">
-        <thead>
-            <tr>
-                    <th>Id</th>
-                    <th>Branch</th>
-                    <th>Type</th>
-                    <th>Date</th>
-                    <th>No</th>
-                    <th>Location</th>
-                    <th>Total</th>
-                    <th>Scanned</th>
-                    <th>Status</th>
-                    <th></th>
-            </tr>
-        </thead>
-        <tbody>
-            @if (_rows.Count == 0)
-            {
-                <tr><td colspan="10">Nothing to show yet.</td></tr>
-            }
-            else
-            {
-                @foreach (var row in _rows)
+    <ErpPhpViewTabs QueryName="tab" Active="@_tab" BaseHref="@_tabBase" Tabs="@ErpJewelleryModuleChrome.StockTabs" />
+
+    @if (_isAdmin && _tab == "jw_stock_verification")
+    {
+        <ErpPhpCreateWell Title="New Count">
+            <form method="post" action="@EcomAeRoutes.ErpJewelleryModuleSaveForm" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+                <input type="hidden" name="returnUrl" value="@_returnHere" />
+                <input type="hidden" name="action" value="jw_stock_verification_save" />
+                <label>Branch <input class="form-control input-sm" name="branch" value="HO" /></label>
+                <label>Location <input class="form-control input-sm" name="code" placeholder="Showroom" /></label>
+                <button type="submit" class="btn btn-primary btn-sm">Save</button>
+            </form>
+        </ErpPhpCreateWell>
+    }
+    else if (_isAdmin)
+    {
+        <ErpPhpCreateWell Title="@("New " + _spec.Label)">
+            <form method="post" action="@EcomAeRoutes.ErpJewelleryModuleSaveForm" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+                <input type="hidden" name="returnUrl" value="@_returnHere" />
+                <input type="hidden" name="action" value="@(_tab + "_save")" />
+                <label>Item Code <input class="form-control input-sm" name="code" required /></label>
+                <label>Metal
+                    <select class="form-control input-sm" name="metal">
+                        <option value="Gold">Gold</option>
+                        <option value="Silver">Silver</option>
+                    </select>
+                </label>
+                <label>Karat <input class="form-control input-sm" name="karat" placeholder="22" style="width:70px;" /></label>
+                <button type="submit" class="btn btn-primary btn-sm">Save</button>
+            </form>
+        </ErpPhpCreateWell>
+    }
+
+    <div class="epc-erp-table-wrap">
+        <table class="table table-bordered table-condensed table-epc epc-erp-table">
+            <thead>
+                <tr>
+                    @foreach (var col in _spec.Columns)
+                    {
+                        <th>@col</th>
+                    }
+                </tr>
+            </thead>
+            <tbody>
+                @if (_tab == "jw_stock_verification" && _display.Count > 0)
                 {
-                    <tr>
-                            <td>@row.Id.ToString(CultureInfo.InvariantCulture)</td>
-                            <td>@(!string.IsNullOrWhiteSpace(row.Branch) ? row.Branch : "—")</td>
-                            <td>@(!string.IsNullOrWhiteSpace(row.VocType) ? row.VocType : "—")</td>
-                            <td>@(!string.IsNullOrWhiteSpace(row.VocDate) ? row.VocDate : "—")</td>
-                            <td>@row.VocNo.ToString(CultureInfo.InvariantCulture)</td>
-                            <td>@(!string.IsNullOrWhiteSpace(row.Location) ? row.Location : "—")</td>
-                            <td>@row.TotalPcs.ToString(CultureInfo.InvariantCulture)</td>
-                            <td>@row.ScannedPcs.ToString(CultureInfo.InvariantCulture)</td>
-                            <td>@(!string.IsNullOrWhiteSpace(row.Status) ? row.Status : "—")</td>
-                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
-                    </tr>
+                    @foreach (var row in _display)
+                    {
+                        <tr>
+                            <td>@row.Id</td>
+                            <td>@row.Branch</td>
+                            <td>@row.Type</td>
+                            <td>@row.Date</td>
+                            <td>@row.No</td>
+                            <td>@row.Location</td>
+                            <td>@row.Total</td>
+                            <td>@row.Scanned</td>
+                            <td>@row.Status</td>
+                        </tr>
+                    }
                 }
-            }
-        </tbody>
-    </table>
+                else
+                {
+                    <tr><td colspan="@_spec.Columns.Count" class="text-muted">@(_isAdmin ? _spec.EmptyCopy : "Sign in with ERP or Control Panel capability for live rows.")</td></tr>
+                }
+            </tbody>
+        </table>
     </div>
 
-</PhpCpDesktopChrome>
+    <div class="epc-erp-empty" style="display:block;margin-top:12px;padding:8px 10px;border:1px solid #c5d4de;background:#f8fafc;color:#475569;font-size:12px;">
+        Source: @_source. Counts bind from <code>epc_jewel_stock_verification</code>. Form posts are dry-run — writes=0.
+        @if (!string.IsNullOrWhiteSpace(_message)) { <span> @_message</span> }
+    </div>
+</PhpErpDesktopChrome>
 
 @code {
-    private const string _phpTab = "/ERP/?epc_erp_shell=1&area=inventory_mgmt&tab=jw_stock_verification";
     private bool _isAdmin;
+    private int _company;
+    private string _tab = "jw_stock_verification";
+    private string _appPath = "/cp/jewellery-stock-verification-app";
+    private string _tabBase = "/cp/jewellery-stock-verification-app";
+    private string _returnHere = "/cp/jewellery-stock-verification-app?tab=jw_stock_verification";
+    private ErpJewelleryModuleChrome.TabSpec _spec = ErpJewelleryModuleChrome.StockSpec("jw_stock_verification");
     private CpJewelleryStockVerificationSummary _summary = new(0, 0, 0, 0, "n/a", "");
-    private IReadOnlyList<CpJewelleryStockVerificationRowDigest> _rows = [];
+    private IReadOnlyList<StockRow> _display = [];
     private string _source = "n/a";
     private string _message = "";
+    private string _ok = "";
+    private string _err = "";
+
+    private sealed record StockRow(string Id, string Branch, string Type, string Date, string No, string Location, string Total, string Scanned, string Status);
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
+        var path = ctx.Request.Path.Value ?? "/cp/jewellery-stock-verification-app";
+        _appPath = path.StartsWith("/erp/", StringComparison.OrdinalIgnoreCase)
+            ? "/erp/jewellery-stock-verification-app"
+            : "/cp/jewellery-stock-verification-app";
+        _company = ErpJewelleryModuleChrome.CompanyFromQuery(ctx.Request.Query["company"].ToString());
+        _tab = ErpJewelleryModuleChrome.NormalizeTab(ctx.Request.Query["tab"].ToString(), ErpJewelleryModuleChrome.StockTabs, "jw_stock_verification");
+        _ok = ctx.Request.Query["ok"].ToString();
+        _err = ctx.Request.Query["err"].ToString();
+        _spec = ErpJewelleryModuleChrome.StockSpec(_tab);
+        _tabBase = ErpJewelleryModuleChrome.AppHref(_appPath, _company);
+        _returnHere = ErpJewelleryModuleChrome.AppHref(_appPath, _company, ("tab", _tab));
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
-        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
+        _isAdmin = ErpJewelleryModuleChrome.HasJewelleryStaffAccess(session);
         if (!_isAdmin)
         {
-            return; // guest browse — Sign in for live data
+            _message = "Sign in with ERP or Control Panel capability for live rows.";
+            return;
         }
 
         var result = await Dashboards.BuildCpJewelleryStockVerificationDigestAsync(200, ctx.RequestAborted);
         _summary = result.Summary;
-        _rows = result.Verifications;
         _source = result.Source;
         _message = result.Message;
+        _display = result.Verifications.Select(r => new StockRow(
+            r.Id.ToString(CultureInfo.InvariantCulture),
+            string.IsNullOrWhiteSpace(r.Branch) ? "—" : r.Branch,
+            string.IsNullOrWhiteSpace(r.VocType) ? "—" : r.VocType,
+            string.IsNullOrWhiteSpace(r.VocDate) ? "—" : r.VocDate,
+            r.VocNo.ToString(CultureInfo.InvariantCulture),
+            string.IsNullOrWhiteSpace(r.Location) ? "—" : r.Location,
+            r.TotalPcs.ToString(CultureInfo.InvariantCulture),
+            r.ScannedPcs.ToString(CultureInfo.InvariantCulture),
+            string.IsNullOrWhiteSpace(r.Status) ? "—" : r.Status)).ToList();
     }
 }
