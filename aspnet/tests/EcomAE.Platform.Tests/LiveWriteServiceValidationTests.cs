@@ -302,6 +302,36 @@ public sealed class LiveWriteServiceValidationTests
             .SetCommentAsync(4, "note");
         Assert.False(staffCommentDb.Succeeded);
         Assert.Equal("db", staffCommentDb.Code);
+
+        var vinViewed = await new CpUserWriteService(new ConfiguredNeverOpened())
+            .SetVinViewedAsync([], 2);
+        Assert.False(vinViewed.Succeeded);
+        Assert.Equal("invalid", vinViewed.Code);
+
+        var vinViewedDb = await new CpUserWriteService(new UnconfiguredConnections())
+            .SetVinViewedAsync([9], 1);
+        Assert.False(vinViewedDb.Succeeded);
+        Assert.Equal("db", vinViewedDb.Code);
+
+        var retStatus = await new CpReturnWriteService(new ConfiguredNeverOpened())
+            .SetStatusAsync(0, 0);
+        Assert.False(retStatus.Succeeded);
+        Assert.Equal("invalid", retStatus.Code);
+
+        var retDecide = await new CpReturnWriteService(new ConfiguredNeverOpened())
+            .DecideLineAsync(9, 0, 3, 1);
+        Assert.False(retDecide.Succeeded);
+        Assert.Equal("invalid", retDecide.Code);
+
+        var retFinalize = await new CpReturnWriteService(new ConfiguredNeverOpened())
+            .FinalizeAsync(0, 1);
+        Assert.False(retFinalize.Succeeded);
+        Assert.Equal("invalid", retFinalize.Code);
+
+        var retFinalizeDb = await new CpReturnWriteService(new UnconfiguredConnections())
+            .FinalizeAsync(9, 1);
+        Assert.False(retFinalizeDb.Succeeded);
+        Assert.Equal("db", retFinalizeDb.Code);
     }
 
     [Fact]

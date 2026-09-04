@@ -657,6 +657,7 @@ builder.Services.AddScoped<EcomAE.Platform.Erp.IErpPayrollWriteService, EcomAE.P
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpInventoryForecastWriteService, EcomAE.Platform.Erp.ErpInventoryForecastWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpOmsWriteService, EcomAE.Platform.Cp.CpOmsWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpUserWriteService, EcomAE.Platform.Cp.CpUserWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Cp.ICpReturnWriteService, EcomAE.Platform.Cp.CpReturnWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpCreditLimitWriteService, EcomAE.Platform.Cp.CpCreditLimitWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpPoApprovalWriteService, EcomAE.Platform.Cp.CpPoApprovalWriteService>();
 builder.Services.AddSingleton<IStorefrontGarageNotepadAddDryRun, StorefrontGarageNotepadAddDryRun>();

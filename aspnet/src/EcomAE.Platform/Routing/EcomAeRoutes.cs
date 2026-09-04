@@ -951,9 +951,9 @@ public static class EcomAeRoutes
     public const string StorefrontLoginSendCode = "/storefront/login/send-code";
     /// <summary>Wave B dry-run for PHP modules/login/code/frontAjax/ajax_checkCode.php (writes=0).</summary>
     public const string StorefrontLoginCheckCode = "/storefront/login/check-code";
-    /// <summary>Wave B dry-run for PHP cp/content/shop/returns/ajax/ajax_return_action.php (writes=0).</summary>
+    /// <summary>CP return actions. <c>confirmWrites=true</c> is the live twin of PHP ajax_return_action.php (no status seeding).</summary>
     public const string CpReturnAction = "/cp/returns/action";
-    /// <summary>Wave B dry-run for PHP cp/content/requests/ajax_set_users_vin_viewed.php (writes=0).</summary>
+    /// <summary>VIN viewed flag. <c>confirmWrites=true</c> is the live twin of PHP ajax_set_users_vin_viewed.php.</summary>
     public const string CpSetUsersVinViewed = "/cp/requests/set-vin-viewed";
     /// <summary>Staff user comment. <c>confirmWrites=true</c> is the live twin of PHP ajax_set_user_comment.php.</summary>
     public const string CpSetUserComment = "/cp/users/set-comment";
