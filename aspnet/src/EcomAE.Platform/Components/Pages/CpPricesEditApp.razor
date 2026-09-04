@@ -36,47 +36,85 @@
     <section class="epc-cpmod-hero">
         <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
         <h1>Prices edit</h1>
-        <p>Edit warehouse/supplier price rows after upload. Mutating ajax_operations remain PHP-authoritative.</p>
+        <p>Add, save, and delete a single price row here when confirmWrites is set. Table list and search-delete stay on the PHP twin.</p>
         <div class="epc-cpmod-cta">
-            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open PHP reference module</a>
+            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
             <a class="ghost" href="/cp/prices-upload-app">Prices upload</a>
             <a class="ghost" href="/cp/prices-send-app">Prices send</a>
             <a class="ghost" href="/cp/price-lists-app">Price lists</a>
-            <a class="ghost" href="/cp">Command centre</a>
         </div>
     </section>
 
-    <div class="epc-cpmod-grid">
-        <div class="epc-cpmod-card">
-            <h3>ASP.NET-primary surface</h3>
-            <p>Route: <code>/cp/prices-edit-app</code></p>
-            <p style="margin-top:.4rem;">PHP path: <code>/CP/shop/prices_edit</code></p>
-            <p style="margin-top:.4rem;">Product locks: cutoverAllowed=false · readyForPhpRemoval=false · PHP authoritative for writes.</p>
+    @if (!string.IsNullOrWhiteSpace(_flashOk))
+    {
+        <div class="alert alert-success" role="status" style="margin:0 0 1rem;padding:.7rem .9rem;border-radius:.4rem;background:#ecfdf5;color:#065f46">@_flashOk</div>
+    }
+    @if (!string.IsNullOrWhiteSpace(_flashErr))
+    {
+        <div class="alert alert-danger" role="status" style="margin:0 0 1rem;padding:.7rem .9rem;border-radius:.4rem;background:#fef2f2;color:#991b1b">@_flashErr</div>
+    }
+    @if (_isAdmin)
+    {
+        <div style="display:grid;gap:.65rem;margin:0 0 1rem">
+            <form method="post" action="/cp/prices-edit/write" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="/cp/prices-edit-app" />
+                <input type="hidden" name="action" value="add" />
+                <label>Price list id <input type="number" name="priceId" min="0" required /></label>
+                <label>Article <input type="text" name="article" required maxlength="64" /></label>
+                <label>Manufacturer <input type="text" name="manufacturer" required maxlength="255" /></label>
+                <label>Name <input type="text" name="name" maxlength="255" /></label>
+                <label>Exist <input type="number" name="exist" min="0" value="0" /></label>
+                <label>Price <input type="text" name="price" required /></label>
+                <label>Days <input type="number" name="timeToExe" min="0" value="0" /></label>
+                <label>Storage <input type="text" name="storage" maxlength="255" /></label>
+                <label>Min order <input type="number" name="minOrder" min="0" value="1" /></label>
+                <button type="submit">Add row</button>
+            </form>
+            <form method="post" action="/cp/prices-edit/write" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="/cp/prices-edit-app" />
+                <input type="hidden" name="action" value="save" />
+                <label>Row id <input type="number" name="id" min="1" required /></label>
+                <label>Price list id <input type="number" name="priceId" min="1" required /></label>
+                <label>Article <input type="text" name="article" required maxlength="64" /></label>
+                <label>Manufacturer <input type="text" name="manufacturer" required maxlength="255" /></label>
+                <label>Name <input type="text" name="name" maxlength="255" /></label>
+                <label>Exist <input type="number" name="exist" min="0" value="0" /></label>
+                <label>Price <input type="text" name="price" required /></label>
+                <label>Days <input type="number" name="timeToExe" min="0" value="0" /></label>
+                <label>Storage <input type="text" name="storage" maxlength="255" /></label>
+                <label>Min order <input type="number" name="minOrder" min="0" value="1" /></label>
+                <button type="submit">Save row</button>
+            </form>
+            <form method="post" action="/cp/prices-edit/write" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="/cp/prices-edit-app" />
+                <input type="hidden" name="action" value="del" />
+                <label>Row id <input type="number" name="id" min="1" required /></label>
+                <button type="submit">Delete row</button>
+            </form>
         </div>
-
-    <div class="epc-cpmod-card">
-        <h3>PHP ajax reference</h3>
-        <ul>
-            <li><code>ajax_operations</code></li>
-        </ul>
-        <p>ASP.NET dry-runs validate payloads with writes=0; live execution stays on PHP.</p>
-    </div>
-    </div>
+    }
 
     <div class="epc-cpmod-note">
-        ePartsCart tenant CP maps this PHP module here so mega-menu / deep links no longer collapse to Command Centre.
+        Add, save, and delete write when confirmWrites is set. Search-delete and the price table stay on the PHP twin.
     </div>
 </PhpCpDesktopChrome>
 
 @code {
     private const string _phpTab = "/CP/shop/prices_edit";
     private bool _isAdmin;
+    private string _flashOk = "";
+    private string _flashErr = "";
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
+        _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
+        _flashErr = ctx.Request.Query["err"].ToString() ?? "";
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
-        _isAdmin = session.Kind == LegacySessionKind.Admin;
+        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
     }
 }

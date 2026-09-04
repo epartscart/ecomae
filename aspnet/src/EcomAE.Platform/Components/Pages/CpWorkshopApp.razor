@@ -14,7 +14,7 @@
 <PhpCpDesktopChrome IsAdmin="_isAdmin">
 
     <PhpCpModulePageHeader Title="Workshop &amp; service desk"
-                           Subtitle="PHP workshop_main_page / epc_ws_dashboard parity. Assign / save bay / save tech write on ASP.NET. Seed, create-job, status helpers, and appointments stay PHP."
+                           Subtitle="Assign, save bay, save tech, and set status write here. Seed, create-job, lines, and appointments stay on the PHP twin."
                            PhpTabHref="@_phpTab">
         <a class="ghost" href="/cp/sao-app">SAO</a>
         <a class="ghost" href="/cp/orders">Orders</a>
@@ -74,6 +74,25 @@
                 </select>
             </label>
             <button type="submit" class="btn btn-xs btn-default">Save tech</button>
+        </form>
+        <form method="post" action="/cp/workshop/write" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/workshop-app" />
+            <input type="hidden" name="action" value="set_status" />
+            <label>Job id <input type="number" name="jobId" min="1" required style="width:6rem" /></label>
+            <label>Status
+                <select name="status">
+                    <option value="checkin">checkin</option>
+                    <option value="estimate">estimate</option>
+                    <option value="approved">approved</option>
+                    <option value="in_progress">in_progress</option>
+                    <option value="qc">qc</option>
+                    <option value="ready">ready</option>
+                    <option value="delivered">delivered</option>
+                    <option value="cancelled">cancelled</option>
+                </select>
+            </label>
+            <button type="submit" class="btn btn-xs btn-primary">Set status</button>
         </form>
     }
 

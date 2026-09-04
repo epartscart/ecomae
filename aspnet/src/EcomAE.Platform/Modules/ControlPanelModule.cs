@@ -1556,6 +1556,7 @@ public sealed class ControlPanelModule : ISurfaceModule
             var name = body.Name;
             var phone = body.Phone;
             var skill = body.Skill;
+            var status = body.Status;
             var active = body.Active;
             var sortOrder = body.SortOrder;
             var confirm = body.ConfirmWrites;
@@ -1571,6 +1572,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 name = LiveWriteFormBinder.Text(form, "name");
                 phone = LiveWriteFormBinder.Text(form, "phone");
                 skill = LiveWriteFormBinder.Text(form, "skill");
+                status = LiveWriteFormBinder.Text(form, "status");
                 active = LiveWriteFormBinder.Int(form, "active");
                 sortOrder = LiveWriteFormBinder.Int(form, "sortOrder", "sort_order");
                 confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
@@ -1584,7 +1586,8 @@ public sealed class ControlPanelModule : ISurfaceModule
                     "assign" => await writes.AssignAsync(jobId, bayId, techId, cancellationToken),
                     "save_bay" or "save-bay" => await writes.SaveBayAsync(id, code, name, active, sortOrder, cancellationToken),
                     "save_tech" or "save-tech" => await writes.SaveTechAsync(id, name, phone, skill, active, cancellationToken),
-                    _ => ErpSimpleWriteResult.Fail("invalid", "Unknown workshop action. assign / save_bay / save_tech are live; others stay PHP."),
+                    "set_status" or "set-status" => await writes.SetStatusAsync(jobId, status, cancellationToken),
+                    _ => ErpSimpleWriteResult.Fail("invalid", "Unknown workshop action. assign / save_bay / save_tech / set_status are live; others stay PHP."),
                 };
                 return LiveWriteFormBinder.Complete(
                     context,
@@ -1646,6 +1649,78 @@ public sealed class ControlPanelModule : ISurfaceModule
             return LiveWriteFormBinder.Complete(
                 context,
                 "/cp/product-catalogue-app" + (productId > 0 ? "?product_id=" + productId.ToString(CultureInfo.InvariantCulture) : ""),
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.CpPricesEditWrite, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpPricesEditWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/prices-edit-app", "Admin CP capability required for prices-edit write.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpPricesEditWriteBody>(context, cancellationToken)
+                       ?? new();
+            var action = body.Action;
+            var id = body.Id;
+            var priceId = body.PriceId;
+            var article = body.Article;
+            var manufacturer = body.Manufacturer;
+            var name = body.Name;
+            var exist = body.Exist;
+            var price = body.Price;
+            var timeToExe = body.TimeToExe;
+            var storage = body.Storage;
+            var minOrder = body.MinOrder;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                action = LiveWriteFormBinder.Text(form, "action");
+                id = LiveWriteFormBinder.Long(form, "id");
+                priceId = LiveWriteFormBinder.Long(form, "priceId", "price_id");
+                article = LiveWriteFormBinder.Text(form, "article");
+                manufacturer = LiveWriteFormBinder.Text(form, "manufacturer");
+                name = LiveWriteFormBinder.Text(form, "name");
+                exist = LiveWriteFormBinder.Int(form, "exist");
+                price = LiveWriteFormBinder.Dec(form, "price");
+                timeToExe = LiveWriteFormBinder.Int(form, "timeToExe", "time_to_exe");
+                storage = LiveWriteFormBinder.Text(form, "storage");
+                minOrder = LiveWriteFormBinder.Int(form, "minOrder", "min_order");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(new
+                {
+                    status = "dry-run",
+                    writes = 0,
+                    writesBlocked = true,
+                    phpAuthoritative = true,
+                    validation_code = "dry_run",
+                    message = "Set confirmWrites=true to write price rows on ASP.NET.",
+                    session = SessionPayload(session)
+                });
+            }
+
+            var key = (action ?? string.Empty).Trim();
+            ErpSimpleWriteResult written = key switch
+            {
+                "add" => await writes.AddAsync(priceId, article, manufacturer, name, exist, price, timeToExe, storage, minOrder, cancellationToken),
+                "save" => await writes.SaveAsync(id, priceId, article, manufacturer, name, exist, price, timeToExe, storage, minOrder, cancellationToken),
+                "del" or "delete" => await writes.DeleteAsync(id, cancellationToken),
+                _ => ErpSimpleWriteResult.Fail("invalid", "Unknown prices-edit action."),
+            };
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/cp/prices-edit-app",
                 written.Succeeded,
                 written.Message,
                 new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
@@ -1956,9 +2031,56 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only shop_currencies digest. PHP currency manager remains authoritative."
+                note = "shop_currencies digest. Single-rate POST /cp/currencies/set-rate when confirmWrites=true. Bulk available and live FX stay PHP."
             });
         });
+        endpoints.MapPost(EcomAeRoutes.CpCurrenciesSetRate, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpCurrencyWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/currencies-app", "Admin CP capability required for currency rate.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpCurrenciesSetRateBody>(context, cancellationToken)
+                       ?? new();
+            var iso = body.IsoCode;
+            var rate = body.Rate;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                iso = LiveWriteFormBinder.Text(form, "isoCode", "iso_code");
+                rate = LiveWriteFormBinder.Dec(form, "rate");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(new
+                {
+                    status = "dry-run",
+                    writes = 0,
+                    writesBlocked = true,
+                    phpAuthoritative = true,
+                    validation_code = "dry_run",
+                    message = "Set confirmWrites=true to write a currency rate on ASP.NET.",
+                    session = SessionPayload(session)
+                });
+            }
+
+            var written = await writes.SetRateAsync(iso, rate, cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/cp/currencies-app",
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
 
         endpoints.MapGet(EcomAeRoutes.ControlPanelApiClients, async (
             HttpContext context,
@@ -5672,8 +5794,23 @@ public sealed class ControlPanelModule : ISurfaceModule
         string? Name = null,
         string? Phone = null,
         string? Skill = null,
+        string? Status = null,
         int Active = 1,
         int SortOrder = 0);
+    private sealed record CpCurrenciesSetRateBody(string? IsoCode = null, decimal Rate = 0, bool ConfirmWrites = false);
+    private sealed record CpPricesEditWriteBody(
+        string? Action = null,
+        bool ConfirmWrites = false,
+        long Id = 0,
+        long PriceId = 0,
+        string? Article = null,
+        string? Manufacturer = null,
+        string? Name = null,
+        int Exist = 0,
+        decimal Price = 0,
+        int TimeToExe = 0,
+        string? Storage = null,
+        int MinOrder = 0);
     private sealed record CpCatalogueSetMinLimitBody(
         string? Action = null,
         bool ConfirmWrites = false,

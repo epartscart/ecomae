@@ -3,8 +3,8 @@ using EcomAE.Platform.Erp;
 namespace EcomAE.Platform.Cp;
 
 /// <summary>
-/// Live PHP <c>ajax_workshop_endpoint.php</c> twins for assign / save_bay / save_tech.
-/// Seed, create-job, status helpers, and appointments stay PHP.
+/// Live PHP <c>ajax_workshop_endpoint.php</c> twins for assign / save_bay / save_tech / set_status.
+/// Seed, create-job, line helpers, and appointments stay PHP.
 /// </summary>
 public interface ICpWorkshopWriteService
 {
@@ -13,6 +13,8 @@ public interface ICpWorkshopWriteService
     Task<ErpSimpleWriteResult> SaveBayAsync(long id, string? code, string? name, int active, int sortOrder, CancellationToken cancellationToken = default);
 
     Task<ErpSimpleWriteResult> SaveTechAsync(long id, string? name, string? phone, string? skill, int active, CancellationToken cancellationToken = default);
+
+    Task<ErpSimpleWriteResult> SetStatusAsync(long jobId, string? status, CancellationToken cancellationToken = default);
 }
 
 public sealed class CpWorkshopWriteService : ICpWorkshopWriteService
@@ -174,4 +176,46 @@ public sealed class CpWorkshopWriteService : ICpWorkshopWriteService
         var newId = await ErpDb.LastInsertIdAsync(connection, null, cancellationToken).ConfigureAwait(false);
         return ErpSimpleWriteResult.Ok("Technician saved.", newId);
     }
+
+    public async Task<ErpSimpleWriteResult> SetStatusAsync(long jobId, string? status, CancellationToken cancellationToken = default)
+    {
+        var key = (status ?? string.Empty).Trim().ToLowerInvariant();
+        if (jobId <= 0 || !Statuses.Contains(key))
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "A job id and a known workshop status are required.");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return ErpSimpleWriteResult.Fail("db", "TenantRegistry DB is not configured.");
+        }
+
+        var approve = key is "approved" or "in_progress" or "qc" or "ready" or "delivered";
+        await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        if (approve)
+        {
+            await ErpDb.ExecuteAsync(
+                connection,
+                null,
+                ErpDb.Positional("UPDATE `epc_ws_jobs` SET `status` = ?, `estimate_approved` = 1, `time_updated` = ? WHERE `id` = ?"),
+                cancellationToken,
+                key, DateTimeOffset.UtcNow.ToUnixTimeSeconds(), jobId);
+        }
+        else
+        {
+            await ErpDb.ExecuteAsync(
+                connection,
+                null,
+                ErpDb.Positional("UPDATE `epc_ws_jobs` SET `status` = ?, `time_updated` = ? WHERE `id` = ?"),
+                cancellationToken,
+                key, DateTimeOffset.UtcNow.ToUnixTimeSeconds(), jobId);
+        }
+
+        return ErpSimpleWriteResult.Ok("Status updated.", jobId);
+    }
+
+    private static readonly HashSet<string> Statuses = new(StringComparer.Ordinal)
+    {
+        "checkin", "estimate", "approved", "in_progress", "qc", "ready", "delivered", "cancelled"
+    };
 }

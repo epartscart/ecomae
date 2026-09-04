@@ -418,6 +418,56 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(wsTechDb.Succeeded);
         Assert.Equal("db", wsTechDb.Code);
 
+        var wsStatus = await new CpWorkshopWriteService(new ConfiguredNeverOpened())
+            .SetStatusAsync(0, "approved");
+        Assert.False(wsStatus.Succeeded);
+        Assert.Equal("invalid", wsStatus.Code);
+
+        var wsStatusBad = await new CpWorkshopWriteService(new ConfiguredNeverOpened())
+            .SetStatusAsync(9, "nope");
+        Assert.False(wsStatusBad.Succeeded);
+        Assert.Equal("invalid", wsStatusBad.Code);
+
+        var wsStatusDb = await new CpWorkshopWriteService(new UnconfiguredConnections())
+            .SetStatusAsync(9, "approved");
+        Assert.False(wsStatusDb.Succeeded);
+        Assert.Equal("db", wsStatusDb.Code);
+
+        var priceAdd = await new CpPricesEditWriteService(new ConfiguredNeverOpened())
+            .AddAsync(1, "", "Bosch", "Pad", 1, 12.5m, 1, "WH1", 1);
+        Assert.False(priceAdd.Succeeded);
+        Assert.Equal("invalid", priceAdd.Code);
+
+        var priceSave = await new CpPricesEditWriteService(new ConfiguredNeverOpened())
+            .SaveAsync(0, 1, "ABC", "Bosch", "Pad", 1, 12.5m, 1, "WH1", 1);
+        Assert.False(priceSave.Succeeded);
+        Assert.Equal("invalid", priceSave.Code);
+
+        var priceDel = await new CpPricesEditWriteService(new ConfiguredNeverOpened())
+            .DeleteAsync(0);
+        Assert.False(priceDel.Succeeded);
+        Assert.Equal("invalid", priceDel.Code);
+
+        var priceDb = await new CpPricesEditWriteService(new UnconfiguredConnections())
+            .AddAsync(1, "ABC", "Bosch", "Pad", 1, 12.5m, 1, "WH1", 1);
+        Assert.False(priceDb.Succeeded);
+        Assert.Equal("db", priceDb.Code);
+
+        var ccyInvalid = await new CpCurrencyWriteService(new ConfiguredNeverOpened())
+            .SetRateAsync("US", 3.67m);
+        Assert.False(ccyInvalid.Succeeded);
+        Assert.Equal("invalid", ccyInvalid.Code);
+
+        var ccyRate = await new CpCurrencyWriteService(new ConfiguredNeverOpened())
+            .SetRateAsync("USD", 0);
+        Assert.False(ccyRate.Succeeded);
+        Assert.Equal("invalid", ccyRate.Code);
+
+        var ccyDb = await new CpCurrencyWriteService(new UnconfiguredConnections())
+            .SetRateAsync("USD", 3.67m);
+        Assert.False(ccyDb.Succeeded);
+        Assert.Equal("db", ccyDb.Code);
+
         var catEnable = await new CpCatalogueWriteService(new ConfiguredNeverOpened())
             .SetMinLimitEnableAsync(0, 1);
         Assert.False(catEnable.Succeeded);

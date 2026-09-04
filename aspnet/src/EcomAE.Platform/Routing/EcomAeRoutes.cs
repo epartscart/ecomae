@@ -88,6 +88,8 @@ public static class EcomAeRoutes
     public const string ControlPanelCurrencies = "/cp/currencies";
     /// <summary>CP currencies Blazor list (JSON digest remains <see cref="ControlPanelCurrencies"/>).</summary>
     public const string ControlPanelCurrenciesApp = "/cp/currencies-app";
+    /// <summary>Single shop_currencies.rate UPDATE. <c>confirmWrites=true</c> is the live twin of PHP currencies_turning.php general save.</summary>
+    public const string CpCurrenciesSetRate = "/cp/currencies/set-rate";
     public const string ControlPanelApiClients = "/cp/api-clients";
     /// <summary>CP API clients Blazor list (JSON digest remains <see cref="ControlPanelApiClients"/>; key hashes never returned).</summary>
     public const string ControlPanelApiClientsApp = "/cp/api-clients-app";
@@ -418,6 +420,8 @@ public static class EcomAeRoutes
     public const string ControlPanelSearchTabsApp = "/cp/search-tabs-app";
     public const string ControlPanelPricesUploadApp = "/cp/prices-upload-app";
     public const string ControlPanelPricesEditApp = "/cp/prices-edit-app";
+    /// <summary>Price-row add/save/delete. <c>confirmWrites=true</c> is the live twin of PHP prices_edit/ajax_operations.php.</summary>
+    public const string CpPricesEditWrite = "/cp/prices-edit/write";
     public const string ControlPanelPricesSendApp = "/cp/prices-send-app";
     public const string ControlPanelWorkshopApp = "/cp/workshop-app";
     public const string ControlPanelSaoApp = "/cp/sao-app";
