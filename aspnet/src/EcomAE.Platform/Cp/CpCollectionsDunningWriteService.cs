@@ -25,7 +25,7 @@ public interface ICpCollectionsDunningWriteService
 
 public sealed class CpCollectionsDunningWriteService : ICpCollectionsDunningWriteService
 {
-    internal static readonly string[] AllowedStatuses =
+    public static readonly string[] AllowedStatuses =
         ["open", "in_progress", "promised", "partial", "paid", "written_off", "disputed"];
 
     private readonly IErpWriteConnectionFactory _connections;

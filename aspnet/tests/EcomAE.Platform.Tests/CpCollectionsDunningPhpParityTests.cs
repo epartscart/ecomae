@@ -59,7 +59,7 @@ public sealed class CpCollectionsDunningPhpParityTests
         var catalog = SurfacePayloadContractCatalog.Functions;
         var shell = catalog.First(item => item.AspNetRouteOrCapability.Contains("/cp/collections-dunning-app", StringComparison.Ordinal));
         Assert.Equal("digest-wired-awaiting-dual-sample", shell.Status);
-        Assert.Contains("/cp/collections-dunning/write", shell.Note, StringComparison.Ordinal);
+        Assert.Contains("/cp/collections-dunning/write", shell.Notes, StringComparison.Ordinal);
     }
 
     private static string FindRepoFile(string relative)
