@@ -45,12 +45,15 @@
     <section class="epc-pl-hero">
         <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
         <h1>Price Lists</h1>
+        <p>@CpPhpModuleCopy.PurposeFor(Nav.Uri)</p>
         <p>Save or delete a supplier margin rule (overall, brand, or article). Price CSV import stays PHP.</p>
         <div class="epc-pl-cta">
             <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
             <a class="ghost" href="/cp/auto-price-app">Auto-price</a>
         </div>
     </section>
+    <PhpParityModuleBody AppPath="/cp/price-lists-app" IsAdmin="_isAdmin" />
+
 
     @if (!string.IsNullOrWhiteSpace(_flashOk))
     {
@@ -130,7 +133,7 @@
             <tbody>
                 @if (_lists.Count == 0)
                 {
-                    <tr><td colspan="8">Nothing to show yet.</td></tr>
+                    <tr><td colspan="8">No records yet.</td></tr>
                 }
                 else
                 {
@@ -155,7 +158,7 @@
 </PhpCpDesktopChrome>
 
 @code {
-    private const string _phpTab = "/CP/shop/prices";
+    private const string _phpTab = "/CP/shop/pricing";
     private bool _isAdmin;
     private CpPriceListsSummary _summary = new(0, 0, 0, "n/a", "");
     private IReadOnlyList<CpPriceListDigest> _lists = [];
@@ -172,7 +175,7 @@
         _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
         _flashErr = ctx.Request.Query["err"].ToString() ?? "";
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
-        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
+        _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
         if (!_isAdmin)
         {
             return; // guest browse — Sign in for live data

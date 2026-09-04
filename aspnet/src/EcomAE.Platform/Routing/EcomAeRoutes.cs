@@ -176,6 +176,8 @@ public static class EcomAeRoutes
     public const string ControlPanelPriceLists = "/cp/price-lists";
     /// <summary>CP price lists Blazor list (JSON digest remains <see cref="ControlPanelPriceLists"/>).</summary>
     public const string ControlPanelPriceListsApp = "/cp/price-lists-app";
+    /// <summary>PHP prices_manager Docpart lists (shop_docpart_prices), not epc_pl_lists.</summary>
+    public const string ControlPanelDocpartPriceLists = "/cp/docpart-price-lists";
     /// <summary>CP auto-price rules (config_json/notes/meta omitted).</summary>
     public const string ControlPanelAutoPrice = "/cp/auto-price";
     /// <summary>CP auto-price Blazor list (JSON digest remains <see cref="ControlPanelAutoPrice"/>).</summary>
@@ -803,6 +805,26 @@ public static class EcomAeRoutes
     public const string ErpProcurementCategoriesApp = "/erp/procurement-categories-app";
     public const string ErpQuality = "/erp/quality";
     public const string ErpQualityApp = "/erp/quality-app";
+    /// <summary>HTML form POST for PHP <c>qm_plan_save</c> dry-run (redirects with ?ok= / ?err=).</summary>
+    public const string ErpQualityPlanSaveForm = "/erp/quality/plan-save";
+    /// <summary>HTML form POST for PHP <c>qm_order_create</c> dry-run.</summary>
+    public const string ErpQualityOrderCreateForm = "/erp/quality/order-create";
+    /// <summary>HTML form POST for PHP <c>qm_ncr_create</c> dry-run.</summary>
+    public const string ErpQualityNcrCreateForm = "/erp/quality/ncr-create";
+    /// <summary>HTML form POST for PHP <c>inv_create_item</c> dry-run.</summary>
+    public const string ErpProductInfoCreateItemForm = "/erp/product-info/create-item";
+    /// <summary>HTML form POST for PHP <c>jw_repair_create</c> dry-run.</summary>
+    public const string ErpJewelleryRepairCreateForm = "/erp/jewellery/repair-create";
+    /// <summary>HTML form POST for PHP <c>jw_repair_update_status</c> dry-run.</summary>
+    public const string ErpJewelleryRepairStatusForm = "/erp/jewellery/repair-status";
+    /// <summary>HTML form POST for PHP <c>jw_karat_save</c> dry-run.</summary>
+    public const string ErpJewelleryKaratSaveForm = "/erp/jewellery/karat-save";
+    /// <summary>HTML form POST for PHP <c>jw_karat_seed</c> / <c>jw_seed_sample_data</c> dry-run.</summary>
+    public const string ErpJewelleryKaratSeedForm = "/erp/jewellery/karat-seed";
+    /// <summary>HTML form POST for other jewellery module saves (fixing / retail / stock).</summary>
+    public const string ErpJewelleryModuleSaveForm = "/erp/jewellery/module-save";
+    /// <summary>HTML form POST for residual PHP-parity module saves (writes=0).</summary>
+    public const string ErpParityModuleSaveForm = "/erp/php-parity/save";
     public const string ErpRfid = "/erp/rfid";
     public const string ErpRfidApp = "/erp/rfid-app";
     public const string ErpRecruitment = "/erp/recruitment";
@@ -1844,10 +1866,18 @@ public static class EcomAeRoutes
     public const string StorefrontFitmentWidgetJs = "/storefront/fitment-widget.js";
     /// <summary>Proxied crossbase fitment table HTML (POST/GET) used by the widget JS.</summary>
     public const string StorefrontFitmentTable = "/storefront/fitment-table";
-    /// <summary>Excel bulk-upload shell (process writes remain PHP ajax_process).</summary>
+    /// <summary>Excel bulk-upload shell (PHP content/shop/bulk_upload/bulk_upload.php).</summary>
     public const string StorefrontBulkUploadApp = "/storefront/bulk-upload-app";
     /// <summary>Customer bulk-upload history digest.</summary>
     public const string StorefrontBulkUploadHistory = "/storefront/bulk-upload/history";
+    /// <summary>Live Excel/CSV price check (PHP ajax_process twin — no history INSERT).</summary>
+    public const string StorefrontBulkUploadCheck = "/storefront/bulk-upload/check";
+    /// <summary>Live cross-availability check for one bulk-upload row.</summary>
+    public const string StorefrontBulkUploadCross = "/storefront/bulk-upload/cross";
+    /// <summary>Add selected bulk-upload matches to cart (confirmWrites).</summary>
+    public const string StorefrontBulkUploadAddSelected = "/storefront/bulk-upload/add-selected";
+    /// <summary>Sample CSV matching PHP Brand / Part Number / Qty columns.</summary>
+    public const string StorefrontBulkUploadSample = "/storefront/bulk-upload/sample.csv";
     /// <summary>VIN / Laximo shell (decode remains PHP katalog-laximo).</summary>
     public const string StorefrontVinApp = "/storefront/vin-app";
     /// <summary>Vehicle year/make/model catalog shell (UMAPI tree from PHP widget).</summary>

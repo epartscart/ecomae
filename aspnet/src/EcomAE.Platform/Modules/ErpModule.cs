@@ -2827,6 +2827,120 @@ public sealed class ErpModule : ISurfaceModule
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpQmNcrCreateRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxQmNcrUpdate, async (HttpContext context, ErpQmNcrUpdateBody? body, ILegacySessionValidator validator, IErpQmNcrUpdateDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpQmNcrUpdateRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+
+        endpoints.MapPost(EcomAeRoutes.ErpQualityPlanSaveForm, async (HttpContext context, ILegacySessionValidator validator, IErpQmPlanSaveDryRun dryRun, CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            var ret = DryRunHtmlForm.SafeReturnUrl(context.Request, "/erp/quality-app?qv=plans");
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+                return Results.Redirect("/erp/login");
+            var code = DryRunHtmlForm.Read(context.Request, "code");
+            var result = dryRun.Evaluate(new ErpQmPlanSaveRequest(0, code, false));
+            return DryRunHtmlForm.Redirect(ret, result.ValidationCode == "ok", result.Detail);
+        }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpQualityOrderCreateForm, async (HttpContext context, ILegacySessionValidator validator, IErpQmOrderCreateDryRun dryRun, CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            var ret = DryRunHtmlForm.SafeReturnUrl(context.Request, "/erp/quality-app?qv=orders");
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+                return Results.Redirect("/erp/login");
+            var code = DryRunHtmlForm.Read(context.Request, "ref_id");
+            if (string.IsNullOrWhiteSpace(code)) code = DryRunHtmlForm.Read(context.Request, "code");
+            var result = dryRun.Evaluate(new ErpQmOrderCreateRequest(0, code, false));
+            return DryRunHtmlForm.Redirect(ret, result.ValidationCode == "ok", result.Detail);
+        }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpQualityNcrCreateForm, async (HttpContext context, ILegacySessionValidator validator, IErpQmNcrCreateDryRun dryRun, CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            var ret = DryRunHtmlForm.SafeReturnUrl(context.Request, "/erp/quality-app?qv=ncr");
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+                return Results.Redirect("/erp/login");
+            var code = DryRunHtmlForm.Read(context.Request, "title");
+            var result = dryRun.Evaluate(new ErpQmNcrCreateRequest(0, code, false));
+            return DryRunHtmlForm.Redirect(ret, result.ValidationCode == "ok", result.Detail);
+        }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpProductInfoCreateItemForm, async (HttpContext context, ILegacySessionValidator validator, IErpInvCreateItemDryRun dryRun, CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            var ret = DryRunHtmlForm.SafeReturnUrl(context.Request, "/erp/product-info-app");
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+                return Results.Redirect("/erp/login");
+            var code = DryRunHtmlForm.Read(context.Request, "code");
+            if (string.IsNullOrWhiteSpace(code)) code = DryRunHtmlForm.Read(context.Request, "sku");
+            var result = dryRun.Evaluate(new ErpInvCreateItemRequest(0, code, false));
+            return DryRunHtmlForm.Redirect(ret, result.ValidationCode == "ok", result.Detail);
+        }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpJewelleryRepairCreateForm, async (HttpContext context, ILegacySessionValidator validator, IErpJwRepairCreateDryRun dryRun, CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            var ret = DryRunHtmlForm.SafeReturnUrl(context.Request, "/cp/jewellery-repairs-app?tab=jw_repairs");
+            if (!ErpJewelleryModuleChrome.HasJewelleryStaffAccess(session))
+                return Results.Redirect("/erp/login");
+            var code = DryRunHtmlForm.Read(context.Request, "customer_name");
+            if (string.IsNullOrWhiteSpace(code)) code = DryRunHtmlForm.Read(context.Request, "item_description");
+            var result = dryRun.Evaluate(new ErpJwRepairCreateRequest(0, code, false));
+            return DryRunHtmlForm.Redirect(ret, result.ValidationCode == "ok", result.Detail);
+        }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpJewelleryRepairStatusForm, async (HttpContext context, ILegacySessionValidator validator, IErpJwRepairUpdateStatusDryRun dryRun, CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            var ret = DryRunHtmlForm.SafeReturnUrl(context.Request, "/cp/jewellery-repairs-app?tab=jw_repairs");
+            if (!ErpJewelleryModuleChrome.HasJewelleryStaffAccess(session))
+                return Results.Redirect("/erp/login");
+            var idRaw = DryRunHtmlForm.Read(context.Request, "repair_id");
+            _ = long.TryParse(idRaw, NumberStyles.Integer, CultureInfo.InvariantCulture, out var id);
+            var status = DryRunHtmlForm.Read(context.Request, "new_status");
+            var result = dryRun.Evaluate(new ErpJwRepairUpdateStatusRequest(id, status, false));
+            return DryRunHtmlForm.Redirect(ret, result.ValidationCode == "ok", result.Detail);
+        }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpJewelleryKaratSaveForm, async (HttpContext context, ILegacySessionValidator validator, IErpJwModuleSaveDryRun dryRun, CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            var ret = DryRunHtmlForm.SafeReturnUrl(context.Request, "/cp/jewellery-masters-app?tab=jw_karat");
+            if (!ErpJewelleryModuleChrome.HasJewelleryStaffAccess(session))
+                return Results.Redirect("/erp/login");
+            var code = DryRunHtmlForm.Read(context.Request, "karat_code");
+            var result = dryRun.Evaluate(new ErpJwModuleSaveRequest("jw_karat_save", code, false));
+            return DryRunHtmlForm.Redirect(ret, result.ValidationCode == "ok", result.Detail);
+        }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpJewelleryKaratSeedForm, async (HttpContext context, ILegacySessionValidator validator, IErpJwSeedSampleDataDryRun dryRun, CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            var ret = DryRunHtmlForm.SafeReturnUrl(context.Request, "/cp/jewellery-masters-app?tab=jw_karat");
+            if (!ErpJewelleryModuleChrome.HasJewelleryStaffAccess(session))
+                return Results.Redirect("/erp/login");
+            var result = dryRun.Evaluate(new ErpJwSeedSampleDataRequest(0, "jw_karat_seed", false));
+            return DryRunHtmlForm.Redirect(ret, result.ValidationCode == "ok", result.Detail);
+        }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpJewelleryModuleSaveForm, async (HttpContext context, ILegacySessionValidator validator, IErpJwModuleSaveDryRun dryRun, CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            var ret = DryRunHtmlForm.SafeReturnUrl(context.Request, "/cp/jewellery-masters-app");
+            if (!ErpJewelleryModuleChrome.HasJewelleryStaffAccess(session))
+                return Results.Redirect("/erp/login");
+            var action = DryRunHtmlForm.Read(context.Request, "action");
+            if (string.IsNullOrWhiteSpace(action)) action = "jw_module_save";
+            var code = DryRunHtmlForm.Read(context.Request, "code");
+            if (string.IsNullOrWhiteSpace(code)) code = DryRunHtmlForm.Read(context.Request, "karat_code");
+            if (string.IsNullOrWhiteSpace(code)) code = DryRunHtmlForm.Read(context.Request, "fix_no");
+            if (string.IsNullOrWhiteSpace(code)) code = DryRunHtmlForm.Read(context.Request, "party_code");
+            if (string.IsNullOrWhiteSpace(code)) code = DryRunHtmlForm.Read(context.Request, "customer_name");
+            var result = dryRun.Evaluate(new ErpJwModuleSaveRequest(action, code, false));
+            return DryRunHtmlForm.Redirect(ret, result.ValidationCode == "ok", result.Detail);
+        }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpParityModuleSaveForm, async (HttpContext context, ILegacySessionValidator validator, IErpJwModuleSaveDryRun dryRun, CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            var ret = DryRunHtmlForm.SafeReturnUrl(context.Request, "/erp/module-app");
+            if (!PhpParityDumpCatalog.HasStaffAccess(session))
+                return Results.Redirect("/erp/login");
+            var action = DryRunHtmlForm.Read(context.Request, "action");
+            if (string.IsNullOrWhiteSpace(action)) action = "php_parity_save";
+            var code = DryRunHtmlForm.Read(context.Request, "code");
+            if (string.IsNullOrWhiteSpace(code)) code = DryRunHtmlForm.Read(context.Request, "name");
+            var result = dryRun.Evaluate(new ErpJwModuleSaveRequest(action, code, false));
+            return DryRunHtmlForm.Redirect(ret, result.ValidationCode == "ok", result.Detail);
+        }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxRbacPrivSave, async (HttpContext context, ErpRbacPrivSaveBody? body, ILegacySessionValidator validator, IErpRbacPrivSaveDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpRbacPrivSaveRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxRbacDutySave, async (HttpContext context, ErpRbacDutySaveBody? body, ILegacySessionValidator validator, IErpRbacDutySaveDryRun dryRun, CancellationToken cancellationToken) =>

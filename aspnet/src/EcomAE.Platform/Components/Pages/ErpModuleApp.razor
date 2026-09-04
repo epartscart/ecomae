@@ -12,31 +12,85 @@
 
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="@_title" BreadcrumbArea="Modules" BreadcrumbTab="@_tab">
 
-    <PhpErpModulePageHeader Title="@_title"
-                            Subtitle="Module shell for residual ERP tabs. Dedicated digest apps stay on /erp/*."
+    <PhpErpModulePageHeader Title="@_chrome.Title"
+                            Subtitle="@_chrome.Subtitle"
                             PhpTabHref="@_phpTab" />
 
     <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
 
-    <div class="epc-erp-section-card">
-        <div class="epc-erp-section-card-hd"><h4><i class="fa fa-cubes"></i> @_title</h4></div>
-        <div class="epc-erp-section-card-bd" style="font-size:12.5px;color:#475569;line-height:1.45;">
-            <p style="margin:0 0 8px;">
-                Product route: <code>@_mappedApp</code>.
-                Tab key: <code>@_tab</code>.
-            </p>
-            @if (_hasDedicatedApp)
-            {
-                <p style="margin:0 0 8px;">
-                    Dedicated digest app:
-                    <a href="@_mappedApp"><strong>@_mappedApp</strong></a>
-                </p>
-            }
-            <p style="margin:0;">
-                <a class="btn btn-sm btn-primary" href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open this module</a>
-            </p>
+    @if (_hasDedicatedApp)
+    {
+        <div class="alert alert-info" style="margin:0 0 12px;">
+            Dedicated digest app: <a href="@_mappedApp"><strong>@_mappedApp</strong></a>
         </div>
+    }
+
+    <div class="epc-erp-kpi epc-erp-stat-row" aria-label="@_chrome.Title KPIs">
+        @foreach (var kpi in _chrome.KpiLabels)
+        {
+            <div class="kpi"><div class="lbl">@kpi</div><div class="val">0</div></div>
+        }
     </div>
+
+    @if (_chrome.ViewTabs.Count > 0)
+    {
+        <ErpPhpViewTabs QueryName="pm_view" Active="@_pmView" BaseHref="@($"/erp/module-app?tab={Uri.EscapeDataString(_tab)}")" Tabs="@_chrome.ViewTabs" />
+    }
+
+    @foreach (var section in _chrome.Sections)
+    {
+        <div class="epc-erp-section">
+            <h4>@section.Title</h4>
+            @if (!string.IsNullOrWhiteSpace(section.Intro))
+            {
+                <p class="text-muted">@section.Intro</p>
+            }
+            @if (section.Fields.Count > 0 && _isAdmin)
+            {
+                <ErpPhpCreateWell Title="@($"New {section.Title.ToLowerInvariant()}")">
+                    <form method="get" action="/erp/module-app" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+                        <input type="hidden" name="tab" value="@_tab" />
+                        @foreach (var field in section.Fields)
+                        {
+                            <div class="pm-field">
+                                <label>@field.Label
+                                    @if (field.Type == "select" && field.Options is not null)
+                                    {
+                                        <select class="form-control input-sm" name="@field.Name">
+                                            @foreach (var opt in field.Options)
+                                            {
+                                                <option value="@opt.Value">@opt.Text</option>
+                                            }
+                                        </select>
+                                    }
+                                    else
+                                    {
+                                        <input class="form-control input-sm" type="@(field.Type == "number" ? "number" : "text")" name="@field.Name" placeholder="@(field.Placeholder ?? field.Label)" />
+                                    }
+                                </label>
+                            </div>
+                        }
+                        <button type="submit" class="btn btn-primary btn-sm">Save record</button>
+                    </form>
+                </ErpPhpCreateWell>
+            }
+            <div class="epc-erp-table-wrap">
+                <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
+                    <thead>
+                        <tr>
+                            @foreach (var col in section.Columns)
+                            {
+                                <th>@col</th>
+                            }
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td colspan="@section.Columns.Count" class="text-muted">@section.EmptyCopy</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
 
     <h4>ERP tab catalog</h4>
     <div class="epc-erp-table-wrap">
@@ -79,6 +133,8 @@
     private string? _hybridPhp;
     private string _clearHref = "/erp/module-app";
     private IReadOnlyList<(string Tab, string Href)> _catalog = [];
+    private ErpPhpModuleChromeCatalog.ModuleChrome _chrome = ErpPhpModuleChromeCatalog.ForTab("module");
+    private string _pmView = "list";
 
     protected override async Task OnInitializedAsync()
     {
@@ -87,7 +143,10 @@
 
         var q = ctx.Request.Query["tab"].ToString();
         _tab = string.IsNullOrWhiteSpace(q) ? "module" : q.Trim().ToLowerInvariant();
-        _title = ToTitle(_tab);
+        _chrome = ErpPhpModuleChromeCatalog.ForTab(_tab);
+        _title = _chrome.Title;
+        var pm = ctx.Request.Query["pm_view"].ToString();
+        _pmView = string.IsNullOrWhiteSpace(pm) && _chrome.ViewTabs.Count > 0 ? _chrome.ViewTabs[0].Key : pm;
         _phpTab = $"/ERP/?epc_erp_shell=1&tab={Uri.EscapeDataString(_tab)}";
         _mappedApp = ErpPhpTabRouteMap.MapTabOrModuleApp(_tab);
         _hasDedicatedApp = !_mappedApp.StartsWith(ErpPhpTabRouteMap.ModuleAppPath, StringComparison.OrdinalIgnoreCase);

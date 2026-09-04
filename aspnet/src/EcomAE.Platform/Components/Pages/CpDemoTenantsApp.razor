@@ -43,12 +43,14 @@
     <section class="epc-demo-hero">
         <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
         <h1>Demo Tenants</h1>
-        <p>Manage store operations, catalogue, and partner integrations from one control panel.</p>
+        <p>@CpPhpModuleCopy.PurposeFor(Nav.Uri)</p>
         <div class="epc-demo-cta">
             <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
             <a class="ghost" href="/cp/tenants-app">All tenants</a>
         </div>
     </section>
+    <PhpParityModuleBody AppPath="/cp/demo-tenants-app" IsAdmin="_isAdmin" />
+
 
     <div class="epc-demo-table-wrap">
         <table class="epc-demo-table">
@@ -71,7 +73,7 @@
             <tbody>
                 @if (_tenants.Count == 0)
                 {
-                    <tr><td colspan="12">Nothing to show yet.</td></tr>
+                    <tr><td colspan="12">No records yet.</td></tr>
                 }
                 else
                 {
@@ -126,7 +128,7 @@ else
         }
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
-        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
+        _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
         if (!_isAdmin)
         {
             return; // guest browse — Sign in for live data

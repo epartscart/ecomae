@@ -45,11 +45,13 @@
     <section class="epc-w18-hero">
         <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
         <h1>PO approvals</h1>
-        <p>Manage store operations, catalogue, and partner integrations from one control panel.</p>
+        <p>@CpPhpModuleCopy.PurposeFor(Nav.Uri)</p>
         <div class="epc-w18-cta">
             <a href="/cp/po-approvals-app">Refresh</a>
         </div>
     </section>
+    <PhpParityModuleBody AppPath="/cp/po-approvals-app" IsAdmin="_isAdmin" />
+
 
     @if (!string.IsNullOrWhiteSpace(_flash))
     {
@@ -84,7 +86,7 @@
         <tbody>
             @if (_rows.Count == 0)
             {
-                <tr><td colspan="12">Nothing to show yet.</td></tr>
+                <tr><td colspan="12">No records yet.</td></tr>
             }
             else
             {
@@ -146,7 +148,7 @@
         if (ctx is null) return;
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
-        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
+        _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
         if (!_isAdmin)
         {
             return; // guest browse — Sign in for live data

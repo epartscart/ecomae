@@ -232,6 +232,34 @@ body.epc-erp-cp-shell .epc-erp-content-body [class$="-table"] {
 	margin: 0 0 12px !important;
 }
 
+/* PHP erp_pm_render / quality view tabs + create wells */
+.epc-erp-cp-shell .pm-module-tabs,
+.epc-erp-cp-shell .btn-group.pm-module-tabs {
+	display: flex !important;
+	flex-wrap: wrap !important;
+	gap: 0 !important;
+	margin: 0 0 14px !important;
+}
+.epc-erp-cp-shell .epc-erp-section {
+	margin: 0 0 18px !important;
+}
+.epc-erp-cp-shell .epc-erp-section > h4,
+.epc-erp-cp-shell .epc-erp-section > h5 {
+	margin: 0 0 8px !important;
+	font-size: 15px !important;
+	font-weight: 700 !important;
+	color: #243746 !important;
+}
+.epc-erp-cp-shell .pm-fields,
+.epc-erp-cp-shell .pm-field {
+	margin: 0 0 8px !important;
+}
+.epc-erp-cp-shell .well.well-sm,
+.epc-erp-cp-shell .epc-erp-section .well {
+	background: #fff !important;
+	border: 1px solid #c5d4de !important;
+}
+
 @media (max-width: 900px) {
 	.epc-erp-cp-shell .epc-erp-kpi,
 	.epc-erp-cp-shell .epc-erp-content-body [class$="-kpis"] {

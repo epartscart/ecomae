@@ -1646,6 +1646,72 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>
+    /// PHP <c>prices_manager.php</c> — Docpart supplier lists (<c>shop_docpart_prices</c>),
+    /// not <c>epc_pl_lists</c> commerce profiles.
+    /// </summary>
+    public const string SelectCpDocpartPriceStats = """
+        SELECT
+            (SELECT COUNT(*) FROM `shop_docpart_prices`) AS list_count,
+            (SELECT COUNT(*) FROM `shop_docpart_prices_data`) AS offer_rows,
+            (SELECT COUNT(*) FROM `epc_price_upload_history`) AS upload_count
+        """;
+
+    public const string SelectCpDocpartPriceLists = """
+        SELECT `id`,
+               IFNULL(`name`,'') AS name,
+               IFNULL(`load_mode`,1) AS load_mode,
+               IFNULL(`records_count`,0) AS records_count,
+               IFNULL(`last_updated`,'') AS last_updated
+        FROM `shop_docpart_prices`
+        ORDER BY `id` ASC
+        LIMIT @limit
+        """;
+
+    public const string SelectCpDocpartPriceWarehouses = """
+        SELECT `id`, IFNULL(`name`,'') AS name, IFNULL(`connection_options`,'') AS connection_options
+        FROM `shop_storages`
+        WHERE `interface_type` = 2
+        ORDER BY `id` ASC
+        LIMIT 500
+        """;
+
+    public const string SelectCpDocpartPriceListById = """
+        SELECT `id`,
+               IFNULL(`name`,'') AS name,
+               IFNULL(`load_mode`,1) AS load_mode,
+               IFNULL(`records_count`,0) AS records_count,
+               IFNULL(`last_updated`,'') AS last_updated,
+               IFNULL(`ftp_host`,'') AS ftp_host,
+               IFNULL(`ftp_user`,'') AS ftp_user,
+               IFNULL(`ftp_folder`,'') AS ftp_folder,
+               IFNULL(`sender_email`,'') AS sender_email,
+               IFNULL(`message_header_substring`,'') AS message_header_substring,
+               IFNULL(`file_name_substring`,'') AS file_name_substring,
+               IFNULL(`link`,'') AS link,
+               IFNULL(`encoding`,'') AS encoding,
+               IFNULL(`separator`,'') AS separator
+        FROM `shop_docpart_prices`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    public const string SelectStorefrontGroupForPercentage = """
+        SELECT IFNULL(MAX(IFNULL(g.`for_percentage`,0)),0) AS for_percentage
+        FROM `groups` g
+        INNER JOIN `users_groups_bind` b ON b.`group_id` = g.`id`
+        WHERE b.`user_id` = @userId
+        """;
+
+    public const string SelectStorefrontStorageMarkups = """
+        SELECT `office_id`, `storage_id`, `group_id`,
+               IFNULL(`min_point`,0) AS min_point,
+               IFNULL(`max_point`,999999999) AS max_point,
+               IFNULL(`markup`,0)/100 AS markup
+        FROM `shop_offices_storages_map`
+        WHERE (@groupId = 0 OR `group_id` = @groupId)
+        """;
+
     /// <summary>Price list KPIs — omits stats_json/error_text/stored_relpath.</summary>
     public const string SelectCpPriceListStats = """
         SELECT
@@ -2490,17 +2556,57 @@ public static class LegacySurfaceDashboardSql
             (SELECT COUNT(*) FROM `epc_jewel_repair_items`) AS item_count
         """;
 
-    /// <summary>Jewellery repairs — omits mobile/email/tel/remarks/narration/customer PII.</summary>
+    /// <summary>Jewellery repairs — Suntech <c>epc_jewel_repair</c> plus first item line. Email/tel/remarks omitted.</summary>
     public const string SelectCpJewelleryRepairs = """
-        SELECT `id`, IFNULL(`company_id`,0) AS company_id, IFNULL(`branch`,'') AS branch,
-               IFNULL(`voc_type`,'') AS voc_type, IFNULL(`voc_date`,'') AS voc_date,
-               IFNULL(`voc_no`,0) AS voc_no, IFNULL(`customer_name`,'') AS customer_name,
-               IFNULL(`status`,'') AS status, IFNULL(`currency`,'') AS currency,
-               IFNULL(`delivery_date`,'') AS delivery_date, IFNULL(`authorized`,0) AS authorized,
-               IFNULL(`created_at`,'') AS created_at
-        FROM `epc_jewel_repair`
+        SELECT r.`id`, IFNULL(r.`company_id`,0) AS company_id, IFNULL(r.`branch`,'') AS branch,
+               IFNULL(r.`voc_type`,'') AS voc_type, IFNULL(r.`voc_date`,'') AS voc_date,
+               IFNULL(r.`voc_no`,0) AS voc_no, IFNULL(r.`customer_name`,'') AS customer_name,
+               IFNULL(r.`status`,'') AS status, IFNULL(r.`currency`,'') AS currency,
+               IFNULL(r.`delivery_date`,'') AS delivery_date, IFNULL(r.`authorized`,0) AS authorized,
+               IFNULL(r.`created_at`,'') AS created_at,
+               CONCAT(IFNULL(r.`voc_type`,'REP'), '-', IFNULL(r.`voc_no`,0)) AS repair_no,
+               '' AS customer_phone,
+               IFNULL(i.`description`,'') AS item_description,
+               '' AS metal,
+               '' AS karat,
+               IFNULL(i.`gr_wt`,0) AS weight_in,
+               IFNULL(i.`repair_type`,'') AS repair_type,
+               0 AS estimated_cost
+        FROM `epc_jewel_repair` r
+        LEFT JOIN `epc_jewel_repair_items` i ON i.`repair_id` = r.`id` AND i.`line_no` = 1
+        ORDER BY r.`id` DESC
+        LIMIT @limit
+        """;
+
+    /// <summary>PHP repairs tab list — <c>epc_jw_repair_list</c> reads <c>epc_erp_jw_repairs</c>.</summary>
+    public const string SelectCpJewelleryIntegrationRepairs = """
+        SELECT `id`, 0 AS company_id, '' AS branch, 'REPAIR' AS voc_type,
+               IFNULL(FROM_UNIXTIME(NULLIF(`received_date`,0)), '') AS voc_date,
+               0 AS voc_no, IFNULL(`customer_name`,'') AS customer_name,
+               IFNULL(`status`,'') AS status, 'AED' AS currency,
+               IFNULL(FROM_UNIXTIME(NULLIF(`delivered_date`,0)), '') AS delivery_date,
+               0 AS authorized,
+               IFNULL(FROM_UNIXTIME(NULLIF(`time_created`,0)), '') AS created_at,
+               IFNULL(`repair_no`,'') AS repair_no,
+               IFNULL(`customer_phone`,'') AS customer_phone,
+               IFNULL(`item_description`,'') AS item_description,
+               IFNULL(`metal_type`,'') AS metal,
+               IFNULL(`karat`,'') AS karat,
+               IFNULL(`gross_wt_in`,0) AS weight_in,
+               IFNULL(`repair_type`,'') AS repair_type,
+               IFNULL(`estimated_cost`,0) AS estimated_cost
+        FROM `epc_erp_jw_repairs`
         ORDER BY `id` DESC
         LIMIT @limit
+        """;
+
+    /// <summary>PHP integration repair KPIs from <c>epc_erp_jw_repairs</c>.</summary>
+    public const string SelectCpJewelleryIntegrationRepairStats = """
+        SELECT
+            (SELECT COUNT(*) FROM `epc_erp_jw_repairs`) AS repair_count,
+            (SELECT COUNT(*) FROM `epc_erp_jw_repairs` WHERE IFNULL(`status`,'') IN ('received','in_progress','ready')) AS open_count,
+            0 AS authorized_count,
+            0 AS item_count
         """;
 
     /// <summary>CRM ticket KPIs from epc_crm_tickets (CREATE TABLE in epc_crm_schema.php).</summary>
@@ -4326,6 +4432,25 @@ public const string SelectCpOpsGuidesStats = """
                IFNULL(p.`time_created`,0) AS time_created
         FROM `epc_erp_staff_profiles` p
         ORDER BY p.`department_code`, p.`display_name`, p.`id`
+        LIMIT @limit
+        """;
+
+    /// <summary>PHP <c>epc_erp_hr_list</c> — notes omitted; bank account last-4 only.</summary>
+    public const string SelectErpHrRecords = """
+        SELECT h.`id`, IFNULL(h.`staff_profile_id`,0) AS staff_profile_id,
+               IFNULL(p.`display_name`,'') AS display_name,
+               IFNULL(p.`department_code`,'') AS department_code,
+               IFNULL(p.`job_title`,'') AS job_title,
+               IFNULL(h.`basic_salary`,0) AS basic_salary,
+               IFNULL(h.`allowances`,0) AS allowances,
+               IFNULL(h.`days_worked`,30) AS days_worked,
+               IFNULL(h.`leave_balance_days`,0) AS leave_balance_days,
+               IFNULL(h.`hire_date`,0) AS hire_date,
+               IFNULL(h.`bank_name`,'') AS bank_name,
+               RIGHT(IFNULL(h.`bank_account`,''), 4) AS bank_account_preview
+        FROM `epc_erp_hr_records` h
+        INNER JOIN `epc_erp_staff_profiles` p ON p.`id` = h.`staff_profile_id`
+        ORDER BY p.`department_code`, p.`display_name`, h.`id`
         LIMIT @limit
         """;
 

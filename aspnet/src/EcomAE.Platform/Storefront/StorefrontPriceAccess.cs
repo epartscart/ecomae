@@ -27,7 +27,8 @@ public sealed record StorefrontPriceAccessResult(
     bool PricesVisible,
     string SensitiveMask,
     string LoginCtaHtml,
-    string LoginCtaPlain)
+    string LoginCtaPlain,
+    bool ShowPurchaseCost = false)
 {
     public static StorefrontPriceAccessResult Visible { get; } = new(
         StorefrontPriceAccessState.Ok,
@@ -106,7 +107,7 @@ public sealed class StorefrontPriceAccess : IStorefrontPriceAccess
         // Admin CP sessions are not wholesale trade accounts — show prices/terms on storefront.
         if (session.Kind == LegacySessionKind.Admin)
         {
-            return StorefrontPriceAccessResult.Visible;
+            return StorefrontPriceAccessResult.Visible with { ShowPurchaseCost = true };
         }
 
         if (!_connections.IsConfigured)
@@ -126,7 +127,33 @@ public sealed class StorefrontPriceAccess : IStorefrontPriceAccess
             return Build(StorefrontPriceAccessState.Rejected);
         }
 
-        return StorefrontPriceAccessResult.Visible;
+        var showPurchase = await ReadGroupForPercentageAsync(tenant, userId, cancellationToken).ConfigureAwait(false);
+        return StorefrontPriceAccessResult.Visible with { ShowPurchaseCost = showPurchase };
+    }
+
+    private async Task<bool> ReadGroupForPercentageAsync(TenantContext? tenant, int userId, CancellationToken cancellationToken)
+    {
+        if (userId <= 0 || !_connections.IsConfigured)
+        {
+            return false;
+        }
+
+        try
+        {
+            await using var connection = await _connections.OpenForTenantAsync(tenant, cancellationToken).ConfigureAwait(false);
+            await using var cmd = connection.CreateCommand();
+            cmd.CommandText = LegacySurfaceDashboardSql.SelectStorefrontGroupForPercentage;
+            var p = cmd.CreateParameter();
+            p.ParameterName = "@userId";
+            p.Value = userId;
+            cmd.Parameters.Add(p);
+            var raw = await cmd.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
+            return Convert.ToInt32(raw ?? 0, CultureInfo.InvariantCulture) != 0;
+        }
+        catch
+        {
+            return false;
+        }
     }
 
     public IReadOnlyList<StorefrontPartOfferDigest> RedactOffers(IReadOnlyList<StorefrontPartOfferDigest> offers)
@@ -142,6 +169,7 @@ public sealed class StorefrontPriceAccess : IStorefrontPriceAccess
             list.Add(o with
             {
                 Price = 0m,
+                PricePurchase = 0m,
                 Exist = o.Exist > 0 ? 1 : 0,
                 TimeToExe = string.Empty,
                 Storage = string.Empty,

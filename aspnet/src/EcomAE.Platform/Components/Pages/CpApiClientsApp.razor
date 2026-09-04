@@ -49,6 +49,7 @@
     <section class="epc-ac-hero">
         <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
         <h1>API Clients</h1>
+        <p>@CpPhpModuleCopy.PurposeFor(Nav.Uri)</p>
         <p>Revoke or re-activate a client key on Super CP. Create / rotate stay on the compare twin.</p>
         <div class="epc-ac-cta">
             <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
@@ -56,6 +57,8 @@
             <a class="ghost" href="/cp/tenants-app">Tenants list</a>
         </div>
     </section>
+    <PhpParityModuleBody AppPath="/cp/api-clients-app" IsAdmin="_isAdmin" />
+
 
     @if (!string.IsNullOrWhiteSpace(_flashOk))
     {
@@ -106,7 +109,7 @@
             <tbody>
                 @if (_clients.Count == 0)
                 {
-                    <tr><td colspan="10">Nothing to show yet.</td></tr>
+                    <tr><td colspan="10">No records yet.</td></tr>
                 }
                 else
                 {
@@ -152,7 +155,7 @@
         _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
         _flashErr = ctx.Request.Query["err"].ToString() ?? "";
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
-        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
+        _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
         if (!_isAdmin)
         {
             return; // guest browse — Sign in for live data

@@ -38,12 +38,14 @@
     <section class="epc-w23-hero">
         <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
         <h1>Ops guides</h1>
-        <p>Manage store operations from the control panel.</p>
+        <p>@CpPhpModuleCopy.PurposeFor(Nav.Uri)</p>
         <div class="epc-w23-cta">
             <a href="@EcomAeRoutes.ControlPanelGuidesApp">Operator guides</a>
             <a class="ghost" href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">CP guideline</a>
         </div>
     </section>
+    <PhpParityModuleBody AppPath="/cp/ops-guides-app" IsAdmin="_isAdmin" />
+
     <div class="epc-w23-kpis">
         <div class="epc-w23-kpi"><strong>@_summary.GroupCount.ToString(CultureInfo.InvariantCulture)</strong><span>Groups</span></div>
         <div class="epc-w23-kpi"><strong>@_summary.ItemCount.ToString(CultureInfo.InvariantCulture)</strong><span>Items</span></div>
@@ -53,7 +55,7 @@
     <div class="epc-w23-table-wrap"><table class="epc-w23-table">
         <thead><tr><th>Id</th><th>Group</th><th>Caption</th><th>URL</th><th>Show anyway</th><th></th></tr></thead>
         <tbody>
-        @if (_rows.Count==0) { <tr><td colspan="6">Nothing to show yet.</td></tr> }
+        @if (_rows.Count==0) { <tr><td colspan="6">No records yet.</td></tr> }
         else { @foreach (var row in _rows) { <tr><td>@row.Id</td><td>@row.ItemsGroup</td><td>@row.Caption</td><td>@row.Url</td><td>@row.ShowAnyway</td><td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td></tr> } }
         </tbody>
     </table></div>
@@ -71,7 +73,7 @@
         var ctx = Http.HttpContext;
         if (ctx is null) return;
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
-        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
+        _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
         if (!_isAdmin)
         {
             return; // guest browse — Sign in for live data

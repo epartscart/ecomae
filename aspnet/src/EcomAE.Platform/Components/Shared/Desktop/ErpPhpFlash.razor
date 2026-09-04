@@ -1,0 +1,15 @@
+@namespace EcomAE.Platform.Components.Shared
+
+@if (!string.IsNullOrWhiteSpace(Ok))
+{
+    <div class="alert alert-success" role="status">@Ok</div>
+}
+@if (!string.IsNullOrWhiteSpace(Err))
+{
+    <div class="alert alert-danger" role="alert">@Err</div>
+}
+
+@code {
+    [Parameter] public string? Ok { get; set; }
+    [Parameter] public string? Err { get; set; }
+}

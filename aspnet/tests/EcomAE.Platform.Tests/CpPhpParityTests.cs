@@ -151,7 +151,11 @@ public sealed class CpPhpParityTests
     public void PricesUpload_DoesNotCollapseToPriceLists()
     {
         Assert.Equal("/cp/prices-upload-app", PhpSurfaceLinkMap.MapCpPhpPath("/CP/shop/prices_upload/ajax_5_import_csv_to_db.php"));
+        Assert.Equal("/cp/prices-upload-app", PhpSurfaceLinkMap.MapCpPhpPath("/CP/shop/prices"));
+        Assert.Equal("/cp/prices-upload-app", PhpSurfaceLinkMap.MapCpPhpPath("/CP/shop/prices/guide"));
+        Assert.Equal("/cp/shop/prices/price?price_id=4", PhpSurfaceLinkMap.MapCpPhpPath("/CP/shop/prices/price?price_id=4"));
         Assert.Equal("/cp/price-lists-app", PhpSurfaceLinkMap.MapCpPhpPath("/CP/shop/price-management"));
+        Assert.Equal("/cp/price-lists-app", PhpSurfaceLinkMap.MapCpPhpPath("/CP/shop/pricing"));
     }
 
     [Fact]

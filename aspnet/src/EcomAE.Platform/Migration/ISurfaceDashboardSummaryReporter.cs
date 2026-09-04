@@ -160,6 +160,9 @@ public interface ISurfaceDashboardSummaryReporter
 
     /// <summary>Read-only price lists (stats_json/error_text/stored_relpath omitted).</summary>
     Task<CpPriceListsDigestResult> BuildCpPriceListsDigestAsync(int limit, CancellationToken cancellationToken = default);
+    /// <summary>PHP <c>prices_manager.php</c> Docpart lists (<c>shop_docpart_prices</c> + linked warehouses).</summary>
+    Task<CpDocpartPriceListsDigestResult> BuildCpDocpartPriceListsDigestAsync(int limit, CancellationToken cancellationToken = default);
+    Task<CpDocpartPriceListDetail?> BuildCpDocpartPriceListDetailAsync(long priceId, CancellationToken cancellationToken = default);
 
     /// <summary>Read-only auto-price rules (config_json/notes/meta omitted).</summary>
     Task<CpAutoPriceDigestResult> BuildCpAutoPriceDigestAsync(int limit, CancellationToken cancellationToken = default);
@@ -510,6 +513,9 @@ public interface ISurfaceDashboardSummaryReporter
 
     /// <summary>Read-only staff profiles (PHP <c>epc_erp_staff_profiles</c>; writes remain PHP).</summary>
     Task<ErpStaffListResult> ListErpStaffAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Read-only HR salary/leave rows (PHP <c>epc_erp_hr_list</c>; notes omitted).</summary>
+    Task<ErpHrListResult> ListErpHrRecordsAsync(int limit, CancellationToken cancellationToken = default);
 
     /// <summary>Read-only contracts register (PHP <c>epc_erp_contracts</c>; body/OCR omitted).</summary>
     Task<ErpContractsListResult> ListErpContractsAsync(int limit, CancellationToken cancellationToken = default);

@@ -45,12 +45,14 @@
     <section class="epc-pbi-hero">
         <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
         <h1>Power BI</h1>
-        <p>Manage store operations, catalogue, and partner integrations from one control panel.</p>
+        <p>@CpPhpModuleCopy.PurposeFor(Nav.Uri)</p>
         <div class="epc-pbi-cta">
             <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
             <a class="ghost" href="/cp/mobile-apps-app">Mobile apps</a>
         </div>
     </section>
+    <PhpParityModuleBody AppPath="/cp/power-bi-app" IsAdmin="_isAdmin" />
+
 
     <div class="epc-pbi-kpis" aria-label="Power BI config">
         <div class="epc-pbi-kpi"><strong>@(_summary.Active ? "active" : "off")</strong><span>Config (@(string.IsNullOrWhiteSpace(_summary.SiteKey) ? "—" : _summary.SiteKey))</span></div>
@@ -85,7 +87,7 @@
             <tbody>
                 @if (_reports.Count == 0)
                 {
-                    <tr><td colspan="9">Nothing to show yet.</td></tr>
+                    <tr><td colspan="9">No records yet.</td></tr>
                 }
                 else
                 {
@@ -124,7 +126,7 @@
         if (ctx is null) return;
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
-        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
+        _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
         if (!_isAdmin)
         {
             return; // guest browse — Sign in for live data

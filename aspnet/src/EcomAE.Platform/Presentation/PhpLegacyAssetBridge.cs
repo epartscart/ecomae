@@ -149,6 +149,8 @@ public static class PhpLegacyAssetBridge
                          "content/general_pages/epc_warehouse_search_parity.css"),
                      ("/platform-assets/epc_warehouse_search_parity.js",
                          "content/general_pages/epc_warehouse_search_parity.js"),
+                     ("/platform-assets/epc_storefront_bulk_upload.js",
+                         "content/general_pages/epc_storefront_bulk_upload.js"),
                      ("/platform-assets/epc_sku_media.css",
                          "content/shop/catalogue/epc_sku_media.css"),
                  })

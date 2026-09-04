@@ -45,12 +45,15 @@
     <section class="epc-x-hero">
         <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
         <h1>Crosses</h1>
+        <p>@CpPhpModuleCopy.PurposeFor(Nav.Uri)</p>
         <p>Save and delete a single analog pair here when confirmWrites is set. Add, brand auto-resolve, and search-delete stay on the PHP twin.</p>
         <div class="epc-x-cta">
             <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
             <a class="ghost" href="/cp/parts-agent-chats-app">Parts agent</a>
         </div>
     </section>
+    <PhpParityModuleBody AppPath="/cp/crosses-app" IsAdmin="_isAdmin" />
+
 
     @if (!string.IsNullOrWhiteSpace(_flashOk))
     {
@@ -104,7 +107,7 @@
             <tbody>
                 @if (_pairs.Count == 0)
                 {
-                    <tr><td colspan="6">Nothing to show yet.</td></tr>
+                    <tr><td colspan="6">No records yet.</td></tr>
                 }
                 else
                 {
@@ -146,7 +149,7 @@
         _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
         _flashErr = ctx.Request.Query["err"].ToString() ?? "";
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
-        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
+        _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
         if (!_isAdmin)
         {
             return; // guest browse — Sign in for live data
