@@ -652,6 +652,7 @@ builder.Services.AddScoped<EcomAE.Platform.Storefront.IStorefrontCartWriteServic
 builder.Services.AddScoped<EcomAE.Platform.Storefront.IStorefrontCheckoutWriteService, EcomAE.Platform.Storefront.StorefrontCheckoutWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Storefront.IStorefrontQuoteWriteService, EcomAE.Platform.Storefront.StorefrontQuoteWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Storefront.IStorefrontGarageWriteService, EcomAE.Platform.Storefront.StorefrontGarageWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Storefront.IStorefrontCustomerWriteService, EcomAE.Platform.Storefront.StorefrontCustomerWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpPayrollWriteService, EcomAE.Platform.Erp.ErpPayrollWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpInventoryForecastWriteService, EcomAE.Platform.Erp.ErpInventoryForecastWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpOmsWriteService, EcomAE.Platform.Cp.CpOmsWriteService>();

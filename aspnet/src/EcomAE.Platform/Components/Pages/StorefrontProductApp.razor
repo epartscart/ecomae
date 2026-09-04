@@ -47,6 +47,15 @@
 
 <StorefrontTenantChrome>
 
+    @if (!string.IsNullOrWhiteSpace(_flashOk))
+    {
+        <p style="margin:0 0 .75rem;padding:.65rem .8rem;background:#ecfdf3;border:1px solid #86efac;color:#166534">@_flashOk</p>
+    }
+    @if (!string.IsNullOrWhiteSpace(_flashErr))
+    {
+        <p style="margin:0 0 .75rem;padding:.65rem .8rem;background:#fef2f2;border:1px solid #fecaca;color:#991b1b">@_flashErr</p>
+    }
+
     @if (_product is null)
     {
         <PhpStorefrontPageHeader Title="Product" Subtitle="Catalogue product with media and specifications. Add ?id= for a product row.">
@@ -170,6 +179,8 @@
                 <p style="margin:0 0 .85rem;color:#64748b;font-size:.88rem">No reviews on this product yet.</p>
             }
             <form method="post" action="@PhpCustomerWrites.EvaluationWriteHref" style="margin:0">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="@("/storefront/product-app?id=" + _product.Id.ToString(CultureInfo.InvariantCulture))" />
                 <input type="hidden" name="product_id" value="@_product.Id.ToString(CultureInfo.InvariantCulture)" />
                 <label style="display:block;margin:.25rem 0">Rating
                     <select name="mark" style="margin-left:.35rem;padding:.35rem">
@@ -196,6 +207,8 @@
     private string _source = "n/a";
     private string _message = "";
     private IReadOnlyList<PhpProductReviews.Review> _reviews = [];
+    private string _flashOk = "";
+    private string _flashErr = "";
 
     [SupplyParameterFromQuery(Name = "id")]
     public int? ProductId { get; set; }
@@ -232,12 +245,15 @@
 
     protected override async Task OnInitializedAsync()
     {
+        var ctx = Http.HttpContext;
+        _flashOk = ctx?.Request.Query["ok"].ToString() ?? "";
+        _flashErr = ctx?.Request.Query["err"].ToString() ?? "";
         if (ProductId is null or <= 0)
         {
             return;
         }
 
-        var result = await Dashboards.GetStorefrontProductAsync(ProductId.Value, Http.HttpContext?.RequestAborted ?? default);
+        var result = await Dashboards.GetStorefrontProductAsync(ProductId.Value, ctx?.RequestAborted ?? default);
         _product = result.Product;
         _source = result.Source;
         _message = result.Message;

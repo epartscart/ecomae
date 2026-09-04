@@ -1842,15 +1842,15 @@ public static class EcomAeRoutes
     public const string StorefrontCartDelete = "/storefront/cart/delete";
     /// <summary>Live add-to-cart type-2 (PHP <c>ajax_add_to_basket.php</c> twin). <c>confirmWrites=false</c> stays dry-run.</summary>
     public const string StorefrontCartAdd = "/storefront/cart/add";
-    /// <summary>Wave B dry-run garage notepad add (PHP ajax_add_to_notepad.php remains authoritative).</summary>
+    /// <summary>Garage notepad add. <c>confirmWrites=true</c> is the live twin of PHP ajax_add_to_notepad.php.</summary>
     public const string StorefrontGarageNotepadAdd = "/storefront/garage/notepad-add";
     /// <summary>Quote submit. <c>confirmWrites=true</c> is the live twin of PHP ajax_quote_submit.php.</summary>
     public const string StorefrontQuoteSubmit = "/storefront/quotes/submit";
-    /// <summary>Wave B dry-run quote accept (PHP ajax_quote_accept.php remains authoritative; cart INSERT stays PHP).</summary>
+    /// <summary>Quote accept. <c>confirmWrites=true</c> is the live twin of PHP ajax_quote_accept.php (cart INSERT included).</summary>
     public const string StorefrontQuoteAccept = "/storefront/quotes/accept";
-    /// <summary>Wave B dry-run quote add-item (PHP ajax_add_to_quote.php remains authoritative; check_hash stays PHP).</summary>
+    /// <summary>Quote add-item. <c>confirmWrites=true</c> is the live twin of PHP ajax_add_to_quote.php. check_hash stays optional.</summary>
     public const string StorefrontQuoteAddItem = "/storefront/quotes/add-item";
-    /// <summary>Wave B dry-run quote add-manual (PHP ajax_add_to_quote_manual.php remains authoritative).</summary>
+    /// <summary>Quote add-manual. <c>confirmWrites=true</c> is the live twin of PHP ajax_add_to_quote_manual.php.</summary>
     public const string StorefrontQuoteAddManual = "/storefront/quotes/add-manual";
     /// <summary>Garage set-active. <c>confirmWrites=true</c> is the live twin of PHP ajax_operations_cars.php action=active_car.</summary>
     public const string StorefrontGarageSetActive = "/storefront/garage/set-active";
@@ -1860,7 +1860,7 @@ public static class EcomAeRoutes
     public const string StorefrontGarageCheckCar = "/storefront/garage/check-car";
     /// <summary>Signed-in checkout create. <c>confirmWrites=true</c> is the live twin of PHP ajax_checkout_create.php. Guest stays PHP.</summary>
     public const string StorefrontCheckoutCreate = "/storefront/checkout/create";
-    /// <summary>Wave B dry-run customer order message (PHP ajax_send_message.php customer path remains authoritative).</summary>
+    /// <summary>Customer order message. <c>confirmWrites=true</c> is the live twin of PHP ajax_send_message.php customer path.</summary>
     public const string StorefrontOrderSendMessage = "/storefront/orders/send-message";
     /// <summary>Marketing platform overview Blazor scaffold (PHP /platform remains primary until dual-sample).</summary>
     public const string MarketingPlatformApp = "/marketing/platform";

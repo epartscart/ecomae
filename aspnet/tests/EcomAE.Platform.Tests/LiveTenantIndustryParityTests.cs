@@ -356,7 +356,12 @@ public sealed class LiveTenantIndustryParityTests
         Assert.Equal("/storefront/checkout/create", PhpCustomerWrites.CheckoutConfirmWriteHref);
         Assert.Equal("/storefront/cart/add", PhpCustomerWrites.CartAddHref);
         Assert.StartsWith("/php-reference/", PhpCustomerWrites.ReturnsMessageHref);
-        Assert.StartsWith("/php-reference/", PhpCustomerWrites.EvaluationWriteHref);
+        Assert.Equal("/storefront/evaluations/add", PhpCustomerWrites.EvaluationWriteHref);
+        Assert.Equal("/storefront/quotes/add-item", PhpCustomerWrites.QuoteAddHref);
+        Assert.Equal("/storefront/quotes/accept", PhpCustomerWrites.QuotesAcceptHref);
+        Assert.Equal("/storefront/quotes/add-manual", PhpCustomerWrites.QuotesAddManualHref);
+        Assert.Equal("/storefront/garage/notepad-add", PhpCustomerWrites.GarageNotepadWriteHref);
+        Assert.Equal("/storefront/orders/send-message", PhpCustomerWrites.OrderMessageHref);
         Assert.Equal(StorefrontAspNetCanonical.CustomerReturns, PhpSurfaceLinkMap.AspNetPrimaryHref("/en/shop/returns_list"));
         Assert.True(PhpIndustryCmsPages.IsSlug("o-kompanii"));
         Assert.Contains("eParts Cart", PhpIndustryCmsPages.Resolve("o-kompanii", "auto_parts").Title, StringComparison.Ordinal);

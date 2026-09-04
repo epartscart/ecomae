@@ -149,4 +149,43 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(garageDelete.Succeeded);
         Assert.Equal("invalid", garageDelete.Code);
     }
+
+    [Fact]
+    public async Task Quote_accept_add_and_customer_writes_reject_before_open()
+    {
+        var acceptInvalid = await new StorefrontQuoteWriteService(new ConfiguredNeverOpened())
+            .AcceptAsync(1, 0);
+        Assert.False(acceptInvalid.Succeeded);
+        Assert.Equal("invalid", acceptInvalid.Code);
+
+        var addType = await new StorefrontQuoteWriteService(new ConfiguredNeverOpened())
+            .AddItemAsync(1, new StorefrontQuoteAddItemWriteRequest(1, "Bosch", "F026400050"));
+        Assert.False(addType.Succeeded);
+        Assert.Equal("product_type_unsupported", addType.Code);
+
+        var addMissing = await new StorefrontQuoteWriteService(new ConfiguredNeverOpened())
+            .AddItemAsync(1, new StorefrontQuoteAddItemWriteRequest(2, "", ""));
+        Assert.False(addMissing.Succeeded);
+        Assert.Equal("invalid", addMissing.Code);
+
+        var manual = await new StorefrontQuoteWriteService(new ConfiguredNeverOpened())
+            .AddManualAsync(1, "", "ABC");
+        Assert.False(manual.Succeeded);
+        Assert.Equal("invalid", manual.Code);
+
+        var notepad = await new StorefrontGarageWriteService(new ConfiguredNeverOpened())
+            .AddNotepadAsync(1, 0, "Bosch", "", "Filter", 1, 10);
+        Assert.False(notepad.Succeeded);
+        Assert.Equal("invalid", notepad.Code);
+
+        var review = await new StorefrontCustomerWriteService(new ConfiguredNeverOpened())
+            .AddEvaluationAsync(1, 0, 5, "ok");
+        Assert.False(review.Succeeded);
+        Assert.Equal("invalid", review.Code);
+
+        var message = await new StorefrontCustomerWriteService(new ConfiguredNeverOpened())
+            .SendOrderMessageAsync(1, 9, "");
+        Assert.False(message.Succeeded);
+        Assert.Equal("invalid", message.Code);
+    }
 }

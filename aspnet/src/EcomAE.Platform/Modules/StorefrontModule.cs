@@ -1001,31 +1001,55 @@ public sealed class StorefrontModule : ISurfaceModule
 
         endpoints.MapPost(EcomAeRoutes.StorefrontGarageNotepadAdd, async (
             HttpContext context,
-            StorefrontGarageNotepadAddBody? body,
             ILegacySessionValidator validator,
             IStorefrontGarageNotepadAddDryRun dryRun,
+            IStorefrontGarageWriteService writes,
             CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateAsync(context, cancellationToken);
             if (session.Kind != LegacySessionKind.Customer || session.UserId <= 0)
             {
-                return Unauthorized("Customer session required for garage notepad-add dry-run.");
+                return LiveWriteFormBinder.LoginRedirect(context, "/storefront/login?returnUrl=/storefront/garage-app", "Customer session required for garage notepad-add.");
             }
 
-            body ??= new StorefrontGarageNotepadAddBody(0, null, null, null, 0, 0, false);
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<StorefrontGarageNotepadAddBody>(context, cancellationToken)
+                       ?? new(0, null, null, null, 0, 0, false);
+            var garageId = body.GarageId;
+            var manufacturer = body.Manufacturer;
+            var article = body.Article;
+            var name = body.Name;
+            var exist = body.Exist;
+            var price = body.Price;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                garageId = LiveWriteFormBinder.Long(form, "garageId", "garage_id", "garage");
+                manufacturer = LiveWriteFormBinder.Text(form, "manufacturer", "brend", "brand");
+                article = LiveWriteFormBinder.Text(form, "article");
+                name = LiveWriteFormBinder.Text(form, "name");
+                exist = LiveWriteFormBinder.Int(form, "exist");
+                price = LiveWriteFormBinder.Dec(form, "price");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (confirm)
+            {
+                var written = await writes.AddNotepadAsync(session.UserId, garageId, manufacturer, article, name, exist, price, cancellationToken);
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    "/storefront/garage-app" + (garageId > 0 ? "?garage=" + garageId.ToString(CultureInfo.InvariantCulture) : ""),
+                    written.Succeeded,
+                    written.Message,
+                    new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+            }
+
             var result = await dryRun.EvaluateAsync(
                 session.UserId,
-                new StorefrontGarageNotepadAddRequest(
-                    body.GarageId,
-                    body.Manufacturer,
-                    body.Article,
-                    body.Name,
-                    body.Exist,
-                    body.Price,
-                    body.ConfirmWrites),
+                new StorefrontGarageNotepadAddRequest(garageId, manufacturer, article, name, exist, price, false),
                 cancellationToken);
             return Results.Ok(result.ToPayload(SessionPayload(session)));
-        });
+        }).DisableAntiforgery();
 
         endpoints.MapPost(EcomAeRoutes.StorefrontQuoteSubmit, async (
             HttpContext context,
@@ -1072,75 +1096,155 @@ public sealed class StorefrontModule : ISurfaceModule
 
         endpoints.MapPost(EcomAeRoutes.StorefrontQuoteAccept, async (
             HttpContext context,
-            StorefrontQuoteAcceptBody? body,
             ILegacySessionValidator validator,
             IStorefrontQuoteAcceptDryRun dryRun,
+            IStorefrontQuoteWriteService writes,
             CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateAsync(context, cancellationToken);
             if (session.Kind != LegacySessionKind.Customer || session.UserId <= 0)
             {
-                return Unauthorized("Customer session required for quote accept dry-run.");
+                return LiveWriteFormBinder.LoginRedirect(context, "/storefront/login?returnUrl=/storefront/quotes-app", "Customer session required for quote accept.");
             }
 
-            body ??= new StorefrontQuoteAcceptBody(0, false);
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<StorefrontQuoteAcceptBody>(context, cancellationToken) ?? new(0, false);
+            var quoteId = body.QuoteId;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                quoteId = LiveWriteFormBinder.Long(form, "quoteId", "quote_id");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (confirm)
+            {
+                var written = await writes.AcceptAsync(session.UserId, quoteId, cancellationToken);
+                var dest = written.Succeeded
+                    ? "/storefront/cart-app"
+                    : "/storefront/quotes-app?id=" + quoteId.ToString(CultureInfo.InvariantCulture);
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    dest,
+                    written.Succeeded,
+                    written.Message,
+                    new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+            }
+
             var result = await dryRun.EvaluateAsync(
                 session.UserId,
-                new StorefrontQuoteAcceptRequest(body.QuoteId, body.ConfirmWrites),
+                new StorefrontQuoteAcceptRequest(quoteId, false),
                 cancellationToken);
             return Results.Ok(result.ToPayload(SessionPayload(session)));
-        });
+        }).DisableAntiforgery();
 
         endpoints.MapPost(EcomAeRoutes.StorefrontQuoteAddItem, async (
             HttpContext context,
-            StorefrontQuoteAddItemBody? body,
             ILegacySessionValidator validator,
             IStorefrontQuoteAddItemDryRun dryRun,
+            IStorefrontQuoteWriteService writes,
             CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateAsync(context, cancellationToken);
             if (session.Kind != LegacySessionKind.Customer || session.UserId <= 0)
             {
-                return Unauthorized("Customer session required for quote add-item dry-run.");
+                return LiveWriteFormBinder.LoginRedirect(context, "/storefront/login?returnUrl=/storefront/quotes-app", "Customer session required for quote add-item.");
             }
 
-            body ??= new StorefrontQuoteAddItemBody(2, null, null, 1, false);
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<StorefrontQuoteAddItemBody>(context, cancellationToken)
+                       ?? new(2, null, null, 1, false);
+            var productType = body.ProductType;
+            var manufacturer = body.Manufacturer;
+            var article = body.Article;
+            var countNeed = body.CountNeed;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                productType = LiveWriteFormBinder.Int(form, "productType", "product_type");
+                if (productType <= 0)
+                {
+                    productType = 2;
+                }
+
+                manufacturer = LiveWriteFormBinder.Text(form, "manufacturer", "brand");
+                article = LiveWriteFormBinder.Text(form, "article");
+                countNeed = LiveWriteFormBinder.Int(form, "countNeed", "count_need");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (confirm)
+            {
+                var written = await writes.AddItemAsync(
+                    session.UserId,
+                    new StorefrontQuoteAddItemWriteRequest(productType, manufacturer, article, countNeed < 1 ? 1 : countNeed),
+                    cancellationToken);
+                var dest = written.Succeeded && written.Id > 0
+                    ? "/storefront/quotes-app?id=" + written.Id.ToString(CultureInfo.InvariantCulture)
+                    : "/storefront/quotes-app";
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    dest,
+                    written.Succeeded,
+                    written.Message,
+                    new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, quote_id = written.Id, session = SessionPayload(session) });
+            }
+
             var result = await dryRun.EvaluateAsync(
                 session.UserId,
-                new StorefrontQuoteAddItemRequest(
-                    body.ProductType,
-                    body.Manufacturer,
-                    body.Article,
-                    body.CountNeed,
-                    body.ConfirmWrites),
+                new StorefrontQuoteAddItemRequest(productType, manufacturer, article, countNeed < 1 ? 1 : countNeed, false),
                 cancellationToken);
             return Results.Ok(result.ToPayload(SessionPayload(session)));
-        });
+        }).DisableAntiforgery();
 
         endpoints.MapPost(EcomAeRoutes.StorefrontQuoteAddManual, async (
             HttpContext context,
-            StorefrontQuoteAddManualBody? body,
             ILegacySessionValidator validator,
             IStorefrontQuoteAddManualDryRun dryRun,
+            IStorefrontQuoteWriteService writes,
             CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateAsync(context, cancellationToken);
             if (session.Kind != LegacySessionKind.Customer || session.UserId <= 0)
             {
-                return Unauthorized("Customer session required for quote add-manual dry-run.");
+                return LiveWriteFormBinder.LoginRedirect(context, "/storefront/login?returnUrl=/storefront/quotes-app", "Customer session required for quote add-manual.");
             }
 
-            body ??= new StorefrontQuoteAddManualBody(null, null, 1, false);
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<StorefrontQuoteAddManualBody>(context, cancellationToken)
+                       ?? new(null, null, 1, false);
+            var manufacturer = body.Manufacturer;
+            var article = body.Article;
+            var countNeed = body.CountNeed;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                manufacturer = LiveWriteFormBinder.Text(form, "manufacturer", "brand");
+                article = LiveWriteFormBinder.Text(form, "article");
+                countNeed = LiveWriteFormBinder.Int(form, "countNeed", "count_need");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (confirm)
+            {
+                var written = await writes.AddManualAsync(session.UserId, manufacturer, article, countNeed, cancellationToken);
+                var dest = written.Succeeded && written.Id > 0
+                    ? "/storefront/quotes-app?id=" + written.Id.ToString(CultureInfo.InvariantCulture)
+                    : "/storefront/quotes-app";
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    dest,
+                    written.Succeeded,
+                    written.Message,
+                    new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, quote_id = written.Id, session = SessionPayload(session) });
+            }
+
             var result = await dryRun.EvaluateAsync(
                 session.UserId,
-                new StorefrontQuoteAddManualRequest(
-                    body.Manufacturer,
-                    body.Article,
-                    body.CountNeed,
-                    body.ConfirmWrites),
+                new StorefrontQuoteAddManualRequest(manufacturer, article, countNeed < 1 ? 1 : countNeed, false),
                 cancellationToken);
             return Results.Ok(result.ToPayload(SessionPayload(session)));
-        });
+        }).DisableAntiforgery();
 
         endpoints.MapPost(EcomAeRoutes.StorefrontGarageSetActive, async (
             HttpContext context,
@@ -1314,17 +1418,45 @@ public sealed class StorefrontModule : ISurfaceModule
         });
         endpoints.MapPost(EcomAeRoutes.StorefrontAddEvaluation, async (
             HttpContext context,
-            StorefrontAddEvaluationBody? body,
             ILegacySessionValidator validator,
             IStorefrontAddEvaluationDryRun dryRun,
+            IStorefrontCustomerWriteService writes,
             CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateAsync(context, cancellationToken);
             if (session.Kind != LegacySessionKind.Customer || session.UserId <= 0)
-                return Unauthorized("Customer session required.");
-            body ??= new StorefrontAddEvaluationBody(0,0,false);
-            return Results.Ok(dryRun.Evaluate(new StorefrontAddEvaluationRequest(body.ProductId, body.Rating, body.ConfirmWrites)).ToPayload(SessionPayload(session)));
-        });
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/storefront/login", "Customer session required.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<StorefrontAddEvaluationBody>(context, cancellationToken)
+                       ?? new(0, 0, false, null);
+            var productId = body.ProductId;
+            var rating = body.Rating;
+            var text = body.Text;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                productId = LiveWriteFormBinder.Long(form, "productId", "product_id");
+                rating = LiveWriteFormBinder.Int(form, "rating", "mark");
+                text = LiveWriteFormBinder.Text(form, "text");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (confirm)
+            {
+                var written = await writes.AddEvaluationAsync(session.UserId, productId, rating <= 0 ? 5 : rating, text, cancellationToken);
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    "/storefront/product-app?id=" + productId.ToString(CultureInfo.InvariantCulture),
+                    written.Succeeded,
+                    written.Message,
+                    new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+            }
+
+            return Results.Ok(dryRun.Evaluate(new StorefrontAddEvaluationRequest(productId, rating, false)).ToPayload(SessionPayload(session)));
+        }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.StorefrontCreateOperation, async (
             HttpContext context,
             StorefrontCreateOperationBody? body,
@@ -1416,24 +1548,47 @@ public sealed class StorefrontModule : ISurfaceModule
 
         endpoints.MapPost(EcomAeRoutes.StorefrontOrderSendMessage, async (
             HttpContext context,
-            StorefrontOrderSendMessageBody? body,
             ILegacySessionValidator validator,
             IStorefrontOrderSendMessageDryRun dryRun,
+            IStorefrontCustomerWriteService writes,
             CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateAsync(context, cancellationToken);
             if (session.Kind != LegacySessionKind.Customer || session.UserId <= 0)
             {
-                return Unauthorized("Customer session required for order send-message dry-run.");
+                return LiveWriteFormBinder.LoginRedirect(context, "/storefront/login?returnUrl=/storefront/orders-app", "Customer session required for order send-message.");
             }
 
-            body ??= new StorefrontOrderSendMessageBody(0, null, false);
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<StorefrontOrderSendMessageBody>(context, cancellationToken)
+                       ?? new(0, null, false);
+            var orderId = body.OrderId;
+            var text = body.Text;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                orderId = LiveWriteFormBinder.Long(form, "orderId", "order_id");
+                text = LiveWriteFormBinder.Text(form, "text", "message");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (confirm)
+            {
+                var written = await writes.SendOrderMessageAsync(session.UserId, orderId, text, cancellationToken);
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    "/storefront/orders-app?order_id=" + orderId.ToString(CultureInfo.InvariantCulture),
+                    written.Succeeded,
+                    written.Message,
+                    new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+            }
+
             var result = await dryRun.EvaluateAsync(
                 session.UserId,
-                new StorefrontOrderSendMessageRequest(body.OrderId, body.Text, body.ConfirmWrites),
+                new StorefrontOrderSendMessageRequest(orderId, text, false),
                 cancellationToken);
             return Results.Ok(result.ToPayload(SessionPayload(session)));
-        });
+        }).DisableAntiforgery();
     }
 
     private sealed record StorefrontCartChangeCountNeedBody(int Id = 0, decimal CountNeed = 0, bool ConfirmWrites = false);
@@ -1503,7 +1658,7 @@ public sealed class StorefrontModule : ISurfaceModule
     private sealed record StorefrontLoadReturnsDataBody(string? Action = null, bool ConfirmWrites = false);
     private sealed record StorefrontBulkUploadProcessBody(string? Action = null, bool ConfirmWrites = false);
     private sealed record StorefrontNewsletterSubscribeBody(string? Email, bool ConfirmWrites = false);
-    private sealed record StorefrontAddEvaluationBody(long ProductId, int Rating = 5, bool ConfirmWrites = false);
+    private sealed record StorefrontAddEvaluationBody(long ProductId, int Rating = 5, bool ConfirmWrites = false, string? Text = null);
     private sealed record StorefrontCreateOperationBody(decimal Amount, string? Kind, bool ConfirmWrites = false);
     private sealed record StorefrontCheckOrderNotAuthorizedBody(long OrderId, bool ConfirmWrites = false);
     private sealed record StorefrontSetUserOptionBody(string? OptionKey, string? OptionValue, bool ConfirmWrites = false);
