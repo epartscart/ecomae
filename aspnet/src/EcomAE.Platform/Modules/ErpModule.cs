@@ -4596,8 +4596,87 @@ public sealed class ErpModule : ISurfaceModule
             if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
                 return Unauthorized("Admin ERP capability required for multi-entity digest.");
             var result = await dashboards.ListErpMultiEntityAsync(limit ?? 200, cancellationToken);
-            return Results.Ok(new { ok = true, surface = "erp", groups = result.Groups, intercompany = result.Intercompany, count = result.Count, memberTotal = result.MemberTotal, icTxnCount = result.IcTxnCount, pendingIcCount = result.PendingIcCount, source = result.Source, message = result.Message, session = SessionPayload(session), note = "Read-only epc_entity_groups + epc_intercompany_txns. PHP consolidation remains authoritative." });
+            return Results.Ok(new { ok = true, surface = "erp", groups = result.Groups, intercompany = result.Intercompany, count = result.Count, memberTotal = result.MemberTotal, icTxnCount = result.IcTxnCount, pendingIcCount = result.PendingIcCount, source = result.Source, message = result.Message, session = SessionPayload(session), note = "epc_entity_groups + epc_intercompany_txns. Group/member/IC/eliminate on POST /erp/multi-entity/write when confirmWrites=true. ajax_erp multi_entity_save stays dry-run." });
         });
+        endpoints.MapPost(EcomAeRoutes.ErpMultiEntityWrite, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IErpMultiEntityWriteDryRun dryRun,
+            IErpMultiEntityWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/multi-entity-app", "Admin ERP capability required for multi-entity write.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpMultiEntityWriteBody>(context, cancellationToken)
+                       ?? new();
+            var action = body.Action;
+            var groupId = body.GroupId;
+            var groupCode = body.GroupCode;
+            var groupName = body.GroupName;
+            var parentEntity = body.ParentEntity;
+            var baseCurrency = body.BaseCurrency;
+            var fiscalYearEnd = body.FiscalYearEnd;
+            var siteKey = body.SiteKey;
+            var entityName = body.EntityName;
+            var ownershipPct = body.OwnershipPct;
+            var localCurrency = body.LocalCurrency;
+            var consolidation = body.Consolidation;
+            var fromSiteKey = body.FromSiteKey;
+            var toSiteKey = body.ToSiteKey;
+            var amount = body.Amount;
+            var description = body.Description;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                action = LiveWriteFormBinder.Text(form, "action");
+                groupId = LiveWriteFormBinder.Long(form, "groupId", "group_id", "id");
+                groupCode = LiveWriteFormBinder.Text(form, "groupCode", "group_code");
+                groupName = LiveWriteFormBinder.Text(form, "groupName", "group_name", "name");
+                parentEntity = LiveWriteFormBinder.Text(form, "parentEntity", "parent_entity");
+                baseCurrency = LiveWriteFormBinder.Text(form, "baseCurrency", "base_currency");
+                fiscalYearEnd = LiveWriteFormBinder.Text(form, "fiscalYearEnd", "fiscal_year_end");
+                siteKey = LiveWriteFormBinder.Text(form, "siteKey", "site_key");
+                entityName = LiveWriteFormBinder.Text(form, "entityName", "entity_name");
+                ownershipPct = LiveWriteFormBinder.Dec(form, "ownershipPct", "ownership_pct");
+                localCurrency = LiveWriteFormBinder.Text(form, "localCurrency", "local_currency");
+                consolidation = LiveWriteFormBinder.Text(form, "consolidation");
+                fromSiteKey = LiveWriteFormBinder.Text(form, "fromSiteKey", "from_site_key", "from");
+                toSiteKey = LiveWriteFormBinder.Text(form, "toSiteKey", "to_site_key", "to");
+                amount = LiveWriteFormBinder.Dec(form, "amount");
+                description = LiveWriteFormBinder.Text(form, "description", "desc");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (confirm)
+            {
+                var key = (action ?? string.Empty).Trim();
+                ErpSimpleWriteResult written = key switch
+                {
+                    "create_group" or "create-group" =>
+                        await writes.CreateGroupAsync(groupCode, groupName, parentEntity, baseCurrency, fiscalYearEnd, cancellationToken),
+                    "add_member" or "add-member" =>
+                        await writes.AddMemberAsync(groupId, siteKey, entityName, ownershipPct, localCurrency, consolidation, cancellationToken),
+                    "record_intercompany" or "record-intercompany" or "record_ic" =>
+                        await writes.RecordIntercompanyAsync(groupId, fromSiteKey, toSiteKey, amount, description, cancellationToken),
+                    "eliminate" =>
+                        await writes.EliminateAsync(groupId, cancellationToken),
+                    _ => ErpSimpleWriteResult.Fail("invalid", "Unknown multi-entity action. create_group / add_member / record_intercompany / eliminate are live; ajax_erp multi_entity_save stays PHP."),
+                };
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    "/erp/multi-entity-app",
+                    written.Succeeded,
+                    written.Message,
+                    new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+            }
+
+            return Results.Ok(dryRun.Evaluate(new ErpMultiEntityWriteRequest(action, false)).ToPayload(SessionPayload(session)));
+        }).DisableAntiforgery();
 
         endpoints.MapGet(EcomAeRoutes.ErpMultiCurrencyGl, async (HttpContext context, int? limit, ILegacySessionValidator validator, ISurfaceDashboardSummaryReporter dashboards, CancellationToken cancellationToken) =>
         {
@@ -5420,6 +5499,24 @@ public sealed class ErpModule : ISurfaceModule
         string? ProductName = null,
         int LeadTimeDays = 7,
         bool ConfirmWrites = false);
+    private sealed record ErpMultiEntityWriteBody(
+        string? Action = null,
+        bool ConfirmWrites = false,
+        long GroupId = 0,
+        string? GroupCode = null,
+        string? GroupName = null,
+        string? ParentEntity = null,
+        string? BaseCurrency = null,
+        string? FiscalYearEnd = null,
+        string? SiteKey = null,
+        string? EntityName = null,
+        decimal OwnershipPct = 100,
+        string? LocalCurrency = null,
+        string? Consolidation = null,
+        string? FromSiteKey = null,
+        string? ToSiteKey = null,
+        decimal Amount = 0,
+        string? Description = null);
     private sealed record ErpPayrollPayBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpPayrollUpdateDaysBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpUaeTaxFtaFetchBody(bool ConfirmWrites = false);

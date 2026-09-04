@@ -468,6 +468,33 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(ccyDb.Succeeded);
         Assert.Equal("db", ccyDb.Code);
 
+        var meCode = await new ErpMultiEntityWriteService(new ConfiguredNeverOpened())
+            .CreateGroupAsync("BAD CODE", "HoldCo", "", "AED", "12-31");
+        Assert.False(meCode.Succeeded);
+        Assert.Equal("invalid", meCode.Code);
+
+        var meMember = await new ErpMultiEntityWriteService(new ConfiguredNeverOpened())
+            .AddMemberAsync(0, "epartscart", "eParts", 100, "AED", "full");
+        Assert.False(meMember.Succeeded);
+        Assert.Equal("invalid", meMember.Code);
+
+        var meConsol = await new ErpMultiEntityWriteService(new ConfiguredNeverOpened())
+            .AddMemberAsync(9, "epartscart", "eParts", 100, "AED", "nope");
+        Assert.False(meConsol.Succeeded);
+        Assert.Equal("invalid", meConsol.Code);
+
+        var meIc = await new ErpMultiEntityWriteService(new ConfiguredNeverOpened())
+            .RecordIntercompanyAsync(9, "a", "b", 0, "x");
+        Assert.False(meIc.Succeeded);
+        Assert.Equal("invalid", meIc.Code);
+
+        var meDb = await new ErpMultiEntityWriteService(new UnconfiguredConnections())
+            .EliminateAsync(9);
+        Assert.False(meDb.Succeeded);
+        Assert.Equal("db", meDb.Code);
+
+        Assert.Contains("proportional", ErpMultiEntityWriteService.AllowedConsolidations);
+
         var catEnable = await new CpCatalogueWriteService(new ConfiguredNeverOpened())
             .SetMinLimitEnableAsync(0, 1);
         Assert.False(catEnable.Succeeded);

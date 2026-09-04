@@ -851,6 +851,8 @@ public static class EcomAeRoutes
     public const string ErpInventoryForecastRecompute = "/erp/inventory-forecast/recompute";
     public const string ErpMultiEntity = "/erp/multi-entity";
     public const string ErpMultiEntityApp = "/erp/multi-entity-app";
+    /// <summary>Live PHP <c>epc_entity_create_group</c> / add_member / record_intercompany / eliminate.</summary>
+    public const string ErpMultiEntityWrite = "/erp/multi-entity/write";
     public const string ErpMultiCurrencyGl = "/erp/multi-currency-gl";
     public const string ErpMultiCurrencyGlApp = "/erp/multi-currency-gl-app";
 
