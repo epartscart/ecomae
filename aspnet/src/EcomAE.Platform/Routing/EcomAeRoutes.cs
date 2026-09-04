@@ -925,7 +925,7 @@ public static class EcomAeRoutes
     public const string ErpAjaxQmOrderRecord = "/erp/ajax/qm-order-record";
     /// <summary>Wave B dry-run for PHP qm_ncr_create (writes=0).</summary>
     public const string ErpAjaxQmNcrCreate = "/erp/ajax/qm-ncr-create";
-    /// <summary>Wave B dry-run for PHP qm_ncr_update (writes=0).</summary>
+    /// <summary>Live PHP epc_qm_ncr_update twin.</summary>
     public const string ErpAjaxQmNcrUpdate = "/erp/ajax/qm-ncr-update";
     /// <summary>Wave B dry-run for PHP rbac_priv_save (writes=0).</summary>
     public const string ErpAjaxRbacPrivSave = "/erp/ajax/rbac-priv-save";
@@ -1020,7 +1020,7 @@ public static class EcomAeRoutes
     public const string ErpAjaxCtrOcr = "/erp/ajax/ctr-ocr";
     /// <summary>Wave B dry-run for PHP docx_save (writes=0).</summary>
     public const string ErpAjaxDocxSave = "/erp/ajax/docx-save";
-    /// <summary>Wave B dry-run for PHP docx_delete (writes=0).</summary>
+    /// <summary>Live PHP epc_docx_delete twin.</summary>
     public const string ErpAjaxDocxDelete = "/erp/ajax/docx-delete";
     /// <summary>Wave B dry-run for PHP docx_run_reminders (writes=0).</summary>
     public const string ErpAjaxDocxRunReminders = "/erp/ajax/docx-run-reminders";
@@ -1325,7 +1325,7 @@ public static class EcomAeRoutes
     public const string ErpAjaxMultiEntitySave = "/erp/ajax/multi-entity-save";
     /// <summary>Wave B dry-run for PHP cs_save_declaration (writes=0).</summary>
     public const string ErpAjaxCsSaveDeclaration = "/erp/ajax/cs-save-declaration";
-    /// <summary>Wave B dry-run for PHP cs_submit_declaration (writes=0).</summary>
+    /// <summary>Live PHP epc_cs_submit_declaration twin.</summary>
     public const string ErpAjaxCsSubmitDeclaration = "/erp/ajax/cs-submit-declaration";
     /// <summary>Wave B dry-run for PHP cs_delete_declaration (writes=0).</summary>
     public const string ErpAjaxCsDeleteDeclaration = "/erp/ajax/cs-delete-declaration";

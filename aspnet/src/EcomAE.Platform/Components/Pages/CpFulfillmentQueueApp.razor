@@ -71,6 +71,24 @@
         <span class="epc-orders-toolbar__hint"><i class="fa fa-columns"></i> Click a row to open fulfilment on the right</span>
     </div>
 
+    @if (!string.IsNullOrWhiteSpace(_flashOk))
+    {
+        <div class="alert alert-success" role="status" style="margin:0 0 1rem">@_flashOk</div>
+    }
+    @if (!string.IsNullOrWhiteSpace(_flashErr))
+    {
+        <div class="alert alert-danger" role="status" style="margin:0 0 1rem">@_flashErr</div>
+    }
+    @if (_isAdmin)
+    {
+        <form method="post" action="/erp/ajax/cs-submit-declaration" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/fulfillment-queue-app" />
+            <label>Declaration id <input type="number" name="id" min="1" required style="width:6rem" /></label>
+            <button type="submit">Submit declaration</button>
+        </form>
+    }
+
     @if (!_isAdmin)
     {
         <div class="alert alert-info" role="status">Sign in with a Control Panel admin session to load live fulfilment digests. Guest browse shows the PHP-parity shell.</div>
@@ -334,6 +352,8 @@
 
 @code {
     private bool _isAdmin;
+    private string _flashOk = "";
+    private string _flashErr = "";
     private int _queued;
     private int _picking;
     private int _shipping;
@@ -399,6 +419,8 @@
         _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
 
         var q = ctx.Request.Query;
+        _flashOk = q["ok"].ToString() ?? "";
+        _flashErr = q["err"].ToString() ?? "";
         if (long.TryParse(q["fulfillment_id"].ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var fid) && fid > 0)
         {
             _selectedId = fid;

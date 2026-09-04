@@ -1047,6 +1047,41 @@ public sealed class LiveWriteServiceValidationTests
             .SettleAsync(9);
         Assert.False(whtSettleDb.Succeeded);
         Assert.Equal("db", whtSettleDb.Code);
+
+        var docxInvalid = await new ErpDocxDeleteWriteService(new ConfiguredNeverOpened())
+            .DeleteAsync(0);
+        Assert.False(docxInvalid.Succeeded);
+        Assert.Equal("invalid", docxInvalid.Code);
+
+        var docxDb = await new ErpDocxDeleteWriteService(new UnconfiguredConnections())
+            .DeleteAsync(9);
+        Assert.False(docxDb.Succeeded);
+        Assert.Equal("db", docxDb.Code);
+
+        var ncrInvalid = await new ErpQmNcrWriteService(new ConfiguredNeverOpened())
+            .UpdateAsync(9, "nope", "", "");
+        Assert.False(ncrInvalid.Succeeded);
+        Assert.Equal("invalid", ncrInvalid.Code);
+
+        var ncrDispInvalid = await new ErpQmNcrWriteService(new ConfiguredNeverOpened())
+            .UpdateAsync(9, "open", "nope", "");
+        Assert.False(ncrDispInvalid.Succeeded);
+        Assert.Equal("invalid", ncrDispInvalid.Code);
+
+        var ncrDb = await new ErpQmNcrWriteService(new UnconfiguredConnections())
+            .UpdateAsync(9, "closed", "rework", "fix");
+        Assert.False(ncrDb.Succeeded);
+        Assert.Equal("db", ncrDb.Code);
+
+        var csSubmitInvalid = await new ErpCsSubmitWriteService(new ConfiguredNeverOpened())
+            .SubmitAsync(0);
+        Assert.False(csSubmitInvalid.Succeeded);
+        Assert.Equal("invalid", csSubmitInvalid.Code);
+
+        var csSubmitDb = await new ErpCsSubmitWriteService(new UnconfiguredConnections())
+            .SubmitAsync(9);
+        Assert.False(csSubmitDb.Succeeded);
+        Assert.Equal("db", csSubmitDb.Code);
     }
 
     [Fact]

@@ -686,6 +686,9 @@ builder.Services.AddScoped<EcomAE.Platform.Erp.IErpConsDeleteWriteService, EcomA
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpInsDocDeleteWriteService, EcomAE.Platform.Erp.ErpInsDocDeleteWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpFyWriteService, EcomAE.Platform.Erp.ErpFyWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpWhtSettleWriteService, EcomAE.Platform.Erp.ErpWhtSettleWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpDocxDeleteWriteService, EcomAE.Platform.Erp.ErpDocxDeleteWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpQmNcrWriteService, EcomAE.Platform.Erp.ErpQmNcrWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpCsSubmitWriteService, EcomAE.Platform.Erp.ErpCsSubmitWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpOmsWriteService, EcomAE.Platform.Cp.CpOmsWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpUserWriteService, EcomAE.Platform.Cp.CpUserWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpLangWriteService, EcomAE.Platform.Cp.CpLangWriteService>();

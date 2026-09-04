@@ -6,33 +6,56 @@
 @using EcomAE.Platform.Presentation
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
-@inject IErpQmPlanSaveDryRun PlanSave
 @inject IHttpContextAccessor Http
 @inject NavigationManager Nav
 
 <PageTitle>Quality · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Quality" BreadcrumbArea="Operations" BreadcrumbTab="Quality">
-    <PhpErpModulePageHeader Title="Quality management" Subtitle="Test plans, inspection orders and NCRs. Saves stay dry-run." PhpTabHref="@_phpTab" />
-    <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
+    <PhpErpModulePageHeader Title="Quality management" Subtitle="Update a non-conformance here. Plan save, inspection create, and NCR create stay on the classic twin." />
+    <PhpErpD365ActionPane RefreshHref="@Nav.Uri" />
+
+    @if (!string.IsNullOrWhiteSpace(_flashOk))
+    {
+        <div class="alert alert-success" role="status" style="margin:0 0 1rem;padding:.7rem .9rem;border-radius:.4rem;background:#ecfdf5;color:#065f46">@_flashOk</div>
+    }
+    @if (!string.IsNullOrWhiteSpace(_flashErr))
+    {
+        <div class="alert alert-danger" role="status" style="margin:0 0 1rem;padding:.7rem .9rem;border-radius:.4rem;background:#fef2f2;color:#991b1b">@_flashErr</div>
+    }
+    @if (_isAdmin)
+    {
+        <form method="post" action="/erp/ajax/qm-ncr-update" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/erp/quality-app" />
+            <label>NCR id <input type="number" name="id" min="1" required style="width:6rem" /></label>
+            <label>Status
+                <select name="status">
+                    <option value="open">open</option>
+                    <option value="investigate">investigate</option>
+                    <option value="action">action</option>
+                    <option value="closed">closed</option>
+                </select>
+            </label>
+            <label>Disposition
+                <select name="disposition">
+                    <option value="">—</option>
+                    <option value="use_as_is">use_as_is</option>
+                    <option value="rework">rework</option>
+                    <option value="scrap">scrap</option>
+                    <option value="return">return</option>
+                </select>
+            </label>
+            <label>Corrective action <input type="text" name="corrective_action" /></label>
+            <button type="submit">Update NCR</button>
+        </form>
+    }
 
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Quality KPIs">
         <div class="kpi"><div class="lbl">Plans</div><div class="val">@_count.ToString(CultureInfo.InvariantCulture)</div></div>
         <div class="kpi"><div class="lbl">Open orders</div><div class="val">@_openOrders.ToString(CultureInfo.InvariantCulture)</div></div>
         <div class="kpi"><div class="lbl">Open NCRs</div><div class="val">@_openNcrs.ToString(CultureInfo.InvariantCulture)</div></div>
     </div>
-
-    @if (_isAdmin)
-    {
-        <form @onsubmit="OnSave" @onsubmit:preventDefault="true" style="margin:12px 0;padding:10px;border:1px solid #c5d4de;background:#fff;">
-            <strong>New plan (dry-run)</strong>
-            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;align-items:end;">
-                <label>Code <input class="form-control" @bind="_formCode" /></label>
-                <button type="submit" class="btn btn-primary">Validate save</button>
-            </div>
-            @if (!string.IsNullOrWhiteSpace(_formResult)) { <p style="margin:8px 0 0;font-size:12px;">@_formResult</p> }
-        </form>
-    }
 
     <h2 style="font-size:16px;">Plans</h2>
     <div class="epc-erp-table-wrap">
@@ -105,13 +128,12 @@
     </div>
 
     <div class="epc-erp-empty" style="display:block;margin-top:12px;padding:8px 10px;border:1px solid #c5d4de;background:#f8fafc;color:#475569;font-size:12px;">
-        Source: @_source. Dry-run: <code>qm_plan_save</code> — writes=0.
+        Source: @_source. NCR update is ASP.NET-live. Plan save, inspection create, and NCR create stay PHP.
         @if (!string.IsNullOrWhiteSpace(_message)) { <span> @_message</span> }
     </div>
 </PhpErpDesktopChrome>
 
 @code {
-    private const string _phpTab = "/ERP/?epc_erp_shell=1&area=operations&tab=quality";
     private bool _isAdmin;
     private IReadOnlyList<ErpQmPlanDigest> _plans = [];
     private IReadOnlyList<ErpQmOrderDigest> _orders = [];
@@ -119,13 +141,15 @@
     private int _count, _openOrders, _openNcrs;
     private string _source = "n/a";
     private string _message = "";
-    private string _formCode = "";
-    private string _formResult = "";
+    private string _flashOk = "";
+    private string _flashErr = "";
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
+        _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
+        _flashErr = ctx.Request.Query["err"].ToString() ?? "";
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("erp");
         if (!_isAdmin) { _message = "Sign in for live data."; return; }
@@ -139,11 +163,5 @@
         _openNcrs = result.OpenNcrCount;
         _source = result.Source;
         _message = result.Message;
-    }
-
-    private void OnSave()
-    {
-        var result = PlanSave.Evaluate(new ErpQmPlanSaveRequest(0, _formCode, false));
-        _formResult = $"{result.Status}: {result.Detail} (writes={result.Writes.ToString(CultureInfo.InvariantCulture)})";
     }
 }

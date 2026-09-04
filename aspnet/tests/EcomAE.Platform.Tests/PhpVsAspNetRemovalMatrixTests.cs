@@ -77,6 +77,9 @@ public sealed class PhpVsAspNetRemovalMatrixTests
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "erp-cons-deletes" && r.WritesOwner == "aspnet");
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "erp-fy-reopen-period" && r.WritesOwner == "aspnet");
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "erp-wht-settle" && r.WritesOwner == "aspnet");
+        Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "erp-docx-delete" && r.WritesOwner == "aspnet");
+        Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "erp-qm-ncr-update" && r.WritesOwner == "aspnet");
+        Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "erp-cs-submit" && r.WritesOwner == "aspnet");
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "write-storefront-cart" && r.WritesOwner == "php");
     }
 
@@ -169,6 +172,9 @@ public sealed class PhpVsAspNetRemovalMatrixTests
             ("ErpPeriodCloseApp.razor", "/erp/ajax/fy-reopen"),
             ("ErpPeriodCloseApp.razor", "/erp/ajax/fy-period-status"),
             ("ErpWithholdingApp.razor", "/erp/ajax/wht-settle"),
+            ("CpDocExpiryApp.razor", "/erp/ajax/docx-delete"),
+            ("ErpQualityApp.razor", "/erp/ajax/qm-ncr-update"),
+            ("CpFulfillmentQueueApp.razor", "/erp/ajax/cs-submit-declaration"),
             ("CpLanguagesApp.razor", "/cp/lang/set-is-custom"),
             ("CpLanguagesApp.razor", "/cp/lang/set-is-error"),
             ("CpLanguagesApp.razor", "/cp/lang/set-same"),
