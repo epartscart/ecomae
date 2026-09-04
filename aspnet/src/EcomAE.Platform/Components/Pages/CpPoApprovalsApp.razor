@@ -58,6 +58,11 @@
         <p class="epc-w18-note" style="@(_flashOk ? "background:#ecfdf5;border-color:#a7f3d0;color:#065f46" : "background:#fffbeb;border-color:#fde68a;color:#92400e")">@_flash</p>
     }
 
+    @if (!string.IsNullOrWhiteSpace(_flash))
+    {
+        <p class="epc-w18-note" style="@(_flashOk ? "background:#ecfdf5;border-color:#a7f3d0;color:#065f46" : "background:#fffbeb;border-color:#fde68a;color:#92400e")">@_flash</p>
+    }
+
     <div class="epc-w18-kpis" aria-label="PO approvals stats">
         <div class="epc-w18-kpi"><strong>@_summary.RequestCount.ToString(CultureInfo.InvariantCulture)</strong><span>Requests</span></div>
         <div class="epc-w18-kpi"><strong>@_summary.PendingCount.ToString(CultureInfo.InvariantCulture)</strong><span>Pending</span></div>
