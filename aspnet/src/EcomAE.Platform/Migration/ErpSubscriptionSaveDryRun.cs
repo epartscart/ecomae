@@ -1,6 +1,9 @@
 namespace EcomAE.Platform.Migration;
 
-/// <summary>Wave B dry-run for PHP <c>sub_save</c>. Never INSERT/UPDATE. PHP authoritative.</summary>
+/// <summary>
+/// Dry-run envelope for PHP <c>epc_sub_save</c> when <c>confirmWrites</c> is omitted.
+/// Live INSERT/UPDATE is <c>IErpSubscriptionSaveWriteService</c>.
+/// </summary>
 public interface IErpSubscriptionSaveDryRun
 {
     ErpSubscriptionSaveDryRunResult Evaluate(ErpSubscriptionSaveRequest request);
@@ -12,25 +15,32 @@ public sealed class ErpSubscriptionSaveDryRun : IErpSubscriptionSaveDryRun
     {
         ArgumentNullException.ThrowIfNull(request);
         if (request.ConfirmWrites)
-            return Refuse("dry-run-confirm-refused", "confirm_writes_refused",
-                "confirm_writes requested but live ASP.NET sub_save is not implemented; PHP ajax_erp.php remains authoritative.", request);
+        {
+            return Refuse(
+                "dry-run-confirm-refused",
+                "confirm_writes_refused",
+                "confirm_writes refused on the dry-run path; POST confirmWrites=true to write on ASP.NET.",
+                request);
+        }
 
         var code = (request.Code ?? string.Empty).Trim();
         var customer = (request.Customer ?? string.Empty).Trim();
         if (code.Length == 0 || customer.Length == 0)
+        {
             return Refuse("dry-run-invalid", "code_customer_required",
                 "Code and customer are required (PHP).", request);
+        }
 
         return new ErpSubscriptionSaveDryRunResult(
-            "dry-run-validated", 0, true, false, true, "ok", true, code, customer, request.Id,
-            ["epc_sub_save(@data, @id) INSERT/UPDATE (NOT executed)"],
-            "Subscription save payload validated; write blocked.",
-            "/CP/content/shop/finance/erp/ajax_erp.php?action=sub_save");
+            "dry-run-validated", 0, true, false, false, "ok", true, code, customer, request.Id,
+            ["INSERT/UPDATE `epc_erp_subscriptions` (NOT executed)"],
+            "ErpSubscriptionSave payload validated; write blocked until confirmWrites=true.",
+            "content/shop/finance/epc_erp_subscriptions.php");
     }
 
     private static ErpSubscriptionSaveDryRunResult Refuse(string status, string code, string detail, ErpSubscriptionSaveRequest request) =>
-        new(status, 0, true, false, true, code, false, request.Code, request.Customer, request.Id, [], detail,
-            "/CP/content/shop/finance/erp/ajax_erp.php?action=sub_save");
+        new(status, 0, true, false, false, code, false, request.Code, request.Customer, request.Id, [], detail,
+            "content/shop/finance/epc_erp_subscriptions.php");
 }
 
 public sealed record ErpSubscriptionSaveRequest(string? Code, string? Customer, long Id = 0, bool ConfirmWrites = false);
