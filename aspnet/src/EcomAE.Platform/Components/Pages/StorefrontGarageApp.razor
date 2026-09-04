@@ -181,6 +181,8 @@
         }
 
         <form method="post" action="@PhpCustomerWrites.GarageCarWriteHref" style="margin-top:1.1rem;background:#fff;border:1px solid #e7e5e4;border-radius:.55rem;padding:1.1rem 1.2rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/storefront/garage-app" />
             <input type="hidden" name="save_action" value="1" />
             <input type="hidden" name="car_id" value="0" />
             <p style="margin:0 0 .75rem;font-weight:700">Add a vehicle</p>

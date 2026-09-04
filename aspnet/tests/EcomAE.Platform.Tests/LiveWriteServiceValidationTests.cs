@@ -187,5 +187,20 @@ public sealed class LiveWriteServiceValidationTests
             .SendOrderMessageAsync(1, 9, "");
         Assert.False(message.Succeeded);
         Assert.Equal("invalid", message.Code);
+
+        var vehicle = await new StorefrontGarageWriteService(new ConfiguredNeverOpened())
+            .SaveVehicleAsync(1, new StorefrontGarageSaveRequest());
+        Assert.False(vehicle.Succeeded);
+        Assert.Equal("invalid", vehicle.Code);
+
+        var newsletter = await new StorefrontCustomerWriteService(new ConfiguredNeverOpened())
+            .SubscribeNewsletterAsync("not-an-email", null);
+        Assert.False(newsletter.Succeeded);
+        Assert.Equal("invalid", newsletter.Code);
+
+        var option = await new StorefrontCustomerWriteService(new ConfiguredNeverOpened())
+            .SetUserOptionAsync(1, "forbidden", "x");
+        Assert.False(option.Succeeded);
+        Assert.Equal("invalid", option.Code);
     }
 }

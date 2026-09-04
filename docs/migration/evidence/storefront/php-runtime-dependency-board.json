@@ -48,10 +48,10 @@
     },
     {
       "id": "cart-checkout-quote-writes",
-      "aspnet": "POST /storefront/checkout/create + /storefront/quotes/{submit,accept,add-item,add-manual} + cart type-1/2 qty/delete + garage notepad + evaluations + order messages",
-      "php": "guest checkout cookies + payment go_to_pay + add-vehicle + profile + wishlist",
+      "aspnet": "POST /storefront/checkout/create + quotes + cart + garage save/notepad + evaluations + order messages + newsletter + geo city cookie",
+      "php": "guest checkout cookies + payment go_to_pay + profile password + wishlist",
       "status": "partial-ported",
-      "note": "Signed-in checkout, quote submit/accept/add, garage notepad, product reviews, and customer order messages are ASP.NET-live when confirmWrites=true. Guest checkout and payment notify stay PHP."
+      "note": "Signed-in checkout, quotes, garage save/notepad, reviews, order messages, newsletter, and city cookie are ASP.NET-live when confirmWrites=true. Guest checkout and payment notify stay PHP."
     },
     {
       "id": "home-widget-ajax",

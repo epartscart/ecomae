@@ -925,7 +925,7 @@ public static class EcomAeRoutes
     public const string ErpAjaxRbacDutySave = "/erp/ajax/rbac-duty-save";
     /// <summary>Wave B dry-run for PHP rbac_duty_priv (writes=0).</summary>
     public const string ErpAjaxRbacDutyPriv = "/erp/ajax/rbac-duty-priv";
-    /// <summary>Wave B dry-run for PHP ajax_newsletter_subscribe.php (writes=0).</summary>
+    /// <summary>Newsletter subscribe. <c>confirmWrites=true</c> is the live twin of PHP ajax_newsletter_subscribe.php.</summary>
     public const string StorefrontNewsletterSubscribe = "/storefront/newsletter/subscribe";
     /// <summary>Wave B dry-run for PHP content/shop/catalogue/evaluations/ajax_add_evaluation.php (writes=0).</summary>
     public const string StorefrontAddEvaluation = "/storefront/evaluations/add";
@@ -933,9 +933,9 @@ public static class EcomAeRoutes
     public const string StorefrontCreateOperation = "/storefront/finance/create-operation";
     /// <summary>Wave B dry-run for PHP content/shop/order_process/ajax_check_order_not_authorized.php (writes=0).</summary>
     public const string StorefrontCheckOrderNotAuthorized = "/storefront/orders/check-not-authorized";
-    /// <summary>Wave B dry-run for PHP content/users/ajax_set_user_option.php (writes=0).</summary>
+    /// <summary>User option. <c>confirmWrites=true</c> is the live twin of PHP ajax_set_user_option.php (signed-in, session_id=0).</summary>
     public const string StorefrontSetUserOption = "/storefront/users/set-option";
-    /// <summary>Wave B dry-run for PHP modules/shop/geo/ajax_set_my_city.php (writes=0).</summary>
+    /// <summary>Set city cookie. <c>confirmWrites=true</c> is the live twin of PHP ajax_set_my_city.php.</summary>
     public const string StorefrontSetMyCity = "/storefront/geo/set-my-city";
     /// <summary>Wave B dry-run for PHP modules/login/code/frontAjax/ajax_sendCode.php (writes=0).</summary>
     public const string StorefrontLoginSendCode = "/storefront/login/send-code";
@@ -1844,6 +1844,8 @@ public static class EcomAeRoutes
     public const string StorefrontCartAdd = "/storefront/cart/add";
     /// <summary>Garage notepad add. <c>confirmWrites=true</c> is the live twin of PHP ajax_add_to_notepad.php.</summary>
     public const string StorefrontGarageNotepadAdd = "/storefront/garage/notepad-add";
+    /// <summary>Garage add/update vehicle. <c>confirmWrites=true</c> is the live twin of PHP garazh/avtomobil save_action (no image).</summary>
+    public const string StorefrontGarageSave = "/storefront/garage/save";
     /// <summary>Quote submit. <c>confirmWrites=true</c> is the live twin of PHP ajax_quote_submit.php.</summary>
     public const string StorefrontQuoteSubmit = "/storefront/quotes/submit";
     /// <summary>Quote accept. <c>confirmWrites=true</c> is the live twin of PHP ajax_quote_accept.php (cart INSERT included).</summary>

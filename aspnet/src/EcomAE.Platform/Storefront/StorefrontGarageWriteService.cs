@@ -18,7 +18,21 @@ public interface IStorefrontGarageWriteService
         int exist,
         decimal price,
         CancellationToken cancellationToken = default);
+
+    Task<ErpSimpleWriteResult> SaveVehicleAsync(
+        int userId,
+        StorefrontGarageSaveRequest request,
+        CancellationToken cancellationToken = default);
 }
+
+public sealed record StorefrontGarageSaveRequest(
+    long CarId = 0,
+    string? Caption = null,
+    string? Make = null,
+    string? Model = null,
+    int Year = 0,
+    string? Vin = null,
+    string? Frame = null);
 
 public sealed class StorefrontGarageWriteService : IStorefrontGarageWriteService
 {
@@ -171,4 +185,75 @@ public sealed class StorefrontGarageWriteService : IStorefrontGarageWriteService
             userId, garageId, brand, part, caption, exist, price, comment);
         return ErpSimpleWriteResult.Ok("Notepad line added.", garageId);
     }
+
+    public async Task<ErpSimpleWriteResult> SaveVehicleAsync(
+        int userId,
+        StorefrontGarageSaveRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        if (userId <= 0)
+        {
+            return ErpSimpleWriteResult.Fail("auth", "Please log in or register to continue.");
+        }
+
+        var make = Upper(request.Make);
+        var model = Upper(request.Model);
+        var vin = Upper(request.Vin);
+        var frame = Upper(request.Frame);
+        var caption = (request.Caption ?? string.Empty).Trim();
+        if (caption.Length == 0 && make.Length == 0 && vin.Length == 0)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Make, caption, or VIN is required.");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return ErpSimpleWriteResult.Fail("db", "Garage database is not configured.");
+        }
+
+        var year = request.Year < 0 ? 0 : request.Year;
+        await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        if (request.CarId > 0)
+        {
+            var owned = await ErpDb.LongAsync(
+                connection,
+                null,
+                ErpDb.Positional("SELECT `id` FROM `shop_docpart_garage` WHERE `id` = ? AND `user_id` = ? LIMIT 1"),
+                cancellationToken,
+                request.CarId, userId);
+            if (owned <= 0)
+            {
+                return ErpSimpleWriteResult.Fail("not_found", "Car is not in your garage.");
+            }
+
+            await ErpDb.ExecuteAsync(
+                connection,
+                null,
+                ErpDb.Positional("""
+                    UPDATE `shop_docpart_garage`
+                    SET `caption` = ?, `marka` = ?, `model` = ?, `year` = ?, `vin` = ?, `frame` = ?
+                    WHERE `id` = ? AND `user_id` = ?
+                    """),
+                cancellationToken,
+                caption, make, model, year, vin, frame, request.CarId, userId);
+            return ErpSimpleWriteResult.Ok("Vehicle updated.", request.CarId);
+        }
+
+        await ErpDb.ExecuteAsync(
+            connection,
+            null,
+            ErpDb.Positional("""
+                INSERT INTO `shop_docpart_garage`
+                (`caption`,`mark_id`,`marka`,`model`,`year`,`body_type`,`engine_value`,`fuel_type`,`vin`,`frame`,`color`,`country`,`wheel`,`transmission`,`note`,`to_json`,`car_tree_list_json`,`user_id`)
+                VALUES (?,0,?,?,?,'','','',?,?,'','','','','','{}','{}',?)
+                """),
+            cancellationToken,
+            caption, make, model, year, vin, frame, userId);
+        var id = await ErpDb.LastInsertIdAsync(connection, null, cancellationToken).ConfigureAwait(false);
+        return new ErpSimpleWriteResult(true, "ok", "Vehicle saved.", id, 1);
+    }
+
+    private static string Upper(string? value)
+        => System.Net.WebUtility.HtmlEncode((value ?? string.Empty).Trim().ToUpperInvariant());
 }

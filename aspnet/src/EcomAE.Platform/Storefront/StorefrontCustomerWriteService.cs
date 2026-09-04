@@ -20,6 +20,17 @@ public interface IStorefrontCustomerWriteService
         long orderId,
         string? text,
         CancellationToken cancellationToken = default);
+
+    Task<ErpSimpleWriteResult> SubscribeNewsletterAsync(
+        string? email,
+        string? ipAddress,
+        CancellationToken cancellationToken = default);
+
+    Task<ErpSimpleWriteResult> SetUserOptionAsync(
+        int userId,
+        string? optionKey,
+        string? optionValue,
+        CancellationToken cancellationToken = default);
 }
 
 public sealed class StorefrontCustomerWriteService : IStorefrontCustomerWriteService
@@ -122,5 +133,118 @@ public sealed class StorefrontCustomerWriteService : IStorefrontCustomerWriteSer
             cancellationToken,
             orderId, body, now);
         return ErpSimpleWriteResult.Ok("Message sent.", orderId);
+    }
+
+    public async Task<ErpSimpleWriteResult> SubscribeNewsletterAsync(
+        string? email,
+        string? ipAddress,
+        CancellationToken cancellationToken = default)
+    {
+        var address = (email ?? string.Empty).Trim();
+        if (address.Length == 0 || !address.Contains('@', StringComparison.Ordinal) || address.Contains(' ', StringComparison.Ordinal))
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "A valid email is required.");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return ErpSimpleWriteResult.Fail("db", "Newsletter database is not configured.");
+        }
+
+        await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await ErpDb.TryExecuteAsync(
+            connection,
+            """
+            CREATE TABLE IF NOT EXISTS `epc_newsletter_subscribers` (
+                `id` INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+                `email` VARCHAR(255) NOT NULL,
+                `subscribed_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                `status` ENUM('active','unsubscribed') NOT NULL DEFAULT 'active',
+                `ip_address` VARCHAR(45) DEFAULT NULL,
+                `source` VARCHAR(50) DEFAULT 'storefront',
+                UNIQUE KEY `uk_email` (`email`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+            """,
+            cancellationToken);
+        var ip = string.IsNullOrWhiteSpace(ipAddress) ? null : ipAddress.Trim();
+        if (ip is { Length: > 45 })
+        {
+            ip = ip[..45];
+        }
+
+        await ErpDb.ExecuteAsync(
+            connection,
+            null,
+            ErpDb.Positional("""
+                INSERT INTO `epc_newsletter_subscribers` (`email`, `ip_address`, `source`)
+                VALUES (?, ?, 'storefront')
+                ON DUPLICATE KEY UPDATE `status` = 'active', `subscribed_at` = NOW()
+                """),
+            cancellationToken,
+            address, ip);
+        return ErpSimpleWriteResult.Ok("Subscribed.", 0);
+    }
+
+    public async Task<ErpSimpleWriteResult> SetUserOptionAsync(
+        int userId,
+        string? optionKey,
+        string? optionValue,
+        CancellationToken cancellationToken = default)
+    {
+        if (userId <= 0)
+        {
+            return ErpSimpleWriteResult.Fail("auth", "Please log in or register to continue.");
+        }
+
+        var key = (optionKey ?? string.Empty).Trim();
+        if (!IsAllowedOptionKey(key))
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "This setting cannot be saved.");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return ErpSimpleWriteResult.Fail("db", "Account database is not configured.");
+        }
+
+        await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        var exists = await ErpDb.LongAsync(
+            connection,
+            null,
+            ErpDb.Positional("SELECT COUNT(*) FROM `users_options` WHERE `user_id` = ? AND `session_id` = 0 AND `data_key` = ?"),
+            cancellationToken,
+            userId, key);
+        if (exists > 0)
+        {
+            await ErpDb.ExecuteAsync(
+                connection,
+                null,
+                ErpDb.Positional("UPDATE `users_options` SET `data_value` = ? WHERE `user_id` = ? AND `session_id` = 0 AND `data_key` = ?"),
+                cancellationToken,
+                optionValue ?? "", userId, key);
+        }
+        else
+        {
+            await ErpDb.ExecuteAsync(
+                connection,
+                null,
+                ErpDb.Positional("INSERT INTO `users_options` (`user_id`, `session_id`, `data_key`, `data_value`) VALUES (?, 0, ?, ?)"),
+                cancellationToken,
+                userId, key, optionValue ?? "");
+        }
+
+        return ErpSimpleWriteResult.Ok("Setting saved.", userId);
+    }
+
+    private static bool IsAllowedOptionKey(string key)
+    {
+        if (key.Equals("selected_manufacturer", StringComparison.OrdinalIgnoreCase)
+            || key.Equals("propucts_request_0", StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        return key.StartsWith("propucts_request_", StringComparison.OrdinalIgnoreCase)
+               && key.Length > "propucts_request_".Length;
     }
 }

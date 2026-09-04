@@ -7,7 +7,7 @@ public static class PhpCustomerWrites
 {
     public static string ProfileWriteHref => "/php-reference/en/users/profile";
     public static string BalanceTopUpHref => "/php-reference/content/shop/finance/ajax_create_operation.php";
-    public static string GarageCarWriteHref => "/php-reference/en/garazh/avtomobil";
+    public static string GarageCarWriteHref => "/storefront/garage/save";
     public static string GarageNotepadWriteHref => "/storefront/garage/notepad-add";
     public static string OrderWriteHref => "/php-reference/en/shop/orders/order";
     public static string OrderMessageHref => "/storefront/orders/send-message";
