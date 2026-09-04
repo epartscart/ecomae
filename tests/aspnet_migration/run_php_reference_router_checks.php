@@ -54,5 +54,16 @@ check('compare board opens tenant classic ERP', str_contains($compare, '/php-ref
 check('compare board does not send PHP twin to product /CP/', !str_contains($compare, '@tenantPhp/CP/') && !str_contains($compare, '@wwwPhp/CP/'));
 check('compare board does not send PHP twin to product /ERP/', !str_contains($compare, '@tenantPhp/ERP/') && !str_contains($compare, '@wwwPhp/ERP/'));
 
+$liveLinks = file_get_contents($root . '/aspnet/src/EcomAE.Platform/Migration/LiveSurfaceLinkReporter.cs') ?: '';
+check('live links include ecomae Classic CP', str_contains($liveLinks, 'https://www.ecomae.com/php-reference/cp'));
+check('live links include ecomae Classic ERP', str_contains($liveLinks, 'https://www.ecomae.com/php-reference/erp'));
+check('live links include ePartsCart Classic CP', str_contains($liveLinks, 'https://www.epartscart.com/php-reference/cp'));
+
+$deploy = file_get_contents($root . '/scripts/cloudpanel_PHP_REFERENCE_COMPARE_LIVE_NOW.sh') ?: '';
+check('deploy script proves ecomae CP twin', str_contains($deploy, 'https://www.ecomae.com/php-reference/cp'));
+check('deploy script proves ecomae ERP twin', str_contains($deploy, 'https://www.ecomae.com/php-reference/erp'));
+check('deploy script proves epartscart CP twin', str_contains($deploy, 'https://www.epartscart.com/php-reference/cp'));
+check('deploy script never steals via index.php', !str_contains($deploy, 'rewrite ^ /index.php?epc_php_reference'));
+
 echo "\nPassed: $pass  Failed: $fail\n";
 exit($fail > 0 ? 1 : 0);
