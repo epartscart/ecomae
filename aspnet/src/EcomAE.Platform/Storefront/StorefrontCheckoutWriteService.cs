@@ -71,11 +71,6 @@ public sealed class StorefrontCheckoutWriteService : IStorefrontCheckoutWriteSer
             return Fail("auth", "Please log in or register to continue.");
         }
 
-        if (!_connections.IsConfigured)
-        {
-            return Fail("db", "Cart database is not configured.");
-        }
-
         if (!request.UsersAgreement)
         {
             return Fail("agreement", "Accept the user agreement to place the order.");
@@ -89,6 +84,11 @@ public sealed class StorefrontCheckoutWriteService : IStorefrontCheckoutWriteSer
         if (request.HowGetMode == 1 && request.OfficeId <= 0)
         {
             return Fail("office_required", "Choose a pickup office.");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return Fail("db", "Cart database is not configured.");
         }
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);

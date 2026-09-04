@@ -26,14 +26,14 @@ public sealed class StorefrontGarageWriteService : IStorefrontGarageWriteService
             return ErpSimpleWriteResult.Fail("auth", "Please log in or register to continue.");
         }
 
-        if (!_connections.IsConfigured)
-        {
-            return ErpSimpleWriteResult.Fail("db", "Garage database is not configured.");
-        }
-
         if (carId <= 0)
         {
             return ErpSimpleWriteResult.Fail("invalid", "Car is required.");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return ErpSimpleWriteResult.Fail("db", "Garage database is not configured.");
         }
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
@@ -80,14 +80,14 @@ public sealed class StorefrontGarageWriteService : IStorefrontGarageWriteService
             return ErpSimpleWriteResult.Fail("auth", "Please log in or register to continue.");
         }
 
-        if (!_connections.IsConfigured)
-        {
-            return ErpSimpleWriteResult.Fail("db", "Garage database is not configured.");
-        }
-
         if (carId <= 0)
         {
             return ErpSimpleWriteResult.Fail("invalid", "Car is required.");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return ErpSimpleWriteResult.Fail("db", "Garage database is not configured.");
         }
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);

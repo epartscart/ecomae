@@ -28,14 +28,14 @@ public sealed class StorefrontQuoteWriteService : IStorefrontQuoteWriteService
             return ErpSimpleWriteResult.Fail("auth", "Please log in or register to continue.");
         }
 
-        if (!_connections.IsConfigured)
-        {
-            return ErpSimpleWriteResult.Fail("db", "Quote database is not configured.");
-        }
-
         if (quoteId <= 0)
         {
             return ErpSimpleWriteResult.Fail("invalid", "Quote is required.");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return ErpSimpleWriteResult.Fail("db", "Quote database is not configured.");
         }
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);

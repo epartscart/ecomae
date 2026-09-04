@@ -87,15 +87,15 @@ public sealed class CpOmsWriteService : ICpOmsWriteService
         int adminUserId,
         CancellationToken cancellationToken = default)
     {
-        if (!_connections.IsConfigured)
-        {
-            return ErpSimpleWriteResult.Fail("db", "TenantRegistry DB is not configured.");
-        }
-
         var body = (text ?? string.Empty).Trim();
         if (orderId <= 0 || body.Length == 0)
         {
             return ErpSimpleWriteResult.Fail("invalid", "Message text is required.");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return ErpSimpleWriteResult.Fail("db", "TenantRegistry DB is not configured.");
         }
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
@@ -150,14 +150,14 @@ public sealed class CpOmsWriteService : ICpOmsWriteService
         int adminUserId,
         CancellationToken cancellationToken = default)
     {
-        if (!_connections.IsConfigured)
-        {
-            return ErpSimpleWriteResult.Fail("db", "TenantRegistry DB is not configured.");
-        }
-
         if (orderId <= 0 || deliveryPrice < 0)
         {
             return ErpSimpleWriteResult.Fail("invalid", "Courier fee cannot be negative.");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return ErpSimpleWriteResult.Fail("db", "TenantRegistry DB is not configured.");
         }
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
@@ -226,15 +226,15 @@ public sealed class CpOmsWriteService : ICpOmsWriteService
         IReadOnlyList<long> orderIds,
         CancellationToken cancellationToken = default)
     {
-        if (!_connections.IsConfigured)
-        {
-            return ErpSimpleWriteResult.Fail("db", "TenantRegistry DB is not configured.");
-        }
-
         var ids = (orderIds ?? []).Where(id => id > 0).Distinct().ToArray();
         if (ids.Length == 0)
         {
             return ErpSimpleWriteResult.Fail("invalid", "Select unpaid orders to delete.");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return ErpSimpleWriteResult.Fail("db", "TenantRegistry DB is not configured.");
         }
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
