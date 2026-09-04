@@ -3880,7 +3880,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only epc_erp_wms_* KPIs + work pool. PHP warehouse/mhei WMS remains authoritative."
+                note = "epc_erp_wms_* KPIs + work pool. Location save on POST /erp/wms/locations/save when confirmWrites=true. Wave create, pick add, and work complete stay PHP."
             });
         });
 

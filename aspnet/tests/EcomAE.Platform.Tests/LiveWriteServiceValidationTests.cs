@@ -788,6 +788,16 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(wmsDb.Succeeded);
         Assert.Equal("db", wmsDb.Code);
 
+        var wmsSaveInvalid = await new ErpWmsLocationWriteService(new ConfiguredNeverOpened())
+            .SaveAsync("  ", "MAIN", "", "pick", 0, 1, 0, 0);
+        Assert.False(wmsSaveInvalid.Succeeded);
+        Assert.Equal("invalid", wmsSaveInvalid.Code);
+
+        var wmsSaveDb = await new ErpWmsLocationWriteService(new UnconfiguredConnections())
+            .SaveAsync("A-01-01", "MAIN", "A", "pick", 0, 1, 0, 0);
+        Assert.False(wmsSaveDb.Succeeded);
+        Assert.Equal("db", wmsSaveDb.Code);
+
         var brandMissing = await new CpPriceStorageRuleWriteService(new ConfiguredNeverOpened())
             .ApplyAsync("save_storage_article_rule", 0, 4, "bosch", "---", "10", 1);
         Assert.False(brandMissing.Succeeded);
