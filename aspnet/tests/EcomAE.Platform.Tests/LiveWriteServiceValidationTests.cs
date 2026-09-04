@@ -1092,4 +1092,18 @@ public sealed class LiveWriteServiceValidationTests
         Assert.Single(clean);
         Assert.Equal("Ada &lt;b&gt;Lovelace&lt;/b&gt;", clean["name"]);
     }
+
+    [Fact]
+    public async Task Wms_wave_create_rejects_invalid_item_qty_and_unconfigured_db()
+    {
+        var invalid = await new ErpWmsWaveCreateWriteService(new ConfiguredNeverOpened())
+            .CreateWithPickAsync("  ", 0, "SO-1", 0, 0, 0);
+        Assert.False(invalid.Succeeded);
+        Assert.Equal("invalid", invalid.Code);
+
+        var missingDb = await new ErpWmsWaveCreateWriteService(new UnconfiguredConnections())
+            .CreateWithPickAsync("SKU-1", 2, "SO-1", 0, 0, 0);
+        Assert.False(missingDb.Succeeded);
+        Assert.Equal("db", missingDb.Code);
+    }
 }
