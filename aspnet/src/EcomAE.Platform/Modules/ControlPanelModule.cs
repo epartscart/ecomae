@@ -673,25 +673,50 @@ public sealed class ControlPanelModule : ISurfaceModule
 
         endpoints.MapPost(EcomAeRoutes.ControlPanelOmsUpdateItem, async (
             HttpContext context,
-            CpOmsUpdateItemBody? body,
             ILegacySessionValidator validator,
             ICpOmsUpdateItemDryRun dryRun,
+            ICpOmsWriteService writes,
             CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateAsync(context, cancellationToken);
             if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
             {
-                return Unauthorized("Admin CP capability required for OMS update-item dry-run.");
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/orders", "Admin CP capability required for OMS update-item.");
             }
 
-            body ??= new CpOmsUpdateItemBody(0, 0, null, null, null, null, null, false);
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpOmsUpdateItemBody>(context, cancellationToken)
+                       ?? new(0, 0, null, null, null, null, null, false);
+            var orderId = body.OrderId;
+            var patch = new CpOmsItemWritePatch(
+                body.ItemId, body.Price, body.CountNeed, body.Purchase, body.StorageId,
+                body.Name, body.Manufacturer, body.Article, body.ArticleShow, body.RepriceFromWarehouse);
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                orderId = LiveWriteFormBinder.Long(form, "orderId", "order_id");
+                patch = ReadOmsItemPatch(form, LiveWriteFormBinder.Long(form, "itemId", "item_id"));
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (confirm)
+            {
+                var written = await writes.UpdateItemAsync(orderId, patch, session.UserId, cancellationToken);
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    "/cp/orders?order_id=" + orderId.ToString(CultureInfo.InvariantCulture) + "&od=items",
+                    written.Succeeded,
+                    written.Message,
+                    new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+            }
+
             var result = await dryRun.EvaluateAsync(
                 new CpOmsUpdateItemRequest(
-                    body.OrderId, body.ItemId, body.Price, body.CountNeed,
-                    body.Manufacturer, body.Article, body.StorageId, body.ConfirmWrites),
+                    orderId, patch.ItemId, patch.Price, patch.CountNeed,
+                    patch.Manufacturer, patch.Article, patch.StorageId, false),
                 cancellationToken);
             return Results.Ok(result.ToPayload(SessionPayload(session)));
-        });
+        }).DisableAntiforgery();
 
         endpoints.MapPost(EcomAeRoutes.ControlPanelOmsPayRefund, async (
             HttpContext context,
@@ -715,21 +740,47 @@ public sealed class ControlPanelModule : ISurfaceModule
 
         endpoints.MapPost(EcomAeRoutes.ControlPanelOmsUpdateItems, async (
             HttpContext context,
-            CpOmsUpdateItemsBody? body,
             ILegacySessionValidator validator,
             ICpOmsUpdateItemsDryRun dryRun,
+            ICpOmsWriteService writes,
             CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateAsync(context, cancellationToken);
             if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
             {
-                return Unauthorized("Admin CP capability required for OMS update-items dry-run.");
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/orders", "Admin CP capability required for OMS update-items.");
             }
-            body ??= new CpOmsUpdateItemsBody(0, null, false);
-            var items = (body.Items ?? []).Select(i => new CpOmsUpdateItemsItem(i.ItemId, i.Price, i.CountNeed)).ToList();
-            var result = await dryRun.EvaluateAsync(new CpOmsUpdateItemsRequest(body.OrderId, items, body.ConfirmWrites), cancellationToken);
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpOmsUpdateItemsBody>(context, cancellationToken)
+                       ?? new(0, null, false);
+            var orderId = body.OrderId;
+            var patches = (body.Items ?? [])
+                .Select(i => new CpOmsItemWritePatch(i.ItemId, i.Price, i.CountNeed, i.Purchase, i.StorageId, i.Name, i.Manufacturer, i.Article, i.ArticleShow, i.RepriceFromWarehouse))
+                .ToList();
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                orderId = LiveWriteFormBinder.Long(form, "orderId", "order_id");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+                patches = ReadOmsItemPatches(form);
+            }
+
+            if (confirm)
+            {
+                var written = await writes.UpdateItemsAsync(orderId, patches, session.UserId, cancellationToken);
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    "/cp/orders?order_id=" + orderId.ToString(CultureInfo.InvariantCulture) + "&od=items",
+                    written.Succeeded,
+                    written.Message,
+                    new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+            }
+
+            var items = patches.Select(i => new CpOmsUpdateItemsItem(i.ItemId, i.Price, i.CountNeed)).ToList();
+            var result = await dryRun.EvaluateAsync(new CpOmsUpdateItemsRequest(orderId, items, false), cancellationToken);
             return Results.Ok(result.ToPayload(SessionPayload(session)));
-        });
+        }).DisableAntiforgery();
 
         endpoints.MapPost(EcomAeRoutes.ControlPanelOmsFulfillmentSetStage, async (
             HttpContext context,
@@ -4683,6 +4734,154 @@ public sealed class ControlPanelModule : ISurfaceModule
         return (poId, tier, comment, confirm);
     }
 
+    private static CpOmsItemWritePatch ReadOmsItemPatch(IFormCollection form, long itemId)
+        => new(
+            itemId,
+            LiveWriteFormBinder.DecOrNull(form, "price"),
+            LiveWriteFormBinder.IntOrNull(form, "countNeed", "count_need"),
+            LiveWriteFormBinder.DecOrNull(form, "purchase", "t2_price_purchase"),
+            LiveWriteFormBinder.IntOrNull(form, "storageId", "t2_storage_id", "storage_id"),
+            NullIfEmpty(LiveWriteFormBinder.Text(form, "name", "t2_name")),
+            NullIfEmpty(LiveWriteFormBinder.Text(form, "manufacturer", "t2_manufacturer", "brand")),
+            NullIfEmpty(LiveWriteFormBinder.Text(form, "article", "t2_article")),
+            NullIfEmpty(LiveWriteFormBinder.Text(form, "articleShow", "t2_article_show")),
+            LiveWriteFormBinder.Flag(form, "repriceFromWarehouse", "reprice_from_warehouse", "apply_warehouse_price"));
+
+    private static List<CpOmsItemWritePatch> ReadOmsItemPatches(IFormCollection form)
+    {
+        var raw = LiveWriteFormBinder.Text(form, "items", "itemsJson", "items_json");
+        if (raw.Length > 0)
+        {
+            try
+            {
+                using var doc = System.Text.Json.JsonDocument.Parse(raw);
+                if (doc.RootElement.ValueKind == System.Text.Json.JsonValueKind.Array)
+                {
+                    var fromJson = new List<CpOmsItemWritePatch>();
+                    foreach (var el in doc.RootElement.EnumerateArray())
+                    {
+                        if (el.ValueKind != System.Text.Json.JsonValueKind.Object)
+                        {
+                            continue;
+                        }
+
+                        var itemId = JsonLong(el, "item_id", "itemId");
+                        if (itemId <= 0)
+                        {
+                            continue;
+                        }
+
+                        fromJson.Add(new CpOmsItemWritePatch(
+                            itemId,
+                            JsonDec(el, "price"),
+                            JsonInt(el, "count_need", "countNeed"),
+                            JsonDec(el, "t2_price_purchase", "purchase"),
+                            JsonInt(el, "t2_storage_id", "storageId", "storage_id"),
+                            JsonText(el, "t2_name", "name"),
+                            JsonText(el, "t2_manufacturer", "manufacturer"),
+                            JsonText(el, "t2_article", "article"),
+                            JsonText(el, "t2_article_show", "articleShow"),
+                            JsonFlag(el, "reprice_from_warehouse", "repriceFromWarehouse")));
+                    }
+
+                    if (fromJson.Count > 0)
+                    {
+                        return fromJson;
+                    }
+                }
+            }
+            catch (System.Text.Json.JsonException)
+            {
+                // Fall through to single-item fields.
+            }
+        }
+
+        var one = ReadOmsItemPatch(form, LiveWriteFormBinder.Long(form, "itemId", "item_id"));
+        return one.ItemId > 0 ? [one] : [];
+    }
+
+    private static string? NullIfEmpty(string value)
+        => string.IsNullOrWhiteSpace(value) ? null : value;
+
+    private static long JsonLong(System.Text.Json.JsonElement el, params string[] names)
+    {
+        foreach (var name in names)
+        {
+            if (el.TryGetProperty(name, out var prop) && prop.TryGetInt64(out var value))
+            {
+                return value;
+            }
+        }
+
+        return 0;
+    }
+
+    private static int? JsonInt(System.Text.Json.JsonElement el, params string[] names)
+    {
+        foreach (var name in names)
+        {
+            if (el.TryGetProperty(name, out var prop) && prop.TryGetInt32(out var value))
+            {
+                return value;
+            }
+        }
+
+        return null;
+    }
+
+    private static decimal? JsonDec(System.Text.Json.JsonElement el, params string[] names)
+    {
+        foreach (var name in names)
+        {
+            if (el.TryGetProperty(name, out var prop) && prop.TryGetDecimal(out var value))
+            {
+                return value;
+            }
+        }
+
+        return null;
+    }
+
+    private static string? JsonText(System.Text.Json.JsonElement el, params string[] names)
+    {
+        foreach (var name in names)
+        {
+            if (el.TryGetProperty(name, out var prop) && prop.ValueKind == System.Text.Json.JsonValueKind.String)
+            {
+                var text = prop.GetString();
+                if (!string.IsNullOrWhiteSpace(text))
+                {
+                    return text.Trim();
+                }
+            }
+        }
+
+        return null;
+    }
+
+    private static bool JsonFlag(System.Text.Json.JsonElement el, params string[] names)
+    {
+        foreach (var name in names)
+        {
+            if (!el.TryGetProperty(name, out var prop))
+            {
+                continue;
+            }
+
+            if (prop.ValueKind == System.Text.Json.JsonValueKind.True)
+            {
+                return true;
+            }
+
+            if (prop.ValueKind == System.Text.Json.JsonValueKind.Number && prop.TryGetInt32(out var n) && n != 0)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     private static IResult Unauthorized(string message) => Results.Json(
         new { ok = false, error = new { code = "unauthorized", message } },
         statusCode: StatusCodes.Status401Unauthorized);
@@ -4726,9 +4925,23 @@ public sealed class ControlPanelModule : ISurfaceModule
         string? Manufacturer = null,
         string? Article = null,
         int? StorageId = null,
-        bool ConfirmWrites = false);
+        bool ConfirmWrites = false,
+        decimal? Purchase = null,
+        string? Name = null,
+        string? ArticleShow = null,
+        bool RepriceFromWarehouse = false);
     private sealed record CpOmsPayRefundBody(long OrderId, bool DirectRefund, decimal? PaidSum = null, bool ConfirmWrites = false);
-    private sealed record CpOmsUpdateItemsItemBody(long ItemId, decimal? Price = null, int? CountNeed = null);
+    private sealed record CpOmsUpdateItemsItemBody(
+        long ItemId,
+        decimal? Price = null,
+        int? CountNeed = null,
+        decimal? Purchase = null,
+        int? StorageId = null,
+        string? Name = null,
+        string? Manufacturer = null,
+        string? Article = null,
+        string? ArticleShow = null,
+        bool RepriceFromWarehouse = false);
     private sealed record CpOmsUpdateItemsBody(long OrderId, IReadOnlyList<CpOmsUpdateItemsItemBody>? Items, bool ConfirmWrites = false);
     private sealed record CpOmsFulfillmentSetStageBody(long OrderId, string? SupplierKey, string? Stage, bool ConfirmWrites = false);
     private sealed record CpOmsFulfillmentAdvanceBody(long OrderId, string? SupplierKey, bool ConfirmWrites = false);

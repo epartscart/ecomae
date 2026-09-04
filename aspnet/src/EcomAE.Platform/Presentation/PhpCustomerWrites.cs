@@ -21,6 +21,7 @@ public static class PhpCustomerWrites
     public static string CheckoutHowGetWriteHref => "/storefront/checkout-app?step=how_get";
     public static string CheckoutConfirmWriteHref => "/storefront/checkout/create";
     public static string ReturnsMessageHref => "/storefront/returns/send-message";
+    public static string ReturnsCreateHref => "/storefront/returns/create";
     public static string QuotesWriteHref => "/storefront/quotes/submit";
     public static string WishlistWriteHref => "/storefront/wishlist/add";
     public static string WishlistRemoveHref => "/storefront/wishlist/remove";

@@ -35,7 +35,7 @@ public static class PhpVendorPortal
     public static string UploadWriteHref => "/php-reference/en/vendor/upload";
     public static string ForgotWriteHref => "/php-reference/en/users/forgot_password";
     public static string ConfirmWriteHref => "/php-reference/en/users/confirm_contact";
-    public static string ReturnsWriteHref => "/php-reference/en/shop/returns/add";
+    public static string ReturnsWriteHref => "/storefront/returns/create";
     public static string BulkUploadWriteHref => "/php-reference/en/shop/bulk-upload";
     public static string NewsletterWriteHref => "/storefront/newsletter/subscribe";
     public static string ContactWriteHref => "/php-reference/en/kontakty";

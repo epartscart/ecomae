@@ -252,6 +252,46 @@ public sealed class LiveWriteServiceValidationTests
             .SendReturnMessageAsync(1, 0, "");
         Assert.False(retMsg.Succeeded);
         Assert.Equal("invalid", retMsg.Code);
+
+        var updateItem = await new CpOmsWriteService(new ConfiguredNeverOpened())
+            .UpdateItemAsync(0, new CpOmsItemWritePatch(0, 0m, 0), 1);
+        Assert.False(updateItem.Succeeded);
+        Assert.Equal("invalid", updateItem.Code);
+
+        var updatePrice = await new CpOmsWriteService(new ConfiguredNeverOpened())
+            .UpdateItemAsync(9, new CpOmsItemWritePatch(3, 0m, 2, Manufacturer: "Bosch", Article: "0986"), 1);
+        Assert.False(updatePrice.Succeeded);
+        Assert.Equal("invalid", updatePrice.Code);
+
+        var updateReprice = await new CpOmsWriteService(new ConfiguredNeverOpened())
+            .UpdateItemAsync(9, new CpOmsItemWritePatch(3, 12m, 2, Manufacturer: "Bosch", Article: "0986", RepriceFromWarehouse: true), 1);
+        Assert.False(updateReprice.Succeeded);
+        Assert.Equal("not_implemented", updateReprice.Code);
+
+        var updateItems = await new CpOmsWriteService(new ConfiguredNeverOpened())
+            .UpdateItemsAsync(0, [], 1);
+        Assert.False(updateItems.Succeeded);
+        Assert.Equal("invalid", updateItems.Code);
+
+        var updateItemsDb = await new CpOmsWriteService(new UnconfiguredConnections())
+            .UpdateItemsAsync(9, [new CpOmsItemWritePatch(3, 12m, 2, Manufacturer: "Bosch", Article: "0986")], 1);
+        Assert.False(updateItemsDb.Succeeded);
+        Assert.Equal("db", updateItemsDb.Code);
+
+        var createReturn = await new StorefrontCustomerWriteService(new ConfiguredNeverOpened())
+            .CreateReturnAsync(1, 0, 0, 0, 0, null);
+        Assert.False(createReturn.Succeeded);
+        Assert.Equal("invalid", createReturn.Code);
+
+        var createReturnGuest = await new StorefrontCustomerWriteService(new UnconfiguredConnections())
+            .CreateReturnAsync(0, 9, 3, 1, 1, null);
+        Assert.False(createReturnGuest.Succeeded);
+        Assert.Equal("auth", createReturnGuest.Code);
+
+        var createReturnDb = await new StorefrontCustomerWriteService(new UnconfiguredConnections())
+            .CreateReturnAsync(1, 9, 3, 1, 1, "broken");
+        Assert.False(createReturnDb.Succeeded);
+        Assert.Equal("db", createReturnDb.Code);
     }
 
     [Fact]

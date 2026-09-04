@@ -42,6 +42,15 @@ public interface IStorefrontCustomerWriteService
         long returnId,
         string? text,
         CancellationToken cancellationToken = default);
+
+    Task<ErpSimpleWriteResult> CreateReturnAsync(
+        int userId,
+        long orderId,
+        long itemId,
+        int reasonId,
+        int count,
+        string? comment,
+        CancellationToken cancellationToken = default);
 }
 
 public sealed class StorefrontCustomerWriteService : IStorefrontCustomerWriteService
@@ -188,6 +197,153 @@ public sealed class StorefrontCustomerWriteService : IStorefrontCustomerWriteSer
             cancellationToken,
             body, now, returnId);
         return ErpSimpleWriteResult.Ok("Message sent.", returnId);
+    }
+
+    public async Task<ErpSimpleWriteResult> CreateReturnAsync(
+        int userId,
+        long orderId,
+        long itemId,
+        int reasonId,
+        int count,
+        string? comment,
+        CancellationToken cancellationToken = default)
+    {
+        if (userId <= 0)
+        {
+            return ErpSimpleWriteResult.Fail("auth", "Please log in or register to continue.");
+        }
+
+        if (orderId <= 0 || itemId <= 0 || reasonId <= 0 || count < 1)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Order, item, reason, and quantity are required.");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return ErpSimpleWriteResult.Fail("db", "Returns database is not configured.");
+        }
+
+        await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await using var tx = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            await using var itemCmd = connection.CreateCommand();
+            itemCmd.Transaction = tx;
+            itemCmd.CommandText = ErpDb.Positional("""
+                SELECT soi.`id`, soi.`order_id`, soi.`count_need`, soi.`price`
+                FROM `shop_orders_items` soi
+                INNER JOIN `shop_orders` so ON so.`id` = soi.`order_id`
+                WHERE soi.`id` = ? AND soi.`order_id` = ? AND so.`user_id` = ?
+                LIMIT 1
+                """);
+            ErpDb.AddParameters(itemCmd, itemId, orderId, userId);
+            await using var reader = await itemCmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            if (!await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                return ErpSimpleWriteResult.Fail("not_found", "Order item not found.");
+            }
+
+            var countNeed = Convert.ToInt32(reader["count_need"], System.Globalization.CultureInfo.InvariantCulture);
+            var price = Convert.ToDecimal(reader["price"], System.Globalization.CultureInfo.InvariantCulture);
+            await reader.CloseAsync().ConfigureAwait(false);
+
+            if (count != countNeed)
+            {
+                return ErpSimpleWriteResult.Fail("split", "Partial-quantity returns stay on the classic form.");
+            }
+
+            var already = await ErpDb.LongAsync(
+                connection,
+                tx,
+                ErpDb.Positional("SELECT COUNT(*) FROM `shop_orders_returns_items` WHERE `item_id` = ?"),
+                cancellationToken,
+                itemId);
+            if (already > 0)
+            {
+                return ErpSimpleWriteResult.Fail("already", "This line already has a return.");
+            }
+
+            var statusId = 0L;
+            foreach (var caption in new[] { "3806", "3796", "epc_ret_st_under_consideration", "epc_ret_st_created" })
+            {
+                statusId = await ErpDb.LongAsync(
+                    connection,
+                    tx,
+                    ErpDb.Positional("SELECT `id` FROM `shop_orders_returns_statuses` WHERE `caption` = ? LIMIT 1"),
+                    cancellationToken,
+                    caption);
+                if (statusId > 0)
+                {
+                    break;
+                }
+            }
+
+            if (statusId <= 0)
+            {
+                statusId = await ErpDb.LongAsync(
+                    connection,
+                    tx,
+                    "SELECT `id` FROM `shop_orders_returns_statuses` ORDER BY `id` ASC LIMIT 1",
+                    cancellationToken);
+            }
+
+            if (statusId <= 0)
+            {
+                return ErpSimpleWriteResult.Fail("invalid", "Return status is not configured.");
+            }
+
+            var sum = decimal.Round(price * count, 2, MidpointRounding.AwayFromZero);
+            var note = WebUtility.HtmlEncode((comment ?? string.Empty).Trim());
+            await ErpDb.ExecuteAsync(
+                connection,
+                tx,
+                ErpDb.Positional("INSERT INTO `shop_orders_returns` (`status_id`, `user_id`, `sum`) VALUES (?, ?, ?)"),
+                cancellationToken,
+                statusId, userId, sum);
+            var returnId = await ErpDb.LastInsertIdAsync(connection, tx, cancellationToken).ConfigureAwait(false);
+            if (returnId <= 0)
+            {
+                return ErpSimpleWriteResult.Fail("insert_failed", "Could not create the return.");
+            }
+
+            await ErpDb.ExecuteAsync(
+                connection,
+                tx,
+                ErpDb.Positional("INSERT INTO `shop_orders_returns_items` (`comment`, `reason_id`, `return_id`, `item_id`, `count_need`) VALUES (?, ?, ?, ?, ?)"),
+                cancellationToken,
+                note, reasonId, returnId, itemId, count);
+
+            var returnStatus = await ErpDb.LongAsync(
+                connection,
+                tx,
+                "SELECT `id` FROM `shop_orders_items_statuses_ref` WHERE `for_return` = 1 LIMIT 1",
+                cancellationToken);
+            if (returnStatus > 0)
+            {
+                await ErpDb.ExecuteAsync(
+                    connection,
+                    tx,
+                    ErpDb.Positional("UPDATE `shop_orders_items` SET `status` = ? WHERE `id` = ?"),
+                    cancellationToken,
+                    returnStatus, itemId);
+                await ErpDb.ExecuteAsync(
+                    connection,
+                    tx,
+                    ErpDb.Positional("INSERT INTO `shop_orders_logs` (`order_id`, `time`, `user_id`, `is_manager`, `text`, `is_robot`) VALUES (?, ?, 0, 0, ?, 1)"),
+                    cancellationToken,
+                    orderId,
+                    DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
+                    "Return created for item [" + itemId.ToString(System.Globalization.CultureInfo.InvariantCulture) + "]");
+            }
+
+            await tx.CommitAsync(cancellationToken).ConfigureAwait(false);
+            return ErpSimpleWriteResult.Ok("Return request submitted.", returnId);
+        }
+        catch (Exception ex) when (ex is ErpWriteException or System.Data.Common.DbException)
+        {
+            await tx.RollbackAsync(cancellationToken).ConfigureAwait(false);
+            return ErpSimpleWriteResult.Fail("insert_failed", ex.Message);
+        }
     }
 
     public async Task<ErpSimpleWriteResult> SubscribeNewsletterAsync(

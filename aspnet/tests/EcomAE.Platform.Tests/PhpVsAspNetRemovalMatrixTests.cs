@@ -37,6 +37,7 @@ public sealed class PhpVsAspNetRemovalMatrixTests
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.WritesOwner == "php");
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "sf-cart" && r.WritesOwner == "aspnet");
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "cp-orders" && r.WritesOwner == "aspnet");
+        Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "sf-returns" && r.WritesOwner == "aspnet");
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "erp-payroll" && r.WritesOwner == "aspnet");
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "write-storefront-cart" && r.WritesOwner == "php");
     }
@@ -93,6 +94,8 @@ public sealed class PhpVsAspNetRemovalMatrixTests
             ("CpOrdersApp.razor", "/cp/orders/add-comment"),
             ("CpOrdersApp.razor", "/cp/orders/fulfillment-set-stage"),
             ("StorefrontReturnsApp.razor", "ReturnsMessageHref"),
+            ("StorefrontReturnsApp.razor", "ReturnsCreateHref"),
+            ("CpOrdersApp.razor", "/cp/orders/update-item"),
             ("StorefrontWishlistApp.razor", "WishlistRemoveHref"),
             ("StorefrontCompareApp.razor", "CompareRemoveHref"),
             ("StorefrontProfileApp.razor", "ProfileWriteHref"),

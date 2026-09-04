@@ -28,7 +28,24 @@ public interface ICpOmsWriteService
     Task<ErpSimpleWriteResult> SetFulfillmentStageAsync(long orderId, string? supplierKey, string? stage, string? notes, int adminUserId, CancellationToken cancellationToken = default);
 
     Task<ErpSimpleWriteResult> AdvanceFulfillmentAsync(long orderId, string? supplierKey, int adminUserId, CancellationToken cancellationToken = default);
+
+    Task<ErpSimpleWriteResult> UpdateItemAsync(long orderId, CpOmsItemWritePatch patch, int adminUserId, CancellationToken cancellationToken = default, bool writeLog = true);
+
+    Task<ErpSimpleWriteResult> UpdateItemsAsync(long orderId, IReadOnlyList<CpOmsItemWritePatch> patches, int adminUserId, CancellationToken cancellationToken = default);
 }
+
+/// <summary>PHP <c>ajax_epc_orders_oms.php</c> <c>update_item</c> / <c>update_items</c> field patch. Warehouse reprice is refused.</summary>
+public sealed record CpOmsItemWritePatch(
+    long ItemId,
+    decimal? Price = null,
+    int? CountNeed = null,
+    decimal? Purchase = null,
+    int? StorageId = null,
+    string? Name = null,
+    string? Manufacturer = null,
+    string? Article = null,
+    string? ArticleShow = null,
+    bool RepriceFromWarehouse = false);
 
 public sealed class CpOmsWriteService : ICpOmsWriteService
 {
@@ -513,6 +530,269 @@ public sealed class CpOmsWriteService : ICpOmsWriteService
 
         return await SetFulfillmentStageAsync(orderId, key, stages[idx + 1], "", adminUserId, cancellationToken).ConfigureAwait(false);
     }
+
+    public async Task<ErpSimpleWriteResult> UpdateItemAsync(
+        long orderId,
+        CpOmsItemWritePatch patch,
+        int adminUserId,
+        CancellationToken cancellationToken = default,
+        bool writeLog = true)
+    {
+        ArgumentNullException.ThrowIfNull(patch);
+        if (orderId <= 0 || patch.ItemId <= 0)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Invalid item.");
+        }
+
+        if (patch.CountNeed is < 1)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Quantity must be at least 1.");
+        }
+
+        if (patch.Price is <= 0)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Price must be greater than 0.");
+        }
+
+        if (patch.RepriceFromWarehouse)
+        {
+            return ErpSimpleWriteResult.Fail("not_implemented", "Warehouse reprice stays PHP.");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return ErpSimpleWriteResult.Fail("db", "TenantRegistry DB is not configured.");
+        }
+
+        await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await using var select = connection.CreateCommand();
+        select.CommandText = ErpDb.Positional("""
+            SELECT `price`, `count_need`, `t2_price_purchase`, `t2_storage_id`, `t2_name`,
+                   `t2_manufacturer`, `t2_article`, `t2_article_show`, `t2_json_params`
+            FROM `shop_orders_items` WHERE `id` = ? AND `order_id` = ? LIMIT 1
+            """);
+        ErpDb.AddParameters(select, patch.ItemId, orderId);
+        await using var reader = await select.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+        if (!await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+        {
+            return ErpSimpleWriteResult.Fail("not_found", "Item not found.");
+        }
+
+        var price = patch.Price ?? Convert.ToDecimal(reader["price"], CultureInfo.InvariantCulture);
+        var qty = patch.CountNeed ?? Convert.ToInt32(reader["count_need"], CultureInfo.InvariantCulture);
+        var purchase = patch.Purchase ?? Convert.ToDecimal(reader["t2_price_purchase"], CultureInfo.InvariantCulture);
+        var storageId = patch.StorageId ?? Convert.ToInt32(reader["t2_storage_id"], CultureInfo.InvariantCulture);
+        var name = SanitizeOmsText(patch.Name ?? Convert.ToString(reader["t2_name"], CultureInfo.InvariantCulture));
+        var origBrand = Convert.ToString(reader["t2_manufacturer"], CultureInfo.InvariantCulture) ?? "";
+        var origArticle = Convert.ToString(reader["t2_article"], CultureInfo.InvariantCulture) ?? "";
+        var brand = SanitizeOmsText(patch.Manufacturer ?? origBrand);
+        var article = SanitizeOmsText(patch.Article ?? origArticle);
+        var articleShowRaw = Convert.ToString(reader["t2_article_show"], CultureInfo.InvariantCulture);
+        var articleShow = SanitizeOmsText(
+            patch.ArticleShow
+            ?? (string.IsNullOrWhiteSpace(articleShowRaw) ? article : articleShowRaw));
+        var jsonParams = Convert.ToString(reader["t2_json_params"], CultureInfo.InvariantCulture) ?? "";
+        await reader.CloseAsync().ConfigureAwait(false);
+
+        if (qty < 1)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Quantity must be at least 1.");
+        }
+
+        if (price <= 0)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Price must be greater than 0.");
+        }
+
+        if (brand.Length == 0 || article.Length == 0)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Brand and article number are required.");
+        }
+
+        if (articleShow.Length == 0)
+        {
+            articleShow = article;
+        }
+
+        var isAlt = !string.Equals(brand, origBrand, StringComparison.Ordinal)
+                    || !string.Equals(article, origArticle, StringComparison.Ordinal);
+        var jsonOut = jsonParams;
+        if (isAlt)
+        {
+            JsonObject meta;
+            try
+            {
+                meta = JsonNode.Parse(string.IsNullOrWhiteSpace(jsonParams) ? "{}" : jsonParams) as JsonObject ?? [];
+            }
+            catch (JsonException)
+            {
+                meta = [];
+            }
+
+            if (string.IsNullOrWhiteSpace(meta["requested_manufacturer"]?.ToString()))
+            {
+                meta["requested_manufacturer"] = origBrand;
+            }
+
+            if (string.IsNullOrWhiteSpace(meta["requested_article"]?.ToString()))
+            {
+                meta["requested_article"] = origArticle;
+            }
+
+            meta["offer_alternative"] = 1;
+            meta["alt_manufacturer"] = brand;
+            meta["alt_article"] = article;
+            meta["alt_storage_id"] = storageId;
+            jsonOut = meta.ToJsonString();
+        }
+
+        var storageCaption = await StorageCaptionAsync(connection, storageId, cancellationToken).ConfigureAwait(false);
+        await ErpDb.ExecuteAsync(
+            connection,
+            null,
+            ErpDb.Positional("""
+                UPDATE `shop_orders_items`
+                SET `price` = ?, `count_need` = ?, `t2_price_purchase` = ?, `t2_storage_id` = ?,
+                    `t2_storage` = ?, `t2_name` = ?, `t2_manufacturer` = ?, `t2_article` = ?,
+                    `t2_article_show` = ?, `t2_json_params` = ?
+                WHERE `id` = ? AND `order_id` = ?
+                """),
+            cancellationToken,
+            price, qty, purchase, storageId, storageCaption, name, brand, article, articleShow, jsonOut,
+            patch.ItemId, orderId);
+        try
+        {
+            await ErpDb.ExecuteAsync(
+                connection,
+                null,
+                ErpDb.Positional("UPDATE `shop_orders_items_details` SET `storage_id` = ? WHERE `order_item_id` = ? AND `order_id` = ?"),
+                cancellationToken,
+                storageId, patch.ItemId, orderId);
+        }
+        catch (DbException)
+        {
+            // PHP swallows missing shop_orders_items_details.
+        }
+
+        if (writeLog)
+        {
+            var log = "OMS updated item <b>id " + patch.ItemId.ToString(CultureInfo.InvariantCulture) + "</b>: "
+                      + brand + " / " + article
+                      + (isAlt ? " (alternative)" : "")
+                      + ", price=" + price.ToString("0.00", CultureInfo.InvariantCulture)
+                      + ", qty=" + qty.ToString(CultureInfo.InvariantCulture)
+                      + ", purchase=" + purchase.ToString("0.00", CultureInfo.InvariantCulture)
+                      + ", storage_id=" + storageId.ToString(CultureInfo.InvariantCulture);
+            await ErpDb.ExecuteAsync(
+                connection,
+                null,
+                ErpDb.Positional("INSERT INTO `shop_orders_logs` (`order_id`,`time`,`user_id`,`is_manager`,`text`,`is_robot`) VALUES (?,?,?,1,?,0)"),
+                cancellationToken,
+                orderId, DateTimeOffset.UtcNow.ToUnixTimeSeconds(), adminUserId, log);
+        }
+
+        return ErpSimpleWriteResult.Ok("Item updated.", patch.ItemId);
+    }
+
+    public async Task<ErpSimpleWriteResult> UpdateItemsAsync(
+        long orderId,
+        IReadOnlyList<CpOmsItemWritePatch> patches,
+        int adminUserId,
+        CancellationToken cancellationToken = default)
+    {
+        var rows = (patches ?? [])
+            .Where(p => p.ItemId > 0)
+            .GroupBy(p => p.ItemId)
+            .Select(g => g.Last())
+            .ToArray();
+        if (orderId <= 0 || rows.Length == 0)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "No items to update.");
+        }
+
+        if (rows.Any(p => p.RepriceFromWarehouse))
+        {
+            return ErpSimpleWriteResult.Fail("not_implemented", "Warehouse reprice stays PHP.");
+        }
+
+        if (rows.Any(p => p.CountNeed is < 1))
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Quantity must be at least 1.");
+        }
+
+        if (rows.Any(p => p.Price is <= 0))
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Price must be greater than 0.");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return ErpSimpleWriteResult.Fail("db", "TenantRegistry DB is not configured.");
+        }
+
+        var updated = 0;
+        foreach (var patch in rows)
+        {
+            var one = await UpdateItemAsync(orderId, patch, adminUserId, cancellationToken, writeLog: false).ConfigureAwait(false);
+            if (!one.Succeeded)
+            {
+                continue;
+            }
+
+            updated++;
+        }
+
+        if (updated <= 0)
+        {
+            return ErpSimpleWriteResult.Fail("update_failed", "No lines updated.");
+        }
+
+        await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await ErpDb.ExecuteAsync(
+            connection,
+            null,
+            ErpDb.Positional("INSERT INTO `shop_orders_logs` (`order_id`,`time`,`user_id`,`is_manager`,`text`,`is_robot`) VALUES (?,?,?,1,?,0)"),
+            cancellationToken,
+            orderId, DateTimeOffset.UtcNow.ToUnixTimeSeconds(), adminUserId,
+            "OMS batch-updated <b>" + updated.ToString(CultureInfo.InvariantCulture) + "</b> line(s)");
+        return new ErpSimpleWriteResult(true, "ok", "Lines updated.", orderId, updated);
+    }
+
+    private static async Task<string> StorageCaptionAsync(
+        DbConnection connection,
+        int storageId,
+        CancellationToken cancellationToken)
+    {
+        if (storageId <= 0)
+        {
+            return "";
+        }
+
+        try
+        {
+            return await ErpDb.StringAsync(
+                       connection,
+                       null,
+                       ErpDb.Positional("SELECT COALESCE(NULLIF(TRIM(`short_name`), ''), `name`) FROM `shop_storages` WHERE `id` = ? LIMIT 1"),
+                       cancellationToken,
+                       storageId)
+                   ?? "";
+        }
+        catch (DbException)
+        {
+            return "";
+        }
+    }
+
+    private static string SanitizeOmsText(string? value)
+        => (value ?? string.Empty)
+            .Replace("\"", "", StringComparison.Ordinal)
+            .Replace("\\", "", StringComparison.Ordinal)
+            .Replace("'", "", StringComparison.Ordinal)
+            .Replace("\n", "", StringComparison.Ordinal)
+            .Replace("\r", "", StringComparison.Ordinal)
+            .Replace("\t", "", StringComparison.Ordinal)
+            .Trim();
 
     private static Task EnsureFulfillmentSchemaAsync(DbConnection connection, CancellationToken cancellationToken)
         => ErpDb.TryExecuteAsync(

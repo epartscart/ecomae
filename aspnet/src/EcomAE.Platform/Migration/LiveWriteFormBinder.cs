@@ -88,16 +88,44 @@ public static class LiveWriteFormBinder
         => (int)Math.Clamp(Long(form, names), int.MinValue, int.MaxValue);
 
     public static decimal Dec(IFormCollection form, params string[] names)
+        => DecOrNull(form, names) ?? 0;
+
+    public static decimal? DecOrNull(IFormCollection form, params string[] names)
     {
         foreach (var name in names)
         {
-            if (decimal.TryParse(form[name].ToString(), NumberStyles.Any, CultureInfo.InvariantCulture, out var value))
+            var raw = form[name].ToString().Trim();
+            if (raw.Length == 0)
+            {
+                continue;
+            }
+
+            if (decimal.TryParse(raw, NumberStyles.Any, CultureInfo.InvariantCulture, out var value))
             {
                 return value;
             }
         }
 
-        return 0;
+        return null;
+    }
+
+    public static int? IntOrNull(IFormCollection form, params string[] names)
+    {
+        foreach (var name in names)
+        {
+            var raw = form[name].ToString().Trim();
+            if (raw.Length == 0)
+            {
+                continue;
+            }
+
+            if (int.TryParse(raw, NumberStyles.Integer, CultureInfo.InvariantCulture, out var value))
+            {
+                return value;
+            }
+        }
+
+        return null;
     }
 
     public static string Text(IFormCollection form, params string[] names)

@@ -48,10 +48,10 @@
     },
     {
       "id": "cart-checkout-quote-writes",
-      "aspnet": "POST /storefront/checkout/create + quotes + cart + garage + evaluations + order messages + newsletter + geo city + wishlist/compare cookies + profile UPSERT",
-      "php": "guest checkout cookies + payment go_to_pay + profile password/contact confirm",
+      "aspnet": "POST /storefront/checkout/create + quotes + cart + garage + evaluations + order/return messages + create-return (full qty) + newsletter + geo city + wishlist/compare cookies + profile UPSERT",
+      "php": "guest checkout cookies + payment go_to_pay + profile password/contact confirm + partial-qty return split + return photos",
       "status": "partial-ported",
-      "note": "Signed-in checkout, quotes, garage, reviews, order/return messages, newsletter, city cookie, wishlist/compare cookies, and users_profiles UPSERT are ASP.NET-live when confirmWrites=true. Guest checkout, payment notify, and profile password stay PHP."
+      "note": "Signed-in checkout, quotes, garage, reviews, order/return messages, full-qty create-return, newsletter, city cookie, wishlist/compare cookies, and users_profiles UPSERT are ASP.NET-live when confirmWrites=true. Guest checkout, payment notify, profile password, return line-split, and return photos stay PHP."
     },
     {
       "id": "home-widget-ajax",
@@ -62,10 +62,10 @@
     },
     {
       "id": "cp-erp-interactive-writes",
-      "aspnet": "OMS item + bulk items status / message / courier / unpaid delete / comment / viewed / supplier fulfillment stage + payroll / credit / PO / forecast",
-      "php": "remaining ~430 CP module ajax + residual ajax_erp.php + payment notify + fulfillment bootstrap-from-items",
+      "aspnet": "OMS item + bulk items status / update_item / update_items / message / courier / unpaid delete / comment / viewed / supplier fulfillment stage + payroll / credit / PO / forecast",
+      "php": "remaining ~430 CP module ajax + residual ajax_erp.php + payment notify + fulfillment bootstrap-from-items + warehouse reprice + refresh_item_cost",
       "status": "partial-ported",
-      "note": "Wired OMS twins including add-comment, set-viewed, and supplier fulfillment set-stage/advance write when confirmWrites=true. Remaining CP/ERP ajax catalogs stay PHP."
+      "note": "Wired OMS twins including update_item/update_items (no warehouse reprice), add-comment, set-viewed, and supplier fulfillment set-stage/advance write when confirmWrites=true. Remaining CP/ERP ajax catalogs stay PHP."
     }
   ],
   "completedThisWave": [

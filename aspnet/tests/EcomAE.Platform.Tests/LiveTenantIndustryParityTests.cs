@@ -357,6 +357,8 @@ public sealed class LiveTenantIndustryParityTests
         Assert.Equal("/storefront/checkout/create", PhpCustomerWrites.CheckoutConfirmWriteHref);
         Assert.Equal("/storefront/cart/add", PhpCustomerWrites.CartAddHref);
         Assert.Equal("/storefront/returns/send-message", PhpCustomerWrites.ReturnsMessageHref);
+        Assert.Equal("/storefront/returns/create", PhpCustomerWrites.ReturnsCreateHref);
+        Assert.Equal("/storefront/returns/create", PhpVendorPortal.ReturnsWriteHref);
         Assert.Equal("/storefront/evaluations/add", PhpCustomerWrites.EvaluationWriteHref);
         Assert.Equal("/storefront/quotes/add-item", PhpCustomerWrites.QuoteAddHref);
         Assert.Equal("/storefront/quotes/accept", PhpCustomerWrites.QuotesAcceptHref);

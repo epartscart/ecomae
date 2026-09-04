@@ -108,11 +108,19 @@
                         </div>
                     }
                     <p style="margin:0 0 .85rem"><a class="btn btn-primary" href="@StorefrontSurfaceLinks.Orders">Choose an order</a></p>
-                    <form method="post" action="@PhpVendorPortal.ReturnsWriteHref">
+                    <form method="post" action="@PhpCustomerWrites.ReturnsCreateHref">
+                        <input type="hidden" name="confirmWrites" value="true" />
+                        <input type="hidden" name="returnUrl" value="/storefront/returns-app" />
                         <label>Order number</label>
-                        <input type="text" name="order_id" required value="@OrderId" style="width:100%;margin:.25rem 0 .75rem;padding:.5rem" />
-                        <label>Reason</label>
-                        <textarea name="reason" rows="3" style="width:100%;margin:.25rem 0 1rem;padding:.5rem"></textarea>
+                        <input type="number" name="order_id" required min="1" value="@OrderId" style="width:100%;margin:.25rem 0 .75rem;padding:.5rem" />
+                        <label>Order item id</label>
+                        <input type="number" name="item_id" required min="1" style="width:100%;margin:.25rem 0 .75rem;padding:.5rem" />
+                        <label>Reason id</label>
+                        <input type="number" name="reason_id" required min="1" style="width:100%;margin:.25rem 0 .75rem;padding:.5rem" />
+                        <label>Quantity (full line only)</label>
+                        <input type="number" name="count" required min="1" value="1" style="width:100%;margin:.25rem 0 .75rem;padding:.5rem" />
+                        <label>Comment</label>
+                        <textarea name="comment" rows="3" style="width:100%;margin:.25rem 0 1rem;padding:.5rem"></textarea>
                         <button type="submit" style="padding:.65rem 1rem;border:0;border-radius:.45rem;background:#0f766e;color:#fff;font-weight:800;cursor:pointer">Submit return request</button>
                     </form>
                     @if (!string.IsNullOrWhiteSpace(_flashOk))

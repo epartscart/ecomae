@@ -1833,6 +1833,62 @@ public sealed class StorefrontModule : ISurfaceModule
                 written.Message,
                 new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
+
+        endpoints.MapPost(EcomAeRoutes.StorefrontReturnsCreate, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IStorefrontCustomerWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Customer || session.UserId <= 0)
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/storefront/login?returnUrl=/storefront/returns-app", "Customer session required for create return.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<StorefrontReturnCreateBody>(context, cancellationToken)
+                       ?? new(0, 0, 0, 0, null, false);
+            var orderId = body.OrderId;
+            var itemId = body.ItemId;
+            var reasonId = body.ReasonId;
+            var count = body.Count;
+            var comment = body.Comment;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                orderId = LiveWriteFormBinder.Long(form, "orderId", "order_id");
+                itemId = LiveWriteFormBinder.Long(form, "itemId", "item_id");
+                reasonId = LiveWriteFormBinder.Int(form, "reasonId", "reason_id", "reason");
+                count = LiveWriteFormBinder.Int(form, "count", "countNeed", "count_need");
+                comment = LiveWriteFormBinder.Text(form, "comment", "text");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(new
+                {
+                    ok = false,
+                    writes = 0,
+                    writesBlocked = true,
+                    phpAuthoritative = false,
+                    message = "Set confirmWrites=true to create the return on ASP.NET.",
+                    session = SessionPayload(session),
+                });
+            }
+
+            var written = await writes.CreateReturnAsync(session.UserId, orderId, itemId, reasonId, count, comment, cancellationToken);
+            var dest = written.Succeeded && written.Id > 0
+                ? "/storefront/returns-app?return_id=" + written.Id.ToString(CultureInfo.InvariantCulture)
+                : "/storefront/returns-app?order_id=" + orderId.ToString(CultureInfo.InvariantCulture);
+            return LiveWriteFormBinder.Complete(
+                context,
+                dest,
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, return_id = written.Id, session = SessionPayload(session) });
+        }).DisableAntiforgery();
     }
 
     private sealed record StorefrontCartChangeCountNeedBody(int Id = 0, decimal CountNeed = 0, bool ConfirmWrites = false);
@@ -1908,6 +1964,13 @@ public sealed class StorefrontModule : ISurfaceModule
         string? BuyerPoNumber = null);
     private sealed record StorefrontOrderSendMessageBody(long OrderId, string? Text, bool ConfirmWrites = false);
     private sealed record StorefrontReturnSendMessageBody(long ReturnId, string? Text, bool ConfirmWrites = false);
+    private sealed record StorefrontReturnCreateBody(
+        long OrderId,
+        long ItemId,
+        int ReasonId,
+        int Count,
+        string? Comment = null,
+        bool ConfirmWrites = false);
     private sealed record StorefrontGetArticleListBody(string? Action = null, bool ConfirmWrites = false);
     private sealed record StorefrontLoadReturnsDataBody(string? Action = null, bool ConfirmWrites = false);
     private sealed record StorefrontBulkUploadProcessBody(string? Action = null, bool ConfirmWrites = false);
