@@ -47,6 +47,8 @@
             <a class="ghost" href="/cp/accessories/photos">Photos dry-run</a>
         </div>
     </section>
+    <PhpParityModuleBody AppPath="/cp/accessories-app" IsAdmin="_isAdmin" />
+
 
     <div class="epc-nw-kpis" aria-label="Accessories stats">
         <div class="epc-nw-kpi"><strong>@_listingCount.ToString(CultureInfo.InvariantCulture)</strong><span>Listings</span></div>
@@ -71,7 +73,7 @@
         <tbody>
             @if (_rows.Count == 0)
             {
-                <tr><td colspan="7">Nothing to show yet.</td></tr>
+                <tr><td colspan="7">No records yet.</td></tr>
             }
             else
             {
@@ -113,7 +115,7 @@
         if (ctx is null) return;
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
-        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
+        _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
         if (!_isAdmin)
         {
             return;

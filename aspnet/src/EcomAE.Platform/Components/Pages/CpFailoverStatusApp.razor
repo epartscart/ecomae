@@ -45,6 +45,8 @@
             <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
         </div>
     </section>
+    <PhpParityModuleBody AppPath="/cp/failover-status-app" IsAdmin="_isAdmin" />
+
     <div class="epc-w23-kpis">
         <div class="epc-w23-kpi"><strong>@_summary.ModeFilePresent.ToString(CultureInfo.InvariantCulture)</strong><span>Mode file</span></div>
         <div class="epc-w23-kpi"><strong>@_summary.StatusJsonPresent.ToString(CultureInfo.InvariantCulture)</strong><span>Status JSON</span></div>
@@ -54,7 +56,7 @@
     <div class="epc-w23-table-wrap"><table class="epc-w23-table">
         <thead><tr><th>Path</th><th>Present</th><th>Kind</th><th></th></tr></thead>
         <tbody>
-        @if (_rows.Count==0) { <tr><td colspan="4">Nothing to show yet.</td></tr> }
+        @if (_rows.Count==0) { <tr><td colspan="4">No records yet.</td></tr> }
         else { @foreach (var row in _rows) { <tr><td>@row.Path</td><td>@row.Present</td><td>@row.Kind</td><td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td></tr> } }
         </tbody>
     </table></div>
@@ -87,7 +89,7 @@ else
         }
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
-        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
+        _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
         if (!_isAdmin)
         {
             return; // guest browse — Sign in for live data

@@ -56,6 +56,8 @@
             <a class="ghost" href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">PHP SEO ops</a>
         </div>
     </section>
+    <PhpParityModuleBody AppPath="/cp/seo-app" IsAdmin="_isAdmin" />
+
 
     <div class="epc-nw-probe" role="status">
         <strong>Live ASP.NET SEO status:</strong>
@@ -147,7 +149,7 @@
         if (ctx is null) return;
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
-        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
+        _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
         if (!_isAdmin)
         {
             return;

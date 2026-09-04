@@ -51,6 +51,8 @@
             <a class="ghost" href="/cp/price-lists-app">Price lists</a>
         </div>
     </section>
+    <PhpParityModuleBody AppPath="/cp/auto-price-app" IsAdmin="_isAdmin" />
+
 
     <div class="epc-ap-kpis" aria-label="Auto-price stats">
         <div class="epc-ap-kpi"><strong>@_summary.ActiveRules.ToString(CultureInfo.InvariantCulture)</strong><span>Active rules</span></div>
@@ -76,7 +78,7 @@
             <tbody>
                 @if (_rules.Count == 0)
                 {
-                    <tr><td colspan="9">Nothing to show yet.</td></tr>
+                    <tr><td colspan="9">No records yet.</td></tr>
                 }
                 else
                 {
@@ -115,7 +117,7 @@
         if (ctx is null) return;
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
-        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
+        _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
         if (!_isAdmin)
         {
             return; // guest browse — Sign in for live data

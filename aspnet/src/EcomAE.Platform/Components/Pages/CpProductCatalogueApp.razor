@@ -17,6 +17,8 @@
 }
 
 <PhpCpDesktopChrome IsAdmin="_isAdmin">
+    <PhpParityModuleBody AppPath="/cp/product-catalogue-app" IsAdmin="_isAdmin" />
+
 
     <PhpCpModulePageHeader Title="Product catalogue"
                            Subtitle="PHP catalogue_editor parity — category KPIs and product rows from shop_catalogue_products. Tree editor / SKU media writes stay on classic PHP."
@@ -172,7 +174,7 @@
         if (ctx is null) return;
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
-        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
+        _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
 
         var uri = Nav.ToAbsoluteUri(Nav.Uri);
         var query = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query);

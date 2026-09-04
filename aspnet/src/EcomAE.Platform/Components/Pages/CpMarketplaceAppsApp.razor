@@ -50,6 +50,8 @@
             <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
         </div>
     </section>
+    <PhpParityModuleBody AppPath="/cp/marketplace-apps-app" IsAdmin="_isAdmin" />
+
 
     <div class="epc-w20-kpis" aria-label="Marketplace apps stats">
         <div class="epc-w20-kpi"><strong>@_summary.AppCount.ToString(CultureInfo.InvariantCulture)</strong><span>Apps</span></div>
@@ -82,7 +84,7 @@
         <tbody>
             @if (_rows.Count == 0)
             {
-                <tr><td colspan="15">Nothing to show yet.</td></tr>
+                <tr><td colspan="15">No records yet.</td></tr>
             }
             else
             {
@@ -127,7 +129,7 @@
         if (ctx is null) return;
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
-        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
+        _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
         if (!_isAdmin)
         {
             return; // guest browse — Sign in for live data

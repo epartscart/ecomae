@@ -107,7 +107,7 @@
                         <tbody>
                             @if (_visibleOrders.Count == 0)
                             {
-                                <tr><td colspan="13">Nothing to show yet.</td></tr>
+                                <tr><td colspan="13">No records yet.</td></tr>
                             }
                             else
                             {
@@ -236,6 +236,8 @@
                             </ol>
                         </div>
                     </section>
+    <PhpParityModuleBody AppPath="/cp/orders" IsAdmin="_isAdmin" />
+
 
                     <section class="epc-od__panel @(_detailTab == "items" ? "is-active" : null)" data-epc-od-panel="items" style="@(_detailTab == "items" ? null : "display:none")">
                         <div class="epc-od__items">
@@ -440,7 +442,7 @@
         }
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
-        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
+        _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
 
         var q = ctx.Request.Query;
         if (long.TryParse(q["order_id"].ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var oid) && oid > 0)

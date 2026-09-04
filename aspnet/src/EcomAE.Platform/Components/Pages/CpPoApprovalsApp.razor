@@ -50,6 +50,8 @@
             <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
         </div>
     </section>
+    <PhpParityModuleBody AppPath="/cp/po-approvals-app" IsAdmin="_isAdmin" />
+
 
     <div class="epc-w18-kpis" aria-label="PO approvals stats">
         <div class="epc-w18-kpi"><strong>@_summary.RequestCount.ToString(CultureInfo.InvariantCulture)</strong><span>Requests</span></div>
@@ -79,7 +81,7 @@
         <tbody>
             @if (_rows.Count == 0)
             {
-                <tr><td colspan="12">Nothing to show yet.</td></tr>
+                <tr><td colspan="12">No records yet.</td></tr>
             }
             else
             {
@@ -121,7 +123,7 @@
         if (ctx is null) return;
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
-        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
+        _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
         if (!_isAdmin)
         {
             return; // guest browse — Sign in for live data

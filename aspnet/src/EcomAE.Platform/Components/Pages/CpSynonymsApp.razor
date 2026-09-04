@@ -47,6 +47,8 @@
             <a class="ghost" href="/cp/module-ajax/writes/catalog">Write catalog</a>
         </div>
     </section>
+    <PhpParityModuleBody AppPath="/cp/synonyms-app" IsAdmin="_isAdmin" />
+
 
     <div class="epc-nw-kpis" aria-label="Brand synonyms stats">
         <div class="epc-nw-kpi"><strong>@_manufacturerCount.ToString(CultureInfo.InvariantCulture)</strong><span>Manufacturers</span></div>
@@ -68,7 +70,7 @@
         <tbody>
             @if (_rows.Count == 0)
             {
-                <tr><td colspan="4">Nothing to show yet.</td></tr>
+                <tr><td colspan="4">No records yet.</td></tr>
             }
             else
             {
@@ -107,7 +109,7 @@
         if (ctx is null) return;
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
-        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
+        _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
         if (!_isAdmin)
         {
             return;

@@ -12,6 +12,8 @@
 <PhpChromeStyles Surface="cp" />
 
 <PhpCpDesktopChrome IsAdmin="_isAdmin">
+    <PhpParityModuleBody AppPath="/cp/workshop-app" IsAdmin="_isAdmin" />
+
 
     <PhpCpModulePageHeader Title="Workshop &amp; service desk"
                            Subtitle="PHP workshop_main_page / epc_ws_dashboard parity — open, in-progress, ready, delivered today, and open job value. Writes stay PHP ajax."
@@ -101,7 +103,7 @@
             <tbody>
                 @if (_jobs.Count == 0)
                 {
-                    <tr><td colspan="9">Nothing to show yet.</td></tr>
+                    <tr><td colspan="9">No records yet.</td></tr>
                 }
                 else
                 {
@@ -138,7 +140,7 @@
         if (ctx is null) return;
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
-        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
+        _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
         if (!_isAdmin)
         {
             return;

@@ -56,6 +56,8 @@
             <a class="ghost" href="/erp/warehouses-app">ERP warehouses</a>
         </div>
     </section>
+    <PhpParityModuleBody AppPath="/cp/storages-app" IsAdmin="_isAdmin" />
+
 
     <div class="epc-st-kpis" aria-label="Storages KPIs">
         <div class="epc-st-kpi"><strong>@_storages.Count</strong><span>Shown (limit @_limit)</span></div>
@@ -77,7 +79,7 @@
             <tbody>
                 @if (_storages.Count == 0)
                 {
-                    <tr><td colspan="5">Nothing to show yet.</td></tr>
+                    <tr><td colspan="5">No records yet.</td></tr>
                 }
                 else
                 {
@@ -114,7 +116,7 @@
         if (ctx is null) return;
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
-        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
+        _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
         if (!_isAdmin)
         {
             return; // guest browse — Sign in for live data

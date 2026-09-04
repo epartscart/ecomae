@@ -803,6 +803,8 @@ public static class EcomAeRoutes
     public const string ErpJewelleryKaratSeedForm = "/erp/jewellery/karat-seed";
     /// <summary>HTML form POST for other jewellery module saves (fixing / retail / stock).</summary>
     public const string ErpJewelleryModuleSaveForm = "/erp/jewellery/module-save";
+    /// <summary>HTML form POST for residual PHP-parity module saves (writes=0).</summary>
+    public const string ErpParityModuleSaveForm = "/erp/php-parity/save";
     public const string ErpRfid = "/erp/rfid";
     public const string ErpRfidApp = "/erp/rfid-app";
     public const string ErpRecruitment = "/erp/recruitment";

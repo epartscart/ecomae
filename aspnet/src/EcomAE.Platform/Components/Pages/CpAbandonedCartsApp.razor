@@ -50,6 +50,8 @@
             <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
         </div>
     </section>
+    <PhpParityModuleBody AppPath="/cp/abandoned-carts-app" IsAdmin="_isAdmin" />
+
 
     <div class="epc-w19-kpis" aria-label="Abandoned carts stats">
         <div class="epc-w19-kpi"><strong>@_summary.LineCount.ToString(CultureInfo.InvariantCulture)</strong><span>Cart lines</span></div>
@@ -82,7 +84,7 @@
         <tbody>
             @if (_rows.Count == 0)
             {
-                <tr><td colspan="13">Nothing to show yet.</td></tr>
+                <tr><td colspan="13">No records yet.</td></tr>
             }
             else
             {
@@ -125,7 +127,7 @@
         if (ctx is null) return;
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
-        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
+        _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
         if (!_isAdmin)
         {
             return; // guest browse — Sign in for live data

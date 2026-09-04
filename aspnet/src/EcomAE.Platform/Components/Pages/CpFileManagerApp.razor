@@ -42,6 +42,8 @@
             <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
         </div>
     </section>
+    <PhpParityModuleBody AppPath="/cp/file-manager-app" IsAdmin="_isAdmin" />
+
     <div class="epc-w23-kpis">
         <div class="epc-w23-kpi"><strong>@_summary.RootPresent.ToString(CultureInfo.InvariantCulture)</strong><span>Root OK</span></div>
         <div class="epc-w23-kpi"><strong>@_summary.FileCount.ToString(CultureInfo.InvariantCulture)</strong><span>Files</span></div>
@@ -51,7 +53,7 @@
     <div class="epc-w23-table-wrap"><table class="epc-w23-table">
         <thead><tr><th>Name</th><th>Dir</th><th>Bytes</th><th>Ext</th><th></th></tr></thead>
         <tbody>
-        @if (_rows.Count==0) { <tr><td colspan="5">Nothing to show yet.</td></tr> }
+        @if (_rows.Count==0) { <tr><td colspan="5">No records yet.</td></tr> }
         else { @foreach (var row in _rows) { <tr><td>@row.Name</td><td>@row.IsDirectory</td><td>@row.SizeBytes</td><td>@row.Extension</td><td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td></tr> } }
         </tbody>
     </table></div>
@@ -69,7 +71,7 @@
         var ctx = Http.HttpContext;
         if (ctx is null) return;
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
-        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
+        _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
         if (!_isAdmin)
         {
             return; // guest browse — Sign in for live data

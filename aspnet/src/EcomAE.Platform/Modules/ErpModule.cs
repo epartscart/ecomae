@@ -1838,6 +1838,19 @@ public sealed class ErpModule : ISurfaceModule
             var result = dryRun.Evaluate(new ErpJwModuleSaveRequest(action, code, false));
             return DryRunHtmlForm.Redirect(ret, result.ValidationCode == "ok", result.Detail);
         }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpParityModuleSaveForm, async (HttpContext context, ILegacySessionValidator validator, IErpJwModuleSaveDryRun dryRun, CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            var ret = DryRunHtmlForm.SafeReturnUrl(context.Request, "/erp/module-app");
+            if (!PhpParityDumpCatalog.HasStaffAccess(session))
+                return Results.Redirect("/erp/login");
+            var action = DryRunHtmlForm.Read(context.Request, "action");
+            if (string.IsNullOrWhiteSpace(action)) action = "php_parity_save";
+            var code = DryRunHtmlForm.Read(context.Request, "code");
+            if (string.IsNullOrWhiteSpace(code)) code = DryRunHtmlForm.Read(context.Request, "name");
+            var result = dryRun.Evaluate(new ErpJwModuleSaveRequest(action, code, false));
+            return DryRunHtmlForm.Redirect(ret, result.ValidationCode == "ok", result.Detail);
+        }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxRbacPrivSave, async (HttpContext context, ErpRbacPrivSaveBody? body, ILegacySessionValidator validator, IErpRbacPrivSaveDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpRbacPrivSaveRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxRbacDutySave, async (HttpContext context, ErpRbacDutySaveBody? body, ILegacySessionValidator validator, IErpRbacDutySaveDryRun dryRun, CancellationToken cancellationToken) =>

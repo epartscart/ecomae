@@ -12,6 +12,8 @@
 <PageTitle>Period Close · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Period Close" BreadcrumbArea="Finance" BreadcrumbTab="Year end">
+    <PhpParityModuleBody AppPath="/erp/period-close-app" IsAdmin="_isAdmin" />
+
 
     
     <PhpErpModulePageHeader Title="Period Close" Subtitle="Live shop digest. Writes stay on ERP ajax." PhpTabHref="@_phpTab" />
@@ -38,7 +40,7 @@
             <tbody>
                 @if (_periods.Count == 0)
                 {
-                    <tr><td colspan="6">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? "Nothing to show yet." : _message) : "Sign in with ERP capability for live rows.")</td></tr>
+                    <tr><td colspan="6">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? "No records yet." : _message) : "Sign in with ERP capability for live rows.")</td></tr>
                 }
                 else
                 {
@@ -79,7 +81,7 @@
         if (ctx is null) return;
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
-        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("erp");
+        _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
         if (!_isAdmin)
         {
             _message = "Sign in for live data.";

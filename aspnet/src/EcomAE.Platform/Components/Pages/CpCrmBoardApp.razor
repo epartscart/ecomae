@@ -51,6 +51,8 @@
             <a class="ghost" href="/cp/marketing-broadcast-app">Marketing broadcast</a>
         </div>
     </section>
+    <PhpParityModuleBody AppPath="/cp/crm-board-app" IsAdmin="_isAdmin" />
+
 
     <div class="epc-crm-kpis" aria-label="CRM stats">
         <div class="epc-crm-kpi"><strong>@_summary.Leads.ToString(CultureInfo.InvariantCulture)</strong><span>Leads</span></div>
@@ -76,7 +78,7 @@
             <tbody>
                 @if (_leads.Count == 0)
                 {
-                    <tr><td colspan="8">Nothing to show yet.</td></tr>
+                    <tr><td colspan="8">No records yet.</td></tr>
                 }
                 else
                 {
@@ -114,7 +116,7 @@
         if (ctx is null) return;
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
-        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
+        _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
         if (!_isAdmin)
         {
             return; // guest browse — Sign in for live data

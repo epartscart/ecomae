@@ -12,6 +12,8 @@
 <PageTitle>Payables · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Payables" BreadcrumbArea="Accounts payable" BreadcrumbTab="Payables">
+    <PhpParityModuleBody AppPath="/erp/payables-app" IsAdmin="_isAdmin" />
+
 
     <PhpErpModulePageHeader Title="Payables"
                             Subtitle="Supplier payable balances — vendor invoices owed for this company workspace."
@@ -41,7 +43,7 @@
             <tbody>
                 @if (_suppliers.Count == 0)
                 {
-                    <tr><td colspan="4">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? "Nothing to show yet." : _message) : "Sign in with ERP capability for live rows.")</td></tr>
+                    <tr><td colspan="4">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? "No records yet." : _message) : "Sign in with ERP capability for live rows.")</td></tr>
                 }
                 else
                 {
@@ -81,7 +83,7 @@
         if (ctx is null) return;
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
-        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("erp");
+        _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
         if (!_isAdmin)
         {
             return;

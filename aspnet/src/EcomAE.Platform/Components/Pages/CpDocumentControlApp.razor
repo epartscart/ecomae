@@ -51,6 +51,8 @@
             <a class="ghost" href="/cp/tax-toolkits-app">Tax toolkits</a>
         </div>
     </section>
+    <PhpParityModuleBody AppPath="/cp/document-control-app" IsAdmin="_isAdmin" />
+
 
     <div class="epc-doc-kpis" aria-label="Document control stats">
         <div class="epc-doc-kpi"><strong>@(string.IsNullOrWhiteSpace(_summary.CompanyName) ? "—" : _summary.CompanyName)</strong><span>Company</span></div>
@@ -74,7 +76,7 @@
             <tbody>
                 @if (_templates.Count == 0)
                 {
-                    <tr><td colspan="7">Nothing to show yet.</td></tr>
+                    <tr><td colspan="7">No records yet.</td></tr>
                 }
                 else
                 {
@@ -111,7 +113,7 @@
         if (ctx is null) return;
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
-        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
+        _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
         if (!_isAdmin)
         {
             return; // guest browse — Sign in for live data

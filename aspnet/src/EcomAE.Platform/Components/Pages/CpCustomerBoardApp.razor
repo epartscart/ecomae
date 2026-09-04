@@ -50,6 +50,8 @@
             <a class="ghost" href="/cp/users-app">Users</a>
         </div>
     </section>
+    <PhpParityModuleBody AppPath="/cp/customer-board-app" IsAdmin="_isAdmin" />
+
 
     <div class="epc-nw-kpis" aria-label="Customer board stats">
         <div class="epc-nw-kpi"><strong>@_userCount.ToString(CultureInfo.InvariantCulture)</strong><span>Users</span></div>
@@ -73,7 +75,7 @@
         <tbody>
             @if (_rows.Count == 0)
             {
-                <tr><td colspan="6">Nothing to show yet.</td></tr>
+                <tr><td colspan="6">No records yet.</td></tr>
             }
             else
             {
@@ -128,7 +130,7 @@ else
         }
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
-        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
+        _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
         if (!_isAdmin)
         {
             return;

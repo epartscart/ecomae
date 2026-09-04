@@ -17,6 +17,8 @@
 }
 
 <PhpCpDesktopChrome IsAdmin="_isAdmin">
+    <PhpParityModuleBody AppPath="/cp/pages-app" IsAdmin="_isAdmin" />
+
 
     <PhpCpModulePageHeader Title="Content Pages"
                            Subtitle="PHP content_manager parity — page list with caption, alias, URL, publish flags. Body/HTML editor remains classic PHP."
@@ -77,7 +79,7 @@
                         <tbody>
                             @if (_pages.Count == 0)
                             {
-                                <tr><td colspan="9">Nothing to show yet.</td></tr>
+                                <tr><td colspan="9">No records yet.</td></tr>
                             }
                             else
                             {
@@ -160,7 +162,7 @@
         if (ctx is null) return;
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
-        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
+        _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
 
         var uri = Nav.ToAbsoluteUri(Nav.Uri);
         var query = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query);

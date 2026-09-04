@@ -16,6 +16,8 @@
 @if (_allowed)
 {
     <PhpCpDesktopChrome IsAdmin="_isAdmin">
+    <PhpParityModuleBody AppPath="/cp/portal-settings-app" IsAdmin="_isAdmin" />
+
 
         <PhpCpModulePageHeader Title="Portal settings"
                                Subtitle="Super CP multi-site fleet inventory (hosts, industries, access modes, deploy targets). Tenant CPs never see this console — each tenant manages its own settings independently."
@@ -63,7 +65,7 @@
                 <tbody>
                     @if (_rows.Count == 0)
                     {
-                        <tr><td colspan="9">Nothing to show yet.</td></tr>
+                        <tr><td colspan="9">No records yet.</td></tr>
                     }
                     else
                     {
@@ -130,7 +132,7 @@ else
         }
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
-        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
+        _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
         if (!_isAdmin)
         {
             return;

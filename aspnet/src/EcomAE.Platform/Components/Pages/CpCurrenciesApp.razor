@@ -56,6 +56,8 @@
             <a class="ghost" href="/cp/menus-app">Menus list</a>
         </div>
     </section>
+    <PhpParityModuleBody AppPath="/cp/currencies-app" IsAdmin="_isAdmin" />
+
 
     <div class="epc-cu-kpis" aria-label="Currencies KPIs">
         <div class="epc-cu-kpi"><strong>@_currencies.Count</strong><span>Shown (limit @_limit)</span></div>
@@ -80,7 +82,7 @@
             <tbody>
                 @if (_currencies.Count == 0)
                 {
-                    <tr><td colspan="8">Nothing to show yet.</td></tr>
+                    <tr><td colspan="8">No records yet.</td></tr>
                 }
                 else
                 {
@@ -120,7 +122,7 @@
         if (ctx is null) return;
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
-        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
+        _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
         if (!_isAdmin)
         {
             return; // guest browse — Sign in for live data
