@@ -48,5 +48,11 @@ $hybrid = file_get_contents($root . '/aspnet/src/EcomAE.Platform/Components/Shar
 check('hybrid iframe requires php-reference', str_contains($hybrid, '/php-reference/'));
 check('hybrid rewrites via PhpReferenceOnlyHref', str_contains($hybrid, 'PhpReferenceOnlyHref'));
 
+$compare = file_get_contents($root . '/aspnet/src/EcomAE.Platform/Components/Pages/MigrationCompareConsole.razor') ?: '';
+check('compare board opens tenant classic CP', str_contains($compare, '/php-reference/cp'));
+check('compare board opens tenant classic ERP', str_contains($compare, '/php-reference/erp'));
+check('compare board does not send PHP twin to product /CP/', !str_contains($compare, '@tenantPhp/CP/') && !str_contains($compare, '@wwwPhp/CP/'));
+check('compare board does not send PHP twin to product /ERP/', !str_contains($compare, '@tenantPhp/ERP/') && !str_contains($compare, '@wwwPhp/ERP/'));
+
 echo "\nPassed: $pass  Failed: $fail\n";
 exit($fail > 0 ? 1 : 0);
