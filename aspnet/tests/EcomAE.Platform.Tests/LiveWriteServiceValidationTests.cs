@@ -383,6 +383,51 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(langDeleteDb.Succeeded);
         Assert.Equal("db", langDeleteDb.Code);
 
+        var channelInvalid = await new CpChannelWriteService(new ConfiguredNeverOpened())
+            .ToggleAsync("", 1);
+        Assert.False(channelInvalid.Succeeded);
+        Assert.Equal("invalid", channelInvalid.Code);
+
+        var channelDb = await new CpChannelWriteService(new UnconfiguredConnections())
+            .ToggleAsync("amazon", 1);
+        Assert.False(channelDb.Succeeded);
+        Assert.Equal("db", channelDb.Code);
+
+        var carrierInvalid = await new CpLogisticsWriteService(new ConfiguredNeverOpened())
+            .ToggleCarrierAsync("");
+        Assert.False(carrierInvalid.Succeeded);
+        Assert.Equal("invalid", carrierInvalid.Code);
+
+        var carrierDb = await new CpLogisticsWriteService(new UnconfiguredConnections())
+            .ToggleCarrierAsync("dhl");
+        Assert.False(carrierDb.Succeeded);
+        Assert.Equal("db", carrierDb.Code);
+
+        var wsAssign = await new CpWorkshopWriteService(new ConfiguredNeverOpened())
+            .AssignAsync(0, 1, 1);
+        Assert.False(wsAssign.Succeeded);
+        Assert.Equal("invalid", wsAssign.Code);
+
+        var wsBay = await new CpWorkshopWriteService(new ConfiguredNeverOpened())
+            .SaveBayAsync(0, "", "Bay A", 1, 0);
+        Assert.False(wsBay.Succeeded);
+        Assert.Equal("invalid", wsBay.Code);
+
+        var wsTechDb = await new CpWorkshopWriteService(new UnconfiguredConnections())
+            .SaveTechAsync(0, "Ali", "", "", 1);
+        Assert.False(wsTechDb.Succeeded);
+        Assert.Equal("db", wsTechDb.Code);
+
+        var catEnable = await new CpCatalogueWriteService(new ConfiguredNeverOpened())
+            .SetMinLimitEnableAsync(0, 1);
+        Assert.False(catEnable.Succeeded);
+        Assert.Equal("invalid", catEnable.Code);
+
+        var catValueDb = await new CpCatalogueWriteService(new UnconfiguredConnections())
+            .SetMinLimitValueAsync(9, 2);
+        Assert.False(catValueDb.Succeeded);
+        Assert.Equal("db", catValueDb.Code);
+
         var retStatus = await new CpReturnWriteService(new ConfiguredNeverOpened())
             .SetStatusAsync(0, 0);
         Assert.False(retStatus.Succeeded);

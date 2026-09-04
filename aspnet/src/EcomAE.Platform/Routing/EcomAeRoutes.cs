@@ -1116,14 +1116,16 @@ public static class EcomAeRoutes
     public const string CpLangDeleteNotUsed = "/cp/lang/delete-not-used";
     /// <summary>Wave B dry-run for PHP cp/content/packs_control/ajax_delete_pack.php (writes=0).</summary>
     public const string CpPacksDelete = "/cp/packs/delete";
-    /// <summary>Wave B dry-run for PHP cp/content/shop/channels/ajax_channels.php (writes=0).</summary>
+    /// <summary>Channel toggle. <c>confirmWrites=true</c> + action=toggle_channel is the live twin of PHP ajax_channels.php.</summary>
     public const string CpChannelsWrite = "/cp/channels/write";
-    /// <summary>Wave B dry-run for PHP cp/content/shop/logistics/ajax_logistics.php (writes=0).</summary>
+    /// <summary>Carrier toggle. <c>confirmWrites=true</c> + action=toggle_carrier is the live twin of PHP ajax_logistics.php.</summary>
     public const string CpLogisticsWrite = "/cp/logistics/write";
     /// <summary>Wave B dry-run for PHP cp/content/shop/payments/ajax_payments.php (writes=0).</summary>
     public const string CpPaymentsWrite = "/cp/payments/write";
-    /// <summary>Wave B dry-run for PHP cp/content/shop/workshop/ajax_workshop_endpoint.php (writes=0).</summary>
+    /// <summary>Workshop assign / save_bay / save_tech. <c>confirmWrites=true</c> is the live twin of those PHP actions.</summary>
     public const string CpWorkshopWrite = "/cp/workshop/write";
+    /// <summary>Catalogue min-limit. <c>confirmWrites=true</c> is the live twin of PHP ajax_operations_products.php save_product_*_limit.</summary>
+    public const string CpCatalogueSetMinLimit = "/cp/catalogue/set-min-limit";
     /// <summary>Wave B dry-run for PHP cp/content/shop/catalogue/categories_templates/ajax_templates_actions.php (writes=0).</summary>
     public const string CpTemplatesActions = "/cp/catalogue/templates-actions";
     /// <summary>Wave B dry-run for PHP cp/content/shop/prices_upload/price_review/ajax_price_review.php (writes=0).</summary>

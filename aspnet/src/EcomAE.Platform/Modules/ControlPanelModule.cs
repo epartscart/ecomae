@@ -1443,20 +1443,88 @@ public sealed class ControlPanelModule : ISurfaceModule
             body ??= new CpPacksDeleteBody(null, false);
             return Results.Ok(dryRun.Evaluate(new CpPacksDeleteRequest(body.Action, body.ConfirmWrites)).ToPayload(SessionPayload(session)));
         });
-        endpoints.MapPost(EcomAeRoutes.CpChannelsWrite, async (HttpContext context, CpChannelsWriteBody? body, ILegacySessionValidator validator, ICpChannelsWriteDryRun dryRun, CancellationToken cancellationToken) =>
+        endpoints.MapPost(EcomAeRoutes.CpChannelsWrite, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpChannelsWriteDryRun dryRun,
+            ICpChannelWriteService writes,
+            CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateAsync(context, cancellationToken);
-            if (session.Kind != LegacySessionKind.Admin) return Unauthorized("Admin session required.");
-            body ??= new CpChannelsWriteBody(null, false);
-            return Results.Ok(dryRun.Evaluate(new CpChannelsWriteRequest(body.Action, body.ConfirmWrites)).ToPayload(SessionPayload(session)));
-        });
-        endpoints.MapPost(EcomAeRoutes.CpLogisticsWrite, async (HttpContext context, CpLogisticsWriteBody? body, ILegacySessionValidator validator, ICpLogisticsWriteDryRun dryRun, CancellationToken cancellationToken) =>
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/marketplace-channels-app", "Admin CP capability required for channel write.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpChannelsWriteBody>(context, cancellationToken)
+                       ?? new();
+            var action = body.Action;
+            var code = body.Code;
+            var enabled = body.Enabled;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                action = LiveWriteFormBinder.Text(form, "action");
+                code = LiveWriteFormBinder.Text(form, "code", "channel_code", "channelCode");
+                enabled = LiveWriteFormBinder.IntOrNull(form, "enabled", "active");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            var key = (action ?? string.Empty).Trim();
+            if (confirm && key is "toggle_channel" or "toggle" or "toggle-channel")
+            {
+                var written = await writes.ToggleAsync(code, enabled, cancellationToken);
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    "/cp/marketplace-channels-app",
+                    written.Succeeded,
+                    written.Message,
+                    new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+            }
+
+            return Results.Ok(dryRun.Evaluate(new CpChannelsWriteRequest(action, false)).ToPayload(SessionPayload(session)));
+        }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.CpLogisticsWrite, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpLogisticsWriteDryRun dryRun,
+            ICpLogisticsWriteService writes,
+            CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateAsync(context, cancellationToken);
-            if (session.Kind != LegacySessionKind.Admin) return Unauthorized("Admin session required.");
-            body ??= new CpLogisticsWriteBody(null, false);
-            return Results.Ok(dryRun.Evaluate(new CpLogisticsWriteRequest(body.Action, body.ConfirmWrites)).ToPayload(SessionPayload(session)));
-        });
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/carriers-app", "Admin CP capability required for logistics write.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpLogisticsWriteBody>(context, cancellationToken)
+                       ?? new();
+            var action = body.Action;
+            var code = body.Code;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                action = LiveWriteFormBinder.Text(form, "action");
+                code = LiveWriteFormBinder.Text(form, "code", "carrier_code", "carrierCode");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            var key = (action ?? string.Empty).Trim();
+            if (confirm && key is "toggle_carrier" or "toggle" or "toggle-carrier")
+            {
+                var written = await writes.ToggleCarrierAsync(code, cancellationToken);
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    "/cp/carriers-app",
+                    written.Succeeded,
+                    written.Message,
+                    new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+            }
+
+            return Results.Ok(dryRun.Evaluate(new CpLogisticsWriteRequest(action, false)).ToPayload(SessionPayload(session)));
+        }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.CpPaymentsWrite, async (HttpContext context, CpPaymentsWriteBody? body, ILegacySessionValidator validator, ICpPaymentsWriteDryRun dryRun, CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateAsync(context, cancellationToken);
@@ -1464,13 +1532,124 @@ public sealed class ControlPanelModule : ISurfaceModule
             body ??= new CpPaymentsWriteBody(null, false);
             return Results.Ok(dryRun.Evaluate(new CpPaymentsWriteRequest(body.Action, body.ConfirmWrites)).ToPayload(SessionPayload(session)));
         });
-        endpoints.MapPost(EcomAeRoutes.CpWorkshopWrite, async (HttpContext context, CpWorkshopWriteBody? body, ILegacySessionValidator validator, ICpWorkshopWriteDryRun dryRun, CancellationToken cancellationToken) =>
+        endpoints.MapPost(EcomAeRoutes.CpWorkshopWrite, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpWorkshopWriteDryRun dryRun,
+            ICpWorkshopWriteService writes,
+            CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateAsync(context, cancellationToken);
-            if (session.Kind != LegacySessionKind.Admin) return Unauthorized("Admin session required.");
-            body ??= new CpWorkshopWriteBody(null, false);
-            return Results.Ok(dryRun.Evaluate(new CpWorkshopWriteRequest(body.Action, body.ConfirmWrites)).ToPayload(SessionPayload(session)));
-        });
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/workshop-app", "Admin CP capability required for workshop write.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpWorkshopWriteBody>(context, cancellationToken)
+                       ?? new();
+            var action = body.Action;
+            var jobId = body.JobId;
+            var bayId = body.BayId;
+            var techId = body.TechId;
+            var id = body.Id;
+            var code = body.Code;
+            var name = body.Name;
+            var phone = body.Phone;
+            var skill = body.Skill;
+            var active = body.Active;
+            var sortOrder = body.SortOrder;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                action = LiveWriteFormBinder.Text(form, "action");
+                jobId = LiveWriteFormBinder.Long(form, "jobId", "job_id");
+                bayId = LiveWriteFormBinder.Long(form, "bayId", "bay_id");
+                techId = LiveWriteFormBinder.Long(form, "techId", "tech_id");
+                id = LiveWriteFormBinder.Long(form, "id");
+                code = LiveWriteFormBinder.Text(form, "code");
+                name = LiveWriteFormBinder.Text(form, "name");
+                phone = LiveWriteFormBinder.Text(form, "phone");
+                skill = LiveWriteFormBinder.Text(form, "skill");
+                active = LiveWriteFormBinder.Int(form, "active");
+                sortOrder = LiveWriteFormBinder.Int(form, "sortOrder", "sort_order");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (confirm)
+            {
+                var key = (action ?? string.Empty).Trim();
+                ErpSimpleWriteResult written = key switch
+                {
+                    "assign" => await writes.AssignAsync(jobId, bayId, techId, cancellationToken),
+                    "save_bay" or "save-bay" => await writes.SaveBayAsync(id, code, name, active, sortOrder, cancellationToken),
+                    "save_tech" or "save-tech" => await writes.SaveTechAsync(id, name, phone, skill, active, cancellationToken),
+                    _ => ErpSimpleWriteResult.Fail("invalid", "Unknown workshop action. assign / save_bay / save_tech are live; others stay PHP."),
+                };
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    "/cp/workshop-app",
+                    written.Succeeded,
+                    written.Message,
+                    new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+            }
+
+            return Results.Ok(dryRun.Evaluate(new CpWorkshopWriteRequest(action, false)).ToPayload(SessionPayload(session)));
+        }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.CpCatalogueSetMinLimit, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpCatalogueWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/product-catalogue-app", "Admin CP capability required for catalogue min-limit.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpCatalogueSetMinLimitBody>(context, cancellationToken)
+                       ?? new();
+            var action = body.Action;
+            var productId = body.ProductId;
+            var enabled = body.Enabled;
+            var value = body.Value;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                action = LiveWriteFormBinder.Text(form, "action");
+                productId = LiveWriteFormBinder.Long(form, "productId", "product_id");
+                enabled = LiveWriteFormBinder.Int(form, "enabled", "status");
+                value = LiveWriteFormBinder.Dec(form, "value", "minLimit", "min_limit");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(new
+                {
+                    status = "dry-run",
+                    writes = 0,
+                    writesBlocked = true,
+                    phpAuthoritative = true,
+                    validation_code = "dry_run",
+                    message = "Set confirmWrites=true to save the catalogue min-limit on ASP.NET.",
+                    session = SessionPayload(session)
+                });
+            }
+
+            var key = (action ?? string.Empty).Trim();
+            var written = key is "value" or "save_product_value_limit" or "min_limit"
+                ? await writes.SetMinLimitValueAsync(productId, value, cancellationToken)
+                : await writes.SetMinLimitEnableAsync(productId, enabled, cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/cp/product-catalogue-app" + (productId > 0 ? "?product_id=" + productId.ToString(CultureInfo.InvariantCulture) : ""),
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.CpTemplatesActions, async (HttpContext context, CpTemplatesActionsBody? body, ILegacySessionValidator validator, ICpTemplatesActionsDryRun dryRun, CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateAsync(context, cancellationToken);
@@ -5351,10 +5530,28 @@ public sealed class ControlPanelModule : ISurfaceModule
     private sealed record CpLangCreateStringBody(string? Action = null, bool ConfirmWrites = false);
     private sealed record CpLangDeleteNotUsedBody(string? Action = null, bool ConfirmWrites = false);
     private sealed record CpPacksDeleteBody(string? Action = null, bool ConfirmWrites = false);
-    private sealed record CpChannelsWriteBody(string? Action = null, bool ConfirmWrites = false);
-    private sealed record CpLogisticsWriteBody(string? Action = null, bool ConfirmWrites = false);
+    private sealed record CpChannelsWriteBody(string? Action = null, bool ConfirmWrites = false, string? Code = null, int? Enabled = null);
+    private sealed record CpLogisticsWriteBody(string? Action = null, bool ConfirmWrites = false, string? Code = null);
     private sealed record CpPaymentsWriteBody(string? Action = null, bool ConfirmWrites = false);
-    private sealed record CpWorkshopWriteBody(string? Action = null, bool ConfirmWrites = false);
+    private sealed record CpWorkshopWriteBody(
+        string? Action = null,
+        bool ConfirmWrites = false,
+        long JobId = 0,
+        long BayId = 0,
+        long TechId = 0,
+        long Id = 0,
+        string? Code = null,
+        string? Name = null,
+        string? Phone = null,
+        string? Skill = null,
+        int Active = 1,
+        int SortOrder = 0);
+    private sealed record CpCatalogueSetMinLimitBody(
+        string? Action = null,
+        bool ConfirmWrites = false,
+        long ProductId = 0,
+        int Enabled = -1,
+        decimal Value = -1);
     private sealed record CpTemplatesActionsBody(string? Action = null, bool ConfirmWrites = false);
     private sealed record CpPriceReviewWriteBody(string? Action = null, bool ConfirmWrites = false);
     private sealed record CpPriceReviewCreateCsvBody(string? Action = null, bool ConfirmWrites = false);
