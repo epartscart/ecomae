@@ -35,8 +35,8 @@ check('sets X-EcomAE-Php-Reference', str_contains($routerSrc, 'X-EcomAE-Php-Refe
 
 $tenantNgx = file_get_contents($root . '/deploy/aspnet/nginx-classic-entry-tenant-aspnet-primary-shadow-example.conf') ?: '';
 $wwwNgx = file_get_contents($root . '/deploy/aspnet/nginx-classic-entry-aspnet-primary-shadow-example.conf') ?: '';
-check('tenant nginx rewrites php-reference/cp to boot.php', str_contains($tenantNgx, 'rewrite ^ /epc_php_reference_boot.php?epc_php_reference=cp last'));
-check('www nginx rewrites php-reference/cp to boot.php', str_contains($wwwNgx, 'rewrite ^ /epc_php_reference_boot.php?epc_php_reference=cp last'));
+check('tenant nginx rewrites php-reference/cp to boot.php', str_contains($tenantNgx, 'rewrite ^ /epc_php_reference_boot.php?epc_php_reference=cp&$args last'));
+check('www nginx rewrites php-reference/cp to boot.php', str_contains($wwwNgx, 'rewrite ^ /epc_php_reference_boot.php?epc_php_reference=cp&$args last'));
 check('www nginx does not steal compare via index.php', !str_contains($wwwNgx, 'rewrite ^ /index.php?epc_php_reference=cp last'));
 check('tenant nginx has deep CP compare', str_contains($tenantNgx, 'location ^~ /php-reference/CP'));
 check('tenant nginx has deep ERP compare', str_contains($tenantNgx, 'location ^~ /php-reference/ERP'));

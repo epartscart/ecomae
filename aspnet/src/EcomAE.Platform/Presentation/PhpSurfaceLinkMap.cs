@@ -1189,7 +1189,14 @@ public static class PhpSurfaceLinkMap
         if (trimmed.Equals("/" + alias, StringComparison.OrdinalIgnoreCase)
             || trimmed.Equals("/" + upper, StringComparison.Ordinal))
         {
-            return "/php-reference/" + alias + query;
+            // Bare shell → exact nginx alias. Query (ERP area/tab) must stay on
+            // /php-reference/ERP/… so the prefix rewrite keeps $args.
+            if (string.IsNullOrEmpty(query))
+            {
+                return "/php-reference/" + alias;
+            }
+
+            return "/php-reference/" + upper + "/" + query;
         }
 
         if (path.StartsWith("/" + upper, StringComparison.Ordinal)
