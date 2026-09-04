@@ -64,6 +64,7 @@
         percent = Math.max(0, Math.min(100, Math.round(percent)));
         if (!box || !text || !bar) { return; }
         box.className = box.className.replace(/\bis-waiting\b/g, '');
+        box.hidden = false;
         box.style.display = 'block';
         text.textContent = (message || 'Processing file and checking availability') + ': ' + percent + '%';
         bar.style.width = percent + '%';
@@ -75,6 +76,7 @@
         percent = Math.max(95, Math.min(99, Math.round(percent)));
         if (!box || !text || !bar) { return; }
         if ((' ' + box.className + ' ').indexOf(' is-waiting ') === -1) { box.className += ' is-waiting'; }
+        box.hidden = false;
         box.style.display = 'block';
         text.textContent = 'Checking warehouse offers: ' + percent + '% | Finalizing result table | Elapsed ' + elapsedSeconds + 's';
         bar.style.width = percent + '%';
@@ -84,6 +86,7 @@
         var bar = $('epc_bulk_process_progress_bar');
         if (box) {
             box.className = box.className.replace(/\bis-waiting\b/g, '');
+            box.hidden = true;
             box.style.display = 'none';
         }
         if (bar) { bar.style.width = '0%'; }
@@ -95,6 +98,7 @@
         var text = $('epc_bulk_cross_progress_text');
         var bar = $('epc_bulk_cross_progress_bar');
         if (!box || !text || !bar) { return; }
+        box.hidden = false;
         box.style.display = 'block';
         text.textContent = 'Cross availability progress: ' + percent + '% complete | Completed ' + done + ' of ' + total + ' | Pending ' + pending + (active ? ' | Checking ' + active + ' rows now' : '');
         bar.style.width = percent + '%';
@@ -102,7 +106,7 @@
     function hideCrossProgress() {
         var box = $('epc_bulk_cross_progress');
         var bar = $('epc_bulk_cross_progress_bar');
-        if (box) { box.style.display = 'none'; }
+        if (box) { box.hidden = true; box.style.display = 'none'; }
         if (bar) { bar.style.width = '0%'; }
     }
     function render(data) {
@@ -192,7 +196,7 @@
             hideCrossProgress();
             hideProcessProgress();
             var loading = $('epc_bulk_loading');
-            if (loading) { loading.style.display = 'block'; }
+            if (loading) { loading.hidden = false; loading.style.display = 'block'; }
             setProcessProgress(0, 'Starting upload');
             var progressPercent = 0;
             var elapsedSeconds = 0;
@@ -217,7 +221,7 @@
             };
             xhr.onload = function () {
                 window.clearInterval(progressTimer);
-                if (loading) { loading.style.display = 'none'; }
+                if (loading) { loading.hidden = true; loading.style.display = 'none'; }
                 try {
                     var r = JSON.parse(xhr.responseText || '{}');
                     if (!r.status) {
@@ -236,7 +240,7 @@
             xhr.onerror = function () {
                 window.clearInterval(progressTimer);
                 hideProcessProgress();
-                if (loading) { loading.style.display = 'none'; }
+                if (loading) { loading.hidden = true; loading.style.display = 'none'; }
                 showBanner('Upload error. Check the connection and try again.', false);
             };
             xhr.send(data);

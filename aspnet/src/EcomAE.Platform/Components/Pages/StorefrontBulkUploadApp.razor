@@ -180,12 +180,12 @@
                         <button class="btn btn-success" type="button" id="epc_bulk_add_selected" disabled>Add selected to cart</button>
                         <button class="btn btn-default" type="button" id="epc_bulk_download" disabled>Download result CSV</button>
                     </div>
-                    <div class="epc-bulk-loading" id="epc_bulk_loading">Processing file and checking availability...</div>
-                    <div class="epc-bulk-progress" id="epc_bulk_process_progress">
+                    <div class="epc-bulk-loading" id="epc_bulk_loading" style="display:none" hidden>Processing file and checking availability...</div>
+                    <div class="epc-bulk-progress" id="epc_bulk_process_progress" style="display:none" hidden>
                         <div class="epc-bulk-progress-text" id="epc_bulk_process_progress_text">Processing progress: 0%</div>
                         <div class="epc-bulk-progress-track"><div class="epc-bulk-progress-bar" id="epc_bulk_process_progress_bar"></div></div>
                     </div>
-                    <div class="epc-bulk-progress" id="epc_bulk_cross_progress">
+                    <div class="epc-bulk-progress" id="epc_bulk_cross_progress" style="display:none" hidden>
                         <div class="epc-bulk-progress-text" id="epc_bulk_cross_progress_text">Cross availability progress: 0%</div>
                         <div class="epc-bulk-progress-track"><div class="epc-bulk-progress-bar" id="epc_bulk_cross_progress_bar"></div></div>
                     </div>
@@ -238,7 +238,7 @@
             </div>
 
             <div id="epc_bulk_results"></div>
-            <script src="/platform-assets/epc_storefront_bulk_upload.js?v=20260904bulk" defer></script>
+            <script src="/platform-assets/epc_storefront_bulk_upload.js?v=20260904bulk2" defer></script>
         }
     </div>
 </StorefrontTenantChrome>

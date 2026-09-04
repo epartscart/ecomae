@@ -128,6 +128,7 @@ public sealed class StorefrontBulkUploadParityTests
         Assert.Contains("ListStorefrontBulkUploadHistoryAsync", text, StringComparison.Ordinal);
         Assert.Contains("StorefrontBulkUploadCheck", text, StringComparison.Ordinal);
         Assert.Contains("epc_storefront_bulk_upload.js", text, StringComparison.Ordinal);
+        Assert.Contains("id=\"epc_bulk_process_progress\" style=\"display:none\"", text, StringComparison.Ordinal);
         Assert.Contains("Customer login required", text, StringComparison.Ordinal);
         Assert.Contains("StorefrontSurfaceLinks.Registration", text, StringComparison.Ordinal);
         Assert.DoesNotContain("Compare PHP reference", text, StringComparison.Ordinal);
