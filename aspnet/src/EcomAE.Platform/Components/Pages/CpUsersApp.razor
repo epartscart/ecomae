@@ -31,7 +31,7 @@
         <div class="epc-users-page__hero">
             <div>
                 <h2><i class="fa fa-users"></i> Users · account console</h2>
-                <p>Same-to-same with PHP <code>users/usermanager</code> and <code>users/usermanager/user</code>: open a row to inspect profile, groups, balance, recent orders, and linked modules. Staff comment and lock/unlock write on ASP.NET. Password / create stay on the classic editor.</p>
+                <p>Same-to-same with PHP <code>users/usermanager</code> and <code>users/usermanager/user</code>: open a row to inspect profile, groups, balance, recent orders, and linked modules. Staff comment, lock/unlock, and vendor suspend/reject write on ASP.NET. Password / create / vendor approve stay on the classic editor.</p>
             </div>
             <div class="epc-users-page__hero-actions">
                 <a class="btn btn-primary btn-sm" href="/cp/groups-app"><i class="fa fa-sitemap"></i> Groups</a>
@@ -104,6 +104,18 @@
                     </select>
                 </label>
                 <button type="submit" class="btn btn-xs btn-default">Apply lock</button>
+            </form>
+            <form method="post" action="/cp/vendors/approvals" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="@(_selectedId > 0 ? DetailHref(_selectedId, _query, "profile") : "/cp/users-app")" />
+                <label>Vendor account id <input type="number" name="id" min="1" required style="width:6rem" /></label>
+                <label>Action
+                    <select name="action">
+                        <option value="suspend">Suspend</option>
+                        <option value="reject">Reject</option>
+                    </select>
+                </label>
+                <button type="submit" class="btn btn-xs btn-default">Apply vendor status</button>
             </form>
         }
         @if (!_isAdmin)

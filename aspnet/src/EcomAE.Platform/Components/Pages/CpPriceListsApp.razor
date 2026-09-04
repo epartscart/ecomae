@@ -45,12 +45,37 @@
     <section class="epc-pl-hero">
         <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
         <h1>Price Lists</h1>
-        <p>Manage store operations, catalogue, and partner integrations from one control panel.</p>
+        <p>Delete a supplier margin rule here. Rule create/upsert stays on the compare twin.</p>
         <div class="epc-pl-cta">
             <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
             <a class="ghost" href="/cp/auto-price-app">Auto-price</a>
         </div>
     </section>
+
+    @if (!string.IsNullOrWhiteSpace(_flashOk))
+    {
+        <div class="alert alert-success" role="status" style="margin:0 0 1rem;padding:.7rem .9rem;border-radius:.4rem;background:#ecfdf5;color:#065f46">@_flashOk</div>
+    }
+    @if (!string.IsNullOrWhiteSpace(_flashErr))
+    {
+        <div class="alert alert-danger" role="status" style="margin:0 0 1rem;padding:.7rem .9rem;border-radius:.4rem;background:#fef2f2;color:#991b1b">@_flashErr</div>
+    }
+    @if (_isAdmin)
+    {
+        <form method="post" action="/cp/prices/storage-rules" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/price-lists-app" />
+            <label>Rule id <input type="number" name="ruleId" min="1" required style="width:6rem" /></label>
+            <label>Kind
+                <select name="action">
+                    <option value="delete_storage_rule">Overall</option>
+                    <option value="delete_storage_brand_rule">Brand</option>
+                    <option value="delete_storage_article_rule">Article</option>
+                </select>
+            </label>
+            <button type="submit">Delete rule</button>
+        </form>
+    }
 
     <div class="epc-pl-kpis" aria-label="Price list stats">
         <div class="epc-pl-kpi"><strong>@_summary.ActiveLists.ToString(CultureInfo.InvariantCulture)</strong><span>Active lists</span></div>
@@ -106,12 +131,16 @@
     private IReadOnlyList<CpPriceListDigest> _lists = [];
     private string _source = "n/a";
     private string _message = "";
+    private string _flashOk = "";
+    private string _flashErr = "";
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
 
+        _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
+        _flashErr = ctx.Request.Query["err"].ToString() ?? "";
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
         if (!_isAdmin)

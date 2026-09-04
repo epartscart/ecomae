@@ -632,6 +632,96 @@ public sealed class LiveWriteServiceValidationTests
             .SetDaysWorkedAsync(9, 22);
         Assert.False(hrDb.Succeeded);
         Assert.Equal("db", hrDb.Code);
+
+        var scKey = await new ErpWorkspaceFavoritesWriteService(new ConfiguredNeverOpened())
+            .DeleteShortcutByKeyAsync(1, "!!!", "");
+        Assert.False(scKey.Succeeded);
+        Assert.Equal("invalid", scKey.Code);
+
+        var scKeyDb = await new ErpWorkspaceFavoritesWriteService(new UnconfiguredConnections())
+            .DeleteShortcutByKeyAsync(1, "dashboard", "erp");
+        Assert.False(scKeyDb.Succeeded);
+        Assert.Equal("db", scKeyDb.Code);
+
+        var scResetAuth = await new ErpWorkspaceFavoritesWriteService(new ConfiguredNeverOpened())
+            .ResetShortcutsAsync(0, "erp");
+        Assert.False(scResetAuth.Succeeded);
+        Assert.Equal("auth", scResetAuth.Code);
+
+        var scResetDb = await new ErpWorkspaceFavoritesWriteService(new UnconfiguredConnections())
+            .ResetShortcutsAsync(1, "");
+        Assert.False(scResetDb.Succeeded);
+        Assert.Equal("db", scResetDb.Code);
+
+        var grpAdd = await new CpStorageGroupWriteService(new ConfiguredNeverOpened())
+            .AddAsync("  ", "1,2");
+        Assert.False(grpAdd.Succeeded);
+        Assert.Equal("invalid", grpAdd.Code);
+
+        var grpDel = await new CpStorageGroupWriteService(new ConfiguredNeverOpened())
+            .DeleteAsync(0);
+        Assert.False(grpDel.Succeeded);
+        Assert.Equal("invalid", grpDel.Code);
+
+        var grpDb = await new CpStorageGroupWriteService(new UnconfiguredConnections())
+            .DeleteAsync(9);
+        Assert.False(grpDb.Succeeded);
+        Assert.Equal("db", grpDb.Code);
+
+        var doneInvalid = await new CpPricesUploadWriteService(new ConfiguredNeverOpened())
+            .CompleteSessionAsync(0);
+        Assert.False(doneInvalid.Succeeded);
+        Assert.Equal("invalid", doneInvalid.Code);
+
+        var doneDb = await new CpPricesUploadWriteService(new UnconfiguredConnections())
+            .CompleteSessionAsync(9);
+        Assert.False(doneDb.Succeeded);
+        Assert.Equal("db", doneDb.Code);
+
+        var quoteNote = await new CpQuoteWriteService(new ConfiguredNeverOpened())
+            .SaveAdminNoteAsync(0, "note");
+        Assert.False(quoteNote.Succeeded);
+        Assert.Equal("invalid", quoteNote.Code);
+
+        var quoteSend = await new CpQuoteWriteService(new ConfiguredNeverOpened())
+            .SendQuoteAsync(0);
+        Assert.False(quoteSend.Succeeded);
+        Assert.Equal("invalid", quoteSend.Code);
+
+        var quoteDb = await new CpQuoteWriteService(new UnconfiguredConnections())
+            .SaveAdminNoteAsync(9, "note");
+        Assert.False(quoteDb.Succeeded);
+        Assert.Equal("db", quoteDb.Code);
+
+        var vendorInvalid = await new CpVendorApprovalWriteService(new ConfiguredNeverOpened())
+            .SetStatusAsync(9, "approve");
+        Assert.False(vendorInvalid.Succeeded);
+        Assert.Equal("invalid", vendorInvalid.Code);
+
+        var vendorDb = await new CpVendorApprovalWriteService(new UnconfiguredConnections())
+            .SetStatusAsync(9, "suspend");
+        Assert.False(vendorDb.Succeeded);
+        Assert.Equal("db", vendorDb.Code);
+
+        var apiInvalid = await new CpApiClientWriteService(new ConfiguredNeverOpened())
+            .SetActiveAsync(0, 1);
+        Assert.False(apiInvalid.Succeeded);
+        Assert.Equal("invalid", apiInvalid.Code);
+
+        var apiDb = await new CpApiClientWriteService(new UnconfiguredConnections())
+            .SetActiveAsync(9, 0);
+        Assert.False(apiDb.Succeeded);
+        Assert.Equal("db", apiDb.Code);
+
+        var ruleInvalid = await new CpPriceStorageRuleWriteService(new ConfiguredNeverOpened())
+            .DeleteAsync("nope", 9);
+        Assert.False(ruleInvalid.Succeeded);
+        Assert.Equal("invalid", ruleInvalid.Code);
+
+        var ruleDb = await new CpPriceStorageRuleWriteService(new UnconfiguredConnections())
+            .DeleteAsync("delete_storage_rule", 9);
+        Assert.False(ruleDb.Succeeded);
+        Assert.Equal("db", ruleDb.Code);
     }
 
     [Fact]

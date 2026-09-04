@@ -120,6 +120,7 @@ public static class PhpSurfaceLinkMap
         ("registracionnye-varianty", "/cp/users-app"),
         ("users/usergroups", "/cp/groups-app"),
         ("users/user_manager", "/cp/users-app"),
+        ("users/vendor_approvals", "/cp/users-app"),
         // After usergroups — "users/user" would otherwise steal usergroups.
         ("users/user", "/cp/users-app"),
         ("users/approvals", "/cp/users-app"),

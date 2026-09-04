@@ -969,8 +969,20 @@ public static class EcomAeRoutes
     public const string CpSetUserUnlocked = "/cp/users/set-unlocked";
     /// <summary>Wave B dry-run for PHP cp/content/shop/prices_upload/ajax_5_import_csv_to_db.php (writes=0).</summary>
     public const string CpPricesImportCsv = "/cp/prices/import-csv";
-    /// <summary>Wave B dry-run for PHP cp/content/shop/prices_upload/ajax_6_complete_session.php (writes=0).</summary>
+    /// <summary>PHP ajax_6_complete_session last_updated / records_count. <c>confirmWrites=true</c> writes via <c>ICpPricesUploadWriteService</c>.</summary>
     public const string CpPricesCompleteSession = "/cp/prices/complete-session";
+    /// <summary>PHP logistics groups add_group / del. <c>confirmWrites=true</c> writes via <c>ICpStorageGroupWriteService</c>.</summary>
+    public const string CpStoragesGroups = "/cp/storages/groups";
+    /// <summary>PHP quote_requests.php admin_note. <c>confirmWrites=true</c> writes via <c>ICpQuoteWriteService</c>.</summary>
+    public const string CpQuoteSaveNote = "/cp/quote-requests/note";
+    /// <summary>PHP quote_requests.php send_quote. <c>confirmWrites=true</c> writes via <c>ICpQuoteWriteService</c>.</summary>
+    public const string CpQuoteSend = "/cp/quote-requests/send";
+    /// <summary>PHP epc_vendor_approvals.php suspend/reject. Approve stays PHP.</summary>
+    public const string CpVendorApprovals = "/cp/vendors/approvals";
+    /// <summary>PHP epc_api_clients_manage.php revoke/activate. Super CP only.</summary>
+    public const string CpApiClientsToggle = "/cp/api-clients/toggle";
+    /// <summary>PHP epc_pm_storage_panel.php rule DELETE. Save/upsert stay PHP.</summary>
+    public const string CpPriceStorageRules = "/cp/prices/storage-rules";
 
     /// <summary>Wave B dry-run for PHP period_log (writes=0).</summary>
     public const string ErpAjaxPeriodLog = "/erp/ajax/period-log";
@@ -1319,9 +1331,9 @@ public static class EcomAeRoutes
     public const string ErpAjaxShortcutAdd = "/erp/ajax/shortcut-add";
     /// <summary>PHP shortcut_delete. <c>confirmWrites=true</c> writes via <c>IErpWorkspaceFavoritesWriteService</c>.</summary>
     public const string ErpAjaxShortcutDelete = "/erp/ajax/shortcut-delete";
-    /// <summary>Wave B dry-run for PHP shortcut_delete_key (writes=0).</summary>
+    /// <summary>PHP shortcut_delete_key. <c>confirmWrites=true</c> writes via <c>IErpWorkspaceFavoritesWriteService</c>.</summary>
     public const string ErpAjaxShortcutDeleteKey = "/erp/ajax/shortcut-delete-key";
-    /// <summary>Wave B dry-run for PHP shortcut_reset (writes=0).</summary>
+    /// <summary>PHP shortcut_reset. <c>confirmWrites=true</c> writes via <c>IErpWorkspaceFavoritesWriteService</c>.</summary>
     public const string ErpAjaxShortcutReset = "/erp/ajax/shortcut-reset";
     /// <summary>Wave B dry-run for PHP shortcut_reorder (writes=0).</summary>
     public const string ErpAjaxShortcutReorder = "/erp/ajax/shortcut-reorder";

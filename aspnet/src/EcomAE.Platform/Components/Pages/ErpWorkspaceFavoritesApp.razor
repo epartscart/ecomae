@@ -13,7 +13,7 @@
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Workspace favorites" BreadcrumbArea="Home" BreadcrumbTab="Dashboard">
 
     
-    <PhpErpModulePageHeader Title="Workspace favorites" Subtitle="Add or remove a favourite tab, or delete one shortcut row for the signed-in ERP user. Pin/reorder stays on ERP ajax." />
+    <PhpErpModulePageHeader Title="Workspace favorites" Subtitle="Add or remove a favourite tab, or delete/reset shortcuts for the signed-in ERP user. Shortcut add/reorder stays on ERP ajax." />
 
     @if (!string.IsNullOrWhiteSpace(_flashOk))
     {
@@ -43,6 +43,31 @@
             <input type="hidden" name="returnUrl" value="/erp/workspace-favorites-app" />
             <label>Shortcut id <input type="number" name="id" min="1" required style="width:6rem" /></label>
             <button type="submit" class="btn btn-sm btn-default">Delete shortcut</button>
+        </form>
+        <form method="post" action="/erp/ajax/shortcut-delete-key" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 .65rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/erp/workspace-favorites-app" />
+            <label>Shortcut key <input type="text" name="shortcutKey" required /></label>
+            <label>Surface
+                <select name="surface">
+                    <option value="">any</option>
+                    <option value="erp">erp</option>
+                    <option value="cp">cp</option>
+                </select>
+            </label>
+            <button type="submit" class="btn btn-sm btn-default">Delete by key</button>
+        </form>
+        <form method="post" action="/erp/ajax/shortcut-reset" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/erp/workspace-favorites-app" />
+            <label>Surface
+                <select name="surface">
+                    <option value="">all</option>
+                    <option value="erp">erp</option>
+                    <option value="cp">cp</option>
+                </select>
+            </label>
+            <button type="submit" class="btn btn-sm btn-default">Reset shortcuts</button>
         </form>
     }
 

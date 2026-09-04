@@ -659,6 +659,12 @@ builder.Services.AddScoped<EcomAE.Platform.Erp.IErpWorkspaceFavoritesWriteServic
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpInventoryReorderWriteService, EcomAE.Platform.Erp.ErpInventoryReorderWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpJwRepairWriteService, EcomAE.Platform.Erp.ErpJwRepairWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpHrDaysWriteService, EcomAE.Platform.Erp.ErpHrDaysWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Cp.ICpStorageGroupWriteService, EcomAE.Platform.Cp.CpStorageGroupWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Cp.ICpPricesUploadWriteService, EcomAE.Platform.Cp.CpPricesUploadWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Cp.ICpQuoteWriteService, EcomAE.Platform.Cp.CpQuoteWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Cp.ICpVendorApprovalWriteService, EcomAE.Platform.Cp.CpVendorApprovalWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Cp.ICpApiClientWriteService, EcomAE.Platform.Cp.CpApiClientWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Cp.ICpPriceStorageRuleWriteService, EcomAE.Platform.Cp.CpPriceStorageRuleWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpOmsWriteService, EcomAE.Platform.Cp.CpOmsWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpUserWriteService, EcomAE.Platform.Cp.CpUserWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpLangWriteService, EcomAE.Platform.Cp.CpLangWriteService>();

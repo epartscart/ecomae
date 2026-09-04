@@ -54,6 +54,12 @@ public sealed class PhpVsAspNetRemovalMatrixTests
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "erp-inventory" && r.WritesOwner == "aspnet");
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "erp-workspace-favorites" && r.WritesOwner == "aspnet");
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "erp-jw-repairs" && r.WritesOwner == "aspnet");
+        Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "cp-prices-upload" && r.WritesOwner == "aspnet");
+        Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "cp-storages" && r.WritesOwner == "aspnet");
+        Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "cp-quote-requests" && r.WritesOwner == "aspnet");
+        Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "cp-vendor-approvals" && r.WritesOwner == "aspnet");
+        Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "cp-api-clients" && r.WritesOwner == "aspnet");
+        Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "cp-price-storage-rules" && r.WritesOwner == "aspnet");
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "write-storefront-cart" && r.WritesOwner == "php");
     }
 
@@ -113,6 +119,11 @@ public sealed class PhpVsAspNetRemovalMatrixTests
             ("CpOrdersApp.razor", "/cp/orders/update-item"),
             ("CpUsersApp.razor", "/cp/users/set-comment"),
             ("CpUsersApp.razor", "/cp/users/set-unlocked"),
+            ("CpUsersApp.razor", "/cp/vendors/approvals"),
+            ("CpQuoteRequestsApp.razor", "/cp/quote-requests/note"),
+            ("CpQuoteRequestsApp.razor", "/cp/quote-requests/send"),
+            ("CpApiClientsApp.razor", "/cp/api-clients/toggle"),
+            ("CpPriceListsApp.razor", "/cp/prices/storage-rules"),
             ("CpLanguagesApp.razor", "/cp/lang/set-is-custom"),
             ("CpLanguagesApp.razor", "/cp/lang/set-is-error"),
             ("CpLanguagesApp.razor", "/cp/lang/set-same"),
@@ -132,6 +143,10 @@ public sealed class PhpVsAspNetRemovalMatrixTests
             ("ErpWorkspaceFavoritesApp.razor", "/erp/ajax/erp-fav-add"),
             ("ErpWorkspaceFavoritesApp.razor", "/erp/ajax/erp-fav-remove"),
             ("ErpWorkspaceFavoritesApp.razor", "/erp/ajax/shortcut-delete"),
+            ("ErpWorkspaceFavoritesApp.razor", "/erp/ajax/shortcut-delete-key"),
+            ("ErpWorkspaceFavoritesApp.razor", "/erp/ajax/shortcut-reset"),
+            ("CpStoragesApp.razor", "/cp/storages/groups"),
+            ("CpPricesUploadApp.razor", "/cp/prices/complete-session"),
             ("ErpPayrollApp.razor", "/erp/ajax/hr-update-days"),
             ("CpHrOverviewApp.razor", "/erp/ajax/hr-update-days"),
             ("ErpInventoryStockApp.razor", "/erp/ajax/inv-set-reorder-level"),

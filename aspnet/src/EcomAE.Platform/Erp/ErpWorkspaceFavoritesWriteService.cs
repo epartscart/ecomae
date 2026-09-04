@@ -1,6 +1,6 @@
 namespace EcomAE.Platform.Erp;
 
-/// <summary>Live PHP <c>erp_fav_add</c> / <c>erp_fav_remove</c> / <c>shortcut_delete</c> twins. Add/reorder/reset stay PHP.</summary>
+/// <summary>Live PHP <c>erp_fav_add</c> / <c>erp_fav_remove</c> / <c>shortcut_delete</c> / <c>shortcut_delete_key</c> / <c>shortcut_reset</c> twins. Add/reorder stay PHP.</summary>
 public interface IErpWorkspaceFavoritesWriteService
 {
     Task<ErpSimpleWriteResult> AddAsync(int userId, string? areaKey, string? tabKey, CancellationToken cancellationToken = default);
@@ -8,6 +8,10 @@ public interface IErpWorkspaceFavoritesWriteService
     Task<ErpSimpleWriteResult> RemoveAsync(int userId, string? tabKey, CancellationToken cancellationToken = default);
 
     Task<ErpSimpleWriteResult> DeleteShortcutAsync(int userId, long shortcutId, CancellationToken cancellationToken = default);
+
+    Task<ErpSimpleWriteResult> DeleteShortcutByKeyAsync(int userId, string? shortcutKey, string? surface, CancellationToken cancellationToken = default);
+
+    Task<ErpSimpleWriteResult> ResetShortcutsAsync(int userId, string? surface, CancellationToken cancellationToken = default);
 }
 
 public sealed class ErpWorkspaceFavoritesWriteService : IErpWorkspaceFavoritesWriteService
@@ -114,6 +118,113 @@ public sealed class ErpWorkspaceFavoritesWriteService : IErpWorkspaceFavoritesWr
             cancellationToken,
             shortcutId, userId);
         return ErpSimpleWriteResult.Ok("Shortcut removed", shortcutId);
+    }
+
+    public async Task<ErpSimpleWriteResult> DeleteShortcutByKeyAsync(
+        int userId,
+        string? shortcutKey,
+        string? surface,
+        CancellationToken cancellationToken = default)
+    {
+        if (userId <= 0)
+        {
+            return ErpSimpleWriteResult.Fail("auth", "No user session");
+        }
+
+        var key = SanitizeShortcutKey(shortcutKey);
+        if (key.Length == 0)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Missing shortcut_key");
+        }
+
+        var face = NormalizeSurface(surface);
+        if (!_connections.IsConfigured)
+        {
+            return ErpSimpleWriteResult.Fail("db", "TenantRegistry DB is not configured.");
+        }
+
+        await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        if (face.Length > 0)
+        {
+            await ErpDb.ExecuteAsync(
+                connection,
+                null,
+                ErpDb.Positional("DELETE FROM `epc_user_shortcuts` WHERE `user_id` = ? AND `shortcut_key` = ? AND (`surface` = ? OR `surface` = 'both')"),
+                cancellationToken,
+                userId, key, face);
+        }
+        else
+        {
+            await ErpDb.ExecuteAsync(
+                connection,
+                null,
+                ErpDb.Positional("DELETE FROM `epc_user_shortcuts` WHERE `user_id` = ? AND `shortcut_key` = ?"),
+                cancellationToken,
+                userId, key);
+        }
+
+        return ErpSimpleWriteResult.Ok("Shortcut removed", userId);
+    }
+
+    public async Task<ErpSimpleWriteResult> ResetShortcutsAsync(
+        int userId,
+        string? surface,
+        CancellationToken cancellationToken = default)
+    {
+        if (userId <= 0)
+        {
+            return ErpSimpleWriteResult.Fail("auth", "No user session");
+        }
+
+        var face = NormalizeSurface(surface);
+        if (!_connections.IsConfigured)
+        {
+            return ErpSimpleWriteResult.Fail("db", "TenantRegistry DB is not configured.");
+        }
+
+        await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        if (face.Length > 0)
+        {
+            await ErpDb.ExecuteAsync(
+                connection,
+                null,
+                ErpDb.Positional("DELETE FROM `epc_user_shortcuts` WHERE `user_id` = ? AND (`surface` = ? OR `surface` = 'both')"),
+                cancellationToken,
+                userId, face);
+        }
+        else
+        {
+            await ErpDb.ExecuteAsync(
+                connection,
+                null,
+                ErpDb.Positional("DELETE FROM `epc_user_shortcuts` WHERE `user_id` = ?"),
+                cancellationToken,
+                userId);
+        }
+
+        return ErpSimpleWriteResult.Ok("Shortcuts reset", userId);
+    }
+
+    internal static string SanitizeShortcutKey(string? raw)
+    {
+        var source = (raw ?? string.Empty).Trim().ToLowerInvariant();
+        var chars = new char[source.Length];
+        var n = 0;
+        foreach (var ch in source)
+        {
+            if (ch is (>= 'a' and <= 'z') or (>= '0' and <= '9') or '_' or '-')
+            {
+                chars[n++] = ch;
+            }
+        }
+
+        return n == 0 ? string.Empty : new string(chars, 0, n);
+    }
+
+    internal static string NormalizeSurface(string? raw)
+    {
+        var face = (raw ?? string.Empty).Trim().ToLowerInvariant();
+        return face is "cp" or "erp" ? face : string.Empty;
     }
 
     internal static bool TryNormalizeKey(string? raw, bool required, out string key)
