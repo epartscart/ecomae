@@ -607,6 +607,31 @@ public sealed class LiveWriteServiceValidationTests
             .SetStatusAsync(9, "ready");
         Assert.False(jwDb.Succeeded);
         Assert.Equal("db", jwDb.Code);
+
+        var scAuth = await new ErpWorkspaceFavoritesWriteService(new ConfiguredNeverOpened())
+            .DeleteShortcutAsync(0, 9);
+        Assert.False(scAuth.Succeeded);
+        Assert.Equal("auth", scAuth.Code);
+
+        var scId = await new ErpWorkspaceFavoritesWriteService(new ConfiguredNeverOpened())
+            .DeleteShortcutAsync(1, 0);
+        Assert.False(scId.Succeeded);
+        Assert.Equal("invalid", scId.Code);
+
+        var scDb = await new ErpWorkspaceFavoritesWriteService(new UnconfiguredConnections())
+            .DeleteShortcutAsync(1, 9);
+        Assert.False(scDb.Succeeded);
+        Assert.Equal("db", scDb.Code);
+
+        var hrInvalid = await new ErpHrDaysWriteService(new ConfiguredNeverOpened())
+            .SetDaysWorkedAsync(0, 22);
+        Assert.False(hrInvalid.Succeeded);
+        Assert.Equal("invalid", hrInvalid.Code);
+
+        var hrDb = await new ErpHrDaysWriteService(new UnconfiguredConnections())
+            .SetDaysWorkedAsync(9, 22);
+        Assert.False(hrDb.Succeeded);
+        Assert.Equal("db", hrDb.Code);
     }
 
     [Fact]

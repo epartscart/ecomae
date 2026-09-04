@@ -1,11 +1,13 @@
 namespace EcomAE.Platform.Erp;
 
-/// <summary>Live PHP <c>erp_fav_add</c> / <c>erp_fav_remove</c> twins. Schema ensure and shortcut CRUD stay PHP.</summary>
+/// <summary>Live PHP <c>erp_fav_add</c> / <c>erp_fav_remove</c> / <c>shortcut_delete</c> twins. Add/reorder/reset stay PHP.</summary>
 public interface IErpWorkspaceFavoritesWriteService
 {
     Task<ErpSimpleWriteResult> AddAsync(int userId, string? areaKey, string? tabKey, CancellationToken cancellationToken = default);
 
     Task<ErpSimpleWriteResult> RemoveAsync(int userId, string? tabKey, CancellationToken cancellationToken = default);
+
+    Task<ErpSimpleWriteResult> DeleteShortcutAsync(int userId, long shortcutId, CancellationToken cancellationToken = default);
 }
 
 public sealed class ErpWorkspaceFavoritesWriteService : IErpWorkspaceFavoritesWriteService
@@ -82,6 +84,36 @@ public sealed class ErpWorkspaceFavoritesWriteService : IErpWorkspaceFavoritesWr
             cancellationToken,
             userId, tab);
         return ErpSimpleWriteResult.Ok("Removed from favourites", userId);
+    }
+
+    public async Task<ErpSimpleWriteResult> DeleteShortcutAsync(
+        int userId,
+        long shortcutId,
+        CancellationToken cancellationToken = default)
+    {
+        if (userId <= 0)
+        {
+            return ErpSimpleWriteResult.Fail("auth", "No user session");
+        }
+
+        if (shortcutId <= 0)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Missing id");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return ErpSimpleWriteResult.Fail("db", "TenantRegistry DB is not configured.");
+        }
+
+        await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await ErpDb.ExecuteAsync(
+            connection,
+            null,
+            ErpDb.Positional("DELETE FROM `epc_user_shortcuts` WHERE `id` = ? AND `user_id` = ?"),
+            cancellationToken,
+            shortcutId, userId);
+        return ErpSimpleWriteResult.Ok("Shortcut removed", shortcutId);
     }
 
     internal static bool TryNormalizeKey(string? raw, bool required, out string key)

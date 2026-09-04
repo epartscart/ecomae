@@ -13,7 +13,7 @@
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Workspace favorites" BreadcrumbArea="Home" BreadcrumbTab="Dashboard">
 
     
-    <PhpErpModulePageHeader Title="Workspace favorites" Subtitle="Add or remove a favourite tab for the signed-in ERP user. Shortcut pin/reorder stays on ERP ajax." />
+    <PhpErpModulePageHeader Title="Workspace favorites" Subtitle="Add or remove a favourite tab, or delete one shortcut row for the signed-in ERP user. Pin/reorder stays on ERP ajax." />
 
     @if (!string.IsNullOrWhiteSpace(_flashOk))
     {
@@ -37,6 +37,12 @@
             <input type="hidden" name="returnUrl" value="/erp/workspace-favorites-app" />
             <label>Tab key <input type="text" name="tabKey" required maxlength="60" /></label>
             <button type="submit" class="btn btn-sm btn-default">Remove favourite</button>
+        </form>
+        <form method="post" action="/erp/ajax/shortcut-delete" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/erp/workspace-favorites-app" />
+            <label>Shortcut id <input type="number" name="id" min="1" required style="width:6rem" /></label>
+            <button type="submit" class="btn btn-sm btn-default">Delete shortcut</button>
         </form>
     }
 

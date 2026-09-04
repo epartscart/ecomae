@@ -863,7 +863,7 @@ public static class EcomAeRoutes
     public const string ErpAjaxHrExpenseSave = "/erp/ajax/hr-expense-save";
     /// <summary>Wave B dry-run for PHP hr_expense_status (writes=0).</summary>
     public const string ErpAjaxHrExpenseStatus = "/erp/ajax/hr-expense-status";
-    /// <summary>Wave B dry-run for PHP hr_update_days (writes=0).</summary>
+    /// <summary>PHP hr_update_days. <c>confirmWrites=true</c> writes via <c>IErpHrDaysWriteService</c>.</summary>
     public const string ErpAjaxHrUpdateDays = "/erp/ajax/hr-update-days";
     /// <summary>Wave B dry-run for PHP einvoice_create (writes=0).</summary>
     public const string ErpAjaxEinvoiceCreate = "/erp/ajax/einvoice-create";
@@ -1317,7 +1317,7 @@ public static class EcomAeRoutes
     public const string ErpAjaxShortcutList = "/erp/ajax/shortcut-list";
     /// <summary>Wave B dry-run for PHP shortcut_add (writes=0).</summary>
     public const string ErpAjaxShortcutAdd = "/erp/ajax/shortcut-add";
-    /// <summary>Wave B dry-run for PHP shortcut_delete (writes=0).</summary>
+    /// <summary>PHP shortcut_delete. <c>confirmWrites=true</c> writes via <c>IErpWorkspaceFavoritesWriteService</c>.</summary>
     public const string ErpAjaxShortcutDelete = "/erp/ajax/shortcut-delete";
     /// <summary>Wave B dry-run for PHP shortcut_delete_key (writes=0).</summary>
     public const string ErpAjaxShortcutDeleteKey = "/erp/ajax/shortcut-delete-key";

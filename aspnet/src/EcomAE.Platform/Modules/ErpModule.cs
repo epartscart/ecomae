@@ -456,8 +456,42 @@ public sealed class ErpModule : ISurfaceModule
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(false); return Results.Ok(dryRun.Evaluate(new ErpShortcutListRequest(body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxShortcutAdd, async (HttpContext context, ErpShortcutAddBody? body, ILegacySessionValidator validator, IErpShortcutAddDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpShortcutAddRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxShortcutDelete, async (HttpContext context, ErpShortcutDeleteBody? body, ILegacySessionValidator validator, IErpShortcutDeleteDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,false); return Results.Ok(dryRun.Evaluate(new ErpShortcutDeleteRequest(body.Id, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxShortcutDelete, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IErpShortcutDeleteDryRun dryRun,
+            IErpWorkspaceFavoritesWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/workspace-favorites-app", "Admin ERP capability required.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpShortcutDeleteBody>(context, cancellationToken) ?? new();
+            var id = body.Id;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                id = LiveWriteFormBinder.Long(form, "id", "shortcutId", "shortcut_id");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(dryRun.Evaluate(new ErpShortcutDeleteRequest(id, false)).ToPayload(SessionPayload(session)));
+            }
+
+            var written = await writes.DeleteShortcutAsync(session.UserId, id, cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/erp/workspace-favorites-app",
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxShortcutDeleteKey, async (HttpContext context, ErpShortcutDeleteKeyBody? body, ILegacySessionValidator validator, IErpShortcutDeleteKeyDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpShortcutDeleteKeyRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxShortcutReset, async (HttpContext context, ErpShortcutResetBody? body, ILegacySessionValidator validator, IErpShortcutResetDryRun dryRun, CancellationToken cancellationToken) =>
@@ -1822,8 +1856,44 @@ public sealed class ErpModule : ISurfaceModule
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpHrExpenseSaveRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxHrExpenseStatus, async (HttpContext context, ErpHrExpenseStatusBody? body, ILegacySessionValidator validator, IErpHrExpenseStatusDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpHrExpenseStatusRequest(body.Id, body.TargetStatus, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxHrUpdateDays, async (HttpContext context, ErpHrUpdateDaysBody? body, ILegacySessionValidator validator, IErpHrUpdateDaysDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpHrUpdateDaysRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxHrUpdateDays, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IErpHrUpdateDaysDryRun dryRun,
+            IErpHrDaysWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/payroll-app", "Admin ERP capability required.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpHrUpdateDaysBody>(context, cancellationToken) ?? new();
+            var profileId = body.StaffProfileId > 0 ? body.StaffProfileId : body.Id;
+            var days = body.DaysWorked;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                profileId = LiveWriteFormBinder.Long(form, "staffProfileId", "staff_profile_id", "id");
+                days = LiveWriteFormBinder.Dec(form, "daysWorked", "days_worked", "days");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(dryRun.Evaluate(new ErpHrUpdateDaysRequest(profileId, body.Code, false)).ToPayload(SessionPayload(session)));
+            }
+
+            var written = await writes.SetDaysWorkedAsync(profileId, days, cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/erp/payroll-app",
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxEinvoiceCreate, async (HttpContext context, ErpEinvoiceCreateBody? body, ILegacySessionValidator validator, IErpEinvoiceCreateDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpEinvoiceCreateRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxEinvoiceSaveSeller, async (HttpContext context, ErpEinvoiceSaveSellerBody? body, ILegacySessionValidator validator, IErpEinvoiceSaveSellerDryRun dryRun, CancellationToken cancellationToken) =>
@@ -4080,7 +4150,7 @@ public sealed class ErpModule : ISurfaceModule
     private sealed record ErpHrLeaveStatusBody(long Id, string? TargetStatus = null, bool ConfirmWrites = false);
     private sealed record ErpHrExpenseSaveBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpHrExpenseStatusBody(long Id, string? TargetStatus = null, bool ConfirmWrites = false);
-    private sealed record ErpHrUpdateDaysBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
+    private sealed record ErpHrUpdateDaysBody(long Id = 0, long StaffProfileId = 0, decimal DaysWorked = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpEinvoiceCreateBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpEinvoiceSaveSellerBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpEinvoiceSaveBuyerBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
@@ -4306,7 +4376,7 @@ public sealed class ErpModule : ISurfaceModule
     private sealed record ErpCsImportDeclarationPdfBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpShortcutListBody(bool ConfirmWrites = false);
     private sealed record ErpShortcutAddBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
-    private sealed record ErpShortcutDeleteBody(long Id, bool ConfirmWrites = false);
+    private sealed record ErpShortcutDeleteBody(long Id = 0, bool ConfirmWrites = false);
     private sealed record ErpShortcutDeleteKeyBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpShortcutResetBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpShortcutReorderBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
