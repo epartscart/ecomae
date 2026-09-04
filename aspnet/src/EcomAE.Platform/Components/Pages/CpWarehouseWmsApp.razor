@@ -45,7 +45,7 @@
     <section class="epc-wms-hero">
         <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
         <h1>Warehouse WMS</h1>
-        <p>Delete an empty warehouse location here. Locations that still hold active license-plate stock stay blocked.</p>
+        <p>Delete an empty warehouse location or release a pick wave here. Wave create, pick add, and work complete stay on the classic twin.</p>
         <div class="epc-wms-cta">
             <a href="/erp">ERP overview</a>
         </div>
@@ -66,6 +66,12 @@
             <input type="hidden" name="returnUrl" value="/cp/warehouse-wms-app" />
             <label>Location id <input type="number" name="id" min="1" required style="width:6rem" /></label>
             <button type="submit">Delete location</button>
+        </form>
+        <form method="post" action="/erp/wms/waves/release" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/warehouse-wms-app" />
+            <label>Wave id <input type="number" name="id" min="1" required style="width:6rem" /></label>
+            <button type="submit">Release wave</button>
         </form>
     }
 

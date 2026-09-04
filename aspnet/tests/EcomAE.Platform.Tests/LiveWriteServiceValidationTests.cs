@@ -862,6 +862,16 @@ public sealed class LiveWriteServiceValidationTests
             .DecideAsync(9, false, "admin", "no");
         Assert.False(procDecideDb.Succeeded);
         Assert.Equal("db", procDecideDb.Code);
+
+        var waveInvalid = await new ErpWmsWaveReleaseWriteService(new ConfiguredNeverOpened())
+            .ReleaseAsync(0);
+        Assert.False(waveInvalid.Succeeded);
+        Assert.Equal("invalid", waveInvalid.Code);
+
+        var waveDb = await new ErpWmsWaveReleaseWriteService(new UnconfiguredConnections())
+            .ReleaseAsync(9);
+        Assert.False(waveDb.Succeeded);
+        Assert.Equal("db", waveDb.Code);
     }
 
     [Fact]

@@ -646,7 +646,7 @@ public static class EcomAeRoutes
     public const string ErpFinPeriodStatus = "/erp/fin/periods/status";
     /// <summary>Wave B dry-run for PHP wms_wave_create (writes=0).</summary>
     public const string ErpWmsWaveCreate = "/erp/wms/waves/create";
-    /// <summary>Wave B dry-run for PHP wms_wave_release (writes=0).</summary>
+    /// <summary>PHP epc_wms_wave_release. <c>confirmWrites=true</c> writes via <c>IErpWmsWaveReleaseWriteService</c>.</summary>
     public const string ErpWmsWaveRelease = "/erp/wms/waves/release";
     /// <summary>Wave B dry-run for PHP wms_work_complete (writes=0).</summary>
     public const string ErpWmsWorkComplete = "/erp/wms/work/complete";

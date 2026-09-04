@@ -1281,7 +1281,7 @@ public static class SurfacePayloadContractCatalog
         new("erp", "procurement req save dry-run", "/erp/procurement/requisitions/save", "write-dry-run-gated", "POST dry-run for PHP proc_req_save; writes=0; confirm_writes refused; PHP authoritative."),
         new("erp", "fin period status dry-run", "/erp/fin/periods/status", "write-dry-run-gated", "POST dry-run for PHP fin_period_status; writes=0; confirm_writes refused; PHP authoritative."),
         new("erp", "WMS wave create dry-run", "/erp/wms/waves/create", "write-dry-run-gated", "POST dry-run for PHP wms_wave_create; writes=0; confirm_writes refused; PHP authoritative."),
-        new("erp", "WMS wave release dry-run", "/erp/wms/waves/release", "write-dry-run-gated", "POST dry-run for PHP wms_wave_release; writes=0; confirm_writes refused; PHP authoritative."),
+        new("erp", "WMS wave release", "/erp/wms/waves/release", "write-live-gated", "POST PHP epc_wms_wave_release; confirmWrites=true writes ASP.NET; create/pick/work-complete stay PHP."),
         new("erp", "WMS work complete dry-run", "/erp/wms/work/complete", "write-dry-run-gated", "POST dry-run for PHP wms_work_complete; writes=0; confirm_writes refused; PHP authoritative."),
         new("erp", "subscription status dry-run", "/erp/subscriptions/status", "write-dry-run-gated", "POST dry-run for PHP sub_status; writes=0; confirm_writes refused; PHP authoritative."),
         new("erp", "collections case status", "/erp/collections/cases/status", "write-live-gated", "POST PHP epc_coll_case_set_status; confirmWrites=true writes ASP.NET; schema ensure stays PHP."),
