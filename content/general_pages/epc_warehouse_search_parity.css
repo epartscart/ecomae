@@ -72,6 +72,12 @@
 #all_table_products tr.epc-warehouse-subrow .td_name {
 	color: #94a3b8;
 }
+#all_table_products td.td_price .show_data_class {
+	font-size: 10px;
+	color: #959393;
+	position: relative;
+	top: 1px;
+}
 .epc-warehouse-subrow__label {
 	color: #0f766e;
 	font-size: 11px;

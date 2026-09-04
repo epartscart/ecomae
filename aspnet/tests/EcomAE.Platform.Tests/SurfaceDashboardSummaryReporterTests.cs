@@ -73,6 +73,8 @@ public sealed class SurfaceDashboardSummaryReporterTests
         var industryPacks = await reporter.BuildCpIndustryPacksDigestAsync(10);
         var jewelleryRetail = await reporter.BuildCpJewelleryRetailDigestAsync(10);
         var priceLists = await reporter.BuildCpPriceListsDigestAsync(10);
+        var docpartPrices = await reporter.BuildCpDocpartPriceListsDigestAsync(10);
+        var docpartDetail = await reporter.BuildCpDocpartPriceListDetailAsync(1);
         var autoPrice = await reporter.BuildCpAutoPriceDigestAsync(10);
         var uaeTax = await reporter.BuildCpUaeTaxComplianceDigestAsync(10);
         var budgets = await reporter.BuildCpBudgetsDigestAsync(10);
@@ -265,6 +267,8 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.Equal("migration", industryPacks.Source);
         Assert.Equal("migration", jewelleryRetail.Source);
         Assert.Equal("migration", priceLists.Source);
+        Assert.Equal("migration", docpartPrices.Source);
+        Assert.Null(docpartDetail);
         Assert.Equal("migration", autoPrice.Source);
         Assert.Equal("migration", uaeTax.Source);
         Assert.Equal("migration", budgets.Source);

@@ -1646,6 +1646,72 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>
+    /// PHP <c>prices_manager.php</c> — Docpart supplier lists (<c>shop_docpart_prices</c>),
+    /// not <c>epc_pl_lists</c> commerce profiles.
+    /// </summary>
+    public const string SelectCpDocpartPriceStats = """
+        SELECT
+            (SELECT COUNT(*) FROM `shop_docpart_prices`) AS list_count,
+            (SELECT COUNT(*) FROM `shop_docpart_prices_data`) AS offer_rows,
+            (SELECT COUNT(*) FROM `epc_price_upload_history`) AS upload_count
+        """;
+
+    public const string SelectCpDocpartPriceLists = """
+        SELECT `id`,
+               IFNULL(`name`,'') AS name,
+               IFNULL(`load_mode`,1) AS load_mode,
+               IFNULL(`records_count`,0) AS records_count,
+               IFNULL(`last_updated`,'') AS last_updated
+        FROM `shop_docpart_prices`
+        ORDER BY `id` ASC
+        LIMIT @limit
+        """;
+
+    public const string SelectCpDocpartPriceWarehouses = """
+        SELECT `id`, IFNULL(`name`,'') AS name, IFNULL(`connection_options`,'') AS connection_options
+        FROM `shop_storages`
+        WHERE `interface_type` = 2
+        ORDER BY `id` ASC
+        LIMIT 500
+        """;
+
+    public const string SelectCpDocpartPriceListById = """
+        SELECT `id`,
+               IFNULL(`name`,'') AS name,
+               IFNULL(`load_mode`,1) AS load_mode,
+               IFNULL(`records_count`,0) AS records_count,
+               IFNULL(`last_updated`,'') AS last_updated,
+               IFNULL(`ftp_host`,'') AS ftp_host,
+               IFNULL(`ftp_user`,'') AS ftp_user,
+               IFNULL(`ftp_folder`,'') AS ftp_folder,
+               IFNULL(`sender_email`,'') AS sender_email,
+               IFNULL(`message_header_substring`,'') AS message_header_substring,
+               IFNULL(`file_name_substring`,'') AS file_name_substring,
+               IFNULL(`link`,'') AS link,
+               IFNULL(`encoding`,'') AS encoding,
+               IFNULL(`separator`,'') AS separator
+        FROM `shop_docpart_prices`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    public const string SelectStorefrontGroupForPercentage = """
+        SELECT IFNULL(MAX(IFNULL(g.`for_percentage`,0)),0) AS for_percentage
+        FROM `groups` g
+        INNER JOIN `users_groups_bind` b ON b.`group_id` = g.`id`
+        WHERE b.`user_id` = @userId
+        """;
+
+    public const string SelectStorefrontStorageMarkups = """
+        SELECT `office_id`, `storage_id`, `group_id`,
+               IFNULL(`min_point`,0) AS min_point,
+               IFNULL(`max_point`,999999999) AS max_point,
+               IFNULL(`markup`,0)/100 AS markup
+        FROM `shop_offices_storages_map`
+        WHERE (@groupId = 0 OR `group_id` = @groupId)
+        """;
+
     /// <summary>Price list KPIs — omits stats_json/error_text/stored_relpath.</summary>
     public const string SelectCpPriceListStats = """
         SELECT

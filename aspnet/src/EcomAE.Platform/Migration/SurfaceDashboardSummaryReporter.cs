@@ -8,6 +8,7 @@ using EcomAE.Platform.Middleware;
 using EcomAE.Platform.Observability;
 using EcomAE.Platform.Presentation;
 using EcomAE.Platform.Services;
+using EcomAE.Platform.Storefront;
 
 namespace EcomAE.Platform.Migration;
 
@@ -2449,6 +2450,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
                 if (rows.Count > 0)
                 {
+                    rows = await ApplyCustomerMarkupToOffersAsync(connection, rows, cancellationToken).ConfigureAwait(false);
                     return new(normalized, rows, rows.Count, "database", string.Empty);
                 }
             }
@@ -3742,6 +3744,100 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
 
         return rows;
+    }
+
+    /// <summary>
+    /// PHP <c>prices_enclosure</c>: raw <c>shop_docpart_prices_data.price</c> is purchase;
+    /// customer sell = purchase × (1 + markup) from <c>shop_offices_storages_map</c>.
+    /// </summary>
+    private async Task<List<StorefrontPartOfferDigest>> ApplyCustomerMarkupToOffersAsync(
+        DbConnection connection,
+        List<StorefrontPartOfferDigest> rows,
+        CancellationToken cancellationToken)
+    {
+        var userId = ResolveRequestUserId();
+        var groupId = 0;
+        if (userId > 0)
+        {
+            try
+            {
+                await using var gcmd = connection.CreateCommand();
+                gcmd.CommandText = "SELECT `group_id` FROM `users_groups_bind` WHERE `user_id` = @userId ORDER BY `group_id` ASC LIMIT 1";
+                AddParameter(gcmd, "@userId", userId);
+                var raw = await gcmd.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
+                groupId = Convert.ToInt32(raw is DBNull or null ? 0 : raw, CultureInfo.InvariantCulture);
+            }
+            catch
+            {
+                groupId = 0;
+            }
+        }
+
+        if (groupId <= 0)
+        {
+            groupId = 2; // Treelax default retail group
+        }
+
+        var priceToStorage = await LoadDocpartPriceStorageIdsAsync(connection, cancellationToken).ConfigureAwait(false);
+
+        var ranges = new List<(int StorageId, int GroupId, decimal Min, decimal Max, decimal Markup)>();
+        try
+        {
+            await using var cmd = connection.CreateCommand();
+            cmd.CommandText = LegacySurfaceDashboardSql.SelectStorefrontStorageMarkups;
+            AddParameter(cmd, "@groupId", groupId);
+            await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                ranges.Add((
+                    Convert.ToInt32(reader["storage_id"] is DBNull ? 0 : reader["storage_id"], CultureInfo.InvariantCulture),
+                    Convert.ToInt32(reader["group_id"] is DBNull ? 0 : reader["group_id"], CultureInfo.InvariantCulture),
+                    Convert.ToDecimal(reader["min_point"] is DBNull ? 0 : reader["min_point"], CultureInfo.InvariantCulture),
+                    Convert.ToDecimal(reader["max_point"] is DBNull ? 999999999 : reader["max_point"], CultureInfo.InvariantCulture),
+                    Convert.ToDecimal(reader["markup"] is DBNull ? 0 : reader["markup"], CultureInfo.InvariantCulture)));
+            }
+        }
+        catch
+        {
+            // map table optional — sell = purchase
+        }
+
+        var priced = new List<StorefrontPartOfferDigest>(rows.Count);
+        foreach (var row in rows)
+        {
+            var storageId = row.StorageId;
+            if (storageId <= 0 && row.PriceId > 0 && priceToStorage.TryGetValue(row.PriceId, out var mapped))
+            {
+                storageId = mapped;
+            }
+
+            var purchase = row.PricePurchase > 0 ? row.PricePurchase : row.Price;
+            var markup = StorefrontOfferMarkup.PickMarkup(purchase, ranges, storageId, groupId);
+            priced.Add(StorefrontOfferMarkup.Apply(row with { PricePurchase = purchase, StorageId = storageId }, markup));
+        }
+
+        return priced;
+    }
+
+    private int ResolveRequestUserId()
+    {
+        var cookies = _httpContextAccessor?.HttpContext?.Request.Cookies;
+        if (cookies is null)
+        {
+            return 0;
+        }
+
+        if (cookies.TryGetValue("user_id", out var user) && int.TryParse(user, NumberStyles.Integer, CultureInfo.InvariantCulture, out var uid) && uid > 0)
+        {
+            return uid;
+        }
+
+        if (cookies.TryGetValue("admin_u_id", out var admin) && int.TryParse(admin, NumberStyles.Integer, CultureInfo.InvariantCulture, out var aid) && aid > 0)
+        {
+            return aid;
+        }
+
+        return 0;
     }
 
     private static async Task<List<StorefrontArticleBrandDigest>> QueryStorefrontWarehouseBrandsAsync(
@@ -6657,6 +6753,216 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         {
             var err = empty with { Source = "database-error", Message = ex.Message };
             return new(err, [], 0, "database-error", ex.Message);
+        }
+    }
+
+    public async Task<CpDocpartPriceListsDigestResult> BuildCpDocpartPriceListsDigestAsync(int limit, CancellationToken cancellationToken = default)
+    {
+        var safeLimit = Math.Clamp(limit, 1, 500);
+        var empty = new CpPriceListsSummary(0, 0, 0, "migration", "TenantRegistry DB is not configured.");
+        if (!_connections.IsConfigured)
+        {
+            return new(empty, [], 0, "migration", empty.Message);
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            var listCount = 0; var offerRows = 0; var uploads = 0;
+            try
+            {
+                await using var stats = connection.CreateCommand();
+                stats.CommandText = LegacySurfaceDashboardSql.SelectCpDocpartPriceStats;
+                await using var reader = await stats.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    listCount = Convert.ToInt32(reader["list_count"] is DBNull ? 0 : reader["list_count"], CultureInfo.InvariantCulture);
+                    offerRows = Convert.ToInt32(reader["offer_rows"] is DBNull ? 0 : reader["offer_rows"], CultureInfo.InvariantCulture);
+                    uploads = Convert.ToInt32(reader["upload_count"] is DBNull ? 0 : reader["upload_count"], CultureInfo.InvariantCulture);
+                }
+            }
+            catch
+            {
+                // history table optional
+            }
+
+            var warehouses = new Dictionary<long, List<string>>();
+            try
+            {
+                await using var wh = connection.CreateCommand();
+                wh.CommandText = LegacySurfaceDashboardSql.SelectCpDocpartPriceWarehouses;
+                await using var reader = await wh.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    var sid = Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture);
+                    var name = Convert.ToString(reader["name"] is DBNull ? string.Empty : reader["name"], CultureInfo.InvariantCulture) ?? string.Empty;
+                    var opts = Convert.ToString(reader["connection_options"] is DBNull ? string.Empty : reader["connection_options"], CultureInfo.InvariantCulture) ?? string.Empty;
+                    var priceId = PriceIdFromConnectionOptions(opts);
+                    if (priceId <= 0)
+                    {
+                        continue;
+                    }
+
+                    if (!warehouses.TryGetValue(priceId, out var list))
+                    {
+                        list = [];
+                        warehouses[priceId] = list;
+                    }
+
+                    list.Add(sid.ToString(CultureInfo.InvariantCulture) + " - " + name);
+                }
+            }
+            catch
+            {
+                // storages optional
+            }
+
+            var rows = new List<CpDocpartPriceListDigest>();
+            await using (var listCmd = connection.CreateCommand())
+            {
+                listCmd.CommandText = LegacySurfaceDashboardSql.SelectCpDocpartPriceLists;
+                AddParameter(listCmd, "@limit", safeLimit);
+                await using var reader = await listCmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    var id = Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture);
+                    var loadMode = Convert.ToInt32(reader["load_mode"] is DBNull ? 1 : reader["load_mode"], CultureInfo.InvariantCulture);
+                    warehouses.TryGetValue(id, out var whNames);
+                    rows.Add(new CpDocpartPriceListDigest(
+                        id,
+                        Convert.ToString(reader["name"] is DBNull ? string.Empty : reader["name"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        loadMode,
+                        CpPricesUploadWaysCatalog.LoadModeLabel(loadMode),
+                        Convert.ToInt32(reader["records_count"] is DBNull ? 0 : reader["records_count"], CultureInfo.InvariantCulture),
+                        FormatDocpartUpdated(Convert.ToString(reader["last_updated"] is DBNull ? string.Empty : reader["last_updated"], CultureInfo.InvariantCulture) ?? string.Empty),
+                        whNames is { Count: > 0 } ? string.Join(", ", whNames) : "—"));
+                }
+            }
+
+            var summary = new CpPriceListsSummary(listCount, offerRows, uploads, "database", string.Empty);
+            return new(summary, rows, rows.Count, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            var err = empty with { Source = "database-error", Message = ex.Message };
+            return new(err, [], 0, "database-error", ex.Message);
+        }
+    }
+
+    private static long PriceIdFromConnectionOptions(string json)
+    {
+        var m = Regex.Match(json ?? string.Empty, "\"price_id\"\\s*:\\s*\"?(\\d+)", RegexOptions.CultureInvariant);
+        return m.Success && long.TryParse(m.Groups[1].Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var id)
+            ? id
+            : 0;
+    }
+
+    private static string FormatDocpartUpdated(string raw)
+    {
+        if (long.TryParse(raw, NumberStyles.Integer, CultureInfo.InvariantCulture, out var unix) && unix > 100000)
+        {
+            return DateTimeOffset.FromUnixTimeSeconds(unix).UtcDateTime.ToString("dd.MM.yyyy HH:mm:ss", CultureInfo.InvariantCulture);
+        }
+
+        return raw;
+    }
+
+    private async Task<Dictionary<int, int>> LoadDocpartPriceStorageIdsAsync(DbConnection connection, CancellationToken cancellationToken)
+    {
+        var map = new Dictionary<int, int>();
+        try
+        {
+            await using var cmd = connection.CreateCommand();
+            cmd.CommandText = LegacySurfaceDashboardSql.SelectCpDocpartPriceWarehouses;
+            await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                var sid = Convert.ToInt32(reader["id"], CultureInfo.InvariantCulture);
+                var opts = Convert.ToString(reader["connection_options"] is DBNull ? string.Empty : reader["connection_options"], CultureInfo.InvariantCulture) ?? string.Empty;
+                var priceId = PriceIdFromConnectionOptions(opts);
+                if (priceId > 0 && priceId <= int.MaxValue && !map.ContainsKey((int)priceId))
+                {
+                    map[(int)priceId] = sid;
+                }
+            }
+        }
+        catch
+        {
+            // storages optional
+        }
+
+        return map;
+    }
+
+    public async Task<CpDocpartPriceListDetail?> BuildCpDocpartPriceListDetailAsync(long priceId, CancellationToken cancellationToken = default)
+    {
+        if (priceId <= 0 || !_connections.IsConfigured)
+        {
+            return null;
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            var warehouses = "—";
+            try
+            {
+                await using var wh = connection.CreateCommand();
+                wh.CommandText = LegacySurfaceDashboardSql.SelectCpDocpartPriceWarehouses;
+                await using var reader = await wh.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                var names = new List<string>();
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    var sid = Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture);
+                    var name = Convert.ToString(reader["name"] is DBNull ? string.Empty : reader["name"], CultureInfo.InvariantCulture) ?? string.Empty;
+                    var opts = Convert.ToString(reader["connection_options"] is DBNull ? string.Empty : reader["connection_options"], CultureInfo.InvariantCulture) ?? string.Empty;
+                    if (PriceIdFromConnectionOptions(opts) == priceId)
+                    {
+                        names.Add(sid.ToString(CultureInfo.InvariantCulture) + " - " + name);
+                    }
+                }
+
+                if (names.Count > 0)
+                {
+                    warehouses = string.Join(", ", names);
+                }
+            }
+            catch
+            {
+                // storages optional
+            }
+
+            await using var cmd = connection.CreateCommand();
+            cmd.CommandText = LegacySurfaceDashboardSql.SelectCpDocpartPriceListById;
+            AddParameter(cmd, "@id", priceId);
+            await using var row = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            if (!await row.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                return null;
+            }
+
+            var loadMode = Convert.ToInt32(row["load_mode"] is DBNull ? 1 : row["load_mode"], CultureInfo.InvariantCulture);
+            return new CpDocpartPriceListDetail(
+                Convert.ToInt64(row["id"], CultureInfo.InvariantCulture),
+                Convert.ToString(row["name"] is DBNull ? string.Empty : row["name"], CultureInfo.InvariantCulture) ?? string.Empty,
+                loadMode,
+                CpPricesUploadWaysCatalog.LoadModeLabel(loadMode),
+                Convert.ToInt32(row["records_count"] is DBNull ? 0 : row["records_count"], CultureInfo.InvariantCulture),
+                FormatDocpartUpdated(Convert.ToString(row["last_updated"] is DBNull ? string.Empty : row["last_updated"], CultureInfo.InvariantCulture) ?? string.Empty),
+                warehouses,
+                Convert.ToString(row["ftp_host"] is DBNull ? string.Empty : row["ftp_host"], CultureInfo.InvariantCulture) ?? string.Empty,
+                Convert.ToString(row["ftp_user"] is DBNull ? string.Empty : row["ftp_user"], CultureInfo.InvariantCulture) ?? string.Empty,
+                Convert.ToString(row["ftp_folder"] is DBNull ? string.Empty : row["ftp_folder"], CultureInfo.InvariantCulture) ?? string.Empty,
+                Convert.ToString(row["sender_email"] is DBNull ? string.Empty : row["sender_email"], CultureInfo.InvariantCulture) ?? string.Empty,
+                Convert.ToString(row["message_header_substring"] is DBNull ? string.Empty : row["message_header_substring"], CultureInfo.InvariantCulture) ?? string.Empty,
+                Convert.ToString(row["file_name_substring"] is DBNull ? string.Empty : row["file_name_substring"], CultureInfo.InvariantCulture) ?? string.Empty,
+                Convert.ToString(row["link"] is DBNull ? string.Empty : row["link"], CultureInfo.InvariantCulture) ?? string.Empty,
+                Convert.ToString(row["encoding"] is DBNull ? string.Empty : row["encoding"], CultureInfo.InvariantCulture) ?? string.Empty,
+                Convert.ToString(row["separator"] is DBNull ? string.Empty : row["separator"], CultureInfo.InvariantCulture) ?? string.Empty);
+        }
+        catch
+        {
+            return null;
         }
     }
 

@@ -40,7 +40,7 @@
     @((MarkupString)_chpuHeadExtras)
     @((MarkupString)_chpuJsonLd)
 }
-<link rel="stylesheet" href="/platform-assets/epc_warehouse_search_parity.css?v=20260812-fitment-sku" />
+<link rel="stylesheet" href="/platform-assets/epc_warehouse_search_parity.css?v=20260904-purchase" />
 <link rel="stylesheet" href="/platform-assets/epc_sku_media.css?v=20260812-fitment-sku" />
 <style>
         /* Keep PHP professional-shell look; only hide inventing ASP.NET chrome on CHPU/picker. */
@@ -513,6 +513,7 @@
                     <table id="all_table_products" class="epc-ssr-warehouse-table notranslate"
                            translate="no"
                            data-prices-visible="@(_pricesVisible ? "1" : "0")"
+                           data-show-purchase="@(_showPurchaseCost ? "1" : "0")"
                            data-access-state="@_accessState"
                            data-ssr-offers="@(_genuineRows.Count + _aftermarketRows.Count > 0 ? "1" : "0")">
                         <thead>
@@ -654,6 +655,7 @@
   if (!body) return;
   var table = document.getElementById('all_table_products');
   var pricesVisible = !table || table.getAttribute('data-prices-visible') === '1';
+  var showPurchase = table && table.getAttribute('data-show-purchase') === '1';
   var seen = Object.create(null);
   body.querySelectorAll('tr[data-offer-key]').forEach(function (tr) {
     seen[tr.getAttribute('data-offer-key')] = 1;
@@ -718,6 +720,7 @@
       '<a title="Warehouse" href="javascript:void(0);"><span><i class="fa fa-home"></i></span></a>' +
       '<a title="Fitment" href="javascript:void(0);" class="epc-fitment-check-btn epc-fitment-check-btn--row" data-epc-fitment-article="' + esc(art) + '" data-epc-fitment-brand="' + esc(mfr) + '"><span><i style="font-size:.9em;" class="fa fa-car"></i></span></a>' +
       '<br/></span>' +
+      (showPurchase ? '<div class="show_data_class" style="margin:3px 0px;white-space:nowrap;max-width:80px;font-size:11px;position:relative;" title="' + esc(storageRaw) + '"><span style="overflow:hidden;text-overflow:ellipsis;" class="info_box">' + esc(storageRaw) + '</span></div>' : '') +
       '<div class="show_data_class epc-warehouse-label" style="margin:3px 0;white-space:nowrap;max-width:110px;font-size:11px;font-weight:600;" title="Warehouse"><span class="info_box">' + esc(wh) + '</span></div>' +
       '</div>';
   }
@@ -779,6 +782,11 @@
     var avail = pricesVisible ? String(exist) : mask;
     var term = pricesVisible ? esc(formatTerm(termRaw, storageRaw)) : mask;
     var price = pricesVisible ? priceRaw.toFixed(2) : mask;
+    var purchaseRaw = Number(p.pricePurchase || p.price_purchase || 0);
+    if (!purchaseRaw) purchaseRaw = priceRaw;
+    var purchaseHtml = (pricesVisible && showPurchase)
+      ? "<div class='show_data_class' style='font-size: 10px; color: #959393; position: relative; top: 1px;'>" + purchaseRaw.toFixed(2) + "</div>"
+      : '';
     var wh = warehouseCaption(p, storageRaw);
     var photoHtml = isSub
       ? '<td class="td_photo epc-search-row-photo--subrow"></td>'
@@ -806,7 +814,7 @@
       '<td class="td_exist ' + (pricesVisible && exist > 0 ? 'epc-stock-ok' : 'epc-stock-out') + '">' + avail + '</td>' +
       '<td class="td_time_to_exe"><span class="epc-warehouse-term">' + term + '</span></td>' +
       '<td class="td_info">' + (isSub ? '' : infoCellHtml(p, show, storageRaw, pricesVisible)) + '</td>' +
-      '<td class="td_price product_price">' + (pricesVisible ? ('<span class="epc-price-value" data-epc-base-price="' + price + '">' + price + '</span>') : price) + '</td>' +
+      '<td class="td_price product_price">' + (pricesVisible ? ('<span class="epc-price-value" data-epc-base-price="' + price + '">' + price + '</span>' + purchaseHtml) : price) + '</td>' +
       '<td class="td_add_to_cart">' + actionsHtml(p, exist, show) + '</td>' +
       '<td class="td_color"></td>';
   }
@@ -957,6 +965,13 @@
     return fetch('/storefront/products-of-bunch', opts)
       .then(function (r) { return r.json(); })
       .then(function (data) {
+        if (data && data.show_purchase_cost === true) {
+          showPurchase = true;
+          if (table) table.setAttribute('data-show-purchase', '1');
+        } else if (data && data.show_purchase_cost === false) {
+          showPurchase = false;
+          if (table) table.setAttribute('data-show-purchase', '0');
+        }
         if (data && data.prices_visible === false) {
           pricesVisible = false;
           if (table) table.setAttribute('data-prices-visible', '0');
@@ -1348,6 +1363,7 @@
     private string _source = "n/a";
     private string _message = "";
     private bool _pricesVisible = true;
+    private bool _showPurchaseCost;
     private string _accessState = "ok";
     private string _loginCtaHtml = string.Empty;
     private bool _emitChpuSeo;
@@ -1469,6 +1485,7 @@
         {
             var access = await PriceAccess.ResolveAsync(Http.HttpContext);
             _pricesVisible = access.PricesVisible;
+        _showPurchaseCost = access.ShowPurchaseCost;
             _accessState = access.StateToken;
             _loginCtaHtml = access.LoginCtaHtml;
         }
@@ -2100,6 +2117,12 @@
                                 </a>
                                 <br />
                             </span>
+                            @if (_showPurchaseCost && !string.IsNullOrWhiteSpace(row.Storage))
+                            {
+                                <div class="show_data_class" style="margin: 3px 0px; white-space: nowrap; max-width: 80px; font-size: 11px; position: relative;" title="@row.Storage">
+                                    <span style="overflow: hidden; text-overflow: ellipsis;" class="info_box">@row.Storage</span>
+                                </div>
+                            }
                             <div class="show_data_class epc-warehouse-label" style="margin:3px 0;white-space:nowrap;max-width:110px;font-size:11px;font-weight:600;" title="Warehouse">
                                 <span class="info_box">@infoLabel</span>
                             </div>
@@ -2108,6 +2131,11 @@
                 </td>
                 <td class="td_price product_price">
                     <span class="epc-price-value" data-epc-base-price="@priceBase">@row.Price.ToString("N2", CultureInfo.InvariantCulture)</span>
+                    @if (_showPurchaseCost)
+                    {
+                        var purchase = row.PricePurchase > 0 ? row.PricePurchase : row.Price;
+                        <div class="show_data_class" style="font-size: 10px; color: #959393; position: relative; top: 1px;">@purchase.ToString("N2", CultureInfo.InvariantCulture)</div>
+                    }
                 </td>
             }
             else
