@@ -1076,7 +1076,7 @@ public static class EcomAeRoutes
     public const string ErpAjaxWhtRecord = "/erp/ajax/wht-record";
     /// <summary>Wave B dry-run for PHP wht_certificate (writes=0).</summary>
     public const string ErpAjaxWhtCertificate = "/erp/ajax/wht-certificate";
-    /// <summary>Wave B dry-run for PHP wht_settle (writes=0).</summary>
+    /// <summary>Live PHP epc_wht_settle twin.</summary>
     public const string ErpAjaxWhtSettle = "/erp/ajax/wht-settle";
     /// <summary>Wave B dry-run for PHP er_format_save (writes=0).</summary>
     public const string ErpAjaxErFormatSave = "/erp/ajax/er-format-save";
@@ -1104,9 +1104,9 @@ public static class EcomAeRoutes
     public const string ErpAjaxFyCreate = "/erp/ajax/fy-create";
     /// <summary>Wave B dry-run for PHP fy_close (writes=0).</summary>
     public const string ErpAjaxFyClose = "/erp/ajax/fy-close";
-    /// <summary>Wave B dry-run for PHP fy_reopen (writes=0).</summary>
+    /// <summary>Live PHP epc_fy_reopen_year twin.</summary>
     public const string ErpAjaxFyReopen = "/erp/ajax/fy-reopen";
-    /// <summary>Wave B dry-run for PHP fy_period_status (writes=0).</summary>
+    /// <summary>Live PHP epc_fy_set_period_status twin.</summary>
     public const string ErpAjaxFyPeriodStatus = "/erp/ajax/fy-period-status";
     /// <summary>Wave B dry-run for PHP plt_job_save (writes=0).</summary>
     public const string ErpAjaxPltJobSave = "/erp/ajax/plt-job-save";

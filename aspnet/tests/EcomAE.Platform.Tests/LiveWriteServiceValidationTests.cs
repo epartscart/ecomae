@@ -1007,6 +1007,46 @@ public sealed class LiveWriteServiceValidationTests
             .DeleteAsync(9);
         Assert.False(insDocDb.Succeeded);
         Assert.Equal("db", insDocDb.Code);
+
+        var fyReopenInvalid = await new ErpFyWriteService(new ConfiguredNeverOpened())
+            .ReopenYearAsync(0);
+        Assert.False(fyReopenInvalid.Succeeded);
+        Assert.Equal("invalid", fyReopenInvalid.Code);
+
+        var fyReopenDb = await new ErpFyWriteService(new UnconfiguredConnections())
+            .ReopenYearAsync(9);
+        Assert.False(fyReopenDb.Succeeded);
+        Assert.Equal("db", fyReopenDb.Code);
+
+        var fyPeriodInvalid = await new ErpFyWriteService(new ConfiguredNeverOpened())
+            .SetPeriodStatusAsync(9, 1, "nope");
+        Assert.False(fyPeriodInvalid.Succeeded);
+        Assert.Equal("invalid", fyPeriodInvalid.Code);
+
+        var fyPeriodNoYear = await new ErpFyWriteService(new ConfiguredNeverOpened())
+            .SetPeriodStatusAsync(0, 1, "open");
+        Assert.False(fyPeriodNoYear.Succeeded);
+        Assert.Equal("invalid", fyPeriodNoYear.Code);
+
+        var fyPeriodNoNo = await new ErpFyWriteService(new ConfiguredNeverOpened())
+            .SetPeriodStatusAsync(9, 0, "open");
+        Assert.False(fyPeriodNoNo.Succeeded);
+        Assert.Equal("invalid", fyPeriodNoNo.Code);
+
+        var fyPeriodDb = await new ErpFyWriteService(new UnconfiguredConnections())
+            .SetPeriodStatusAsync(9, 1, "open");
+        Assert.False(fyPeriodDb.Succeeded);
+        Assert.Equal("db", fyPeriodDb.Code);
+
+        var whtSettleInvalid = await new ErpWhtSettleWriteService(new ConfiguredNeverOpened())
+            .SettleAsync(0);
+        Assert.False(whtSettleInvalid.Succeeded);
+        Assert.Equal("invalid", whtSettleInvalid.Code);
+
+        var whtSettleDb = await new ErpWhtSettleWriteService(new UnconfiguredConnections())
+            .SettleAsync(9);
+        Assert.False(whtSettleDb.Succeeded);
+        Assert.Equal("db", whtSettleDb.Code);
     }
 
     [Fact]
