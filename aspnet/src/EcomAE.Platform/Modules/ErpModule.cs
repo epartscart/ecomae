@@ -100,7 +100,6 @@ public sealed class ErpModule : ISurfaceModule
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(false); return Results.Ok(dryRun.Evaluate(new ErpPayrollGenerateRequest(body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxPayrollApprove, async (
             HttpContext context,
-            ErpPayrollApproveBody? body,
             ILegacySessionValidator validator,
             IErpPayrollApproveDryRun dryRun,
             IErpPayrollWriteService writes,
@@ -112,7 +111,7 @@ public sealed class ErpModule : ISurfaceModule
                 return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/payroll-app", "Admin ERP capability required.");
             }
 
-            body ??= new(0, null, false);
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpPayrollApproveBody>(context, cancellationToken) ?? new();
             var id = body.Id;
             var confirm = body.ConfirmWrites;
             if (context.Request.HasFormContentType)
@@ -3196,7 +3195,6 @@ public sealed class ErpModule : ISurfaceModule
 
         endpoints.MapPost(EcomAeRoutes.ErpInventoryForecastRecompute, async (
             HttpContext context,
-            ErpInventoryForecastRecomputeBody? body,
             ILegacySessionValidator validator,
             IErpInventoryForecastWriteService writes,
             CancellationToken cancellationToken) =>
@@ -3207,7 +3205,7 @@ public sealed class ErpModule : ISurfaceModule
                 return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/inventory-forecast-app", "Admin ERP capability required.");
             }
 
-            body ??= new();
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpInventoryForecastRecomputeBody>(context, cancellationToken) ?? new();
             var siteKey = body.SiteKey ?? string.Empty;
             var sku = body.Sku ?? string.Empty;
             var stock = body.CurrentStock;

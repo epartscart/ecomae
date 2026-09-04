@@ -21,6 +21,16 @@
         <div class="alert @(_flashOk ? "alert-success" : "alert-warning")" style="margin:0 0 12px">@_flash</div>
     }
 
+    @if (_isAdmin)
+    {
+        <form method="post" action="/erp/ajax/payroll-approve" class="form-inline" style="margin:0 0 12px;padding:10px;border:1px solid #c5d4de;background:#fff">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/erp/payroll-app" />
+            <label>Run id <input type="number" name="id" min="1" required style="width:6rem;margin:0 8px" /></label>
+            <button type="submit" class="btn btn-sm btn-primary">Approve run</button>
+        </form>
+    }
+
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Payroll KPIs">
         <div class="kpi"><div class="lbl">Runs</div><div class="val">@_count.ToString(CultureInfo.InvariantCulture)</div></div>
         <div class="kpi"><div class="lbl">Paid</div><div class="val">@_paid.ToString(CultureInfo.InvariantCulture)</div></div>

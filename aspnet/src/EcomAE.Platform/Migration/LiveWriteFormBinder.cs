@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Text.Json;
 
 namespace EcomAE.Platform.Migration;
 
@@ -8,6 +9,29 @@ namespace EcomAE.Platform.Migration;
 /// </summary>
 public static class LiveWriteFormBinder
 {
+    public static async Task<T?> ReadJsonOrDefaultAsync<T>(HttpContext context, CancellationToken cancellationToken)
+    {
+        if (context.Request.HasFormContentType)
+        {
+            return default;
+        }
+
+        var contentType = context.Request.ContentType ?? string.Empty;
+        if (!contentType.Contains("json", StringComparison.OrdinalIgnoreCase))
+        {
+            return default;
+        }
+
+        try
+        {
+            return await context.Request.ReadFromJsonAsync<T>(cancellationToken).ConfigureAwait(false);
+        }
+        catch (JsonException)
+        {
+            return default;
+        }
+    }
+
     public static bool WantsHtml(HttpContext context)
     {
         if (context.Request.HasFormContentType)

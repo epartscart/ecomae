@@ -771,7 +771,6 @@ public sealed class StorefrontModule : ISurfaceModule
 
         endpoints.MapPost(EcomAeRoutes.StorefrontCartChangeCountNeed, async (
             HttpContext context,
-            StorefrontCartChangeCountNeedBody? body,
             ILegacySessionValidator validator,
             IStorefrontCartChangeCountNeedDryRun dryRun,
             IStorefrontCartWriteService writes,
@@ -783,9 +782,10 @@ public sealed class StorefrontModule : ISurfaceModule
                 return LiveWriteFormBinder.LoginRedirect(context, "/storefront/login?returnUrl=/storefront/cart-app", "Please log in or register to continue.");
             }
 
-            var id = (long)(body?.Id ?? 0);
-            var qty = body?.CountNeed ?? 0;
-            var confirm = body?.ConfirmWrites ?? false;
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<StorefrontCartChangeCountNeedBody>(context, cancellationToken) ?? new();
+            var id = (long)body.Id;
+            var qty = body.CountNeed;
+            var confirm = body.ConfirmWrites;
             if (context.Request.HasFormContentType)
             {
                 var form = await context.Request.ReadFormAsync(cancellationToken);
@@ -818,7 +818,6 @@ public sealed class StorefrontModule : ISurfaceModule
 
         endpoints.MapPost(EcomAeRoutes.StorefrontCartCheckForOrder, async (
             HttpContext context,
-            StorefrontCartCheckForOrderBody? body,
             ILegacySessionValidator validator,
             IStorefrontCartCheckForOrderDryRun dryRun,
             IStorefrontCartWriteService writes,
@@ -830,10 +829,11 @@ public sealed class StorefrontModule : ISurfaceModule
                 return LiveWriteFormBinder.LoginRedirect(context, "/storefront/login?returnUrl=/storefront/cart-app", "Please log in or register to continue.");
             }
 
-            var records = body?.Records ?? [];
-            var id = body?.Id ?? 0;
-            var checkedForOrder = body?.Checked ?? body?.CheckedForOrder ?? 1;
-            var confirm = body?.ConfirmWrites ?? false;
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<StorefrontCartCheckForOrderBody>(context, cancellationToken) ?? new();
+            var records = body.Records ?? [];
+            var id = body.Id;
+            var checkedForOrder = body.CheckedForOrder ?? body.Checked;
+            var confirm = body.ConfirmWrites;
             if (context.Request.HasFormContentType)
             {
                 var form = await context.Request.ReadFormAsync(cancellationToken);
@@ -889,7 +889,6 @@ public sealed class StorefrontModule : ISurfaceModule
 
         endpoints.MapPost(EcomAeRoutes.StorefrontCartDelete, async (
             HttpContext context,
-            StorefrontCartDeleteBody? body,
             ILegacySessionValidator validator,
             IStorefrontCartDeleteDryRun dryRun,
             IStorefrontCartWriteService writes,
@@ -901,9 +900,10 @@ public sealed class StorefrontModule : ISurfaceModule
                 return LiveWriteFormBinder.LoginRedirect(context, "/storefront/login?returnUrl=/storefront/cart-app", "Please log in or register to continue.");
             }
 
-            var ids = (body?.RecordsToDel ?? []).ToList();
-            var confirm = body?.ConfirmWrites ?? false;
-            if (body is { Id: > 0 })
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<StorefrontCartDeleteBody>(context, cancellationToken) ?? new();
+            var ids = (body.RecordsToDel ?? []).ToList();
+            var confirm = body.ConfirmWrites;
+            if (body.Id > 0)
             {
                 ids.Add(body.Id);
             }
@@ -1341,14 +1341,14 @@ public sealed class StorefrontModule : ISurfaceModule
         });
     }
 
-    private sealed record StorefrontCartChangeCountNeedBody(int Id, decimal CountNeed, bool ConfirmWrites = false);
+    private sealed record StorefrontCartChangeCountNeedBody(int Id = 0, decimal CountNeed = 0, bool ConfirmWrites = false);
     private sealed record StorefrontCartCheckForOrderBody(
-        IReadOnlyList<long>? Records,
+        IReadOnlyList<long>? Records = null,
         long Id = 0,
         int Checked = 1,
         int? CheckedForOrder = null,
         bool ConfirmWrites = false);
-    private sealed record StorefrontCartDeleteBody(IReadOnlyList<long>? RecordsToDel, long Id = 0, bool ConfirmWrites = false);
+    private sealed record StorefrontCartDeleteBody(IReadOnlyList<long>? RecordsToDel = null, long Id = 0, bool ConfirmWrites = false);
     private sealed record StorefrontCartAddBody(
         int ProductType,
         string? Manufacturer,

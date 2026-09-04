@@ -171,7 +171,6 @@ public sealed class ControlPanelModule : ISurfaceModule
 
         endpoints.MapPost(EcomAeRoutes.ControlPanelOmsSetItemStatus, async (
             HttpContext context,
-            CpOmsSetItemStatusBody? body,
             ILegacySessionValidator validator,
             ICpOmsSetItemStatusDryRun dryRun,
             ICpOmsWriteService writes,
@@ -183,7 +182,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/orders", "Admin CP capability required for OMS set-item-status.");
             }
 
-            body ??= new CpOmsSetItemStatusBody(0, 0, 0, false);
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpOmsSetItemStatusBody>(context, cancellationToken) ?? new();
             var orderId = body.OrderId;
             var itemId = body.ItemId;
             var status = body.Status;
@@ -229,7 +228,6 @@ public sealed class ControlPanelModule : ISurfaceModule
 
         endpoints.MapPost(EcomAeRoutes.ControlPanelCreditLimitsSet, async (
             HttpContext context,
-            CpCreditLimitSetBody? body,
             ILegacySessionValidator validator,
             ICpCreditLimitWriteService writes,
             CancellationToken cancellationToken) =>
@@ -240,7 +238,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/credit-limits-app", "Admin CP capability required.");
             }
 
-            body ??= new();
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpCreditLimitSetBody>(context, cancellationToken) ?? new();
             var siteKey = body.SiteKey ?? string.Empty;
             var customerId = body.CustomerId;
             var limit = body.Limit;
@@ -294,7 +292,6 @@ public sealed class ControlPanelModule : ISurfaceModule
 
         endpoints.MapPost(EcomAeRoutes.ControlPanelPoApprovalsApprove, async (
             HttpContext context,
-            CpPoApprovalBody? body,
             ILegacySessionValidator validator,
             ICpPoApprovalWriteService writes,
             CancellationToken cancellationToken) =>
@@ -305,6 +302,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/po-approvals-app", "Admin CP capability required.");
             }
 
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpPoApprovalBody>(context, cancellationToken) ?? new();
             var (poId, tier, comment, confirm) = await BindPoApprovalAsync(context, body, cancellationToken);
             if (!confirm)
             {
@@ -344,7 +342,6 @@ public sealed class ControlPanelModule : ISurfaceModule
 
         endpoints.MapPost(EcomAeRoutes.ControlPanelPoApprovalsReject, async (
             HttpContext context,
-            CpPoApprovalBody? body,
             ILegacySessionValidator validator,
             ICpPoApprovalWriteService writes,
             CancellationToken cancellationToken) =>
@@ -355,6 +352,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/po-approvals-app", "Admin CP capability required.");
             }
 
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpPoApprovalBody>(context, cancellationToken) ?? new();
             var (poId, tier, reason, confirm) = await BindPoApprovalAsync(context, body, cancellationToken);
             if (!confirm)
             {
@@ -4504,7 +4502,7 @@ public sealed class ControlPanelModule : ISurfaceModule
         string? Comment = null,
         string? Reason = null,
         bool ConfirmWrites = false);
-    private sealed record CpOmsSetItemStatusBody(long OrderId, long ItemId, int Status, bool ConfirmWrites = false);
+    private sealed record CpOmsSetItemStatusBody(long OrderId = 0, long ItemId = 0, int Status = 0, bool ConfirmWrites = false);
     private sealed record CpOmsSetItemsStatusBody(long OrderId, int Status, IReadOnlyList<long>? ItemIds, bool ConfirmWrites = false);
     private sealed record CpOmsSendMessageBody(long OrderId, string? Text, long? ItemId = null, bool ConfirmWrites = false);
     private sealed record CpOmsSetCourierBody(long OrderId, decimal DeliveryPrice, string? Country = null, bool ConfirmWrites = false);
