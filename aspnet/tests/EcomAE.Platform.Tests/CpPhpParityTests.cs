@@ -21,7 +21,7 @@ public sealed class CpPhpParityTests
     [InlineData("/CP/shop/tenant_hub/tenant_hub", "/cp/tenants-app")]
     [InlineData("/CP/control/portal/epc_tenant_control_center", "/cp/tenants-app")]
     [InlineData("/CP/shop/finance/erp/uae-tax-compliance?epc_erp_shell=1", "/cp/uae-tax-compliance-app")]
-    [InlineData("/CP/control/portal/epc_erp_only_onboard_guide", "/cp/ops-guides-app")]
+    [InlineData("/CP/control/portal/epc_erp_only_onboard_guide", "/cp/guides-app?g=erp-only-onboard")]
     [InlineData("/CP/control", "/cp/control")]
     [InlineData("/CP/control/portal/epc_tenant_config", "/cp/tenant-config-app")]
     [InlineData("/CP/control/portal/epc_design_tokens", "/cp/design-tokens-app")]

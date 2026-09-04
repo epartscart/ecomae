@@ -1116,6 +1116,7 @@ public static class SurfacePayloadContractCatalog
 
         new("cp", "failover-status Blazor list", "/cp/failover-status-app", "presentation-shell-scaffolded", "Read UI over /cp/failover-status digest; secrets inside failover config; PHP Failover status remains authoritative; tenant chrome stays PHP."),
         new("cp", "ops-guides Blazor list", "/cp/ops-guides-app", "presentation-shell-scaffolded", "Read UI over /cp/ops-guides digest; guide HTML bodies; PHP Ops guides remains authoritative; tenant chrome stays PHP."),
+        new("cp", "operator guides hub", "/cp/guides-app", "digest-wired-awaiting-dual-sample", "PHP-parity operator guide hub (any CP/Super CP/ERP guide); GET-only reader; writes stay PHP."),
         new("cp", "LifeOS system guide Blazor", "/cp/lifeos-guide-app", "presentation-shell-scaffolded", "CP visual + chapter + frontend/backend link catalog over ILifeOsMasterSpec + LifeOsLinkCatalog; Super-CP/CP operators; no PHP twin."),
         new("cp", "file-manager Blazor list", "/cp/file-manager-app", "presentation-shell-scaffolded", "Read UI over /cp/file-manager digest; file contents; PHP File manager remains authoritative; tenant chrome stays PHP."),
         new("cp", "server-ip Blazor list", "/cp/server-ip-app", "presentation-shell-scaffolded", "Read UI over /cp/server-ip digest; no outbound ipify; PHP Server IP remains authoritative; tenant chrome stays PHP."),

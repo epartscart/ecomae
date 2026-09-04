@@ -1379,6 +1379,12 @@ public static class PhpSurfaceLinkMap
     /// <summary>Maps a PHP /CP/… (or /cp/…) path to an ASP.NET Control app.</summary>
     public static string MapCpPhpPath(string value)
     {
+        // Operator guides (any *guide* URL) before module hubs and the ops|guide catch-all.
+        if (OperatorGuidesCatalog.TryMapPhpPath(value, out var guideHref))
+        {
+            return guideHref;
+        }
+
         // UAE tax lives under /finance/erp/… but must NOT be swallowed by the ERP shell remap.
         if (value.Contains("uae-tax-compliance", StringComparison.OrdinalIgnoreCase))
         {
@@ -1506,8 +1512,44 @@ public static class PhpSurfaceLinkMap
 
     private static string MapErpPhpPath(string value)
     {
+        if (OperatorGuidesCatalog.TryMapPhpPath(value, out var guideHref))
+        {
+            return guideHref;
+        }
+
         var pathOnly = value.Split('?', 2)[0];
         var path = pathOnly.ToLowerInvariant();
+        if (path.Contains("erp_full_guide", StringComparison.Ordinal)
+            || path.Contains("/erp/guide/full", StringComparison.Ordinal))
+        {
+            return "/erp/guide-app?book=full";
+        }
+
+        if (path.Contains("erp_advanced_guide", StringComparison.Ordinal)
+            || path.Contains("/erp/guide/advanced", StringComparison.Ordinal))
+        {
+            return "/erp/guide-app?book=advanced";
+        }
+
+        if (path.Contains("erp_only_operator", StringComparison.Ordinal)
+            || path.Contains("/erp/guide/erp-only", StringComparison.Ordinal))
+        {
+            return "/erp/guide-app?book=erp-only";
+        }
+
+        if (path.Contains("custom_shipping_guide", StringComparison.Ordinal)
+            || path.Contains("custom-shipping-guide", StringComparison.Ordinal)
+            || path.Contains("/erp/guide/customs", StringComparison.Ordinal))
+        {
+            return "/erp/guide-app?book=customs";
+        }
+
+        if (path.Contains("shop/finance/erp/guide", StringComparison.Ordinal)
+            || path.Contains("/erp/guide/howto", StringComparison.Ordinal))
+        {
+            return "/erp/guide-app?book=howto";
+        }
+
         if (path.Contains("erp/guide", StringComparison.Ordinal)
             || path.Equals("/erp/guide", StringComparison.Ordinal)
             || path.EndsWith("/guide", StringComparison.Ordinal)
