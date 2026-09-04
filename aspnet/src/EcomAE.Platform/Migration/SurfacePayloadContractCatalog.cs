@@ -1274,7 +1274,7 @@ public static class SurfacePayloadContractCatalog
         new("erp", "workflow status dry-run", "/erp/workflow/status", "write-dry-run-gated", "POST dry-run for PHP workflow_status; writes=0; confirm_writes refused; PHP authoritative."),
         new("erp", "workflow create dry-run", "/erp/workflow/create", "write-dry-run-gated", "POST dry-run for PHP workflow_create; writes=0; confirm_writes refused; PHP authoritative."),
         new("erp", "marketing create dry-run", "/erp/marketing/create", "write-dry-run-gated", "POST dry-run for PHP marketing_create; writes=0; confirm_writes refused; PHP authoritative."),
-        new("erp", "subscription save dry-run", "/erp/subscriptions/save", "write-dry-run-gated", "POST dry-run for PHP sub_save; writes=0; confirm_writes refused; PHP authoritative."),
+        new("erp", "subscription save", "/erp/subscriptions/save", "write-live-gated", "POST PHP epc_sub_save. confirmWrites=true writes on ASP.NET. Cycle generate and schema ensure stay PHP."),
         new("erp", "contract save dry-run", "/erp/contracts/save", "write-dry-run-gated", "POST dry-run for PHP ctr_save; writes=0; confirm_writes refused; PHP authoritative."),
         new("erp", "WMS receive dry-run", "/erp/wms/receive", "write-dry-run-gated", "POST dry-run for PHP wms_receive; writes=0; confirm_writes refused; PHP authoritative."),
         new("erp", "WMS location save dry-run", "/erp/wms/locations/save", "write-dry-run-gated", "POST dry-run for PHP wms_location_save; writes=0; confirm_writes refused; PHP authoritative."),

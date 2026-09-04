@@ -808,6 +808,16 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(subDb.Succeeded);
         Assert.Equal("db", subDb.Code);
 
+        var subSaveInvalid = await new ErpSubscriptionSaveWriteService(new ConfiguredNeverOpened())
+            .SaveAsync("SUB-1", "", "", 0, "AED", "monthly", 12, null, 0);
+        Assert.False(subSaveInvalid.Succeeded);
+        Assert.Equal("invalid", subSaveInvalid.Code);
+
+        var subSaveDb = await new ErpSubscriptionSaveWriteService(new UnconfiguredConnections())
+            .SaveAsync("SUB-1", "Acme", "Pro", 99, "AED", "monthly", 12, null, 0);
+        Assert.False(subSaveDb.Succeeded);
+        Assert.Equal("db", subSaveDb.Code);
+
         var ctrInvalid = await new ErpContractStatusWriteService(new ConfiguredNeverOpened())
             .SetStatusAsync(9, "nope");
         Assert.False(ctrInvalid.Succeeded);

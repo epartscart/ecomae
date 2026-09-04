@@ -671,6 +671,7 @@ builder.Services.AddScoped<EcomAE.Platform.Cp.ICpContentManagerWriteService, Eco
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpOfficesCashWriteService, EcomAE.Platform.Erp.ErpOfficesCashWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpWmsLocationWriteService, EcomAE.Platform.Erp.ErpWmsLocationWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpSubscriptionStatusWriteService, EcomAE.Platform.Erp.ErpSubscriptionStatusWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpSubscriptionSaveWriteService, EcomAE.Platform.Erp.ErpSubscriptionSaveWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpContractStatusWriteService, EcomAE.Platform.Erp.ErpContractStatusWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpWorkflowStatusWriteService, EcomAE.Platform.Erp.ErpWorkflowStatusWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpCollectionsCaseStatusWriteService, EcomAE.Platform.Erp.ErpCollectionsCaseStatusWriteService>();
