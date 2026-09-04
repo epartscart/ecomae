@@ -1851,8 +1851,53 @@ public sealed class ErpModule : ISurfaceModule
             return Results.Ok(dryRun.Evaluate(new ErpFinPeriodStatusRequest(body.Fy, body.PeriodNo, body.Status, body.ConfirmWrites)).ToPayload(SessionPayload(session)));
         });
 
-        endpoints.MapPost(EcomAeRoutes.ErpWmsWaveCreate, async (HttpContext context, ErpWmsWaveCreateBody? body, ILegacySessionValidator validator, IErpWmsWaveCreateDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(null,0,null,false); return Results.Ok(dryRun.Evaluate(new ErpWmsWaveCreateRequest(body.Item, body.Qty, body.Reference, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.ErpWmsWaveCreate, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IErpWmsWaveCreateDryRun dryRun,
+            EcomAE.Platform.Erp.IErpWmsWaveCreateWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/cp/warehouse-wms-app", "Admin ERP capability required for WMS wave create.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpWmsWaveCreateBody>(context, cancellationToken)
+                       ?? new();
+            var item = body.Item;
+            var qty = body.Qty;
+            var reference = body.Reference;
+            var companyId = body.CompanyId;
+            var fromLocationId = body.FromLocationId;
+            var toLocationId = body.ToLocationId;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                item = LiveWriteFormBinder.Text(form, "item");
+                qty = LiveWriteFormBinder.Dec(form, "qty");
+                reference = LiveWriteFormBinder.Text(form, "reference");
+                companyId = LiveWriteFormBinder.Int(form, "companyId", "company_id", "company");
+                fromLocationId = LiveWriteFormBinder.Long(form, "fromLocationId", "from_location_id");
+                toLocationId = LiveWriteFormBinder.Long(form, "toLocationId", "to_location_id");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (confirm)
+            {
+                var written = await writes.CreateWithPickAsync(item, qty, reference, companyId, fromLocationId, toLocationId, cancellationToken);
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    "/cp/warehouse-wms-app",
+                    written.Succeeded,
+                    written.Message,
+                    new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+            }
+
+            return Results.Ok(dryRun.Evaluate(new ErpWmsWaveCreateRequest(item, qty, reference, false)).ToPayload(SessionPayload(session)));
+        }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpWmsWaveRelease, async (
             HttpContext context,
             ILegacySessionValidator validator,
@@ -5230,7 +5275,14 @@ public sealed class ErpModule : ISurfaceModule
     private sealed record ErpCollectionsCaseSaveBody(long CustomerId = 0, long Id = 0, bool ConfirmWrites = false);
     private sealed record ErpProcReqSaveBody(string? Requester, long Id = 0, bool ConfirmWrites = false);
     private sealed record ErpFinPeriodStatusBody(int Fy, int PeriodNo, string? Status = "open", bool ConfirmWrites = false);
-    private sealed record ErpWmsWaveCreateBody(string? Item, decimal Qty, string? Reference = null, bool ConfirmWrites = false);
+    private sealed record ErpWmsWaveCreateBody(
+        string? Item = null,
+        decimal Qty = 0,
+        string? Reference = null,
+        bool ConfirmWrites = false,
+        int CompanyId = 0,
+        long FromLocationId = 0,
+        long ToLocationId = 0);
     private sealed record ErpWmsWaveReleaseBody(long Id, bool ConfirmWrites = false);
     private sealed record ErpWmsWorkCompleteBody(long Id, bool ConfirmWrites = false);
     private sealed record ErpSubscriptionStatusBody(long Id, string? Status = "active", bool ConfirmWrites = false);
