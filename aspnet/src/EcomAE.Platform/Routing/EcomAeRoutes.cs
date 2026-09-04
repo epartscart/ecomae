@@ -520,9 +520,9 @@ public static class EcomAeRoutes
     public const string ControlPanelOmsSetCourier = "/cp/orders/set-courier";
     /// <summary>OMS delete unpaid orders. <c>confirmWrites=true</c> is the live twin of PHP ajax_delete_orders.php.</summary>
     public const string ControlPanelOmsDeleteOrders = "/cp/orders/delete";
-    /// <summary>Wave B dry-run OMS add comment to log (PHP ajax_add_comment_to_log.php remains authoritative).</summary>
+    /// <summary>OMS add comment. <c>confirmWrites=true</c> is the live twin of PHP ajax_add_comment_to_log.php.</summary>
     public const string ControlPanelOmsAddComment = "/cp/orders/add-comment";
-    /// <summary>Wave B dry-run OMS set orders viewed (PHP ajax_set_orders_viewed.php remains authoritative).</summary>
+    /// <summary>OMS set viewed. <c>confirmWrites=true</c> is the live twin of PHP ajax_set_orders_viewed.php.</summary>
     public const string ControlPanelOmsSetViewed = "/cp/orders/set-viewed";
     /// <summary>Wave B dry-run for PHP OMS update_item (writes=0; PHP authoritative).</summary>
     public const string ControlPanelOmsUpdateItem = "/cp/orders/update-item";
@@ -530,9 +530,9 @@ public static class EcomAeRoutes
     public const string ControlPanelOmsPayRefund = "/cp/orders/pay-refund";
     /// <summary>Wave B dry-run for PHP OMS update_items bulk (writes=0).</summary>
     public const string ControlPanelOmsUpdateItems = "/cp/orders/update-items";
-    /// <summary>Wave B dry-run OMS supplier_fulfillment_set_stage (PHP ajax_epc_orders_oms.php remains authoritative).</summary>
+    /// <summary>OMS supplier fulfillment set-stage. <c>confirmWrites=true</c> updates epc_order_supplier_fulfillment (no invented bootstrap).</summary>
     public const string ControlPanelOmsFulfillmentSetStage = "/cp/orders/fulfillment-set-stage";
-    /// <summary>Wave B dry-run OMS supplier_fulfillment_advance (PHP ajax_epc_orders_oms.php remains authoritative).</summary>
+    /// <summary>OMS supplier fulfillment advance. <c>confirmWrites=true</c> steps to the next known stage.</summary>
     public const string ControlPanelOmsFulfillmentAdvance = "/cp/orders/fulfillment-advance";
     /// <summary>Wave B dry-run OMS refresh_item_cost (PHP ajax_epc_orders_oms.php remains authoritative).</summary>
     public const string ControlPanelOmsRefreshItemCost = "/cp/orders/refresh-item-cost";
@@ -1874,6 +1874,8 @@ public static class EcomAeRoutes
     public const string StorefrontCheckoutCreate = "/storefront/checkout/create";
     /// <summary>Customer order message. <c>confirmWrites=true</c> is the live twin of PHP ajax_send_message.php customer path.</summary>
     public const string StorefrontOrderSendMessage = "/storefront/orders/send-message";
+    /// <summary>Customer return message. <c>confirmWrites=true</c> is the live twin of PHP ajax_send_message.php return_id path.</summary>
+    public const string StorefrontReturnsSendMessage = "/storefront/returns/send-message";
     /// <summary>Marketing platform overview Blazor scaffold (PHP /platform remains primary until dual-sample).</summary>
     public const string MarketingPlatformApp = "/marketing/platform";
     /// <summary>Marketing about Blazor scaffold (PHP /platform/about remains primary until dual-sample).</summary>

@@ -26,6 +26,14 @@
             <h2><i class="fa fa-shopping-basket"></i> Orders · OMS</h2>
             <p>One-window order management: list on the left, full console on the right — items, fulfillment, payment, documents, and messages. Click KPI cards to filter.</p>
         </div>
+        @if (!string.IsNullOrWhiteSpace(_flashOk))
+        {
+            <p style="margin:0 0 .75rem;padding:.65rem .8rem;background:#ecfdf3;border:1px solid #86efac;color:#166534">@_flashOk</p>
+        }
+        @if (!string.IsNullOrWhiteSpace(_flashErr))
+        {
+            <p style="margin:0 0 .75rem;padding:.65rem .8rem;background:#fef2f2;border:1px solid #fecaca;color:#991b1b">@_flashErr</p>
+        }
         <div class="epc-orders-page__hero-actions">
             <a class="btn btn-primary btn-sm" href="/cp/fulfillment-queue-app"><i class="fa fa-truck"></i> Fulfilment queue</a>
             <a class="btn btn-default btn-sm" href="/cp/returns-rma-app"><i class="fa fa-undo"></i> Returns</a>
@@ -217,7 +225,7 @@
                     <section class="epc-od__panel @(_detailTab == "manage" ? "is-active" : null)" data-epc-od-panel="manage" style="@(_detailTab == "manage" ? null : "display:none")">
                         <div class="epc-od__edit">
                             <div class="epc-od__edit-title">Update order</div>
-                            <p class="text-muted small">Item status, staff message, courier fee, and unpaid delete write on ASP.NET. Payment / notify stay PHP.</p>
+                            <p class="text-muted small">Item status, staff message, courier fee, unpaid delete, comment, viewed, and supplier fulfillment write on ASP.NET. Payment / notify stay PHP.</p>
                             <form method="post" action="/cp/orders/set-courier" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:.5rem 0">
                                 <input type="hidden" name="confirmWrites" value="true" />
                                 <input type="hidden" name="returnUrl" value="@OrdersHref(o.Id, detailTab: "manage")" />
@@ -231,6 +239,13 @@
                                 <input type="hidden" name="returnUrl" value="/cp/orders" />
                                 <input type="hidden" name="orderId" value="@o.Id.ToString(CultureInfo.InvariantCulture)" />
                                 <button type="submit" class="btn btn-xs btn-danger">Delete unpaid order</button>
+                            </form>
+                            <form method="post" action="/cp/orders/set-viewed" style="margin:.35rem 0">
+                                <input type="hidden" name="confirmWrites" value="true" />
+                                <input type="hidden" name="returnUrl" value="@OrdersHref(o.Id, detailTab: "manage")" />
+                                <input type="hidden" name="orderId" value="@o.Id.ToString(CultureInfo.InvariantCulture)" />
+                                <input type="hidden" name="viewedFlag" value="1" />
+                                <button type="submit" class="btn btn-xs btn-default">Mark viewed</button>
                             </form>
                             <div class="epc-od__actions">
                                 <a class="btn btn-primary btn-sm" href="@OrdersHref(_selectedId, detailTab: "fulfillment")"><i class="fa fa-random"></i> Fulfillment</a>
@@ -321,7 +336,29 @@
                     <section class="epc-od__panel @(_detailTab == "fulfillment" ? "is-active" : null)" data-epc-od-panel="fulfillment" style="@(_detailTab == "fulfillment" ? null : "display:none")">
                         <div class="epc-of-panel">
                             <div class="epc-od__edit-title">Fulfillment</div>
-                            <p class="text-muted small">Pick / pack / ship stage writes stay on PHP OMS. Open the fulfilment queue for warehouse ops.</p>
+                            <p class="text-muted small">Supplier fulfillment stage writes on ASP.NET. Warehouse pick/pack queue stays on its own board. Bootstrap-from-items stays PHP.</p>
+                            <form method="post" action="/cp/orders/fulfillment-set-stage" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:.5rem 0">
+                                <input type="hidden" name="confirmWrites" value="true" />
+                                <input type="hidden" name="returnUrl" value="@OrdersHref(o.Id, detailTab: "fulfillment")" />
+                                <input type="hidden" name="orderId" value="@o.Id.ToString(CultureInfo.InvariantCulture)" />
+                                <label>Supplier key <input type="text" name="supplierKey" required maxlength="64" placeholder="s12 / w3 / unassigned" style="width:10rem" /></label>
+                                <label>Stage
+                                    <select name="stage">
+                                        @foreach (var stage in FulfillmentStages)
+                                        {
+                                            <option value="@stage">@stage</option>
+                                        }
+                                    </select>
+                                </label>
+                                <button type="submit" class="btn btn-xs btn-primary">Set stage</button>
+                            </form>
+                            <form method="post" action="/cp/orders/fulfillment-advance" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:.35rem 0">
+                                <input type="hidden" name="confirmWrites" value="true" />
+                                <input type="hidden" name="returnUrl" value="@OrdersHref(o.Id, detailTab: "fulfillment")" />
+                                <input type="hidden" name="orderId" value="@o.Id.ToString(CultureInfo.InvariantCulture)" />
+                                <label>Supplier key <input type="text" name="supplierKey" required maxlength="64" style="width:10rem" /></label>
+                                <button type="submit" class="btn btn-xs btn-default">Advance stage</button>
+                            </form>
                             <a class="btn btn-primary btn-sm" href="/cp/fulfillment-queue-app"><i class="fa fa-truck"></i> Open fulfilment queue</a>
                             <div id="epc-order-fulfillment-panel-@o.Id" class="epc-scp-orders-detail__erp-fulfillment" style="margin-top:12px"></div>
                             <div class="epc-od__supplier-fulfillment" style="margin-top:8px"></div>
@@ -374,6 +411,13 @@
                                 }
                             </ul>
                         }
+                        <form method="post" action="/cp/orders/add-comment" style="margin-top:.65rem">
+                            <input type="hidden" name="confirmWrites" value="true" />
+                            <input type="hidden" name="returnUrl" value="@OrdersHref(_selectedId, detailTab: "timeline")" />
+                            <input type="hidden" name="orderId" value="@_selectedId.ToString(CultureInfo.InvariantCulture)" />
+                            <textarea name="text" rows="2" required style="width:100%;margin:0 0 .45rem;padding:.45rem" placeholder="Staff comment on the order log"></textarea>
+                            <button type="submit" class="btn btn-sm btn-default">Add comment</button>
+                        </form>
                     </section>
 
                     <section class="epc-od__panel @(_detailTab == "messages" ? "is-active" : null)" data-epc-od-panel="messages" style="@(_detailTab == "messages" ? null : "display:none")">
@@ -419,6 +463,8 @@
     private string _tab = "open";
     private string _sort = "id";
     private string _detailTab = "manage";
+    private string _flashOk = "";
+    private string _flashErr = "";
 
     private static readonly (string Key, string Label)[] DetailTabs =
     [
@@ -430,6 +476,20 @@
         ("docs", "Invoice / docs"),
         ("timeline", "Status / time"),
         ("messages", "Messages"),
+    ];
+
+    private static readonly string[] FulfillmentStages =
+    [
+        "supplier_confirm",
+        "supplier_payment_done",
+        "supplier_ready_to_delivery",
+        "delivered",
+        "receipt_in_warehouse",
+        "ready_to_customer",
+        "packing",
+        "dispatch",
+        "deliver",
+        "complete",
     ];
 
     private string ListHeading => _tab switch
@@ -486,6 +546,8 @@
         _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
 
         var q = ctx.Request.Query;
+        _flashOk = q["ok"].ToString() ?? "";
+        _flashErr = q["err"].ToString() ?? "";
         if (long.TryParse(q["order_id"].ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var oid) && oid > 0)
         {
             _selectedId = oid;

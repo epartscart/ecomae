@@ -1,8 +1,10 @@
 using System.Data.Common;
 using System.Globalization;
+using System.Net;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using EcomAE.Platform.Erp;
+using EcomAE.Platform.Migration;
 
 namespace EcomAE.Platform.Cp;
 
@@ -18,6 +20,14 @@ public interface ICpOmsWriteService
     Task<ErpSimpleWriteResult> SetCourierAsync(long orderId, decimal deliveryPrice, string? country, int adminUserId, CancellationToken cancellationToken = default);
 
     Task<ErpSimpleWriteResult> DeleteUnpaidOrdersAsync(IReadOnlyList<long> orderIds, CancellationToken cancellationToken = default);
+
+    Task<ErpSimpleWriteResult> AddCommentAsync(long orderId, string? text, int adminUserId, CancellationToken cancellationToken = default);
+
+    Task<ErpSimpleWriteResult> SetViewedAsync(IReadOnlyList<long> orderIds, int viewedFlag, CancellationToken cancellationToken = default);
+
+    Task<ErpSimpleWriteResult> SetFulfillmentStageAsync(long orderId, string? supplierKey, string? stage, string? notes, int adminUserId, CancellationToken cancellationToken = default);
+
+    Task<ErpSimpleWriteResult> AdvanceFulfillmentAsync(long orderId, string? supplierKey, int adminUserId, CancellationToken cancellationToken = default);
 }
 
 public sealed class CpOmsWriteService : ICpOmsWriteService
@@ -315,6 +325,218 @@ public sealed class CpOmsWriteService : ICpOmsWriteService
             return ErpSimpleWriteResult.Fail("delete_failed", ex.Message);
         }
     }
+
+    public async Task<ErpSimpleWriteResult> AddCommentAsync(
+        long orderId,
+        string? text,
+        int adminUserId,
+        CancellationToken cancellationToken = default)
+    {
+        var body = WebUtility.HtmlEncode((text ?? string.Empty).Trim());
+        if (orderId <= 0 || body.Length == 0)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Comment text is required.");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return ErpSimpleWriteResult.Fail("db", "TenantRegistry DB is not configured.");
+        }
+
+        await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        var exists = await ErpDb.LongAsync(
+            connection,
+            null,
+            ErpDb.Positional("SELECT `id` FROM `shop_orders` WHERE `id` = ? LIMIT 1"),
+            cancellationToken,
+            orderId);
+        if (exists <= 0)
+        {
+            return ErpSimpleWriteResult.Fail("not_found", "Order not found.");
+        }
+
+        await ErpDb.ExecuteAsync(
+            connection,
+            null,
+            ErpDb.Positional("INSERT INTO `shop_orders_logs` (`order_id`,`time`,`user_id`,`is_manager`,`text`) VALUES (?,?,?,1,?)"),
+            cancellationToken,
+            orderId, DateTimeOffset.UtcNow.ToUnixTimeSeconds(), adminUserId, body);
+        return ErpSimpleWriteResult.Ok("Comment added.", orderId);
+    }
+
+    public async Task<ErpSimpleWriteResult> SetViewedAsync(
+        IReadOnlyList<long> orderIds,
+        int viewedFlag,
+        CancellationToken cancellationToken = default)
+    {
+        var ids = (orderIds ?? []).Where(id => id > 0).Distinct().ToArray();
+        if (ids.Length == 0 || viewedFlag is not (0 or 1))
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Select orders and a viewed flag of 0 or 1.");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return ErpSimpleWriteResult.Fail("db", "TenantRegistry DB is not configured.");
+        }
+
+        await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        var writes = 0;
+        foreach (var id in ids)
+        {
+            writes += await ErpDb.ExecuteAsync(
+                connection,
+                null,
+                ErpDb.Positional("UPDATE `shop_orders_viewed` SET `viewed_flag` = ? WHERE `order_id` = ?"),
+                cancellationToken,
+                viewedFlag, id);
+        }
+
+        return new ErpSimpleWriteResult(true, "ok", "Viewed flag updated.", ids[0], Math.Max(writes, 1));
+    }
+
+    public async Task<ErpSimpleWriteResult> SetFulfillmentStageAsync(
+        long orderId,
+        string? supplierKey,
+        string? stage,
+        string? notes,
+        int adminUserId,
+        CancellationToken cancellationToken = default)
+    {
+        var key = (supplierKey ?? string.Empty).Trim();
+        var next = (stage ?? string.Empty).Trim();
+        if (orderId <= 0 || key.Length == 0 || next.Length == 0)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Supplier key and stage are required.");
+        }
+
+        if (!CpOmsFulfillmentSetStageDryRun.AllowedStages.Contains(next, StringComparer.Ordinal))
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Unknown fulfillment stage.");
+        }
+
+        if (key.Length > 64)
+        {
+            key = key[..64];
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return ErpSimpleWriteResult.Fail("db", "TenantRegistry DB is not configured.");
+        }
+
+        await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await EnsureFulfillmentSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
+        var exists = await ErpDb.LongAsync(
+            connection,
+            null,
+            ErpDb.Positional("SELECT `id` FROM `shop_orders` WHERE `id` = ? LIMIT 1"),
+            cancellationToken,
+            orderId);
+        if (exists <= 0)
+        {
+            return ErpSimpleWriteResult.Fail("not_found", "Order not found.");
+        }
+
+        var note = (notes ?? string.Empty).Trim();
+        if (note.Length > 512)
+        {
+            note = note[..512];
+        }
+
+        var rows = await ErpDb.ExecuteAsync(
+            connection,
+            null,
+            ErpDb.Positional("""
+                UPDATE `epc_order_supplier_fulfillment`
+                SET `stage` = ?, `notes` = ?, `time_updated` = ?, `updated_by` = ?
+                WHERE `order_id` = ? AND `supplier_key` = ?
+                """),
+            cancellationToken,
+            next, note, DateTimeOffset.UtcNow.ToUnixTimeSeconds(), adminUserId, orderId, key);
+        if (rows <= 0)
+        {
+            return ErpSimpleWriteResult.Fail("not_found", "Supplier fulfillment row not found for this order.");
+        }
+
+        await ErpDb.ExecuteAsync(
+            connection,
+            null,
+            ErpDb.Positional("INSERT INTO `shop_orders_logs` (`order_id`,`time`,`user_id`,`is_manager`,`text`,`is_robot`) VALUES (?,?,?,1,?,0)"),
+            cancellationToken,
+            orderId, DateTimeOffset.UtcNow.ToUnixTimeSeconds(), adminUserId,
+            "OMS supplier fulfillment <b>" + WebUtility.HtmlEncode(key) + "</b> → " + WebUtility.HtmlEncode(next));
+        return ErpSimpleWriteResult.Ok("Fulfillment stage updated.", orderId);
+    }
+
+    public async Task<ErpSimpleWriteResult> AdvanceFulfillmentAsync(
+        long orderId,
+        string? supplierKey,
+        int adminUserId,
+        CancellationToken cancellationToken = default)
+    {
+        var key = (supplierKey ?? string.Empty).Trim();
+        if (orderId <= 0 || key.Length == 0)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Supplier key is required.");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return ErpSimpleWriteResult.Fail("db", "TenantRegistry DB is not configured.");
+        }
+
+        await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await EnsureFulfillmentSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
+        var current = await ErpDb.StringAsync(
+            connection,
+            null,
+            ErpDb.Positional("SELECT `stage` FROM `epc_order_supplier_fulfillment` WHERE `order_id` = ? AND `supplier_key` = ? LIMIT 1"),
+            cancellationToken,
+            orderId, key);
+        if (current is null)
+        {
+            return ErpSimpleWriteResult.Fail("not_found", "Supplier fulfillment row not found for this order.");
+        }
+
+        var stages = CpOmsFulfillmentSetStageDryRun.AllowedStages;
+        var idx = stages.ToList().FindIndex(s => s.Equals(string.IsNullOrWhiteSpace(current) ? "supplier_confirm" : current, StringComparison.Ordinal));
+        if (idx < 0)
+        {
+            idx = 0;
+        }
+
+        if (idx >= stages.Count - 1)
+        {
+            return ErpSimpleWriteResult.Ok("Already at last stage.", orderId);
+        }
+
+        return await SetFulfillmentStageAsync(orderId, key, stages[idx + 1], "", adminUserId, cancellationToken).ConfigureAwait(false);
+    }
+
+    private static Task EnsureFulfillmentSchemaAsync(DbConnection connection, CancellationToken cancellationToken)
+        => ErpDb.TryExecuteAsync(
+            connection,
+            """
+            CREATE TABLE IF NOT EXISTS `epc_order_supplier_fulfillment` (
+                `id` int(11) NOT NULL AUTO_INCREMENT,
+                `order_id` int(11) NOT NULL,
+                `supplier_key` varchar(64) NOT NULL DEFAULT '',
+                `supplier_id` int(11) NOT NULL DEFAULT 0,
+                `storage_id` int(11) NOT NULL DEFAULT 0,
+                `supplier_name` varchar(255) NOT NULL DEFAULT '',
+                `stage` varchar(48) NOT NULL DEFAULT 'supplier_confirm',
+                `po_id` int(11) NOT NULL DEFAULT 0,
+                `notes` varchar(512) NOT NULL DEFAULT '',
+                `time_updated` int(11) NOT NULL DEFAULT 0,
+                `updated_by` int(11) NOT NULL DEFAULT 0,
+                PRIMARY KEY (`id`),
+                UNIQUE KEY `u_order_supplier` (`order_id`, `supplier_key`),
+                KEY `x_order` (`order_id`),
+                KEY `x_stage` (`stage`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8
+            """,
+            cancellationToken);
 
     private static void Add(DbCommand command, string name, object? value)
     {

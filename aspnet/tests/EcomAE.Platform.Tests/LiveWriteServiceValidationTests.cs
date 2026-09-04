@@ -227,6 +227,31 @@ public sealed class LiveWriteServiceValidationTests
             .SetItemsStatusAsync(9, 2, [11, 12], 1);
         Assert.False(bulkOmsDb.Succeeded);
         Assert.Equal("db", bulkOmsDb.Code);
+
+        var comment = await new CpOmsWriteService(new ConfiguredNeverOpened())
+            .AddCommentAsync(0, "", 1);
+        Assert.False(comment.Succeeded);
+        Assert.Equal("invalid", comment.Code);
+
+        var viewed = await new CpOmsWriteService(new ConfiguredNeverOpened())
+            .SetViewedAsync([], 2);
+        Assert.False(viewed.Succeeded);
+        Assert.Equal("invalid", viewed.Code);
+
+        var stage = await new CpOmsWriteService(new ConfiguredNeverOpened())
+            .SetFulfillmentStageAsync(9, "s1", "not-a-stage", null, 1);
+        Assert.False(stage.Succeeded);
+        Assert.Equal("invalid", stage.Code);
+
+        var advance = await new CpOmsWriteService(new ConfiguredNeverOpened())
+            .AdvanceFulfillmentAsync(0, "", 1);
+        Assert.False(advance.Succeeded);
+        Assert.Equal("invalid", advance.Code);
+
+        var retMsg = await new StorefrontCustomerWriteService(new ConfiguredNeverOpened())
+            .SendReturnMessageAsync(1, 0, "");
+        Assert.False(retMsg.Succeeded);
+        Assert.Equal("invalid", retMsg.Code);
     }
 
     [Fact]

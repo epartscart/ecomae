@@ -579,43 +579,97 @@ public sealed class ControlPanelModule : ISurfaceModule
 
         endpoints.MapPost(EcomAeRoutes.ControlPanelOmsAddComment, async (
             HttpContext context,
-            CpOmsAddCommentBody? body,
             ILegacySessionValidator validator,
             ICpOmsAddCommentDryRun dryRun,
+            ICpOmsWriteService writes,
             CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateAsync(context, cancellationToken);
             if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
             {
-                return Unauthorized("Admin CP capability required for OMS add-comment dry-run.");
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/orders", "Admin CP capability required for OMS add-comment.");
             }
 
-            body ??= new CpOmsAddCommentBody(0, null, false);
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpOmsAddCommentBody>(context, cancellationToken)
+                       ?? new(0, null, false);
+            var orderId = body.OrderId;
+            var text = body.Text;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                orderId = LiveWriteFormBinder.Long(form, "orderId", "order_id");
+                text = LiveWriteFormBinder.Text(form, "text", "comment");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (confirm)
+            {
+                var written = await writes.AddCommentAsync(orderId, text, session.UserId, cancellationToken);
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    "/cp/orders?order_id=" + orderId.ToString(CultureInfo.InvariantCulture) + "&od=timeline",
+                    written.Succeeded,
+                    written.Message,
+                    new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+            }
+
             var result = await dryRun.EvaluateAsync(
-                new CpOmsAddCommentRequest(body.OrderId, body.Text, body.ConfirmWrites),
+                new CpOmsAddCommentRequest(orderId, text, false),
                 cancellationToken);
             return Results.Ok(result.ToPayload(SessionPayload(session)));
-        });
+        }).DisableAntiforgery();
 
         endpoints.MapPost(EcomAeRoutes.ControlPanelOmsSetViewed, async (
             HttpContext context,
-            CpOmsSetViewedBody? body,
             ILegacySessionValidator validator,
             ICpOmsSetViewedDryRun dryRun,
+            ICpOmsWriteService writes,
             CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateAsync(context, cancellationToken);
             if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
             {
-                return Unauthorized("Admin CP capability required for OMS set-viewed dry-run.");
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/orders", "Admin CP capability required for OMS set-viewed.");
             }
 
-            body ??= new CpOmsSetViewedBody([], 1, false);
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpOmsSetViewedBody>(context, cancellationToken)
+                       ?? new([], 1, false);
+            var ids = body.OrderIds ?? [];
+            var flag = body.ViewedFlag;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                ids = LiveWriteFormBinder.Longs(form, "orderIds", "order_ids", "orderId", "order_id");
+                flag = LiveWriteFormBinder.Int(form, "viewedFlag", "viewed_flag");
+                if (flag is not (0 or 1))
+                {
+                    flag = 1;
+                }
+
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (confirm)
+            {
+                var written = await writes.SetViewedAsync(ids, flag, cancellationToken);
+                var dest = ids.Count > 0
+                    ? "/cp/orders?order_id=" + ids[0].ToString(CultureInfo.InvariantCulture)
+                    : "/cp/orders";
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    dest,
+                    written.Succeeded,
+                    written.Message,
+                    new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+            }
+
             var result = await dryRun.EvaluateAsync(
-                new CpOmsSetViewedRequest(body.OrderIds ?? [], body.ViewedFlag, body.ConfirmWrites),
+                new CpOmsSetViewedRequest(ids, flag, false),
                 cancellationToken);
             return Results.Ok(result.ToPayload(SessionPayload(session)));
-        });
+        }).DisableAntiforgery();
 
         endpoints.MapPost(EcomAeRoutes.ControlPanelOmsUpdateItem, async (
             HttpContext context,
@@ -679,43 +733,91 @@ public sealed class ControlPanelModule : ISurfaceModule
 
         endpoints.MapPost(EcomAeRoutes.ControlPanelOmsFulfillmentSetStage, async (
             HttpContext context,
-            CpOmsFulfillmentSetStageBody? body,
             ILegacySessionValidator validator,
             ICpOmsFulfillmentSetStageDryRun dryRun,
+            ICpOmsWriteService writes,
             CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateAsync(context, cancellationToken);
             if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
             {
-                return Unauthorized("Admin CP capability required for OMS fulfillment-set-stage dry-run.");
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/orders", "Admin CP capability required for OMS fulfillment-set-stage.");
             }
 
-            body ??= new CpOmsFulfillmentSetStageBody(0, null, null, false);
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpOmsFulfillmentSetStageBody>(context, cancellationToken)
+                       ?? new(0, null, null, false);
+            var orderId = body.OrderId;
+            var key = body.SupplierKey;
+            var stage = body.Stage;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                orderId = LiveWriteFormBinder.Long(form, "orderId", "order_id");
+                key = LiveWriteFormBinder.Text(form, "supplierKey", "supplier_key");
+                stage = LiveWriteFormBinder.Text(form, "stage");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (confirm)
+            {
+                var written = await writes.SetFulfillmentStageAsync(orderId, key, stage, null, session.UserId, cancellationToken);
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    "/cp/orders?order_id=" + orderId.ToString(CultureInfo.InvariantCulture) + "&od=fulfillment",
+                    written.Succeeded,
+                    written.Message,
+                    new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+            }
+
             var result = await dryRun.EvaluateAsync(
-                new CpOmsFulfillmentSetStageRequest(body.OrderId, body.SupplierKey, body.Stage, body.ConfirmWrites),
+                new CpOmsFulfillmentSetStageRequest(orderId, key, stage, false),
                 cancellationToken);
             return Results.Ok(result.ToPayload(SessionPayload(session)));
-        });
+        }).DisableAntiforgery();
 
         endpoints.MapPost(EcomAeRoutes.ControlPanelOmsFulfillmentAdvance, async (
             HttpContext context,
-            CpOmsFulfillmentAdvanceBody? body,
             ILegacySessionValidator validator,
             ICpOmsFulfillmentAdvanceDryRun dryRun,
+            ICpOmsWriteService writes,
             CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateAsync(context, cancellationToken);
             if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
             {
-                return Unauthorized("Admin CP capability required for OMS fulfillment-advance dry-run.");
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/orders", "Admin CP capability required for OMS fulfillment-advance.");
             }
 
-            body ??= new CpOmsFulfillmentAdvanceBody(0, null, false);
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpOmsFulfillmentAdvanceBody>(context, cancellationToken)
+                       ?? new(0, null, false);
+            var orderId = body.OrderId;
+            var key = body.SupplierKey;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                orderId = LiveWriteFormBinder.Long(form, "orderId", "order_id");
+                key = LiveWriteFormBinder.Text(form, "supplierKey", "supplier_key");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (confirm)
+            {
+                var written = await writes.AdvanceFulfillmentAsync(orderId, key, session.UserId, cancellationToken);
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    "/cp/orders?order_id=" + orderId.ToString(CultureInfo.InvariantCulture) + "&od=fulfillment",
+                    written.Succeeded,
+                    written.Message,
+                    new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+            }
+
             var result = await dryRun.EvaluateAsync(
-                new CpOmsFulfillmentAdvanceRequest(body.OrderId, body.SupplierKey, body.ConfirmWrites),
+                new CpOmsFulfillmentAdvanceRequest(orderId, key, false),
                 cancellationToken);
             return Results.Ok(result.ToPayload(SessionPayload(session)));
-        });
+        }).DisableAntiforgery();
 
         endpoints.MapPost(EcomAeRoutes.ControlPanelOmsRefreshItemCost, async (
             HttpContext context,

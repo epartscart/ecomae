@@ -36,7 +36,7 @@ public static class PhpVsAspNetRemovalMatrix
         Row("sf-workshop-gms", "storefront", "content/shop/workshop/garage_manager_portal.php", "/shop/workshop", "/storefront/garage-manager-app", "aspnet-digest", "php", "GMS board is thin; portal writes stay PHP."),
 
         // CP shop families
-        Row("cp-orders", "cp", "cp/content/shop/orders + order_process", "/CP/shop/orders/orders", "/cp/orders", "aspnet-digest", "aspnet", "OMS item / items status, message, courier, unpaid delete are ASP.NET-live. Payment notify stays PHP."),
+        Row("cp-orders", "cp", "cp/content/shop/orders + order_process", "/CP/shop/orders/orders", "/cp/orders", "aspnet-digest", "aspnet", "OMS item/items status, message, courier, delete, comment, viewed, supplier fulfillment stage are ASP.NET-live. Payment notify stays PHP."),
         Row("cp-users", "cp", "cp/content/users", "/CP/users/user_manager", "/cp/users-app", "aspnet-digest", "php", "User list digest; create/edit PHP."),
         Row("cp-catalogue", "cp", "cp/content/shop/catalogue", "/CP/shop/catalogue/products", "/cp/product-catalogue-app", "aspnet-digest", "php", "SKU/media writes stay PHP."),
         Row("cp-prices-upload", "cp", "cp/content/shop/prices_upload", "/CP/shop/prices_upload", "/cp/prices-upload-app", "aspnet-digest", "php", "PyPrices cron/tasks stay PHP."),

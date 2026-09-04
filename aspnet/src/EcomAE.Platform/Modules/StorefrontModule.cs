@@ -1786,6 +1786,53 @@ public sealed class StorefrontModule : ISurfaceModule
                 cancellationToken);
             return Results.Ok(result.ToPayload(SessionPayload(session)));
         }).DisableAntiforgery();
+
+        endpoints.MapPost(EcomAeRoutes.StorefrontReturnsSendMessage, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IStorefrontCustomerWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Customer || session.UserId <= 0)
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/storefront/login?returnUrl=/storefront/returns-app", "Customer session required for return send-message.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<StorefrontReturnSendMessageBody>(context, cancellationToken)
+                       ?? new(0, null, false);
+            var returnId = body.ReturnId;
+            var text = body.Text;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                returnId = LiveWriteFormBinder.Long(form, "returnId", "return_id");
+                text = LiveWriteFormBinder.Text(form, "text", "message");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(new
+                {
+                    ok = false,
+                    writes = 0,
+                    writesBlocked = true,
+                    phpAuthoritative = false,
+                    message = "Set confirmWrites=true to send the return message on ASP.NET.",
+                    session = SessionPayload(session),
+                });
+            }
+
+            var written = await writes.SendReturnMessageAsync(session.UserId, returnId, text, cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/storefront/returns-app?return_id=" + returnId.ToString(CultureInfo.InvariantCulture),
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
     }
 
     private sealed record StorefrontCartChangeCountNeedBody(int Id = 0, decimal CountNeed = 0, bool ConfirmWrites = false);
@@ -1860,6 +1907,7 @@ public sealed class StorefrontModule : ISurfaceModule
         string? OrderMessage = null,
         string? BuyerPoNumber = null);
     private sealed record StorefrontOrderSendMessageBody(long OrderId, string? Text, bool ConfirmWrites = false);
+    private sealed record StorefrontReturnSendMessageBody(long ReturnId, string? Text, bool ConfirmWrites = false);
     private sealed record StorefrontGetArticleListBody(string? Action = null, bool ConfirmWrites = false);
     private sealed record StorefrontLoadReturnsDataBody(string? Action = null, bool ConfirmWrites = false);
     private sealed record StorefrontBulkUploadProcessBody(string? Action = null, bool ConfirmWrites = false);

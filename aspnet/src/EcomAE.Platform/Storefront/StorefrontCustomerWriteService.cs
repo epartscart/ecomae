@@ -36,6 +36,12 @@ public interface IStorefrontCustomerWriteService
         int userId,
         IReadOnlyDictionary<string, string>? fields,
         CancellationToken cancellationToken = default);
+
+    Task<ErpSimpleWriteResult> SendReturnMessageAsync(
+        int userId,
+        long returnId,
+        string? text,
+        CancellationToken cancellationToken = default);
 }
 
 public sealed class StorefrontCustomerWriteService : IStorefrontCustomerWriteService
@@ -138,6 +144,50 @@ public sealed class StorefrontCustomerWriteService : IStorefrontCustomerWriteSer
             cancellationToken,
             orderId, body, now);
         return ErpSimpleWriteResult.Ok("Message sent.", orderId);
+    }
+
+    public async Task<ErpSimpleWriteResult> SendReturnMessageAsync(
+        int userId,
+        long returnId,
+        string? text,
+        CancellationToken cancellationToken = default)
+    {
+        if (userId <= 0)
+        {
+            return ErpSimpleWriteResult.Fail("auth", "Please log in or register to continue.");
+        }
+
+        var body = WebUtility.HtmlEncode((text ?? string.Empty).Trim());
+        if (returnId <= 0 || body.Length == 0)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Message text is required.");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return ErpSimpleWriteResult.Fail("db", "Returns database is not configured.");
+        }
+
+        await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        var owned = await ErpDb.LongAsync(
+            connection,
+            null,
+            ErpDb.Positional("SELECT `id` FROM `shop_orders_returns` WHERE `id` = ? AND `user_id` = ? LIMIT 1"),
+            cancellationToken,
+            returnId, userId);
+        if (owned <= 0)
+        {
+            return ErpSimpleWriteResult.Fail("not_found", "Return not found.");
+        }
+
+        var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        await ErpDb.ExecuteAsync(
+            connection,
+            null,
+            ErpDb.Positional("INSERT INTO `shop_orders_messages` (`order_id`, `is_customer`, `text`, `time`, `return_id`) VALUES (0, 1, ?, ?, ?)"),
+            cancellationToken,
+            body, now, returnId);
+        return ErpSimpleWriteResult.Ok("Message sent.", returnId);
     }
 
     public async Task<ErpSimpleWriteResult> SubscribeNewsletterAsync(
