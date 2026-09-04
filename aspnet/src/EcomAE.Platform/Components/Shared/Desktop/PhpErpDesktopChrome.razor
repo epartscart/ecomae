@@ -89,6 +89,11 @@
                 {
                     <a href="/cp">Control panel</a>
                 }
+                <a href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref("/ERP/")" target="_blank" rel="noopener">Classic ERP</a>
+                @if (_showControlPanel)
+                {
+                    <a href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref("/CP/")" target="_blank" rel="noopener">Classic CP</a>
+                }
                 @if (_showBos)
                 {
                     <a href="/erp/fleet-app">Fleet ERP</a>

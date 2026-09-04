@@ -33,6 +33,7 @@ public sealed class PhpProductPathRedirectMiddleware
         // Asset bridges (/epc-static.php, *_css.php) stay on ASP.NET MapGet handlers.
         // Exact multilang homes (/en/, /ar/) are StorefrontPreviewApp — never 302 to /.
         if (path.StartsWith("/php-reference", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/epc_php_reference_boot.php", StringComparison.OrdinalIgnoreCase)
             || path.StartsWith("/epc-static", StringComparison.OrdinalIgnoreCase)
             || path.StartsWith("/content/general_pages/", StringComparison.OrdinalIgnoreCase)
             || path.StartsWith("/api/epc_oauth_", StringComparison.OrdinalIgnoreCase)
@@ -58,6 +59,12 @@ public sealed class PhpProductPathRedirectMiddleware
         // Product front-controllers that must never stay on PHP-FPM when they hit Kestrel.
         if (path.Equals("/index.php", StringComparison.OrdinalIgnoreCase))
         {
+            // Leftover nginx rewrite used to land here and bounce compare to the storefront.
+            if (context.Request.Query.ContainsKey("epc_php_reference"))
+            {
+                return _next(context);
+            }
+
             return Redirect(context, "/" + query); // query already includes leading '?'
         }
 
