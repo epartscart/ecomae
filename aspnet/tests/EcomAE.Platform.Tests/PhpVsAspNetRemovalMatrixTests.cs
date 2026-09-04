@@ -39,6 +39,7 @@ public sealed class PhpVsAspNetRemovalMatrixTests
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "cp-orders" && r.WritesOwner == "aspnet");
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "sf-returns" && r.WritesOwner == "aspnet");
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "cp-users" && r.WritesOwner == "aspnet");
+        Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "cp-lang" && r.WritesOwner == "aspnet");
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "cp-warranty-rma" && r.WritesOwner == "aspnet");
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "cp-vin-requests" && r.WritesOwner == "aspnet");
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "erp-payroll" && r.WritesOwner == "aspnet");
@@ -100,6 +101,11 @@ public sealed class PhpVsAspNetRemovalMatrixTests
             ("StorefrontReturnsApp.razor", "ReturnsCreateHref"),
             ("CpOrdersApp.razor", "/cp/orders/update-item"),
             ("CpUsersApp.razor", "/cp/users/set-comment"),
+            ("CpUsersApp.razor", "/cp/users/set-unlocked"),
+            ("CpLanguagesApp.razor", "/cp/lang/set-is-custom"),
+            ("CpLanguagesApp.razor", "/cp/lang/set-is-error"),
+            ("CpLanguagesApp.razor", "/cp/lang/set-same"),
+            ("CpLanguagesApp.razor", "/cp/lang/set-used-found"),
             ("CpReturnsRmaApp.razor", "/cp/returns/action"),
             ("CpSystemRequestsApp.razor", "/cp/requests/set-vin-viewed"),
             ("StorefrontWishlistApp.razor", "WishlistRemoveHref"),

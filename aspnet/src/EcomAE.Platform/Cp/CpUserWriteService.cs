@@ -8,6 +8,8 @@ public interface ICpUserWriteService
     Task<ErpSimpleWriteResult> SetCommentAsync(long userId, string? comment, CancellationToken cancellationToken = default);
 
     Task<ErpSimpleWriteResult> SetVinViewedAsync(IReadOnlyList<long> requestIds, int viewedFlag, CancellationToken cancellationToken = default);
+
+    Task<ErpSimpleWriteResult> SetUnlockedAsync(long userId, int unlockedFlag, long actorUserId, CancellationToken cancellationToken = default);
 }
 
 public sealed class CpUserWriteService : ICpUserWriteService
@@ -82,5 +84,49 @@ public sealed class CpUserWriteService : ICpUserWriteService
             cancellationToken,
             args);
         return new ErpSimpleWriteResult(true, "ok", "VIN viewed flag updated.", ids[0], Math.Max(writes, 1));
+    }
+
+    public async Task<ErpSimpleWriteResult> SetUnlockedAsync(
+        long userId,
+        int unlockedFlag,
+        long actorUserId,
+        CancellationToken cancellationToken = default)
+    {
+        if (userId <= 0 || unlockedFlag is not (0 or 1))
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "A user id and unlocked flag of 0 or 1 are required.");
+        }
+
+        if (actorUserId > 0 && actorUserId == userId)
+        {
+            return ErpSimpleWriteResult.Fail("self", "You cannot lock or unlock your own account.");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return ErpSimpleWriteResult.Fail("db", "TenantRegistry DB is not configured.");
+        }
+
+        await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await using var transaction = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
+        await ErpDb.ExecuteAsync(
+            connection,
+            transaction,
+            ErpDb.Positional("UPDATE `users` SET `unlocked` = ? WHERE `user_id` = ?"),
+            cancellationToken,
+            unlockedFlag, userId);
+
+        if (unlockedFlag == 0)
+        {
+            await ErpDb.ExecuteAsync(
+                connection,
+                transaction,
+                ErpDb.Positional("DELETE FROM `sessions` WHERE `user_id` = ?"),
+                cancellationToken,
+                userId);
+        }
+
+        await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
+        return ErpSimpleWriteResult.Ok(unlockedFlag == 1 ? "User unlocked." : "User locked.", userId);
     }
 }

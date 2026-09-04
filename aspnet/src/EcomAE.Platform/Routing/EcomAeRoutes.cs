@@ -957,6 +957,8 @@ public static class EcomAeRoutes
     public const string CpSetUsersVinViewed = "/cp/requests/set-vin-viewed";
     /// <summary>Staff user comment. <c>confirmWrites=true</c> is the live twin of PHP ajax_set_user_comment.php.</summary>
     public const string CpSetUserComment = "/cp/users/set-comment";
+    /// <summary>User lock/unlock. <c>confirmWrites=true</c> is the live twin of PHP user_manager.php unlock_user.</summary>
+    public const string CpSetUserUnlocked = "/cp/users/set-unlocked";
     /// <summary>Wave B dry-run for PHP cp/content/shop/prices_upload/ajax_5_import_csv_to_db.php (writes=0).</summary>
     public const string CpPricesImportCsv = "/cp/prices/import-csv";
     /// <summary>Wave B dry-run for PHP cp/content/shop/prices_upload/ajax_6_complete_session.php (writes=0).</summary>
@@ -1345,13 +1347,13 @@ public static class EcomAeRoutes
     public const string ErpAjaxAutomationTick = "/erp/ajax/automation-tick";
     /// <summary>Wave B dry-run for PHP tenant_config_save (writes=0).</summary>
     public const string ErpAjaxTenantConfigSave = "/erp/ajax/tenant-config-save";
-    /// <summary>Wave B dry-run for PHP cp/content/lang/ajax_set_is_custom.php (writes=0).</summary>
+    /// <summary>Lang is_custom. <c>confirmWrites=true</c> is the live twin of PHP ajax_set_is_custom.php.</summary>
     public const string CpLangSetIsCustom = "/cp/lang/set-is-custom";
-    /// <summary>Wave B dry-run for PHP cp/content/lang/ajax_set_is_error.php (writes=0).</summary>
+    /// <summary>Lang is_error. <c>confirmWrites=true</c> is the live twin of PHP ajax_set_is_error.php.</summary>
     public const string CpLangSetIsError = "/cp/lang/set-is-error";
-    /// <summary>Wave B dry-run for PHP cp/content/lang/ajax_set_same.php (writes=0).</summary>
+    /// <summary>Lang same. <c>confirmWrites=true</c> is the live twin of PHP ajax_set_same.php.</summary>
     public const string CpLangSetSame = "/cp/lang/set-same";
-    /// <summary>Wave B dry-run for PHP cp/content/lang/ajax_set_used_found.php (writes=0).</summary>
+    /// <summary>Lang used_found. <c>confirmWrites=true</c> is the live twin of PHP ajax_set_used_found.php.</summary>
     public const string CpLangSetUsedFound = "/cp/lang/set-used-found";
     /// <summary>Wave B dry-run for PHP cp/content/lang/ajax_search_used_found.php (writes=0).</summary>
     public const string CpLangSearchUsedFound = "/cp/lang/search-used-found";

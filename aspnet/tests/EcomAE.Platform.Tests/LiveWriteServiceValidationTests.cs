@@ -313,6 +313,46 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(vinViewedDb.Succeeded);
         Assert.Equal("db", vinViewedDb.Code);
 
+        var unlockInvalid = await new CpUserWriteService(new ConfiguredNeverOpened())
+            .SetUnlockedAsync(0, 1, 1);
+        Assert.False(unlockInvalid.Succeeded);
+        Assert.Equal("invalid", unlockInvalid.Code);
+
+        var unlockSelf = await new CpUserWriteService(new ConfiguredNeverOpened())
+            .SetUnlockedAsync(4, 0, 4);
+        Assert.False(unlockSelf.Succeeded);
+        Assert.Equal("self", unlockSelf.Code);
+
+        var unlockDb = await new CpUserWriteService(new UnconfiguredConnections())
+            .SetUnlockedAsync(9, 1, 1);
+        Assert.False(unlockDb.Succeeded);
+        Assert.Equal("db", unlockDb.Code);
+
+        var langCustom = await new CpLangWriteService(new ConfiguredNeverOpened())
+            .SetIsCustomAsync("", 1);
+        Assert.False(langCustom.Succeeded);
+        Assert.Equal("invalid", langCustom.Code);
+
+        var langError = await new CpLangWriteService(new ConfiguredNeverOpened())
+            .SetIsErrorAsync("hello", 3);
+        Assert.False(langError.Succeeded);
+        Assert.Equal("invalid", langError.Code);
+
+        var langSame = await new CpLangWriteService(new ConfiguredNeverOpened())
+            .SetSameAsync("hello", "xx!");
+        Assert.False(langSame.Succeeded);
+        Assert.Equal("invalid", langSame.Code);
+
+        var langUsed = await new CpLangWriteService(new UnconfiguredConnections())
+            .SetUsedFoundAsync("hello", 2);
+        Assert.False(langUsed.Succeeded);
+        Assert.Equal("db", langUsed.Code);
+
+        var langSameDb = await new CpLangWriteService(new UnconfiguredConnections())
+            .SetSameAsync("hello", "no");
+        Assert.False(langSameDb.Succeeded);
+        Assert.Equal("db", langSameDb.Code);
+
         var retStatus = await new CpReturnWriteService(new ConfiguredNeverOpened())
             .SetStatusAsync(0, 0);
         Assert.False(retStatus.Succeeded);
