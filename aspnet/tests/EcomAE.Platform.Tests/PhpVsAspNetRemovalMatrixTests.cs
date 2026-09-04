@@ -51,6 +51,9 @@ public sealed class PhpVsAspNetRemovalMatrixTests
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "cp-warranty-rma" && r.WritesOwner == "aspnet");
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "cp-vin-requests" && r.WritesOwner == "aspnet");
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "erp-payroll" && r.WritesOwner == "aspnet");
+        Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "erp-inventory" && r.WritesOwner == "aspnet");
+        Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "erp-workspace-favorites" && r.WritesOwner == "aspnet");
+        Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "erp-jw-repairs" && r.WritesOwner == "aspnet");
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "write-storefront-cart" && r.WritesOwner == "php");
     }
 
@@ -125,6 +128,11 @@ public sealed class PhpVsAspNetRemovalMatrixTests
             ("CpPricesEditApp.razor", "/cp/prices-edit/write"),
             ("CpCurrenciesApp.razor", "/cp/currencies/set-rate"),
             ("CpProductCatalogueApp.razor", "/cp/catalogue/set-min-limit"),
+            ("CpProductCatalogueApp.razor", "/cp/catalogue/templates-actions"),
+            ("ErpWorkspaceFavoritesApp.razor", "/erp/ajax/erp-fav-add"),
+            ("ErpWorkspaceFavoritesApp.razor", "/erp/ajax/erp-fav-remove"),
+            ("ErpInventoryStockApp.razor", "/erp/ajax/inv-set-reorder-level"),
+            ("CpJewelleryRepairsApp.razor", "/erp/ajax/jw-repair-update-status"),
             ("CpReturnsRmaApp.razor", "/cp/returns/action"),
             ("CpSystemRequestsApp.razor", "/cp/requests/set-vin-viewed"),
             ("StorefrontWishlistApp.razor", "WishlistRemoveHref"),

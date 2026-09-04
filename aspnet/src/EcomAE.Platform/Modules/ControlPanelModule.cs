@@ -1725,13 +1725,47 @@ public sealed class ControlPanelModule : ISurfaceModule
                 written.Message,
                 new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
-        endpoints.MapPost(EcomAeRoutes.CpTemplatesActions, async (HttpContext context, CpTemplatesActionsBody? body, ILegacySessionValidator validator, ICpTemplatesActionsDryRun dryRun, CancellationToken cancellationToken) =>
+        endpoints.MapPost(EcomAeRoutes.CpTemplatesActions, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpTemplatesActionsDryRun dryRun,
+            ICpCatalogueWriteService writes,
+            CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateAsync(context, cancellationToken);
-            if (session.Kind != LegacySessionKind.Admin) return Unauthorized("Admin session required.");
-            body ??= new CpTemplatesActionsBody(null, false);
-            return Results.Ok(dryRun.Evaluate(new CpTemplatesActionsRequest(body.Action, body.ConfirmWrites)).ToPayload(SessionPayload(session)));
-        });
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/product-catalogue-app", "Admin CP capability required for category templates.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpTemplatesActionsBody>(context, cancellationToken) ?? new();
+            var action = body.Action;
+            var templateId = body.TemplateId;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                action = LiveWriteFormBinder.Text(form, "action");
+                templateId = LiveWriteFormBinder.Long(form, "templateId", "template_id", "id");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(dryRun.Evaluate(new CpTemplatesActionsRequest(action, false)).ToPayload(SessionPayload(session)));
+            }
+
+            var key = (action ?? string.Empty).Trim();
+            var written = key is "delete" or "del"
+                ? await writes.DeleteCategoryTemplateAsync(templateId, cancellationToken)
+                : ErpSimpleWriteResult.Fail("php", "Category template create stays PHP.");
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/cp/product-catalogue-app",
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = !written.Succeeded && written.Code == "php", validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.CpPriceReviewWrite, async (HttpContext context, CpPriceReviewWriteBody? body, ILegacySessionValidator validator, ICpPriceReviewWriteDryRun dryRun, CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateAsync(context, cancellationToken);
@@ -5826,7 +5860,7 @@ public sealed class ControlPanelModule : ISurfaceModule
         string? ManufacturerArticle = null,
         string? Analog = null,
         string? ManufacturerAnalog = null);
-    private sealed record CpTemplatesActionsBody(string? Action = null, bool ConfirmWrites = false);
+    private sealed record CpTemplatesActionsBody(string? Action = null, bool ConfirmWrites = false, long TemplateId = 0);
     private sealed record CpPriceReviewWriteBody(string? Action = null, bool ConfirmWrites = false);
     private sealed record CpPriceReviewCreateCsvBody(string? Action = null, bool ConfirmWrites = false);
     private sealed record CpAccessoriesPhotosBody(string? Action = null, bool ConfirmWrites = false);

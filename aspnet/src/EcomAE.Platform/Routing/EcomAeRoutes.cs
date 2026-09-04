@@ -839,7 +839,7 @@ public static class EcomAeRoutes
     public const string ErpAjaxInvCreateWarehouse = "/erp/ajax/inv-create-warehouse";
     /// <summary>Wave B dry-run for PHP inv_create_item (writes=0).</summary>
     public const string ErpAjaxInvCreateItem = "/erp/ajax/inv-create-item";
-    /// <summary>Wave B dry-run for PHP inv_set_reorder_level (writes=0).</summary>
+    /// <summary>PHP inv_set_reorder_level. <c>confirmWrites=true</c> writes via <c>IErpInventoryReorderWriteService</c>.</summary>
     public const string ErpAjaxInvSetReorderLevel = "/erp/ajax/inv-set-reorder-level";
     /// <summary>Wave B dry-run for PHP inv_record_movement (writes=0).</summary>
     public const string ErpAjaxInvRecordMovement = "/erp/ajax/inv-record-movement";
@@ -1134,7 +1134,7 @@ public static class EcomAeRoutes
     public const string CpWorkshopWrite = "/cp/workshop/write";
     /// <summary>Catalogue min-limit. <c>confirmWrites=true</c> is the live twin of PHP ajax_operations_products.php save_product_*_limit.</summary>
     public const string CpCatalogueSetMinLimit = "/cp/catalogue/set-min-limit";
-    /// <summary>Wave B dry-run for PHP cp/content/shop/catalogue/categories_templates/ajax_templates_actions.php (writes=0).</summary>
+    /// <summary>Category-template delete. <c>confirmWrites=true</c> is the live twin of PHP ajax_templates_actions.php delete. Create stays PHP.</summary>
     public const string CpTemplatesActions = "/cp/catalogue/templates-actions";
     /// <summary>Wave B dry-run for PHP cp/content/shop/prices_upload/price_review/ajax_price_review.php (writes=0).</summary>
     public const string CpPriceReviewWrite = "/cp/prices/review";
@@ -1325,15 +1325,15 @@ public static class EcomAeRoutes
     public const string ErpAjaxShortcutReset = "/erp/ajax/shortcut-reset";
     /// <summary>Wave B dry-run for PHP shortcut_reorder (writes=0).</summary>
     public const string ErpAjaxShortcutReorder = "/erp/ajax/shortcut-reorder";
-    /// <summary>Wave B dry-run for PHP erp_fav_add (writes=0).</summary>
+    /// <summary>PHP erp_fav_add. <c>confirmWrites=true</c> writes via <c>IErpWorkspaceFavoritesWriteService</c>.</summary>
     public const string ErpAjaxErpFavAdd = "/erp/ajax/erp-fav-add";
-    /// <summary>Wave B dry-run for PHP erp_fav_remove (writes=0).</summary>
+    /// <summary>PHP erp_fav_remove. <c>confirmWrites=true</c> writes via <c>IErpWorkspaceFavoritesWriteService</c>.</summary>
     public const string ErpAjaxErpFavRemove = "/erp/ajax/erp-fav-remove";
     /// <summary>Wave B dry-run for PHP erp_global_search (writes=0).</summary>
     public const string ErpAjaxErpGlobalSearch = "/erp/ajax/erp-global-search";
     /// <summary>Wave B dry-run for PHP jw_repair_create (writes=0).</summary>
     public const string ErpAjaxJwRepairCreate = "/erp/ajax/jw-repair-create";
-    /// <summary>Wave B dry-run for PHP jw_repair_update_status (writes=0).</summary>
+    /// <summary>PHP jw_repair_update_status. <c>confirmWrites=true</c> writes via <c>IErpJwRepairWriteService</c>.</summary>
     public const string ErpAjaxJwRepairUpdateStatus = "/erp/ajax/jw-repair-update-status";
     /// <summary>Wave B dry-run for PHP jw_seed_sample_data (writes=0).</summary>
     public const string ErpAjaxJwSeedSampleData = "/erp/ajax/jw-seed-sample-data";

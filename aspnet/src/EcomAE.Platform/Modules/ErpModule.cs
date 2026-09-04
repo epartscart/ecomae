@@ -464,16 +464,122 @@ public sealed class ErpModule : ISurfaceModule
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpShortcutResetRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxShortcutReorder, async (HttpContext context, ErpShortcutReorderBody? body, ILegacySessionValidator validator, IErpShortcutReorderDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpShortcutReorderRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxErpFavAdd, async (HttpContext context, ErpErpFavAddBody? body, ILegacySessionValidator validator, IErpErpFavAddDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpErpFavAddRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxErpFavRemove, async (HttpContext context, ErpErpFavRemoveBody? body, ILegacySessionValidator validator, IErpErpFavRemoveDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpErpFavRemoveRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxErpFavAdd, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IErpErpFavAddDryRun dryRun,
+            IErpWorkspaceFavoritesWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/workspace-favorites-app", "Admin ERP capability required.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpErpFavAddBody>(context, cancellationToken) ?? new();
+            var tabKey = body.TabKey ?? body.Code;
+            var areaKey = body.AreaKey;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                tabKey = LiveWriteFormBinder.Text(form, "tabKey", "tab_key");
+                areaKey = LiveWriteFormBinder.Text(form, "areaKey", "area_key");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(dryRun.Evaluate(new ErpErpFavAddRequest(body.Id, tabKey, false)).ToPayload(SessionPayload(session)));
+            }
+
+            var written = await writes.AddAsync(session.UserId, areaKey, tabKey, cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/erp/workspace-favorites-app",
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxErpFavRemove, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IErpErpFavRemoveDryRun dryRun,
+            IErpWorkspaceFavoritesWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/workspace-favorites-app", "Admin ERP capability required.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpErpFavRemoveBody>(context, cancellationToken) ?? new();
+            var tabKey = body.TabKey ?? body.Code;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                tabKey = LiveWriteFormBinder.Text(form, "tabKey", "tab_key");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(dryRun.Evaluate(new ErpErpFavRemoveRequest(body.Id, tabKey, false)).ToPayload(SessionPayload(session)));
+            }
+
+            var written = await writes.RemoveAsync(session.UserId, tabKey, cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/erp/workspace-favorites-app",
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxErpGlobalSearch, async (HttpContext context, ErpErpGlobalSearchBody? body, ILegacySessionValidator validator, IErpErpGlobalSearchDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpErpGlobalSearchRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxJwRepairCreate, async (HttpContext context, ErpJwRepairCreateBody? body, ILegacySessionValidator validator, IErpJwRepairCreateDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpJwRepairCreateRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxJwRepairUpdateStatus, async (HttpContext context, ErpJwRepairUpdateStatusBody? body, ILegacySessionValidator validator, IErpJwRepairUpdateStatusDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpJwRepairUpdateStatusRequest(body.Id, body.TargetStatus, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxJwRepairUpdateStatus, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IErpJwRepairUpdateStatusDryRun dryRun,
+            IErpJwRepairWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/cp/jewellery-repairs-app", "Admin ERP capability required.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpJwRepairUpdateStatusBody>(context, cancellationToken) ?? new();
+            var repairId = body.RepairId > 0 ? body.RepairId : body.Id;
+            var status = body.NewStatus ?? body.TargetStatus;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                repairId = LiveWriteFormBinder.Long(form, "repairId", "repair_id", "id");
+                status = LiveWriteFormBinder.Text(form, "newStatus", "new_status", "targetStatus", "status");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(dryRun.Evaluate(new ErpJwRepairUpdateStatusRequest(repairId, status, false)).ToPayload(SessionPayload(session)));
+            }
+
+            var written = await writes.SetStatusAsync(repairId, status, cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/cp/jewellery-repairs-app",
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxJwSeedSampleData, async (HttpContext context, ErpJwSeedSampleDataBody? body, ILegacySessionValidator validator, IErpJwSeedSampleDataDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpJwSeedSampleDataRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxAiAssistantQuery, async (HttpContext context, ErpAiAssistantQueryBody? body, ILegacySessionValidator validator, IErpAiAssistantQueryDryRun dryRun, CancellationToken cancellationToken) =>
@@ -1656,8 +1762,44 @@ public sealed class ErpModule : ISurfaceModule
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpInvCreateWarehouseRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxInvCreateItem, async (HttpContext context, ErpInvCreateItemBody? body, ILegacySessionValidator validator, IErpInvCreateItemDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpInvCreateItemRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxInvSetReorderLevel, async (HttpContext context, ErpInvSetReorderLevelBody? body, ILegacySessionValidator validator, IErpInvSetReorderLevelDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpInvSetReorderLevelRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxInvSetReorderLevel, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IErpInvSetReorderLevelDryRun dryRun,
+            IErpInventoryReorderWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/inventory-stock-app", "Admin ERP capability required.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpInvSetReorderLevelBody>(context, cancellationToken) ?? new();
+            var itemId = body.ItemId > 0 ? body.ItemId : body.Id;
+            var level = body.ReorderLevel;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                itemId = LiveWriteFormBinder.Long(form, "itemId", "item_id", "id");
+                level = LiveWriteFormBinder.Dec(form, "reorderLevel", "reorder_level", "level");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(dryRun.Evaluate(new ErpInvSetReorderLevelRequest(itemId, body.Code, false)).ToPayload(SessionPayload(session)));
+            }
+
+            var written = await writes.SetReorderLevelAsync(itemId, level, cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/erp/inventory-stock-app",
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxInvRecordMovement, async (HttpContext context, ErpInvRecordMovementBody? body, ILegacySessionValidator validator, IErpInvRecordMovementDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpInvRecordMovementRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxInvScanLookup, async (HttpContext context, ErpInvScanLookupBody? body, ILegacySessionValidator validator, IErpInvScanLookupDryRun dryRun, CancellationToken cancellationToken) =>
@@ -3926,7 +4068,7 @@ public sealed class ErpModule : ISurfaceModule
     private sealed record ErpInvSyncWarehousesBody(bool ConfirmWrites = false);
     private sealed record ErpInvCreateWarehouseBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpInvCreateItemBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
-    private sealed record ErpInvSetReorderLevelBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
+    private sealed record ErpInvSetReorderLevelBody(long Id = 0, long ItemId = 0, decimal ReorderLevel = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpInvRecordMovementBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpInvScanLookupBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpInvTransferBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
@@ -4168,11 +4310,11 @@ public sealed class ErpModule : ISurfaceModule
     private sealed record ErpShortcutDeleteKeyBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpShortcutResetBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpShortcutReorderBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
-    private sealed record ErpErpFavAddBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
-    private sealed record ErpErpFavRemoveBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
+    private sealed record ErpErpFavAddBody(long Id = 0, string? Code = null, string? TabKey = null, string? AreaKey = null, bool ConfirmWrites = false);
+    private sealed record ErpErpFavRemoveBody(long Id = 0, string? Code = null, string? TabKey = null, bool ConfirmWrites = false);
     private sealed record ErpErpGlobalSearchBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpJwRepairCreateBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
-    private sealed record ErpJwRepairUpdateStatusBody(long Id, string? TargetStatus = null, bool ConfirmWrites = false);
+    private sealed record ErpJwRepairUpdateStatusBody(long Id = 0, long RepairId = 0, string? TargetStatus = null, string? NewStatus = null, bool ConfirmWrites = false);
     private sealed record ErpJwSeedSampleDataBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpAiAssistantQueryBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpPrintDesignerSaveBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);

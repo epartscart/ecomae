@@ -19,7 +19,7 @@
 <PhpCpDesktopChrome IsAdmin="_isAdmin">
 
     <PhpCpModulePageHeader Title="Product catalogue"
-                           Subtitle="PHP catalogue_editor parity. Min-limit flag/value write on ASP.NET. Tree editor / SKU media stay PHP."
+                           Subtitle="Min-limit flag/value and category-template delete write here. Tree editor, SKU media, and template create stay on the compare twin."
                            PhpTabHref="@_phpTab">
         <a class="ghost" href="/cp/prices-upload-app">Prices upload</a>
         <a class="ghost" href="/cp/crosses-app">Crosses</a>
@@ -83,6 +83,13 @@
             <label>Product id <input type="number" name="productId" min="1" required value="@(_selectedId > 0 ? _selectedId.ToString(CultureInfo.InvariantCulture) : "")" style="width:6rem" /></label>
             <label>min_limit <input type="number" name="value" min="0" step="1" required style="width:6rem" /></label>
             <button type="submit" class="btn btn-xs btn-default">Save value</button>
+        </form>
+        <form method="post" action="/cp/catalogue/templates-actions" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/product-catalogue-app" />
+            <input type="hidden" name="action" value="delete" />
+            <label>Category template id <input type="number" name="templateId" min="1" required style="width:6rem" /></label>
+            <button type="submit" class="btn btn-xs btn-default">Delete template</button>
         </form>
     }
     @if (!_isAdmin)

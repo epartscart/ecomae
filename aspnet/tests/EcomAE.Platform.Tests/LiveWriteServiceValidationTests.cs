@@ -552,6 +552,61 @@ public sealed class LiveWriteServiceValidationTests
             .FinalizeAsync(9, 1);
         Assert.False(retFinalizeDb.Succeeded);
         Assert.Equal("db", retFinalizeDb.Code);
+
+        var favAuth = await new ErpWorkspaceFavoritesWriteService(new ConfiguredNeverOpened())
+            .AddAsync(0, "overview", "dashboard");
+        Assert.False(favAuth.Succeeded);
+        Assert.Equal("auth", favAuth.Code);
+
+        var favTab = await new ErpWorkspaceFavoritesWriteService(new ConfiguredNeverOpened())
+            .AddAsync(1, "overview", "   ");
+        Assert.False(favTab.Succeeded);
+        Assert.Equal("invalid", favTab.Code);
+
+        var favRemoveTab = await new ErpWorkspaceFavoritesWriteService(new ConfiguredNeverOpened())
+            .RemoveAsync(1, "");
+        Assert.False(favRemoveTab.Succeeded);
+        Assert.Equal("invalid", favRemoveTab.Code);
+
+        var favDb = await new ErpWorkspaceFavoritesWriteService(new UnconfiguredConnections())
+            .AddAsync(1, "overview", "dashboard");
+        Assert.False(favDb.Succeeded);
+        Assert.Equal("db", favDb.Code);
+
+        var reorderInvalid = await new ErpInventoryReorderWriteService(new ConfiguredNeverOpened())
+            .SetReorderLevelAsync(0, 4);
+        Assert.False(reorderInvalid.Succeeded);
+        Assert.Equal("invalid", reorderInvalid.Code);
+
+        var reorderDb = await new ErpInventoryReorderWriteService(new UnconfiguredConnections())
+            .SetReorderLevelAsync(9, 4);
+        Assert.False(reorderDb.Succeeded);
+        Assert.Equal("db", reorderDb.Code);
+
+        var tplDel = await new CpCatalogueWriteService(new ConfiguredNeverOpened())
+            .DeleteCategoryTemplateAsync(0);
+        Assert.False(tplDel.Succeeded);
+        Assert.Equal("invalid", tplDel.Code);
+
+        var tplDb = await new CpCatalogueWriteService(new UnconfiguredConnections())
+            .DeleteCategoryTemplateAsync(9);
+        Assert.False(tplDb.Succeeded);
+        Assert.Equal("db", tplDb.Code);
+
+        var jwInvalid = await new ErpJwRepairWriteService(new ConfiguredNeverOpened())
+            .SetStatusAsync(0, "ready");
+        Assert.False(jwInvalid.Succeeded);
+        Assert.Equal("invalid", jwInvalid.Code);
+
+        var jwStatus = await new ErpJwRepairWriteService(new ConfiguredNeverOpened())
+            .SetStatusAsync(9, "nope");
+        Assert.False(jwStatus.Succeeded);
+        Assert.Equal("invalid", jwStatus.Code);
+
+        var jwDb = await new ErpJwRepairWriteService(new UnconfiguredConnections())
+            .SetStatusAsync(9, "ready");
+        Assert.False(jwDb.Succeeded);
+        Assert.Equal("db", jwDb.Code);
     }
 
     [Fact]

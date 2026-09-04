@@ -655,6 +655,9 @@ builder.Services.AddScoped<EcomAE.Platform.Storefront.IStorefrontGarageWriteServ
 builder.Services.AddScoped<EcomAE.Platform.Storefront.IStorefrontCustomerWriteService, EcomAE.Platform.Storefront.StorefrontCustomerWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpPayrollWriteService, EcomAE.Platform.Erp.ErpPayrollWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpInventoryForecastWriteService, EcomAE.Platform.Erp.ErpInventoryForecastWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpWorkspaceFavoritesWriteService, EcomAE.Platform.Erp.ErpWorkspaceFavoritesWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpInventoryReorderWriteService, EcomAE.Platform.Erp.ErpInventoryReorderWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpJwRepairWriteService, EcomAE.Platform.Erp.ErpJwRepairWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpOmsWriteService, EcomAE.Platform.Cp.CpOmsWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpUserWriteService, EcomAE.Platform.Cp.CpUserWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpLangWriteService, EcomAE.Platform.Cp.CpLangWriteService>();

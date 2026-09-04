@@ -8,6 +8,8 @@ public interface ICpCatalogueWriteService
     Task<ErpSimpleWriteResult> SetMinLimitEnableAsync(long productId, int enabled, CancellationToken cancellationToken = default);
 
     Task<ErpSimpleWriteResult> SetMinLimitValueAsync(long productId, decimal value, CancellationToken cancellationToken = default);
+
+    Task<ErpSimpleWriteResult> DeleteCategoryTemplateAsync(long templateId, CancellationToken cancellationToken = default);
 }
 
 public sealed class CpCatalogueWriteService : ICpCatalogueWriteService
@@ -67,5 +69,29 @@ public sealed class CpCatalogueWriteService : ICpCatalogueWriteService
             cancellationToken,
             value, productId);
         return ErpSimpleWriteResult.Ok("Product min-limit value saved.", productId);
+    }
+
+    public async Task<ErpSimpleWriteResult> DeleteCategoryTemplateAsync(
+        long templateId,
+        CancellationToken cancellationToken = default)
+    {
+        if (templateId <= 0)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "A category template id is required.");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return ErpSimpleWriteResult.Fail("db", "TenantRegistry DB is not configured.");
+        }
+
+        await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await ErpDb.ExecuteAsync(
+            connection,
+            null,
+            ErpDb.Positional("DELETE FROM `shop_catalogue_categories_templates` WHERE `id` = ?"),
+            cancellationToken,
+            templateId);
+        return ErpSimpleWriteResult.Ok("Category template deleted.", templateId);
     }
 }
