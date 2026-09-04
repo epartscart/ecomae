@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Text.Json.Serialization;
 using EcomAE.Platform.Auth;
 using EcomAE.Platform.Middleware;
 using EcomAE.Platform.Migration;
@@ -730,6 +731,152 @@ public sealed class StorefrontModule : ISurfaceModule
                 note = "Read-only epc_bulk_upload_history. Process/cross/cart writes remain PHP ajax_process."
             });
         });
+
+        endpoints.MapGet(EcomAeRoutes.StorefrontBulkUploadSample, () =>
+        {
+            var csv = StorefrontBulkUploadFileParser.SampleCsv();
+            return Results.Text(csv, "text/csv; charset=utf-8", System.Text.Encoding.UTF8);
+        });
+
+        endpoints.MapPost(EcomAeRoutes.StorefrontBulkUploadCheck, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IStorefrontBulkUploadCheckService checker,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (!CanBulkUpload(session))
+            {
+                return Unauthorized("Please log in first.");
+            }
+
+            if (!context.Request.HasFormContentType)
+            {
+                return Results.Json(new { status = false, message = "Upload file is required." }, statusCode: StatusCodes.Status400BadRequest);
+            }
+
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            var file = form.Files["bulk_file"];
+            if (file is null || file.Length <= 0)
+            {
+                return Results.Json(new { status = false, message = "Upload file is required." }, statusCode: StatusCodes.Status400BadRequest);
+            }
+
+            if (file.Length > StorefrontBulkUploadFileParser.MaxFileBytes)
+            {
+                return Results.Json(new { status = false, message = "File is larger than 8 MB. Split the list or save as CSV." }, statusCode: StatusCodes.Status400BadRequest);
+            }
+
+            await using var stream = file.OpenReadStream();
+            var result = await checker.ProcessAsync(stream, file.FileName, form["priority"].ToString(), cancellationToken);
+            return Results.Json(new
+            {
+                status = result.Status,
+                message = result.Message,
+                rows = result.Rows,
+                summary = result.Summary,
+                csv = result.Csv,
+                upload_id = result.UploadId,
+                source = result.Source
+            }, statusCode: result.Status ? StatusCodes.Status200OK : StatusCodes.Status400BadRequest);
+        }).DisableAntiforgery();
+
+        endpoints.MapPost(EcomAeRoutes.StorefrontBulkUploadCross, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IStorefrontBulkUploadCheckService checker,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (!CanBulkUpload(session))
+            {
+                return Unauthorized("Please log in first.");
+            }
+
+            string article;
+            int qty = 1;
+            var priority = "price";
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                article = form["article"].ToString();
+                _ = int.TryParse(form["qty"].ToString(), out qty);
+                priority = form["priority"].ToString();
+            }
+            else
+            {
+                article = context.Request.Query["article"].ToString();
+                _ = int.TryParse(context.Request.Query["qty"].ToString(), out qty);
+                priority = context.Request.Query["priority"].ToString();
+            }
+
+            var result = await checker.CrossAsync(article, qty, priority, cancellationToken);
+            return Results.Json(new
+            {
+                status = result.Status,
+                message = result.Message,
+                exact = result.Exact,
+                cross = result.Cross
+            }, statusCode: result.Status ? StatusCodes.Status200OK : StatusCodes.Status400BadRequest);
+        }).DisableAntiforgery();
+
+        endpoints.MapPost(EcomAeRoutes.StorefrontBulkUploadAddSelected, async (
+            HttpContext context,
+            StorefrontBulkUploadAddSelectedBody? body,
+            ILegacySessionValidator validator,
+            IStorefrontCartAddService cartAdd,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Customer || session.UserId <= 0)
+            {
+                return Unauthorized("Customer session required to add parts to cart.");
+            }
+
+            body ??= new StorefrontBulkUploadAddSelectedBody(null, true);
+            var items = body.Items ?? [];
+            if (items.Count == 0)
+            {
+                return Results.Json(new { status = false, message = "Select at least one available item.", added = 0, failed = 0 }, statusCode: StatusCodes.Status400BadRequest);
+            }
+
+            var added = 0;
+            var errors = new List<string>();
+            foreach (var item in items)
+            {
+                var request = ToCartAddRequest(item, body.ConfirmWrites);
+                if (request is null)
+                {
+                    errors.Add("Manufacturer and article are required.");
+                    continue;
+                }
+
+                var written = await cartAdd.AddAsync(session.UserId, request, cancellationToken);
+                if (written.Ok)
+                {
+                    added++;
+                }
+                else
+                {
+                    errors.Add(written.Message);
+                }
+            }
+
+            var failed = items.Count - added;
+            var ok = added > 0;
+            var message = ok
+                ? (failed == 0 ? "Items added to cart." : added + " added. Some items were not added.")
+                : (errors.Count > 0 ? errors[0] : "Some items were not added. They may already be in cart.");
+            return Results.Json(new
+            {
+                status = ok,
+                message,
+                added,
+                failed,
+                errors,
+                session = SessionPayload(session)
+            }, statusCode: ok ? StatusCodes.Status200OK : StatusCodes.Status400BadRequest);
+        }).DisableAntiforgery();
 
         endpoints.MapGet(EcomAeRoutes.StorefrontCheckout, async (
             HttpContext context,
@@ -1976,6 +2123,29 @@ public sealed class StorefrontModule : ISurfaceModule
     private sealed record StorefrontGetArticleListBody(string? Action = null, bool ConfirmWrites = false);
     private sealed record StorefrontLoadReturnsDataBody(string? Action = null, bool ConfirmWrites = false);
     private sealed record StorefrontBulkUploadProcessBody(string? Action = null, bool ConfirmWrites = false);
+    private sealed record StorefrontBulkUploadAddSelectedBody(
+        IReadOnlyList<StorefrontBulkUploadCartItem>? Items,
+        bool ConfirmWrites = true);
+    private sealed record StorefrontBulkUploadCartItem(
+        [property: JsonPropertyName("product_type")] int ProductType = 2,
+        [property: JsonPropertyName("manufacturer")] string? Manufacturer = null,
+        [property: JsonPropertyName("article")] string? Article = null,
+        [property: JsonPropertyName("article_show")] string? ArticleShow = null,
+        [property: JsonPropertyName("name")] string? Name = null,
+        [property: JsonPropertyName("exist")] decimal Exist = 0,
+        [property: JsonPropertyName("price")] decimal Price = 0,
+        [property: JsonPropertyName("count_need")] decimal CountNeed = 1,
+        [property: JsonPropertyName("min_order")] decimal MinOrder = 1,
+        [property: JsonPropertyName("time_to_exe")] int TimeToExe = 0,
+        [property: JsonPropertyName("time_to_exe_guaranteed")] int TimeToExeGuaranteed = 0,
+        [property: JsonPropertyName("storage")] string? Storage = null,
+        [property: JsonPropertyName("probability")] int Probability = 100,
+        [property: JsonPropertyName("price_purchase")] decimal PricePurchase = 0,
+        [property: JsonPropertyName("markup")] int Markup = 0,
+        [property: JsonPropertyName("office_id")] int OfficeId = 0,
+        [property: JsonPropertyName("storage_id")] int StorageId = 0,
+        [property: JsonPropertyName("json_params")] string? JsonParams = null,
+        [property: JsonPropertyName("check_hash")] string? CheckHash = null);
     private sealed record StorefrontNewsletterSubscribeBody(string? Email, bool ConfirmWrites = false);
     private sealed record StorefrontAddEvaluationBody(long ProductId, int Rating = 5, bool ConfirmWrites = false, string? Text = null);
     private sealed record StorefrontCreateOperationBody(decimal Amount, string? Kind, bool ConfirmWrites = false);
@@ -2084,6 +2254,42 @@ public sealed class StorefrontModule : ISurfaceModule
                 count = next.Count,
                 session = SessionPayload(session),
             });
+    }
+
+    private static bool CanBulkUpload(LegacySessionContext session)
+        => session.UserId > 0
+           && (session.Kind == LegacySessionKind.Customer || session.Kind == LegacySessionKind.Admin);
+
+    private static StorefrontCartAddRequest? ToCartAddRequest(StorefrontBulkUploadCartItem item, bool confirmWrites)
+    {
+        if (string.IsNullOrWhiteSpace(item.Manufacturer) || string.IsNullOrWhiteSpace(item.Article))
+        {
+            return null;
+        }
+
+        return new StorefrontCartAddRequest(
+            item.ProductType == 0 ? 2 : item.ProductType,
+            item.Manufacturer,
+            item.Article,
+            item.CountNeed > 0 ? item.CountNeed : 1,
+            item.Price,
+            item.MinOrder,
+            item.Exist,
+            confirmWrites,
+            item.ArticleShow,
+            item.Name,
+            item.TimeToExe.ToString(CultureInfo.InvariantCulture),
+            item.TimeToExeGuaranteed > 0
+                ? item.TimeToExeGuaranteed.ToString(CultureInfo.InvariantCulture)
+                : item.TimeToExe.ToString(CultureInfo.InvariantCulture),
+            item.Storage,
+            item.Probability,
+            item.PricePurchase,
+            item.Markup,
+            item.OfficeId,
+            item.StorageId,
+            item.JsonParams,
+            item.CheckHash);
     }
 
     private static IResult Unauthorized(string message) => Results.Json(

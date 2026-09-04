@@ -550,6 +550,7 @@ builder.Services.AddSingleton<ICpPriceReviewCreateCsvDryRun, CpPriceReviewCreate
 builder.Services.AddSingleton<ICpAccessoriesPhotosDryRun, CpAccessoriesPhotosDryRun>();
 builder.Services.AddSingleton<ICpVersionClearUpdatesDryRun, CpVersionClearUpdatesDryRun>();
 builder.Services.AddSingleton<IStorefrontBulkUploadProcessDryRun, StorefrontBulkUploadProcessDryRun>();
+builder.Services.AddSingleton<EcomAE.Platform.Storefront.IStorefrontBulkUploadCheckService, EcomAE.Platform.Storefront.StorefrontBulkUploadCheckService>();
 builder.Services.AddSingleton<IStorefrontSetMyCityDryRun, StorefrontSetMyCityDryRun>();
 builder.Services.AddSingleton<IStorefrontLoginSendCodeDryRun, StorefrontLoginSendCodeDryRun>();
 builder.Services.AddSingleton<IStorefrontLoginCheckCodeDryRun, StorefrontLoginCheckCodeDryRun>();
