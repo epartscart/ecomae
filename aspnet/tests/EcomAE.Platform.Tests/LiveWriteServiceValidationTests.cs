@@ -792,6 +792,41 @@ public sealed class LiveWriteServiceValidationTests
             .ApplyAsync("save_storage_article_rule", 0, 4, "bosch", "---", "10", 1);
         Assert.False(brandMissing.Succeeded);
         Assert.Equal("invalid", brandMissing.Code);
+
+        var subInvalid = await new ErpSubscriptionStatusWriteService(new ConfiguredNeverOpened())
+            .SetStatusAsync(0, "active");
+        Assert.False(subInvalid.Succeeded);
+        Assert.Equal("invalid", subInvalid.Code);
+
+        var subStatus = await new ErpSubscriptionStatusWriteService(new ConfiguredNeverOpened())
+            .SetStatusAsync(9, "expired");
+        Assert.False(subStatus.Succeeded);
+        Assert.Equal("invalid", subStatus.Code);
+
+        var subDb = await new ErpSubscriptionStatusWriteService(new UnconfiguredConnections())
+            .SetStatusAsync(9, "paused");
+        Assert.False(subDb.Succeeded);
+        Assert.Equal("db", subDb.Code);
+
+        var ctrInvalid = await new ErpContractStatusWriteService(new ConfiguredNeverOpened())
+            .SetStatusAsync(9, "nope");
+        Assert.False(ctrInvalid.Succeeded);
+        Assert.Equal("invalid", ctrInvalid.Code);
+
+        var ctrDb = await new ErpContractStatusWriteService(new UnconfiguredConnections())
+            .SetStatusAsync(9, "active");
+        Assert.False(ctrDb.Succeeded);
+        Assert.Equal("db", ctrDb.Code);
+
+        var wfInvalid = await new ErpWorkflowStatusWriteService(new ConfiguredNeverOpened())
+            .SetStatusAsync(9, "nope");
+        Assert.False(wfInvalid.Succeeded);
+        Assert.Equal("invalid", wfInvalid.Code);
+
+        var wfDb = await new ErpWorkflowStatusWriteService(new UnconfiguredConnections())
+            .SetStatusAsync(9, "done");
+        Assert.False(wfDb.Succeeded);
+        Assert.Equal("db", wfDb.Code);
     }
 
     [Fact]

@@ -63,6 +63,9 @@ public sealed class PhpVsAspNetRemovalMatrixTests
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "cp-content-pages" && r.WritesOwner == "aspnet");
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "erp-offices-cash" && r.WritesOwner == "aspnet");
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "erp-wms-locations" && r.WritesOwner == "aspnet");
+        Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "erp-subscriptions" && r.WritesOwner == "aspnet");
+        Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "erp-contracts" && r.WritesOwner == "aspnet");
+        Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "erp-workflow" && r.WritesOwner == "aspnet");
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "write-storefront-cart" && r.WritesOwner == "php");
     }
 
@@ -132,6 +135,9 @@ public sealed class PhpVsAspNetRemovalMatrixTests
             ("ErpCashAccountsApp.razor", "/erp/offices-cash/add"),
             ("ErpCashAccountsApp.razor", "/erp/offices-cash/codes/delete"),
             ("CpWarehouseWmsApp.razor", "/erp/wms/locations/delete"),
+            ("ErpSalesOrdersApp.razor", "/erp/subscriptions/status"),
+            ("ErpContractsApp.razor", "/erp/ajax/ctr-status"),
+            ("ErpWorkflowApp.razor", "/erp/workflow/status"),
             ("CpLanguagesApp.razor", "/cp/lang/set-is-custom"),
             ("CpLanguagesApp.razor", "/cp/lang/set-is-error"),
             ("CpLanguagesApp.razor", "/cp/lang/set-same"),

@@ -624,7 +624,7 @@ public static class EcomAeRoutes
     public const string ErpGlPostSales = "/erp/gl-journals/post-sales";
     /// <summary>Wave B dry-run for PHP gl_sync_unposted (writes=0).</summary>
     public const string ErpGlSyncUnposted = "/erp/gl-journals/sync-unposted";
-    /// <summary>Wave B dry-run for PHP workflow_status (writes=0).</summary>
+    /// <summary>PHP epc_erp_workflow_update_status. <c>confirmWrites=true</c> writes via <c>IErpWorkflowStatusWriteService</c>.</summary>
     public const string ErpWorkflowStatus = "/erp/workflow/status";
     /// <summary>Wave B dry-run for PHP workflow_create (writes=0).</summary>
     public const string ErpWorkflowCreate = "/erp/workflow/create";
@@ -650,7 +650,7 @@ public static class EcomAeRoutes
     public const string ErpWmsWaveRelease = "/erp/wms/waves/release";
     /// <summary>Wave B dry-run for PHP wms_work_complete (writes=0).</summary>
     public const string ErpWmsWorkComplete = "/erp/wms/work/complete";
-    /// <summary>Wave B dry-run for PHP sub_status (writes=0).</summary>
+    /// <summary>PHP epc_sub_set_status. <c>confirmWrites=true</c> writes via <c>IErpSubscriptionStatusWriteService</c>.</summary>
     public const string ErpSubscriptionsStatus = "/erp/subscriptions/status";
     /// <summary>Wave B dry-run for PHP coll_case_status (writes=0).</summary>
     public const string ErpCollectionsCaseStatus = "/erp/collections/cases/status";
@@ -1454,7 +1454,7 @@ public static class EcomAeRoutes
     public const string ErpAjaxSubGenerate = "/erp/ajax/sub-generate";
     /// <summary>Wave B dry-run for PHP sub_invoice_paid (writes=0).</summary>
     public const string ErpAjaxSubInvoicePaid = "/erp/ajax/sub-invoice-paid";
-    /// <summary>Wave B dry-run for PHP ctr_status (writes=0).</summary>
+    /// <summary>PHP epc_ctr_set_status. <c>confirmWrites=true</c> writes via <c>IErpContractStatusWriteService</c>.</summary>
     public const string ErpAjaxCtrStatus = "/erp/ajax/ctr-status";
     /// <summary>Wave B dry-run for PHP ctr_sign (writes=0).</summary>
     public const string ErpAjaxCtrSign = "/erp/ajax/ctr-sign";

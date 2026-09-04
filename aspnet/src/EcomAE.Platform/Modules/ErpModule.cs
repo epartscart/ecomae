@@ -1619,20 +1619,43 @@ public sealed class ErpModule : ISurfaceModule
 
         endpoints.MapPost(EcomAeRoutes.ErpWorkflowStatus, async (
             HttpContext context,
-            ErpWorkflowStatusBody? body,
             ILegacySessionValidator validator,
             IErpWorkflowStatusDryRun dryRun,
+            IErpWorkflowStatusWriteService writes,
             CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateAsync(context, cancellationToken);
             if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
             {
-                return Unauthorized("Admin ERP capability required for workflow status dry-run.");
+                return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/workflow-app", "Admin ERP capability required for workflow status.");
             }
-            body ??= new ErpWorkflowStatusBody(0, "done", false);
-            var result = dryRun.Evaluate(new ErpWorkflowStatusRequest(body.TaskId, body.Status, body.ConfirmWrites));
-            return Results.Ok(result.ToPayload(SessionPayload(session)));
-        });
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpWorkflowStatusBody>(context, cancellationToken)
+                       ?? new ErpWorkflowStatusBody(0, "done", false);
+            var taskId = body.TaskId;
+            var status = body.Status;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                taskId = LiveWriteFormBinder.Long(form, "taskId", "task_id", "id");
+                status = LiveWriteFormBinder.Text(form, "status");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(dryRun.Evaluate(new ErpWorkflowStatusRequest(taskId, status, false)).ToPayload(SessionPayload(session)));
+            }
+
+            var written = await writes.SetStatusAsync(taskId, status, cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/erp/workflow-app",
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
 
         endpoints.MapPost(EcomAeRoutes.ErpWorkflowCreate, async (
             HttpContext context,
@@ -1730,8 +1753,45 @@ public sealed class ErpModule : ISurfaceModule
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,false); return Results.Ok(dryRun.Evaluate(new ErpWmsWaveReleaseRequest(body.Id, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.ErpWmsWorkComplete, async (HttpContext context, ErpWmsWorkCompleteBody? body, ILegacySessionValidator validator, IErpWmsWorkCompleteDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,false); return Results.Ok(dryRun.Evaluate(new ErpWmsWorkCompleteRequest(body.Id, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
-        endpoints.MapPost(EcomAeRoutes.ErpSubscriptionsStatus, async (HttpContext context, ErpSubscriptionStatusBody? body, ILegacySessionValidator validator, IErpSubscriptionStatusDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,"active",false); return Results.Ok(dryRun.Evaluate(new ErpSubscriptionStatusRequest(body.Id, body.Status, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.ErpSubscriptionsStatus, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IErpSubscriptionStatusDryRun dryRun,
+            IErpSubscriptionStatusWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/sales-orders-app?tab=subscriptions", "Admin ERP capability required for subscription status.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpSubscriptionStatusBody>(context, cancellationToken)
+                       ?? new(0, "active", false);
+            var id = body.Id;
+            var status = body.Status;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                id = LiveWriteFormBinder.Long(form, "id", "subscriptionId", "subscription_id");
+                status = LiveWriteFormBinder.Text(form, "status");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(dryRun.Evaluate(new ErpSubscriptionStatusRequest(id, status, false)).ToPayload(SessionPayload(session)));
+            }
+
+            var written = await writes.SetStatusAsync(id, status, cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/erp/sales-orders-app?tab=subscriptions",
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpCollectionsCaseStatus, async (HttpContext context, ErpCollectionsCaseStatusBody? body, ILegacySessionValidator validator, IErpCollectionsCaseStatusDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,"new",false); return Results.Ok(dryRun.Evaluate(new ErpCollectionsCaseStatusRequest(body.Id, body.Status, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.ErpProcurementReqSubmit, async (HttpContext context, ErpProcReqSubmitBody? body, ILegacySessionValidator validator, IErpProcReqSubmitDryRun dryRun, CancellationToken cancellationToken) =>
@@ -1925,8 +1985,45 @@ public sealed class ErpModule : ISurfaceModule
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(false); return Results.Ok(dryRun.Evaluate(new ErpSubGenerateRequest(body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxSubInvoicePaid, async (HttpContext context, ErpSubInvoicePaidBody? body, ILegacySessionValidator validator, IErpSubInvoicePaidDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,false); return Results.Ok(dryRun.Evaluate(new ErpSubInvoicePaidRequest(body.Id, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxCtrStatus, async (HttpContext context, ErpCtrStatusBody? body, ILegacySessionValidator validator, IErpCtrStatusDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpCtrStatusRequest(body.Id, body.TargetStatus, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxCtrStatus, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IErpCtrStatusDryRun dryRun,
+            IErpContractStatusWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/contracts-app", "Admin ERP capability required for contract status.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpCtrStatusBody>(context, cancellationToken)
+                       ?? new(0, null, false);
+            var id = body.Id;
+            var status = body.TargetStatus;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                id = LiveWriteFormBinder.Long(form, "id", "contractId", "contract_id");
+                status = LiveWriteFormBinder.Text(form, "status", "targetStatus", "target_status");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(dryRun.Evaluate(new ErpCtrStatusRequest(id, status, false)).ToPayload(SessionPayload(session)));
+            }
+
+            var written = await writes.SetStatusAsync(id, status, cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/erp/contracts-app",
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxCtrSign, async (HttpContext context, ErpCtrSignBody? body, ILegacySessionValidator validator, IErpCtrSignDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,false); return Results.Ok(dryRun.Evaluate(new ErpCtrSignRequest(body.Id, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxCollCasePromise, async (HttpContext context, ErpCollCasePromiseBody? body, ILegacySessionValidator validator, IErpCollCasePromiseDryRun dryRun, CancellationToken cancellationToken) =>
