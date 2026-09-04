@@ -1782,10 +1782,18 @@ public static class EcomAeRoutes
     public const string StorefrontFitmentWidgetJs = "/storefront/fitment-widget.js";
     /// <summary>Proxied crossbase fitment table HTML (POST/GET) used by the widget JS.</summary>
     public const string StorefrontFitmentTable = "/storefront/fitment-table";
-    /// <summary>Excel bulk-upload shell (process writes remain PHP ajax_process).</summary>
+    /// <summary>Excel bulk-upload shell (PHP content/shop/bulk_upload/bulk_upload.php).</summary>
     public const string StorefrontBulkUploadApp = "/storefront/bulk-upload-app";
     /// <summary>Customer bulk-upload history digest.</summary>
     public const string StorefrontBulkUploadHistory = "/storefront/bulk-upload/history";
+    /// <summary>Live Excel/CSV price check (PHP ajax_process twin — no history INSERT).</summary>
+    public const string StorefrontBulkUploadCheck = "/storefront/bulk-upload/check";
+    /// <summary>Live cross-availability check for one bulk-upload row.</summary>
+    public const string StorefrontBulkUploadCross = "/storefront/bulk-upload/cross";
+    /// <summary>Add selected bulk-upload matches to cart (confirmWrites).</summary>
+    public const string StorefrontBulkUploadAddSelected = "/storefront/bulk-upload/add-selected";
+    /// <summary>Sample CSV matching PHP Brand / Part Number / Qty columns.</summary>
+    public const string StorefrontBulkUploadSample = "/storefront/bulk-upload/sample.csv";
     /// <summary>VIN / Laximo shell (decode remains PHP katalog-laximo).</summary>
     public const string StorefrontVinApp = "/storefront/vin-app";
     /// <summary>Vehicle year/make/model catalog shell (UMAPI tree from PHP widget).</summary>

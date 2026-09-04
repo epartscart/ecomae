@@ -104,12 +104,12 @@ public sealed class StorefrontFrontendParityWaveTests
         var text = Read("aspnet/src/EcomAE.Platform/Components/Pages/StorefrontBulkUploadApp.razor");
         Assert.Contains("@page \"/storefront/bulk-upload-app\"", text, StringComparison.Ordinal);
         Assert.Contains("ListStorefrontBulkUploadHistoryAsync", text, StringComparison.Ordinal);
-        Assert.Contains("/php-reference", text, StringComparison.Ordinal);
-        Assert.Contains("StorefrontPhpCanonical.BulkUpload", text, StringComparison.Ordinal);
-        Assert.Contains("_showPhpCompare", text, StringComparison.Ordinal);
-        Assert.Contains("Compare PHP reference", text, StringComparison.Ordinal);
-        // PHP iframe must be opt-in (?php=1), never the default production body.
-        Assert.Contains("@if (_showPhpCompare)", text, StringComparison.Ordinal);
+        Assert.Contains("name=\"bulk_file\"", text, StringComparison.Ordinal);
+        Assert.Contains("Upload and check prices", text, StringComparison.Ordinal);
+        Assert.Contains("StorefrontBulkUploadCheck", text, StringComparison.Ordinal);
+        Assert.Contains("epc_storefront_bulk_upload.js", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("Compare PHP reference", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("/php-reference", text, StringComparison.Ordinal);
     }
 
     [Fact]
