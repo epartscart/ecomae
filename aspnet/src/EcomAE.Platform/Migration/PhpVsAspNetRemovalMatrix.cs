@@ -77,6 +77,7 @@ public static class PhpVsAspNetRemovalMatrix
         Row("erp-inventory-forecast", "erp", "content/shop/finance/epc_inventory_forecast.php", "/CP/shop/finance/epc_inventory_forecast", "/erp/inventory-forecast-app", "aspnet-digest", "aspnet", "epc_forecast_compute UPSERT is ASP.NET-live. Demand-history ingest stays PHP."),
         Row("erp-multi-entity", "erp", "content/shop/finance/epc_multi_entity.php", "/CP/shop/finance/epc_multi_entity", "/erp/multi-entity-app", "aspnet-digest", "php", "Read-only epc_entity_groups / members / IC txns. Consolidation write stays PHP."),
         Row("erp-multi-currency-gl", "erp", "content/shop/finance/epc_multi_currency_gl.php", "/CP/shop/finance/epc_multi_currency_gl", "/erp/multi-currency-gl-app", "aspnet-digest", "php", "Read-only epc_fx_rates + epc_gl_currency_entries. Revaluation stays PHP."),
+        Row("erp-marketing", "erp", "content/shop/finance/epc_erp_staff.php epc_erp_marketing_create", "/ERP/?epc_erp_shell=1&area=sales&tab=marketing", "/erp/marketing-app", "aspnet-digest", "aspnet", "epc_erp_marketing_create INSERT is ASP.NET-live. Staff schema ensure and sample seed stay PHP."),
         Row("erp-payroll", "erp", "content/shop/finance/epc_wps_payroll.php + erp_tabs_payroll.php", "/CP/shop/finance/epc_wps_payroll", "/erp/payroll-app", "aspnet-digest", "aspnet", "payroll_approve and hr_update_days are ASP.NET-live. Generate/pay and payroll line recalc stay PHP."),
         Row("erp-subscriptions", "erp", "content/shop/finance/epc_erp_subscriptions.php epc_sub_set_status + sub_invoice_paid", "/ERP/?epc_erp_shell=1&area=sales&tab=subscriptions", "/erp/sales-orders-app?tab=subscriptions", "aspnet-digest", "aspnet", "Subscription status and invoice-paid UPDATEs are ASP.NET-live. Save and generate stay PHP."),
         Row("erp-contracts", "erp", "content/shop/finance/epc_erp_contracts.php epc_ctr_set_status", "/ERP/?epc_erp_shell=1&area=sales&tab=contracts", "/erp/contracts-app", "aspnet-digest", "aspnet", "Contract status UPDATE is ASP.NET-live. Save, sign, and OCR stay PHP."),
@@ -202,6 +203,7 @@ public static class PhpVsAspNetRemovalMatrix
                 "shop/finance/epc_inventory_forecast → /erp/inventory-forecast-app (new digest)",
                 "shop/finance/epc_multi_entity → /erp/multi-entity-app (new digest)",
                 "shop/finance/epc_multi_currency_gl → /erp/multi-currency-gl-app (new digest)",
+                "Marketing campaign create → /erp/marketing/create live",
                 "/CP/shop/finance hub still maps to /erp (intentional)"
             },
             ["rows"] = rows,

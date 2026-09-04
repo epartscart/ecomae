@@ -1779,14 +1779,55 @@ public sealed class ErpModule : ISurfaceModule
             return Results.Ok(result.ToPayload(SessionPayload(session)));
         });
 
-        endpoints.MapPost(EcomAeRoutes.ErpMarketingCreate, async (HttpContext context, ErpMarketingCreateBody? body, ILegacySessionValidator validator, IErpMarketingCreateDryRun dryRun, CancellationToken cancellationToken) =>
+        endpoints.MapPost(EcomAeRoutes.ErpMarketingCreate, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IErpMarketingCreateDryRun dryRun,
+            EcomAE.Platform.Erp.IErpMarketingWriteService writes,
+            CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateAsync(context, cancellationToken);
             if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
-                return Unauthorized("Admin ERP capability required for marketing create dry-run.");
-            body ??= new ErpMarketingCreateBody(null, false);
-            return Results.Ok(dryRun.Evaluate(new ErpMarketingCreateRequest(body.Name, body.ConfirmWrites)).ToPayload(SessionPayload(session)));
-        });
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/marketing-app", "Admin ERP capability required for marketing create.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpMarketingCreateBody>(context, cancellationToken)
+                       ?? new();
+            var name = body.Name;
+            var channel = body.Channel;
+            var budget = body.Budget;
+            var status = body.Status;
+            var timeStart = body.TimeStart;
+            var timeEnd = body.TimeEnd;
+            var notes = body.Notes;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                name = LiveWriteFormBinder.Text(form, "name");
+                channel = LiveWriteFormBinder.Text(form, "channel");
+                budget = LiveWriteFormBinder.Dec(form, "budget");
+                status = LiveWriteFormBinder.Text(form, "status");
+                timeStart = LiveWriteFormBinder.Text(form, "time_start", "timeStart");
+                timeEnd = LiveWriteFormBinder.Text(form, "time_end", "timeEnd");
+                notes = LiveWriteFormBinder.Text(form, "notes");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (confirm)
+            {
+                var written = await writes.CreateAsync(name, channel, budget, status, timeStart, timeEnd, notes, cancellationToken);
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    "/erp/marketing-app",
+                    written.Succeeded,
+                    written.Message,
+                    new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+            }
+
+            return Results.Ok(dryRun.Evaluate(new ErpMarketingCreateRequest(name, false, channel, budget, status, timeStart, timeEnd, notes)).ToPayload(SessionPayload(session)));
+        }).DisableAntiforgery();
 
         endpoints.MapPost(EcomAeRoutes.ErpSubscriptionsSave, async (HttpContext context, ErpSubscriptionSaveBody? body, ILegacySessionValidator validator, IErpSubscriptionSaveDryRun dryRun, CancellationToken cancellationToken) =>
         {
@@ -4336,7 +4377,7 @@ public sealed class ErpModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only epc_erp_marketing_campaigns. PHP marketing tab remains authoritative."
+                note = "epc_erp_marketing_campaigns. Create on POST /erp/marketing/create when confirmWrites=true. Staff schema seed stays PHP."
             });
         });
 
@@ -5222,7 +5263,15 @@ public sealed class ErpModule : ISurfaceModule
         string? Priority = "normal",
         long OrderId = 0,
         bool ConfirmWrites = false);
-    private sealed record ErpMarketingCreateBody(string? Name, bool ConfirmWrites = false);
+    private sealed record ErpMarketingCreateBody(
+        string? Name = null,
+        bool ConfirmWrites = false,
+        string? Channel = null,
+        decimal Budget = 0,
+        string? Status = null,
+        string? TimeStart = null,
+        string? TimeEnd = null,
+        string? Notes = null);
     private sealed record ErpSubscriptionSaveBody(string? Code, string? Customer, long Id = 0, bool ConfirmWrites = false);
     private sealed record ErpContractSaveBody(string? Code, string? Title, long Id = 0, bool ConfirmWrites = false);
     private sealed record ErpWmsReceiveBody(string? Item, decimal Qty, long ReceiveLocationId = 0, long PutawayLocationId = 0, bool ConfirmWrites = false);
