@@ -166,9 +166,6 @@
             "tourist_refund" => "Tourist refund overlay on the operational VAT return. Filing stays on ERP ajax.",
             _ => "Operational output − input for the selected period. File on the tax authority portal."
         };
-        var phpTabKey = tab is "" or "vat" ? "vat" : tab;
-        _phpTab = $"/ERP/?epc_erp_shell=1&area=tax&tab={phpTabKey}";
-
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("erp");
         if (!_isAdmin)

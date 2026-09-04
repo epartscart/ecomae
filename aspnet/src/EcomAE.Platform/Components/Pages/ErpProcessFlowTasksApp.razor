@@ -14,7 +14,7 @@
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Process flow" BreadcrumbArea="Overview" BreadcrumbTab="Process flow">
 
     
-    <PhpErpModulePageHeader Title="Process flow cases" Subtitle="Cancel an open case here. Start, act, and reassign stay on the classic twin." />
+    <PhpErpModulePageHeader Title="Process flow cases" Subtitle="Cancel an open case or remove a step here. Start, act, reassign, and seed stay on the classic twin." />
 
     @if (!string.IsNullOrWhiteSpace(_flashOk))
     {
@@ -31,6 +31,12 @@
             <input type="hidden" name="returnUrl" value="/erp/process-flow-tasks-app" />
             <label>Case id <input type="number" name="id" min="1" required style="width:6rem" /></label>
             <button type="submit">Cancel case</button>
+        </form>
+        <form method="post" action="/erp/ajax/pf-step-delete" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/erp/process-flow-tasks-app" />
+            <label>Step id <input type="number" name="step_id" min="1" required style="width:6rem" /></label>
+            <button type="submit">Remove step</button>
         </form>
     }
 
@@ -82,7 +88,7 @@
     </div>
 
     <div class="epc-erp-empty" style="display:block;margin-top:12px;padding:8px 10px;border:1px solid #c5d4de;background:#f8fafc;color:#475569;font-size:12px;">
-        Source: @_summary.Source. PHP <code>epc_erp_processflow.php</code> remains authoritative for case create/approve/reject.
+        Source: @_summary.Source. PHP <code>epc_erp_processflow.php</code> remains authoritative for case create/approve/reject and step save.
         @if (!string.IsNullOrWhiteSpace(_summary.Message)) { <span> @_summary.Message</span> }
     </div>
 </PhpErpDesktopChrome>

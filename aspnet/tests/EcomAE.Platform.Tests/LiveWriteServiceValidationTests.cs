@@ -922,6 +922,36 @@ public sealed class LiveWriteServiceValidationTests
             .ConvertAsync(9);
         Assert.False(convDb.Succeeded);
         Assert.Equal("db", convDb.Code);
+
+        var stepInvalid = await new ErpPfStepDeleteWriteService(new ConfiguredNeverOpened())
+            .DeleteAsync(0);
+        Assert.False(stepInvalid.Succeeded);
+        Assert.Equal("invalid", stepInvalid.Code);
+
+        var stepDb = await new ErpPfStepDeleteWriteService(new UnconfiguredConnections())
+            .DeleteAsync(9);
+        Assert.False(stepDb.Succeeded);
+        Assert.Equal("db", stepDb.Code);
+
+        var wfRuleInvalid = await new ErpBosWfDisableRuleWriteService(new ConfiguredNeverOpened())
+            .DisableAsync(0);
+        Assert.False(wfRuleInvalid.Succeeded);
+        Assert.Equal("invalid", wfRuleInvalid.Code);
+
+        var wfRuleDb = await new ErpBosWfDisableRuleWriteService(new UnconfiguredConnections())
+            .DisableAsync(9);
+        Assert.False(wfRuleDb.Succeeded);
+        Assert.Equal("db", wfRuleDb.Code);
+
+        var oblInvalid = await new ErpBosComplianceDisableObligationWriteService(new ConfiguredNeverOpened())
+            .DisableAsync(0);
+        Assert.False(oblInvalid.Succeeded);
+        Assert.Equal("invalid", oblInvalid.Code);
+
+        var oblDb = await new ErpBosComplianceDisableObligationWriteService(new UnconfiguredConnections())
+            .DisableAsync(9);
+        Assert.False(oblDb.Succeeded);
+        Assert.Equal("db", oblDb.Code);
     }
 
     [Fact]

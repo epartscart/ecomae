@@ -1412,7 +1412,7 @@ public static class EcomAeRoutes
     public const string ErpAjaxPresenceHeartbeat = "/erp/ajax/presence-heartbeat";
     /// <summary>Wave B dry-run for PHP bos_compliance_add_obligation (writes=0).</summary>
     public const string ErpAjaxBosComplianceAddObligation = "/erp/ajax/bos-compliance-add-obligation";
-    /// <summary>Wave B dry-run for PHP bos_compliance_disable_obligation (writes=0).</summary>
+    /// <summary>Live PHP bos_compliance_disable_obligation twin (confirmWrites=true writes).</summary>
     public const string ErpAjaxBosComplianceDisableObligation = "/erp/ajax/bos-compliance-disable-obligation";
     /// <summary>Wave B dry-run for PHP bos_compliance_file (writes=0).</summary>
     public const string ErpAjaxBosComplianceFile = "/erp/ajax/bos-compliance-file";
@@ -1420,7 +1420,7 @@ public static class EcomAeRoutes
     public const string ErpAjaxBosComplianceSaveRetention = "/erp/ajax/bos-compliance-save-retention";
     /// <summary>Wave B dry-run for PHP bos_wf_save_rule (writes=0).</summary>
     public const string ErpAjaxBosWfSaveRule = "/erp/ajax/bos-wf-save-rule";
-    /// <summary>Wave B dry-run for PHP bos_wf_disable_rule (writes=0).</summary>
+    /// <summary>Live PHP bos_wf_disable_rule twin (confirmWrites=true writes).</summary>
     public const string ErpAjaxBosWfDisableRule = "/erp/ajax/bos-wf-disable-rule";
     /// <summary>Wave B dry-run for PHP bos_wf_decide (writes=0).</summary>
     public const string ErpAjaxBosWfDecide = "/erp/ajax/bos-wf-decide";
@@ -1444,7 +1444,7 @@ public static class EcomAeRoutes
     public const string ErpAjaxPfProcessSave = "/erp/ajax/pf-process-save";
     /// <summary>Wave B dry-run for PHP pf_step_save (writes=0).</summary>
     public const string ErpAjaxPfStepSave = "/erp/ajax/pf-step-save";
-    /// <summary>Wave B dry-run for PHP pf_step_delete (writes=0).</summary>
+    /// <summary>Live PHP pf_step_delete twin (confirmWrites=true writes).</summary>
     public const string ErpAjaxPfStepDelete = "/erp/ajax/pf-step-delete";
     /// <summary>Wave B dry-run for PHP pf_case_start (writes=0).</summary>
     public const string ErpAjaxPfCaseStart = "/erp/ajax/pf-case-start";

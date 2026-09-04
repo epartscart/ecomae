@@ -71,6 +71,8 @@ public sealed class PhpVsAspNetRemovalMatrixTests
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "erp-ins-claims" && r.WritesOwner == "aspnet");
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "erp-vat-refund-status" && r.WritesOwner == "aspnet");
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "erp-pf-case-cancel" && r.WritesOwner == "aspnet");
+        Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "erp-bos-wf-disable-rule" && r.WritesOwner == "aspnet");
+        Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "erp-bos-compliance-disable" && r.WritesOwner == "aspnet");
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "write-storefront-cart" && r.WritesOwner == "php");
     }
 
@@ -152,6 +154,9 @@ public sealed class PhpVsAspNetRemovalMatrixTests
             ("ErpVatApp.razor", "/erp/ajax/bos-vat-refund-status"),
             ("ErpSalesOrdersApp.razor", "/erp/ajax/sub-invoice-paid"),
             ("ErpProcessFlowTasksApp.razor", "/erp/ajax/pf-case-cancel"),
+            ("ErpProcessFlowTasksApp.razor", "/erp/ajax/pf-step-delete"),
+            ("ErpApprovalsApp.razor", "/erp/ajax/bos-wf-disable-rule"),
+            ("CpSoc2ComplianceApp.razor", "/erp/ajax/bos-compliance-disable-obligation"),
             ("CpLanguagesApp.razor", "/cp/lang/set-is-custom"),
             ("CpLanguagesApp.razor", "/cp/lang/set-is-error"),
             ("CpLanguagesApp.razor", "/cp/lang/set-same"),

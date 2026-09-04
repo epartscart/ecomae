@@ -678,6 +678,9 @@ builder.Services.AddScoped<EcomAE.Platform.Erp.IErpInsClaimStatusWriteService, E
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpBosVatRefundStatusWriteService, EcomAE.Platform.Erp.ErpBosVatRefundStatusWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpSubInvoicePaidWriteService, EcomAE.Platform.Erp.ErpSubInvoicePaidWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpPfCaseCancelWriteService, EcomAE.Platform.Erp.ErpPfCaseCancelWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpPfStepDeleteWriteService, EcomAE.Platform.Erp.ErpPfStepDeleteWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpBosWfDisableRuleWriteService, EcomAE.Platform.Erp.ErpBosWfDisableRuleWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpBosComplianceDisableObligationWriteService, EcomAE.Platform.Erp.ErpBosComplianceDisableObligationWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpOmsWriteService, EcomAE.Platform.Cp.CpOmsWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpUserWriteService, EcomAE.Platform.Cp.CpUserWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpLangWriteService, EcomAE.Platform.Cp.CpLangWriteService>();
