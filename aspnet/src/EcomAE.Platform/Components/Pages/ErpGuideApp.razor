@@ -1,21 +1,35 @@
 @page "/erp/guide-app"
 @page "/erp/guide"
 @page "/en/erp/guide"
+@page "/erp/guide/howto"
+@page "/erp/guide/full"
+@page "/erp/guide/advanced"
+@page "/erp/guide/erp-only"
+@page "/erp/guide/customs"
+@page "/cp/shop/finance/erp/guide"
+@page "/cp/shop/finance/erp/erp_full_guide"
+@page "/cp/shop/finance/erp/erp_advanced_guide"
+@page "/cp/shop/finance/erp/erp_only_operator_guide"
+@page "/cp/shop/finance/erp/custom_shipping/custom_shipping_guide"
 @layout Layout.PhpChromeLayout
 @using EcomAE.Platform.Auth
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
-@inject NavigationManager Nav
 
-<PageTitle>ERP Guide · eParts Cart</PageTitle>
+<PageTitle>@_pageTitle · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
 <HeadContent>
 <style>
+    .epc-eg-books { display:flex; gap:.4rem; flex-wrap:wrap; margin:0 0 12px; }
+    .epc-eg-books a { display:inline-flex; padding:.35rem .65rem; border-radius:999px; border:1px solid #c5d4de; background:#fff; color:#243746; text-decoration:none; font-size:12px; font-weight:600; }
+    .epc-eg-books a.active { background:#e8f1f8; border-color:#7aa3bb; }
     .epc-eg-layout { display:grid; grid-template-columns:minmax(220px,280px) minmax(0,1fr); gap:12px; align-items:start; }
     .epc-eg-side { background:#fff; border:1px solid #c5d4de; border-radius:3px; padding:10px; }
-    .epc-eg-search { width:100%; box-sizing:border-box; margin-bottom:8px; padding:6px 8px; border:1px solid #c5d4de; border-radius:3px; font-size:12px; }
+    .epc-eg-search { display:flex; gap:6px; margin-bottom:8px; }
+    .epc-eg-search input { width:100%; box-sizing:border-box; padding:6px 8px; border:1px solid #c5d4de; border-radius:3px; font-size:12px; }
+    .epc-eg-search button { padding:6px 8px; border:1px solid #c5d4de; border-radius:3px; background:#f8fafc; font-size:12px; font-weight:700; }
     .epc-eg-mods { list-style:none; margin:0; padding:0; max-height:min(70vh,640px); overflow:auto; }
     .epc-eg-mods a { display:block; padding:6px 8px; border-radius:2px; font-size:12px; color:#243746; text-decoration:none; }
     .epc-eg-mods a:hover { background:#f1f5f9; }
@@ -25,6 +39,7 @@
     .epc-eg-detail .code { color:#64748b; font-size:11px; margin-bottom:10px; }
     .epc-eg-detail h3 { margin:12px 0 4px; font-size:13px; color:#3d5a6c; }
     .epc-eg-detail p, .epc-eg-detail li { font-size:12.5px; line-height:1.45; color:#334155; }
+    .epc-eg-ch { border-left:3px solid #1d4ed8; background:#f8fafc; padding:8px 10px; margin:0 0 10px; }
     .epc-eg-empty { color:#64748b; font-size:12px; }
     @@media (max-width:900px){ .epc-eg-layout{grid-template-columns:1fr;} .epc-eg-mods{max-height:240px;} }
 </style>
@@ -32,87 +47,145 @@
 
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="ERP Guide" BreadcrumbArea="Home" BreadcrumbTab="Guide">
 
-    <PhpErpModulePageHeader Title="ERP Guide book"
-                            Subtitle="Step-by-step module guide (ASP.NET). Compare PHP reference only if needed."
-                            PhpTabHref="/ERP/?epc_erp_shell=1&area=overview&tab=guide" />
+    <PhpErpModulePageHeader Title="@_pageTitle"
+                            Subtitle="@_book.Summary" />
 
-    <div class="epc-eg-layout">
-        <aside class="epc-eg-side" aria-label="Guide modules">
-            <input class="epc-eg-search" type="search" placeholder="Filter modules…" value="@_q" @oninput="OnSearch" />
-            <ul class="epc-eg-mods">
-                @foreach (var m in _filtered)
+    <nav class="epc-eg-books" aria-label="ERP guide books">
+        @foreach (var book in ErpGuideBooks.All)
+        {
+            var href = "/erp/guide-app?book=" + Uri.EscapeDataString(book.Key);
+            <a class="@(_book.Key == book.Key ? "active" : null)" href="@href">@book.Title</a>
+        }
+        <a href="/cp/guides-app">CP operator guides</a>
+    </nav>
+
+    @if (_book.Key == ErpGuideBooks.Modules)
+    {
+        <div class="epc-eg-layout">
+            <aside class="epc-eg-side" aria-label="Guide modules">
+                <form class="epc-eg-search" method="get" action="/erp/guide-app" role="search">
+                    <input type="hidden" name="book" value="@ErpGuideBooks.Modules" />
+                    <input class="epc-eg-search" type="search" name="q" placeholder="Filter modules…" value="@_q" />
+                    <button type="submit">Filter</button>
+                </form>
+                <ul class="epc-eg-mods">
+                    @foreach (var m in _filtered)
+                    {
+                        var href = "/erp/guide-app?book=" + ErpGuideBooks.Modules + "&module=" + Uri.EscapeDataString(m.Module)
+                                   + (string.IsNullOrWhiteSpace(_q) ? "" : "&q=" + Uri.EscapeDataString(_q));
+                        <li>
+                            <a class="@(_selected?.Module == m.Module ? "active" : null)" href="@href">@m.Title</a>
+                        </li>
+                    }
+                </ul>
+                @if (_filtered.Count == 0)
                 {
-                    var href = "/erp/guide-app?module=" + Uri.EscapeDataString(m.Module);
-                    <li>
-                        <a class="@(_selected?.Module == m.Module ? "active" : null)" href="@href">@m.Title</a>
-                    </li>
+                    <p class="epc-eg-empty">No modules match.</p>
                 }
-            </ul>
-            @if (_filtered.Count == 0)
-            {
-                <p class="epc-eg-empty">No modules match.</p>
-            }
-        </aside>
+            </aside>
 
+            <article class="epc-eg-detail">
+                @if (_selected is null)
+                {
+                    <p class="epc-eg-empty">Select a module from the list, or open <code>?module=core</code>.</p>
+                }
+                else
+                {
+                    <h2>@_selected.Title</h2>
+                    <div class="code">module: @_selected.Module</div>
+
+                    <h3>What it is</h3>
+                    <p>@_selected.What</p>
+
+                    <h3>Setup</h3>
+                    @if (_selected.Setup.Count == 0)
+                    {
+                        <p class="epc-eg-empty">No setup steps.</p>
+                    }
+                    else
+                    {
+                        <ul>@foreach (var s in _selected.Setup) { <li>@s</li> }</ul>
+                    }
+
+                    <h3>Daily work</h3>
+                    @if (_selected.Daily.Count == 0)
+                    {
+                        <p class="epc-eg-empty">No daily steps.</p>
+                    }
+                    else
+                    {
+                        <ul>@foreach (var s in _selected.Daily) { <li>@s</li> }</ul>
+                    }
+
+                    <h3>Accounting impact</h3>
+                    <p>@(string.IsNullOrWhiteSpace(_selected.Accounting) ? "—" : _selected.Accounting)</p>
+
+                    <h3>Tips</h3>
+                    @if (_selected.Tips.Count == 0)
+                    {
+                        <p class="epc-eg-empty">No tips.</p>
+                    }
+                    else
+                    {
+                        <ul>@foreach (var s in _selected.Tips) { <li>@s</li> }</ul>
+                    }
+                }
+            </article>
+        </div>
+    }
+    else
+    {
         <article class="epc-eg-detail">
-            @if (_selected is null)
+            <h2>@_book.Title</h2>
+            <p class="epc-eg-empty" style="margin-bottom:12px;">@_book.Summary</p>
+            @foreach (var ch in _book.Chapters)
             {
-                <p class="epc-eg-empty">Select a module from the list, or open <code>?module=core</code>.</p>
+                <section class="epc-eg-ch">
+                    <h3>@ch.Title</h3>
+                    @if (!string.IsNullOrWhiteSpace(ch.Lead))
+                    {
+                        <p>@ch.Lead</p>
+                    }
+                    @if (ch.Steps.Count > 0)
+                    {
+                        <ul>
+                            @foreach (var step in ch.Steps)
+                            {
+                                <li>@step</li>
+                            }
+                        </ul>
+                    }
+                    @if (!string.IsNullOrWhiteSpace(ch.Note))
+                    {
+                        <p class="epc-eg-empty">@ch.Note</p>
+                    }
+                </section>
             }
-            else
+            @if (_book.Key == ErpGuideBooks.Full)
             {
-                <h2>@_selected.Title</h2>
-                <div class="code">module: @_selected.Module</div>
-
-                <h3>What it is</h3>
-                <p>@_selected.What</p>
-
-                <h3>Setup</h3>
-                @if (_selected.Setup.Count == 0)
-                {
-                    <p class="epc-eg-empty">No setup steps.</p>
-                }
-                else
-                {
-                    <ul>@foreach (var s in _selected.Setup) { <li>@s</li> }</ul>
-                }
-
-                <h3>Daily work</h3>
-                @if (_selected.Daily.Count == 0)
-                {
-                    <p class="epc-eg-empty">No daily steps.</p>
-                }
-                else
-                {
-                    <ul>@foreach (var s in _selected.Daily) { <li>@s</li> }</ul>
-                }
-
-                <h3>Accounting impact</h3>
-                <p>@(string.IsNullOrWhiteSpace(_selected.Accounting) ? "—" : _selected.Accounting)</p>
-
-                <h3>Tips</h3>
-                @if (_selected.Tips.Count == 0)
-                {
-                    <p class="epc-eg-empty">No tips.</p>
-                }
-                else
-                {
-                    <ul>@foreach (var s in _selected.Tips) { <li>@s</li> }</ul>
-                }
+                <p><a href="/erp/guide-app?book=@ErpGuideBooks.Modules&amp;module=core">Open the module book</a> for What it is / Setup / Daily work / Accounting impact on every entitled module.</p>
             }
         </article>
-    </div>
+    }
 </PhpErpDesktopChrome>
 
 @code {
     private bool _isAdmin;
     private string _q = "";
+    private string _pageTitle = "ERP Guide";
+    private ErpGuideBooks.Book _book = ErpGuideBooks.Get(ErpGuideBooks.Modules);
     private IReadOnlyList<ErpGuideModuleRecord> _all = [];
     private IReadOnlyList<ErpGuideModuleRecord> _filtered = [];
     private ErpGuideModuleRecord? _selected;
 
     [SupplyParameterFromQuery(Name = "module")]
     public string? ModuleQuery { get; set; }
+
+    [SupplyParameterFromQuery(Name = "q")]
+    public string? SearchQuery { get; set; }
+
+    [SupplyParameterFromQuery(Name = "book")]
+    public string? BookQuery { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
@@ -124,23 +197,47 @@
         }
 
         _all = ErpGuideCatalog.All;
-        _filtered = _all;
-        SelectModule(ModuleQuery);
+        Resolve();
     }
 
     protected override void OnParametersSet()
     {
-        SelectModule(ModuleQuery);
+        Resolve();
     }
 
-    private void OnSearch(ChangeEventArgs e)
+    private void Resolve()
     {
-        _q = e.Value?.ToString() ?? "";
-        _filtered = ErpGuideCatalog.Search(_q);
-        if (_selected is not null && _filtered.All(m => m.Module != _selected.Module))
+        var bookKey = BookQuery;
+        if (string.IsNullOrWhiteSpace(bookKey) && Http.HttpContext is not null)
         {
-            // keep detail; list just filters
+            var path = Http.HttpContext.Request.Path.Value ?? "";
+            if (path.Contains("erp_full_guide", StringComparison.OrdinalIgnoreCase) || path.EndsWith("/guide/full", StringComparison.OrdinalIgnoreCase))
+            {
+                bookKey = ErpGuideBooks.Full;
+            }
+            else if (path.Contains("erp_advanced_guide", StringComparison.OrdinalIgnoreCase) || path.EndsWith("/guide/advanced", StringComparison.OrdinalIgnoreCase))
+            {
+                bookKey = ErpGuideBooks.Advanced;
+            }
+            else if (path.Contains("erp_only_operator", StringComparison.OrdinalIgnoreCase) || path.EndsWith("/guide/erp-only", StringComparison.OrdinalIgnoreCase))
+            {
+                bookKey = ErpGuideBooks.ErpOnly;
+            }
+            else if (path.Contains("custom_shipping_guide", StringComparison.OrdinalIgnoreCase) || path.EndsWith("/guide/customs", StringComparison.OrdinalIgnoreCase))
+            {
+                bookKey = ErpGuideBooks.Customs;
+            }
+            else if (path.Contains("/shop/finance/erp/guide", StringComparison.OrdinalIgnoreCase) || path.EndsWith("/guide/howto", StringComparison.OrdinalIgnoreCase))
+            {
+                bookKey = ErpGuideBooks.Howto;
+            }
         }
+
+        _book = ErpGuideBooks.Get(bookKey);
+        _pageTitle = _book.Title;
+        _q = SearchQuery ?? "";
+        _filtered = string.IsNullOrWhiteSpace(_q) ? _all : ErpGuideCatalog.Search(_q);
+        SelectModule(ModuleQuery);
     }
 
     private void SelectModule(string? module)

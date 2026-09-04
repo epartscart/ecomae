@@ -1,0 +1,239 @@
+@page "/cp/guides-app"
+@page "/cp/control/cp-guideline"
+@page "/cp/control/guideline"
+@page "/cp/shop/prices/guide"
+@page "/cp/shop/orders/oms-guide"
+@page "/cp/shop/orders/guide"
+@page "/cp/shop/orders/whatsapp-guide"
+@page "/cp/shop/logistics/guide"
+@page "/cp/shop/logistics/whatsapp-guide"
+@page "/cp/shop/payments/guide"
+@page "/cp/shop/channels/guide"
+@page "/cp/shop/procurement/procurement_guide"
+@page "/cp/shop/customer_mgmt/customer_mgmt_guide"
+@page "/cp/users/customer_mgmt_guide"
+@page "/cp/shop/document_control/document_control_guide"
+@page "/cp/control/portal/epc_api_documentation_guide"
+@page "/cp/control/portal/epc_auto_price_guide"
+@page "/cp/control/portal/epc_autoworkshop_guide"
+@page "/cp/control/portal/epc_custom_shipping_guide"
+@page "/cp/control/portal/epc_erp_only_onboard_guide"
+@page "/cp/control/portal/epc_integrations_guide"
+@page "/cp/control/portal/epc_platform_failover_guide"
+@page "/cp/control/portal/epc_power_bi_guide"
+@page "/cp/control/portal/epc_super_cp_operator_guide"
+@layout Layout.PhpChromeLayout
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Routing
+@inject ILegacySessionValidator Sessions
+@inject IHttpContextAccessor Http
+
+<PageTitle>@(_guide is null ? "Operator guides" : _guide.Title) · Control Panel</PageTitle>
+<PhpChromeStyles Surface="cp" />
+<HeadContent>
+<style>
+    .epc-gh-hero { margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff; background:linear-gradient(135deg,#0c4a6e 0%,#2563eb 45%,#0ea5e9 100%); }
+    .epc-gh-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
+    .epc-gh-hero p { margin:0; color:rgba(255,255,255,.9); max-width:52rem; font-size:.92rem; line-height:1.45; }
+    .epc-gh-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
+    .epc-gh-cta a { display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem; text-decoration:none; color:#0f172a; background:#fff; }
+    .epc-gh-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); color:#fff; }
+    .epc-gh-search { display:flex; gap:.5rem; flex-wrap:wrap; margin:0 0 1rem; }
+    .epc-gh-search input { flex:1 1 16rem; min-width:12rem; padding:.45rem .65rem; border:1px solid #cbd5e1; border-radius:.4rem; }
+    .epc-gh-search button { padding:.45rem .8rem; border:0; border-radius:.4rem; background:#1d4ed8; color:#fff; font-weight:700; }
+    .epc-gh-fam { margin:0 0 1.1rem; }
+    .epc-gh-fam h2 { margin:0 0 .55rem; font-size:1rem; color:#334155; }
+    .epc-gh-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:.65rem; }
+    .epc-gh-card { display:block; background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; padding:.85rem .95rem; text-decoration:none; color:#0f172a; }
+    .epc-gh-card:hover { border-color:#93c5fd; }
+    .epc-gh-card strong { display:block; margin:0 0 .25rem; }
+    .epc-gh-card span { color:#475569; font-size:.82rem; line-height:1.4; }
+    .epc-gh-reader { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; padding:1rem 1.1rem; }
+    .epc-gh-reader h2 { margin:0 0 .35rem; font-size:1.25rem; }
+    .epc-gh-lead { color:#475569; font-size:.92rem; margin:0 0 1rem; }
+    .epc-gh-ch { border-left:4px solid #2563eb; background:#f8fafc; border-radius:0 .45rem .45rem 0; padding:.75rem .9rem; margin:0 0 .75rem; }
+    .epc-gh-ch h3 { margin:0 0 .35rem; font-size:.98rem; }
+    .epc-gh-ch p, .epc-gh-ch li { font-size:.86rem; line-height:1.45; color:#334155; }
+    .epc-gh-ch ol { margin:.35rem 0 0; padding-left:1.2rem; }
+    .epc-gh-note { margin:.5rem 0 0; padding:.5rem .65rem; background:#fffbeb; border:1px solid #fde68a; border-radius:.35rem; color:#78350f; font-size:.82rem; }
+    .epc-gh-rel { display:flex; gap:.4rem; flex-wrap:wrap; margin-top:.85rem; }
+    .epc-gh-rel a { font-size:.8rem; font-weight:700; color:#1d4ed8; }
+    .epc-gh-empty { color:#64748b; font-size:.9rem; }
+</style>
+</HeadContent>
+
+<PhpCpDesktopChrome IsAdmin="_isAdmin">
+    <section class="epc-gh-hero">
+        <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
+        <h1>@(_guide is null ? "Operator guides" : _guide.Title)</h1>
+        <p>
+            @if (_guide is null)
+            {
+                <text>Every Control Panel and Super CP operator guide — daily workflows, upload ways, OMS, fulfilment, logistics, payments, channels, and portal books. ERP books open in the ERP guide.</text>
+            }
+            else
+            {
+                @_guide.Summary
+            }
+        </p>
+        <div class="epc-gh-cta">
+            <a href="@EcomAeRoutes.ControlPanelGuidesApp">All guides</a>
+            <a class="ghost" href="/erp/guide-app">ERP guide books</a>
+            <a class="ghost" href="@EcomAeRoutes.ControlPanelOpsGuidesApp">Ops menu digest</a>
+            <a class="ghost" href="/cp">Command centre</a>
+        </div>
+    </section>
+
+    @if (_guide is null)
+    {
+        <form class="epc-gh-search" method="get" action="@EcomAeRoutes.ControlPanelGuidesApp" role="search">
+            <input type="search" name="q" value="@_q" placeholder="Filter guides…" />
+            <button type="submit">Search</button>
+        </form>
+
+        @if (_filtered.Count == 0)
+        {
+            <p class="epc-gh-empty">No guides match.</p>
+        }
+        else
+        {
+            @foreach (var fam in _families)
+            {
+                var rows = _filtered.Where(g => g.Family == fam.Key).ToList();
+                if (rows.Count == 0)
+                {
+                    continue;
+                }
+                <section class="epc-gh-fam" aria-label="@fam.Value">
+                    <h2>@fam.Value</h2>
+                    <div class="epc-gh-grid">
+                        @foreach (var g in rows)
+                        {
+                            <a class="epc-gh-card" href="@g.Href">
+                                <strong>@g.Title</strong>
+                                <span>@g.Summary</span>
+                            </a>
+                        }
+                    </div>
+                </section>
+            }
+
+            <section class="epc-gh-fam" aria-label="ERP books">
+                <h2>ERP books</h2>
+                <div class="epc-gh-grid">
+                    @foreach (var book in ErpGuideBooks.All)
+                    {
+                        var href = "/erp/guide-app?book=" + Uri.EscapeDataString(book.Key);
+                        <a class="epc-gh-card" href="@href">
+                            <strong>@book.Title</strong>
+                            <span>@book.Summary</span>
+                        </a>
+                    }
+                </div>
+            </section>
+        }
+    }
+    else
+    {
+        <article class="epc-gh-reader">
+            <p class="epc-gh-lead">@_guide.Summary</p>
+            @foreach (var ch in _guide.Chapters)
+            {
+                <section class="epc-gh-ch">
+                    <h3>@ch.Title</h3>
+                    @if (!string.IsNullOrWhiteSpace(ch.Lead))
+                    {
+                        <p>@ch.Lead</p>
+                    }
+                    @if (ch.Steps.Count > 0)
+                    {
+                        <ol>
+                            @foreach (var step in ch.Steps)
+                            {
+                                <li>@step</li>
+                            }
+                        </ol>
+                    }
+                    @if (!string.IsNullOrWhiteSpace(ch.Note))
+                    {
+                        <div class="epc-gh-note">@ch.Note</div>
+                    }
+                </section>
+            }
+            @if (_guide.RelatedHrefs.Count > 0)
+            {
+                <div class="epc-gh-rel">
+                    @foreach (var rel in _guide.RelatedHrefs)
+                    {
+                        <a href="@rel">Open related</a>
+                    }
+                </div>
+            }
+        </article>
+    }
+</PhpCpDesktopChrome>
+
+@code {
+    private static readonly (string Key, string Value)[] _families =
+    [
+        ("shop", "Shop & operations"),
+        ("portal", "Portal & Super CP"),
+    ];
+
+    private bool _isAdmin;
+    private string _q = "";
+    private OperatorGuidesCatalog.Guide? _guide;
+    private IReadOnlyList<OperatorGuidesCatalog.Guide> _filtered = [];
+
+    [SupplyParameterFromQuery(Name = "g")]
+    public string? GuideQuery { get; set; }
+
+    [SupplyParameterFromQuery(Name = "q")]
+    public string? SearchQuery { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is not null)
+        {
+            var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+            _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
+        }
+
+        Resolve();
+    }
+
+    protected override void OnParametersSet()
+    {
+        Resolve();
+    }
+
+    private void Resolve()
+    {
+        _q = SearchQuery ?? "";
+        var key = GuideQuery;
+        if (string.IsNullOrWhiteSpace(key) && Http.HttpContext is not null)
+        {
+            key = OperatorGuidesCatalog.KeyFromRequestPath(Http.HttpContext.Request.Path.Value);
+        }
+
+        _guide = OperatorGuidesCatalog.Get(key);
+        if (_guide is null)
+        {
+            var all = OperatorGuidesCatalog.All;
+            if (string.IsNullOrWhiteSpace(_q))
+            {
+                _filtered = all;
+                return;
+            }
+
+            var needle = _q.Trim();
+            _filtered = all.Where(g =>
+                g.Title.Contains(needle, StringComparison.OrdinalIgnoreCase)
+                || g.Summary.Contains(needle, StringComparison.OrdinalIgnoreCase)
+                || g.Key.Contains(needle, StringComparison.OrdinalIgnoreCase)
+                || g.PhpPath.Contains(needle, StringComparison.OrdinalIgnoreCase)).ToList();
+        }
+    }
+}
