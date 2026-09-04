@@ -379,6 +379,7 @@ builder.Services.AddSingleton<IErpWhtCodeSaveDryRun, ErpWhtCodeSaveDryRun>();
 builder.Services.AddSingleton<IErpWhtRecordDryRun, ErpWhtRecordDryRun>();
 builder.Services.AddSingleton<IErpWhtCertificateDryRun, ErpWhtCertificateDryRun>();
 builder.Services.AddSingleton<IErpWhtSettleDryRun, ErpWhtSettleDryRun>();
+builder.Services.AddSingleton<IErpMultiCurrencyGlWriteDryRun, ErpMultiCurrencyGlWriteDryRun>();
 builder.Services.AddSingleton<IErpConcurrencyStatusDryRun, ErpConcurrencyStatusDryRun>();
 builder.Services.AddSingleton<IErpSettlementOpenDocsDryRun, ErpSettlementOpenDocsDryRun>();
 builder.Services.AddSingleton<IErpDashboardDryRun, ErpDashboardDryRun>();
@@ -657,6 +658,7 @@ builder.Services.AddScoped<EcomAE.Platform.Storefront.IStorefrontGarageWriteServ
 builder.Services.AddScoped<EcomAE.Platform.Storefront.IStorefrontCustomerWriteService, EcomAE.Platform.Storefront.StorefrontCustomerWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpPayrollWriteService, EcomAE.Platform.Erp.ErpPayrollWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpInventoryForecastWriteService, EcomAE.Platform.Erp.ErpInventoryForecastWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpMultiCurrencyGlWriteService, EcomAE.Platform.Erp.ErpMultiCurrencyGlWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpWorkspaceFavoritesWriteService, EcomAE.Platform.Erp.ErpWorkspaceFavoritesWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpInventoryReorderWriteService, EcomAE.Platform.Erp.ErpInventoryReorderWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpJwRepairWriteService, EcomAE.Platform.Erp.ErpJwRepairWriteService>();

@@ -4605,8 +4605,66 @@ public sealed class ErpModule : ISurfaceModule
             if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
                 return Unauthorized("Admin ERP capability required for multi-currency-gl digest.");
             var result = await dashboards.ListErpMultiCurrencyGlAsync(limit ?? 200, cancellationToken);
-            return Results.Ok(new { ok = true, surface = "erp", rates = result.Rates, entries = result.Entries, count = result.Count, entryCount = result.EntryCount, unrevaluedCount = result.UnrevaluedCount, revalGainLossTotal = result.RevalGainLossTotal, source = result.Source, message = result.Message, session = SessionPayload(session), note = "Read-only epc_fx_rates + epc_gl_currency_entries. PHP revaluation remains authoritative." });
+            return Results.Ok(new { ok = true, surface = "erp", rates = result.Rates, entries = result.Entries, count = result.Count, entryCount = result.EntryCount, unrevaluedCount = result.UnrevaluedCount, revalGainLossTotal = result.RevalGainLossTotal, source = result.Source, message = result.Message, session = SessionPayload(session), note = "epc_fx_rates + epc_gl_currency_entries. Rate UPSERT on POST /erp/multi-currency-gl/set-rate when confirmWrites=true. Revaluation, journal, and seed stay PHP." });
         });
+        endpoints.MapPost(EcomAeRoutes.ErpMultiCurrencyGlSetRate, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IErpMultiCurrencyGlWriteDryRun dryRun,
+            IErpMultiCurrencyGlWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/multi-currency-gl-app", "Admin ERP capability required for FX rate write.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpMultiCurrencyGlSetRateBody>(context, cancellationToken)
+                       ?? new();
+            var action = body.Action;
+            var baseCurrency = body.BaseCurrency;
+            var targetCurrency = body.TargetCurrency;
+            var rate = body.Rate;
+            var effectiveDate = body.EffectiveDate;
+            var source = body.Source;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                action = LiveWriteFormBinder.Text(form, "action");
+                baseCurrency = LiveWriteFormBinder.Text(form, "baseCurrency", "base_currency", "base");
+                targetCurrency = LiveWriteFormBinder.Text(form, "targetCurrency", "target_currency", "target");
+                rate = LiveWriteFormBinder.Dec(form, "rate");
+                effectiveDate = LiveWriteFormBinder.Text(form, "effectiveDate", "effective_date", "date");
+                source = LiveWriteFormBinder.Text(form, "source");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (confirm)
+            {
+                var key = (action ?? string.Empty).Trim();
+                if (key.Length == 0 || key is "set_rate" or "set-rate")
+                {
+                    var written = await writes.SetRateAsync(baseCurrency, targetCurrency, rate, effectiveDate, source, cancellationToken);
+                    return LiveWriteFormBinder.Complete(
+                        context,
+                        "/erp/multi-currency-gl-app",
+                        written.Succeeded,
+                        written.Message,
+                        new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+                }
+
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    "/erp/multi-currency-gl-app",
+                    false,
+                    "Unknown multi-currency GL action. set_rate is live; revaluation, journal, and seed stay PHP.",
+                    new { ok = false, writes = 0, phpAuthoritative = false, validation_code = "invalid", message = "Unknown multi-currency GL action. set_rate is live; revaluation, journal, and seed stay PHP.", session = SessionPayload(session) });
+            }
+
+            return Results.Ok(dryRun.Evaluate(new ErpMultiCurrencyGlWriteRequest(action ?? "set_rate", false)).ToPayload(SessionPayload(session)));
+        }).DisableAntiforgery();
 
         endpoints.MapGet(EcomAeRoutes.ErpReportCenter, async (
             HttpContext context,
@@ -5419,6 +5477,14 @@ public sealed class ErpModule : ISurfaceModule
         int CurrentStock = 0,
         string? ProductName = null,
         int LeadTimeDays = 7,
+        bool ConfirmWrites = false);
+    private sealed record ErpMultiCurrencyGlSetRateBody(
+        string? Action = null,
+        string? BaseCurrency = null,
+        string? TargetCurrency = null,
+        decimal Rate = 0,
+        string? EffectiveDate = null,
+        string? Source = null,
         bool ConfirmWrites = false);
     private sealed record ErpPayrollPayBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpPayrollUpdateDaysBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
