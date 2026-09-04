@@ -818,6 +818,16 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(ctrDb.Succeeded);
         Assert.Equal("db", ctrDb.Code);
 
+        var ctrSaveInvalid = await new ErpContractSaveWriteService(new ConfiguredNeverOpened())
+            .SaveAsync("CTR-1", "", "", 0, "AED", null, null, null, 0);
+        Assert.False(ctrSaveInvalid.Succeeded);
+        Assert.Equal("invalid", ctrSaveInvalid.Code);
+
+        var ctrSaveDb = await new ErpContractSaveWriteService(new UnconfiguredConnections())
+            .SaveAsync("CTR-1", "MSA", "Acme", 10, "AED", null, null, null, 0);
+        Assert.False(ctrSaveDb.Succeeded);
+        Assert.Equal("db", ctrSaveDb.Code);
+
         var wfInvalid = await new ErpWorkflowStatusWriteService(new ConfiguredNeverOpened())
             .SetStatusAsync(9, "nope");
         Assert.False(wfInvalid.Succeeded);

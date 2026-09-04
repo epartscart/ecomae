@@ -148,6 +148,7 @@ public sealed class PhpVsAspNetRemovalMatrixTests
             ("CpWarehouseWmsApp.razor", "/erp/wms/locations/delete"),
             ("CpWarehouseWmsApp.razor", "/erp/wms/waves/release"),
             ("ErpSalesOrdersApp.razor", "/erp/subscriptions/status"),
+            ("ErpContractsApp.razor", "/erp/contracts/save"),
             ("ErpContractsApp.razor", "/erp/ajax/ctr-status"),
             ("ErpWorkflowApp.razor", "/erp/workflow/status"),
             ("CpCollectionsDunningApp.razor", "/erp/collections/cases/status"),
