@@ -1622,6 +1622,59 @@ public sealed class ControlPanelModule : ISurfaceModule
 
             return Results.Ok(dryRun.Evaluate(new CpWorkshopWriteRequest(action, false)).ToPayload(SessionPayload(session)));
         }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.CpCollectionsDunningWrite, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpCollectionsDunningWriteDryRun dryRun,
+            ICpCollectionsDunningWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/collections-dunning-app", "Admin CP capability required for dunning queue write.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpCollectionsDunningWriteBody>(context, cancellationToken)
+                       ?? new();
+            var action = body.Action;
+            var queueId = body.QueueId;
+            var status = body.Status;
+            var notes = body.Notes;
+            var amount = body.Amount;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                action = LiveWriteFormBinder.Text(form, "action");
+                queueId = LiveWriteFormBinder.Long(form, "queueId", "queue_id", "id");
+                status = LiveWriteFormBinder.Text(form, "status");
+                notes = LiveWriteFormBinder.Text(form, "notes");
+                amount = LiveWriteFormBinder.Dec(form, "amount");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (confirm)
+            {
+                var key = (action ?? string.Empty).Trim();
+                ErpSimpleWriteResult written = key switch
+                {
+                    "update_status" or "update-status" or "set_status" or "set-status" =>
+                        await writes.UpdateStatusAsync(queueId, status, notes, session.UserId, cancellationToken),
+                    "record_payment" or "record-payment" =>
+                        await writes.RecordPaymentAsync(queueId, amount, session.UserId, cancellationToken),
+                    _ => ErpSimpleWriteResult.Fail("invalid", "Unknown dunning action. update_status / record_payment are live; letter process, profiles, and add-invoice stay PHP."),
+                };
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    "/cp/collections-dunning-app",
+                    written.Succeeded,
+                    written.Message,
+                    new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+            }
+
+            return Results.Ok(dryRun.Evaluate(new CpCollectionsDunningWriteRequest(action, false)).ToPayload(SessionPayload(session)));
+        }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.CpCatalogueSetMinLimit, async (
             HttpContext context,
             ILegacySessionValidator validator,
@@ -4160,7 +4213,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only epc_dunning_* KPIs + queue (notes omitted). PHP collections/dunning remains authoritative."
+                note = "epc_dunning_* KPIs + queue (notes omitted). Status / payment write on POST /cp/collections-dunning/write when confirmWrites=true. Letter process and profiles stay PHP."
             });
         });
 
@@ -6279,6 +6332,13 @@ public sealed class ControlPanelModule : ISurfaceModule
         string? Status = null,
         int Active = 1,
         int SortOrder = 0);
+    private sealed record CpCollectionsDunningWriteBody(
+        string? Action = null,
+        bool ConfirmWrites = false,
+        long QueueId = 0,
+        string? Status = null,
+        string? Notes = null,
+        decimal Amount = 0);
     private sealed record CpCurrenciesSetRateBody(string? IsoCode = null, decimal Rate = 0, bool ConfirmWrites = false);
     private sealed record CpPricesEditWriteBody(
         string? Action = null,

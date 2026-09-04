@@ -433,6 +433,28 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(wsStatusDb.Succeeded);
         Assert.Equal("db", wsStatusDb.Code);
 
+        var dunStatus = await new CpCollectionsDunningWriteService(new ConfiguredNeverOpened())
+            .UpdateStatusAsync(0, "open", "", 1);
+        Assert.False(dunStatus.Succeeded);
+        Assert.Equal("invalid", dunStatus.Code);
+
+        var dunBad = await new CpCollectionsDunningWriteService(new ConfiguredNeverOpened())
+            .UpdateStatusAsync(9, "escalated", "", 1);
+        Assert.False(dunBad.Succeeded);
+        Assert.Equal("invalid", dunBad.Code);
+
+        var dunPay = await new CpCollectionsDunningWriteService(new ConfiguredNeverOpened())
+            .RecordPaymentAsync(9, 0, 1);
+        Assert.False(dunPay.Succeeded);
+        Assert.Equal("invalid", dunPay.Code);
+
+        var dunDb = await new CpCollectionsDunningWriteService(new UnconfiguredConnections())
+            .RecordPaymentAsync(9, 10.5m, 1);
+        Assert.False(dunDb.Succeeded);
+        Assert.Equal("db", dunDb.Code);
+
+        Assert.Contains("promised", CpCollectionsDunningWriteService.AllowedStatuses);
+
         var priceAdd = await new CpPricesEditWriteService(new ConfiguredNeverOpened())
             .AddAsync(1, "", "Bosch", "Pad", 1, 12.5m, 1, "WH1", 1);
         Assert.False(priceAdd.Succeeded);
