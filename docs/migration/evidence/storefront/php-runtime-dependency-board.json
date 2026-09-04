@@ -62,10 +62,10 @@
     },
     {
       "id": "cp-erp-interactive-writes",
-      "aspnet": "OMS item + bulk items status / update_item / update_items / message / courier / unpaid delete / comment / viewed / supplier fulfillment stage + staff user comment + user lock/unlock + VIN viewed + return set-status/decide/finalize + lang is_custom/is_error/same/used_found + payroll / credit / PO / forecast",
-      "php": "remaining ~430 CP module ajax + residual ajax_erp.php + payment notify + fulfillment bootstrap-from-items + warehouse reprice + refresh_item_cost + return status seeding + lang translation save",
+      "aspnet": "OMS item + bulk items status / update_item / update_items / message / courier / unpaid delete / comment / viewed / supplier fulfillment stage + staff user comment + user lock/unlock + VIN viewed + return set-status/decide/finalize + lang flags/description/translation UPSERT/unused-custom delete + payroll / credit / PO / forecast",
+      "php": "remaining ~430 CP module ajax + residual ajax_erp.php + payment notify + fulfillment bootstrap-from-items + warehouse reprice + refresh_item_cost + return status seeding + lang create-string + used-found scan",
       "status": "partial-ported",
-      "note": "Wired OMS twins, staff users.comment, users.unlocked (+ session delete on lock), users_vin.viewed, ajax_return_action set/decide/finalize (no status seeding), and lang_text_strings flag UPDATEs when confirmWrites=true. Remaining CP/ERP ajax catalogs stay PHP."
+      "note": "Wired OMS twins, staff users.comment, users.unlocked (+ session delete on lock), users_vin.viewed, ajax_return_action set/decide/finalize (no status seeding), and lang editor writes (flags, description, translation UPSERT, unused-custom delete) when confirmWrites=true. Remaining CP/ERP ajax catalogs stay PHP."
     }
   ],
   "completedThisWave": [

@@ -1314,20 +1314,86 @@ public sealed class ControlPanelModule : ISurfaceModule
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin) return Unauthorized("Admin session required."); body ??= new CpLangSearchUsedFoundBody(null,false); return Results.Ok(dryRun.Evaluate(new CpLangSearchUsedFoundRequest(body.Action, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.CpVersionGetUpdatePack, async (HttpContext context, CpVersionGetUpdatePackBody? body, ILegacySessionValidator validator, ICpVersionGetUpdatePackDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin) return Unauthorized("Admin session required."); body ??= new CpVersionGetUpdatePackBody(null,false); return Results.Ok(dryRun.Evaluate(new CpVersionGetUpdatePackRequest(body.Action, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
-        endpoints.MapPost(EcomAeRoutes.CpLangSaveTranslation, async (HttpContext context, CpLangSaveTranslationBody? body, ILegacySessionValidator validator, ICpLangSaveTranslationDryRun dryRun, CancellationToken cancellationToken) =>
+        endpoints.MapPost(EcomAeRoutes.CpLangSaveTranslation, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpLangSaveTranslationDryRun dryRun,
+            ICpLangWriteService writes,
+            CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateAsync(context, cancellationToken);
-            if (session.Kind != LegacySessionKind.Admin) return Unauthorized("Admin session required.");
-            body ??= new CpLangSaveTranslationBody(null, false);
-            return Results.Ok(dryRun.Evaluate(new CpLangSaveTranslationRequest(body.Action, body.ConfirmWrites)).ToPayload(SessionPayload(session)));
-        });
-        endpoints.MapPost(EcomAeRoutes.CpLangSaveDescription, async (HttpContext context, CpLangSaveDescriptionBody? body, ILegacySessionValidator validator, ICpLangSaveDescriptionDryRun dryRun, CancellationToken cancellationToken) =>
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/languages-app", "Admin CP capability required for lang save-translation.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpLangSaveTranslationBody>(context, cancellationToken)
+                       ?? new();
+            var strKey = body.StrKey;
+            var langCode = body.LangCode;
+            var value = body.Value;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                strKey = LiveWriteFormBinder.Text(form, "strKey", "str_key");
+                langCode = LiveWriteFormBinder.Text(form, "langCode", "lang_code");
+                value = LiveWriteFormBinder.Text(form, "value");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (confirm)
+            {
+                var written = await writes.SaveTranslationAsync(strKey, langCode, value, cancellationToken);
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    "/cp/languages-app",
+                    written.Succeeded,
+                    written.Message,
+                    new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+            }
+
+            return Results.Ok(dryRun.Evaluate(new CpLangSaveTranslationRequest(body.Action, false)).ToPayload(SessionPayload(session)));
+        }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.CpLangSaveDescription, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpLangSaveDescriptionDryRun dryRun,
+            ICpLangWriteService writes,
+            CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateAsync(context, cancellationToken);
-            if (session.Kind != LegacySessionKind.Admin) return Unauthorized("Admin session required.");
-            body ??= new CpLangSaveDescriptionBody(null, false);
-            return Results.Ok(dryRun.Evaluate(new CpLangSaveDescriptionRequest(body.Action, body.ConfirmWrites)).ToPayload(SessionPayload(session)));
-        });
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/languages-app", "Admin CP capability required for lang save-description.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpLangSaveDescriptionBody>(context, cancellationToken)
+                       ?? new();
+            var strKey = body.StrKey;
+            var value = body.Value;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                strKey = LiveWriteFormBinder.Text(form, "strKey", "str_key");
+                value = LiveWriteFormBinder.Text(form, "value");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (confirm)
+            {
+                var written = await writes.SaveDescriptionAsync(strKey, value, cancellationToken);
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    "/cp/languages-app",
+                    written.Succeeded,
+                    written.Message,
+                    new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+            }
+
+            return Results.Ok(dryRun.Evaluate(new CpLangSaveDescriptionRequest(body.Action, false)).ToPayload(SessionPayload(session)));
+        }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.CpLangCreateString, async (HttpContext context, CpLangCreateStringBody? body, ILegacySessionValidator validator, ICpLangCreateStringDryRun dryRun, CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateAsync(context, cancellationToken);
@@ -1335,13 +1401,41 @@ public sealed class ControlPanelModule : ISurfaceModule
             body ??= new CpLangCreateStringBody(null, false);
             return Results.Ok(dryRun.Evaluate(new CpLangCreateStringRequest(body.Action, body.ConfirmWrites)).ToPayload(SessionPayload(session)));
         });
-        endpoints.MapPost(EcomAeRoutes.CpLangDeleteNotUsed, async (HttpContext context, CpLangDeleteNotUsedBody? body, ILegacySessionValidator validator, ICpLangDeleteNotUsedDryRun dryRun, CancellationToken cancellationToken) =>
+        endpoints.MapPost(EcomAeRoutes.CpLangDeleteNotUsed, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpLangDeleteNotUsedDryRun dryRun,
+            ICpLangWriteService writes,
+            CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateAsync(context, cancellationToken);
-            if (session.Kind != LegacySessionKind.Admin) return Unauthorized("Admin session required.");
-            body ??= new CpLangDeleteNotUsedBody(null, false);
-            return Results.Ok(dryRun.Evaluate(new CpLangDeleteNotUsedRequest(body.Action, body.ConfirmWrites)).ToPayload(SessionPayload(session)));
-        });
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/languages-app", "Admin CP capability required for lang delete-not-used.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpLangDeleteNotUsedBody>(context, cancellationToken)
+                       ?? new();
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (confirm)
+            {
+                var written = await writes.DeleteUnusedCustomAsync(cancellationToken);
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    "/cp/languages-app",
+                    written.Succeeded,
+                    written.Message,
+                    new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+            }
+
+            return Results.Ok(dryRun.Evaluate(new CpLangDeleteNotUsedRequest(body.Action, false)).ToPayload(SessionPayload(session)));
+        }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.CpPacksDelete, async (HttpContext context, CpPacksDeleteBody? body, ILegacySessionValidator validator, ICpPacksDeleteDryRun dryRun, CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateAsync(context, cancellationToken);
@@ -5252,8 +5346,8 @@ public sealed class ControlPanelModule : ISurfaceModule
     private sealed record CpLangSearchUsedFoundBody(string? Action = null, bool ConfirmWrites = false);
     private sealed record CpVersionGetUpdatePackBody(string? Action = null, bool ConfirmWrites = false);
     private sealed record CpCreateSitemapBody(string? Action = null, bool ConfirmWrites = false);
-    private sealed record CpLangSaveTranslationBody(string? Action = null, bool ConfirmWrites = false);
-    private sealed record CpLangSaveDescriptionBody(string? Action = null, bool ConfirmWrites = false);
+    private sealed record CpLangSaveTranslationBody(string? Action = null, bool ConfirmWrites = false, string? StrKey = null, string? LangCode = null, string? Value = null);
+    private sealed record CpLangSaveDescriptionBody(string? Action = null, bool ConfirmWrites = false, string? StrKey = null, string? Value = null);
     private sealed record CpLangCreateStringBody(string? Action = null, bool ConfirmWrites = false);
     private sealed record CpLangDeleteNotUsedBody(string? Action = null, bool ConfirmWrites = false);
     private sealed record CpPacksDeleteBody(string? Action = null, bool ConfirmWrites = false);

@@ -1106,13 +1106,13 @@ public static class EcomAeRoutes
     public const string ErpAjaxRtlChannelSave = "/erp/ajax/rtl-channel-save";
     /// <summary>Wave B dry-run for PHP cp/content/content/ajax_create_sitemap.php (writes=0).</summary>
     public const string CpCreateSitemap = "/cp/content/create-sitemap";
-    /// <summary>Wave B dry-run for PHP cp/content/lang/ajax_save_string_translation.php (writes=0).</summary>
+    /// <summary>Lang translation UPSERT. <c>confirmWrites=true</c> is the live twin of PHP ajax_save_string_translation.php.</summary>
     public const string CpLangSaveTranslation = "/cp/lang/save-translation";
-    /// <summary>Wave B dry-run for PHP cp/content/lang/ajax_save_string_description.php (writes=0).</summary>
+    /// <summary>Lang description UPDATE. <c>confirmWrites=true</c> is the live twin of PHP ajax_save_string_description.php.</summary>
     public const string CpLangSaveDescription = "/cp/lang/save-description";
     /// <summary>Wave B dry-run for PHP cp/content/lang/ajax_create_new_string.php (writes=0).</summary>
     public const string CpLangCreateString = "/cp/lang/create-string";
-    /// <summary>Wave B dry-run for PHP cp/content/lang/ajax_delete_not_used_found.php (writes=0).</summary>
+    /// <summary>Delete unused custom strings. <c>confirmWrites=true</c> is the live twin of PHP ajax_delete_not_used_found.php.</summary>
     public const string CpLangDeleteNotUsed = "/cp/lang/delete-not-used";
     /// <summary>Wave B dry-run for PHP cp/content/packs_control/ajax_delete_pack.php (writes=0).</summary>
     public const string CpPacksDelete = "/cp/packs/delete";

@@ -353,6 +353,36 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(langSameDb.Succeeded);
         Assert.Equal("db", langSameDb.Code);
 
+        var langTranslation = await new CpLangWriteService(new ConfiguredNeverOpened())
+            .SaveTranslationAsync("hello", "", "Hi");
+        Assert.False(langTranslation.Succeeded);
+        Assert.Equal("invalid", langTranslation.Code);
+
+        var langTranslationEmpty = await new CpLangWriteService(new ConfiguredNeverOpened())
+            .SaveTranslationAsync("hello", "en", "");
+        Assert.False(langTranslationEmpty.Succeeded);
+        Assert.Equal("invalid", langTranslationEmpty.Code);
+
+        var langTranslationDb = await new CpLangWriteService(new UnconfiguredConnections())
+            .SaveTranslationAsync("hello", "en", "Hi");
+        Assert.False(langTranslationDb.Succeeded);
+        Assert.Equal("db", langTranslationDb.Code);
+
+        var langDescription = await new CpLangWriteService(new ConfiguredNeverOpened())
+            .SaveDescriptionAsync("hello", "");
+        Assert.False(langDescription.Succeeded);
+        Assert.Equal("invalid", langDescription.Code);
+
+        var langDescriptionDb = await new CpLangWriteService(new UnconfiguredConnections())
+            .SaveDescriptionAsync("hello", "About this string");
+        Assert.False(langDescriptionDb.Succeeded);
+        Assert.Equal("db", langDescriptionDb.Code);
+
+        var langDeleteDb = await new CpLangWriteService(new UnconfiguredConnections())
+            .DeleteUnusedCustomAsync();
+        Assert.False(langDeleteDb.Succeeded);
+        Assert.Equal("db", langDeleteDb.Code);
+
         var retStatus = await new CpReturnWriteService(new ConfiguredNeverOpened())
             .SetStatusAsync(0, 0);
         Assert.False(retStatus.Succeeded);

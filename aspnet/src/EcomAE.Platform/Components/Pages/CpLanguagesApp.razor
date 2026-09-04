@@ -45,7 +45,7 @@
     <section class="epc-w22-hero">
         <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
         <h1>Languages</h1>
-        <p>Language list digest plus native editor flags. is_custom / is_error / same / used_found write on ASP.NET. Translation save, string create, and used-found scan stay PHP.</p>
+        <p>Language list digest plus native editor writes. Flags, translation UPSERT, description, and unused-custom delete write on ASP.NET. String create (domain_path key) and used-found scan stay PHP.</p>
         <div class="epc-w22-cta">
             <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
         </div>
@@ -105,6 +105,26 @@
                     </select>
                 </label>
                 <button type="submit">Save used_found</button>
+            </form>
+            <form method="post" action="/cp/lang/save-translation" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="/cp/languages-app" />
+                <label>String key <input type="text" name="strKey" required maxlength="190" /></label>
+                <label>Lang <input type="text" name="langCode" required maxlength="16" placeholder="en" /></label>
+                <label>Translation <input type="text" name="value" required maxlength="8000" style="width:18rem" /></label>
+                <button type="submit">Save translation</button>
+            </form>
+            <form method="post" action="/cp/lang/save-description" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="/cp/languages-app" />
+                <label>String key <input type="text" name="strKey" required maxlength="190" /></label>
+                <label>Description <input type="text" name="value" required maxlength="8000" style="width:18rem" /></label>
+                <button type="submit">Save description</button>
+            </form>
+            <form method="post" action="/cp/lang/delete-not-used" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="/cp/languages-app" />
+                <button type="submit">Delete unused custom strings</button>
             </form>
         </div>
     }

@@ -39,7 +39,7 @@ public static class PhpVsAspNetRemovalMatrix
         // CP shop families
         Row("cp-orders", "cp", "cp/content/shop/orders + order_process", "/CP/shop/orders/orders", "/cp/orders", "aspnet-digest", "aspnet", "OMS item/items status, update_item/update_items, message, courier, delete, comment, viewed, supplier fulfillment stage are ASP.NET-live. Payment notify and warehouse reprice stay PHP."),
         Row("cp-users", "cp", "cp/content/users", "/CP/users/user_manager", "/cp/users-app", "aspnet-digest", "aspnet", "Staff users.comment and users.unlocked (plus session delete on lock) are ASP.NET-live. Create / password stay PHP."),
-        Row("cp-lang", "cp", "cp/content/lang", "/CP/lang", "/cp/languages-app", "aspnet-digest", "aspnet", "lang_text_strings is_custom / is_error / same / used_found UPDATEs are ASP.NET-live. Restricted-mode, translation save, and used-found scan stay PHP."),
+        Row("cp-lang", "cp", "cp/content/lang", "/CP/lang", "/cp/languages-app", "aspnet-digest", "aspnet", "lang_text_strings flags, description, translation UPSERT, and unused-custom delete are ASP.NET-live. Restricted-mode, create-string keying, and used-found scan stay PHP."),
         Row("cp-catalogue", "cp", "cp/content/shop/catalogue", "/CP/shop/catalogue/products", "/cp/product-catalogue-app", "aspnet-digest", "php", "SKU/media writes stay PHP."),
         Row("cp-prices-upload", "cp", "cp/content/shop/prices_upload", "/CP/shop/prices_upload", "/cp/prices-upload-app", "aspnet-digest", "php", "PyPrices cron/tasks stay PHP."),
         Row("cp-currencies", "cp", "content/shop/finance/nastrojka-kursov-valyut.php", "/CP/shop/finance/nastrojka-kursov-valyut", "/cp/currencies-app", "aspnet-digest", "php", "FX rate writes stay PHP."),
