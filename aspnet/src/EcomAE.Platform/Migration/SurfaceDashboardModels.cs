@@ -2300,7 +2300,15 @@ public sealed record CpJewelleryRepairDigest(
     string Currency,
     string DeliveryDate,
     bool Authorized,
-    string CreatedAt);
+    string CreatedAt,
+    string RepairNo = "",
+    string CustomerPhone = "",
+    string ItemDescription = "",
+    string Metal = "",
+    string Karat = "",
+    decimal WeightIn = 0,
+    string RepairType = "",
+    decimal EstimatedCost = 0);
 
 public sealed record CpJewelleryRepairsDigestResult(
     CpJewelleryRepairsSummary Summary,
@@ -4562,6 +4570,27 @@ public sealed record ErpStaffListResult(
     int Count,
     int ActiveCount,
     int DepartmentCount,
+    string Source,
+    string Message);
+
+/// <summary>PHP <c>epc_erp_hr_list</c> (notes omitted; bank last-4).</summary>
+public sealed record ErpHrRecordDigest(
+    long Id,
+    long StaffProfileId,
+    string DisplayName,
+    string DepartmentCode,
+    string JobTitle,
+    decimal BasicSalary,
+    decimal Allowances,
+    decimal DaysWorked,
+    decimal LeaveBalanceDays,
+    long HireDate,
+    string BankName,
+    string BankAccountPreview);
+
+public sealed record ErpHrListResult(
+    IReadOnlyList<ErpHrRecordDigest> Records,
+    int Count,
     string Source,
     string Message);
 

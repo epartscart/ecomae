@@ -12,6 +12,8 @@
 <PhpChromeStyles Surface="cp" />
 
 <PhpCpDesktopChrome IsAdmin="_isAdmin">
+    <PhpParityModuleBody AppPath="/cp/workshop-app" IsAdmin="_isAdmin" />
+
 
     <PhpCpModulePageHeader Title="Workshop &amp; service desk"
                            Subtitle="Assign, save bay, save tech, and set status write here. Seed, create-job, lines, and appointments stay on the PHP twin."
@@ -171,7 +173,7 @@
             <tbody>
                 @if (_jobs.Count == 0)
                 {
-                    <tr><td colspan="9">Nothing to show yet.</td></tr>
+                    <tr><td colspan="9">No records yet.</td></tr>
                 }
                 else
                 {
@@ -212,7 +214,7 @@
         _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
         _flashErr = ctx.Request.Query["err"].ToString() ?? "";
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
-        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
+        _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
         if (!_isAdmin)
         {
             return;

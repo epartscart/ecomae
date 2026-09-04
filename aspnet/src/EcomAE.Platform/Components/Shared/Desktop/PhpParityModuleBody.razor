@@ -1,0 +1,103 @@
+@namespace EcomAE.Platform.Components.Shared
+@using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Routing
+@inject IHttpContextAccessor Http
+
+<ErpPhpFlash Ok="@_ok" Err="@_err" />
+
+@if (_tabs.Count > 1)
+{
+    <ErpPhpViewTabs QueryName="tab" Active="@_tab" BaseHref="@_tabBase" Tabs="@_tabs" />
+}
+
+<div class="epc-erp-kpi epc-erp-stat-row" aria-label="@_chrome.Title KPIs" style="margin-bottom:10px;">
+    @foreach (var kpi in _chrome.KpiLabels)
+    {
+        <div class="kpi"><div class="lbl">@kpi</div><div class="val">0</div></div>
+    }
+</div>
+
+@foreach (var section in _chrome.Sections)
+{
+    <div class="epc-erp-section">
+        <h4>@section.Title</h4>
+        @if (!string.IsNullOrWhiteSpace(section.Intro))
+        {
+            <p class="text-muted">@section.Intro</p>
+        }
+        @if (section.Fields.Count > 0 && IsAdmin)
+        {
+            <ErpPhpCreateWell Title="@("New " + section.Title)">
+                <form method="post" action="@EcomAeRoutes.ErpParityModuleSaveForm" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+                    <input type="hidden" name="returnUrl" value="@_returnHere" />
+                    <input type="hidden" name="action" value="@(_tab + "_save")" />
+                    @foreach (var field in section.Fields)
+                    {
+                        <label>@field.Label
+                            @if (field.Type == "select" && field.Options is not null)
+                            {
+                                <select class="form-control input-sm" name="@field.Name">
+                                    @foreach (var opt in field.Options)
+                                    {
+                                        <option value="@opt.Value">@opt.Text</option>
+                                    }
+                                </select>
+                            }
+                            else
+                            {
+                                <input class="form-control input-sm" type="@(field.Type == "number" ? "number" : "text")" name="@field.Name" placeholder="@(field.Placeholder ?? field.Label)" />
+                            }
+                        </label>
+                    }
+                    <button type="submit" class="btn btn-primary btn-sm">Save</button>
+                </form>
+            </ErpPhpCreateWell>
+        }
+        <div class="epc-erp-table-wrap">
+            <table class="table table-bordered table-condensed table-epc epc-erp-table">
+                <thead>
+                    <tr>
+                        @foreach (var col in section.Columns)
+                        {
+                            <th>@col</th>
+                        }
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td colspan="@section.Columns.Count" class="text-muted">@section.EmptyCopy</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public string AppPath { get; set; } = "";
+    [Parameter] public bool IsAdmin { get; set; }
+
+    private string _tab = "list";
+    private string _tabBase = "";
+    private string _returnHere = "";
+    private string _ok = "";
+    private string _err = "";
+    private IReadOnlyList<(string Key, string Label)> _tabs = [];
+    private ErpPhpModuleChromeCatalog.ModuleChrome _chrome = ErpPhpModuleChromeCatalog.ForTab("module");
+
+    protected override void OnParametersSet()
+    {
+        var path = string.IsNullOrWhiteSpace(AppPath)
+            ? PhpParityDumpCatalog.NormalizePath(Http.HttpContext?.Request.Path.Value)
+            : PhpParityDumpCatalog.NormalizePath(AppPath);
+        var requested = Http.HttpContext?.Request.Query["tab"].ToString();
+        _ok = Http.HttpContext?.Request.Query["ok"].ToString() ?? "";
+        _err = Http.HttpContext?.Request.Query["err"].ToString() ?? "";
+        _tabs = PhpParityDumpCatalog.TabsForPath(path);
+        _tab = PhpParityDumpCatalog.DefaultTab(path, requested);
+        _chrome = ErpPhpModuleChromeCatalog.ForTab(_tab);
+        var company = Http.HttpContext?.Request.Query["company"].ToString();
+        _tabBase = path;
+        if (!string.IsNullOrWhiteSpace(company))
+            _tabBase += (path.Contains('?', StringComparison.Ordinal) ? "&" : "?") + "company=" + Uri.EscapeDataString(company);
+        _returnHere = _tabBase + (_tabBase.Contains('?', StringComparison.Ordinal) ? "&" : "?") + "tab=" + Uri.EscapeDataString(_tab);
+    }
+}

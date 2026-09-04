@@ -45,11 +45,13 @@
     <section class="epc-w16-hero">
         <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
         <h1>Insurance compliance</h1>
-        <p>Manage store operations, catalogue, and partner integrations from one control panel.</p>
+        <p>@CpPhpModuleCopy.PurposeFor(Nav.Uri)</p>
         <div class="epc-w16-cta">
             <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
         </div>
     </section>
+    <PhpParityModuleBody AppPath="/cp/insurance-compliance-app" IsAdmin="_isAdmin" />
+
 
     @if (!string.IsNullOrWhiteSpace(_flashOk))
     {
@@ -115,7 +117,7 @@
         <tbody>
             @if (_rows.Count == 0)
             {
-                <tr><td colspan="13">Nothing to show yet.</td></tr>
+                <tr><td colspan="13">No records yet.</td></tr>
             }
             else
             {
@@ -162,7 +164,7 @@
         _flashErr = ctx.Request.Query["err"].ToString() ?? "";
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
-        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
+        _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
         if (!_isAdmin)
         {
             return; // guest browse — Sign in for live data

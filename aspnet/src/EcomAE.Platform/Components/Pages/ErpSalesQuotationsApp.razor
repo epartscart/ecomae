@@ -12,6 +12,8 @@
 <PageTitle>Sales quotations · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Sales quotations" BreadcrumbArea="Sales" BreadcrumbTab="Proposals">
+    <PhpParityModuleBody AppPath="/erp/sales-quotations-app" IsAdmin="_isAdmin" />
+
 
     
     <PhpErpModulePageHeader Title="Sales quotations" Subtitle="Live shop digest. Writes stay on ERP ajax." PhpTabHref="@_phpTab" />
@@ -44,7 +46,7 @@
             <tbody>
                 @if (_quotations.Count == 0)
                 {
-                    <tr><td colspan="9">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? "Nothing to show yet." : _message) : "Sign in with ERP capability for live rows.")</td></tr>
+                    <tr><td colspan="9">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? "No records yet." : _message) : "Sign in with ERP capability for live rows.")</td></tr>
                 }
                 else
                 {
@@ -83,7 +85,7 @@
         if (ctx is null) return;
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
-        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("erp");
+        _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
         if (!_isAdmin)
         {
             return; // guest browse — Sign in for live data

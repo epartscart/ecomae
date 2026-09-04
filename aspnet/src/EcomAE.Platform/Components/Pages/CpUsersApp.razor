@@ -156,7 +156,7 @@
                             <tbody>
                                 @if (_visibleUsers.Count == 0)
                                 {
-                                    <tr><td colspan="7">Nothing to show yet.</td></tr>
+                                    <tr><td colspan="7">No records yet.</td></tr>
                                 }
                                 else
                                 {
@@ -293,6 +293,8 @@
                                 </div>
                                 <p class="text-muted small" style="margin-top:10px">Password / create / auth-as-user writes remain on PHP <code>users/usermanager/user</code>. Lock/unlock and staff comment write on ASP.NET.</p>
                             </section>
+    <PhpParityModuleBody AppPath="/cp/users-app" IsAdmin="_isAdmin" />
+
                         }
                         else if (tab == "groups")
                         {
@@ -444,7 +446,7 @@
         _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
         _flashErr = ctx.Request.Query["err"].ToString() ?? "";
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
-        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
+        _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
 
         if (ctx.Request.Query.TryGetValue("user_id", out var userRaw)
             && int.TryParse(userRaw, NumberStyles.Integer, CultureInfo.InvariantCulture, out var uid)

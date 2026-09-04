@@ -12,6 +12,8 @@
 <PhpChromeStyles Surface="cp" />
 
 <PhpCpDesktopChrome IsAdmin="_isAdmin">
+    <PhpParityModuleBody AppPath="/cp/offices-app" IsAdmin="_isAdmin" />
+
 
     <PhpCpModulePageHeader Title="Offices / pickup points"
                            Subtitle="PHP offices.php parity — shop_offices caption, city, address, and phone. Create/edit/delete stay on classic PHP."
@@ -62,7 +64,7 @@
             <tbody>
                 @if (_offices.Count == 0)
                 {
-                    <tr><td colspan="5">Nothing to show yet.</td></tr>
+                    <tr><td colspan="5">No records yet.</td></tr>
                 }
                 else
                 {
@@ -95,7 +97,7 @@
         if (ctx is null) return;
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
-        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
+        _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
         if (!_isAdmin)
         {
             return;

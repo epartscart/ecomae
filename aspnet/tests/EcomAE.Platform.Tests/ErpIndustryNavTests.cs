@@ -41,6 +41,9 @@ public sealed class ErpIndustryNavTests
         var empty = ErpIndustryNav.EnsureSwitchableCompanies([], isSuperCpHost: true, "ECOM AE");
         Assert.Equal(2, empty.Count);
 
+        var emptyTenant = ErpIndustryNav.EnsureSwitchableCompanies([], isSuperCpHost: false, "eParts");
+        Assert.Contains(emptyTenant, c => c.Id == 2 && c.Code == "JW");
+
         var tenantOnly = ErpIndustryNav.EnsureSwitchableCompanies(onlyMain, isSuperCpHost: false, "eParts");
         Assert.Single(tenantOnly);
         Assert.Equal(1, tenantOnly[0].Id);

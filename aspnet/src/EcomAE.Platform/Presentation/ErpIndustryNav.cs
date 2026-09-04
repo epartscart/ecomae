@@ -142,9 +142,10 @@ public static class ErpIndustryNav
     }
 
     /// <summary>
-    /// Super-CP always needs at least MAIN + JW so the dashboard company picker can switch
-    /// <c>?company=1</c> ↔ <c>?company=2</c> without editing the URL by hand.
-    /// Tenant hosts keep digest rows as-is.
+    /// Empty shop DB (this VM / new tenant) gets MAIN + Jewellery Division so
+    /// <c>?company=1</c> ↔ <c>?company=2</c> works. Super-CP also merges those
+    /// fallbacks when the digest is missing one of them. Tenant hosts that already
+    /// have legal-entity rows keep those rows as-is.
     /// </summary>
     public static IReadOnlyList<ErpCompanyDigest> EnsureSwitchableCompanies(
         IReadOnlyList<ErpCompanyDigest>? companies,
@@ -154,6 +155,11 @@ public static class ErpIndustryNav
         var list = companies is { Count: > 0 }
             ? companies.ToList()
             : new List<ErpCompanyDigest>();
+
+        if (list.Count == 0)
+        {
+            return FallbackCompanies(brandLabel).ToList();
+        }
 
         if (!isSuperCpHost)
         {

@@ -4,128 +4,253 @@
 @using EcomAE.Platform.Auth
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Routing
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
-@inject IErpQmPlanSaveDryRun PlanSave
 @inject IHttpContextAccessor Http
 @inject NavigationManager Nav
 
 <PageTitle>Quality · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Quality" BreadcrumbArea="Operations" BreadcrumbTab="Quality">
-    <PhpErpModulePageHeader Title="Quality management" Subtitle="Test plans, inspection orders and NCRs. Saves stay dry-run." PhpTabHref="@_phpTab" />
+    <PhpErpModulePageHeader Title="Quality management" Subtitle="Enterprise test plans, quality orders (inspection results &amp; verdict) and non-conformance (NCR) with corrective actions." PhpTabHref="@_phpTab" />
     <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
+    <ErpPhpFlash Ok="@_ok" Err="@_err" />
 
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Quality KPIs">
-        <div class="kpi"><div class="lbl">Plans</div><div class="val">@_count.ToString(CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">Open orders</div><div class="val">@_openOrders.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Test plans</div><div class="val">@_count.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Quality orders</div><div class="val">@_orders.Count.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Passed</div><div class="val">@_passed.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Failed</div><div class="val">@_failed.ToString(CultureInfo.InvariantCulture)</div></div>
         <div class="kpi"><div class="lbl">Open NCRs</div><div class="val">@_openNcrs.ToString(CultureInfo.InvariantCulture)</div></div>
     </div>
 
-    @if (_isAdmin)
+    <ErpPhpViewTabs QueryName="qv" Active="@_view" BaseHref="/erp/quality-app" Tabs="@_views" />
+
+    @if (_view == "plans")
     {
-        <form @onsubmit="OnSave" @onsubmit:preventDefault="true" style="margin:12px 0;padding:10px;border:1px solid #c5d4de;background:#fff;">
-            <strong>New plan (dry-run)</strong>
-            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;align-items:end;">
-                <label>Code <input class="form-control" @bind="_formCode" /></label>
-                <button type="submit" class="btn btn-primary">Validate save</button>
+        <div class="row">
+            <div class="col-md-5">
+                @if (_isAdmin)
+                {
+                    <ErpPhpCreateWell Title="New test plan">
+                        <form method="post" action="@EcomAeRoutes.ErpQualityPlanSaveForm" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+                            <input type="hidden" name="returnUrl" value="/erp/quality-app?qv=plans" />
+                            <label>Code <input class="form-control input-sm" name="code" placeholder="Code" style="width:110px;" required /></label>
+                            <label>Name <input class="form-control input-sm" name="name" placeholder="Name" style="width:180px;" /></label>
+                            <label><input type="checkbox" name="active" value="1" checked /> active</label>
+                            <button type="submit" class="btn btn-primary btn-sm">Save</button>
+                        </form>
+                    </ErpPhpCreateWell>
+                }
+                <div class="epc-erp-table-wrap">
+                    <table class="table table-bordered table-condensed table-epc epc-erp-table">
+                        <thead><tr><th>Code</th><th>Name</th><th class="text-right">Tests</th><th></th></tr></thead>
+                        <tbody>
+                            @if (_plans.Count == 0)
+                            {
+                                <tr><td colspan="4" class="text-muted">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? "No test plans." : _message) : "Sign in with ERP capability for live rows.")</td></tr>
+                            }
+                            else
+                            {
+                                @foreach (var row in _plans)
+                                {
+                                    <tr>
+                                        <td><strong>@(string.IsNullOrWhiteSpace(row.Code) ? "—" : row.Code)</strong></td>
+                                        <td>@(string.IsNullOrWhiteSpace(row.Name) ? $"#{row.Id.ToString(CultureInfo.InvariantCulture)}" : row.Name)</td>
+                                        <td class="text-right">@row.TestCount.ToString(CultureInfo.InvariantCulture)</td>
+                                        <td><a class="btn btn-default btn-xs" href="/erp/quality-app?qv=plans&amp;plan_id=@row.Id.ToString(CultureInfo.InvariantCulture)">Tests</a></td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
             </div>
-            @if (!string.IsNullOrWhiteSpace(_formResult)) { <p style="margin:8px 0 0;font-size:12px;">@_formResult</p> }
-        </form>
+            <div class="col-md-7">
+                @if (_selPlan > 0)
+                {
+                    <div class="panel panel-default">
+                        <div class="panel-heading"><strong>Plan tests</strong></div>
+                        <div class="panel-body">
+                            <p class="text-muted">Pick a plan to manage its tests. Add-test writes stay on ERP ajax (<code>qm_test_add</code>).</p>
+                            <table class="table table-condensed table-epc">
+                                <thead><tr><th>Test</th><th>Type</th><th>Acceptance</th></tr></thead>
+                                <tbody><tr><td colspan="3" class="text-muted">No tests yet.</td></tr></tbody>
+                            </table>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <p class="text-muted">Pick a plan to manage its tests.</p>
+                }
+            </div>
+        </div>
+    }
+    else if (_view == "ncr")
+    {
+        @if (_isAdmin)
+        {
+            <ErpPhpCreateWell Title="Raise non-conformance">
+                <form method="post" action="@EcomAeRoutes.ErpQualityNcrCreateForm" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+                    <input type="hidden" name="returnUrl" value="/erp/quality-app?qv=ncr" />
+                    <select name="order_id" class="form-control input-sm">
+                        <option value="0">(standalone)</option>
+                        @foreach (var o in _orders)
+                        {
+                            <option value="@o.Id.ToString(CultureInfo.InvariantCulture)">QO-@o.Id.ToString(CultureInfo.InvariantCulture) · @o.RefId</option>
+                        }
+                    </select>
+                    <input type="text" name="title" class="form-control input-sm" placeholder="Title" style="width:200px;" required />
+                    <select name="severity" class="form-control input-sm">
+                        <option value="minor">minor</option>
+                        <option value="major">major</option>
+                        <option value="critical">critical</option>
+                    </select>
+                    <select name="disposition" class="form-control input-sm">
+                        <option value="">disposition…</option>
+                        <option value="use_as_is">use as-is</option>
+                        <option value="rework">rework</option>
+                        <option value="scrap">scrap</option>
+                        <option value="return">return</option>
+                    </select>
+                    <button type="submit" class="btn btn-primary btn-sm">Raise</button>
+                </form>
+            </ErpPhpCreateWell>
+        }
+        <div class="epc-erp-table-wrap">
+            <table class="table table-bordered table-condensed table-epc epc-erp-table">
+                <thead><tr><th>#</th><th>Title</th><th>Severity</th><th>Disposition</th><th>Status</th></tr></thead>
+                <tbody>
+                    @if (_ncrs.Count == 0) { <tr><td colspan="5" class="text-muted">No non-conformances.</td></tr> }
+                    else
+                    {
+                        @foreach (var row in _ncrs)
+                        {
+                            <tr>
+                                <td><strong>NCR-@row.Id.ToString(CultureInfo.InvariantCulture)</strong></td>
+                                <td>@(string.IsNullOrWhiteSpace(row.Title) ? "—" : row.Title)</td>
+                                <td><span class="label label-default">@row.Severity</span></td>
+                                <td>@(string.IsNullOrWhiteSpace(row.Disposition) ? "—" : row.Disposition.Replace('_', ' '))</td>
+                                <td><span class="label label-default">@row.Status</span></td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+    else
+    {
+        <div class="row">
+            <div class="col-md-6">
+                @if (_isAdmin)
+                {
+                    <ErpPhpCreateWell Title="New quality order">
+                        <form method="post" action="@EcomAeRoutes.ErpQualityOrderCreateForm" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+                            <input type="hidden" name="returnUrl" value="/erp/quality-app?qv=orders" />
+                            <select name="plan_id" class="form-control input-sm" required>
+                                <option value="">Plan…</option>
+                                @foreach (var p in _plans)
+                                {
+                                    <option value="@p.Id.ToString(CultureInfo.InvariantCulture)">@(string.IsNullOrWhiteSpace(p.Code) ? $"#{p.Id}" : p.Code)</option>
+                                }
+                            </select>
+                            <select name="ref_type" class="form-control input-sm">
+                                <option value="po">PO</option>
+                                <option value="so">SO</option>
+                                <option value="production">Production</option>
+                                <option value="item">Item</option>
+                            </select>
+                            <input type="text" name="ref_id" class="form-control input-sm" placeholder="Reference" style="width:120px;" />
+                            <input type="number" name="item_id" class="form-control input-sm" placeholder="Item ID" style="width:90px;" />
+                            <input type="number" step="0.0001" name="qty" class="form-control input-sm" placeholder="Qty" style="width:90px;" />
+                            <button type="submit" class="btn btn-primary btn-sm">Create</button>
+                        </form>
+                    </ErpPhpCreateWell>
+                }
+                <div class="epc-erp-table-wrap">
+                    <table class="table table-bordered table-condensed table-epc epc-erp-table">
+                        <thead><tr><th>#</th><th>Plan</th><th>Ref</th><th>Verdict</th><th></th></tr></thead>
+                        <tbody>
+                            @if (_orders.Count == 0) { <tr><td colspan="5" class="text-muted">No quality orders.</td></tr> }
+                            else
+                            {
+                                @foreach (var row in _orders)
+                                {
+                                    <tr>
+                                        <td><strong>QO-@row.Id.ToString(CultureInfo.InvariantCulture)</strong></td>
+                                        <td>@(row.PlanId > 0 ? row.PlanId.ToString(CultureInfo.InvariantCulture) : "—")</td>
+                                        <td><small>@row.RefType @row.RefId</small></td>
+                                        <td>
+                                            @if (string.IsNullOrWhiteSpace(row.Verdict)) { <span class="label label-default">open</span> }
+                                            else { <span class="label label-default">@row.Verdict</span> }
+                                        </td>
+                                        <td><a class="btn btn-default btn-xs" href="/erp/quality-app?qv=orders&amp;order_id=@row.Id.ToString(CultureInfo.InvariantCulture)">Inspect</a></td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="col-md-6">
+                @if (_selOrder > 0)
+                {
+                    <div class="panel panel-default">
+                        <div class="panel-heading"><strong>QO-@_selOrder.ToString(CultureInfo.InvariantCulture)</strong> — record inspection results</div>
+                        <div class="panel-body">
+                            <p class="text-muted">Record results stay on ERP ajax (<code>qm_order_record</code>). Pick an order after plans exist.</p>
+                            <table class="table table-condensed table-epc">
+                                <thead><tr><th>Test</th><th>Acceptance</th><th>Result</th><th>Eval</th></tr></thead>
+                                <tbody><tr><td colspan="4" class="text-muted">Plan has no tests.</td></tr></tbody>
+                            </table>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <p class="text-muted">Pick a quality order to record inspection results.</p>
+                }
+            </div>
+        </div>
     }
 
-    <h2 style="font-size:16px;">Plans</h2>
-    <div class="epc-erp-table-wrap">
-        <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
-            <thead><tr><th>Code</th><th>Name</th><th class="text-right">Tests</th><th>Status</th></tr></thead>
-            <tbody>
-                @if (_plans.Count == 0)
-                {
-                    <tr><td colspan="4">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? "No quality plans yet." : _message) : "Sign in with ERP capability for live rows.")</td></tr>
-                }
-                else
-                {
-                    @foreach (var row in _plans)
-                    {
-                        <tr>
-                            <td>@(string.IsNullOrWhiteSpace(row.Code) ? "—" : row.Code)</td>
-                            <td><strong>@(string.IsNullOrWhiteSpace(row.Name) ? $"#{row.Id.ToString(CultureInfo.InvariantCulture)}" : row.Name)</strong></td>
-                            <td class="text-right">@row.TestCount.ToString(CultureInfo.InvariantCulture)</td>
-                            <td><span class="label label-default">@(row.Active ? "active" : "inactive")</span></td>
-                        </tr>
-                    }
-                }
-            </tbody>
-        </table>
-    </div>
-
-    <h2 style="font-size:16px;">Orders</h2>
-    <div class="epc-erp-table-wrap">
-        <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
-            <thead><tr><th>Ref</th><th>Item</th><th class="text-right">Qty</th><th>Status</th><th>Verdict</th></tr></thead>
-            <tbody>
-                @if (_orders.Count == 0) { <tr><td colspan="5">No inspection orders yet.</td></tr> }
-                else
-                {
-                    @foreach (var row in _orders)
-                    {
-                        <tr>
-                            <td>@(string.IsNullOrWhiteSpace(row.RefId) ? row.RefType : $"{row.RefType} {row.RefId}")</td>
-                            <td>@(row.ItemId > 0 ? row.ItemId.ToString(CultureInfo.InvariantCulture) : "—")</td>
-                            <td class="text-right">@row.Qty.ToString("N3", CultureInfo.InvariantCulture)</td>
-                            <td><span class="label label-default">@row.Status</span></td>
-                            <td>@(string.IsNullOrWhiteSpace(row.Verdict) ? "—" : row.Verdict)</td>
-                        </tr>
-                    }
-                }
-            </tbody>
-        </table>
-    </div>
-
-    <h2 style="font-size:16px;">NCRs</h2>
-    <div class="epc-erp-table-wrap">
-        <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
-            <thead><tr><th>Title</th><th>Severity</th><th>Disposition</th><th>Status</th></tr></thead>
-            <tbody>
-                @if (_ncrs.Count == 0) { <tr><td colspan="4">No NCRs yet.</td></tr> }
-                else
-                {
-                    @foreach (var row in _ncrs)
-                    {
-                        <tr>
-                            <td><strong>@(string.IsNullOrWhiteSpace(row.Title) ? $"#{row.Id.ToString(CultureInfo.InvariantCulture)}" : row.Title)</strong></td>
-                            <td>@row.Severity</td>
-                            <td>@(string.IsNullOrWhiteSpace(row.Disposition) ? "—" : row.Disposition)</td>
-                            <td><span class="label label-default">@row.Status</span></td>
-                        </tr>
-                    }
-                }
-            </tbody>
-        </table>
-    </div>
-
     <div class="epc-erp-empty" style="display:block;margin-top:12px;padding:8px 10px;border:1px solid #c5d4de;background:#f8fafc;color:#475569;font-size:12px;">
-        Source: @_source. Dry-run: <code>qm_plan_save</code> — writes=0.
+        Source: @_source. Form posts are dry-run (<code>qm_plan_save</code> / <code>qm_order_create</code> / <code>qm_ncr_create</code>) — writes=0.
         @if (!string.IsNullOrWhiteSpace(_message)) { <span> @_message</span> }
     </div>
 </PhpErpDesktopChrome>
 
 @code {
     private const string _phpTab = "/ERP/?epc_erp_shell=1&area=operations&tab=quality";
+    private static readonly IReadOnlyList<(string Key, string Label)> _views =
+        [("orders", "Quality orders"), ("plans", "Test plans"), ("ncr", "Non-conformance")];
     private bool _isAdmin;
+    private string _view = "orders";
+    private long _selPlan;
+    private long _selOrder;
     private IReadOnlyList<ErpQmPlanDigest> _plans = [];
     private IReadOnlyList<ErpQmOrderDigest> _orders = [];
     private IReadOnlyList<ErpQmNcrDigest> _ncrs = [];
-    private int _count, _openOrders, _openNcrs;
+    private int _count, _openNcrs, _passed, _failed;
     private string _source = "n/a";
     private string _message = "";
-    private string _formCode = "";
-    private string _formResult = "";
+    private string _ok = "";
+    private string _err = "";
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
+        var qv = ctx.Request.Query["qv"].ToString();
+        _view = qv is "plans" or "ncr" or "orders" ? qv : "orders";
+        _ = long.TryParse(ctx.Request.Query["plan_id"], NumberStyles.Integer, CultureInfo.InvariantCulture, out _selPlan);
+        _ = long.TryParse(ctx.Request.Query["order_id"], NumberStyles.Integer, CultureInfo.InvariantCulture, out _selOrder);
+        _ok = ctx.Request.Query["ok"].ToString();
+        _err = ctx.Request.Query["err"].ToString();
+
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("erp");
         if (!_isAdmin) { _message = "Sign in for live data."; return; }
@@ -135,15 +260,10 @@
         _orders = result.Orders;
         _ncrs = result.Ncrs;
         _count = result.Count;
-        _openOrders = result.OpenOrderCount;
         _openNcrs = result.OpenNcrCount;
+        _passed = _orders.Count(o => string.Equals(o.Verdict, "pass", StringComparison.OrdinalIgnoreCase));
+        _failed = _orders.Count(o => string.Equals(o.Verdict, "fail", StringComparison.OrdinalIgnoreCase));
         _source = result.Source;
         _message = result.Message;
-    }
-
-    private void OnSave()
-    {
-        var result = PlanSave.Evaluate(new ErpQmPlanSaveRequest(0, _formCode, false));
-        _formResult = $"{result.Status}: {result.Detail} (writes={result.Writes.ToString(CultureInfo.InvariantCulture)})";
     }
 }

@@ -12,6 +12,8 @@
 <PageTitle>Process flow · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Process flow" BreadcrumbArea="Overview" BreadcrumbTab="Process flow">
+    <PhpParityModuleBody AppPath="/erp/process-flow-tasks-app" IsAdmin="_isAdmin" />
+
 
     
     <PhpErpModulePageHeader Title="Process flow cases" Subtitle="Cancel an open case or remove a step here. Start, act, reassign, and seed stay on the classic twin." />
@@ -65,7 +67,7 @@
             <tbody>
                 @if (_tasks.Count == 0)
                 {
-                    <tr><td colspan="8">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? "Nothing to show yet." : _message) : "Sign in with ERP capability for live rows.")</td></tr>
+                    <tr><td colspan="8">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? "No records yet." : _message) : "Sign in with ERP capability for live rows.")</td></tr>
                 }
                 else
                 {
@@ -112,7 +114,7 @@
         _flashErr = ctx.Request.Query["err"].ToString() ?? "";
 
         var session = await Sessions.ValidateAsync(ctx);
-        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("erp");
+        _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
         if (!_isAdmin)
         {
             return; // guest browse — Sign in for live data

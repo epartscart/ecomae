@@ -514,6 +514,9 @@ public interface ISurfaceDashboardSummaryReporter
     /// <summary>Read-only staff profiles (PHP <c>epc_erp_staff_profiles</c>; writes remain PHP).</summary>
     Task<ErpStaffListResult> ListErpStaffAsync(int limit, CancellationToken cancellationToken = default);
 
+    /// <summary>Read-only HR salary/leave rows (PHP <c>epc_erp_hr_list</c>; notes omitted).</summary>
+    Task<ErpHrListResult> ListErpHrRecordsAsync(int limit, CancellationToken cancellationToken = default);
+
     /// <summary>Read-only contracts register (PHP <c>epc_erp_contracts</c>; body/OCR omitted).</summary>
     Task<ErpContractsListResult> ListErpContractsAsync(int limit, CancellationToken cancellationToken = default);
 

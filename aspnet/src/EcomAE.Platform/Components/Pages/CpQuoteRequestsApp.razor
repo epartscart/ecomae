@@ -45,11 +45,14 @@
     <section class="epc-w19-hero">
         <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
         <h1>Quote requests</h1>
+        <p>@CpPhpModuleCopy.PurposeFor(Nav.Uri)</p>
         <p>Save a staff note or mark a quote sent. Line quoting stays on the compare twin.</p>
         <div class="epc-w19-cta">
             <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
         </div>
     </section>
+    <PhpParityModuleBody AppPath="/cp/quote-requests-app" IsAdmin="_isAdmin" />
+
 
     @if (!string.IsNullOrWhiteSpace(_flashOk))
     {
@@ -101,7 +104,7 @@
         <tbody>
             @if (_rows.Count == 0)
             {
-                <tr><td colspan="7">Nothing to show yet.</td></tr>
+                <tr><td colspan="7">No records yet.</td></tr>
             }
             else
             {
@@ -142,7 +145,7 @@
         _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
         _flashErr = ctx.Request.Query["err"].ToString() ?? "";
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
-        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
+        _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
         if (!_isAdmin)
         {
             return; // guest browse — Sign in for live data

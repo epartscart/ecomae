@@ -805,6 +805,26 @@ public static class EcomAeRoutes
     public const string ErpProcurementCategoriesApp = "/erp/procurement-categories-app";
     public const string ErpQuality = "/erp/quality";
     public const string ErpQualityApp = "/erp/quality-app";
+    /// <summary>HTML form POST for PHP <c>qm_plan_save</c> dry-run (redirects with ?ok= / ?err=).</summary>
+    public const string ErpQualityPlanSaveForm = "/erp/quality/plan-save";
+    /// <summary>HTML form POST for PHP <c>qm_order_create</c> dry-run.</summary>
+    public const string ErpQualityOrderCreateForm = "/erp/quality/order-create";
+    /// <summary>HTML form POST for PHP <c>qm_ncr_create</c> dry-run.</summary>
+    public const string ErpQualityNcrCreateForm = "/erp/quality/ncr-create";
+    /// <summary>HTML form POST for PHP <c>inv_create_item</c> dry-run.</summary>
+    public const string ErpProductInfoCreateItemForm = "/erp/product-info/create-item";
+    /// <summary>HTML form POST for PHP <c>jw_repair_create</c> dry-run.</summary>
+    public const string ErpJewelleryRepairCreateForm = "/erp/jewellery/repair-create";
+    /// <summary>HTML form POST for PHP <c>jw_repair_update_status</c> dry-run.</summary>
+    public const string ErpJewelleryRepairStatusForm = "/erp/jewellery/repair-status";
+    /// <summary>HTML form POST for PHP <c>jw_karat_save</c> dry-run.</summary>
+    public const string ErpJewelleryKaratSaveForm = "/erp/jewellery/karat-save";
+    /// <summary>HTML form POST for PHP <c>jw_karat_seed</c> / <c>jw_seed_sample_data</c> dry-run.</summary>
+    public const string ErpJewelleryKaratSeedForm = "/erp/jewellery/karat-seed";
+    /// <summary>HTML form POST for other jewellery module saves (fixing / retail / stock).</summary>
+    public const string ErpJewelleryModuleSaveForm = "/erp/jewellery/module-save";
+    /// <summary>HTML form POST for residual PHP-parity module saves (writes=0).</summary>
+    public const string ErpParityModuleSaveForm = "/erp/php-parity/save";
     public const string ErpRfid = "/erp/rfid";
     public const string ErpRfidApp = "/erp/rfid-app";
     public const string ErpRecruitment = "/erp/recruitment";
