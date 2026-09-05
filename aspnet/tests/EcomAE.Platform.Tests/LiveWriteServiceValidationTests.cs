@@ -490,6 +490,53 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(unlockDb.Succeeded);
         Assert.Equal("db", unlockDb.Code);
 
+        var createNoContact = await new CpUserWriteService(new ConfiguredNeverOpened())
+            .CreateAsync(null, 0, null, 0, "secret1", 1, 1, null, null);
+        Assert.False(createNoContact.Succeeded);
+        Assert.Equal("invalid", createNoContact.Code);
+
+        var createNoPassword = await new CpUserWriteService(new ConfiguredNeverOpened())
+            .CreateAsync("staff@local.test", 1, null, 0, "", 1, 1, null, null);
+        Assert.False(createNoPassword.Succeeded);
+        Assert.Equal("invalid", createNoPassword.Code);
+
+        var createBadFields = await new CpUserWriteService(new ConfiguredNeverOpened())
+            .CreateAsync("staff@local.test", 1, null, 0, "secret1", 1, 1, "{", null);
+        Assert.False(createBadFields.Succeeded);
+        Assert.Equal("invalid", createBadFields.Code);
+
+        var createDb = await new CpUserWriteService(new UnconfiguredConnections())
+            .CreateAsync("staff@local.test", 1, null, 0, "secret1", 1, 1, null, "1");
+        Assert.False(createDb.Succeeded);
+        Assert.Equal("db", createDb.Code);
+
+        var setPwInvalid = await new CpUserWriteService(new ConfiguredNeverOpened())
+            .SetPasswordAsync(0, "secret1", null);
+        Assert.False(setPwInvalid.Succeeded);
+        Assert.Equal("invalid", setPwInvalid.Code);
+
+        var setPwEmpty = await new CpUserWriteService(new ConfiguredNeverOpened())
+            .SetPasswordAsync(9, "", null);
+        Assert.False(setPwEmpty.Succeeded);
+        Assert.Equal("invalid", setPwEmpty.Code);
+
+        var setPwDb = await new CpUserWriteService(new UnconfiguredConnections())
+            .SetPasswordAsync(9, "secret1", "keep-me");
+        Assert.False(setPwDb.Succeeded);
+        Assert.Equal("db", setPwDb.Code);
+
+        var fields = CpUserWriteService.ParseProfileFields("""[{"name":"firstname","value":"Ada"}]""");
+        Assert.Null(fields.Error);
+        Assert.Equal("firstname", fields.Fields[0].Name);
+        Assert.Equal("Ada", fields.Fields[0].Value);
+        Assert.Equal(new[] { 1, 3 }, CpUserWriteService.ParseGroups("1,3").GroupIds);
+        Assert.Equal(new[] { 2, 4 }, CpUserWriteService.ParseGroups("[2,4]").GroupIds);
+        Assert.True(CpUserWriteService.ContactMatchesRegexp("ada@local.test", @"^[^@]+@[^@]+\.[^@]+$"));
+        Assert.False(CpUserWriteService.ContactMatchesRegexp("not-email", @"^[^@]+@[^@]+\.[^@]+$"));
+        var hash = CpUserWriteService.HashStaffPassword("secret1");
+        Assert.StartsWith("$2", hash);
+        Assert.True(BCrypt.Net.BCrypt.Verify("secret1", hash));
+
         var langCustom = await new CpLangWriteService(new ConfiguredNeverOpened())
             .SetIsCustomAsync("", 1);
         Assert.False(langCustom.Succeeded);

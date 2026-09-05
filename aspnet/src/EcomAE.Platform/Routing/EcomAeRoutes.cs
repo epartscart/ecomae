@@ -1003,6 +1003,10 @@ public static class EcomAeRoutes
     public const string CpSetUserComment = "/cp/users/set-comment";
     /// <summary>User lock/unlock. <c>confirmWrites=true</c> is the live twin of PHP user_manager.php unlock_user.</summary>
     public const string CpSetUserUnlocked = "/cp/users/set-unlocked";
+    /// <summary>PHP <c>users/user.php</c> save_action=create. <c>confirmWrites=true</c> writes users + profiles + groups.</summary>
+    public const string CpUsersCreate = "/cp/users/create";
+    /// <summary>PHP <c>users/user.php</c> password UPDATE. <c>confirmWrites=true</c> writes bcrypt and drops other sessions.</summary>
+    public const string CpUsersSetPassword = "/cp/users/set-password";
     /// <summary>Wave B dry-run for PHP cp/content/shop/prices_upload/ajax_5_import_csv_to_db.php (writes=0).</summary>
     public const string CpPricesImportCsv = "/cp/prices/import-csv";
     /// <summary>PHP ajax_6_complete_session last_updated / records_count. <c>confirmWrites=true</c> writes via <c>ICpPricesUploadWriteService</c>.</summary>

@@ -281,7 +281,7 @@ public sealed record CpUserGroupDigest(
     bool ForBackend,
     bool Unblocked);
 
-/// <summary>Read-only CP user detail console (PHP users/usermanager/user). Writes remain PHP-authoritative.</summary>
+/// <summary>Read-only CP user detail console (PHP users/usermanager/user). Create / password / comment / lock write on ASP.NET.</summary>
 public sealed record CpUserDetailDigest(
     int UserId,
     string Email,
