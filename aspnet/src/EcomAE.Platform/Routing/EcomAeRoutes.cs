@@ -1452,7 +1452,7 @@ public static class EcomAeRoutes
     public const string ErpAjaxBosWfRaiseTest = "/erp/ajax/bos-wf-raise-test";
     /// <summary>Wave B dry-run for PHP bos_intel_toggle_control (writes=0).</summary>
     public const string ErpAjaxBosIntelToggleControl = "/erp/ajax/bos-intel-toggle-control";
-    /// <summary>Wave B dry-run for PHP bos_vat_refund_save (writes=0).</summary>
+    /// <summary>Live PHP epc_bos_vat_refund_save twin (confirmWrites=true). Schema ensure stays PHP.</summary>
     public const string ErpAjaxBosVatRefundSave = "/erp/ajax/bos-vat-refund-save";
     /// <summary>Wave B dry-run for PHP bos_vat_refund_status (writes=0).</summary>
     public const string ErpAjaxBosVatRefundStatus = "/erp/ajax/bos-vat-refund-status";
