@@ -1263,7 +1263,7 @@ public static class SurfacePayloadContractCatalog
         new("erp", "sales order delete dry-run", "/erp/sales-orders/delete", "write-dry-run-gated", "POST dry-run for PHP so_delete draft; writes=0; confirm_writes refused; PHP authoritative."),
         new("erp", "customer master-save dry-run", "/erp/customers/master-save", "write-dry-run-gated", "POST dry-run for PHP customer_master_save; writes=0; confirm_writes refused; PHP authoritative."),
         new("erp", "aftersales RMA create dry-run", "/erp/aftersales/rma-create", "write-dry-run-gated", "POST dry-run for PHP as_rma_create; blockchain stays PHP; writes=0; confirm_writes refused; PHP authoritative."),
-        new("cp", "OMS refresh-item-cost dry-run", "/cp/orders/refresh-item-cost", "write-dry-run-gated", "POST dry-run for OMS refresh_item_cost; writes=0; confirm_writes refused; PHP authoritative."),
+        new("cp", "OMS refresh-item-cost write", "/cp/orders/refresh-item-cost", "write-live-gated", "POST PHP ajax_epc_orders_oms.php refresh_item_cost; confirmWrites=true writes warehouse price or effective purchase. Customer-group markup stays sell=purchase."),
         new("erp", "purchase from-order dry-run", "/erp/purchases/from-order", "write-dry-run-gated", "POST dry-run for PHP purchase_from_order; writes=0; confirm_writes refused; PHP authoritative."),
         new("erp", "currency set-rate dry-run", "/erp/currency/set-rate", "write-dry-run-gated", "POST dry-run for PHP ccy_set_rate; writes=0; confirm_writes refused; PHP authoritative."),
         new("erp", "period soft-close dry-run", "/erp/periods/soft-close", "write-dry-run-gated", "POST dry-run for PHP period_soft_close; writes=0; confirm_writes refused; PHP authoritative."),

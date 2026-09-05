@@ -1,3 +1,4 @@
+using EcomAE.Platform.Cp;
 using EcomAE.Platform.Migration;
 using EcomAE.Platform.Presentation;
 using EcomAE.Platform.Storefront;
@@ -48,6 +49,9 @@ public sealed class StorefrontPayLaximoPhpParityTests
         Assert.Equal("epc_demo", StorefrontPaymentWriteService.SanitizeHandler("epc_demo"));
         Assert.Equal("stripedrop", StorefrontPaymentWriteService.SanitizeHandler("stripe;drop"));
         Assert.Equal("epc_demo", StorefrontPaymentWriteService.SanitizeHandler("../epc_demo!"));
+        Assert.Equal("0986ABC", CpOmsWriteService.NormArticle("0986-ABC"));
+        Assert.Equal("FILTEROIL01", CpOmsWriteService.NormArticle("FILTER-OIL-01"));
+        Assert.Equal("", CpOmsWriteService.NormArticle(""));
     }
 
     [Fact]
@@ -92,11 +96,13 @@ public sealed class StorefrontPayLaximoPhpParityTests
         var cp = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/CpOrdersApp.razor"));
         Assert.Contains("action=\"/cp/orders/pay-refund\"", cp, StringComparison.Ordinal);
         Assert.Contains("name=\"directRefund\"", cp, StringComparison.Ordinal);
+        Assert.Contains("action=\"/cp/orders/refresh-item-cost\"", cp, StringComparison.Ordinal);
         Assert.DoesNotContain("Live writes remain PHP", cp, StringComparison.Ordinal);
 
         Assert.Equal("write-live-gated", SurfacePayloadContractCatalog.Functions.First(f => f.AspNetRouteOrCapability == "/storefront/garage/check-car").Status);
         Assert.Equal("write-live-gated", SurfacePayloadContractCatalog.Functions.First(f => f.AspNetRouteOrCapability == "/storefront/profile/change-password").Status);
         Assert.Equal("write-live-gated", SurfacePayloadContractCatalog.Functions.First(f => f.AspNetRouteOrCapability == "/cp/orders/pay-refund").Status);
+        Assert.Equal("write-live-gated", SurfacePayloadContractCatalog.Functions.First(f => f.AspNetRouteOrCapability == "/cp/orders/refresh-item-cost").Status);
         Assert.Equal("/storefront/garage/check-car", PhpCustomerWrites.GarageCheckCarHref);
         Assert.Equal("/storefront/profile/change-password", PhpCustomerWrites.ProfilePasswordHref);
     }

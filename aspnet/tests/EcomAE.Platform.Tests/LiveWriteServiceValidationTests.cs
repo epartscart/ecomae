@@ -1157,6 +1157,16 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(refundDb.Succeeded);
         Assert.Equal("db", refundDb.Code);
 
+        var refreshInvalid = await new CpOmsWriteService(new ConfiguredNeverOpened())
+            .RefreshItemCostAsync(0, 0, 1);
+        Assert.False(refreshInvalid.Succeeded);
+        Assert.Equal("invalid", refreshInvalid.Code);
+
+        var refreshDb = await new CpOmsWriteService(new UnconfiguredConnections())
+            .RefreshItemCostAsync(9, 3, 1);
+        Assert.False(refreshDb.Succeeded);
+        Assert.Equal("db", refreshDb.Code);
+
         var pwdAuth = await new StorefrontCustomerWriteService(new UnconfiguredConnections())
             .ChangePasswordAsync(0, "secret", "succ");
         Assert.False(pwdAuth.Succeeded);
