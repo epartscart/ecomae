@@ -3731,7 +3731,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "shop_docpart_articles_analogs_list digest. Save/delete POST /cp/crosses/write when confirmWrites=true. Add, brand resolve, and search-delete stay PHP."
+                note = "shop_docpart_articles_analogs_list digest. Save/delete/add/search-delete POST /cp/crosses/write when confirmWrites=true. File import and crossbase stay PHP."
             });
         });
         endpoints.MapPost(EcomAeRoutes.CpCrossesWrite, async (
@@ -3754,6 +3754,10 @@ public sealed class ControlPanelModule : ISurfaceModule
             var manufacturerArticle = body.ManufacturerArticle;
             var analog = body.Analog;
             var manufacturerAnalog = body.ManufacturerAnalog;
+            var manufacturer = body.Manufacturer;
+            var emptyOnly = body.EmptyOnly || body.Null == 1;
+            var idFrom = body.IdFrom;
+            var idBefore = body.IdBefore;
             var confirm = body.ConfirmWrites;
             if (context.Request.HasFormContentType)
             {
@@ -3764,6 +3768,10 @@ public sealed class ControlPanelModule : ISurfaceModule
                 manufacturerArticle = LiveWriteFormBinder.Text(form, "manufacturer_article", "manufacturerArticle");
                 analog = LiveWriteFormBinder.Text(form, "analog");
                 manufacturerAnalog = LiveWriteFormBinder.Text(form, "manufacturer_analog", "manufacturerAnalog");
+                manufacturer = LiveWriteFormBinder.Text(form, "manufacturer");
+                emptyOnly = LiveWriteFormBinder.Flag(form, "emptyOnly", "empty_only", "null");
+                idFrom = LiveWriteFormBinder.Long(form, "idFrom", "id_from");
+                idBefore = LiveWriteFormBinder.Long(form, "idBefore", "id_before");
                 confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
             }
 
@@ -3788,6 +3796,10 @@ public sealed class ControlPanelModule : ISurfaceModule
                     await writes.SaveAsync(id, article, manufacturerArticle, analog, manufacturerAnalog, cancellationToken),
                 "del_crosses" or "delete_crosses" or "del-crosses" or "delete" =>
                     await writes.DeleteAsync(id, cancellationToken),
+                "add_crosses" or "add-crosses" or "add" =>
+                    await writes.AddAsync(article, manufacturerArticle, analog, manufacturerAnalog, cancellationToken),
+                "del_search_crosses" or "delete_search_crosses" or "del-search-crosses" or "search-delete" =>
+                    await writes.DeleteSearchAsync(article, manufacturer, emptyOnly, idFrom, idBefore, cancellationToken),
                 _ => ErpSimpleWriteResult.Fail("invalid", "Unknown crosses action."),
             };
             return LiveWriteFormBinder.Complete(
@@ -7216,7 +7228,12 @@ public sealed class ControlPanelModule : ISurfaceModule
         string? Article = null,
         string? ManufacturerArticle = null,
         string? Analog = null,
-        string? ManufacturerAnalog = null);
+        string? ManufacturerAnalog = null,
+        string? Manufacturer = null,
+        bool EmptyOnly = false,
+        int Null = 0,
+        long IdFrom = 0,
+        long IdBefore = 0);
     private sealed record CpTemplatesActionsBody(string? Action = null, bool ConfirmWrites = false, long TemplateId = 0);
     private sealed record CpPriceReviewWriteBody(string? Action = null, bool ConfirmWrites = false);
     private sealed record CpPriceReviewCreateCsvBody(string? Action = null, bool ConfirmWrites = false);

@@ -46,7 +46,7 @@
         <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
         <h1>Crosses</h1>
         <p>@CpPhpModuleCopy.PurposeFor(Nav.Uri)</p>
-        <p>Save and delete a single analog pair here when confirmWrites is set. Add, brand auto-resolve, and search-delete stay on the PHP twin.</p>
+        <p>Save, add, delete, and search-delete analog pairs here when confirmWrites is set. Brands can be left blank on add — they resolve from prices, existing pairs, or the article prefix. File import and crossbase stay on the PHP twin.</p>
         <div class="epc-x-cta">
             <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
             <a class="ghost" href="/cp/parts-agent-chats-app">Parts agent</a>
@@ -83,6 +83,27 @@
                 <input type="hidden" name="action" value="del_crosses" />
                 <label>Id <input type="number" name="id" min="1" required /></label>
                 <button type="submit">Delete cross</button>
+            </form>
+            <form method="post" action="/cp/crosses/write" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="/cp/crosses-app" />
+                <input type="hidden" name="action" value="add_crosses" />
+                <label>Article <input type="text" name="article" required maxlength="255" /></label>
+                <label>Manufacturer <input type="text" name="manufacturer_article" maxlength="255" placeholder="optional" /></label>
+                <label>Analog <input type="text" name="analog" required maxlength="255" /></label>
+                <label>Analog manufacturer <input type="text" name="manufacturer_analog" maxlength="255" placeholder="optional" /></label>
+                <button type="submit">Add cross</button>
+            </form>
+            <form method="post" action="/cp/crosses/write" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="/cp/crosses-app" />
+                <input type="hidden" name="action" value="del_search_crosses" />
+                <label>Article <input type="text" name="article" maxlength="255" /></label>
+                <label>Manufacturer <input type="text" name="manufacturer" maxlength="255" /></label>
+                <label>Id from <input type="number" name="id_from" min="0" /></label>
+                <label>Id before <input type="number" name="id_before" min="0" /></label>
+                <label><input type="checkbox" name="empty_only" value="1" /> Empty fields only</label>
+                <button type="submit">Search-delete</button>
             </form>
         </div>
     }
@@ -127,7 +148,7 @@
         </table>
     </div>
 
-    <div class="epc-x-note">Save and delete write when confirmWrites is set. Add, brand auto-resolve, and search-delete stay on the PHP twin.</div>
+    <div class="epc-x-note">Save, add, delete, and search-delete write when confirmWrites is set. File import and crossbase stay on the PHP twin.</div>
 
 </PhpCpDesktopChrome>
 

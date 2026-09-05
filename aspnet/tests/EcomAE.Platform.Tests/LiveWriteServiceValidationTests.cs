@@ -730,6 +730,32 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(crossDb.Succeeded);
         Assert.Equal("db", crossDb.Code);
 
+        var crossAddEmpty = await new CpCrossWriteService(new ConfiguredNeverOpened())
+            .AddAsync("", "Bosch", "XYZ", "Febi");
+        Assert.False(crossAddEmpty.Succeeded);
+        Assert.Equal("invalid", crossAddEmpty.Code);
+
+        Assert.Equal("TOYOTA", CpCrossWriteService.InferBrandFromArticle("90915-10001"));
+        Assert.Equal("HONDA", CpCrossWriteService.InferBrandFromArticle("15400ABC"));
+        Assert.Equal("NISSAN", CpCrossWriteService.InferBrandFromArticle("15208-123"));
+        Assert.Equal("VAG", CpCrossWriteService.InferBrandFromArticle("1K0123456"));
+        Assert.Equal(string.Empty, CpCrossWriteService.InferBrandFromArticle("ZZZ999"));
+
+        var crossDelSearch = await new CpCrossWriteService(new ConfiguredNeverOpened())
+            .DeleteSearchAsync(null, null, false, 0, 0);
+        Assert.False(crossDelSearch.Succeeded);
+        Assert.Equal("invalid", crossDelSearch.Code);
+
+        var crossAddDb = await new CpCrossWriteService(new UnconfiguredConnections())
+            .AddAsync("ABC", "Bosch", "XYZ", "Febi");
+        Assert.False(crossAddDb.Succeeded);
+        Assert.Equal("db", crossAddDb.Code);
+
+        var crossDelSearchDb = await new CpCrossWriteService(new UnconfiguredConnections())
+            .DeleteSearchAsync("ABC", null, false, 0, 0);
+        Assert.False(crossDelSearchDb.Succeeded);
+        Assert.Equal("db", crossDelSearchDb.Code);
+
         var retStatus = await new CpReturnWriteService(new ConfiguredNeverOpened())
             .SetStatusAsync(0, 0);
         Assert.False(retStatus.Succeeded);
