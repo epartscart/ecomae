@@ -14,8 +14,8 @@ namespace EcomAE.Platform.Cp;
 /// <c>epc_pos_ensure_walkin_user</c>, tax-toolkit cart totals, and the
 /// <c>epc_erp_sales_order_save</c> / <c>epc_erp_so_convert_to_invoice</c> /
 /// <c>epc_erp_receipt_voucher</c> postings after cart totals.
-/// Tax-toolkit assign stays PHP. Inventory <c>sale_out</c> is ASP.NET-live
-/// (best-effort, same swallow as PHP). Printable receipt HTML is ASP.NET-live.
+/// Tax-toolkit assign stays PHP. Inventory <c>sale_out</c>, product/customer
+/// search, and <c>calc_cart</c> are ASP.NET-live. Printable receipt HTML is ASP.NET-live.
 /// </summary>
 public interface ICpPosWriteService
 {
@@ -49,6 +49,16 @@ public interface ICpPosWriteService
     Task<ErpSimpleWriteResult> EnsureWalkinUserAsync(CancellationToken cancellationToken = default);
 
     Task<CpPosReceipt> LoadReceiptAsync(long saleId, CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<CpPosProductHit>> SearchProductsAsync(string? query, int limit = 30, CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<CpPosCustomerHit>> SearchCustomersAsync(string? query, int limit = 15, CancellationToken cancellationToken = default);
+
+    Task<CpPosCartCalcResult> CalcCartAsync(
+        IReadOnlyList<CpPosSaleLineInput>? lines,
+        long customerUserId,
+        long contactId,
+        CancellationToken cancellationToken = default);
 }
 
 public sealed record CpPosSaleLineInput(
@@ -1433,6 +1443,339 @@ public sealed class CpPosWriteService : ICpPosWriteService
             lines);
     }
 
+    public async Task<IReadOnlyList<CpPosProductHit>> SearchProductsAsync(
+        string? query,
+        int limit = 30,
+        CancellationToken cancellationToken = default)
+    {
+        var q = NormalizeSearchQuery(query);
+        if (q.Length == 0 || !_connections.IsConfigured)
+        {
+            return [];
+        }
+
+        limit = ClampProductLimit(limit);
+        var like = "%" + q + "%";
+        var exact = NormalizeArticleExact(q);
+        var hits = new List<CpPosProductHit>();
+        var seen = new HashSet<string>(StringComparer.Ordinal);
+
+        await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            await using var cmd = connection.CreateCommand();
+            cmd.CommandText = ErpDb.Positional(
+                "SELECT `id`, `manufacturer`, COALESCE(NULLIF(`article_show`, ''), `article`) AS `article`,"
+                + " `name`, `price`, `exist`, `storage` FROM `shop_docpart_prices_data`"
+                + " WHERE (`name` LIKE ? OR `article` LIKE ? OR `article_show` LIKE ? OR `manufacturer` LIKE ?"
+                + " OR UPPER(REPLACE(`article`, ' ', '')) = ?) AND IFNULL(`price`, 0) > 0"
+                + " ORDER BY `name` ASC LIMIT " + limit.ToString(CultureInfo.InvariantCulture));
+            ErpDb.AddParameters(cmd, like, like, like, like, exact);
+            await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                var id = reader.IsDBNull(0) ? "0" : Convert.ToString(reader.GetValue(0), CultureInfo.InvariantCulture) ?? "0";
+                var key = "pd_" + id;
+                if (!seen.Add(key))
+                {
+                    continue;
+                }
+
+                var sku = reader.IsDBNull(2) ? "" : reader.GetValue(2)?.ToString()?.Trim() ?? "";
+                hits.Add(new CpPosProductHit(
+                    "price_data",
+                    id,
+                    sku,
+                    sku,
+                    reader.IsDBNull(3) ? "" : reader.GetValue(3)?.ToString() ?? "",
+                    reader.IsDBNull(1) ? "" : reader.GetValue(1)?.ToString() ?? "",
+                    reader.IsDBNull(4) ? 0 : Math.Round(Convert.ToDecimal(reader.GetValue(4), CultureInfo.InvariantCulture), 4, MidpointRounding.AwayFromZero),
+                    reader.IsDBNull(5) ? 0 : Convert.ToDecimal(reader.GetValue(5), CultureInfo.InvariantCulture),
+                    reader.IsDBNull(6) ? "" : reader.GetValue(6)?.ToString() ?? ""));
+            }
+        }
+        catch (System.Data.Common.DbException)
+        {
+        }
+
+        if (hits.Count < limit)
+        {
+            try
+            {
+                await using var cmd = connection.CreateCommand();
+                cmd.CommandText = ErpDb.Positional(
+                    "SELECT `id`, `caption`, `alias`, `price` FROM `shop_catalogue_products`"
+                    + " WHERE (`caption` LIKE ? OR `alias` LIKE ?) AND `published_flag` = 1"
+                    + " ORDER BY `caption` ASC LIMIT " + (limit - hits.Count).ToString(CultureInfo.InvariantCulture));
+                ErpDb.AddParameters(cmd, like, like);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    var id = reader.IsDBNull(0) ? "0" : Convert.ToString(reader.GetValue(0), CultureInfo.InvariantCulture) ?? "0";
+                    var key = "cat_" + id;
+                    if (!seen.Add(key))
+                    {
+                        continue;
+                    }
+
+                    var sku = reader.IsDBNull(2) ? "" : reader.GetValue(2)?.ToString() ?? "";
+                    hits.Add(new CpPosProductHit(
+                        "catalog",
+                        id,
+                        sku,
+                        sku,
+                        reader.IsDBNull(1) ? "" : reader.GetValue(1)?.ToString() ?? "",
+                        "",
+                        reader.IsDBNull(3) ? 0 : Math.Round(Convert.ToDecimal(reader.GetValue(3), CultureInfo.InvariantCulture), 4, MidpointRounding.AwayFromZero),
+                        null,
+                        ""));
+                }
+            }
+            catch (System.Data.Common.DbException)
+            {
+            }
+        }
+
+        if (hits.Count < limit)
+        {
+            try
+            {
+                await using var cmd = connection.CreateCommand();
+                cmd.CommandText = ErpDb.Positional(
+                    "SELECT i.`id`, i.`sku`, i.`name`, s.`qty_on_hand` FROM `epc_erp_inv_items` i"
+                    + " LEFT JOIN `epc_erp_inv_stock` s ON s.`item_id` = i.`id`"
+                    + " WHERE i.`active` = 1 AND (i.`sku` LIKE ? OR i.`name` LIKE ? OR i.`sku` = ?)"
+                    + " GROUP BY i.`id` ORDER BY i.`name` ASC LIMIT "
+                    + (limit - hits.Count).ToString(CultureInfo.InvariantCulture));
+                ErpDb.AddParameters(cmd, like, like, q);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    var id = reader.IsDBNull(0) ? "0" : Convert.ToString(reader.GetValue(0), CultureInfo.InvariantCulture) ?? "0";
+                    var key = "inv_" + id;
+                    if (!seen.Add(key))
+                    {
+                        continue;
+                    }
+
+                    var sku = reader.IsDBNull(1) ? "" : reader.GetValue(1)?.ToString() ?? "";
+                    hits.Add(new CpPosProductHit(
+                        "inventory",
+                        id,
+                        sku,
+                        sku,
+                        reader.IsDBNull(2) ? "" : reader.GetValue(2)?.ToString() ?? "",
+                        "",
+                        0,
+                        reader.IsDBNull(3) ? 0 : Convert.ToDecimal(reader.GetValue(3), CultureInfo.InvariantCulture),
+                        ""));
+                }
+            }
+            catch (System.Data.Common.DbException)
+            {
+            }
+        }
+
+        return hits;
+    }
+
+    public async Task<IReadOnlyList<CpPosCustomerHit>> SearchCustomersAsync(
+        string? query,
+        int limit = 15,
+        CancellationToken cancellationToken = default)
+    {
+        var q = NormalizeSearchQuery(query);
+        if (q.Length == 0 || !_connections.IsConfigured)
+        {
+            return [];
+        }
+
+        var userLimit = Math.Max(1, Math.Min(30, limit));
+        var contactLimit = Math.Max(1, Math.Min(20, limit));
+        var like = "%" + q + "%";
+        var hits = new List<CpPosCustomerHit>();
+        await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            await using var cmd = connection.CreateCommand();
+            cmd.CommandText = ErpDb.Positional(
+                "SELECT u.`user_id`, u.`email`, p.`surname`, p.`name`, p.`phone`"
+                + " FROM `users` u LEFT JOIN `users_profile` p ON p.`user_id` = u.`user_id`"
+                + " WHERE u.`email` LIKE ? OR p.`phone` LIKE ? OR p.`name` LIKE ? OR p.`surname` LIKE ?"
+                + " ORDER BY u.`user_id` DESC LIMIT " + userLimit.ToString(CultureInfo.InvariantCulture));
+            ErpDb.AddParameters(cmd, like, like, like, like);
+            await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                var email = reader.IsDBNull(1) ? "" : reader.GetValue(1)?.ToString() ?? "";
+                var name = reader.IsDBNull(3) ? "" : reader.GetValue(3)?.ToString() ?? "";
+                var surname = reader.IsDBNull(2) ? "" : reader.GetValue(2)?.ToString() ?? "";
+                var label = (name + " " + surname).Trim();
+                if (label.Length == 0)
+                {
+                    label = email;
+                }
+
+                hits.Add(new CpPosCustomerHit(
+                    "user",
+                    reader.IsDBNull(0) ? 0 : Convert.ToInt64(reader.GetValue(0), CultureInfo.InvariantCulture),
+                    0,
+                    label,
+                    email,
+                    reader.IsDBNull(4) ? "" : reader.GetValue(4)?.ToString() ?? ""));
+            }
+        }
+        catch (System.Data.Common.DbException)
+        {
+        }
+
+        try
+        {
+            await using var cmd = connection.CreateCommand();
+            cmd.CommandText = ErpDb.Positional(
+                "SELECT `id`, `name`, `company`, `email`, `phone` FROM `epc_erp_contacts`"
+                + " WHERE `party_type` IN ('customer','both') AND (`name` LIKE ? OR `company` LIKE ? OR `email` LIKE ? OR `phone` LIKE ?)"
+                + " ORDER BY `name` ASC LIMIT " + contactLimit.ToString(CultureInfo.InvariantCulture));
+            ErpDb.AddParameters(cmd, like, like, like, like);
+            await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                var name = reader.IsDBNull(1) ? "" : reader.GetValue(1)?.ToString() ?? "";
+                var company = reader.IsDBNull(2) ? "" : reader.GetValue(2)?.ToString() ?? "";
+                var label = name.Trim().Length > 0 ? name.Trim() : company.Trim();
+                hits.Add(new CpPosCustomerHit(
+                    "contact",
+                    0,
+                    reader.IsDBNull(0) ? 0 : Convert.ToInt64(reader.GetValue(0), CultureInfo.InvariantCulture),
+                    label,
+                    reader.IsDBNull(3) ? "" : reader.GetValue(3)?.ToString() ?? "",
+                    reader.IsDBNull(4) ? "" : reader.GetValue(4)?.ToString() ?? ""));
+            }
+        }
+        catch (System.Data.Common.DbException)
+        {
+        }
+
+        return hits;
+    }
+
+    public async Task<CpPosCartCalcResult> CalcCartAsync(
+        IReadOnlyList<CpPosSaleLineInput>? lines,
+        long customerUserId,
+        long contactId,
+        CancellationToken cancellationToken = default)
+    {
+        var parsed = ParseLines(lines);
+        if (!_connections.IsConfigured)
+        {
+            return CpPosCartCalcResult.Fail("TenantRegistry DB is not configured.");
+        }
+
+        await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        if (customerUserId <= 0 && contactId <= 0)
+        {
+            customerUserId = await EnsureWalkinUserCoreAsync(connection, cancellationToken).ConfigureAwait(false);
+        }
+
+        var cart = SumCart(parsed);
+        var taxUserId = ClampInt(customerUserId);
+        var taxContactId = ClampInt(contactId);
+        decimal taxRate = 0;
+        decimal vat = 0;
+        decimal total = cart.AmountEx;
+        var kitCode = "";
+        var taxLabel = "VAT";
+        var detail = new List<CpPosCartCalcLine>();
+        foreach (var line in parsed)
+        {
+            decimal lineVat;
+            decimal lineTotal;
+            var lineRate = taxRate;
+            if (_tax is not null)
+            {
+                var lineTax = await _tax.CalcAsync(
+                    connection,
+                    null,
+                    line.LineExVat,
+                    taxUserId,
+                    taxContactId,
+                    false,
+                    cancellationToken).ConfigureAwait(false);
+                lineRate = lineTax.TaxRate;
+                lineVat = lineTax.VatAmount;
+                lineTotal = lineTax.TotalAmount;
+                if (kitCode.Length == 0)
+                {
+                    kitCode = Clip(lineTax.KitCode, 32);
+                    taxLabel = string.IsNullOrWhiteSpace(lineTax.TaxLabel) ? "VAT" : lineTax.TaxLabel;
+                    taxRate = lineTax.TaxRate;
+                }
+            }
+            else
+            {
+                lineVat = 0;
+                lineTotal = line.LineExVat;
+            }
+
+            detail.Add(new CpPosCartCalcLine(
+                line.Name, line.Qty, line.UnitPriceEx, line.DiscountAmt, line.LineExVat, lineRate, lineVat, lineTotal));
+        }
+
+        if (_tax is not null)
+        {
+            var header = await _tax.CalcAsync(
+                connection,
+                null,
+                cart.AmountEx,
+                taxUserId,
+                taxContactId,
+                false,
+                cancellationToken).ConfigureAwait(false);
+            taxRate = header.TaxRate;
+            vat = header.VatAmount;
+            total = header.TotalAmount;
+            kitCode = Clip(header.KitCode, 32);
+            taxLabel = string.IsNullOrWhiteSpace(header.TaxLabel) ? "VAT" : header.TaxLabel;
+        }
+
+        return new CpPosCartCalcResult(
+            true,
+            "",
+            detail,
+            cart.SubtotalEx,
+            cart.DiscountTotal,
+            cart.AmountEx,
+            vat,
+            total,
+            taxRate,
+            taxLabel,
+            kitCode);
+    }
+
+    /// <summary>PHP <c>trim($q)</c> for POS search.</summary>
+    public static string NormalizeSearchQuery(string? query)
+        => (query ?? string.Empty).Trim();
+
+    /// <summary>PHP <c>preg_replace('/\\s+/', '', strtoupper($q))</c>.</summary>
+    public static string NormalizeArticleExact(string query)
+    {
+        var chars = new char[query.Length];
+        var n = 0;
+        foreach (var ch in query)
+        {
+            if (!char.IsWhiteSpace(ch))
+            {
+                chars[n++] = char.ToUpperInvariant(ch);
+            }
+        }
+
+        return new string(chars, 0, n);
+    }
+
+    /// <summary>PHP product search clamp 1..50.</summary>
+    public static int ClampProductLimit(int limit)
+        => Math.Max(1, Math.Min(50, limit));
+
     /// <summary>PHP <c>rtrim(rtrim(number_format($qty, 3, '.', ''), '0'), '.')</c>.</summary>
     public static string FormatQty(decimal qty)
     {
@@ -1519,3 +1862,49 @@ public sealed record CpPosReceiptLine(
     string Name,
     decimal LineDiscountAmt,
     decimal LineTotal);
+
+public sealed record CpPosProductHit(
+    string Source,
+    string Ref,
+    string Sku,
+    string Barcode,
+    string Name,
+    string Brand,
+    decimal Price,
+    decimal? Stock,
+    string Storage);
+
+public sealed record CpPosCustomerHit(
+    string Type,
+    long UserId,
+    long ContactId,
+    string Label,
+    string Email,
+    string Phone);
+
+public sealed record CpPosCartCalcLine(
+    string Name,
+    decimal Qty,
+    decimal UnitPriceEx,
+    decimal LineDiscountAmt,
+    decimal LineExVat,
+    decimal TaxRate,
+    decimal VatAmount,
+    decimal LineTotal);
+
+public sealed record CpPosCartCalcResult(
+    bool Ok,
+    string Message,
+    IReadOnlyList<CpPosCartCalcLine> Lines,
+    decimal SubtotalEx,
+    decimal DiscountTotal,
+    decimal AmountExVat,
+    decimal VatAmount,
+    decimal TotalAmount,
+    decimal TaxRate,
+    string TaxLabel,
+    string KitCode)
+{
+    public static CpPosCartCalcResult Fail(string message) => new(
+        false, message, [], 0, 0, 0, 0, 0, 0, "VAT", "");
+}

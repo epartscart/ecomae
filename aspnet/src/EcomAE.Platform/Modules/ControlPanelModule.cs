@@ -1446,6 +1446,111 @@ public sealed class ControlPanelModule : ISurfaceModule
 
             return Results.Ok(dryRun.Evaluate(new CpPosSaveSettingsRequest(body.Action, false)).ToPayload(SessionPayload(session)));
         }).DisableAntiforgery();
+        endpoints.MapMethods(EcomAeRoutes.CpPosSearchProducts, ["GET", "POST"], async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpPosWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return Results.Json(new { status = false, message = "Access denied" }, statusCode: 401);
+            }
+
+            var q = context.Request.Query["q"].ToString();
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                q = LiveWriteFormBinder.Text(form, "q", "query");
+            }
+            else if (string.IsNullOrWhiteSpace(q) && context.Request.HasJsonContentType())
+            {
+                var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpPosSearchBody>(context, cancellationToken);
+                q = body?.Q;
+            }
+
+            var products = await writes.SearchProductsAsync(q, 30, cancellationToken);
+            return Results.Ok(new { status = true, products });
+        }).DisableAntiforgery();
+        endpoints.MapMethods(EcomAeRoutes.CpPosSearchCustomers, ["GET", "POST"], async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpPosWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return Results.Json(new { status = false, message = "Access denied" }, statusCode: 401);
+            }
+
+            var q = context.Request.Query["q"].ToString();
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                q = LiveWriteFormBinder.Text(form, "q", "query");
+            }
+            else if (string.IsNullOrWhiteSpace(q) && context.Request.HasJsonContentType())
+            {
+                var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpPosSearchBody>(context, cancellationToken);
+                q = body?.Q;
+            }
+
+            var customers = await writes.SearchCustomersAsync(q, 15, cancellationToken);
+            return Results.Ok(new { status = true, customers });
+        }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.CpPosCalcCart, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpPosWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return Results.Json(new { status = false, message = "Access denied" }, statusCode: 401);
+            }
+
+            var linesJson = "";
+            long customerUserId = 0;
+            long contactId = 0;
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpPosCalcCartBody>(context, cancellationToken)
+                       ?? new();
+            linesJson = body.Lines.ValueKind == JsonValueKind.Array ? body.Lines.GetRawText() : body.LinesJson;
+            customerUserId = body.CustomerUserId;
+            contactId = body.ContactId;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                linesJson = LiveWriteFormBinder.Text(form, "lines", "linesJson", "lines_json");
+                customerUserId = LiveWriteFormBinder.Long(form, "customerUserId", "customer_user_id");
+                contactId = LiveWriteFormBinder.Long(form, "contactId", "contact_id");
+            }
+
+            var totals = await writes.CalcCartAsync(
+                CpPosWriteService.ParseLinesJson(linesJson),
+                customerUserId,
+                contactId,
+                cancellationToken);
+            return Results.Ok(new
+            {
+                status = totals.Ok,
+                message = totals.Message,
+                totals = new
+                {
+                    lines = totals.Lines,
+                    subtotal_ex = totals.SubtotalEx,
+                    discount_total = totals.DiscountTotal,
+                    amount_ex_vat = totals.AmountExVat,
+                    vat_amount = totals.VatAmount,
+                    total_amount = totals.TotalAmount,
+                    tax_rate = totals.TaxRate,
+                    tax_label = totals.TaxLabel,
+                    kit_code = totals.KitCode,
+                },
+            });
+        }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.CpPortalSaveSettings, async (HttpContext context, CpPortalSaveSettingsBody? body, ILegacySessionValidator validator, ICpPortalSaveSettingsDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin) return Unauthorized("Admin session required."); body ??= new CpPortalSaveSettingsBody(null,false); return Results.Ok(dryRun.Evaluate(new CpPortalSaveSettingsRequest(body.Action, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.CpPortalDeploySite, async (HttpContext context, CpPortalDeploySiteBody? body, ILegacySessionValidator validator, ICpPortalDeploySiteDryRun dryRun, CancellationToken cancellationToken) =>
@@ -3446,7 +3551,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "epc_pos_settings + epc_pos_sales digest. open/close session, save settings, and sale/line INSERT write on POST /cp/pos/* when confirmWrites=true. Printable receipt at /cp/pos/receipt/{id}. Walk-in user create, tax-toolkit totals, ERP SO/invoice/voucher, and inventory sale_out are ASP.NET-live."
+                note = "epc_pos_settings + epc_pos_sales digest. open/close session, save settings, and sale/line INSERT write on POST /cp/pos/* when confirmWrites=true. Printable receipt at /cp/pos/receipt/{id}. Walk-in user create, tax-toolkit totals, ERP SO/invoice/voucher, inventory sale_out, product/customer search, and calc_cart are ASP.NET-live."
             });
         });
 
@@ -6999,6 +7104,12 @@ public sealed class ControlPanelModule : ISurfaceModule
         decimal UnitPriceEx = 0,
         string? Sku = null,
         long WarehouseId = 0);
+    private sealed record CpPosSearchBody(string? Q = null, string? Query = null);
+    private sealed record CpPosCalcCartBody(
+        JsonElement Lines = default,
+        string? LinesJson = null,
+        long CustomerUserId = 0,
+        long ContactId = 0);
     private sealed record CpPosSaveSettingsBody(
         string? Action = null,
         bool ConfirmWrites = false,

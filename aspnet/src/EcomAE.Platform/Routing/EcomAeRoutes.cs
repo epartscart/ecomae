@@ -1651,6 +1651,12 @@ public static class EcomAeRoutes
     public const string ControlPanelPosReceipt = "/cp/pos/receipt/{saleId:long}";
     /// <summary>Live PHP ajax_pos.php save_settings UPDATE. Schema ensure stays PHP.</summary>
     public const string CpPosSaveSettings = "/cp/pos/save-settings";
+    /// <summary>Live PHP ajax_pos.php search_products.</summary>
+    public const string CpPosSearchProducts = "/cp/pos/search-products";
+    /// <summary>Live PHP ajax_pos.php search_customers.</summary>
+    public const string CpPosSearchCustomers = "/cp/pos/search-customers";
+    /// <summary>Live PHP ajax_pos.php calc_cart.</summary>
+    public const string CpPosCalcCart = "/cp/pos/calc-cart";
     /// <summary>Wave B dry-run for PHP cp/content/control/portal/ajax_portal.php?action=save_settings (writes=0).</summary>
     public const string CpPortalSaveSettings = "/cp/portal/save-settings";
     /// <summary>Wave B dry-run for PHP cp/content/control/portal/ajax_portal.php?action=deploy_site (writes=0).</summary>

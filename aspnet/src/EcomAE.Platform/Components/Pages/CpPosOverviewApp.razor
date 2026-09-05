@@ -2,12 +2,14 @@
 @layout Layout.PhpChromeLayout
 @using System.Globalization
 @using EcomAE.Platform.Auth
+@using EcomAE.Platform.Cp
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
 @inject NavigationManager Nav
+@inject ICpPosWriteService PosWrites
 
 <PageTitle>POS Overview · Control Panel · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="cp" />
@@ -119,6 +121,20 @@
                 </form>
             </div>
             <div class="epc-pos-form">
+                <h2>Search products</h2>
+                <form method="get" action="/cp/pos-overview-app">
+                    <label>Query <input type="text" name="productQ" value="@_productQ" /></label>
+                    <button type="submit">Search products</button>
+                </form>
+            </div>
+            <div class="epc-pos-form">
+                <h2>Search customers</h2>
+                <form method="get" action="/cp/pos-overview-app">
+                    <label>Query <input type="text" name="customerQ" value="@_customerQ" /></label>
+                    <button type="submit">Search customers</button>
+                </form>
+            </div>
+            <div class="epc-pos-form">
                 <h2>Save settings</h2>
                 <form method="post" action="/cp/pos/save-settings">
                     <input type="hidden" name="confirmWrites" value="true" />
@@ -199,7 +215,67 @@
         </table>
     </div>
 
-    <p class="epc-pos-note">open / close / save / complete-sale write here when confirmWrites is posted. Printable receipt is on this surface. Walk-in user, tax-toolkit totals, ERP SO / invoice / receipt voucher, and inventory sale_out write here. Search / calc_cart stay on the Classic twin.</p>
+    @if (_products.Count > 0)
+    {
+        <div class="epc-pos-table-wrap">
+            <table class="epc-pos-table" data-epc-pos-product-hits>
+                <thead>
+                    <tr>
+                        <th>Source</th>
+                        <th>SKU</th>
+                        <th>Name</th>
+                        <th>Brand</th>
+                        <th>Price</th>
+                        <th>Stock</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var p in _products)
+                    {
+                        <tr>
+                            <td>@p.Source</td>
+                            <td>@(string.IsNullOrWhiteSpace(p.Sku) ? "—" : p.Sku)</td>
+                            <td>@(string.IsNullOrWhiteSpace(p.Name) ? "—" : p.Name)</td>
+                            <td>@(string.IsNullOrWhiteSpace(p.Brand) ? "—" : p.Brand)</td>
+                            <td>@p.Price.ToString("N4", CultureInfo.InvariantCulture)</td>
+                            <td>@(p.Stock.HasValue ? p.Stock.Value.ToString("N3", CultureInfo.InvariantCulture) : "—")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+
+    @if (_customers.Count > 0)
+    {
+        <div class="epc-pos-table-wrap">
+            <table class="epc-pos-table" data-epc-pos-customer-hits>
+                <thead>
+                    <tr>
+                        <th>Type</th>
+                        <th>User</th>
+                        <th>Contact</th>
+                        <th>Label</th>
+                        <th>Email</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var c in _customers)
+                    {
+                        <tr>
+                            <td>@c.Type</td>
+                            <td>@c.UserId.ToString(CultureInfo.InvariantCulture)</td>
+                            <td>@c.ContactId.ToString(CultureInfo.InvariantCulture)</td>
+                            <td>@(string.IsNullOrWhiteSpace(c.Label) ? "—" : c.Label)</td>
+                            <td>@(string.IsNullOrWhiteSpace(c.Email) ? "—" : c.Email)</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+
+    <p class="epc-pos-note">open / close / save / complete-sale write here when confirmWrites is posted. Printable receipt is on this surface. Walk-in user, tax-toolkit totals, ERP SO / invoice / receipt voucher, inventory sale_out, product/customer search, and calc_cart write here.</p>
 
 </PhpCpDesktopChrome>
 
@@ -212,6 +288,10 @@
     private string _message = "";
     private string _flashOk = "";
     private string _flashErr = "";
+    private string _productQ = "";
+    private string _customerQ = "";
+    private IReadOnlyList<CpPosProductHit> _products = [];
+    private IReadOnlyList<CpPosCustomerHit> _customers = [];
 
     protected override async Task OnInitializedAsync()
     {
@@ -233,5 +313,16 @@
         _sales = result.Sales;
         _source = result.Source;
         _message = result.Message;
+        _productQ = ctx.Request.Query["productQ"].ToString() ?? "";
+        _customerQ = ctx.Request.Query["customerQ"].ToString() ?? "";
+        if (_productQ.Length > 0)
+        {
+            _products = await PosWrites.SearchProductsAsync(_productQ, 30, ctx.RequestAborted);
+        }
+
+        if (_customerQ.Length > 0)
+        {
+            _customers = await PosWrites.SearchCustomersAsync(_customerQ, 15, ctx.RequestAborted);
+        }
     }
 }

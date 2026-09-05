@@ -38,7 +38,10 @@ public sealed class CpPosReceiptPhpParityTests
     {
         var text = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/CpPosOverviewApp.razor"));
         Assert.Contains("/cp/pos/receipt/", text, StringComparison.Ordinal);
+        Assert.Contains("name=\"productQ\"", text, StringComparison.Ordinal);
+        Assert.Contains("/cp/pos/search-products", File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs")), StringComparison.Ordinal);
         Assert.DoesNotContain("receipt HTML stay", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("Search / calc_cart stay", text, StringComparison.Ordinal);
         Assert.DoesNotContain("@onclick", text, StringComparison.Ordinal);
     }
 
@@ -49,7 +52,7 @@ public sealed class CpPosReceiptPhpParityTests
         Assert.Contains("/cp/pos/receipt/{saleId:long}", routes, StringComparison.Ordinal);
         var catalog = SurfacePayloadContractCatalog.Functions;
         Assert.Contains("/cp/pos/receipt/{id}", catalog.First(f => f.AspNetRouteOrCapability == "/cp/pos-overview-app").Notes, StringComparison.Ordinal);
-        Assert.Contains("Walk-in user create, tax-toolkit totals, ERP SO/invoice/voucher, and inventory sale_out are ASP.NET-live", catalog.First(f => f.AspNetRouteOrCapability == "/cp/pos-overview-app").Notes, StringComparison.Ordinal);
+        Assert.Contains("Walk-in user create, tax-toolkit totals, ERP SO/invoice/voucher, inventory sale_out, product/customer search, and calc_cart are ASP.NET-live", catalog.First(f => f.AspNetRouteOrCapability == "/cp/pos-overview-app").Notes, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -112,6 +115,17 @@ public sealed class CpPosReceiptPhpParityTests
         Assert.False(CpPosWriteService.HasSaleOutSku(""));
         Assert.False(CpPosWriteService.HasSaleOutSku("   "));
         Assert.True(CpPosWriteService.HasSaleOutSku("WIPER-1"));
+    }
+
+    [Fact]
+    public void PosSearchHelpers_MatchPhpTrimUpperAndLimitClamp()
+    {
+        Assert.Equal("", CpPosWriteService.NormalizeSearchQuery("  "));
+        Assert.Equal("wiper", CpPosWriteService.NormalizeSearchQuery(" wiper "));
+        Assert.Equal("AB12", CpPosWriteService.NormalizeArticleExact("ab 12"));
+        Assert.Equal(1, CpPosWriteService.ClampProductLimit(0));
+        Assert.Equal(50, CpPosWriteService.ClampProductLimit(99));
+        Assert.Equal(30, CpPosWriteService.ClampProductLimit(30));
     }
 
     private static string FindRepoFile(string relative)
