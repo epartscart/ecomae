@@ -675,6 +675,29 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(ccyDb.Succeeded);
         Assert.Equal("db", ccyDb.Code);
 
+        Assert.Equal(new[] { "USD", "EUR" }, CpCurrencyWriteService.ParseIsoList("usd, eur"));
+        Assert.Equal(new[] { "USD", "784" }, CpCurrencyWriteService.ParseIsoList("[\"USD\",784]"));
+
+        var ccyAvailEmpty = await new CpCurrencyWriteService(new ConfiguredNeverOpened())
+            .SetAvailableAsync("", 1, null);
+        Assert.False(ccyAvailEmpty.Succeeded);
+        Assert.Equal("invalid", ccyAvailEmpty.Code);
+
+        var ccyAvailFlag = await new CpCurrencyWriteService(new ConfiguredNeverOpened())
+            .SetAvailableAsync("USD", 2, null);
+        Assert.False(ccyAvailFlag.Succeeded);
+        Assert.Equal("invalid", ccyAvailFlag.Code);
+
+        var ccyAvailShop = await new CpCurrencyWriteService(new ConfiguredNeverOpened())
+            .SetAvailableAsync("AED", 0, "AED");
+        Assert.False(ccyAvailShop.Succeeded);
+        Assert.Equal("shop", ccyAvailShop.Code);
+
+        var ccyAvailDb = await new CpCurrencyWriteService(new UnconfiguredConnections())
+            .SetAvailableAsync("USD", 1, null);
+        Assert.False(ccyAvailDb.Succeeded);
+        Assert.Equal("db", ccyAvailDb.Code);
+
         var catEnable = await new CpCatalogueWriteService(new ConfiguredNeverOpened())
             .SetMinLimitEnableAsync(0, 1);
         Assert.False(catEnable.Succeeded);

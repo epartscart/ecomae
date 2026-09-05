@@ -90,6 +90,8 @@ public static class EcomAeRoutes
     public const string ControlPanelCurrenciesApp = "/cp/currencies-app";
     /// <summary>Single shop_currencies.rate UPDATE. <c>confirmWrites=true</c> is the live twin of PHP currencies_turning.php general save.</summary>
     public const string CpCurrenciesSetRate = "/cp/currencies/set-rate";
+    /// <summary>PHP currencies_turning.php <c>available_currencies</c>. <c>confirmWrites=true</c> writes <c>shop_currencies.available</c>.</summary>
+    public const string CpCurrenciesSetAvailable = "/cp/currencies/set-available";
     public const string ControlPanelApiClients = "/cp/api-clients";
     /// <summary>CP API clients Blazor list (JSON digest remains <see cref="ControlPanelApiClients"/>; key hashes never returned).</summary>
     public const string ControlPanelApiClientsApp = "/cp/api-clients-app";

@@ -50,7 +50,7 @@
         <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
         <h1>Currencies</h1>
         <p>@CpPhpModuleCopy.PurposeFor(Nav.Uri)</p>
-        <p>Save one ISO rate here when confirmWrites is set. Bulk available flags and live FX pull stay on the PHP twin.</p>
+        <p>Save one ISO rate or mark currencies available here when confirmWrites is set. Live FX pull stays on the PHP twin.</p>
         <div class="epc-cu-cta">
             <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
             <a class="ghost" href="/cp/tenants-app">Tenants list</a>
@@ -76,6 +76,18 @@
             <label>ISO <input type="text" name="isoCode" required maxlength="3" /></label>
             <label>Rate <input type="text" name="rate" required /></label>
             <button type="submit">Save rate</button>
+        </form>
+        <form method="post" action="/cp/currencies/set-available" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/currencies-app" />
+            <label>ISO codes <input type="text" name="isoCodes" required placeholder="USD,EUR" /></label>
+            <label>Available
+                <select name="available">
+                    <option value="1">yes</option>
+                    <option value="0">no</option>
+                </select>
+            </label>
+            <button type="submit">Set available</button>
         </form>
     }
 
@@ -116,7 +128,19 @@
                             <td>@c.Rate.ToString("0.####", CultureInfo.InvariantCulture)</td>
                             <td><span class="epc-cu-badge @(c.Available ? "epc-cu-badge--ok" : "epc-cu-badge--off")">@(c.Available ? "yes" : "no")</span></td>
                             <td>@c.SortOrder</td>
-                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
+                            <td>
+                                @if (_isAdmin && !string.IsNullOrWhiteSpace(c.IsoCode))
+                                {
+                                    <form method="post" action="/cp/currencies/set-available" style="display:inline">
+                                        <input type="hidden" name="confirmWrites" value="true" />
+                                        <input type="hidden" name="returnUrl" value="/cp/currencies-app" />
+                                        <input type="hidden" name="isoCodes" value="@c.IsoCode" />
+                                        <input type="hidden" name="available" value="@(c.Available ? "0" : "1")" />
+                                        <button type="submit">@(c.Available ? "Disable" : "Enable")</button>
+                                    </form>
+                                }
+                                <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a>
+                            </td>
                         </tr>
                     }
                 }

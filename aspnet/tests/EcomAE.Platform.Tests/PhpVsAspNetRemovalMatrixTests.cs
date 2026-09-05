@@ -197,6 +197,7 @@ public sealed class PhpVsAspNetRemovalMatrixTests
             ("CpCrossesApp.razor", "/cp/crosses/write"),
             ("CpPricesEditApp.razor", "/cp/prices-edit/write"),
             ("CpCurrenciesApp.razor", "/cp/currencies/set-rate"),
+            ("CpCurrenciesApp.razor", "/cp/currencies/set-available"),
             ("CpProductCatalogueApp.razor", "/cp/catalogue/set-min-limit"),
             ("CpProductCatalogueApp.razor", "/cp/catalogue/templates-actions"),
             ("ErpWorkspaceFavoritesApp.razor", "/erp/ajax/erp-fav-add"),

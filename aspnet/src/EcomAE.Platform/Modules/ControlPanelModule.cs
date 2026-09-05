@@ -3198,7 +3198,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "shop_currencies digest. Single-rate POST /cp/currencies/set-rate when confirmWrites=true. Bulk available and live FX stay PHP."
+                note = "shop_currencies digest. Rate POST /cp/currencies/set-rate and available POST /cp/currencies/set-available when confirmWrites=true. Live FX stays PHP."
             });
         });
         endpoints.MapPost(EcomAeRoutes.CpCurrenciesSetRate, async (
@@ -3241,6 +3241,55 @@ public sealed class ControlPanelModule : ISurfaceModule
             }
 
             var written = await writes.SetRateAsync(iso, rate, cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/cp/currencies-app",
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.CpCurrenciesSetAvailable, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpCurrencyWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/currencies-app", "Admin CP capability required for currency available flags.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpCurrenciesSetAvailableBody>(context, cancellationToken)
+                       ?? new();
+            var isoCodes = body.IsoCodes ?? body.CurrenciesList;
+            var available = body.Available;
+            var shopCurrency = body.ShopCurrency;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                isoCodes = LiveWriteFormBinder.Text(form, "isoCodes", "iso_codes", "currencies_list", "currenciesList");
+                available = LiveWriteFormBinder.Int(form, "available");
+                shopCurrency = LiveWriteFormBinder.Text(form, "shopCurrency", "shop_currency");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(new
+                {
+                    status = "dry-run",
+                    writes = 0,
+                    writesBlocked = true,
+                    phpAuthoritative = true,
+                    validation_code = "dry_run",
+                    message = "Set confirmWrites=true to write currency available flags on ASP.NET.",
+                    session = SessionPayload(session)
+                });
+            }
+
+            var written = await writes.SetAvailableAsync(isoCodes, available, shopCurrency, cancellationToken);
             return LiveWriteFormBinder.Complete(
                 context,
                 "/cp/currencies-app",
@@ -7209,6 +7258,12 @@ public sealed class ControlPanelModule : ISurfaceModule
         long TimeSlot = 0,
         long AppointmentId = 0);
     private sealed record CpCurrenciesSetRateBody(string? IsoCode = null, decimal Rate = 0, bool ConfirmWrites = false);
+    private sealed record CpCurrenciesSetAvailableBody(
+        string? IsoCodes = null,
+        string? CurrenciesList = null,
+        int Available = -1,
+        string? ShopCurrency = null,
+        bool ConfirmWrites = false);
     private sealed record CpPricesEditWriteBody(
         string? Action = null,
         bool ConfirmWrites = false,
