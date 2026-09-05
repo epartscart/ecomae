@@ -1322,7 +1322,7 @@ public static class SurfacePayloadContractCatalog
         new("erp", "hr_attendance dry-run", "/erp/ajax/hr-attendance", "write-dry-run-gated", "POST dry-run for PHP hr_attendance; writes=0; confirm_writes refused; PHP authoritative."),
         new("erp", "hr_leave_request dry-run", "/erp/ajax/hr-leave-request", "write-dry-run-gated", "POST dry-run for PHP hr_leave_request; writes=0; confirm_writes refused; PHP authoritative."),
         new("erp", "hr_leave_status", "/erp/ajax/hr-leave-status", "write-live-gated", "POST PHP epc_hr_leave_set_status; confirmWrites=true writes ASP.NET; request/save stay PHP."),
-        new("erp", "hr_expense_save dry-run", "/erp/ajax/hr-expense-save", "write-dry-run-gated", "POST dry-run for PHP hr_expense_save; writes=0; confirm_writes refused; PHP authoritative."),
+        new("erp", "hr_expense_save", "/erp/ajax/hr-expense-save", "write-live-gated", "POST PHP epc_hr_expense_save; confirmWrites=true writes ASP.NET; schema ensure stays PHP."),
         new("erp", "hr_expense_status", "/erp/ajax/hr-expense-status", "write-live-gated", "POST PHP epc_hr_expense_set_status; confirmWrites=true writes ASP.NET; request/save stay PHP."),
         new("storefront", "StorefrontNewsletterSubscribe dry-run", "/storefront/newsletter/subscribe", "write-dry-run-gated", "POST dry-run for PHP ajax_newsletter_subscribe.php; writes=0; confirm_writes refused; PHP authoritative."),
         new("storefront", "StorefrontAddEvaluation dry-run", "/storefront/evaluations/add", "write-dry-run-gated", "POST dry-run for PHP content/shop/catalogue/evaluations/ajax_add_evaluation.php; writes=0; confirm_writes refused; PHP authoritative."),

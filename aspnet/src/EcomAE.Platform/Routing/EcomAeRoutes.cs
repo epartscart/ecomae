@@ -883,7 +883,7 @@ public static class EcomAeRoutes
     public const string ErpAjaxHrLeaveRequest = "/erp/ajax/hr-leave-request";
     /// <summary>Live PHP hr_leave_status twin (confirmWrites=true writes).</summary>
     public const string ErpAjaxHrLeaveStatus = "/erp/ajax/hr-leave-status";
-    /// <summary>Wave B dry-run for PHP hr_expense_save (writes=0).</summary>
+    /// <summary>PHP epc_hr_expense_save. <c>confirmWrites=true</c> writes via <c>IErpHrExpenseSaveWriteService</c>.</summary>
     public const string ErpAjaxHrExpenseSave = "/erp/ajax/hr-expense-save";
     /// <summary>Live PHP hr_expense_status twin (confirmWrites=true writes).</summary>
     public const string ErpAjaxHrExpenseStatus = "/erp/ajax/hr-expense-status";
