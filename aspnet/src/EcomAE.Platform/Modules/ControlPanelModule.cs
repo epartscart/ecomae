@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Text.Json;
 using EcomAE.Platform.Auth;
 using EcomAE.Platform.Cp;
 using EcomAE.Platform.Erp;
@@ -1314,8 +1315,9 @@ public sealed class ControlPanelModule : ISurfaceModule
             var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpPosCompleteSaleBody>(context, cancellationToken)
                        ?? new();
             var sessionId = body.SessionId;
-            var lines = body.Lines;
-            var linesJson = body.LinesJson;
+            var linesJson = body.Lines.ValueKind == JsonValueKind.Array
+                ? body.Lines.GetRawText()
+                : body.LinesJson;
             var paymentMethod = body.PaymentMethod;
             var cashAmount = body.CashAmount;
             var cardAmount = body.CardAmount;
@@ -1349,10 +1351,9 @@ public sealed class ControlPanelModule : ISurfaceModule
                 linePrice = LiveWriteFormBinder.Dec(form, "unitPriceEx", "unit_price_ex", "price");
                 lineSku = LiveWriteFormBinder.Text(form, "sku");
                 confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
-                lines = null;
             }
 
-            var parsedLines = lines ?? CpPosWriteService.ParseLinesJson(linesJson);
+            var parsedLines = CpPosWriteService.ParseLinesJson(linesJson);
             if (parsedLines.Count == 0 && !string.IsNullOrWhiteSpace(lineName))
             {
                 parsedLines = [new CpPosSaleLineInput(lineName, lineQty <= 0 ? 1 : lineQty, linePrice, Sku: lineSku, Price: linePrice)];
@@ -6615,7 +6616,7 @@ public sealed class ControlPanelModule : ISurfaceModule
         string? Action = null,
         bool ConfirmWrites = false,
         long SessionId = 0,
-        IReadOnlyList<CpPosSaleLineInput>? Lines = null,
+        JsonElement Lines = default,
         string? LinesJson = null,
         string? PaymentMethod = null,
         decimal CashAmount = 0,
