@@ -111,6 +111,18 @@ public sealed class StorefrontPayLaximoPhpParityTests
         Assert.Equal("write-live-gated", SurfacePayloadContractCatalog.Functions.First(f => f.AspNetRouteOrCapability == "/cp/orders/pay-refund").Status);
         Assert.Equal("write-live-gated", SurfacePayloadContractCatalog.Functions.First(f => f.AspNetRouteOrCapability == "/cp/orders/refresh-item-cost").Status);
         Assert.Equal("write-live-gated", SurfacePayloadContractCatalog.Functions.First(f => f.AspNetRouteOrCapability == "/cp/fulfillment-queue/write").Status);
+        Assert.Equal("write-live-gated", SurfacePayloadContractCatalog.Functions.First(f => f.AspNetRouteOrCapability == "/cp/pos/open-session").Status);
+        Assert.Equal("write-live-gated", SurfacePayloadContractCatalog.Functions.First(f => f.AspNetRouteOrCapability == "/cp/pos/close-session").Status);
+        Assert.Equal("write-live-gated", SurfacePayloadContractCatalog.Functions.First(f => f.AspNetRouteOrCapability == "/cp/pos/complete-sale").Status);
+        Assert.Equal("write-live-gated", SurfacePayloadContractCatalog.Functions.First(f => f.AspNetRouteOrCapability == "/cp/pos/save-settings").Status);
+
+        var pos = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/CpPosOverviewApp.razor"));
+        Assert.Contains("action=\"/cp/pos/open-session\"", pos, StringComparison.Ordinal);
+        Assert.Contains("action=\"/cp/pos/close-session\"", pos, StringComparison.Ordinal);
+        Assert.Contains("action=\"/cp/pos/complete-sale\"", pos, StringComparison.Ordinal);
+        Assert.Contains("action=\"/cp/pos/save-settings\"", pos, StringComparison.Ordinal);
+        Assert.Contains("name=\"confirmWrites\"", pos, StringComparison.Ordinal);
+        Assert.DoesNotContain("@onclick", pos, StringComparison.Ordinal);
         Assert.Equal("/storefront/garage/check-car", PhpCustomerWrites.GarageCheckCarHref);
         Assert.Equal("/storefront/profile/change-password", PhpCustomerWrites.ProfilePasswordHref);
     }

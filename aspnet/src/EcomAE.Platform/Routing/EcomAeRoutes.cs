@@ -1635,13 +1635,13 @@ public static class EcomAeRoutes
     public const string BosAjaxEvidence = "/bos/ajax/evidence";
     /// <summary>Wave B dry-run for BOS PHP create_policy (writes=0).</summary>
     public const string BosAjaxCreatePolicy = "/bos/ajax/create-policy";
-    /// <summary>Wave B dry-run for PHP cp/content/shop/pos/ajax_pos.php?action=open_session (writes=0).</summary>
+    /// <summary>Live PHP ajax_pos.php open_session. confirmWrites=true writes ASP.NET.</summary>
     public const string CpPosOpenSession = "/cp/pos/open-session";
-    /// <summary>Wave B dry-run for PHP cp/content/shop/pos/ajax_pos.php?action=close_session (writes=0).</summary>
+    /// <summary>Live PHP ajax_pos.php close_session. confirmWrites=true writes ASP.NET.</summary>
     public const string CpPosCloseSession = "/cp/pos/close-session";
-    /// <summary>Wave B dry-run for PHP cp/content/shop/pos/ajax_pos.php?action=complete_sale (writes=0).</summary>
+    /// <summary>Live PHP ajax_pos.php complete_sale POS INSERT. ERP SO/invoice/voucher, inventory, receipt HTML stay PHP.</summary>
     public const string CpPosCompleteSale = "/cp/pos/complete-sale";
-    /// <summary>Wave B dry-run for PHP cp/content/shop/pos/ajax_pos.php?action=save_settings (writes=0).</summary>
+    /// <summary>Live PHP ajax_pos.php save_settings UPDATE. Schema ensure stays PHP.</summary>
     public const string CpPosSaveSettings = "/cp/pos/save-settings";
     /// <summary>Wave B dry-run for PHP cp/content/control/portal/ajax_portal.php?action=save_settings (writes=0).</summary>
     public const string CpPortalSaveSettings = "/cp/portal/save-settings";

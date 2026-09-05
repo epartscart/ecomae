@@ -81,6 +81,7 @@ public sealed class PhpVsAspNetRemovalMatrixTests
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "sf-vin" && r.WritesOwner == "aspnet");
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "sf-pay-order" && r.WritesOwner == "aspnet");
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "cp-fulfillment" && r.WritesOwner == "aspnet");
+        Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "cp-pos" && r.WritesOwner == "aspnet");
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "write-laximo" && r.WritesOwner == "aspnet");
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "write-payments" && r.WritesOwner == "aspnet");
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "write-storefront-cart" && r.WritesOwner == "php");
@@ -212,6 +213,9 @@ public sealed class PhpVsAspNetRemovalMatrixTests
             ("StorefrontWishlistApp.razor", "WishlistRemoveHref"),
             ("StorefrontCompareApp.razor", "CompareRemoveHref"),
             ("StorefrontProfileApp.razor", "ProfileWriteHref"),
+            ("CpPosOverviewApp.razor", "/cp/pos/open-session"),
+            ("CpPosOverviewApp.razor", "/cp/pos/complete-sale"),
+            ("CpFulfillmentQueueApp.razor", "/cp/fulfillment-queue/write"),
         };
         foreach (var (name, needle) in cases)
         {

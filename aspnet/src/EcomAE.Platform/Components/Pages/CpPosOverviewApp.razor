@@ -34,7 +34,16 @@
         .epc-pos-table th, .epc-pos-table td { padding:.55rem .7rem; border-bottom:1px solid #f1f5f9; text-align:left; white-space:nowrap; }
         .epc-pos-table th { background:#f8fafc; color:#475569; font-size:.75rem; text-transform:uppercase; letter-spacing:.03em; }
         .epc-pos-note { margin-top:1rem; padding:.75rem .9rem; background:#fff7ed; border:1px solid #fed7aa; border-radius:.45rem; color:#9a3412; font-size:.86rem; }
-        @@media (max-width:900px){ .epc-pos-kpis{grid-template-columns:1fr;} }
+        .epc-pos-forms { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:.75rem; margin:0 0 1rem; }
+        .epc-pos-form { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; padding:.85rem .95rem; }
+        .epc-pos-form h2 { margin:0 0 .55rem; font-size:.95rem; }
+        .epc-pos-form form { display:flex; flex-wrap:wrap; gap:.45rem; align-items:end; }
+        .epc-pos-form label { display:flex; flex-direction:column; gap:.15rem; font-size:.75rem; color:#475569; }
+        .epc-pos-form input, .epc-pos-form select, .epc-pos-form textarea { min-width:7rem; padding:.35rem .45rem; border:1px solid #cbd5e1; border-radius:.35rem; font-size:.82rem; }
+        .epc-pos-form button { padding:.4rem .7rem; border:0; border-radius:.35rem; background:#0c4a6e; color:#fff; font-weight:700; font-size:.8rem; cursor:pointer; }
+        .epc-pos-flash-ok { margin:0 0 .75rem; padding:.65rem .8rem; background:#ecfdf5; border:1px solid #6ee7b7; border-radius:.4rem; color:#065f46; }
+        .epc-pos-flash-err { margin:0 0 .75rem; padding:.65rem .8rem; background:#fef2f2; border:1px solid #fecaca; border-radius:.4rem; color:#991b1b; }
+        @@media (max-width:900px){ .epc-pos-kpis,.epc-pos-forms{grid-template-columns:1fr;} }
     
 </style>
 </HeadContent>
@@ -49,10 +58,92 @@
         <div class="epc-pos-cta">
             <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
             <a class="ghost" href="/cp/tax-toolkits-app">Tax toolkits</a>
+            <a class="ghost" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Classic twin</a>
         </div>
     </section>
     <PhpParityModuleBody AppPath="/cp/pos-overview-app" IsAdmin="_isAdmin" />
 
+    @if (!string.IsNullOrWhiteSpace(_flashOk))
+    {
+        <div class="epc-pos-flash-ok" role="status">@_flashOk</div>
+    }
+    @if (!string.IsNullOrWhiteSpace(_flashErr))
+    {
+        <div class="epc-pos-flash-err" role="status">@_flashErr</div>
+    }
+
+    @if (_isAdmin)
+    {
+        <div class="epc-pos-forms" aria-label="POS writes">
+            <div class="epc-pos-form">
+                <h2>Open register</h2>
+                <form method="post" action="/cp/pos/open-session">
+                    <input type="hidden" name="confirmWrites" value="true" />
+                    <input type="hidden" name="returnUrl" value="/cp/pos-overview-app" />
+                    <label>Opening float <input type="text" name="openingFloat" value="0" inputmode="decimal" /></label>
+                    <label>Register <input type="text" name="registerName" value="@_summary.RegisterName" /></label>
+                    <button type="submit">Open session</button>
+                </form>
+            </div>
+            <div class="epc-pos-form">
+                <h2>Close register</h2>
+                <form method="post" action="/cp/pos/close-session">
+                    <input type="hidden" name="confirmWrites" value="true" />
+                    <input type="hidden" name="returnUrl" value="/cp/pos-overview-app" />
+                    <label>Session id <input type="text" name="sessionId" value="" inputmode="numeric" placeholder="open session" /></label>
+                    <label>Closing cash <input type="text" name="closingCash" value="0" inputmode="decimal" /></label>
+                    <label>Notes <input type="text" name="notes" /></label>
+                    <button type="submit">Close session</button>
+                </form>
+            </div>
+            <div class="epc-pos-form">
+                <h2>Complete sale</h2>
+                <form method="post" action="/cp/pos/complete-sale">
+                    <input type="hidden" name="confirmWrites" value="true" />
+                    <input type="hidden" name="returnUrl" value="/cp/pos-overview-app" />
+                    <label>Name <input type="text" name="name" required /></label>
+                    <label>Qty <input type="text" name="qty" value="1" inputmode="decimal" /></label>
+                    <label>Unit price ex <input type="text" name="unitPriceEx" value="0" inputmode="decimal" /></label>
+                    <label>SKU <input type="text" name="sku" /></label>
+                    <label>Payment
+                        <select name="paymentMethod">
+                            <option value="cash">cash</option>
+                            <option value="card">card</option>
+                            <option value="split">split</option>
+                        </select>
+                    </label>
+                    <label>Tax % <input type="text" name="taxRate" value="0" inputmode="decimal" /></label>
+                    <label>Customer <input type="text" name="customerLabel" value="Walk-in guest" /></label>
+                    <button type="submit">Complete sale</button>
+                </form>
+            </div>
+            <div class="epc-pos-form">
+                <h2>Save settings</h2>
+                <form method="post" action="/cp/pos/save-settings">
+                    <input type="hidden" name="confirmWrites" value="true" />
+                    <input type="hidden" name="returnUrl" value="/cp/pos-overview-app" />
+                    <label>Enabled
+                        <select name="posEnabled">
+                            @if (_summary.PosEnabled)
+                            {
+                                <option value="true" selected>enabled</option>
+                                <option value="false">off</option>
+                            }
+                            else
+                            {
+                                <option value="true">enabled</option>
+                                <option value="false" selected>off</option>
+                            }
+                        </select>
+                    </label>
+                    <label>Register <input type="text" name="registerName" value="@_summary.RegisterName" /></label>
+                    <label>Header <input type="text" name="receiptHeader" /></label>
+                    <label>Footer <input type="text" name="receiptFooter" value="Thank you for your purchase" /></label>
+                    <button type="submit">Save settings</button>
+                </form>
+            </div>
+        </div>
+    }
 
     <div class="epc-pos-kpis" aria-label="POS stats">
         <div class="epc-pos-kpi"><strong>@(_summary.PosEnabled ? "enabled" : "off")</strong><span>Register @(string.IsNullOrWhiteSpace(_summary.RegisterName) ? "—" : _summary.RegisterName)</span></div>
@@ -107,6 +198,8 @@
         </table>
     </div>
 
+    <p class="epc-pos-note">open / close / save / complete-sale write here when confirmWrites is posted. Walk-in user create, tax-toolkit totals, ERP SO/invoice/voucher, inventory movement, and receipt HTML stay on the Classic twin. Search / calc_cart stay PHP.</p>
+
 </PhpCpDesktopChrome>
 
 @code {
@@ -116,11 +209,16 @@
     private IReadOnlyList<CpPosSaleDigest> _sales = [];
     private string _source = "n/a";
     private string _message = "";
+    private string _flashOk = "";
+    private string _flashErr = "";
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
+
+        _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
+        _flashErr = ctx.Request.Query["err"].ToString() ?? "";
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);

@@ -353,6 +353,53 @@ public sealed class LiveWriteServiceValidationTests
         Assert.Equal(new[] { "delivered" }, CpFulfillmentQueueWriteService.AllowedNextStatuses("SHIPPED"));
         Assert.Empty(CpFulfillmentQueueWriteService.AllowedNextStatuses("delivered"));
 
+        var posOpenNeg = await new CpPosWriteService(new ConfiguredNeverOpened())
+            .OpenSessionAsync(-1, 1, "Register 1");
+        Assert.False(posOpenNeg.Succeeded);
+        Assert.Equal("invalid", posOpenNeg.Code);
+
+        var posOpenDb = await new CpPosWriteService(new UnconfiguredConnections())
+            .OpenSessionAsync(10, 1, "Register 1");
+        Assert.False(posOpenDb.Succeeded);
+        Assert.Equal("db", posOpenDb.Code);
+
+        var posCloseNeg = await new CpPosWriteService(new ConfiguredNeverOpened())
+            .CloseSessionAsync(1, -1, "");
+        Assert.False(posCloseNeg.Succeeded);
+        Assert.Equal("invalid", posCloseNeg.Code);
+
+        var posCloseDb = await new CpPosWriteService(new UnconfiguredConnections())
+            .CloseSessionAsync(1, 10, "");
+        Assert.False(posCloseDb.Succeeded);
+        Assert.Equal("db", posCloseDb.Code);
+
+        var posSaveDb = await new CpPosWriteService(new UnconfiguredConnections())
+            .SaveSettingsAsync(true, "Register 1", 0, 0, 0, "", "");
+        Assert.False(posSaveDb.Succeeded);
+        Assert.Equal("db", posSaveDb.Code);
+
+        var posEmpty = await new CpPosWriteService(new ConfiguredNeverOpened())
+            .CompleteSaleAsync(new CpPosCompleteSaleWriteRequest(Lines: []), 1);
+        Assert.False(posEmpty.Succeeded);
+        Assert.Equal("invalid", posEmpty.Code);
+        Assert.Equal("Cart is empty", posEmpty.Message);
+
+        var posSaleDb = await new CpPosWriteService(new UnconfiguredConnections())
+            .CompleteSaleAsync(new CpPosCompleteSaleWriteRequest(Lines: [new("Oil", 1, 8.50m)]), 1);
+        Assert.False(posSaleDb.Succeeded);
+        Assert.Equal("db", posSaleDb.Code);
+
+        var parsed = CpPosWriteService.ParseLinesJson("""[{"name":"Oil filter","qty":2,"unit_price_ex":8.5,"line_discount_pct":10}]""");
+        var lines = CpPosWriteService.ParseLines(parsed);
+        Assert.Single(lines);
+        Assert.Equal("Oil filter", lines[0].Name);
+        Assert.Equal(2m, lines[0].Qty);
+        Assert.Equal(8.5m, lines[0].UnitPriceEx);
+        Assert.Equal(1.70m, lines[0].DiscountAmt);
+        Assert.Equal(15.30m, lines[0].LineExVat);
+        var priced = CpPosWriteService.ParseLines(CpPosWriteService.ParseLinesJson("""[{"name":"Pad","price":4}]"""));
+        Assert.Equal(4m, priced[0].UnitPriceEx);
+
         var createReturn = await new StorefrontCustomerWriteService(new ConfiguredNeverOpened())
             .CreateReturnAsync(1, 0, 0, 0, 0, null);
         Assert.False(createReturn.Succeeded);

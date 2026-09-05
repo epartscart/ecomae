@@ -1218,14 +1218,230 @@ public sealed class ControlPanelModule : ISurfaceModule
             return Results.Ok(dryRun.Evaluate(new CpLangSetIsCustomRequest(body.Action, false)).ToPayload(SessionPayload(session)));
         }).DisableAntiforgery();
 
-        endpoints.MapPost(EcomAeRoutes.CpPosOpenSession, async (HttpContext context, CpPosOpenSessionBody? body, ILegacySessionValidator validator, ICpPosOpenSessionDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin) return Unauthorized("Admin session required."); body ??= new CpPosOpenSessionBody(null,false); return Results.Ok(dryRun.Evaluate(new CpPosOpenSessionRequest(body.Action, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
-        endpoints.MapPost(EcomAeRoutes.CpPosCloseSession, async (HttpContext context, CpPosCloseSessionBody? body, ILegacySessionValidator validator, ICpPosCloseSessionDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin) return Unauthorized("Admin session required."); body ??= new CpPosCloseSessionBody(null,false); return Results.Ok(dryRun.Evaluate(new CpPosCloseSessionRequest(body.Action, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
-        endpoints.MapPost(EcomAeRoutes.CpPosCompleteSale, async (HttpContext context, CpPosCompleteSaleBody? body, ILegacySessionValidator validator, ICpPosCompleteSaleDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin) return Unauthorized("Admin session required."); body ??= new CpPosCompleteSaleBody(null,false); return Results.Ok(dryRun.Evaluate(new CpPosCompleteSaleRequest(body.Action, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
-        endpoints.MapPost(EcomAeRoutes.CpPosSaveSettings, async (HttpContext context, CpPosSaveSettingsBody? body, ILegacySessionValidator validator, ICpPosSaveSettingsDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin) return Unauthorized("Admin session required."); body ??= new CpPosSaveSettingsBody(null,false); return Results.Ok(dryRun.Evaluate(new CpPosSaveSettingsRequest(body.Action, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.CpPosOpenSession, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpPosOpenSessionDryRun dryRun,
+            ICpPosWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/pos-overview-app", "Admin CP capability required for POS open-session.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpPosOpenSessionBody>(context, cancellationToken)
+                       ?? new();
+            var openingFloat = body.OpeningFloat;
+            var registerName = body.RegisterName;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                openingFloat = LiveWriteFormBinder.Dec(form, "openingFloat", "opening_float");
+                registerName = LiveWriteFormBinder.Text(form, "registerName", "register_name");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (confirm)
+            {
+                var written = await writes.OpenSessionAsync(openingFloat, session.UserId, registerName, cancellationToken);
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    "/cp/pos-overview-app",
+                    written.Succeeded,
+                    written.Message,
+                    new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+            }
+
+            return Results.Ok(dryRun.Evaluate(new CpPosOpenSessionRequest(body.Action, false)).ToPayload(SessionPayload(session)));
+        }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.CpPosCloseSession, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpPosCloseSessionDryRun dryRun,
+            ICpPosWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/pos-overview-app", "Admin CP capability required for POS close-session.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpPosCloseSessionBody>(context, cancellationToken)
+                       ?? new();
+            var sessionId = body.SessionId;
+            var closingCash = body.ClosingCash;
+            var notes = body.Notes;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                sessionId = LiveWriteFormBinder.Long(form, "sessionId", "session_id");
+                closingCash = LiveWriteFormBinder.Dec(form, "closingCash", "closing_cash");
+                notes = LiveWriteFormBinder.Text(form, "notes");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (confirm)
+            {
+                var written = await writes.CloseSessionAsync(sessionId, closingCash, notes, cancellationToken);
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    "/cp/pos-overview-app",
+                    written.Succeeded,
+                    written.Message,
+                    new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+            }
+
+            return Results.Ok(dryRun.Evaluate(new CpPosCloseSessionRequest(body.Action, false)).ToPayload(SessionPayload(session)));
+        }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.CpPosCompleteSale, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpPosCompleteSaleDryRun dryRun,
+            ICpPosWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/pos-overview-app", "Admin CP capability required for POS complete-sale.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpPosCompleteSaleBody>(context, cancellationToken)
+                       ?? new();
+            var sessionId = body.SessionId;
+            var lines = body.Lines;
+            var linesJson = body.LinesJson;
+            var paymentMethod = body.PaymentMethod;
+            var cashAmount = body.CashAmount;
+            var cardAmount = body.CardAmount;
+            var taxRate = body.TaxRate;
+            var taxKitCode = body.TaxKitCode;
+            var customerUserId = body.CustomerUserId;
+            var contactId = body.ContactId;
+            var customerLabel = body.CustomerLabel;
+            var saleNotes = body.SaleNotes;
+            var lineName = body.Name;
+            var lineQty = body.Qty;
+            var linePrice = body.UnitPriceEx;
+            var lineSku = body.Sku;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                sessionId = LiveWriteFormBinder.Long(form, "sessionId", "session_id");
+                linesJson = LiveWriteFormBinder.Text(form, "lines", "linesJson", "lines_json");
+                paymentMethod = LiveWriteFormBinder.Text(form, "paymentMethod", "payment_method");
+                cashAmount = LiveWriteFormBinder.Dec(form, "cashAmount", "cash_amount");
+                cardAmount = LiveWriteFormBinder.Dec(form, "cardAmount", "card_amount");
+                taxRate = LiveWriteFormBinder.Dec(form, "taxRate", "tax_rate");
+                taxKitCode = LiveWriteFormBinder.Text(form, "taxKitCode", "tax_kit_code");
+                customerUserId = LiveWriteFormBinder.Long(form, "customerUserId", "customer_user_id");
+                contactId = LiveWriteFormBinder.Long(form, "contactId", "contact_id");
+                customerLabel = LiveWriteFormBinder.Text(form, "customerLabel", "customer_label");
+                saleNotes = LiveWriteFormBinder.Text(form, "saleNotes", "sale_notes", "notes");
+                lineName = LiveWriteFormBinder.Text(form, "name", "lineName", "line_name");
+                lineQty = LiveWriteFormBinder.Dec(form, "qty", "lineQty", "line_qty");
+                linePrice = LiveWriteFormBinder.Dec(form, "unitPriceEx", "unit_price_ex", "price");
+                lineSku = LiveWriteFormBinder.Text(form, "sku");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+                lines = null;
+            }
+
+            var parsedLines = lines ?? CpPosWriteService.ParseLinesJson(linesJson);
+            if (parsedLines.Count == 0 && !string.IsNullOrWhiteSpace(lineName))
+            {
+                parsedLines = [new CpPosSaleLineInput(lineName, lineQty <= 0 ? 1 : lineQty, linePrice, Sku: lineSku, Price: linePrice)];
+            }
+
+            if (confirm)
+            {
+                var written = await writes.CompleteSaleAsync(
+                    new CpPosCompleteSaleWriteRequest(
+                        sessionId,
+                        parsedLines,
+                        paymentMethod,
+                        cashAmount,
+                        cardAmount,
+                        taxRate,
+                        taxKitCode,
+                        customerUserId,
+                        contactId,
+                        customerLabel,
+                        saleNotes),
+                    session.UserId,
+                    cancellationToken);
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    "/cp/pos-overview-app",
+                    written.Succeeded,
+                    written.Message,
+                    new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+            }
+
+            return Results.Ok(dryRun.Evaluate(new CpPosCompleteSaleRequest(body.Action, false)).ToPayload(SessionPayload(session)));
+        }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.CpPosSaveSettings, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpPosSaveSettingsDryRun dryRun,
+            ICpPosWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/pos-overview-app", "Admin CP capability required for POS save-settings.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpPosSaveSettingsBody>(context, cancellationToken)
+                       ?? new();
+            var posEnabled = body.PosEnabled;
+            var registerName = body.RegisterName;
+            var defaultWarehouseId = body.DefaultWarehouseId;
+            var defaultCashAccountId = body.DefaultCashAccountId;
+            var defaultCardAccountId = body.DefaultCardAccountId;
+            var receiptHeader = body.ReceiptHeader;
+            var receiptFooter = body.ReceiptFooter;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                posEnabled = LiveWriteFormBinder.Flag(form, "posEnabled", "pos_enabled");
+                registerName = LiveWriteFormBinder.Text(form, "registerName", "register_name");
+                defaultWarehouseId = LiveWriteFormBinder.Int(form, "defaultWarehouseId", "default_warehouse_id");
+                defaultCashAccountId = LiveWriteFormBinder.Int(form, "defaultCashAccountId", "default_cash_account_id");
+                defaultCardAccountId = LiveWriteFormBinder.Int(form, "defaultCardAccountId", "default_card_account_id");
+                receiptHeader = LiveWriteFormBinder.Text(form, "receiptHeader", "receipt_header");
+                receiptFooter = LiveWriteFormBinder.Text(form, "receiptFooter", "receipt_footer");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (confirm)
+            {
+                var written = await writes.SaveSettingsAsync(
+                    posEnabled,
+                    registerName,
+                    defaultWarehouseId,
+                    defaultCashAccountId,
+                    defaultCardAccountId,
+                    receiptHeader,
+                    receiptFooter,
+                    cancellationToken);
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    "/cp/pos-overview-app",
+                    written.Succeeded,
+                    written.Message,
+                    new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+            }
+
+            return Results.Ok(dryRun.Evaluate(new CpPosSaveSettingsRequest(body.Action, false)).ToPayload(SessionPayload(session)));
+        }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.CpPortalSaveSettings, async (HttpContext context, CpPortalSaveSettingsBody? body, ILegacySessionValidator validator, ICpPortalSaveSettingsDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin) return Unauthorized("Admin session required."); body ??= new CpPortalSaveSettingsBody(null,false); return Results.Ok(dryRun.Evaluate(new CpPortalSaveSettingsRequest(body.Action, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.CpPortalDeploySite, async (HttpContext context, CpPortalDeploySiteBody? body, ILegacySessionValidator validator, ICpPortalDeploySiteDryRun dryRun, CancellationToken cancellationToken) =>
@@ -2914,7 +3130,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only epc_pos_settings + epc_pos_sales. Terminal sales writes remain PHP epc_pos_terminal."
+                note = "epc_pos_settings + epc_pos_sales digest. open/close session, save settings, and sale/line INSERT write on POST /cp/pos/* when confirmWrites=true. Walk-in user, tax-toolkit totals, ERP SO/invoice/voucher, inventory, and receipt HTML stay PHP."
             });
         });
 
@@ -6384,10 +6600,46 @@ public sealed class ControlPanelModule : ISurfaceModule
         string? TrackingNumber = null,
         string? SiteKey = null,
         IReadOnlyList<long>? FulfillmentIds = null);
-    private sealed record CpPosOpenSessionBody(string? Action = null, bool ConfirmWrites = false);
-    private sealed record CpPosCloseSessionBody(string? Action = null, bool ConfirmWrites = false);
-    private sealed record CpPosCompleteSaleBody(string? Action = null, bool ConfirmWrites = false);
-    private sealed record CpPosSaveSettingsBody(string? Action = null, bool ConfirmWrites = false);
+    private sealed record CpPosOpenSessionBody(
+        string? Action = null,
+        bool ConfirmWrites = false,
+        decimal OpeningFloat = 0,
+        string? RegisterName = null);
+    private sealed record CpPosCloseSessionBody(
+        string? Action = null,
+        bool ConfirmWrites = false,
+        long SessionId = 0,
+        decimal ClosingCash = 0,
+        string? Notes = null);
+    private sealed record CpPosCompleteSaleBody(
+        string? Action = null,
+        bool ConfirmWrites = false,
+        long SessionId = 0,
+        IReadOnlyList<CpPosSaleLineInput>? Lines = null,
+        string? LinesJson = null,
+        string? PaymentMethod = null,
+        decimal CashAmount = 0,
+        decimal CardAmount = 0,
+        decimal TaxRate = 0,
+        string? TaxKitCode = null,
+        long CustomerUserId = 0,
+        long ContactId = 0,
+        string? CustomerLabel = null,
+        string? SaleNotes = null,
+        string? Name = null,
+        decimal Qty = 0,
+        decimal UnitPriceEx = 0,
+        string? Sku = null);
+    private sealed record CpPosSaveSettingsBody(
+        string? Action = null,
+        bool ConfirmWrites = false,
+        bool PosEnabled = false,
+        string? RegisterName = null,
+        int DefaultWarehouseId = 0,
+        int DefaultCashAccountId = 0,
+        int DefaultCardAccountId = 0,
+        string? ReceiptHeader = null,
+        string? ReceiptFooter = null);
     private sealed record CpPortalSaveSettingsBody(string? Action = null, bool ConfirmWrites = false);
     private sealed record CpPortalDeploySiteBody(string? Action = null, bool ConfirmWrites = false);
     private sealed record CpCrmActionBody(string? Action = null, bool ConfirmWrites = false);
