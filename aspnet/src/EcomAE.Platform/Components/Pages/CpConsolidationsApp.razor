@@ -63,6 +63,16 @@
     }
     @if (_isAdmin)
     {
+        <form method="post" action="/erp/ajax/cons-entity-save" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/consolidations-app" />
+            <label>Code <input type="text" name="code" required /></label>
+            <label>Name <input type="text" name="name" required /></label>
+            <label>Currency <input type="text" name="currency_code" value="AED" style="width:5rem" /></label>
+            <label>Ownership % <input type="number" name="ownership_pct" step="0.001" value="100" style="width:6rem" /></label>
+            <label><input type="checkbox" name="is_home" value="1" /> Home</label>
+            <button type="submit">Save entity</button>
+        </form>
         <form method="post" action="/erp/ajax/cons-entity-delete" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
             <input type="hidden" name="returnUrl" value="/cp/consolidations-app" />

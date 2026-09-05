@@ -1480,7 +1480,7 @@ public static class SurfacePayloadContractCatalog
         new("erp", "prj_save dry-run", "/erp/ajax/prj-save", "write-dry-run-gated", "POST dry-run for PHP prj_save; writes=0; confirm_writes refused; PHP authoritative."),
         new("erp", "prj_task_save dry-run", "/erp/ajax/prj-task-save", "write-dry-run-gated", "POST dry-run for PHP prj_task_save; writes=0; confirm_writes refused; PHP authoritative."),
         new("erp", "prj_log_time dry-run", "/erp/ajax/prj-log-time", "write-dry-run-gated", "POST dry-run for PHP prj_log_time; writes=0; confirm_writes refused; PHP authoritative."),
-        new("erp", "cons_entity_save dry-run", "/erp/ajax/cons-entity-save", "write-dry-run-gated", "POST dry-run for PHP cons_entity_save; writes=0; confirm_writes refused; PHP authoritative."),
+        new("erp", "cons_entity_save", "/erp/ajax/cons-entity-save", "write-live-gated", "POST PHP epc_cons_entity_save; confirmWrites=true writes ASP.NET; figures and schema ensure stay PHP."),
         new("erp", "cons_entity_delete", "/erp/ajax/cons-entity-delete", "write-live-gated", "POST PHP epc_cons_entity_delete; confirmWrites=true writes ASP.NET; save/figures stay PHP."),
         new("erp", "cons_figures_save dry-run", "/erp/ajax/cons-figures-save", "write-dry-run-gated", "POST dry-run for PHP cons_figures_save; writes=0; confirm_writes refused; PHP authoritative."),
         new("erp", "cons_ic_save dry-run", "/erp/ajax/cons-ic-save", "write-dry-run-gated", "POST dry-run for PHP cons_ic_save; writes=0; confirm_writes refused; PHP authoritative."),

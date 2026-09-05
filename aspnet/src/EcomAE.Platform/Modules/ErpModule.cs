@@ -114,8 +114,56 @@ public sealed class ErpModule : ISurfaceModule
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpPrjTaskSaveRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxPrjLogTime, async (HttpContext context, ErpPrjLogTimeBody? body, ILegacySessionValidator validator, IErpPrjLogTimeDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpPrjLogTimeRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxConsEntitySave, async (HttpContext context, ErpConsEntitySaveBody? body, ILegacySessionValidator validator, IErpConsEntitySaveDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpConsEntitySaveRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxConsEntitySave, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IErpConsEntitySaveDryRun dryRun,
+            EcomAE.Platform.Erp.IErpConsEntitySaveWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/cp/consolidations-app", "Admin ERP capability required for consolidation entity save.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpConsEntitySaveBody>(context, cancellationToken)
+                       ?? new();
+            var id = body.Id;
+            var code = body.Code;
+            var name = body.Name;
+            var currencyCode = body.CurrencyCode;
+            var ownershipPct = body.OwnershipPct;
+            var isHome = body.IsHome;
+            var parentCode = body.ParentCode;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                id = LiveWriteFormBinder.Long(form, "id");
+                code = LiveWriteFormBinder.Text(form, "code");
+                name = LiveWriteFormBinder.Text(form, "name");
+                currencyCode = LiveWriteFormBinder.Text(form, "currencyCode", "currency_code");
+                var ownershipRaw = LiveWriteFormBinder.DecOrNull(form, "ownershipPct", "ownership_pct");
+                ownershipPct = ownershipRaw ?? 100;
+                isHome = LiveWriteFormBinder.Flag(form, "isHome", "is_home");
+                parentCode = LiveWriteFormBinder.Text(form, "parentCode", "parent_code");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (confirm)
+            {
+                var written = await writes.SaveAsync(id, code, name, currencyCode, ownershipPct, isHome, parentCode, cancellationToken);
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    "/cp/consolidations-app",
+                    written.Succeeded,
+                    written.Message,
+                    new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+            }
+
+            return Results.Ok(dryRun.Evaluate(new ErpConsEntitySaveRequest(id, code, name, false)).ToPayload(SessionPayload(session)));
+        }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxConsEntityDelete, async (
             HttpContext context,
             ILegacySessionValidator validator,
@@ -5402,7 +5450,15 @@ public sealed class ErpModule : ISurfaceModule
     private sealed record ErpPrjSaveBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpPrjTaskSaveBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpPrjLogTimeBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
-    private sealed record ErpConsEntitySaveBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
+    private sealed record ErpConsEntitySaveBody(
+        long Id = 0,
+        string? Code = null,
+        string? Name = null,
+        string? CurrencyCode = null,
+        decimal OwnershipPct = 100,
+        bool IsHome = false,
+        string? ParentCode = null,
+        bool ConfirmWrites = false);
     private sealed record ErpConsEntityDeleteBody(long Id, bool ConfirmWrites = false);
     private sealed record ErpConsFiguresSaveBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpConsIcSaveBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
