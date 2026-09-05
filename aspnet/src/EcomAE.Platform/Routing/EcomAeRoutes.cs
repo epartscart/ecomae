@@ -1056,7 +1056,7 @@ public static class EcomAeRoutes
     public const string ErpAjaxInsDocAdd = "/erp/ajax/ins-doc-add";
     /// <summary>Live PHP ins_doc_delete twin (confirmWrites=true writes).</summary>
     public const string ErpAjaxInsDocDelete = "/erp/ajax/ins-doc-delete";
-    /// <summary>Wave B dry-run for PHP ins_claim_add (writes=0).</summary>
+    /// <summary>PHP epc_ins_claim_save via ins_claim_add. <c>confirmWrites=true</c> writes via <c>IErpInsClaimAddWriteService</c>.</summary>
     public const string ErpAjaxInsClaimAdd = "/erp/ajax/ins-claim-add";
     /// <summary>Wave B dry-run for PHP fin_periods_generate (writes=0).</summary>
     public const string ErpAjaxFinPeriodsGenerate = "/erp/ajax/fin-periods-generate";

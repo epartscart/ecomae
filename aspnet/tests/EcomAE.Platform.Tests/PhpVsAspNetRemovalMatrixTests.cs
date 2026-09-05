@@ -154,6 +154,7 @@ public sealed class PhpVsAspNetRemovalMatrixTests
             ("CpPurchaseRequestsApp.razor", "/erp/procurement/requisitions/submit"),
             ("CpPurchaseRequestsApp.razor", "/erp/procurement/requisitions/decision"),
             ("CpPurchaseRequestsApp.razor", "/erp/ajax/proc-req-convert"),
+            ("CpInsuranceComplianceApp.razor", "/erp/ajax/ins-claim-add"),
             ("CpInsuranceComplianceApp.razor", "/erp/ajax/ins-claim-status"),
             ("CpInsuranceComplianceApp.razor", "/erp/ajax/ins-doc-delete"),
             ("CpHrOverviewApp.razor", "/erp/ajax/hr-leave-status"),

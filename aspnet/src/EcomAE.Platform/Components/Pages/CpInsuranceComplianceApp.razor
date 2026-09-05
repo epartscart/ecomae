@@ -63,6 +63,15 @@
     }
     @if (_isAdmin)
     {
+        <form method="post" action="/erp/ajax/ins-claim-add" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/insurance-compliance-app" />
+            <label>Policy id <input type="number" name="policy_id" min="0" style="width:6rem" /></label>
+            <label>Claim no <input type="text" name="claim_no" /></label>
+            <label>Description <input type="text" name="description" /></label>
+            <label>Amount <input type="number" name="claim_amount" step="0.01" style="width:7rem" /></label>
+            <button type="submit">Log claim</button>
+        </form>
         <form method="post" action="/erp/ajax/ins-claim-status" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
             <input type="hidden" name="returnUrl" value="/cp/insurance-compliance-app" />
