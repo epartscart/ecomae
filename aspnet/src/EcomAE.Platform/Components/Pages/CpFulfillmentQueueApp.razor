@@ -68,7 +68,7 @@
         <div class="alert alert-danger" role="status">@_flashErr</div>
     }
 
-    <p class="epc-oms-keys-hint"><i class="fa fa-keyboard-o"></i> Shortcuts: click a row for the fulfilment card · transition / assign / pick / pack / wave write here. Queue-from-order and packing-slip PDF stay on the Classic twin.</p>
+    <p class="epc-oms-keys-hint"><i class="fa fa-keyboard-o"></i> Shortcuts: click a row for the fulfilment card · transition / assign / pick / pack / wave / queue-from-order write here. Print packing slip from the slip tab.</p>
 
     <div class="epc-orders-tabs" role="tablist" aria-label="Fulfilment status tabs">
         <a class="epc-orders-tab @(_status == "queued" ? "is-active" : null)" href="@QueueHref(status: "queued")">Queued <span class="epc-tab-count">@_queued</span></a>
@@ -91,6 +91,26 @@
                 <input type="hidden" name="siteKey" value="@_siteKey" />
                 <label class="small">Wave ids <input type="text" name="fulfillmentIds" placeholder="12,13,14" style="width:8rem" /></label>
                 <button type="submit" class="btn btn-xs btn-default">Create wave</button>
+            </form>
+            <form method="post" action="/cp/fulfillment-queue/write" style="display:flex;flex-wrap:wrap;gap:.35rem;align-items:end;margin:0">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="@QueueHref(status: _status)" />
+                <input type="hidden" name="action" value="queue" />
+                <input type="hidden" name="siteKey" value="@_siteKey" />
+                <label class="small">Order id <input type="number" name="orderId" min="1" required style="width:6rem" /></label>
+                <label class="small">Order no <input type="text" name="orderNumber" maxlength="64" style="width:7rem" /></label>
+                <label class="small">Customer <input type="text" name="customerName" maxlength="255" style="width:8rem" /></label>
+                <label class="small">Priority
+                    <select name="priority">
+                        <option value="normal">normal</option>
+                        <option value="low">low</option>
+                        <option value="high">high</option>
+                        <option value="urgent">urgent</option>
+                    </select>
+                </label>
+                <label class="small">Warehouse <input type="text" name="warehouse" maxlength="64" value="main" style="width:5rem" /></label>
+                <label class="small">Items JSON <input type="text" name="itemsJson" placeholder='[{"sku":"A","qty":1}]' style="width:12rem" /></label>
+                <button type="submit" class="btn btn-xs btn-primary">Queue from order</button>
             </form>
         }
     </div>
@@ -238,7 +258,7 @@
                     <section class="epc-od__panel @(_detailTab == "overview" ? "is-active" : null)" data-epc-od-panel="overview" style="@(_detailTab == "overview" ? null : "display:none")">
                         <div class="epc-od__edit">
                             <div class="epc-od__edit-title">Fulfilment</div>
-                            <p class="text-muted small">Status, assign, and wave write here. Queue-from-order INSERT stays on the Classic twin.</p>
+                            <p class="text-muted small">Status, assign, wave, and queue-from-order write here.</p>
                             @if (_isAdmin)
                             {
                                 var next = CpFulfillmentQueueWriteService.AllowedNextStatuses(d.Status);
@@ -421,7 +441,7 @@
                                 }
                             </tbody>
                         </table>
-                        <p class="text-muted small">Packed at @Blank(d.PackCompletedAt). Live label / packing-slip PDF stay on the Classic twin.</p>
+                        <p class="text-muted small">Packed at @Blank(d.PackCompletedAt). <a href="/cp/fulfillment-queue/packing-slip/@d.Id.ToString(CultureInfo.InvariantCulture)" target="_blank" rel="noopener">Print packing slip</a></p>
                     </section>
                 </div>
             }

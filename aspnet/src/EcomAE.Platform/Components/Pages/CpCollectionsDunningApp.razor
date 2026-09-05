@@ -2,8 +2,10 @@
 @layout Layout.PhpChromeLayout
 @using System.Globalization
 @using EcomAE.Platform.Auth
+@using EcomAE.Platform.Middleware
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Services
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
@@ -45,7 +47,7 @@
     <section class="epc-w15-hero">
         <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
         <h1>Collections dunning</h1>
-        <p>Queue status and payment write here. Letter process, profiles, and add-invoice stay on the Classic twin. Case status is a separate ERP form below.</p>
+        <p>Queue status, payment, profile, add-invoice, and step process write here. Schema-ensure stays on the Classic twin. Case status is a separate ERP form below.</p>
         <div class="epc-w15-cta">
             <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
             <a class="ghost" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Classic twin</a>
@@ -90,6 +92,34 @@
             <label>Queue id <input type="number" name="queueId" min="1" required style="width:6rem" /></label>
             <label>Amount <input type="number" name="amount" min="0.01" step="0.01" required style="width:7rem" /></label>
             <button type="submit">Record payment</button>
+        </form>
+        <form method="post" action="/cp/collections-dunning/write" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 .65rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/collections-dunning-app" />
+            <input type="hidden" name="action" value="create_profile" />
+            <input type="hidden" name="siteKey" value="@_siteKey" />
+            <label>Profile name <input type="text" name="name" maxlength="128" required /></label>
+            <button type="submit">Create profile</button>
+        </form>
+        <form method="post" action="/cp/collections-dunning/write" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 .65rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/collections-dunning-app" />
+            <input type="hidden" name="action" value="add_invoice" />
+            <input type="hidden" name="siteKey" value="@_siteKey" />
+            <label>Customer id <input type="number" name="customerId" min="0" style="width:6rem" /></label>
+            <label>Customer <input type="text" name="customerName" maxlength="128" /></label>
+            <label>Invoice <input type="text" name="invoiceRef" maxlength="64" required /></label>
+            <label>Amount <input type="number" name="invoiceAmount" min="0" step="0.01" required style="width:7rem" /></label>
+            <label>Due <input type="date" name="dueDate" /></label>
+            <label>Profile id <input type="number" name="profileId" min="0" style="width:6rem" /></label>
+            <button type="submit">Add invoice</button>
+        </form>
+        <form method="post" action="/cp/collections-dunning/write" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 .65rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/collections-dunning-app" />
+            <input type="hidden" name="action" value="process" />
+            <input type="hidden" name="siteKey" value="@_siteKey" />
+            <button type="submit">Process dunning steps</button>
         </form>
         <form method="post" action="/erp/collections/cases/status" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
@@ -199,6 +229,7 @@
     private string _message = "";
     private string _flashOk = "";
     private string _flashErr = "";
+    private string _siteKey = "";
 
     protected override async Task OnInitializedAsync()
     {
@@ -206,6 +237,11 @@
         if (ctx is null) return;
         _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
         _flashErr = ctx.Request.Query["err"].ToString() ?? "";
+        if (ctx.Items[TenantResolutionMiddleware.HttpContextItemKey] is TenantContext tenant
+            && !string.IsNullOrWhiteSpace(tenant.SiteKey))
+        {
+            _siteKey = tenant.SiteKey;
+        }
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);

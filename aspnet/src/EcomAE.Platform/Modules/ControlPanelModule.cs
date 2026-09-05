@@ -1908,6 +1908,16 @@ public sealed class ControlPanelModule : ISurfaceModule
             var status = body.Status;
             var notes = body.Notes;
             var amount = body.Amount;
+            var siteKey = body.SiteKey;
+            var name = body.Name;
+            var stepsJson = body.StepsJson;
+            var customerId = body.CustomerId;
+            var customerName = body.CustomerName;
+            var invoiceRef = body.InvoiceRef;
+            var invoiceAmount = body.InvoiceAmount;
+            var amountDue = body.AmountDue;
+            var dueDate = body.DueDate;
+            var profileId = body.ProfileId;
             var confirm = body.ConfirmWrites;
             if (context.Request.HasFormContentType)
             {
@@ -1917,7 +1927,24 @@ public sealed class ControlPanelModule : ISurfaceModule
                 status = LiveWriteFormBinder.Text(form, "status");
                 notes = LiveWriteFormBinder.Text(form, "notes");
                 amount = LiveWriteFormBinder.Dec(form, "amount");
+                siteKey = LiveWriteFormBinder.Text(form, "siteKey", "site_key");
+                name = LiveWriteFormBinder.Text(form, "name");
+                stepsJson = LiveWriteFormBinder.Text(form, "stepsJson", "steps_json", "steps");
+                customerId = LiveWriteFormBinder.Long(form, "customerId", "customer_id");
+                customerName = LiveWriteFormBinder.Text(form, "customerName", "customer_name");
+                invoiceRef = LiveWriteFormBinder.Text(form, "invoiceRef", "invoice_ref");
+                invoiceAmount = LiveWriteFormBinder.Dec(form, "invoiceAmount", "invoice_amount");
+                amountDue = LiveWriteFormBinder.DecOrNull(form, "amountDue", "amount_due");
+                dueDate = LiveWriteFormBinder.Text(form, "dueDate", "due_date");
+                profileId = LiveWriteFormBinder.Long(form, "profileId", "profile_id");
                 confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (string.IsNullOrWhiteSpace(siteKey)
+                && context.Items[TenantResolutionMiddleware.HttpContextItemKey] is TenantContext dunningTenant
+                && !string.IsNullOrWhiteSpace(dunningTenant.SiteKey))
+            {
+                siteKey = dunningTenant.SiteKey;
             }
 
             if (confirm)
@@ -1929,7 +1956,15 @@ public sealed class ControlPanelModule : ISurfaceModule
                         await writes.UpdateStatusAsync(queueId, status, notes, session.UserId, cancellationToken),
                     "record_payment" or "record-payment" =>
                         await writes.RecordPaymentAsync(queueId, amount, session.UserId, cancellationToken),
-                    _ => ErpSimpleWriteResult.Fail("invalid", "Unknown dunning action. update_status / record_payment are live; letter process, profiles, and add-invoice stay PHP."),
+                    "create_profile" or "create-profile" or "profile_create" or "profile-create" =>
+                        await writes.CreateProfileAsync(siteKey, name, stepsJson, cancellationToken),
+                    "add_invoice" or "add-invoice" =>
+                        await writes.AddInvoiceAsync(
+                            siteKey, customerId, customerName, invoiceRef, invoiceAmount,
+                            amountDue, dueDate, profileId, cancellationToken),
+                    "process" or "process_steps" or "process-steps" =>
+                        await writes.ProcessAsync(siteKey, cancellationToken),
+                    _ => ErpSimpleWriteResult.Fail("invalid", "Unknown dunning action. update_status / record_payment / create_profile / add_invoice / process are live."),
                 };
                 return LiveWriteFormBinder.Complete(
                     context,
@@ -1969,6 +2004,18 @@ public sealed class ControlPanelModule : ISurfaceModule
             var trackingNumber = body.TrackingNumber;
             var siteKey = body.SiteKey;
             var fulfillmentIds = body.FulfillmentIds ?? [];
+            var orderId = body.OrderId;
+            var orderNumber = body.OrderNumber;
+            var customerName = body.CustomerName;
+            var priority = body.Priority;
+            var warehouse = body.Warehouse;
+            var totalItems = body.TotalItems;
+            var totalWeight = body.TotalWeight;
+            var shipAddressJson = body.ShipAddressJson;
+            var notes = body.Notes;
+            var shippingMethod = body.ShippingMethod;
+            var items = body.Items;
+            var itemsJson = body.ItemsJson;
             var confirm = body.ConfirmWrites;
             if (context.Request.HasFormContentType)
             {
@@ -1986,6 +2033,17 @@ public sealed class ControlPanelModule : ISurfaceModule
                 trackingNumber = LiveWriteFormBinder.Text(form, "trackingNumber", "tracking_number");
                 siteKey = LiveWriteFormBinder.Text(form, "siteKey", "site_key");
                 fulfillmentIds = LiveWriteFormBinder.Longs(form, "fulfillmentIds", "fulfillment_ids", "fulfillmentId", "fulfillment_id");
+                orderId = LiveWriteFormBinder.Long(form, "orderId", "order_id");
+                orderNumber = LiveWriteFormBinder.Text(form, "orderNumber", "order_number");
+                customerName = LiveWriteFormBinder.Text(form, "customerName", "customer_name");
+                priority = LiveWriteFormBinder.Text(form, "priority");
+                warehouse = LiveWriteFormBinder.Text(form, "warehouse");
+                totalItems = LiveWriteFormBinder.Int(form, "totalItems", "total_items");
+                totalWeight = LiveWriteFormBinder.Dec(form, "totalWeight", "total_weight");
+                shipAddressJson = LiveWriteFormBinder.Text(form, "shipAddressJson", "ship_address_json", "ship_address");
+                notes = LiveWriteFormBinder.Text(form, "notes");
+                shippingMethod = LiveWriteFormBinder.Text(form, "shippingMethod", "shipping_method");
+                itemsJson = LiveWriteFormBinder.Text(form, "itemsJson", "items_json", "items");
                 confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
             }
 
@@ -2000,6 +2058,8 @@ public sealed class ControlPanelModule : ISurfaceModule
             {
                 var key = (action ?? string.Empty).Trim();
                 var waveIds = fulfillmentIds.Count > 0 ? fulfillmentIds : (fulfillmentId > 0 ? new[] { fulfillmentId } : Array.Empty<long>());
+                var queueItems = (items is { Count: > 0 } ? items : null)
+                    ?? CpFulfillmentQueueWriteService.ParseItemsJson(itemsJson);
                 ErpSimpleWriteResult written = key switch
                 {
                     "transition" or "set_status" or "set-status" => await writes.TransitionAsync(
@@ -2008,7 +2068,10 @@ public sealed class ControlPanelModule : ISurfaceModule
                     "pick_item" or "pick-item" => await writes.PickItemAsync(itemId, qtyPicked, pickStatus, cancellationToken),
                     "pack_item" or "pack-item" => await writes.PackItemAsync(itemId, qtyPacked, cancellationToken),
                     "create_wave" or "create-wave" => await writes.CreateWaveAsync(siteKey, waveIds, cancellationToken),
-                    _ => ErpSimpleWriteResult.Fail("invalid", "Unknown fulfillment action. transition / assign / pick_item / pack_item / create_wave are live; queue-from-order and packing-slip stay PHP."),
+                    "queue" or "queue_from_order" or "queue-from-order" or "create" => await writes.QueueFromOrderAsync(
+                        siteKey, orderId, orderNumber, customerName, priority, warehouse, totalItems, totalWeight,
+                        shipAddressJson, notes, shippingMethod, queueItems, cancellationToken),
+                    _ => ErpSimpleWriteResult.Fail("invalid", "Unknown fulfillment action. transition / assign / pick_item / pack_item / create_wave / queue are live."),
                 };
                 return LiveWriteFormBinder.Complete(
                     context,
@@ -4558,7 +4621,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "epc_dunning_* KPIs + queue (notes omitted). Status / payment write on POST /cp/collections-dunning/write when confirmWrites=true. Letter process and profiles stay PHP."
+                note = "epc_dunning_* KPIs + queue (notes omitted). Status / payment / profile / add-invoice / process write on POST /cp/collections-dunning/write when confirmWrites=true. Schema-ensure stays PHP."
             });
         });
 
@@ -6281,7 +6344,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "epc_fulfillment_orders digest. transition / assign / pick / pack / wave write on POST /cp/fulfillment-queue/write when confirmWrites=true. Queue-from-order and packing-slip PDF stay PHP."
+                note = "epc_fulfillment_orders digest. transition / assign / pick / pack / wave / queue-from-order write on POST /cp/fulfillment-queue/write when confirmWrites=true. Printable packing slip at /cp/fulfillment-queue/packing-slip/{id}. Document-control branded PDF templates stay PHP."
             });
         });
 
@@ -6313,7 +6376,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = detail.Source,
                 message = detail.Message,
                 session = SessionPayload(session),
-                note = "PHP epc_fulfillment_get digest. transition / assign / pick / pack / wave write on POST /cp/fulfillment-queue/write when confirmWrites=true. Packing-slip PDF stays PHP."
+                note = "PHP epc_fulfillment_get digest. transition / assign / pick / pack / wave / queue-from-order write on POST /cp/fulfillment-queue/write when confirmWrites=true. Printable packing slip at /cp/fulfillment-queue/packing-slip/{id}."
             });
         });
 
@@ -6653,14 +6716,36 @@ public sealed class ControlPanelModule : ISurfaceModule
         string? Carrier = null,
         string? TrackingNumber = null,
         string? SiteKey = null,
-        IReadOnlyList<long>? FulfillmentIds = null);
+        IReadOnlyList<long>? FulfillmentIds = null,
+        long OrderId = 0,
+        string? OrderNumber = null,
+        string? CustomerName = null,
+        string? Priority = null,
+        string? Warehouse = null,
+        int TotalItems = 0,
+        decimal TotalWeight = 0,
+        string? ShipAddressJson = null,
+        string? Notes = null,
+        string? ShippingMethod = null,
+        IReadOnlyList<CpFulfillmentQueueLineInput>? Items = null,
+        string? ItemsJson = null);
     private sealed record CpCollectionsDunningWriteBody(
         string? Action = null,
         bool ConfirmWrites = false,
         long QueueId = 0,
         string? Status = null,
         string? Notes = null,
-        decimal Amount = 0);
+        decimal Amount = 0,
+        string? SiteKey = null,
+        string? Name = null,
+        string? StepsJson = null,
+        long CustomerId = 0,
+        string? CustomerName = null,
+        string? InvoiceRef = null,
+        decimal InvoiceAmount = 0,
+        decimal? AmountDue = null,
+        string? DueDate = null,
+        long ProfileId = 0);
     private sealed record CpPosOpenSessionBody(
         string? Action = null,
         bool ConfirmWrites = false,

@@ -1,11 +1,12 @@
 using System.Reflection;
+using EcomAE.Platform.Cp;
 using EcomAE.Platform.Migration;
 using Xunit;
 
 namespace EcomAE.Platform.Tests;
 
 /// <summary>
-/// Guards /cp/collections-dunning-app live queue writes without inventing letter/process twins.
+/// Guards /cp/collections-dunning-app live queue / profile / process writes.
 /// </summary>
 public sealed class CpCollectionsDunningPhpParityTests
 {
@@ -17,6 +18,9 @@ public sealed class CpCollectionsDunningPhpParityTests
         Assert.Contains("confirmWrites", text, StringComparison.Ordinal);
         Assert.Contains("action\" value=\"update_status\"", text, StringComparison.Ordinal);
         Assert.Contains("action\" value=\"record_payment\"", text, StringComparison.Ordinal);
+        Assert.Contains("action\" value=\"create_profile\"", text, StringComparison.Ordinal);
+        Assert.Contains("action\" value=\"add_invoice\"", text, StringComparison.Ordinal);
+        Assert.Contains("action\" value=\"process\"", text, StringComparison.Ordinal);
         Assert.Contains("/erp/collections/cases/status", text, StringComparison.Ordinal);
         Assert.Contains("AmountDue", text, StringComparison.Ordinal);
         Assert.Contains("PhpSurfaceLinkMap.PhpReferenceOnlyHref", text, StringComparison.Ordinal);
@@ -51,6 +55,34 @@ public sealed class CpCollectionsDunningPhpParityTests
         Assert.False(blocked.PhpAuthoritative);
         var refused = dry.Evaluate(new CpCollectionsDunningWriteRequest("update_status", true));
         Assert.Equal("dry-run-confirm-refused", refused.Status);
+    }
+
+    [Fact]
+    public void DefaultSteps_MatchPhpSevenStepSequence()
+    {
+        Assert.Equal(7, CpCollectionsDunningWriteService.DefaultSteps.Count);
+        Assert.Equal(1, CpCollectionsDunningWriteService.DefaultSteps[0].Day);
+        Assert.Equal("email", CpCollectionsDunningWriteService.DefaultSteps[0].Action);
+        Assert.Equal("Friendly Payment Reminder", CpCollectionsDunningWriteService.DefaultSteps[0].Subject);
+        Assert.Equal(60, CpCollectionsDunningWriteService.DefaultSteps[^1].Day);
+        Assert.Equal("letter", CpCollectionsDunningWriteService.DefaultSteps[^1].Action);
+    }
+
+    [Fact]
+    public void DaysOverdue_TruncatesLikePhpIntegerDivision()
+    {
+        var due = new DateTime(2026, 8, 1, 0, 0, 0);
+        var now = new DateTime(2026, 9, 5, 12, 0, 0);
+        Assert.Equal(35, CpCollectionsDunningWriteService.DaysOverdue("2026-08-01", now));
+        Assert.Equal(0, CpCollectionsDunningWriteService.DaysOverdue("2026-09-05", now));
+        Assert.Equal(0, CpCollectionsDunningWriteService.DaysOverdue("2026-10-01", now));
+        Assert.True(CpCollectionsDunningWriteService.ShouldAdvance(0, 1, CpCollectionsDunningWriteService.DefaultSteps));
+        Assert.False(CpCollectionsDunningWriteService.ShouldAdvance(0, 0, CpCollectionsDunningWriteService.DefaultSteps));
+        Assert.True(CpCollectionsDunningWriteService.ShouldAdvance(4, 30, CpCollectionsDunningWriteService.DefaultSteps));
+        Assert.False(CpCollectionsDunningWriteService.ShouldAdvance(7, 90, CpCollectionsDunningWriteService.DefaultSteps));
+        Assert.Equal("letter", CpCollectionsDunningWriteService.NormalizeLogAction("LETTER"));
+        Assert.Equal("note", CpCollectionsDunningWriteService.NormalizeLogAction("fax"));
+        Assert.Equal(new DateTime(2026, 8, 1).Date, due.Date);
     }
 
     [Fact]

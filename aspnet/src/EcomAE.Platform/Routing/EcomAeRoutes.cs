@@ -310,7 +310,7 @@ public static class EcomAeRoutes
     public const string ControlPanelCollectionsDunning = "/cp/collections-dunning";
     /// <summary>CP collections/dunning Blazor list (JSON digest remains <see cref="ControlPanelCollectionsDunning"/>).</summary>
     public const string ControlPanelCollectionsDunningApp = "/cp/collections-dunning-app";
-    /// <summary>Dunning queue status / payment. confirmWrites=true is the live twin of PHP epc_dunning_update_status / epc_dunning_record_payment. Letters and process stay PHP.</summary>
+    /// <summary>Dunning queue status / payment / profile / add-invoice / process. confirmWrites=true is the live twin of PHP epc_dunning_*. Schema-ensure stays PHP.</summary>
     public const string CpCollectionsDunningWrite = "/cp/collections-dunning/write";
 
     public const string ControlPanelMarketplaceChannels = "/cp/marketplace-channels";
@@ -512,8 +512,10 @@ public static class EcomAeRoutes
     public const string ControlPanelFulfillmentQueueApp = "/cp/fulfillment-queue-app";
     /// <summary>Read-only PHP <c>epc_fulfillment_get</c> digest for one fulfillment order.</summary>
     public const string ControlPanelFulfillmentQueueDetailDigest = "/cp/fulfillment-queue-detail-digest/{fulfillmentId:long}";
-    /// <summary>Queue transition / assign / pick / pack / wave. <c>confirmWrites=true</c> is the live twin of PHP epc_fulfillment_*. Queue-from-order and packing-slip PDF stay PHP.</summary>
+    /// <summary>Queue transition / assign / pick / pack / wave / queue-from-order. <c>confirmWrites=true</c> is the live twin of PHP epc_fulfillment_*. Printable packing slip is <see cref="ControlPanelFulfillmentPackingSlip"/>.</summary>
     public const string CpFulfillmentQueueWrite = "/cp/fulfillment-queue/write";
+    /// <summary>Printable PHP <c>epc_fulfillment_packing_slip</c> HTML. Document-control branded PDF templates stay PHP.</summary>
+    public const string ControlPanelFulfillmentPackingSlip = "/cp/fulfillment-queue/packing-slip/{fulfillmentId:long}";
     public const string ControlPanelSsoSaml = "/cp/sso-saml";
     public const string ControlPanelSsoSamlApp = "/cp/sso-saml-app";
     public const string ControlPanelEventBus = "/cp/event-bus";
