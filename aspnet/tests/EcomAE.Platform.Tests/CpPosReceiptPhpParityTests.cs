@@ -1,4 +1,5 @@
 using System.Reflection;
+using EcomAE.Platform.Auth;
 using EcomAE.Platform.Cp;
 using EcomAE.Platform.Migration;
 using Xunit;
@@ -48,6 +49,16 @@ public sealed class CpPosReceiptPhpParityTests
         Assert.Contains("/cp/pos/receipt/{saleId:long}", routes, StringComparison.Ordinal);
         var catalog = SurfacePayloadContractCatalog.Functions;
         Assert.Contains("/cp/pos/receipt/{id}", catalog.First(f => f.AspNetRouteOrCapability == "/cp/pos-overview-app").Notes, StringComparison.Ordinal);
+        Assert.Contains("Walk-in user create is ASP.NET-live", catalog.First(f => f.AspNetRouteOrCapability == "/cp/pos-overview-app").Notes, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void WalkinHash_MatchesPhpMd5OfRandomHexPlusSecret()
+    {
+        Assert.Equal("pos.walkin@local", CpPosWriteService.WalkinEmail);
+        Assert.Equal(
+            LegacyPasswordVerifier.Md5Hex("abcd1234local-test-secret"),
+            CpPosWriteService.HashWalkinPassword("abcd1234", "local-test-secret"));
     }
 
     private static string FindRepoFile(string relative)

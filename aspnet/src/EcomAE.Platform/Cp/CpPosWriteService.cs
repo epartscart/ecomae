@@ -1,14 +1,18 @@
 using System.Globalization;
+using System.Security.Cryptography;
 using System.Text.Json;
+using EcomAE.Platform.Auth;
+using EcomAE.Platform.Configuration;
 using EcomAE.Platform.Erp;
+using Microsoft.Extensions.Options;
 
 namespace EcomAE.Platform.Cp;
 
 /// <summary>
 /// Live PHP <c>ajax_pos.php</c> twins for <c>open_session</c>, <c>close_session</c>,
-/// <c>save_settings</c>, and the POS sale/line INSERT in <c>complete_sale</c>.
-/// Walk-in user create, tax-toolkit totals, ERP SO/invoice/voucher, and inventory
-/// movement stay PHP. Printable receipt HTML is ASP.NET-live.
+/// <c>save_settings</c>, the POS sale/line INSERT in <c>complete_sale</c>, and
+/// <c>epc_pos_ensure_walkin_user</c>. Tax-toolkit assign/totals, ERP SO/invoice/voucher,
+/// and inventory movement stay PHP. Printable receipt HTML is ASP.NET-live.
 /// </summary>
 public interface ICpPosWriteService
 {
@@ -38,6 +42,8 @@ public interface ICpPosWriteService
         CpPosCompleteSaleWriteRequest request,
         int adminUserId,
         CancellationToken cancellationToken = default);
+
+    Task<ErpSimpleWriteResult> EnsureWalkinUserAsync(CancellationToken cancellationToken = default);
 
     Task<CpPosReceipt> LoadReceiptAsync(long saleId, CancellationToken cancellationToken = default);
 }
@@ -69,11 +75,15 @@ public sealed record CpPosCompleteSaleWriteRequest(
 
 public sealed class CpPosWriteService : ICpPosWriteService
 {
-    private readonly IErpWriteConnectionFactory _connections;
+    public const string WalkinEmail = "pos.walkin@local";
 
-    public CpPosWriteService(IErpWriteConnectionFactory connections)
+    private readonly IErpWriteConnectionFactory _connections;
+    private readonly IOptions<EcomAeOptions>? _options;
+
+    public CpPosWriteService(IErpWriteConnectionFactory connections, IOptions<EcomAeOptions>? options = null)
     {
         _connections = connections;
+        _options = options;
     }
 
     public async Task<ErpSimpleWriteResult> OpenSessionAsync(
@@ -376,10 +386,49 @@ public sealed class CpPosWriteService : ICpPosWriteService
         }
 
         var saleNo = await NextSaleNoAsync(connection, cancellationToken).ConfigureAwait(false);
+        var customerUserId = request.CustomerUserId;
+        var contactId = request.ContactId;
         var label = Clip(request.CustomerLabel, 255);
-        if (label.Length == 0)
+        if (customerUserId <= 0)
         {
-            label = request.CustomerUserId > 0 ? "Customer" : "Walk-in guest";
+            customerUserId = await EnsureWalkinUserCoreAsync(connection, cancellationToken).ConfigureAwait(false);
+            if (contactId <= 0)
+            {
+                if (label.Length == 0)
+                {
+                    label = "Walk-in guest";
+                }
+            }
+            else if (label.Length == 0)
+            {
+                label = Clip(
+                    await ErpDb.StringAsync(
+                        connection,
+                        null,
+                        ErpDb.Positional("SELECT COALESCE(NULLIF(TRIM(`name`),''), NULLIF(TRIM(`company`),''), 'Customer') FROM `epc_erp_contacts` WHERE `id`=? LIMIT 1"),
+                        cancellationToken,
+                        contactId).ConfigureAwait(false),
+                    255);
+                if (label.Length == 0)
+                {
+                    label = "Customer";
+                }
+            }
+        }
+        else if (label.Length == 0)
+        {
+            label = Clip(
+                await ErpDb.StringAsync(
+                    connection,
+                    null,
+                    ErpDb.Positional("SELECT `email` FROM `users` WHERE `user_id`=? LIMIT 1"),
+                    cancellationToken,
+                    customerUserId).ConfigureAwait(false),
+                255);
+            if (label.Length == 0)
+            {
+                label = "Customer";
+            }
         }
 
         var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
@@ -396,7 +445,7 @@ public sealed class CpPosWriteService : ICpPosWriteService
                 VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
                 """),
             cancellationToken,
-            sessionId, saleNo, request.CustomerUserId, request.ContactId, label, 0L, 0L, "",
+            sessionId, saleNo, customerUserId, contactId, label, 0L, 0L, "",
             subtotal, discountTotal, vat, total, method, cash, card,
             Clip(request.TaxKitCode, 32), taxRate, adminUserId, now).ConfigureAwait(false);
         var saleId = await ErpDb.LastInsertIdAsync(connection, tx, cancellationToken).ConfigureAwait(false);
@@ -595,6 +644,122 @@ public sealed class CpPosWriteService : ICpPosWriteService
             await tx.RollbackAsync(cancellationToken).ConfigureAwait(false);
             throw;
         }
+    }
+
+    public async Task<ErpSimpleWriteResult> EnsureWalkinUserAsync(CancellationToken cancellationToken = default)
+    {
+        if (!_connections.IsConfigured)
+        {
+            return ErpSimpleWriteResult.Fail("db", "TenantRegistry DB is not configured.");
+        }
+
+        await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        var uid = await EnsureWalkinUserCoreAsync(connection, cancellationToken).ConfigureAwait(false);
+        return uid > 0
+            ? ErpSimpleWriteResult.Ok("Walk-in user ready.", uid)
+            : ErpSimpleWriteResult.Fail("invalid", "Walk-in user could not be created.");
+    }
+
+    /// <summary>PHP <c>md5(bin2hex(random_bytes(8)) . $secret_succession)</c>.</summary>
+    public static string HashWalkinPassword(string randomHex, string? secretSuccession)
+        => LegacyPasswordVerifier.Md5Hex((randomHex ?? string.Empty) + (secretSuccession ?? string.Empty));
+
+    private async Task<long> EnsureWalkinUserCoreAsync(
+        System.Data.Common.DbConnection connection,
+        CancellationToken cancellationToken)
+    {
+        var settingsId = await ErpDb.LongAsync(
+            connection,
+            null,
+            ErpDb.Positional("SELECT `id` FROM `epc_pos_settings` ORDER BY `id` ASC LIMIT 1"),
+            cancellationToken).ConfigureAwait(false);
+        var storedWalkin = settingsId > 0
+            ? await ErpDb.LongAsync(
+                connection,
+                null,
+                ErpDb.Positional("SELECT `walkin_user_id` FROM `epc_pos_settings` WHERE `id`=? LIMIT 1"),
+                cancellationToken,
+                settingsId).ConfigureAwait(false)
+            : 0L;
+        if (storedWalkin > 0)
+        {
+            var exists = await ErpDb.LongAsync(
+                connection,
+                null,
+                ErpDb.Positional("SELECT `user_id` FROM `users` WHERE `user_id`=? LIMIT 1"),
+                cancellationToken,
+                storedWalkin).ConfigureAwait(false);
+            if (exists > 0)
+            {
+                return storedWalkin;
+            }
+        }
+
+        var existing = await ErpDb.LongAsync(
+            connection,
+            null,
+            ErpDb.Positional("SELECT `user_id` FROM `users` WHERE `email`=? LIMIT 1"),
+            cancellationToken,
+            WalkinEmail).ConfigureAwait(false);
+        if (existing > 0)
+        {
+            await RememberWalkinUserAsync(connection, settingsId, existing, cancellationToken).ConfigureAwait(false);
+            return existing;
+        }
+
+        var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        var randomHex = Convert.ToHexString(RandomNumberGenerator.GetBytes(8)).ToLowerInvariant();
+        var hash = HashWalkinPassword(randomHex, _options?.Value.SecretSuccession);
+        long uid;
+        try
+        {
+            await ErpDb.ExecuteAsync(
+                connection,
+                null,
+                ErpDb.Positional(
+                    """
+                    INSERT INTO `users` (`email`, `email_confirmed`, `password`, `unlocked`, `reg_variant`, `time_registered`, `admin_created`)
+                    VALUES (?, 1, ?, 1, 1, ?, 1)
+                    """),
+                cancellationToken,
+                WalkinEmail, hash, now).ConfigureAwait(false);
+            uid = await ErpDb.LastInsertIdAsync(connection, null, cancellationToken).ConfigureAwait(false);
+        }
+        catch (System.Data.Common.DbException)
+        {
+            uid = await ErpDb.LongAsync(
+                connection,
+                null,
+                ErpDb.Positional("SELECT `user_id` FROM `users` WHERE `email`=? LIMIT 1"),
+                cancellationToken,
+                WalkinEmail).ConfigureAwait(false);
+        }
+
+        if (uid > 0)
+        {
+            await RememberWalkinUserAsync(connection, settingsId, uid, cancellationToken).ConfigureAwait(false);
+        }
+
+        return uid;
+    }
+
+    private static async Task RememberWalkinUserAsync(
+        System.Data.Common.DbConnection connection,
+        long settingsId,
+        long userId,
+        CancellationToken cancellationToken)
+    {
+        if (settingsId <= 0 || userId <= 0)
+        {
+            return;
+        }
+
+        await ErpDb.ExecuteAsync(
+            connection,
+            null,
+            ErpDb.Positional("UPDATE `epc_pos_settings` SET `walkin_user_id`=? WHERE `id`=?"),
+            cancellationToken,
+            userId, settingsId).ConfigureAwait(false);
     }
 
     public async Task<CpPosReceipt> LoadReceiptAsync(long saleId, CancellationToken cancellationToken = default)

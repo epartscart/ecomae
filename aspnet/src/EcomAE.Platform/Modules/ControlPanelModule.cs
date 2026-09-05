@@ -1848,6 +1848,40 @@ public sealed class ControlPanelModule : ISurfaceModule
             var status = body.Status;
             var active = body.Active;
             var sortOrder = body.SortOrder;
+            var jobNo = body.JobNo;
+            var customerName = body.CustomerName;
+            var customerPhone = body.CustomerPhone;
+            var customerEmail = body.CustomerEmail;
+            var customerId = body.CustomerId;
+            var plate = body.Plate;
+            var vin = body.Vin;
+            var make = body.Make;
+            var model = body.Model;
+            var year = body.Year;
+            var odometer = body.Odometer;
+            var complaint = body.Complaint;
+            var estimateApproved = body.EstimateApproved;
+            var underWarranty = body.UnderWarranty;
+            var notes = body.Notes;
+            var timePromised = body.TimePromised;
+            var labourDesc = body.LabourDesc;
+            var labourHours = body.LabourHours;
+            var labourRate = body.LabourRate;
+            var partDesc = body.PartDesc;
+            var partQty = body.PartQty;
+            var partPrice = body.PartPrice;
+            var lineType = body.LineType;
+            var description = body.Description;
+            var itemId = body.ItemId;
+            var qty = body.Qty;
+            var unitPrice = body.UnitPrice;
+            var taxPercent = body.TaxPercent;
+            var chargeable = body.Chargeable;
+            var refNo = body.RefNo;
+            var garageId = body.GarageId;
+            var serviceType = body.ServiceType;
+            var timeSlot = body.TimeSlot;
+            var appointmentId = body.AppointmentId;
             var confirm = body.ConfirmWrites;
             if (context.Request.HasFormContentType)
             {
@@ -1864,6 +1898,40 @@ public sealed class ControlPanelModule : ISurfaceModule
                 status = LiveWriteFormBinder.Text(form, "status");
                 active = LiveWriteFormBinder.Int(form, "active");
                 sortOrder = LiveWriteFormBinder.Int(form, "sortOrder", "sort_order");
+                jobNo = LiveWriteFormBinder.Text(form, "jobNo", "job_no");
+                customerName = LiveWriteFormBinder.Text(form, "customerName", "customer_name");
+                customerPhone = LiveWriteFormBinder.Text(form, "customerPhone", "customer_phone");
+                customerEmail = LiveWriteFormBinder.Text(form, "customerEmail", "customer_email");
+                customerId = LiveWriteFormBinder.Long(form, "customerId", "customer_id");
+                plate = LiveWriteFormBinder.Text(form, "plate");
+                vin = LiveWriteFormBinder.Text(form, "vin");
+                make = LiveWriteFormBinder.Text(form, "make");
+                model = LiveWriteFormBinder.Text(form, "model");
+                year = LiveWriteFormBinder.Text(form, "year");
+                odometer = LiveWriteFormBinder.Int(form, "odometer");
+                complaint = LiveWriteFormBinder.Text(form, "complaint");
+                estimateApproved = LiveWriteFormBinder.Flag(form, "estimateApproved", "estimate_approved");
+                underWarranty = LiveWriteFormBinder.Flag(form, "underWarranty", "under_warranty");
+                notes = LiveWriteFormBinder.Text(form, "notes");
+                timePromised = LiveWriteFormBinder.Long(form, "timePromised", "time_promised");
+                labourDesc = LiveWriteFormBinder.Text(form, "labourDesc", "labour_desc");
+                labourHours = LiveWriteFormBinder.Dec(form, "labourHours", "labour_hours");
+                labourRate = LiveWriteFormBinder.Dec(form, "labourRate", "labour_rate");
+                partDesc = LiveWriteFormBinder.Text(form, "partDesc", "part_desc");
+                partQty = LiveWriteFormBinder.Dec(form, "partQty", "part_qty");
+                partPrice = LiveWriteFormBinder.Dec(form, "partPrice", "part_price");
+                lineType = LiveWriteFormBinder.Text(form, "lineType", "line_type");
+                description = LiveWriteFormBinder.Text(form, "description");
+                itemId = LiveWriteFormBinder.Long(form, "itemId", "item_id");
+                qty = LiveWriteFormBinder.Dec(form, "qty");
+                unitPrice = LiveWriteFormBinder.Dec(form, "unitPrice", "unit_price");
+                taxPercent = LiveWriteFormBinder.Dec(form, "taxPercent", "tax_percent");
+                chargeable = LiveWriteFormBinder.IntOrNull(form, "chargeable") ?? 1;
+                refNo = LiveWriteFormBinder.Text(form, "refNo", "ref_no");
+                garageId = LiveWriteFormBinder.Long(form, "garageId", "garage_id");
+                serviceType = LiveWriteFormBinder.Text(form, "serviceType", "service_type");
+                timeSlot = LiveWriteFormBinder.Long(form, "timeSlot", "time_slot");
+                appointmentId = LiveWriteFormBinder.Long(form, "appointmentId", "appointment_id");
                 confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
             }
 
@@ -1876,7 +1944,27 @@ public sealed class ControlPanelModule : ISurfaceModule
                     "save_bay" or "save-bay" => await writes.SaveBayAsync(id, code, name, active, sortOrder, cancellationToken),
                     "save_tech" or "save-tech" => await writes.SaveTechAsync(id, name, phone, skill, active, cancellationToken),
                     "set_status" or "set-status" => await writes.SetStatusAsync(jobId, status, cancellationToken),
-                    _ => ErpSimpleWriteResult.Fail("invalid", "Unknown workshop action. assign / save_bay / save_tech / set_status are live; others stay PHP."),
+                    "create_job" or "create-job" => await writes.CreateJobAsync(
+                        new CpWorkshopCreateJobRequest(
+                            jobNo, status, customerName, customerPhone, customerEmail, customerId,
+                            plate, vin, make, model, year, odometer, complaint, bayId, techId,
+                            estimateApproved, underWarranty, notes, timePromised,
+                            labourDesc, labourHours <= 0 ? 1 : labourHours, labourRate <= 0 ? 150 : labourRate,
+                            partDesc, partQty <= 0 ? 1 : partQty, partPrice),
+                        cancellationToken),
+                    "add_line" or "add-line" => await writes.AddLineAsync(
+                        new CpWorkshopAddLineRequest(
+                            jobId, lineType, description, itemId,
+                            qty <= 0 ? 1 : qty, unitPrice, taxPercent <= 0 ? 5 : taxPercent,
+                            chargeable == 0 ? 0 : 1),
+                        cancellationToken),
+                    "create_appointment" or "create-appointment" => await writes.CreateAppointmentAsync(
+                        new CpWorkshopCreateAppointmentRequest(
+                            refNo, status, customerName, customerPhone, customerEmail, customerId,
+                            garageId, plate, make, model, year, serviceType, notes, timeSlot),
+                        cancellationToken),
+                    "convert_appointment" or "convert-appointment" => await writes.ConvertAppointmentAsync(appointmentId, cancellationToken),
+                    _ => ErpSimpleWriteResult.Fail("invalid", "Unknown workshop action. assign / save_bay / save_tech / set_status / create_job / add_line / create_appointment / convert_appointment are live; seed stays PHP."),
                 };
                 return LiveWriteFormBinder.Complete(
                     context,
@@ -3355,7 +3443,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "epc_pos_settings + epc_pos_sales digest. open/close session, save settings, and sale/line INSERT write on POST /cp/pos/* when confirmWrites=true. Printable receipt at /cp/pos/receipt/{id}. Walk-in user, tax-toolkit totals, ERP SO/invoice/voucher, and inventory stay PHP."
+                note = "epc_pos_settings + epc_pos_sales digest. open/close session, save settings, and sale/line INSERT write on POST /cp/pos/* when confirmWrites=true. Printable receipt at /cp/pos/receipt/{id}. Walk-in user create is ASP.NET-live. Tax-toolkit totals, ERP SO/invoice/voucher, and inventory stay PHP."
             });
         });
 
@@ -6950,7 +7038,41 @@ public sealed class ControlPanelModule : ISurfaceModule
         string? Skill = null,
         string? Status = null,
         int Active = 1,
-        int SortOrder = 0);
+        int SortOrder = 0,
+        string? JobNo = null,
+        string? CustomerName = null,
+        string? CustomerPhone = null,
+        string? CustomerEmail = null,
+        long CustomerId = 0,
+        string? Plate = null,
+        string? Vin = null,
+        string? Make = null,
+        string? Model = null,
+        string? Year = null,
+        int Odometer = 0,
+        string? Complaint = null,
+        bool EstimateApproved = false,
+        bool UnderWarranty = false,
+        string? Notes = null,
+        long TimePromised = 0,
+        string? LabourDesc = null,
+        decimal LabourHours = 1,
+        decimal LabourRate = 150,
+        string? PartDesc = null,
+        decimal PartQty = 1,
+        decimal PartPrice = 0,
+        string? LineType = null,
+        string? Description = null,
+        long ItemId = 0,
+        decimal Qty = 1,
+        decimal UnitPrice = 0,
+        decimal TaxPercent = 5,
+        int Chargeable = 1,
+        string? RefNo = null,
+        long GarageId = 0,
+        string? ServiceType = null,
+        long TimeSlot = 0,
+        long AppointmentId = 0);
     private sealed record CpCurrenciesSetRateBody(string? IsoCode = null, decimal Rate = 0, bool ConfirmWrites = false);
     private sealed record CpPricesEditWriteBody(
         string? Action = null,

@@ -575,6 +575,41 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(wsStatusDb.Succeeded);
         Assert.Equal("db", wsStatusDb.Code);
 
+        var wsCreateDb = await new CpWorkshopWriteService(new UnconfiguredConnections())
+            .CreateJobAsync(new CpWorkshopCreateJobRequest(CustomerName: "Ali", Plate: "A12345"));
+        Assert.False(wsCreateDb.Succeeded);
+        Assert.Equal("db", wsCreateDb.Code);
+
+        var wsLineInvalid = await new CpWorkshopWriteService(new ConfiguredNeverOpened())
+            .AddLineAsync(new CpWorkshopAddLineRequest(0, "part", "Pad"));
+        Assert.False(wsLineInvalid.Succeeded);
+        Assert.Equal("invalid", wsLineInvalid.Code);
+
+        var wsLineDb = await new CpWorkshopWriteService(new UnconfiguredConnections())
+            .AddLineAsync(new CpWorkshopAddLineRequest(9, "part", "Pad"));
+        Assert.False(wsLineDb.Succeeded);
+        Assert.Equal("db", wsLineDb.Code);
+
+        var wsApptDb = await new CpWorkshopWriteService(new UnconfiguredConnections())
+            .CreateAppointmentAsync(new CpWorkshopCreateAppointmentRequest(CustomerName: "Ali"));
+        Assert.False(wsApptDb.Succeeded);
+        Assert.Equal("db", wsApptDb.Code);
+
+        var wsConvertInvalid = await new CpWorkshopWriteService(new ConfiguredNeverOpened())
+            .ConvertAppointmentAsync(0);
+        Assert.False(wsConvertInvalid.Succeeded);
+        Assert.Equal("invalid", wsConvertInvalid.Code);
+
+        var wsConvertDb = await new CpWorkshopWriteService(new UnconfiguredConnections())
+            .ConvertAppointmentAsync(3);
+        Assert.False(wsConvertDb.Succeeded);
+        Assert.Equal("db", wsConvertDb.Code);
+
+        var posWalkinDb = await new CpPosWriteService(new UnconfiguredConnections())
+            .EnsureWalkinUserAsync();
+        Assert.False(posWalkinDb.Succeeded);
+        Assert.Equal("db", posWalkinDb.Code);
+
         var priceAdd = await new CpPricesEditWriteService(new ConfiguredNeverOpened())
             .AddAsync(1, "", "Bosch", "Pad", 1, 12.5m, 1, "WH1", 1);
         Assert.False(priceAdd.Succeeded);
