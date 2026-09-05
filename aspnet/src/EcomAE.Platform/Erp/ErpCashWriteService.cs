@@ -1120,13 +1120,23 @@ public sealed class ErpCashWriteService : IErpCashWriteService
         }
     }
 
-    private static Task<long> CoaIdAsync(DbConnection connection, string code, CancellationToken cancellationToken)
-        => ErpDb.LongAsync(
-            connection,
-            null,
-            ErpDb.Positional("SELECT `id` FROM `epc_erp_coa_accounts` WHERE `code` = ? AND `active` = 1 LIMIT 1"),
-            cancellationToken,
-            code);
+    private static async Task<long> CoaIdAsync(DbConnection connection, string code, CancellationToken cancellationToken)
+    {
+        try
+        {
+            return await ErpDb.LongAsync(
+                connection,
+                null,
+                ErpDb.Positional("SELECT `id` FROM `epc_erp_coa_accounts` WHERE `code` = ? AND `active` = 1 LIMIT 1"),
+                cancellationToken,
+                code).ConfigureAwait(false);
+        }
+        catch (DbException)
+        {
+            // GL is optional: missing COA table is the same as an unmapped code.
+            return 0;
+        }
+    }
 
     private static async Task AssertAccountAsync(DbConnection connection, int accountId, CancellationToken cancellationToken)
     {

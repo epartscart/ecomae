@@ -490,6 +490,10 @@ public sealed class CpPosWriteService : ICpPosWriteService
             {
                 return ErpSimpleWriteResult.Fail("invalid", ex.Message);
             }
+            catch (System.Data.Common.DbException ex)
+            {
+                return ErpSimpleWriteResult.Fail("invalid", ex.Message);
+            }
         }
 
         var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
