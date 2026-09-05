@@ -1532,24 +1532,47 @@ public sealed class StorefrontModule : ISurfaceModule
 
         endpoints.MapPost(EcomAeRoutes.StorefrontGarageCheckCar, async (
             HttpContext context,
-            StorefrontGarageCheckCarBody? body,
             ILegacySessionValidator validator,
             IStorefrontGarageCheckCarDryRun dryRun,
+            IStorefrontGarageWriteService writes,
             CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateAsync(context, cancellationToken);
             if (session.Kind != LegacySessionKind.Customer || session.UserId <= 0)
             {
-                return Unauthorized("Customer session required for garage check-car dry-run.");
+                return LiveWriteFormBinder.LoginRedirect(context, "/storefront/login?returnUrl=/storefront/garage-app", "Customer session required for garage check-car.");
             }
 
-            body ??= new StorefrontGarageCheckCarBody(0, 0, false);
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<StorefrontGarageCheckCarBody>(context, cancellationToken)
+                       ?? new(0, 0, false);
+            var carId = body.CarId;
+            var orderId = body.OrderId;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                carId = LiveWriteFormBinder.Long(form, "carId", "car_id", "garageId", "garage_id");
+                orderId = LiveWriteFormBinder.Long(form, "orderId", "order_id");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (confirm)
+            {
+                var written = await writes.CheckCarAsync(session.UserId, carId, orderId, cancellationToken);
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    "/storefront/orders-app?order_id=" + orderId.ToString(CultureInfo.InvariantCulture),
+                    written.Succeeded,
+                    written.Message,
+                    new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, flag = written.Id, session = SessionPayload(session) });
+            }
+
             var result = await dryRun.EvaluateAsync(
                 session.UserId,
-                new StorefrontGarageCheckCarRequest(body.CarId, body.OrderId, body.ConfirmWrites),
+                new StorefrontGarageCheckCarRequest(carId, orderId, false),
                 cancellationToken);
             return Results.Ok(result.ToPayload(SessionPayload(session)));
-        });
+        }).DisableAntiforgery();
 
         endpoints.MapPost(EcomAeRoutes.StorefrontCheckoutCreate, async (
             HttpContext context,
@@ -2131,6 +2154,55 @@ public sealed class StorefrontModule : ISurfaceModule
                 written.Message,
                 new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.StorefrontProfilePassword, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IStorefrontCustomerWriteService writes,
+            Microsoft.Extensions.Options.IOptions<EcomAE.Platform.Configuration.EcomAeOptions> options,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Customer || session.UserId <= 0)
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/storefront/login?returnUrl=/storefront/profile-app", "Customer session required.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<StorefrontProfilePasswordBody>(context, cancellationToken)
+                       ?? new(null, false);
+            var password = body.Password;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                password = LiveWriteFormBinder.Text(form, "password");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(new
+                {
+                    ok = false,
+                    writes = 0,
+                    writesBlocked = true,
+                    phpAuthoritative = false,
+                    message = "Set confirmWrites=true to change the password on ASP.NET.",
+                    session = SessionPayload(session),
+                });
+            }
+
+            var written = await writes.ChangePasswordAsync(
+                session.UserId,
+                password,
+                options.Value.SecretSuccession,
+                cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/storefront/profile-app",
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.StorefrontLoginSendCode, async (
             HttpContext context,
             StorefrontLoginSendCodeBody? body,
@@ -2459,6 +2531,7 @@ public sealed class StorefrontModule : ISurfaceModule
     private sealed record StorefrontSetMyCityBody(long CityId, bool ConfirmWrites = false);
     private sealed record StorefrontCookieProductBody(long ProductId = 0, bool ConfirmWrites = false);
     private sealed record StorefrontProfileSaveBody(Dictionary<string, string>? Fields = null, bool ConfirmWrites = false);
+    private sealed record StorefrontProfilePasswordBody(string? Password = null, bool ConfirmWrites = false);
     private sealed record StorefrontLoginSendCodeBody(string? Phone, bool ConfirmWrites = false);
     private sealed record StorefrontLoginCheckCodeBody(string? Code, bool ConfirmWrites = false);
 

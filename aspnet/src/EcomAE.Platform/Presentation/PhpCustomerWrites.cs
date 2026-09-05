@@ -6,7 +6,8 @@ namespace EcomAE.Platform.Presentation;
 public static class PhpCustomerWrites
 {
     public static string ProfileWriteHref => "/storefront/profile/save";
-    public static string ProfilePasswordHref => "/php-reference/en/users/editform";
+    public static string ProfilePasswordHref => "/storefront/profile/change-password";
+    public static string GarageCheckCarHref => "/storefront/garage/check-car";
     public static string BalanceTopUpHref => "/storefront/payment/create-operation";
     public static string GarageCarWriteHref => "/storefront/garage/save";
     public static string GarageNotepadWriteHref => "/storefront/garage/notepad-add";

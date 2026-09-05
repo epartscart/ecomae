@@ -133,9 +133,17 @@
             <input type="text" name="epc_reg_address" value="@Field("epc_reg_address")" maxlength="255" style="width:100%;margin:.25rem 0 1rem;padding:.5rem" />
             <button type="submit" style="padding:.55rem .95rem;border:0;border-radius:.4rem;background:#dc2626;color:#fff;font-weight:800;cursor:pointer">Save profile</button>
         </form>
+        <form method="post" action="@PhpCustomerWrites.ProfilePasswordHref" style="background:#fff;border:1px solid #e2e8f0;border-radius:.55rem;padding:1.1rem 1.2rem;margin-bottom:1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/storefront/profile-app" />
+            <p style="margin:0 0 .75rem;font-weight:700">Change password</p>
+            <label>New password</label>
+            <input type="password" name="password" required autocomplete="new-password" style="width:100%;margin:.25rem 0 1rem;padding:.5rem" />
+            <button type="submit" style="padding:.55rem .95rem;border:0;border-radius:.4rem;background:#0f766e;color:#fff;font-weight:800;cursor:pointer">Update password</button>
+        </form>
         <p class="epc-sf-pf-note">
-            Email, phone confirmation, and password stay on the classic account form until the PHP contact/password twins are ported.
-            <a href="@PhpCustomerWrites.ProfilePasswordHref">Password / contacts</a>
+            Email and phone confirmation stay on the classic account form.
+            <a href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref("/en/users/editform")">Classic contacts</a>
         </p>
     }
 

@@ -204,6 +204,13 @@
                         }
                     </ul>
                 }
+                <form method="post" action="@PhpCustomerWrites.GarageCheckCarHref" style="margin-bottom:1rem">
+                    <input type="hidden" name="confirmWrites" value="true" />
+                    <input type="hidden" name="returnUrl" value="@("/storefront/orders-app?order_id=" + _selected.Id.ToString(CultureInfo.InvariantCulture))" />
+                    <input type="hidden" name="orderId" value="@_selected.Id.ToString(CultureInfo.InvariantCulture)" />
+                    <label>Garage car id <input type="number" name="carId" required style="width:8rem" /></label>
+                    <button type="submit" style="padding:.45rem .75rem;border:0;border-radius:.4rem;background:#a16207;color:#fff;font-weight:800;cursor:pointer">Link / unlink car</button>
+                </form>
                 <form method="post" action="@PhpCustomerWrites.OrderMessageHref">
                     <input type="hidden" name="confirmWrites" value="true" />
                     <input type="hidden" name="returnUrl" value="@("/storefront/orders-app?order_id=" + _selected.Id.ToString(CultureInfo.InvariantCulture))" />

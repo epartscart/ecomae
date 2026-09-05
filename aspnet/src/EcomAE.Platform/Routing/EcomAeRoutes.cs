@@ -977,8 +977,10 @@ public static class EcomAeRoutes
     public const string StorefrontCompareAdd = "/storefront/compare/add";
     /// <summary>Compare cookie remove. Twin of PHP <c>removeCompare</c> in bottom_panel.php.</summary>
     public const string StorefrontCompareRemove = "/storefront/compare/remove";
-    /// <summary>Profile <c>users_profiles</c> UPSERT. Password / email / phone stay PHP.</summary>
+    /// <summary>Profile <c>users_profiles</c> UPSERT. Email / phone confirm stay PHP.</summary>
     public const string StorefrontProfileSave = "/storefront/profile/save";
+    /// <summary>PHP <c>users/editform.php</c> password UPDATE. <c>confirmWrites=true</c> writes <c>md5(password+secret_succession)</c>.</summary>
+    public const string StorefrontProfilePassword = "/storefront/profile/change-password";
     /// <summary>Wave B dry-run for PHP modules/login/code/frontAjax/ajax_sendCode.php (writes=0).</summary>
     public const string StorefrontLoginSendCode = "/storefront/login/send-code";
     /// <summary>Wave B dry-run for PHP modules/login/code/frontAjax/ajax_checkCode.php (writes=0).</summary>
@@ -1944,7 +1946,7 @@ public static class EcomAeRoutes
     public const string StorefrontGarageSetActive = "/storefront/garage/set-active";
     /// <summary>Garage delete. <c>confirmWrites=true</c> is the live twin of PHP ajax_operations_cars.php action=delete_car.</summary>
     public const string StorefrontGarageDelete = "/storefront/garage/delete";
-    /// <summary>Wave B dry-run garage check_car toggle (PHP ajax_operations_cars.php action=check_car remains authoritative).</summary>
+    /// <summary>PHP <c>ajax_operations_cars.php</c> action <c>check_car</c> garage↔order toggle. <c>confirmWrites=true</c> writes ASP.NET.</summary>
     public const string StorefrontGarageCheckCar = "/storefront/garage/check-car";
     /// <summary>Signed-in checkout create. <c>confirmWrites=true</c> is the live twin of PHP ajax_checkout_create.php. Guest stays PHP.</summary>
     public const string StorefrontCheckoutCreate = "/storefront/checkout/create";

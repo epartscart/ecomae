@@ -75,6 +75,33 @@ public sealed class StorefrontPayLaximoPhpParityTests
     }
 
     [Fact]
+    public void ResidualPhpTwins_PostNativeFormsAndCatalogLive()
+    {
+        var garage = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/StorefrontGarageApp.razor"));
+        Assert.Contains("action=\"@PhpCustomerWrites.GarageCheckCarHref\"", garage, StringComparison.Ordinal);
+        Assert.Contains("name=\"confirmWrites\"", garage, StringComparison.Ordinal);
+
+        var orders = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/StorefrontOrdersApp.razor"));
+        Assert.Contains("action=\"@PhpCustomerWrites.GarageCheckCarHref\"", orders, StringComparison.Ordinal);
+
+        var profile = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/StorefrontProfileApp.razor"));
+        Assert.Contains("action=\"@PhpCustomerWrites.ProfilePasswordHref\"", profile, StringComparison.Ordinal);
+        Assert.Contains("name=\"password\"", profile, StringComparison.Ordinal);
+        Assert.DoesNotContain("Live writes remain PHP", profile, StringComparison.Ordinal);
+
+        var cp = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/CpOrdersApp.razor"));
+        Assert.Contains("action=\"/cp/orders/pay-refund\"", cp, StringComparison.Ordinal);
+        Assert.Contains("name=\"directRefund\"", cp, StringComparison.Ordinal);
+        Assert.DoesNotContain("Live writes remain PHP", cp, StringComparison.Ordinal);
+
+        Assert.Equal("write-live-gated", SurfacePayloadContractCatalog.Functions.First(f => f.AspNetRouteOrCapability == "/storefront/garage/check-car").Status);
+        Assert.Equal("write-live-gated", SurfacePayloadContractCatalog.Functions.First(f => f.AspNetRouteOrCapability == "/storefront/profile/change-password").Status);
+        Assert.Equal("write-live-gated", SurfacePayloadContractCatalog.Functions.First(f => f.AspNetRouteOrCapability == "/cp/orders/pay-refund").Status);
+        Assert.Equal("/storefront/garage/check-car", PhpCustomerWrites.GarageCheckCarHref);
+        Assert.Equal("/storefront/profile/change-password", PhpCustomerWrites.ProfilePasswordHref);
+    }
+
+    [Fact]
     public void Laximo_ParsesVehicleRows()
     {
         const string xml = """

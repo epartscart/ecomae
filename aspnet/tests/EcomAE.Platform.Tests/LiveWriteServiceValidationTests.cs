@@ -1,4 +1,5 @@
 using System.Data.Common;
+using EcomAE.Platform.Auth;
 using EcomAE.Platform.Cp;
 using EcomAE.Platform.Erp;
 using EcomAE.Platform.Storefront;
@@ -1126,5 +1127,56 @@ public sealed class LiveWriteServiceValidationTests
         });
         Assert.Single(clean);
         Assert.Equal("Ada &lt;b&gt;Lovelace&lt;/b&gt;", clean["name"]);
+    }
+
+    [Fact]
+    public async Task Garage_check_car_and_pay_refund_and_password_validate_without_db()
+    {
+        var garageAuth = await new StorefrontGarageWriteService(new UnconfiguredConnections())
+            .CheckCarAsync(0, 1, 1);
+        Assert.False(garageAuth.Succeeded);
+        Assert.Equal("auth", garageAuth.Code);
+
+        var garageInvalid = await new StorefrontGarageWriteService(new ConfiguredNeverOpened())
+            .CheckCarAsync(1, 0, 0);
+        Assert.False(garageInvalid.Succeeded);
+        Assert.Equal("invalid", garageInvalid.Code);
+
+        var garageDb = await new StorefrontGarageWriteService(new UnconfiguredConnections())
+            .CheckCarAsync(1, 3, 11);
+        Assert.False(garageDb.Succeeded);
+        Assert.Equal("db", garageDb.Code);
+
+        var refundInvalid = await new CpOmsWriteService(new ConfiguredNeverOpened())
+            .PayRefundAsync(0, true, null, 1);
+        Assert.False(refundInvalid.Succeeded);
+        Assert.Equal("forbidden", refundInvalid.Code);
+
+        var refundDb = await new CpOmsWriteService(new UnconfiguredConnections())
+            .PayRefundAsync(42, true, null, 1);
+        Assert.False(refundDb.Succeeded);
+        Assert.Equal("db", refundDb.Code);
+
+        var pwdAuth = await new StorefrontCustomerWriteService(new UnconfiguredConnections())
+            .ChangePasswordAsync(0, "secret", "succ");
+        Assert.False(pwdAuth.Succeeded);
+        Assert.Equal("auth", pwdAuth.Code);
+
+        var pwdInvalid = await new StorefrontCustomerWriteService(new ConfiguredNeverOpened())
+            .ChangePasswordAsync(1, "", "succ");
+        Assert.False(pwdInvalid.Succeeded);
+        Assert.Equal("invalid", pwdInvalid.Code);
+
+        var pwdConfig = await new StorefrontCustomerWriteService(new ConfiguredNeverOpened())
+            .ChangePasswordAsync(1, "secret", "");
+        Assert.False(pwdConfig.Succeeded);
+        Assert.Equal("config", pwdConfig.Code);
+
+        var pwdDb = await new StorefrontCustomerWriteService(new UnconfiguredConnections())
+            .ChangePasswordAsync(1, "secret", "succ");
+        Assert.False(pwdDb.Succeeded);
+        Assert.Equal("db", pwdDb.Code);
+
+        Assert.Equal(32, LegacyPasswordVerifier.Md5Hex("secret" + "succ").Length);
     }
 }

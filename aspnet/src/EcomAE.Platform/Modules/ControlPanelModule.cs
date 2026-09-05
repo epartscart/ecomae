@@ -721,23 +721,49 @@ public sealed class ControlPanelModule : ISurfaceModule
 
         endpoints.MapPost(EcomAeRoutes.ControlPanelOmsPayRefund, async (
             HttpContext context,
-            CpOmsPayRefundBody? body,
             ILegacySessionValidator validator,
             ICpOmsPayRefundDryRun dryRun,
+            ICpOmsWriteService writes,
             CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateAsync(context, cancellationToken);
             if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
             {
-                return Unauthorized("Admin CP capability required for OMS pay-refund dry-run.");
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/orders", "Admin CP capability required for OMS pay-refund.");
             }
 
-            body ??= new CpOmsPayRefundBody(0, false, null, false);
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpOmsPayRefundBody>(context, cancellationToken)
+                       ?? new(0, false, null, false);
+            var orderId = body.OrderId;
+            var direct = body.DirectRefund;
+            var paidSum = body.PaidSum;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                orderId = LiveWriteFormBinder.Long(form, "orderId", "order_id");
+                direct = LiveWriteFormBinder.Flag(form, "directRefund", "direct_refund");
+                var rawPaid = LiveWriteFormBinder.Dec(form, "paidSum", "paid_sum");
+                paidSum = rawPaid > 0 ? rawPaid : null;
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (confirm)
+            {
+                var written = await writes.PayRefundAsync(orderId, direct, paidSum, session.UserId, cancellationToken);
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    "/cp/orders?order_id=" + orderId.ToString(CultureInfo.InvariantCulture) + "&od=payment",
+                    written.Succeeded,
+                    written.Message,
+                    new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+            }
+
             var result = await dryRun.EvaluateAsync(
-                new CpOmsPayRefundRequest(body.OrderId, body.DirectRefund, body.PaidSum, body.ConfirmWrites),
+                new CpOmsPayRefundRequest(orderId, direct, paidSum, false),
                 cancellationToken);
             return Results.Ok(result.ToPayload(SessionPayload(session)));
-        });
+        }).DisableAntiforgery();
 
         endpoints.MapPost(EcomAeRoutes.ControlPanelOmsUpdateItems, async (
             HttpContext context,

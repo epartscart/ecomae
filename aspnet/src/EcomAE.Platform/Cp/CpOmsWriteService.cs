@@ -32,6 +32,13 @@ public interface ICpOmsWriteService
     Task<ErpSimpleWriteResult> UpdateItemAsync(long orderId, CpOmsItemWritePatch patch, int adminUserId, CancellationToken cancellationToken = default, bool writeLog = true);
 
     Task<ErpSimpleWriteResult> UpdateItemsAsync(long orderId, IReadOnlyList<CpOmsItemWritePatch> patches, int adminUserId, CancellationToken cancellationToken = default);
+
+    Task<ErpSimpleWriteResult> PayRefundAsync(
+        long orderId,
+        bool directRefund,
+        decimal? paidSumOverride,
+        int adminUserId,
+        CancellationToken cancellationToken = default);
 }
 
 /// <summary>PHP <c>ajax_epc_orders_oms.php</c> <c>update_item</c> / <c>update_items</c> field patch. Warehouse reprice is refused.</summary>
@@ -756,6 +763,180 @@ public sealed class CpOmsWriteService : ICpOmsWriteService
             orderId, DateTimeOffset.UtcNow.ToUnixTimeSeconds(), adminUserId,
             "OMS batch-updated <b>" + updated.ToString(CultureInfo.InvariantCulture) + "</b> line(s)");
         return new ErpSimpleWriteResult(true, "ok", "Lines updated.", orderId, updated);
+    }
+
+    public async Task<ErpSimpleWriteResult> PayRefundAsync(
+        long orderId,
+        bool directRefund,
+        decimal? paidSumOverride,
+        int adminUserId,
+        CancellationToken cancellationToken = default)
+    {
+        if (orderId <= 0)
+        {
+            return ErpSimpleWriteResult.Fail("forbidden", "Forbidden");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return ErpSimpleWriteResult.Fail("db", "TenantRegistry DB is not configured.");
+        }
+
+        await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await using var tx = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            var exists = await ErpDb.LongAsync(
+                connection,
+                tx,
+                ErpDb.Positional("SELECT `id` FROM `shop_orders` WHERE `id` = ? LIMIT 1"),
+                cancellationToken,
+                orderId);
+            if (exists <= 0)
+            {
+                await tx.RollbackAsync(cancellationToken).ConfigureAwait(false);
+                return ErpSimpleWriteResult.Fail("forbidden", "Forbidden");
+            }
+
+            var paid = await ErpDb.LongAsync(
+                connection,
+                tx,
+                ErpDb.Positional("SELECT `paid` FROM `shop_orders` WHERE `id` = ? LIMIT 1"),
+                cancellationToken,
+                orderId);
+
+            var orderUser = await ErpDb.LongAsync(
+                connection,
+                tx,
+                ErpDb.Positional("SELECT `user_id` FROM `shop_orders` WHERE `id` = ? LIMIT 1"),
+                cancellationToken,
+                orderId);
+            if (orderUser == 0 && !directRefund)
+            {
+                await tx.RollbackAsync(cancellationToken).ConfigureAwait(false);
+                return ErpSimpleWriteResult.Fail("forbidden", "Forbidden");
+            }
+
+            if (paid == 0)
+            {
+                await tx.RollbackAsync(cancellationToken).ConfigureAwait(false);
+                return ErpSimpleWriteResult.Fail("unpaid", "Order is not paid.");
+            }
+
+            var paidSum = paidSumOverride is > 0
+                ? paidSumOverride.Value
+                : await ErpDb.DecimalAsync(
+                    connection,
+                    tx,
+                    ErpDb.Positional("""
+                        SELECT CAST((IFNULL((SELECT SUM(`amount`) FROM `shop_users_accounting` WHERE `active`=1 AND `income`=0 AND `order_id`=?),0)
+                          - IFNULL((SELECT SUM(`amount`) FROM `shop_users_accounting` WHERE `active`=1 AND `income`=1 AND `order_id`=?),0)) AS DECIMAL(12,2))
+                        """),
+                    cancellationToken,
+                    orderId, orderId);
+            if (paidSum <= 0)
+            {
+                await tx.RollbackAsync(cancellationToken).ConfigureAwait(false);
+                return ErpSimpleWriteResult.Fail("forbidden", "Forbidden");
+            }
+
+            var refundCode = await ErpDb.LongAsync(
+                connection,
+                tx,
+                ErpDb.Positional("SELECT `id` FROM `shop_accounting_codes` WHERE `key` = ? LIMIT 1"),
+                cancellationToken,
+                "5_refund_from_order_to_balance");
+            if (refundCode <= 0)
+            {
+                await tx.RollbackAsync(cancellationToken).ConfigureAwait(false);
+                return ErpSimpleWriteResult.Fail("invalid", "Forbidden");
+            }
+
+            var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+            await ErpDb.ExecuteAsync(
+                connection,
+                tx,
+                ErpDb.Positional("""
+                    INSERT INTO `shop_users_accounting`
+                    (`user_id`, `time`, `income`, `amount`, `operation_code`, `active`, `order_id`, `office_id`)
+                    VALUES (?, ?, 1, ?, ?, 1, ?, (SELECT `office_id` FROM `shop_orders` WHERE `id` = ? LIMIT 1))
+                    """),
+                cancellationToken,
+                orderUser, now, paidSum, refundCode, orderId, orderId);
+            var writes = 1;
+
+            if (paidSumOverride is null or <= 0)
+            {
+                await ErpDb.ExecuteAsync(
+                    connection,
+                    tx,
+                    ErpDb.Positional("UPDATE `shop_orders` SET `paid` = 0 WHERE `id` = ?"),
+                    cancellationToken,
+                    orderId);
+                writes++;
+            }
+
+            if (directRefund)
+            {
+                var cashCode = await ErpDb.LongAsync(
+                    connection,
+                    tx,
+                    ErpDb.Positional("SELECT `id` FROM `shop_accounting_codes` WHERE `key` = ? LIMIT 1"),
+                    cancellationToken,
+                    "6_refund_from_balance");
+                if (cashCode <= 0)
+                {
+                    await tx.RollbackAsync(cancellationToken).ConfigureAwait(false);
+                    return ErpSimpleWriteResult.Fail("invalid", "Forbidden");
+                }
+
+                await ErpDb.ExecuteAsync(
+                    connection,
+                    tx,
+                    ErpDb.Positional("""
+                        INSERT INTO `shop_users_accounting`
+                        (`user_id`, `time`, `income`, `amount`, `operation_code`, `active`, `order_id`, `office_id`)
+                        VALUES (?, ?, 0, ?, ?, 1, 0, (SELECT `office_id` FROM `shop_orders` WHERE `id` = ? LIMIT 1))
+                        """),
+                    cancellationToken,
+                    orderUser, now, paidSum, cashCode, orderId);
+                writes++;
+            }
+
+            var logText = directRefund
+                ? "Refund <b>" + paidSum.ToString("0.00", CultureInfo.InvariantCulture) + "</b> (cash / direct)"
+                : "Refund <b>" + paidSum.ToString("0.00", CultureInfo.InvariantCulture) + "</b> (to balance)";
+            try
+            {
+                await ErpDb.ExecuteAsync(
+                    connection,
+                    tx,
+                    ErpDb.Positional("INSERT INTO `shop_orders_logs` (`order_id`,`time`,`user_id`,`is_manager`,`text`) VALUES (?, ?, ?, 1, ?)"),
+                    cancellationToken,
+                    orderId, now, adminUserId, logText);
+                writes++;
+            }
+            catch (DbException)
+            {
+                // log table optional
+            }
+
+            await tx.CommitAsync(cancellationToken).ConfigureAwait(false);
+            return new ErpSimpleWriteResult(true, "ok", "Refund recorded.", orderId, writes);
+        }
+        catch
+        {
+            try
+            {
+                await tx.RollbackAsync(cancellationToken).ConfigureAwait(false);
+            }
+            catch
+            {
+                // already rolled back
+            }
+
+            throw;
+        }
     }
 
     private static async Task<string> StorageCaptionAsync(
