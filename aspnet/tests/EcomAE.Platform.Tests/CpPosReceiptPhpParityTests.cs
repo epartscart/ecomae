@@ -49,7 +49,7 @@ public sealed class CpPosReceiptPhpParityTests
         Assert.Contains("/cp/pos/receipt/{saleId:long}", routes, StringComparison.Ordinal);
         var catalog = SurfacePayloadContractCatalog.Functions;
         Assert.Contains("/cp/pos/receipt/{id}", catalog.First(f => f.AspNetRouteOrCapability == "/cp/pos-overview-app").Notes, StringComparison.Ordinal);
-        Assert.Contains("Walk-in user create, tax-toolkit totals, and ERP SO/invoice/voucher are ASP.NET-live", catalog.First(f => f.AspNetRouteOrCapability == "/cp/pos-overview-app").Notes, StringComparison.Ordinal);
+        Assert.Contains("Walk-in user create, tax-toolkit totals, ERP SO/invoice/voucher, and inventory sale_out are ASP.NET-live", catalog.First(f => f.AspNetRouteOrCapability == "/cp/pos-overview-app").Notes, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -100,6 +100,18 @@ public sealed class CpPosReceiptPhpParityTests
         Assert.Equal(9, CpPosWriteService.PickDefaultCardAccount(9, accounts, 3));
         Assert.Equal(3, CpPosWriteService.PickDefaultCardAccount(0, [new(3, "Main till", "cash")], 3));
         Assert.Equal(0, CpPosWriteService.PickDefaultCashAccount(0, []));
+    }
+
+    [Fact]
+    public void PickWarehouseId_UsesPayloadThenSettingsThenFirstActive()
+    {
+        Assert.Equal(9, CpPosWriteService.PickWarehouseId(9, 3, 1));
+        Assert.Equal(3, CpPosWriteService.PickWarehouseId(0, 3, 1));
+        Assert.Equal(1, CpPosWriteService.PickWarehouseId(0, 0, 1));
+        Assert.Equal(0, CpPosWriteService.PickWarehouseId(0, 0, 0));
+        Assert.False(CpPosWriteService.HasSaleOutSku(""));
+        Assert.False(CpPosWriteService.HasSaleOutSku("   "));
+        Assert.True(CpPosWriteService.HasSaleOutSku("WIPER-1"));
     }
 
     private static string FindRepoFile(string relative)

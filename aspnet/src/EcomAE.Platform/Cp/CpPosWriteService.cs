@@ -14,8 +14,8 @@ namespace EcomAE.Platform.Cp;
 /// <c>epc_pos_ensure_walkin_user</c>, tax-toolkit cart totals, and the
 /// <c>epc_erp_sales_order_save</c> / <c>epc_erp_so_convert_to_invoice</c> /
 /// <c>epc_erp_receipt_voucher</c> postings after cart totals.
-/// Tax-toolkit assign and inventory <c>sale_out</c> stay PHP.
-/// Printable receipt HTML is ASP.NET-live.
+/// Tax-toolkit assign stays PHP. Inventory <c>sale_out</c> is ASP.NET-live
+/// (best-effort, same swallow as PHP). Printable receipt HTML is ASP.NET-live.
 /// </summary>
 public interface ICpPosWriteService
 {
@@ -74,7 +74,8 @@ public sealed record CpPosCompleteSaleWriteRequest(
     long CustomerUserId = 0,
     long ContactId = 0,
     string? CustomerLabel = null,
-    string? SaleNotes = null);
+    string? SaleNotes = null,
+    long WarehouseId = 0);
 
 public sealed class CpPosWriteService : ICpPosWriteService
 {
@@ -496,6 +497,15 @@ public sealed class CpPosWriteService : ICpPosWriteService
             }
         }
 
+        await TryPostSaleOutAsync(
+            connection,
+            request.WarehouseId,
+            saleNo,
+            salesOrderId,
+            lines,
+            adminUserId,
+            cancellationToken).ConfigureAwait(false);
+
         var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
         await using var tx = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
         await ErpDb.ExecuteAsync(
@@ -561,7 +571,7 @@ public sealed class CpPosWriteService : ICpPosWriteService
 
     /// <summary>
     /// PHP <c>epc_pos_complete_sale</c> after cart totals: SO save → confirm → invoice → cash/card RV.
-    /// Inventory <c>sale_out</c> stays PHP.
+    /// Inventory <c>sale_out</c> is posted separately (best-effort).
     /// </summary>
     private async Task<(long SalesOrderId, long SalesInvoiceId, string ReceiptVoucherNo)> PostErpDocumentsAsync(
         System.Data.Common.DbConnection connection,
@@ -654,6 +664,247 @@ public sealed class CpPosWriteService : ICpPosWriteService
         }
 
         return (saved.Id, invoice.SalesInvoiceId, rvNo);
+    }
+
+    /// <summary>
+    /// PHP <c>epc_pos_complete_sale</c> inventory loop: warehouse pick, SKU resolve/create,
+    /// <c>sale_out</c> movement. Exceptions are swallowed so a short-stock line does not abort the sale.
+    /// Schema-ensure stays PHP.
+    /// </summary>
+    private async Task TryPostSaleOutAsync(
+        System.Data.Common.DbConnection connection,
+        long requestedWarehouseId,
+        string saleNo,
+        long salesOrderId,
+        IReadOnlyList<CpPosParsedLine> lines,
+        int adminUserId,
+        CancellationToken cancellationToken)
+    {
+        int warehouseId;
+        try
+        {
+            warehouseId = await ResolveWarehouseIdAsync(connection, requestedWarehouseId, cancellationToken).ConfigureAwait(false);
+        }
+        catch (System.Data.Common.DbException)
+        {
+            return;
+        }
+
+        if (warehouseId <= 0)
+        {
+            return;
+        }
+
+        foreach (var line in lines)
+        {
+            if (!HasSaleOutSku(line.Sku))
+            {
+                continue;
+            }
+
+            try
+            {
+                var itemId = await ResolveOrCreateItemAsync(connection, line.Sku, line.Name, cancellationToken).ConfigureAwait(false);
+                if (itemId <= 0)
+                {
+                    continue;
+                }
+
+                await RecordSaleOutAsync(
+                    connection,
+                    warehouseId,
+                    itemId,
+                    line.Qty,
+                    saleNo,
+                    salesOrderId,
+                    adminUserId,
+                    cancellationToken).ConfigureAwait(false);
+            }
+            catch (ErpWriteException)
+            {
+            }
+            catch (System.Data.Common.DbException)
+            {
+            }
+        }
+    }
+
+    /// <summary>PHP warehouse pick: payload → settings → first active warehouse.</summary>
+    public static int PickWarehouseId(long requestedWarehouseId, long settingsWarehouseId, long firstActiveWarehouseId)
+    {
+        if (requestedWarehouseId > 0)
+        {
+            return ClampInt(requestedWarehouseId);
+        }
+
+        if (settingsWarehouseId > 0)
+        {
+            return ClampInt(settingsWarehouseId);
+        }
+
+        return firstActiveWarehouseId > 0 ? ClampInt(firstActiveWarehouseId) : 0;
+    }
+
+    /// <summary>PHP skips inventory when the cart line has no SKU.</summary>
+    public static bool HasSaleOutSku(string? sku)
+        => !string.IsNullOrWhiteSpace(sku);
+
+    private async Task<int> ResolveWarehouseIdAsync(
+        System.Data.Common.DbConnection connection,
+        long requestedWarehouseId,
+        CancellationToken cancellationToken)
+    {
+        var settingsWarehouse = await ErpDb.LongAsync(
+            connection,
+            null,
+            ErpDb.Positional("SELECT IFNULL(`default_warehouse_id`,0) FROM `epc_pos_settings` ORDER BY `id` ASC LIMIT 1"),
+            cancellationToken).ConfigureAwait(false);
+        long firstActive = 0;
+        try
+        {
+            firstActive = await ErpDb.LongAsync(
+                connection,
+                null,
+                ErpDb.Positional("SELECT `id` FROM `epc_erp_inv_warehouses` WHERE `active` = 1 ORDER BY `id` ASC LIMIT 1"),
+                cancellationToken).ConfigureAwait(false);
+        }
+        catch (System.Data.Common.DbException)
+        {
+            firstActive = 0;
+        }
+
+        return PickWarehouseId(requestedWarehouseId, settingsWarehouse, firstActive);
+    }
+
+    private static async Task<long> ResolveOrCreateItemAsync(
+        System.Data.Common.DbConnection connection,
+        string sku,
+        string name,
+        CancellationToken cancellationToken)
+    {
+        var trimmed = Clip(sku, 64);
+        if (trimmed.Length == 0)
+        {
+            return 0;
+        }
+
+        var existing = await ErpDb.LongAsync(
+            connection,
+            null,
+            ErpDb.Positional("SELECT `id` FROM `epc_erp_inv_items` WHERE `sku` = ? AND `active` = 1 LIMIT 1"),
+            cancellationToken,
+            trimmed).ConfigureAwait(false);
+        if (existing > 0)
+        {
+            return existing;
+        }
+
+        var itemName = Clip(name, 255);
+        if (itemName.Length == 0)
+        {
+            itemName = trimmed;
+        }
+
+        var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        await ErpDb.ExecuteAsync(
+            connection,
+            null,
+            ErpDb.Positional(
+                "INSERT INTO `epc_erp_inv_items` (`sku`, `name`, `product_id`, `item_type`, `track_expiry`, `unit`, `time_created`)"
+                + " VALUES (?,?,0,'standard',0,'pcs',?)"),
+            cancellationToken,
+            trimmed,
+            itemName,
+            now).ConfigureAwait(false);
+        return await ErpDb.LastInsertIdAsync(connection, null, cancellationToken).ConfigureAwait(false);
+    }
+
+    private static async Task RecordSaleOutAsync(
+        System.Data.Common.DbConnection connection,
+        int warehouseId,
+        long itemId,
+        decimal qty,
+        string saleNo,
+        long salesOrderId,
+        int adminUserId,
+        CancellationToken cancellationToken)
+    {
+        var qtyAbs = Math.Abs(qty);
+        if (warehouseId <= 0 || itemId <= 0 || qtyAbs == 0m)
+        {
+            throw new ErpWriteException("Warehouse, item and quantity required");
+        }
+
+        await using var tx = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            await using var stockCmd = connection.CreateCommand();
+            stockCmd.Transaction = tx;
+            stockCmd.CommandText = ErpDb.Positional(
+                "SELECT `id`, `qty_on_hand`, `avg_unit_cost` FROM `epc_erp_inv_stock`"
+                + " WHERE `warehouse_id` = ? AND `item_id` = ?"
+                + " AND IFNULL(`batch_no`,'') = '' AND IFNULL(`variant_label`,'') = ''"
+                + " LIMIT 1 FOR UPDATE");
+            ErpDb.AddParameters(stockCmd, warehouseId, itemId);
+            long stockId = 0;
+            decimal onHand = 0;
+            decimal avgCost = 0;
+            await using (var reader = await stockCmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false))
+            {
+                if (!await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    throw new ErpWriteException("Insufficient quantity on hand");
+                }
+
+                stockId = reader.IsDBNull(0) ? 0 : Convert.ToInt64(reader.GetValue(0), CultureInfo.InvariantCulture);
+                onHand = reader.IsDBNull(1) ? 0 : Convert.ToDecimal(reader.GetValue(1), CultureInfo.InvariantCulture);
+                avgCost = reader.IsDBNull(2) ? 0 : Convert.ToDecimal(reader.GetValue(2), CultureInfo.InvariantCulture);
+            }
+
+            if (stockId <= 0 || onHand < qtyAbs)
+            {
+                throw new ErpWriteException("Insufficient quantity on hand");
+            }
+
+            var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+            var newQty = onHand - qtyAbs;
+            await ErpDb.ExecuteAsync(
+                connection,
+                tx,
+                ErpDb.Positional(
+                    "UPDATE `epc_erp_inv_stock` SET `qty_on_hand` = ?, `time_updated` = ? WHERE `id` = ?"),
+                cancellationToken,
+                newQty,
+                now,
+                stockId).ConfigureAwait(false);
+
+            var totalCost = Math.Round(qtyAbs * avgCost, 2, MidpointRounding.AwayFromZero);
+            await ErpDb.ExecuteAsync(
+                connection,
+                tx,
+                ErpDb.Positional(
+                    "INSERT INTO `epc_erp_inv_movements`"
+                    + " (`movement_type`,`warehouse_id`,`item_id`,`qty`,`unit_cost`,`total_cost`,`transfer_warehouse_id`,"
+                    + " `purchase_id`,`order_id`,`batch_no`,`expiry_date`,`reference`,`note`,`movement_date`,`admin_id`,`opening_batch_id`)"
+                    + " VALUES ('sale_out',?,?,?,?,?,0,0,?,NULL,NULL,?,?,?,?,0)"),
+                cancellationToken,
+                warehouseId,
+                itemId,
+                qtyAbs,
+                avgCost,
+                totalCost,
+                salesOrderId,
+                saleNo,
+                "POS sale",
+                now,
+                adminUserId).ConfigureAwait(false);
+            await tx.CommitAsync(cancellationToken).ConfigureAwait(false);
+        }
+        catch
+        {
+            await tx.RollbackAsync(cancellationToken).ConfigureAwait(false);
+            throw;
+        }
     }
 
     /// <summary>PHP <c>lines_json</c> for POS → <c>epc_erp_sales_order_save</c>.</summary>

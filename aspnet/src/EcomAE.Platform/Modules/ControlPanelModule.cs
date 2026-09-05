@@ -1331,6 +1331,7 @@ public sealed class ControlPanelModule : ISurfaceModule
             var lineQty = body.Qty;
             var linePrice = body.UnitPriceEx;
             var lineSku = body.Sku;
+            var warehouseId = body.WarehouseId;
             var confirm = body.ConfirmWrites;
             if (context.Request.HasFormContentType)
             {
@@ -1350,6 +1351,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 lineQty = LiveWriteFormBinder.Dec(form, "qty", "lineQty", "line_qty");
                 linePrice = LiveWriteFormBinder.Dec(form, "unitPriceEx", "unit_price_ex", "price");
                 lineSku = LiveWriteFormBinder.Text(form, "sku");
+                warehouseId = LiveWriteFormBinder.Long(form, "warehouseId", "warehouse_id");
                 confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
             }
 
@@ -1373,7 +1375,8 @@ public sealed class ControlPanelModule : ISurfaceModule
                         customerUserId,
                         contactId,
                         customerLabel,
-                        saleNotes),
+                        saleNotes,
+                        warehouseId),
                     session.UserId,
                     cancellationToken);
                 return LiveWriteFormBinder.Complete(
@@ -3443,7 +3446,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "epc_pos_settings + epc_pos_sales digest. open/close session, save settings, and sale/line INSERT write on POST /cp/pos/* when confirmWrites=true. Printable receipt at /cp/pos/receipt/{id}. Walk-in user create, tax-toolkit totals, and ERP SO/invoice/voucher are ASP.NET-live. Inventory stays PHP."
+                note = "epc_pos_settings + epc_pos_sales digest. open/close session, save settings, and sale/line INSERT write on POST /cp/pos/* when confirmWrites=true. Printable receipt at /cp/pos/receipt/{id}. Walk-in user create, tax-toolkit totals, ERP SO/invoice/voucher, and inventory sale_out are ASP.NET-live."
             });
         });
 
@@ -6994,7 +6997,8 @@ public sealed class ControlPanelModule : ISurfaceModule
         string? Name = null,
         decimal Qty = 0,
         decimal UnitPriceEx = 0,
-        string? Sku = null);
+        string? Sku = null,
+        long WarehouseId = 0);
     private sealed record CpPosSaveSettingsBody(
         string? Action = null,
         bool ConfirmWrites = false,
