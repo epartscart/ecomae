@@ -3443,7 +3443,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "epc_pos_settings + epc_pos_sales digest. open/close session, save settings, and sale/line INSERT write on POST /cp/pos/* when confirmWrites=true. Printable receipt at /cp/pos/receipt/{id}. Walk-in user create and tax-toolkit totals are ASP.NET-live. ERP SO/invoice/voucher and inventory stay PHP."
+                note = "epc_pos_settings + epc_pos_sales digest. open/close session, save settings, and sale/line INSERT write on POST /cp/pos/* when confirmWrites=true. Printable receipt at /cp/pos/receipt/{id}. Walk-in user create, tax-toolkit totals, and ERP SO/invoice/voucher are ASP.NET-live. Inventory stays PHP."
             });
         });
 

@@ -49,7 +49,7 @@ public sealed class CpPosReceiptPhpParityTests
         Assert.Contains("/cp/pos/receipt/{saleId:long}", routes, StringComparison.Ordinal);
         var catalog = SurfacePayloadContractCatalog.Functions;
         Assert.Contains("/cp/pos/receipt/{id}", catalog.First(f => f.AspNetRouteOrCapability == "/cp/pos-overview-app").Notes, StringComparison.Ordinal);
-        Assert.Contains("Walk-in user create and tax-toolkit totals are ASP.NET-live", catalog.First(f => f.AspNetRouteOrCapability == "/cp/pos-overview-app").Notes, StringComparison.Ordinal);
+        Assert.Contains("Walk-in user create, tax-toolkit totals, and ERP SO/invoice/voucher are ASP.NET-live", catalog.First(f => f.AspNetRouteOrCapability == "/cp/pos-overview-app").Notes, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -73,6 +73,33 @@ public sealed class CpPosReceiptPhpParityTests
         Assert.Equal(28.50m, cart.SubtotalEx);
         Assert.Equal(1.50m, cart.DiscountTotal);
         Assert.Equal(27.00m, cart.AmountEx);
+    }
+
+    [Fact]
+    public void BuildSoLinesJson_UsesPhpFieldNames()
+    {
+        var lines = CpPosWriteService.ParseLines([new("Wiper", 2, 10m)]);
+        var json = CpPosWriteService.BuildSoLinesJson(lines);
+        Assert.Contains("\"description\":\"Wiper\"", json, StringComparison.Ordinal);
+        Assert.Contains("\"unit_price_ex_vat\":", json, StringComparison.Ordinal);
+        Assert.Contains("\"line_ex_vat\":", json, StringComparison.Ordinal);
+        Assert.Contains("\"qty\":", json, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void PickDefaultCashAndCardAccounts_MatchPhpNameAndTypeRules()
+    {
+        var accounts = new[]
+        {
+            new CpPosCashAccountHint(3, "Main till", "cash"),
+            new CpPosCashAccountHint(8, "Card terminal", "bank"),
+        };
+        Assert.Equal(11, CpPosWriteService.PickDefaultCashAccount(11, accounts));
+        Assert.Equal(3, CpPosWriteService.PickDefaultCashAccount(0, accounts));
+        Assert.Equal(8, CpPosWriteService.PickDefaultCardAccount(0, accounts, 3));
+        Assert.Equal(9, CpPosWriteService.PickDefaultCardAccount(9, accounts, 3));
+        Assert.Equal(3, CpPosWriteService.PickDefaultCardAccount(0, [new(3, "Main till", "cash")], 3));
+        Assert.Equal(0, CpPosWriteService.PickDefaultCashAccount(0, []));
     }
 
     private static string FindRepoFile(string relative)

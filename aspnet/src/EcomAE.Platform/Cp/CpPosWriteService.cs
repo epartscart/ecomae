@@ -11,8 +11,10 @@ namespace EcomAE.Platform.Cp;
 /// <summary>
 /// Live PHP <c>ajax_pos.php</c> twins for <c>open_session</c>, <c>close_session</c>,
 /// <c>save_settings</c>, the POS sale/line INSERT in <c>complete_sale</c>,
-/// <c>epc_pos_ensure_walkin_user</c>, and tax-toolkit cart totals.
-/// Tax-toolkit assign, ERP SO/invoice/voucher, and inventory movement stay PHP.
+/// <c>epc_pos_ensure_walkin_user</c>, tax-toolkit cart totals, and the
+/// <c>epc_erp_sales_order_save</c> / <c>epc_erp_so_convert_to_invoice</c> /
+/// <c>epc_erp_receipt_voucher</c> postings after cart totals.
+/// Tax-toolkit assign and inventory <c>sale_out</c> stay PHP.
 /// Printable receipt HTML is ASP.NET-live.
 /// </summary>
 public interface ICpPosWriteService
@@ -81,15 +83,24 @@ public sealed class CpPosWriteService : ICpPosWriteService
     private readonly IErpWriteConnectionFactory _connections;
     private readonly IOptions<EcomAeOptions>? _options;
     private readonly IErpTaxAmountCalculator? _tax;
+    private readonly IErpSalesOrderWriteService? _salesOrders;
+    private readonly IErpSalesInvoiceWriteService? _invoices;
+    private readonly IErpCashWriteService? _cash;
 
     public CpPosWriteService(
         IErpWriteConnectionFactory connections,
         IOptions<EcomAeOptions>? options = null,
-        IErpTaxAmountCalculator? tax = null)
+        IErpTaxAmountCalculator? tax = null,
+        IErpSalesOrderWriteService? salesOrders = null,
+        IErpSalesInvoiceWriteService? invoices = null,
+        IErpCashWriteService? cash = null)
     {
         _connections = connections;
         _options = options;
         _tax = tax;
+        _salesOrders = salesOrders;
+        _invoices = invoices;
+        _cash = cash;
     }
 
     public async Task<ErpSimpleWriteResult> OpenSessionAsync(
@@ -456,6 +467,31 @@ public sealed class CpPosWriteService : ICpPosWriteService
         }
 
         var saleNo = await NextSaleNoAsync(connection, cancellationToken).ConfigureAwait(false);
+        long salesOrderId = 0;
+        long salesInvoiceId = 0;
+        var receiptVoucherNo = "";
+        if (_salesOrders is not null && _invoices is not null && _cash is not null)
+        {
+            try
+            {
+                (salesOrderId, salesInvoiceId, receiptVoucherNo) = await PostErpDocumentsAsync(
+                    connection,
+                    saleNo,
+                    customerUserId,
+                    contactId,
+                    lines,
+                    cash,
+                    card,
+                    request.SaleNotes,
+                    adminUserId,
+                    cancellationToken).ConfigureAwait(false);
+            }
+            catch (ErpWriteException ex)
+            {
+                return ErpSimpleWriteResult.Fail("invalid", ex.Message);
+            }
+        }
+
         var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
         await using var tx = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
         await ErpDb.ExecuteAsync(
@@ -470,7 +506,7 @@ public sealed class CpPosWriteService : ICpPosWriteService
                 VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
                 """),
             cancellationToken,
-            sessionId, saleNo, customerUserId, contactId, label, 0L, 0L, "",
+            sessionId, saleNo, customerUserId, contactId, label, salesOrderId, salesInvoiceId, receiptVoucherNo,
             cart.SubtotalEx, cart.DiscountTotal, vat, total, method, cash, card,
             kitCode, taxRate, adminUserId, now).ConfigureAwait(false);
         var saleId = await ErpDb.LastInsertIdAsync(connection, tx, cancellationToken).ConfigureAwait(false);
@@ -518,6 +554,194 @@ public sealed class CpPosWriteService : ICpPosWriteService
         await tx.CommitAsync(cancellationToken).ConfigureAwait(false);
         return ErpSimpleWriteResult.Ok("Sale " + saleNo + " completed.", saleId);
     }
+
+    /// <summary>
+    /// PHP <c>epc_pos_complete_sale</c> after cart totals: SO save → confirm → invoice → cash/card RV.
+    /// Inventory <c>sale_out</c> stays PHP.
+    /// </summary>
+    private async Task<(long SalesOrderId, long SalesInvoiceId, string ReceiptVoucherNo)> PostErpDocumentsAsync(
+        System.Data.Common.DbConnection connection,
+        string saleNo,
+        long customerUserId,
+        long contactId,
+        IReadOnlyList<CpPosParsedLine> lines,
+        decimal cash,
+        decimal card,
+        string? saleNotes,
+        int adminUserId,
+        CancellationToken cancellationToken)
+    {
+        var soNotes = "POS sale " + saleNo;
+        var extra = Clip(saleNotes, 240);
+        if (extra.Length > 0)
+        {
+            soNotes += " — " + extra;
+        }
+
+        var saved = await _salesOrders!.SaveAsync(
+            new ErpSalesOrderInput
+            {
+                CustomerUserId = ClampInt(customerUserId),
+                ContactId = ClampInt(contactId),
+                Title = "POS " + saleNo,
+                Status = "confirmed",
+                Notes = soNotes,
+                LinesJson = BuildSoLinesJson(lines),
+            },
+            adminUserId,
+            cancellationToken).ConfigureAwait(false);
+        await _salesOrders.SetStatusAsync(saved.Id, "confirmed", adminUserId, cancellationToken).ConfigureAwait(false);
+        var invoice = await _invoices!.ConvertSalesOrderAsync(saved.Id, adminUserId, cancellationToken).ConfigureAwait(false);
+
+        var settingsCash = (int)await ErpDb.LongAsync(
+            connection,
+            null,
+            ErpDb.Positional("SELECT IFNULL(`default_cash_account_id`,0) FROM `epc_pos_settings` ORDER BY `id` ASC LIMIT 1"),
+            cancellationToken).ConfigureAwait(false);
+        var settingsCard = (int)await ErpDb.LongAsync(
+            connection,
+            null,
+            ErpDb.Positional("SELECT IFNULL(`default_card_account_id`,0) FROM `epc_pos_settings` ORDER BY `id` ASC LIMIT 1"),
+            cancellationToken).ConfigureAwait(false);
+        var accounts = await ListActiveCashAccountsAsync(connection, cancellationToken).ConfigureAwait(false);
+        var cashAccount = PickDefaultCashAccount(settingsCash, accounts);
+        var cardAccount = PickDefaultCardAccount(settingsCard, accounts, cashAccount);
+
+        var rvNo = "";
+        if (cash > 0 && cashAccount > 0)
+        {
+            var rv = await _cash!.ReceiptVoucherAsync(
+                new ErpReceiptVoucherInput
+                {
+                    UserId = ClampInt(customerUserId),
+                    AccountId = cashAccount,
+                    Amount = cash,
+                    SalesOrderId = saved.Id,
+                    SalesInvoiceId = invoice.SalesInvoiceId,
+                    Reference = saleNo + "-CASH",
+                    Note = "POS cash payment " + saleNo,
+                    PostGl = true,
+                },
+                adminUserId,
+                cancellationToken).ConfigureAwait(false);
+            rvNo = rv.VoucherNo ?? "";
+        }
+
+        if (card > 0 && cardAccount > 0)
+        {
+            var rvCard = await _cash!.ReceiptVoucherAsync(
+                new ErpReceiptVoucherInput
+                {
+                    UserId = ClampInt(customerUserId),
+                    AccountId = cardAccount,
+                    Amount = card,
+                    SalesOrderId = saved.Id,
+                    SalesInvoiceId = invoice.SalesInvoiceId,
+                    Reference = saleNo + "-CARD",
+                    Note = "POS card payment " + saleNo,
+                    PostGl = true,
+                },
+                adminUserId,
+                cancellationToken).ConfigureAwait(false);
+            if (rvNo.Length == 0)
+            {
+                rvNo = rvCard.VoucherNo ?? "";
+            }
+        }
+
+        return (saved.Id, invoice.SalesInvoiceId, rvNo);
+    }
+
+    /// <summary>PHP <c>lines_json</c> for POS → <c>epc_erp_sales_order_save</c>.</summary>
+    public static string BuildSoLinesJson(IReadOnlyList<CpPosParsedLine> lines)
+    {
+        var payload = new List<Dictionary<string, object?>>();
+        foreach (var line in lines)
+        {
+            payload.Add(new Dictionary<string, object?>
+            {
+                ["description"] = line.Name,
+                ["qty"] = line.Qty,
+                ["unit_price_ex_vat"] = line.UnitPriceEx,
+                ["line_ex_vat"] = line.LineExVat,
+            });
+        }
+
+        return JsonSerializer.Serialize(payload);
+    }
+
+    /// <summary>PHP <c>epc_pos_default_cash_account</c> picker after settings / list.</summary>
+    public static int PickDefaultCashAccount(int settingsAccountId, IReadOnlyList<CpPosCashAccountHint> accounts)
+    {
+        if (settingsAccountId > 0)
+        {
+            return settingsAccountId;
+        }
+
+        foreach (var account in accounts)
+        {
+            if (account.Name.Contains("cash", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(account.AccountType, "cash", StringComparison.Ordinal))
+            {
+                return account.Id;
+            }
+        }
+
+        return accounts.Count > 0 ? accounts[0].Id : 0;
+    }
+
+    /// <summary>PHP <c>epc_pos_default_card_account</c> picker after settings / list.</summary>
+    public static int PickDefaultCardAccount(
+        int settingsAccountId,
+        IReadOnlyList<CpPosCashAccountHint> accounts,
+        int cashFallback)
+    {
+        if (settingsAccountId > 0)
+        {
+            return settingsAccountId;
+        }
+
+        foreach (var account in accounts)
+        {
+            if (account.Name.Contains("card", StringComparison.OrdinalIgnoreCase)
+                || account.Name.Contains("bank", StringComparison.OrdinalIgnoreCase))
+            {
+                return account.Id;
+            }
+        }
+
+        return cashFallback;
+    }
+
+    private static async Task<List<CpPosCashAccountHint>> ListActiveCashAccountsAsync(
+        System.Data.Common.DbConnection connection,
+        CancellationToken cancellationToken)
+    {
+        var accounts = new List<CpPosCashAccountHint>();
+        try
+        {
+            await using var command = connection.CreateCommand();
+            command.CommandText = ErpDb.Positional(
+                "SELECT `id`, `name`, `account_type` FROM `epc_erp_cash_bank_accounts` WHERE `active` = 1 ORDER BY `account_type`, `name`");
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                accounts.Add(new CpPosCashAccountHint(
+                    reader.IsDBNull(0) ? 0 : Convert.ToInt32(reader.GetValue(0), CultureInfo.InvariantCulture),
+                    reader.IsDBNull(1) ? "" : reader.GetValue(1)?.ToString() ?? "",
+                    reader.IsDBNull(2) ? "" : reader.GetValue(2)?.ToString() ?? ""));
+            }
+        }
+        catch (System.Data.Common.DbException)
+        {
+            return accounts;
+        }
+
+        return accounts;
+    }
+
+    private static int ClampInt(long value)
+        => value > int.MaxValue ? int.MaxValue : value < int.MinValue ? int.MinValue : (int)value;
 
     /// <summary>PHP <c>epc_pos_calc_cart_totals</c> header: gross qty×unit, then discount, then amount ex.</summary>
     public static CpPosCartTotals SumCart(IReadOnlyList<CpPosParsedLine> lines)
@@ -979,6 +1203,8 @@ public sealed class CpPosWriteService : ICpPosWriteService
         return text.Length <= max ? text : text[..max];
     }
 }
+
+public sealed record CpPosCashAccountHint(int Id, string Name, string AccountType);
 
 public sealed record CpPosCartTotals(decimal SubtotalEx, decimal DiscountTotal, decimal AmountEx);
 
