@@ -46,7 +46,7 @@
         <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
         <h1>Warehouse WMS</h1>
         <p>@CpPhpModuleCopy.PurposeFor(Nav.Uri)</p>
-        <p>Delete an empty warehouse location or release a pick wave here. Wave create, pick add, and work complete stay on the classic twin.</p>
+        <p>Receive stock, delete an empty warehouse location, or release a pick wave here. Wave create, pick add, and work complete stay on the classic twin.</p>
         <div class="epc-wms-cta">
             <a href="/erp">ERP overview</a>
         </div>
@@ -64,6 +64,17 @@
     }
     @if (_isAdmin)
     {
+        <form method="post" action="/erp/wms/receive" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/warehouse-wms-app" />
+            <label>Item / SKU <input type="text" name="item" required /></label>
+            <label>Quantity <input type="number" step="0.001" name="qty" required /></label>
+            <label>Receiving location <input type="number" name="receive_location_id" min="0" style="width:6rem" /></label>
+            <label>Put-away destination <input type="number" name="putaway_location_id" min="0" style="width:6rem" /></label>
+            <label>Reference <input type="text" name="reference" placeholder="PO / ASN" /></label>
+            <label>License plate <input type="text" name="lp_code" placeholder="blank = auto" /></label>
+            <button type="submit">Receive &amp; raise put-away</button>
+        </form>
         <form method="post" action="/erp/wms/locations/delete" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
             <input type="hidden" name="returnUrl" value="/cp/warehouse-wms-app" />
