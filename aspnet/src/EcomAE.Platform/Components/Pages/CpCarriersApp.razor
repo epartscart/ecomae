@@ -44,10 +44,11 @@
     <section class="epc-car-hero">
         <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
         <h1>Carriers</h1>
-        <p>Connect courier partners. Toggle active writes on ASP.NET. Seed partners and create-shipment stay PHP.</p>
+        <p>Connect courier partners. Toggle active writes here. Seed partners and create-shipment stay on the Classic twin. Custom shipping save and submit write here.</p>
         <div class="epc-car-cta">
             <a href="@_configureHref">Manage carriers</a>
             <a class="ghost" href="@_deliveryHref">Delivery methods</a>
+            <a class="ghost" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpCustomShipping)">Classic twin</a>
         </div>
     </section>
 
@@ -67,6 +68,35 @@
             <input type="hidden" name="action" value="toggle_carrier" />
             <label>Carrier code <input type="text" name="code" required maxlength="64" /></label>
             <button type="submit">Toggle carrier</button>
+        </form>
+        <form method="post" action="/cp/custom-shipping/write" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/carriers-app" />
+            <input type="hidden" name="action" value="save" />
+            <label>Category
+                <select name="category">
+                    <option value="import" selected>import</option>
+                    <option value="export">export</option>
+                    <option value="transit">transit</option>
+                    <option value="temp_admission">temp_admission</option>
+                    <option value="transfer">transfer</option>
+                </select>
+            </label>
+            <label>Type <input type="text" name="declarationType" value="Import to Local from ROW" required maxlength="191" /></label>
+            <label>Company <input type="text" name="company" required maxlength="255" /></label>
+            <label>Emirate <input type="text" name="customsEmirate" value="DUBAI" maxlength="64" /></label>
+            <label>Entry date <input type="date" name="entryDate" required /></label>
+            <label>Declaration date <input type="date" name="declarationDate" required /></label>
+            <label>Declaration no. <input type="text" name="declarationNumber" maxlength="64" /></label>
+            <label>Items JSON <input type="text" name="itemsJson" value="@_defaultItemsJson" required style="min-width:18rem" /></label>
+            <button type="submit">Save declaration</button>
+        </form>
+        <form method="post" action="/cp/custom-shipping/write" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/carriers-app" />
+            <input type="hidden" name="action" value="submit" />
+            <label>Declaration id <input type="number" name="declarationId" min="1" required /></label>
+            <button type="submit">Submit declaration</button>
         </form>
     }
 
@@ -122,6 +152,8 @@
 @code {
     private const string _configureHref = "/cp/carriers-app";
     private const string _deliveryHref = "/cp/delivery-methods-app";
+    private const string _phpCustomShipping = "/CP/shop/finance/epc_custom_shipping";
+    private const string _defaultItemsJson = """[{"hs_code":"8708.99","country_of_origin":"AE","description":"Oil filter","quantity":1,"unit":"PCS"}]""";
     private bool _isAdmin;
     private CpCarriersSummary _summary = new(0, 0, 0, 0, "n/a", "");
     private IReadOnlyList<CpCarrierDigest> _carriers = [];

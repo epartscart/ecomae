@@ -1976,6 +1976,114 @@ public sealed class ControlPanelModule : ISurfaceModule
 
             return Results.Ok(dryRun.Evaluate(new CpCollectionsDunningWriteRequest(action, false)).ToPayload(SessionPayload(session)));
         }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.CpCustomShippingWrite, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpCustomShippingWriteDryRun dryRun,
+            ICpCustomShippingWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/carriers-app", "Admin CP capability required for custom-shipping write.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpCustomShippingWriteBody>(context, cancellationToken)
+                       ?? new();
+            var action = body.Action;
+            var id = body.Id;
+            var category = body.Category;
+            var declarationType = body.DeclarationType;
+            var status = body.Status;
+            var company = body.Company;
+            var customsEmirate = body.CustomsEmirate;
+            var entryDate = body.EntryDate;
+            var declarationDate = body.DeclarationDate;
+            var declarationNumber = body.DeclarationNumber;
+            var blNumber = body.BlNumber;
+            var blDate = body.BlDate;
+            var srvNumber = body.SrvNumber;
+            var lcDcNumber = body.LcDcNumber;
+            var ldPoNumber = body.LdPoNumber;
+            var supplierDetail = body.SupplierDetail;
+            var currency = body.Currency;
+            var invoiceAmountAed = body.InvoiceAmountAed;
+            var totalCostAed = body.TotalCostAed;
+            var remarks = body.Remarks;
+            var itemsJson = body.ItemsJson;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                action = LiveWriteFormBinder.Text(form, "action");
+                id = LiveWriteFormBinder.Long(form, "id", "declarationId", "declaration_id");
+                category = LiveWriteFormBinder.Text(form, "category");
+                declarationType = LiveWriteFormBinder.Text(form, "declarationType", "declaration_type");
+                status = LiveWriteFormBinder.Text(form, "status");
+                company = LiveWriteFormBinder.Text(form, "company");
+                customsEmirate = LiveWriteFormBinder.Text(form, "customsEmirate", "customs_emirate");
+                entryDate = LiveWriteFormBinder.Text(form, "entryDate", "entry_date");
+                declarationDate = LiveWriteFormBinder.Text(form, "declarationDate", "declaration_date");
+                declarationNumber = LiveWriteFormBinder.Text(form, "declarationNumber", "declaration_number");
+                blNumber = LiveWriteFormBinder.Text(form, "blNumber", "bl_number");
+                blDate = LiveWriteFormBinder.Text(form, "blDate", "bl_date");
+                srvNumber = LiveWriteFormBinder.Text(form, "srvNumber", "srv_number");
+                lcDcNumber = LiveWriteFormBinder.Text(form, "lcDcNumber", "lc_dc_number");
+                ldPoNumber = LiveWriteFormBinder.Text(form, "ldPoNumber", "ld_po_number");
+                supplierDetail = LiveWriteFormBinder.Text(form, "supplierDetail", "supplier_detail");
+                currency = LiveWriteFormBinder.Text(form, "currency");
+                invoiceAmountAed = LiveWriteFormBinder.Dec(form, "invoiceAmountAed", "invoice_amount_aed");
+                totalCostAed = LiveWriteFormBinder.Dec(form, "totalCostAed", "total_cost_aed");
+                remarks = LiveWriteFormBinder.Text(form, "remarks");
+                itemsJson = LiveWriteFormBinder.Text(form, "itemsJson", "items_json", "line_items_json", "items");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (confirm)
+            {
+                var key = (action ?? string.Empty).Trim();
+                ErpSimpleWriteResult written = key switch
+                {
+                    "save" or "save_declaration" or "save-declaration" =>
+                        await writes.SaveAsync(
+                            new CpCustomShippingSaveRequest(
+                                id,
+                                category,
+                                declarationType,
+                                status,
+                                company,
+                                customsEmirate,
+                                entryDate,
+                                declarationDate,
+                                declarationNumber,
+                                blNumber,
+                                blDate,
+                                srvNumber,
+                                lcDcNumber,
+                                ldPoNumber,
+                                supplierDetail,
+                                currency,
+                                invoiceAmountAed,
+                                totalCostAed,
+                                remarks,
+                                itemsJson),
+                            session.UserId,
+                            cancellationToken),
+                    "submit" or "submit_declaration" or "submit-declaration" =>
+                        await writes.SubmitAsync(id, cancellationToken),
+                    _ => ErpSimpleWriteResult.Fail("invalid", "Unknown custom-shipping action. save / submit are live."),
+                };
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    "/cp/carriers-app",
+                    written.Succeeded,
+                    written.Message,
+                    new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+            }
+
+            return Results.Ok(dryRun.Evaluate(new CpCustomShippingWriteRequest(action, false)).ToPayload(SessionPayload(session)));
+        }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.CpFulfillmentQueueWrite, async (
             HttpContext context,
             ILegacySessionValidator validator,
@@ -3247,7 +3355,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "epc_pos_settings + epc_pos_sales digest. open/close session, save settings, and sale/line INSERT write on POST /cp/pos/* when confirmWrites=true. Walk-in user, tax-toolkit totals, ERP SO/invoice/voucher, inventory, and receipt HTML stay PHP."
+                note = "epc_pos_settings + epc_pos_sales digest. open/close session, save settings, and sale/line INSERT write on POST /cp/pos/* when confirmWrites=true. Printable receipt at /cp/pos/receipt/{id}. Walk-in user, tax-toolkit totals, ERP SO/invoice/voucher, and inventory stay PHP."
             });
         });
 
@@ -3799,7 +3907,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only epc_carrier_accounts + epc_carrier_shipments KPIs + carriers (config_json omitted; catalog region/blurb). PHP /CP/shop/logistics/carriers remains authoritative."
+                note = "Read-only epc_carrier_accounts + epc_carrier_shipments KPIs + carriers (config_json omitted; catalog region/blurb). Custom shipping save / submit write on POST /cp/custom-shipping/write when confirmWrites=true. PDF attach, box autofill, LGP, and schema-ensure stay PHP."
             });
         });
 
@@ -6728,6 +6836,29 @@ public sealed class ControlPanelModule : ISurfaceModule
         string? Notes = null,
         string? ShippingMethod = null,
         IReadOnlyList<CpFulfillmentQueueLineInput>? Items = null,
+        string? ItemsJson = null);
+    private sealed record CpCustomShippingWriteBody(
+        string? Action = null,
+        bool ConfirmWrites = false,
+        long Id = 0,
+        string? Category = null,
+        string? DeclarationType = null,
+        string? Status = null,
+        string? Company = null,
+        string? CustomsEmirate = null,
+        string? EntryDate = null,
+        string? DeclarationDate = null,
+        string? DeclarationNumber = null,
+        string? BlNumber = null,
+        string? BlDate = null,
+        string? SrvNumber = null,
+        string? LcDcNumber = null,
+        string? LdPoNumber = null,
+        string? SupplierDetail = null,
+        string? Currency = null,
+        decimal InvoiceAmountAed = 0,
+        decimal TotalCostAed = 0,
+        string? Remarks = null,
         string? ItemsJson = null);
     private sealed record CpCollectionsDunningWriteBody(
         string? Action = null,

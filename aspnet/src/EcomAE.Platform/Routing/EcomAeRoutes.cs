@@ -312,6 +312,8 @@ public static class EcomAeRoutes
     public const string ControlPanelCollectionsDunningApp = "/cp/collections-dunning-app";
     /// <summary>Dunning queue status / payment / profile / add-invoice / process. confirmWrites=true is the live twin of PHP epc_dunning_*. Schema-ensure stays PHP.</summary>
     public const string CpCollectionsDunningWrite = "/cp/collections-dunning/write";
+    /// <summary>Custom shipping core save / submit. confirmWrites=true is the live twin of PHP epc_cs_save_declaration / epc_cs_submit_declaration. PDF attach, box autofill, LGP, and schema-ensure stay PHP.</summary>
+    public const string CpCustomShippingWrite = "/cp/custom-shipping/write";
 
     public const string ControlPanelMarketplaceChannels = "/cp/marketplace-channels";
     /// <summary>CP marketplace channels Blazor list (JSON digest remains <see cref="ControlPanelMarketplaceChannels"/>).</summary>
@@ -1645,6 +1647,8 @@ public static class EcomAeRoutes
     public const string CpPosCloseSession = "/cp/pos/close-session";
     /// <summary>Live PHP ajax_pos.php complete_sale POS INSERT. ERP SO/invoice/voucher, inventory, receipt HTML stay PHP.</summary>
     public const string CpPosCompleteSale = "/cp/pos/complete-sale";
+    /// <summary>Printable PHP epc_pos_receipt_html twin. Walk-in / tax-toolkit / ERP SO / inventory stay PHP.</summary>
+    public const string ControlPanelPosReceipt = "/cp/pos/receipt/{saleId:long}";
     /// <summary>Live PHP ajax_pos.php save_settings UPDATE. Schema ensure stays PHP.</summary>
     public const string CpPosSaveSettings = "/cp/pos/save-settings";
     /// <summary>Wave B dry-run for PHP cp/content/control/portal/ajax_portal.php?action=save_settings (writes=0).</summary>
