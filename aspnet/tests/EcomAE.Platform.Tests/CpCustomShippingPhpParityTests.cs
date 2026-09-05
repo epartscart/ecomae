@@ -20,7 +20,16 @@ public sealed class CpCustomShippingPhpParityTests
         Assert.Contains("action\" value=\"submit\"", text, StringComparison.Ordinal);
         Assert.Contains("name=\"itemsJson\"", text, StringComparison.Ordinal);
         Assert.Contains("name=\"declarationId\"", text, StringComparison.Ordinal);
+        Assert.Contains("name=\"blNumber\"", text, StringComparison.Ordinal);
+        Assert.Contains("name=\"invoiceAmountAed\"", text, StringComparison.Ordinal);
+        Assert.Contains("name=\"totalCostAed\"", text, StringComparison.Ordinal);
+        Assert.Contains("name=\"supplierDetail\"", text, StringComparison.Ordinal);
+        Assert.Contains("data-epc-cs-save", text, StringComparison.Ordinal);
+        Assert.Contains("data-epc-cs-list", text, StringComparison.Ordinal);
         Assert.Contains("PhpSurfaceLinkMap.PhpReferenceOnlyHref", text, StringComparison.Ordinal);
+        Assert.Contains("/CP/shop/logistics/carriers", text, StringComparison.Ordinal);
+        Assert.Contains("/ERP/?epc_erp_shell=1&area=logistics&tab=custom_shipping", text, StringComparison.Ordinal);
+        Assert.Contains("@page \"/cp/shop/finance/epc_custom_shipping\"", text, StringComparison.Ordinal);
         Assert.DoesNotContain("@onclick", text, StringComparison.Ordinal);
         Assert.DoesNotContain("javascript:void(0)", text, StringComparison.Ordinal);
         Assert.DoesNotContain("Open PHP reference", text, StringComparison.Ordinal);
@@ -86,6 +95,8 @@ public sealed class CpCustomShippingPhpParityTests
         Assert.Equal("digest-wired-awaiting-dual-sample", shell.Status);
         Assert.Contains("/cp/custom-shipping/write", shell.Notes, StringComparison.Ordinal);
         Assert.Equal("write-live-gated", catalog.First(f => f.AspNetRouteOrCapability == "/cp/custom-shipping/write").Status);
+        Assert.True(EcomAE.Platform.Presentation.ErpPhpTabRouteMap.TryMapTab("custom_shipping", out var erpHref));
+        Assert.Equal("/cp/carriers-app", erpHref);
     }
 
     private static string FindRepoFile(string relative)

@@ -1,10 +1,14 @@
 @page "/cp/carriers-app"
+@page "/cp/shop/finance/epc_custom_shipping"
+@page "/cp/shop/logistics/custom_shipping"
 @layout Layout.PhpChromeLayout
 @using System.Globalization
 @using EcomAE.Platform.Auth
+@using EcomAE.Platform.Cp
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
 @inject ISurfaceDashboardSummaryReporter Dashboards
+@inject ICpCustomShippingWriteService CustomShipping
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
 @inject NavigationManager Nav
@@ -48,7 +52,9 @@
         <div class="epc-car-cta">
             <a href="@_configureHref">Manage carriers</a>
             <a class="ghost" href="@_deliveryHref">Delivery methods</a>
-            <a class="ghost" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpCustomShipping)">Classic twin</a>
+            <a class="ghost" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpCarriers)">Classic carriers</a>
+            <a class="ghost" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpCustomShipping)">Classic shipping</a>
+            <a class="ghost" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpErpShipping)">Classic ERP shipping</a>
         </div>
     </section>
 
@@ -69,10 +75,11 @@
             <label>Carrier code <input type="text" name="code" required maxlength="64" /></label>
             <button type="submit">Toggle carrier</button>
         </form>
-        <form method="post" action="/cp/custom-shipping/write" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+        <form method="post" action="/cp/custom-shipping/write" data-epc-cs-save="1" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
             <input type="hidden" name="returnUrl" value="/cp/carriers-app" />
             <input type="hidden" name="action" value="save" />
+            <label>Id <input type="number" name="id" min="0" value="0" /></label>
             <label>Category
                 <select name="category">
                     <option value="import" selected>import</option>
@@ -83,15 +90,32 @@
                 </select>
             </label>
             <label>Type <input type="text" name="declarationType" value="Import to Local from ROW" required maxlength="191" /></label>
+            <label>Status
+                <select name="status">
+                    <option value="draft" selected>draft</option>
+                    <option value="submitted">submitted</option>
+                    <option value="cleared">cleared</option>
+                </select>
+            </label>
             <label>Company <input type="text" name="company" required maxlength="255" /></label>
             <label>Emirate <input type="text" name="customsEmirate" value="DUBAI" maxlength="64" /></label>
             <label>Entry date <input type="date" name="entryDate" required /></label>
             <label>Declaration date <input type="date" name="declarationDate" required /></label>
             <label>Declaration no. <input type="text" name="declarationNumber" maxlength="64" /></label>
+            <label>BL no. <input type="text" name="blNumber" maxlength="64" /></label>
+            <label>BL date <input type="date" name="blDate" /></label>
+            <label>SRV no. <input type="text" name="srvNumber" maxlength="64" /></label>
+            <label>LC/DC no. <input type="text" name="lcDcNumber" maxlength="128" /></label>
+            <label>LD/PO no. <input type="text" name="ldPoNumber" maxlength="128" /></label>
+            <label>Supplier <input type="text" name="supplierDetail" maxlength="255" /></label>
+            <label>Currency <input type="text" name="currency" value="AED" maxlength="16" /></label>
+            <label>Invoice AED <input type="text" name="invoiceAmountAed" value="0" inputmode="decimal" /></label>
+            <label>Total cost AED <input type="text" name="totalCostAed" value="0" inputmode="decimal" /></label>
+            <label>Remarks <input type="text" name="remarks" maxlength="512" /></label>
             <label>Items JSON <input type="text" name="itemsJson" value="@_defaultItemsJson" required style="min-width:18rem" /></label>
             <button type="submit">Save declaration</button>
         </form>
-        <form method="post" action="/cp/custom-shipping/write" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+        <form method="post" action="/cp/custom-shipping/write" data-epc-cs-submit="1" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
             <input type="hidden" name="returnUrl" value="/cp/carriers-app" />
             <input type="hidden" name="action" value="submit" />
@@ -147,16 +171,72 @@
             </tbody>
         </table>
     </div>
+
+    <h2 style="margin:1.25rem 0 .5rem;font-size:1.05rem">Custom shipping declarations</h2>
+    <div class="epc-car-table-wrap" data-epc-cs-list="1">
+        <table class="epc-car-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Category</th>
+                    <th>Type</th>
+                    <th>Company</th>
+                    <th>Entry date</th>
+                    <th>Items</th>
+                    <th>Status</th>
+                    <th>Declaration no.</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (_declarations.Count == 0)
+                {
+                    <tr><td colspan="9">No declarations yet. Save the first record from the form.</td></tr>
+                }
+                else
+                {
+                    @foreach (var row in _declarations)
+                    {
+                        <tr>
+                            <td>@row.Id.ToString(CultureInfo.InvariantCulture)</td>
+                            <td>@Blank(row.Category)</td>
+                            <td>@Blank(row.DeclarationType)</td>
+                            <td>@Blank(row.Company)</td>
+                            <td>@Blank(row.EntryDate)</td>
+                            <td>@row.ItemCount.ToString(CultureInfo.InvariantCulture)</td>
+                            <td>@Blank(row.Status)</td>
+                            <td>@Blank(row.DeclarationNumber)</td>
+                            <td>
+                                @if (_isAdmin && !string.Equals(row.Status, "submitted", StringComparison.OrdinalIgnoreCase))
+                                {
+                                    <form method="post" action="/cp/custom-shipping/write" style="display:inline">
+                                        <input type="hidden" name="confirmWrites" value="true" />
+                                        <input type="hidden" name="returnUrl" value="/cp/carriers-app" />
+                                        <input type="hidden" name="action" value="submit" />
+                                        <input type="hidden" name="declarationId" value="@row.Id.ToString(CultureInfo.InvariantCulture)" />
+                                        <button type="submit">Submit</button>
+                                    </form>
+                                }
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
 </PhpCpDesktopChrome>
 
 @code {
     private const string _configureHref = "/cp/carriers-app";
     private const string _deliveryHref = "/cp/delivery-methods-app";
+    private const string _phpCarriers = "/CP/shop/logistics/carriers";
     private const string _phpCustomShipping = "/CP/shop/finance/epc_custom_shipping";
+    private const string _phpErpShipping = "/ERP/?epc_erp_shell=1&area=logistics&tab=custom_shipping";
     private const string _defaultItemsJson = """[{"hs_code":"8708.99","country_of_origin":"AE","description":"Oil filter","quantity":1,"unit":"PCS"}]""";
     private bool _isAdmin;
     private CpCarriersSummary _summary = new(0, 0, 0, 0, "n/a", "");
     private IReadOnlyList<CpCarrierDigest> _carriers = [];
+    private IReadOnlyList<CpCustomShippingDeclarationRow> _declarations = [];
     private string _flashOk = "";
     private string _flashErr = "";
 
@@ -177,5 +257,9 @@
         var result = await Dashboards.BuildCpCarriersDigestAsync(200, ctx.RequestAborted);
         _summary = result.Summary;
         _carriers = result.Carriers;
+        _declarations = await CustomShipping.ListRecentAsync(200, ctx.RequestAborted);
     }
+
+    private static string Blank(string? value)
+        => string.IsNullOrWhiteSpace(value) ? "—" : value;
 }

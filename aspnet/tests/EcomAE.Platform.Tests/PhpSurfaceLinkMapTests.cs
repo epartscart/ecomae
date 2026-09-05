@@ -63,6 +63,12 @@ public sealed class PhpSurfaceLinkMapTests
     [InlineData("/CP/shop/finance/epc_inventory_forecast", "/erp/inventory-forecast-app")]
     [InlineData("/CP/shop/finance/epc_multi_entity", "/erp/multi-entity-app")]
     [InlineData("/CP/shop/finance/epc_multi_currency_gl", "/erp/multi-currency-gl-app")]
+    [InlineData("/CP/shop/finance/epc_custom_shipping", "/cp/carriers-app")]
+    [InlineData("/CP/shop/logistics/custom_shipping", "/cp/carriers-app")]
+    [InlineData("/CP/shop/logistics/carriers", "/cp/carriers-app")]
+    [InlineData("/CP/control/shop/pos", "/cp/pos-overview-app")]
+    [InlineData("/ERP/?epc_erp_shell=1&area=logistics&tab=custom_shipping", "/cp/carriers-app")]
+    [InlineData("/CP/shop/finance/erp?area=logistics&tab=custom_shipping&epc_erp_shell=1", "/cp/carriers-app")]
     public void AspNetPrimaryHref_MapsPhpProductToAspNet(string phpHref, string expected)
     {
         Assert.Equal(expected, PhpSurfaceLinkMap.AspNetPrimaryHref(phpHref));
@@ -107,5 +113,11 @@ public sealed class PhpSurfaceLinkMapTests
         Assert.Equal("/php-reference/en/katalog-laximo", PhpSurfaceLinkMap.PhpReferenceOnlyHref("/en/katalog-laximo"));
         Assert.Equal("/php-reference/en/katalog-laximo?identString=ABC", PhpSurfaceLinkMap.PhpReferenceOnlyHref("/katalog-laximo?identString=ABC"));
         Assert.Equal("/php-reference/cp", PhpSurfaceLinkMap.PhpReferenceOnlyHref("/php-reference/cp"));
+        Assert.Equal("/php-reference/CP/shop/finance/epc_custom_shipping", PhpSurfaceLinkMap.PhpReferenceOnlyHref("/CP/shop/finance/epc_custom_shipping"));
+        Assert.Equal("/php-reference/CP/shop/logistics/carriers", PhpSurfaceLinkMap.PhpReferenceOnlyHref("/CP/shop/logistics/carriers"));
+        Assert.Equal("/php-reference/CP/control/shop/pos", PhpSurfaceLinkMap.PhpReferenceOnlyHref("/CP/control/shop/pos"));
+        Assert.Equal(
+            "/php-reference/ERP/?epc_erp_shell=1&area=logistics&tab=custom_shipping",
+            PhpSurfaceLinkMap.PhpReferenceOnlyHref("/ERP/?epc_erp_shell=1&area=logistics&tab=custom_shipping"));
     }
 }

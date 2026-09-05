@@ -19,6 +19,10 @@ public interface ICpCustomShippingWriteService
     Task<ErpSimpleWriteResult> SubmitAsync(
         long declarationId,
         CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<CpCustomShippingDeclarationRow>> ListRecentAsync(
+        int limit,
+        CancellationToken cancellationToken = default);
 }
 
 public sealed class CpCustomShippingWriteService : ICpCustomShippingWriteService
@@ -305,6 +309,53 @@ public sealed class CpCustomShippingWriteService : ICpCustomShippingWriteService
         return ErpSimpleWriteResult.Ok("Declaration submitted.", declarationId);
     }
 
+    public async Task<IReadOnlyList<CpCustomShippingDeclarationRow>> ListRecentAsync(
+        int limit,
+        CancellationToken cancellationToken = default)
+    {
+        if (!_connections.IsConfigured)
+        {
+            return [];
+        }
+
+        var take = limit < 1 ? 50 : Math.Min(limit, 200);
+        try
+        {
+            await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+            await using var command = connection.CreateCommand();
+            command.CommandText = ErpDb.Positional(
+                """
+                SELECT d.`id`, d.`category`, d.`declaration_type`, d.`company`, d.`entry_date`,
+                       d.`status`, d.`declaration_number`,
+                       (SELECT COUNT(*) FROM `epc_custom_shipping_declaration_items` i WHERE i.`declaration_id` = d.`id`) AS item_count
+                FROM `epc_custom_shipping_declarations` d
+                ORDER BY d.`id` DESC
+                LIMIT ?
+                """);
+            ErpDb.AddParameters(command, take);
+            var rows = new List<CpCustomShippingDeclarationRow>();
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                rows.Add(new CpCustomShippingDeclarationRow(
+                    reader.IsDBNull(0) ? 0 : Convert.ToInt64(reader.GetValue(0), CultureInfo.InvariantCulture),
+                    reader.IsDBNull(1) ? "" : reader.GetValue(1)?.ToString() ?? "",
+                    reader.IsDBNull(2) ? "" : reader.GetValue(2)?.ToString() ?? "",
+                    reader.IsDBNull(3) ? "" : reader.GetValue(3)?.ToString() ?? "",
+                    FormatDate(reader.IsDBNull(4) ? null : reader.GetValue(4)),
+                    reader.IsDBNull(5) ? "" : reader.GetValue(5)?.ToString() ?? "",
+                    reader.IsDBNull(6) ? "" : reader.GetValue(6)?.ToString() ?? "",
+                    reader.IsDBNull(7) ? 0 : Convert.ToInt32(reader.GetValue(7), CultureInfo.InvariantCulture)));
+            }
+
+            return rows;
+        }
+        catch (System.Data.Common.DbException)
+        {
+            return [];
+        }
+    }
+
     public static IReadOnlyList<CpCustomShippingLineInput> ParseItemsJson(string? json)
     {
         if (string.IsNullOrWhiteSpace(json))
@@ -461,6 +512,22 @@ public sealed class CpCustomShippingWriteService : ICpCustomShippingWriteService
         return fallback;
     }
 
+    private static string FormatDate(object? value)
+    {
+        if (value is null or DBNull)
+        {
+            return "";
+        }
+
+        if (value is DateTime dt)
+        {
+            return dt.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+        }
+
+        var text = Convert.ToString(value, CultureInfo.InvariantCulture) ?? "";
+        return text.Length >= 10 ? text[..10] : text;
+    }
+
     private static string Normalize(string? value)
         => (value ?? string.Empty).Trim().ToLowerInvariant();
 
@@ -493,6 +560,16 @@ public sealed record CpCustomShippingSaveRequest(
     string? Remarks = null,
     string? ItemsJson = null,
     IReadOnlyList<CpCustomShippingLineInput>? Items = null);
+
+public sealed record CpCustomShippingDeclarationRow(
+    long Id,
+    string Category,
+    string DeclarationType,
+    string Company,
+    string EntryDate,
+    string Status,
+    string DeclarationNumber,
+    int ItemCount);
 
 public sealed record CpCustomShippingLineInput(
     string? HsCode = null,

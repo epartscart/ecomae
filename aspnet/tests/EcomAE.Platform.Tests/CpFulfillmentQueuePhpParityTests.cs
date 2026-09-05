@@ -47,6 +47,8 @@ public sealed class CpFulfillmentQueuePhpParityTests
         Assert.Contains("QtyPicked", text, StringComparison.Ordinal);
         Assert.Contains("QtyPacked", text, StringComparison.Ordinal);
         Assert.Contains("/cp/orders?order_id=", text, StringComparison.Ordinal);
+        Assert.Contains("data-epc-cs-alias", text, StringComparison.Ordinal);
+        Assert.Contains("href=\"/cp/carriers-app\"", text, StringComparison.Ordinal);
         Assert.DoesNotContain("@onclick", text, StringComparison.Ordinal);
         Assert.DoesNotContain("javascript:void(0)", text, StringComparison.Ordinal);
         Assert.DoesNotContain("Open PHP reference", text, StringComparison.Ordinal);

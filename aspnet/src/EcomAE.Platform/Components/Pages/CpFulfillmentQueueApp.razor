@@ -67,6 +67,14 @@
     {
         <div class="alert alert-danger" role="status">@_flashErr</div>
     }
+    @if (_fromCustomShippingTab)
+    {
+        <div class="alert alert-info" role="status" data-epc-cs-alias="1" style="margin:0 0 1rem;padding:.7rem .9rem;border-radius:.4rem;background:#eff6ff;color:#1e3a8a">
+            Custom shipping save / submit fields are on <a href="/cp/carriers-app">Carriers</a>.
+            This queue URL stays so old ERP tab links are not damaged.
+            <a href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpCustomShipping)">Classic shipping</a>
+        </div>
+    }
 
     <p class="epc-oms-keys-hint"><i class="fa fa-keyboard-o"></i> Shortcuts: click a row for the fulfilment card · transition / assign / pick / pack / wave / queue-from-order write here. Print packing slip from the slip tab.</p>
 
@@ -453,6 +461,8 @@
 
 @code {
     private const string _phpTab = "/CP/shop/finance/epc_fulfillment_queue";
+    private const string _phpCustomShipping = "/CP/shop/finance/epc_custom_shipping";
+    private bool _fromCustomShippingTab;
     private bool _isAdmin;
     private int _queued;
     private int _picking;
@@ -540,6 +550,8 @@
         {
             _status = status;
         }
+
+        _fromCustomShippingTab = string.Equals(q["tab"].ToString(), "custom_shipping", StringComparison.OrdinalIgnoreCase);
 
         var od = q["od"].ToString();
         if (DetailTabs.Any(t => t.Key == od))
