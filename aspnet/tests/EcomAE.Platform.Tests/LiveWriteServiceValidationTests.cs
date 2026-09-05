@@ -400,6 +400,26 @@ public sealed class LiveWriteServiceValidationTests
         var priced = CpPosWriteService.ParseLines(CpPosWriteService.ParseLinesJson("""[{"name":"Pad","price":4}]"""));
         Assert.Equal(4m, priced[0].UnitPriceEx);
 
+        var dunId = await new CpCollectionsDunningWriteService(new ConfiguredNeverOpened())
+            .UpdateStatusAsync(0, "open", "", 1);
+        Assert.False(dunId.Succeeded);
+        Assert.Equal("invalid", dunId.Code);
+
+        var dunStatus = await new CpCollectionsDunningWriteService(new ConfiguredNeverOpened())
+            .UpdateStatusAsync(9, "nope", "", 1);
+        Assert.False(dunStatus.Succeeded);
+        Assert.Equal("invalid", dunStatus.Code);
+
+        var dunPay = await new CpCollectionsDunningWriteService(new ConfiguredNeverOpened())
+            .RecordPaymentAsync(9, 0, 1);
+        Assert.False(dunPay.Succeeded);
+        Assert.Equal("invalid", dunPay.Code);
+
+        var dunDb = await new CpCollectionsDunningWriteService(new UnconfiguredConnections())
+            .RecordPaymentAsync(9, 10, 1);
+        Assert.False(dunDb.Succeeded);
+        Assert.Equal("db", dunDb.Code);
+
         var createReturn = await new StorefrontCustomerWriteService(new ConfiguredNeverOpened())
             .CreateReturnAsync(1, 0, 0, 0, 0, null);
         Assert.False(createReturn.Succeeded);
