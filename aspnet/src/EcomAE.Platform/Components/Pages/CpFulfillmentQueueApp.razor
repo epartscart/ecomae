@@ -4,8 +4,11 @@
 @using System.Globalization
 @using System.Text.Json
 @using EcomAE.Platform.Auth
+@using EcomAE.Platform.Cp
+@using EcomAE.Platform.Middleware
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Services
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
@@ -29,6 +32,7 @@
             <a class="btn btn-primary btn-sm" href="/cp/orders"><i class="fa fa-shopping-basket"></i> Orders · OMS</a>
             <a class="btn btn-default btn-sm" href="/cp/returns-rma-app"><i class="fa fa-undo"></i> Returns</a>
             <a class="btn btn-default btn-sm" href="/cp/sao-app"><i class="fa fa-cogs"></i> SAO</a>
+            <a class="btn btn-default btn-sm" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Classic twin</a>
         </div>
     </div>
 
@@ -55,7 +59,24 @@
         </a>
     </div>
 
-    <p class="epc-oms-keys-hint"><i class="fa fa-keyboard-o"></i> Shortcuts: click a row for the fulfilment card · writes stay on the PHP queue until cutover</p>
+    @if (!string.IsNullOrWhiteSpace(_flashOk))
+    {
+        <div class="alert alert-success" role="status">@_flashOk</div>
+    }
+    @if (!string.IsNullOrWhiteSpace(_flashErr))
+    {
+        <div class="alert alert-danger" role="status">@_flashErr</div>
+    }
+    @if (_fromCustomShippingTab)
+    {
+        <div class="alert alert-info" role="status" data-epc-cs-alias="1" style="margin:0 0 1rem;padding:.7rem .9rem;border-radius:.4rem;background:#eff6ff;color:#1e3a8a">
+            Custom shipping save / submit fields are on <a href="/cp/carriers-app">Carriers</a>.
+            This queue URL stays so old ERP tab links are not damaged.
+            <a href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpCustomShipping)">Classic shipping</a>
+        </div>
+    }
+
+    <p class="epc-oms-keys-hint"><i class="fa fa-keyboard-o"></i> Shortcuts: click a row for the fulfilment card · transition / assign / pick / pack / wave / queue-from-order write here. Print packing slip from the slip tab.</p>
 
     <div class="epc-orders-tabs" role="tablist" aria-label="Fulfilment status tabs">
         <a class="epc-orders-tab @(_status == "queued" ? "is-active" : null)" href="@QueueHref(status: "queued")">Queued <span class="epc-tab-count">@_queued</span></a>
@@ -69,6 +90,37 @@
         <span class="epc-scp-badge epc-scp-badge--high">In progress @_picking</span>
         <span class="epc-scp-badge epc-scp-badge--urgent">Queued @_queued</span>
         <span class="epc-orders-toolbar__hint"><i class="fa fa-columns"></i> Click a row to open fulfilment on the right</span>
+        @if (_isAdmin)
+        {
+            <form method="post" action="/cp/fulfillment-queue/write" style="display:flex;flex-wrap:wrap;gap:.35rem;align-items:end;margin:0 0 0 auto">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="@QueueHref(status: _status)" />
+                <input type="hidden" name="action" value="create_wave" />
+                <input type="hidden" name="siteKey" value="@_siteKey" />
+                <label class="small">Wave ids <input type="text" name="fulfillmentIds" placeholder="12,13,14" style="width:8rem" /></label>
+                <button type="submit" class="btn btn-xs btn-default">Create wave</button>
+            </form>
+            <form method="post" action="/cp/fulfillment-queue/write" style="display:flex;flex-wrap:wrap;gap:.35rem;align-items:end;margin:0">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="@QueueHref(status: _status)" />
+                <input type="hidden" name="action" value="queue" />
+                <input type="hidden" name="siteKey" value="@_siteKey" />
+                <label class="small">Order id <input type="number" name="orderId" min="1" required style="width:6rem" /></label>
+                <label class="small">Order no <input type="text" name="orderNumber" maxlength="64" style="width:7rem" /></label>
+                <label class="small">Customer <input type="text" name="customerName" maxlength="255" style="width:8rem" /></label>
+                <label class="small">Priority
+                    <select name="priority">
+                        <option value="normal">normal</option>
+                        <option value="low">low</option>
+                        <option value="high">high</option>
+                        <option value="urgent">urgent</option>
+                    </select>
+                </label>
+                <label class="small">Warehouse <input type="text" name="warehouse" maxlength="64" value="main" style="width:5rem" /></label>
+                <label class="small">Items JSON <input type="text" name="itemsJson" placeholder='[{"sku":"A","qty":1}]' style="width:12rem" /></label>
+                <button type="submit" class="btn btn-xs btn-primary">Queue from order</button>
+            </form>
+        }
     </div>
 
     @if (!_isAdmin)
@@ -214,7 +266,50 @@
                     <section class="epc-od__panel @(_detailTab == "overview" ? "is-active" : null)" data-epc-od-panel="overview" style="@(_detailTab == "overview" ? null : "display:none")">
                         <div class="epc-od__edit">
                             <div class="epc-od__edit-title">Fulfilment</div>
-                            <p class="text-muted small">Status / assign / wave writes remain on the PHP queue until cutover. This pane is the same graphical shell.</p>
+                            <p class="text-muted small">Status, assign, wave, and queue-from-order write here.</p>
+                            @if (_isAdmin)
+                            {
+                                var next = CpFulfillmentQueueWriteService.AllowedNextStatuses(d.Status);
+                                @if (next.Count > 0)
+                                {
+                                    <form method="post" action="/cp/fulfillment-queue/write" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 .65rem">
+                                        <input type="hidden" name="confirmWrites" value="true" />
+                                        <input type="hidden" name="returnUrl" value="@QueueHref(d.Id, detailTab: "overview")" />
+                                        <input type="hidden" name="action" value="transition" />
+                                        <input type="hidden" name="fulfillmentId" value="@d.Id.ToString(CultureInfo.InvariantCulture)" />
+                                        <label>Next status
+                                            <select name="status">
+                                                @foreach (var st in next)
+                                                {
+                                                    <option value="@st">@st</option>
+                                                }
+                                            </select>
+                                        </label>
+                                        <label>Assigned to <input type="number" name="assignedTo" min="0" value="0" style="width:6rem" /></label>
+                                        <label>Name <input type="text" name="assignedName" maxlength="128" placeholder="picker" /></label>
+                                        <label>Carrier <input type="text" name="carrier" maxlength="64" value="@(d.Carrier ?? "")" /></label>
+                                        <label>Tracking <input type="text" name="trackingNumber" maxlength="128" value="@(d.TrackingNumber ?? "")" /></label>
+                                        <button type="submit" class="btn btn-xs btn-primary">Advance</button>
+                                    </form>
+                                }
+                                <form method="post" action="/cp/fulfillment-queue/write" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 .65rem">
+                                    <input type="hidden" name="confirmWrites" value="true" />
+                                    <input type="hidden" name="returnUrl" value="@QueueHref(d.Id, detailTab: "overview")" />
+                                    <input type="hidden" name="action" value="assign" />
+                                    <input type="hidden" name="fulfillmentId" value="@d.Id.ToString(CultureInfo.InvariantCulture)" />
+                                    <label>Picker id <input type="number" name="assignedTo" min="0" value="0" style="width:6rem" /></label>
+                                    <label>Name <input type="text" name="assignedName" maxlength="128" value="@(d.AssignedName ?? "")" /></label>
+                                    <button type="submit" class="btn btn-xs btn-default">Assign</button>
+                                </form>
+                                <form method="post" action="/cp/fulfillment-queue/write" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 .65rem">
+                                    <input type="hidden" name="confirmWrites" value="true" />
+                                    <input type="hidden" name="returnUrl" value="@QueueHref(d.Id, detailTab: "overview")" />
+                                    <input type="hidden" name="action" value="create_wave" />
+                                    <input type="hidden" name="fulfillmentIds" value="@d.Id.ToString(CultureInfo.InvariantCulture)" />
+                                    <input type="hidden" name="siteKey" value="@_siteKey" />
+                                    <button type="submit" class="btn btn-xs btn-default">Create wave from this job</button>
+                                </form>
+                            }
                             <div class="epc-od__actions">
                                 <a class="btn btn-primary btn-sm" href="@QueueHref(_selectedId, detailTab: "lines")"><i class="fa fa-list"></i> Lines</a>
                                 <a class="btn btn-default btn-sm" href="@QueueHref(_selectedId, detailTab: "slip")"><i class="fa fa-file-text-o"></i> Packing slip</a>
@@ -254,12 +349,16 @@
                                         <th>Packed</th>
                                         <th>Bin</th>
                                         <th>Pick status</th>
+                                        @if (_isAdmin)
+                                        {
+                                            <th>Pick / pack</th>
+                                        }
                                     </tr>
                                 </thead>
                                 <tbody>
                                     @if (d.Items.Count == 0)
                                     {
-                                        <tr><td colspan="7">No line items.</td></tr>
+                                        <tr><td colspan="@(_isAdmin ? 8 : 7)">No line items.</td></tr>
                                     }
                                     else
                                     {
@@ -273,6 +372,32 @@
                                                 <td>@line.QtyPacked.ToString(CultureInfo.InvariantCulture)</td>
                                                 <td>@Blank(line.BinLocation)</td>
                                                 <td>@Blank(line.PickStatus)</td>
+                                                @if (_isAdmin)
+                                                {
+                                                    <td>
+                                                        <form method="post" action="/cp/fulfillment-queue/write" style="display:inline-flex;flex-wrap:wrap;gap:.25rem;align-items:end;margin:0 0 .25rem">
+                                                            <input type="hidden" name="confirmWrites" value="true" />
+                                                            <input type="hidden" name="returnUrl" value="@QueueHref(d.Id, detailTab: "lines")" />
+                                                            <input type="hidden" name="action" value="pick_item" />
+                                                            <input type="hidden" name="itemId" value="@line.Id.ToString(CultureInfo.InvariantCulture)" />
+                                                            <input type="number" name="qtyPicked" min="0" value="@line.QtyOrdered.ToString(CultureInfo.InvariantCulture)" style="width:4.5rem" title="Qty picked" />
+                                                            <select name="pickStatus">
+                                                                <option value="picked">picked</option>
+                                                                <option value="short">short</option>
+                                                                <option value="substituted">substituted</option>
+                                                            </select>
+                                                            <button type="submit" class="btn btn-xs btn-primary">Pick</button>
+                                                        </form>
+                                                        <form method="post" action="/cp/fulfillment-queue/write" style="display:inline-flex;flex-wrap:wrap;gap:.25rem;align-items:end;margin:0">
+                                                            <input type="hidden" name="confirmWrites" value="true" />
+                                                            <input type="hidden" name="returnUrl" value="@QueueHref(d.Id, detailTab: "lines")" />
+                                                            <input type="hidden" name="action" value="pack_item" />
+                                                            <input type="hidden" name="itemId" value="@line.Id.ToString(CultureInfo.InvariantCulture)" />
+                                                            <input type="number" name="qtyPacked" min="0" value="@((line.QtyPicked > 0 ? line.QtyPicked : line.QtyOrdered).ToString(CultureInfo.InvariantCulture))" style="width:4.5rem" title="Qty packed" />
+                                                            <button type="submit" class="btn btn-xs btn-default">Pack</button>
+                                                        </form>
+                                                    </td>
+                                                }
                                             </tr>
                                         }
                                     }
@@ -324,7 +449,7 @@
                                 }
                             </tbody>
                         </table>
-                        <p class="text-muted small">Packed at @Blank(d.PackCompletedAt). Live label / slip writes remain PHP.</p>
+                        <p class="text-muted small">Packed at @Blank(d.PackCompletedAt). <a href="/cp/fulfillment-queue/packing-slip/@d.Id.ToString(CultureInfo.InvariantCulture)" target="_blank" rel="noopener">Print packing slip</a></p>
                     </section>
                 </div>
             }
@@ -335,6 +460,9 @@
 </PhpCpDesktopChrome>
 
 @code {
+    private const string _phpTab = "/CP/shop/finance/epc_fulfillment_queue";
+    private const string _phpCustomShipping = "/CP/shop/finance/epc_custom_shipping";
+    private bool _fromCustomShippingTab;
     private bool _isAdmin;
     private int _queued;
     private int _picking;
@@ -345,6 +473,9 @@
     private CpFulfillmentDetailDigest? _detail;
     private string _status = "queued";
     private string _detailTab = "overview";
+    private string _flashOk = "";
+    private string _flashErr = "";
+    private string _siteKey = "";
 
     private static readonly (string Key, string Label)[] DetailTabs =
     [
@@ -397,6 +528,14 @@
             return;
         }
 
+        _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
+        _flashErr = ctx.Request.Query["err"].ToString() ?? "";
+        if (ctx.Items[TenantResolutionMiddleware.HttpContextItemKey] is TenantContext tenant
+            && !string.IsNullOrWhiteSpace(tenant.SiteKey))
+        {
+            _siteKey = tenant.SiteKey;
+        }
+
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
 
@@ -411,6 +550,8 @@
         {
             _status = status;
         }
+
+        _fromCustomShippingTab = string.Equals(q["tab"].ToString(), "custom_shipping", StringComparison.OrdinalIgnoreCase);
 
         var od = q["od"].ToString();
         if (DetailTabs.Any(t => t.Key == od))

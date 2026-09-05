@@ -51,6 +51,12 @@ public interface IStorefrontCustomerWriteService
         int count,
         string? comment,
         CancellationToken cancellationToken = default);
+
+    Task<ErpSimpleWriteResult> ChangePasswordAsync(
+        int userId,
+        string? password,
+        string secretSuccession,
+        CancellationToken cancellationToken = default);
 }
 
 public sealed class StorefrontCustomerWriteService : IStorefrontCustomerWriteService
@@ -499,6 +505,49 @@ public sealed class StorefrontCustomerWriteService : IStorefrontCustomerWriteSer
         }
 
         return new ErpSimpleWriteResult(true, "ok", "Profile saved.", userId, writes);
+    }
+
+    public async Task<ErpSimpleWriteResult> ChangePasswordAsync(
+        int userId,
+        string? password,
+        string secretSuccession,
+        CancellationToken cancellationToken = default)
+    {
+        if (userId <= 0)
+        {
+            return ErpSimpleWriteResult.Fail("auth", "Please log in or register to continue.");
+        }
+
+        var plain = password ?? string.Empty;
+        if (plain.Length == 0)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Password is required.");
+        }
+
+        if (string.IsNullOrWhiteSpace(secretSuccession))
+        {
+            return ErpSimpleWriteResult.Fail("config", "Password change is not configured.");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return ErpSimpleWriteResult.Fail("db", "Account database is not configured.");
+        }
+
+        var hash = Auth.LegacyPasswordVerifier.Md5Hex(plain + secretSuccession);
+        await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        var rows = await ErpDb.ExecuteAsync(
+            connection,
+            null,
+            ErpDb.Positional("UPDATE `users` SET `password` = ? WHERE `user_id` = ?"),
+            cancellationToken,
+            hash, userId);
+        if (rows <= 0)
+        {
+            return ErpSimpleWriteResult.Fail("not_found", "Account was not updated.");
+        }
+
+        return ErpSimpleWriteResult.Ok("Password updated.", userId);
     }
 
     public static Dictionary<string, string> NormalizeProfileFields(IReadOnlyDictionary<string, string>? fields)

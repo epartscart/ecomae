@@ -59,7 +59,16 @@
                             </ul>
                         }
                     }
-                    <form method="get" action="@PhpSellerRequest.MessageWriteHref">
+                    @if (!string.IsNullOrWhiteSpace(_flashOk))
+                    {
+                        <p style="margin:0 0 .75rem;padding:.65rem .8rem;background:#ecfdf3;border:1px solid #86efac;color:#166534">@_flashOk</p>
+                    }
+                    @if (!string.IsNullOrWhiteSpace(_flashErr))
+                    {
+                        <p style="margin:0 0 .75rem;padding:.65rem .8rem;background:#fef2f2;border:1px solid #fecaca;color:#991b1b">@_flashErr</p>
+                    }
+                    <form method="post" action="@PhpSellerRequest.MessageWriteHref">
+                        <input type="hidden" name="confirmWrites" value="true" />
                         <input type="hidden" name="vin_id" value="@RequestId" />
                         <label for="new_message_area">Message</label>
                         <textarea id="new_message_area" name="text" rows="4" required style="width:100%;margin:.25rem 0 1rem;padding:.5rem"></textarea>
@@ -114,6 +123,8 @@
     private IReadOnlyList<StorefrontOrderMessageDigest> _messages = [];
     private string _listMessage = "";
     private string _detailMessage = "";
+    private string _flashOk = "";
+    private string _flashErr = "";
 
     [SupplyParameterFromQuery(Name = "id")]
     public int? RequestId { get; set; }
@@ -127,6 +138,8 @@
         }
 
         _brand = StorefrontIndustryHostResolver.ResolveBrandLabel(ctx.Request.Host.Host);
+        _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
+        _flashErr = ctx.Request.Query["err"].ToString() ?? "";
         var session = await Sessions.ValidateCustomerAsync(ctx, ctx.RequestAborted);
         _isCustomer = session.Kind == LegacySessionKind.Customer && session.UserId > 0;
         if (!_isCustomer)

@@ -1,11 +1,12 @@
 @page "/storefront/vin-app"
+@page "/en/katalog-laximo"
+@page "/katalog-laximo"
 @layout Layout.PhpChromeLayout
 @using System.Text.Json
 @using EcomAE.Platform.Api.Catalog
 @using EcomAE.Platform.Presentation
 @inject ICatalogOfflineCacheService OfflineCache
 @inject IHttpContextAccessor Http
-@inject NavigationManager Navigation
 
 <PageTitle>VIN / Frame search · @_brand</PageTitle>
 <PhpChromeStyles Surface="storefront" />
@@ -39,10 +40,12 @@
 
     <PhpStorefrontPageHeader Title="VIN / Frame search"
                             Subtitle="Decode a VIN or frame number, then continue into part search.">
-        <form class="epc-sf-vin-form" @onsubmit="OnSubmit" @onsubmit:preventDefault>
-            <input type="search" @bind="_vin" maxlength="32" placeholder="VIN or Frame" aria-label="VIN or Frame" required />
+        <form class="epc-sf-vin-form" method="post" action="/storefront/vin/decode">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="search" name="vin" value="@_vin" maxlength="32" placeholder="VIN or Frame" aria-label="VIN or Frame" required />
             <button type="submit">Decode VIN</button>
             <a class="btn btn-sm btn-default" href="@StorefrontSurfaceLinks.PartSearch">Part search</a>
+            <a class="btn btn-sm btn-default" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(StorefrontPhpCanonical.ForVinSearch(_vin.Length > 0 ? "?identString=" + Uri.EscapeDataString(_vin) : null))" target="_blank" rel="noopener">Classic twin</a>
         </form>
     </PhpStorefrontPageHeader>
 
@@ -50,16 +53,16 @@
     {
         <div class="epc-sf-vin-panel" style="padding:1.1rem 1.2rem;color:#334155" aria-label="VIN decode workspace">
             <p style="margin:0 0 .65rem;font-weight:700">VIN / frame: @_vin</p>
-            @if (_cacheHit)
+            @if (_cacheHit || _manufacturer.Length > 0)
             {
-                <p style="margin:0 0 .35rem;color:#166534;font-weight:700">Cached decode</p>
+                <p style="margin:0 0 .35rem;color:#166534;font-weight:700">@(_cacheHit ? "Cached decode" : "Live Laximo decode")</p>
                 <p style="margin:0 0 .35rem">Make: @(_manufacturer.Length > 0 ? _manufacturer : "—")</p>
                 <p style="margin:0 0 .85rem">Model: @(_modelLabel.Length > 0 ? _modelLabel : "—")</p>
             }
             else
             {
                 <p style="margin:0 0 .65rem;color:#b45309;font-weight:700">
-                    @(_cacheCode == "invalid_vin" ? "Enter a VIN of 11–17 characters." : "Not in cache. Live Laximo decode stays on the classic catalog.")
+                    @(_liveErr.Length > 0 ? _liveErr : (_cacheCode == "invalid_vin" ? "Enter a VIN of 11–17 characters." : "Not in cache. Submit Decode VIN for live Laximo."))
                 </p>
                 <p style="margin:0 0 .85rem;color:#64748b;font-size:.9rem;line-height:1.45">
                     Continue to live stock, a seller request, or the vehicle catalog.
@@ -87,6 +90,7 @@
     private string _cacheCode = "";
     private string _manufacturer = "";
     private string _modelLabel = "";
+    private string _liveErr = "";
 
     [SupplyParameterFromQuery(Name = "identString")]
     public string? IdentString { get; set; }
@@ -101,6 +105,18 @@
         if (ctx is not null)
         {
             _brand = StorefrontIndustryHostResolver.ResolveBrandLabel(ctx.Request.Host.Host);
+            _liveErr = ctx.Request.Query["err"].ToString() ?? "";
+            var make = ctx.Request.Query["make"].ToString();
+            var model = ctx.Request.Query["model"].ToString();
+            if (!string.IsNullOrWhiteSpace(make))
+            {
+                _manufacturer = make;
+            }
+
+            if (!string.IsNullOrWhiteSpace(model))
+            {
+                _modelLabel = model;
+            }
         }
 
         if (string.IsNullOrWhiteSpace(_vin))
@@ -108,7 +124,16 @@
             return;
         }
 
-        var result = await OfflineCache.LookupVinAsync(_vin, "en", "WWW", ctx?.RequestAborted ?? default);
+        CatalogVinLookupResult result;
+        try
+        {
+            result = await OfflineCache.LookupVinAsync(_vin, "en", "WWW", ctx?.RequestAborted ?? default);
+        }
+        catch (Exception)
+        {
+            result = new CatalogVinLookupResult(false, 503, "cache_unavailable", "", null);
+        }
+
         _cacheHit = result.Ok;
         _cacheCode = result.Code ?? string.Empty;
         if (result.Ok && result.Payload is not null)
@@ -133,16 +158,6 @@
                 _cacheCode = "vin_cache_invalid";
             }
         }
-    }
-
-    private void OnSubmit()
-    {
-        if (string.IsNullOrWhiteSpace(_vin))
-        {
-            return;
-        }
-
-        Navigation.NavigateTo(StorefrontSurfaceLinks.ForVin(_vin.Trim()), forceLoad: true);
     }
 
     private static string FirstNonEmpty(params string?[] values)

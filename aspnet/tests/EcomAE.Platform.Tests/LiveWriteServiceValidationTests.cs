@@ -1,4 +1,5 @@
 using System.Data.Common;
+using EcomAE.Platform.Auth;
 using EcomAE.Platform.Cp;
 using EcomAE.Platform.Erp;
 using EcomAE.Platform.Storefront;
@@ -46,6 +47,41 @@ public sealed class LiveWriteServiceValidationTests
             .DeleteAsync(1, []);
         Assert.False(emptyDelete.Ok);
         Assert.Equal("invalid", emptyDelete.Code);
+
+        var payAuth = await new StorefrontPaymentWriteService(new UnconfiguredConnections())
+            .CreateOperationAsync(0, 10, 0, "epc_demo");
+        Assert.False(payAuth.Ok);
+        Assert.Equal("auth", payAuth.Code);
+
+        var payInvalid = await new StorefrontPaymentWriteService(new ConfiguredNeverOpened())
+            .CreateOperationAsync(1, 0, 0, "epc_demo");
+        Assert.False(payInvalid.Ok);
+        Assert.Equal("invalid", payInvalid.Code);
+
+        var payDb = await new StorefrontPaymentWriteService(new UnconfiguredConnections())
+            .CreateOperationAsync(1, 10, 0, "epc_demo");
+        Assert.False(payDb.Ok);
+        Assert.Equal("db", payDb.Code);
+
+        var notifyForbidden = await new StorefrontPaymentWriteService(new ConfiguredNeverOpened())
+            .NotifyAsync(1, 9, 10, "bad-token", "epc_demo");
+        Assert.False(notifyForbidden.Ok);
+        Assert.Equal("forbidden", notifyForbidden.Code);
+
+        var vinReqAuth = await new StorefrontVinRequestWriteService(new UnconfiguredConnections())
+            .CreateAsync(0, new Dictionary<string, string> { ["client_vin"] = "WVWZZZ1JZXW000001" }, "pads");
+        Assert.False(vinReqAuth.Ok);
+        Assert.Equal("auth", vinReqAuth.Code);
+
+        var vinReqInvalid = await new StorefrontVinRequestWriteService(new ConfiguredNeverOpened())
+            .CreateAsync(1, new Dictionary<string, string>(), "");
+        Assert.False(vinReqInvalid.Ok);
+        Assert.Equal("invalid", vinReqInvalid.Code);
+
+        var vinMsgAuth = await new StorefrontVinRequestWriteService(new UnconfiguredConnections())
+            .SendMessageAsync(0, 9, "hello");
+        Assert.False(vinMsgAuth.Ok);
+        Assert.Equal("auth", vinMsgAuth.Code);
     }
 
     [Fact]
@@ -263,10 +299,10 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(updatePrice.Succeeded);
         Assert.Equal("invalid", updatePrice.Code);
 
-        var updateReprice = await new CpOmsWriteService(new ConfiguredNeverOpened())
+        var updateReprice = await new CpOmsWriteService(new UnconfiguredConnections())
             .UpdateItemAsync(9, new CpOmsItemWritePatch(3, 12m, 2, Manufacturer: "Bosch", Article: "0986", RepriceFromWarehouse: true), 1);
         Assert.False(updateReprice.Succeeded);
-        Assert.Equal("not_implemented", updateReprice.Code);
+        Assert.Equal("db", updateReprice.Code);
 
         var updateItems = await new CpOmsWriteService(new ConfiguredNeverOpened())
             .UpdateItemsAsync(0, [], 1);
@@ -277,6 +313,112 @@ public sealed class LiveWriteServiceValidationTests
             .UpdateItemsAsync(9, [new CpOmsItemWritePatch(3, 12m, 2, Manufacturer: "Bosch", Article: "0986")], 1);
         Assert.False(updateItemsDb.Succeeded);
         Assert.Equal("db", updateItemsDb.Code);
+
+        var fqTransition = await new CpFulfillmentQueueWriteService(new ConfiguredNeverOpened())
+            .TransitionAsync(0, "picking");
+        Assert.False(fqTransition.Succeeded);
+        Assert.Equal("invalid", fqTransition.Code);
+
+        var fqStatus = await new CpFulfillmentQueueWriteService(new ConfiguredNeverOpened())
+            .TransitionAsync(9, "");
+        Assert.False(fqStatus.Succeeded);
+        Assert.Equal("invalid", fqStatus.Code);
+
+        var fqAssign = await new CpFulfillmentQueueWriteService(new ConfiguredNeverOpened())
+            .AssignAsync(0, 1, "Pat");
+        Assert.False(fqAssign.Succeeded);
+        Assert.Equal("invalid", fqAssign.Code);
+
+        var fqPick = await new CpFulfillmentQueueWriteService(new ConfiguredNeverOpened())
+            .PickItemAsync(0, 1, "picked");
+        Assert.False(fqPick.Succeeded);
+        Assert.Equal("invalid", fqPick.Code);
+
+        var fqPickQty = await new CpFulfillmentQueueWriteService(new ConfiguredNeverOpened())
+            .PickItemAsync(3, -1, "picked");
+        Assert.False(fqPickQty.Succeeded);
+        Assert.Equal("invalid", fqPickQty.Code);
+
+        var fqPackDb = await new CpFulfillmentQueueWriteService(new UnconfiguredConnections())
+            .PackItemAsync(3, 1);
+        Assert.False(fqPackDb.Succeeded);
+        Assert.Equal("db", fqPackDb.Code);
+
+        var fqWave = await new CpFulfillmentQueueWriteService(new ConfiguredNeverOpened())
+            .CreateWaveAsync("epartscart", []);
+        Assert.False(fqWave.Succeeded);
+        Assert.Equal("invalid", fqWave.Code);
+
+        Assert.Equal(new[] { "picking", "cancelled" }, CpFulfillmentQueueWriteService.AllowedNextStatuses("queued"));
+        Assert.Equal(new[] { "delivered" }, CpFulfillmentQueueWriteService.AllowedNextStatuses("SHIPPED"));
+        Assert.Empty(CpFulfillmentQueueWriteService.AllowedNextStatuses("delivered"));
+
+        var posOpenNeg = await new CpPosWriteService(new ConfiguredNeverOpened())
+            .OpenSessionAsync(-1, 1, "Register 1");
+        Assert.False(posOpenNeg.Succeeded);
+        Assert.Equal("invalid", posOpenNeg.Code);
+
+        var posOpenDb = await new CpPosWriteService(new UnconfiguredConnections())
+            .OpenSessionAsync(10, 1, "Register 1");
+        Assert.False(posOpenDb.Succeeded);
+        Assert.Equal("db", posOpenDb.Code);
+
+        var posCloseNeg = await new CpPosWriteService(new ConfiguredNeverOpened())
+            .CloseSessionAsync(1, -1, "");
+        Assert.False(posCloseNeg.Succeeded);
+        Assert.Equal("invalid", posCloseNeg.Code);
+
+        var posCloseDb = await new CpPosWriteService(new UnconfiguredConnections())
+            .CloseSessionAsync(1, 10, "");
+        Assert.False(posCloseDb.Succeeded);
+        Assert.Equal("db", posCloseDb.Code);
+
+        var posSaveDb = await new CpPosWriteService(new UnconfiguredConnections())
+            .SaveSettingsAsync(true, "Register 1", 0, 0, 0, "", "");
+        Assert.False(posSaveDb.Succeeded);
+        Assert.Equal("db", posSaveDb.Code);
+
+        var posEmpty = await new CpPosWriteService(new ConfiguredNeverOpened())
+            .CompleteSaleAsync(new CpPosCompleteSaleWriteRequest(Lines: []), 1);
+        Assert.False(posEmpty.Succeeded);
+        Assert.Equal("invalid", posEmpty.Code);
+        Assert.Equal("Cart is empty", posEmpty.Message);
+
+        var posSaleDb = await new CpPosWriteService(new UnconfiguredConnections())
+            .CompleteSaleAsync(new CpPosCompleteSaleWriteRequest(Lines: [new("Oil", 1, 8.50m)]), 1);
+        Assert.False(posSaleDb.Succeeded);
+        Assert.Equal("db", posSaleDb.Code);
+
+        var parsed = CpPosWriteService.ParseLinesJson("""[{"name":"Oil filter","qty":2,"unit_price_ex":8.5,"line_discount_pct":10}]""");
+        var lines = CpPosWriteService.ParseLines(parsed);
+        Assert.Single(lines);
+        Assert.Equal("Oil filter", lines[0].Name);
+        Assert.Equal(2m, lines[0].Qty);
+        Assert.Equal(8.5m, lines[0].UnitPriceEx);
+        Assert.Equal(1.70m, lines[0].DiscountAmt);
+        Assert.Equal(15.30m, lines[0].LineExVat);
+        var priced = CpPosWriteService.ParseLines(CpPosWriteService.ParseLinesJson("""[{"name":"Pad","price":4}]"""));
+        Assert.Equal(4m, priced[0].UnitPriceEx);
+
+        var dunId = await new CpCollectionsDunningWriteService(new ConfiguredNeverOpened())
+            .UpdateStatusAsync(0, "open", "", 1);
+        Assert.False(dunId.Succeeded);
+        Assert.Equal("invalid", dunId.Code);
+
+        var dunStatus = await new CpCollectionsDunningWriteService(new ConfiguredNeverOpened())
+            .UpdateStatusAsync(9, "nope", "", 1);
+        Assert.False(dunStatus.Succeeded);
+        Assert.Equal("invalid", dunStatus.Code);
+
+        var dunPay = await new CpCollectionsDunningWriteService(new ConfiguredNeverOpened())
+            .RecordPaymentAsync(9, 0, 1);
+        Assert.False(dunPay.Succeeded);
+        Assert.Equal("invalid", dunPay.Code);
+
+        var dunDb = await new CpCollectionsDunningWriteService(new UnconfiguredConnections())
+            .RecordPaymentAsync(9, 10, 1);
+        Assert.False(dunDb.Succeeded);
+        Assert.Equal("db", dunDb.Code);
 
         var createReturn = await new StorefrontCustomerWriteService(new ConfiguredNeverOpened())
             .CreateReturnAsync(1, 0, 0, 0, 0, null);
@@ -432,6 +574,41 @@ public sealed class LiveWriteServiceValidationTests
             .SetStatusAsync(9, "approved");
         Assert.False(wsStatusDb.Succeeded);
         Assert.Equal("db", wsStatusDb.Code);
+
+        var wsCreateDb = await new CpWorkshopWriteService(new UnconfiguredConnections())
+            .CreateJobAsync(new CpWorkshopCreateJobRequest(CustomerName: "Ali", Plate: "A12345"));
+        Assert.False(wsCreateDb.Succeeded);
+        Assert.Equal("db", wsCreateDb.Code);
+
+        var wsLineInvalid = await new CpWorkshopWriteService(new ConfiguredNeverOpened())
+            .AddLineAsync(new CpWorkshopAddLineRequest(0, "part", "Pad"));
+        Assert.False(wsLineInvalid.Succeeded);
+        Assert.Equal("invalid", wsLineInvalid.Code);
+
+        var wsLineDb = await new CpWorkshopWriteService(new UnconfiguredConnections())
+            .AddLineAsync(new CpWorkshopAddLineRequest(9, "part", "Pad"));
+        Assert.False(wsLineDb.Succeeded);
+        Assert.Equal("db", wsLineDb.Code);
+
+        var wsApptDb = await new CpWorkshopWriteService(new UnconfiguredConnections())
+            .CreateAppointmentAsync(new CpWorkshopCreateAppointmentRequest(CustomerName: "Ali"));
+        Assert.False(wsApptDb.Succeeded);
+        Assert.Equal("db", wsApptDb.Code);
+
+        var wsConvertInvalid = await new CpWorkshopWriteService(new ConfiguredNeverOpened())
+            .ConvertAppointmentAsync(0);
+        Assert.False(wsConvertInvalid.Succeeded);
+        Assert.Equal("invalid", wsConvertInvalid.Code);
+
+        var wsConvertDb = await new CpWorkshopWriteService(new UnconfiguredConnections())
+            .ConvertAppointmentAsync(3);
+        Assert.False(wsConvertDb.Succeeded);
+        Assert.Equal("db", wsConvertDb.Code);
+
+        var posWalkinDb = await new CpPosWriteService(new UnconfiguredConnections())
+            .EnsureWalkinUserAsync();
+        Assert.False(posWalkinDb.Succeeded);
+        Assert.Equal("db", posWalkinDb.Code);
 
         var priceAdd = await new CpPricesEditWriteService(new ConfiguredNeverOpened())
             .AddAsync(1, "", "Bosch", "Pad", 1, 12.5m, 1, "WH1", 1);
@@ -1091,5 +1268,66 @@ public sealed class LiveWriteServiceValidationTests
         });
         Assert.Single(clean);
         Assert.Equal("Ada &lt;b&gt;Lovelace&lt;/b&gt;", clean["name"]);
+    }
+
+    [Fact]
+    public async Task Garage_check_car_and_pay_refund_and_password_validate_without_db()
+    {
+        var garageAuth = await new StorefrontGarageWriteService(new UnconfiguredConnections())
+            .CheckCarAsync(0, 1, 1);
+        Assert.False(garageAuth.Succeeded);
+        Assert.Equal("auth", garageAuth.Code);
+
+        var garageInvalid = await new StorefrontGarageWriteService(new ConfiguredNeverOpened())
+            .CheckCarAsync(1, 0, 0);
+        Assert.False(garageInvalid.Succeeded);
+        Assert.Equal("invalid", garageInvalid.Code);
+
+        var garageDb = await new StorefrontGarageWriteService(new UnconfiguredConnections())
+            .CheckCarAsync(1, 3, 11);
+        Assert.False(garageDb.Succeeded);
+        Assert.Equal("db", garageDb.Code);
+
+        var refundInvalid = await new CpOmsWriteService(new ConfiguredNeverOpened())
+            .PayRefundAsync(0, true, null, 1);
+        Assert.False(refundInvalid.Succeeded);
+        Assert.Equal("forbidden", refundInvalid.Code);
+
+        var refundDb = await new CpOmsWriteService(new UnconfiguredConnections())
+            .PayRefundAsync(42, true, null, 1);
+        Assert.False(refundDb.Succeeded);
+        Assert.Equal("db", refundDb.Code);
+
+        var refreshInvalid = await new CpOmsWriteService(new ConfiguredNeverOpened())
+            .RefreshItemCostAsync(0, 0, 1);
+        Assert.False(refreshInvalid.Succeeded);
+        Assert.Equal("invalid", refreshInvalid.Code);
+
+        var refreshDb = await new CpOmsWriteService(new UnconfiguredConnections())
+            .RefreshItemCostAsync(9, 3, 1);
+        Assert.False(refreshDb.Succeeded);
+        Assert.Equal("db", refreshDb.Code);
+
+        var pwdAuth = await new StorefrontCustomerWriteService(new UnconfiguredConnections())
+            .ChangePasswordAsync(0, "secret", "succ");
+        Assert.False(pwdAuth.Succeeded);
+        Assert.Equal("auth", pwdAuth.Code);
+
+        var pwdInvalid = await new StorefrontCustomerWriteService(new ConfiguredNeverOpened())
+            .ChangePasswordAsync(1, "", "succ");
+        Assert.False(pwdInvalid.Succeeded);
+        Assert.Equal("invalid", pwdInvalid.Code);
+
+        var pwdConfig = await new StorefrontCustomerWriteService(new ConfiguredNeverOpened())
+            .ChangePasswordAsync(1, "secret", "");
+        Assert.False(pwdConfig.Succeeded);
+        Assert.Equal("config", pwdConfig.Code);
+
+        var pwdDb = await new StorefrontCustomerWriteService(new UnconfiguredConnections())
+            .ChangePasswordAsync(1, "secret", "succ");
+        Assert.False(pwdDb.Succeeded);
+        Assert.Equal("db", pwdDb.Code);
+
+        Assert.Equal(32, LegacyPasswordVerifier.Md5Hex("secret" + "succ").Length);
     }
 }

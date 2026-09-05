@@ -2,12 +2,14 @@
 @layout Layout.PhpChromeLayout
 @using System.Globalization
 @using EcomAE.Platform.Auth
+@using EcomAE.Platform.Cp
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
 @inject NavigationManager Nav
+@inject ICpPosWriteService PosWrites
 
 <PageTitle>POS Overview · Control Panel · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="cp" />
@@ -34,7 +36,16 @@
         .epc-pos-table th, .epc-pos-table td { padding:.55rem .7rem; border-bottom:1px solid #f1f5f9; text-align:left; white-space:nowrap; }
         .epc-pos-table th { background:#f8fafc; color:#475569; font-size:.75rem; text-transform:uppercase; letter-spacing:.03em; }
         .epc-pos-note { margin-top:1rem; padding:.75rem .9rem; background:#fff7ed; border:1px solid #fed7aa; border-radius:.45rem; color:#9a3412; font-size:.86rem; }
-        @@media (max-width:900px){ .epc-pos-kpis{grid-template-columns:1fr;} }
+        .epc-pos-forms { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:.75rem; margin:0 0 1rem; }
+        .epc-pos-form { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; padding:.85rem .95rem; }
+        .epc-pos-form h2 { margin:0 0 .55rem; font-size:.95rem; }
+        .epc-pos-form form { display:flex; flex-wrap:wrap; gap:.45rem; align-items:end; }
+        .epc-pos-form label { display:flex; flex-direction:column; gap:.15rem; font-size:.75rem; color:#475569; }
+        .epc-pos-form input, .epc-pos-form select, .epc-pos-form textarea { min-width:7rem; padding:.35rem .45rem; border:1px solid #cbd5e1; border-radius:.35rem; font-size:.82rem; }
+        .epc-pos-form button { padding:.4rem .7rem; border:0; border-radius:.35rem; background:#0c4a6e; color:#fff; font-weight:700; font-size:.8rem; cursor:pointer; }
+        .epc-pos-flash-ok { margin:0 0 .75rem; padding:.65rem .8rem; background:#ecfdf5; border:1px solid #6ee7b7; border-radius:.4rem; color:#065f46; }
+        .epc-pos-flash-err { margin:0 0 .75rem; padding:.65rem .8rem; background:#fef2f2; border:1px solid #fecaca; border-radius:.4rem; color:#991b1b; }
+        @@media (max-width:900px){ .epc-pos-kpis,.epc-pos-forms{grid-template-columns:1fr;} }
     
 </style>
 </HeadContent>
@@ -49,10 +60,107 @@
         <div class="epc-pos-cta">
             <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
             <a class="ghost" href="/cp/tax-toolkits-app">Tax toolkits</a>
+            <a class="ghost" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Classic twin</a>
         </div>
     </section>
     <PhpParityModuleBody AppPath="/cp/pos-overview-app" IsAdmin="_isAdmin" />
 
+    @if (!string.IsNullOrWhiteSpace(_flashOk))
+    {
+        <div class="epc-pos-flash-ok" role="status">@_flashOk</div>
+    }
+    @if (!string.IsNullOrWhiteSpace(_flashErr))
+    {
+        <div class="epc-pos-flash-err" role="status">@_flashErr</div>
+    }
+
+    @if (_isAdmin)
+    {
+        <div class="epc-pos-forms" aria-label="POS writes">
+            <div class="epc-pos-form">
+                <h2>Open register</h2>
+                <form method="post" action="/cp/pos/open-session">
+                    <input type="hidden" name="confirmWrites" value="true" />
+                    <input type="hidden" name="returnUrl" value="/cp/pos-overview-app" />
+                    <label>Opening float <input type="text" name="openingFloat" value="0" inputmode="decimal" /></label>
+                    <label>Register <input type="text" name="registerName" value="@_summary.RegisterName" /></label>
+                    <button type="submit">Open session</button>
+                </form>
+            </div>
+            <div class="epc-pos-form">
+                <h2>Close register</h2>
+                <form method="post" action="/cp/pos/close-session">
+                    <input type="hidden" name="confirmWrites" value="true" />
+                    <input type="hidden" name="returnUrl" value="/cp/pos-overview-app" />
+                    <label>Session id <input type="text" name="sessionId" value="" inputmode="numeric" placeholder="open session" /></label>
+                    <label>Closing cash <input type="text" name="closingCash" value="0" inputmode="decimal" /></label>
+                    <label>Notes <input type="text" name="notes" /></label>
+                    <button type="submit">Close session</button>
+                </form>
+            </div>
+            <div class="epc-pos-form">
+                <h2>Complete sale</h2>
+                <form method="post" action="/cp/pos/complete-sale">
+                    <input type="hidden" name="confirmWrites" value="true" />
+                    <input type="hidden" name="returnUrl" value="/cp/pos-overview-app" />
+                    <label>Name <input type="text" name="name" required /></label>
+                    <label>Qty <input type="text" name="qty" value="1" inputmode="decimal" /></label>
+                    <label>Unit price ex <input type="text" name="unitPriceEx" value="0" inputmode="decimal" /></label>
+                    <label>SKU <input type="text" name="sku" /></label>
+                    <label>Warehouse id <input type="text" name="warehouseId" value="" inputmode="numeric" /></label>
+                    <label>Payment
+                        <select name="paymentMethod">
+                            <option value="cash">cash</option>
+                            <option value="card">card</option>
+                            <option value="split">split</option>
+                        </select>
+                    </label>
+                    <label>Tax % <input type="text" name="taxRate" value="0" inputmode="decimal" /></label>
+                    <label>Customer <input type="text" name="customerLabel" value="Walk-in guest" /></label>
+                    <button type="submit">Complete sale</button>
+                </form>
+            </div>
+            <div class="epc-pos-form">
+                <h2>Search products</h2>
+                <form method="get" action="/cp/pos-overview-app">
+                    <label>Query <input type="text" name="productQ" value="@_productQ" /></label>
+                    <button type="submit">Search products</button>
+                </form>
+            </div>
+            <div class="epc-pos-form">
+                <h2>Search customers</h2>
+                <form method="get" action="/cp/pos-overview-app">
+                    <label>Query <input type="text" name="customerQ" value="@_customerQ" /></label>
+                    <button type="submit">Search customers</button>
+                </form>
+            </div>
+            <div class="epc-pos-form">
+                <h2>Save settings</h2>
+                <form method="post" action="/cp/pos/save-settings">
+                    <input type="hidden" name="confirmWrites" value="true" />
+                    <input type="hidden" name="returnUrl" value="/cp/pos-overview-app" />
+                    <label>Enabled
+                        <select name="posEnabled">
+                            @if (_summary.PosEnabled)
+                            {
+                                <option value="true" selected>enabled</option>
+                                <option value="false">off</option>
+                            }
+                            else
+                            {
+                                <option value="true">enabled</option>
+                                <option value="false" selected>off</option>
+                            }
+                        </select>
+                    </label>
+                    <label>Register <input type="text" name="registerName" value="@_summary.RegisterName" /></label>
+                    <label>Header <input type="text" name="receiptHeader" /></label>
+                    <label>Footer <input type="text" name="receiptFooter" value="Thank you for your purchase" /></label>
+                    <button type="submit">Save settings</button>
+                </form>
+            </div>
+        </div>
+    }
 
     <div class="epc-pos-kpis" aria-label="POS stats">
         <div class="epc-pos-kpi"><strong>@(_summary.PosEnabled ? "enabled" : "off")</strong><span>Register @(string.IsNullOrWhiteSpace(_summary.RegisterName) ? "—" : _summary.RegisterName)</span></div>
@@ -99,13 +207,75 @@
                             <td>@(string.IsNullOrWhiteSpace(s.TaxKitCode) ? "—" : s.TaxKitCode)</td>
                             <td>@(string.IsNullOrWhiteSpace(s.Status) ? "—" : s.Status)</td>
                             <td>@(s.TimeCreated > 0 ? s.TimeCreated.ToString(CultureInfo.InvariantCulture) : "—")</td>
-                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
+                            <td><a href="@($"/cp/pos/receipt/{s.Id.ToString(CultureInfo.InvariantCulture)}")">Receipt</a></td>
                         </tr>
                     }
                 }
             </tbody>
         </table>
     </div>
+
+    @if (_products.Count > 0)
+    {
+        <div class="epc-pos-table-wrap">
+            <table class="epc-pos-table" data-epc-pos-product-hits>
+                <thead>
+                    <tr>
+                        <th>Source</th>
+                        <th>SKU</th>
+                        <th>Name</th>
+                        <th>Brand</th>
+                        <th>Price</th>
+                        <th>Stock</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var p in _products)
+                    {
+                        <tr>
+                            <td>@p.Source</td>
+                            <td>@(string.IsNullOrWhiteSpace(p.Sku) ? "—" : p.Sku)</td>
+                            <td>@(string.IsNullOrWhiteSpace(p.Name) ? "—" : p.Name)</td>
+                            <td>@(string.IsNullOrWhiteSpace(p.Brand) ? "—" : p.Brand)</td>
+                            <td>@p.Price.ToString("N4", CultureInfo.InvariantCulture)</td>
+                            <td>@(p.Stock.HasValue ? p.Stock.Value.ToString("N3", CultureInfo.InvariantCulture) : "—")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+
+    @if (_customers.Count > 0)
+    {
+        <div class="epc-pos-table-wrap">
+            <table class="epc-pos-table" data-epc-pos-customer-hits>
+                <thead>
+                    <tr>
+                        <th>Type</th>
+                        <th>User</th>
+                        <th>Contact</th>
+                        <th>Label</th>
+                        <th>Email</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var c in _customers)
+                    {
+                        <tr>
+                            <td>@c.Type</td>
+                            <td>@c.UserId.ToString(CultureInfo.InvariantCulture)</td>
+                            <td>@c.ContactId.ToString(CultureInfo.InvariantCulture)</td>
+                            <td>@(string.IsNullOrWhiteSpace(c.Label) ? "—" : c.Label)</td>
+                            <td>@(string.IsNullOrWhiteSpace(c.Email) ? "—" : c.Email)</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+
+    <p class="epc-pos-note">open / close / save / complete-sale write here when confirmWrites is posted. Printable receipt is on this surface. Walk-in user, tax-toolkit totals, ERP SO / invoice / receipt voucher, inventory sale_out, product/customer search, and calc_cart write here.</p>
 
 </PhpCpDesktopChrome>
 
@@ -116,11 +286,20 @@
     private IReadOnlyList<CpPosSaleDigest> _sales = [];
     private string _source = "n/a";
     private string _message = "";
+    private string _flashOk = "";
+    private string _flashErr = "";
+    private string _productQ = "";
+    private string _customerQ = "";
+    private IReadOnlyList<CpPosProductHit> _products = [];
+    private IReadOnlyList<CpPosCustomerHit> _customers = [];
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
+
+        _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
+        _flashErr = ctx.Request.Query["err"].ToString() ?? "";
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
@@ -134,5 +313,16 @@
         _sales = result.Sales;
         _source = result.Source;
         _message = result.Message;
+        _productQ = ctx.Request.Query["productQ"].ToString() ?? "";
+        _customerQ = ctx.Request.Query["customerQ"].ToString() ?? "";
+        if (_productQ.Length > 0)
+        {
+            _products = await PosWrites.SearchProductsAsync(_productQ, 30, ctx.RequestAborted);
+        }
+
+        if (_customerQ.Length > 0)
+        {
+            _customers = await PosWrites.SearchCustomersAsync(_customerQ, 15, ctx.RequestAborted);
+        }
     }
 }

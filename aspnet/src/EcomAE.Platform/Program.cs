@@ -593,6 +593,9 @@ builder.Services.AddSingleton<ICpOmsUpdateItemsDryRun, CpOmsUpdateItemsDryRun>()
 builder.Services.AddSingleton<ICpOmsFulfillmentSetStageDryRun, CpOmsFulfillmentSetStageDryRun>();
 builder.Services.AddSingleton<ICpOmsFulfillmentAdvanceDryRun, CpOmsFulfillmentAdvanceDryRun>();
 builder.Services.AddSingleton<ICpOmsRefreshItemCostDryRun, CpOmsRefreshItemCostDryRun>();
+builder.Services.AddSingleton<ICpFulfillmentQueueWriteDryRun, CpFulfillmentQueueWriteDryRun>();
+builder.Services.AddSingleton<ICpCollectionsDunningWriteDryRun, CpCollectionsDunningWriteDryRun>();
+builder.Services.AddSingleton<ICpCustomShippingWriteDryRun, CpCustomShippingWriteDryRun>();
 builder.Services.AddSingleton<IErpPurchaseFromOrderDryRun, ErpPurchaseFromOrderDryRun>();
 builder.Services.AddSingleton<IErpCcySetRateDryRun, ErpCcySetRateDryRun>();
 builder.Services.AddSingleton<IErpPeriodSoftCloseDryRun, ErpPeriodSoftCloseDryRun>();
@@ -652,6 +655,10 @@ builder.Services.AddSingleton<IStorefrontCartAddDryRun, StorefrontCartAddDryRun>
 builder.Services.AddScoped<EcomAE.Platform.Storefront.IStorefrontCartAddService, EcomAE.Platform.Storefront.StorefrontCartAddService>();
 builder.Services.AddScoped<EcomAE.Platform.Storefront.IStorefrontCartWriteService, EcomAE.Platform.Storefront.StorefrontCartWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Storefront.IStorefrontCheckoutWriteService, EcomAE.Platform.Storefront.StorefrontCheckoutWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Storefront.IStorefrontPaymentWriteService, EcomAE.Platform.Storefront.StorefrontPaymentWriteService>();
+builder.Services.AddHttpClient(nameof(EcomAE.Platform.Storefront.LaximoVinDecodeService));
+builder.Services.AddScoped<EcomAE.Platform.Storefront.ILaximoVinDecodeService, EcomAE.Platform.Storefront.LaximoVinDecodeService>();
+builder.Services.AddScoped<EcomAE.Platform.Storefront.IStorefrontVinRequestWriteService, EcomAE.Platform.Storefront.StorefrontVinRequestWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Storefront.IStorefrontQuoteWriteService, EcomAE.Platform.Storefront.StorefrontQuoteWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Storefront.IStorefrontGarageWriteService, EcomAE.Platform.Storefront.StorefrontGarageWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Storefront.IStorefrontCustomerWriteService, EcomAE.Platform.Storefront.StorefrontCustomerWriteService>();
@@ -689,6 +696,10 @@ builder.Services.AddScoped<EcomAE.Platform.Erp.IErpInsDocDeleteWriteService, Eco
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpFyWriteService, EcomAE.Platform.Erp.ErpFyWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpWhtSettleWriteService, EcomAE.Platform.Erp.ErpWhtSettleWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpOmsWriteService, EcomAE.Platform.Cp.CpOmsWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Cp.ICpFulfillmentQueueWriteService, EcomAE.Platform.Cp.CpFulfillmentQueueWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Cp.ICpPosWriteService, EcomAE.Platform.Cp.CpPosWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Cp.ICpCollectionsDunningWriteService, EcomAE.Platform.Cp.CpCollectionsDunningWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Cp.ICpCustomShippingWriteService, EcomAE.Platform.Cp.CpCustomShippingWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpUserWriteService, EcomAE.Platform.Cp.CpUserWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpLangWriteService, EcomAE.Platform.Cp.CpLangWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpChannelWriteService, EcomAE.Platform.Cp.CpChannelWriteService>();

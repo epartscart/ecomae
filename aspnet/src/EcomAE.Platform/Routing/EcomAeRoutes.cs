@@ -310,6 +310,10 @@ public static class EcomAeRoutes
     public const string ControlPanelCollectionsDunning = "/cp/collections-dunning";
     /// <summary>CP collections/dunning Blazor list (JSON digest remains <see cref="ControlPanelCollectionsDunning"/>).</summary>
     public const string ControlPanelCollectionsDunningApp = "/cp/collections-dunning-app";
+    /// <summary>Dunning queue status / payment / profile / add-invoice / process. confirmWrites=true is the live twin of PHP epc_dunning_*. Schema-ensure stays PHP.</summary>
+    public const string CpCollectionsDunningWrite = "/cp/collections-dunning/write";
+    /// <summary>Custom shipping core save / submit. confirmWrites=true is the live twin of PHP epc_cs_save_declaration / epc_cs_submit_declaration. PDF attach, box autofill, LGP, and schema-ensure stay PHP.</summary>
+    public const string CpCustomShippingWrite = "/cp/custom-shipping/write";
 
     public const string ControlPanelMarketplaceChannels = "/cp/marketplace-channels";
     /// <summary>CP marketplace channels Blazor list (JSON digest remains <see cref="ControlPanelMarketplaceChannels"/>).</summary>
@@ -510,6 +514,10 @@ public static class EcomAeRoutes
     public const string ControlPanelFulfillmentQueueApp = "/cp/fulfillment-queue-app";
     /// <summary>Read-only PHP <c>epc_fulfillment_get</c> digest for one fulfillment order.</summary>
     public const string ControlPanelFulfillmentQueueDetailDigest = "/cp/fulfillment-queue-detail-digest/{fulfillmentId:long}";
+    /// <summary>Queue transition / assign / pick / pack / wave / queue-from-order. <c>confirmWrites=true</c> is the live twin of PHP epc_fulfillment_*. Printable packing slip is <see cref="ControlPanelFulfillmentPackingSlip"/>.</summary>
+    public const string CpFulfillmentQueueWrite = "/cp/fulfillment-queue/write";
+    /// <summary>Printable PHP <c>epc_fulfillment_packing_slip</c> HTML. Document-control branded PDF templates stay PHP.</summary>
+    public const string ControlPanelFulfillmentPackingSlip = "/cp/fulfillment-queue/packing-slip/{fulfillmentId:long}";
     public const string ControlPanelSsoSaml = "/cp/sso-saml";
     public const string ControlPanelSsoSamlApp = "/cp/sso-saml-app";
     public const string ControlPanelEventBus = "/cp/event-bus";
@@ -536,11 +544,11 @@ public static class EcomAeRoutes
     public const string ControlPanelOmsAddComment = "/cp/orders/add-comment";
     /// <summary>OMS set viewed. <c>confirmWrites=true</c> is the live twin of PHP ajax_set_orders_viewed.php.</summary>
     public const string ControlPanelOmsSetViewed = "/cp/orders/set-viewed";
-    /// <summary>OMS update_item. <c>confirmWrites=true</c> is the live twin of PHP ajax_epc_orders_oms.php action=update_item. Warehouse reprice stays PHP.</summary>
+    /// <summary>OMS update_item. <c>confirmWrites=true</c> is the live twin of PHP ajax_epc_orders_oms.php action=update_item. Warehouse reprice uses the price-list lookup; customer-group markup stays sell=purchase.</summary>
     public const string ControlPanelOmsUpdateItem = "/cp/orders/update-item";
     /// <summary>Wave B dry-run for PHP ajax_order_pay_refund.php (writes=0; PHP authoritative).</summary>
     public const string ControlPanelOmsPayRefund = "/cp/orders/pay-refund";
-    /// <summary>OMS update_items. <c>confirmWrites=true</c> is the live twin of PHP ajax_epc_orders_oms.php action=update_items. Warehouse reprice stays PHP.</summary>
+    /// <summary>OMS update_items. <c>confirmWrites=true</c> is the live twin of PHP ajax_epc_orders_oms.php action=update_items. Warehouse reprice uses the price-list lookup; customer-group markup stays sell=purchase.</summary>
     public const string ControlPanelOmsUpdateItems = "/cp/orders/update-items";
     /// <summary>OMS supplier fulfillment set-stage. <c>confirmWrites=true</c> updates epc_order_supplier_fulfillment (no invented bootstrap).</summary>
     public const string ControlPanelOmsFulfillmentSetStage = "/cp/orders/fulfillment-set-stage";
@@ -961,7 +969,7 @@ public static class EcomAeRoutes
     public const string StorefrontNewsletterSubscribe = "/storefront/newsletter/subscribe";
     /// <summary>Wave B dry-run for PHP content/shop/catalogue/evaluations/ajax_add_evaluation.php (writes=0).</summary>
     public const string StorefrontAddEvaluation = "/storefront/evaluations/add";
-    /// <summary>Wave B dry-run for PHP content/shop/finance/ajax_create_operation.php (writes=0).</summary>
+    /// <summary>Live twin of PHP content/shop/finance/ajax_create_operation.php. <c>confirmWrites=true</c> writes via <c>IStorefrontPaymentWriteService</c>.</summary>
     public const string StorefrontCreateOperation = "/storefront/finance/create-operation";
     /// <summary>Wave B dry-run for PHP content/shop/order_process/ajax_check_order_not_authorized.php (writes=0).</summary>
     public const string StorefrontCheckOrderNotAuthorized = "/storefront/orders/check-not-authorized";
@@ -977,8 +985,10 @@ public static class EcomAeRoutes
     public const string StorefrontCompareAdd = "/storefront/compare/add";
     /// <summary>Compare cookie remove. Twin of PHP <c>removeCompare</c> in bottom_panel.php.</summary>
     public const string StorefrontCompareRemove = "/storefront/compare/remove";
-    /// <summary>Profile <c>users_profiles</c> UPSERT. Password / email / phone stay PHP.</summary>
+    /// <summary>Profile <c>users_profiles</c> UPSERT. Email / phone confirm stay PHP.</summary>
     public const string StorefrontProfileSave = "/storefront/profile/save";
+    /// <summary>PHP <c>users/editform.php</c> password UPDATE. <c>confirmWrites=true</c> writes <c>md5(password+secret_succession)</c>.</summary>
+    public const string StorefrontProfilePassword = "/storefront/profile/change-password";
     /// <summary>Wave B dry-run for PHP modules/login/code/frontAjax/ajax_sendCode.php (writes=0).</summary>
     public const string StorefrontLoginSendCode = "/storefront/login/send-code";
     /// <summary>Wave B dry-run for PHP modules/login/code/frontAjax/ajax_checkCode.php (writes=0).</summary>
@@ -1631,14 +1641,22 @@ public static class EcomAeRoutes
     public const string BosAjaxEvidence = "/bos/ajax/evidence";
     /// <summary>Wave B dry-run for BOS PHP create_policy (writes=0).</summary>
     public const string BosAjaxCreatePolicy = "/bos/ajax/create-policy";
-    /// <summary>Wave B dry-run for PHP cp/content/shop/pos/ajax_pos.php?action=open_session (writes=0).</summary>
+    /// <summary>Live PHP ajax_pos.php open_session. confirmWrites=true writes ASP.NET.</summary>
     public const string CpPosOpenSession = "/cp/pos/open-session";
-    /// <summary>Wave B dry-run for PHP cp/content/shop/pos/ajax_pos.php?action=close_session (writes=0).</summary>
+    /// <summary>Live PHP ajax_pos.php close_session. confirmWrites=true writes ASP.NET.</summary>
     public const string CpPosCloseSession = "/cp/pos/close-session";
-    /// <summary>Wave B dry-run for PHP cp/content/shop/pos/ajax_pos.php?action=complete_sale (writes=0).</summary>
+    /// <summary>Live PHP ajax_pos.php complete_sale POS INSERT plus ERP SO/invoice/voucher and inventory sale_out.</summary>
     public const string CpPosCompleteSale = "/cp/pos/complete-sale";
-    /// <summary>Wave B dry-run for PHP cp/content/shop/pos/ajax_pos.php?action=save_settings (writes=0).</summary>
+    /// <summary>Printable PHP epc_pos_receipt_html twin.</summary>
+    public const string ControlPanelPosReceipt = "/cp/pos/receipt/{saleId:long}";
+    /// <summary>Live PHP ajax_pos.php save_settings UPDATE. Schema ensure stays PHP.</summary>
     public const string CpPosSaveSettings = "/cp/pos/save-settings";
+    /// <summary>Live PHP ajax_pos.php search_products.</summary>
+    public const string CpPosSearchProducts = "/cp/pos/search-products";
+    /// <summary>Live PHP ajax_pos.php search_customers.</summary>
+    public const string CpPosSearchCustomers = "/cp/pos/search-customers";
+    /// <summary>Live PHP ajax_pos.php calc_cart.</summary>
+    public const string CpPosCalcCart = "/cp/pos/calc-cart";
     /// <summary>Wave B dry-run for PHP cp/content/control/portal/ajax_portal.php?action=save_settings (writes=0).</summary>
     public const string CpPortalSaveSettings = "/cp/portal/save-settings";
     /// <summary>Wave B dry-run for PHP cp/content/control/portal/ajax_portal.php?action=deploy_site (writes=0).</summary>
@@ -1878,8 +1896,20 @@ public static class EcomAeRoutes
     public const string StorefrontBulkUploadAddSelected = "/storefront/bulk-upload/add-selected";
     /// <summary>Sample CSV matching PHP Brand / Part Number / Qty columns.</summary>
     public const string StorefrontBulkUploadSample = "/storefront/bulk-upload/sample.csv";
-    /// <summary>VIN / Laximo shell (decode remains PHP katalog-laximo).</summary>
+    /// <summary>VIN / Laximo shell. Live decode is POST <see cref="StorefrontVinDecode"/>.</summary>
     public const string StorefrontVinApp = "/storefront/vin-app";
+    /// <summary>Live PHP Guayaquil FindVehicleByVIN twin.</summary>
+    public const string StorefrontVinDecode = "/storefront/vin/decode";
+    /// <summary>Live PHP send_vin_email users_vin INSERT. Captcha/files/email stay Classic.</summary>
+    public const string StorefrontVinRequestCreate = "/storefront/vin-request/create";
+    /// <summary>Live PHP ajax_send_message customer path on users_vin_messages.</summary>
+    public const string StorefrontVinRequestSendMessage = "/storefront/vin-request/send-message";
+    /// <summary>Live PHP ajax_create_operation twin.</summary>
+    public const string StorefrontPaymentCreateOperation = "/storefront/payment/create-operation";
+    /// <summary>Live PHP demo go_to_pay twin.</summary>
+    public const string StorefrontPaymentGoToPay = "/storefront/payment/go-to-pay";
+    /// <summary>Live PHP epc_demo notification + pay_for_order twin.</summary>
+    public const string StorefrontPaymentNotify = "/storefront/payment/notify";
     /// <summary>Vehicle year/make/model catalog shell (UMAPI tree from PHP widget).</summary>
     public const string StorefrontVehicleCatalogApp = "/storefront/vehicle-catalog-app";
     /// <summary>Customer quotes list/detail digest (submit/accept remain PHP).</summary>
@@ -1932,7 +1962,7 @@ public static class EcomAeRoutes
     public const string StorefrontGarageSetActive = "/storefront/garage/set-active";
     /// <summary>Garage delete. <c>confirmWrites=true</c> is the live twin of PHP ajax_operations_cars.php action=delete_car.</summary>
     public const string StorefrontGarageDelete = "/storefront/garage/delete";
-    /// <summary>Wave B dry-run garage check_car toggle (PHP ajax_operations_cars.php action=check_car remains authoritative).</summary>
+    /// <summary>PHP <c>ajax_operations_cars.php</c> action <c>check_car</c> garage↔order toggle. <c>confirmWrites=true</c> writes ASP.NET.</summary>
     public const string StorefrontGarageCheckCar = "/storefront/garage/check-car";
     /// <summary>Signed-in checkout create. <c>confirmWrites=true</c> is the live twin of PHP ajax_checkout_create.php. Guest stays PHP.</summary>
     public const string StorefrontCheckoutCreate = "/storefront/checkout/create";

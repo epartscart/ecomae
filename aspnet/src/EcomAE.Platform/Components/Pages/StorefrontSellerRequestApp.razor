@@ -15,10 +15,21 @@
             <p style="margin:0 0 .35rem;color:#64748b;font-size:.85rem">
                 <a href="@StorefrontSurfaceLinks.CustomerRequests">My requests</a>
                 · Request to seller
+                ·
+                <a href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(StorefrontPhpCanonical.SellerRequest)" target="_blank" rel="noopener">Classic twin</a>
             </p>
             <h1 style="margin:.1rem 0 .4rem">Send a request to seller</h1>
-            <p style="color:#475569">Describe the VIN or frame and the parts you need. The store replies on My requests.</p>
-            <form method="post" action="@PhpSellerRequest.SellerWriteHref" enctype="multipart/form-data" style="background:#fff;border:1px solid #e2e8f0;border-radius:.55rem;padding:1.1rem 1.2rem">
+            <p style="color:#475569">Describe the VIN or frame and the parts you need. The store replies on My requests. Photos and manager email stay on the Classic twin.</p>
+            @if (!string.IsNullOrWhiteSpace(_flashOk))
+            {
+                <p style="margin:0 0 .75rem;padding:.65rem .8rem;background:#ecfdf3;border:1px solid #86efac;color:#166534">@_flashOk</p>
+            }
+            @if (!string.IsNullOrWhiteSpace(_flashErr))
+            {
+                <p style="margin:0 0 .75rem;padding:.65rem .8rem;background:#fef2f2;border:1px solid #fecaca;color:#991b1b">@_flashErr</p>
+            }
+            <form method="post" action="@PhpSellerRequest.SellerWriteHref" style="background:#fff;border:1px solid #e2e8f0;border-radius:.55rem;padding:1.1rem 1.2rem">
+                <input type="hidden" name="confirmWrites" value="true" />
                 @foreach (var field in PhpSellerRequest.Fields)
                 {
                     <label for="@field.Name">@field.Label@(field.Required ? " *" : "")</label>
@@ -33,16 +44,9 @@
                                style="width:100%;margin:.25rem 0 .75rem;padding:.5rem" />
                     }
                 }
-                <label for="client_parts">Parts needed</label>
-                <textarea id="client_parts" name="client_parts" rows="4" placeholder="Articles, names, quantities"
-                          style="width:100%;margin:.25rem 0 .75rem;padding:.5rem"></textarea>
-                <label for="capcha_input">Security code *</label>
-                <div style="display:flex;gap:.65rem;align-items:center;flex-wrap:wrap;margin:.25rem 0 .75rem">
-                    <input id="capcha_input" type="text" name="capcha_input" required autocomplete="off" style="flex:1 1 10rem;padding:.5rem" />
-                    <img src="/lib/captcha/captcha.php" alt="" width="120" height="40" style="border:1px solid #e2e8f0;border-radius:.3rem" />
-                </div>
-                <label for="client_img">Photos (png, jpeg, jpg, bmp)</label>
-                <input id="client_img" type="file" name="client_img[]" multiple accept="image/*" style="width:100%;margin:.25rem 0 1rem" />
+                <label for="client_parts">Parts needed *</label>
+                <textarea id="client_parts" name="client_parts" rows="4" required placeholder="Articles, names, quantities"
+                          style="width:100%;margin:.25rem 0 1rem;padding:.5rem"></textarea>
                 <button type="submit" style="padding:.65rem 1.1rem;border:0;border-radius:.45rem;background:#dc2626;color:#fff;font-weight:800;cursor:pointer">Send request</button>
             </form>
         </div>
@@ -51,9 +55,14 @@
 
 @code {
     private string _brand = "eParts Cart";
+    private string _flashOk = "";
+    private string _flashErr = "";
 
     protected override void OnInitialized()
     {
-        _brand = StorefrontIndustryHostResolver.ResolveBrandLabel(Http.HttpContext?.Request.Host.Host);
+        var ctx = Http.HttpContext;
+        _brand = StorefrontIndustryHostResolver.ResolveBrandLabel(ctx?.Request.Host.Host);
+        _flashOk = ctx?.Request.Query["ok"].ToString() ?? "";
+        _flashErr = ctx?.Request.Query["err"].ToString() ?? "";
     }
 }

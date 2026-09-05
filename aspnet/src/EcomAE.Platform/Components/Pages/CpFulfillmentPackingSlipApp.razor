@@ -1,0 +1,156 @@
+@page "/cp/fulfillment-queue/packing-slip/{FulfillmentId:long}"
+@layout Layout.PhpChromeLayout
+@using System.Globalization
+@using System.Text.Json
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Cp
+@using EcomAE.Platform.Migration
+@using EcomAE.Platform.Presentation
+@inject ISurfaceDashboardSummaryReporter Dashboards
+@inject ILegacySessionValidator Sessions
+@inject IHttpContextAccessor Http
+
+<PageTitle>Packing slip @(_slip.OrderNumber) · Control Panel · eParts Cart</PageTitle>
+<PhpChromeStyles Surface="cp" />
+<HeadContent>
+<style>
+        .epc-slip { max-width: 48rem; margin: 1.25rem auto; background:#fff; padding:1.25rem 1.4rem; border:1px solid #e2e8f0; }
+        .epc-slip h1 { margin:0 0 .35rem; font-size:1.45rem; }
+        .epc-slip p { margin:.2rem 0; color:#334155; }
+        .epc-slip table { width:100%; border-collapse:collapse; margin-top:1rem; font-size:.9rem; }
+        .epc-slip th, .epc-slip td { padding:.45rem .55rem; border-bottom:1px solid #e2e8f0; text-align:left; }
+        .epc-slip th { background:#f8fafc; font-size:.75rem; text-transform:uppercase; letter-spacing:.03em; color:#475569; }
+        .epc-slip-actions { display:flex; gap:.5rem; flex-wrap:wrap; margin-bottom:1rem; }
+        @@media print { .epc-slip-actions { display:none; } .epc-slip { border:0; margin:0; } }
+    
+</style>
+</HeadContent>
+
+<PhpCpDesktopChrome IsAdmin="_isAdmin">
+    <div class="epc-slip" data-epc-packing-slip="1">
+        <div class="epc-slip-actions">
+            <a class="btn btn-default btn-sm" href="@($"/cp/fulfillment-queue-app?fulfillment_id={FulfillmentId.ToString(CultureInfo.InvariantCulture)}&od=slip")">Back to queue</a>
+            <a class="btn btn-default btn-sm" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Classic twin</a>
+        </div>
+        @if (!_isAdmin)
+        {
+            <p>Sign in with a Control Panel admin session to print a packing slip.</p>
+        }
+        else if (!_slip.Ok)
+        {
+            <p>@_slip.Error</p>
+        }
+        else
+        {
+            <h1>Packing slip</h1>
+            <p><strong>Order</strong> @Blank(_slip.OrderNumber)</p>
+            <p><strong>Customer</strong> @Blank(_slip.CustomerName)</p>
+            <p><strong>Carrier</strong> @Blank(_slip.Carrier)</p>
+            <p><strong>Tracking</strong> @Blank(_slip.TrackingNumber)</p>
+            <p><strong>Packed at</strong> @Blank(_slip.PackedAt)</p>
+            @foreach (var part in AddressParts(_slip.ShipAddressJson))
+            {
+                <p><strong>@part.Key</strong> @part.Value</p>
+            }
+            <table>
+                <thead>
+                    <tr>
+                        <th>SKU</th>
+                        <th>Name</th>
+                        <th>Qty</th>
+                        <th>Bin</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (_slip.Items.Count == 0)
+                    {
+                        <tr><td colspan="4">No packing lines.</td></tr>
+                    }
+                    else
+                    {
+                        @foreach (var line in _slip.Items)
+                        {
+                            <tr>
+                                <td>@Blank(line.Sku)</td>
+                                <td>@Blank(line.ProductName)</td>
+                                <td>@line.Qty.ToString(CultureInfo.InvariantCulture)</td>
+                                <td>@Blank(line.Bin)</td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        }
+    </div>
+</PhpCpDesktopChrome>
+
+@code {
+    [Parameter] public long FulfillmentId { get; set; }
+
+    private const string _phpTab = "/CP/shop/finance/epc_fulfillment_queue";
+    private bool _isAdmin;
+    private CpFulfillmentPackingSlip _slip = new(false, "Not found", "", "", "", "", "", [], "");
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null)
+        {
+            return;
+        }
+
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
+        if (!_isAdmin || FulfillmentId <= 0)
+        {
+            return;
+        }
+
+        var detail = await Dashboards.GetCpFulfillmentDetailAsync(FulfillmentId, ctx.RequestAborted);
+        _slip = CpFulfillmentQueueWriteService.BuildPackingSlip(detail);
+    }
+
+    private static string Blank(string? value)
+        => string.IsNullOrWhiteSpace(value) ? "—" : value;
+
+    private static IReadOnlyList<(string Key, string Value)> AddressParts(string? json)
+    {
+        if (string.IsNullOrWhiteSpace(json) || json is "{}" or "[]" or "null")
+        {
+            return [];
+        }
+
+        try
+        {
+            using var doc = JsonDocument.Parse(json);
+            if (doc.RootElement.ValueKind != JsonValueKind.Object)
+            {
+                return [("address", json)];
+            }
+
+            var parts = new List<(string, string)>();
+            foreach (var prop in doc.RootElement.EnumerateObject())
+            {
+                var value = prop.Value.ValueKind switch
+                {
+                    JsonValueKind.String => prop.Value.GetString() ?? string.Empty,
+                    JsonValueKind.Number => prop.Value.ToString(),
+                    JsonValueKind.True => "yes",
+                    JsonValueKind.False => "no",
+                    JsonValueKind.Null => string.Empty,
+                    _ => prop.Value.GetRawText(),
+                };
+                if (!string.IsNullOrWhiteSpace(value))
+                {
+                    parts.Add((prop.Name, value));
+                }
+            }
+
+            return parts;
+        }
+        catch (JsonException)
+        {
+            return [("address", json)];
+        }
+    }
+}

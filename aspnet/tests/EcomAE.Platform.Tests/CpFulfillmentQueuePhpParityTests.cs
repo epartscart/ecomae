@@ -1,4 +1,5 @@
 using System.Reflection;
+using EcomAE.Platform.Cp;
 using EcomAE.Platform.Migration;
 using EcomAE.Platform.Presentation;
 using Xunit;
@@ -36,10 +37,18 @@ public sealed class CpFulfillmentQueuePhpParityTests
         Assert.Contains("@page \"/cp/shop/finance/epc_fulfillment_queue\"", text, StringComparison.Ordinal);
         Assert.Contains("GetCpFulfillmentDetailAsync", text, StringComparison.Ordinal);
         Assert.Contains("BuildCpFulfillmentQueueDigestAsync(200, ctx.RequestAborted, _status)", text, StringComparison.Ordinal);
+        Assert.Contains("action=\"/cp/fulfillment-queue/write\"", text, StringComparison.Ordinal);
+        Assert.Contains("name=\"confirmWrites\"", text, StringComparison.Ordinal);
+        Assert.Contains("value=\"transition\"", text, StringComparison.Ordinal);
+        Assert.Contains("value=\"create_wave\"", text, StringComparison.Ordinal);
+        Assert.Contains("value=\"queue\"", text, StringComparison.Ordinal);
+        Assert.Contains("/cp/fulfillment-queue/packing-slip/", text, StringComparison.Ordinal);
         Assert.Contains("QtyOrdered", text, StringComparison.Ordinal);
         Assert.Contains("QtyPicked", text, StringComparison.Ordinal);
         Assert.Contains("QtyPacked", text, StringComparison.Ordinal);
         Assert.Contains("/cp/orders?order_id=", text, StringComparison.Ordinal);
+        Assert.Contains("data-epc-cs-alias", text, StringComparison.Ordinal);
+        Assert.Contains("href=\"/cp/carriers-app\"", text, StringComparison.Ordinal);
         Assert.DoesNotContain("@onclick", text, StringComparison.Ordinal);
         Assert.DoesNotContain("javascript:void(0)", text, StringComparison.Ordinal);
         Assert.DoesNotContain("Open PHP reference", text, StringComparison.Ordinal);
@@ -67,6 +76,8 @@ public sealed class CpFulfillmentQueuePhpParityTests
         var routes = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs"));
         Assert.Contains("ControlPanelFulfillmentQueueDetailDigest", routes, StringComparison.Ordinal);
         Assert.Contains("/cp/fulfillment-queue-detail-digest/{fulfillmentId:long}", routes, StringComparison.Ordinal);
+        Assert.Contains("ControlPanelFulfillmentPackingSlip", routes, StringComparison.Ordinal);
+        Assert.Contains("/cp/fulfillment-queue/packing-slip/{fulfillmentId:long}", routes, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -75,6 +86,7 @@ public sealed class CpFulfillmentQueuePhpParityTests
         var catalog = SurfacePayloadContractCatalog.Functions;
         var shell = catalog.First(item => item.AspNetRouteOrCapability.Contains("/cp/fulfillment-queue-app", StringComparison.Ordinal));
         Assert.Equal("digest-wired-awaiting-dual-sample", shell.Status);
+        Assert.Equal("write-live-gated", catalog.First(item => item.AspNetRouteOrCapability == "/cp/fulfillment-queue/write").Status);
     }
 
     [Fact]
@@ -95,6 +107,55 @@ public sealed class CpFulfillmentQueuePhpParityTests
         Assert.Equal("SKU-1", detail.Items[0].Sku);
         Assert.Equal(2, detail.Items[0].QtyOrdered);
         Assert.Equal(1, detail.Items[0].QtyPicked);
+    }
+
+    [Fact]
+    public void ParseItemsJson_AcceptsPhpQtyAndQuantity()
+    {
+        var lines = CpFulfillmentQueueWriteService.ParseItemsJson(
+            """[{"sku":"OIL-1","product_name":"Oil filter","quantity":2,"bin_location":"A-1","weight":0.4},{"sku":"GAP","qty":1}]""");
+        Assert.Equal(2, lines.Count);
+        Assert.Equal("OIL-1", lines[0].Sku);
+        Assert.Equal("Oil filter", lines[0].ProductName);
+        Assert.Equal(2, lines[0].Qty);
+        Assert.Equal("A-1", lines[0].BinLocation);
+        Assert.Equal(0.4m, lines[0].Weight);
+        Assert.Equal(1, lines[1].Qty);
+    }
+
+    [Fact]
+    public void BuildPackingSlip_PrefersPackedThenPickedQty()
+    {
+        var detail = new CpFulfillmentDetailDigest(
+            9, 44, "SO-9", "Ada", "packed", "high", "main",
+            "Pat", 0, "DHL", "1Z", "standard", 2, 0.4m,
+            """{"city":"Dubai"}""", "", "", "", "", "2026-09-05 12:00:00", "",
+            [
+                new CpFulfillmentItemDigest(1, "SKU-1", "Oil filter", 2, 1, 0, "A-1", 0.4m, "picked", ""),
+                new CpFulfillmentItemDigest(2, "SKU-2", "Gasket", 3, 3, 2, "B-2", 0.1m, "picked", ""),
+            ],
+            "list", "");
+        var slip = CpFulfillmentQueueWriteService.BuildPackingSlip(detail);
+        Assert.True(slip.Ok);
+        Assert.Equal("SO-9", slip.OrderNumber);
+        Assert.Equal(1, slip.Items[0].Qty);
+        Assert.Equal(2, slip.Items[1].Qty);
+        Assert.Equal("A-1", slip.Items[0].Bin);
+        Assert.Equal("2026-09-05 12:00:00", slip.PackedAt);
+        Assert.False(CpFulfillmentQueueWriteService.BuildPackingSlip(null).Ok);
+    }
+
+    [Fact]
+    public void PackingSlipPage_UsesPrintableHtml()
+    {
+        var text = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/CpFulfillmentPackingSlipApp.razor"));
+        Assert.Contains("@page \"/cp/fulfillment-queue/packing-slip/{FulfillmentId:long}\"", text, StringComparison.Ordinal);
+        Assert.Contains("data-epc-packing-slip", text, StringComparison.Ordinal);
+        Assert.Contains("BuildPackingSlip", text, StringComparison.Ordinal);
+        Assert.Contains("PhpSurfaceLinkMap.PhpReferenceOnlyHref", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("@onclick", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("ASP.NET", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("/php-reference/", text, StringComparison.Ordinal);
     }
 
     [Fact]

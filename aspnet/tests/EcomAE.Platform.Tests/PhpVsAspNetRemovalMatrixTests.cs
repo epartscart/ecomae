@@ -77,6 +77,15 @@ public sealed class PhpVsAspNetRemovalMatrixTests
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "erp-cons-deletes" && r.WritesOwner == "aspnet");
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "erp-fy-reopen-period" && r.WritesOwner == "aspnet");
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "erp-wht-settle" && r.WritesOwner == "aspnet");
+        Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "sf-garage" && r.WritesOwner == "aspnet");
+        Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "sf-vin" && r.WritesOwner == "aspnet");
+        Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "sf-pay-order" && r.WritesOwner == "aspnet");
+        Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "cp-fulfillment" && r.WritesOwner == "aspnet");
+        Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "cp-pos" && r.WritesOwner == "aspnet");
+        Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "cp-collections" && r.WritesOwner == "aspnet");
+        Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "cp-custom-ship" && r.WritesOwner == "aspnet");
+        Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "write-laximo" && r.WritesOwner == "aspnet");
+        Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "write-payments" && r.WritesOwner == "aspnet");
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "write-storefront-cart" && r.WritesOwner == "php");
     }
 
@@ -123,6 +132,11 @@ public sealed class PhpVsAspNetRemovalMatrixTests
         var cases = new (string File, string Needle)[]
         {
             ("StorefrontCartApp.razor", "/storefront/cart/change-count-need"),
+            ("StorefrontPaymentApp.razor", "/storefront/payment/create-operation"),
+            ("StorefrontVinApp.razor", "/storefront/vin/decode"),
+            ("StorefrontSellerRequestApp.razor", "SellerWriteHref"),
+            ("StorefrontCustomerRequestsApp.razor", "MessageWriteHref"),
+            ("StorefrontOrdersApp.razor", "/storefront/payment/create-operation"),
             ("ErpPayrollApp.razor", "/erp/ajax/payroll-approve"),
             ("ErpInventoryForecastApp.razor", "/erp/inventory-forecast/recompute"),
             ("CpCreditLimitsApp.razor", "/cp/credit-limits/set"),
@@ -201,6 +215,10 @@ public sealed class PhpVsAspNetRemovalMatrixTests
             ("StorefrontWishlistApp.razor", "WishlistRemoveHref"),
             ("StorefrontCompareApp.razor", "CompareRemoveHref"),
             ("StorefrontProfileApp.razor", "ProfileWriteHref"),
+            ("CpPosOverviewApp.razor", "/cp/pos/open-session"),
+            ("CpPosOverviewApp.razor", "/cp/pos/complete-sale"),
+            ("CpFulfillmentQueueApp.razor", "/cp/fulfillment-queue/write"),
+            ("CpCollectionsDunningApp.razor", "/cp/collections-dunning/write"),
         };
         foreach (var (name, needle) in cases)
         {
