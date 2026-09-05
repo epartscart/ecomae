@@ -14,8 +14,10 @@
 @using EcomAE.Platform.Auth
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Storefront
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
+@inject IStorefrontGuestSessionService Guests
 @inject IHttpContextAccessor Http
 @inject NavigationManager Nav
 
@@ -136,6 +138,13 @@
                     }
                     <label style="display:block;margin:.65rem 0 .25rem">Pickup office id (mode 1)</label>
                     <input type="number" name="officeId" min="0" style="width:8rem;padding:.4rem" />
+                    @if (!_isCustomer)
+                    {
+                        <label style="display:block;margin:.65rem 0 .25rem">Phone</label>
+                        <input type="tel" name="phone_not_auth" required style="width:100%;max-width:22rem;padding:.45rem" />
+                        <label style="display:block;margin:.65rem 0 .25rem">Email (optional)</label>
+                        <input type="email" name="email_not_auth" style="width:100%;max-width:22rem;padding:.45rem" />
+                    }
                     <label style="display:block;margin:.65rem 0 .25rem">Purchase order</label>
                     <input type="text" name="buyerPoNumber" maxlength="64" style="width:100%;max-width:22rem;padding:.45rem" />
                     <label style="display:block;margin:.65rem 0 .25rem">Order note</label>
@@ -153,7 +162,7 @@
         </div>
     }
 
-    @if (!_isCustomer)
+    @if (!_hasShopper)
     {
         @if (_step is not "login_offer")
         {
@@ -240,6 +249,7 @@
 @code {
     private string _brand = "eParts Cart";
     private bool _isCustomer;
+    private bool _hasShopper;
     private StorefrontCartSummary _summary = new(0, 0m, "n/a", "");
     private IReadOnlyList<StorefrontCartLineDigest> _lines = [];
     private int _checkedCount;
@@ -263,14 +273,24 @@
         _brand = StorefrontIndustryHostResolver.ResolveBrandLabel(ctx.Request.Host.Host);
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
-        if (session.Kind != LegacySessionKind.Customer || session.UserId <= 0)
+        var shopper = session.Kind == LegacySessionKind.Customer && session.UserId > 0
+            ? new StorefrontShopper(session.UserId, 0, session.SessionId ?? "", false)
+            : await Guests.ResolveAsync(ctx, createIfMissing: true, ctx.RequestAborted);
+        if (!shopper.IsSignedIn)
+        {
+            Guests.ApplyGuestCookies(ctx.Response, shopper);
+        }
+
+        if (!shopper.CanShop)
         {
             _isCustomer = false;
+            _hasShopper = false;
             return;
         }
 
-        _isCustomer = true;
-        var result = await Dashboards.ListStorefrontCartAsync(session.UserId, 100, ctx.RequestAborted);
+        _isCustomer = shopper.IsSignedIn;
+        _hasShopper = true;
+        var result = await Dashboards.ListStorefrontCartAsync(shopper.UserId, 100, ctx.RequestAborted, shopper.SessionRecordId);
         _summary = result.Summary;
         _lines = result.Lines;
         _source = result.Source;

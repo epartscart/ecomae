@@ -655,6 +655,7 @@ builder.Services.AddSingleton<IStorefrontCartAddDryRun, StorefrontCartAddDryRun>
 builder.Services.AddScoped<EcomAE.Platform.Storefront.IStorefrontCartAddService, EcomAE.Platform.Storefront.StorefrontCartAddService>();
 builder.Services.AddScoped<EcomAE.Platform.Storefront.IStorefrontCartWriteService, EcomAE.Platform.Storefront.StorefrontCartWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Storefront.IStorefrontCheckoutWriteService, EcomAE.Platform.Storefront.StorefrontCheckoutWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Storefront.IStorefrontGuestSessionService, EcomAE.Platform.Storefront.StorefrontGuestSessionService>();
 builder.Services.AddScoped<EcomAE.Platform.Storefront.IStorefrontPaymentWriteService, EcomAE.Platform.Storefront.StorefrontPaymentWriteService>();
 builder.Services.AddHttpClient(nameof(EcomAE.Platform.Storefront.LaximoVinDecodeService));
 builder.Services.AddScoped<EcomAE.Platform.Storefront.ILaximoVinDecodeService, EcomAE.Platform.Storefront.LaximoVinDecodeService>();

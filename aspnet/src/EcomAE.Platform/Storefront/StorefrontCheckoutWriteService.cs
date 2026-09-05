@@ -6,8 +6,8 @@ using EcomAE.Platform.Erp;
 namespace EcomAE.Platform.Storefront;
 
 /// <summary>
-/// Live PHP <c>ajax_checkout_create.php</c> for signed-in customers.
-/// Guest cookie/session checkout stays PHP.
+/// Live PHP <c>ajax_checkout_create.php</c> for signed-in customers and guest
+/// <c>sessions.user_id=0</c> carts (phone_not_auth + checkout cookies).
 /// </summary>
 public interface IStorefrontCheckoutWriteService
 {
@@ -22,7 +22,10 @@ public sealed record StorefrontCheckoutWriteRequest(
     int OfficeId = 0,
     bool UsersAgreement = false,
     string? OrderMessage = null,
-    string? BuyerPoNumber = null);
+    string? BuyerPoNumber = null,
+    long SessionId = 0,
+    string? PhoneNotAuth = null,
+    string? EmailNotAuth = null);
 
 public sealed record StorefrontCheckoutWriteResult(
     bool Ok,
@@ -66,7 +69,8 @@ public sealed class StorefrontCheckoutWriteService : IStorefrontCheckoutWriteSer
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(request);
-        if (userId <= 0)
+        var sessionId = userId > 0 ? 0L : request.SessionId;
+        if (userId <= 0 && sessionId <= 0)
         {
             return Fail("auth", "Please log in or register to continue.");
         }
@@ -86,6 +90,21 @@ public sealed class StorefrontCheckoutWriteService : IStorefrontCheckoutWriteSer
             return Fail("office_required", "Choose a pickup office.");
         }
 
+        var phone = StorefrontGuestSessionService.NormalizeContact(request.PhoneNotAuth);
+        var email = StorefrontGuestSessionService.NormalizeContact(request.EmailNotAuth);
+        if (userId <= 0)
+        {
+            if (!StorefrontGuestSessionService.GuestPhoneHasDigits(phone))
+            {
+                return Fail("phone_required", "Enter a valid phone number to place a guest order.");
+            }
+
+            if (!StorefrontGuestSessionService.GuestEmailLooksValid(email))
+            {
+                return Fail("email_invalid", "Enter a valid email address or leave it blank.");
+            }
+        }
+
         if (!_connections.IsConfigured)
         {
             return Fail("db", "Cart database is not configured.");
@@ -93,16 +112,41 @@ public sealed class StorefrontCheckoutWriteService : IStorefrontCheckoutWriteSer
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
 
-        var trade = await ErpDb.StringAsync(
-            connection,
-            null,
-            ErpDb.Positional("SELECT `data_value` FROM `users_profiles` WHERE `user_id` = ? AND `data_key` = 'epc_trade_approval_status' LIMIT 1"),
-            cancellationToken,
-            userId);
-        if (!string.IsNullOrWhiteSpace(trade)
-            && !string.Equals(trade, "approved", StringComparison.OrdinalIgnoreCase))
+        if (userId > 0)
         {
-            return Fail("trade_not_approved", "Checkout is available after a manager approves your trade profile.");
+            var trade = await ErpDb.StringAsync(
+                connection,
+                null,
+                ErpDb.Positional("SELECT `data_value` FROM `users_profiles` WHERE `user_id` = ? AND `data_key` = 'epc_trade_approval_status' LIMIT 1"),
+                cancellationToken,
+                userId);
+            if (!string.IsNullOrWhiteSpace(trade)
+                && !string.Equals(trade, "approved", StringComparison.OrdinalIgnoreCase))
+            {
+                return Fail("trade_not_approved", "Checkout is available after a manager approves your trade profile.");
+            }
+        }
+        else if (!await GuestOrdersAllowedAsync(connection, cancellationToken).ConfigureAwait(false))
+        {
+            return Fail("guest_disabled", "Guest checkout is turned off. Please log in or register.");
+        }
+
+        if (userId <= 0)
+        {
+            var phoneRegexp = await TryRegFieldAsync(connection, "phone", cancellationToken).ConfigureAwait(false);
+            if (!StorefrontGuestSessionService.ContactMatchesRegexp(phone, phoneRegexp))
+            {
+                return Fail("phone_required", "Enter a valid phone number to place a guest order.");
+            }
+
+            if (email.Length > 0)
+            {
+                var emailRegexp = await TryRegFieldAsync(connection, "email", cancellationToken).ConfigureAwait(false);
+                if (!StorefrontGuestSessionService.ContactMatchesRegexp(email, emailRegexp))
+                {
+                    return Fail("email_invalid", "Enter a valid email address or leave it blank.");
+                }
+            }
         }
 
         var modeOk = await ErpDb.LongAsync(
@@ -120,9 +164,10 @@ public sealed class StorefrontCheckoutWriteService : IStorefrontCheckoutWriteSer
         var cartCount = await ErpDb.LongAsync(
             connection,
             null,
-            ErpDb.Positional("SELECT COUNT(*) FROM `shop_carts` WHERE `user_id` = ? AND `session_id` = 0 AND `checked_for_order` = 1"),
+            ErpDb.Positional("SELECT COUNT(*) FROM `shop_carts` WHERE `user_id` = ? AND `session_id` = ? AND `checked_for_order` = 1"),
             cancellationToken,
-            userId);
+            userId,
+            sessionId);
         if (cartCount <= 0)
         {
             return Fail("cart_empty", "No cart lines are checked for order.");
@@ -157,16 +202,18 @@ public sealed class StorefrontCheckoutWriteService : IStorefrontCheckoutWriteSer
 
             var howJson = JsonSerializer.Serialize(how);
             var time = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+            var phoneStored = userId > 0 ? "" : StorefrontGuestSessionService.HtmlEntities(phone);
+            var emailStored = userId > 0 ? "" : StorefrontGuestSessionService.HtmlEntities(email);
             await ErpDb.ExecuteAsync(
                 connection,
                 tx,
                 ErpDb.Positional("""
                     INSERT INTO `shop_orders`
                     (`user_id`, `session_id`, `time`, `successfully_created`, `status`, `paid`, `how_get`, `how_get_json`, `phone_not_auth`, `email_not_auth`)
-                    VALUES (?, 0, ?, 0, ?, 0, ?, ?, '', '')
+                    VALUES (?, ?, ?, 0, ?, 0, ?, ?, ?, ?)
                     """),
                 cancellationToken,
-                userId, time, orderStatus, request.HowGetMode, howJson);
+                userId, sessionId, time, orderStatus, request.HowGetMode, howJson, phoneStored, emailStored);
 
             var orderId = await ErpDb.LastInsertIdAsync(connection, tx, cancellationToken).ConfigureAwait(false);
             if (orderId <= 0)
@@ -183,9 +230,9 @@ public sealed class StorefrontCheckoutWriteService : IStorefrontCheckoutWriteSer
                        `t2_probability`, `t2_markup`, `t2_price_purchase`, `t2_office_id`,
                        `t2_storage_id`, `t2_product_json`, `t2_json_params`
                 FROM `shop_carts`
-                WHERE `user_id` = ? AND `session_id` = 0 AND `checked_for_order` = 1
+                WHERE `user_id` = ? AND `session_id` = ? AND `checked_for_order` = 1
                 """);
-            ErpDb.AddParameters(cartCmd, userId);
+            ErpDb.AddParameters(cartCmd, userId, sessionId);
             await using var reader = await cartCmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
             var lines = new List<CartLine>();
             while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
@@ -358,9 +405,9 @@ public sealed class StorefrontCheckoutWriteService : IStorefrontCheckoutWriteSer
                 await ErpDb.ExecuteAsync(
                     connection,
                     tx,
-                    ErpDb.Positional("DELETE FROM `shop_carts` WHERE `id` = ? AND `user_id` = ? AND `checked_for_order` = 1"),
+                    ErpDb.Positional("DELETE FROM `shop_carts` WHERE `id` = ? AND `user_id` = ? AND `session_id` = ? AND `checked_for_order` = 1"),
                     cancellationToken,
-                    line.Id, userId);
+                    line.Id, userId, sessionId);
             }
 
             if (firstOffice <= 0)
@@ -418,20 +465,23 @@ public sealed class StorefrontCheckoutWriteService : IStorefrontCheckoutWriteSer
                 cancellationToken,
                 orderId, time, userId);
 
-            var garageId = await ErpDb.LongAsync(
-                connection,
-                tx,
-                ErpDb.Positional("SELECT `id` FROM `shop_docpart_garage` WHERE `user_id` = ? AND `active` = 1 LIMIT 1"),
-                cancellationToken,
-                userId);
-            if (garageId > 0)
+            if (userId > 0)
             {
-                await ErpDb.ExecuteAsync(
+                var garageId = await ErpDb.LongAsync(
                     connection,
                     tx,
-                    ErpDb.Positional("INSERT INTO `shop_docpart_garage_orders` (`garage_id`, `order_id`) VALUES (?, ?)"),
+                    ErpDb.Positional("SELECT `id` FROM `shop_docpart_garage` WHERE `user_id` = ? AND `active` = 1 LIMIT 1"),
                     cancellationToken,
-                    garageId, orderId);
+                    userId);
+                if (garageId > 0)
+                {
+                    await ErpDb.ExecuteAsync(
+                        connection,
+                        tx,
+                        ErpDb.Positional("INSERT INTO `shop_docpart_garage_orders` (`garage_id`, `order_id`) VALUES (?, ?)"),
+                        cancellationToken,
+                        garageId, orderId);
+                }
             }
 
             await tx.CommitAsync(cancellationToken).ConfigureAwait(false);
@@ -447,6 +497,51 @@ public sealed class StorefrontCheckoutWriteService : IStorefrontCheckoutWriteSer
         {
             await tx.RollbackAsync(cancellationToken).ConfigureAwait(false);
             return Fail("checkout_failed", ex.Message);
+        }
+    }
+
+    private static async Task<bool> GuestOrdersAllowedAsync(
+        DbConnection connection,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var raw = await ErpDb.StringAsync(
+                connection,
+                null,
+                "SELECT `value` FROM `config_items` WHERE `name` = 'order_without_auth' LIMIT 1",
+                cancellationToken);
+            if (string.IsNullOrWhiteSpace(raw))
+            {
+                return true;
+            }
+
+            raw = raw.Trim();
+            return raw is not "0" and not "false" and not "no" and not "off";
+        }
+        catch (DbException)
+        {
+            return true;
+        }
+    }
+
+    private static async Task<string?> TryRegFieldAsync(
+        DbConnection connection,
+        string name,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            return await ErpDb.StringAsync(
+                connection,
+                null,
+                ErpDb.Positional("SELECT `regexp` FROM `reg_fields` WHERE `name` = ? LIMIT 1"),
+                cancellationToken,
+                name);
+        }
+        catch (DbException)
+        {
+            return null;
         }
     }
 

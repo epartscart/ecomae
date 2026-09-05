@@ -3995,13 +3995,21 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
-    public async Task<StorefrontCartListResult> ListStorefrontCartAsync(int userId, int limit, CancellationToken cancellationToken = default)
+    public async Task<StorefrontCartListResult> ListStorefrontCartAsync(int userId, int limit, CancellationToken cancellationToken = default, long sessionId = 0)
     {
         var safeLimit = Math.Clamp(limit, 1, 200);
         var emptySummary = new StorefrontCartSummary(0, 0m, "migration", "TenantRegistry DB is not configured.");
-        if (userId <= 0)
+        if (userId > 0)
+        {
+            sessionId = 0;
+        }
+        else if (sessionId <= 0)
         {
             return new(0, new(0, 0m, "rejected", "Valid customer user id is required."), [], 0, "rejected", "Valid customer user id is required.");
+        }
+        else
+        {
+            userId = 0;
         }
 
         if (!_connections.IsConfigured)
@@ -4018,6 +4026,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             {
                 summaryCmd.CommandText = LegacySurfaceDashboardSql.SelectStorefrontCartSummary;
                 AddParameter(summaryCmd, "@userId", userId);
+                AddParameter(summaryCmd, "@sessionId", sessionId);
                 await using var summaryReader = await summaryCmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
                 if (await summaryReader.ReadAsync(cancellationToken).ConfigureAwait(false))
                 {
@@ -4029,6 +4038,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             await using var command = connection.CreateCommand();
             command.CommandText = LegacySurfaceDashboardSql.SelectStorefrontCartLines;
             AddParameter(command, "@userId", userId);
+            AddParameter(command, "@sessionId", sessionId);
             AddParameter(command, "@limit", safeLimit);
             var rows = new List<StorefrontCartLineDigest>();
             await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);

@@ -33,6 +33,11 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(guest.Ok);
         Assert.Equal("auth", guest.Code);
 
+        var guestSession = await new StorefrontCartWriteService(new UnconfiguredConnections())
+            .ChangeCountNeedAsync(0, 10, 2, sessionId: 9);
+        Assert.False(guestSession.Ok);
+        Assert.Equal("db", guestSession.Code);
+
         var missingDb = await new StorefrontCartWriteService(new UnconfiguredConnections())
             .ChangeCountNeedAsync(1, 10, 2);
         Assert.False(missingDb.Ok);
@@ -144,6 +149,21 @@ public sealed class LiveWriteServiceValidationTests
             .CreateAsync(0, new StorefrontCheckoutWriteRequest(1, 1, true));
         Assert.False(guest.Ok);
         Assert.Equal("auth", guest.Code);
+
+        var guestPhone = await new StorefrontCheckoutWriteService(new UnconfiguredConnections())
+            .CreateAsync(0, new StorefrontCheckoutWriteRequest(1, 1, true, SessionId: 9));
+        Assert.False(guestPhone.Ok);
+        Assert.Equal("phone_required", guestPhone.Code);
+
+        var guestEmail = await new StorefrontCheckoutWriteService(new ConfiguredNeverOpened())
+            .CreateAsync(0, new StorefrontCheckoutWriteRequest(1, 1, true, SessionId: 9, PhoneNotAuth: "+971501234567", EmailNotAuth: "not-an-email"));
+        Assert.False(guestEmail.Ok);
+        Assert.Equal("email_invalid", guestEmail.Code);
+
+        var guestDb = await new StorefrontCheckoutWriteService(new UnconfiguredConnections())
+            .CreateAsync(0, new StorefrontCheckoutWriteRequest(1, 1, true, SessionId: 9, PhoneNotAuth: "+971501234567"));
+        Assert.False(guestDb.Ok);
+        Assert.Equal("db", guestDb.Code);
 
         var missingDb = await new StorefrontCheckoutWriteService(new UnconfiguredConnections())
             .CreateAsync(1, new StorefrontCheckoutWriteRequest(1, 1, true));

@@ -2323,20 +2323,19 @@ public static class LegacySurfaceDashboardSql
         """;
 
     /// <summary>
-    /// Batch 4 authenticated customer cart KPI (mirrors PHP ajax_get_cart_info).
-    /// Guest carts (<c>session_id</c>) stay PHP-only for this slice.
+    /// Batch 4 cart KPI (mirrors PHP ajax_get_cart_info).
+    /// Signed-in lines use <c>session_id=0</c>; guests use <c>user_id=0</c> + session id.
     /// </summary>
     public const string SelectStorefrontCartSummary = """
         SELECT COUNT(`id`) AS `count`,
                IFNULL(SUM(`price` * `count_need`), 0) AS `sum`
         FROM `shop_carts`
         WHERE `user_id` = @userId
-          AND `session_id` = 0
+          AND `session_id` = @sessionId
         """;
 
     /// <summary>
-    /// Batch 4 authenticated customer cart lines (read-only subset of cart.php).
-    /// Qty/check/delete/add and checkout remain PHP.
+    /// Batch 4 cart lines (read-only subset of cart.php).
     /// </summary>
     public const string SelectStorefrontCartLines = """
         SELECT `id`, IFNULL(`price`, 0) AS price, IFNULL(`count_need`, 0) AS count_need,
@@ -2347,7 +2346,7 @@ public static class LegacySurfaceDashboardSql
                IFNULL(`t2_min_order`, 0) AS min_order, IFNULL(`t2_exist`, 0) AS t2_exist
         FROM `shop_carts`
         WHERE `user_id` = @userId
-          AND `session_id` = 0
+          AND `session_id` = @sessionId
         ORDER BY `id` DESC
         LIMIT @limit
         """;

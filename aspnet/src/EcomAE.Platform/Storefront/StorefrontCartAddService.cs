@@ -15,6 +15,12 @@ public interface IStorefrontCartAddService
         int userId,
         StorefrontCartAddRequest request,
         CancellationToken cancellationToken = default);
+
+    Task<StorefrontCartAddResult> AddAsync(
+        int userId,
+        StorefrontCartAddRequest request,
+        long sessionId,
+        CancellationToken cancellationToken = default);
 }
 
 public sealed record StorefrontCartAddResult(
@@ -57,9 +63,16 @@ public sealed class StorefrontCartAddService : IStorefrontCartAddService
         _connections = connections;
     }
 
+    public Task<StorefrontCartAddResult> AddAsync(
+        int userId,
+        StorefrontCartAddRequest request,
+        CancellationToken cancellationToken = default)
+        => AddAsync(userId, request, 0, cancellationToken);
+
     public async Task<StorefrontCartAddResult> AddAsync(
         int userId,
         StorefrontCartAddRequest request,
+        long sessionId,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(request);
@@ -72,9 +85,17 @@ public sealed class StorefrontCartAddService : IStorefrontCartAddService
             price = request.Price
         };
 
-        if (userId <= 0)
+        if (userId > 0)
+        {
+            sessionId = 0;
+        }
+        else if (sessionId <= 0)
         {
             return Fail("unauthorized", "auth", "Please log in or register to continue.", intended);
+        }
+        else
+        {
+            userId = 0;
         }
 
         if (!_connections.IsConfigured)
@@ -136,8 +157,6 @@ public sealed class StorefrontCartAddService : IStorefrontCartAddService
         var officeId = request.OfficeId;
         var storageId = request.StorageId;
         var jsonParams = request.JsonParams ?? string.Empty;
-        var sessionId = 0; // authenticated customers use session_id=0 (PHP twin)
-
         await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
 
         // Duplicate guard (non-used parts) — PHP already / code already.

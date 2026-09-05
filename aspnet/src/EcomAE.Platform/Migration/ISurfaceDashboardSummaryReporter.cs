@@ -352,8 +352,8 @@ public interface ISurfaceDashboardSummaryReporter
         CancellationToken cancellationToken = default,
         bool includeCrossbase = false);
 
-    /// <summary>Batch 4: read-only authenticated customer cart (qty/checkout writes remain PHP).</summary>
-    Task<StorefrontCartListResult> ListStorefrontCartAsync(int userId, int limit, CancellationToken cancellationToken = default);
+    /// <summary>Authenticated cart (<c>session_id=0</c>) or guest cart when <paramref name="sessionId"/> &gt; 0.</summary>
+    Task<StorefrontCartListResult> ListStorefrontCartAsync(int userId, int limit, CancellationToken cancellationToken = default, long sessionId = 0);
 
     /// <summary>Customer quote requests (PHP <c>my_quotes.php</c>); submit/accept remain PHP.</summary>
     Task<StorefrontQuoteListResult> ListStorefrontQuotesAsync(int userId, int limit, CancellationToken cancellationToken = default);

@@ -1256,7 +1256,7 @@ public static class SurfacePayloadContractCatalog
         new("storefront", "garage delete dry-run", "/storefront/garage/delete", "write-dry-run-gated", "POST dry-run for ajax_operations_cars.php action=delete_car; writes=0; confirm_writes refused; PHP authoritative."),
         new("storefront", "garage check-car write", "/storefront/garage/check-car", "write-live-gated", "POST PHP ajax_operations_cars.php action=check_car; confirmWrites=true toggles shop_docpart_garage_orders."),
         new("storefront", "profile password write", "/storefront/profile/change-password", "write-live-gated", "POST PHP users/editform.php password; confirmWrites=true writes md5(password+secret_succession). Email/phone stay Classic."),
-        new("storefront", "checkout create dry-run", "/storefront/checkout/create", "write-live-gated", "POST PHP ajax_checkout_create.php; confirmWrites=true writes ASP.NET for signed-in customers; guest stays PHP."),
+        new("storefront", "checkout create dry-run", "/storefront/checkout/create", "write-live-gated", "POST PHP ajax_checkout_create.php; confirmWrites=true writes ASP.NET for signed-in and guest session carts (phone_not_auth + created_order cookie). Staff email stays PHP."),
         new("storefront", "payment create-operation", "/storefront/payment/create-operation", "write-live-gated", "POST PHP ajax_create_operation; confirmWrites=true writes ASP.NET."),
         new("storefront", "payment notify", "/storefront/payment/notify", "write-live-gated", "POST PHP epc_demo notification + protocol/pay_for_order; confirmWrites=true writes ASP.NET."),
         new("storefront", "Laximo VIN decode", "/storefront/vin/decode", "write-live-gated", "POST PHP Guayaquil FindVehicleByVIN; live SOAP on ASP.NET."),

@@ -248,28 +248,31 @@ public sealed class StorefrontModule : ISurfaceModule
             HttpContext context,
             int? limit,
             ILegacySessionValidator validator,
+            IStorefrontGuestSessionService guests,
             ISurfaceDashboardSummaryReporter dashboards,
             CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateCustomerAsync(context, cancellationToken);
-            if (session.Kind != LegacySessionKind.Customer || session.UserId <= 0)
+            var shopper = await ResolveShopperAsync(context, session, guests, createIfMissing: false, cancellationToken);
+            if (!shopper.CanShop)
             {
                 return Unauthorized("Please log in or register to continue.");
             }
 
-            var result = await dashboards.ListStorefrontCartAsync(session.UserId, limit ?? 50, cancellationToken);
+            var result = await dashboards.ListStorefrontCartAsync(shopper.UserId, limit ?? 50, cancellationToken, shopper.SessionRecordId);
             return Results.Ok(new
             {
                 ok = true,
                 surface = "storefront",
                 user_id = result.UserId,
+                session_id = shopper.SessionRecordId,
                 summary = result.Summary,
                 lines = result.Lines,
                 count = result.Count,
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only authenticated shop_carts digest. Qty/guest cart/checkout writes remain PHP /shop/cart."
+                note = "Read-only shop_carts digest for signed-in customers and guest session carts."
             });
         });
 
@@ -882,16 +885,18 @@ public sealed class StorefrontModule : ISurfaceModule
             HttpContext context,
             int? limit,
             ILegacySessionValidator validator,
+            IStorefrontGuestSessionService guests,
             ISurfaceDashboardSummaryReporter dashboards,
             CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateAsync(context, cancellationToken);
-            if (session.Kind != LegacySessionKind.Customer || session.UserId <= 0)
+            var shopper = await ResolveShopperAsync(context, session, guests, createIfMissing: false, cancellationToken);
+            if (!shopper.CanShop)
             {
                 return Unauthorized("Customer session required for storefront checkout digest.");
             }
 
-            var result = await dashboards.ListStorefrontCartAsync(session.UserId, limit ?? 50, cancellationToken);
+            var result = await dashboards.ListStorefrontCartAsync(shopper.UserId, limit ?? 50, cancellationToken, shopper.SessionRecordId);
             var checkedCount = result.Lines.Count(l => l.CheckedForOrder);
             var readiness = result.Summary.Count > 0
                 ? (checkedCount > 0 ? "ready-for-php-how-get" : "cart-has-lines")
@@ -921,12 +926,14 @@ public sealed class StorefrontModule : ISurfaceModule
         endpoints.MapPost(EcomAeRoutes.StorefrontCartChangeCountNeed, async (
             HttpContext context,
             ILegacySessionValidator validator,
+            IStorefrontGuestSessionService guests,
             IStorefrontCartChangeCountNeedDryRun dryRun,
             IStorefrontCartWriteService writes,
             CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateCustomerAsync(context, cancellationToken);
-            if (session.Kind != LegacySessionKind.Customer || session.UserId <= 0)
+            var shopper = await ResolveShopperAsync(context, session, guests, createIfMissing: false, cancellationToken);
+            if (!shopper.CanShop)
             {
                 return LiveWriteFormBinder.LoginRedirect(context, "/storefront/login?returnUrl=/storefront/cart-app", "Please log in or register to continue.");
             }
@@ -945,7 +952,7 @@ public sealed class StorefrontModule : ISurfaceModule
 
             if (confirm)
             {
-                var written = await writes.ChangeCountNeedAsync(session.UserId, id, qty, cancellationToken);
+                var written = await writes.ChangeCountNeedAsync(shopper.UserId, id, qty, cancellationToken, shopper.SessionRecordId);
                 var status = written.Code is "auth" or "unauthorized"
                     ? StatusCodes.Status401Unauthorized
                     : StatusCodes.Status400BadRequest;
@@ -968,12 +975,14 @@ public sealed class StorefrontModule : ISurfaceModule
         endpoints.MapPost(EcomAeRoutes.StorefrontCartCheckForOrder, async (
             HttpContext context,
             ILegacySessionValidator validator,
+            IStorefrontGuestSessionService guests,
             IStorefrontCartCheckForOrderDryRun dryRun,
             IStorefrontCartWriteService writes,
             CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateCustomerAsync(context, cancellationToken);
-            if (session.Kind != LegacySessionKind.Customer || session.UserId <= 0)
+            var shopper = await ResolveShopperAsync(context, session, guests, createIfMissing: false, cancellationToken);
+            if (!shopper.CanShop)
             {
                 return LiveWriteFormBinder.LoginRedirect(context, "/storefront/login?returnUrl=/storefront/cart-app", "Please log in or register to continue.");
             }
@@ -1001,14 +1010,14 @@ public sealed class StorefrontModule : ISurfaceModule
                 StorefrontCartWriteResult written;
                 if (id > 0)
                 {
-                    written = await writes.CheckForOrderAsync(session.UserId, id, checkedForOrder != 0, cancellationToken);
+                    written = await writes.CheckForOrderAsync(shopper.UserId, id, checkedForOrder != 0, cancellationToken, shopper.SessionRecordId);
                 }
                 else
                 {
                     written = new(false, "error", "invalid", "Cart line is required.", 0);
                     foreach (var cartId in records.Where(x => x > 0))
                     {
-                        written = await writes.CheckForOrderAsync(session.UserId, cartId, checkedForOrder != 0, cancellationToken);
+                        written = await writes.CheckForOrderAsync(shopper.UserId, cartId, checkedForOrder != 0, cancellationToken, shopper.SessionRecordId);
                         if (!written.Ok)
                         {
                             break;
@@ -1039,12 +1048,14 @@ public sealed class StorefrontModule : ISurfaceModule
         endpoints.MapPost(EcomAeRoutes.StorefrontCartDelete, async (
             HttpContext context,
             ILegacySessionValidator validator,
+            IStorefrontGuestSessionService guests,
             IStorefrontCartDeleteDryRun dryRun,
             IStorefrontCartWriteService writes,
             CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateCustomerAsync(context, cancellationToken);
-            if (session.Kind != LegacySessionKind.Customer || session.UserId <= 0)
+            var shopper = await ResolveShopperAsync(context, session, guests, createIfMissing: false, cancellationToken);
+            if (!shopper.CanShop)
             {
                 return LiveWriteFormBinder.LoginRedirect(context, "/storefront/login?returnUrl=/storefront/cart-app", "Please log in or register to continue.");
             }
@@ -1071,7 +1082,7 @@ public sealed class StorefrontModule : ISurfaceModule
 
             if (confirm)
             {
-                var written = await writes.DeleteAsync(session.UserId, ids, cancellationToken);
+                var written = await writes.DeleteAsync(shopper.UserId, ids, cancellationToken, shopper.SessionRecordId);
                 var status = written.Code is "auth" or "unauthorized"
                     ? StatusCodes.Status401Unauthorized
                     : StatusCodes.Status400BadRequest;
@@ -1095,15 +1106,27 @@ public sealed class StorefrontModule : ISurfaceModule
             HttpContext context,
             StorefrontCartAddBody? body,
             ILegacySessionValidator validator,
+            IStorefrontGuestSessionService guests,
+            IStorefrontPriceAccess priceAccess,
             IStorefrontCartAddDryRun dryRun,
             IStorefrontCartAddService cartAdd,
             CancellationToken cancellationToken) =>
         {
             // PHP DP_User::getUserId — customer cookies even if admin cookies also present.
             var session = await validator.ValidateCustomerAsync(context, cancellationToken);
-            if (session.Kind != LegacySessionKind.Customer || session.UserId <= 0)
+            var shopper = await ResolveShopperAsync(context, session, guests, createIfMissing: true, cancellationToken);
+            if (!shopper.CanShop)
             {
                 return Unauthorized("Please log in or register to continue.");
+            }
+
+            if (!shopper.IsSignedIn)
+            {
+                var access = await priceAccess.ResolveAsync(context, cancellationToken);
+                if (!access.PricesVisible)
+                {
+                    return Unauthorized("Please log in or register to continue.");
+                }
             }
 
             body ??= new StorefrontCartAddBody(2, null, null, 0, 0, 0, 0, false);
@@ -1132,13 +1155,18 @@ public sealed class StorefrontModule : ISurfaceModule
             // Live write path (PHP ajax_add_to_basket type-2). Dry-run only when confirmWrites=false.
             if (body.ConfirmWrites)
             {
-                var written = await cartAdd.AddAsync(session.UserId, request, cancellationToken);
+                var written = await cartAdd.AddAsync(shopper.UserId, request, shopper.SessionRecordId, cancellationToken);
                 if (!written.Ok)
                 {
                     var status = written.Code is "auth" or "unauthorized"
                         ? StatusCodes.Status401Unauthorized
                         : StatusCodes.Status400BadRequest;
                     return Results.Json(written.ToPayload(SessionPayload(session)), statusCode: status);
+                }
+
+                if (!shopper.IsSignedIn && written.CartRecordId is > 0)
+                {
+                    guests.AppendProductsInCartCookie(context.Request, context.Response, written.CartRecordId.Value);
                 }
 
                 return Results.Ok(written.ToPayload(SessionPayload(session)));
@@ -1577,12 +1605,14 @@ public sealed class StorefrontModule : ISurfaceModule
         endpoints.MapPost(EcomAeRoutes.StorefrontCheckoutCreate, async (
             HttpContext context,
             ILegacySessionValidator validator,
+            IStorefrontGuestSessionService guests,
             IStorefrontCheckoutCreateDryRun dryRun,
             IStorefrontCheckoutWriteService writes,
             CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateAsync(context, cancellationToken);
-            if (session.Kind != LegacySessionKind.Customer || session.UserId <= 0)
+            var shopper = await ResolveShopperAsync(context, session, guests, createIfMissing: true, cancellationToken);
+            if (!shopper.CanShop)
             {
                 return LiveWriteFormBinder.LoginRedirect(context, "/storefront/login?returnUrl=/storefront/checkout-app", "Customer session required for checkout create.");
             }
@@ -1594,6 +1624,8 @@ public sealed class StorefrontModule : ISurfaceModule
             var orderMessage = body.OrderMessage;
             var buyerPo = body.BuyerPoNumber;
             var agreement = body.UsersAgreement;
+            var phone = body.PhoneNotAuth;
+            var email = body.EmailNotAuth;
             if (context.Request.HasFormContentType)
             {
                 var form = await context.Request.ReadFormAsync(cancellationToken);
@@ -1603,16 +1635,25 @@ public sealed class StorefrontModule : ISurfaceModule
                 agreement = LiveWriteFormBinder.Flag(form, "usersAgreement", "users_agreement");
                 orderMessage = LiveWriteFormBinder.Text(form, "orderMessage", "order_message");
                 buyerPo = LiveWriteFormBinder.Text(form, "buyerPoNumber", "buyer_po_number");
+                phone = LiveWriteFormBinder.Text(form, "phoneNotAuth", "phone_not_auth", "phone");
+                email = LiveWriteFormBinder.Text(form, "emailNotAuth", "email_not_auth", "email");
             }
 
             if (confirm)
             {
                 var written = await writes.CreateAsync(
-                    session.UserId,
-                    new StorefrontCheckoutWriteRequest(howGet, officeId, agreement, orderMessage, buyerPo),
+                    shopper.UserId,
+                    new StorefrontCheckoutWriteRequest(howGet, officeId, agreement, orderMessage, buyerPo, shopper.SessionRecordId, phone, email),
                     cancellationToken);
+                if (written.Ok && !shopper.IsSignedIn)
+                {
+                    guests.ApplyCheckoutCookies(context.Response, written.OrderId);
+                }
+
                 var dest = written.Ok && written.OrderId > 0
-                    ? "/storefront/orders-app?order_id=" + written.OrderId.ToString(CultureInfo.InvariantCulture)
+                    ? (shopper.IsSignedIn
+                        ? "/storefront/orders-app?order_id=" + written.OrderId.ToString(CultureInfo.InvariantCulture)
+                        : "/storefront/checkout-app?step=confirm&order_id=" + written.OrderId.ToString(CultureInfo.InvariantCulture))
                     : "/storefront/checkout-app?step=confirm";
                 return LiveWriteFormBinder.Complete(
                     context,
@@ -2710,6 +2751,23 @@ public sealed class StorefrontModule : ISurfaceModule
             item.StorageId,
             item.JsonParams,
             item.CheckHash);
+    }
+
+    private static async Task<StorefrontShopper> ResolveShopperAsync(
+        HttpContext context,
+        LegacySessionContext session,
+        IStorefrontGuestSessionService guests,
+        bool createIfMissing,
+        CancellationToken cancellationToken)
+    {
+        if (session.Kind == LegacySessionKind.Customer && session.UserId > 0)
+        {
+            return new StorefrontShopper(session.UserId, 0, session.SessionId ?? string.Empty, false);
+        }
+
+        var shopper = await guests.ResolveAsync(context, createIfMissing, cancellationToken).ConfigureAwait(false);
+        guests.ApplyGuestCookies(context.Response, shopper);
+        return shopper;
     }
 
     private static IResult Unauthorized(string message) => Results.Json(
