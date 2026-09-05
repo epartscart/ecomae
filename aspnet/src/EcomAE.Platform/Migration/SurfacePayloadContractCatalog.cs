@@ -1392,7 +1392,7 @@ public static class SurfacePayloadContractCatalog
         new("erp", "ins_delete dry-run", "/erp/ajax/ins-delete", "write-dry-run-gated", "POST dry-run for PHP ins_delete; writes=0; confirm_writes refused; PHP authoritative."),
         new("erp", "ins_doc_add dry-run", "/erp/ajax/ins-doc-add", "write-dry-run-gated", "POST dry-run for PHP ins_doc_add; writes=0; confirm_writes refused; PHP authoritative."),
         new("erp", "ins_doc_delete", "/erp/ajax/ins-doc-delete", "write-live-gated", "POST PHP epc_ins_doc_delete; confirmWrites=true writes ASP.NET; doc add stays PHP."),
-        new("erp", "ins_claim_add dry-run", "/erp/ajax/ins-claim-add", "write-dry-run-gated", "POST dry-run for PHP ins_claim_add; writes=0; confirm_writes refused; PHP authoritative."),
+        new("erp", "ins_claim_add", "/erp/ajax/ins-claim-add", "write-live-gated", "POST PHP epc_ins_claim_save via ins_claim_add; confirmWrites=true writes ASP.NET; schema ensure stays PHP."),
         new("erp", "fin_periods_generate dry-run", "/erp/ajax/fin-periods-generate", "write-dry-run-gated", "POST dry-run for PHP fin_periods_generate; writes=0; confirm_writes refused; PHP authoritative."),
         new("erp", "fin_fx_revalue dry-run", "/erp/ajax/fin-fx-revalue", "write-dry-run-gated", "POST dry-run for PHP fin_fx_revalue; writes=0; confirm_writes refused; PHP authoritative."),
         new("erp", "fin_alloc_save dry-run", "/erp/ajax/fin-alloc-save", "write-dry-run-gated", "POST dry-run for PHP fin_alloc_save; writes=0; confirm_writes refused; PHP authoritative."),

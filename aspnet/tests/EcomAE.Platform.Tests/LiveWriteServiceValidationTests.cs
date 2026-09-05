@@ -883,6 +883,16 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(insDb.Succeeded);
         Assert.Equal("db", insDb.Code);
 
+        var insAddInvalid = await new ErpInsClaimAddWriteService(new ConfiguredNeverOpened())
+            .SaveAsync(-1, 0, "CL-1", null, null, null, null, 0, 0, null, null, null);
+        Assert.False(insAddInvalid.Succeeded);
+        Assert.Equal("invalid", insAddInvalid.Code);
+
+        var insAddDb = await new ErpInsClaimAddWriteService(new UnconfiguredConnections())
+            .SaveAsync(0, 3, "CL-1", "2026-09-04", null, null, "loss", 10, 0, null, "notified", null);
+        Assert.False(insAddDb.Succeeded);
+        Assert.Equal("db", insAddDb.Code);
+
         var vatInvalid = await new ErpBosVatRefundStatusWriteService(new ConfiguredNeverOpened())
             .SetStatusAsync(9, "nope");
         Assert.False(vatInvalid.Succeeded);
