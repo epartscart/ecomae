@@ -953,6 +953,16 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(oblDb.Succeeded);
         Assert.Equal("db", oblDb.Code);
 
+        var leaveReqInvalid = await new ErpHrLeaveRequestWriteService(new ConfiguredNeverOpened())
+            .RequestAsync(0, "annual", 2, null, null);
+        Assert.False(leaveReqInvalid.Succeeded);
+        Assert.Equal("invalid", leaveReqInvalid.Code);
+
+        var leaveReqDb = await new ErpHrLeaveRequestWriteService(new UnconfiguredConnections())
+            .RequestAsync(9, "annual", 2, "2026-09-04", "2026-09-08");
+        Assert.False(leaveReqDb.Succeeded);
+        Assert.Equal("db", leaveReqDb.Code);
+
         var leaveInvalid = await new ErpHrStatusWriteService(new ConfiguredNeverOpened())
             .SetLeaveStatusAsync(0, "approved");
         Assert.False(leaveInvalid.Succeeded);
