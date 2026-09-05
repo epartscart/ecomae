@@ -873,6 +873,23 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(waveDb.Succeeded);
         Assert.Equal("db", waveDb.Code);
 
+        var receiveItemInvalid = await new ErpWmsReceiveWriteService(new ConfiguredNeverOpened())
+            .ReceiveAsync("", 10, 1, 2, null, null, 0);
+        Assert.False(receiveItemInvalid.Succeeded);
+        Assert.Equal("invalid", receiveItemInvalid.Code);
+        Assert.Equal("Item is required", receiveItemInvalid.Message);
+
+        var receiveQtyInvalid = await new ErpWmsReceiveWriteService(new ConfiguredNeverOpened())
+            .ReceiveAsync("WIDGET", 0, 1, 2, null, null, 0);
+        Assert.False(receiveQtyInvalid.Succeeded);
+        Assert.Equal("invalid", receiveQtyInvalid.Code);
+        Assert.Equal("qty must be positive.", receiveQtyInvalid.Message);
+
+        var receiveDb = await new ErpWmsReceiveWriteService(new UnconfiguredConnections())
+            .ReceiveAsync("WIDGET", 10, 1, 2, "ASN-1", "LP-TEST", 0);
+        Assert.False(receiveDb.Succeeded);
+        Assert.Equal("db", receiveDb.Code);
+
         var insInvalid = await new ErpInsClaimStatusWriteService(new ConfiguredNeverOpened())
             .SetStatusAsync(9, "nope");
         Assert.False(insInvalid.Succeeded);

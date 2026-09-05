@@ -1806,14 +1806,54 @@ public sealed class ErpModule : ISurfaceModule
             return Results.Ok(dryRun.Evaluate(new ErpContractSaveRequest(body.Code, body.Title, body.Id, body.ConfirmWrites)).ToPayload(SessionPayload(session)));
         });
 
-        endpoints.MapPost(EcomAeRoutes.ErpWmsReceive, async (HttpContext context, ErpWmsReceiveBody? body, ILegacySessionValidator validator, IErpWmsReceiveDryRun dryRun, CancellationToken cancellationToken) =>
+        endpoints.MapPost(EcomAeRoutes.ErpWmsReceive, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IErpWmsReceiveDryRun dryRun,
+            IErpWmsReceiveWriteService writes,
+            CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateAsync(context, cancellationToken);
             if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
-                return Unauthorized("Admin ERP capability required for WMS receive dry-run.");
-            body ??= new ErpWmsReceiveBody(null, 0, 0, 0, false);
-            return Results.Ok(dryRun.Evaluate(new ErpWmsReceiveRequest(body.Item, body.Qty, body.ReceiveLocationId, body.PutawayLocationId, body.ConfirmWrites)).ToPayload(SessionPayload(session)));
-        });
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/cp/warehouse-wms-app", "Admin ERP capability required for WMS receive.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpWmsReceiveBody>(context, cancellationToken) ?? new(null, 0, 0, 0, false);
+            var item = body.Item;
+            var qty = body.Qty;
+            var receiveLocationId = body.ReceiveLocationId;
+            var putawayLocationId = body.PutawayLocationId;
+            var reference = body.Reference;
+            var lpCode = body.LpCode;
+            var companyId = body.CompanyId;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                item = LiveWriteFormBinder.Text(form, "item");
+                qty = LiveWriteFormBinder.Dec(form, "qty");
+                receiveLocationId = LiveWriteFormBinder.Long(form, "receive_location_id", "receiveLocationId");
+                putawayLocationId = LiveWriteFormBinder.Long(form, "putaway_location_id", "putawayLocationId");
+                reference = LiveWriteFormBinder.Text(form, "reference");
+                lpCode = LiveWriteFormBinder.Text(form, "lp_code", "lpCode");
+                companyId = LiveWriteFormBinder.Long(form, "company_id", "companyId", "company");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(dryRun.Evaluate(new ErpWmsReceiveRequest(item, qty, receiveLocationId, putawayLocationId, false, reference, lpCode, companyId)).ToPayload(SessionPayload(session)));
+            }
+
+            var written = await writes.ReceiveAsync(item, qty, receiveLocationId, putawayLocationId, reference, lpCode, companyId, cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/cp/warehouse-wms-app",
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+        }).DisableAntiforgery();
 
         endpoints.MapPost(EcomAeRoutes.ErpWmsLocationSave, async (HttpContext context, ErpWmsLocationSaveBody? body, ILegacySessionValidator validator, IErpWmsLocationSaveDryRun dryRun, CancellationToken cancellationToken) =>
         {
@@ -5225,7 +5265,15 @@ public sealed class ErpModule : ISurfaceModule
     private sealed record ErpMarketingCreateBody(string? Name, bool ConfirmWrites = false);
     private sealed record ErpSubscriptionSaveBody(string? Code, string? Customer, long Id = 0, bool ConfirmWrites = false);
     private sealed record ErpContractSaveBody(string? Code, string? Title, long Id = 0, bool ConfirmWrites = false);
-    private sealed record ErpWmsReceiveBody(string? Item, decimal Qty, long ReceiveLocationId = 0, long PutawayLocationId = 0, bool ConfirmWrites = false);
+    private sealed record ErpWmsReceiveBody(
+        string? Item,
+        decimal Qty,
+        long ReceiveLocationId = 0,
+        long PutawayLocationId = 0,
+        bool ConfirmWrites = false,
+        string? Reference = null,
+        string? LpCode = null,
+        long CompanyId = 0);
     private sealed record ErpWmsLocationSaveBody(string? Code, long Id = 0, bool ConfirmWrites = false);
     private sealed record ErpCollectionsCaseSaveBody(long CustomerId = 0, long Id = 0, bool ConfirmWrites = false);
     private sealed record ErpProcReqSaveBody(string? Requester, long Id = 0, bool ConfirmWrites = false);
