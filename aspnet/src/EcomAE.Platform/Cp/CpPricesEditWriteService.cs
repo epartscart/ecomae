@@ -4,7 +4,7 @@ using EcomAE.Platform.Erp;
 
 namespace EcomAE.Platform.Cp;
 
-/// <summary>Live PHP <c>prices_edit/ajax_operations.php</c> add/save/del twins. Table list and del_search stay PHP.</summary>
+/// <summary>Live PHP <c>prices_edit/ajax_operations.php</c> add/save/del/search-delete twins. Table list stays PHP.</summary>
 public interface ICpPricesEditWriteService
 {
     Task<ErpSimpleWriteResult> AddAsync(
@@ -33,6 +33,15 @@ public interface ICpPricesEditWriteService
         CancellationToken cancellationToken = default);
 
     Task<ErpSimpleWriteResult> DeleteAsync(long id, CancellationToken cancellationToken = default);
+
+    Task<ErpSimpleWriteResult> DeleteSearchAsync(
+        long priceId,
+        string? article,
+        string? manufacturer,
+        bool noArticle,
+        bool noManufacturer,
+        string? searchText,
+        CancellationToken cancellationToken = default);
 }
 
 public sealed class CpPricesEditWriteService : ICpPricesEditWriteService
@@ -139,6 +148,124 @@ public sealed class CpPricesEditWriteService : ICpPricesEditWriteService
             cancellationToken,
             id);
         return ErpSimpleWriteResult.Ok("Price row deleted.", id);
+    }
+
+    public async Task<ErpSimpleWriteResult> DeleteSearchAsync(
+        long priceId,
+        string? article,
+        string? manufacturer,
+        bool noArticle,
+        bool noManufacturer,
+        string? searchText,
+        CancellationToken cancellationToken = default)
+    {
+        var art = CleanArticle(article);
+        var mfr = CleanBrand(manufacturer);
+        var tokens = SearchTokens(searchText);
+        if (priceId <= 0 && art.Length == 0 && mfr.Length == 0 && !noArticle && !noManufacturer && tokens.Count == 0)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "A price list, article, manufacturer, empty-field flag, or search text is required.");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return ErpSimpleWriteResult.Fail("db", "TenantRegistry DB is not configured.");
+        }
+
+        var sql = new StringBuilder("DELETE FROM `shop_docpart_prices_data` WHERE 1=1");
+        var args = new List<object?>();
+        if (priceId > 0)
+        {
+            sql.Append(" AND `price_id` = ?");
+            args.Add(priceId);
+        }
+
+        if (art.Length > 0)
+        {
+            sql.Append(" AND `article` LIKE ?");
+            args.Add(art);
+        }
+
+        if (mfr.Length > 0)
+        {
+            sql.Append(" AND `manufacturer` LIKE ?");
+            args.Add(mfr);
+        }
+
+        if (noArticle)
+        {
+            sql.Append(" AND `article` LIKE ?");
+            args.Add(string.Empty);
+        }
+
+        if (noManufacturer)
+        {
+            sql.Append(" AND `manufacturer` LIKE ?");
+            args.Add(string.Empty);
+        }
+
+        if (tokens.Count > 0)
+        {
+            sql.Append(" AND (");
+            AppendTokenGroup(sql, args, "`article`", tokens);
+            sql.Append(" OR ");
+            AppendTokenGroup(sql, args, "`manufacturer`", tokens);
+            sql.Append(" OR ");
+            AppendTokenGroup(sql, args, "`name`", tokens);
+            sql.Append(')');
+        }
+
+        sql.Append(" LIMIT 10000");
+        await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        var writes = await ErpDb.ExecuteAsync(
+            connection,
+            null,
+            ErpDb.Positional(sql.ToString()),
+            cancellationToken,
+            args.ToArray()).ConfigureAwait(false);
+        return new ErpSimpleWriteResult(
+            true,
+            "ok",
+            "Search delete removed " + writes.ToString(System.Globalization.CultureInfo.InvariantCulture) + " price row(s).",
+            writes,
+            writes);
+    }
+
+    private static void AppendTokenGroup(StringBuilder sql, List<object?> args, string column, IReadOnlyList<string> tokens)
+    {
+        sql.Append('(');
+        for (var i = 0; i < tokens.Count; i++)
+        {
+            if (i > 0)
+            {
+                sql.Append(" AND ");
+            }
+
+            sql.Append(column).Append(" LIKE ?");
+            args.Add("%" + tokens[i] + "%");
+        }
+
+        sql.Append(')');
+    }
+
+    internal static IReadOnlyList<string> SearchTokens(string? searchText)
+    {
+        var raw = (searchText ?? string.Empty).Trim();
+        if (raw.Length == 0)
+        {
+            return [];
+        }
+
+        var tokens = new List<string>();
+        foreach (var part in raw.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+        {
+            if (part.Length >= 3)
+            {
+                tokens.Add(part);
+            }
+        }
+
+        return tokens;
     }
 
     private static PriceRow? TryBuildRow(

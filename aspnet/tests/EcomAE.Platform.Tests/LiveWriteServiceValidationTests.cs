@@ -650,6 +650,16 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(priceDb.Succeeded);
         Assert.Equal("db", priceDb.Code);
 
+        var priceDelSearch = await new CpPricesEditWriteService(new ConfiguredNeverOpened())
+            .DeleteSearchAsync(0, null, null, false, false, "ab");
+        Assert.False(priceDelSearch.Succeeded);
+        Assert.Equal("invalid", priceDelSearch.Code);
+
+        var priceDelSearchDb = await new CpPricesEditWriteService(new UnconfiguredConnections())
+            .DeleteSearchAsync(0, "ABC", null, false, false, null);
+        Assert.False(priceDelSearchDb.Succeeded);
+        Assert.Equal("db", priceDelSearchDb.Code);
+
         var ccyInvalid = await new CpCurrencyWriteService(new ConfiguredNeverOpened())
             .SetRateAsync("US", 3.67m);
         Assert.False(ccyInvalid.Succeeded);

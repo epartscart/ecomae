@@ -36,7 +36,7 @@
     <section class="epc-cpmod-hero">
         <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
         <h1>Prices edit</h1>
-        <p>Add, save, and delete a single price row here when confirmWrites is set. Table list and search-delete stay on the PHP twin.</p>
+        <p>Add, save, delete, and search-delete price rows here when confirmWrites is set. The Classic table list stays on the PHP twin.</p>
         <div class="epc-cpmod-cta">
             <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
             <a class="ghost" href="/cp/prices-upload-app">Prices upload</a>
@@ -94,11 +94,23 @@
                 <label>Row id <input type="number" name="id" min="1" required /></label>
                 <button type="submit">Delete row</button>
             </form>
+            <form method="post" action="/cp/prices-edit/write" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="/cp/prices-edit-app" />
+                <input type="hidden" name="action" value="del_search" />
+                <label>Price list id <input type="number" name="priceId" min="0" /></label>
+                <label>Article <input type="text" name="article" maxlength="64" /></label>
+                <label>Manufacturer <input type="text" name="manufacturer" maxlength="255" /></label>
+                <label>Search <input type="text" name="search_text" maxlength="255" /></label>
+                <label><input type="checkbox" name="no_article" value="1" /> Empty article</label>
+                <label><input type="checkbox" name="no_manufacturer" value="1" /> Empty manufacturer</label>
+                <button type="submit">Search-delete</button>
+            </form>
         </div>
     }
 
     <div class="epc-cpmod-note">
-        Add, save, and delete write when confirmWrites is set. Search-delete and the price table stay on the PHP twin.
+        Add, save, delete, and search-delete write when confirmWrites is set. The Classic table list stays on the PHP twin.
     </div>
 </PhpCpDesktopChrome>
 

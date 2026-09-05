@@ -2466,6 +2466,9 @@ public sealed class ControlPanelModule : ISurfaceModule
             var timeToExe = body.TimeToExe;
             var storage = body.Storage;
             var minOrder = body.MinOrder;
+            var noArticle = body.NoArticle;
+            var noManufacturer = body.NoManufacturer;
+            var searchText = body.SearchText;
             var confirm = body.ConfirmWrites;
             if (context.Request.HasFormContentType)
             {
@@ -2481,6 +2484,9 @@ public sealed class ControlPanelModule : ISurfaceModule
                 timeToExe = LiveWriteFormBinder.Int(form, "timeToExe", "time_to_exe");
                 storage = LiveWriteFormBinder.Text(form, "storage");
                 minOrder = LiveWriteFormBinder.Int(form, "minOrder", "min_order");
+                noArticle = LiveWriteFormBinder.Flag(form, "noArticle", "no_article");
+                noManufacturer = LiveWriteFormBinder.Flag(form, "noManufacturer", "no_manufacturer");
+                searchText = LiveWriteFormBinder.Text(form, "searchText", "search_text");
                 confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
             }
 
@@ -2504,6 +2510,8 @@ public sealed class ControlPanelModule : ISurfaceModule
                 "add" => await writes.AddAsync(priceId, article, manufacturer, name, exist, price, timeToExe, storage, minOrder, cancellationToken),
                 "save" => await writes.SaveAsync(id, priceId, article, manufacturer, name, exist, price, timeToExe, storage, minOrder, cancellationToken),
                 "del" or "delete" => await writes.DeleteAsync(id, cancellationToken),
+                "del_search" or "del-search" or "search-delete" =>
+                    await writes.DeleteSearchAsync(priceId, article, manufacturer, noArticle, noManufacturer, searchText, cancellationToken),
                 _ => ErpSimpleWriteResult.Fail("invalid", "Unknown prices-edit action."),
             };
             return LiveWriteFormBinder.Complete(
@@ -7213,7 +7221,10 @@ public sealed class ControlPanelModule : ISurfaceModule
         decimal Price = 0,
         int TimeToExe = 0,
         string? Storage = null,
-        int MinOrder = 0);
+        int MinOrder = 0,
+        bool NoArticle = false,
+        bool NoManufacturer = false,
+        string? SearchText = null);
     private sealed record CpCatalogueSetMinLimitBody(
         string? Action = null,
         bool ConfirmWrites = false,
