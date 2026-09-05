@@ -1758,12 +1758,7 @@ public sealed class StorefrontModule : ISurfaceModule
             if (decoded.Ok)
             {
                 dest += "&make=" + Uri.EscapeDataString(decoded.Manufacturer ?? "")
-                    + "&model=" + Uri.EscapeDataString(decoded.ModelLabel ?? "")
-                    + "&ok=" + Uri.EscapeDataString(decoded.Message);
-            }
-            else
-            {
-                dest += "&err=" + Uri.EscapeDataString(decoded.Message);
+                    + "&model=" + Uri.EscapeDataString(decoded.ModelLabel ?? "");
             }
 
             return LiveWriteFormBinder.Complete(

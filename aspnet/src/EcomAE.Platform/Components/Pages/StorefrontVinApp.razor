@@ -124,7 +124,16 @@
             return;
         }
 
-        var result = await OfflineCache.LookupVinAsync(_vin, "en", "WWW", ctx?.RequestAborted ?? default);
+        CatalogVinLookupResult result;
+        try
+        {
+            result = await OfflineCache.LookupVinAsync(_vin, "en", "WWW", ctx?.RequestAborted ?? default);
+        }
+        catch (Exception)
+        {
+            result = new CatalogVinLookupResult(false, 503, "cache_unavailable", "", null);
+        }
+
         _cacheHit = result.Ok;
         _cacheCode = result.Code ?? string.Empty;
         if (result.Ok && result.Payload is not null)
