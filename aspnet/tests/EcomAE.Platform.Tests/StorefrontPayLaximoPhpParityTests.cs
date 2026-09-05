@@ -97,6 +97,7 @@ public sealed class StorefrontPayLaximoPhpParityTests
         Assert.Contains("action=\"/cp/orders/pay-refund\"", cp, StringComparison.Ordinal);
         Assert.Contains("name=\"directRefund\"", cp, StringComparison.Ordinal);
         Assert.Contains("action=\"/cp/orders/refresh-item-cost\"", cp, StringComparison.Ordinal);
+        Assert.Contains("name=\"repriceFromWarehouse\"", cp, StringComparison.Ordinal);
         Assert.DoesNotContain("Live writes remain PHP", cp, StringComparison.Ordinal);
 
         Assert.Equal("write-live-gated", SurfacePayloadContractCatalog.Functions.First(f => f.AspNetRouteOrCapability == "/storefront/garage/check-car").Status);

@@ -291,6 +291,8 @@
                                     <label>Brand <input type="text" name="manufacturer" maxlength="128" style="width:8rem" /></label>
                                     <label>Article <input type="text" name="article" maxlength="128" style="width:8rem" /></label>
                                     <label>Name <input type="text" name="name" maxlength="255" style="width:10rem" /></label>
+                                    <label>Warehouse <input type="number" min="1" name="storageId" style="width:4rem" /></label>
+                                    <label><input type="checkbox" name="repriceFromWarehouse" value="true" /> Reprice from warehouse</label>
                                     <button type="submit" class="btn btn-xs btn-primary">Save line</button>
                                 </form>
                                 <form method="post" action="/cp/orders/refresh-item-cost" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 .75rem">
@@ -351,6 +353,14 @@
                                                         <input type="hidden" name="orderId" value="@o.Id.ToString(CultureInfo.InvariantCulture)" />
                                                         <input type="hidden" name="itemId" value="@line.Id.ToString(CultureInfo.InvariantCulture)" />
                                                         <button type="submit" class="btn btn-xs btn-default">Refresh cost</button>
+                                                    </form>
+                                                    <form method="post" action="/cp/orders/update-item" style="display:flex;gap:.3rem;align-items:center;margin:.25rem 0 0">
+                                                        <input type="hidden" name="confirmWrites" value="true" />
+                                                        <input type="hidden" name="returnUrl" value="@OrdersHref(o.Id, detailTab: "items")" />
+                                                        <input type="hidden" name="orderId" value="@o.Id.ToString(CultureInfo.InvariantCulture)" />
+                                                        <input type="hidden" name="itemId" value="@line.Id.ToString(CultureInfo.InvariantCulture)" />
+                                                        <input type="hidden" name="repriceFromWarehouse" value="true" />
+                                                        <button type="submit" class="btn btn-xs btn-default">Reprice from warehouse</button>
                                                     </form>
                                                 </td>
                                             </tr>

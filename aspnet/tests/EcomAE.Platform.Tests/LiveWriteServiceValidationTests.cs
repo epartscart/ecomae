@@ -299,10 +299,10 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(updatePrice.Succeeded);
         Assert.Equal("invalid", updatePrice.Code);
 
-        var updateReprice = await new CpOmsWriteService(new ConfiguredNeverOpened())
+        var updateReprice = await new CpOmsWriteService(new UnconfiguredConnections())
             .UpdateItemAsync(9, new CpOmsItemWritePatch(3, 12m, 2, Manufacturer: "Bosch", Article: "0986", RepriceFromWarehouse: true), 1);
         Assert.False(updateReprice.Succeeded);
-        Assert.Equal("not_implemented", updateReprice.Code);
+        Assert.Equal("db", updateReprice.Code);
 
         var updateItems = await new CpOmsWriteService(new ConfiguredNeverOpened())
             .UpdateItemsAsync(0, [], 1);

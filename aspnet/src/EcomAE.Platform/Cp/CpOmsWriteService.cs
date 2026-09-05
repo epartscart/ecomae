@@ -47,7 +47,7 @@ public interface ICpOmsWriteService
         CancellationToken cancellationToken = default);
 }
 
-/// <summary>PHP <c>ajax_epc_orders_oms.php</c> <c>update_item</c> / <c>update_items</c> field patch. Warehouse reprice is refused.</summary>
+/// <summary>PHP <c>ajax_epc_orders_oms.php</c> <c>update_item</c> / <c>update_items</c> field patch. Warehouse reprice uses the price-list lookup; customer-group markup stays sell=purchase.</summary>
 public sealed record CpOmsItemWritePatch(
     long ItemId,
     decimal? Price = null,
@@ -567,11 +567,6 @@ public sealed class CpOmsWriteService : ICpOmsWriteService
             return ErpSimpleWriteResult.Fail("invalid", "Price must be greater than 0.");
         }
 
-        if (patch.RepriceFromWarehouse)
-        {
-            return ErpSimpleWriteResult.Fail("not_implemented", "Warehouse reprice stays PHP.");
-        }
-
         if (!_connections.IsConfigured)
         {
             return ErpSimpleWriteResult.Fail("db", "TenantRegistry DB is not configured.");
@@ -625,6 +620,33 @@ public sealed class CpOmsWriteService : ICpOmsWriteService
         if (articleShow.Length == 0)
         {
             articleShow = article;
+        }
+
+        if (patch.RepriceFromWarehouse && storageId > 0)
+        {
+            var offer = await LookupWarehouseOfferAsync(connection, storageId, brand, article, cancellationToken)
+                .ConfigureAwait(false);
+            if (offer is null)
+            {
+                return ErpSimpleWriteResult.Fail("no_price", "No price found for this brand/article on the selected warehouse");
+            }
+
+            purchase = offer.Purchase;
+            price = offer.Sell;
+            if (name.Length == 0 && offer.Name.Length > 0)
+            {
+                name = SanitizeOmsText(offer.Name);
+            }
+
+            if (offer.ArticleShow.Length > 0)
+            {
+                articleShow = SanitizeOmsText(offer.ArticleShow);
+            }
+
+            if (offer.Manufacturer.Length > 0)
+            {
+                brand = SanitizeOmsText(offer.Manufacturer);
+            }
         }
 
         var isAlt = !string.Equals(brand, origBrand, StringComparison.Ordinal)
@@ -721,11 +743,6 @@ public sealed class CpOmsWriteService : ICpOmsWriteService
         if (orderId <= 0 || rows.Length == 0)
         {
             return ErpSimpleWriteResult.Fail("invalid", "No items to update.");
-        }
-
-        if (rows.Any(p => p.RepriceFromWarehouse))
-        {
-            return ErpSimpleWriteResult.Fail("not_implemented", "Warehouse reprice stays PHP.");
         }
 
         if (rows.Any(p => p.CountNeed is < 1))
@@ -1075,7 +1092,9 @@ public sealed class CpOmsWriteService : ICpOmsWriteService
         return n == 0 ? "" : new string(buffer, 0, n);
     }
 
-    private static async Task<(decimal Purchase, decimal Sell)?> LookupWarehouseOfferAsync(
+    private sealed record WarehouseOffer(decimal Purchase, decimal Sell, string Manufacturer, string ArticleShow, string Name);
+
+    private static async Task<WarehouseOffer?> LookupWarehouseOfferAsync(
         DbConnection connection,
         int storageId,
         string brand,
@@ -1107,32 +1126,45 @@ public sealed class CpOmsWriteService : ICpOmsWriteService
         var brandNorm = brand.Trim().ToUpperInvariant();
         try
         {
-            var purchase = await ErpDb.DecimalAsync(
-                connection,
-                null,
-                ErpDb.Positional("""
-                    SELECT `price`
-                    FROM `shop_docpart_prices_data`
-                    WHERE `price_id` = ?
-                      AND (
-                            REPLACE(REPLACE(REPLACE(UPPER(`article`), '-', ''), ' ', ''), '.', '') = ?
-                         OR REPLACE(REPLACE(REPLACE(UPPER(`article_show`), '-', ''), ' ', ''), '.', '') = ?
-                      )
-                    ORDER BY
-                        CASE WHEN UPPER(TRIM(`manufacturer`)) = ? THEN 0 ELSE 1 END,
-                        `price` ASC
-                    LIMIT 1
-                    """),
-                cancellationToken,
-                priceId, artNorm, artNorm, brandNorm).ConfigureAwait(false);
+            await using var cmd = connection.CreateCommand();
+            cmd.CommandText = ErpDb.Positional("""
+                SELECT `manufacturer`, `article_show`, `article`, `name`, `price`
+                FROM `shop_docpart_prices_data`
+                WHERE `price_id` = ?
+                  AND (
+                        REPLACE(REPLACE(REPLACE(UPPER(`article`), '-', ''), ' ', ''), '.', '') = ?
+                     OR REPLACE(REPLACE(REPLACE(UPPER(`article_show`), '-', ''), ' ', ''), '.', '') = ?
+                  )
+                ORDER BY
+                    CASE WHEN UPPER(TRIM(`manufacturer`)) = ? THEN 0 ELSE 1 END,
+                    `price` ASC
+                LIMIT 1
+                """);
+            ErpDb.AddParameters(cmd, priceId, artNorm, artNorm, brandNorm);
+            await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            if (!await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                return null;
+            }
+
+            var purchase = Math.Round(
+                reader["price"] is DBNull ? 0m : Convert.ToDecimal(reader["price"], CultureInfo.InvariantCulture),
+                2, MidpointRounding.AwayFromZero);
             if (purchase <= 0)
             {
                 return null;
             }
 
-            var rounded = Math.Round(purchase, 2, MidpointRounding.AwayFromZero);
+            var manufacturer = Convert.ToString(reader["manufacturer"], CultureInfo.InvariantCulture) ?? "";
+            var articleShow = Convert.ToString(reader["article_show"], CultureInfo.InvariantCulture) ?? "";
+            if (string.IsNullOrWhiteSpace(articleShow))
+            {
+                articleShow = Convert.ToString(reader["article"], CultureInfo.InvariantCulture) ?? "";
+            }
+
+            var name = Convert.ToString(reader["name"], CultureInfo.InvariantCulture) ?? "";
             // PHP sell uses epc_pricing_apply_sell_from_purchase when present; otherwise sell = purchase.
-            return (rounded, rounded);
+            return new WarehouseOffer(purchase, purchase, manufacturer.Trim(), articleShow.Trim(), name.Trim());
         }
         catch (DbException)
         {
