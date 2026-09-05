@@ -1,0 +1,128 @@
+@page "/cp/pos/receipt/{SaleId:long}"
+@layout Layout.PhpChromeLayout
+@using System.Globalization
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Cp
+@using EcomAE.Platform.Migration
+@using EcomAE.Platform.Presentation
+@inject ICpPosWriteService PosWrites
+@inject ILegacySessionValidator Sessions
+@inject IHttpContextAccessor Http
+
+<PageTitle>Receipt @(_receipt.SaleNo) · Control Panel · eParts Cart</PageTitle>
+<PhpChromeStyles Surface="cp" />
+<HeadContent>
+<style>
+        .epc-pos-receipt { font-family:'Segoe UI',Arial,sans-serif; max-width:320px; margin:16px auto; color:#111; font-size:13px; }
+        .epc-pos-receipt h1 { font-size:16px; margin:0 0 4px; text-align:center; }
+        .epc-pos-receipt .meta { text-align:center; color:#555; margin-bottom:12px; font-size:11px; }
+        .epc-pos-receipt table { width:100%; border-collapse:collapse; }
+        .epc-pos-receipt td { padding:4px 0; vertical-align:top; }
+        .epc-pos-receipt .qty { width:28px; text-align:right; padding-right:6px; color:#555; }
+        .epc-pos-receipt .amt { text-align:right; white-space:nowrap; }
+        .epc-pos-receipt hr { border:none; border-top:1px dashed #999; margin:8px 0; }
+        .epc-pos-receipt .total-row td { font-weight:700; font-size:14px; padding-top:6px; }
+        .epc-pos-receipt .item-name { font-weight:600; }
+        .epc-pos-receipt .disc { color:#b45309; font-size:11px; }
+        .epc-pos-receipt .center { text-align:center; margin:12px 0; }
+        .epc-pos-receipt .btn { display:inline-block; padding:10px 18px; background:#2563eb; color:#fff; border:none; border-radius:8px; font-size:14px; text-decoration:none; }
+        @@media print { .no-print { display:none !important; } body { margin:0; } }
+    
+</style>
+</HeadContent>
+
+<PhpCpDesktopChrome IsAdmin="_isAdmin">
+    <div class="epc-pos-receipt" data-epc-pos-receipt="1">
+        <div class="no-print center">
+            <a class="btn" href="/cp/pos-overview-app">Back to POS</a>
+            <a class="btn" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Classic twin</a>
+            <button type="button" class="btn" onclick="window.print()">Print receipt</button>
+        </div>
+        @if (!_isAdmin)
+        {
+            <p>Sign in with a Control Panel admin session to print a receipt.</p>
+        }
+        else if (!_receipt.Ok)
+        {
+            <p>@_receipt.Error</p>
+        }
+        else
+        {
+            @if (!string.IsNullOrWhiteSpace(_receipt.Header))
+            {
+                <div class="meta">@_receipt.Header</div>
+            }
+            <h1>Receipt</h1>
+            <div class="meta">
+                <strong>@_receipt.SaleNo</strong><br />
+                @_receipt.SoldAt<br />
+                @_receipt.CustomerLabel
+            </div>
+            <table>
+                @if (_receipt.Lines.Count == 0)
+                {
+                    <tr><td colspan="3">No lines.</td></tr>
+                }
+                else
+                {
+                    @foreach (var line in _receipt.Lines)
+                    {
+                        <tr>
+                            <td class="qty">@line.QtyText×</td>
+                            <td>
+                                <div class="item-name">@line.Name</div>
+                                @if (line.LineDiscountAmt > 0)
+                                {
+                                    <div class="disc">−@line.LineDiscountAmt.ToString("N2", CultureInfo.InvariantCulture) discount</div>
+                                }
+                            </td>
+                            <td class="amt">@line.LineTotal.ToString("N2", CultureInfo.InvariantCulture)</td>
+                        </tr>
+                    }
+                }
+            </table>
+            <hr />
+            <table>
+                @if (_receipt.DiscountTotal > 0)
+                {
+                    <tr><td>Discount</td><td class="amt">−@_receipt.DiscountTotal.ToString("N2", CultureInfo.InvariantCulture)</td></tr>
+                }
+                <tr><td>Subtotal ex @_receipt.TaxLabel</td><td class="amt">@_receipt.SubtotalAfterDiscount.ToString("N2", CultureInfo.InvariantCulture)</td></tr>
+                <tr><td>@_receipt.TaxLabel (@_receipt.TaxRate.ToString("N1", CultureInfo.InvariantCulture)%)</td><td class="amt">@_receipt.VatAmount.ToString("N2", CultureInfo.InvariantCulture)</td></tr>
+                <tr class="total-row"><td>Total</td><td class="amt">@_receipt.TotalAmount.ToString("N2", CultureInfo.InvariantCulture)</td></tr>
+                <tr><td>Payment</td><td class="amt">@_receipt.PaymentMethod</td></tr>
+            </table>
+            @if (!string.IsNullOrWhiteSpace(_receipt.InvoiceNumber))
+            {
+                <div class="meta">Invoice: @_receipt.InvoiceNumber</div>
+            }
+            <div class="meta">@_receipt.Footer</div>
+        }
+    </div>
+</PhpCpDesktopChrome>
+
+@code {
+    [Parameter] public long SaleId { get; set; }
+
+    private const string _phpTab = "/CP/control/shop/pos";
+    private bool _isAdmin;
+    private CpPosReceipt _receipt = CpPosReceipt.NotFound;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null)
+        {
+            return;
+        }
+
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
+        if (!_isAdmin || SaleId <= 0)
+        {
+            return;
+        }
+
+        _receipt = await PosWrites.LoadReceiptAsync(SaleId, ctx.RequestAborted);
+    }
+}

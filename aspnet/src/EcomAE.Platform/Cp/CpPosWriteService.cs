@@ -7,8 +7,8 @@ namespace EcomAE.Platform.Cp;
 /// <summary>
 /// Live PHP <c>ajax_pos.php</c> twins for <c>open_session</c>, <c>close_session</c>,
 /// <c>save_settings</c>, and the POS sale/line INSERT in <c>complete_sale</c>.
-/// Walk-in user create, tax-toolkit totals, ERP SO/invoice/voucher, inventory
-/// movement, and receipt HTML stay PHP.
+/// Walk-in user create, tax-toolkit totals, ERP SO/invoice/voucher, and inventory
+/// movement stay PHP. Printable receipt HTML is ASP.NET-live.
 /// </summary>
 public interface ICpPosWriteService
 {
@@ -38,6 +38,8 @@ public interface ICpPosWriteService
         CpPosCompleteSaleWriteRequest request,
         int adminUserId,
         CancellationToken cancellationToken = default);
+
+    Task<CpPosReceipt> LoadReceiptAsync(long saleId, CancellationToken cancellationToken = default);
 }
 
 public sealed record CpPosSaleLineInput(
@@ -595,6 +597,156 @@ public sealed class CpPosWriteService : ICpPosWriteService
         }
     }
 
+    public async Task<CpPosReceipt> LoadReceiptAsync(long saleId, CancellationToken cancellationToken = default)
+    {
+        if (saleId <= 0)
+        {
+            return CpPosReceipt.NotFound;
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return CpPosReceipt.NotFound;
+        }
+
+        await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await using var saleCmd = connection.CreateCommand();
+        saleCmd.CommandText = ErpDb.Positional(
+            """
+            SELECT `id`, `sale_no`, `customer_label`, `subtotal_ex`, `discount_total`, `vat_amount`,
+                   `total_amount`, `payment_method`, `tax_rate`, `sales_invoice_id`, `time_created`
+            FROM `epc_pos_sales` WHERE `id` = ? LIMIT 1
+            """);
+        ErpDb.AddParameters(saleCmd, saleId);
+        long invoiceId = 0;
+        string saleNo = "";
+        string customerLabel = "";
+        decimal subtotalEx = 0;
+        decimal discountTotal = 0;
+        decimal vatAmount = 0;
+        decimal totalAmount = 0;
+        string paymentMethod = "";
+        decimal taxRate = 0;
+        long timeCreated = 0;
+        await using (var reader = await saleCmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false))
+        {
+            if (!await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                return CpPosReceipt.NotFound;
+            }
+
+            saleNo = reader.IsDBNull(1) ? "" : reader.GetValue(1)?.ToString() ?? "";
+            customerLabel = reader.IsDBNull(2) ? "" : reader.GetValue(2)?.ToString() ?? "";
+            subtotalEx = reader.IsDBNull(3) ? 0 : Convert.ToDecimal(reader.GetValue(3), CultureInfo.InvariantCulture);
+            discountTotal = reader.IsDBNull(4) ? 0 : Convert.ToDecimal(reader.GetValue(4), CultureInfo.InvariantCulture);
+            vatAmount = reader.IsDBNull(5) ? 0 : Convert.ToDecimal(reader.GetValue(5), CultureInfo.InvariantCulture);
+            totalAmount = reader.IsDBNull(6) ? 0 : Convert.ToDecimal(reader.GetValue(6), CultureInfo.InvariantCulture);
+            paymentMethod = reader.IsDBNull(7) ? "" : reader.GetValue(7)?.ToString() ?? "";
+            taxRate = reader.IsDBNull(8) ? 0 : Convert.ToDecimal(reader.GetValue(8), CultureInfo.InvariantCulture);
+            invoiceId = reader.IsDBNull(9) ? 0 : Convert.ToInt64(reader.GetValue(9), CultureInfo.InvariantCulture);
+            timeCreated = reader.IsDBNull(10) ? 0 : Convert.ToInt64(reader.GetValue(10), CultureInfo.InvariantCulture);
+        }
+
+        var lines = new List<CpPosReceiptLine>();
+        await using var lineCmd = connection.CreateCommand();
+        lineCmd.CommandText = ErpDb.Positional(
+            "SELECT `name`, `qty`, `line_discount_amt`, `line_total` FROM `epc_pos_sale_lines` WHERE `sale_id` = ? ORDER BY `line_no`");
+        ErpDb.AddParameters(lineCmd, saleId);
+        await using (var lineReader = await lineCmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false))
+        {
+            while (await lineReader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                var name = lineReader.IsDBNull(0) ? "" : lineReader.GetValue(0)?.ToString() ?? "";
+                var qty = lineReader.IsDBNull(1) ? 0 : Convert.ToDecimal(lineReader.GetValue(1), CultureInfo.InvariantCulture);
+                var disc = lineReader.IsDBNull(2) ? 0 : Convert.ToDecimal(lineReader.GetValue(2), CultureInfo.InvariantCulture);
+                var lineTotal = lineReader.IsDBNull(3) ? 0 : Convert.ToDecimal(lineReader.GetValue(3), CultureInfo.InvariantCulture);
+                lines.Add(new CpPosReceiptLine(FormatQty(qty), name, disc, lineTotal));
+            }
+        }
+
+        var header = "";
+        var footer = "Thank you for your purchase";
+        try
+        {
+            header = await ErpDb.StringAsync(
+                connection,
+                null,
+                ErpDb.Positional("SELECT IFNULL(`receipt_header`,'') FROM `epc_pos_settings` ORDER BY `id` ASC LIMIT 1"),
+                cancellationToken).ConfigureAwait(false) ?? "";
+            var storedFooter = await ErpDb.StringAsync(
+                connection,
+                null,
+                ErpDb.Positional("SELECT IFNULL(`receipt_footer`,'') FROM `epc_pos_settings` ORDER BY `id` ASC LIMIT 1"),
+                cancellationToken).ConfigureAwait(false);
+            if (!string.IsNullOrWhiteSpace(storedFooter))
+            {
+                footer = storedFooter.Trim();
+            }
+        }
+        catch (System.Data.Common.DbException)
+        {
+            // Settings stay optional; PHP defaults apply.
+        }
+
+        var invoiceNumber = "";
+        if (invoiceId > 0)
+        {
+            try
+            {
+                invoiceNumber = await ErpDb.StringAsync(
+                    connection,
+                    null,
+                    ErpDb.Positional("SELECT `invoice_number` FROM `epc_einvoice_documents` WHERE `id` = ? LIMIT 1"),
+                    cancellationToken,
+                    invoiceId).ConfigureAwait(false) ?? "";
+            }
+            catch (System.Data.Common.DbException)
+            {
+                invoiceNumber = "";
+            }
+        }
+
+        var soldAt = timeCreated > 0
+            ? DateTimeOffset.FromUnixTimeSeconds(timeCreated).ToLocalTime().ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture)
+            : "";
+        return new CpPosReceipt(
+            true,
+            "",
+            saleNo,
+            soldAt,
+            customerLabel,
+            header.Trim(),
+            footer,
+            "VAT",
+            discountTotal,
+            subtotalEx,
+            taxRate,
+            vatAmount,
+            totalAmount,
+            TitleCase(paymentMethod),
+            invoiceNumber.Trim(),
+            lines);
+    }
+
+    /// <summary>PHP <c>rtrim(rtrim(number_format($qty, 3, '.', ''), '0'), '.')</c>.</summary>
+    public static string FormatQty(decimal qty)
+    {
+        var text = qty.ToString("0.000", CultureInfo.InvariantCulture);
+        text = text.TrimEnd('0').TrimEnd('.');
+        return text.Length == 0 ? "0" : text;
+    }
+
+    private static string TitleCase(string? value)
+    {
+        var text = (value ?? string.Empty).Trim();
+        if (text.Length == 0)
+        {
+            return "";
+        }
+
+        return char.ToUpperInvariant(text[0]) + text[1..].ToLowerInvariant();
+    }
+
     private static string Clip(string? value, int max)
     {
         var text = (value ?? string.Empty).Trim();
@@ -613,3 +765,48 @@ public sealed record CpPosParsedLine(
     decimal DiscountPct,
     decimal DiscountAmt,
     decimal LineExVat);
+
+public sealed record CpPosReceipt(
+    bool Ok,
+    string Error,
+    string SaleNo,
+    string SoldAt,
+    string CustomerLabel,
+    string Header,
+    string Footer,
+    string TaxLabel,
+    decimal DiscountTotal,
+    decimal SubtotalEx,
+    decimal TaxRate,
+    decimal VatAmount,
+    decimal TotalAmount,
+    string PaymentMethod,
+    string InvoiceNumber,
+    IReadOnlyList<CpPosReceiptLine> Lines)
+{
+    public static CpPosReceipt NotFound { get; } = new(
+        false,
+        "Sale not found",
+        "",
+        "",
+        "",
+        "",
+        "Thank you for your purchase",
+        "VAT",
+        0,
+        0,
+        0,
+        0,
+        0,
+        "",
+        "",
+        []);
+
+    public decimal SubtotalAfterDiscount => SubtotalEx - DiscountTotal;
+}
+
+public sealed record CpPosReceiptLine(
+    string QtyText,
+    string Name,
+    decimal LineDiscountAmt,
+    decimal LineTotal);

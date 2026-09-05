@@ -190,7 +190,7 @@
                             <td>@(string.IsNullOrWhiteSpace(s.TaxKitCode) ? "—" : s.TaxKitCode)</td>
                             <td>@(string.IsNullOrWhiteSpace(s.Status) ? "—" : s.Status)</td>
                             <td>@(s.TimeCreated > 0 ? s.TimeCreated.ToString(CultureInfo.InvariantCulture) : "—")</td>
-                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
+                            <td><a href="@($"/cp/pos/receipt/{s.Id.ToString(CultureInfo.InvariantCulture)}")">Receipt</a></td>
                         </tr>
                     }
                 }
@@ -198,7 +198,7 @@
         </table>
     </div>
 
-    <p class="epc-pos-note">open / close / save / complete-sale write here when confirmWrites is posted. Walk-in user create, tax-toolkit totals, ERP SO/invoice/voucher, inventory movement, and receipt HTML stay on the Classic twin. Search / calc_cart stay PHP.</p>
+    <p class="epc-pos-note">open / close / save / complete-sale write here when confirmWrites is posted. Printable receipt is on this surface. Walk-in user create, tax-toolkit totals, ERP SO/invoice/voucher, and inventory movement stay on the Classic twin. Search / calc_cart stay on the Classic twin.</p>
 
 </PhpCpDesktopChrome>
 
