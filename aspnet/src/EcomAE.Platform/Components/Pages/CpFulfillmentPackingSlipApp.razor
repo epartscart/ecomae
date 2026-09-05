@@ -29,7 +29,7 @@
 <PhpCpDesktopChrome IsAdmin="_isAdmin">
     <div class="epc-slip" data-epc-packing-slip="1">
         <div class="epc-slip-actions">
-            <a class="btn btn-default btn-sm" href="/cp/fulfillment-queue-app?fulfillment_id=@FulfillmentId.ToString(CultureInfo.InvariantCulture)&amp;od=slip">Back to queue</a>
+            <a class="btn btn-default btn-sm" href="@($"/cp/fulfillment-queue-app?fulfillment_id={FulfillmentId.ToString(CultureInfo.InvariantCulture)}&od=slip")">Back to queue</a>
             <a class="btn btn-default btn-sm" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Classic twin</a>
         </div>
         @if (!_isAdmin)
