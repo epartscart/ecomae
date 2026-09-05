@@ -63,6 +63,15 @@
     }
     @if (_isAdmin)
     {
+        <form method="post" action="/erp/procurement/requisitions/save" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 .65rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/purchase-requests-app" />
+            <label>Requester <input type="text" name="requester" maxlength="160" required /></label>
+            <label>Business unit <input type="number" name="business_unit_id" min="0" style="width:6rem" /></label>
+            <label>Justification <input type="text" name="justification" maxlength="4000" style="width:16rem" /></label>
+            <button type="submit">Save requisition</button>
+        </form>
+        <p class="epc-prq-note">Add line stays on the Classic twin.</p>
         <form method="post" action="/erp/procurement/requisitions/submit" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 .65rem">
             <input type="hidden" name="confirmWrites" value="true" />
             <input type="hidden" name="returnUrl" value="/cp/purchase-requests-app" />

@@ -1,6 +1,9 @@
 namespace EcomAE.Platform.Migration;
 
-/// <summary>Wave B dry-run for PHP <c>proc_req_save</c>. Never INSERT/UPDATE. PHP authoritative.</summary>
+/// <summary>
+/// Dry-run envelope for PHP <c>epc_proc_req_save</c> when <c>confirmWrites</c> is omitted.
+/// Live INSERT/UPDATE is <c>IErpProcurementReqSaveWriteService</c>.
+/// </summary>
 public interface IErpProcReqSaveDryRun
 {
     ErpProcReqSaveDryRunResult Evaluate(ErpProcReqSaveRequest request);
@@ -12,23 +15,30 @@ public sealed class ErpProcReqSaveDryRun : IErpProcReqSaveDryRun
     {
         ArgumentNullException.ThrowIfNull(request);
         if (request.ConfirmWrites)
-            return Refuse("dry-run-confirm-refused", "confirm_writes_refused",
-                "confirm_writes requested but live ASP.NET proc_req_save is not implemented; PHP ajax_erp.php remains authoritative.", request);
+        {
+            return Refuse(
+                "dry-run-confirm-refused",
+                "confirm_writes_refused",
+                "confirm_writes refused on the dry-run path; POST confirmWrites=true to write on ASP.NET.",
+                request);
+        }
 
         var requester = (request.Requester ?? string.Empty).Trim();
         if (requester.Length == 0)
+        {
             return Refuse("dry-run-invalid", "requester_required", "Requester is required (PHP).", request);
+        }
 
         return new ErpProcReqSaveDryRunResult(
-            "dry-run-validated", 0, true, false, true, "ok", true, requester, request.Id,
-            ["epc_proc_req_save(@data, @id) (NOT executed)"],
-            "Procurement requisition save payload validated; write blocked.",
-            "/CP/content/shop/finance/erp/ajax_erp.php?action=proc_req_save");
+            "dry-run-validated", 0, true, false, false, "ok", true, requester, request.Id,
+            ["INSERT/UPDATE `epc_proc_req` (NOT executed)"],
+            "ErpProcurementReqSave payload validated; write blocked until confirmWrites=true.",
+            "content/shop/finance/epc_erp_procurement.php");
     }
 
     private static ErpProcReqSaveDryRunResult Refuse(string status, string code, string detail, ErpProcReqSaveRequest request) =>
-        new(status, 0, true, false, true, code, false, request.Requester, request.Id, [], detail,
-            "/CP/content/shop/finance/erp/ajax_erp.php?action=proc_req_save");
+        new(status, 0, true, false, false, code, false, request.Requester, request.Id, [], detail,
+            "content/shop/finance/epc_erp_procurement.php");
 }
 
 public sealed record ErpProcReqSaveRequest(string? Requester, long Id = 0, bool ConfirmWrites = false);
