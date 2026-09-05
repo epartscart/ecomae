@@ -2282,8 +2282,75 @@ public sealed class ErpModule : ISurfaceModule
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(false); return Results.Ok(dryRun.Evaluate(new ErpBosWfRaiseTestRequest(body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxBosIntelToggleControl, async (HttpContext context, ErpBosIntelToggleControlBody? body, ILegacySessionValidator validator, IErpBosIntelToggleControlDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(null,true,false); return Results.Ok(dryRun.Evaluate(new ErpBosIntelToggleControlRequest(body.ControlKey, body.Enabled, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxBosVatRefundSave, async (HttpContext context, ErpBosVatRefundSaveBody? body, ILegacySessionValidator validator, IErpBosVatRefundSaveDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpBosVatRefundSaveRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxBosVatRefundSave, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IErpBosVatRefundSaveDryRun dryRun,
+            IErpBosVatRefundSaveWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/vat-app?tab=vat_refund", "Admin ERP capability required for VAT refund save.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpBosVatRefundSaveBody>(context, cancellationToken) ?? new();
+            var id = body.Id;
+            var tagRef = body.TagRef;
+            var invoiceRef = body.InvoiceRef;
+            var customerName = body.CustomerName;
+            var passportNo = body.PassportNo;
+            var nationality = body.Nationality;
+            var saleAmount = body.SaleAmount;
+            var vatAmount = body.VatAmount;
+            var saleDate = body.SaleDate;
+            var status = body.Status;
+            var notes = body.Notes;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                id = LiveWriteFormBinder.Long(form, "id");
+                tagRef = LiveWriteFormBinder.Text(form, "tag_ref", "tagRef", "code");
+                invoiceRef = LiveWriteFormBinder.Text(form, "invoice_ref", "invoiceRef");
+                customerName = LiveWriteFormBinder.Text(form, "customer_name", "customerName");
+                passportNo = LiveWriteFormBinder.Text(form, "passport_no", "passportNo");
+                nationality = LiveWriteFormBinder.Text(form, "nationality");
+                saleAmount = LiveWriteFormBinder.Dec(form, "sale_amount", "saleAmount");
+                vatAmount = LiveWriteFormBinder.DecOrNull(form, "vat_amount", "vatAmount");
+                saleDate = LiveWriteFormBinder.Text(form, "sale_date", "saleDate");
+                status = LiveWriteFormBinder.Text(form, "status");
+                notes = LiveWriteFormBinder.Text(form, "notes");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(dryRun.Evaluate(new ErpBosVatRefundSaveRequest(id, invoiceRef, saleAmount, false)).ToPayload(SessionPayload(session)));
+            }
+
+            var written = await writes.SaveAsync(
+                id,
+                tagRef,
+                invoiceRef,
+                customerName,
+                passportNo,
+                nationality,
+                saleAmount,
+                vatAmount,
+                saleDate,
+                status,
+                notes,
+                session.UserId,
+                cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/erp/vat-app?tab=vat_refund",
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+        }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxBosVatRefundStatus, async (
             HttpContext context,
             ILegacySessionValidator validator,
@@ -5542,7 +5609,19 @@ public sealed class ErpModule : ISurfaceModule
     private sealed record ErpBosWfDecideBody(long Id, bool Approve = true, string? Note = null, bool ConfirmWrites = false);
     private sealed record ErpBosWfRaiseTestBody(bool ConfirmWrites = false);
     private sealed record ErpBosIntelToggleControlBody(string? ControlKey = null, bool Enabled = true, bool ConfirmWrites = false);
-    private sealed record ErpBosVatRefundSaveBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
+    private sealed record ErpBosVatRefundSaveBody(
+        long Id = 0,
+        string? TagRef = null,
+        string? InvoiceRef = null,
+        string? CustomerName = null,
+        string? PassportNo = null,
+        string? Nationality = null,
+        decimal SaleAmount = 0,
+        decimal? VatAmount = null,
+        string? SaleDate = null,
+        string? Status = null,
+        string? Notes = null,
+        bool ConfirmWrites = false);
     private sealed record ErpBosVatRefundStatusBody(long Id, string? TargetStatus = null, bool ConfirmWrites = false);
     private sealed record ErpOplParamsSaveBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpOplSetStatusBody(long Id, string? TargetStatus = null, bool ConfirmWrites = false);

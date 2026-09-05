@@ -160,6 +160,7 @@ public sealed class PhpVsAspNetRemovalMatrixTests
             ("CpHrOverviewApp.razor", "/erp/ajax/hr-expense-status"),
             ("CpConsolidationsApp.razor", "/erp/ajax/cons-entity-delete"),
             ("CpConsolidationsApp.razor", "/erp/ajax/cons-ic-delete"),
+            ("ErpVatApp.razor", "/erp/ajax/bos-vat-refund-save"),
             ("ErpVatApp.razor", "/erp/ajax/bos-vat-refund-status"),
             ("ErpSalesOrdersApp.razor", "/erp/ajax/sub-invoice-paid"),
             ("ErpProcessFlowTasksApp.razor", "/erp/ajax/pf-case-cancel"),

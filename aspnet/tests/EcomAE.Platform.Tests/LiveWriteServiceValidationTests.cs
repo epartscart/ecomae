@@ -893,6 +893,17 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(vatDb.Succeeded);
         Assert.Equal("db", vatDb.Code);
 
+        var vatSaveInvalid = await new ErpBosVatRefundSaveWriteService(new ConfiguredNeverOpened())
+            .SaveAsync(-1, null, null, null, null, null, 0, null, null, null, null, 1);
+        Assert.False(vatSaveInvalid.Succeeded);
+        Assert.Equal("invalid", vatSaveInvalid.Code);
+        Assert.Equal("A refund id must be >= 0.", vatSaveInvalid.Message);
+
+        var vatSaveDb = await new ErpBosVatRefundSaveWriteService(new UnconfiguredConnections())
+            .SaveAsync(0, "TAG-1", "SI-1", null, null, null, 250, null, null, null, null, 1);
+        Assert.False(vatSaveDb.Succeeded);
+        Assert.Equal("db", vatSaveDb.Code);
+
         var invInvalid = await new ErpSubInvoicePaidWriteService(new ConfiguredNeverOpened())
             .MarkPaidAsync(0);
         Assert.False(invInvalid.Succeeded);
