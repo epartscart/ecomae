@@ -1001,9 +1001,10 @@ public sealed class CpOmsWriteService : ICpOmsWriteService
                 .ConfigureAwait(false);
             if (offer is { } warehouse)
             {
+                await using var tx = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
                 await ErpDb.ExecuteAsync(
                     connection,
-                    null,
+                    tx,
                     ErpDb.Positional("UPDATE `shop_orders_items` SET `t2_price_purchase` = ?, `price` = ? WHERE `id` = ? AND `order_id` = ?"),
                     cancellationToken,
                     warehouse.Purchase, warehouse.Sell, itemId, orderId).ConfigureAwait(false);
@@ -1014,10 +1015,11 @@ public sealed class CpOmsWriteService : ICpOmsWriteService
                     + " (storage " + storageId.ToString(CultureInfo.InvariantCulture) + ")";
                 await ErpDb.ExecuteAsync(
                     connection,
-                    null,
-                    ErpDb.Positional("INSERT INTO `shop_orders_logs` (`order_id`,`time`,`user_id`,`is_manager`,`text`,`is_robot`) VALUES (?,?,?,?,?,0)"),
+                    tx,
+                    ErpDb.Positional("INSERT INTO `shop_orders_logs` (`order_id`,`time`,`user_id`,`is_manager`,`text`,`is_robot`) VALUES (?,?,?,1,?,0)"),
                     cancellationToken,
                     orderId, DateTimeOffset.UtcNow.ToUnixTimeSeconds(), adminUserId, warehouseLog).ConfigureAwait(false);
+                await tx.CommitAsync(cancellationToken).ConfigureAwait(false);
                 return new ErpSimpleWriteResult(true, "ok", "Warehouse price refreshed.", itemId, 2);
             }
         }
@@ -1029,9 +1031,10 @@ public sealed class CpOmsWriteService : ICpOmsWriteService
             return ErpSimpleWriteResult.Fail("no_cost", "No purchase cost found for this line");
         }
 
+        await using var fallbackTx = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
         await ErpDb.ExecuteAsync(
             connection,
-            null,
+            fallbackTx,
             ErpDb.Positional("UPDATE `shop_orders_items` SET `t2_price_purchase` = ? WHERE `id` = ? AND `order_id` = ?"),
             cancellationToken,
             unit, itemId, orderId).ConfigureAwait(false);
@@ -1041,10 +1044,11 @@ public sealed class CpOmsWriteService : ICpOmsWriteService
             + " AED (source " + source + ")";
         await ErpDb.ExecuteAsync(
             connection,
-            null,
-            ErpDb.Positional("INSERT INTO `shop_orders_logs` (`order_id`,`time`,`user_id`,`is_manager`,`text`,`is_robot`) VALUES (?,?,?,?,?,0)"),
+            fallbackTx,
+            ErpDb.Positional("INSERT INTO `shop_orders_logs` (`order_id`,`time`,`user_id`,`is_manager`,`text`,`is_robot`) VALUES (?,?,?,1,?,0)"),
             cancellationToken,
             orderId, DateTimeOffset.UtcNow.ToUnixTimeSeconds(), adminUserId, fallbackLog).ConfigureAwait(false);
+        await fallbackTx.CommitAsync(cancellationToken).ConfigureAwait(false);
         return new ErpSimpleWriteResult(true, "ok", "Purchase cost refreshed.", itemId, 2);
     }
 
