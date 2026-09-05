@@ -49,7 +49,7 @@ public sealed class CpPosReceiptPhpParityTests
         Assert.Contains("/cp/pos/receipt/{saleId:long}", routes, StringComparison.Ordinal);
         var catalog = SurfacePayloadContractCatalog.Functions;
         Assert.Contains("/cp/pos/receipt/{id}", catalog.First(f => f.AspNetRouteOrCapability == "/cp/pos-overview-app").Notes, StringComparison.Ordinal);
-        Assert.Contains("Walk-in user create is ASP.NET-live", catalog.First(f => f.AspNetRouteOrCapability == "/cp/pos-overview-app").Notes, StringComparison.Ordinal);
+        Assert.Contains("Walk-in user create and tax-toolkit totals are ASP.NET-live", catalog.First(f => f.AspNetRouteOrCapability == "/cp/pos-overview-app").Notes, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -59,6 +59,20 @@ public sealed class CpPosReceiptPhpParityTests
         Assert.Equal(
             LegacyPasswordVerifier.Md5Hex("abcd1234local-test-secret"),
             CpPosWriteService.HashWalkinPassword("abcd1234", "local-test-secret"));
+    }
+
+    [Fact]
+    public void SumCart_UsesGrossThenDiscountLikePhp()
+    {
+        var lines = CpPosWriteService.ParseLines(
+        [
+            new("Pad", 2, 10m, LineDiscountAmt: 1.50m),
+            new("Oil", 1, 8.5m),
+        ]);
+        var cart = CpPosWriteService.SumCart(lines);
+        Assert.Equal(28.50m, cart.SubtotalEx);
+        Assert.Equal(1.50m, cart.DiscountTotal);
+        Assert.Equal(27.00m, cart.AmountEx);
     }
 
     private static string FindRepoFile(string relative)

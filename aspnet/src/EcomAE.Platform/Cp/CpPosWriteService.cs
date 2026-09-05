@@ -10,9 +10,10 @@ namespace EcomAE.Platform.Cp;
 
 /// <summary>
 /// Live PHP <c>ajax_pos.php</c> twins for <c>open_session</c>, <c>close_session</c>,
-/// <c>save_settings</c>, the POS sale/line INSERT in <c>complete_sale</c>, and
-/// <c>epc_pos_ensure_walkin_user</c>. Tax-toolkit assign/totals, ERP SO/invoice/voucher,
-/// and inventory movement stay PHP. Printable receipt HTML is ASP.NET-live.
+/// <c>save_settings</c>, the POS sale/line INSERT in <c>complete_sale</c>,
+/// <c>epc_pos_ensure_walkin_user</c>, and tax-toolkit cart totals.
+/// Tax-toolkit assign, ERP SO/invoice/voucher, and inventory movement stay PHP.
+/// Printable receipt HTML is ASP.NET-live.
 /// </summary>
 public interface ICpPosWriteService
 {
@@ -79,11 +80,16 @@ public sealed class CpPosWriteService : ICpPosWriteService
 
     private readonly IErpWriteConnectionFactory _connections;
     private readonly IOptions<EcomAeOptions>? _options;
+    private readonly IErpTaxAmountCalculator? _tax;
 
-    public CpPosWriteService(IErpWriteConnectionFactory connections, IOptions<EcomAeOptions>? options = null)
+    public CpPosWriteService(
+        IErpWriteConnectionFactory connections,
+        IOptions<EcomAeOptions>? options = null,
+        IErpTaxAmountCalculator? tax = null)
     {
         _connections = connections;
         _options = options;
+        _tax = tax;
     }
 
     public async Task<ErpSimpleWriteResult> OpenSessionAsync(
@@ -341,51 +347,6 @@ public sealed class CpPosWriteService : ICpPosWriteService
             return ErpSimpleWriteResult.Fail("invalid", "Open a register session before completing a sale");
         }
 
-        var taxRate = request.TaxRate < 0 ? 0 : request.TaxRate;
-        decimal subtotal = 0;
-        decimal discountTotal = 0;
-        foreach (var line in lines)
-        {
-            subtotal += line.LineExVat;
-            discountTotal += line.DiscountAmt;
-        }
-
-        subtotal = Math.Round(subtotal, 2, MidpointRounding.AwayFromZero);
-        discountTotal = Math.Round(discountTotal, 2, MidpointRounding.AwayFromZero);
-        var vat = Math.Round(subtotal * (taxRate / 100m), 2, MidpointRounding.AwayFromZero);
-        var total = Math.Round(subtotal + vat, 2, MidpointRounding.AwayFromZero);
-        var method = (request.PaymentMethod ?? "cash").Trim().ToLowerInvariant();
-        if (method is not ("cash" or "card" or "split"))
-        {
-            method = "cash";
-        }
-
-        decimal cash = Math.Round(request.CashAmount, 2, MidpointRounding.AwayFromZero);
-        decimal card = Math.Round(request.CardAmount, 2, MidpointRounding.AwayFromZero);
-        if (method == "cash")
-        {
-            cash = total;
-            card = 0;
-        }
-        else if (method == "card")
-        {
-            card = total;
-            cash = 0;
-        }
-        else
-        {
-            if (cash + card <= 0)
-            {
-                cash = total;
-            }
-
-            if (Math.Abs(cash + card - total) > 0.02m)
-            {
-                return ErpSimpleWriteResult.Fail("invalid", "Split payment must equal total");
-            }
-        }
-
-        var saleNo = await NextSaleNoAsync(connection, cancellationToken).ConfigureAwait(false);
         var customerUserId = request.CustomerUserId;
         var contactId = request.ContactId;
         var label = Clip(request.CustomerLabel, 255);
@@ -431,6 +392,70 @@ public sealed class CpPosWriteService : ICpPosWriteService
             }
         }
 
+        var cart = SumCart(lines);
+        var taxUserId = customerUserId > int.MaxValue ? int.MaxValue : (int)customerUserId;
+        var taxContactId = contactId > int.MaxValue ? int.MaxValue : (int)contactId;
+        decimal taxRate;
+        decimal vat;
+        decimal total;
+        var kitCode = Clip(request.TaxKitCode, 32);
+        if (_tax is not null)
+        {
+            var header = await _tax.CalcAsync(
+                connection,
+                null,
+                cart.AmountEx,
+                taxUserId,
+                taxContactId,
+                false,
+                cancellationToken).ConfigureAwait(false);
+            taxRate = header.TaxRate;
+            vat = header.VatAmount;
+            total = header.TotalAmount;
+            if (kitCode.Length == 0)
+            {
+                kitCode = Clip(header.KitCode, 32);
+            }
+        }
+        else
+        {
+            taxRate = request.TaxRate < 0 ? 0 : request.TaxRate;
+            vat = Math.Round(cart.AmountEx * (taxRate / 100m), 2, MidpointRounding.AwayFromZero);
+            total = Math.Round(cart.AmountEx + vat, 2, MidpointRounding.AwayFromZero);
+        }
+
+        var method = (request.PaymentMethod ?? "cash").Trim().ToLowerInvariant();
+        if (method is not ("cash" or "card" or "split"))
+        {
+            method = "cash";
+        }
+
+        decimal cash = Math.Round(request.CashAmount, 2, MidpointRounding.AwayFromZero);
+        decimal card = Math.Round(request.CardAmount, 2, MidpointRounding.AwayFromZero);
+        if (method == "cash")
+        {
+            cash = total;
+            card = 0;
+        }
+        else if (method == "card")
+        {
+            card = total;
+            cash = 0;
+        }
+        else
+        {
+            if (cash + card <= 0)
+            {
+                cash = total;
+            }
+
+            if (Math.Abs(cash + card - total) > 0.02m)
+            {
+                return ErpSimpleWriteResult.Fail("invalid", "Split payment must equal total");
+            }
+        }
+
+        var saleNo = await NextSaleNoAsync(connection, cancellationToken).ConfigureAwait(false);
         var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
         await using var tx = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
         await ErpDb.ExecuteAsync(
@@ -446,14 +471,34 @@ public sealed class CpPosWriteService : ICpPosWriteService
                 """),
             cancellationToken,
             sessionId, saleNo, customerUserId, contactId, label, 0L, 0L, "",
-            subtotal, discountTotal, vat, total, method, cash, card,
-            Clip(request.TaxKitCode, 32), taxRate, adminUserId, now).ConfigureAwait(false);
+            cart.SubtotalEx, cart.DiscountTotal, vat, total, method, cash, card,
+            kitCode, taxRate, adminUserId, now).ConfigureAwait(false);
         var saleId = await ErpDb.LastInsertIdAsync(connection, tx, cancellationToken).ConfigureAwait(false);
         var lineNo = 1;
         foreach (var line in lines)
         {
-            var lineVat = Math.Round(line.LineExVat * (taxRate / 100m), 2, MidpointRounding.AwayFromZero);
-            var lineTotal = Math.Round(line.LineExVat + lineVat, 2, MidpointRounding.AwayFromZero);
+            decimal lineVat;
+            decimal lineTotal;
+            var lineRate = taxRate;
+            if (_tax is not null)
+            {
+                var lineTax = await _tax.CalcAsync(
+                    connection,
+                    tx,
+                    line.LineExVat,
+                    taxUserId,
+                    taxContactId,
+                    false,
+                    cancellationToken).ConfigureAwait(false);
+                lineRate = lineTax.TaxRate;
+                lineVat = lineTax.VatAmount;
+                lineTotal = lineTax.TotalAmount;
+            }
+            else
+            {
+                lineVat = Math.Round(line.LineExVat * (taxRate / 100m), 2, MidpointRounding.AwayFromZero);
+                lineTotal = Math.Round(line.LineExVat + lineVat, 2, MidpointRounding.AwayFromZero);
+            }
             await ErpDb.ExecuteAsync(
                 connection,
                 tx,
@@ -466,12 +511,28 @@ public sealed class CpPosWriteService : ICpPosWriteService
                     """),
                 cancellationToken,
                 saleId, lineNo, line.Source, line.Ref, line.Sku, line.Barcode, line.Name, line.Qty, line.UnitPriceEx,
-                line.DiscountPct, line.DiscountAmt, line.LineExVat, taxRate, lineVat, lineTotal).ConfigureAwait(false);
+                line.DiscountPct, line.DiscountAmt, line.LineExVat, lineRate, lineVat, lineTotal).ConfigureAwait(false);
             lineNo++;
         }
 
         await tx.CommitAsync(cancellationToken).ConfigureAwait(false);
         return ErpSimpleWriteResult.Ok("Sale " + saleNo + " completed.", saleId);
+    }
+
+    /// <summary>PHP <c>epc_pos_calc_cart_totals</c> header: gross qty×unit, then discount, then amount ex.</summary>
+    public static CpPosCartTotals SumCart(IReadOnlyList<CpPosParsedLine> lines)
+    {
+        decimal subtotal = 0;
+        decimal discountTotal = 0;
+        foreach (var line in lines)
+        {
+            subtotal += Math.Round(line.Qty * line.UnitPriceEx, 2, MidpointRounding.AwayFromZero);
+            discountTotal += line.DiscountAmt;
+        }
+
+        subtotal = Math.Round(subtotal, 2, MidpointRounding.AwayFromZero);
+        discountTotal = Math.Round(discountTotal, 2, MidpointRounding.AwayFromZero);
+        return new(subtotal, discountTotal, Math.Round(subtotal - discountTotal, 2, MidpointRounding.AwayFromZero));
     }
 
     public static IReadOnlyList<CpPosParsedLine> ParseLines(IReadOnlyList<CpPosSaleLineInput>? raw)
@@ -918,6 +979,8 @@ public sealed class CpPosWriteService : ICpPosWriteService
         return text.Length <= max ? text : text[..max];
     }
 }
+
+public sealed record CpPosCartTotals(decimal SubtotalEx, decimal DiscountTotal, decimal AmountEx);
 
 public sealed record CpPosParsedLine(
     string Source,

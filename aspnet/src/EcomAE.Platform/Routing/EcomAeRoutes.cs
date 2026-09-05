@@ -1647,7 +1647,7 @@ public static class EcomAeRoutes
     public const string CpPosCloseSession = "/cp/pos/close-session";
     /// <summary>Live PHP ajax_pos.php complete_sale POS INSERT. ERP SO/invoice/voucher, inventory, receipt HTML stay PHP.</summary>
     public const string CpPosCompleteSale = "/cp/pos/complete-sale";
-    /// <summary>Printable PHP epc_pos_receipt_html twin. Walk-in / tax-toolkit / ERP SO / inventory stay PHP.</summary>
+    /// <summary>Printable PHP epc_pos_receipt_html twin. ERP SO / inventory stay PHP.</summary>
     public const string ControlPanelPosReceipt = "/cp/pos/receipt/{saleId:long}";
     /// <summary>Live PHP ajax_pos.php save_settings UPDATE. Schema ensure stays PHP.</summary>
     public const string CpPosSaveSettings = "/cp/pos/save-settings";
