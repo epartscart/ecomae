@@ -36,6 +36,10 @@ public sealed class CpFulfillmentQueuePhpParityTests
         Assert.Contains("@page \"/cp/shop/finance/epc_fulfillment_queue\"", text, StringComparison.Ordinal);
         Assert.Contains("GetCpFulfillmentDetailAsync", text, StringComparison.Ordinal);
         Assert.Contains("BuildCpFulfillmentQueueDigestAsync(200, ctx.RequestAborted, _status)", text, StringComparison.Ordinal);
+        Assert.Contains("action=\"/cp/fulfillment-queue/write\"", text, StringComparison.Ordinal);
+        Assert.Contains("name=\"confirmWrites\"", text, StringComparison.Ordinal);
+        Assert.Contains("value=\"transition\"", text, StringComparison.Ordinal);
+        Assert.Contains("value=\"create_wave\"", text, StringComparison.Ordinal);
         Assert.Contains("QtyOrdered", text, StringComparison.Ordinal);
         Assert.Contains("QtyPicked", text, StringComparison.Ordinal);
         Assert.Contains("QtyPacked", text, StringComparison.Ordinal);
@@ -75,6 +79,7 @@ public sealed class CpFulfillmentQueuePhpParityTests
         var catalog = SurfacePayloadContractCatalog.Functions;
         var shell = catalog.First(item => item.AspNetRouteOrCapability.Contains("/cp/fulfillment-queue-app", StringComparison.Ordinal));
         Assert.Equal("digest-wired-awaiting-dual-sample", shell.Status);
+        Assert.Equal("write-live-gated", catalog.First(item => item.AspNetRouteOrCapability == "/cp/fulfillment-queue/write").Status);
     }
 
     [Fact]

@@ -1981,17 +1981,59 @@ public sealed class StorefrontModule : ISurfaceModule
         }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.StorefrontCreateOperation, async (
             HttpContext context,
-            StorefrontCreateOperationBody? body,
             ILegacySessionValidator validator,
             IStorefrontCreateOperationDryRun dryRun,
+            IStorefrontPaymentWriteService writes,
             CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateAsync(context, cancellationToken);
             if (session.Kind != LegacySessionKind.Customer || session.UserId <= 0)
-                return Unauthorized("Customer session required.");
-            body ??= new StorefrontCreateOperationBody(0,null,false);
-            return Results.Ok(dryRun.Evaluate(new StorefrontCreateOperationRequest(body.Amount, body.Kind, body.ConfirmWrites)).ToPayload(SessionPayload(session)));
-        });
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/storefront/login?returnUrl=/storefront/payment-app", "Customer session required to create a payment operation.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<StorefrontCreateOperationBody>(context, cancellationToken)
+                       ?? new(0, null, false);
+            var amount = body.Amount;
+            var kind = body.Kind;
+            var orderId = body.OrderId;
+            var handler = body.PayHandler;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                amount = LiveWriteFormBinder.Dec(form, "amount");
+                kind = LiveWriteFormBinder.Text(form, "kind");
+                orderId = LiveWriteFormBinder.Long(form, "order_id", "orderId");
+                handler = LiveWriteFormBinder.Text(form, "pay_handler", "payHandler", "pay_system");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (orderId <= 0
+                && long.TryParse(kind, NumberStyles.Integer, CultureInfo.InvariantCulture, out var kindOrder)
+                && kindOrder > 0)
+            {
+                orderId = kindOrder;
+            }
+            else if (string.IsNullOrWhiteSpace(handler)
+                     && !string.IsNullOrWhiteSpace(kind)
+                     && !long.TryParse(kind, NumberStyles.Integer, CultureInfo.InvariantCulture, out _))
+            {
+                handler = kind;
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(dryRun.Evaluate(new StorefrontCreateOperationRequest(amount, kind, false)).ToPayload(SessionPayload(session)));
+            }
+
+            var written = await writes.CreateOperationAsync(session.UserId, amount, orderId, handler, cancellationToken);
+            var dest = written.Ok
+                ? EcomAeRoutes.StorefrontPaymentGoToPay + "?operation=" + written.Id.ToString(CultureInfo.InvariantCulture)
+                  + "&pay_system=" + Uri.EscapeDataString(written.PaySystem ?? "epc_demo")
+                : "/storefront/payment-app";
+            return LiveWriteFormBinder.Complete(context, dest, written.Ok, written.Message, written.ToPayload(SessionPayload(session)));
+        }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.StorefrontCheckOrderNotAuthorized, async (
             HttpContext context,
             StorefrontCheckOrderNotAuthorizedBody? body,
@@ -2525,7 +2567,7 @@ public sealed class StorefrontModule : ISurfaceModule
         [property: JsonPropertyName("check_hash")] string? CheckHash = null);
     private sealed record StorefrontNewsletterSubscribeBody(string? Email, bool ConfirmWrites = false);
     private sealed record StorefrontAddEvaluationBody(long ProductId, int Rating = 5, bool ConfirmWrites = false, string? Text = null);
-    private sealed record StorefrontCreateOperationBody(decimal Amount, string? Kind, bool ConfirmWrites = false);
+    private sealed record StorefrontCreateOperationBody(decimal Amount, string? Kind, bool ConfirmWrites = false, long OrderId = 0, string? PayHandler = null);
     private sealed record StorefrontCheckOrderNotAuthorizedBody(long OrderId, bool ConfirmWrites = false);
     private sealed record StorefrontSetUserOptionBody(string? OptionKey, string? OptionValue, bool ConfirmWrites = false);
     private sealed record StorefrontSetMyCityBody(long CityId, bool ConfirmWrites = false);

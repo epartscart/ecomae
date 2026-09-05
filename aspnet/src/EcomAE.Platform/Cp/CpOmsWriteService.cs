@@ -47,7 +47,7 @@ public interface ICpOmsWriteService
         CancellationToken cancellationToken = default);
 }
 
-/// <summary>PHP <c>ajax_epc_orders_oms.php</c> <c>update_item</c> / <c>update_items</c> field patch. Warehouse reprice uses the price-list lookup; customer-group markup stays sell=purchase.</summary>
+/// <summary>PHP <c>ajax_epc_orders_oms.php</c> <c>update_item</c> / <c>update_items</c> field patch. Warehouse reprice uses the price-list lookup plus <c>epc_pricing_apply_sell_from_purchase</c>.</summary>
 public sealed record CpOmsItemWritePatch(
     long ItemId,
     decimal? Price = null,
@@ -624,7 +624,13 @@ public sealed class CpOmsWriteService : ICpOmsWriteService
 
         if (patch.RepriceFromWarehouse && storageId > 0)
         {
-            var offer = await LookupWarehouseOfferAsync(connection, storageId, brand, article, cancellationToken)
+            var orderUserId = await ErpDb.LongAsync(
+                connection,
+                null,
+                ErpDb.Positional("SELECT `user_id` FROM `shop_orders` WHERE `id` = ? LIMIT 1"),
+                cancellationToken,
+                orderId).ConfigureAwait(false);
+            var offer = await LookupWarehouseOfferAsync(connection, storageId, brand, article, orderUserId, cancellationToken)
                 .ConfigureAwait(false);
             if (offer is null)
             {
@@ -1014,7 +1020,13 @@ public sealed class CpOmsWriteService : ICpOmsWriteService
         var lookupArticle = !string.IsNullOrWhiteSpace(articleShow) ? articleShow : article;
         if (storageId > 0 && !string.IsNullOrWhiteSpace(lookupArticle))
         {
-            var offer = await LookupWarehouseOfferAsync(connection, storageId, brand, lookupArticle, cancellationToken)
+            var orderUserId = await ErpDb.LongAsync(
+                connection,
+                null,
+                ErpDb.Positional("SELECT `user_id` FROM `shop_orders` WHERE `id` = ? LIMIT 1"),
+                cancellationToken,
+                orderId).ConfigureAwait(false);
+            var offer = await LookupWarehouseOfferAsync(connection, storageId, brand, lookupArticle, orderUserId, cancellationToken)
                 .ConfigureAwait(false);
             if (offer is { } warehouse)
             {
@@ -1099,6 +1111,7 @@ public sealed class CpOmsWriteService : ICpOmsWriteService
         int storageId,
         string brand,
         string article,
+        long orderUserId,
         CancellationToken cancellationToken)
     {
         int priceId;
@@ -1163,8 +1176,17 @@ public sealed class CpOmsWriteService : ICpOmsWriteService
             }
 
             var name = Convert.ToString(reader["name"], CultureInfo.InvariantCulture) ?? "";
-            // PHP sell uses epc_pricing_apply_sell_from_purchase when present; otherwise sell = purchase.
-            return new WarehouseOffer(purchase, purchase, manufacturer.Trim(), articleShow.Trim(), name.Trim());
+            var groupId = await EpcPricing.ResolveCustomerGroupIdAsync(connection, orderUserId, cancellationToken)
+                .ConfigureAwait(false);
+            var sell = await EpcPricing.ApplySellFromPurchaseAsync(
+                connection, groupId, manufacturer, purchase, articleShow, storageId, cancellationToken)
+                .ConfigureAwait(false);
+            if (sell <= 0)
+            {
+                sell = purchase;
+            }
+
+            return new WarehouseOffer(purchase, sell, manufacturer.Trim(), articleShow.Trim(), name.Trim());
         }
         catch (DbException)
         {

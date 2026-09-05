@@ -510,6 +510,8 @@ public static class EcomAeRoutes
     public const string ControlPanelFulfillmentQueueApp = "/cp/fulfillment-queue-app";
     /// <summary>Read-only PHP <c>epc_fulfillment_get</c> digest for one fulfillment order.</summary>
     public const string ControlPanelFulfillmentQueueDetailDigest = "/cp/fulfillment-queue-detail-digest/{fulfillmentId:long}";
+    /// <summary>Queue transition / assign / pick / pack / wave. <c>confirmWrites=true</c> is the live twin of PHP epc_fulfillment_*. Queue-from-order and packing-slip PDF stay PHP.</summary>
+    public const string CpFulfillmentQueueWrite = "/cp/fulfillment-queue/write";
     public const string ControlPanelSsoSaml = "/cp/sso-saml";
     public const string ControlPanelSsoSamlApp = "/cp/sso-saml-app";
     public const string ControlPanelEventBus = "/cp/event-bus";
@@ -961,7 +963,7 @@ public static class EcomAeRoutes
     public const string StorefrontNewsletterSubscribe = "/storefront/newsletter/subscribe";
     /// <summary>Wave B dry-run for PHP content/shop/catalogue/evaluations/ajax_add_evaluation.php (writes=0).</summary>
     public const string StorefrontAddEvaluation = "/storefront/evaluations/add";
-    /// <summary>Wave B dry-run for PHP content/shop/finance/ajax_create_operation.php (writes=0).</summary>
+    /// <summary>Live twin of PHP content/shop/finance/ajax_create_operation.php. <c>confirmWrites=true</c> writes via <c>IStorefrontPaymentWriteService</c>.</summary>
     public const string StorefrontCreateOperation = "/storefront/finance/create-operation";
     /// <summary>Wave B dry-run for PHP content/shop/order_process/ajax_check_order_not_authorized.php (writes=0).</summary>
     public const string StorefrontCheckOrderNotAuthorized = "/storefront/orders/check-not-authorized";

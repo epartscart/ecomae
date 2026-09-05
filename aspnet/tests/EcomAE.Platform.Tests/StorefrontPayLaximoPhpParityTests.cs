@@ -28,6 +28,7 @@ public sealed class StorefrontPayLaximoPhpParityTests
     public void Catalog_MarksPayAndVinLive()
     {
         Assert.Equal("write-live-gated", SurfacePayloadContractCatalog.Functions.First(f => f.AspNetRouteOrCapability == "/storefront/payment/create-operation").Status);
+        Assert.Equal("write-live-gated", SurfacePayloadContractCatalog.Functions.First(f => f.AspNetRouteOrCapability == "/storefront/finance/create-operation").Status);
         Assert.Equal("write-live-gated", SurfacePayloadContractCatalog.Functions.First(f => f.AspNetRouteOrCapability == "/storefront/payment/notify").Status);
         Assert.Equal("write-live-gated", SurfacePayloadContractCatalog.Functions.First(f => f.AspNetRouteOrCapability == "/storefront/vin/decode").Status);
     }
@@ -52,6 +53,11 @@ public sealed class StorefrontPayLaximoPhpParityTests
         Assert.Equal("0986ABC", CpOmsWriteService.NormArticle("0986-ABC"));
         Assert.Equal("FILTEROIL01", CpOmsWriteService.NormArticle("FILTER-OIL-01"));
         Assert.Equal("", CpOmsWriteService.NormArticle(""));
+        Assert.Equal("0986ABC", EpcPricing.NormalizeArticle("0986-ABC"));
+        Assert.Equal("BOSCH", EpcPricing.NormalizeBrand(" bosch "));
+        var stepped = EpcPricing.ApplyMarginStep(8.50m, 0m, EpcPricing.DefaultGuestRetailMarginPercent);
+        Assert.Equal(11.90m, Math.Round(stepped.Price, 2, MidpointRounding.AwayFromZero));
+        Assert.Equal(0.40m, stepped.MarkupDecimal);
     }
 
     [Fact]
@@ -104,6 +110,7 @@ public sealed class StorefrontPayLaximoPhpParityTests
         Assert.Equal("write-live-gated", SurfacePayloadContractCatalog.Functions.First(f => f.AspNetRouteOrCapability == "/storefront/profile/change-password").Status);
         Assert.Equal("write-live-gated", SurfacePayloadContractCatalog.Functions.First(f => f.AspNetRouteOrCapability == "/cp/orders/pay-refund").Status);
         Assert.Equal("write-live-gated", SurfacePayloadContractCatalog.Functions.First(f => f.AspNetRouteOrCapability == "/cp/orders/refresh-item-cost").Status);
+        Assert.Equal("write-live-gated", SurfacePayloadContractCatalog.Functions.First(f => f.AspNetRouteOrCapability == "/cp/fulfillment-queue/write").Status);
         Assert.Equal("/storefront/garage/check-car", PhpCustomerWrites.GarageCheckCarHref);
         Assert.Equal("/storefront/profile/change-password", PhpCustomerWrites.ProfilePasswordHref);
     }
