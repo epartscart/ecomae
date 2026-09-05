@@ -2608,8 +2608,51 @@ public sealed class ErpModule : ISurfaceModule
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpHrEmpSaveRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxHrAttendance, async (HttpContext context, ErpHrAttendanceBody? body, ILegacySessionValidator validator, IErpHrAttendanceDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpHrAttendanceRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxHrLeaveRequest, async (HttpContext context, ErpHrLeaveRequestBody? body, ILegacySessionValidator validator, IErpHrLeaveRequestDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpHrLeaveRequestRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxHrLeaveRequest, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IErpHrLeaveRequestDryRun dryRun,
+            EcomAE.Platform.Erp.IErpHrLeaveRequestWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/cp/hr-overview-app", "Admin ERP capability required for leave request.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpHrLeaveRequestBody>(context, cancellationToken)
+                       ?? new();
+            var employeeId = body.EmployeeId;
+            var type = body.Type;
+            var days = body.Days;
+            var dateFrom = body.DateFrom;
+            var dateTo = body.DateTo;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                employeeId = LiveWriteFormBinder.Long(form, "employeeId", "employee_id");
+                type = LiveWriteFormBinder.Text(form, "type");
+                days = LiveWriteFormBinder.Dec(form, "days");
+                dateFrom = LiveWriteFormBinder.Text(form, "dateFrom", "date_from", "date_from_str");
+                dateTo = LiveWriteFormBinder.Text(form, "dateTo", "date_to", "date_to_str");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (confirm)
+            {
+                var written = await writes.RequestAsync(employeeId, type, days, dateFrom, dateTo, cancellationToken);
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    "/cp/hr-overview-app",
+                    written.Succeeded,
+                    written.Message,
+                    new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+            }
+
+            return Results.Ok(dryRun.Evaluate(new ErpHrLeaveRequestRequest(employeeId, type, false)).ToPayload(SessionPayload(session)));
+        }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxHrLeaveStatus, async (
             HttpContext context,
             ILegacySessionValidator validator,
@@ -5274,7 +5317,13 @@ public sealed class ErpModule : ISurfaceModule
     private sealed record ErpInvRunClosingBody(bool ConfirmWrites = false);
     private sealed record ErpHrEmpSaveBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpHrAttendanceBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
-    private sealed record ErpHrLeaveRequestBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
+    private sealed record ErpHrLeaveRequestBody(
+        long EmployeeId = 0,
+        string? Type = null,
+        decimal Days = 0,
+        string? DateFrom = null,
+        string? DateTo = null,
+        bool ConfirmWrites = false);
     private sealed record ErpHrLeaveStatusBody(long Id, string? TargetStatus = null, bool ConfirmWrites = false);
     private sealed record ErpHrExpenseSaveBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpHrExpenseStatusBody(long Id, string? TargetStatus = null, bool ConfirmWrites = false);

@@ -45,7 +45,7 @@
         <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
         <h1>HR — employee records &amp; salaries</h1>
         <p>@CpPhpModuleCopy.PurposeFor("/cp/hr-overview-app")</p>
-        <p>Save days worked and set leave or expense status here. Leave request, expense save, and payroll generate stay on the classic twin.</p>
+        <p>Save days worked, submit a leave request, and set leave or expense status here. Expense save and payroll generate stay on the Classic twin.</p>
         <div class="epc-hr-cta">
             <a href="/cp/hr-overview-app?hv=salaries">Salaries</a>
             <a class="ghost" href="/cp/hr-overview-app?hv=statutory">End-of-service &amp; leave</a>
@@ -72,6 +72,22 @@
             <label>Staff profile id <input type="number" name="staffProfileId" min="1" required style="width:6rem" /></label>
             <label>Days worked <input type="text" name="daysWorked" required /></label>
             <button type="submit">Save days</button>
+        </form>
+        <form method="post" action="/erp/ajax/hr-leave-request" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 .65rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/hr-overview-app" />
+            <label>Employee id <input type="number" name="employee_id" min="1" required style="width:6rem" /></label>
+            <label>Type
+                <select name="type">
+                    <option value="annual">annual</option>
+                    <option value="sick">sick</option>
+                    <option value="unpaid">unpaid</option>
+                </select>
+            </label>
+            <label>Days <input type="number" name="days" step="0.01" min="0" style="width:6rem" /></label>
+            <label>From <input type="date" name="date_from_str" /></label>
+            <label>To <input type="date" name="date_to_str" /></label>
+            <button type="submit">Submit leave request</button>
         </form>
         <form method="post" action="/erp/ajax/hr-leave-status" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
