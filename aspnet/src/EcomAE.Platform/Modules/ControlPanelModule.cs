@@ -2936,6 +2936,78 @@ public sealed class ControlPanelModule : ISurfaceModule
                 written.Message,
                 new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.CpQuoteSaveLines, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpQuoteWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/quote-requests-app", "Admin CP capability required for quote lines.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpQuoteSaveLinesBody>(context, cancellationToken) ?? new();
+            var quoteId = body.QuoteId;
+            var note = body.AdminNote;
+            var linesJson = body.LinesJson ?? body.Lines;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                quoteId = LiveWriteFormBinder.Long(form, "quoteId", "quote_id", "id");
+                note = LiveWriteFormBinder.Text(form, "adminNote", "admin_note", "note");
+                linesJson = LiveWriteFormBinder.Text(form, "linesJson", "lines_json", "lines");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+                if (string.IsNullOrWhiteSpace(linesJson))
+                {
+                    var lineId = LiveWriteFormBinder.Long(form, "lineId", "line_id");
+                    if (lineId > 0)
+                    {
+                        var one = new
+                        {
+                            id = lineId,
+                            quotedPrice = LiveWriteFormBinder.DecOrNull(form, "quotedPrice", "quoted_price"),
+                            quotedTimeToExe = LiveWriteFormBinder.IntOrNull(form, "quotedTimeToExe", "quoted_time_to_exe"),
+                            lineAdminNote = LiveWriteFormBinder.Text(form, "lineAdminNote", "line_admin_note"),
+                            offerAlternative = LiveWriteFormBinder.Flag(form, "offerAlternative", "offer_alternative"),
+                            altManufacturer = LiveWriteFormBinder.Text(form, "altManufacturer", "alt_manufacturer"),
+                            altArticle = LiveWriteFormBinder.Text(form, "altArticle", "alt_article"),
+                            altName = LiveWriteFormBinder.Text(form, "altName", "alt_name"),
+                            altCountNeed = LiveWriteFormBinder.IntOrNull(form, "altCountNeed", "alt_count_need"),
+                            altQuotedPrice = LiveWriteFormBinder.DecOrNull(form, "altQuotedPrice", "alt_quoted_price"),
+                            altStorageId = LiveWriteFormBinder.Long(form, "altStorageId", "alt_storage_id")
+                        };
+                        linesJson = JsonSerializer.Serialize(one) is { } oneJson
+                            ? "[" + oneJson + "]"
+                            : "[]";
+                    }
+                }
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(new
+                {
+                    status = "dry-run",
+                    writes = 0,
+                    writesBlocked = true,
+                    phpAuthoritative = true,
+                    validation_code = "dry_run",
+                    message = "Set confirmWrites=true to save quote lines on ASP.NET.",
+                    session = SessionPayload(session)
+                });
+            }
+
+            var written = await writes.SaveLinesAsync(quoteId, note, linesJson, cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/cp/quote-requests-app",
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.CpQuoteSend, async (
             HttpContext context,
             ILegacySessionValidator validator,
@@ -7319,6 +7391,12 @@ public sealed class ControlPanelModule : ISurfaceModule
     private sealed record CpPricesCompleteSessionBody(long SessionId = 0, long PriceId = 0, bool ConfirmWrites = false);
     private sealed record CpStoragesGroupsBody(string? Action = null, bool ConfirmWrites = false, long Id = 0, string? Name = null, string? Storages = null);
     private sealed record CpQuoteSaveNoteBody(long QuoteId = 0, string? AdminNote = null, bool ConfirmWrites = false);
+    private sealed record CpQuoteSaveLinesBody(
+        long QuoteId = 0,
+        string? AdminNote = null,
+        string? LinesJson = null,
+        string? Lines = null,
+        bool ConfirmWrites = false);
     private sealed record CpQuoteSendBody(long QuoteId = 0, bool ConfirmWrites = false);
     private sealed record CpVendorApprovalsBody(long Id = 0, string? Action = null, bool ConfirmWrites = false);
     private sealed record CpApiClientsToggleBody(long ClientId = 0, string? Action = null, bool ConfirmWrites = false);

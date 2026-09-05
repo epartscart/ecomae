@@ -949,6 +949,19 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(quoteDb.Succeeded);
         Assert.Equal("db", quoteDb.Code);
 
+        var quoteLinesEmpty = await new CpQuoteWriteService(new ConfiguredNeverOpened())
+            .SaveLinesAsync(9, "note", "[]");
+        Assert.False(quoteLinesEmpty.Succeeded);
+        Assert.Equal("invalid", quoteLinesEmpty.Code);
+
+        var quoteLinesAlt = CpQuoteWriteService.ParseLines("""[{"id":1,"offerAlternative":true,"altManufacturer":"","altArticle":"ABC"}]""");
+        Assert.Equal("Alternative offer on line #1 needs brand and article", quoteLinesAlt.Error);
+
+        var quoteLinesDb = await new CpQuoteWriteService(new UnconfiguredConnections())
+            .SaveLinesAsync(9, "note", """[{"id":1,"quotedPrice":12.5}]""");
+        Assert.False(quoteLinesDb.Succeeded);
+        Assert.Equal("db", quoteLinesDb.Code);
+
         var vendorInvalid = await new CpVendorApprovalWriteService(new ConfiguredNeverOpened())
             .SetStatusAsync(9, "approve");
         Assert.False(vendorInvalid.Succeeded);

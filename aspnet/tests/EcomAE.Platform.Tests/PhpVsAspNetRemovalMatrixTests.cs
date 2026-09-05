@@ -152,6 +152,7 @@ public sealed class PhpVsAspNetRemovalMatrixTests
             ("CpUsersApp.razor", "/cp/users/set-unlocked"),
             ("CpUsersApp.razor", "/cp/vendors/approvals"),
             ("CpQuoteRequestsApp.razor", "/cp/quote-requests/note"),
+            ("CpQuoteRequestsApp.razor", "/cp/quote-requests/save-lines"),
             ("CpQuoteRequestsApp.razor", "/cp/quote-requests/send"),
             ("CpApiClientsApp.razor", "/cp/api-clients/toggle"),
             ("CpPriceListsApp.razor", "/cp/prices/storage-rules"),
