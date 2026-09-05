@@ -1,6 +1,9 @@
 namespace EcomAE.Platform.Migration;
 
-/// <summary>Wave B dry-run for PHP <c>coll_case_save</c>. Never INSERT/UPDATE. PHP authoritative.</summary>
+/// <summary>
+/// Dry-run envelope for PHP <c>epc_coll_case_save</c> when <c>confirmWrites</c> is omitted.
+/// Live INSERT/UPDATE is <c>IErpCollectionsCaseSaveWriteService</c>.
+/// </summary>
 public interface IErpCollectionsCaseSaveDryRun
 {
     ErpCollectionsCaseSaveDryRunResult Evaluate(ErpCollectionsCaseSaveRequest request);
@@ -12,23 +15,30 @@ public sealed class ErpCollectionsCaseSaveDryRun : IErpCollectionsCaseSaveDryRun
     {
         ArgumentNullException.ThrowIfNull(request);
         if (request.ConfirmWrites)
-            return Refuse("dry-run-confirm-refused", "confirm_writes_refused",
-                "confirm_writes requested but live ASP.NET coll_case_save is not implemented; PHP ajax_erp.php remains authoritative.", request);
+        {
+            return Refuse(
+                "dry-run-confirm-refused",
+                "confirm_writes_refused",
+                "confirm_writes refused on the dry-run path; POST confirmWrites=true to write on ASP.NET.",
+                request);
+        }
 
         if (request.CustomerId < 0)
+        {
             return Refuse("dry-run-invalid", "invalid_request", "customerId must be >= 0.", request);
+        }
 
         return new ErpCollectionsCaseSaveDryRunResult(
-            "dry-run-validated", 0, true, false, true, "ok", true,
+            "dry-run-validated", 0, true, false, false, "ok", true,
             request.CustomerId, request.Id,
-            ["epc_coll_case_save(@data, @id) (NOT executed)"],
-            "Collections case save payload validated; write blocked. company_id stays PHP context.",
-            "/CP/content/shop/finance/erp/ajax_erp.php?action=coll_case_save");
+            ["INSERT/UPDATE `epc_coll_cases` (NOT executed)"],
+            "ErpCollectionsCaseSave payload validated; write blocked until confirmWrites=true.",
+            "content/shop/finance/epc_erp_collections.php");
     }
 
     private static ErpCollectionsCaseSaveDryRunResult Refuse(string status, string code, string detail, ErpCollectionsCaseSaveRequest request) =>
-        new(status, 0, true, false, true, code, false, request.CustomerId, request.Id, [], detail,
-            "/CP/content/shop/finance/erp/ajax_erp.php?action=coll_case_save");
+        new(status, 0, true, false, false, code, false, request.CustomerId, request.Id, [], detail,
+            "content/shop/finance/epc_erp_collections.php");
 }
 
 public sealed record ErpCollectionsCaseSaveRequest(

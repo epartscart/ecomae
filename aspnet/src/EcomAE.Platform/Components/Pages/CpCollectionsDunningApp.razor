@@ -63,6 +63,23 @@
     }
     @if (_isAdmin)
     {
+        <form method="post" action="/erp/collections/cases/save" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/collections-dunning-app" />
+            <label>Customer id <input type="number" name="customer_id" min="0" style="width:6rem" /></label>
+            <label>Status
+                <select name="status">
+                    <option value="new">new</option>
+                    <option value="in_progress">in_progress</option>
+                    <option value="promise_to_pay">promise_to_pay</option>
+                    <option value="escalated">escalated</option>
+                    <option value="resolved">resolved</option>
+                </select>
+            </label>
+            <label>Balance <input type="number" name="balance" step="0.01" min="0" style="width:7rem" /></label>
+            <label>Assigned to <input type="text" name="assigned_to" maxlength="120" /></label>
+            <button type="submit">Save case</button>
+        </form>
         <form method="post" action="/erp/collections/cases/status" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
             <input type="hidden" name="returnUrl" value="/cp/collections-dunning-app" />
@@ -78,6 +95,7 @@
             </label>
             <button type="submit">Set case status</button>
         </form>
+        <p class="epc-w15-note">Promise to pay, activity log, dunning run, and credit hold stay on the Classic twin.</p>
     }
 
     <div class="epc-w15-kpis" aria-label="Collections dunning stats">

@@ -41,6 +41,10 @@ public sealed class WaveBOpsModuleDryRunTests
     {
         var r = new ErpCollectionsCaseSaveDryRun().Evaluate(new ErpCollectionsCaseSaveRequest(9));
         Assert.Equal("dry-run-validated", r.Status);
+        Assert.False(r.PhpAuthoritative);
+        Assert.Equal(0, r.Writes);
+        var refused = new ErpCollectionsCaseSaveDryRun().Evaluate(new ErpCollectionsCaseSaveRequest(9, 0, true));
+        Assert.Equal("confirm_writes_refused", refused.ValidationCode);
     }
 
     [Fact] public void ProcReqSaveValidated()
