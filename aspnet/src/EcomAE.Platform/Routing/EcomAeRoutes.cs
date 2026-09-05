@@ -644,7 +644,7 @@ public static class EcomAeRoutes
     public const string ErpWmsLocationSave = "/erp/wms/locations/save";
     /// <summary>Wave B dry-run for PHP coll_case_save (writes=0).</summary>
     public const string ErpCollectionsCaseSave = "/erp/collections/cases/save";
-    /// <summary>Wave B dry-run for PHP proc_req_save (writes=0).</summary>
+    /// <summary>PHP epc_proc_req_save. <c>confirmWrites=true</c> writes via <c>IErpProcurementReqSaveWriteService</c>.</summary>
     public const string ErpProcurementReqSave = "/erp/procurement/requisitions/save";
     /// <summary>Wave B dry-run for PHP fin_period_status (writes=0).</summary>
     public const string ErpFinPeriodStatus = "/erp/fin/periods/status";
