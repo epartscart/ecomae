@@ -1252,6 +1252,8 @@ public static class SurfacePayloadContractCatalog
         new("storefront", "payment create-operation", "/storefront/payment/create-operation", "write-live-gated", "POST PHP ajax_create_operation; confirmWrites=true writes ASP.NET."),
         new("storefront", "payment notify", "/storefront/payment/notify", "write-live-gated", "POST PHP epc_demo notification + protocol/pay_for_order; confirmWrites=true writes ASP.NET."),
         new("storefront", "Laximo VIN decode", "/storefront/vin/decode", "write-live-gated", "POST PHP Guayaquil FindVehicleByVIN; live SOAP on ASP.NET."),
+        new("storefront", "VIN request create", "/storefront/vin-request/create", "write-live-gated", "POST PHP send_vin_email users_vin INSERT; confirmWrites=true writes ASP.NET. Captcha/files/email stay Classic."),
+        new("storefront", "VIN request send-message", "/storefront/vin-request/send-message", "write-live-gated", "POST PHP ajax_send_message customer path; confirmWrites=true writes ASP.NET."),
         new("cp", "OMS update-item dry-run", "/cp/orders/update-item", "write-dry-run-gated", "POST dry-run for ajax_epc_orders_oms.php action=update_item; writes=0; confirm_writes refused; PHP authoritative."),
         new("cp", "OMS pay-refund dry-run", "/cp/orders/pay-refund", "write-dry-run-gated", "POST dry-run for ajax_order_pay_refund.php; writes=0; confirm_writes refused; PHP authoritative."),
         new("cp", "OMS fulfillment-set-stage dry-run", "/cp/orders/fulfillment-set-stage", "write-dry-run-gated", "POST dry-run for OMS supplier_fulfillment_set_stage; writes=0; confirm_writes refused; PHP authoritative."),

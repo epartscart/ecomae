@@ -20,7 +20,7 @@ public static class PhpVsAspNetRemovalMatrix
         // Storefront
         Row("sf-home", "storefront", "templates/*/desktop.php + content/general_pages", "/", "/storefront/app", "aspnet-digest", "php", "Homepage chrome is ASP.NET. Signed-in checkout/create and demo pay are ASP.NET-live. Guest checkout cookies stay PHP."),
         Row("sf-search", "storefront", "content/shop/docpart/ajax_part_search.php", "/shop/part_search", "/en/shop/part_search", "aspnet-digest", "php", "Offer list is ASP.NET; live supplier poll stays PHP. Cart add is /storefront/cart/add."),
-        Row("sf-vin", "storefront", "content/laximo + content/general_pages/vin_zapros.php", "/en/katalog-laximo", "/storefront/vin-app", "aspnet-digest", "aspnet", "Live Laximo FindVehicleByVIN is ASP.NET SOAP. VIN request form (users_vin) stays PHP."),
+        Row("sf-vin", "storefront", "content/laximo + content/general_pages/vin_zapros.php", "/en/katalog-laximo", "/storefront/vin-app", "aspnet-digest", "aspnet", "Live Laximo FindVehicleByVIN and users_vin INSERT / customer message are ASP.NET-live. Captcha, photos, and manager email stay Classic."),
         Row("sf-cart", "storefront", "content/shop/order_process", "/shop/cart", "/en/shop/cart", "aspnet-digest", "aspnet", "Type-2 qty / delete / check-for-order write on ASP.NET. Type-1 and checkout stay PHP."),
         Row("sf-checkout", "storefront", "content/shop/order_process", "/shop/checkout", "/storefront/checkout-app", "aspnet-digest", "php", "Signed-in checkout/create is ASP.NET-live. Guest checkout cookies stay PHP. Demo pay create/notify are ASP.NET-live."),
         Row("sf-orders", "storefront", "content/shop/order_process", "/shop/orders", "/storefront/orders-app", "aspnet-digest", "php", "Customer order list digest. Order/return messages are ASP.NET-live. Guest order writes stay PHP."),
@@ -180,7 +180,7 @@ public static class PhpVsAspNetRemovalMatrix
             },
             ["stillBlockingPhpRemoval"] = new[]
             {
-                "Remaining PHP writes: residual CP/ERP ajax catalog, guest checkout cookies, live acquirer APIs, PyPrices ingest, UMAPI miss-fill, VIN request form.",
+                "Remaining PHP writes: residual CP/ERP ajax catalog, guest checkout cookies, live acquirer APIs, PyPrices ingest, UMAPI miss-fill. VIN request ledger is ASP.NET-live (captcha/files/email stay Classic).",
                 "aspnet-complete interactive module count is 0 (no dual-sample deletion gate).",
                 "Digests + href remaps are not a deletion gate.",
                 "Human MODULE_FUNCTION_TEST_PASS + dual-sample evidence required per family."

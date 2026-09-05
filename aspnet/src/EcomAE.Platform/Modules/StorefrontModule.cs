@@ -1769,6 +1769,120 @@ public sealed class StorefrontModule : ISurfaceModule
                 decoded.ToPayload(SessionPayload(session)));
         }).DisableAntiforgery();
 
+        endpoints.MapPost(EcomAeRoutes.StorefrontVinRequestCreate, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IStorefrontVinRequestWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Customer || session.UserId <= 0)
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/storefront/login?returnUrl=/storefront/seller-request-app", "Customer session required to send a VIN request.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<StorefrontVinRequestCreateBody>(context, cancellationToken)
+                       ?? new(null, null, null, null, null, false);
+            var fields = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            {
+                ["client_fio"] = body.ClientFio ?? "",
+                ["client_email"] = body.ClientEmail ?? "",
+                ["client_phone"] = body.ClientPhone ?? "",
+                ["client_vin"] = body.ClientVin ?? "",
+                ["client_mark"] = body.ClientMark ?? "",
+                ["client_model"] = body.ClientModel ?? "",
+                ["client_year"] = body.ClientYear ?? "",
+                ["client_engine"] = body.ClientEngine ?? "",
+                ["client_body"] = body.ClientBody ?? "",
+                ["client_kpp"] = body.ClientKpp ?? "",
+                ["client_city"] = body.ClientCity ?? "",
+                ["client_drive"] = body.ClientDrive ?? "",
+            };
+            var parts = body.ClientParts;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                foreach (var field in PhpSellerRequest.Fields)
+                {
+                    fields[field.Name] = LiveWriteFormBinder.Text(form, field.Name);
+                }
+
+                parts = LiveWriteFormBinder.Text(form, "client_parts", "parts");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(new
+                {
+                    ok = true,
+                    surface = "storefront",
+                    writes = 0,
+                    writesBlocked = true,
+                    phpAuthoritative = false,
+                    validation_code = "ok",
+                    message = "VIN request validated; write blocked until confirmWrites=true.",
+                    session = SessionPayload(session)
+                });
+            }
+
+            var written = await writes.CreateAsync(session.UserId, fields, parts, cancellationToken);
+            var dest = written.Ok
+                ? "/storefront/customer-requests-app?id=" + written.Id.ToString(CultureInfo.InvariantCulture)
+                : "/storefront/seller-request-app";
+            return LiveWriteFormBinder.Complete(context, dest, written.Ok, written.Message, written.ToPayload(SessionPayload(session)));
+        }).DisableAntiforgery();
+
+        endpoints.MapPost(EcomAeRoutes.StorefrontVinRequestSendMessage, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IStorefrontVinRequestWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Customer || session.UserId <= 0)
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/storefront/login?returnUrl=/storefront/customer-requests-app", "Customer session required to message a VIN request.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<StorefrontVinRequestMessageBody>(context, cancellationToken)
+                       ?? new(0, null, false);
+            var vinId = body.VinId;
+            var text = body.Text;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                vinId = LiveWriteFormBinder.Long(form, "vin_id", "vinId", "id");
+                text = LiveWriteFormBinder.Text(form, "text");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(new
+                {
+                    ok = true,
+                    surface = "storefront",
+                    writes = 0,
+                    writesBlocked = true,
+                    phpAuthoritative = false,
+                    validation_code = "ok",
+                    message = "VIN request message validated; write blocked until confirmWrites=true.",
+                    session = SessionPayload(session)
+                });
+            }
+
+            var written = await writes.SendMessageAsync(session.UserId, vinId, text, cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/storefront/customer-requests-app?id=" + vinId.ToString(CultureInfo.InvariantCulture),
+                written.Ok,
+                written.Message,
+                written.ToPayload(SessionPayload(session)));
+        }).DisableAntiforgery();
+
         endpoints.MapPost(EcomAeRoutes.StorefrontNewsletterSubscribe, async (
             HttpContext context,
             ILegacySessionValidator validator,
@@ -2286,6 +2400,22 @@ public sealed class StorefrontModule : ISurfaceModule
         string? Handler = null,
         bool ConfirmWrites = false);
     private sealed record StorefrontVinDecodeBody(string? Vin);
+    private sealed record StorefrontVinRequestCreateBody(
+        string? ClientFio,
+        string? ClientEmail,
+        string? ClientPhone,
+        string? ClientVin,
+        string? ClientParts,
+        bool ConfirmWrites = false,
+        string? ClientMark = null,
+        string? ClientModel = null,
+        string? ClientYear = null,
+        string? ClientEngine = null,
+        string? ClientBody = null,
+        string? ClientKpp = null,
+        string? ClientCity = null,
+        string? ClientDrive = null);
+    private sealed record StorefrontVinRequestMessageBody(long VinId, string? Text, bool ConfirmWrites = false);
     private sealed record StorefrontOrderSendMessageBody(long OrderId, string? Text, bool ConfirmWrites = false);
     private sealed record StorefrontReturnSendMessageBody(long ReturnId, string? Text, bool ConfirmWrites = false);
     private sealed record StorefrontReturnCreateBody(

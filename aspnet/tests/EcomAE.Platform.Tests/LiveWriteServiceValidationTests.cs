@@ -66,6 +66,21 @@ public sealed class LiveWriteServiceValidationTests
             .NotifyAsync(1, 9, 10, "bad-token", "epc_demo");
         Assert.False(notifyForbidden.Ok);
         Assert.Equal("forbidden", notifyForbidden.Code);
+
+        var vinReqAuth = await new StorefrontVinRequestWriteService(new UnconfiguredConnections())
+            .CreateAsync(0, new Dictionary<string, string> { ["client_vin"] = "WVWZZZ1JZXW000001" }, "pads");
+        Assert.False(vinReqAuth.Ok);
+        Assert.Equal("auth", vinReqAuth.Code);
+
+        var vinReqInvalid = await new StorefrontVinRequestWriteService(new ConfiguredNeverOpened())
+            .CreateAsync(1, new Dictionary<string, string>(), "");
+        Assert.False(vinReqInvalid.Ok);
+        Assert.Equal("invalid", vinReqInvalid.Code);
+
+        var vinMsgAuth = await new StorefrontVinRequestWriteService(new UnconfiguredConnections())
+            .SendMessageAsync(0, 9, "hello");
+        Assert.False(vinMsgAuth.Ok);
+        Assert.Equal("auth", vinMsgAuth.Code);
     }
 
     [Fact]

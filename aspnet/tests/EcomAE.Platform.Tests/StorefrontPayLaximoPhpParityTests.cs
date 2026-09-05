@@ -1,4 +1,5 @@
 using EcomAE.Platform.Migration;
+using EcomAE.Platform.Presentation;
 using EcomAE.Platform.Storefront;
 using Xunit;
 
@@ -47,6 +48,30 @@ public sealed class StorefrontPayLaximoPhpParityTests
         Assert.Equal("epc_demo", StorefrontPaymentWriteService.SanitizeHandler("epc_demo"));
         Assert.Equal("stripedrop", StorefrontPaymentWriteService.SanitizeHandler("stripe;drop"));
         Assert.Equal("epc_demo", StorefrontPaymentWriteService.SanitizeHandler("../epc_demo!"));
+    }
+
+    [Fact]
+    public void VinRequestApps_PostNativeForms()
+    {
+        var seller = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/StorefrontSellerRequestApp.razor"));
+        Assert.Contains("action=\"@PhpSellerRequest.SellerWriteHref\"", seller, StringComparison.Ordinal);
+        Assert.Contains("name=\"confirmWrites\"", seller, StringComparison.Ordinal);
+        Assert.DoesNotContain("send_vin_email.php", seller, StringComparison.Ordinal);
+        Assert.DoesNotContain("@onclick", seller, StringComparison.Ordinal);
+
+        var inbox = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/StorefrontCustomerRequestsApp.razor"));
+        Assert.Contains("action=\"@PhpSellerRequest.MessageWriteHref\"", inbox, StringComparison.Ordinal);
+        Assert.Contains("name=\"confirmWrites\"", inbox, StringComparison.Ordinal);
+        Assert.Contains("method=\"post\"", inbox, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Catalog_MarksVinRequestLive()
+    {
+        Assert.Equal("write-live-gated", SurfacePayloadContractCatalog.Functions.First(f => f.AspNetRouteOrCapability == "/storefront/vin-request/create").Status);
+        Assert.Equal("write-live-gated", SurfacePayloadContractCatalog.Functions.First(f => f.AspNetRouteOrCapability == "/storefront/vin-request/send-message").Status);
+        Assert.Equal("/storefront/vin-request/create", PhpSellerRequest.SellerWriteHref);
+        Assert.Equal("/storefront/vin-request/send-message", PhpSellerRequest.MessageWriteHref);
     }
 
     [Fact]

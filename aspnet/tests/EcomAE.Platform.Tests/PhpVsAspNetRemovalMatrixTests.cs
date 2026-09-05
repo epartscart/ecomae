@@ -129,6 +129,8 @@ public sealed class PhpVsAspNetRemovalMatrixTests
             ("StorefrontCartApp.razor", "/storefront/cart/change-count-need"),
             ("StorefrontPaymentApp.razor", "/storefront/payment/create-operation"),
             ("StorefrontVinApp.razor", "/storefront/vin/decode"),
+            ("StorefrontSellerRequestApp.razor", "SellerWriteHref"),
+            ("StorefrontCustomerRequestsApp.razor", "MessageWriteHref"),
             ("StorefrontOrdersApp.razor", "/storefront/payment/create-operation"),
             ("ErpPayrollApp.razor", "/erp/ajax/payroll-approve"),
             ("ErpInventoryForecastApp.razor", "/erp/inventory-forecast/recompute"),

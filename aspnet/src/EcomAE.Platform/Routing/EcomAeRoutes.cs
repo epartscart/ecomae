@@ -1882,6 +1882,10 @@ public static class EcomAeRoutes
     public const string StorefrontVinApp = "/storefront/vin-app";
     /// <summary>Live PHP Guayaquil FindVehicleByVIN twin.</summary>
     public const string StorefrontVinDecode = "/storefront/vin/decode";
+    /// <summary>Live PHP send_vin_email users_vin INSERT. Captcha/files/email stay Classic.</summary>
+    public const string StorefrontVinRequestCreate = "/storefront/vin-request/create";
+    /// <summary>Live PHP ajax_send_message customer path on users_vin_messages.</summary>
+    public const string StorefrontVinRequestSendMessage = "/storefront/vin-request/send-message";
     /// <summary>Live PHP ajax_create_operation twin.</summary>
     public const string StorefrontPaymentCreateOperation = "/storefront/payment/create-operation";
     /// <summary>Live PHP demo go_to_pay twin.</summary>
