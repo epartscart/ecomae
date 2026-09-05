@@ -1154,28 +1154,35 @@ public sealed class CpOmsWriteService : ICpOmsWriteService
                 LIMIT 1
                 """);
             ErpDb.AddParameters(cmd, priceId, artNorm, artNorm, brandNorm);
-            await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
-            if (!await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            decimal purchase;
+            string manufacturer;
+            string articleShow;
+            string name;
+            await using (var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false))
             {
-                return null;
+                if (!await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    return null;
+                }
+
+                purchase = Math.Round(
+                    reader["price"] is DBNull ? 0m : Convert.ToDecimal(reader["price"], CultureInfo.InvariantCulture),
+                    2, MidpointRounding.AwayFromZero);
+                if (purchase <= 0)
+                {
+                    return null;
+                }
+
+                manufacturer = Convert.ToString(reader["manufacturer"], CultureInfo.InvariantCulture) ?? "";
+                articleShow = Convert.ToString(reader["article_show"], CultureInfo.InvariantCulture) ?? "";
+                if (string.IsNullOrWhiteSpace(articleShow))
+                {
+                    articleShow = Convert.ToString(reader["article"], CultureInfo.InvariantCulture) ?? "";
+                }
+
+                name = Convert.ToString(reader["name"], CultureInfo.InvariantCulture) ?? "";
             }
 
-            var purchase = Math.Round(
-                reader["price"] is DBNull ? 0m : Convert.ToDecimal(reader["price"], CultureInfo.InvariantCulture),
-                2, MidpointRounding.AwayFromZero);
-            if (purchase <= 0)
-            {
-                return null;
-            }
-
-            var manufacturer = Convert.ToString(reader["manufacturer"], CultureInfo.InvariantCulture) ?? "";
-            var articleShow = Convert.ToString(reader["article_show"], CultureInfo.InvariantCulture) ?? "";
-            if (string.IsNullOrWhiteSpace(articleShow))
-            {
-                articleShow = Convert.ToString(reader["article"], CultureInfo.InvariantCulture) ?? "";
-            }
-
-            var name = Convert.ToString(reader["name"], CultureInfo.InvariantCulture) ?? "";
             var groupId = await EpcPricing.ResolveCustomerGroupIdAsync(connection, orderUserId, cancellationToken)
                 .ConfigureAwait(false);
             var sell = await EpcPricing.ApplySellFromPurchaseAsync(
