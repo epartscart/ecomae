@@ -2,7 +2,7 @@ namespace EcomAE.Platform.Erp;
 
 /// <summary>
 /// Live PHP <c>epc_hr_leave_set_status</c> / <c>epc_hr_expense_set_status</c> twins.
-/// Schema ensure, leave request, and expense save stay PHP.
+/// Schema ensure, leave request, and employee save stay PHP. Expense save is <c>IErpHrExpenseSaveWriteService</c>.
 /// </summary>
 public interface IErpHrStatusWriteService
 {

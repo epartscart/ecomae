@@ -978,6 +978,16 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(expDb.Succeeded);
         Assert.Equal("db", expDb.Code);
 
+        var expSaveInvalid = await new ErpHrExpenseSaveWriteService(new ConfiguredNeverOpened())
+            .SaveAsync(0, "Taxi", [new ErpHrExpenseLine("taxi", 12)]);
+        Assert.False(expSaveInvalid.Succeeded);
+        Assert.Equal("invalid", expSaveInvalid.Code);
+
+        var expSaveDb = await new ErpHrExpenseSaveWriteService(new UnconfiguredConnections())
+            .SaveAsync(9, "Taxi", [new ErpHrExpenseLine("taxi", 12)]);
+        Assert.False(expSaveDb.Succeeded);
+        Assert.Equal("db", expSaveDb.Code);
+
         var consEntInvalid = await new ErpConsDeleteWriteService(new ConfiguredNeverOpened())
             .DeleteEntityAsync(0);
         Assert.False(consEntInvalid.Succeeded);

@@ -45,7 +45,7 @@
         <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
         <h1>HR — employee records &amp; salaries</h1>
         <p>@CpPhpModuleCopy.PurposeFor("/cp/hr-overview-app")</p>
-        <p>Save days worked and set leave or expense status here. Leave request, expense save, and payroll generate stay on the classic twin.</p>
+        <p>Save days worked, submit an expense claim, and set leave or expense status here. Leave request and payroll generate stay on the classic twin.</p>
         <div class="epc-hr-cta">
             <a href="/cp/hr-overview-app?hv=salaries">Salaries</a>
             <a class="ghost" href="/cp/hr-overview-app?hv=statutory">End-of-service &amp; leave</a>
@@ -85,6 +85,15 @@
                 </select>
             </label>
             <button type="submit">Set leave status</button>
+        </form>
+        <form method="post" action="/erp/ajax/hr-expense-save" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 .65rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/hr-overview-app" />
+            <label>Employee id <input type="number" name="employee_id" min="1" required style="width:6rem" /></label>
+            <label>Title <input type="text" name="title" placeholder="Expense claim" /></label>
+            <label>Line <input type="text" name="label" placeholder="Description" /></label>
+            <label>Amount <input type="number" name="amount" step="0.01" style="width:7rem" /></label>
+            <button type="submit">Submit claim</button>
         </form>
         <form method="post" action="/erp/ajax/hr-expense-status" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />

@@ -2648,8 +2648,47 @@ public sealed class ErpModule : ISurfaceModule
                 written.Message,
                 new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxHrExpenseSave, async (HttpContext context, ErpHrExpenseSaveBody? body, ILegacySessionValidator validator, IErpHrExpenseSaveDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpHrExpenseSaveRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxHrExpenseSave, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IErpHrExpenseSaveDryRun dryRun,
+            EcomAE.Platform.Erp.IErpHrExpenseSaveWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/cp/hr-overview-app", "Admin ERP capability required for expense save.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpHrExpenseSaveBody>(context, cancellationToken)
+                       ?? new();
+            var employeeId = body.EmployeeId;
+            var title = body.Title;
+            var confirm = body.ConfirmWrites;
+            IFormCollection? form = null;
+            if (context.Request.HasFormContentType)
+            {
+                form = await context.Request.ReadFormAsync(cancellationToken);
+                employeeId = LiveWriteFormBinder.Long(form, "employeeId", "employee_id");
+                title = LiveWriteFormBinder.Text(form, "title");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            var lines = EcomAE.Platform.Erp.ErpHrExpenseSaveWriteService.ParseLines(body.Lines, body.LinesJson, form);
+            if (confirm)
+            {
+                var written = await writes.SaveAsync(employeeId, title, lines, cancellationToken);
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    "/cp/hr-overview-app",
+                    written.Succeeded,
+                    written.Message,
+                    new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+            }
+
+            return Results.Ok(dryRun.Evaluate(new ErpHrExpenseSaveRequest(employeeId, title, lines.Count, false)).ToPayload(SessionPayload(session)));
+        }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxHrExpenseStatus, async (
             HttpContext context,
             ILegacySessionValidator validator,
@@ -5276,7 +5315,12 @@ public sealed class ErpModule : ISurfaceModule
     private sealed record ErpHrAttendanceBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpHrLeaveRequestBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpHrLeaveStatusBody(long Id, string? TargetStatus = null, bool ConfirmWrites = false);
-    private sealed record ErpHrExpenseSaveBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
+    private sealed record ErpHrExpenseSaveBody(
+        long EmployeeId = 0,
+        string? Title = null,
+        IReadOnlyList<EcomAE.Platform.Erp.ErpHrExpenseLine>? Lines = null,
+        string? LinesJson = null,
+        bool ConfirmWrites = false);
     private sealed record ErpHrExpenseStatusBody(long Id, string? TargetStatus = null, bool ConfirmWrites = false);
     private sealed record ErpHrUpdateDaysBody(long Id = 0, long StaffProfileId = 0, decimal DaysWorked = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpEinvoiceCreateBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
