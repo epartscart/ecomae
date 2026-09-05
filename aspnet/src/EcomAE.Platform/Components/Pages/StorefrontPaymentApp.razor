@@ -21,9 +21,19 @@
             <p style="margin:0 0 .35rem;color:#64748b;font-size:.85rem">
                 <a href="@StorefrontSurfaceLinks.Orders">My orders</a>
                 · Pay
+                ·
+                <a href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(StorefrontPhpCanonical.Payment)" target="_blank" rel="noopener">Classic twin</a>
             </p>
             <h1 style="margin:.1rem 0 .4rem">Pay an order or top-up</h1>
-            <p style="color:#475569">Open the payment page for an operation created from an order or account top-up.</p>
+            <p style="color:#475569">Create a pending operation, then confirm on the demo gateway. Live acquirer keys stay unconfigured the same way as Classic demo stubs.</p>
+            @if (!string.IsNullOrWhiteSpace(_flashOk))
+            {
+                <p style="margin:0 0 .75rem;padding:.65rem .8rem;background:#ecfdf3;border:1px solid #86efac;color:#166534">@_flashOk</p>
+            }
+            @if (!string.IsNullOrWhiteSpace(_flashErr))
+            {
+                <p style="margin:0 0 .75rem;padding:.65rem .8rem;background:#fef2f2;border:1px solid #fecaca;color:#991b1b">@_flashErr</p>
+            }
             @if (!_isCustomer)
             {
                 <div style="padding:1.15rem 1.2rem;background:#fff;border:1px solid #e2e8f0;border-radius:.55rem">
@@ -34,8 +44,23 @@
             }
             else
             {
+                <form method="post" action="/storefront/payment/create-operation" style="background:#fff;border:1px solid #e2e8f0;border-radius:.55rem;padding:1.1rem 1.2rem;margin:0 0 1rem">
+                    <input type="hidden" name="confirmWrites" value="true" />
+                    <label for="amount">Amount</label>
+                    <input id="amount" type="number" step="0.01" min="0.01" name="amount" required style="width:100%;margin:.25rem 0 .75rem;padding:.5rem" />
+                    <label for="order_id">Order id (blank = balance top-up)</label>
+                    <input id="order_id" type="number" min="0" name="order_id" value="@OrderId" style="width:100%;margin:.25rem 0 .75rem;padding:.5rem" />
+                    <label for="pay_handler">Gateway</label>
+                    <select id="pay_handler" name="pay_handler" style="width:100%;margin:.25rem 0 1rem;padding:.5rem">
+                        @foreach (var gate in PhpCustomerWrites.PayGateways)
+                        {
+                            <option value="@gate.Code">@gate.Label</option>
+                        }
+                    </select>
+                    <button type="submit" style="padding:.65rem 1.1rem;border:0;border-radius:.45rem;background:#0f766e;color:#fff;font-weight:800;cursor:pointer">Create operation &amp; pay</button>
+                </form>
                 <form method="get" action="@PhpCustomerWrites.PaymentDemoHref" style="background:#fff;border:1px solid #e2e8f0;border-radius:.55rem;padding:1.1rem 1.2rem">
-                    <label for="operation">Operation number</label>
+                    <label for="operation">Existing operation number</label>
                     <input id="operation" type="text" name="operation" required value="@Operation" style="width:100%;margin:.25rem 0 .75rem;padding:.5rem" />
                     <label for="gateway">Gateway</label>
                     <select id="gateway" name="pay_system" style="width:100%;margin:.25rem 0 1rem;padding:.5rem">
@@ -54,9 +79,14 @@
 @code {
     private string _brand = "eParts Cart";
     private bool _isCustomer;
+    private string _flashOk = "";
+    private string _flashErr = "";
 
     [SupplyParameterFromQuery(Name = "operation")]
     public string? Operation { get; set; }
+
+    [SupplyParameterFromQuery(Name = "order_id")]
+    public string? OrderId { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
@@ -66,6 +96,8 @@
             return;
         }
 
+        _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
+        _flashErr = ctx.Request.Query["err"].ToString() ?? "";
         _brand = StorefrontIndustryHostResolver.ResolveBrandLabel(ctx.Request.Host.Host);
         var session = await Sessions.ValidateCustomerAsync(ctx, ctx.RequestAborted);
         _isCustomer = session.Kind == LegacySessionKind.Customer && session.UserId > 0;

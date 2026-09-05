@@ -46,6 +46,26 @@ public sealed class LiveWriteServiceValidationTests
             .DeleteAsync(1, []);
         Assert.False(emptyDelete.Ok);
         Assert.Equal("invalid", emptyDelete.Code);
+
+        var payAuth = await new StorefrontPaymentWriteService(new UnconfiguredConnections())
+            .CreateOperationAsync(0, 10, 0, "epc_demo");
+        Assert.False(payAuth.Ok);
+        Assert.Equal("auth", payAuth.Code);
+
+        var payInvalid = await new StorefrontPaymentWriteService(new ConfiguredNeverOpened())
+            .CreateOperationAsync(1, 0, 0, "epc_demo");
+        Assert.False(payInvalid.Ok);
+        Assert.Equal("invalid", payInvalid.Code);
+
+        var payDb = await new StorefrontPaymentWriteService(new UnconfiguredConnections())
+            .CreateOperationAsync(1, 10, 0, "epc_demo");
+        Assert.False(payDb.Ok);
+        Assert.Equal("db", payDb.Code);
+
+        var notifyForbidden = await new StorefrontPaymentWriteService(new ConfiguredNeverOpened())
+            .NotifyAsync(1, 9, 10, "bad-token", "epc_demo");
+        Assert.False(notifyForbidden.Ok);
+        Assert.Equal("forbidden", notifyForbidden.Code);
     }
 
     [Fact]

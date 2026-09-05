@@ -1606,6 +1606,174 @@ public sealed class StorefrontModule : ISurfaceModule
             return Results.Ok(result.ToPayload(SessionPayload(session)));
         }).DisableAntiforgery();
 
+        endpoints.MapPost(EcomAeRoutes.StorefrontPaymentCreateOperation, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IStorefrontPaymentWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Customer || session.UserId <= 0)
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/storefront/login?returnUrl=/storefront/payment-app", "Customer session required to create a payment operation.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<StorefrontPaymentCreateBody>(context, cancellationToken) ?? new(0, 0, null, false);
+            var amount = body.Amount;
+            var orderId = body.OrderId;
+            var handler = body.PayHandler;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                amount = LiveWriteFormBinder.Dec(form, "amount");
+                orderId = LiveWriteFormBinder.Long(form, "order_id", "orderId");
+                handler = LiveWriteFormBinder.Text(form, "pay_handler", "payHandler", "pay_system");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(new
+                {
+                    ok = true,
+                    surface = "storefront",
+                    writes = 0,
+                    writesBlocked = true,
+                    phpAuthoritative = false,
+                    validation_code = amount > 0 ? "ok" : "invalid",
+                    message = amount > 0 ? "Payment operation validated; write blocked until confirmWrites=true." : "Forbidden",
+                    session = SessionPayload(session)
+                });
+            }
+
+            var written = await writes.CreateOperationAsync(session.UserId, amount, orderId, handler, cancellationToken);
+            var dest = written.Ok
+                ? EcomAeRoutes.StorefrontPaymentGoToPay + "?operation=" + written.Id.ToString(CultureInfo.InvariantCulture)
+                  + "&pay_system=" + Uri.EscapeDataString(written.PaySystem ?? "epc_demo")
+                : "/storefront/payment-app";
+            return LiveWriteFormBinder.Complete(context, dest, written.Ok, written.Message, written.ToPayload(SessionPayload(session)));
+        }).DisableAntiforgery();
+
+        endpoints.MapGet(EcomAeRoutes.StorefrontPaymentGoToPay, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Customer || session.UserId <= 0)
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/storefront/login?returnUrl=/storefront/payment-app", "Customer session required for go-to-pay.");
+            }
+
+            var operation = context.Request.Query["operation"].ToString();
+            var handler = StorefrontPaymentWriteService.SanitizeHandler(context.Request.Query["pay_system"].ToString());
+            if (handler.Length == 0)
+            {
+                handler = "epc_demo";
+            }
+
+            var html = $"""
+                <!DOCTYPE html><html><head><meta charset="utf-8"><title>Pay</title></head>
+                <body style="font-family:sans-serif;padding:2rem">
+                <h1>Confirm payment</h1>
+                <p>Demo gateway {System.Net.WebUtility.HtmlEncode(handler)} — operation {System.Net.WebUtility.HtmlEncode(operation)}.</p>
+                <form method="post" action="{EcomAeRoutes.StorefrontPaymentNotify}">
+                  <input type="hidden" name="confirmWrites" value="true" />
+                  <input type="hidden" name="operation_id" value="{System.Net.WebUtility.HtmlEncode(operation)}" />
+                  <input type="hidden" name="demo_token" value="{StorefrontPaymentWriteService.DemoToken}" />
+                  <input type="hidden" name="handler" value="{System.Net.WebUtility.HtmlEncode(handler)}" />
+                  <input type="hidden" name="returnUrl" value="/storefront/orders-app" />
+                  <button type="submit">Pay now</button>
+                </form>
+                </body></html>
+                """;
+            return Results.Content(html, "text/html; charset=utf-8");
+        });
+
+        endpoints.MapPost(EcomAeRoutes.StorefrontPaymentNotify, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IStorefrontPaymentWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<StorefrontPaymentNotifyBody>(context, cancellationToken) ?? new(0, 0, null, null, false);
+            var operationId = body.OperationId;
+            var sum = body.Sum;
+            var token = body.DemoToken;
+            var handler = body.Handler;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                operationId = LiveWriteFormBinder.Long(form, "operation_id", "operationId");
+                sum = LiveWriteFormBinder.Dec(form, "sum", "amount");
+                token = LiveWriteFormBinder.Text(form, "demo_token", "demoToken");
+                handler = LiveWriteFormBinder.Text(form, "handler", "pay_system");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(new
+                {
+                    ok = true,
+                    surface = "storefront",
+                    writes = 0,
+                    writesBlocked = true,
+                    phpAuthoritative = false,
+                    validation_code = "ok",
+                    message = "Notify validated; write blocked until confirmWrites=true.",
+                    session = SessionPayload(session)
+                });
+            }
+
+            var written = await writes.NotifyAsync(session.UserId, operationId, sum, token, handler, cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/storefront/orders-app",
+                written.Ok,
+                written.Message,
+                written.ToPayload(SessionPayload(session)));
+        }).DisableAntiforgery();
+
+        endpoints.MapPost(EcomAeRoutes.StorefrontVinDecode, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ILaximoVinDecodeService decode,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<StorefrontVinDecodeBody>(context, cancellationToken) ?? new(null);
+            var vin = body.Vin;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                vin = LiveWriteFormBinder.Text(form, "vin", "identString", "ident_string");
+            }
+
+            var decoded = await decode.DecodeAsync(vin, cancellationToken);
+            var dest = "/storefront/vin-app?vin=" + Uri.EscapeDataString(decoded.Vin);
+            if (decoded.Ok)
+            {
+                dest += "&make=" + Uri.EscapeDataString(decoded.Manufacturer ?? "")
+                    + "&model=" + Uri.EscapeDataString(decoded.ModelLabel ?? "")
+                    + "&ok=" + Uri.EscapeDataString(decoded.Message);
+            }
+            else
+            {
+                dest += "&err=" + Uri.EscapeDataString(decoded.Message);
+            }
+
+            return LiveWriteFormBinder.Complete(
+                context,
+                dest,
+                decoded.Ok,
+                decoded.Message,
+                decoded.ToPayload(SessionPayload(session)));
+        }).DisableAntiforgery();
+
         endpoints.MapPost(EcomAeRoutes.StorefrontNewsletterSubscribe, async (
             HttpContext context,
             ILegacySessionValidator validator,
@@ -2111,6 +2279,18 @@ public sealed class StorefrontModule : ISurfaceModule
         bool UsersAgreement = false,
         string? OrderMessage = null,
         string? BuyerPoNumber = null);
+    private sealed record StorefrontPaymentCreateBody(
+        decimal Amount,
+        long OrderId = 0,
+        string? PayHandler = null,
+        bool ConfirmWrites = false);
+    private sealed record StorefrontPaymentNotifyBody(
+        long OperationId,
+        decimal Sum = 0,
+        string? DemoToken = null,
+        string? Handler = null,
+        bool ConfirmWrites = false);
+    private sealed record StorefrontVinDecodeBody(string? Vin);
     private sealed record StorefrontOrderSendMessageBody(long OrderId, string? Text, bool ConfirmWrites = false);
     private sealed record StorefrontReturnSendMessageBody(long ReturnId, string? Text, bool ConfirmWrites = false);
     private sealed record StorefrontReturnCreateBody(

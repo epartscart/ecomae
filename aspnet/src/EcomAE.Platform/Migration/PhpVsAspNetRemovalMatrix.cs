@@ -18,11 +18,11 @@ public static class PhpVsAspNetRemovalMatrix
     public static IReadOnlyList<PhpVsAspNetMatrixRow> Rows { get; } =
     [
         // Storefront
-        Row("sf-home", "storefront", "templates/*/desktop.php + content/general_pages", "/", "/storefront/app", "aspnet-digest", "php", "Homepage chrome is ASP.NET; checkout/pay writes stay PHP."),
+        Row("sf-home", "storefront", "templates/*/desktop.php + content/general_pages", "/", "/storefront/app", "aspnet-digest", "php", "Homepage chrome is ASP.NET. Signed-in checkout/create and demo pay are ASP.NET-live. Guest checkout cookies stay PHP."),
         Row("sf-search", "storefront", "content/shop/docpart/ajax_part_search.php", "/shop/part_search", "/en/shop/part_search", "aspnet-digest", "php", "Offer list is ASP.NET; live supplier poll stays PHP. Cart add is /storefront/cart/add."),
-        Row("sf-vin", "storefront", "content/laximo + content/general_pages/vin_zapros.php", "/en/katalog-laximo", "/storefront/vin-app", "aspnet-digest", "php", "VIN cache reader only. Live Laximo decode stays PHP."),
+        Row("sf-vin", "storefront", "content/laximo + content/general_pages/vin_zapros.php", "/en/katalog-laximo", "/storefront/vin-app", "aspnet-digest", "aspnet", "Live Laximo FindVehicleByVIN is ASP.NET SOAP. VIN request form (users_vin) stays PHP."),
         Row("sf-cart", "storefront", "content/shop/order_process", "/shop/cart", "/en/shop/cart", "aspnet-digest", "aspnet", "Type-2 qty / delete / check-for-order write on ASP.NET. Type-1 and checkout stay PHP."),
-        Row("sf-checkout", "storefront", "content/shop/order_process", "/shop/checkout", "/storefront/checkout-app", "aspnet-digest", "php", "Checkout shell exists; pay / place-order stay PHP."),
+        Row("sf-checkout", "storefront", "content/shop/order_process", "/shop/checkout", "/storefront/checkout-app", "aspnet-digest", "php", "Signed-in checkout/create is ASP.NET-live. Guest checkout cookies stay PHP. Demo pay create/notify are ASP.NET-live."),
         Row("sf-orders", "storefront", "content/shop/order_process", "/shop/orders", "/storefront/orders-app", "aspnet-digest", "php", "Customer order list digest. Order/return messages are ASP.NET-live. Guest order writes stay PHP."),
         Row("sf-returns", "storefront", "content/shop/returns", "/shop/returns", "/storefront/returns-app", "aspnet-digest", "aspnet", "Full-qty create-return + return message are ASP.NET-live. Partial-qty split and photos stay PHP."),
         Row("sf-garage", "storefront", "content/shop/docpart garage", "/shop/garage", "/storefront/garage-app", "aspnet-digest", "php", "Garage list digest; add/edit PHP."),
@@ -30,8 +30,8 @@ public static class PhpVsAspNetRemovalMatrix
         Row("sf-wishlist", "storefront", "modules/shop/bottom_panel/bottom_panel.php", "/shop/zakladki", "/storefront/wishlist-app", "aspnet-digest", "aspnet", "bookmarks cookie add/remove is ASP.NET-live."),
         Row("sf-compare", "storefront", "modules/shop/bottom_panel/bottom_panel.php", "/shop/sravneniya", "/storefront/compare-app", "aspnet-digest", "aspnet", "compare cookie add/remove is ASP.NET-live."),
         Row("sf-bulk-upload", "storefront", "content/shop/bulk_upload", "/shop/bulk-upload", "/storefront/bulk-upload-app", "aspnet-digest", "php", "Excel check/cross/add-selected may be ASP.NET on later branches; history INSERT + /process stay PHP."),
-        Row("sf-balance", "storefront", "content/shop/finance/my_balance.php", "/shop/finance/my_balance", "/storefront/account-summary-app", "aspnet-routed", "php", "Customer balance / top-up writes stay PHP ajax_create_operation."),
-        Row("sf-pay-order", "storefront", "content/shop/finance/pay_for_order.php", "/shop/finance/pay_for_order", "/storefront/checkout-app", "aspnet-routed", "php", "Gateway go_to_pay / notify stay PHP."),
+        Row("sf-balance", "storefront", "content/shop/finance/my_balance.php", "/shop/finance/my_balance", "/storefront/account-summary-app", "aspnet-routed", "aspnet", "ajax_create_operation top-up / order-pay is ASP.NET-live. Guest checkout cookies stay PHP."),
+        Row("sf-pay-order", "storefront", "content/shop/finance/pay_for_order.php", "/shop/finance/pay_for_order", "/storefront/payment-app", "aspnet-routed", "aspnet", "Demo go_to_pay + notify + pay_for_order are ASP.NET-live. Live acquirer APIs stay unconfigured like PHP demo stubs."),
         Row("sf-umapi", "storefront", "content/umapi_catalog.php", "/umapi_catalog", "/en/umapi_catalog", "aspnet-digest", "php", "UMAPI miss-fill stays PHP."),
         Row("sf-ucats", "storefront", "content/shop/ucats", "/shop/ucats", "/storefront/app", "aspnet-hub", "php", "UCATS product-detail twins are hub-only."),
         Row("sf-workshop-gms", "storefront", "content/shop/workshop/garage_manager_portal.php", "/shop/workshop", "/storefront/garage-manager-app", "aspnet-digest", "php", "GMS board is thin; portal writes stay PHP."),
@@ -108,9 +108,9 @@ public static class PhpVsAspNetRemovalMatrix
         // Write families that block PHP removal
         Row("write-cp-ajax", "writes", "cp/content/**/ajax_*.php (~430 catalogued)", "CP module ajax", "dry-run /cp/ajax/*", "php-writes", "php", "CpModuleAjaxWriteCatalog: writes=0, phpAuthoritative=true."),
         Row("write-erp-ajax", "writes", "cp/content/shop/finance/erp/ajax_erp.php", "ajax_erp.php", "dry-run /erp/ajax/*", "php-writes", "php", "ErpAjaxWriteCatalog: writes=0. Live GL/SO helpers stay gated."),
-        Row("write-storefront-cart", "writes", "content/shop/order_process/ajax_*.php", "cart/checkout ajax", "/storefront/cart/add", "php-writes", "php", "Type-2 add/qty/delete/check and signed-in checkout/create are ASP.NET-live. Guest checkout + payment stay PHP."),
-        Row("write-payments", "writes", "content/shop/finance/payment_systems/*/go_to_pay.php", "payment notify", "/php-reference/content/shop/finance/payment_systems/", "php-writes", "php", "Gateway capture/notify cannot move without PCI + live dual-sample."),
-        Row("write-laximo", "writes", "content/laximo/com_guayaquil", "Laximo VIN decode", "/storefront/vin-app", "php-writes", "php", "Guayaquil SDK is not ported. Cache-only on ASP.NET."),
+        Row("write-storefront-cart", "writes", "content/shop/order_process/ajax_*.php", "cart/checkout ajax", "/storefront/cart/add", "php-writes", "php", "Type-2 add/qty/delete/check and signed-in checkout/create are ASP.NET-live. Guest checkout cookies stay PHP. Demo pay create/notify are ASP.NET-live."),
+        Row("write-payments", "writes", "content/shop/finance/payment_systems/*/go_to_pay.php", "payment notify", "/storefront/payment/notify", "php-writes", "aspnet", "Demo notify + pay_for_order are ASP.NET-live. Card-capture acquirer APIs stay unconfigured like PHP demo stubs."),
+        Row("write-laximo", "writes", "content/laximo/com_guayaquil", "Laximo VIN decode", "/storefront/vin/decode", "php-writes", "aspnet", "FindVehicleByVIN SOAP is ASP.NET-live. Catalog tree click-through stays PHP."),
         Row("write-pyprices", "writes", "cp/content/shop/prices_upload + pyprices", "price ingest cron", "/cp/prices-upload-app", "php-writes", "php", "Price file ingest + cron stay PHP/Python."),
         Row("chrome-templates", "chrome", "templates/*/*.php (6 files)", "theme desktop.php", "Php*DesktopChrome", "aspnet-digest", "none", "Theme CSS is reused; PHP desktop.php is compare-only."),
     ];
@@ -180,7 +180,7 @@ public static class PhpVsAspNetRemovalMatrix
             },
             ["stillBlockingPhpRemoval"] = new[]
             {
-                "Remaining PHP writes: CP ajax ~430, ERP ajax_erp residual, storefront type-1/checkout/pay, Laximo decode, PyPrices ingest, UMAPI miss-fill.",
+                "Remaining PHP writes: residual CP/ERP ajax catalog, guest checkout cookies, live acquirer APIs, PyPrices ingest, UMAPI miss-fill, VIN request form.",
                 "aspnet-complete interactive module count is 0 (no dual-sample deletion gate).",
                 "Digests + href remaps are not a deletion gate.",
                 "Human MODULE_FUNCTION_TEST_PASS + dual-sample evidence required per family."

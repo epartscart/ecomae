@@ -1878,8 +1878,16 @@ public static class EcomAeRoutes
     public const string StorefrontBulkUploadAddSelected = "/storefront/bulk-upload/add-selected";
     /// <summary>Sample CSV matching PHP Brand / Part Number / Qty columns.</summary>
     public const string StorefrontBulkUploadSample = "/storefront/bulk-upload/sample.csv";
-    /// <summary>VIN / Laximo shell (decode remains PHP katalog-laximo).</summary>
+    /// <summary>VIN / Laximo shell. Live decode is POST <see cref="StorefrontVinDecode"/>.</summary>
     public const string StorefrontVinApp = "/storefront/vin-app";
+    /// <summary>Live PHP Guayaquil FindVehicleByVIN twin.</summary>
+    public const string StorefrontVinDecode = "/storefront/vin/decode";
+    /// <summary>Live PHP ajax_create_operation twin.</summary>
+    public const string StorefrontPaymentCreateOperation = "/storefront/payment/create-operation";
+    /// <summary>Live PHP demo go_to_pay twin.</summary>
+    public const string StorefrontPaymentGoToPay = "/storefront/payment/go-to-pay";
+    /// <summary>Live PHP epc_demo notification + pay_for_order twin.</summary>
+    public const string StorefrontPaymentNotify = "/storefront/payment/notify";
     /// <summary>Vehicle year/make/model catalog shell (UMAPI tree from PHP widget).</summary>
     public const string StorefrontVehicleCatalogApp = "/storefront/vehicle-catalog-app";
     /// <summary>Customer quotes list/detail digest (submit/accept remain PHP).</summary>
