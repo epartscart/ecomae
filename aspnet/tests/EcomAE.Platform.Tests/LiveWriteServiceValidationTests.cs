@@ -988,6 +988,16 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(consEntDb.Succeeded);
         Assert.Equal("db", consEntDb.Code);
 
+        var consSaveInvalid = await new ErpConsEntitySaveWriteService(new ConfiguredNeverOpened())
+            .SaveAsync(0, "", "Sub", "AED", 100, false, null);
+        Assert.False(consSaveInvalid.Succeeded);
+        Assert.Equal("invalid", consSaveInvalid.Code);
+
+        var consSaveDb = await new ErpConsEntitySaveWriteService(new UnconfiguredConnections())
+            .SaveAsync(0, "SUB1", "Sub one", "AED", 100, false, null);
+        Assert.False(consSaveDb.Succeeded);
+        Assert.Equal("db", consSaveDb.Code);
+
         var consIcInvalid = await new ErpConsDeleteWriteService(new ConfiguredNeverOpened())
             .DeleteIcAsync(0);
         Assert.False(consIcInvalid.Succeeded);

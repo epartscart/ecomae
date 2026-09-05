@@ -1227,7 +1227,7 @@ public static class EcomAeRoutes
     public const string ErpAjaxPrjTaskSave = "/erp/ajax/prj-task-save";
     /// <summary>Wave B dry-run for PHP prj_log_time (writes=0).</summary>
     public const string ErpAjaxPrjLogTime = "/erp/ajax/prj-log-time";
-    /// <summary>Wave B dry-run for PHP cons_entity_save (writes=0).</summary>
+    /// <summary>PHP epc_cons_entity_save. <c>confirmWrites=true</c> writes via <c>IErpConsEntitySaveWriteService</c>.</summary>
     public const string ErpAjaxConsEntitySave = "/erp/ajax/cons-entity-save";
     /// <summary>Live PHP cons_entity_delete twin (confirmWrites=true writes).</summary>
     public const string ErpAjaxConsEntityDelete = "/erp/ajax/cons-entity-delete";
