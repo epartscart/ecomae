@@ -536,11 +536,11 @@ public static class EcomAeRoutes
     public const string ControlPanelOmsAddComment = "/cp/orders/add-comment";
     /// <summary>OMS set viewed. <c>confirmWrites=true</c> is the live twin of PHP ajax_set_orders_viewed.php.</summary>
     public const string ControlPanelOmsSetViewed = "/cp/orders/set-viewed";
-    /// <summary>OMS update_item. <c>confirmWrites=true</c> is the live twin of PHP ajax_epc_orders_oms.php action=update_item. Warehouse reprice stays PHP.</summary>
+    /// <summary>OMS update_item. <c>confirmWrites=true</c> is the live twin of PHP ajax_epc_orders_oms.php action=update_item. Warehouse reprice uses the price-list lookup; customer-group markup stays sell=purchase.</summary>
     public const string ControlPanelOmsUpdateItem = "/cp/orders/update-item";
     /// <summary>Wave B dry-run for PHP ajax_order_pay_refund.php (writes=0; PHP authoritative).</summary>
     public const string ControlPanelOmsPayRefund = "/cp/orders/pay-refund";
-    /// <summary>OMS update_items. <c>confirmWrites=true</c> is the live twin of PHP ajax_epc_orders_oms.php action=update_items. Warehouse reprice stays PHP.</summary>
+    /// <summary>OMS update_items. <c>confirmWrites=true</c> is the live twin of PHP ajax_epc_orders_oms.php action=update_items. Warehouse reprice uses the price-list lookup; customer-group markup stays sell=purchase.</summary>
     public const string ControlPanelOmsUpdateItems = "/cp/orders/update-items";
     /// <summary>OMS supplier fulfillment set-stage. <c>confirmWrites=true</c> updates epc_order_supplier_fulfillment (no invented bootstrap).</summary>
     public const string ControlPanelOmsFulfillmentSetStage = "/cp/orders/fulfillment-set-stage";
