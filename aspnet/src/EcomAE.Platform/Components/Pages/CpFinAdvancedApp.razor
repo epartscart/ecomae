@@ -52,6 +52,24 @@
     </section>
     <PhpParityModuleBody AppPath="/cp/fin-advanced-app" IsAdmin="_isAdmin" />
 
+    @if (_isAdmin)
+    {
+        <form method="post" action="/erp/fin/periods/status" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/fin-advanced-app" />
+            <label>Company id <input type="number" name="company_id" min="0" style="width:6rem" /></label>
+            <label>FY <input type="number" name="fy" min="1" required style="width:6rem" /></label>
+            <label>Period no <input type="number" name="period_no" min="1" required style="width:5rem" /></label>
+            <label>Status
+                <select name="status">
+                    <option value="open">open</option>
+                    <option value="on_hold">on_hold</option>
+                    <option value="closed">closed</option>
+                </select>
+            </label>
+            <button type="submit">Set status</button>
+        </form>
+    }
 
     <div class="epc-finadv-kpis" aria-label="Financial depth stats">
         <div class="epc-finadv-kpi"><strong>@_summary.PeriodCount.ToString(CultureInfo.InvariantCulture)</strong><span>Periods</span></div>
@@ -128,3 +146,4 @@
         _message = result.Message;
     }
 }
+

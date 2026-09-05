@@ -76,6 +76,7 @@ public sealed class PhpVsAspNetRemovalMatrixTests
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "erp-hr-leave-expense" && r.WritesOwner == "aspnet");
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "erp-cons-deletes" && r.WritesOwner == "aspnet");
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "erp-fy-reopen-period" && r.WritesOwner == "aspnet");
+        Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "erp-fin-period-status" && r.WritesOwner == "aspnet");
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "erp-wht-settle" && r.WritesOwner == "aspnet");
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "write-storefront-cart" && r.WritesOwner == "php");
     }
@@ -168,6 +169,7 @@ public sealed class PhpVsAspNetRemovalMatrixTests
             ("CpSoc2ComplianceApp.razor", "/erp/ajax/bos-compliance-disable-obligation"),
             ("ErpPeriodCloseApp.razor", "/erp/ajax/fy-reopen"),
             ("ErpPeriodCloseApp.razor", "/erp/ajax/fy-period-status"),
+            ("CpFinAdvancedApp.razor", "/erp/fin/periods/status"),
             ("ErpWithholdingApp.razor", "/erp/ajax/wht-settle"),
             ("CpLanguagesApp.razor", "/cp/lang/set-is-custom"),
             ("CpLanguagesApp.razor", "/cp/lang/set-is-error"),

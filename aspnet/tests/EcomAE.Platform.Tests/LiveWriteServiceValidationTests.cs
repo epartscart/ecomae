@@ -1038,6 +1038,22 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(fyPeriodDb.Succeeded);
         Assert.Equal("db", fyPeriodDb.Code);
 
+        var finPeriodInvalid = await new ErpFinPeriodStatusWriteService(new ConfiguredNeverOpened())
+            .SetStatusAsync(1, 2026, 1, "nope");
+        Assert.False(finPeriodInvalid.Succeeded);
+        Assert.Equal("invalid", finPeriodInvalid.Code);
+        Assert.Equal("Invalid period status", finPeriodInvalid.Message);
+
+        var finPeriodFy = await new ErpFinPeriodStatusWriteService(new ConfiguredNeverOpened())
+            .SetStatusAsync(1, 0, 1, "open");
+        Assert.False(finPeriodFy.Succeeded);
+        Assert.Equal("invalid", finPeriodFy.Code);
+
+        var finPeriodDb = await new ErpFinPeriodStatusWriteService(new UnconfiguredConnections())
+            .SetStatusAsync(1, 2026, 1, "closed");
+        Assert.False(finPeriodDb.Succeeded);
+        Assert.Equal("db", finPeriodDb.Code);
+
         var whtSettleInvalid = await new ErpWhtSettleWriteService(new ConfiguredNeverOpened())
             .SettleAsync(0);
         Assert.False(whtSettleInvalid.Succeeded);
