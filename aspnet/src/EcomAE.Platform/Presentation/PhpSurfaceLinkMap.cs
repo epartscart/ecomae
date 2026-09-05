@@ -1166,6 +1166,18 @@ public static class PhpSurfaceLinkMap
             return PrefixPhpReferenceShell(value, "bos", "BOS");
         }
 
+        if (value.StartsWith("/en/", StringComparison.OrdinalIgnoreCase)
+            || value.StartsWith("/me/", StringComparison.OrdinalIgnoreCase)
+            || value.StartsWith("/ru/", StringComparison.OrdinalIgnoreCase))
+        {
+            return "/php-reference" + value;
+        }
+
+        if (value.StartsWith("/katalog-laximo", StringComparison.OrdinalIgnoreCase))
+        {
+            return "/php-reference/en" + value;
+        }
+
         if (value.StartsWith("/shop/", StringComparison.OrdinalIgnoreCase)
             || value.StartsWith("/users", StringComparison.OrdinalIgnoreCase)
             || value.StartsWith("/storefront", StringComparison.OrdinalIgnoreCase)

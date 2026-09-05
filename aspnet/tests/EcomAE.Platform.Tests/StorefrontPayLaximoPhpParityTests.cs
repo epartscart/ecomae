@@ -12,6 +12,7 @@ public sealed class StorefrontPayLaximoPhpParityTests
         var pay = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/StorefrontPaymentApp.razor"));
         Assert.Contains("action=\"/storefront/payment/create-operation\"", pay, StringComparison.Ordinal);
         Assert.Contains("name=\"confirmWrites\"", pay, StringComparison.Ordinal);
+        Assert.Contains("PhpReferenceOnlyHref(StorefrontPhpCanonical.Payment)", pay, StringComparison.Ordinal);
         Assert.DoesNotContain("@onclick", pay, StringComparison.Ordinal);
 
         var vin = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/StorefrontVinApp.razor"));

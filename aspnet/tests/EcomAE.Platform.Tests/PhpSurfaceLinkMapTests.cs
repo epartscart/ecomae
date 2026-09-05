@@ -103,6 +103,9 @@ public sealed class PhpSurfaceLinkMapTests
             "/php-reference/ERP/?epc_erp_shell=1&area=finance&tab=ledger",
             PhpSurfaceLinkMap.PhpReferenceOnlyHref("/ERP/?epc_erp_shell=1&area=finance&tab=ledger"));
         Assert.Equal("/php-reference/home", PhpSurfaceLinkMap.PhpReferenceOnlyHref("/shop/part_search"));
+        Assert.Equal("/php-reference/en/shop/pay", PhpSurfaceLinkMap.PhpReferenceOnlyHref("/en/shop/pay"));
+        Assert.Equal("/php-reference/en/katalog-laximo", PhpSurfaceLinkMap.PhpReferenceOnlyHref("/en/katalog-laximo"));
+        Assert.Equal("/php-reference/en/katalog-laximo?identString=ABC", PhpSurfaceLinkMap.PhpReferenceOnlyHref("/katalog-laximo?identString=ABC"));
         Assert.Equal("/php-reference/cp", PhpSurfaceLinkMap.PhpReferenceOnlyHref("/php-reference/cp"));
     }
 }
