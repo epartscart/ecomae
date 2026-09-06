@@ -3090,6 +3090,118 @@ public sealed class ControlPanelModule : ISurfaceModule
                 written.Message,
                 new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.CpSpecialSearchesWrite, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpSpecialSearchWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/product-catalogue-app", "Admin CP capability required for special-search writes.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpSpecialSearchesWriteBody>(context, cancellationToken) ?? new();
+            var action = body.Action;
+            var searchId = body.SearchId;
+            var caption = body.Caption ?? body.SearchCaption;
+            var captionLangStrId = body.CaptionLangStrId ?? body.SearchCaptionLangStrId;
+            var title = body.Title ?? body.SearchTitle;
+            var titleLangStrId = body.TitleLangStrId ?? body.SearchTitleLangStrId;
+            var description = body.Description ?? body.SearchDescription;
+            var descriptionLangStrId = body.DescriptionLangStrId ?? body.SearchDescriptionLangStrId;
+            var keywords = body.Keywords ?? body.SearchKeywords;
+            var keywordsLangStrId = body.KeywordsLangStrId ?? body.SearchKeywordsLangStrId;
+            var robots = body.Robots ?? body.SearchRobots;
+            var alias = body.Alias ?? body.SearchAlias;
+            var order = body.Order != 0 ? body.Order : body.SearchOrder;
+            var active = body.Active != 0 ? body.Active : body.SearchActive;
+            var treeJson = body.TreeJson;
+            var deletedSteps = body.DeletedSteps ?? body.DeletedStepsJson;
+            var searchesIds = body.SearchesIds ?? body.SearchesIdsJson;
+            var langCode = body.LangCode;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                action = LiveWriteFormBinder.Text(form, "action");
+                searchId = LiveWriteFormBinder.Long(form, "searchId", "search_id");
+                caption = LiveWriteFormBinder.Text(form, "caption", "search_caption", "searchCaption");
+                captionLangStrId = LiveWriteFormBinder.Text(form, "captionLangStrId", "search_caption_lang_str_id");
+                title = LiveWriteFormBinder.Text(form, "title", "search_title", "searchTitle");
+                titleLangStrId = LiveWriteFormBinder.Text(form, "titleLangStrId", "search_title_lang_str_id");
+                description = LiveWriteFormBinder.Text(form, "description", "search_description", "searchDescription");
+                descriptionLangStrId = LiveWriteFormBinder.Text(form, "descriptionLangStrId", "search_description_lang_str_id");
+                keywords = LiveWriteFormBinder.Text(form, "keywords", "search_keywords", "searchKeywords");
+                keywordsLangStrId = LiveWriteFormBinder.Text(form, "keywordsLangStrId", "search_keywords_lang_str_id");
+                robots = LiveWriteFormBinder.Text(form, "robots", "search_robots", "searchRobots");
+                alias = LiveWriteFormBinder.Text(form, "alias", "search_alias", "searchAlias");
+                order = LiveWriteFormBinder.Int(form, "order", "search_order", "searchOrder");
+                active = LiveWriteFormBinder.Int(form, "active", "search_active", "searchActive");
+                treeJson = LiveWriteFormBinder.Text(form, "treeJson", "tree_json");
+                deletedSteps = LiveWriteFormBinder.Text(form, "deletedSteps", "deleted_steps", "deletedStepsJson");
+                searchesIds = LiveWriteFormBinder.Text(form, "searchesIds", "searches_ids", "searchesIdsJson");
+                langCode = LiveWriteFormBinder.Text(form, "langCode", "lang_code");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(new
+                {
+                    status = "dry-run",
+                    writes = 0,
+                    writesBlocked = true,
+                    phpAuthoritative = true,
+                    validation_code = "dry_run",
+                    message = "Set confirmWrites=true to save or delete special searches on ASP.NET.",
+                    session = SessionPayload(session)
+                });
+            }
+
+            var key = CpSpecialSearchWriteService.NormalizeAction(action);
+            if (key is not ("save" or "delete"))
+            {
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    "/cp/product-catalogue-app",
+                    false,
+                    "Action must be save or delete.",
+                    new { ok = false, writes = 0, phpAuthoritative = false, validation_code = "invalid", message = "Action must be save or delete.", session = SessionPayload(session) });
+            }
+
+            var host = context.Request.Host.Host;
+            var domainPath = string.IsNullOrWhiteSpace(host) ? "http://localhost/" : "http://" + host + "/";
+            var written = key == "delete"
+                ? await writes.DeleteAsync(searchesIds, cancellationToken)
+                : await writes.SaveAsync(
+                    new CpSpecialSearchSaveRequest(
+                        searchId,
+                        caption,
+                        captionLangStrId,
+                        title,
+                        titleLangStrId,
+                        description,
+                        descriptionLangStrId,
+                        keywords,
+                        keywordsLangStrId,
+                        robots,
+                        alias,
+                        order,
+                        active,
+                        treeJson,
+                        deletedSteps,
+                        langCode,
+                        domainPath),
+                    cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/cp/product-catalogue-app",
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.CpPriceReviewWrite, async (HttpContext context, CpPriceReviewWriteBody? body, ILegacySessionValidator validator, ICpPriceReviewWriteDryRun dryRun, CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateAsync(context, cancellationToken);
@@ -9259,6 +9371,40 @@ public sealed class ControlPanelModule : ISurfaceModule
         bool ConfirmWrites = false);
     private sealed record CpMainPageProductsWriteBody(
         string? TreeJson = null,
+        string? LangCode = null,
+        bool ConfirmWrites = false);
+    private sealed record CpSpecialSearchesWriteBody(
+        string? Action = null,
+        long SearchId = 0,
+        string? Caption = null,
+        string? SearchCaption = null,
+        string? CaptionLangStrId = null,
+        string? SearchCaptionLangStrId = null,
+        string? Title = null,
+        string? SearchTitle = null,
+        string? TitleLangStrId = null,
+        string? SearchTitleLangStrId = null,
+        string? Description = null,
+        string? SearchDescription = null,
+        string? DescriptionLangStrId = null,
+        string? SearchDescriptionLangStrId = null,
+        string? Keywords = null,
+        string? SearchKeywords = null,
+        string? KeywordsLangStrId = null,
+        string? SearchKeywordsLangStrId = null,
+        string? Robots = null,
+        string? SearchRobots = null,
+        string? Alias = null,
+        string? SearchAlias = null,
+        int Order = 0,
+        int SearchOrder = 0,
+        int Active = 0,
+        int SearchActive = 0,
+        string? TreeJson = null,
+        string? DeletedSteps = null,
+        string? DeletedStepsJson = null,
+        string? SearchesIds = null,
+        string? SearchesIdsJson = null,
         string? LangCode = null,
         bool ConfirmWrites = false);
     private sealed record CpPriceReviewWriteBody(string? Action = null, bool ConfirmWrites = false);

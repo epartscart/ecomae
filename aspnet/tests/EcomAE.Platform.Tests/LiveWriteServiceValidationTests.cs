@@ -1093,6 +1093,66 @@ public sealed class LiveWriteServiceValidationTests
         Assert.Equal(1, okHome.Groups[0].ShowCaption);
         Assert.Equal(9, okHome.Groups[0].Products[0].ProductId);
 
+        var searchJson = await new CpSpecialSearchWriteService(new ConfiguredNeverOpened())
+            .SaveAsync(new CpSpecialSearchSaveRequest(TreeJson: "{"));
+        Assert.False(searchJson.Succeeded);
+        Assert.Equal("invalid", searchJson.Code);
+
+        var searchType = await new CpSpecialSearchWriteService(new ConfiguredNeverOpened())
+            .SaveAsync(new CpSpecialSearchSaveRequest(TreeJson: """[{"value":"Brand","type":3,"objects":[1]}]"""));
+        Assert.False(searchType.Succeeded);
+        Assert.Equal("invalid", searchType.Code);
+
+        var searchExisting = await new CpSpecialSearchWriteService(new ConfiguredNeverOpened())
+            .SaveAsync(new CpSpecialSearchSaveRequest(SearchId: 9, TreeJson: """[{"value":"Brand","type":1,"is_new":false}]"""));
+        Assert.False(searchExisting.Succeeded);
+        Assert.Equal("invalid", searchExisting.Code);
+
+        var searchDeleted = await new CpSpecialSearchWriteService(new ConfiguredNeverOpened())
+            .SaveAsync(new CpSpecialSearchSaveRequest(DeletedStepsJson: "{"));
+        Assert.False(searchDeleted.Succeeded);
+        Assert.Equal("invalid", searchDeleted.Code);
+
+        var searchDb = await new CpSpecialSearchWriteService(new UnconfiguredConnections())
+            .SaveAsync(new CpSpecialSearchSaveRequest(
+                Caption: "Brakes",
+                TreeJson: """[{"value":"Brand","alias":"brand","type":1,"objects":[1],"is_new":true}]"""));
+        Assert.False(searchDb.Succeeded);
+        Assert.Equal("db", searchDb.Code);
+
+        var searchDeleteEmpty = await new CpSpecialSearchWriteService(new ConfiguredNeverOpened())
+            .DeleteAsync("[]");
+        Assert.False(searchDeleteEmpty.Succeeded);
+        Assert.Equal("invalid", searchDeleteEmpty.Code);
+
+        var searchDeleteJson = await new CpSpecialSearchWriteService(new ConfiguredNeverOpened())
+            .DeleteAsync("{");
+        Assert.False(searchDeleteJson.Succeeded);
+        Assert.Equal("invalid", searchDeleteJson.Code);
+
+        var searchDeleteDb = await new CpSpecialSearchWriteService(new UnconfiguredConnections())
+            .DeleteAsync("[9]");
+        Assert.False(searchDeleteDb.Succeeded);
+        Assert.Equal("db", searchDeleteDb.Code);
+
+        Assert.Equal("save", CpSpecialSearchWriteService.NormalizeAction("create"));
+        Assert.Equal("delete", CpSpecialSearchWriteService.NormalizeAction("delete_special_searches"));
+        Assert.Equal("&lt;b&gt;", CpSpecialSearchWriteService.HtmlEncode(" <b> "));
+        var emptySearch = CpSpecialSearchWriteService.ParseSteps("");
+        Assert.Null(emptySearch.Error);
+        Assert.Empty(emptySearch.Steps);
+        Assert.Equal("tree_json is not valid JSON.", CpSpecialSearchWriteService.ParseSteps("{").Error);
+        var okSearch = CpSpecialSearchWriteService.ParseSteps("""[{"value":"Brand","alias":"brand","type":"2","objects":[9],"is_new":true,"levels":[{"value":"L1","h1":"H"}]}]""");
+        Assert.Null(okSearch.Error);
+        Assert.Equal("Brand", okSearch.Steps[0].Value);
+        Assert.Equal(2, okSearch.Steps[0].Type);
+        Assert.Equal(9, okSearch.Steps[0].Objects[0]);
+        Assert.True(okSearch.Steps[0].IsNew);
+        Assert.Equal("L1", okSearch.Steps[0].Levels[0].Value);
+        var okIds = CpSpecialSearchWriteService.ParseIds("""[1,"2"]""");
+        Assert.Null(okIds.Error);
+        Assert.Equal(new long[] { 1, 2 }, okIds.Ids.ToArray());
+
         var jwInvalid = await new ErpJwRepairWriteService(new ConfiguredNeverOpened())
             .SetStatusAsync(0, "ready");
         Assert.False(jwInvalid.Succeeded);

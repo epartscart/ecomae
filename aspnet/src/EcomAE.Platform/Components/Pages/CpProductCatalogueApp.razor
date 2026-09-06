@@ -21,7 +21,7 @@
 
 
     <PhpCpModulePageHeader Title="Product catalogue"
-                           Subtitle="Min-limit, templates, line/tree lists, brunch, SKU profile/spec/photo-meta, and homepage slots write here. SKU photo file upload, item images, template file upload, and drag-tree UX stay on the compare twin."
+                           Subtitle="Min-limit, templates, line/tree lists, brunch, SKU profile/spec/photo-meta, homepage slots, and special searches write here. SKU photo file upload, item images, template file upload, special-search images, and drag-tree UX stay on the compare twin."
                            PhpTabHref="@_phpTab">
         <a class="ghost" href="/cp/prices-upload-app">Prices upload</a>
         <a class="ghost" href="/cp/crosses-app">Crosses</a>
@@ -53,9 +53,9 @@
             <h3 style="margin:0 0 .35rem;font-size:1rem;">SKU media</h3>
             <p style="margin:0;color:#475569;font-size:.86rem;">Profile / spec / photo-meta write here. Photo file upload stays Classic.</p>
         </a>
-        <a class="epc-scp-table-card" style="padding:1rem;text-decoration:none;color:inherit;" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref("/CP/shop/catalogue/special_searches")">
+        <a class="epc-scp-table-card" style="padding:1rem;text-decoration:none;color:inherit;" href="#special-searches">
             <h3 style="margin:0 0 .35rem;font-size:1rem;">Special searches</h3>
-            <p style="margin:0;color:#475569;font-size:.86rem;">PHP special_searches</p>
+            <p style="margin:0;color:#475569;font-size:.86rem;">Save / delete write here. Image upload stays Classic.</p>
         </a>
     </div>
 
@@ -310,6 +310,44 @@
                 <textarea name="treeJson" rows="5" style="width:100%;font-family:monospace" placeholder='[{"value":"Featured","show_caption":1,"active":1,"data":[{"product_id":1}]}]'></textarea>
             </label>
             <button type="submit">Save homepage slots</button>
+        </form>
+        <form id="special-searches" method="post" action="/cp/catalogue/special-searches/write" style="display:flex;flex-direction:column;gap:.45rem;margin:0 0 1rem;max-width:52rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/product-catalogue-app" />
+            <input type="hidden" name="langCode" value="en" />
+            <input type="hidden" name="action" value="save" />
+            <div style="display:flex;flex-wrap:wrap;gap:.45rem;align-items:end">
+                <label>Search id <input type="number" name="searchId" min="0" value="0" style="width:6rem" /></label>
+                <label>Caption <input type="text" name="caption" /></label>
+                <label>Alias <input type="text" name="alias" /></label>
+                <label>Title <input type="text" name="title" /></label>
+                <label>Order <input type="number" name="order" value="0" style="width:5rem" /></label>
+                <label>Active
+                    <select name="active">
+                        <option value="1">1</option>
+                        <option value="0">0</option>
+                    </select>
+                </label>
+            </div>
+            <label>Description <input type="text" name="description" style="width:100%" /></label>
+            <label>Keywords <input type="text" name="keywords" style="width:100%" /></label>
+            <label>Robots <input type="text" name="robots" value="index,follow" /></label>
+            <label>Steps JSON
+                <textarea name="treeJson" rows="5" style="width:100%;font-family:monospace" placeholder='[{"value":"Brand","alias":"brand","type":1,"objects":[1],"is_new":true,"levels":[{"value":"Level 1","h1":"H1","title":"Title","description":"Desc","keywords":"kw","robots":"index,follow"}]}]'></textarea>
+            </label>
+            <label>Deleted step ids JSON
+                <input type="text" name="deletedSteps" value="[]" style="width:100%;font-family:monospace" />
+            </label>
+            <button type="submit">Save special search</button>
+        </form>
+        <form id="special-searches-delete" method="post" action="/cp/catalogue/special-searches/write" style="display:flex;flex-wrap:wrap;gap:.45rem;align-items:end;margin:0 0 1rem;max-width:52rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/product-catalogue-app" />
+            <input type="hidden" name="action" value="delete" />
+            <label>Search ids JSON
+                <input type="text" name="searchesIds" placeholder="[1,2]" style="width:16rem;font-family:monospace" />
+            </label>
+            <button type="submit">Delete special searches</button>
         </form>
     }
     @if (!_isAdmin)

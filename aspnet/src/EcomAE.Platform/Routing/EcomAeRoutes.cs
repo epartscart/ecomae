@@ -1246,6 +1246,8 @@ public static class EcomAeRoutes
     public const string CpSkuMediaWrite = "/cp/catalogue/sku-media/write";
     /// <summary>PHP main_page_products.php save_action. <c>confirmWrites=true</c> writes via <c>ICpMainPageProductsWriteService</c>. Drag-tree UX stays PHP.</summary>
     public const string CpMainPageProductsWrite = "/cp/catalogue/main-page-products/write";
+    /// <summary>PHP special_search.php create/edit and special_searches.php delete_special_searches. <c>confirmWrites=true</c> writes via <c>ICpSpecialSearchWriteService</c>. Image upload stays PHP.</summary>
+    public const string CpSpecialSearchesWrite = "/cp/catalogue/special-searches/write";
     /// <summary>Wave B dry-run for PHP cp/content/shop/prices_upload/price_review/ajax_price_review.php (writes=0).</summary>
     public const string CpPriceReviewWrite = "/cp/prices/review";
     /// <summary>Wave B dry-run for PHP cp/content/shop/prices_upload/price_review/ajax_create_csv.php (writes=0).</summary>
