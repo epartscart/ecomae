@@ -2745,12 +2745,154 @@ public sealed class ErpModule : ISurfaceModule
                 written.Message,
                 new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxInvRecordMovement, async (HttpContext context, ErpInvRecordMovementBody? body, ILegacySessionValidator validator, IErpInvRecordMovementDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpInvRecordMovementRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxInvRecordMovement, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IErpInvRecordMovementDryRun dryRun,
+            IErpInventoryMovementWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/inventory-stock-app", "Admin ERP capability required.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpInvRecordMovementBody>(context, cancellationToken) ?? new();
+            var warehouseId = body.WarehouseId;
+            var itemId = body.ItemId > 0 ? body.ItemId : body.Id;
+            var qty = body.Qty;
+            var unitCost = body.UnitCost;
+            var type = body.MovementType ?? body.Code;
+            var batchNo = body.BatchNo;
+            var variant = body.VariantLabel;
+            var expiry = body.ExpiryDate;
+            var serial = body.SerialNo;
+            var reference = body.Reference;
+            var note = body.Note;
+            var movementDate = body.MovementDate;
+            var transferWh = body.TransferWarehouseId;
+            var purchaseId = body.PurchaseId;
+            var orderId = body.OrderId;
+            var openingBatchId = body.OpeningBatchId;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                warehouseId = LiveWriteFormBinder.Long(form, "warehouseId", "warehouse_id");
+                itemId = LiveWriteFormBinder.Long(form, "itemId", "item_id", "id");
+                qty = LiveWriteFormBinder.Dec(form, "qty");
+                unitCost = LiveWriteFormBinder.Dec(form, "unitCost", "unit_cost");
+                type = LiveWriteFormBinder.Text(form, "movementType", "movement_type", "type");
+                batchNo = LiveWriteFormBinder.Text(form, "batchNo", "batch_no");
+                variant = LiveWriteFormBinder.Text(form, "variantLabel", "variant_label");
+                expiry = LiveWriteFormBinder.Text(form, "expiryDate", "expiry_date");
+                serial = LiveWriteFormBinder.Text(form, "serialNo", "serial_no");
+                reference = LiveWriteFormBinder.Text(form, "reference");
+                note = LiveWriteFormBinder.Text(form, "note");
+                movementDate = LiveWriteFormBinder.Text(form, "movementDate", "movement_date");
+                transferWh = LiveWriteFormBinder.Long(form, "transferWarehouseId", "transfer_warehouse_id");
+                purchaseId = LiveWriteFormBinder.Long(form, "purchaseId", "purchase_id");
+                orderId = LiveWriteFormBinder.Long(form, "orderId", "order_id");
+                openingBatchId = LiveWriteFormBinder.Long(form, "openingBatchId", "opening_batch_id");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(dryRun.Evaluate(new ErpInvRecordMovementRequest(itemId, type, false)).ToPayload(SessionPayload(session)));
+            }
+
+            var written = await writes.RecordMovementAsync(
+                new ErpInventoryMovementWriteRequest(
+                    session.UserId,
+                    type,
+                    warehouseId,
+                    itemId,
+                    qty,
+                    unitCost,
+                    batchNo,
+                    variant,
+                    expiry,
+                    serial,
+                    reference,
+                    note,
+                    movementDate,
+                    transferWh,
+                    purchaseId,
+                    orderId,
+                    openingBatchId),
+                cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/erp/inventory-stock-app",
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, movement_id = written.Id, session = SessionPayload(session) });
+        }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxInvScanLookup, async (HttpContext context, ErpInvScanLookupBody? body, ILegacySessionValidator validator, IErpInvScanLookupDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpInvScanLookupRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxInvTransfer, async (HttpContext context, ErpInvTransferBody? body, ILegacySessionValidator validator, IErpInvTransferDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpInvTransferRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxInvTransfer, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IErpInvTransferDryRun dryRun,
+            IErpInventoryMovementWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/inventory-stock-app", "Admin ERP capability required.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpInvTransferBody>(context, cancellationToken) ?? new();
+            var fromWh = body.FromWarehouseId;
+            var toWh = body.ToWarehouseId;
+            var itemId = body.ItemId > 0 ? body.ItemId : body.Id;
+            var qty = body.Qty;
+            var batchNo = body.BatchNo;
+            var variant = body.VariantLabel;
+            var reference = body.Reference ?? body.Code;
+            var note = body.Note;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                fromWh = LiveWriteFormBinder.Long(form, "fromWarehouseId", "from_warehouse_id");
+                toWh = LiveWriteFormBinder.Long(form, "toWarehouseId", "to_warehouse_id");
+                itemId = LiveWriteFormBinder.Long(form, "itemId", "item_id", "id");
+                qty = LiveWriteFormBinder.Dec(form, "qty");
+                batchNo = LiveWriteFormBinder.Text(form, "batchNo", "batch_no");
+                variant = LiveWriteFormBinder.Text(form, "variantLabel", "variant_label");
+                reference = LiveWriteFormBinder.Text(form, "reference");
+                note = LiveWriteFormBinder.Text(form, "note");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(dryRun.Evaluate(new ErpInvTransferRequest(itemId, reference, false)).ToPayload(SessionPayload(session)));
+            }
+
+            var written = await writes.TransferAsync(
+                new ErpInventoryTransferWriteRequest(
+                    session.UserId,
+                    fromWh,
+                    toWh,
+                    itemId,
+                    qty,
+                    batchNo,
+                    variant,
+                    reference,
+                    note),
+                cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/erp/inventory-stock-app",
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, transfer_out_id = written.Id, session = SessionPayload(session) });
+        }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxInvImportCsv, async (HttpContext context, ErpInvImportCsvBody? body, ILegacySessionValidator validator, IErpInvImportCsvDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(false); return Results.Ok(dryRun.Evaluate(new ErpInvImportCsvRequest(body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxInvRunClosing, async (HttpContext context, ErpInvRunClosingBody? body, ILegacySessionValidator validator, IErpInvRunClosingDryRun dryRun, CancellationToken cancellationToken) =>
@@ -5605,9 +5747,39 @@ public sealed class ErpModule : ISurfaceModule
     private sealed record ErpInvCreateWarehouseBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpInvCreateItemBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpInvSetReorderLevelBody(long Id = 0, long ItemId = 0, decimal ReorderLevel = 0, string? Code = null, bool ConfirmWrites = false);
-    private sealed record ErpInvRecordMovementBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
+    private sealed record ErpInvRecordMovementBody(
+        long Id = 0,
+        long WarehouseId = 0,
+        long ItemId = 0,
+        decimal Qty = 0,
+        decimal UnitCost = 0,
+        string? Code = null,
+        string? MovementType = null,
+        string? BatchNo = null,
+        string? VariantLabel = null,
+        string? ExpiryDate = null,
+        string? SerialNo = null,
+        string? Reference = null,
+        string? Note = null,
+        string? MovementDate = null,
+        long TransferWarehouseId = 0,
+        long PurchaseId = 0,
+        long OrderId = 0,
+        long OpeningBatchId = 0,
+        bool ConfirmWrites = false);
     private sealed record ErpInvScanLookupBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
-    private sealed record ErpInvTransferBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
+    private sealed record ErpInvTransferBody(
+        long Id = 0,
+        long FromWarehouseId = 0,
+        long ToWarehouseId = 0,
+        long ItemId = 0,
+        decimal Qty = 0,
+        string? Code = null,
+        string? BatchNo = null,
+        string? VariantLabel = null,
+        string? Reference = null,
+        string? Note = null,
+        bool ConfirmWrites = false);
     private sealed record ErpInvImportCsvBody(bool ConfirmWrites = false);
     private sealed record ErpInvRunClosingBody(bool ConfirmWrites = false);
     private sealed record ErpHrEmpSaveBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);

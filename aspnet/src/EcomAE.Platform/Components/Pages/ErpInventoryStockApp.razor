@@ -15,7 +15,7 @@
 
 
     
-    <PhpErpModulePageHeader Title="Inventory Stock" Subtitle="Set reorder level on an active inventory item. Movements, transfers, and closing stay on ERP ajax." />
+    <PhpErpModulePageHeader Title="Inventory Stock" Subtitle="Set reorder level, record a movement, or transfer stock between warehouses. CSV import and closing stay on ERP ajax." />
     <PhpErpD365ActionPane RefreshHref="/erp/inventory-stock-app" />
 
     @if (!string.IsNullOrWhiteSpace(_flashOk))
@@ -34,6 +34,35 @@
             <label>Item id <input type="number" name="itemId" min="1" required style="width:6rem" /></label>
             <label>Reorder level <input type="text" name="reorderLevel" required /></label>
             <button type="submit" class="btn btn-sm btn-primary">Save reorder level</button>
+        </form>
+        <form method="post" action="/erp/ajax/inv-record-movement" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 .65rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/erp/inventory-stock-app" />
+            <label>Warehouse id <input type="number" name="warehouseId" min="1" required style="width:6rem" /></label>
+            <label>Item id <input type="number" name="itemId" min="1" required style="width:6rem" /></label>
+            <label>Qty <input type="text" name="qty" required /></label>
+            <label>Unit cost <input type="text" name="unitCost" /></label>
+            <label>Type
+                <select name="movementType">
+                    <option value="adjustment">adjustment</option>
+                    <option value="opening">opening</option>
+                    <option value="purchase_in">purchase_in</option>
+                    <option value="return_in">return_in</option>
+                    <option value="sale_out">sale_out</option>
+                </select>
+            </label>
+            <label>Reference <input type="text" name="reference" /></label>
+            <button type="submit" class="btn btn-sm btn-primary">Record movement</button>
+        </form>
+        <form method="post" action="/erp/ajax/inv-transfer" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/erp/inventory-stock-app" />
+            <label>From warehouse <input type="number" name="fromWarehouseId" min="1" required style="width:6rem" /></label>
+            <label>To warehouse <input type="number" name="toWarehouseId" min="1" required style="width:6rem" /></label>
+            <label>Item id <input type="number" name="itemId" min="1" required style="width:6rem" /></label>
+            <label>Qty <input type="text" name="qty" required /></label>
+            <label>Reference <input type="text" name="reference" /></label>
+            <button type="submit" class="btn btn-sm btn-default">Transfer stock</button>
         </form>
     }
 

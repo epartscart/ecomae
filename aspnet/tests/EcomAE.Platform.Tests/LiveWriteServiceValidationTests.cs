@@ -919,6 +919,26 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(reorderDb.Succeeded);
         Assert.Equal("db", reorderDb.Code);
 
+        var mvInvalid = await new ErpInventoryMovementWriteService(new ConfiguredNeverOpened())
+            .RecordMovementAsync(new ErpInventoryMovementWriteRequest(1, "adjustment", 0, 9, 1));
+        Assert.False(mvInvalid.Succeeded);
+        Assert.Equal("invalid", mvInvalid.Code);
+
+        var mvDb = await new ErpInventoryMovementWriteService(new UnconfiguredConnections())
+            .RecordMovementAsync(new ErpInventoryMovementWriteRequest(1, "purchase_in", 1, 9, 2, 1.5m));
+        Assert.False(mvDb.Succeeded);
+        Assert.Equal("db", mvDb.Code);
+
+        var trInvalid = await new ErpInventoryMovementWriteService(new ConfiguredNeverOpened())
+            .TransferAsync(new ErpInventoryTransferWriteRequest(1, 1, 1, 9, 2));
+        Assert.False(trInvalid.Succeeded);
+        Assert.Equal("invalid", trInvalid.Code);
+
+        var trDb = await new ErpInventoryMovementWriteService(new UnconfiguredConnections())
+            .TransferAsync(new ErpInventoryTransferWriteRequest(1, 1, 2, 9, 2));
+        Assert.False(trDb.Succeeded);
+        Assert.Equal("db", trDb.Code);
+
         var tplDel = await new CpCatalogueWriteService(new ConfiguredNeverOpened())
             .DeleteCategoryTemplateAsync(0);
         Assert.False(tplDel.Succeeded);

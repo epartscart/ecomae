@@ -247,6 +247,8 @@ public sealed class PhpVsAspNetRemovalMatrixTests
             ("ErpPayrollApp.razor", "/erp/ajax/hr-update-days"),
             ("CpHrOverviewApp.razor", "/erp/ajax/hr-update-days"),
             ("ErpInventoryStockApp.razor", "/erp/ajax/inv-set-reorder-level"),
+            ("ErpInventoryStockApp.razor", "/erp/ajax/inv-record-movement"),
+            ("ErpInventoryStockApp.razor", "/erp/ajax/inv-transfer"),
             ("CpJewelleryRepairsApp.razor", "/erp/ajax/jw-repair-update-status"),
             ("CpReturnsRmaApp.razor", "/cp/returns/action"),
             ("CpSystemRequestsApp.razor", "/cp/requests/set-vin-viewed"),

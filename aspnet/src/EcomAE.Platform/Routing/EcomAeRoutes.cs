@@ -875,11 +875,11 @@ public static class EcomAeRoutes
     public const string ErpAjaxInvCreateItem = "/erp/ajax/inv-create-item";
     /// <summary>PHP inv_set_reorder_level. <c>confirmWrites=true</c> writes via <c>IErpInventoryReorderWriteService</c>.</summary>
     public const string ErpAjaxInvSetReorderLevel = "/erp/ajax/inv-set-reorder-level";
-    /// <summary>Wave B dry-run for PHP inv_record_movement (writes=0).</summary>
+    /// <summary>PHP inv_record_movement. <c>confirmWrites=true</c> writes via <c>IErpInventoryMovementWriteService</c>.</summary>
     public const string ErpAjaxInvRecordMovement = "/erp/ajax/inv-record-movement";
     /// <summary>Wave B dry-run for PHP inv_scan_lookup (writes=0).</summary>
     public const string ErpAjaxInvScanLookup = "/erp/ajax/inv-scan-lookup";
-    /// <summary>Wave B dry-run for PHP inv_transfer (writes=0).</summary>
+    /// <summary>PHP inv_transfer. <c>confirmWrites=true</c> writes via <c>IErpInventoryMovementWriteService</c>.</summary>
     public const string ErpAjaxInvTransfer = "/erp/ajax/inv-transfer";
     /// <summary>Wave B dry-run for PHP inv_import_csv (writes=0).</summary>
     public const string ErpAjaxInvImportCsv = "/erp/ajax/inv-import-csv";

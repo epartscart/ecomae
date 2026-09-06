@@ -140,6 +140,8 @@ public sealed class StorefrontPayLaximoPhpParityTests
         Assert.Equal("write-live-gated", SurfacePayloadContractCatalog.Functions.First(f => f.AspNetRouteOrCapability == "/erp/ajax/einvoice-save-asp").Status);
         Assert.Equal("write-live-gated", SurfacePayloadContractCatalog.Functions.First(f => f.AspNetRouteOrCapability == "/erp/ajax/shortcut-add").Status);
         Assert.Equal("write-live-gated", SurfacePayloadContractCatalog.Functions.First(f => f.AspNetRouteOrCapability == "/erp/ajax/shortcut-reorder").Status);
+        Assert.Equal("write-live-gated", SurfacePayloadContractCatalog.Functions.First(f => f.AspNetRouteOrCapability == "/erp/ajax/inv-record-movement").Status);
+        Assert.Equal("write-live-gated", SurfacePayloadContractCatalog.Functions.First(f => f.AspNetRouteOrCapability == "/erp/ajax/inv-transfer").Status);
 
         var pos = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/CpPosOverviewApp.razor"));
         Assert.Contains("action=\"/cp/pos/open-session\"", pos, StringComparison.Ordinal);
@@ -166,6 +168,12 @@ public sealed class StorefrontPayLaximoPhpParityTests
         Assert.Contains("action=\"/erp/ajax/shortcut-reorder\"", favorites, StringComparison.Ordinal);
         Assert.Contains("Reorder shortcuts", favorites, StringComparison.Ordinal);
         Assert.DoesNotContain("@onclick", favorites, StringComparison.Ordinal);
+        var inventory = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/ErpInventoryStockApp.razor"));
+        Assert.Contains("action=\"/erp/ajax/inv-record-movement\"", inventory, StringComparison.Ordinal);
+        Assert.Contains("Record movement", inventory, StringComparison.Ordinal);
+        Assert.Contains("action=\"/erp/ajax/inv-transfer\"", inventory, StringComparison.Ordinal);
+        Assert.Contains("Transfer stock", inventory, StringComparison.Ordinal);
+        Assert.DoesNotContain("@onclick", inventory, StringComparison.Ordinal);
         Assert.Equal("/storefront/garage/check-car", PhpCustomerWrites.GarageCheckCarHref);
         Assert.Equal("/storefront/profile/change-password", PhpCustomerWrites.ProfilePasswordHref);
     }
