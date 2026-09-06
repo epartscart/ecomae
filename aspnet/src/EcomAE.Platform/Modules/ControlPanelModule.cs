@@ -2728,6 +2728,92 @@ public sealed class ControlPanelModule : ISurfaceModule
                 written.Message,
                 new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = !written.Succeeded && written.Code == "php", validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.CpLineListsWrite, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpLineListWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/product-catalogue-app", "Admin CP capability required for line-list writes.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpLineListsWriteBody>(context, cancellationToken) ?? new();
+            var action = body.Action;
+            var listId = body.ListId;
+            var caption = body.Caption;
+            var captionLangStrId = body.CaptionLangStrId;
+            var type = body.Type;
+            var dataType = body.DataType;
+            var autoSort = body.AutoSort;
+            var itemsJson = body.ItemsJson ?? body.TreeJson;
+            var ids = body.Ids ?? body.LineLists;
+            var langCode = body.LangCode;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                action = LiveWriteFormBinder.Text(form, "action", "save_action");
+                listId = LiveWriteFormBinder.Long(form, "listId", "list_id", "id");
+                caption = LiveWriteFormBinder.Text(form, "caption");
+                captionLangStrId = LiveWriteFormBinder.Text(form, "captionLangStrId", "caption_lang_str_id");
+                type = LiveWriteFormBinder.IntOrNull(form, "type") ?? 1;
+                dataType = LiveWriteFormBinder.Text(form, "dataType", "data_type");
+                autoSort = LiveWriteFormBinder.Text(form, "autoSort", "auto_sort");
+                itemsJson = LiveWriteFormBinder.Text(form, "itemsJson", "tree_json", "treeJson");
+                ids = LiveWriteFormBinder.Text(form, "ids", "line_lists", "lineLists");
+                langCode = LiveWriteFormBinder.Text(form, "langCode", "lang_code");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(new
+                {
+                    status = "dry-run",
+                    writes = 0,
+                    writesBlocked = true,
+                    phpAuthoritative = true,
+                    validation_code = "dry_run",
+                    message = "Set confirmWrites=true to create, save, or delete a line list on ASP.NET.",
+                    session = SessionPayload(session)
+                });
+            }
+
+            var host = context.Request.Host.Host;
+            var domainPath = string.IsNullOrWhiteSpace(host) ? "http://localhost/" : "http://" + host + "/";
+            var normalized = CpLineListWriteService.NormalizeAction(action);
+            ErpSimpleWriteResult written;
+            if (normalized == "delete")
+            {
+                written = await writes.DeleteAsync(ids, cancellationToken);
+            }
+            else
+            {
+                written = await writes.SaveAsync(
+                    new CpLineListSaveRequest(
+                        string.IsNullOrWhiteSpace(normalized) ? "create" : normalized,
+                        listId,
+                        caption,
+                        captionLangStrId,
+                        type,
+                        dataType,
+                        autoSort,
+                        itemsJson,
+                        langCode,
+                        domainPath),
+                    cancellationToken);
+            }
+
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/cp/product-catalogue-app",
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.CpPriceReviewWrite, async (HttpContext context, CpPriceReviewWriteBody? body, ILegacySessionValidator validator, ICpPriceReviewWriteDryRun dryRun, CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateAsync(context, cancellationToken);
@@ -8835,6 +8921,20 @@ public sealed class ControlPanelModule : ISurfaceModule
         long IdFrom = 0,
         long IdBefore = 0);
     private sealed record CpTemplatesActionsBody(string? Action = null, bool ConfirmWrites = false, long TemplateId = 0);
+    private sealed record CpLineListsWriteBody(
+        string? Action = null,
+        long ListId = 0,
+        string? Caption = null,
+        string? CaptionLangStrId = null,
+        int Type = 1,
+        string? DataType = null,
+        string? AutoSort = null,
+        string? ItemsJson = null,
+        string? TreeJson = null,
+        string? Ids = null,
+        string? LineLists = null,
+        string? LangCode = null,
+        bool ConfirmWrites = false);
     private sealed record CpPriceReviewWriteBody(string? Action = null, bool ConfirmWrites = false);
     private sealed record CpPriceReviewCreateCsvBody(string? Action = null, bool ConfirmWrites = false);
     private sealed record CpAccessoriesPhotosBody(string? Action = null, bool ConfirmWrites = false);

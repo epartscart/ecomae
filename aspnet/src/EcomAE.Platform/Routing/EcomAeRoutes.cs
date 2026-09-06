@@ -1238,6 +1238,8 @@ public static class EcomAeRoutes
     public const string CpCatalogueSetMinLimit = "/cp/catalogue/set-min-limit";
     /// <summary>Category-template delete. <c>confirmWrites=true</c> is the live twin of PHP ajax_templates_actions.php delete. Create stays PHP.</summary>
     public const string CpTemplatesActions = "/cp/catalogue/templates-actions";
+    /// <summary>PHP line_list.php save_action create/edit and line_lists_manager.php delete. <c>confirmWrites=true</c> writes via <c>ICpLineListWriteService</c>. Drag-tree item UX stays PHP. Manufacturers list id 10 cannot be deleted.</summary>
+    public const string CpLineListsWrite = "/cp/catalogue/line-lists/write";
     /// <summary>Wave B dry-run for PHP cp/content/shop/prices_upload/price_review/ajax_price_review.php (writes=0).</summary>
     public const string CpPriceReviewWrite = "/cp/prices/review";
     /// <summary>Wave B dry-run for PHP cp/content/shop/prices_upload/price_review/ajax_create_csv.php (writes=0).</summary>

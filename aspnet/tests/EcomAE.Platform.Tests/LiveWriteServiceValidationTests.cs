@@ -1620,6 +1620,67 @@ public sealed class LiveWriteServiceValidationTests
         Assert.Equal("data_value is not valid JSON.", CpModuleWriteService.TryEncodeData("{").Error);
         Assert.Equal("modules_list JSON is not valid.", CpModuleWriteService.ParseIds("{").Error);
 
+        var lineAction = await new CpLineListWriteService(new ConfiguredNeverOpened())
+            .SaveAsync(new CpLineListSaveRequest(Action: "rename", Caption: "Colors"));
+        Assert.False(lineAction.Succeeded);
+        Assert.Equal("invalid", lineAction.Code);
+
+        var lineEditId = await new CpLineListWriteService(new ConfiguredNeverOpened())
+            .SaveAsync(new CpLineListSaveRequest(Action: "edit", ListId: 0, Caption: "Colors", ItemsJson: "[]"));
+        Assert.False(lineEditId.Succeeded);
+        Assert.Equal("invalid", lineEditId.Code);
+
+        var lineItems = await new CpLineListWriteService(new ConfiguredNeverOpened())
+            .SaveAsync(new CpLineListSaveRequest(Action: "create", Caption: "Colors", ItemsJson: "{"));
+        Assert.False(lineItems.Succeeded);
+        Assert.Equal("invalid", lineItems.Code);
+
+        var lineDb = await new CpLineListWriteService(new UnconfiguredConnections())
+            .SaveAsync(new CpLineListSaveRequest(Action: "create", Caption: "Colors", ItemsJson: """[{"value":"Red"}]"""));
+        Assert.False(lineDb.Succeeded);
+        Assert.Equal("db", lineDb.Code);
+
+        var lineDelEmpty = await new CpLineListWriteService(new ConfiguredNeverOpened())
+            .DeleteAsync("");
+        Assert.False(lineDelEmpty.Succeeded);
+        Assert.Equal("invalid", lineDelEmpty.Code);
+
+        var lineDelMfr = await new CpLineListWriteService(new ConfiguredNeverOpened())
+            .DeleteAsync("[10]");
+        Assert.False(lineDelMfr.Succeeded);
+        Assert.Equal("invalid", lineDelMfr.Code);
+
+        var lineDelJson = await new CpLineListWriteService(new ConfiguredNeverOpened())
+            .DeleteAsync("{");
+        Assert.False(lineDelJson.Succeeded);
+        Assert.Equal("invalid", lineDelJson.Code);
+
+        var lineDelDb = await new CpLineListWriteService(new UnconfiguredConnections())
+            .DeleteAsync("[1]");
+        Assert.False(lineDelDb.Succeeded);
+        Assert.Equal("db", lineDelDb.Code);
+
+        Assert.Equal("create", CpLineListWriteService.NormalizeAction("save_create"));
+        Assert.Equal("edit", CpLineListWriteService.NormalizeAction("update"));
+        Assert.Equal("delete", CpLineListWriteService.NormalizeAction("delete_line_lists"));
+        Assert.Equal("Hello", CpLineListWriteService.HtmlEncode("Hello"));
+        Assert.Equal("&lt;b&gt;", CpLineListWriteService.HtmlEncode("<b>"));
+        var emptyItems = CpLineListWriteService.ParseItems("");
+        Assert.Null(emptyItems.Error);
+        Assert.Empty(emptyItems.Items);
+        Assert.Equal("tree_json must be a JSON array.", CpLineListWriteService.ParseItems("{").Error);
+        Assert.Equal("tree_json is not valid JSON.", CpLineListWriteService.ParseItems("[").Error);
+        var okItems = CpLineListWriteService.ParseItems("""[{"id":2,"value":"Red","value_lang_str_id":"k","is_new":0},{"value":"Blue","is_new":1}]""");
+        Assert.Null(okItems.Error);
+        Assert.Equal(2, okItems.Items.Count);
+        Assert.Equal(2, okItems.Items[0].Id);
+        Assert.False(okItems.Items[0].IsNew);
+        Assert.True(okItems.Items[1].IsNew);
+        var lineIds = CpLineListWriteService.ParseIds("[1,2,2]");
+        Assert.Null(lineIds.Error);
+        Assert.Equal(new long[] { 1, 2 }, lineIds.Ids);
+        Assert.Equal("line_lists JSON is not valid.", CpLineListWriteService.ParseIds("{").Error);
+
         var wmsInvalid = await new ErpWmsLocationWriteService(new ConfiguredNeverOpened())
             .DeleteAsync(0);
         Assert.False(wmsInvalid.Succeeded);
