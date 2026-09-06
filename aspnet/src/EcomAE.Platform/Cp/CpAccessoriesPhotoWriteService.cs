@@ -5,7 +5,7 @@ namespace EcomAE.Platform.Cp;
 /// <summary>
 /// Live PHP <c>ajax_epc_accessories_photos.php</c> upload / delete / set_primary twin.
 /// Filename attach writes here. Multipart file bytes and disk unlink stay Classic.
-/// Schema-ensure stays PHP. Listing create/edit stays Classic.
+/// Schema-ensure stays PHP. Listing save/status/delete is a separate write.
 /// </summary>
 public interface ICpAccessoriesPhotoWriteService
 {

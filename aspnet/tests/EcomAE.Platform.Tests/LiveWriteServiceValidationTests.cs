@@ -2549,5 +2549,35 @@ public sealed class LiveWriteServiceValidationTests
             .WriteAsync(new CpAccessoriesPhotoWriteRequest(Action: "delete", ListingId: 1, PhotoId: 9));
         Assert.False(accDeleteDb.Succeeded);
         Assert.Equal("db", accDeleteDb.Code);
+
+        Assert.Equal("save", CpAccessoriesListingWriteService.NormalizeAction("create"));
+        Assert.Equal("set_status", CpAccessoriesListingWriteService.NormalizeAction("status"));
+        Assert.Equal("delete", CpAccessoriesListingWriteService.NormalizeAction("del"));
+        Assert.Equal("", CpAccessoriesListingWriteService.SanitizeExternalUrl("/en/accessories-spare-parts"));
+        Assert.Equal("/en/accessories?id=9", CpAccessoriesListingWriteService.SanitizeExternalUrl("/en/accessories?id=9"));
+        var accListingInvalid = await new CpAccessoriesListingWriteService(new ConfiguredNeverOpened())
+            .WriteAsync(new CpAccessoriesListingWriteRequest(Action: "save", Title: "", CategoryId: 0));
+        Assert.False(accListingInvalid.Succeeded);
+        Assert.Equal("invalid", accListingInvalid.Code);
+        Assert.Contains("Title and category", accListingInvalid.Message, StringComparison.OrdinalIgnoreCase);
+        var accListingStatusInvalid = await new CpAccessoriesListingWriteService(new ConfiguredNeverOpened())
+            .WriteAsync(new CpAccessoriesListingWriteRequest(Action: "set_status", ListingId: 0, Status: "published"));
+        Assert.False(accListingStatusInvalid.Succeeded);
+        Assert.Equal("invalid", accListingStatusInvalid.Code);
+        var accListingDeleteInvalid = await new CpAccessoriesListingWriteService(new ConfiguredNeverOpened())
+            .WriteAsync(new CpAccessoriesListingWriteRequest(Action: "delete", ListingId: 0));
+        Assert.False(accListingDeleteInvalid.Succeeded);
+        Assert.Equal("invalid", accListingDeleteInvalid.Code);
+        var accListingDb = await new CpAccessoriesListingWriteService(new UnconfiguredConnections())
+            .WriteAsync(new CpAccessoriesListingWriteRequest(
+                Action: "save",
+                CategoryId: 1,
+                Title: "Floor mats",
+                Make: "OEM",
+                Price: 99,
+                Currency: "AED",
+                Status: "published"));
+        Assert.False(accListingDb.Succeeded);
+        Assert.Equal("db", accListingDb.Code);
     }
 }

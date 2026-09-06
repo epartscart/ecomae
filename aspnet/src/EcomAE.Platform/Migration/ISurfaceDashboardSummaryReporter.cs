@@ -435,7 +435,7 @@ public interface ISurfaceDashboardSummaryReporter
 
     /// <summary>Next-wave: commerce statistics KPIs + top article queries (ip omitted).</summary>
     Task<CpStatisticsDigestResult> BuildCpStatisticsDigestAsync(int limit, CancellationToken cancellationToken = default);
-    /// <summary>Next-wave: accessories listings digest (photos/writes remain PHP dry-run).</summary>
+    /// <summary>Accessories listings digest. Listing and photo filename writes are live-gated.</summary>
     Task<CpAccessoriesDigestResult> BuildCpAccessoriesDigestAsync(int limit, CancellationToken cancellationToken = default);
     /// <summary>Next-wave: manufacturer synonyms digest (writes remain module-ajax dry-run).</summary>
     Task<CpSynonymsDigestResult> BuildCpSynonymsDigestAsync(int limit, CancellationToken cancellationToken = default);

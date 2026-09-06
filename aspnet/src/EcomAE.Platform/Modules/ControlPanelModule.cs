@@ -3551,6 +3551,110 @@ public sealed class ControlPanelModule : ISurfaceModule
                 written.Message,
                 new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.CpAccessoriesListingsWrite, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpAccessoriesListingWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/accessories-app", "Admin CP capability required for accessories listing writes.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpAccessoriesListingsWriteBody>(context, cancellationToken) ?? new();
+            var action = body.Action;
+            var listingId = body.ListingId != 0 ? body.ListingId : body.Id;
+            var categoryId = body.CategoryId;
+            var subcategoryId = body.SubcategoryId;
+            var title = body.Title;
+            var description = body.Description;
+            var make = body.Make;
+            var model = body.Model;
+            var year = body.Year;
+            var city = body.City;
+            var conditionType = body.ConditionType;
+            var price = body.Price;
+            var comparePrice = body.ComparePrice;
+            var currency = body.Currency;
+            var imageUrl = body.ImageUrl;
+            var externalUrl = body.ExternalUrl;
+            var photoCount = body.PhotoCount;
+            var featured = body.Featured;
+            var stockQty = body.StockQty;
+            var status = body.Status;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                action = LiveWriteFormBinder.Text(form, "action");
+                listingId = LiveWriteFormBinder.Long(form, "listingId", "listing_id", "id");
+                categoryId = LiveWriteFormBinder.Long(form, "categoryId", "category_id");
+                subcategoryId = LiveWriteFormBinder.Long(form, "subcategoryId", "subcategory_id");
+                title = LiveWriteFormBinder.Text(form, "title");
+                description = LiveWriteFormBinder.Text(form, "description");
+                make = LiveWriteFormBinder.Text(form, "make");
+                model = LiveWriteFormBinder.Text(form, "model");
+                year = LiveWriteFormBinder.Text(form, "year");
+                city = LiveWriteFormBinder.Text(form, "city");
+                conditionType = LiveWriteFormBinder.Text(form, "conditionType", "condition_type");
+                price = LiveWriteFormBinder.Dec(form, "price");
+                comparePrice = LiveWriteFormBinder.Dec(form, "comparePrice", "compare_price");
+                currency = LiveWriteFormBinder.Text(form, "currency");
+                imageUrl = LiveWriteFormBinder.Text(form, "imageUrl", "image_url");
+                externalUrl = LiveWriteFormBinder.Text(form, "externalUrl", "external_url");
+                photoCount = LiveWriteFormBinder.Int(form, "photoCount", "photo_count");
+                featured = LiveWriteFormBinder.Flag(form, "featured");
+                stockQty = LiveWriteFormBinder.Int(form, "stockQty", "stock_qty");
+                status = LiveWriteFormBinder.Text(form, "status");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(new
+                {
+                    status = "dry-run",
+                    writes = 0,
+                    writesBlocked = true,
+                    phpAuthoritative = true,
+                    validation_code = "dry_run",
+                    message = "Set confirmWrites=true to save or delete accessory listings on ASP.NET.",
+                    session = SessionPayload(session)
+                });
+            }
+
+            var written = await writes.WriteAsync(
+                new CpAccessoriesListingWriteRequest(
+                    action,
+                    listingId,
+                    categoryId,
+                    subcategoryId,
+                    title,
+                    description,
+                    make,
+                    model,
+                    year,
+                    city,
+                    conditionType,
+                    price,
+                    comparePrice,
+                    currency,
+                    imageUrl,
+                    externalUrl,
+                    photoCount == 0 ? 1 : photoCount,
+                    featured,
+                    stockQty,
+                    status),
+                cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/cp/accessories-app",
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.CpVersionClearUpdates, async (HttpContext context, CpVersionClearUpdatesBody? body, ILegacySessionValidator validator, ICpVersionClearUpdatesDryRun dryRun, CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateAsync(context, cancellationToken);
@@ -8786,7 +8890,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only epc_acc_* listings. Photo filename attach POST /cp/accessories/photos when confirmWrites=true. Multipart file bytes and listing create stay PHP."
+                note = "Listing save/status/delete POST /cp/accessories/listings/write and photo filename attach POST /cp/accessories/photos when confirmWrites=true. Multipart photo bytes and taxonomy stay PHP."
             });
         });
 
@@ -9790,6 +9894,29 @@ public sealed class ControlPanelModule : ISurfaceModule
         string? ImageName = null,
         string? Photo = null,
         bool AsPrimary = false,
+        bool ConfirmWrites = false);
+    private sealed record CpAccessoriesListingsWriteBody(
+        string? Action = null,
+        long ListingId = 0,
+        long Id = 0,
+        long CategoryId = 0,
+        long SubcategoryId = 0,
+        string? Title = null,
+        string? Description = null,
+        string? Make = null,
+        string? Model = null,
+        string? Year = null,
+        string? City = null,
+        string? ConditionType = null,
+        decimal Price = 0,
+        decimal ComparePrice = 0,
+        string? Currency = null,
+        string? ImageUrl = null,
+        string? ExternalUrl = null,
+        int PhotoCount = 1,
+        bool Featured = false,
+        int StockQty = 0,
+        string? Status = null,
         bool ConfirmWrites = false);
     private sealed record CpVersionClearUpdatesBody(string? Action = null, bool ConfirmWrites = false);
     private sealed record CpReturnActionBody(
