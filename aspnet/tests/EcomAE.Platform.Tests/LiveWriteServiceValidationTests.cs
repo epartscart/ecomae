@@ -1005,6 +1005,61 @@ public sealed class LiveWriteServiceValidationTests
         Assert.Equal("0986494053", CpSkuMediaWriteService.NormalizeArticle("0 986 494 053"));
         Assert.Equal("active", CpSkuMediaWriteService.NormalizeStatus(""));
         Assert.Equal("draft", CpSkuMediaWriteService.NormalizeStatus("Draft"));
+        Assert.Equal("add_spec_group", CpSkuMediaWriteService.NormalizeAction("create_spec_group"));
+        Assert.Equal("update_spec_row", CpSkuMediaWriteService.NormalizeAction("save_spec_row"));
+        Assert.Equal("update_photo", CpSkuMediaWriteService.NormalizeAction("save_photo"));
+        Assert.Equal("technical_specs", CpSkuMediaWriteService.NormalizeGroupCode("Technical Specs"));
+        Assert.Equal("number", CpSkuMediaWriteService.NormalizeValueType("NUMBER"));
+        Assert.Equal("text", CpSkuMediaWriteService.NormalizeValueType("nope"));
+        Assert.Equal("diagram", CpSkuMediaWriteService.NormalizePhotoType("diagram"));
+        Assert.Equal("product", CpSkuMediaWriteService.NormalizePhotoType("nope"));
+        Assert.Equal("0", CpSkuMediaWriteService.NormalizeBoolValue("false"));
+        Assert.Equal("1", CpSkuMediaWriteService.NormalizeBoolValue("yes"));
+
+        var specGroupName = await new CpSkuMediaWriteService(new ConfiguredNeverOpened())
+            .AddSpecGroupAsync(new CpSkuMediaSpecGroupRequest(ProfileId: 1, Name: " "));
+        Assert.False(specGroupName.Succeeded);
+        Assert.Equal("invalid", specGroupName.Code);
+
+        var specGroupMissing = await new CpSkuMediaWriteService(new ConfiguredNeverOpened())
+            .AddSpecGroupAsync(new CpSkuMediaSpecGroupRequest(ProfileId: 0, Name: "Technical"));
+        Assert.False(specGroupMissing.Succeeded);
+        Assert.Equal("invalid", specGroupMissing.Code);
+
+        var specGroupDb = await new CpSkuMediaWriteService(new UnconfiguredConnections())
+            .AddSpecGroupAsync(new CpSkuMediaSpecGroupRequest(ProfileId: 1, Name: "Technical"));
+        Assert.False(specGroupDb.Succeeded);
+        Assert.Equal("db", specGroupDb.Code);
+
+        var specRowLabel = await new CpSkuMediaWriteService(new ConfiguredNeverOpened())
+            .AddSpecRowAsync(new CpSkuMediaSpecRowRequest(GroupId: 1, Label: " "));
+        Assert.False(specRowLabel.Succeeded);
+        Assert.Equal("invalid", specRowLabel.Code);
+
+        var specRowDb = await new CpSkuMediaWriteService(new UnconfiguredConnections())
+            .AddSpecRowAsync(new CpSkuMediaSpecRowRequest(GroupId: 1, Label: "Voltage"));
+        Assert.False(specRowDb.Succeeded);
+        Assert.Equal("db", specRowDb.Code);
+
+        var specRowUpdate = await new CpSkuMediaWriteService(new ConfiguredNeverOpened())
+            .UpdateSpecRowAsync(new CpSkuMediaSpecRowRequest(RowId: 0, Label: "Voltage"));
+        Assert.False(specRowUpdate.Succeeded);
+        Assert.Equal("invalid", specRowUpdate.Code);
+
+        var specDelDb = await new CpSkuMediaWriteService(new UnconfiguredConnections())
+            .DeleteSpecGroupAsync(3);
+        Assert.False(specDelDb.Succeeded);
+        Assert.Equal("db", specDelDb.Code);
+
+        var photoUpdate = await new CpSkuMediaWriteService(new ConfiguredNeverOpened())
+            .UpdatePhotoAsync(new CpSkuMediaPhotoMetaRequest(PhotoId: 0));
+        Assert.False(photoUpdate.Succeeded);
+        Assert.Equal("invalid", photoUpdate.Code);
+
+        var photoDelDb = await new CpSkuMediaWriteService(new UnconfiguredConnections())
+            .DeletePhotoAsync(4);
+        Assert.False(photoDelDb.Succeeded);
+        Assert.Equal("db", photoDelDb.Code);
 
         var jwInvalid = await new ErpJwRepairWriteService(new ConfiguredNeverOpened())
             .SetStatusAsync(0, "ready");

@@ -2954,18 +2954,48 @@ public sealed class ControlPanelModule : ISurfaceModule
             var title = body.Title;
             var subtitle = body.Subtitle;
             var status = body.Status;
+            var groupId = body.GroupId;
+            var rowId = body.RowId;
+            var photoId = body.PhotoId;
+            var name = body.Name;
+            var code = body.Code;
+            var icon = body.Icon;
+            var label = body.Label;
+            var value = body.Value;
+            var valueType = body.ValueType;
+            var unit = body.Unit;
+            var alt = body.Alt;
+            var caption = body.Caption;
+            var photoType = body.PhotoType;
+            var sortOrder = body.SortOrder;
+            var isPrimary = body.IsPrimary;
             var confirm = body.ConfirmWrites;
             if (context.Request.HasFormContentType)
             {
                 var form = await context.Request.ReadFormAsync(cancellationToken);
                 action = LiveWriteFormBinder.Text(form, "action");
-                profileId = LiveWriteFormBinder.Long(form, "profileId", "profile_id", "id");
+                profileId = LiveWriteFormBinder.Long(form, "profileId", "profile_id");
                 productId = LiveWriteFormBinder.Long(form, "productId", "product_id");
                 brand = LiveWriteFormBinder.Text(form, "brand");
                 article = LiveWriteFormBinder.Text(form, "article");
                 title = LiveWriteFormBinder.Text(form, "title");
                 subtitle = LiveWriteFormBinder.Text(form, "subtitle");
                 status = LiveWriteFormBinder.Text(form, "status");
+                groupId = LiveWriteFormBinder.Long(form, "groupId", "group_id");
+                rowId = LiveWriteFormBinder.Long(form, "rowId", "row_id");
+                photoId = LiveWriteFormBinder.Long(form, "photoId", "photo_id");
+                name = LiveWriteFormBinder.Text(form, "name");
+                code = LiveWriteFormBinder.Text(form, "code");
+                icon = LiveWriteFormBinder.Text(form, "icon");
+                label = LiveWriteFormBinder.Text(form, "label");
+                value = LiveWriteFormBinder.Text(form, "value");
+                valueType = LiveWriteFormBinder.Text(form, "valueType", "value_type");
+                unit = LiveWriteFormBinder.Text(form, "unit");
+                alt = LiveWriteFormBinder.Text(form, "alt");
+                caption = LiveWriteFormBinder.Text(form, "caption");
+                photoType = LiveWriteFormBinder.Text(form, "photoType", "photo_type");
+                sortOrder = LiveWriteFormBinder.IntOrNull(form, "sortOrder", "sort_order");
+                isPrimary = LiveWriteFormBinder.IntOrNull(form, "isPrimary", "is_primary");
                 confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
             }
 
@@ -2978,19 +3008,29 @@ public sealed class ControlPanelModule : ISurfaceModule
                     writesBlocked = true,
                     phpAuthoritative = true,
                     validation_code = "dry_run",
-                    message = "Set confirmWrites=true to save, ensure, or delete a SKU profile on ASP.NET.",
+                    message = "Set confirmWrites=true to save, ensure, or delete a SKU profile, spec, or photo row on ASP.NET.",
                     session = SessionPayload(session)
                 });
             }
 
             var request = new CpSkuMediaProfileRequest(profileId, productId, brand, article, title, subtitle, status);
+            var group = new CpSkuMediaSpecGroupRequest(profileId, name, code, icon, sortOrder);
+            var row = new CpSkuMediaSpecRowRequest(groupId, rowId, label, value, valueType, unit, sortOrder);
+            var photo = new CpSkuMediaPhotoMetaRequest(photoId, alt, caption, photoType, sortOrder, isPrimary);
             var key = CpSkuMediaWriteService.NormalizeAction(action);
             ErpSimpleWriteResult written = key switch
             {
                 "delete_profile" => await writes.DeleteProfileAsync(profileId, cancellationToken),
                 "ensure" => await writes.EnsureAsync(request, cancellationToken),
                 "save_profile" => await writes.SaveProfileAsync(request, cancellationToken),
-                _ => ErpSimpleWriteResult.Fail("invalid", "Action must be save_profile, ensure, or delete_profile."),
+                "add_spec_group" => await writes.AddSpecGroupAsync(group, cancellationToken),
+                "delete_spec_group" => await writes.DeleteSpecGroupAsync(groupId, cancellationToken),
+                "add_spec_row" => await writes.AddSpecRowAsync(row, cancellationToken),
+                "update_spec_row" => await writes.UpdateSpecRowAsync(row, cancellationToken),
+                "delete_spec_row" => await writes.DeleteSpecRowAsync(rowId, cancellationToken),
+                "update_photo" => await writes.UpdatePhotoAsync(photo, cancellationToken),
+                "delete_photo" => await writes.DeletePhotoAsync(photoId, cancellationToken),
+                _ => ErpSimpleWriteResult.Fail("invalid", "Unknown SKU media action."),
             };
 
             return LiveWriteFormBinder.Complete(
@@ -9151,6 +9191,21 @@ public sealed class ControlPanelModule : ISurfaceModule
         string? Title = null,
         string? Subtitle = null,
         string? Status = null,
+        long GroupId = 0,
+        long RowId = 0,
+        long PhotoId = 0,
+        string? Name = null,
+        string? Code = null,
+        string? Icon = null,
+        string? Label = null,
+        string? Value = null,
+        string? ValueType = null,
+        string? Unit = null,
+        string? Alt = null,
+        string? Caption = null,
+        string? PhotoType = null,
+        int? SortOrder = null,
+        int? IsPrimary = null,
         bool ConfirmWrites = false);
     private sealed record CpPriceReviewWriteBody(string? Action = null, bool ConfirmWrites = false);
     private sealed record CpPriceReviewCreateCsvBody(string? Action = null, bool ConfirmWrites = false);

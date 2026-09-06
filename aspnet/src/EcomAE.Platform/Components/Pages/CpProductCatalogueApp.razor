@@ -21,7 +21,7 @@
 
 
     <PhpCpModulePageHeader Title="Product catalogue"
-                           Subtitle="Min-limit, category-template create/delete, line/tree-list create/edit/delete, brunch save, and SKU profile save/ensure/delete write here. SKU photos, spec sheets, item images, and template file upload stay on the compare twin."
+                           Subtitle="Min-limit, category-template create/delete, line/tree-list create/edit/delete, brunch save, and SKU profile/spec/photo-meta writes live here. SKU photo file upload, item images, and template file upload stay on the compare twin."
                            PhpTabHref="@_phpTab">
         <a class="ghost" href="/cp/prices-upload-app">Prices upload</a>
         <a class="ghost" href="/cp/crosses-app">Crosses</a>
@@ -51,7 +51,7 @@
         </a>
         <a class="epc-scp-table-card" style="padding:1rem;text-decoration:none;color:inherit;" href="#sku-media">
             <h3 style="margin:0 0 .35rem;font-size:1rem;">SKU media</h3>
-            <p style="margin:0;color:#475569;font-size:.86rem;">Save / ensure / delete write here. Photos and spec sheets stay Classic.</p>
+            <p style="margin:0;color:#475569;font-size:.86rem;">Profile / spec / photo-meta write here. Photo file upload stays Classic.</p>
         </a>
         <a class="epc-scp-table-card" style="padding:1rem;text-decoration:none;color:inherit;" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref("/CP/shop/catalogue/special_searches")">
             <h3 style="margin:0 0 .35rem;font-size:1rem;">Special searches</h3>
@@ -243,6 +243,64 @@
                 </label>
             </div>
             <button type="submit">Save SKU profile</button>
+        </form>
+        <form id="sku-specs" method="post" action="/cp/catalogue/sku-media/write" style="display:flex;flex-direction:column;gap:.45rem;margin:0 0 1rem;max-width:52rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/product-catalogue-app" />
+            <div style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end">
+                <label>Action
+                    <select name="action">
+                        <option value="add_spec_group">add_spec_group</option>
+                        <option value="delete_spec_group">delete_spec_group</option>
+                        <option value="add_spec_row">add_spec_row</option>
+                        <option value="update_spec_row">update_spec_row</option>
+                        <option value="delete_spec_row">delete_spec_row</option>
+                        <option value="update_photo">update_photo</option>
+                        <option value="delete_photo">delete_photo</option>
+                    </select>
+                </label>
+                <label>Profile id <input type="number" name="profileId" min="0" value="0" style="width:6rem" /></label>
+                <label>Group id <input type="number" name="groupId" min="0" value="0" style="width:6rem" /></label>
+                <label>Row id <input type="number" name="rowId" min="0" value="0" style="width:6rem" /></label>
+                <label>Photo id <input type="number" name="photoId" min="0" value="0" style="width:6rem" /></label>
+                <label>Name <input type="text" name="name" /></label>
+                <label>Code <input type="text" name="code" /></label>
+                <label>Icon <input type="text" name="icon" placeholder="fa-list" /></label>
+                <label>Label <input type="text" name="label" /></label>
+                <label>Value <input type="text" name="value" /></label>
+                <label>Value type
+                    <select name="valueType">
+                        <option value="text">text</option>
+                        <option value="number">number</option>
+                        <option value="bool">bool</option>
+                        <option value="list">list</option>
+                        <option value="rich">rich</option>
+                    </select>
+                </label>
+                <label>Unit <input type="text" name="unit" /></label>
+                <label>Alt <input type="text" name="alt" /></label>
+                <label>Caption <input type="text" name="caption" /></label>
+                <label>Photo type
+                    <select name="photoType">
+                        <option value="product">product</option>
+                        <option value="packaging">packaging</option>
+                        <option value="detail">detail</option>
+                        <option value="diagram">diagram</option>
+                        <option value="install">install</option>
+                        <option value="datasheet">datasheet</option>
+                        <option value="other">other</option>
+                    </select>
+                </label>
+                <label>Sort <input type="number" name="sortOrder" min="0" value="0" style="width:5rem" /></label>
+                <label>Primary
+                    <select name="isPrimary">
+                        <option value="">keep</option>
+                        <option value="1">1</option>
+                        <option value="0">0</option>
+                    </select>
+                </label>
+            </div>
+            <button type="submit">Save SKU spec</button>
         </form>
     }
     @if (!_isAdmin)
