@@ -1,12 +1,16 @@
+using System.Globalization;
+using EcomAE.Platform.Auth;
 using EcomAE.Platform.Erp;
 
 namespace EcomAE.Platform.Cp;
 
 /// <summary>
-/// Live PHP twins for lang editor flag ajax:
+/// Live PHP twins for lang editor ajax:
 /// <c>ajax_set_is_custom.php</c>, <c>ajax_set_is_error.php</c>,
-/// <c>ajax_set_same.php</c>, <c>ajax_set_used_found.php</c>.
-/// Restricted-mode config is not invented here.
+/// <c>ajax_set_same.php</c>, <c>ajax_set_used_found.php</c>,
+/// <c>ajax_save_translation.php</c>, <c>ajax_save_description.php</c>,
+/// <c>ajax_delete_not_used.php</c>, and <c>ajax_create_new_string.php</c>.
+/// Restricted-mode config and used-found filesystem scan are not invented here.
 /// </summary>
 public interface ICpLangWriteService
 {
@@ -23,11 +27,22 @@ public interface ICpLangWriteService
     Task<ErpSimpleWriteResult> SaveDescriptionAsync(string? strKey, string? value, CancellationToken cancellationToken = default);
 
     Task<ErpSimpleWriteResult> DeleteUnusedCustomAsync(CancellationToken cancellationToken = default);
+
+    Task<ErpSimpleWriteResult> CreateStringAsync(CpLangCreateStringWriteRequest request, CancellationToken cancellationToken = default);
 }
+
+public sealed record CpLangCreateStringWriteRequest(
+    string? Description = null,
+    string? Same = null,
+    int IsError = 0,
+    int IsCustom = 0,
+    int UsedFound = 0,
+    string? DomainPath = null);
 
 public sealed class CpLangWriteService : ICpLangWriteService
 {
     private readonly IErpWriteConnectionFactory _connections;
+    private int _createdStrings;
 
     public CpLangWriteService(IErpWriteConnectionFactory connections)
     {
@@ -265,6 +280,159 @@ public sealed class CpLangWriteService : ICpLangWriteService
             1, 2);
         await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
         return new ErpSimpleWriteResult(true, "ok", "Unused custom strings deleted.", 0, Math.Max(translations + strings, 1));
+    }
+
+    public async Task<ErpSimpleWriteResult> CreateStringAsync(
+        CpLangCreateStringWriteRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        var description = (request.Description ?? string.Empty).Trim();
+        if (description.Length == 0)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Empty value does not acceptable");
+        }
+
+        if (description.Length > 255)
+        {
+            description = description[..255];
+        }
+
+        if (request.IsError is not 0 and not 1)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Incorrect value of is_error");
+        }
+
+        if (request.IsCustom is not 0 and not 1)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Incorrect value of is_custom");
+        }
+
+        if (request.UsedFound is not 0 and not 1 and not 2)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Incorrect value of used_found");
+        }
+
+        if (!TryNormalizeSame(request.Same, out var same, out var sameError))
+        {
+            return ErpSimpleWriteResult.Fail("invalid", sameError);
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return ErpSimpleWriteResult.Fail("db", "TenantRegistry DB is not configured.");
+        }
+
+        await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        if (same is not null)
+        {
+            var langs = await ErpDb.LongAsync(
+                connection,
+                null,
+                ErpDb.Positional("SELECT COUNT(*) FROM `lang_languages` WHERE `lang_code` = ?"),
+                cancellationToken,
+                same).ConfigureAwait(false);
+            if (langs != 1)
+            {
+                return ErpSimpleWriteResult.Fail("invalid", "Incorrect value of same");
+            }
+        }
+
+        var languageCount = await ErpDb.LongAsync(
+            connection,
+            null,
+            ErpDb.Positional("SELECT COUNT(*) FROM `lang_languages`"),
+            cancellationToken).ConfigureAwait(false);
+        if (languageCount <= 0)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "No languages are configured.");
+        }
+
+        try
+        {
+            var key = await AllocateStrKeyAsync(connection, request.DomainPath, cancellationToken).ConfigureAwait(false);
+            await ErpDb.ExecuteAsync(
+                connection,
+                null,
+                ErpDb.Positional(
+                    """
+                    INSERT INTO `lang_text_strings`
+                    (`description`, `same`, `is_error`, `str_key`, `used_found`, `is_custom`)
+                    VALUES (?, ?, ?, ?, ?, ?)
+                    """),
+                cancellationToken,
+                description,
+                same,
+                request.IsError,
+                key,
+                request.UsedFound,
+                request.IsCustom).ConfigureAwait(false);
+            var id = await ErpDb.LastInsertIdAsync(connection, null, cancellationToken).ConfigureAwait(false);
+            return ErpSimpleWriteResult.Ok("Language string created (" + key + ").", id > 0 ? id : 0);
+        }
+        catch (ErpWriteException ex)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", ex.Message);
+        }
+        catch (System.Data.Common.DbException)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Could not create the language string.");
+        }
+    }
+
+    /// <summary>PHP ajax_create_new_string.php: <c>same</c> is <c>no</c> (null) or an existing lang code.</summary>
+    public static bool TryNormalizeSame(string? raw, out string? same, out string error)
+    {
+        var text = (raw ?? string.Empty).Trim();
+        same = null;
+        error = string.Empty;
+        if (text.Length == 0 || text.Equals("no", StringComparison.Ordinal))
+        {
+            return true;
+        }
+
+        if (text.Length is < 2 or > 16 || text.Any(ch => !char.IsLetterOrDigit(ch) && ch is not '-' and not '_'))
+        {
+            error = "Incorrect value of same";
+            return false;
+        }
+
+        same = text;
+        return true;
+    }
+
+    /// <summary>PHP <c>get_next_str_key()</c>: <c>time()_count_md5(domain_path)</c>.</summary>
+    public static string NextStrKey(string? domainPath, int createdCount)
+    {
+        var count = createdCount < 1 ? 1 : createdCount;
+        return DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString(CultureInfo.InvariantCulture)
+               + "_"
+               + count.ToString(CultureInfo.InvariantCulture)
+               + "_"
+               + LegacyPasswordVerifier.Md5Hex(domainPath ?? string.Empty);
+    }
+
+    private async Task<string> AllocateStrKeyAsync(
+        System.Data.Common.DbConnection connection,
+        string? domainPath,
+        CancellationToken cancellationToken)
+    {
+        for (var attempt = 0; attempt < 80; attempt++)
+        {
+            _createdStrings++;
+            var key = NextStrKey(domainPath, _createdStrings);
+            var found = await ErpDb.LongAsync(
+                connection,
+                null,
+                ErpDb.Positional("SELECT COUNT(*) FROM `lang_text_strings` WHERE `str_key` = ?"),
+                cancellationToken,
+                key).ConfigureAwait(false);
+            if (found == 0)
+            {
+                return key;
+            }
+        }
+
+        throw new ErpWriteException("Could not allocate a language string key.");
     }
 
     private static string NormalizeLang(string? langCode)

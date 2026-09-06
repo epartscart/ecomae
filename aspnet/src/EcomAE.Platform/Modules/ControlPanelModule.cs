@@ -1915,13 +1915,55 @@ public sealed class ControlPanelModule : ISurfaceModule
 
             return Results.Ok(dryRun.Evaluate(new CpLangSaveDescriptionRequest(body.Action, false)).ToPayload(SessionPayload(session)));
         }).DisableAntiforgery();
-        endpoints.MapPost(EcomAeRoutes.CpLangCreateString, async (HttpContext context, CpLangCreateStringBody? body, ILegacySessionValidator validator, ICpLangCreateStringDryRun dryRun, CancellationToken cancellationToken) =>
+        endpoints.MapPost(EcomAeRoutes.CpLangCreateString, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpLangCreateStringDryRun dryRun,
+            ICpLangWriteService writes,
+            CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateAsync(context, cancellationToken);
-            if (session.Kind != LegacySessionKind.Admin) return Unauthorized("Admin session required.");
-            body ??= new CpLangCreateStringBody(null, false);
-            return Results.Ok(dryRun.Evaluate(new CpLangCreateStringRequest(body.Action, body.ConfirmWrites)).ToPayload(SessionPayload(session)));
-        });
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/languages-app", "Admin CP capability required for lang create-string.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpLangCreateStringBody>(context, cancellationToken)
+                       ?? new();
+            var description = body.Description;
+            var same = body.Same;
+            var isError = body.IsError;
+            var isCustom = body.IsCustom;
+            var usedFound = body.UsedFound;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                description = LiveWriteFormBinder.Text(form, "description");
+                same = LiveWriteFormBinder.Text(form, "same");
+                isError = LiveWriteFormBinder.Int(form, "isError", "is_error");
+                isCustom = LiveWriteFormBinder.Int(form, "isCustom", "is_custom");
+                usedFound = LiveWriteFormBinder.Int(form, "usedFound", "used_found");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (confirm)
+            {
+                var host = context.Request.Host.Host;
+                var domainPath = string.IsNullOrWhiteSpace(host) ? "http://localhost/" : "http://" + host + "/";
+                var written = await writes.CreateStringAsync(
+                    new CpLangCreateStringWriteRequest(description, same, isError, isCustom, usedFound, domainPath),
+                    cancellationToken);
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    "/cp/languages-app",
+                    written.Succeeded,
+                    written.Message,
+                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+            }
+
+            return Results.Ok(dryRun.Evaluate(new CpLangCreateStringRequest(body.Action, false)).ToPayload(SessionPayload(session)));
+        }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.CpLangDeleteNotUsed, async (
             HttpContext context,
             ILegacySessionValidator validator,
@@ -8305,7 +8347,14 @@ public sealed class ControlPanelModule : ISurfaceModule
     private sealed record CpCreateSitemapBody(string? Action = null, bool ConfirmWrites = false);
     private sealed record CpLangSaveTranslationBody(string? Action = null, bool ConfirmWrites = false, string? StrKey = null, string? LangCode = null, string? Value = null);
     private sealed record CpLangSaveDescriptionBody(string? Action = null, bool ConfirmWrites = false, string? StrKey = null, string? Value = null);
-    private sealed record CpLangCreateStringBody(string? Action = null, bool ConfirmWrites = false);
+    private sealed record CpLangCreateStringBody(
+        string? Action = null,
+        bool ConfirmWrites = false,
+        string? Description = null,
+        string? Same = null,
+        int IsError = 0,
+        int IsCustom = 0,
+        int UsedFound = 0);
     private sealed record CpLangDeleteNotUsedBody(string? Action = null, bool ConfirmWrites = false);
     private sealed record CpPacksDeleteBody(string? Action = null, bool ConfirmWrites = false);
     private sealed record CpChannelsWriteBody(string? Action = null, bool ConfirmWrites = false, string? Code = null, int? Enabled = null);

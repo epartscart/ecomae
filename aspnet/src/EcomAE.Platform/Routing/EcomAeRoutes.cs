@@ -1212,7 +1212,7 @@ public static class EcomAeRoutes
     public const string CpLangSaveTranslation = "/cp/lang/save-translation";
     /// <summary>Lang description UPDATE. <c>confirmWrites=true</c> is the live twin of PHP ajax_save_string_description.php.</summary>
     public const string CpLangSaveDescription = "/cp/lang/save-description";
-    /// <summary>Wave B dry-run for PHP cp/content/lang/ajax_create_new_string.php (writes=0).</summary>
+    /// <summary>PHP ajax_create_new_string.php. <c>confirmWrites=true</c> writes via <c>ICpLangWriteService.CreateStringAsync</c>. Restricted-mode stays PHP.</summary>
     public const string CpLangCreateString = "/cp/lang/create-string";
     /// <summary>Delete unused custom strings. <c>confirmWrites=true</c> is the live twin of PHP ajax_delete_not_used_found.php.</summary>
     public const string CpLangDeleteNotUsed = "/cp/lang/delete-not-used";

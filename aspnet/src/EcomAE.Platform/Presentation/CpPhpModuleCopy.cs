@@ -127,6 +127,8 @@ public static class CpPhpModuleCopy
             return "Demand intelligence and forecast inputs.";
         if (path.Contains("/ops-guides", StringComparison.OrdinalIgnoreCase))
             return "Operations guides for CP and ERP staff.";
+        if (path.Contains("/languages", StringComparison.OrdinalIgnoreCase))
+            return "Language list and string editor. Create a string, save flags, translation, or description, or delete unused custom rows here. Used-found scan stays on the Classic twin.";
 
         var slug = path.Split('/', StringSplitOptions.RemoveEmptyEntries).LastOrDefault() ?? "module";
         slug = slug.Replace("-app", "", StringComparison.OrdinalIgnoreCase).Replace('-', ' ');

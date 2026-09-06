@@ -592,6 +592,39 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(langDeleteDb.Succeeded);
         Assert.Equal("db", langDeleteDb.Code);
 
+        var langCreateEmpty = await new CpLangWriteService(new ConfiguredNeverOpened())
+            .CreateStringAsync(new CpLangCreateStringWriteRequest(Description: ""));
+        Assert.False(langCreateEmpty.Succeeded);
+        Assert.Equal("invalid", langCreateEmpty.Code);
+
+        var langCreateError = await new CpLangWriteService(new ConfiguredNeverOpened())
+            .CreateStringAsync(new CpLangCreateStringWriteRequest(Description: "Hello", IsError: 3));
+        Assert.False(langCreateError.Succeeded);
+        Assert.Equal("invalid", langCreateError.Code);
+
+        var langCreateUsed = await new CpLangWriteService(new ConfiguredNeverOpened())
+            .CreateStringAsync(new CpLangCreateStringWriteRequest(Description: "Hello", UsedFound: 9));
+        Assert.False(langCreateUsed.Succeeded);
+        Assert.Equal("invalid", langCreateUsed.Code);
+
+        var langCreateSame = await new CpLangWriteService(new ConfiguredNeverOpened())
+            .CreateStringAsync(new CpLangCreateStringWriteRequest(Description: "Hello", Same: "xx!"));
+        Assert.False(langCreateSame.Succeeded);
+        Assert.Equal("invalid", langCreateSame.Code);
+
+        var langCreateDb = await new CpLangWriteService(new UnconfiguredConnections())
+            .CreateStringAsync(new CpLangCreateStringWriteRequest(Description: "Hello", Same: "no"));
+        Assert.False(langCreateDb.Succeeded);
+        Assert.Equal("db", langCreateDb.Code);
+
+        Assert.True(CpLangWriteService.TryNormalizeSame("no", out var sameNo, out _));
+        Assert.Null(sameNo);
+        Assert.True(CpLangWriteService.TryNormalizeSame("en", out var sameEn, out _));
+        Assert.Equal("en", sameEn);
+        Assert.False(CpLangWriteService.TryNormalizeSame("xx!", out _, out _));
+        var nextKey = CpLangWriteService.NextStrKey("http://www.epartscart.com/", 1);
+        Assert.Contains("_1_", nextKey, StringComparison.Ordinal);
+
         var channelInvalid = await new CpChannelWriteService(new ConfiguredNeverOpened())
             .ToggleAsync("", 1);
         Assert.False(channelInvalid.Succeeded);
