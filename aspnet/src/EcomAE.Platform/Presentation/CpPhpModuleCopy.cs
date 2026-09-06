@@ -84,7 +84,7 @@ public static class CpPhpModuleCopy
         if (path.Contains("/page-builder", StringComparison.OrdinalIgnoreCase))
             return "CMS pages and page builder.";
         if (path.Contains("/pages-app", StringComparison.OrdinalIgnoreCase))
-            return "Content pages. Set published or main, or save a text/php body here. TinyMCE image upload stays on the Classic twin.";
+            return "Content pages. Create or edit a page, set published or main, or save a text/php body here. TinyMCE image upload stays on the Classic twin.";
         if (path.Contains("/menus-app", StringComparison.OrdinalIgnoreCase))
             return "Storefront menus and navigation.";
         if (path.Contains("/seo-app", StringComparison.OrdinalIgnoreCase) || path.Contains("/sitemap", StringComparison.OrdinalIgnoreCase))

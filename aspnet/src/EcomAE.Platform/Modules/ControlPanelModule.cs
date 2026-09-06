@@ -2946,7 +2946,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Content pages metadata (body omitted). Publish, main, and body save POST /cp/content/* when confirmWrites=true. TinyMCE upload stays PHP."
+                note = "Content pages metadata (body omitted). Publish, main, body, and create/edit POST /cp/content/* when confirmWrites=true. TinyMCE upload stays PHP."
             });
         });
 
@@ -4310,6 +4310,131 @@ public sealed class ControlPanelModule : ISurfaceModule
             var domainPath = string.IsNullOrWhiteSpace(host) ? "http://localhost/" : "http://" + host + "/";
             var written = await writes.SaveBodyAsync(
                 new CpContentBodySaveRequest(contentId, contentType, content, contentLangStrId, langCode, domainPath),
+                cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/cp/pages-app",
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.CpContentSave, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpContentManagerWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/pages-app", "Admin CP capability required for content metadata save.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpContentMetaWriteBody>(context, cancellationToken) ?? new();
+            var contentId = body.ContentId;
+            var alias = body.Alias;
+            var value = body.Value;
+            var parent = body.Parent;
+            var description = body.Description;
+            var isFrontend = body.IsFrontend;
+            var contentType = body.ContentType;
+            var content = body.Content;
+            var titleTag = body.TitleTag;
+            var descriptionTag = body.DescriptionTag;
+            var keywordsTag = body.KeywordsTag;
+            var authorTag = body.AuthorTag;
+            var mainFlag = body.MainFlag;
+            var cssJs = body.CssJs;
+            var robotsTag = body.RobotsTag;
+            var publishedFlag = body.PublishedFlag;
+            var groupsAccess = body.GroupsAccess;
+            var valueLangStrId = body.ValueLangStrId;
+            var descriptionLangStrId = body.DescriptionLangStrId;
+            var contentLangStrId = body.ContentLangStrId;
+            var titleLangStrId = body.TitleLangStrId;
+            var descriptionTagLangStrId = body.DescriptionTagLangStrId;
+            var keywordsLangStrId = body.KeywordsLangStrId;
+            var authorLangStrId = body.AuthorLangStrId;
+            var langCode = body.LangCode;
+            var checkHash = body.CheckHash;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                contentId = LiveWriteFormBinder.Long(form, "contentId", "content_id", "id");
+                alias = LiveWriteFormBinder.Text(form, "alias");
+                value = LiveWriteFormBinder.Text(form, "value", "caption");
+                parent = LiveWriteFormBinder.Long(form, "parent", "parentId", "parent_id");
+                description = LiveWriteFormBinder.Text(form, "description");
+                isFrontend = LiveWriteFormBinder.IntOrNull(form, "isFrontend", "is_frontend") ?? 1;
+                contentType = LiveWriteFormBinder.Text(form, "contentType", "content_type");
+                content = LiveWriteFormBinder.Text(form, "content");
+                titleTag = LiveWriteFormBinder.Text(form, "titleTag", "title_tag");
+                descriptionTag = LiveWriteFormBinder.Text(form, "descriptionTag", "description_tag");
+                keywordsTag = LiveWriteFormBinder.Text(form, "keywordsTag", "keywords_tag");
+                authorTag = LiveWriteFormBinder.Text(form, "authorTag", "author_tag");
+                mainFlag = LiveWriteFormBinder.Flag(form, "mainFlag", "main_flag") ? 1 : LiveWriteFormBinder.Int(form, "mainFlag", "main_flag");
+                cssJs = LiveWriteFormBinder.Text(form, "cssJs", "css_js");
+                robotsTag = LiveWriteFormBinder.Text(form, "robotsTag", "robots_tag");
+                publishedFlag = LiveWriteFormBinder.IntOrNull(form, "publishedFlag", "published_flag") ?? 1;
+                groupsAccess = LiveWriteFormBinder.Text(form, "groupsAccess", "groups_access");
+                valueLangStrId = LiveWriteFormBinder.Text(form, "valueLangStrId", "value_lang_str_id");
+                descriptionLangStrId = LiveWriteFormBinder.Text(form, "descriptionLangStrId", "description_lang_str_id");
+                contentLangStrId = LiveWriteFormBinder.Text(form, "contentLangStrId", "content_lang_str_id");
+                titleLangStrId = LiveWriteFormBinder.Text(form, "titleLangStrId", "title_tag_lang_str_id");
+                descriptionTagLangStrId = LiveWriteFormBinder.Text(form, "descriptionTagLangStrId", "description_tag_lang_str_id");
+                keywordsLangStrId = LiveWriteFormBinder.Text(form, "keywordsLangStrId", "keywords_tag_lang_str_id");
+                authorLangStrId = LiveWriteFormBinder.Text(form, "authorLangStrId", "author_tag_lang_str_id");
+                langCode = LiveWriteFormBinder.Text(form, "langCode", "lang_code");
+                checkHash = LiveWriteFormBinder.Text(form, "checkHash", "check_hash");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(new
+                {
+                    status = "dry-run",
+                    writes = 0,
+                    writesBlocked = true,
+                    phpAuthoritative = true,
+                    validation_code = "dry_run",
+                    message = "Set confirmWrites=true to create or save a content page on ASP.NET.",
+                    session = SessionPayload(session)
+                });
+            }
+
+            var host = context.Request.Host.Host;
+            var domainPath = string.IsNullOrWhiteSpace(host) ? "http://localhost/" : "http://" + host + "/";
+            var written = await writes.SaveMetaAsync(
+                new CpContentMetaSaveRequest(
+                    contentId,
+                    alias,
+                    value,
+                    parent,
+                    description,
+                    isFrontend,
+                    contentType,
+                    content,
+                    titleTag,
+                    descriptionTag,
+                    keywordsTag,
+                    authorTag,
+                    mainFlag,
+                    cssJs,
+                    robotsTag,
+                    publishedFlag,
+                    groupsAccess,
+                    valueLangStrId,
+                    descriptionLangStrId,
+                    contentLangStrId,
+                    titleLangStrId,
+                    descriptionTagLangStrId,
+                    keywordsLangStrId,
+                    authorLangStrId,
+                    langCode,
+                    domainPath,
+                    checkHash),
                 cancellationToken);
             return LiveWriteFormBinder.Complete(
                 context,
@@ -8632,5 +8757,33 @@ public sealed class ControlPanelModule : ISurfaceModule
         string? Content = null,
         string? ContentLangStrId = null,
         string? LangCode = null,
+        bool ConfirmWrites = false);
+    private sealed record CpContentMetaWriteBody(
+        long ContentId = 0,
+        string? Alias = null,
+        string? Value = null,
+        long Parent = 0,
+        string? Description = null,
+        int IsFrontend = 1,
+        string? ContentType = null,
+        string? Content = null,
+        string? TitleTag = null,
+        string? DescriptionTag = null,
+        string? KeywordsTag = null,
+        string? AuthorTag = null,
+        int MainFlag = 0,
+        string? CssJs = null,
+        string? RobotsTag = null,
+        int PublishedFlag = 1,
+        string? GroupsAccess = null,
+        string? ValueLangStrId = null,
+        string? DescriptionLangStrId = null,
+        string? ContentLangStrId = null,
+        string? TitleLangStrId = null,
+        string? DescriptionTagLangStrId = null,
+        string? KeywordsLangStrId = null,
+        string? AuthorLangStrId = null,
+        string? LangCode = null,
+        string? CheckHash = null,
         bool ConfirmWrites = false);
 }

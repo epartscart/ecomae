@@ -1,12 +1,14 @@
 using System.Globalization;
+using System.Net;
+using System.Text.Json;
 using EcomAE.Platform.Auth;
 using EcomAE.Platform.Erp;
 
 namespace EcomAE.Platform.Cp;
 
 /// <summary>
-/// Live PHP <c>content_manager.php</c> / <c>content.php</c> twins for single-id
-/// <c>set_published_flag</c>, <c>set_main_flag</c>, and <c>save_content</c> body save.
+/// Live PHP <c>content_manager.php</c> / <c>content.php</c> / <c>content_create_edit.php</c> twins
+/// for publish, main, body save, and no-tree metadata create/edit.
 /// TinyMCE image upload and system-content config stay PHP.
 /// Always refuse <c>system_flag=1</c> (do not invent <c>DP_Config-&gt;allow_edit_system_content</c>).
 /// </summary>
@@ -17,6 +19,8 @@ public interface ICpContentManagerWriteService
     Task<ErpSimpleWriteResult> SetMainAsync(long contentId, int isFrontend, CancellationToken cancellationToken = default);
 
     Task<ErpSimpleWriteResult> SaveBodyAsync(CpContentBodySaveRequest request, CancellationToken cancellationToken = default);
+
+    Task<ErpSimpleWriteResult> SaveMetaAsync(CpContentMetaSaveRequest request, CancellationToken cancellationToken = default);
 }
 
 public sealed record CpContentBodySaveRequest(
@@ -26,6 +30,36 @@ public sealed record CpContentBodySaveRequest(
     string? ContentLangStrId = null,
     string? LangCode = null,
     string? DomainPath = null);
+
+public sealed record CpContentMetaSaveRequest(
+    long ContentId = 0,
+    string? Alias = null,
+    string? Value = null,
+    long Parent = 0,
+    string? Description = null,
+    int IsFrontend = 1,
+    string? ContentType = null,
+    string? Content = null,
+    string? TitleTag = null,
+    string? DescriptionTag = null,
+    string? KeywordsTag = null,
+    string? AuthorTag = null,
+    int MainFlag = 0,
+    string? CssJs = null,
+    string? RobotsTag = null,
+    int PublishedFlag = 1,
+    string? GroupsAccess = null,
+    string? ValueLangStrId = null,
+    string? DescriptionLangStrId = null,
+    string? ContentLangStrId = null,
+    string? TitleLangStrId = null,
+    string? DescriptionTagLangStrId = null,
+    string? KeywordsLangStrId = null,
+    string? AuthorLangStrId = null,
+    string? LangCode = null,
+    string? DomainPath = null,
+    string? CheckHash = null,
+    string? SecretSuccession = null);
 
 public sealed class CpContentManagerWriteService : ICpContentManagerWriteService
 {
@@ -252,6 +286,7 @@ public sealed class CpContentManagerWriteService : ICpContentManagerWriteService
                     stored,
                     NormalizeLang(request.LangCode),
                     request.DomainPath,
+                    "CONTENT EDITING",
                     cancellationToken).ConfigureAwait(false);
             }
 
@@ -347,6 +382,524 @@ public sealed class CpContentManagerWriteService : ICpContentManagerWriteService
         return text;
     }
 
+    public async Task<ErpSimpleWriteResult> SaveMetaAsync(
+        CpContentMetaSaveRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        if (!TryNormalizeAlias(request.Alias, out var alias, out var aliasError))
+        {
+            return ErpSimpleWriteResult.Fail("invalid", aliasError);
+        }
+
+        if (!TryNormalizeType(request.ContentType, out var contentType))
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Content type must be text or php.");
+        }
+
+        if (request.Parent < 0 || request.Parent == request.ContentId && request.ContentId > 0)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Parent page is not valid.");
+        }
+
+        var groups = ParseGroups(request.GroupsAccess);
+        if (groups.Error is not null)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", groups.Error);
+        }
+
+        string storedContent;
+        if (contentType == "php")
+        {
+            if (!TryNormalizePhpPath(request.Content, out storedContent, out var pathError))
+            {
+                return ErpSimpleWriteResult.Fail("invalid", pathError);
+            }
+        }
+        else
+        {
+            storedContent = StripPhp(request.Content);
+            if (storedContent.Length > 1_000_000)
+            {
+                return ErpSimpleWriteResult.Fail("invalid", "Content body is too long.");
+            }
+        }
+
+        var checkHash = (request.CheckHash ?? string.Empty).Trim();
+        if (checkHash.Length > 0)
+        {
+            var expected = ComputeCheckHash(request.ContentId, request.IsFrontend > 0 ? 1 : 0, request.SecretSuccession);
+            if (!string.Equals(checkHash, expected, StringComparison.OrdinalIgnoreCase))
+            {
+                return ErpSimpleWriteResult.Fail("invalid", "Content check hash is not valid.");
+            }
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return ErpSimpleWriteResult.Fail("db", "TenantRegistry DB is not configured.");
+        }
+
+        var isFrontend = request.IsFrontend > 0 ? 1 : 0;
+        var mainFlag = request.MainFlag > 0 ? 1 : 0;
+        var published = request.PublishedFlag > 0 ? 1 : 0;
+        var lang = NormalizeLang(request.LangCode);
+        var caption = HtmlEncode(request.Value);
+        var title = HtmlEncode(request.TitleTag);
+        var descriptionTag = HtmlEncode(request.DescriptionTag);
+        var keywords = HtmlEncode(request.KeywordsTag);
+        var author = HtmlEncode(request.AuthorTag);
+        var robots = HtmlEncode(request.RobotsTag);
+        var description = request.Description ?? string.Empty;
+        var cssJs = request.CssJs ?? string.Empty;
+        const string langDescription = "NO TREE EDITOR CONTENT EDITING";
+
+        await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await using var transaction = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            var creating = request.ContentId <= 0;
+            long contentId = request.ContentId;
+            long currentParent = 0;
+            var currentMain = 0L;
+            if (!creating)
+            {
+                var found = await ErpDb.LongAsync(
+                    connection,
+                    transaction,
+                    ErpDb.Positional("SELECT `id` FROM `content` WHERE `id` = ? LIMIT 1"),
+                    cancellationToken,
+                    contentId).ConfigureAwait(false);
+                if (found <= 0)
+                {
+                    await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
+                    return ErpSimpleWriteResult.Fail("invalid", "Content page was not found.");
+                }
+
+                var systemFlag = await ErpDb.LongAsync(
+                    connection,
+                    transaction,
+                    ErpDb.Positional("SELECT `system_flag` FROM `content` WHERE `id` = ? LIMIT 1"),
+                    cancellationToken,
+                    contentId).ConfigureAwait(false);
+                if (systemFlag > 0)
+                {
+                    await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
+                    return ErpSimpleWriteResult.Fail("invalid", "System pages cannot be edited here.");
+                }
+
+                var currentFrontend = await ErpDb.LongAsync(
+                    connection,
+                    transaction,
+                    ErpDb.Positional("SELECT `is_frontend` FROM `content` WHERE `id` = ? LIMIT 1"),
+                    cancellationToken,
+                    contentId).ConfigureAwait(false);
+                if (currentFrontend != isFrontend)
+                {
+                    await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
+                    return ErpSimpleWriteResult.Fail("invalid", "Frontend/backend mode cannot change.");
+                }
+
+                currentParent = await ErpDb.LongAsync(
+                    connection,
+                    transaction,
+                    ErpDb.Positional("SELECT `parent` FROM `content` WHERE `id` = ? LIMIT 1"),
+                    cancellationToken,
+                    contentId).ConfigureAwait(false);
+                currentMain = await ErpDb.LongAsync(
+                    connection,
+                    transaction,
+                    ErpDb.Positional("SELECT `main_flag` FROM `content` WHERE `id` = ? LIMIT 1"),
+                    cancellationToken,
+                    contentId).ConfigureAwait(false);
+            }
+
+            var level = 1L;
+            var url = alias;
+            if (request.Parent > 0)
+            {
+                var parentLevel = await ErpDb.LongAsync(
+                    connection,
+                    transaction,
+                    ErpDb.Positional("SELECT `level` FROM `content` WHERE `id` = ? LIMIT 1"),
+                    cancellationToken,
+                    request.Parent).ConfigureAwait(false);
+                var parentUrl = await ErpDb.StringAsync(
+                    connection,
+                    transaction,
+                    ErpDb.Positional("SELECT `url` FROM `content` WHERE `id` = ? LIMIT 1"),
+                    cancellationToken,
+                    request.Parent).ConfigureAwait(false);
+                var parentFrontend = await ErpDb.LongAsync(
+                    connection,
+                    transaction,
+                    ErpDb.Positional("SELECT `is_frontend` FROM `content` WHERE `id` = ? LIMIT 1"),
+                    cancellationToken,
+                    request.Parent).ConfigureAwait(false);
+                if (string.IsNullOrEmpty(parentUrl) && parentLevel == 0)
+                {
+                    var parentFound = await ErpDb.LongAsync(
+                        connection,
+                        transaction,
+                        ErpDb.Positional("SELECT `id` FROM `content` WHERE `id` = ? LIMIT 1"),
+                        cancellationToken,
+                        request.Parent).ConfigureAwait(false);
+                    if (parentFound <= 0)
+                    {
+                        await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
+                        return ErpSimpleWriteResult.Fail("invalid", "Parent page was not found.");
+                    }
+                }
+
+                if (parentFrontend != isFrontend)
+                {
+                    await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
+                    return ErpSimpleWriteResult.Fail("invalid", "Parent must be in the same frontend/backend mode.");
+                }
+
+                level = parentLevel + 1;
+                url = (parentUrl ?? string.Empty).TrimEnd('/') + "/" + alias;
+            }
+
+            var valueKey = await RequireTranslationAsync(
+                connection, transaction, request.ValueLangStrId, caption, lang, request.DomainPath, langDescription, cancellationToken).ConfigureAwait(false);
+            var descriptionKey = await RequireTranslationAsync(
+                connection, transaction, request.DescriptionLangStrId, description, lang, request.DomainPath, langDescription, cancellationToken).ConfigureAwait(false);
+            var titleKey = await RequireTranslationAsync(
+                connection, transaction, request.TitleLangStrId, title, lang, request.DomainPath, langDescription, cancellationToken).ConfigureAwait(false);
+            var descriptionTagKey = await RequireTranslationAsync(
+                connection, transaction, request.DescriptionTagLangStrId, descriptionTag, lang, request.DomainPath, langDescription, cancellationToken).ConfigureAwait(false);
+            var keywordsKey = await RequireTranslationAsync(
+                connection, transaction, request.KeywordsLangStrId, keywords, lang, request.DomainPath, langDescription, cancellationToken).ConfigureAwait(false);
+            var authorKey = await RequireTranslationAsync(
+                connection, transaction, request.AuthorLangStrId, author, lang, request.DomainPath, langDescription, cancellationToken).ConfigureAwait(false);
+            if (contentType == "text")
+            {
+                storedContent = await RequireTranslationAsync(
+                    connection, transaction, request.ContentLangStrId, storedContent, lang, request.DomainPath, langDescription, cancellationToken).ConfigureAwait(false);
+            }
+
+            var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+            if (creating)
+            {
+                await ErpDb.ExecuteAsync(
+                    connection,
+                    transaction,
+                    ErpDb.Positional(
+                        """
+                        INSERT INTO `content`
+                        (`count`,`url`,`level`,`alias`,`value`,`parent`,`description`,`is_frontend`,`content_type`,`content`,`title_tag`,`description_tag`,`keywords_tag`,`author_tag`,`main_flag`,`modules_array`,`css_js`,`robots_tag`,`system_flag`,`published_flag`,`open`,`time_created`,`order`)
+                        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+                        """),
+                    cancellationToken,
+                    0,
+                    url,
+                    level,
+                    alias,
+                    valueKey,
+                    request.Parent,
+                    descriptionKey,
+                    isFrontend,
+                    contentType,
+                    storedContent,
+                    titleKey,
+                    descriptionTagKey,
+                    keywordsKey,
+                    authorKey,
+                    mainFlag,
+                    "[]",
+                    cssJs,
+                    robots,
+                    0,
+                    published,
+                    0,
+                    now,
+                    1).ConfigureAwait(false);
+                contentId = await ErpDb.LastInsertIdAsync(connection, transaction, cancellationToken).ConfigureAwait(false);
+                if (contentId <= 0)
+                {
+                    await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
+                    return ErpSimpleWriteResult.Fail("invalid", "Could not create the content page.");
+                }
+
+                if (request.Parent > 0)
+                {
+                    await ErpDb.ExecuteAsync(
+                        connection,
+                        transaction,
+                        ErpDb.Positional("UPDATE `content` SET `count` = `count` + 1 WHERE `id` = ?"),
+                        cancellationToken,
+                        request.Parent).ConfigureAwait(false);
+                }
+            }
+            else
+            {
+                var rows = await ErpDb.ExecuteAsync(
+                    connection,
+                    transaction,
+                    ErpDb.Positional(
+                        """
+                        UPDATE `content`
+                        SET `url` = ?, `level` = ?, `alias` = ?, `value` = ?, `parent` = ?, `description` = ?,
+                            `content_type` = ?, `content` = ?, `title_tag` = ?, `description_tag` = ?,
+                            `keywords_tag` = ?, `author_tag` = ?, `main_flag` = ?, `css_js` = ?,
+                            `robots_tag` = ?, `published_flag` = ?, `time_edited` = ?
+                        WHERE `id` = ?
+                          AND (`system_flag` IS NULL OR `system_flag` <> 1)
+                        """),
+                    cancellationToken,
+                    url,
+                    level,
+                    alias,
+                    valueKey,
+                    request.Parent,
+                    descriptionKey,
+                    contentType,
+                    storedContent,
+                    titleKey,
+                    descriptionTagKey,
+                    keywordsKey,
+                    authorKey,
+                    mainFlag,
+                    cssJs,
+                    robots,
+                    published,
+                    now,
+                    contentId).ConfigureAwait(false);
+                if (rows <= 0)
+                {
+                    await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
+                    return ErpSimpleWriteResult.Fail("invalid", "Content page not found or is a locked system page.");
+                }
+
+                if (request.Parent != currentParent)
+                {
+                    if (request.Parent > 0)
+                    {
+                        await ErpDb.ExecuteAsync(
+                            connection,
+                            transaction,
+                            ErpDb.Positional("UPDATE `content` SET `count` = `count` + 1 WHERE `id` = ?"),
+                            cancellationToken,
+                            request.Parent).ConfigureAwait(false);
+                    }
+
+                    if (currentParent > 0)
+                    {
+                        await ErpDb.ExecuteAsync(
+                            connection,
+                            transaction,
+                            ErpDb.Positional("UPDATE `content` SET `count` = `count` - 1 WHERE `id` = ?"),
+                            cancellationToken,
+                            currentParent).ConfigureAwait(false);
+                    }
+                }
+
+                if (!await HandleChildNodesAsync(connection, transaction, contentId, cancellationToken).ConfigureAwait(false))
+                {
+                    await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
+                    return ErpSimpleWriteResult.Fail("invalid", "Could not update nested pages.");
+                }
+            }
+
+            if (mainFlag == 1 && (creating || currentMain == 0))
+            {
+                await ErpDb.ExecuteAsync(
+                    connection,
+                    transaction,
+                    ErpDb.Positional("UPDATE `content` SET `main_flag` = 0 WHERE `main_flag` = 1 AND `id` != ? AND `is_frontend` = ?"),
+                    cancellationToken,
+                    contentId,
+                    isFrontend).ConfigureAwait(false);
+            }
+
+            await ErpDb.ExecuteAsync(
+                connection,
+                transaction,
+                ErpDb.Positional("DELETE FROM `content_access` WHERE `content_id` = ?"),
+                cancellationToken,
+                contentId).ConfigureAwait(false);
+            foreach (var groupId in groups.Ids)
+            {
+                await ErpDb.ExecuteAsync(
+                    connection,
+                    transaction,
+                    ErpDb.Positional("INSERT INTO `content_access` (`content_id`, `group_id`) VALUES (?, ?)"),
+                    cancellationToken,
+                    contentId,
+                    groupId).ConfigureAwait(false);
+            }
+
+            await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
+            return ErpSimpleWriteResult.Ok(
+                creating ? $"Content page created (#{contentId})." : $"Content #{contentId} metadata saved.",
+                contentId);
+        }
+        catch (ErpWriteException ex)
+        {
+            await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
+            return ErpSimpleWriteResult.Fail("invalid", ex.Message);
+        }
+        catch (System.Data.Common.DbException)
+        {
+            await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
+            return ErpSimpleWriteResult.Fail("invalid", "Could not save the content page.");
+        }
+    }
+
+    /// <summary>PHP content_create_edit.php alias becomes the URL segment.</summary>
+    public static bool TryNormalizeAlias(string? raw, out string alias, out string error)
+    {
+        alias = (raw ?? string.Empty).Trim();
+        error = string.Empty;
+        if (alias.Length == 0)
+        {
+            error = "An alias is required.";
+            return false;
+        }
+
+        if (alias.Length > 190
+            || alias.Contains("..", StringComparison.Ordinal)
+            || alias.Contains('/', StringComparison.Ordinal)
+            || alias.Contains('\\', StringComparison.Ordinal))
+        {
+            error = "Alias must be a single URL segment.";
+            alias = string.Empty;
+            return false;
+        }
+
+        return true;
+    }
+
+    /// <summary>PHP content_create_edit.php groups_access JSON array or csv of group ids.</summary>
+    public static (IReadOnlyList<long> Ids, string? Error) ParseGroups(string? raw)
+    {
+        var text = (raw ?? string.Empty).Trim();
+        if (text.Length == 0 || text == "[]")
+        {
+            return ([], null);
+        }
+
+        if (text[0] != '[')
+        {
+            var csv = new List<long>();
+            foreach (var part in text.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+            {
+                if (long.TryParse(part, NumberStyles.Integer, CultureInfo.InvariantCulture, out var id) && id > 0)
+                {
+                    csv.Add(id);
+                }
+            }
+
+            return csv.Count == 0 ? ([], "groups_access is not valid.") : (csv.Distinct().Take(80).ToList(), null);
+        }
+
+        try
+        {
+            using var doc = JsonDocument.Parse(text);
+            if (doc.RootElement.ValueKind != JsonValueKind.Array)
+            {
+                return ([], "groups_access is not valid.");
+            }
+
+            var ids = new List<long>();
+            foreach (var item in doc.RootElement.EnumerateArray())
+            {
+                if (item.ValueKind == JsonValueKind.Number && item.TryGetInt64(out var n) && n > 0)
+                {
+                    ids.Add(n);
+                }
+                else if (item.ValueKind == JsonValueKind.String
+                         && long.TryParse(item.GetString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsed)
+                         && parsed > 0)
+                {
+                    ids.Add(parsed);
+                }
+            }
+
+            return (ids.Distinct().Take(80).ToList(), null);
+        }
+        catch (JsonException)
+        {
+            return ([], "groups_access is not valid.");
+        }
+    }
+
+    /// <summary>PHP md5(content_id + is_frontend + secret_succession).</summary>
+    public static string ComputeCheckHash(long contentId, int isFrontend, string? secretSuccession)
+        => LegacyPasswordVerifier.Md5Hex(
+            contentId.ToString(CultureInfo.InvariantCulture)
+            + (isFrontend > 0 ? 1 : 0).ToString(CultureInfo.InvariantCulture)
+            + (secretSuccession ?? string.Empty));
+
+    public static string HtmlEncode(string? raw)
+        => WebUtility.HtmlEncode(raw ?? string.Empty);
+
+    private async Task<bool> HandleChildNodesAsync(
+        System.Data.Common.DbConnection connection,
+        System.Data.Common.DbTransaction transaction,
+        long contentId,
+        CancellationToken cancellationToken)
+    {
+        var count = await ErpDb.LongAsync(
+            connection,
+            transaction,
+            ErpDb.Positional("SELECT `count` FROM `content` WHERE `id` = ? LIMIT 1"),
+            cancellationToken,
+            contentId).ConfigureAwait(false);
+        if (count == 0)
+        {
+            return true;
+        }
+
+        var level = await ErpDb.LongAsync(
+            connection,
+            transaction,
+            ErpDb.Positional("SELECT `level` FROM `content` WHERE `id` = ? LIMIT 1"),
+            cancellationToken,
+            contentId).ConfigureAwait(false);
+        var url = await ErpDb.StringAsync(
+            connection,
+            transaction,
+            ErpDb.Positional("SELECT `url` FROM `content` WHERE `id` = ? LIMIT 1"),
+            cancellationToken,
+            contentId).ConfigureAwait(false) ?? string.Empty;
+
+        await using var command = connection.CreateCommand();
+        command.Transaction = transaction;
+        command.CommandText = ErpDb.Positional("SELECT `id`, IFNULL(`alias`,''), IFNULL(`count`,0) FROM `content` WHERE `parent` = ?");
+        ErpDb.AddParameters(command, contentId);
+        var children = new List<(long Id, string Alias, long ChildCount)>();
+        await using (var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false))
+        {
+            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                children.Add((
+                    reader.GetInt64(0),
+                    reader.GetString(1),
+                    reader.GetInt64(2)));
+            }
+        }
+
+        foreach (var child in children)
+        {
+            await ErpDb.ExecuteAsync(
+                connection,
+                transaction,
+                ErpDb.Positional("UPDATE `content` SET `level` = ?, `url` = ? WHERE `id` = ?"),
+                cancellationToken,
+                level + 1,
+                url.TrimEnd('/') + "/" + child.Alias,
+                child.Id).ConfigureAwait(false);
+            if (child.ChildCount > 0
+                && !await HandleChildNodesAsync(connection, transaction, child.Id, cancellationToken).ConfigureAwait(false))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     private async Task<string> RequireTranslationAsync(
         System.Data.Common.DbConnection connection,
         System.Data.Common.DbTransaction transaction,
@@ -354,6 +907,7 @@ public sealed class CpContentManagerWriteService : ICpContentManagerWriteService
         string value,
         string langCode,
         string? domainPath,
+        string langDescription,
         CancellationToken cancellationToken)
     {
         var existingKey = (langStrId ?? string.Empty).Trim();
@@ -407,7 +961,7 @@ public sealed class CpContentManagerWriteService : ICpContentManagerWriteService
                 transaction,
                 ErpDb.Positional("INSERT INTO `lang_text_strings` (`description`, `same`, `is_error`, `is_custom`, `str_key`) VALUES (?,?,?,?,?)"),
                 cancellationToken,
-                "CONTENT EDITING",
+                langDescription,
                 null,
                 0,
                 1,

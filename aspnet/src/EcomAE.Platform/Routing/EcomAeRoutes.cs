@@ -1059,6 +1059,8 @@ public static class EcomAeRoutes
     public const string CpContentMain = "/cp/content/main";
     /// <summary>PHP content.php save_content. <c>confirmWrites=true</c> writes via <c>ICpContentManagerWriteService.SaveBodyAsync</c>. TinyMCE upload stays PHP.</summary>
     public const string CpContentBody = "/cp/content/body";
+    /// <summary>PHP content_create_edit.php. <c>confirmWrites=true</c> writes via <c>ICpContentManagerWriteService.SaveMetaAsync</c>.</summary>
+    public const string CpContentSave = "/cp/content/save";
     /// <summary>PHP offices_cash.php action=add. Manager must belong to the office.</summary>
     public const string ErpOfficesCashAdd = "/erp/offices-cash/add";
     /// <summary>PHP offices_cash_editor.php action=add. <c>confirmWrites=true</c> writes lang string + cash code.</summary>

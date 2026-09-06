@@ -1474,6 +1474,40 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(CpContentManagerWriteService.TryNormalizePhpPath("../x.php", out _, out _));
         Assert.Equal("[CODE]php[/CODE]", CpContentManagerWriteService.StripPhp("<?php?>"));
 
+        var contentMetaAlias = await new CpContentManagerWriteService(new ConfiguredNeverOpened())
+            .SaveMetaAsync(new CpContentMetaSaveRequest(Alias: "", ContentType: "text", Content: "Hi"));
+        Assert.False(contentMetaAlias.Succeeded);
+        Assert.Equal("invalid", contentMetaAlias.Code);
+
+        var contentMetaType = await new CpContentManagerWriteService(new ConfiguredNeverOpened())
+            .SaveMetaAsync(new CpContentMetaSaveRequest(Alias: "about", ContentType: "html", Content: "Hi"));
+        Assert.False(contentMetaType.Succeeded);
+        Assert.Equal("invalid", contentMetaType.Code);
+
+        var contentMetaPhp = await new CpContentManagerWriteService(new ConfiguredNeverOpened())
+            .SaveMetaAsync(new CpContentMetaSaveRequest(Alias: "about", ContentType: "php", Content: "not-php"));
+        Assert.False(contentMetaPhp.Succeeded);
+        Assert.Equal("invalid", contentMetaPhp.Code);
+
+        var contentMetaHash = await new CpContentManagerWriteService(new ConfiguredNeverOpened())
+            .SaveMetaAsync(new CpContentMetaSaveRequest(Alias: "about", ContentType: "text", Content: "Hi", CheckHash: "deadbeef", SecretSuccession: "secret"));
+        Assert.False(contentMetaHash.Succeeded);
+        Assert.Equal("invalid", contentMetaHash.Code);
+
+        var contentMetaDb = await new CpContentManagerWriteService(new UnconfiguredConnections())
+            .SaveMetaAsync(new CpContentMetaSaveRequest(Alias: "about", ContentType: "text", Content: "Hi"));
+        Assert.False(contentMetaDb.Succeeded);
+        Assert.Equal("db", contentMetaDb.Code);
+
+        Assert.True(CpContentManagerWriteService.TryNormalizeAlias("about-us", out var alias, out _));
+        Assert.Equal("about-us", alias);
+        Assert.False(CpContentManagerWriteService.TryNormalizeAlias("a/b", out _, out _));
+        var groups = CpContentManagerWriteService.ParseGroups("[1,\"2\",2]");
+        Assert.Null(groups.Error);
+        Assert.Equal(new long[] { 1, 2 }, groups.Ids);
+        Assert.Equal("groups_access is not valid.", CpContentManagerWriteService.ParseGroups("{").Error);
+        Assert.Equal(32, CpContentManagerWriteService.ComputeCheckHash(0, 1, "secret").Length);
+
         var wmsInvalid = await new ErpWmsLocationWriteService(new ConfiguredNeverOpened())
             .DeleteAsync(0);
         Assert.False(wmsInvalid.Succeeded);
