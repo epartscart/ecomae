@@ -347,8 +347,7 @@ public sealed class CpOfficeWriteService : ICpOfficeWriteService
         string key;
         if (existingKey.Length == 0 || isCustom == 0)
         {
-            _createdStrings++;
-            key = NextStrKey(domainPath, _createdStrings);
+            key = await AllocateStrKeyAsync(connection, transaction, domainPath, cancellationToken).ConfigureAwait(false);
             await ErpDb.ExecuteAsync(
                 connection,
                 transaction,
@@ -382,6 +381,31 @@ public sealed class CpOfficeWriteService : ICpOfficeWriteService
         }
 
         return (key, null);
+    }
+
+    private async Task<string> AllocateStrKeyAsync(
+        System.Data.Common.DbConnection connection,
+        System.Data.Common.DbTransaction transaction,
+        string? domainPath,
+        CancellationToken cancellationToken)
+    {
+        for (var attempt = 0; attempt < 80; attempt++)
+        {
+            _createdStrings++;
+            var key = NextStrKey(domainPath, _createdStrings);
+            var found = await ErpDb.LongAsync(
+                connection,
+                transaction,
+                ErpDb.Positional("SELECT COUNT(*) FROM `lang_text_strings` WHERE `str_key` = ?"),
+                cancellationToken,
+                key).ConfigureAwait(false);
+            if (found == 0)
+            {
+                return key;
+            }
+        }
+
+        throw new ErpWriteException("Could not allocate an office translation key.");
     }
 
     private static string NormalizeLang(string? langCode)
