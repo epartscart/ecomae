@@ -84,7 +84,7 @@ public static class CpPhpModuleCopy
         if (path.Contains("/page-builder", StringComparison.OrdinalIgnoreCase))
             return "CMS pages and page builder.";
         if (path.Contains("/pages-app", StringComparison.OrdinalIgnoreCase))
-            return "Content pages. Create or edit a page, set published or main, or save a text/php body here. TinyMCE image upload stays on the Classic twin.";
+            return "Content pages. Create or edit a page, set published or main, save a text/php body, or save the page tree here. TinyMCE image upload stays on the Classic twin.";
         if (path.Contains("/modules-app", StringComparison.OrdinalIgnoreCase))
             return "Catalogue and control modules. Create, save, activate, or delete a module here. Page binding and group access write with the save.";
         if (path.Contains("/menus-app", StringComparison.OrdinalIgnoreCase))

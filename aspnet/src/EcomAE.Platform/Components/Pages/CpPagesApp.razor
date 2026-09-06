@@ -21,7 +21,7 @@
 
 
     <PhpCpModulePageHeader Title="Content Pages"
-                           Subtitle="Publish, main-page, body, and page create/edit write here. TinyMCE image upload stays on the Classic twin.">
+                           Subtitle="Publish, main-page, body, page create/edit, and tree save write here. TinyMCE image upload stays on the Classic twin.">
         <a class="ghost" href="/cp/menus-app">Menus</a>
         <a class="ghost" href="/cp/modules-app">Modules</a>
         <a class="ghost" href="/cp/page-builder-app">Page builder</a>
@@ -113,6 +113,16 @@
                 <label>Groups <input type="text" name="groupsAccess" placeholder="[]" /></label>
             </div>
             <button type="submit">Save page</button>
+        </form>
+        <form method="post" action="/cp/content/tree" style="display:flex;flex-direction:column;gap:.45rem;margin:0 0 1rem;max-width:52rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/pages-app" />
+            <input type="hidden" name="langCode" value="en" />
+            <input type="hidden" name="isFrontend" value="1" />
+            <label>Tree JSON
+                <textarea name="treeJson" rows="6" style="width:100%;font-family:monospace" placeholder="Webix content tree. Include every non-system page you want to keep."></textarea>
+            </label>
+            <button type="submit">Save tree</button>
         </form>
     }
 

@@ -1508,6 +1508,28 @@ public sealed class LiveWriteServiceValidationTests
         Assert.Equal("groups_access is not valid.", CpContentManagerWriteService.ParseGroups("{").Error);
         Assert.Equal(32, CpContentManagerWriteService.ComputeCheckHash(0, 1, "secret").Length);
 
+        var treeEmpty = await new CpContentManagerWriteService(new ConfiguredNeverOpened())
+            .SaveTreeAsync(new CpContentTreeSaveRequest(TreeJson: ""));
+        Assert.False(treeEmpty.Succeeded);
+        Assert.Equal("invalid", treeEmpty.Code);
+
+        var treeBad = await new CpContentManagerWriteService(new ConfiguredNeverOpened())
+            .SaveTreeAsync(new CpContentTreeSaveRequest(TreeJson: "{"));
+        Assert.False(treeBad.Succeeded);
+        Assert.Equal("invalid", treeBad.Code);
+
+        var treeDb = await new CpContentManagerWriteService(new UnconfiguredConnections())
+            .SaveTreeAsync(new CpContentTreeSaveRequest(TreeJson: """[{"id":9,"alias":"home","value":"Home","$count":0,"$level":1,"$parent":0}]"""));
+        Assert.False(treeDb.Succeeded);
+        Assert.Equal("db", treeDb.Code);
+
+        var treeOk = CpContentManagerWriteService.ParseTree("""[{"id":9,"alias":"Home","value":"Home","$count":0,"$level":1,"$parent":0,"groups_access":[3]}]""");
+        Assert.Null(treeOk.Error);
+        Assert.Equal(9, treeOk.Nodes[0].Id);
+        Assert.Equal("home", treeOk.Nodes[0].Alias);
+        Assert.Equal(new long[] { 3 }, treeOk.Nodes[0].Groups);
+        Assert.Equal("tree_json is not valid JSON.", CpContentManagerWriteService.ParseTree("{").Error);
+
         var menuAction = await new CpMenuWriteService(new ConfiguredNeverOpened())
             .SaveAsync(new CpMenuSaveRequest(Action: "rename", Caption: "Main"));
         Assert.False(menuAction.Succeeded);

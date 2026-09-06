@@ -21,6 +21,8 @@ public interface ICpContentManagerWriteService
     Task<ErpSimpleWriteResult> SaveBodyAsync(CpContentBodySaveRequest request, CancellationToken cancellationToken = default);
 
     Task<ErpSimpleWriteResult> SaveMetaAsync(CpContentMetaSaveRequest request, CancellationToken cancellationToken = default);
+
+    Task<ErpSimpleWriteResult> SaveTreeAsync(CpContentTreeSaveRequest request, CancellationToken cancellationToken = default);
 }
 
 public sealed record CpContentBodySaveRequest(
@@ -60,6 +62,12 @@ public sealed record CpContentMetaSaveRequest(
     string? DomainPath = null,
     string? CheckHash = null,
     string? SecretSuccession = null);
+
+public sealed record CpContentTreeSaveRequest(
+    string? TreeJson = null,
+    int IsFrontend = 1,
+    string? LangCode = null,
+    string? DomainPath = null);
 
 public sealed class CpContentManagerWriteService : ICpContentManagerWriteService
 {
@@ -746,6 +754,193 @@ public sealed class CpContentManagerWriteService : ICpContentManagerWriteService
         }
     }
 
+    public async Task<ErpSimpleWriteResult> SaveTreeAsync(
+        CpContentTreeSaveRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        var parsed = ParseTree(request.TreeJson);
+        if (parsed.Error is not null)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", parsed.Error);
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return ErpSimpleWriteResult.Fail("db", "TenantRegistry DB is not configured.");
+        }
+
+        var frontend = request.IsFrontend > 0 ? 1 : 0;
+        var lang = NormalizeLang(request.LangCode);
+        const string langDescription = "CONTENT TREE EDITING";
+        var keep = parsed.Nodes.Select(n => n.Id).ToHashSet();
+        await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await using var transaction = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            var existing = await ListFrontendPagesAsync(connection, transaction, frontend, cancellationToken).ConfigureAwait(false);
+            if (existing.Any(p => p.System && !keep.Contains(p.Id)))
+            {
+                await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
+                return ErpSimpleWriteResult.Fail("invalid", "System pages cannot be removed from the tree.");
+            }
+
+            var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+            var order = 0;
+            foreach (var node in parsed.Nodes)
+            {
+                order++;
+                var found = existing.FirstOrDefault(p => p.Id == node.Id);
+                if (found.Id > 0 && found.System)
+                {
+                    continue;
+                }
+
+                var valueKey = await RequireTranslationAsync(
+                    connection, transaction, node.ValueLangStrId, HtmlEncode(node.Value), lang, request.DomainPath, langDescription, cancellationToken).ConfigureAwait(false);
+                var descriptionKey = await RequireTranslationAsync(
+                    connection, transaction, node.DescriptionLangStrId, HtmlEncode(node.Description), lang, request.DomainPath, langDescription, cancellationToken).ConfigureAwait(false);
+                var titleKey = await RequireTranslationAsync(
+                    connection, transaction, node.TitleLangStrId, HtmlEncode(node.TitleTag), lang, request.DomainPath, langDescription, cancellationToken).ConfigureAwait(false);
+                var descriptionTagKey = await RequireTranslationAsync(
+                    connection, transaction, node.DescriptionTagLangStrId, HtmlEncode(node.DescriptionTag), lang, request.DomainPath, langDescription, cancellationToken).ConfigureAwait(false);
+                var keywordsKey = await RequireTranslationAsync(
+                    connection, transaction, node.KeywordsLangStrId, HtmlEncode(node.KeywordsTag), lang, request.DomainPath, langDescription, cancellationToken).ConfigureAwait(false);
+
+                if (found.Id > 0)
+                {
+                    await ErpDb.ExecuteAsync(
+                        connection,
+                        transaction,
+                        ErpDb.Positional(
+                            """
+                            UPDATE `content`
+                            SET `count`=?, `url`=?, `level`=?, `alias`=?, `value`=?, `parent`=?, `description`=?,
+                                `main_flag`=?, `title_tag`=?, `description_tag`=?, `keywords_tag`=?, `robots_tag`=?,
+                                `published_flag`=?, `open`=?, `css_js`=?, `order`=?
+                            WHERE `id`=?
+                            """),
+                        cancellationToken,
+                        node.Count, node.Url, node.Level, node.Alias, valueKey, node.Parent, descriptionKey,
+                        node.MainFlag, titleKey, descriptionTagKey, keywordsKey, HtmlEncode(node.RobotsTag),
+                        node.PublishedFlag, node.Open, node.CssJs ?? string.Empty, order, node.Id).ConfigureAwait(false);
+                }
+                else
+                {
+                    await ErpDb.ExecuteAsync(
+                        connection,
+                        transaction,
+                        ErpDb.Positional(
+                            """
+                            INSERT INTO `content`
+                            (`id`,`count`,`url`,`level`,`alias`,`value`,`parent`,`description`,`is_frontend`,
+                             `main_flag`,`content_type`,`title_tag`,`description_tag`,`keywords_tag`,`robots_tag`,
+                             `modules_array`,`published_flag`,`open`,`css_js`,`time_created`,`order`)
+                            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+                            """),
+                        cancellationToken,
+                        node.Id, node.Count, node.Url, node.Level, node.Alias, valueKey, node.Parent, descriptionKey,
+                        frontend, node.MainFlag, "text", titleKey, descriptionTagKey, keywordsKey, HtmlEncode(node.RobotsTag),
+                        "[]", node.PublishedFlag, node.Open, node.CssJs ?? string.Empty, now, order).ConfigureAwait(false);
+                }
+
+                await ErpDb.ExecuteAsync(
+                    connection,
+                    transaction,
+                    ErpDb.Positional("DELETE FROM `content_access` WHERE `content_id` = ?"),
+                    cancellationToken,
+                    node.Id).ConfigureAwait(false);
+                foreach (var groupId in node.Groups)
+                {
+                    await ErpDb.ExecuteAsync(
+                        connection,
+                        transaction,
+                        ErpDb.Positional("INSERT INTO `content_access` (`content_id`, `group_id`) VALUES (?, ?)"),
+                        cancellationToken,
+                        node.Id,
+                        groupId).ConfigureAwait(false);
+                }
+            }
+
+            foreach (var page in existing.Where(p => !p.System && !keep.Contains(p.Id)))
+            {
+                await ErpDb.ExecuteAsync(
+                    connection,
+                    transaction,
+                    ErpDb.Positional("DELETE FROM `content` WHERE `id` = ?"),
+                    cancellationToken,
+                    page.Id).ConfigureAwait(false);
+            }
+
+            await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
+            return new ErpSimpleWriteResult(true, "ok", "Content tree saved.", parsed.Nodes[0].Id, parsed.Nodes.Count);
+        }
+        catch (ErpWriteException ex)
+        {
+            await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
+            return ErpSimpleWriteResult.Fail("invalid", ex.Message);
+        }
+        catch (System.Data.Common.DbException)
+        {
+            await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
+            return ErpSimpleWriteResult.Fail("invalid", "Could not save the content tree.");
+        }
+    }
+
+    /// <summary>PHP content_tree.php Webix hierarchy. Empty tree refused.</summary>
+    public static (IReadOnlyList<ContentTreeNode> Nodes, string? Error) ParseTree(string? raw)
+    {
+        var text = (raw ?? string.Empty).Trim();
+        if (text.Length == 0)
+        {
+            return ([], "tree_json is required.");
+        }
+
+        if (text.Length > 200_000)
+        {
+            return ([], "tree_json is too large.");
+        }
+
+        try
+        {
+            using var doc = JsonDocument.Parse(text);
+            var nodes = new List<ContentTreeNode>();
+            WalkTree(doc.RootElement, nodes);
+            return nodes.Count == 0
+                ? ([], "At least one content page is required.")
+                : nodes.Count > 400
+                    ? ([], "Too many content-tree nodes.")
+                    : (nodes, null);
+        }
+        catch (JsonException)
+        {
+            return ([], "tree_json is not valid JSON.");
+        }
+    }
+
+    public readonly record struct ContentTreeNode(
+        long Id,
+        int Count,
+        string Url,
+        int Level,
+        string Alias,
+        string Value,
+        string ValueLangStrId,
+        long Parent,
+        string Description,
+        string DescriptionLangStrId,
+        int MainFlag,
+        string TitleTag,
+        string TitleLangStrId,
+        string DescriptionTag,
+        string DescriptionTagLangStrId,
+        string KeywordsTag,
+        string KeywordsLangStrId,
+        string RobotsTag,
+        int PublishedFlag,
+        int Open,
+        string? CssJs,
+        IReadOnlyList<long> Groups);
+
     /// <summary>PHP content_create_edit.php alias becomes the URL segment.</summary>
     public static bool TryNormalizeAlias(string? raw, out string alias, out string error)
     {
@@ -833,6 +1028,190 @@ public sealed class CpContentManagerWriteService : ICpContentManagerWriteService
 
     public static string HtmlEncode(string? raw)
         => WebUtility.HtmlEncode(raw ?? string.Empty);
+
+    private static void WalkTree(JsonElement element, List<ContentTreeNode> nodes)
+    {
+        if (element.ValueKind == JsonValueKind.Array)
+        {
+            foreach (var item in element.EnumerateArray())
+            {
+                WalkTree(item, nodes);
+            }
+
+            return;
+        }
+
+        if (element.ValueKind != JsonValueKind.Object)
+        {
+            return;
+        }
+
+        var id = ReadLong(element, "id");
+        if (id <= 0)
+        {
+            return;
+        }
+
+        var data = GetProperty(element, "data");
+        var childCount = data.ValueKind == JsonValueKind.Array
+            ? data.GetArrayLength()
+            : (int)ReadLong(element, "$count", "count");
+        var groups = ReadGroups(element);
+        nodes.Add(new ContentTreeNode(
+            id,
+            childCount,
+            SqlQuote(ReadString(element, "url")),
+            (int)Math.Max(1, ReadLong(element, "$level", "level")),
+            ReadString(element, "alias").Replace("'", "''", StringComparison.Ordinal).ToLowerInvariant(),
+            ReadString(element, "value"),
+            ReadString(element, "value_lang_str_id", "valueLangStrId"),
+            ReadLong(element, "$parent", "parent"),
+            ReadString(element, "description"),
+            ReadString(element, "description_lang_str_id", "descriptionLangStrId"),
+            ReadLong(element, "main_flag", "mainFlag") > 0 ? 1 : 0,
+            ReadString(element, "title_tag", "titleTag"),
+            ReadString(element, "title_tag_lang_str_id", "titleLangStrId"),
+            ReadString(element, "description_tag", "descriptionTag"),
+            ReadString(element, "description_tag_lang_str_id", "descriptionTagLangStrId"),
+            ReadString(element, "keywords_tag", "keywordsTag"),
+            ReadString(element, "keywords_tag_lang_str_id", "keywordsLangStrId"),
+            ReadString(element, "robots_tag", "robotsTag"),
+            ReadLong(element, "published_flag", "publishedFlag") == 0 ? 0 : 1,
+            ReadBoolFlag(element, "open"),
+            ReadString(element, "css_js", "cssJs"),
+            groups));
+
+        if (data.ValueKind == JsonValueKind.Array)
+        {
+            foreach (var child in data.EnumerateArray())
+            {
+                WalkTree(child, nodes);
+            }
+        }
+    }
+
+    private static IReadOnlyList<long> ReadGroups(JsonElement element)
+    {
+        if (!element.TryGetProperty("groups_access", out var groups)
+            && !element.TryGetProperty("groupsAccess", out groups))
+        {
+            return [];
+        }
+
+        if (groups.ValueKind == JsonValueKind.String)
+        {
+            var parsed = ParseGroups(groups.GetString());
+            return parsed.Error is null ? parsed.Ids : [];
+        }
+
+        if (groups.ValueKind != JsonValueKind.Array)
+        {
+            return [];
+        }
+
+        var ids = new List<long>();
+        foreach (var item in groups.EnumerateArray())
+        {
+            if (item.ValueKind == JsonValueKind.Number && item.TryGetInt64(out var n) && n > 0)
+            {
+                ids.Add(n);
+            }
+        }
+
+        return ids.Distinct().Take(80).ToList();
+    }
+
+    private static JsonElement GetProperty(JsonElement element, string name)
+        => element.TryGetProperty(name, out var value) ? value : default;
+
+    private static long ReadLong(JsonElement element, params string[] names)
+    {
+        foreach (var name in names)
+        {
+            if (!element.TryGetProperty(name, out var value))
+            {
+                continue;
+            }
+
+            if (value.ValueKind == JsonValueKind.Number && value.TryGetInt64(out var n))
+            {
+                return n;
+            }
+
+            if (value.ValueKind == JsonValueKind.String
+                && long.TryParse(value.GetString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsed))
+            {
+                return parsed;
+            }
+
+            if (value.ValueKind == JsonValueKind.True)
+            {
+                return 1;
+            }
+        }
+
+        return 0;
+    }
+
+    private static string ReadString(JsonElement element, params string[] names)
+    {
+        foreach (var name in names)
+        {
+            if (element.TryGetProperty(name, out var value) && value.ValueKind == JsonValueKind.String)
+            {
+                return value.GetString() ?? string.Empty;
+            }
+
+            if (element.TryGetProperty(name, out value) && value.ValueKind is JsonValueKind.Number or JsonValueKind.True or JsonValueKind.False)
+            {
+                return value.ToString();
+            }
+        }
+
+        return string.Empty;
+    }
+
+    private static int ReadBoolFlag(JsonElement element, string name)
+    {
+        if (!element.TryGetProperty(name, out var value))
+        {
+            return 0;
+        }
+
+        return value.ValueKind switch
+        {
+            JsonValueKind.True => 1,
+            JsonValueKind.Number when value.TryGetInt64(out var n) && n > 0 => 1,
+            JsonValueKind.String when bool.TryParse(value.GetString(), out var b) && b => 1,
+            JsonValueKind.String when value.GetString() is "1" or "true" or "yes" => 1,
+            _ => 0
+        };
+    }
+
+    private static string SqlQuote(string raw)
+        => raw.Replace("'", "''", StringComparison.Ordinal);
+
+    private readonly record struct ExistingPage(long Id, bool System);
+
+    private static async Task<List<ExistingPage>> ListFrontendPagesAsync(
+        System.Data.Common.DbConnection connection,
+        System.Data.Common.DbTransaction transaction,
+        int isFrontend,
+        CancellationToken cancellationToken)
+    {
+        await using var command = connection.CreateCommand();
+        command.Transaction = transaction;
+        command.CommandText = ErpDb.Positional("SELECT `id`, IFNULL(`system_flag`,0) FROM `content` WHERE `is_frontend` = ?");
+        ErpDb.AddParameters(command, isFrontend);
+        var rows = new List<ExistingPage>();
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+        while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+        {
+            rows.Add(new ExistingPage(reader.GetInt64(0), reader.GetInt64(1) > 0));
+        }
+
+        return rows;
+    }
 
     private async Task<bool> HandleChildNodesAsync(
         System.Data.Common.DbConnection connection,

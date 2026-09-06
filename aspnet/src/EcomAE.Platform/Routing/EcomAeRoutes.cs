@@ -1061,6 +1061,8 @@ public static class EcomAeRoutes
     public const string CpContentBody = "/cp/content/body";
     /// <summary>PHP content_create_edit.php. <c>confirmWrites=true</c> writes via <c>ICpContentManagerWriteService.SaveMetaAsync</c>.</summary>
     public const string CpContentSave = "/cp/content/save";
+    /// <summary>PHP content_tree.php save_tree. <c>confirmWrites=true</c> writes via <c>ICpContentManagerWriteService.SaveTreeAsync</c>. System pages cannot be removed.</summary>
+    public const string CpContentTree = "/cp/content/tree";
     /// <summary>PHP menu_edit.php save_action + menu_manager.php delete. <c>confirmWrites=true</c> writes via <c>ICpMenuWriteService</c>. Drag-tree UX stays PHP.</summary>
     public const string CpMenusWrite = "/cp/menus/write";
     /// <summary>PHP edit_module.php create/edit and modules_manager.php delete/activate. <c>confirmWrites=true</c> writes via <c>ICpModuleWriteService</c>.</summary>
