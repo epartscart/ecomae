@@ -4,8 +4,9 @@ using System.Globalization;
 namespace EcomAE.Platform.Erp;
 
 /// <summary>
-/// Live PHP <c>inv_record_movement</c> / <c>inv_transfer</c> twins.
-/// Create warehouse/item, CSV import, and closing stay Classic. Schema-ensure stays PHP.
+/// Live PHP <c>inv_record_movement</c> / <c>inv_transfer</c> / <c>inv_create_warehouse</c> /
+/// <c>inv_create_item</c> / <c>inv_sync_warehouses</c> / <c>inv_run_closing</c> twins.
+/// CSV import and dimension-link save stay Classic. Schema-ensure stays PHP.
 /// </summary>
 public interface IErpInventoryMovementWriteService
 {
@@ -16,6 +17,14 @@ public interface IErpInventoryMovementWriteService
     Task<ErpSimpleWriteResult> TransferAsync(
         ErpInventoryTransferWriteRequest request,
         CancellationToken cancellationToken = default);
+
+    Task<ErpSimpleWriteResult> CreateWarehouseAsync(string? code, string? name, CancellationToken cancellationToken = default);
+
+    Task<ErpSimpleWriteResult> SyncWarehousesAsync(CancellationToken cancellationToken = default);
+
+    Task<ErpSimpleWriteResult> CreateItemAsync(ErpInventoryItemWriteRequest request, CancellationToken cancellationToken = default);
+
+    Task<ErpSimpleWriteResult> RunClosingAsync(string? periodEnd, long warehouseId, CancellationToken cancellationToken = default);
 }
 
 public sealed record ErpInventoryMovementWriteRequest(
@@ -36,6 +45,17 @@ public sealed record ErpInventoryMovementWriteRequest(
     long PurchaseId = 0,
     long OrderId = 0,
     long OpeningBatchId = 0);
+
+public sealed record ErpInventoryItemWriteRequest(
+    string? Sku = null,
+    string? Name = null,
+    string? ItemType = null,
+    string? Unit = null,
+    string? Barcode = null,
+    long ProductId = 0,
+    bool TrackExpiry = false,
+    decimal? ReorderLevel = null,
+    IReadOnlyDictionary<string, string>? CustomFields = null);
 
 public sealed record ErpInventoryTransferWriteRequest(
     int AdminUserId = 0,
@@ -171,6 +191,307 @@ public sealed class ErpInventoryMovementWriteService : IErpInventoryMovementWrit
         {
             return ErpSimpleWriteResult.Fail("invalid", ex.Message);
         }
+    }
+
+    public async Task<ErpSimpleWriteResult> CreateWarehouseAsync(
+        string? code,
+        string? name,
+        CancellationToken cancellationToken = default)
+    {
+        var storedCode = (code ?? string.Empty).Trim().ToUpperInvariant();
+        var storedName = (name ?? string.Empty).Trim();
+        if (storedCode.Length == 0 || storedName.Length == 0)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Warehouse code and name required");
+        }
+
+        if (storedCode.Length > 32)
+        {
+            storedCode = storedCode[..32];
+        }
+
+        if (storedName.Length > 255)
+        {
+            storedName = storedName[..255];
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return ErpSimpleWriteResult.Fail("db", "TenantRegistry DB is not configured.");
+        }
+
+        await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        var existing = await ErpDb.LongAsync(
+            connection,
+            null,
+            ErpDb.Positional("SELECT `id` FROM `epc_erp_inv_warehouses` WHERE `code` = ? LIMIT 1"),
+            cancellationToken,
+            storedCode).ConfigureAwait(false);
+        if (existing > 0)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Warehouse code already exists");
+        }
+
+        var createdAt = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        await ErpDb.ExecuteAsync(
+            connection,
+            null,
+            ErpDb.Positional("INSERT INTO `epc_erp_inv_warehouses` (`storage_id`,`code`,`name`,`time_created`) VALUES (0,?,?,?)"),
+            cancellationToken,
+            storedCode,
+            storedName,
+            createdAt);
+        var id = await ErpDb.LastInsertIdAsync(connection, null, cancellationToken).ConfigureAwait(false);
+        return ErpSimpleWriteResult.Ok("Warehouse created", id);
+    }
+
+    public async Task<ErpSimpleWriteResult> SyncWarehousesAsync(CancellationToken cancellationToken = default)
+    {
+        if (!_connections.IsConfigured)
+        {
+            return ErpSimpleWriteResult.Fail("db", "TenantRegistry DB is not configured.");
+        }
+
+        await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        var tables = await ErpDb.LongAsync(
+            connection,
+            null,
+            "SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'shop_storages'",
+            cancellationToken).ConfigureAwait(false);
+        if (tables == 0)
+        {
+            return ErpSimpleWriteResult.Ok("Synced 0 warehouse(s) from shop storages", 0);
+        }
+
+        var created = 0;
+        await using (var cmd = connection.CreateCommand())
+        {
+            cmd.CommandText = "SELECT `id`, `name` FROM `shop_storages` WHERE `hidden` = 0 OR `hidden` IS NULL";
+            await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            var pending = new List<(long StorageId, string Name)>();
+            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                var storageId = reader.IsDBNull(0) ? 0 : Convert.ToInt64(reader.GetValue(0), CultureInfo.InvariantCulture);
+                var storageName = reader.IsDBNull(1) ? "" : Convert.ToString(reader.GetValue(1), CultureInfo.InvariantCulture) ?? "";
+                pending.Add((storageId, storageName));
+            }
+
+            foreach (var row in pending)
+            {
+                var code = "WH" + row.StorageId.ToString(CultureInfo.InvariantCulture);
+                var exists = await ErpDb.LongAsync(
+                    connection,
+                    null,
+                    ErpDb.Positional("SELECT `id` FROM `epc_erp_inv_warehouses` WHERE `storage_id` = ? OR `code` = ? LIMIT 1"),
+                    cancellationToken,
+                    row.StorageId,
+                    code).ConfigureAwait(false);
+                if (exists > 0)
+                {
+                    continue;
+                }
+
+                await ErpDb.ExecuteAsync(
+                    connection,
+                    null,
+                    ErpDb.Positional("INSERT INTO `epc_erp_inv_warehouses` (`storage_id`,`code`,`name`,`time_created`) VALUES (?,?,?,?)"),
+                    cancellationToken,
+                    row.StorageId,
+                    code,
+                    row.Name,
+                    DateTimeOffset.UtcNow.ToUnixTimeSeconds());
+                created++;
+            }
+        }
+
+        return ErpSimpleWriteResult.Ok("Synced " + created.ToString(CultureInfo.InvariantCulture) + " warehouse(s) from shop storages", created);
+    }
+
+    public async Task<ErpSimpleWriteResult> CreateItemAsync(
+        ErpInventoryItemWriteRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        var sku = (request.Sku ?? string.Empty).Trim();
+        var name = (request.Name ?? string.Empty).Trim();
+        if (sku.Length == 0 || name.Length == 0)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "SKU and name required");
+        }
+
+        var itemType = request.ItemType is "perishable" or "serialized" ? request.ItemType : "standard";
+        var trackExpiry = request.TrackExpiry || itemType == "perishable" ? 1 : 0;
+        var unit = (request.Unit ?? "pcs").Trim();
+        if (unit.Length == 0)
+        {
+            unit = "pcs";
+        }
+
+        if (unit.Length > 16)
+        {
+            unit = unit[..16];
+        }
+
+        if (sku.Length > 64)
+        {
+            sku = sku[..64];
+        }
+
+        if (name.Length > 255)
+        {
+            name = name[..255];
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return ErpSimpleWriteResult.Fail("db", "TenantRegistry DB is not configured.");
+        }
+
+        await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        var existing = await ErpDb.LongAsync(
+            connection,
+            null,
+            ErpDb.Positional("SELECT `id` FROM `epc_erp_inv_items` WHERE `sku` = ? LIMIT 1"),
+            cancellationToken,
+            sku).ConfigureAwait(false);
+        if (existing > 0)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "SKU already exists");
+        }
+
+        var cols = new List<string> { "sku", "name", "product_id", "item_type", "track_expiry", "unit", "time_created" };
+        var vals = new List<object?>
+        {
+            sku, name, request.ProductId, itemType, trackExpiry, unit, DateTimeOffset.UtcNow.ToUnixTimeSeconds()
+        };
+        if (!string.IsNullOrWhiteSpace(request.Barcode) && await HasColumnAsync(connection, "epc_erp_inv_items", "barcode", cancellationToken).ConfigureAwait(false))
+        {
+            var barcode = request.Barcode.Trim();
+            cols.Add("barcode");
+            vals.Add(barcode.Length > 128 ? barcode[..128] : barcode);
+        }
+
+        if (request.ReorderLevel is { } reorder
+            && await HasColumnAsync(connection, "epc_erp_inv_items", "reorder_level", cancellationToken).ConfigureAwait(false))
+        {
+            cols.Add("reorder_level");
+            vals.Add(Math.Max(0, reorder));
+        }
+
+        var placeholders = string.Join(",", Enumerable.Range(0, cols.Count).Select(_ => "?"));
+        var colList = "`" + string.Join("`,`", cols) + "`";
+        await ErpDb.ExecuteAsync(
+            connection,
+            null,
+            ErpDb.Positional("INSERT INTO `epc_erp_inv_items` (" + colList + ") VALUES (" + placeholders + ")"),
+            cancellationToken,
+            vals.ToArray());
+        var id = await ErpDb.LastInsertIdAsync(connection, null, cancellationToken).ConfigureAwait(false);
+
+        if (request.CustomFields is { Count: > 0 })
+        {
+            foreach (var pair in request.CustomFields)
+            {
+                var key = SanitizeFieldKey(pair.Key);
+                if (key.Length == 0)
+                {
+                    continue;
+                }
+
+                var value = pair.Value ?? "";
+                if (value.Length > 512)
+                {
+                    value = value[..512];
+                }
+
+                await ErpDb.ExecuteAsync(
+                    connection,
+                    null,
+                    ErpDb.Positional("INSERT INTO `epc_erp_inv_item_fields` (`item_id`,`field_key`,`value`) VALUES (?,?,?) ON DUPLICATE KEY UPDATE `value` = VALUES(`value`)"),
+                    cancellationToken,
+                    id,
+                    key,
+                    value);
+            }
+        }
+
+        return ErpSimpleWriteResult.Ok("Inventory item created", id);
+    }
+
+    public async Task<ErpSimpleWriteResult> RunClosingAsync(
+        string? periodEnd,
+        long warehouseId,
+        CancellationToken cancellationToken = default)
+    {
+        var period = NormalizePeriodEnd(periodEnd);
+        if (period.Length == 0)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Closing period is required");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return ErpSimpleWriteResult.Fail("db", "TenantRegistry DB is not configured.");
+        }
+
+        await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        var sql = """
+            SELECT s.`warehouse_id`, s.`item_id`, s.`qty_on_hand`, s.`avg_unit_cost`
+            FROM `epc_erp_inv_stock` s
+            INNER JOIN `epc_erp_inv_items` i ON i.`id` = s.`item_id`
+            INNER JOIN `epc_erp_inv_warehouses` w ON w.`id` = s.`warehouse_id`
+            WHERE i.`active` = 1
+            """;
+        var args = new List<object?>();
+        if (warehouseId > 0)
+        {
+            sql += " AND s.`warehouse_id` = ?";
+            args.Add(warehouseId);
+        }
+
+        await using var cmd = connection.CreateCommand();
+        cmd.CommandText = args.Count == 0 ? sql : ErpDb.Positional(sql);
+        if (args.Count > 0)
+        {
+            ErpDb.AddParameters(cmd, args.ToArray());
+        }
+
+        var rows = new List<(long WarehouseId, long ItemId, decimal Qty, decimal Avg)>();
+        await using (var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false))
+        {
+            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                rows.Add((
+                    reader.IsDBNull(0) ? 0 : Convert.ToInt64(reader.GetValue(0), CultureInfo.InvariantCulture),
+                    reader.IsDBNull(1) ? 0 : Convert.ToInt64(reader.GetValue(1), CultureInfo.InvariantCulture),
+                    reader.IsDBNull(2) ? 0 : Convert.ToDecimal(reader.GetValue(2), CultureInfo.InvariantCulture),
+                    reader.IsDBNull(3) ? 0 : Convert.ToDecimal(reader.GetValue(3), CultureInfo.InvariantCulture)));
+            }
+        }
+
+        var createdAt = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        foreach (var row in rows)
+        {
+            var value = Math.Round(row.Qty * row.Avg, 2, MidpointRounding.AwayFromZero);
+            await ErpDb.ExecuteAsync(
+                connection,
+                null,
+                ErpDb.Positional("""
+                    INSERT INTO `epc_erp_inv_closing`
+                    (`period_end`,`warehouse_id`,`item_id`,`qty_closing`,`avg_unit_cost`,`value_closing`,`time_created`)
+                    VALUES (?,?,?,?,?,?,?)
+                    ON DUPLICATE KEY UPDATE `qty_closing` = VALUES(`qty_closing`), `avg_unit_cost` = VALUES(`avg_unit_cost`), `value_closing` = VALUES(`value_closing`)
+                    """),
+                cancellationToken,
+                period,
+                row.WarehouseId,
+                row.ItemId,
+                row.Qty,
+                row.Avg,
+                value,
+                createdAt);
+        }
+
+        return ErpSimpleWriteResult.Ok("Closing snapshot saved for " + rows.Count.ToString(CultureInfo.InvariantCulture) + " line(s)", rows.Count);
     }
 
     private static async Task<long> RecordMovementCoreAsync(
@@ -505,6 +826,39 @@ public sealed class ErpInventoryMovementWriteService : IErpInventoryMovementWrit
             table,
             column).ConfigureAwait(false);
         return n > 0;
+    }
+
+    private static string SanitizeFieldKey(string? raw)
+    {
+        var source = (raw ?? string.Empty).Trim().ToLowerInvariant();
+        var chars = new char[source.Length];
+        var n = 0;
+        foreach (var ch in source)
+        {
+            if (ch is (>= 'a' and <= 'z') or (>= '0' and <= '9') or '_')
+            {
+                chars[n++] = ch;
+            }
+        }
+
+        return n == 0 ? string.Empty : new string(chars, 0, n);
+    }
+
+    private static string NormalizePeriodEnd(string? raw)
+    {
+        if (string.IsNullOrWhiteSpace(raw))
+        {
+            var today = DateTime.UtcNow;
+            var last = new DateTime(today.Year, today.Month, DateTime.DaysInMonth(today.Year, today.Month), 0, 0, 0, DateTimeKind.Utc);
+            return last.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+        }
+
+        if (DateTime.TryParse(raw.Trim(), CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out var parsed))
+        {
+            return parsed.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+        }
+
+        return string.Empty;
     }
 
     private static long ParseMovementDate(string? raw)

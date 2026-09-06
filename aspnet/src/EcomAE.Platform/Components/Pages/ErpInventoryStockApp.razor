@@ -15,7 +15,7 @@
 
 
     
-    <PhpErpModulePageHeader Title="Inventory Stock" Subtitle="Set reorder level, record a movement, or transfer stock between warehouses. CSV import and closing stay on ERP ajax." />
+    <PhpErpModulePageHeader Title="Inventory Stock" Subtitle="Create warehouse/item, sync from shop storages, set reorder, record movement, transfer, or run a closing snapshot. CSV import stays on ERP ajax." />
     <PhpErpD365ActionPane RefreshHref="/erp/inventory-stock-app" />
 
     @if (!string.IsNullOrWhiteSpace(_flashOk))
@@ -63,6 +63,40 @@
             <label>Qty <input type="text" name="qty" required /></label>
             <label>Reference <input type="text" name="reference" /></label>
             <button type="submit" class="btn btn-sm btn-default">Transfer stock</button>
+        </form>
+        <form method="post" action="/erp/ajax/inv-create-warehouse" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 .65rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/erp/inventory-stock-app" />
+            <label>Code <input type="text" name="code" required maxlength="32" /></label>
+            <label>Name <input type="text" name="name" required maxlength="255" /></label>
+            <button type="submit" class="btn btn-sm btn-primary">Create warehouse</button>
+        </form>
+        <form method="post" action="/erp/ajax/inv-create-item" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 .65rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/erp/inventory-stock-app" />
+            <label>SKU <input type="text" name="sku" required maxlength="64" /></label>
+            <label>Name <input type="text" name="name" required maxlength="255" /></label>
+            <label>Type
+                <select name="itemType">
+                    <option value="standard">standard</option>
+                    <option value="perishable">perishable</option>
+                    <option value="serialized">serialized</option>
+                </select>
+            </label>
+            <label>Unit <input type="text" name="unit" value="pcs" maxlength="16" /></label>
+            <button type="submit" class="btn btn-sm btn-primary">Create item</button>
+        </form>
+        <form method="post" action="/erp/ajax/inv-sync-warehouses" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 .65rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/erp/inventory-stock-app" />
+            <button type="submit" class="btn btn-sm btn-default">Sync warehouses</button>
+        </form>
+        <form method="post" action="/erp/ajax/inv-run-closing" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/erp/inventory-stock-app" />
+            <label>Period end <input type="text" name="periodEnd" placeholder="YYYY-MM-DD" /></label>
+            <label>Warehouse id <input type="number" name="warehouseId" min="0" style="width:6rem" /></label>
+            <button type="submit" class="btn btn-sm btn-default">Run closing</button>
         </form>
     }
 

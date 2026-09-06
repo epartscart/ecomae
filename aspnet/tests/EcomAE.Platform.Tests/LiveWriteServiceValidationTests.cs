@@ -939,6 +939,36 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(trDb.Succeeded);
         Assert.Equal("db", trDb.Code);
 
+        var whInvalid = await new ErpInventoryMovementWriteService(new ConfiguredNeverOpened())
+            .CreateWarehouseAsync("  ", "Main");
+        Assert.False(whInvalid.Succeeded);
+        Assert.Equal("invalid", whInvalid.Code);
+
+        var invWhDb = await new ErpInventoryMovementWriteService(new UnconfiguredConnections())
+            .CreateWarehouseAsync("MAIN2", "Main 2");
+        Assert.False(invWhDb.Succeeded);
+        Assert.Equal("db", invWhDb.Code);
+
+        var itemInvalid = await new ErpInventoryMovementWriteService(new ConfiguredNeverOpened())
+            .CreateItemAsync(new ErpInventoryItemWriteRequest("SKU", "  "));
+        Assert.False(itemInvalid.Succeeded);
+        Assert.Equal("invalid", itemInvalid.Code);
+
+        var itemDb = await new ErpInventoryMovementWriteService(new UnconfiguredConnections())
+            .CreateItemAsync(new ErpInventoryItemWriteRequest("SKU-1", "Pad"));
+        Assert.False(itemDb.Succeeded);
+        Assert.Equal("db", itemDb.Code);
+
+        var closeDb = await new ErpInventoryMovementWriteService(new UnconfiguredConnections())
+            .RunClosingAsync("2026-09-30", 0);
+        Assert.False(closeDb.Succeeded);
+        Assert.Equal("db", closeDb.Code);
+
+        var syncDb = await new ErpInventoryMovementWriteService(new UnconfiguredConnections())
+            .SyncWarehousesAsync();
+        Assert.False(syncDb.Succeeded);
+        Assert.Equal("db", syncDb.Code);
+
         var tplDel = await new CpCatalogueWriteService(new ConfiguredNeverOpened())
             .DeleteCategoryTemplateAsync(0);
         Assert.False(tplDel.Succeeded);

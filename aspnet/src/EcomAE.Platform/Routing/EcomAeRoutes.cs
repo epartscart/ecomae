@@ -867,11 +867,11 @@ public static class EcomAeRoutes
     /// <summary>ERP tab→app coverage board.</summary>
     public const string ErpTabCoverage = "/erp/tab-coverage";
 
-    /// <summary>Wave B dry-run for PHP inv_sync_warehouses (writes=0).</summary>
+    /// <summary>PHP inv_sync_warehouses. <c>confirmWrites=true</c> writes via <c>IErpInventoryMovementWriteService</c>.</summary>
     public const string ErpAjaxInvSyncWarehouses = "/erp/ajax/inv-sync-warehouses";
-    /// <summary>Wave B dry-run for PHP inv_create_warehouse (writes=0).</summary>
+    /// <summary>PHP inv_create_warehouse. <c>confirmWrites=true</c> writes via <c>IErpInventoryMovementWriteService</c>.</summary>
     public const string ErpAjaxInvCreateWarehouse = "/erp/ajax/inv-create-warehouse";
-    /// <summary>Wave B dry-run for PHP inv_create_item (writes=0).</summary>
+    /// <summary>PHP inv_create_item. <c>confirmWrites=true</c> writes via <c>IErpInventoryMovementWriteService</c>. Dimension-link save stays Classic.</summary>
     public const string ErpAjaxInvCreateItem = "/erp/ajax/inv-create-item";
     /// <summary>PHP inv_set_reorder_level. <c>confirmWrites=true</c> writes via <c>IErpInventoryReorderWriteService</c>.</summary>
     public const string ErpAjaxInvSetReorderLevel = "/erp/ajax/inv-set-reorder-level";
@@ -883,7 +883,7 @@ public static class EcomAeRoutes
     public const string ErpAjaxInvTransfer = "/erp/ajax/inv-transfer";
     /// <summary>Wave B dry-run for PHP inv_import_csv (writes=0).</summary>
     public const string ErpAjaxInvImportCsv = "/erp/ajax/inv-import-csv";
-    /// <summary>Wave B dry-run for PHP inv_run_closing (writes=0).</summary>
+    /// <summary>PHP inv_run_closing. <c>confirmWrites=true</c> writes via <c>IErpInventoryMovementWriteService</c>.</summary>
     public const string ErpAjaxInvRunClosing = "/erp/ajax/inv-run-closing";
     /// <summary>Wave B dry-run for PHP hr_emp_save (writes=0).</summary>
     public const string ErpAjaxHrEmpSave = "/erp/ajax/hr-emp-save";

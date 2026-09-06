@@ -27,12 +27,13 @@
 
     @if (_isAdmin && _view is "all" or "devkit" or "released")
     {
-        <ErpPhpCreateWell Title="New item (dry-run)">
-            <form method="post" action="@EcomAeRoutes.ErpProductInfoCreateItemForm" style="display:flex;gap:8px;flex-wrap:wrap;align-items:end;">
+        <ErpPhpCreateWell Title="New item">
+            <form method="post" action="/erp/ajax/inv-create-item" style="display:flex;gap:8px;flex-wrap:wrap;align-items:end;">
+                <input type="hidden" name="confirmWrites" value="true" />
                 <input type="hidden" name="returnUrl" value="/erp/product-info-app?pm_view=@_view" />
-                <label>SKU <input class="form-control input-sm" name="code" placeholder="SKU" required /></label>
-                <label>Name <input class="form-control input-sm" name="name" placeholder="Name" /></label>
-                <button type="submit" class="btn btn-primary btn-sm">Save</button>
+                <label>SKU <input class="form-control input-sm" name="sku" placeholder="SKU" required /></label>
+                <label>Name <input class="form-control input-sm" name="name" placeholder="Name" required /></label>
+                <button type="submit" class="btn btn-primary btn-sm">Create item</button>
             </form>
         </ErpPhpCreateWell>
     }
@@ -118,7 +119,7 @@
     }
 
     <div class="epc-erp-empty" style="display:block;margin-top:12px;padding:8px 10px;border:1px solid #c5d4de;background:#f8fafc;color:#475569;font-size:12px;">
-        Source: @_source. Dry-run: <code>inv_create_item</code> — writes=0.
+        Source: @_source. Create item writes <code>epc_erp_inv_items</code> when confirmWrites is set. Dimension-link save stays Classic.
         @if (!string.IsNullOrWhiteSpace(_message)) { <span> @_message</span> }
     </div>
 </PhpErpDesktopChrome>
