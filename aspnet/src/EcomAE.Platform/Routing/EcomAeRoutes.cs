@@ -1033,7 +1033,9 @@ public static class EcomAeRoutes
     public const string CpContentMain = "/cp/content/main";
     /// <summary>PHP offices_cash.php action=add. Manager must belong to the office.</summary>
     public const string ErpOfficesCashAdd = "/erp/offices-cash/add";
-    /// <summary>PHP offices_cash_editor.php action=del. Code add stays PHP.</summary>
+    /// <summary>PHP offices_cash_editor.php action=add. <c>confirmWrites=true</c> writes lang string + cash code.</summary>
+    public const string ErpOfficesCashCodeAdd = "/erp/offices-cash/codes/add";
+    /// <summary>PHP offices_cash_editor.php action=del. Unused codes only.</summary>
     public const string ErpOfficesCashCodeDelete = "/erp/offices-cash/codes/delete";
 
     /// <summary>Wave B dry-run for PHP period_log (writes=0).</summary>

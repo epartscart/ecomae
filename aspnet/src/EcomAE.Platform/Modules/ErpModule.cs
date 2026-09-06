@@ -2141,6 +2141,60 @@ public sealed class ErpModule : ISurfaceModule
                 written.Message,
                 new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpOfficesCashCodeAdd, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IErpOfficesCashWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/cash-accounts-app", "Admin ERP capability required for office cash codes.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpOfficesCashCodeAddBody>(context, cancellationToken) ?? new();
+            var officeId = body.OfficeId;
+            var income = body.Income;
+            var name = body.Name;
+            var langStrId = body.NameLangStrId ?? body.LangStrId;
+            var langCode = body.LangCode;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                officeId = LiveWriteFormBinder.Long(form, "officeId", "office_id");
+                income = LiveWriteFormBinder.Int(form, "income");
+                name = LiveWriteFormBinder.Text(form, "name", "caption");
+                langStrId = LiveWriteFormBinder.Text(form, "nameLangStrId", "name_lang_str_id", "langStrId", "lang_str_id");
+                langCode = LiveWriteFormBinder.Text(form, "langCode", "lang_code");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(new
+                {
+                    status = "dry-run",
+                    writes = 0,
+                    writesBlocked = true,
+                    phpAuthoritative = true,
+                    validation_code = "dry_run",
+                    message = "Set confirmWrites=true to add an office cash code on ASP.NET.",
+                    session = SessionPayload(session)
+                });
+            }
+
+            var host = context.Request.Host.Host;
+            var domainPath = string.IsNullOrWhiteSpace(host) ? "http://localhost/" : "http://" + host + "/";
+            var written = await writes.AddCodeAsync(session.UserId, officeId, income, name, langStrId, langCode, domainPath, cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/erp/cash-accounts-app",
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpOfficesCashCodeDelete, async (
             HttpContext context,
             ILegacySessionValidator validator,
@@ -5244,6 +5298,14 @@ public sealed class ErpModule : ISurfaceModule
         decimal Amount = 0,
         long OperationCodeId = 0,
         string? Comment = null,
+        bool ConfirmWrites = false);
+    private sealed record ErpOfficesCashCodeAddBody(
+        long OfficeId = 0,
+        int Income = 1,
+        string? Name = null,
+        string? NameLangStrId = null,
+        string? LangStrId = null,
+        string? LangCode = null,
         bool ConfirmWrites = false);
     private sealed record ErpOfficesCashCodeDeleteBody(long OfficeId = 0, long Id = 0, bool ConfirmWrites = false);
     private sealed record ErpGlManualLineBody(long CoaId, decimal Debit, decimal Credit, string? LineNote = null);

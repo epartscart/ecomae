@@ -1098,6 +1098,24 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(cashDb.Succeeded);
         Assert.Equal("db", cashDb.Code);
 
+        var addCodeName = await new ErpOfficesCashWriteService(new ConfiguredNeverOpened())
+            .AddCodeAsync(1, 2, 1, "", null, "en", "http://www.epartscart.com/");
+        Assert.False(addCodeName.Succeeded);
+        Assert.Equal("invalid", addCodeName.Code);
+
+        var addCodeOffice = await new ErpOfficesCashWriteService(new ConfiguredNeverOpened())
+            .AddCodeAsync(1, 0, 1, "Sale", null, "en", "http://www.epartscart.com/");
+        Assert.False(addCodeOffice.Succeeded);
+        Assert.Equal("invalid", addCodeOffice.Code);
+
+        var addCodeDb = await new ErpOfficesCashWriteService(new UnconfiguredConnections())
+            .AddCodeAsync(1, 2, 1, "Sale", null, "en", "http://www.epartscart.com/");
+        Assert.False(addCodeDb.Succeeded);
+        Assert.Equal("db", addCodeDb.Code);
+
+        Assert.Equal("Sale", ErpOfficesCashWriteService.SanitizeCaption(" Sale\n"));
+        Assert.Contains("_1_", ErpOfficesCashWriteService.NextStrKey("http://www.epartscart.com/", 1), StringComparison.Ordinal);
+
         var cashCodeInvalid = await new ErpOfficesCashWriteService(new ConfiguredNeverOpened())
             .DeleteCodeAsync(1, 2, 0);
         Assert.False(cashCodeInvalid.Succeeded);
