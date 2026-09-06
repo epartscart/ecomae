@@ -1341,6 +1341,41 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(scResetDb.Succeeded);
         Assert.Equal("db", scResetDb.Code);
 
+        var scAddAuth = await new ErpWorkspaceFavoritesWriteService(new ConfiguredNeverOpened())
+            .AddShortcutAsync(0, "Orders", "/erp/sales-orders-app");
+        Assert.False(scAddAuth.Succeeded);
+        Assert.Equal("auth", scAddAuth.Code);
+
+        var scAddLabel = await new ErpWorkspaceFavoritesWriteService(new ConfiguredNeverOpened())
+            .AddShortcutAsync(1, "  ", "/erp/sales-orders-app");
+        Assert.False(scAddLabel.Succeeded);
+        Assert.Equal("invalid", scAddLabel.Code);
+
+        var scAddJs = await new ErpWorkspaceFavoritesWriteService(new ConfiguredNeverOpened())
+            .AddShortcutAsync(1, "XSS", "javascript:alert(1)");
+        Assert.False(scAddJs.Succeeded);
+        Assert.Equal("invalid", scAddJs.Code);
+
+        var scAddData = await new ErpWorkspaceFavoritesWriteService(new ConfiguredNeverOpened())
+            .AddShortcutAsync(1, "XSS", "data:text/html,hi");
+        Assert.False(scAddData.Succeeded);
+        Assert.Equal("invalid", scAddData.Code);
+
+        var scAddDb = await new ErpWorkspaceFavoritesWriteService(new UnconfiguredConnections())
+            .AddShortcutAsync(1, "Orders", "/erp/sales-orders-app", "sales_orders", "erp");
+        Assert.False(scAddDb.Succeeded);
+        Assert.Equal("db", scAddDb.Code);
+
+        var scReorderAuth = await new ErpWorkspaceFavoritesWriteService(new ConfiguredNeverOpened())
+            .ReorderShortcutsAsync(0, [1, 2]);
+        Assert.False(scReorderAuth.Succeeded);
+        Assert.Equal("auth", scReorderAuth.Code);
+
+        var scReorderDb = await new ErpWorkspaceFavoritesWriteService(new UnconfiguredConnections())
+            .ReorderShortcutsAsync(1, [1, 2]);
+        Assert.False(scReorderDb.Succeeded);
+        Assert.Equal("db", scReorderDb.Code);
+
         var grpAdd = await new CpStorageGroupWriteService(new ConfiguredNeverOpened())
             .AddAsync("  ", "1,2");
         Assert.False(grpAdd.Succeeded);

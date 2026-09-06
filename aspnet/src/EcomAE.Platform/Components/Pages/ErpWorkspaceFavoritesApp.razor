@@ -15,7 +15,7 @@
 
 
     
-    <PhpErpModulePageHeader Title="Workspace favorites" Subtitle="Add or remove a favourite tab, or delete/reset shortcuts for the signed-in ERP user. Shortcut add/reorder stays on ERP ajax." />
+    <PhpErpModulePageHeader Title="Workspace favorites" Subtitle="Add or remove a favourite tab, add or reorder shortcuts, or delete/reset shortcuts for the signed-in ERP user." />
 
     @if (!string.IsNullOrWhiteSpace(_flashOk))
     {
@@ -39,6 +39,28 @@
             <input type="hidden" name="returnUrl" value="/erp/workspace-favorites-app" />
             <label>Tab key <input type="text" name="tabKey" required maxlength="60" /></label>
             <button type="submit" class="btn btn-sm btn-default">Remove favourite</button>
+        </form>
+        <form method="post" action="/erp/ajax/shortcut-add" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 .65rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/erp/workspace-favorites-app" />
+            <label>Label <input type="text" name="label" required maxlength="100" /></label>
+            <label>URL <input type="text" name="targetUrl" required maxlength="500" /></label>
+            <label>Key <input type="text" name="shortcutKey" maxlength="64" /></label>
+            <label>Surface
+                <select name="surface">
+                    <option value="both">both</option>
+                    <option value="erp">erp</option>
+                    <option value="cp">cp</option>
+                </select>
+            </label>
+            <label>Tab <input type="text" name="targetTab" maxlength="50" /></label>
+            <button type="submit" class="btn btn-sm btn-primary">Add shortcut</button>
+        </form>
+        <form method="post" action="/erp/ajax/shortcut-reorder" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/erp/workspace-favorites-app" />
+            <label>Ids <input type="text" name="ids" placeholder="3,2,1" /></label>
+            <button type="submit" class="btn btn-sm btn-default">Reorder shortcuts</button>
         </form>
         <form method="post" action="/erp/ajax/shortcut-delete" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />

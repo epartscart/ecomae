@@ -224,6 +224,8 @@ public sealed class PhpVsAspNetRemovalMatrixTests
             ("CpProductCatalogueApp.razor", "/cp/catalogue/products/delete"),
             ("ErpWorkspaceFavoritesApp.razor", "/erp/ajax/erp-fav-add"),
             ("ErpWorkspaceFavoritesApp.razor", "/erp/ajax/erp-fav-remove"),
+            ("ErpWorkspaceFavoritesApp.razor", "/erp/ajax/shortcut-add"),
+            ("ErpWorkspaceFavoritesApp.razor", "/erp/ajax/shortcut-reorder"),
             ("ErpWorkspaceFavoritesApp.razor", "/erp/ajax/shortcut-delete"),
             ("ErpWorkspaceFavoritesApp.razor", "/erp/ajax/shortcut-delete-key"),
             ("ErpWorkspaceFavoritesApp.razor", "/erp/ajax/shortcut-reset"),

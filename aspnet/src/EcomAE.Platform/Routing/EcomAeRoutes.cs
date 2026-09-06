@@ -1439,7 +1439,7 @@ public static class EcomAeRoutes
     public const string ErpAjaxCsImportDeclarationPdf = "/erp/ajax/cs-import-declaration-pdf";
     /// <summary>Wave B dry-run for PHP shortcut_list (writes=0).</summary>
     public const string ErpAjaxShortcutList = "/erp/ajax/shortcut-list";
-    /// <summary>Wave B dry-run for PHP shortcut_add (writes=0).</summary>
+    /// <summary>PHP shortcut_add. <c>confirmWrites=true</c> writes via <c>IErpWorkspaceFavoritesWriteService</c>.</summary>
     public const string ErpAjaxShortcutAdd = "/erp/ajax/shortcut-add";
     /// <summary>PHP shortcut_delete. <c>confirmWrites=true</c> writes via <c>IErpWorkspaceFavoritesWriteService</c>.</summary>
     public const string ErpAjaxShortcutDelete = "/erp/ajax/shortcut-delete";
@@ -1447,7 +1447,7 @@ public static class EcomAeRoutes
     public const string ErpAjaxShortcutDeleteKey = "/erp/ajax/shortcut-delete-key";
     /// <summary>PHP shortcut_reset. <c>confirmWrites=true</c> writes via <c>IErpWorkspaceFavoritesWriteService</c>.</summary>
     public const string ErpAjaxShortcutReset = "/erp/ajax/shortcut-reset";
-    /// <summary>Wave B dry-run for PHP shortcut_reorder (writes=0).</summary>
+    /// <summary>PHP shortcut_reorder. <c>confirmWrites=true</c> writes via <c>IErpWorkspaceFavoritesWriteService</c>.</summary>
     public const string ErpAjaxShortcutReorder = "/erp/ajax/shortcut-reorder";
     /// <summary>PHP erp_fav_add. <c>confirmWrites=true</c> writes via <c>IErpWorkspaceFavoritesWriteService</c>.</summary>
     public const string ErpAjaxErpFavAdd = "/erp/ajax/erp-fav-add";
