@@ -93,6 +93,8 @@ public static class CpPhpModuleCopy
             return "Payment gateway credentials and live/test mode.";
         if (path.Contains("/carriers", StringComparison.OrdinalIgnoreCase))
             return "Carriers and custom shipping methods.";
+        if (path.Contains("/slider-banners", StringComparison.OrdinalIgnoreCase))
+            return "Storefront slider images. Save settings, add a path, reorder, or delete here. File upload stays on the Classic twin.";
         if (path.Contains("/additional-texts", StringComparison.OrdinalIgnoreCase))
             return "Extra HTML and SEO tags for a storefront URL. Save upserts by URL; delete removes selected rows.";
         if (path.Contains("/search-tabs", StringComparison.OrdinalIgnoreCase))

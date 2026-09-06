@@ -1188,6 +1188,26 @@ public sealed class LiveWriteServiceValidationTests
         Assert.Null(extraIds.Error);
         Assert.Equal(new long[] { 1, 2 }, extraIds.Ids);
 
+        var slideEmpty = await new CpSliderWriteService(new ConfiguredNeverOpened())
+            .AddAsync("", "/shop");
+        Assert.False(slideEmpty.Succeeded);
+        Assert.Equal("invalid", slideEmpty.Code);
+
+        var slideMove = await new CpSliderWriteService(new ConfiguredNeverOpened())
+            .MoveAsync(0, true);
+        Assert.False(slideMove.Succeeded);
+        Assert.Equal("invalid", slideMove.Code);
+
+        var slideDel = await new CpSliderWriteService(new ConfiguredNeverOpened())
+            .DeleteAsync(0);
+        Assert.False(slideDel.Succeeded);
+        Assert.Equal("invalid", slideDel.Code);
+
+        var slideDb = await new CpSliderWriteService(new UnconfiguredConnections())
+            .SaveSettingsAsync(1, 1, 1, 3);
+        Assert.False(slideDb.Succeeded);
+        Assert.Equal("db", slideDb.Code);
+
         Assert.Equal("[1,2]", CpStorageWriteService.NormalizeUsers("1,2").Json);
         Assert.Equal("[]", CpStorageWriteService.NormalizeUsers(null).Json);
         var opts = CpStorageWriteService.NormalizeConnectionOptions(

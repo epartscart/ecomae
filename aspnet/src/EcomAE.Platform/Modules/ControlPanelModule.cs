@@ -3665,6 +3665,75 @@ public sealed class ControlPanelModule : ISurfaceModule
                 written.Message,
                 new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.CpSliderBannersWrite, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpSliderWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/slider-banners-app", "Admin CP capability required for slider banners.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpSliderBannersWriteBody>(context, cancellationToken) ?? new();
+            var action = body.Action;
+            var imageId = body.ImageId;
+            var href = body.Href;
+            var link = body.Link;
+            var connected = body.Connected;
+            var connectedFlag = body.ConnectedFlag;
+            var cntImg = body.CntImg;
+            var cntImgNext = body.CntImgNext;
+            var timeNext = body.TimeNext;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                action = LiveWriteFormBinder.Text(form, "action");
+                imageId = LiveWriteFormBinder.Long(form, "imageId", "image_id", "id");
+                href = LiveWriteFormBinder.Text(form, "href");
+                link = LiveWriteFormBinder.Text(form, "link");
+                connected = LiveWriteFormBinder.Int(form, "connected");
+                connectedFlag = LiveWriteFormBinder.Text(form, "connected");
+                cntImg = LiveWriteFormBinder.Int(form, "cntImg", "cnt_img");
+                cntImgNext = LiveWriteFormBinder.Int(form, "cntImgNext", "cnt_img_next");
+                timeNext = LiveWriteFormBinder.Int(form, "timeNext", "time_next");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(new
+                {
+                    status = "dry-run",
+                    writes = 0,
+                    writesBlocked = true,
+                    phpAuthoritative = true,
+                    validation_code = "dry_run",
+                    message = "Set confirmWrites=true to save slider banners on ASP.NET.",
+                    session = SessionPayload(session)
+                });
+            }
+
+            var key = (action ?? string.Empty).Trim().ToLowerInvariant();
+            var connectedOn = connected == 1 || connectedFlag is "on" or "1" or "true" or "yes";
+            ErpSimpleWriteResult written = key switch
+            {
+                "up" => await writes.MoveAsync(imageId, true, cancellationToken),
+                "do" or "down" => await writes.MoveAsync(imageId, false, cancellationToken),
+                "del" or "delete" => await writes.DeleteAsync(imageId, cancellationToken),
+                "add" => await writes.AddAsync(href, link, cancellationToken),
+                _ => await writes.SaveSettingsAsync(connectedOn ? 1 : 0, cntImg, cntImgNext, timeNext, cancellationToken)
+            };
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/cp/slider-banners-app",
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.CpQuoteSaveNote, async (
             HttpContext context,
             ILegacySessionValidator validator,
@@ -6899,7 +6968,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only slider_images + slider_setings KPIs + images (none critical (paths only)). PHP Slider / banners remains authoritative."
+                note = "slider_images + slider_setings KPIs + images. Settings/move/delete/path-add is POST /cp/slider-banners/write. File upload stays Classic."
             });
         });
 
@@ -8267,6 +8336,17 @@ public sealed class ControlPanelModule : ISurfaceModule
         string? LangCode = null,
         bool ConfirmWrites = false);
     private sealed record CpAdditionalTextsDeleteBody(string? Ids = null, string? UrlsToDel = null, bool ConfirmWrites = false);
+    private sealed record CpSliderBannersWriteBody(
+        string? Action = null,
+        long ImageId = 0,
+        string? Href = null,
+        string? Link = null,
+        int Connected = 0,
+        string? ConnectedFlag = null,
+        int CntImg = 0,
+        int CntImgNext = 0,
+        int TimeNext = 0,
+        bool ConfirmWrites = false);
     private sealed record CpQuoteSaveNoteBody(long QuoteId = 0, string? AdminNote = null, bool ConfirmWrites = false);
     private sealed record CpQuoteSaveLinesBody(
         long QuoteId = 0,
