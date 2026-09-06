@@ -262,6 +262,8 @@ public sealed class PhpVsAspNetRemovalMatrixTests
             ("CpReturnsRmaApp.razor", "/erp/aftersales/rma-create"),
             ("ErpProductInfoApp.razor", "/erp/ajax/inv-create-item"),
             ("CpJewelleryRepairsApp.razor", "/erp/ajax/jw-repair-update-status"),
+            ("CpJewelleryRepairsApp.razor", "ErpJewelleryRepairCreateForm"),
+            ("CpJewelleryRepairsApp.razor", "confirmWrites"),
             ("CpReturnsRmaApp.razor", "/cp/returns/action"),
             ("CpSystemRequestsApp.razor", "/cp/requests/set-vin-viewed"),
             ("StorefrontWishlistApp.razor", "WishlistRemoveHref"),

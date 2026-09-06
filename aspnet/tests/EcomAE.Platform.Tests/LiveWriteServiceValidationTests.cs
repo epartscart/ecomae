@@ -1364,6 +1364,11 @@ public sealed class LiveWriteServiceValidationTests
         Assert.Null(okProps.Error);
         Assert.Equal(9, okProps.Properties[0].OptionIds[0]);
 
+        var jwCreate = await new ErpJwRepairWriteService(new ConfiguredNeverOpened())
+            .CreateAsync(new ErpJwRepairSaveRequest());
+        Assert.False(jwCreate.Succeeded);
+        Assert.Equal("invalid", jwCreate.Code);
+
         var jwInvalid = await new ErpJwRepairWriteService(new ConfiguredNeverOpened())
             .SetStatusAsync(0, "ready");
         Assert.False(jwInvalid.Succeeded);

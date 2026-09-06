@@ -17,6 +17,8 @@ public sealed class ErpJewelleryModuleParityTests
         Assert.Contains("New Repair Receipt", text, StringComparison.Ordinal);
         Assert.Contains("ErpJewelleryRepairCreateForm", text, StringComparison.Ordinal);
         Assert.Contains("ErpJewelleryRepairStatusForm", text, StringComparison.Ordinal);
+        Assert.Contains("confirmWrites", text, StringComparison.Ordinal);
+        Assert.Contains("Create repair", text, StringComparison.Ordinal);
         Assert.Contains(ErpJewelleryModuleChrome.RepairJobColumns, c => c == "Repair #");
         Assert.Contains(ErpJewelleryModuleChrome.RepairJobColumns, c => c.Contains("Wt In", StringComparison.Ordinal));
         Assert.Contains("epc_erp_jw_repairs", text, StringComparison.Ordinal);

@@ -845,8 +845,103 @@ public sealed class ErpModule : ISurfaceModule
         }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxErpGlobalSearch, async (HttpContext context, ErpErpGlobalSearchBody? body, ILegacySessionValidator validator, IErpErpGlobalSearchDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpErpGlobalSearchRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxJwRepairCreate, async (HttpContext context, ErpJwRepairCreateBody? body, ILegacySessionValidator validator, IErpJwRepairCreateDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpJwRepairCreateRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxJwRepairCreate, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IErpJwRepairCreateDryRun dryRun,
+            IErpJwRepairWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (!ErpJewelleryModuleChrome.HasJewelleryStaffAccess(session)
+                && (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")))
+            {
+                return LiveWriteFormBinder.LoginRedirect(
+                    context,
+                    "/erp/login?returnUrl=/cp/jewellery-repairs-app",
+                    "Admin ERP capability required for jewellery repair create.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpJwRepairCreateBody>(context, cancellationToken)
+                       ?? new();
+            var repairNo = body.RepairNo;
+            var customerId = body.CustomerId;
+            var customerName = body.CustomerName;
+            if (string.IsNullOrWhiteSpace(customerName)) customerName = body.Code;
+            var customerPhone = body.CustomerPhone;
+            var itemDescription = body.ItemDescription;
+            var metalType = body.MetalType;
+            var karat = body.Karat;
+            var grossWtIn = body.GrossWtIn;
+            var netWtIn = body.NetWtIn;
+            var stoneDetails = body.StoneDetails;
+            var repairType = body.RepairType;
+            var estimatedCost = body.EstimatedCost;
+            var receivedDate = body.ReceivedDate;
+            var promisedDate = body.PromisedDate;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                repairNo = LiveWriteFormBinder.Text(form, "repairNo", "repair_no");
+                customerId = LiveWriteFormBinder.Long(form, "customerId", "customer_id");
+                customerName = LiveWriteFormBinder.Text(form, "customerName", "customer_name", "code");
+                customerPhone = LiveWriteFormBinder.Text(form, "customerPhone", "customer_phone");
+                itemDescription = LiveWriteFormBinder.Text(form, "itemDescription", "item_description");
+                metalType = LiveWriteFormBinder.Text(form, "metalType", "metal_type");
+                karat = LiveWriteFormBinder.Text(form, "karat");
+                grossWtIn = LiveWriteFormBinder.Dec(form, "grossWtIn", "gross_wt_in");
+                netWtIn = LiveWriteFormBinder.Dec(form, "netWtIn", "net_wt_in");
+                stoneDetails = LiveWriteFormBinder.Text(form, "stoneDetails", "stone_details");
+                repairType = LiveWriteFormBinder.Text(form, "repairType", "repair_type");
+                estimatedCost = LiveWriteFormBinder.Dec(form, "estimatedCost", "estimated_cost");
+                receivedDate = LiveWriteFormBinder.Long(form, "receivedDate", "received_date");
+                promisedDate = LiveWriteFormBinder.Long(form, "promisedDate", "promised_date");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                var result = dryRun.Evaluate(new ErpJwRepairCreateRequest(body.Id, customerName, false));
+                return Results.Ok(result.ToPayload(SessionPayload(session)));
+            }
+
+            var written = await writes.CreateAsync(
+                new ErpJwRepairSaveRequest(
+                    repairNo,
+                    customerId,
+                    customerName,
+                    customerPhone,
+                    itemDescription,
+                    metalType,
+                    karat,
+                    grossWtIn,
+                    netWtIn,
+                    stoneDetails,
+                    repairType,
+                    estimatedCost,
+                    receivedDate,
+                    promisedDate,
+                    session.UserId),
+                cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/cp/jewellery-repairs-app?tab=jw_repairs",
+                written.Succeeded,
+                written.Message,
+                new
+                {
+                    ok = written.Succeeded,
+                    status = written.Succeeded,
+                    writes = written.Writes,
+                    phpAuthoritative = false,
+                    validation_code = written.Code,
+                    message = written.Message,
+                    id = written.Id,
+                    repair_id = written.Id,
+                    session = SessionPayload(session)
+                });
+        }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxJwRepairUpdateStatus, async (
             HttpContext context,
             ILegacySessionValidator validator,
@@ -4032,28 +4127,126 @@ public sealed class ErpModule : ISurfaceModule
             var result = dryRun.Evaluate(new ErpInvCreateItemRequest(0, code, false));
             return DryRunHtmlForm.Redirect(ret, result.ValidationCode == "ok", result.Detail);
         }).DisableAntiforgery();
-        endpoints.MapPost(EcomAeRoutes.ErpJewelleryRepairCreateForm, async (HttpContext context, ILegacySessionValidator validator, IErpJwRepairCreateDryRun dryRun, CancellationToken cancellationToken) =>
+        endpoints.MapPost(EcomAeRoutes.ErpJewelleryRepairCreateForm, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IErpJwRepairCreateDryRun dryRun,
+            IErpJwRepairWriteService writes,
+            CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateAsync(context, cancellationToken);
-            var ret = DryRunHtmlForm.SafeReturnUrl(context.Request, "/cp/jewellery-repairs-app?tab=jw_repairs");
             if (!ErpJewelleryModuleChrome.HasJewelleryStaffAccess(session))
-                return Results.Redirect("/erp/login");
-            var code = DryRunHtmlForm.Read(context.Request, "customer_name");
-            if (string.IsNullOrWhiteSpace(code)) code = DryRunHtmlForm.Read(context.Request, "item_description");
-            var result = dryRun.Evaluate(new ErpJwRepairCreateRequest(0, code, false));
-            return DryRunHtmlForm.Redirect(ret, result.ValidationCode == "ok", result.Detail);
+            {
+                return LiveWriteFormBinder.LoginRedirect(
+                    context,
+                    "/erp/login?returnUrl=/cp/jewellery-repairs-app",
+                    "Admin ERP capability required for jewellery repair create.");
+            }
+
+            var form = context.Request.HasFormContentType
+                ? await context.Request.ReadFormAsync(cancellationToken)
+                : null;
+            var confirm = form is not null && LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            var customerName = form is not null
+                ? LiveWriteFormBinder.Text(form, "customerName", "customer_name", "code")
+                : DryRunHtmlForm.Read(context.Request, "customer_name");
+            var itemDescription = form is not null
+                ? LiveWriteFormBinder.Text(form, "itemDescription", "item_description")
+                : DryRunHtmlForm.Read(context.Request, "item_description");
+            if (!confirm)
+            {
+                var code = string.IsNullOrWhiteSpace(customerName) ? itemDescription : customerName;
+                var result = dryRun.Evaluate(new ErpJwRepairCreateRequest(0, code, false));
+                return DryRunHtmlForm.Redirect(
+                    DryRunHtmlForm.SafeReturnUrl(context.Request, "/cp/jewellery-repairs-app?tab=jw_repairs"),
+                    result.ValidationCode == "ok",
+                    result.Detail);
+            }
+
+            var written = await writes.CreateAsync(
+                new ErpJwRepairSaveRequest(
+                    form is not null ? LiveWriteFormBinder.Text(form, "repairNo", "repair_no") : null,
+                    form is not null ? LiveWriteFormBinder.Long(form, "customerId", "customer_id") : 0,
+                    customerName,
+                    form is not null ? LiveWriteFormBinder.Text(form, "customerPhone", "customer_phone") : null,
+                    itemDescription,
+                    form is not null ? LiveWriteFormBinder.Text(form, "metalType", "metal_type") : null,
+                    form is not null ? LiveWriteFormBinder.Text(form, "karat") : null,
+                    form is not null ? LiveWriteFormBinder.Dec(form, "grossWtIn", "gross_wt_in") : 0,
+                    form is not null ? LiveWriteFormBinder.Dec(form, "netWtIn", "net_wt_in") : 0,
+                    form is not null ? LiveWriteFormBinder.Text(form, "stoneDetails", "stone_details") : null,
+                    form is not null ? LiveWriteFormBinder.Text(form, "repairType", "repair_type") : null,
+                    form is not null ? LiveWriteFormBinder.Dec(form, "estimatedCost", "estimated_cost") : 0,
+                    form is not null ? LiveWriteFormBinder.Long(form, "receivedDate", "received_date") : 0,
+                    form is not null ? LiveWriteFormBinder.Long(form, "promisedDate", "promised_date") : 0,
+                    session.UserId),
+                cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/cp/jewellery-repairs-app?tab=jw_repairs",
+                written.Succeeded,
+                written.Message,
+                new
+                {
+                    ok = written.Succeeded,
+                    status = written.Succeeded,
+                    writes = written.Writes,
+                    phpAuthoritative = false,
+                    validation_code = written.Code,
+                    message = written.Message,
+                    id = written.Id,
+                    repair_id = written.Id,
+                    session = SessionPayload(session)
+                });
         }).DisableAntiforgery();
-        endpoints.MapPost(EcomAeRoutes.ErpJewelleryRepairStatusForm, async (HttpContext context, ILegacySessionValidator validator, IErpJwRepairUpdateStatusDryRun dryRun, CancellationToken cancellationToken) =>
+        endpoints.MapPost(EcomAeRoutes.ErpJewelleryRepairStatusForm, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IErpJwRepairUpdateStatusDryRun dryRun,
+            IErpJwRepairWriteService writes,
+            CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateAsync(context, cancellationToken);
-            var ret = DryRunHtmlForm.SafeReturnUrl(context.Request, "/cp/jewellery-repairs-app?tab=jw_repairs");
             if (!ErpJewelleryModuleChrome.HasJewelleryStaffAccess(session))
-                return Results.Redirect("/erp/login");
-            var idRaw = DryRunHtmlForm.Read(context.Request, "repair_id");
-            _ = long.TryParse(idRaw, NumberStyles.Integer, CultureInfo.InvariantCulture, out var id);
-            var status = DryRunHtmlForm.Read(context.Request, "new_status");
-            var result = dryRun.Evaluate(new ErpJwRepairUpdateStatusRequest(id, status, false));
-            return DryRunHtmlForm.Redirect(ret, result.ValidationCode == "ok", result.Detail);
+            {
+                return LiveWriteFormBinder.LoginRedirect(
+                    context,
+                    "/erp/login?returnUrl=/cp/jewellery-repairs-app",
+                    "Admin ERP capability required for jewellery repair status.");
+            }
+
+            var form = context.Request.HasFormContentType
+                ? await context.Request.ReadFormAsync(cancellationToken)
+                : null;
+            var repairId = form is not null
+                ? LiveWriteFormBinder.Long(form, "repairId", "repair_id", "id")
+                : 0;
+            if (repairId <= 0)
+            {
+                var idRaw = DryRunHtmlForm.Read(context.Request, "repair_id");
+                _ = long.TryParse(idRaw, NumberStyles.Integer, CultureInfo.InvariantCulture, out repairId);
+            }
+
+            var status = form is not null
+                ? LiveWriteFormBinder.Text(form, "newStatus", "new_status", "targetStatus", "status")
+                : DryRunHtmlForm.Read(context.Request, "new_status");
+            var confirm = form is not null && LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            if (!confirm)
+            {
+                var result = dryRun.Evaluate(new ErpJwRepairUpdateStatusRequest(repairId, status, false));
+                return DryRunHtmlForm.Redirect(
+                    DryRunHtmlForm.SafeReturnUrl(context.Request, "/cp/jewellery-repairs-app?tab=jw_repairs"),
+                    result.ValidationCode == "ok",
+                    result.Detail);
+            }
+
+            var written = await writes.SetStatusAsync(repairId, status, cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/cp/jewellery-repairs-app?tab=jw_repairs",
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpJewelleryKaratSaveForm, async (HttpContext context, ILegacySessionValidator validator, IErpJwModuleSaveDryRun dryRun, CancellationToken cancellationToken) =>
         {
@@ -6823,7 +7016,24 @@ public sealed class ErpModule : ISurfaceModule
     private sealed record ErpErpFavAddBody(long Id = 0, string? Code = null, string? TabKey = null, string? AreaKey = null, bool ConfirmWrites = false);
     private sealed record ErpErpFavRemoveBody(long Id = 0, string? Code = null, string? TabKey = null, bool ConfirmWrites = false);
     private sealed record ErpErpGlobalSearchBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
-    private sealed record ErpJwRepairCreateBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
+    private sealed record ErpJwRepairCreateBody(
+        long Id = 0,
+        string? Code = null,
+        bool ConfirmWrites = false,
+        string? RepairNo = null,
+        long CustomerId = 0,
+        string? CustomerName = null,
+        string? CustomerPhone = null,
+        string? ItemDescription = null,
+        string? MetalType = null,
+        string? Karat = null,
+        decimal GrossWtIn = 0,
+        decimal NetWtIn = 0,
+        string? StoneDetails = null,
+        string? RepairType = null,
+        decimal EstimatedCost = 0,
+        long ReceivedDate = 0,
+        long PromisedDate = 0);
     private sealed record ErpJwRepairUpdateStatusBody(long Id = 0, long RepairId = 0, string? TargetStatus = null, string? NewStatus = null, bool ConfirmWrites = false);
     private sealed record ErpJwSeedSampleDataBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpAiAssistantQueryBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);

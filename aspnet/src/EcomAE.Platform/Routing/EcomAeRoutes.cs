@@ -823,9 +823,9 @@ public static class EcomAeRoutes
     public const string ErpQualityNcrCreateForm = "/erp/quality/ncr-create";
     /// <summary>HTML form POST for PHP <c>inv_create_item</c> dry-run.</summary>
     public const string ErpProductInfoCreateItemForm = "/erp/product-info/create-item";
-    /// <summary>HTML form POST for PHP <c>jw_repair_create</c> dry-run.</summary>
+    /// <summary>HTML form POST for PHP <c>jw_repair_create</c>. <c>confirmWrites=true</c> inserts <c>epc_erp_jw_repairs</c>.</summary>
     public const string ErpJewelleryRepairCreateForm = "/erp/jewellery/repair-create";
-    /// <summary>HTML form POST for PHP <c>jw_repair_update_status</c> dry-run.</summary>
+    /// <summary>HTML form POST for PHP <c>jw_repair_update_status</c>. <c>confirmWrites=true</c> writes via <c>IErpJwRepairWriteService</c>.</summary>
     public const string ErpJewelleryRepairStatusForm = "/erp/jewellery/repair-status";
     /// <summary>HTML form POST for PHP <c>jw_karat_save</c> dry-run.</summary>
     public const string ErpJewelleryKaratSaveForm = "/erp/jewellery/karat-save";
@@ -1457,7 +1457,7 @@ public static class EcomAeRoutes
     public const string ErpAjaxErpFavRemove = "/erp/ajax/erp-fav-remove";
     /// <summary>Wave B dry-run for PHP erp_global_search (writes=0).</summary>
     public const string ErpAjaxErpGlobalSearch = "/erp/ajax/erp-global-search";
-    /// <summary>Wave B dry-run for PHP jw_repair_create (writes=0).</summary>
+    /// <summary>PHP jw_repair_create. <c>confirmWrites=true</c> inserts <c>epc_erp_jw_repairs</c>.</summary>
     public const string ErpAjaxJwRepairCreate = "/erp/ajax/jw-repair-create";
     /// <summary>PHP jw_repair_update_status. <c>confirmWrites=true</c> writes via <c>IErpJwRepairWriteService</c>.</summary>
     public const string ErpAjaxJwRepairUpdateStatus = "/erp/ajax/jw-repair-update-status";
