@@ -44,7 +44,7 @@
         <p>@CpPhpModuleCopy.PurposeFor(Nav.Uri)</p>
         <div class="epc-nw-cta">
             <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
-            <a class="ghost" href="/cp/accessories/photos">Photos dry-run</a>
+            <a class="ghost" href="#photos">Photos</a>
         </div>
     </section>
     <PhpParityModuleBody AppPath="/cp/accessories-app" IsAdmin="_isAdmin" />
@@ -94,7 +94,33 @@
     </table>
     </div>
 
-    <div class="epc-nw-note">Listings are read-only here. Photo upload/delete use accessories photos dry-run; PHP accessories remains authoritative for writes.</div>
+    <form id="photos" method="post" action="/cp/accessories/photos" style="display:flex;flex-wrap:wrap;gap:.45rem;align-items:end;margin:1rem 0;max-width:52rem">
+        <input type="hidden" name="confirmWrites" value="true" />
+        <input type="hidden" name="returnUrl" value="/cp/accessories-app" />
+        <input type="hidden" name="action" value="upload" />
+        <label>Listing id <input type="number" name="listingId" min="1" required style="width:6rem" /></label>
+        <label>Image name <input type="text" name="fileName" placeholder="acc-cover.png" required /></label>
+        <label>Primary <input type="checkbox" name="asPrimary" value="1" /></label>
+        <button type="submit">Save photo</button>
+    </form>
+    <form method="post" action="/cp/accessories/photos" style="display:flex;flex-wrap:wrap;gap:.45rem;align-items:end;margin:0 0 1rem;max-width:52rem">
+        <input type="hidden" name="confirmWrites" value="true" />
+        <input type="hidden" name="returnUrl" value="/cp/accessories-app" />
+        <input type="hidden" name="action" value="set_primary" />
+        <label>Listing id <input type="number" name="listingId" min="1" required style="width:6rem" /></label>
+        <label>Photo id <input type="number" name="photoId" min="1" required style="width:6rem" /></label>
+        <button type="submit">Set primary photo</button>
+    </form>
+    <form method="post" action="/cp/accessories/photos" style="display:flex;flex-wrap:wrap;gap:.45rem;align-items:end;margin:0 0 1rem;max-width:52rem">
+        <input type="hidden" name="confirmWrites" value="true" />
+        <input type="hidden" name="returnUrl" value="/cp/accessories-app" />
+        <input type="hidden" name="action" value="delete" />
+        <label>Listing id <input type="number" name="listingId" min="1" required style="width:6rem" /></label>
+        <label>Photo id <input type="number" name="photoId" min="1" required style="width:6rem" /></label>
+        <button type="submit">Delete photo</button>
+    </form>
+
+    <div class="epc-nw-note">Listings are read-only here. Photo filename attach writes here; multipart file bytes and listing create stay Classic.</div>
 
 </PhpCpDesktopChrome>
 

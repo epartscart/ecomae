@@ -2518,5 +2518,36 @@ public sealed class LiveWriteServiceValidationTests
         Assert.Equal("db", pwdDb.Code);
 
         Assert.Equal(32, LegacyPasswordVerifier.Md5Hex("secret" + "succ").Length);
+
+        Assert.Equal("upload", CpAccessoriesPhotoWriteService.NormalizeAction("add"));
+        Assert.Equal("delete", CpAccessoriesPhotoWriteService.NormalizeAction("del"));
+        Assert.Equal("set_primary", CpAccessoriesPhotoWriteService.NormalizeAction("primary"));
+        Assert.Equal("cover.webp", CpAccessoriesPhotoWriteService.SanitizeImageName("../cover.webp"));
+        Assert.True(CpAccessoriesPhotoWriteService.HasAllowedImageExtension("cover.webp"));
+        Assert.Equal("/content/files/images/accessories/cover.webp", CpAccessoriesPhotoWriteService.PublicUrl("cover.webp"));
+        var accBadAction = await new CpAccessoriesPhotoWriteService(new ConfiguredNeverOpened())
+            .WriteAsync(new CpAccessoriesPhotoWriteRequest(Action: "rename"));
+        Assert.False(accBadAction.Succeeded);
+        Assert.Equal("invalid", accBadAction.Code);
+        var accNoListing = await new CpAccessoriesPhotoWriteService(new ConfiguredNeverOpened())
+            .WriteAsync(new CpAccessoriesPhotoWriteRequest(Action: "upload", FileName: "cover.png"));
+        Assert.False(accNoListing.Succeeded);
+        Assert.Equal("invalid", accNoListing.Code);
+        var accBadExt = await new CpAccessoriesPhotoWriteService(new ConfiguredNeverOpened())
+            .WriteAsync(new CpAccessoriesPhotoWriteRequest(Action: "upload", ListingId: 1, FileName: "cover.exe"));
+        Assert.False(accBadExt.Succeeded);
+        Assert.Equal("invalid", accBadExt.Code);
+        var accUploadDb = await new CpAccessoriesPhotoWriteService(new UnconfiguredConnections())
+            .WriteAsync(new CpAccessoriesPhotoWriteRequest(Action: "upload", ListingId: 1, FileName: "cover.png"));
+        Assert.False(accUploadDb.Succeeded);
+        Assert.Equal("db", accUploadDb.Code);
+        var accDeleteEmpty = await new CpAccessoriesPhotoWriteService(new ConfiguredNeverOpened())
+            .WriteAsync(new CpAccessoriesPhotoWriteRequest(Action: "delete", ListingId: 1, PhotoId: 0));
+        Assert.False(accDeleteEmpty.Succeeded);
+        Assert.Equal("invalid", accDeleteEmpty.Code);
+        var accDeleteDb = await new CpAccessoriesPhotoWriteService(new UnconfiguredConnections())
+            .WriteAsync(new CpAccessoriesPhotoWriteRequest(Action: "delete", ListingId: 1, PhotoId: 9));
+        Assert.False(accDeleteDb.Succeeded);
+        Assert.Equal("db", accDeleteDb.Code);
     }
 }

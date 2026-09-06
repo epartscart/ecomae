@@ -3497,13 +3497,60 @@ public sealed class ControlPanelModule : ISurfaceModule
             body ??= new CpPriceReviewCreateCsvBody(null, false);
             return Results.Ok(dryRun.Evaluate(new CpPriceReviewCreateCsvRequest(body.Action, body.ConfirmWrites)).ToPayload(SessionPayload(session)));
         });
-        endpoints.MapPost(EcomAeRoutes.CpAccessoriesPhotos, async (HttpContext context, CpAccessoriesPhotosBody? body, ILegacySessionValidator validator, ICpAccessoriesPhotosDryRun dryRun, CancellationToken cancellationToken) =>
+        endpoints.MapPost(EcomAeRoutes.CpAccessoriesPhotos, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpAccessoriesPhotoWriteService writes,
+            CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateAsync(context, cancellationToken);
-            if (session.Kind != LegacySessionKind.Admin) return Unauthorized("Admin session required.");
-            body ??= new CpAccessoriesPhotosBody(null, false);
-            return Results.Ok(dryRun.Evaluate(new CpAccessoriesPhotosRequest(body.Action, body.ConfirmWrites)).ToPayload(SessionPayload(session)));
-        });
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/accessories-app", "Admin CP capability required for accessories photo writes.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpAccessoriesPhotosBody>(context, cancellationToken) ?? new();
+            var action = body.Action;
+            var listingId = body.ListingId;
+            var photoId = body.PhotoId;
+            var fileName = body.FileName ?? body.ImageName ?? body.Photo;
+            var asPrimary = body.AsPrimary;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                action = LiveWriteFormBinder.Text(form, "action");
+                listingId = LiveWriteFormBinder.Long(form, "listingId", "listing_id");
+                photoId = LiveWriteFormBinder.Long(form, "photoId", "photo_id");
+                fileName = LiveWriteFormBinder.Text(form, "fileName", "file_name", "imageName", "photo");
+                asPrimary = LiveWriteFormBinder.Flag(form, "asPrimary", "as_primary");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(new
+                {
+                    status = "dry-run",
+                    writes = 0,
+                    writesBlocked = true,
+                    phpAuthoritative = true,
+                    validation_code = "dry_run",
+                    message = "Set confirmWrites=true to save or delete accessory photos on ASP.NET.",
+                    session = SessionPayload(session)
+                });
+            }
+
+            var written = await writes.WriteAsync(
+                new CpAccessoriesPhotoWriteRequest(action, listingId, photoId, fileName, asPrimary),
+                cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/cp/accessories-app",
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.CpVersionClearUpdates, async (HttpContext context, CpVersionClearUpdatesBody? body, ILegacySessionValidator validator, ICpVersionClearUpdatesDryRun dryRun, CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateAsync(context, cancellationToken);
@@ -8739,7 +8786,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only epc_acc_* listings. Photo upload/delete remain /cp/accessories/photos + module-ajax dry-run; PHP accessories authoritative."
+                note = "Read-only epc_acc_* listings. Photo filename attach POST /cp/accessories/photos when confirmWrites=true. Multipart file bytes and listing create stay PHP."
             });
         });
 
@@ -9735,7 +9782,15 @@ public sealed class ControlPanelModule : ISurfaceModule
         bool ConfirmWrites = false);
     private sealed record CpPriceReviewWriteBody(string? Action = null, bool ConfirmWrites = false);
     private sealed record CpPriceReviewCreateCsvBody(string? Action = null, bool ConfirmWrites = false);
-    private sealed record CpAccessoriesPhotosBody(string? Action = null, bool ConfirmWrites = false);
+    private sealed record CpAccessoriesPhotosBody(
+        string? Action = null,
+        long ListingId = 0,
+        long PhotoId = 0,
+        string? FileName = null,
+        string? ImageName = null,
+        string? Photo = null,
+        bool AsPrimary = false,
+        bool ConfirmWrites = false);
     private sealed record CpVersionClearUpdatesBody(string? Action = null, bool ConfirmWrites = false);
     private sealed record CpReturnActionBody(
         long ReturnId,

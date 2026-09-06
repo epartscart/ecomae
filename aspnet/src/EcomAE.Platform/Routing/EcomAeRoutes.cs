@@ -1260,7 +1260,7 @@ public static class EcomAeRoutes
     public const string CpPriceReviewWrite = "/cp/prices/review";
     /// <summary>Wave B dry-run for PHP cp/content/shop/prices_upload/price_review/ajax_create_csv.php (writes=0).</summary>
     public const string CpPriceReviewCreateCsv = "/cp/prices/review-create-csv";
-    /// <summary>Wave B dry-run for PHP cp/content/shop/accessories/ajax_epc_accessories_photos.php (writes=0).</summary>
+    /// <summary>PHP ajax_epc_accessories_photos.php upload / delete / set_primary. <c>confirmWrites=true</c> writes via <c>ICpAccessoriesPhotoWriteService</c>. Multipart file bytes and disk unlink stay PHP.</summary>
     public const string CpAccessoriesPhotos = "/cp/accessories/photos";
     /// <summary>Wave B dry-run for PHP cp/content/control/version_control/ajax/ajax_clear_updates_dir.php (writes=0).</summary>
     public const string CpVersionClearUpdates = "/cp/version/clear-updates";
