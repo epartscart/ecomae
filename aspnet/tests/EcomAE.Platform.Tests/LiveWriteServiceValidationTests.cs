@@ -969,6 +969,19 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(syncDb.Succeeded);
         Assert.Equal("db", syncDb.Code);
 
+        var csvDb = await new ErpInventoryMovementWriteService(new UnconfiguredConnections())
+            .ImportCsvAsync(new ErpInventoryCsvImportRequest(1, "sku,qty\nE2E-FILTER,1", 1, "purchase_in"));
+        Assert.False(csvDb.Succeeded);
+        Assert.Equal("db", csvDb.Code);
+
+        var csvParsed = ErpInventoryMovementWriteService.ParseCsvText(
+            "sku,qty,unit_cost,movement_type,warehouse_code\nE2E-FILTER,2,1.5,purchase_in,MAIN\n# skip\n,0,,,",
+            1,
+            "purchase_in");
+        Assert.Single(csvParsed);
+        Assert.Equal("E2E-FILTER", csvParsed[0]["sku"]);
+        Assert.Equal("2", csvParsed[0]["qty"]);
+
         var tplDel = await new CpCatalogueWriteService(new ConfiguredNeverOpened())
             .DeleteCategoryTemplateAsync(0);
         Assert.False(tplDel.Succeeded);

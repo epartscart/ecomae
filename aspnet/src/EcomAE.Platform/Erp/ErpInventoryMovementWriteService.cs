@@ -5,8 +5,9 @@ namespace EcomAE.Platform.Erp;
 
 /// <summary>
 /// Live PHP <c>inv_record_movement</c> / <c>inv_transfer</c> / <c>inv_create_warehouse</c> /
-/// <c>inv_create_item</c> / <c>inv_sync_warehouses</c> / <c>inv_run_closing</c> twins.
-/// CSV import and dimension-link save stay Classic. Schema-ensure stays PHP.
+/// <c>inv_create_item</c> / <c>inv_sync_warehouses</c> / <c>inv_run_closing</c> /
+/// <c>inv_import_csv</c> (csv_text) twins.
+/// CSV file-byte upload and dimension-link save stay Classic. Schema-ensure stays PHP.
 /// </summary>
 public interface IErpInventoryMovementWriteService
 {
@@ -25,6 +26,8 @@ public interface IErpInventoryMovementWriteService
     Task<ErpSimpleWriteResult> CreateItemAsync(ErpInventoryItemWriteRequest request, CancellationToken cancellationToken = default);
 
     Task<ErpSimpleWriteResult> RunClosingAsync(string? periodEnd, long warehouseId, CancellationToken cancellationToken = default);
+
+    Task<ErpSimpleWriteResult> ImportCsvAsync(ErpInventoryCsvImportRequest request, CancellationToken cancellationToken = default);
 }
 
 public sealed record ErpInventoryMovementWriteRequest(
@@ -56,6 +59,12 @@ public sealed record ErpInventoryItemWriteRequest(
     bool TrackExpiry = false,
     decimal? ReorderLevel = null,
     IReadOnlyDictionary<string, string>? CustomFields = null);
+
+public sealed record ErpInventoryCsvImportRequest(
+    int AdminUserId = 0,
+    string? CsvText = null,
+    long WarehouseId = 0,
+    string? DefaultMovementType = null);
 
 public sealed record ErpInventoryTransferWriteRequest(
     int AdminUserId = 0,
@@ -492,6 +501,393 @@ public sealed class ErpInventoryMovementWriteService : IErpInventoryMovementWrit
         }
 
         return ErpSimpleWriteResult.Ok("Closing snapshot saved for " + rows.Count.ToString(CultureInfo.InvariantCulture) + " line(s)", rows.Count);
+    }
+
+    public async Task<ErpSimpleWriteResult> ImportCsvAsync(
+        ErpInventoryCsvImportRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        if (!_connections.IsConfigured)
+        {
+            return ErpSimpleWriteResult.Fail("db", "TenantRegistry DB is not configured.");
+        }
+
+        var defaultType = string.IsNullOrWhiteSpace(request.DefaultMovementType) ? "purchase_in" : request.DefaultMovementType.Trim();
+        var parsed = ParseCsvText(request.CsvText, request.WarehouseId, defaultType);
+        if (parsed.Count == 0)
+        {
+            return ErpSimpleWriteResult.Ok("Posted 0 movement(s)", 0);
+        }
+
+        await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        var posted = 0;
+        var errors = new List<string>();
+        for (var i = 0; i < parsed.Count; i++)
+        {
+            var row = parsed[i];
+            var lineNo = i + 2;
+            try
+            {
+                var warehouseId = await ResolveWarehouseAsync(
+                    connection,
+                    ParseLong(row, "warehouse_id"),
+                    Row(row, "warehouse_code"),
+                    cancellationToken).ConfigureAwait(false);
+                if (warehouseId <= 0)
+                {
+                    throw new ErpWriteException("Warehouse required");
+                }
+
+                var itemId = ParseLong(row, "item_id");
+                if (itemId <= 0)
+                {
+                    itemId = await ResolveItemIdBySkuAsync(connection, Row(row, "sku"), cancellationToken).ConfigureAwait(false);
+                    if (itemId <= 0)
+                    {
+                        throw new ErpWriteException("Unknown SKU: " + Row(row, "sku"));
+                    }
+                }
+
+                var qty = ParseDec(row, "qty");
+                if (qty == 0)
+                {
+                    throw new ErpWriteException("Qty is zero");
+                }
+
+                var type = Row(row, "movement_type");
+                if (type.Length == 0)
+                {
+                    type = defaultType;
+                }
+
+                if (type == "transfer")
+                {
+                    var toWh = await ResolveWarehouseAsync(connection, 0, Row(row, "to_warehouse_code"), cancellationToken)
+                        .ConfigureAwait(false);
+                    if (toWh <= 0)
+                    {
+                        toWh = ParseLong(row, "to_warehouse_id");
+                    }
+
+                    if (toWh <= 0)
+                    {
+                        throw new ErpWriteException("transfer requires to_warehouse_code or to_warehouse_id");
+                    }
+
+                    var reference = Row(row, "reference");
+                    if (reference.Length == 0)
+                    {
+                        reference = "CSV-TRF";
+                    }
+
+                    await TransferCoreAsync(
+                        connection,
+                        new ErpInventoryTransferWriteRequest(
+                            request.AdminUserId,
+                            warehouseId,
+                            toWh,
+                            itemId,
+                            Math.Abs(qty),
+                            Row(row, "batch_no"),
+                            null,
+                            reference,
+                            null),
+                        cancellationToken).ConfigureAwait(false);
+                }
+                else
+                {
+                    var qtySigned = qty;
+                    if (type is "opening" or "purchase_in" or "transfer_in" or "return_in" && qtySigned < 0)
+                    {
+                        type = "adjustment";
+                    }
+                    else if (type is "sale_out" or "transfer_out" or "return_out" && qtySigned < 0)
+                    {
+                        qtySigned = Math.Abs(qtySigned);
+                    }
+
+                    var reference = Row(row, "reference");
+                    if (reference.Length == 0)
+                    {
+                        reference = "CSV";
+                    }
+
+                    await RecordMovementCoreAsync(
+                        connection,
+                        new ErpInventoryMovementWriteRequest(
+                            request.AdminUserId,
+                            type,
+                            warehouseId,
+                            itemId,
+                            qtySigned,
+                            ParseDec(row, "unit_cost"),
+                            Row(row, "batch_no"),
+                            null,
+                            Row(row, "expiry_date"),
+                            null,
+                            reference),
+                        type,
+                        cancellationToken).ConfigureAwait(false);
+                }
+
+                posted++;
+            }
+            catch (ErpWriteException ex)
+            {
+                errors.Add("Line " + lineNo.ToString(CultureInfo.InvariantCulture) + ": " + ex.Message);
+            }
+        }
+
+        var message = "Posted " + posted.ToString(CultureInfo.InvariantCulture) + " movement(s)";
+        if (errors.Count > 0)
+        {
+            message += "; " + errors.Count.ToString(CultureInfo.InvariantCulture) + " error(s): " + string.Join("; ", errors.Take(5));
+        }
+
+        var ok = posted > 0 || errors.Count == 0;
+        return ok
+            ? ErpSimpleWriteResult.Ok(message, posted)
+            : ErpSimpleWriteResult.Fail("invalid", message);
+    }
+
+    public static IReadOnlyList<Dictionary<string, string>> ParseCsvText(string? csvText, long defaultWarehouseId, string defaultMovementType)
+    {
+        var text = (csvText ?? string.Empty).Replace("\r\n", "\n", StringComparison.Ordinal).Replace('\r', '\n').Trim();
+        var rows = new List<Dictionary<string, string>>();
+        if (text.Length == 0)
+        {
+            return rows;
+        }
+
+        string[]? header = null;
+        foreach (var rawLine in text.Split('\n'))
+        {
+            var line = rawLine.Trim();
+            if (line.Length == 0 || line[0] == '#')
+            {
+                continue;
+            }
+
+            var cols = SplitCsvLine(line);
+            if (header is null)
+            {
+                header = new string[cols.Count];
+                for (var i = 0; i < cols.Count; i++)
+                {
+                    header[i] = SanitizeCsvHeader(cols[i]);
+                }
+
+                continue;
+            }
+
+            var row = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            {
+                ["warehouse_id"] = defaultWarehouseId.ToString(CultureInfo.InvariantCulture),
+                ["movement_type"] = defaultMovementType
+            };
+            for (var i = 0; i < header.Length; i++)
+            {
+                var key = header[i];
+                if (key.Length == 0)
+                {
+                    continue;
+                }
+
+                row[key] = i < cols.Count ? cols[i].Trim() : "";
+            }
+
+            if (row.TryGetValue("sku", out var sku) && sku.Length > 0
+                || row.TryGetValue("item_id", out var itemRaw) && itemRaw.Length > 0)
+            {
+                rows.Add(row);
+            }
+        }
+
+        return rows;
+    }
+
+    private async Task TransferCoreAsync(
+        DbConnection connection,
+        ErpInventoryTransferWriteRequest request,
+        CancellationToken cancellationToken)
+    {
+        if (request.FromWarehouseId <= 0 || request.ToWarehouseId <= 0 || request.FromWarehouseId == request.ToWarehouseId)
+        {
+            throw new ErpWriteException("Source and destination warehouses required (must differ)");
+        }
+
+        if (request.ItemId <= 0 || request.Qty <= 0)
+        {
+            throw new ErpWriteException("Item and positive quantity required");
+        }
+
+        var batch = (request.BatchNo ?? string.Empty).Trim();
+        var variant = (request.VariantLabel ?? string.Empty).Trim();
+        var reference = (request.Reference ?? string.Empty).Trim();
+        if (reference.Length == 0)
+        {
+            reference = "TRF-" + DateTime.UtcNow.ToString("yyyyMMdd-HHmmss", CultureInfo.InvariantCulture);
+        }
+
+        var row = await GetStockRowAsync(connection, request.FromWarehouseId, request.ItemId, batch, variant, cancellationToken)
+            .ConfigureAwait(false);
+        if (row is null || row.QtyOnHand < request.Qty)
+        {
+            throw new ErpWriteException("Insufficient stock at source warehouse");
+        }
+
+        var unitCost = row.AvgUnitCost;
+        var note = (request.Note ?? string.Empty).Trim();
+        await RecordMovementCoreAsync(
+            connection,
+            new ErpInventoryMovementWriteRequest(
+                request.AdminUserId,
+                "transfer_out",
+                request.FromWarehouseId,
+                request.ItemId,
+                request.Qty,
+                unitCost,
+                batch,
+                variant,
+                null,
+                null,
+                reference,
+                note,
+                null,
+                request.ToWarehouseId),
+            "transfer_out",
+            cancellationToken).ConfigureAwait(false);
+        await RecordMovementCoreAsync(
+            connection,
+            new ErpInventoryMovementWriteRequest(
+                request.AdminUserId,
+                "transfer_in",
+                request.ToWarehouseId,
+                request.ItemId,
+                request.Qty,
+                unitCost,
+                batch,
+                variant,
+                null,
+                null,
+                reference,
+                note,
+                null,
+                request.FromWarehouseId),
+            "transfer_in",
+            cancellationToken).ConfigureAwait(false);
+    }
+
+    private static async Task<long> ResolveWarehouseAsync(
+        DbConnection connection,
+        long warehouseId,
+        string warehouseCode,
+        CancellationToken cancellationToken)
+    {
+        if (warehouseId > 0)
+        {
+            return warehouseId;
+        }
+
+        var code = warehouseCode.Trim().ToUpperInvariant();
+        if (code.Length == 0)
+        {
+            return 0;
+        }
+
+        return await ErpDb.LongAsync(
+            connection,
+            null,
+            ErpDb.Positional("SELECT `id` FROM `epc_erp_inv_warehouses` WHERE `code` = ? AND `active` = 1 LIMIT 1"),
+            cancellationToken,
+            code).ConfigureAwait(false);
+    }
+
+    private static async Task<long> ResolveItemIdBySkuAsync(
+        DbConnection connection,
+        string sku,
+        CancellationToken cancellationToken)
+    {
+        sku = sku.Trim();
+        if (sku.Length == 0)
+        {
+            return 0;
+        }
+
+        return await ErpDb.LongAsync(
+            connection,
+            null,
+            ErpDb.Positional("SELECT `id` FROM `epc_erp_inv_items` WHERE `sku` = ? AND `active` = 1 LIMIT 1"),
+            cancellationToken,
+            sku).ConfigureAwait(false);
+    }
+
+    private static string Row(IReadOnlyDictionary<string, string> row, string key)
+        => row.TryGetValue(key, out var value) ? value ?? "" : "";
+
+    private static long ParseLong(IReadOnlyDictionary<string, string> row, string key)
+        => long.TryParse(Row(row, key), NumberStyles.Integer, CultureInfo.InvariantCulture, out var n) ? n : 0;
+
+    private static decimal ParseDec(IReadOnlyDictionary<string, string> row, string key)
+        => decimal.TryParse(Row(row, key), NumberStyles.Any, CultureInfo.InvariantCulture, out var n) ? n : 0;
+
+    private static string SanitizeCsvHeader(string raw)
+    {
+        var source = (raw ?? string.Empty).Trim().ToLowerInvariant();
+        var chars = new char[source.Length];
+        var n = 0;
+        foreach (var ch in source)
+        {
+            chars[n++] = ch is (>= 'a' and <= 'z') or (>= '0' and <= '9') or '_' ? ch : '_';
+        }
+
+        return n == 0 ? string.Empty : new string(chars, 0, n);
+    }
+
+    private static List<string> SplitCsvLine(string line)
+    {
+        var cols = new List<string>();
+        var current = new System.Text.StringBuilder();
+        var quoted = false;
+        for (var i = 0; i < line.Length; i++)
+        {
+            var ch = line[i];
+            if (quoted)
+            {
+                if (ch == '"')
+                {
+                    if (i + 1 < line.Length && line[i + 1] == '"')
+                    {
+                        current.Append('"');
+                        i++;
+                    }
+                    else
+                    {
+                        quoted = false;
+                    }
+                }
+                else
+                {
+                    current.Append(ch);
+                }
+            }
+            else if (ch == '"')
+            {
+                quoted = true;
+            }
+            else if (ch == ',')
+            {
+                cols.Add(current.ToString());
+                current.Clear();
+            }
+            else
+            {
+                current.Append(ch);
+            }
+        }
+
+        cols.Add(current.ToString());
+        return cols;
     }
 
     private static async Task<long> RecordMovementCoreAsync(

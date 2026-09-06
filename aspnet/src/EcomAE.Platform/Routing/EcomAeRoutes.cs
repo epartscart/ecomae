@@ -881,7 +881,7 @@ public static class EcomAeRoutes
     public const string ErpAjaxInvScanLookup = "/erp/ajax/inv-scan-lookup";
     /// <summary>PHP inv_transfer. <c>confirmWrites=true</c> writes via <c>IErpInventoryMovementWriteService</c>.</summary>
     public const string ErpAjaxInvTransfer = "/erp/ajax/inv-transfer";
-    /// <summary>Wave B dry-run for PHP inv_import_csv (writes=0).</summary>
+    /// <summary>PHP inv_import_csv csv_text. <c>confirmWrites=true</c> writes via <c>IErpInventoryMovementWriteService</c>. File bytes stay Classic.</summary>
     public const string ErpAjaxInvImportCsv = "/erp/ajax/inv-import-csv";
     /// <summary>PHP inv_run_closing. <c>confirmWrites=true</c> writes via <c>IErpInventoryMovementWriteService</c>.</summary>
     public const string ErpAjaxInvRunClosing = "/erp/ajax/inv-run-closing";

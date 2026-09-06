@@ -1331,7 +1331,7 @@ public static class SurfacePayloadContractCatalog
         new("erp", "inv_record_movement write", "/erp/ajax/inv-record-movement", "write-live-gated", "POST PHP inv_record_movement; confirmWrites=true writes epc_erp_inv_stock + epc_erp_inv_movements. Schema-ensure stays PHP."),
         new("erp", "inv_scan_lookup dry-run", "/erp/ajax/inv-scan-lookup", "write-dry-run-gated", "POST dry-run for PHP inv_scan_lookup; writes=0; confirm_writes refused; PHP authoritative."),
         new("erp", "inv_transfer write", "/erp/ajax/inv-transfer", "write-live-gated", "POST PHP inv_transfer; confirmWrites=true writes transfer_out + transfer_in movements. Schema-ensure stays PHP."),
-        new("erp", "inv_import_csv dry-run", "/erp/ajax/inv-import-csv", "write-dry-run-gated", "POST dry-run for PHP inv_import_csv; writes=0; confirm_writes refused; PHP authoritative."),
+        new("erp", "inv_import_csv write", "/erp/ajax/inv-import-csv", "write-live-gated", "POST PHP inv_import_csv; confirmWrites=true posts csv_text movements. File-byte upload stays PHP."),
         new("erp", "inv_run_closing write", "/erp/ajax/inv-run-closing", "write-live-gated", "POST PHP inv_run_closing; confirmWrites=true UPSERTs epc_erp_inv_closing from current stock. Schema-ensure stays PHP."),
         new("erp", "hr_emp_save dry-run", "/erp/ajax/hr-emp-save", "write-dry-run-gated", "POST dry-run for PHP hr_emp_save; writes=0; confirm_writes refused; PHP authoritative."),
         new("erp", "hr_attendance dry-run", "/erp/ajax/hr-attendance", "write-dry-run-gated", "POST dry-run for PHP hr_attendance; writes=0; confirm_writes refused; PHP authoritative."),

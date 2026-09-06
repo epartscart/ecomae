@@ -15,7 +15,7 @@
 
 
     
-    <PhpErpModulePageHeader Title="Inventory Stock" Subtitle="Create warehouse/item, sync from shop storages, set reorder, record movement, transfer, or run a closing snapshot. CSV import stays on ERP ajax." />
+    <PhpErpModulePageHeader Title="Inventory Stock" Subtitle="Create warehouse/item, sync from shop storages, set reorder, record movement, transfer, run a closing snapshot, or import csv_text. File CSV upload stays Classic." />
     <PhpErpD365ActionPane RefreshHref="/erp/inventory-stock-app" />
 
     @if (!string.IsNullOrWhiteSpace(_flashOk))
@@ -91,12 +91,20 @@
             <input type="hidden" name="returnUrl" value="/erp/inventory-stock-app" />
             <button type="submit" class="btn btn-sm btn-default">Sync warehouses</button>
         </form>
-        <form method="post" action="/erp/ajax/inv-run-closing" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+        <form method="post" action="/erp/ajax/inv-run-closing" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 .65rem">
             <input type="hidden" name="confirmWrites" value="true" />
             <input type="hidden" name="returnUrl" value="/erp/inventory-stock-app" />
             <label>Period end <input type="text" name="periodEnd" placeholder="YYYY-MM-DD" /></label>
             <label>Warehouse id <input type="number" name="warehouseId" min="0" style="width:6rem" /></label>
             <button type="submit" class="btn btn-sm btn-default">Run closing</button>
+        </form>
+        <form method="post" action="/erp/ajax/inv-import-csv" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/erp/inventory-stock-app" />
+            <label>Warehouse id <input type="number" name="warehouseId" min="0" style="width:6rem" /></label>
+            <label>Default type <input type="text" name="defaultMovementType" value="purchase_in" /></label>
+            <label>CSV text <textarea name="csvText" rows="3" cols="48" placeholder="sku,qty,unit_cost,movement_type,warehouse_code"></textarea></label>
+            <button type="submit" class="btn btn-sm btn-primary">Import CSV text</button>
         </form>
     }
 
@@ -198,7 +206,7 @@
     <div class="epc-erp-empty" style="display:block;margin-top:12px;padding:8px 10px;border:1px solid #c5d4de;background:#f8fafc;color:#475569;font-size:12px;">
         Source: @_summary.Source. Showing @_stock.Count.ToString(CultureInfo.InvariantCulture) of @_summary.RowCount.ToString(CultureInfo.InvariantCulture) rows;
         @_lowStock.Count.ToString(CultureInfo.InvariantCulture) low-stock alerts.
-        Movements, transfers, and closing stay on ERP ajax.
+        Movements, transfers, closing, and csv_text import stay on ERP ajax. File CSV upload stays Classic.
         @if (!string.IsNullOrWhiteSpace(_summary.Message)) { <span> @_summary.Message</span> }
     </div>
 </PhpErpDesktopChrome>
