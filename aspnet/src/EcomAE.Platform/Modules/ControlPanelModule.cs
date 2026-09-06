@@ -3416,6 +3416,67 @@ public sealed class ControlPanelModule : ISurfaceModule
                 written.Message,
                 new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.CpCatalogueProductsDelete, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpCatalogueProductsDeleteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/product-catalogue-app", "Admin CP capability required for product-delete writes.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpCatalogueProductsDeleteBody>(context, cancellationToken) ?? new();
+            var action = body.Action;
+            var categoryId = body.CategoryId;
+            var productsJson = body.ProductsJson ?? body.ProductsList;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                action = LiveWriteFormBinder.Text(form, "action");
+                categoryId = LiveWriteFormBinder.Long(form, "categoryId", "category_id");
+                productsJson = LiveWriteFormBinder.Text(form, "productsJson", "products_list", "productsList");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(new
+                {
+                    status = "dry-run",
+                    writes = 0,
+                    writesBlocked = true,
+                    phpAuthoritative = true,
+                    validation_code = "dry_run",
+                    message = "Set confirmWrites=true to delete catalogue products on ASP.NET.",
+                    session = SessionPayload(session)
+                });
+            }
+
+            var key = CpCatalogueProductsDeleteService.NormalizeAction(action);
+            if (key != "delete")
+            {
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    "/cp/product-catalogue-app",
+                    false,
+                    "Action must be delete.",
+                    new { ok = false, writes = 0, phpAuthoritative = false, validation_code = "invalid", message = "Action must be delete.", session = SessionPayload(session) });
+            }
+
+            var written = await writes.DeleteAsync(
+                new CpCatalogueProductsDeleteRequest(categoryId, productsJson),
+                cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/cp/product-catalogue-app",
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.CpPriceReviewWrite, async (HttpContext context, CpPriceReviewWriteBody? body, ILegacySessionValidator validator, ICpPriceReviewWriteDryRun dryRun, CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateAsync(context, cancellationToken);
@@ -9624,6 +9685,12 @@ public sealed class ControlPanelModule : ISurfaceModule
     private sealed record CpCatalogueEditorWriteBody(
         string? TreeJson = null,
         string? LangCode = null,
+        bool ConfirmWrites = false);
+    private sealed record CpCatalogueProductsDeleteBody(
+        string? Action = null,
+        long CategoryId = 0,
+        string? ProductsJson = null,
+        string? ProductsList = null,
         bool ConfirmWrites = false);
     private sealed record CpCatalogueReviewsWriteBody(
         string? Action = null,

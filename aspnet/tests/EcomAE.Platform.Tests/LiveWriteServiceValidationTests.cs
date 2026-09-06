@@ -1228,6 +1228,27 @@ public sealed class LiveWriteServiceValidationTests
 
         Assert.Equal("delete", CpCatalogueReviewWriteService.NormalizeAction("delete_review"));
         Assert.Equal("save", CpCatalogueReviewWriteService.NormalizeAction("save"));
+
+        var prodDelEmpty = await new CpCatalogueProductsDeleteService(new ConfiguredNeverOpened())
+            .DeleteAsync(new CpCatalogueProductsDeleteRequest());
+        Assert.False(prodDelEmpty.Succeeded);
+        Assert.Equal("invalid", prodDelEmpty.Code);
+
+        var prodDelJson = await new CpCatalogueProductsDeleteService(new ConfiguredNeverOpened())
+            .DeleteAsync(new CpCatalogueProductsDeleteRequest(ProductsJson: "{"));
+        Assert.False(prodDelJson.Succeeded);
+        Assert.Equal("invalid", prodDelJson.Code);
+
+        var prodDelDb = await new CpCatalogueProductsDeleteService(new UnconfiguredConnections())
+            .DeleteAsync(new CpCatalogueProductsDeleteRequest(ProductsJson: "[9]"));
+        Assert.False(prodDelDb.Succeeded);
+        Assert.Equal("db", prodDelDb.Code);
+
+        Assert.Equal("delete", CpCatalogueProductsDeleteService.NormalizeAction("delete_products"));
+        Assert.Equal("products_list is not valid JSON.", CpCatalogueProductsDeleteService.ParseIds("{").Error);
+        var okDelIds = CpCatalogueProductsDeleteService.ParseIds("""[1,"2",1]""");
+        Assert.Null(okDelIds.Error);
+        Assert.Equal(new long[] { 1, 2 }, okDelIds.Ids.ToArray());
         Assert.Null(okProps.Error);
         Assert.Equal(9, okProps.Properties[0].OptionIds[0]);
 

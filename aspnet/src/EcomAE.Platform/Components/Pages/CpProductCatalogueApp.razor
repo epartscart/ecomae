@@ -21,7 +21,7 @@
 
 
     <PhpCpModulePageHeader Title="Product catalogue"
-                           Subtitle="Min-limit, templates, line/tree lists, brunch, SKU profile/spec/photo-meta, homepage slots, special searches, catalogue tree, product create/edit, and review delete write here. Product/SKU/template/category images, manual line-list create, and drag-tree UX stay on the compare twin."
+                           Subtitle="Min-limit, templates, line/tree lists, brunch, SKU profile/spec/photo-meta, homepage slots, special searches, catalogue tree, product create/edit, review delete, and product delete write here. Product/SKU/template/category images, manual line-list create, and drag-tree UX stay on the compare twin."
                            PhpTabHref="@_phpTab">
         <a class="ghost" href="/cp/prices-upload-app">Prices upload</a>
         <a class="ghost" href="/cp/crosses-app">Crosses</a>
@@ -64,6 +64,10 @@
         <a class="epc-scp-table-card" style="padding:1rem;text-decoration:none;color:inherit;" href="#product-save">
             <h3 style="margin:0 0 .35rem;font-size:1rem;">Product save</h3>
             <p style="margin:0;color:#475569;font-size:.86rem;">Create / edit write here. Images stay Classic.</p>
+        </a>
+        <a class="epc-scp-table-card" style="padding:1rem;text-decoration:none;color:inherit;" href="#product-delete">
+            <h3 style="margin:0 0 .35rem;font-size:1rem;">Product delete</h3>
+            <p style="margin:0;color:#475569;font-size:.86rem;">Delete writes here. Image file unlink stays Classic.</p>
         </a>
     </div>
 
@@ -410,6 +414,16 @@
             <input type="hidden" name="action" value="delete" />
             <label>Review id <input type="number" name="reviewId" min="1" required style="width:6rem" /></label>
             <button type="submit">Delete review</button>
+        </form>
+        <form id="product-delete" method="post" action="/cp/catalogue/products/delete" style="display:flex;flex-direction:column;gap:.45rem;margin:0 0 1rem;max-width:52rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/product-catalogue-app" />
+            <input type="hidden" name="action" value="delete" />
+            <div style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end">
+                <label>Category id <input type="number" name="categoryId" min="0" value="0" style="width:6rem" /></label>
+                <label>Product ids JSON <input type="text" name="productsJson" value="[]" style="width:16rem;font-family:monospace" /></label>
+                <button type="submit">Delete products</button>
+            </div>
         </form>
     }
     @if (!_isAdmin)
