@@ -3014,6 +3014,75 @@ public sealed class ControlPanelModule : ISurfaceModule
                 written.Message,
                 new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.CpStoragesWrite, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpStorageWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/storages-app", "Admin CP capability required for warehouse save.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpStoragesWriteBody>(context, cancellationToken) ?? new();
+            var action = body.Action ?? body.SaveAction;
+            var storageId = body.StorageId;
+            var name = body.Name;
+            var shortName = body.ShortName;
+            var currency = body.Currency;
+            var interfaceType = body.InterfaceType;
+            var usersJson = body.UsersJson ?? body.Users;
+            var optionsJson = body.ConnectionOptionsJson ?? body.ConnectionOptions;
+            var handlerFolder = body.HandlerFolder;
+            var hidden = body.Hidden;
+            var bgLineColor = body.BgLineColor;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                action = LiveWriteFormBinder.Text(form, "action", "saveAction", "save_action");
+                storageId = LiveWriteFormBinder.Long(form, "storageId", "storage_id", "id");
+                name = LiveWriteFormBinder.Text(form, "name");
+                shortName = LiveWriteFormBinder.Text(form, "shortName", "short_name");
+                currency = LiveWriteFormBinder.Int(form, "currency");
+                interfaceType = LiveWriteFormBinder.Int(form, "interfaceType", "interface_type");
+                usersJson = LiveWriteFormBinder.Text(form, "usersJson", "users_json", "users");
+                optionsJson = LiveWriteFormBinder.Text(form, "connectionOptionsJson", "connection_options_json", "connection_options", "connectionOptions");
+                handlerFolder = LiveWriteFormBinder.Text(form, "handlerFolder", "handler_folder");
+                hidden = LiveWriteFormBinder.Int(form, "hidden");
+                bgLineColor = LiveWriteFormBinder.Int(form, "bgLineColor", "bg_line_color");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(new
+                {
+                    status = "dry-run",
+                    writes = 0,
+                    writesBlocked = true,
+                    phpAuthoritative = true,
+                    validation_code = "dry_run",
+                    message = "Set confirmWrites=true to save the warehouse on ASP.NET.",
+                    session = SessionPayload(session)
+                });
+            }
+
+            var key = (action ?? string.Empty).Trim().ToLowerInvariant();
+            var written = key is "edit" or "update"
+                ? await writes.UpdateAsync(
+                    storageId, name, shortName, currency, interfaceType, usersJson, optionsJson, handlerFolder, hidden, bgLineColor, cancellationToken)
+                : await writes.CreateAsync(
+                    name, shortName, currency, interfaceType, usersJson, optionsJson, handlerFolder, hidden, bgLineColor, cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/cp/storages-app",
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.CpQuoteSaveNote, async (
             HttpContext context,
             ILegacySessionValidator validator,
@@ -7528,6 +7597,22 @@ public sealed class ControlPanelModule : ISurfaceModule
     private sealed record CpPricesImportCsvBody(long SessionId, bool ConfirmWrites = false);
     private sealed record CpPricesCompleteSessionBody(long SessionId = 0, long PriceId = 0, bool ConfirmWrites = false);
     private sealed record CpStoragesGroupsBody(string? Action = null, bool ConfirmWrites = false, long Id = 0, string? Name = null, string? Storages = null);
+    private sealed record CpStoragesWriteBody(
+        string? Action = null,
+        string? SaveAction = null,
+        long StorageId = 0,
+        string? Name = null,
+        string? ShortName = null,
+        int Currency = 1,
+        int InterfaceType = 1,
+        string? UsersJson = null,
+        string? Users = null,
+        string? ConnectionOptionsJson = null,
+        string? ConnectionOptions = null,
+        string? HandlerFolder = null,
+        int Hidden = 0,
+        int BgLineColor = 0,
+        bool ConfirmWrites = false);
     private sealed record CpQuoteSaveNoteBody(long QuoteId = 0, string? AdminNote = null, bool ConfirmWrites = false);
     private sealed record CpQuoteSaveLinesBody(
         long QuoteId = 0,

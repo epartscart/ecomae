@@ -1013,6 +1013,8 @@ public static class EcomAeRoutes
     public const string CpPricesCompleteSession = "/cp/prices/complete-session";
     /// <summary>PHP logistics groups add_group / del. <c>confirmWrites=true</c> writes via <c>ICpStorageGroupWriteService</c>.</summary>
     public const string CpStoragesGroups = "/cp/storages/groups";
+    /// <summary>PHP <c>storage.php</c> create / edit. <c>confirmWrites=true</c> writes via <c>ICpStorageWriteService</c>.</summary>
+    public const string CpStoragesWrite = "/cp/storages/write";
     /// <summary>PHP quote_requests.php admin_note. <c>confirmWrites=true</c> writes via <c>ICpQuoteWriteService</c>.</summary>
     public const string CpQuoteSaveNote = "/cp/quote-requests/note";
     /// <summary>PHP quote_requests.php save_quote line quoting. <c>confirmWrites=true</c> writes via <c>ICpQuoteWriteService</c>.</summary>

@@ -670,6 +670,7 @@ builder.Services.AddScoped<EcomAE.Platform.Erp.IErpInventoryReorderWriteService,
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpJwRepairWriteService, EcomAE.Platform.Erp.ErpJwRepairWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpHrDaysWriteService, EcomAE.Platform.Erp.ErpHrDaysWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpStorageGroupWriteService, EcomAE.Platform.Cp.CpStorageGroupWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Cp.ICpStorageWriteService, EcomAE.Platform.Cp.CpStorageWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpPricesUploadWriteService, EcomAE.Platform.Cp.CpPricesUploadWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpQuoteWriteService, EcomAE.Platform.Cp.CpQuoteWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpVendorApprovalWriteService, EcomAE.Platform.Cp.CpVendorApprovalWriteService>();

@@ -209,6 +209,7 @@ public sealed class PhpVsAspNetRemovalMatrixTests
             ("ErpWorkspaceFavoritesApp.razor", "/erp/ajax/shortcut-delete-key"),
             ("ErpWorkspaceFavoritesApp.razor", "/erp/ajax/shortcut-reset"),
             ("CpStoragesApp.razor", "/cp/storages/groups"),
+            ("CpStoragesApp.razor", "/cp/storages/write"),
             ("CpPricesUploadApp.razor", "/cp/prices/complete-session"),
             ("ErpPayrollApp.razor", "/erp/ajax/hr-update-days"),
             ("CpHrOverviewApp.razor", "/erp/ajax/hr-update-days"),

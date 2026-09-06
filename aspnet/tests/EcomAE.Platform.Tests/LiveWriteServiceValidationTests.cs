@@ -971,6 +971,35 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(grpDb.Succeeded);
         Assert.Equal("db", grpDb.Code);
 
+        var whCreate = await new CpStorageWriteService(new ConfiguredNeverOpened())
+            .CreateAsync("", "WH", 1, 1, null, null, null, 0, 0);
+        Assert.False(whCreate.Succeeded);
+        Assert.Equal("invalid", whCreate.Code);
+
+        var whEdit = await new CpStorageWriteService(new ConfiguredNeverOpened())
+            .UpdateAsync(0, "Pad warehouse", "WH", 1, 1, null, null, null, 0, 0);
+        Assert.False(whEdit.Succeeded);
+        Assert.Equal("invalid", whEdit.Code);
+
+        var whBadJson = await new CpStorageWriteService(new ConfiguredNeverOpened())
+            .CreateAsync("Pad warehouse", "WH", 1, 1, null, "{", null, 0, 0);
+        Assert.False(whBadJson.Succeeded);
+        Assert.Equal("invalid", whBadJson.Code);
+
+        var whDb = await new CpStorageWriteService(new UnconfiguredConnections())
+            .CreateAsync("Pad warehouse", "WH", 1, 1, "1", "{}", null, 0, 0);
+        Assert.False(whDb.Succeeded);
+        Assert.Equal("db", whDb.Code);
+
+        Assert.Equal("[1,2]", CpStorageWriteService.NormalizeUsers("1,2").Json);
+        Assert.Equal("[]", CpStorageWriteService.NormalizeUsers(null).Json);
+        var opts = CpStorageWriteService.NormalizeConnectionOptions(
+            """{"probability":"95 %","subdomain":"HTTPS://Shop.public.api.abcp.ru/"}""",
+            "abcp");
+        Assert.Null(opts.Error);
+        Assert.Contains("\"probability\":\"95\"", opts.Json);
+        Assert.Contains("\"subdomain\":\"shop\"", opts.Json);
+
         var doneInvalid = await new CpPricesUploadWriteService(new ConfiguredNeverOpened())
             .CompleteSessionAsync(0);
         Assert.False(doneInvalid.Succeeded);
