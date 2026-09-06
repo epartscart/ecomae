@@ -21,7 +21,7 @@
 
 
     <PhpCpModulePageHeader Title="Product catalogue"
-                           Subtitle="Min-limit, category-template create/delete, line/tree-list create/edit/delete, and brunch save write here. SKU media, item images, and template file upload stay on the compare twin."
+                           Subtitle="Min-limit, category-template create/delete, line/tree-list create/edit/delete, brunch save, and SKU profile save/ensure/delete write here. SKU photos, spec sheets, item images, and template file upload stay on the compare twin."
                            PhpTabHref="@_phpTab">
         <a class="ghost" href="/cp/prices-upload-app">Prices upload</a>
         <a class="ghost" href="/cp/crosses-app">Crosses</a>
@@ -49,9 +49,9 @@
             <h3 style="margin:0 0 .35rem;font-size:1rem;">Reviews</h3>
             <p style="margin:0;color:#475569;font-size:.86rem;">PHP reviews</p>
         </a>
-        <a class="epc-scp-table-card" style="padding:1rem;text-decoration:none;color:inherit;" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref("/CP/shop/catalogue/sku_media")">
+        <a class="epc-scp-table-card" style="padding:1rem;text-decoration:none;color:inherit;" href="#sku-media">
             <h3 style="margin:0 0 .35rem;font-size:1rem;">SKU media</h3>
-            <p style="margin:0;color:#475569;font-size:.86rem;">PHP epc_sku_media_manager</p>
+            <p style="margin:0;color:#475569;font-size:.86rem;">Save / ensure / delete write here. Photos and spec sheets stay Classic.</p>
         </a>
         <a class="epc-scp-table-card" style="padding:1rem;text-decoration:none;color:inherit;" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref("/CP/shop/catalogue/special_searches")">
             <h3 style="margin:0 0 .35rem;font-size:1rem;">Special searches</h3>
@@ -216,6 +216,33 @@
                 <textarea name="treeJson" rows="4" style="width:100%;font-family:monospace" placeholder='[{"id":1,"value":"Sibling","alias":"sib","url":"/sib"}]'></textarea>
             </label>
             <button type="submit">Save brunch</button>
+        </form>
+        <form id="sku-media" method="post" action="/cp/catalogue/sku-media/write" style="display:flex;flex-direction:column;gap:.45rem;margin:0 0 1rem;max-width:52rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/product-catalogue-app" />
+            <div style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end">
+                <label>Action
+                    <select name="action">
+                        <option value="save_profile">save_profile</option>
+                        <option value="ensure">ensure</option>
+                        <option value="delete_profile">delete_profile</option>
+                    </select>
+                </label>
+                <label>Profile id <input type="number" name="profileId" min="0" value="0" style="width:6rem" title="0 = create" /></label>
+                <label>Product id <input type="number" name="productId" min="0" value="0" style="width:6rem" /></label>
+                <label>Brand <input type="text" name="brand" /></label>
+                <label>Article <input type="text" name="article" /></label>
+                <label>Title <input type="text" name="title" /></label>
+                <label>Subtitle <input type="text" name="subtitle" /></label>
+                <label>Status
+                    <select name="status">
+                        <option value="active">active</option>
+                        <option value="draft">draft</option>
+                        <option value="hidden">hidden</option>
+                    </select>
+                </label>
+            </div>
+            <button type="submit">Save SKU profile</button>
         </form>
     }
     @if (!_isAdmin)

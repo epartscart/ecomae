@@ -968,6 +968,44 @@ public sealed class LiveWriteServiceValidationTests
         Assert.Null(okImg.Error);
         Assert.Equal(new byte[] { 0x41 }, okImg.Bytes);
 
+        var skuSaveMissing = await new CpSkuMediaWriteService(new ConfiguredNeverOpened())
+            .SaveProfileAsync(new CpSkuMediaProfileRequest(Brand: "Bosch", Article: ""));
+        Assert.False(skuSaveMissing.Succeeded);
+        Assert.Equal("invalid", skuSaveMissing.Code);
+
+        var skuEnsureMissing = await new CpSkuMediaWriteService(new ConfiguredNeverOpened())
+            .EnsureAsync(new CpSkuMediaProfileRequest());
+        Assert.False(skuEnsureMissing.Succeeded);
+        Assert.Equal("invalid", skuEnsureMissing.Code);
+
+        var skuDelId = await new CpSkuMediaWriteService(new ConfiguredNeverOpened())
+            .DeleteProfileAsync(0);
+        Assert.False(skuDelId.Succeeded);
+        Assert.Equal("invalid", skuDelId.Code);
+
+        var skuSaveDb = await new CpSkuMediaWriteService(new UnconfiguredConnections())
+            .SaveProfileAsync(new CpSkuMediaProfileRequest(Brand: "Bosch", Article: "0 986 494 053"));
+        Assert.False(skuSaveDb.Succeeded);
+        Assert.Equal("db", skuSaveDb.Code);
+
+        var skuEnsureDb = await new CpSkuMediaWriteService(new UnconfiguredConnections())
+            .EnsureAsync(new CpSkuMediaProfileRequest(Brand: "Bosch", Article: "0986494053"));
+        Assert.False(skuEnsureDb.Succeeded);
+        Assert.Equal("db", skuEnsureDb.Code);
+
+        var skuDelDb = await new CpSkuMediaWriteService(new UnconfiguredConnections())
+            .DeleteProfileAsync(4);
+        Assert.False(skuDelDb.Succeeded);
+        Assert.Equal("db", skuDelDb.Code);
+
+        Assert.Equal("save_profile", CpSkuMediaWriteService.NormalizeAction("edit"));
+        Assert.Equal("ensure", CpSkuMediaWriteService.NormalizeAction("ensure_profile"));
+        Assert.Equal("delete_profile", CpSkuMediaWriteService.NormalizeAction("del"));
+        Assert.Equal("BOSCH", CpSkuMediaWriteService.NormalizeBrand("  bosch  "));
+        Assert.Equal("0986494053", CpSkuMediaWriteService.NormalizeArticle("0 986 494 053"));
+        Assert.Equal("active", CpSkuMediaWriteService.NormalizeStatus(""));
+        Assert.Equal("draft", CpSkuMediaWriteService.NormalizeStatus("Draft"));
+
         var jwInvalid = await new ErpJwRepairWriteService(new ConfiguredNeverOpened())
             .SetStatusAsync(0, "ready");
         Assert.False(jwInvalid.Succeeded);

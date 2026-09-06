@@ -2933,6 +2933,73 @@ public sealed class ControlPanelModule : ISurfaceModule
                 written.Message,
                 new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.CpSkuMediaWrite, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpSkuMediaWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/product-catalogue-app", "Admin CP capability required for SKU media writes.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpSkuMediaWriteBody>(context, cancellationToken) ?? new();
+            var action = body.Action;
+            var profileId = body.ProfileId;
+            var productId = body.ProductId;
+            var brand = body.Brand;
+            var article = body.Article;
+            var title = body.Title;
+            var subtitle = body.Subtitle;
+            var status = body.Status;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                action = LiveWriteFormBinder.Text(form, "action");
+                profileId = LiveWriteFormBinder.Long(form, "profileId", "profile_id", "id");
+                productId = LiveWriteFormBinder.Long(form, "productId", "product_id");
+                brand = LiveWriteFormBinder.Text(form, "brand");
+                article = LiveWriteFormBinder.Text(form, "article");
+                title = LiveWriteFormBinder.Text(form, "title");
+                subtitle = LiveWriteFormBinder.Text(form, "subtitle");
+                status = LiveWriteFormBinder.Text(form, "status");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(new
+                {
+                    status = "dry-run",
+                    writes = 0,
+                    writesBlocked = true,
+                    phpAuthoritative = true,
+                    validation_code = "dry_run",
+                    message = "Set confirmWrites=true to save, ensure, or delete a SKU profile on ASP.NET.",
+                    session = SessionPayload(session)
+                });
+            }
+
+            var request = new CpSkuMediaProfileRequest(profileId, productId, brand, article, title, subtitle, status);
+            var key = CpSkuMediaWriteService.NormalizeAction(action);
+            ErpSimpleWriteResult written = key switch
+            {
+                "delete_profile" => await writes.DeleteProfileAsync(profileId, cancellationToken),
+                "ensure" => await writes.EnsureAsync(request, cancellationToken),
+                "save_profile" => await writes.SaveProfileAsync(request, cancellationToken),
+                _ => ErpSimpleWriteResult.Fail("invalid", "Action must be save_profile, ensure, or delete_profile."),
+            };
+
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/cp/product-catalogue-app",
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.CpPriceReviewWrite, async (HttpContext context, CpPriceReviewWriteBody? body, ILegacySessionValidator validator, ICpPriceReviewWriteDryRun dryRun, CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateAsync(context, cancellationToken);
@@ -9074,6 +9141,16 @@ public sealed class ControlPanelModule : ISurfaceModule
         string? Ids = null,
         string? TreeLists = null,
         string? LangCode = null,
+        bool ConfirmWrites = false);
+    private sealed record CpSkuMediaWriteBody(
+        string? Action = null,
+        long ProfileId = 0,
+        long ProductId = 0,
+        string? Brand = null,
+        string? Article = null,
+        string? Title = null,
+        string? Subtitle = null,
+        string? Status = null,
         bool ConfirmWrites = false);
     private sealed record CpPriceReviewWriteBody(string? Action = null, bool ConfirmWrites = false);
     private sealed record CpPriceReviewCreateCsvBody(string? Action = null, bool ConfirmWrites = false);
