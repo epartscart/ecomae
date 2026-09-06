@@ -214,6 +214,7 @@ public sealed class PhpVsAspNetRemovalMatrixTests
             ("CpProductCatalogueApp.razor", "/cp/catalogue/set-min-limit"),
             ("CpProductCatalogueApp.razor", "/cp/catalogue/templates-actions"),
             ("CpProductCatalogueApp.razor", "/cp/catalogue/line-lists/write"),
+            ("CpProductCatalogueApp.razor", "/cp/catalogue/tree-lists/write"),
             ("ErpWorkspaceFavoritesApp.razor", "/erp/ajax/erp-fav-add"),
             ("ErpWorkspaceFavoritesApp.razor", "/erp/ajax/erp-fav-remove"),
             ("ErpWorkspaceFavoritesApp.razor", "/erp/ajax/shortcut-delete"),

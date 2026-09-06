@@ -1681,6 +1681,62 @@ public sealed class LiveWriteServiceValidationTests
         Assert.Equal(new long[] { 1, 2 }, lineIds.Ids);
         Assert.Equal("line_lists JSON is not valid.", CpLineListWriteService.ParseIds("{").Error);
 
+        var treeListAction = await new CpTreeListWriteService(new ConfiguredNeverOpened())
+            .SaveAsync(new CpTreeListSaveRequest(Action: "rename", Caption: "Makes"));
+        Assert.False(treeListAction.Succeeded);
+        Assert.Equal("invalid", treeListAction.Code);
+
+        var treeListEditId = await new CpTreeListWriteService(new ConfiguredNeverOpened())
+            .SaveAsync(new CpTreeListSaveRequest(Action: "edit", ListId: 0, Caption: "Makes", TreeJson: "[]"));
+        Assert.False(treeListEditId.Succeeded);
+        Assert.Equal("invalid", treeListEditId.Code);
+
+        var treeListJsonBad = await new CpTreeListWriteService(new ConfiguredNeverOpened())
+            .SaveAsync(new CpTreeListSaveRequest(Action: "create", Caption: "Makes", TreeJson: "{"));
+        Assert.False(treeListJsonBad.Succeeded);
+        Assert.Equal("invalid", treeListJsonBad.Code);
+
+        var treeListDb = await new CpTreeListWriteService(new UnconfiguredConnections())
+            .SaveAsync(new CpTreeListSaveRequest(Action: "create", Caption: "Makes", TreeJson: """[{"id":1,"value":"Root","$count":0,"$level":1,"$parent":0}]"""));
+        Assert.False(treeListDb.Succeeded);
+        Assert.Equal("db", treeListDb.Code);
+
+        var treeListDelEmpty = await new CpTreeListWriteService(new ConfiguredNeverOpened())
+            .DeleteAsync("");
+        Assert.False(treeListDelEmpty.Succeeded);
+        Assert.Equal("invalid", treeListDelEmpty.Code);
+
+        var treeListDelJson = await new CpTreeListWriteService(new ConfiguredNeverOpened())
+            .DeleteAsync("{");
+        Assert.False(treeListDelJson.Succeeded);
+        Assert.Equal("invalid", treeListDelJson.Code);
+
+        var treeListDelDb = await new CpTreeListWriteService(new UnconfiguredConnections())
+            .DeleteAsync("[1]");
+        Assert.False(treeListDelDb.Succeeded);
+        Assert.Equal("db", treeListDelDb.Code);
+
+        Assert.Equal("create", CpTreeListWriteService.NormalizeAction("save_create"));
+        Assert.Equal("edit", CpTreeListWriteService.NormalizeAction("update"));
+        Assert.Equal("delete", CpTreeListWriteService.NormalizeAction("delete_tree_lists"));
+        Assert.Equal("&lt;b&gt;", CpTreeListWriteService.HtmlEncode("<b>"));
+        var emptyTreeList = CpTreeListWriteService.ParseTree("");
+        Assert.Null(emptyTreeList.Error);
+        Assert.Empty(emptyTreeList.Nodes);
+        Assert.Equal("tree_json is not valid JSON.", CpTreeListWriteService.ParseTree("{").Error);
+        Assert.Equal("Each tree item needs a positive id.", CpTreeListWriteService.ParseTree("""[{"value":"Root"}]""").Error);
+        var okTreeList = CpTreeListWriteService.ParseTree("""[{"id":1,"value":"Root","$count":1,"$level":1,"$parent":0,"data":[{"id":2,"value":"Child","$count":0,"$level":2,"$parent":1,"is_new":1}]}]""");
+        Assert.Null(okTreeList.Error);
+        Assert.Equal(2, okTreeList.Nodes.Count);
+        Assert.Equal(1, okTreeList.Nodes[0].Id);
+        Assert.Equal(1, okTreeList.Nodes[0].Count);
+        Assert.Equal(2, okTreeList.Nodes[1].Id);
+        Assert.True(okTreeList.Nodes[1].IsNew);
+        var treeListIds = CpTreeListWriteService.ParseIds("[1,2,2]");
+        Assert.Null(treeListIds.Error);
+        Assert.Equal(new long[] { 1, 2 }, treeListIds.Ids);
+        Assert.Equal("tree_lists JSON is not valid.", CpTreeListWriteService.ParseIds("{").Error);
+
         var wmsInvalid = await new ErpWmsLocationWriteService(new ConfiguredNeverOpened())
             .DeleteAsync(0);
         Assert.False(wmsInvalid.Succeeded);
