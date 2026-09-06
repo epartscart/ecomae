@@ -263,45 +263,45 @@ public sealed class ErpInventoryMovementWriteService : IErpInventoryMovementWrit
             return ErpSimpleWriteResult.Ok("Synced 0 warehouse(s) from shop storages", 0);
         }
 
-        var created = 0;
+        var pending = new List<(long StorageId, string Name)>();
         await using (var cmd = connection.CreateCommand())
         {
             cmd.CommandText = "SELECT `id`, `name` FROM `shop_storages` WHERE `hidden` = 0 OR `hidden` IS NULL";
             await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
-            var pending = new List<(long StorageId, string Name)>();
             while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
             {
                 var storageId = reader.IsDBNull(0) ? 0 : Convert.ToInt64(reader.GetValue(0), CultureInfo.InvariantCulture);
                 var storageName = reader.IsDBNull(1) ? "" : Convert.ToString(reader.GetValue(1), CultureInfo.InvariantCulture) ?? "";
                 pending.Add((storageId, storageName));
             }
+        }
 
-            foreach (var row in pending)
+        var created = 0;
+        foreach (var row in pending)
+        {
+            var code = "WH" + row.StorageId.ToString(CultureInfo.InvariantCulture);
+            var exists = await ErpDb.LongAsync(
+                connection,
+                null,
+                ErpDb.Positional("SELECT `id` FROM `epc_erp_inv_warehouses` WHERE `storage_id` = ? OR `code` = ? LIMIT 1"),
+                cancellationToken,
+                row.StorageId,
+                code).ConfigureAwait(false);
+            if (exists > 0)
             {
-                var code = "WH" + row.StorageId.ToString(CultureInfo.InvariantCulture);
-                var exists = await ErpDb.LongAsync(
-                    connection,
-                    null,
-                    ErpDb.Positional("SELECT `id` FROM `epc_erp_inv_warehouses` WHERE `storage_id` = ? OR `code` = ? LIMIT 1"),
-                    cancellationToken,
-                    row.StorageId,
-                    code).ConfigureAwait(false);
-                if (exists > 0)
-                {
-                    continue;
-                }
-
-                await ErpDb.ExecuteAsync(
-                    connection,
-                    null,
-                    ErpDb.Positional("INSERT INTO `epc_erp_inv_warehouses` (`storage_id`,`code`,`name`,`time_created`) VALUES (?,?,?,?)"),
-                    cancellationToken,
-                    row.StorageId,
-                    code,
-                    row.Name,
-                    DateTimeOffset.UtcNow.ToUnixTimeSeconds());
-                created++;
+                continue;
             }
+
+            await ErpDb.ExecuteAsync(
+                connection,
+                null,
+                ErpDb.Positional("INSERT INTO `epc_erp_inv_warehouses` (`storage_id`,`code`,`name`,`time_created`) VALUES (?,?,?,?)"),
+                cancellationToken,
+                row.StorageId,
+                code,
+                row.Name,
+                DateTimeOffset.UtcNow.ToUnixTimeSeconds());
+            created++;
         }
 
         return ErpSimpleWriteResult.Ok("Synced " + created.ToString(CultureInfo.InvariantCulture) + " warehouse(s) from shop storages", created);
