@@ -3083,6 +3083,52 @@ public sealed class ControlPanelModule : ISurfaceModule
                 written.Message,
                 new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.CpStoragesMembership, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpStorageWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/storages-app", "Admin CP capability required for warehouse membership.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpStoragesMembershipBody>(context, cancellationToken) ?? new();
+            var officeId = body.OfficeId;
+            var storagesList = body.StoragesList;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                officeId = LiveWriteFormBinder.Long(form, "officeId", "office_id");
+                storagesList = LiveWriteFormBinder.Text(form, "storagesList", "storages_list");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(new
+                {
+                    status = "dry-run",
+                    writes = 0,
+                    writesBlocked = true,
+                    phpAuthoritative = true,
+                    validation_code = "dry_run",
+                    message = "Set confirmWrites=true to save office warehouse membership on ASP.NET.",
+                    session = SessionPayload(session)
+                });
+            }
+
+            var written = await writes.SaveMembershipAsync(officeId, storagesList, cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/cp/storages-app",
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.CpQuoteSaveNote, async (
             HttpContext context,
             ILegacySessionValidator validator,
@@ -7613,6 +7659,7 @@ public sealed class ControlPanelModule : ISurfaceModule
         int Hidden = 0,
         int BgLineColor = 0,
         bool ConfirmWrites = false);
+    private sealed record CpStoragesMembershipBody(long OfficeId = 0, string? StoragesList = null, bool ConfirmWrites = false);
     private sealed record CpQuoteSaveNoteBody(long QuoteId = 0, string? AdminNote = null, bool ConfirmWrites = false);
     private sealed record CpQuoteSaveLinesBody(
         long QuoteId = 0,

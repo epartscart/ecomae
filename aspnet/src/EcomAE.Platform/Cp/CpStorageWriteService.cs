@@ -5,7 +5,7 @@ using EcomAE.Platform.Erp;
 
 namespace EcomAE.Platform.Cp;
 
-/// <summary>Live PHP <c>storage.php</c> create / edit twins.</summary>
+/// <summary>Live PHP <c>storage.php</c> create / edit and <c>office_storages_link.php</c> membership twins.</summary>
 public interface ICpStorageWriteService
 {
     Task<ErpSimpleWriteResult> CreateAsync(
@@ -31,6 +31,11 @@ public interface ICpStorageWriteService
         string? handlerFolder,
         int hidden,
         int bgLineColor,
+        CancellationToken cancellationToken = default);
+
+    Task<ErpSimpleWriteResult> SaveMembershipAsync(
+        long officeId,
+        string? storagesListJson,
         CancellationToken cancellationToken = default);
 }
 
@@ -98,6 +103,167 @@ public sealed class CpStorageWriteService : ICpStorageWriteService
             bgLineColor,
             cancellationToken);
     }
+
+    public async Task<ErpSimpleWriteResult> SaveMembershipAsync(
+        long officeId,
+        string? storagesListJson,
+        CancellationToken cancellationToken = default)
+    {
+        if (officeId <= 0)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "An office id is required.");
+        }
+
+        var parsed = ParseStoragesList(storagesListJson);
+        if (parsed.Error is not null)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", parsed.Error);
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return ErpSimpleWriteResult.Fail("db", "TenantRegistry DB is not configured.");
+        }
+
+        await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await using var transaction = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            await ErpDb.ExecuteAsync(
+                connection,
+                transaction,
+                ErpDb.Positional("DELETE FROM `shop_offices_storages_map` WHERE `office_id` = ?"),
+                cancellationToken,
+                officeId).ConfigureAwait(false);
+
+            foreach (var row in parsed.Rows)
+            {
+                await ErpDb.ExecuteAsync(
+                    connection,
+                    transaction,
+                    ErpDb.Positional(
+                        """
+                        INSERT INTO `shop_offices_storages_map`
+                        (`office_id`, `storage_id`, `group_id`, `min_point`, `max_point`, `markup`, `additional_time`)
+                        VALUES (?, ?, ?, ?, ?, ?, ?)
+                        """),
+                    cancellationToken,
+                    officeId, row.StorageId, row.GroupId, row.MinPoint, row.MaxPoint, row.Markup, row.AdditionalTime)
+                    .ConfigureAwait(false);
+            }
+
+            await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
+        }
+        catch (System.Data.Common.DbException)
+        {
+            await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
+            return ErpSimpleWriteResult.Fail("invalid", "Could not save office warehouse membership.");
+        }
+
+        return new ErpSimpleWriteResult(true, "ok", "Saved", officeId, Math.Max(1, parsed.Rows.Count));
+    }
+
+    /// <summary>PHP <c>office_storages_link.php</c> <c>storages_list</c> JSON.</summary>
+    public static (IReadOnlyList<OfficeStorageMapRow> Rows, string? Error) ParseStoragesList(string? raw)
+    {
+        var text = (raw ?? string.Empty).Trim();
+        if (text.Length == 0)
+        {
+            return ([], null);
+        }
+
+        try
+        {
+            using var doc = JsonDocument.Parse(text);
+            if (doc.RootElement.ValueKind != JsonValueKind.Array)
+            {
+                return ([], "storages_list must be a JSON array.");
+            }
+
+            var rows = new List<OfficeStorageMapRow>();
+            foreach (var storage in doc.RootElement.EnumerateArray())
+            {
+                if (storage.ValueKind != JsonValueKind.Object || !IsChecked(storage))
+                {
+                    continue;
+                }
+
+                var storageId = ReadLong(storage, "id", "storageId", "storage_id");
+                if (storageId <= 0)
+                {
+                    return ([], "Each connected warehouse needs an id.");
+                }
+
+                var additionalTime = ReadLong(storage, "time_to_shop", "additional_time", "additionalTime");
+                if (!storage.TryGetProperty("groups", out var groups) || groups.ValueKind != JsonValueKind.Array)
+                {
+                    continue;
+                }
+
+                foreach (var group in groups.EnumerateArray())
+                {
+                    if (group.ValueKind != JsonValueKind.Object)
+                    {
+                        continue;
+                    }
+
+                    var groupId = ReadLong(group, "id", "groupId", "group_id");
+                    if (groupId <= 0)
+                    {
+                        return ([], "Each markup group needs an id.");
+                    }
+
+                    if (!group.TryGetProperty("prices_ranges", out var ranges)
+                        && !group.TryGetProperty("pricesRanges", out ranges))
+                    {
+                        continue;
+                    }
+
+                    if (ranges.ValueKind != JsonValueKind.Array)
+                    {
+                        continue;
+                    }
+
+                    decimal minPoint = 0;
+                    foreach (var range in ranges.EnumerateArray())
+                    {
+                        if (range.ValueKind != JsonValueKind.Object)
+                        {
+                            continue;
+                        }
+
+                        var maxPoint = ReadDecimal(range, "max_point", "maxPoint");
+                        if (maxPoint < 0)
+                        {
+                            maxPoint = 999999999999m;
+                        }
+
+                        var markup = ReadDecimal(range, "markup");
+                        rows.Add(new OfficeStorageMapRow(storageId, groupId, minPoint, maxPoint, markup, additionalTime));
+                        minPoint = maxPoint;
+                        if (rows.Count > 500)
+                        {
+                            return ([], "Too many membership rows.");
+                        }
+                    }
+                }
+            }
+
+            return (rows, null);
+        }
+        catch (JsonException)
+        {
+            return ([], "storages_list JSON is not valid.");
+        }
+    }
+
+    public readonly record struct OfficeStorageMapRow(
+        long StorageId,
+        long GroupId,
+        decimal MinPoint,
+        decimal MaxPoint,
+        decimal Markup,
+        long AdditionalTime);
 
     private async Task<ErpSimpleWriteResult> SaveAsync(
         long storageId,
@@ -319,4 +485,75 @@ public sealed class CpStorageWriteService : ICpStorageWriteService
 
     private static string HtmlEntities(string value)
         => WebUtility.HtmlEncode(value);
+
+    private static bool IsChecked(JsonElement storage)
+    {
+        if (!storage.TryGetProperty("checked", out var flag))
+        {
+            return false;
+        }
+
+        return flag.ValueKind switch
+        {
+            JsonValueKind.True => true,
+            JsonValueKind.False => false,
+            JsonValueKind.Number => flag.TryGetInt64(out var n) && n != 0,
+            JsonValueKind.String => IsTruthy(flag.GetString()),
+            _ => false,
+        };
+    }
+
+    private static bool IsTruthy(string? raw)
+    {
+        var text = (raw ?? string.Empty).Trim();
+        return text is "1" or "true" or "True" or "yes" or "on";
+    }
+
+    private static long ReadLong(JsonElement item, params string[] names)
+    {
+        foreach (var name in names)
+        {
+            if (!item.TryGetProperty(name, out var prop))
+            {
+                continue;
+            }
+
+            if (prop.ValueKind == JsonValueKind.Number && prop.TryGetInt64(out var n))
+            {
+                return n;
+            }
+
+            if (prop.ValueKind == JsonValueKind.String
+                && long.TryParse(prop.GetString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsed))
+            {
+                return parsed;
+            }
+        }
+
+        return 0;
+    }
+
+    private static decimal ReadDecimal(JsonElement item, params string[] names)
+    {
+        foreach (var name in names)
+        {
+            if (!item.TryGetProperty(name, out var prop))
+            {
+                continue;
+            }
+
+            if (prop.ValueKind == JsonValueKind.Number && prop.TryGetDecimal(out var n))
+            {
+                return n;
+            }
+
+            if (prop.ValueKind == JsonValueKind.String
+                && decimal.TryParse(prop.GetString(), NumberStyles.Number, CultureInfo.InvariantCulture, out var parsed))
+            {
+                return parsed;
+            }
+        }
+
+        return 0;
+    }
 }

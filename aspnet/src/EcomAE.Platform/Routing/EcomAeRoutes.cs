@@ -1015,6 +1015,8 @@ public static class EcomAeRoutes
     public const string CpStoragesGroups = "/cp/storages/groups";
     /// <summary>PHP <c>storage.php</c> create / edit. <c>confirmWrites=true</c> writes via <c>ICpStorageWriteService</c>.</summary>
     public const string CpStoragesWrite = "/cp/storages/write";
+    /// <summary>PHP office_storages_link.php save. <c>confirmWrites=true</c> writes via <c>ICpStorageWriteService.SaveMembershipAsync</c>.</summary>
+    public const string CpStoragesMembership = "/cp/storages/membership";
     /// <summary>PHP quote_requests.php admin_note. <c>confirmWrites=true</c> writes via <c>ICpQuoteWriteService</c>.</summary>
     public const string CpQuoteSaveNote = "/cp/quote-requests/note";
     /// <summary>PHP quote_requests.php save_quote line quoting. <c>confirmWrites=true</c> writes via <c>ICpQuoteWriteService</c>.</summary>

@@ -991,6 +991,37 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(whDb.Succeeded);
         Assert.Equal("db", whDb.Code);
 
+        var memInvalid = await new CpStorageWriteService(new ConfiguredNeverOpened())
+            .SaveMembershipAsync(0, "[]");
+        Assert.False(memInvalid.Succeeded);
+        Assert.Equal("invalid", memInvalid.Code);
+
+        var memBadJson = await new CpStorageWriteService(new ConfiguredNeverOpened())
+            .SaveMembershipAsync(1, "{");
+        Assert.False(memBadJson.Succeeded);
+        Assert.Equal("invalid", memBadJson.Code);
+
+        var memDb = await new CpStorageWriteService(new UnconfiguredConnections())
+            .SaveMembershipAsync(1, "[]");
+        Assert.False(memDb.Succeeded);
+        Assert.Equal("db", memDb.Code);
+
+        var memParsed = CpStorageWriteService.ParseStoragesList(
+            """[{"id":1,"checked":true,"time_to_shop":2,"groups":[{"id":2,"prices_ranges":[{"max_point":-1,"markup":5}]}]}]""");
+        Assert.Null(memParsed.Error);
+        Assert.Single(memParsed.Rows);
+        Assert.Equal(1, memParsed.Rows[0].StorageId);
+        Assert.Equal(2, memParsed.Rows[0].GroupId);
+        Assert.Equal(0, memParsed.Rows[0].MinPoint);
+        Assert.Equal(999999999999m, memParsed.Rows[0].MaxPoint);
+        Assert.Equal(5, memParsed.Rows[0].Markup);
+        Assert.Equal(2, memParsed.Rows[0].AdditionalTime);
+
+        var memSkip = CpStorageWriteService.ParseStoragesList(
+            """[{"id":1,"checked":false,"groups":[{"id":2,"prices_ranges":[{"max_point":10,"markup":1}]}]}]""");
+        Assert.Null(memSkip.Error);
+        Assert.Empty(memSkip.Rows);
+
         Assert.Equal("[1,2]", CpStorageWriteService.NormalizeUsers("1,2").Json);
         Assert.Equal("[]", CpStorageWriteService.NormalizeUsers(null).Json);
         var opts = CpStorageWriteService.NormalizeConnectionOptions(
