@@ -3655,6 +3655,64 @@ public sealed class ControlPanelModule : ISurfaceModule
                 written.Message,
                 new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.CpAccessoriesTaxonomyWrite, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpAccessoriesTaxonomyWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/accessories-app", "Admin CP capability required for accessories taxonomy writes.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpAccessoriesTaxonomyWriteBody>(context, cancellationToken) ?? new();
+            var action = body.Action;
+            var id = body.Id != 0 ? body.Id : body.CategoryId != 0 ? body.CategoryId : body.TermId;
+            var parentId = body.ParentId;
+            var label = body.Label;
+            var termType = body.TermType;
+            var sortOrder = body.SortOrder;
+            var active = body.Active;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                action = LiveWriteFormBinder.Text(form, "action");
+                id = LiveWriteFormBinder.Long(form, "id", "categoryId", "category_id", "termId", "term_id");
+                parentId = LiveWriteFormBinder.Long(form, "parentId", "parent_id");
+                label = LiveWriteFormBinder.Text(form, "label");
+                termType = LiveWriteFormBinder.Text(form, "termType", "term_type");
+                sortOrder = LiveWriteFormBinder.Int(form, "sortOrder", "sort_order");
+                active = LiveWriteFormBinder.Flag(form, "active");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(new
+                {
+                    status = "dry-run",
+                    writes = 0,
+                    writesBlocked = true,
+                    phpAuthoritative = true,
+                    validation_code = "dry_run",
+                    message = "Set confirmWrites=true to save accessory categories or terms on ASP.NET.",
+                    session = SessionPayload(session)
+                });
+            }
+
+            var written = await writes.WriteAsync(
+                new CpAccessoriesTaxonomyWriteRequest(action, id, parentId, label, termType, sortOrder, active),
+                cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/cp/accessories-app",
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.CpVersionClearUpdates, async (HttpContext context, CpVersionClearUpdatesBody? body, ILegacySessionValidator validator, ICpVersionClearUpdatesDryRun dryRun, CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateAsync(context, cancellationToken);
@@ -8890,7 +8948,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Listing save/status/delete POST /cp/accessories/listings/write and photo filename attach POST /cp/accessories/photos when confirmWrites=true. Multipart photo bytes and taxonomy stay PHP."
+                note = "Listing save/status/delete POST /cp/accessories/listings/write, photo filename attach POST /cp/accessories/photos, and taxonomy POST /cp/accessories/taxonomy/write when confirmWrites=true. Multipart photo bytes stay PHP."
             });
         });
 
@@ -9894,6 +9952,17 @@ public sealed class ControlPanelModule : ISurfaceModule
         string? ImageName = null,
         string? Photo = null,
         bool AsPrimary = false,
+        bool ConfirmWrites = false);
+    private sealed record CpAccessoriesTaxonomyWriteBody(
+        string? Action = null,
+        long Id = 0,
+        long CategoryId = 0,
+        long TermId = 0,
+        long ParentId = 0,
+        string? Label = null,
+        string? TermType = null,
+        int SortOrder = 0,
+        bool Active = false,
         bool ConfirmWrites = false);
     private sealed record CpAccessoriesListingsWriteBody(
         string? Action = null,

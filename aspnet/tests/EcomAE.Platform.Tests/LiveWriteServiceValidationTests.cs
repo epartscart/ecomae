@@ -2579,5 +2579,27 @@ public sealed class LiveWriteServiceValidationTests
                 Status: "published"));
         Assert.False(accListingDb.Succeeded);
         Assert.Equal("db", accListingDb.Code);
+
+        Assert.Equal("save_category", CpAccessoriesTaxonomyWriteService.NormalizeAction("add_category"));
+        Assert.Equal("save_term", CpAccessoriesTaxonomyWriteService.NormalizeAction("term"));
+        Assert.Equal("floor-mats", CpAccessoriesTaxonomyWriteService.Slugify("Floor Mats"));
+        Assert.Equal("make", CpAccessoriesTaxonomyWriteService.SanitizeTermType("MAKE!"));
+        var accTaxInvalid = await new CpAccessoriesTaxonomyWriteService(new ConfiguredNeverOpened())
+            .WriteAsync(new CpAccessoriesTaxonomyWriteRequest(Action: "save_category", Label: ""));
+        Assert.False(accTaxInvalid.Succeeded);
+        Assert.Equal("invalid", accTaxInvalid.Code);
+        Assert.Contains("Category label", accTaxInvalid.Message, StringComparison.OrdinalIgnoreCase);
+        var accTermInvalid = await new CpAccessoriesTaxonomyWriteService(new ConfiguredNeverOpened())
+            .WriteAsync(new CpAccessoriesTaxonomyWriteRequest(Action: "save_term", TermType: "make", Label: ""));
+        Assert.False(accTermInvalid.Succeeded);
+        Assert.Equal("invalid", accTermInvalid.Code);
+        var accTaxDeleteInvalid = await new CpAccessoriesTaxonomyWriteService(new ConfiguredNeverOpened())
+            .WriteAsync(new CpAccessoriesTaxonomyWriteRequest(Action: "delete_category", Id: 0));
+        Assert.False(accTaxDeleteInvalid.Succeeded);
+        Assert.Equal("invalid", accTaxDeleteInvalid.Code);
+        var accTaxDb = await new CpAccessoriesTaxonomyWriteService(new UnconfiguredConnections())
+            .WriteAsync(new CpAccessoriesTaxonomyWriteRequest(Action: "save_category", Label: "Interior"));
+        Assert.False(accTaxDb.Succeeded);
+        Assert.Equal("db", accTaxDb.Code);
     }
 }

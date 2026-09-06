@@ -1262,8 +1262,10 @@ public static class EcomAeRoutes
     public const string CpPriceReviewCreateCsv = "/cp/prices/review-create-csv";
     /// <summary>PHP ajax_epc_accessories_photos.php upload / delete / set_primary. <c>confirmWrites=true</c> writes via <c>ICpAccessoriesPhotoWriteService</c>. Multipart file bytes and disk unlink stay PHP.</summary>
     public const string CpAccessoriesPhotos = "/cp/accessories/photos";
-    /// <summary>PHP accessories_listings.php save / set_status / delete. <c>confirmWrites=true</c> writes via <c>ICpAccessoriesListingWriteService</c>. Multipart listing photos and taxonomy stay PHP.</summary>
+    /// <summary>PHP accessories_listings.php save / set_status / delete. <c>confirmWrites=true</c> writes via <c>ICpAccessoriesListingWriteService</c>. Multipart listing photos stay PHP.</summary>
     public const string CpAccessoriesListingsWrite = "/cp/accessories/listings/write";
+    /// <summary>PHP accessories_listings.php save_category / set_category_active / delete_category / save_term / set_term_active / delete_term. <c>confirmWrites=true</c> writes via <c>ICpAccessoriesTaxonomyWriteService</c>. JSON seed stays PHP.</summary>
+    public const string CpAccessoriesTaxonomyWrite = "/cp/accessories/taxonomy/write";
     /// <summary>Wave B dry-run for PHP cp/content/control/version_control/ajax/ajax_clear_updates_dir.php (writes=0).</summary>
     public const string CpVersionClearUpdates = "/cp/version/clear-updates";
     /// <summary>Wave B dry-run for PHP content/shop/bulk_upload/ajax_process.php (writes=0).</summary>
