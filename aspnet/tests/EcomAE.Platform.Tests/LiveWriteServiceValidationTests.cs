@@ -1162,6 +1162,32 @@ public sealed class LiveWriteServiceValidationTests
         Assert.Equal(0, CpSearchTabWriteService.ParseEnabled(""));
         Assert.Equal(1, CpSearchTabWriteService.ParseEnabled(null, 1));
 
+        var extraEmpty = await new CpAdditionalTextWriteService(new ConfiguredNeverOpened())
+            .SaveAsync(new CpAdditionalTextSaveRequest(Url: ""));
+        Assert.False(extraEmpty.Succeeded);
+        Assert.Equal("invalid", extraEmpty.Code);
+
+        var extraDelEmpty = await new CpAdditionalTextWriteService(new ConfiguredNeverOpened())
+            .DeleteAsync("");
+        Assert.False(extraDelEmpty.Succeeded);
+        Assert.Equal("invalid", extraDelEmpty.Code);
+
+        var extraDelJson = await new CpAdditionalTextWriteService(new ConfiguredNeverOpened())
+            .DeleteAsync("{");
+        Assert.False(extraDelJson.Succeeded);
+        Assert.Equal("invalid", extraDelJson.Code);
+
+        var extraDb = await new CpAdditionalTextWriteService(new UnconfiguredConnections())
+            .SaveAsync(new CpAdditionalTextSaveRequest(Url: "/shop/demo", Content: "Hi"));
+        Assert.False(extraDb.Succeeded);
+        Assert.Equal("db", extraDb.Code);
+
+        Assert.Equal("[CODE]php[/CODE]", CpAdditionalTextWriteService.StripPhp("<?php?>"));
+        Assert.Equal("Hello", CpAdditionalTextWriteService.HtmlEncode("Hello"));
+        var extraIds = CpAdditionalTextWriteService.ParseIds("[1,2,2]");
+        Assert.Null(extraIds.Error);
+        Assert.Equal(new long[] { 1, 2 }, extraIds.Ids);
+
         Assert.Equal("[1,2]", CpStorageWriteService.NormalizeUsers("1,2").Json);
         Assert.Equal("[]", CpStorageWriteService.NormalizeUsers(null).Json);
         var opts = CpStorageWriteService.NormalizeConnectionOptions(

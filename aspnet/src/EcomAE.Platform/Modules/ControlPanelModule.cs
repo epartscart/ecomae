@@ -3541,6 +3541,130 @@ public sealed class ControlPanelModule : ISurfaceModule
                 written.Message,
                 new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.CpAdditionalTextsWrite, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpAdditionalTextWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/additional-texts-app", "Admin CP capability required for additional texts.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpAdditionalTextsWriteBody>(context, cancellationToken) ?? new();
+            var url = body.Url;
+            var content = body.Content ?? body.Text;
+            var beforeMain = body.BeforeMain;
+            var titleTag = body.TitleTag;
+            var descriptionTag = body.DescriptionTag;
+            var keywordsTag = body.KeywordsTag;
+            var contentLangStrId = body.ContentLangStrId ?? body.TextLangStrId;
+            var titleLangStrId = body.TitleLangStrId;
+            var descriptionLangStrId = body.DescriptionLangStrId;
+            var keywordsLangStrId = body.KeywordsLangStrId;
+            var langCode = body.LangCode;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                url = LiveWriteFormBinder.Text(form, "url");
+                content = LiveWriteFormBinder.Text(form, "content", "text");
+                beforeMain = LiveWriteFormBinder.Flag(form, "beforeMain", "before_main") ? 1 : LiveWriteFormBinder.Int(form, "beforeMain", "before_main");
+                titleTag = LiveWriteFormBinder.Text(form, "titleTag", "title_tag");
+                descriptionTag = LiveWriteFormBinder.Text(form, "descriptionTag", "description_tag");
+                keywordsTag = LiveWriteFormBinder.Text(form, "keywordsTag", "keywords_tag");
+                contentLangStrId = LiveWriteFormBinder.Text(form, "contentLangStrId", "text_lang_str_id", "content_lang_str_id");
+                titleLangStrId = LiveWriteFormBinder.Text(form, "titleLangStrId", "title_tag_lang_str_id");
+                descriptionLangStrId = LiveWriteFormBinder.Text(form, "descriptionLangStrId", "description_tag_lang_str_id");
+                keywordsLangStrId = LiveWriteFormBinder.Text(form, "keywordsLangStrId", "keywords_tag_lang_str_id");
+                langCode = LiveWriteFormBinder.Text(form, "langCode", "lang_code");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(new
+                {
+                    status = "dry-run",
+                    writes = 0,
+                    writesBlocked = true,
+                    phpAuthoritative = true,
+                    validation_code = "dry_run",
+                    message = "Set confirmWrites=true to save additional text on ASP.NET.",
+                    session = SessionPayload(session)
+                });
+            }
+
+            var host = context.Request.Host.Host;
+            var domainPath = string.IsNullOrWhiteSpace(host) ? "http://localhost/" : "http://" + host + "/";
+            var written = await writes.SaveAsync(
+                new CpAdditionalTextSaveRequest(
+                    url,
+                    content,
+                    beforeMain,
+                    titleTag,
+                    descriptionTag,
+                    keywordsTag,
+                    contentLangStrId,
+                    titleLangStrId,
+                    descriptionLangStrId,
+                    keywordsLangStrId,
+                    langCode,
+                    domainPath),
+                cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/cp/additional-texts-app",
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.CpAdditionalTextsDelete, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpAdditionalTextWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/additional-texts-app", "Admin CP capability required for additional-text delete.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpAdditionalTextsDeleteBody>(context, cancellationToken) ?? new();
+            var ids = body.Ids ?? body.UrlsToDel;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                ids = LiveWriteFormBinder.Text(form, "ids", "urls_to_del", "urlsToDel");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(new
+                {
+                    status = "dry-run",
+                    writes = 0,
+                    writesBlocked = true,
+                    phpAuthoritative = true,
+                    validation_code = "dry_run",
+                    message = "Set confirmWrites=true to delete additional texts on ASP.NET.",
+                    session = SessionPayload(session)
+                });
+            }
+
+            var written = await writes.DeleteAsync(ids, cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/cp/additional-texts-app",
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.CpQuoteSaveNote, async (
             HttpContext context,
             ILegacySessionValidator validator,
@@ -6747,7 +6871,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only text_for_url KPIs + texts (content HTML + description_tag bodies in rows (title/keywords only)). PHP Additional texts remains authoritative."
+                note = "text_for_url KPIs + texts (title/keywords). Save is POST /cp/additional-texts/write; delete is POST /cp/additional-texts/delete."
             });
         });
 
@@ -8127,6 +8251,22 @@ public sealed class ControlPanelModule : ISurfaceModule
         string? ParametersValues = null,
         string? LangCode = null,
         bool ConfirmWrites = false);
+    private sealed record CpAdditionalTextsWriteBody(
+        string? Url = null,
+        string? Content = null,
+        string? Text = null,
+        int BeforeMain = 0,
+        string? TitleTag = null,
+        string? DescriptionTag = null,
+        string? KeywordsTag = null,
+        string? ContentLangStrId = null,
+        string? TextLangStrId = null,
+        string? TitleLangStrId = null,
+        string? DescriptionLangStrId = null,
+        string? KeywordsLangStrId = null,
+        string? LangCode = null,
+        bool ConfirmWrites = false);
+    private sealed record CpAdditionalTextsDeleteBody(string? Ids = null, string? UrlsToDel = null, bool ConfirmWrites = false);
     private sealed record CpQuoteSaveNoteBody(long QuoteId = 0, string? AdminNote = null, bool ConfirmWrites = false);
     private sealed record CpQuoteSaveLinesBody(
         long QuoteId = 0,
