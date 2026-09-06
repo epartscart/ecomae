@@ -1508,6 +1508,56 @@ public sealed class LiveWriteServiceValidationTests
         Assert.Equal("groups_access is not valid.", CpContentManagerWriteService.ParseGroups("{").Error);
         Assert.Equal(32, CpContentManagerWriteService.ComputeCheckHash(0, 1, "secret").Length);
 
+        var menuAction = await new CpMenuWriteService(new ConfiguredNeverOpened())
+            .SaveAsync(new CpMenuSaveRequest(Action: "rename", Caption: "Main"));
+        Assert.False(menuAction.Succeeded);
+        Assert.Equal("invalid", menuAction.Code);
+
+        var menuUpdateId = await new CpMenuWriteService(new ConfiguredNeverOpened())
+            .SaveAsync(new CpMenuSaveRequest(Action: "update", MenuId: 0, Caption: "Main", TreeJson: "[]"));
+        Assert.False(menuUpdateId.Succeeded);
+        Assert.Equal("invalid", menuUpdateId.Code);
+
+        var menuTree = await new CpMenuWriteService(new ConfiguredNeverOpened())
+            .SaveAsync(new CpMenuSaveRequest(Action: "create", Caption: "Main", TreeJson: "{"));
+        Assert.False(menuTree.Succeeded);
+        Assert.Equal("invalid", menuTree.Code);
+
+        var menuDb = await new CpMenuWriteService(new UnconfiguredConnections())
+            .SaveAsync(new CpMenuSaveRequest(Action: "create", Caption: "Main", TreeJson: "[]"));
+        Assert.False(menuDb.Succeeded);
+        Assert.Equal("db", menuDb.Code);
+
+        var menuDelEmpty = await new CpMenuWriteService(new ConfiguredNeverOpened())
+            .DeleteAsync("");
+        Assert.False(menuDelEmpty.Succeeded);
+        Assert.Equal("invalid", menuDelEmpty.Code);
+
+        var menuDelJson = await new CpMenuWriteService(new ConfiguredNeverOpened())
+            .DeleteAsync("{");
+        Assert.False(menuDelJson.Succeeded);
+        Assert.Equal("invalid", menuDelJson.Code);
+
+        var menuDelDb = await new CpMenuWriteService(new UnconfiguredConnections())
+            .DeleteAsync("[1]");
+        Assert.False(menuDelDb.Succeeded);
+        Assert.Equal("db", menuDelDb.Code);
+
+        Assert.Equal("create", CpMenuWriteService.NormalizeAction("save_create"));
+        Assert.Equal("update", CpMenuWriteService.NormalizeAction("save_update"));
+        Assert.Equal("Hello", CpMenuWriteService.HtmlEncode("Hello"));
+        Assert.Equal("&lt;b&gt;", CpMenuWriteService.HtmlEncode("<b>"));
+        var emptyTree = CpMenuWriteService.TryParseTree("");
+        Assert.Null(emptyTree.Error);
+        Assert.NotNull(emptyTree.Tree);
+        Assert.Equal("menu_tree is not valid JSON.", CpMenuWriteService.TryParseTree("{").Error);
+        var okTree = CpMenuWriteService.TryParseTree("""[{"value":"Home","link_mode":"url","href":"/"}]""");
+        Assert.Null(okTree.Error);
+        var menuIds = CpMenuWriteService.ParseIds("[1,2,2]");
+        Assert.Null(menuIds.Error);
+        Assert.Equal(new long[] { 1, 2 }, menuIds.Ids);
+        Assert.Equal("menu_list JSON is not valid.", CpMenuWriteService.ParseIds("{").Error);
+
         var wmsInvalid = await new ErpWmsLocationWriteService(new ConfiguredNeverOpened())
             .DeleteAsync(0);
         Assert.False(wmsInvalid.Succeeded);
