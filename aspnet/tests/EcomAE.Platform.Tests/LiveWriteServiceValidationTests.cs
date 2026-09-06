@@ -2084,6 +2084,18 @@ public sealed class LiveWriteServiceValidationTests
         Assert.Equal(1, okTreeList.Nodes[0].Count);
         Assert.Equal(2, okTreeList.Nodes[1].Id);
         Assert.True(okTreeList.Nodes[1].IsNew);
+        Assert.Equal("root.png", CpTreeListWriteService.SanitizeImageName("../root.png"));
+        Assert.True(CpTreeListWriteService.HasAllowedImageExtension("root.png"));
+        var treeImg = await new CpTreeListWriteService(new ConfiguredNeverOpened())
+            .SaveAsync(new CpTreeListSaveRequest(
+                Action: "create",
+                Caption: "Makes",
+                TreeJson: """[{"id":1,"value":"Root","$count":0,"$level":1,"$parent":0,"image":"root.exe"}]"""));
+        Assert.False(treeImg.Succeeded);
+        Assert.Equal("invalid", treeImg.Code);
+        var okTreeImg = CpTreeListWriteService.ParseTree("""[{"id":1,"value":"Root","$count":0,"$level":1,"$parent":0,"image":"root.png"}]""");
+        Assert.Null(okTreeImg.Error);
+        Assert.Equal("root.png", okTreeImg.Nodes[0].Image);
         var treeListIds = CpTreeListWriteService.ParseIds("[1,2,2]");
         Assert.Null(treeListIds.Error);
         Assert.Equal(new long[] { 1, 2 }, treeListIds.Ids);
@@ -2117,6 +2129,16 @@ public sealed class LiveWriteServiceValidationTests
         Assert.Equal("tree_json must be a JSON array.", CpTreeListWriteService.ParseBranchItems("{").Error);
         Assert.Equal("Each brunch item needs a positive id.", CpTreeListWriteService.ParseBranchItems("""[{"value":"Sib"}]""").Error);
         var okBrunch = CpTreeListWriteService.ParseBranchItems("""[{"id":5,"value":"Sib","alias":"sib","url":"/sib","is_new":1}]""");
+        var brunchImg = await new CpTreeListWriteService(new ConfiguredNeverOpened())
+            .SaveBranchAsync(new CpTreeListBranchSaveRequest(
+                Action: "branch_create",
+                Caption: "Branch",
+                ItemsJson: """[{"id":1,"value":"Sib","image":"sib.exe"}]"""));
+        Assert.False(brunchImg.Succeeded);
+        Assert.Equal("invalid", brunchImg.Code);
+        var okBrunchImg = CpTreeListWriteService.ParseBranchItems("""[{"id":5,"value":"Sib","image":"sib.png"}]""");
+        Assert.Null(okBrunchImg.Error);
+        Assert.Equal("sib.png", okBrunchImg.Items[0].Image);
         Assert.Null(okBrunch.Error);
         Assert.Equal(5, okBrunch.Items[0].Id);
         Assert.True(okBrunch.Items[0].IsNew);

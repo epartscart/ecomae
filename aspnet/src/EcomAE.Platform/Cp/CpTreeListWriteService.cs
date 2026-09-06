@@ -8,7 +8,8 @@ namespace EcomAE.Platform.Cp;
 
 /// <summary>
 /// Live PHP <c>tree_list.php</c> save_action, <c>tree_list_brunch_editor.php</c> save_action,
-/// and <c>tree_lists_manager.php</c> delete twins. Drag-tree UX and item image upload stay Classic.
+/// and <c>tree_lists_manager.php</c> delete twins. Filename <c>image</c> attach writes here.
+/// Drag-tree UX and multipart item image bytes stay Classic.
 /// </summary>
 public interface ICpTreeListWriteService
 {
@@ -46,7 +47,8 @@ public sealed record CpTreeListBranchItem(
     string ValueLangStrId,
     string? Alias,
     string Url,
-    bool IsNew);
+    bool IsNew,
+    string Image = "");
 
 public sealed record CpTreeListNode(
     long Id,
@@ -58,7 +60,8 @@ public sealed record CpTreeListNode(
     int Open,
     string? Alias,
     string Url,
-    bool IsNew);
+    bool IsNew,
+    string Image = "");
 
 public sealed class CpTreeListWriteService : ICpTreeListWriteService
 {
@@ -87,6 +90,12 @@ public sealed class CpTreeListWriteService : ICpTreeListWriteService
         if (parsed.Error is not null)
         {
             return ErpSimpleWriteResult.Fail("invalid", parsed.Error);
+        }
+
+        var imageError = ValidateItemImages(parsed.Nodes.Select(n => n.Image));
+        if (imageError is not null)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", imageError);
         }
 
         if (!_connections.IsConfigured)
@@ -170,6 +179,8 @@ public sealed class CpTreeListWriteService : ICpTreeListWriteService
                         node.Open,
                         node.Alias,
                         node.Url).ConfigureAwait(false);
+                    await ApplyItemImageAsync(connection, transaction, node.Id, node.Image, cancellationToken)
+                        .ConfigureAwait(false);
                     order++;
                 }
             }
@@ -259,6 +270,8 @@ public sealed class CpTreeListWriteService : ICpTreeListWriteService
                             node.Id).ConfigureAwait(false);
                     }
 
+                    await ApplyItemImageAsync(connection, transaction, node.Id, node.Image, cancellationToken)
+                        .ConfigureAwait(false);
                     order++;
                 }
             }
@@ -300,6 +313,12 @@ public sealed class CpTreeListWriteService : ICpTreeListWriteService
         if (parsed.Error is not null)
         {
             return ErpSimpleWriteResult.Fail("invalid", parsed.Error);
+        }
+
+        var imageError = ValidateItemImages(parsed.Items.Select(i => i.Image));
+        if (imageError is not null)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", imageError);
         }
 
         if (!_connections.IsConfigured)
@@ -413,6 +432,8 @@ public sealed class CpTreeListWriteService : ICpTreeListWriteService
                         1,
                         item.Alias,
                         item.Url).ConfigureAwait(false);
+                    await ApplyItemImageAsync(connection, transaction, item.Id, item.Image, cancellationToken)
+                        .ConfigureAwait(false);
                     order++;
                 }
             }
@@ -516,6 +537,8 @@ public sealed class CpTreeListWriteService : ICpTreeListWriteService
                             item.Id).ConfigureAwait(false);
                     }
 
+                    await ApplyItemImageAsync(connection, transaction, item.Id, item.Image, cancellationToken)
+                        .ConfigureAwait(false);
                     order++;
                 }
             }
@@ -698,7 +721,8 @@ public sealed class CpTreeListWriteService : ICpTreeListWriteService
                     ReadString(node, "value_lang_str_id", "valueLangStrId"),
                     string.IsNullOrWhiteSpace(aliasRaw) ? null : HtmlEncode(aliasRaw),
                     HtmlEncode(ReadString(node, "url")),
-                    ReadFlag(node, "is_new", "isNew") == 1));
+                    ReadFlag(node, "is_new", "isNew") == 1,
+                    ReadString(node, "image", "image_name", "imageName")));
                 if (items.Count > 400)
                 {
                     return ([], "tree_json has too many items.");
@@ -781,6 +805,26 @@ public sealed class CpTreeListWriteService : ICpTreeListWriteService
     public static string HtmlEncode(string? raw)
         => WebUtility.HtmlEncode(raw ?? string.Empty);
 
+    public static string SanitizeImageName(string? raw)
+    {
+        var name = Path.GetFileName((raw ?? string.Empty).Trim().Replace('\\', '/'));
+        if (name.Contains("..", StringComparison.Ordinal))
+        {
+            return string.Empty;
+        }
+
+        return name.Replace("'", "", StringComparison.Ordinal)
+            .Replace("\"", "", StringComparison.Ordinal)
+            .Replace("`", "", StringComparison.Ordinal)
+            .Trim();
+    }
+
+    public static bool HasAllowedImageExtension(string? raw)
+    {
+        var ext = Path.GetExtension(raw ?? string.Empty).TrimStart('.').ToLowerInvariant();
+        return ext is "png" or "jpg" or "jpeg" or "gif";
+    }
+
     public static string NormalizeAction(string? raw)
     {
         var action = (raw ?? string.Empty).Trim().ToLowerInvariant();
@@ -844,7 +888,8 @@ public sealed class CpTreeListWriteService : ICpTreeListWriteService
                 ReadFlag(element, "open"),
                 alias,
                 HtmlEncode(ReadString(element, "url")),
-                ReadFlag(element, "is_new", "isNew") == 1));
+                ReadFlag(element, "is_new", "isNew") == 1,
+                ReadString(element, "image", "image_name", "imageName")));
         }
 
         var children = GetProperty(element, "data");
@@ -861,6 +906,52 @@ public sealed class CpTreeListWriteService : ICpTreeListWriteService
         }
 
         return null;
+    }
+
+    private static string? ValidateItemImages(IEnumerable<string?> images)
+    {
+        foreach (var raw in images)
+        {
+            if (string.IsNullOrWhiteSpace(raw))
+            {
+                continue;
+            }
+
+            var name = SanitizeImageName(raw);
+            if (name.Length == 0)
+            {
+                return "Image name is not valid.";
+            }
+
+            if (!HasAllowedImageExtension(name))
+            {
+                return "Image must be png, jpg, jpeg, or gif.";
+            }
+        }
+
+        return null;
+    }
+
+    private static async Task ApplyItemImageAsync(
+        System.Data.Common.DbConnection connection,
+        System.Data.Common.DbTransaction transaction,
+        long itemId,
+        string? imageName,
+        CancellationToken cancellationToken)
+    {
+        var name = SanitizeImageName(imageName);
+        if (name.Length == 0)
+        {
+            return;
+        }
+
+        await ErpDb.ExecuteAsync(
+            connection,
+            transaction,
+            ErpDb.Positional("UPDATE `shop_tree_lists_items` SET `image` = ? WHERE `id` = ?"),
+            cancellationToken,
+            name,
+            itemId).ConfigureAwait(false);
     }
 
     private static async Task<List<long>> LoadItemIdsAsync(
