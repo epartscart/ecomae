@@ -901,11 +901,11 @@ public static class EcomAeRoutes
     public const string ErpAjaxHrUpdateDays = "/erp/ajax/hr-update-days";
     /// <summary>Wave B dry-run for PHP einvoice_create (writes=0).</summary>
     public const string ErpAjaxEinvoiceCreate = "/erp/ajax/einvoice-create";
-    /// <summary>Wave B dry-run for PHP einvoice_save_seller (writes=0).</summary>
+    /// <summary>PHP einvoice_save_seller. <c>confirmWrites=true</c> writes via <c>IErpEinvoiceProfileWriteService</c>.</summary>
     public const string ErpAjaxEinvoiceSaveSeller = "/erp/ajax/einvoice-save-seller";
-    /// <summary>Wave B dry-run for PHP einvoice_save_buyer (writes=0).</summary>
+    /// <summary>PHP einvoice_save_buyer. <c>confirmWrites=true</c> writes via <c>IErpEinvoiceProfileWriteService</c>.</summary>
     public const string ErpAjaxEinvoiceSaveBuyer = "/erp/ajax/einvoice-save-buyer";
-    /// <summary>Wave B dry-run for PHP einvoice_save_asp (writes=0).</summary>
+    /// <summary>PHP einvoice_save_asp. <c>confirmWrites=true</c> writes via <c>IErpEinvoiceProfileWriteService</c>.</summary>
     public const string ErpAjaxEinvoiceSaveAsp = "/erp/ajax/einvoice-save-asp";
     /// <summary>Wave B dry-run for PHP einvoice_submit (writes=0).</summary>
     public const string ErpAjaxEinvoiceSubmit = "/erp/ajax/einvoice-submit";

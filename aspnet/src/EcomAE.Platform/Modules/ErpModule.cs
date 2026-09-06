@@ -2782,12 +2782,191 @@ public sealed class ErpModule : ISurfaceModule
         }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxEinvoiceCreate, async (HttpContext context, ErpEinvoiceCreateBody? body, ILegacySessionValidator validator, IErpEinvoiceCreateDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpEinvoiceCreateRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxEinvoiceSaveSeller, async (HttpContext context, ErpEinvoiceSaveSellerBody? body, ILegacySessionValidator validator, IErpEinvoiceSaveSellerDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpEinvoiceSaveSellerRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxEinvoiceSaveBuyer, async (HttpContext context, ErpEinvoiceSaveBuyerBody? body, ILegacySessionValidator validator, IErpEinvoiceSaveBuyerDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpEinvoiceSaveBuyerRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxEinvoiceSaveAsp, async (HttpContext context, ErpEinvoiceSaveAspBody? body, ILegacySessionValidator validator, IErpEinvoiceSaveAspDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpEinvoiceSaveAspRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxEinvoiceSaveSeller, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IErpEinvoiceSaveSellerDryRun dryRun,
+            IErpEinvoiceProfileWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/cp/einvoice-documents-app", "Admin ERP capability required for e-invoice seller save.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpEinvoiceSaveSellerBody>(context, cancellationToken) ?? new();
+            var sellerName = body.SellerName;
+            var sellerTrn = body.SellerTrn;
+            var sellerTin = body.SellerTin;
+            var sellerLegalRegNo = body.SellerLegalRegNo;
+            var sellerLegalRegType = body.SellerLegalRegType;
+            var sellerAuthorityName = body.SellerAuthorityName;
+            var sellerAddressLine1 = body.SellerAddressLine1;
+            var sellerCity = body.SellerCity;
+            var sellerEmirate = body.SellerEmirate;
+            var sellerCountryCode = body.SellerCountryCode;
+            var sellerPhone = body.SellerPhone;
+            var sellerEmail = body.SellerEmail;
+            var sellerBankAccount = body.SellerBankAccount;
+            var paymentMeansCode = body.PaymentMeansCode;
+            var paymentTerms = body.PaymentTerms;
+            var vatRegistered = body.CompanyVatRegistered;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                sellerName = LiveWriteFormBinder.Text(form, "sellerName", "seller_name");
+                sellerTrn = LiveWriteFormBinder.Text(form, "sellerTrn", "seller_trn");
+                sellerTin = LiveWriteFormBinder.Text(form, "sellerTin", "seller_tin");
+                sellerLegalRegNo = LiveWriteFormBinder.Text(form, "sellerLegalRegNo", "seller_legal_reg_no");
+                sellerLegalRegType = LiveWriteFormBinder.Text(form, "sellerLegalRegType", "seller_legal_reg_type");
+                sellerAuthorityName = LiveWriteFormBinder.Text(form, "sellerAuthorityName", "seller_authority_name");
+                sellerAddressLine1 = LiveWriteFormBinder.Text(form, "sellerAddressLine1", "seller_address_line1");
+                sellerCity = LiveWriteFormBinder.Text(form, "sellerCity", "seller_city");
+                sellerEmirate = LiveWriteFormBinder.Text(form, "sellerEmirate", "seller_emirate");
+                sellerCountryCode = LiveWriteFormBinder.Text(form, "sellerCountryCode", "seller_country_code");
+                sellerPhone = LiveWriteFormBinder.Text(form, "sellerPhone", "seller_phone");
+                sellerEmail = LiveWriteFormBinder.Text(form, "sellerEmail", "seller_email");
+                sellerBankAccount = LiveWriteFormBinder.Text(form, "sellerBankAccount", "seller_bank_account");
+                paymentMeansCode = LiveWriteFormBinder.Text(form, "paymentMeansCode", "payment_means_code");
+                paymentTerms = LiveWriteFormBinder.Text(form, "paymentTerms", "payment_terms");
+                vatRegistered = LiveWriteFormBinder.Flag(form, "companyVatRegistered", "company_vat_registered");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(dryRun.Evaluate(new ErpEinvoiceSaveSellerRequest(0, sellerTrn, false)).ToPayload(SessionPayload(session)));
+            }
+
+            var written = await writes.SaveSellerAsync(
+                new ErpEinvoiceSellerWriteRequest(
+                    sellerName, sellerTrn, sellerTin, sellerLegalRegNo, sellerLegalRegType, sellerAuthorityName,
+                    sellerAddressLine1, sellerCity, sellerEmirate, sellerCountryCode, sellerPhone, sellerEmail,
+                    sellerBankAccount, paymentMeansCode, paymentTerms, vatRegistered),
+                cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/cp/einvoice-documents-app",
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxEinvoiceSaveBuyer, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IErpEinvoiceSaveBuyerDryRun dryRun,
+            IErpEinvoiceProfileWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/cp/einvoice-documents-app", "Admin ERP capability required for e-invoice buyer save.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpEinvoiceSaveBuyerBody>(context, cancellationToken) ?? new();
+            var userId = body.UserId != 0 ? body.UserId : body.Id;
+            var buyerName = body.BuyerName;
+            var trn = body.Trn;
+            var tin = body.Tin;
+            var legalRegNo = body.LegalRegNo;
+            var legalRegType = body.LegalRegType;
+            var authorityName = body.AuthorityName;
+            var addressLine1 = body.AddressLine1;
+            var city = body.City;
+            var emirate = body.Emirate;
+            var countryCode = body.CountryCode;
+            var phone = body.Phone;
+            var email = body.Email;
+            var peppolEndpoint = body.PeppolEndpoint;
+            var onboarded = body.BuyerOnboarded;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                userId = LiveWriteFormBinder.Long(form, "userId", "user_id", "id");
+                buyerName = LiveWriteFormBinder.Text(form, "buyerName", "buyer_name");
+                trn = LiveWriteFormBinder.Text(form, "trn");
+                tin = LiveWriteFormBinder.Text(form, "tin");
+                legalRegNo = LiveWriteFormBinder.Text(form, "legalRegNo", "legal_reg_no");
+                legalRegType = LiveWriteFormBinder.Text(form, "legalRegType", "legal_reg_type");
+                authorityName = LiveWriteFormBinder.Text(form, "authorityName", "authority_name");
+                addressLine1 = LiveWriteFormBinder.Text(form, "addressLine1", "address_line1");
+                city = LiveWriteFormBinder.Text(form, "city");
+                emirate = LiveWriteFormBinder.Text(form, "emirate");
+                countryCode = LiveWriteFormBinder.Text(form, "countryCode", "country_code");
+                phone = LiveWriteFormBinder.Text(form, "phone");
+                email = LiveWriteFormBinder.Text(form, "email");
+                peppolEndpoint = LiveWriteFormBinder.Text(form, "peppolEndpoint", "peppol_endpoint");
+                onboarded = LiveWriteFormBinder.Flag(form, "buyerOnboarded", "buyer_onboarded");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(dryRun.Evaluate(new ErpEinvoiceSaveBuyerRequest(userId, null, false)).ToPayload(SessionPayload(session)));
+            }
+
+            var written = await writes.SaveBuyerAsync(
+                new ErpEinvoiceBuyerWriteRequest(
+                    userId, buyerName, trn, tin, legalRegNo, legalRegType, authorityName,
+                    addressLine1, city, emirate, countryCode, phone, email, peppolEndpoint, onboarded),
+                cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/cp/einvoice-documents-app",
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxEinvoiceSaveAsp, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IErpEinvoiceSaveAspDryRun dryRun,
+            IErpEinvoiceProfileWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/cp/einvoice-documents-app", "Admin ERP capability required for e-invoice ASP save.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpEinvoiceSaveAspBody>(context, cancellationToken) ?? new();
+            var aspName = body.AspName;
+            var aspApiMode = body.AspApiMode;
+            var aspApiUrl = body.AspApiUrl;
+            var aspApiKey = body.AspApiKey;
+            var einvoiceEnabled = body.EinvoiceEnabled;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                aspName = LiveWriteFormBinder.Text(form, "aspName", "asp_name");
+                aspApiMode = LiveWriteFormBinder.Text(form, "aspApiMode", "asp_api_mode");
+                aspApiUrl = LiveWriteFormBinder.Text(form, "aspApiUrl", "asp_api_url");
+                aspApiKey = LiveWriteFormBinder.Text(form, "aspApiKey", "asp_api_key");
+                einvoiceEnabled = LiveWriteFormBinder.Text(form, "einvoiceEnabled", "einvoice_enabled");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(dryRun.Evaluate(new ErpEinvoiceSaveAspRequest(0, aspName, false)).ToPayload(SessionPayload(session)));
+            }
+
+            var written = await writes.SaveAspAsync(
+                new ErpEinvoiceAspWriteRequest(aspName, aspApiMode, aspApiUrl, aspApiKey, einvoiceEnabled),
+                cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/cp/einvoice-documents-app",
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxEinvoiceSubmit, async (HttpContext context, ErpEinvoiceSubmitBody? body, ILegacySessionValidator validator, IErpEinvoiceSubmitDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,false); return Results.Ok(dryRun.Evaluate(new ErpEinvoiceSubmitRequest(body.Id, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxEinvoiceCreditNote, async (HttpContext context, ErpEinvoiceCreditNoteBody? body, ILegacySessionValidator validator, IErpEinvoiceCreditNoteDryRun dryRun, CancellationToken cancellationToken) =>
@@ -5342,9 +5521,54 @@ public sealed class ErpModule : ISurfaceModule
     private sealed record ErpHrExpenseStatusBody(long Id, string? TargetStatus = null, bool ConfirmWrites = false);
     private sealed record ErpHrUpdateDaysBody(long Id = 0, long StaffProfileId = 0, decimal DaysWorked = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpEinvoiceCreateBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
-    private sealed record ErpEinvoiceSaveSellerBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
-    private sealed record ErpEinvoiceSaveBuyerBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
-    private sealed record ErpEinvoiceSaveAspBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
+    private sealed record ErpEinvoiceSaveSellerBody(
+        long Id = 0,
+        string? Code = null,
+        string? SellerName = null,
+        string? SellerTrn = null,
+        string? SellerTin = null,
+        string? SellerLegalRegNo = null,
+        string? SellerLegalRegType = null,
+        string? SellerAuthorityName = null,
+        string? SellerAddressLine1 = null,
+        string? SellerCity = null,
+        string? SellerEmirate = null,
+        string? SellerCountryCode = null,
+        string? SellerPhone = null,
+        string? SellerEmail = null,
+        string? SellerBankAccount = null,
+        string? PaymentMeansCode = null,
+        string? PaymentTerms = null,
+        bool CompanyVatRegistered = false,
+        bool ConfirmWrites = false);
+    private sealed record ErpEinvoiceSaveBuyerBody(
+        long Id = 0,
+        long UserId = 0,
+        string? Code = null,
+        string? BuyerName = null,
+        string? Trn = null,
+        string? Tin = null,
+        string? LegalRegNo = null,
+        string? LegalRegType = null,
+        string? AuthorityName = null,
+        string? AddressLine1 = null,
+        string? City = null,
+        string? Emirate = null,
+        string? CountryCode = null,
+        string? Phone = null,
+        string? Email = null,
+        string? PeppolEndpoint = null,
+        bool BuyerOnboarded = false,
+        bool ConfirmWrites = false);
+    private sealed record ErpEinvoiceSaveAspBody(
+        long Id = 0,
+        string? Code = null,
+        string? AspName = null,
+        string? AspApiMode = null,
+        string? AspApiUrl = null,
+        string? AspApiKey = null,
+        string? EinvoiceEnabled = null,
+        bool ConfirmWrites = false);
     private sealed record ErpEinvoiceSubmitBody(long Id = 0, bool ConfirmWrites = false);
     private sealed record ErpEinvoiceCreditNoteBody(bool ConfirmWrites = false);
     private sealed record ErpEinvoicePollAspBody(bool ConfirmWrites = false);

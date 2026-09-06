@@ -99,6 +99,33 @@
         </table>
     </div>
 
+    <form id="seller" method="post" action="/erp/ajax/einvoice-save-seller" style="display:flex;flex-wrap:wrap;gap:.45rem;align-items:end;margin:1rem 0;max-width:52rem">
+        <input type="hidden" name="confirmWrites" value="true" />
+        <input type="hidden" name="returnUrl" value="/cp/einvoice-documents-app" />
+        <label>Seller name <input type="text" name="sellerName" required /></label>
+        <label>TRN <input type="text" name="sellerTrn" required maxlength="15" /></label>
+        <label>Country <input type="text" name="sellerCountryCode" value="AE" style="width:4rem" /></label>
+        <label>City <input type="text" name="sellerCity" value="Dubai" /></label>
+        <label>VAT registered <input type="checkbox" name="companyVatRegistered" value="1" checked /></label>
+        <button type="submit">Save seller</button>
+    </form>
+    <form method="post" action="/erp/ajax/einvoice-save-buyer" style="display:flex;flex-wrap:wrap;gap:.45rem;align-items:end;margin:0 0 1rem;max-width:52rem">
+        <input type="hidden" name="confirmWrites" value="true" />
+        <input type="hidden" name="returnUrl" value="/cp/einvoice-documents-app" />
+        <label>Customer user id <input type="number" name="userId" min="1" required style="width:6rem" /></label>
+        <label>Buyer name <input type="text" name="buyerName" required /></label>
+        <label>TRN <input type="text" name="trn" /></label>
+        <button type="submit">Save buyer</button>
+    </form>
+    <form method="post" action="/erp/ajax/einvoice-save-asp" style="display:flex;flex-wrap:wrap;gap:.45rem;align-items:end;margin:0 0 1rem;max-width:52rem">
+        <input type="hidden" name="confirmWrites" value="true" />
+        <input type="hidden" name="returnUrl" value="/cp/einvoice-documents-app" />
+        <label>ASP name <input type="text" name="aspName" required /></label>
+        <label>Mode <input type="text" name="aspApiMode" value="manual" style="width:7rem" /></label>
+        <button type="submit">Save ASP</button>
+    </form>
+    <div class="epc-ei-note">Seller / buyer / ASP profile save writes here. Create, submit, credit-note, and ASP poll stay Classic.</div>
+
 </PhpCpDesktopChrome>
 
 @code {

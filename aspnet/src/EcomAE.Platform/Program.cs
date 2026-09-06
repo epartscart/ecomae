@@ -297,6 +297,7 @@ builder.Services.AddSingleton<IErpHrExpenseSaveDryRun, ErpHrExpenseSaveDryRun>()
 builder.Services.AddSingleton<IErpHrExpenseStatusDryRun, ErpHrExpenseStatusDryRun>();
 builder.Services.AddSingleton<IErpHrUpdateDaysDryRun, ErpHrUpdateDaysDryRun>();
 builder.Services.AddSingleton<IErpEinvoiceCreateDryRun, ErpEinvoiceCreateDryRun>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpEinvoiceProfileWriteService, EcomAE.Platform.Erp.ErpEinvoiceProfileWriteService>();
 builder.Services.AddSingleton<IErpEinvoiceSaveSellerDryRun, ErpEinvoiceSaveSellerDryRun>();
 builder.Services.AddSingleton<IErpEinvoiceSaveBuyerDryRun, ErpEinvoiceSaveBuyerDryRun>();
 builder.Services.AddSingleton<IErpEinvoiceSaveAspDryRun, ErpEinvoiceSaveAspDryRun>();

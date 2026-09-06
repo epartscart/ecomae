@@ -6953,7 +6953,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only epc_einvoice_documents KPIs + documents (seller_json/buyer_json/xml/validation/tax_breakdown omitted). PHP tax einvoice tab remains authoritative."
+                note = "E-invoice documents digest. Seller/buyer/ASP profile POST /erp/ajax/einvoice-save-* when confirmWrites=true. Create/submit stay PHP."
             });
         });
 
