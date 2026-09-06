@@ -1185,6 +1185,39 @@ public sealed class LiveWriteServiceValidationTests
         Assert.Equal(9, okCat.Categories[1].Parent);
         Assert.Equal(1, okCat.Categories[0].PublishedFlag);
 
+        var prodAction = await new CpCatalogueProductWriteService(new ConfiguredNeverOpened())
+            .SaveAsync(new CpCatalogueProductSaveRequest(Action: "upload", CategoryId: 1, Caption: "Pad"));
+        Assert.False(prodAction.Succeeded);
+        Assert.Equal("invalid", prodAction.Code);
+
+        var prodCat = await new CpCatalogueProductWriteService(new ConfiguredNeverOpened())
+            .SaveAsync(new CpCatalogueProductSaveRequest(Action: "create", Caption: "Pad"));
+        Assert.False(prodCat.Succeeded);
+        Assert.Equal("invalid", prodCat.Code);
+
+        var prodId = await new CpCatalogueProductWriteService(new ConfiguredNeverOpened())
+            .SaveAsync(new CpCatalogueProductSaveRequest(Action: "edit", ProductId: 0, Caption: "Pad"));
+        Assert.False(prodId.Succeeded);
+        Assert.Equal("invalid", prodId.Code);
+
+        var prodProps = await new CpCatalogueProductWriteService(new ConfiguredNeverOpened())
+            .SaveAsync(new CpCatalogueProductSaveRequest(Action: "create", CategoryId: 1, PropertiesJson: "{"));
+        Assert.False(prodProps.Succeeded);
+        Assert.Equal("invalid", prodProps.Code);
+
+        var prodDb = await new CpCatalogueProductWriteService(new UnconfiguredConnections())
+            .SaveAsync(new CpCatalogueProductSaveRequest(Action: "create", CategoryId: 1, Caption: "Pad"));
+        Assert.False(prodDb.Succeeded);
+        Assert.Equal("db", prodDb.Code);
+
+        Assert.Equal("create", CpCatalogueProductWriteService.NormalizeAction("save", 0));
+        Assert.Equal("edit", CpCatalogueProductWriteService.NormalizeAction("save", 9));
+        Assert.Equal("Pad", CpCatalogueProductWriteService.SanitizePlain(" Pa'd\n"));
+        Assert.Equal("[CODE]x[/CODE]", CpCatalogueProductWriteService.StripPhp("<?x?>"));
+        var okProps = CpCatalogueProductWriteService.ParseProperties("""[{"property_id":1,"property_type_id":5,"value":[9]}]""");
+        Assert.Null(okProps.Error);
+        Assert.Equal(9, okProps.Properties[0].OptionIds[0]);
+
         var jwInvalid = await new ErpJwRepairWriteService(new ConfiguredNeverOpened())
             .SetStatusAsync(0, "ready");
         Assert.False(jwInvalid.Succeeded);

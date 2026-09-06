@@ -3252,6 +3252,113 @@ public sealed class ControlPanelModule : ISurfaceModule
                 written.Message,
                 new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.CpCatalogueProductWrite, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpCatalogueProductWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/product-catalogue-app", "Admin CP capability required for product writes.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpCatalogueProductWriteBody>(context, cancellationToken) ?? new();
+            var action = body.Action;
+            var productId = body.ProductId;
+            var categoryId = body.CategoryId;
+            var caption = body.Caption;
+            var captionLangStrId = body.CaptionLangStrId;
+            var alias = body.Alias;
+            var titleTag = body.TitleTag;
+            var titleTagLangStrId = body.TitleTagLangStrId;
+            var descriptionTag = body.DescriptionTag;
+            var descriptionTagLangStrId = body.DescriptionTagLangStrId;
+            var keywordsTag = body.KeywordsTag;
+            var keywordsTagLangStrId = body.KeywordsTagLangStrId;
+            var robotsTag = body.RobotsTag;
+            var publishedFlag = body.PublishedFlag;
+            var productText = body.ProductText;
+            var productTextLangStrId = body.ProductTextLangStrId;
+            var propertiesJson = body.PropertiesJson ?? body.PropertiesObjects;
+            var stickersJson = body.StickersJson ?? body.ProductStickers;
+            var relatedJson = body.RelatedJson ?? body.ProductRelated;
+            var langCode = body.LangCode;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                action = LiveWriteFormBinder.Text(form, "action", "save_action");
+                productId = LiveWriteFormBinder.Long(form, "productId", "product_id");
+                categoryId = LiveWriteFormBinder.Long(form, "categoryId", "category_id");
+                caption = LiveWriteFormBinder.Text(form, "caption");
+                captionLangStrId = LiveWriteFormBinder.Text(form, "captionLangStrId", "caption_lang_str_id");
+                alias = LiveWriteFormBinder.Text(form, "alias");
+                titleTag = LiveWriteFormBinder.Text(form, "titleTag", "title_tag");
+                titleTagLangStrId = LiveWriteFormBinder.Text(form, "titleTagLangStrId", "title_tag_lang_str_id");
+                descriptionTag = LiveWriteFormBinder.Text(form, "descriptionTag", "description_tag");
+                descriptionTagLangStrId = LiveWriteFormBinder.Text(form, "descriptionTagLangStrId", "description_tag_lang_str_id");
+                keywordsTag = LiveWriteFormBinder.Text(form, "keywordsTag", "keywords_tag");
+                keywordsTagLangStrId = LiveWriteFormBinder.Text(form, "keywordsTagLangStrId", "keywords_tag_lang_str_id");
+                robotsTag = LiveWriteFormBinder.Text(form, "robotsTag", "robots_tag");
+                publishedFlag = LiveWriteFormBinder.Int(form, "publishedFlag", "published_flag");
+                productText = LiveWriteFormBinder.Text(form, "productText", "product_text");
+                productTextLangStrId = LiveWriteFormBinder.Text(form, "productTextLangStrId", "product_text_lang_str_id");
+                propertiesJson = LiveWriteFormBinder.Text(form, "propertiesJson", "properties_objects");
+                stickersJson = LiveWriteFormBinder.Text(form, "stickersJson", "product_stickers");
+                relatedJson = LiveWriteFormBinder.Text(form, "relatedJson", "product_related");
+                langCode = LiveWriteFormBinder.Text(form, "langCode", "lang_code");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(new
+                {
+                    status = "dry-run",
+                    writes = 0,
+                    writesBlocked = true,
+                    phpAuthoritative = true,
+                    validation_code = "dry_run",
+                    message = "Set confirmWrites=true to create or edit a catalogue product on ASP.NET.",
+                    session = SessionPayload(session)
+                });
+            }
+
+            var host = context.Request.Host.Host;
+            var domainPath = string.IsNullOrWhiteSpace(host) ? "http://localhost/" : "http://" + host + "/";
+            var written = await writes.SaveAsync(
+                new CpCatalogueProductSaveRequest(
+                    action,
+                    productId,
+                    categoryId,
+                    caption,
+                    captionLangStrId,
+                    alias,
+                    titleTag,
+                    titleTagLangStrId,
+                    descriptionTag,
+                    descriptionTagLangStrId,
+                    keywordsTag,
+                    keywordsTagLangStrId,
+                    robotsTag,
+                    publishedFlag,
+                    productText,
+                    productTextLangStrId,
+                    propertiesJson,
+                    stickersJson,
+                    relatedJson,
+                    langCode,
+                    domainPath),
+                cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/cp/product-catalogue-app",
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.CpPriceReviewWrite, async (HttpContext context, CpPriceReviewWriteBody? body, ILegacySessionValidator validator, ICpPriceReviewWriteDryRun dryRun, CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateAsync(context, cancellationToken);
@@ -9459,6 +9566,31 @@ public sealed class ControlPanelModule : ISurfaceModule
         bool ConfirmWrites = false);
     private sealed record CpCatalogueEditorWriteBody(
         string? TreeJson = null,
+        string? LangCode = null,
+        bool ConfirmWrites = false);
+    private sealed record CpCatalogueProductWriteBody(
+        string? Action = null,
+        long ProductId = 0,
+        long CategoryId = 0,
+        string? Caption = null,
+        string? CaptionLangStrId = null,
+        string? Alias = null,
+        string? TitleTag = null,
+        string? TitleTagLangStrId = null,
+        string? DescriptionTag = null,
+        string? DescriptionTagLangStrId = null,
+        string? KeywordsTag = null,
+        string? KeywordsTagLangStrId = null,
+        string? RobotsTag = null,
+        int PublishedFlag = 1,
+        string? ProductText = null,
+        string? ProductTextLangStrId = null,
+        string? PropertiesJson = null,
+        string? PropertiesObjects = null,
+        string? StickersJson = null,
+        string? ProductStickers = null,
+        string? RelatedJson = null,
+        string? ProductRelated = null,
         string? LangCode = null,
         bool ConfirmWrites = false);
     private sealed record CpPriceReviewWriteBody(string? Action = null, bool ConfirmWrites = false);

@@ -21,7 +21,7 @@
 
 
     <PhpCpModulePageHeader Title="Product catalogue"
-                           Subtitle="Min-limit, templates, line/tree lists, brunch, SKU profile/spec/photo-meta, homepage slots, special searches, and the catalogue tree write here. SKU photo file upload, item images, template file upload, special-search images, category images, and drag-tree UX stay on the compare twin."
+                           Subtitle="Min-limit, templates, line/tree lists, brunch, SKU profile/spec/photo-meta, homepage slots, special searches, catalogue tree, and product create/edit write here. Product/SKU/template/category images, manual line-list create, and drag-tree UX stay on the compare twin."
                            PhpTabHref="@_phpTab">
         <a class="ghost" href="/cp/prices-upload-app">Prices upload</a>
         <a class="ghost" href="/cp/crosses-app">Crosses</a>
@@ -60,6 +60,10 @@
         <a class="epc-scp-table-card" style="padding:1rem;text-decoration:none;color:inherit;" href="#catalogue-tree">
             <h3 style="margin:0 0 .35rem;font-size:1rem;">Catalogue tree</h3>
             <p style="margin:0;color:#475569;font-size:.86rem;">Save writes here. Images and drag-tree stay Classic.</p>
+        </a>
+        <a class="epc-scp-table-card" style="padding:1rem;text-decoration:none;color:inherit;" href="#product-save">
+            <h3 style="margin:0 0 .35rem;font-size:1rem;">Product save</h3>
+            <p style="margin:0;color:#475569;font-size:.86rem;">Create / edit write here. Images stay Classic.</p>
         </a>
     </div>
 
@@ -361,6 +365,44 @@
                 <textarea name="treeJson" rows="5" style="width:100%;font-family:monospace" placeholder='[{"id":1,"value":"Tires","alias":"tires","url":"/tires","published_flag":1,"$level":1,"$parent":0,"$count":0,"data":[]}]'></textarea>
             </label>
             <button type="submit">Save catalogue tree</button>
+        </form>
+        <form id="product-save" method="post" action="/cp/catalogue/products/write" style="display:flex;flex-direction:column;gap:.45rem;margin:0 0 1rem;max-width:52rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/product-catalogue-app" />
+            <input type="hidden" name="langCode" value="en" />
+            <div style="display:flex;flex-wrap:wrap;gap:.45rem;align-items:end">
+                <label>Action
+                    <select name="action">
+                        <option value="create">create</option>
+                        <option value="edit">edit</option>
+                    </select>
+                </label>
+                <label>Product id <input type="number" name="productId" min="0" value="0" style="width:6rem" /></label>
+                <label>Category id <input type="number" name="categoryId" min="1" value="401" style="width:6rem" /></label>
+                <label>Caption <input type="text" name="caption" /></label>
+                <label>Alias <input type="text" name="alias" /></label>
+                <label>Published
+                    <select name="publishedFlag">
+                        <option value="1">1</option>
+                        <option value="0">0</option>
+                    </select>
+                </label>
+            </div>
+            <label>Title tag <input type="text" name="titleTag" style="width:100%" /></label>
+            <label>Robots <input type="text" name="robotsTag" value="index,follow" /></label>
+            <label>Product text
+                <textarea name="productText" rows="3" style="width:100%"></textarea>
+            </label>
+            <label>Properties JSON
+                <textarea name="propertiesJson" rows="3" style="width:100%;font-family:monospace" placeholder='[{"property_id":1,"property_type_id":1,"value":"12"}]'></textarea>
+            </label>
+            <label>Stickers JSON
+                <input type="text" name="stickersJson" value="[]" style="width:100%;font-family:monospace" />
+            </label>
+            <label>Related JSON
+                <input type="text" name="relatedJson" value="[]" style="width:100%;font-family:monospace" />
+            </label>
+            <button type="submit">Save product</button>
         </form>
     }
     @if (!_isAdmin)
