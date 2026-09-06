@@ -2946,7 +2946,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Content pages metadata (body omitted). Publish, main, body, and create/edit POST /cp/content/* when confirmWrites=true. TinyMCE upload stays PHP."
+                note = "Content pages metadata (body omitted). Publish, main, body, create/edit, and tree POST /cp/content/* when confirmWrites=true. TinyMCE upload stays PHP."
             });
         });
 
