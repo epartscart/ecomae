@@ -1136,6 +1136,32 @@ public sealed class LiveWriteServiceValidationTests
         Assert.Null(geoTreeLinear.Error);
         Assert.Equal(1, geoTreeLinear.Nodes[0].Order);
 
+        var tabAvail = await new CpSearchTabWriteService(new ConfiguredNeverOpened())
+            .SetEnabledAsync(0, 1);
+        Assert.False(tabAvail.Succeeded);
+        Assert.Equal("invalid", tabAvail.Code);
+
+        var tabSave = await new CpSearchTabWriteService(new ConfiguredNeverOpened())
+            .SaveAsync(new CpSearchTabSaveRequest(TabId: 0, Caption: "VIN"));
+        Assert.False(tabSave.Succeeded);
+        Assert.Equal("invalid", tabSave.Code);
+
+        var tabJson = await new CpSearchTabWriteService(new ConfiguredNeverOpened())
+            .SaveAsync(new CpSearchTabSaveRequest(TabId: 1, Caption: "VIN", ParametersValues: "{"));
+        Assert.False(tabJson.Succeeded);
+        Assert.Equal("invalid", tabJson.Code);
+
+        var tabDb = await new CpSearchTabWriteService(new UnconfiguredConnections())
+            .SetEnabledAsync(1, 1);
+        Assert.False(tabDb.Succeeded);
+        Assert.Equal("db", tabDb.Code);
+
+        Assert.Equal("{}", CpSearchTabWriteService.NormalizeParameters(null).Json);
+        Assert.Null(CpSearchTabWriteService.NormalizeParameters("""{"demo":"1"}""").Error);
+        Assert.Equal(1, CpSearchTabWriteService.ParseEnabled("tab_enabled"));
+        Assert.Equal(0, CpSearchTabWriteService.ParseEnabled(""));
+        Assert.Equal(1, CpSearchTabWriteService.ParseEnabled(null, 1));
+
         Assert.Equal("[1,2]", CpStorageWriteService.NormalizeUsers("1,2").Json);
         Assert.Equal("[]", CpStorageWriteService.NormalizeUsers(null).Json);
         var opts = CpStorageWriteService.NormalizeConnectionOptions(

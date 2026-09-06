@@ -1027,6 +1027,8 @@ public static class EcomAeRoutes
     public const string CpDeliveryMethodsWrite = "/cp/delivery-methods/write";
     /// <summary>PHP geo_tree.php save_tree. <c>confirmWrites=true</c> writes via <c>ICpGeoTreeWriteService</c>.</summary>
     public const string CpGeoRegionsWrite = "/cp/geo-regions/write";
+    /// <summary>PHP search_tabs.php activation and search_tab.php save. <c>confirmWrites=true</c> writes via <c>ICpSearchTabWriteService</c>.</summary>
+    public const string CpSearchTabsWrite = "/cp/search-tabs/write";
     /// <summary>PHP quote_requests.php admin_note. <c>confirmWrites=true</c> writes via <c>ICpQuoteWriteService</c>.</summary>
     public const string CpQuoteSaveNote = "/cp/quote-requests/note";
     /// <summary>PHP quote_requests.php save_quote line quoting. <c>confirmWrites=true</c> writes via <c>ICpQuoteWriteService</c>.</summary>

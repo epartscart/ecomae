@@ -3458,6 +3458,89 @@ public sealed class ControlPanelModule : ISurfaceModule
                 written.Message,
                 new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.CpSearchTabsWrite, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpSearchTabWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/search-tabs-app", "Admin CP capability required for search tabs.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpSearchTabsWriteBody>(context, cancellationToken) ?? new();
+            var action = body.Action;
+            var tabId = body.TabId;
+            var enabled = body.Enabled;
+            var tabEnabled = body.TabEnabled;
+            var caption = body.Caption ?? body.TabCaption;
+            var captionLangStrId = body.CaptionLangStrId ?? body.TabCaptionLangStrId;
+            var sortOrder = body.SortOrder;
+            var parametersValues = body.ParametersValues;
+            var langCode = body.LangCode;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                action = LiveWriteFormBinder.Text(form, "action");
+                tabId = LiveWriteFormBinder.Long(form, "tabId", "tab_id", "id");
+                enabled = LiveWriteFormBinder.Int(form, "enabled", "activate_tab", "activateTab");
+                tabEnabled = LiveWriteFormBinder.Text(form, "tabEnabled", "tab_enabled", "enabled");
+                caption = LiveWriteFormBinder.Text(form, "caption", "tabCaption", "tab_caption");
+                captionLangStrId = LiveWriteFormBinder.Text(form, "captionLangStrId", "caption_lang_str_id", "tab_caption_lang_str_id");
+                sortOrder = LiveWriteFormBinder.Int(form, "sortOrder", "sort_order", "tab_order", "order");
+                parametersValues = LiveWriteFormBinder.Text(form, "parametersValues", "parameters_values");
+                langCode = LiveWriteFormBinder.Text(form, "langCode", "lang_code");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(new
+                {
+                    status = "dry-run",
+                    writes = 0,
+                    writesBlocked = true,
+                    phpAuthoritative = true,
+                    validation_code = "dry_run",
+                    message = "Set confirmWrites=true to save the search tab on ASP.NET.",
+                    session = SessionPayload(session)
+                });
+            }
+
+            var key = (action ?? string.Empty).Trim().ToLowerInvariant();
+            var flag = CpSearchTabWriteService.ParseEnabled(tabEnabled, enabled);
+            ErpSimpleWriteResult written;
+            if (key is "save" or "save_action" or "edit" or "update")
+            {
+                var host = context.Request.Host.Host;
+                var domainPath = string.IsNullOrWhiteSpace(host) ? "http://localhost/" : "http://" + host + "/";
+                written = await writes.SaveAsync(
+                    new CpSearchTabSaveRequest(
+                        tabId,
+                        caption,
+                        captionLangStrId,
+                        sortOrder,
+                        flag,
+                        parametersValues,
+                        langCode,
+                        domainPath),
+                    cancellationToken);
+            }
+            else
+            {
+                written = await writes.SetEnabledAsync(tabId, flag, cancellationToken);
+            }
+
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/cp/search-tabs-app",
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.CpQuoteSaveNote, async (
             HttpContext context,
             ILegacySessionValidator validator,
@@ -6608,7 +6691,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only shop_docpart_search_tabs KPIs + tabs (parameters_values JSON). PHP Search tabs remains authoritative."
+                note = "shop_docpart_search_tabs KPIs + tabs (parameters_values JSON). Activate/save is POST /cp/search-tabs/write."
             });
         });
 
@@ -8029,6 +8112,19 @@ public sealed class ControlPanelModule : ISurfaceModule
     private sealed record CpGeoRegionsWriteBody(
         string? TreeJson = null,
         string? TreeJsonText = null,
+        string? LangCode = null,
+        bool ConfirmWrites = false);
+    private sealed record CpSearchTabsWriteBody(
+        string? Action = null,
+        long TabId = 0,
+        int Enabled = 0,
+        string? TabEnabled = null,
+        string? Caption = null,
+        string? TabCaption = null,
+        string? CaptionLangStrId = null,
+        string? TabCaptionLangStrId = null,
+        int SortOrder = 0,
+        string? ParametersValues = null,
         string? LangCode = null,
         bool ConfirmWrites = false);
     private sealed record CpQuoteSaveNoteBody(long QuoteId = 0, string? AdminNote = null, bool ConfirmWrites = false);

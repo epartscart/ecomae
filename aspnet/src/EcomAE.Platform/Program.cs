@@ -674,6 +674,7 @@ builder.Services.AddScoped<EcomAE.Platform.Cp.ICpStorageWriteService, EcomAE.Pla
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpOfficeWriteService, EcomAE.Platform.Cp.CpOfficeWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpObtainingModeWriteService, EcomAE.Platform.Cp.CpObtainingModeWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpGeoTreeWriteService, EcomAE.Platform.Cp.CpGeoTreeWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Cp.ICpSearchTabWriteService, EcomAE.Platform.Cp.CpSearchTabWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpPricesUploadWriteService, EcomAE.Platform.Cp.CpPricesUploadWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpQuoteWriteService, EcomAE.Platform.Cp.CpQuoteWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpVendorApprovalWriteService, EcomAE.Platform.Cp.CpVendorApprovalWriteService>();
