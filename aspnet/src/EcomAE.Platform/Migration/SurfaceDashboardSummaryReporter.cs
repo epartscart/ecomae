@@ -11780,7 +11780,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                         Convert.ToInt64(reader["parent"] is DBNull ? 0 : reader["parent"], CultureInfo.InvariantCulture),
                         Convert.ToInt32(reader["sort_order"] is DBNull ? 0 : reader["sort_order"], CultureInfo.InvariantCulture),
                         Convert.ToInt32(reader["child_count"] is DBNull ? 0 : reader["child_count"], CultureInfo.InvariantCulture),
-                        Convert.ToInt64(reader["value_lang_id"] is DBNull ? 0 : reader["value_lang_id"], CultureInfo.InvariantCulture)));
+                        ParseGeoLangId(reader["value_lang_id"])));
                 }
             }
             catch
@@ -11796,6 +11796,22 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             var err = empty with { Source = "database-error", Message = ex.Message };
             return new(err, [], 0, "database-error", ex.Message);
         }
+    }
+
+    private static long ParseGeoLangId(object? raw)
+    {
+        if (raw is null or DBNull)
+        {
+            return 0;
+        }
+
+        return long.TryParse(
+            Convert.ToString(raw, CultureInfo.InvariantCulture),
+            NumberStyles.Integer,
+            CultureInfo.InvariantCulture,
+            out var id)
+            ? id
+            : 0;
     }
 
     public async Task<CpProductFiltersDigestResult> BuildCpProductFiltersDigestAsync(int limit, CancellationToken cancellationToken = default)

@@ -3410,6 +3410,54 @@ public sealed class ControlPanelModule : ISurfaceModule
                 written.Message,
                 new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.CpGeoRegionsWrite, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpGeoTreeWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/geo-regions-app", "Admin CP capability required for geo tree save.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpGeoRegionsWriteBody>(context, cancellationToken) ?? new();
+            var treeJson = body.TreeJson ?? body.TreeJsonText;
+            var langCode = body.LangCode;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                treeJson = LiveWriteFormBinder.Text(form, "treeJson", "tree_json");
+                langCode = LiveWriteFormBinder.Text(form, "langCode", "lang_code");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(new
+                {
+                    status = "dry-run",
+                    writes = 0,
+                    writesBlocked = true,
+                    phpAuthoritative = true,
+                    validation_code = "dry_run",
+                    message = "Set confirmWrites=true to save the geo tree on ASP.NET.",
+                    session = SessionPayload(session)
+                });
+            }
+
+            var host = context.Request.Host.Host;
+            var domainPath = string.IsNullOrWhiteSpace(host) ? "http://localhost/" : "http://" + host + "/";
+            var written = await writes.SaveTreeAsync(treeJson, langCode, domainPath, cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/cp/geo-regions-app",
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.CpQuoteSaveNote, async (
             HttpContext context,
             ILegacySessionValidator validator,
@@ -6504,7 +6552,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only shop_geo + shop_offices_geo_map KPIs + nodes (raw lang string bodies; value stored as lang id). PHP Geo / regions remains authoritative."
+                note = "shop_geo + shop_offices_geo_map KPIs + nodes (raw lang string bodies; value stored as lang id). Tree save is POST /cp/geo-regions/write."
             });
         });
 
@@ -7976,6 +8024,11 @@ public sealed class ControlPanelModule : ISurfaceModule
         string? CaptionLangStrId = null,
         int SortOrder = 0,
         string? ParametersValues = null,
+        string? LangCode = null,
+        bool ConfirmWrites = false);
+    private sealed record CpGeoRegionsWriteBody(
+        string? TreeJson = null,
+        string? TreeJsonText = null,
         string? LangCode = null,
         bool ConfirmWrites = false);
     private sealed record CpQuoteSaveNoteBody(long QuoteId = 0, string? AdminNote = null, bool ConfirmWrites = false);

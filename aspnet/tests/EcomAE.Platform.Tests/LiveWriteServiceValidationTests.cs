@@ -1107,6 +1107,35 @@ public sealed class LiveWriteServiceValidationTests
         Assert.Equal("{}", CpObtainingModeWriteService.NormalizeParameters(null).Json);
         Assert.Null(CpObtainingModeWriteService.NormalizeParameters("""{"demo":"1"}""").Error);
 
+        var geoTreeEmpty = await new CpGeoTreeWriteService(new ConfiguredNeverOpened())
+            .SaveTreeAsync("[]", "en", "http://www.epartscart.com/");
+        Assert.False(geoTreeEmpty.Succeeded);
+        Assert.Equal("invalid", geoTreeEmpty.Code);
+
+        var geoTreeBad = await new CpGeoTreeWriteService(new ConfiguredNeverOpened())
+            .SaveTreeAsync("{", "en", "http://www.epartscart.com/");
+        Assert.False(geoTreeBad.Succeeded);
+        Assert.Equal("invalid", geoTreeBad.Code);
+
+        var geoTreeDb = await new CpGeoTreeWriteService(new UnconfiguredConnections())
+            .SaveTreeAsync("""[{"id":1,"level":1,"value":"UAE","from_server":1}]""", "en", "http://www.epartscart.com/");
+        Assert.False(geoTreeDb.Succeeded);
+        Assert.Equal("db", geoTreeDb.Code);
+
+        var geoTreeParsed = CpGeoTreeWriteService.ParseTree(
+            """[{"id":1,"value":"UAE","value_lang_str_id":"0","from_server":1,"$level":1,"$parent":0,"$count":1,"data":[{"id":2,"value":"Dubai","from_server":1,"$level":2,"$parent":1,"$count":0}]}]""");
+        Assert.Null(geoTreeParsed.Error);
+        Assert.Equal(2, geoTreeParsed.Nodes.Count);
+        Assert.Equal(1, geoTreeParsed.Nodes[0].Id);
+        Assert.Equal(1, geoTreeParsed.Nodes[0].Count);
+        Assert.Equal(2, geoTreeParsed.Nodes[1].Id);
+        Assert.Equal(1, geoTreeParsed.Nodes[1].Parent);
+        Assert.Equal("UAE", geoTreeParsed.Nodes[0].Value);
+        var geoTreeLinear = CpGeoTreeWriteService.ParseTree(
+            """[{"id":1,"level":1,"value":"UAE","parent":0,"from_server":1,"count":0}]""");
+        Assert.Null(geoTreeLinear.Error);
+        Assert.Equal(1, geoTreeLinear.Nodes[0].Order);
+
         Assert.Equal("[1,2]", CpStorageWriteService.NormalizeUsers("1,2").Json);
         Assert.Equal("[]", CpStorageWriteService.NormalizeUsers(null).Json);
         var opts = CpStorageWriteService.NormalizeConnectionOptions(

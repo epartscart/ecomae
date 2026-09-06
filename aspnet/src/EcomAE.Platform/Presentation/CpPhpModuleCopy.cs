@@ -93,6 +93,8 @@ public static class CpPhpModuleCopy
             return "Payment gateway credentials and live/test mode.";
         if (path.Contains("/carriers", StringComparison.OrdinalIgnoreCase))
             return "Carriers and custom shipping methods.";
+        if (path.Contains("/geo-regions", StringComparison.OrdinalIgnoreCase))
+            return "Country and city tree used by offices and checkout. Save replaces the full shop_geo tree — include every node you want to keep.";
         if (path.Contains("/offices", StringComparison.OrdinalIgnoreCase) || path.Contains("/storages", StringComparison.OrdinalIgnoreCase))
             return "Offices and storage locations.";
         if (path.Contains("/data-migrations", StringComparison.OrdinalIgnoreCase) || path.Contains("/bulk-upload", StringComparison.OrdinalIgnoreCase))
