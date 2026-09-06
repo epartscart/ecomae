@@ -1282,7 +1282,7 @@ public static class SurfacePayloadContractCatalog
         new("erp", "fiscal set-lock dry-run", "/erp/fiscal/set-lock", "write-dry-run-gated", "POST dry-run for PHP fiscal_set_lock; writes=0; confirm_writes refused; PHP authoritative."),
         new("erp", "period reopen dry-run", "/erp/periods/reopen", "write-dry-run-gated", "POST dry-run for PHP period_reopen; writes=0; confirm_writes refused; PHP authoritative."),
         new("erp", "purchase adjust dry-run", "/erp/purchases/adjust", "write-dry-run-gated", "POST dry-run for PHP purchase_adjustment; writes=0; confirm_writes refused; PHP authoritative."),
-        new("erp", "order settlement dry-run", "/erp/orders/settlement", "write-dry-run-gated", "POST dry-run for PHP order_settlement; writes=0; confirm_writes refused; PHP authoritative."),
+        new("erp", "order settlement write", "/erp/orders/settlement", "write-live-gated", "POST PHP order_settlement; confirmWrites=true posts shop_users_accounting for a completed shop order."),
         new("erp", "suppliers sync dry-run", "/erp/suppliers/sync", "write-dry-run-gated", "POST dry-run for PHP sync_suppliers; writes=0; confirm_writes refused; PHP authoritative."),
         new("erp", "GL post-sales dry-run", "/erp/gl-journals/post-sales", "write-dry-run-gated", "POST dry-run for PHP gl_post_sales; writes=0; confirm_writes refused; PHP authoritative."),
         new("erp", "GL sync-unposted dry-run", "/erp/gl-journals/sync-unposted", "write-dry-run-gated", "POST dry-run for PHP gl_sync_unposted; writes=0; confirm_writes refused; PHP authoritative."),

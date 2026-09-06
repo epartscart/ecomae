@@ -100,6 +100,24 @@ public sealed class ErpCashWriteServiceTests
     }
 
     [Fact]
+    public async Task OrderSettlementRequiresOrderId()
+    {
+        var ex = await Assert.ThrowsAsync<ErpWriteException>(() => Service().OrderSettlementAsync(
+            new ErpCustomerSettlementInput { OrderId = 0, Amount = 10m, Income = true },
+            adminId: 1));
+        Assert.Equal("Order ID required", ex.Message);
+    }
+
+    [Fact]
+    public async Task OrderSettlementRequiresPositiveAmount()
+    {
+        var ex = await Assert.ThrowsAsync<ErpWriteException>(() => Service().OrderSettlementAsync(
+            new ErpCustomerSettlementInput { OrderId = 102, Amount = 0m, Income = true },
+            adminId: 1));
+        Assert.Equal("Customer and positive amount required", ex.Message);
+    }
+
+    [Fact]
     public async Task CustomerWriteOffCannotCreditBalance()
     {
         var ex = await Assert.ThrowsAsync<ErpWriteException>(() => Service().CustomerSettlementAsync(

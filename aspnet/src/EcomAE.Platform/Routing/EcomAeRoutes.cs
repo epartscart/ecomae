@@ -630,7 +630,7 @@ public static class EcomAeRoutes
     public const string ErpPeriodReopen = "/erp/periods/reopen";
     /// <summary>Wave B dry-run for PHP purchase_adjustment (writes=0).</summary>
     public const string ErpPurchasesAdjust = "/erp/purchases/adjust";
-    /// <summary>Wave B dry-run for PHP order_settlement (writes=0).</summary>
+    /// <summary>Live PHP order_settlement / epc_erp_order_revenue_settlement (confirmWrites required).</summary>
     public const string ErpOrderSettlement = "/erp/orders/settlement";
     /// <summary>Wave B dry-run for PHP sync_suppliers (writes=0).</summary>
     public const string ErpSuppliersSync = "/erp/suppliers/sync";

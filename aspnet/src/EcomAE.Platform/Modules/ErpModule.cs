@@ -1991,22 +1991,128 @@ public sealed class ErpModule : ISurfaceModule
 
         endpoints.MapPost(EcomAeRoutes.ErpOrderSettlement, async (
             HttpContext context,
-            ErpOrderSettlementBody? body,
             ILegacySessionValidator validator,
             IErpOrderSettlementDryRun dryRun,
+            IErpCashWriteService writes,
             CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateAsync(context, cancellationToken);
             if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
             {
-                return Unauthorized("Admin ERP capability required for order settlement dry-run.");
+                return LiveWriteFormBinder.LoginRedirect(
+                    context,
+                    "/erp/login?returnUrl=/erp/sales-orders-app",
+                    "Admin ERP capability required for order settlement.");
             }
-            body ??= new ErpOrderSettlementBody(0, 0, "credit", false);
-            var result = await dryRun.EvaluateAsync(
-                new ErpOrderSettlementRequest(body.OrderId, body.Amount, body.Direction, body.ConfirmWrites),
-                cancellationToken);
-            return Results.Ok(result.ToPayload(SessionPayload(session)));
-        });
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpOrderSettlementBody>(context, cancellationToken)
+                       ?? new();
+            var orderId = body.OrderId;
+            var amount = body.Amount;
+            var direction = body.Direction;
+            var entryKind = body.EntryKind;
+            var reference = body.Reference;
+            var note = body.Note;
+            var postGl = body.PostGl;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                orderId = LiveWriteFormBinder.Long(form, "orderId", "order_id");
+                amount = LiveWriteFormBinder.Dec(form, "amount");
+                direction = LiveWriteFormBinder.Text(form, "direction");
+                entryKind = LiveWriteFormBinder.Text(form, "entryKind", "entry_kind");
+                reference = LiveWriteFormBinder.Text(form, "reference");
+                note = LiveWriteFormBinder.Text(form, "note");
+                postGl = LiveWriteFormBinder.Flag(form, "postGl", "post_gl");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                var result = await dryRun.EvaluateAsync(
+                    new ErpOrderSettlementRequest(orderId, amount, direction, false),
+                    cancellationToken);
+                return Results.Ok(result.ToPayload(SessionPayload(session)));
+            }
+
+            var dir = (direction ?? "credit").Trim().ToLowerInvariant();
+            if (dir.Length == 0)
+            {
+                dir = "credit";
+            }
+
+            if (dir is not ("credit" or "debit"))
+            {
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    "/erp/sales-orders-app",
+                    false,
+                    "Direction must be credit or debit",
+                    new
+                    {
+                        ok = false,
+                        status = false,
+                        writes = 0,
+                        phpAuthoritative = false,
+                        validation_code = "invalid",
+                        message = "Direction must be credit or debit",
+                        session = SessionPayload(session)
+                    });
+            }
+
+            try
+            {
+                var ledgerId = await writes.OrderSettlementAsync(
+                    new ErpCustomerSettlementInput
+                    {
+                        Amount = amount,
+                        Income = dir == "credit",
+                        EntryKind = string.IsNullOrWhiteSpace(entryKind) ? "adjustment" : entryKind,
+                        OrderId = orderId,
+                        Reference = reference ?? string.Empty,
+                        Note = note ?? string.Empty,
+                        PostGl = postGl,
+                    },
+                    session.UserId,
+                    cancellationToken);
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    "/erp/sales-orders-app",
+                    true,
+                    "Order revenue settlement posted",
+                    new
+                    {
+                        ok = true,
+                        status = true,
+                        writes = 1,
+                        phpAuthoritative = false,
+                        validation_code = "ok",
+                        message = "Order revenue settlement posted",
+                        ledger_id = ledgerId,
+                        order_id = orderId,
+                        session = SessionPayload(session)
+                    });
+            }
+            catch (ErpWriteException ex)
+            {
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    "/erp/sales-orders-app",
+                    false,
+                    ex.Message,
+                    new
+                    {
+                        ok = false,
+                        status = false,
+                        writes = 0,
+                        phpAuthoritative = false,
+                        validation_code = "invalid",
+                        message = ex.Message,
+                        session = SessionPayload(session)
+                    });
+            }
+        }).DisableAntiforgery();
 
         endpoints.MapPost(EcomAeRoutes.ErpSuppliersSync, async (
             HttpContext context,
@@ -6231,7 +6337,15 @@ public sealed class ErpModule : ISurfaceModule
     private sealed record ErpFiscalSetLockBody(long LockDateUnix = 0, string? Note = null, bool ConfirmWrites = false);
     private sealed record ErpPeriodReopenBody(string? YearMonth, string? Note = null, bool ConfirmWrites = false);
     private sealed record ErpPurchaseAdjustmentBody(long PurchaseId, decimal DeltaExVat, string? Note = null, bool ConfirmWrites = false);
-    private sealed record ErpOrderSettlementBody(long OrderId, decimal Amount, string? Direction = "credit", bool ConfirmWrites = false);
+    private sealed record ErpOrderSettlementBody(
+        long OrderId = 0,
+        decimal Amount = 0,
+        string? Direction = "credit",
+        string? EntryKind = "adjustment",
+        string? Reference = null,
+        string? Note = null,
+        bool PostGl = false,
+        bool ConfirmWrites = false);
     private sealed record ErpSyncSuppliersBody(bool ConfirmWrites = false);
     private sealed record ErpGlPostSalesBody(long? DateFromUnix = null, long? DateToUnix = null, bool ConfirmWrites = false);
     private sealed record ErpGlSyncUnpostedBody(bool ConfirmWrites = false);
