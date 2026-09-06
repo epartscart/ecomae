@@ -1674,24 +1674,86 @@ public sealed class ErpModule : ISurfaceModule
 
         endpoints.MapPost(EcomAeRoutes.ErpAftersalesRmaCreate, async (
             HttpContext context,
-            ErpAsRmaCreateBody? body,
             ILegacySessionValidator validator,
             IErpAsRmaCreateDryRun dryRun,
+            IErpAftersalesRmaWriteService writes,
             CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateAsync(context, cancellationToken);
             if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
             {
-                return Unauthorized("Admin ERP capability required for aftersales RMA create dry-run.");
+                return LiveWriteFormBinder.LoginRedirect(
+                    context,
+                    "/erp/login?returnUrl=/cp/returns-rma-app",
+                    "Admin ERP capability required for aftersales RMA create.");
             }
-            body ??= new ErpAsRmaCreateBody(0, 0, null, null, false, null, false);
-            var lines = (body.Lines ?? [])
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpAsRmaCreateBody>(context, cancellationToken)
+                       ?? new();
+            var customerId = body.CustomerId;
+            var sourceId = body.SourceId;
+            var rmaNo = body.RmaNo;
+            var reason = body.Reason;
+            var restock = body.Restock;
+            var confirm = body.ConfirmWrites;
+            var writeLines = (body.Lines ?? [])
+                .Select(l => new ErpAftersalesRmaLine(l.ItemId, l.Qty, l.UnitPrice, l.ConditionNote))
+                .ToList();
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                customerId = LiveWriteFormBinder.Long(form, "customerId", "customer_id");
+                sourceId = LiveWriteFormBinder.Long(form, "sourceId", "source_id");
+                rmaNo = LiveWriteFormBinder.Text(form, "rmaNo", "rma_no");
+                reason = LiveWriteFormBinder.Text(form, "reason");
+                restock = LiveWriteFormBinder.Flag(form, "restock");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+                writeLines = ErpAftersalesRmaWriteService.ParseLinesCsv(
+                        LiveWriteFormBinder.Text(form, "linesCsv", "lines_csv"))
+                    .ToList();
+                var itemId = LiveWriteFormBinder.Long(form, "itemId", "item_id");
+                var qty = LiveWriteFormBinder.Dec(form, "qty");
+                if (itemId > 0 || qty > 0)
+                {
+                    writeLines.Add(new ErpAftersalesRmaLine(
+                        itemId,
+                        qty,
+                        LiveWriteFormBinder.Dec(form, "unitPrice", "unit_price"),
+                        LiveWriteFormBinder.Text(form, "conditionNote", "condition_note")));
+                }
+            }
+
+            var dryLines = writeLines
                 .Select(l => new ErpAsRmaCreateLine(l.ItemId, l.Qty, l.UnitPrice, l.ConditionNote))
                 .ToList();
-            var result = dryRun.Evaluate(new ErpAsRmaCreateRequest(
-                body.CustomerId, body.SourceId, body.RmaNo, body.Reason, body.Restock, lines, body.ConfirmWrites));
-            return Results.Ok(result.ToPayload(SessionPayload(session)));
-        });
+            if (!confirm)
+            {
+                var result = dryRun.Evaluate(new ErpAsRmaCreateRequest(
+                    customerId, sourceId, rmaNo, reason, restock, dryLines, false));
+                return Results.Ok(result.ToPayload(SessionPayload(session)));
+            }
+
+            var written = await writes.CreateAsync(
+                new ErpAftersalesRmaCreateRequest(customerId, sourceId, rmaNo, reason, restock, writeLines),
+                cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/cp/returns-rma-app",
+                written.Succeeded,
+                written.Message,
+                new
+                {
+                    ok = written.Succeeded,
+                    status = written.Succeeded,
+                    writes = written.Writes,
+                    phpAuthoritative = false,
+                    validation_code = written.Code,
+                    message = written.Message,
+                    id = written.Id,
+                    rma_id = written.Id,
+                    session = SessionPayload(session)
+                });
+        }).DisableAntiforgery();
 
         endpoints.MapPost(EcomAeRoutes.ErpPurchasesFromOrder, async (
             HttpContext context,
@@ -6301,7 +6363,7 @@ public sealed class ErpModule : ISurfaceModule
         bool ConfirmWrites = false);
     private sealed record ErpAsRmaCreateLineBody(long ItemId, decimal Qty, decimal UnitPrice = 0, string? ConditionNote = null);
     private sealed record ErpAsRmaCreateBody(
-        long CustomerId,
+        long CustomerId = 0,
         long SourceId = 0,
         string? RmaNo = null,
         string? Reason = null,

@@ -610,7 +610,7 @@ public static class EcomAeRoutes
     public const string ErpSalesOrdersDelete = "/erp/sales-orders/delete";
     /// <summary>Live PHP customer_master_save / epc_credit_set_master (confirmWrites required).</summary>
     public const string ErpCustomersMasterSave = "/erp/customers/master-save";
-    /// <summary>Wave B dry-run for PHP as_rma_create (writes=0).</summary>
+    /// <summary>Live PHP as_rma_create / epc_as_rma_create (confirmWrites required). Blockchain stays PHP.</summary>
     public const string ErpAftersalesRmaCreate = "/erp/aftersales/rma-create";
     /// <summary>Wave B dry-run for PHP purchase_from_order (writes=0).</summary>
     public const string ErpPurchasesFromOrder = "/erp/purchases/from-order";

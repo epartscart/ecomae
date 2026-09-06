@@ -151,6 +151,7 @@ public sealed class StorefrontPayLaximoPhpParityTests
         Assert.Equal("write-live-gated", SurfacePayloadContractCatalog.Functions.First(f => f.AspNetRouteOrCapability == "/erp/customers/master-save").Status);
         Assert.Equal("write-live-gated", SurfacePayloadContractCatalog.Functions.First(f => f.AspNetRouteOrCapability == "/erp/customers/settlement").Status);
         Assert.Equal("write-live-gated", SurfacePayloadContractCatalog.Functions.First(f => f.AspNetRouteOrCapability == "/erp/orders/settlement").Status);
+        Assert.Equal("write-live-gated", SurfacePayloadContractCatalog.Functions.First(f => f.AspNetRouteOrCapability == "/erp/aftersales/rma-create").Status);
 
         var pos = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/CpPosOverviewApp.razor"));
         Assert.Contains("action=\"/cp/pos/open-session\"", pos, StringComparison.Ordinal);
@@ -205,6 +206,10 @@ public sealed class StorefrontPayLaximoPhpParityTests
         var salesOrders = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/ErpSalesOrdersApp.razor"));
         Assert.Contains("action=\"/erp/orders/settlement\"", salesOrders, StringComparison.Ordinal);
         Assert.Contains("Post order settlement", salesOrders, StringComparison.Ordinal);
+        var returnsRma = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/CpReturnsRmaApp.razor"));
+        Assert.Contains("action=\"/erp/aftersales/rma-create\"", returnsRma, StringComparison.Ordinal);
+        Assert.Contains("Create aftersales RMA", returnsRma, StringComparison.Ordinal);
+        Assert.DoesNotContain("@onclick", returnsRma, StringComparison.Ordinal);
         Assert.Equal("/storefront/garage/check-car", PhpCustomerWrites.GarageCheckCarHref);
         Assert.Equal("/storefront/profile/change-password", PhpCustomerWrites.ProfilePasswordHref);
     }

@@ -93,6 +93,20 @@
             <label>Return id <input type="number" name="returnId" min="1" required style="width:5rem" /></label>
             <button type="submit" class="btn btn-xs btn-primary">Close return</button>
         </form>
+        <form method="post" action="/erp/aftersales/rma-create" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/returns-rma-app" />
+            <label>Customer id <input type="number" name="customer_id" min="0" style="width:5rem" /></label>
+            <label>Source order <input type="number" name="source_id" min="0" style="width:5rem" /></label>
+            <label>RMA no <input type="text" name="rma_no" placeholder="RMA-…" /></label>
+            <label>Reason <input type="text" name="reason" /></label>
+            <label>Item id <input type="number" name="item_id" min="1" required style="width:5rem" /></label>
+            <label>Qty <input type="text" name="qty" required placeholder="1" /></label>
+            <label>Unit price <input type="text" name="unit_price" placeholder="0.00" /></label>
+            <label>Note <input type="text" name="condition_note" /></label>
+            <label><input type="checkbox" name="restock" value="1" /> Restock</label>
+            <button type="submit" class="btn btn-xs btn-primary">Create aftersales RMA</button>
+        </form>
     }
     <div class="epc-rma-kpis" aria-label="Returns RMA stats">
         <div class="epc-rma-kpi"><strong>@_summary.RmaCount.ToString(CultureInfo.InvariantCulture)</strong><span>RMAs</span></div>
