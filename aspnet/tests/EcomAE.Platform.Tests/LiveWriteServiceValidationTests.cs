@@ -1558,6 +1558,46 @@ public sealed class LiveWriteServiceValidationTests
         Assert.Equal(new long[] { 1, 2 }, menuIds.Ids);
         Assert.Equal("menu_list JSON is not valid.", CpMenuWriteService.ParseIds("{").Error);
 
+        var moduleAction = await new CpModuleWriteService(new ConfiguredNeverOpened())
+            .SaveAsync(new CpModuleSaveRequest(Action: "rename", ContentType: "text", Content: "Hi"));
+        Assert.False(moduleAction.Succeeded);
+        Assert.Equal("invalid", moduleAction.Code);
+
+        var moduleType = await new CpModuleWriteService(new ConfiguredNeverOpened())
+            .SaveAsync(new CpModuleSaveRequest(Action: "create", ContentType: "html", Content: "Hi"));
+        Assert.False(moduleType.Succeeded);
+        Assert.Equal("invalid", moduleType.Code);
+
+        var modulePhp = await new CpModuleWriteService(new ConfiguredNeverOpened())
+            .SaveAsync(new CpModuleSaveRequest(Action: "create", ContentType: "php", Content: "not-php"));
+        Assert.False(modulePhp.Succeeded);
+        Assert.Equal("invalid", modulePhp.Code);
+
+        var moduleData = await new CpModuleWriteService(new ConfiguredNeverOpened())
+            .SaveAsync(new CpModuleSaveRequest(Action: "create", ContentType: "text", Content: "Hi", DataJson: "{"));
+        Assert.False(moduleData.Succeeded);
+        Assert.Equal("invalid", moduleData.Code);
+
+        var moduleDb = await new CpModuleWriteService(new UnconfiguredConnections())
+            .SaveAsync(new CpModuleSaveRequest(Action: "create", ContentType: "text", Content: "Hi", DataJson: "[]"));
+        Assert.False(moduleDb.Succeeded);
+        Assert.Equal("db", moduleDb.Code);
+
+        var moduleActEmpty = await new CpModuleWriteService(new ConfiguredNeverOpened())
+            .SetActivatedAsync("", 1);
+        Assert.False(moduleActEmpty.Succeeded);
+        Assert.Equal("invalid", moduleActEmpty.Code);
+
+        var moduleDelDb = await new CpModuleWriteService(new UnconfiguredConnections())
+            .DeleteAsync("[1]", 1);
+        Assert.False(moduleDelDb.Succeeded);
+        Assert.Equal("db", moduleDelDb.Code);
+
+        Assert.Equal("create", CpModuleWriteService.NormalizeAction("module_create"));
+        Assert.Equal("[]", CpModuleWriteService.TryEncodeData("").Json);
+        Assert.Equal("data_value is not valid JSON.", CpModuleWriteService.TryEncodeData("{").Error);
+        Assert.Equal("modules_list JSON is not valid.", CpModuleWriteService.ParseIds("{").Error);
+
         var wmsInvalid = await new ErpWmsLocationWriteService(new ConfiguredNeverOpened())
             .DeleteAsync(0);
         Assert.False(wmsInvalid.Succeeded);

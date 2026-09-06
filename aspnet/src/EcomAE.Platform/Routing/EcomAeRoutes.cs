@@ -1063,6 +1063,8 @@ public static class EcomAeRoutes
     public const string CpContentSave = "/cp/content/save";
     /// <summary>PHP menu_edit.php save_action + menu_manager.php delete. <c>confirmWrites=true</c> writes via <c>ICpMenuWriteService</c>. Drag-tree UX stays PHP.</summary>
     public const string CpMenusWrite = "/cp/menus/write";
+    /// <summary>PHP edit_module.php create/edit and modules_manager.php delete/activate. <c>confirmWrites=true</c> writes via <c>ICpModuleWriteService</c>.</summary>
+    public const string CpModulesWrite = "/cp/modules/write";
     /// <summary>PHP offices_cash.php action=add. Manager must belong to the office.</summary>
     public const string ErpOfficesCashAdd = "/erp/offices-cash/add";
     /// <summary>PHP offices_cash_editor.php action=add. <c>confirmWrites=true</c> writes lang string + cash code.</summary>

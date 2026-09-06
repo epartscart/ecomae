@@ -2865,7 +2865,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only modules digest. PHP modules_manager remains authoritative."
+                note = "Modules digest. Create/edit/delete/activate POST /cp/modules/write when confirmWrites=true."
             });
         });
 
@@ -4525,6 +4525,126 @@ public sealed class ControlPanelModule : ISurfaceModule
             return LiveWriteFormBinder.Complete(
                 context,
                 "/cp/menus-app",
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.CpModulesWrite, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpModuleWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/modules-app", "Admin CP capability required for module writes.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpModulesWriteBody>(context, cancellationToken) ?? new();
+            var action = body.Action;
+            var moduleId = body.ModuleId;
+            var prototypeId = body.PrototypeId;
+            var prototypeNameLangStrId = body.PrototypeNameLangStrId;
+            var caption = body.Caption;
+            var captionLangStrId = body.CaptionLangStrId;
+            var contentType = body.ContentType;
+            var content = body.Content;
+            var contentLangStrId = body.ContentLangStrId;
+            var position = body.Position;
+            var activated = body.Activated;
+            var dataJson = body.DataJson ?? body.DataValue;
+            var showCaption = body.ShowCaption;
+            var sortOrder = body.SortOrder;
+            var forAll = body.ForAll;
+            var isFrontend = body.IsFrontend;
+            var contentIds = body.ContentIds ?? body.ContentArray;
+            var groupsAllowed = body.GroupsAllowed;
+            var ids = body.Ids ?? body.ModulesList;
+            var langCode = body.LangCode;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                action = LiveWriteFormBinder.Text(form, "action", "module_save_action", "modules_action_type");
+                moduleId = LiveWriteFormBinder.Long(form, "moduleId", "module_id", "id");
+                prototypeId = LiveWriteFormBinder.Long(form, "prototypeId", "prototype_id");
+                prototypeNameLangStrId = LiveWriteFormBinder.Text(form, "prototypeNameLangStrId", "prototype_name_lang_str_id");
+                caption = LiveWriteFormBinder.Text(form, "caption");
+                captionLangStrId = LiveWriteFormBinder.Text(form, "captionLangStrId", "caption_lang_str_id");
+                contentType = LiveWriteFormBinder.Text(form, "contentType", "content_type");
+                content = LiveWriteFormBinder.Text(form, "content");
+                contentLangStrId = LiveWriteFormBinder.Text(form, "contentLangStrId", "content_lang_str_id");
+                position = LiveWriteFormBinder.Text(form, "position");
+                activated = LiveWriteFormBinder.IntOrNull(form, "activated", "flag_value") ?? 0;
+                dataJson = LiveWriteFormBinder.Text(form, "dataJson", "data_value", "data");
+                showCaption = LiveWriteFormBinder.Flag(form, "showCaption", "show_caption") ? 1 : LiveWriteFormBinder.Int(form, "showCaption", "show_caption");
+                sortOrder = LiveWriteFormBinder.Int(form, "sortOrder", "order");
+                forAll = LiveWriteFormBinder.Flag(form, "forAll", "for_all") ? 1 : LiveWriteFormBinder.Int(form, "forAll", "for_all");
+                isFrontend = LiveWriteFormBinder.IntOrNull(form, "isFrontend", "is_frontend") ?? 1;
+                contentIds = LiveWriteFormBinder.Text(form, "contentIds", "content_array");
+                groupsAllowed = LiveWriteFormBinder.Text(form, "groupsAllowed", "groups_allowed");
+                ids = LiveWriteFormBinder.Text(form, "ids", "modules_list", "modulesList");
+                langCode = LiveWriteFormBinder.Text(form, "langCode", "lang_code");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(new
+                {
+                    status = "dry-run",
+                    writes = 0,
+                    writesBlocked = true,
+                    phpAuthoritative = true,
+                    validation_code = "dry_run",
+                    message = "Set confirmWrites=true to create, save, activate, or delete a module on ASP.NET.",
+                    session = SessionPayload(session)
+                });
+            }
+
+            var host = context.Request.Host.Host;
+            var domainPath = string.IsNullOrWhiteSpace(host) ? "http://localhost/" : "http://" + host + "/";
+            var normalized = CpModuleWriteService.NormalizeAction(action);
+            ErpSimpleWriteResult written;
+            if (normalized == "delete")
+            {
+                written = await writes.DeleteAsync(ids, isFrontend, cancellationToken);
+            }
+            else if (normalized == "activate")
+            {
+                written = await writes.SetActivatedAsync(ids, activated, cancellationToken);
+            }
+            else
+            {
+                written = await writes.SaveAsync(
+                    new CpModuleSaveRequest(
+                        string.IsNullOrWhiteSpace(normalized) ? "create" : normalized,
+                        moduleId,
+                        prototypeId,
+                        prototypeNameLangStrId,
+                        caption,
+                        captionLangStrId,
+                        contentType,
+                        content,
+                        contentLangStrId,
+                        position,
+                        activated,
+                        dataJson,
+                        showCaption,
+                        sortOrder,
+                        forAll,
+                        isFrontend,
+                        contentIds,
+                        groupsAllowed,
+                        langCode,
+                        domainPath),
+                    cancellationToken);
+            }
+
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/cp/modules-app",
                 written.Succeeded,
                 written.Message,
                 new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
@@ -8884,6 +9004,31 @@ public sealed class ControlPanelModule : ISurfaceModule
         string? MenuTree = null,
         string? Ids = null,
         string? MenuList = null,
+        string? LangCode = null,
+        bool ConfirmWrites = false);
+    private sealed record CpModulesWriteBody(
+        string? Action = null,
+        long ModuleId = 0,
+        long PrototypeId = 0,
+        string? PrototypeNameLangStrId = null,
+        string? Caption = null,
+        string? CaptionLangStrId = null,
+        string? ContentType = null,
+        string? Content = null,
+        string? ContentLangStrId = null,
+        string? Position = null,
+        int Activated = 1,
+        string? DataJson = null,
+        string? DataValue = null,
+        int ShowCaption = 0,
+        int SortOrder = 0,
+        int ForAll = 0,
+        int IsFrontend = 1,
+        string? ContentIds = null,
+        string? ContentArray = null,
+        string? GroupsAllowed = null,
+        string? Ids = null,
+        string? ModulesList = null,
         string? LangCode = null,
         bool ConfirmWrites = false);
 }
