@@ -1208,6 +1208,35 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(slideDb.Succeeded);
         Assert.Equal("db", slideDb.Code);
 
+        var filtSave = await new CpProductFilterWriteService(new ConfiguredNeverOpened())
+            .SaveAsync(0, "BOSCH", "0986", "Pad");
+        Assert.False(filtSave.Succeeded);
+        Assert.Equal("invalid", filtSave.Code);
+
+        var filtDel = await new CpProductFilterWriteService(new ConfiguredNeverOpened())
+            .DeleteAsync(0);
+        Assert.False(filtDel.Succeeded);
+        Assert.Equal("invalid", filtDel.Code);
+
+        var filtScope = await new CpProductFilterWriteService(new ConfiguredNeverOpened())
+            .SaveStoragesAsync(1, "{", "10", "20", "1", "2");
+        Assert.False(filtScope.Succeeded);
+        Assert.Equal("invalid", filtScope.Code);
+
+        var filtDb = await new CpProductFilterWriteService(new UnconfiguredConnections())
+            .AddAsync("BOSCH", "0986-AB", "Pad");
+        Assert.False(filtDb.Succeeded);
+        Assert.Equal("db", filtDb.Code);
+
+        Assert.Equal("0986AB", CpProductFilterWriteService.NormalizeArticle("0986-AB"));
+        Assert.Equal("BOSCH", CpProductFilterWriteService.NormalizeManufacturer(" bosch "));
+        var storages = CpProductFilterWriteService.ParseStorages("[1,\"2\",2]");
+        Assert.Null(storages.Error);
+        Assert.Equal("[1,2]", storages.Json);
+        Assert.True(CpProductFilterWriteService.TryParseMoney("12,5", out var money, out _));
+        Assert.Equal(12.5m, money);
+        Assert.Equal(1, CpProductFilterWriteService.ParseFlag("on", 0));
+
         Assert.Equal("[1,2]", CpStorageWriteService.NormalizeUsers("1,2").Json);
         Assert.Equal("[]", CpStorageWriteService.NormalizeUsers(null).Json);
         var opts = CpStorageWriteService.NormalizeConnectionOptions(

@@ -3734,6 +3734,86 @@ public sealed class ControlPanelModule : ISurfaceModule
                 written.Message,
                 new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.CpProductFiltersWrite, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpProductFilterWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/product-filters-app", "Admin CP capability required for product filters.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpProductFiltersWriteBody>(context, cancellationToken) ?? new();
+            var action = body.Action;
+            var filterId = body.FilterId;
+            var manufacturer = body.Manufacturer;
+            var article = body.Article;
+            var name = body.Name;
+            var flag = body.Flag;
+            var flagText = body.FlagText;
+            var storagesJson = body.StoragesJson ?? body.ListStorages;
+            var minPrice = body.MinPrice;
+            var maxPrice = body.MaxPrice;
+            var minTime = body.MinTime;
+            var maxTime = body.MaxTime;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                action = LiveWriteFormBinder.Text(form, "action");
+                filterId = LiveWriteFormBinder.Long(form, "filterId", "filter_id", "id");
+                manufacturer = LiveWriteFormBinder.Text(form, "manufacturer");
+                article = LiveWriteFormBinder.Text(form, "article");
+                name = LiveWriteFormBinder.Text(form, "name");
+                flag = LiveWriteFormBinder.Int(form, "flag", "active", "enabled");
+                flagText = LiveWriteFormBinder.Text(form, "flag", "active", "enabled");
+                storagesJson = LiveWriteFormBinder.Text(form, "storagesJson", "storages_list_json", "list_storages", "listStorages");
+                minPrice = LiveWriteFormBinder.Text(form, "minPrice", "min_price");
+                maxPrice = LiveWriteFormBinder.Text(form, "maxPrice", "max_price");
+                minTime = LiveWriteFormBinder.Text(form, "minTime", "min_time");
+                maxTime = LiveWriteFormBinder.Text(form, "maxTime", "max_time");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(new
+                {
+                    status = "dry-run",
+                    writes = 0,
+                    writesBlocked = true,
+                    phpAuthoritative = true,
+                    validation_code = "dry_run",
+                    message = "Set confirmWrites=true to save product filters on ASP.NET.",
+                    session = SessionPayload(session)
+                });
+            }
+
+            var key = (action ?? string.Empty).Trim().ToLowerInvariant();
+            var on = CpProductFilterWriteService.ParseFlag(flagText, flag);
+            ErpSimpleWriteResult written = key switch
+            {
+                "add" => await writes.AddAsync(manufacturer, article, name, cancellationToken),
+                "save" or "edit" or "update" => await writes.SaveAsync(filterId, manufacturer, article, name, cancellationToken),
+                "del" or "delete" => await writes.DeleteAsync(filterId, cancellationToken),
+                "active" or "activation" => await writes.SetActiveAsync(filterId, on, cancellationToken),
+                "active_all" or "activate_all" or "deactivate_all" => await writes.SetActiveAllAsync(
+                    key == "deactivate_all" ? 0 : on,
+                    cancellationToken),
+                "save_storages" or "scope" or "setting" => await writes.SaveStoragesAsync(
+                    filterId, storagesJson, minPrice, maxPrice, minTime, maxTime, cancellationToken),
+                _ => ErpSimpleWriteResult.Fail("invalid", "Unknown product-filter action.")
+            };
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/cp/product-filters-app",
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.CpQuoteSaveNote, async (
             HttpContext context,
             ILegacySessionValidator validator,
@@ -6856,7 +6936,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only shop_docpart_filter KPIs + filters (list_storages JSON). PHP Product filters remains authoritative."
+                note = "shop_docpart_filter KPIs + filters (list_storages JSON). Add/save/delete/activate/scope is POST /cp/product-filters/write."
             });
         });
 
@@ -8336,6 +8416,21 @@ public sealed class ControlPanelModule : ISurfaceModule
         string? LangCode = null,
         bool ConfirmWrites = false);
     private sealed record CpAdditionalTextsDeleteBody(string? Ids = null, string? UrlsToDel = null, bool ConfirmWrites = false);
+    private sealed record CpProductFiltersWriteBody(
+        string? Action = null,
+        long FilterId = 0,
+        string? Manufacturer = null,
+        string? Article = null,
+        string? Name = null,
+        int Flag = 0,
+        string? FlagText = null,
+        string? StoragesJson = null,
+        string? ListStorages = null,
+        string? MinPrice = null,
+        string? MaxPrice = null,
+        string? MinTime = null,
+        string? MaxTime = null,
+        bool ConfirmWrites = false);
     private sealed record CpSliderBannersWriteBody(
         string? Action = null,
         long ImageId = 0,

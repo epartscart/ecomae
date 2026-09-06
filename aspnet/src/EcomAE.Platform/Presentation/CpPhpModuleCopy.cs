@@ -95,6 +95,8 @@ public static class CpPhpModuleCopy
             return "Carriers and custom shipping methods.";
         if (path.Contains("/slider-banners", StringComparison.OrdinalIgnoreCase))
             return "Storefront slider images. Save settings, add a path, reorder, or delete here. File upload stays on the Classic twin.";
+        if (path.Contains("/product-filters", StringComparison.OrdinalIgnoreCase))
+            return "Hide or keep search results by brand, article, name, warehouse, price, and lead time. Add, save, activate, or set scope here.";
         if (path.Contains("/additional-texts", StringComparison.OrdinalIgnoreCase))
             return "Extra HTML and SEO tags for a storefront URL. Save upserts by URL; delete removes selected rows.";
         if (path.Contains("/search-tabs", StringComparison.OrdinalIgnoreCase))
