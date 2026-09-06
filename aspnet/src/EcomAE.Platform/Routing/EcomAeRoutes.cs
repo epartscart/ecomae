@@ -608,7 +608,7 @@ public static class EcomAeRoutes
     public const string ErpPurchasesAmend = "/erp/purchases/amend";
     /// <summary>Wave B dry-run for PHP so_delete draft (writes=0).</summary>
     public const string ErpSalesOrdersDelete = "/erp/sales-orders/delete";
-    /// <summary>Wave B dry-run for PHP customer_master_save (writes=0).</summary>
+    /// <summary>Live PHP customer_master_save / epc_credit_set_master (confirmWrites required).</summary>
     public const string ErpCustomersMasterSave = "/erp/customers/master-save";
     /// <summary>Wave B dry-run for PHP as_rma_create (writes=0).</summary>
     public const string ErpAftersalesRmaCreate = "/erp/aftersales/rma-create";

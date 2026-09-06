@@ -992,6 +992,16 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(dimDb.Succeeded);
         Assert.Equal("db", dimDb.Code);
 
+        var masterInvalid = await new ErpCustomerMasterWriteService(new ConfiguredNeverOpened())
+            .SaveAsync(new ErpCustomerMasterWriteRequest(0, CustomerName: "Acme"));
+        Assert.False(masterInvalid.Succeeded);
+        Assert.Equal("invalid", masterInvalid.Code);
+
+        var masterDb = await new ErpCustomerMasterWriteService(new UnconfiguredConnections())
+            .SaveAsync(new ErpCustomerMasterWriteRequest(9, CustomerName: "Acme", CreditLimit: 5000m));
+        Assert.False(masterDb.Succeeded);
+        Assert.Equal("db", masterDb.Code);
+
         var tplDel = await new CpCatalogueWriteService(new ConfiguredNeverOpened())
             .DeleteCategoryTemplateAsync(0);
         Assert.False(tplDel.Succeeded);

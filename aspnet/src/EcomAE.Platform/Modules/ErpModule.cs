@@ -1523,21 +1523,154 @@ public sealed class ErpModule : ISurfaceModule
 
         endpoints.MapPost(EcomAeRoutes.ErpCustomersMasterSave, async (
             HttpContext context,
-            ErpCustomerMasterSaveBody? body,
             ILegacySessionValidator validator,
             IErpCustomerMasterSaveDryRun dryRun,
+            IErpCustomerMasterWriteService writes,
+            IErpDimensionWriteService dimensions,
             CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateAsync(context, cancellationToken);
             if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
             {
-                return Unauthorized("Admin ERP capability required for customer master-save dry-run.");
+                return LiveWriteFormBinder.LoginRedirect(
+                    context,
+                    "/erp/login?returnUrl=/erp/contacts-app?tab=ar_setup",
+                    "Admin ERP capability required for customer master-save.");
             }
-            body ??= new ErpCustomerMasterSaveBody(0, null, null, null, false, false);
-            var result = dryRun.Evaluate(new ErpCustomerMasterSaveRequest(
-                body.CustomerId, body.CustomerName, body.CreditLimit, body.TermsDays, body.OnHold, body.ConfirmWrites));
-            return Results.Ok(result.ToPayload(SessionPayload(session)));
-        });
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpCustomerMasterSaveBody>(context, cancellationToken)
+                       ?? new();
+            var customerId = body.CustomerId;
+            var customerAccount = body.CustomerAccount;
+            var customerName = body.CustomerName;
+            var customerGroup = body.CustomerGroup;
+            long? legalEntityId = body.LegalEntityId;
+            long? businessUnitId = body.BusinessUnitId;
+            var currencyCode = body.CurrencyCode;
+            var paymentMethod = body.PaymentMethod;
+            var deliveryTerms = body.DeliveryTerms;
+            var deliveryMode = body.DeliveryMode;
+            var trn = body.Trn;
+            var taxExempt = body.TaxExempt;
+            var salesTaxGroup = body.SalesTaxGroup;
+            var contactPerson = body.ContactPerson;
+            var contactEmail = body.ContactEmail;
+            var contactPhone = body.ContactPhone;
+            var website = body.Website;
+            var address = body.Address;
+            var city = body.City;
+            var stateRegion = body.StateRegion;
+            var postalCode = body.PostalCode;
+            var countryCode = body.CountryCode;
+            var creditLimit = body.CreditLimit;
+            var termsDays = body.TermsDays;
+            var onHold = body.OnHold;
+            var riskBand = body.RiskBand;
+            var notes = body.Notes;
+            IReadOnlyDictionary<string, long>? dim = body.Dim;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                customerId = LiveWriteFormBinder.Long(form, "customerId", "customer_id");
+                customerAccount = LiveWriteFormBinder.Text(form, "customerAccount", "customer_account");
+                customerName = LiveWriteFormBinder.Text(form, "customerName", "customer_name");
+                customerGroup = LiveWriteFormBinder.Text(form, "customerGroup", "customer_group");
+                if (form.ContainsKey("legalEntityId") || form.ContainsKey("legal_entity_id"))
+                {
+                    legalEntityId = LiveWriteFormBinder.Long(form, "legalEntityId", "legal_entity_id");
+                }
+
+                if (form.ContainsKey("businessUnitId") || form.ContainsKey("business_unit_id"))
+                {
+                    businessUnitId = LiveWriteFormBinder.Long(form, "businessUnitId", "business_unit_id");
+                }
+
+                currencyCode = LiveWriteFormBinder.Text(form, "currencyCode", "currency_code");
+                paymentMethod = LiveWriteFormBinder.Text(form, "paymentMethod", "payment_method");
+                deliveryTerms = LiveWriteFormBinder.Text(form, "deliveryTerms", "delivery_terms");
+                deliveryMode = LiveWriteFormBinder.Text(form, "deliveryMode", "delivery_mode");
+                trn = LiveWriteFormBinder.Text(form, "trn");
+                taxExempt = LiveWriteFormBinder.Flag(form, "taxExempt", "tax_exempt");
+                salesTaxGroup = LiveWriteFormBinder.Text(form, "salesTaxGroup", "sales_tax_group");
+                contactPerson = LiveWriteFormBinder.Text(form, "contactPerson", "contact_person");
+                contactEmail = LiveWriteFormBinder.Text(form, "contactEmail", "contact_email");
+                contactPhone = LiveWriteFormBinder.Text(form, "contactPhone", "contact_phone");
+                website = LiveWriteFormBinder.Text(form, "website");
+                address = LiveWriteFormBinder.Text(form, "address");
+                city = LiveWriteFormBinder.Text(form, "city");
+                stateRegion = LiveWriteFormBinder.Text(form, "stateRegion", "state_region");
+                postalCode = LiveWriteFormBinder.Text(form, "postalCode", "postal_code");
+                countryCode = LiveWriteFormBinder.Text(form, "countryCode", "country_code");
+                creditLimit = LiveWriteFormBinder.DecOrNull(form, "creditLimit", "credit_limit");
+                termsDays = LiveWriteFormBinder.IntOrNull(form, "termsDays", "terms_days");
+                onHold = LiveWriteFormBinder.Flag(form, "onHold", "on_hold");
+                riskBand = LiveWriteFormBinder.Text(form, "riskBand", "risk_band");
+                notes = LiveWriteFormBinder.Text(form, "notes");
+                dim = ErpDimensionWriteService.ParseDimMap(form);
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                var result = dryRun.Evaluate(new ErpCustomerMasterSaveRequest(
+                    customerId, customerName, creditLimit, termsDays, onHold, false));
+                return Results.Ok(result.ToPayload(SessionPayload(session)));
+            }
+
+            var written = await writes.SaveAsync(
+                new ErpCustomerMasterWriteRequest(
+                    customerId,
+                    customerAccount,
+                    customerName,
+                    customerGroup,
+                    legalEntityId,
+                    businessUnitId,
+                    currencyCode,
+                    paymentMethod,
+                    deliveryTerms,
+                    deliveryMode,
+                    trn,
+                    taxExempt,
+                    salesTaxGroup,
+                    contactPerson,
+                    contactEmail,
+                    contactPhone,
+                    website,
+                    address,
+                    city,
+                    stateRegion,
+                    postalCode,
+                    countryCode,
+                    creditLimit,
+                    termsDays,
+                    onHold,
+                    riskBand,
+                    notes),
+                cancellationToken);
+            if (written.Succeeded && dim is { Count: > 0 })
+            {
+                await dimensions.SaveAsync("customer", customerId, dim, cancellationToken);
+            }
+
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/erp/contacts-app?tab=ar_setup",
+                written.Succeeded,
+                written.Message,
+                new
+                {
+                    ok = written.Succeeded,
+                    status = written.Succeeded,
+                    writes = written.Writes,
+                    phpAuthoritative = false,
+                    validation_code = written.Code,
+                    message = written.Message,
+                    customer_id = customerId,
+                    id = written.Id,
+                    session = SessionPayload(session)
+                });
+        }).DisableAntiforgery();
 
         endpoints.MapPost(EcomAeRoutes.ErpAftersalesRmaCreate, async (
             HttpContext context,
@@ -5923,11 +6056,34 @@ public sealed class ErpModule : ISurfaceModule
         decimal OpeningBalance = 0m,
         string? Description = null);
     private sealed record ErpCustomerMasterSaveBody(
-        long CustomerId,
+        long CustomerId = 0,
+        string? CustomerAccount = null,
         string? CustomerName = null,
+        string? CustomerGroup = null,
+        long? LegalEntityId = null,
+        long? BusinessUnitId = null,
+        string? CurrencyCode = null,
+        string? PaymentMethod = null,
+        string? DeliveryTerms = null,
+        string? DeliveryMode = null,
+        string? Trn = null,
+        bool TaxExempt = false,
+        string? SalesTaxGroup = null,
+        string? ContactPerson = null,
+        string? ContactEmail = null,
+        string? ContactPhone = null,
+        string? Website = null,
+        string? Address = null,
+        string? City = null,
+        string? StateRegion = null,
+        string? PostalCode = null,
+        string? CountryCode = null,
         decimal? CreditLimit = null,
         int? TermsDays = null,
         bool OnHold = false,
+        string? RiskBand = null,
+        string? Notes = null,
+        Dictionary<string, long>? Dim = null,
         bool ConfirmWrites = false);
     private sealed record ErpAsRmaCreateLineBody(long ItemId, decimal Qty, decimal UnitPrice = 0, string? ConditionNote = null);
     private sealed record ErpAsRmaCreateBody(

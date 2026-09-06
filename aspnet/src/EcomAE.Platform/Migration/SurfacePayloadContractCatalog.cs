@@ -1270,7 +1270,7 @@ public static class SurfacePayloadContractCatalog
         new("cp", "OMS fulfillment-advance dry-run", "/cp/orders/fulfillment-advance", "write-dry-run-gated", "POST dry-run for OMS supplier_fulfillment_advance; writes=0; confirm_writes refused; PHP authoritative."),
         new("erp", "purchase amend dry-run", "/erp/purchases/amend", "write-dry-run-gated", "POST dry-run for PHP purchase_amend; writes=0; confirm_writes refused; PHP authoritative."),
         new("erp", "sales order delete dry-run", "/erp/sales-orders/delete", "write-dry-run-gated", "POST dry-run for PHP so_delete draft; writes=0; confirm_writes refused; PHP authoritative."),
-        new("erp", "customer master-save dry-run", "/erp/customers/master-save", "write-dry-run-gated", "POST dry-run for PHP customer_master_save; writes=0; confirm_writes refused; PHP authoritative."),
+        new("erp", "customer master-save write", "/erp/customers/master-save", "write-live-gated", "POST PHP customer_master_save; confirmWrites=true upserts epc_credit_profiles. Schema-ensure stays PHP."),
         new("erp", "aftersales RMA create dry-run", "/erp/aftersales/rma-create", "write-dry-run-gated", "POST dry-run for PHP as_rma_create; blockchain stays PHP; writes=0; confirm_writes refused; PHP authoritative."),
         new("cp", "OMS refresh-item-cost write", "/cp/orders/refresh-item-cost", "write-live-gated", "POST PHP ajax_epc_orders_oms.php refresh_item_cost; confirmWrites=true writes warehouse price or effective purchase. Customer-group markup stays sell=purchase."),
         new("erp", "purchase from-order dry-run", "/erp/purchases/from-order", "write-dry-run-gated", "POST dry-run for PHP purchase_from_order; writes=0; confirm_writes refused; PHP authoritative."),
