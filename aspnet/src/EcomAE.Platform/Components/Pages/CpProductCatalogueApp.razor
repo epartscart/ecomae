@@ -21,7 +21,7 @@
 
 
     <PhpCpModulePageHeader Title="Product catalogue"
-                           Subtitle="Min-limit, category-template create/delete, line/tree-list create/edit/delete, brunch save, and SKU profile/spec/photo-meta writes live here. SKU photo file upload, item images, and template file upload stay on the compare twin."
+                           Subtitle="Min-limit, templates, line/tree lists, brunch, SKU profile/spec/photo-meta, and homepage slots write here. SKU photo file upload, item images, template file upload, and drag-tree UX stay on the compare twin."
                            PhpTabHref="@_phpTab">
         <a class="ghost" href="/cp/prices-upload-app">Prices upload</a>
         <a class="ghost" href="/cp/crosses-app">Crosses</a>
@@ -37,9 +37,9 @@
             <h3 style="margin:0 0 .35rem;font-size:1rem;">Tree lists</h3>
             <p style="margin:0;color:#475569;font-size:.86rem;">Save / delete / brunch write here. Item images stay Classic.</p>
         </a>
-        <a class="epc-scp-table-card" style="padding:1rem;text-decoration:none;color:inherit;" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref("/CP/shop/catalogue/main_page_products")">
+        <a class="epc-scp-table-card" style="padding:1rem;text-decoration:none;color:inherit;" href="#homepage-slots">
             <h3 style="margin:0 0 .35rem;font-size:1rem;">Homepage slots</h3>
-            <p style="margin:0;color:#475569;font-size:.86rem;">PHP main_page_products</p>
+            <p style="margin:0;color:#475569;font-size:.86rem;">Save writes here. Drag-tree stays Classic.</p>
         </a>
         <a class="epc-scp-table-card" style="padding:1rem;text-decoration:none;color:inherit;" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref("/CP/shop/catalogue/related_products")">
             <h3 style="margin:0 0 .35rem;font-size:1rem;">Related</h3>
@@ -301,6 +301,15 @@
                 </label>
             </div>
             <button type="submit">Save SKU spec</button>
+        </form>
+        <form id="homepage-slots" method="post" action="/cp/catalogue/main-page-products/write" style="display:flex;flex-direction:column;gap:.45rem;margin:0 0 1rem;max-width:52rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/product-catalogue-app" />
+            <input type="hidden" name="langCode" value="en" />
+            <label>Homepage groups JSON
+                <textarea name="treeJson" rows="5" style="width:100%;font-family:monospace" placeholder='[{"value":"Featured","show_caption":1,"active":1,"data":[{"product_id":1}]}]'></textarea>
+            </label>
+            <button type="submit">Save homepage slots</button>
         </form>
     }
     @if (!_isAdmin)

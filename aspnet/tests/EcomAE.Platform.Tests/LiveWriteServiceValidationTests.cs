@@ -1061,6 +1061,38 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(photoDelDb.Succeeded);
         Assert.Equal("db", photoDelDb.Code);
 
+        var homeJson = await new CpMainPageProductsWriteService(new ConfiguredNeverOpened())
+            .SaveAsync(new CpMainPageProductsSaveRequest(TreeJson: "{"));
+        Assert.False(homeJson.Succeeded);
+        Assert.Equal("invalid", homeJson.Code);
+
+        var homeValue = await new CpMainPageProductsWriteService(new ConfiguredNeverOpened())
+            .SaveAsync(new CpMainPageProductsSaveRequest(TreeJson: """[{"show_caption":1,"active":1,"data":[]}]"""));
+        Assert.False(homeValue.Succeeded);
+        Assert.Equal("invalid", homeValue.Code);
+
+        var homeProduct = await new CpMainPageProductsWriteService(new ConfiguredNeverOpened())
+            .SaveAsync(new CpMainPageProductsSaveRequest(TreeJson: """[{"value":"Featured","data":[{"product_id":0}]}]"""));
+        Assert.False(homeProduct.Succeeded);
+        Assert.Equal("invalid", homeProduct.Code);
+
+        var homeDb = await new CpMainPageProductsWriteService(new UnconfiguredConnections())
+            .SaveAsync(new CpMainPageProductsSaveRequest(TreeJson: """[{"value":"Featured","show_caption":1,"active":1,"data":[{"product_id":9}]}]"""));
+        Assert.False(homeDb.Succeeded);
+        Assert.Equal("db", homeDb.Code);
+
+        Assert.Equal("save", CpMainPageProductsWriteService.NormalizeAction("save_tree"));
+        Assert.Equal("&lt;b&gt;", CpMainPageProductsWriteService.HtmlEncode(" <b> "));
+        var emptyHome = CpMainPageProductsWriteService.ParseTree("");
+        Assert.Null(emptyHome.Error);
+        Assert.Empty(emptyHome.Groups);
+        Assert.Equal("tree_json is not valid JSON.", CpMainPageProductsWriteService.ParseTree("{").Error);
+        var okHome = CpMainPageProductsWriteService.ParseTree("""[{"value":"Featured","show_caption":1,"active":1,"data":[{"product_id":9}]}]""");
+        Assert.Null(okHome.Error);
+        Assert.Equal("Featured", okHome.Groups[0].Value);
+        Assert.Equal(1, okHome.Groups[0].ShowCaption);
+        Assert.Equal(9, okHome.Groups[0].Products[0].ProductId);
+
         var jwInvalid = await new ErpJwRepairWriteService(new ConfiguredNeverOpened())
             .SetStatusAsync(0, "ready");
         Assert.False(jwInvalid.Succeeded);

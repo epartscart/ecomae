@@ -721,6 +721,7 @@ builder.Services.AddScoped<EcomAE.Platform.Cp.ICpCatalogueWriteService, EcomAE.P
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpLineListWriteService, EcomAE.Platform.Cp.CpLineListWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpTreeListWriteService, EcomAE.Platform.Cp.CpTreeListWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpSkuMediaWriteService, EcomAE.Platform.Cp.CpSkuMediaWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Cp.ICpMainPageProductsWriteService, EcomAE.Platform.Cp.CpMainPageProductsWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpManufacturerSynonymWriteService, EcomAE.Platform.Cp.CpManufacturerSynonymWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpCrossWriteService, EcomAE.Platform.Cp.CpCrossWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpPricesEditWriteService, EcomAE.Platform.Cp.CpPricesEditWriteService>();

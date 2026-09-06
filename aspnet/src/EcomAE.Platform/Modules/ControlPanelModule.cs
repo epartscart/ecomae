@@ -3040,6 +3040,56 @@ public sealed class ControlPanelModule : ISurfaceModule
                 written.Message,
                 new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.CpMainPageProductsWrite, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpMainPageProductsWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/product-catalogue-app", "Admin CP capability required for homepage-slot writes.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpMainPageProductsWriteBody>(context, cancellationToken) ?? new();
+            var treeJson = body.TreeJson;
+            var langCode = body.LangCode;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                treeJson = LiveWriteFormBinder.Text(form, "treeJson", "tree_json");
+                langCode = LiveWriteFormBinder.Text(form, "langCode", "lang_code");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(new
+                {
+                    status = "dry-run",
+                    writes = 0,
+                    writesBlocked = true,
+                    phpAuthoritative = true,
+                    validation_code = "dry_run",
+                    message = "Set confirmWrites=true to save homepage slots on ASP.NET.",
+                    session = SessionPayload(session)
+                });
+            }
+
+            var host = context.Request.Host.Host;
+            var domainPath = string.IsNullOrWhiteSpace(host) ? "http://localhost/" : "http://" + host + "/";
+            var written = await writes.SaveAsync(
+                new CpMainPageProductsSaveRequest(treeJson, langCode, domainPath),
+                cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/cp/product-catalogue-app",
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.CpPriceReviewWrite, async (HttpContext context, CpPriceReviewWriteBody? body, ILegacySessionValidator validator, ICpPriceReviewWriteDryRun dryRun, CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateAsync(context, cancellationToken);
@@ -9206,6 +9256,10 @@ public sealed class ControlPanelModule : ISurfaceModule
         string? PhotoType = null,
         int? SortOrder = null,
         int? IsPrimary = null,
+        bool ConfirmWrites = false);
+    private sealed record CpMainPageProductsWriteBody(
+        string? TreeJson = null,
+        string? LangCode = null,
         bool ConfirmWrites = false);
     private sealed record CpPriceReviewWriteBody(string? Action = null, bool ConfirmWrites = false);
     private sealed record CpPriceReviewCreateCsvBody(string? Action = null, bool ConfirmWrites = false);
