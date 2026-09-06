@@ -1250,7 +1250,7 @@ public static class EcomAeRoutes
     public const string CpSpecialSearchesWrite = "/cp/catalogue/special-searches/write";
     /// <summary>PHP catalogue_editor.php save_tree. <c>confirmWrites=true</c> writes via <c>ICpCatalogueEditorWriteService</c>. Image upload, template blob-to-disk, and drag-tree UX stay PHP.</summary>
     public const string CpCatalogueEditorWrite = "/cp/catalogue/editor/write";
-    /// <summary>PHP product.php create/edit including type-5 manual_input. <c>confirmWrites=true</c> writes via <c>ICpCatalogueProductWriteService</c>. Image upload stays PHP.</summary>
+    /// <summary>PHP product.php create/edit including type-5 manual_input and images_list template/filename attach. <c>confirmWrites=true</c> writes via <c>ICpCatalogueProductWriteService</c>. Multipart file bytes and image unlink stay PHP.</summary>
     public const string CpCatalogueProductWrite = "/cp/catalogue/products/write";
     /// <summary>PHP reviews.php delete. <c>confirmWrites=true</c> writes via <c>ICpCatalogueReviewWriteService</c>. Storefront review create stays on the customer write path.</summary>
     public const string CpCatalogueReviewsWrite = "/cp/catalogue/reviews/write";

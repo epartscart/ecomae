@@ -3284,6 +3284,7 @@ public sealed class ControlPanelModule : ISurfaceModule
             var propertiesJson = body.PropertiesJson ?? body.PropertiesObjects;
             var stickersJson = body.StickersJson ?? body.ProductStickers;
             var relatedJson = body.RelatedJson ?? body.ProductRelated;
+            var imagesJson = body.ImagesJson ?? body.ImagesList;
             var langCode = body.LangCode;
             var confirm = body.ConfirmWrites;
             if (context.Request.HasFormContentType)
@@ -3308,6 +3309,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 propertiesJson = LiveWriteFormBinder.Text(form, "propertiesJson", "properties_objects");
                 stickersJson = LiveWriteFormBinder.Text(form, "stickersJson", "product_stickers");
                 relatedJson = LiveWriteFormBinder.Text(form, "relatedJson", "product_related");
+                imagesJson = LiveWriteFormBinder.Text(form, "imagesJson", "images_list", "imagesList");
                 langCode = LiveWriteFormBinder.Text(form, "langCode", "lang_code");
                 confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
             }
@@ -3349,6 +3351,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     propertiesJson,
                     stickersJson,
                     relatedJson,
+                    imagesJson,
                     langCode,
                     domainPath),
                 cancellationToken);
@@ -9720,6 +9723,8 @@ public sealed class ControlPanelModule : ISurfaceModule
         string? ProductStickers = null,
         string? RelatedJson = null,
         string? ProductRelated = null,
+        string? ImagesJson = null,
+        string? ImagesList = null,
         string? LangCode = null,
         bool ConfirmWrites = false);
     private sealed record CpPriceReviewWriteBody(string? Action = null, bool ConfirmWrites = false);

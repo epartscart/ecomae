@@ -9,7 +9,8 @@ namespace EcomAE.Platform.Cp;
 
 /// <summary>
 /// Live PHP <c>product.php</c> create/edit twin, including type-5
-/// <c>manual_input</c> line-list item create. Image upload stays Classic.
+/// <c>manual_input</c> and <c>images_list</c> template/filename attach.
+/// Multipart file bytes and image-file unlink stay Classic.
 /// </summary>
 public interface ICpCatalogueProductWriteService
 {
@@ -36,8 +37,14 @@ public sealed record CpCatalogueProductSaveRequest(
     string? PropertiesJson = null,
     string? StickersJson = null,
     string? RelatedJson = null,
+    string? ImagesJson = null,
     string? LangCode = null,
     string? DomainPath = null);
+
+public sealed record CpCatalogueProductImage(
+    long ServerId,
+    string Name,
+    bool ImageOfTemplate);
 
 public sealed record CpCatalogueProductProperty(
     long PropertyId,
@@ -112,6 +119,12 @@ public sealed class CpCatalogueProductWriteService : ICpCatalogueProductWriteSer
         if (related.Error is not null)
         {
             return ErpSimpleWriteResult.Fail("invalid", related.Error);
+        }
+
+        var images = ParseImages(request.ImagesJson);
+        if (images.Error is not null)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", images.Error);
         }
 
         if (!_connections.IsConfigured)
@@ -230,6 +243,12 @@ public sealed class CpCatalogueProductWriteService : ICpCatalogueProductWriteSer
                 lang, request.DomainPath, langDescription, cancellationToken).ConfigureAwait(false);
             await WriteRelatedAsync(connection, transaction, productId, related.Ids, cancellationToken)
                 .ConfigureAwait(false);
+            if (images.Touched)
+            {
+                await WriteImagesAsync(
+                    connection, transaction, productId, action == "create", images.Images, cancellationToken)
+                    .ConfigureAwait(false);
+            }
 
             await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
             return ErpSimpleWriteResult.Ok(action == "create" ? "Product created." : "Product saved.", productId);
@@ -483,6 +502,60 @@ public sealed class CpCatalogueProductWriteService : ICpCatalogueProductWriteSer
         }
     }
 
+    public static (IReadOnlyList<CpCatalogueProductImage> Images, bool Touched, string? Error) ParseImages(string? raw)
+    {
+        var text = (raw ?? string.Empty).Trim();
+        if (text.Length == 0)
+        {
+            return ([], false, null);
+        }
+
+        try
+        {
+            using var document = JsonDocument.Parse(text);
+            if (document.RootElement.ValueKind != JsonValueKind.Array)
+            {
+                return ([], true, "images_list must be a JSON array.");
+            }
+
+            var images = new List<CpCatalogueProductImage>();
+            foreach (var node in document.RootElement.EnumerateArray())
+            {
+                if (node.ValueKind != JsonValueKind.Object)
+                {
+                    continue;
+                }
+
+                var name = SanitizeImageName(ReadString(node, "name", "file_name", "fileName"));
+                images.Add(new CpCatalogueProductImage(
+                    ReadLong(node, "server_id", "serverId", "id"),
+                    name,
+                    ReadFlag(node, "image_of_template", "imageOfTemplate")));
+                if (images.Count > 40)
+                {
+                    return ([], true, "images_list has too many entries.");
+                }
+            }
+
+            return (images, true, null);
+        }
+        catch (JsonException)
+        {
+            return ([], true, "images_list is not valid JSON.");
+        }
+    }
+
+    public static string SanitizeImageName(string? raw)
+    {
+        var name = Path.GetFileName((raw ?? string.Empty).Trim().Replace('\\', '/'));
+        if (name.Contains("..", StringComparison.Ordinal))
+        {
+            return string.Empty;
+        }
+
+        return SanitizePlain(name);
+    }
+
     private async Task WritePropertiesAsync(
         System.Data.Common.DbConnection connection,
         System.Data.Common.DbTransaction transaction,
@@ -710,6 +783,69 @@ public sealed class CpCatalogueProductWriteService : ICpCatalogueProductWriteSer
                 relatedId,
                 order).ConfigureAwait(false);
             order++;
+        }
+    }
+
+    private static async Task WriteImagesAsync(
+        System.Data.Common.DbConnection connection,
+        System.Data.Common.DbTransaction transaction,
+        long productId,
+        bool creating,
+        IReadOnlyList<CpCatalogueProductImage> images,
+        CancellationToken cancellationToken)
+    {
+        if (!creating)
+        {
+            var keep = images.Where(image => image.ServerId > 0).Select(image => image.ServerId).ToHashSet();
+            var existing = new List<long>();
+            await using (var command = connection.CreateCommand())
+            {
+                command.Transaction = transaction;
+                command.CommandText = ErpDb.Positional("SELECT `id` FROM `shop_products_images` WHERE `product_id` = ?");
+                ErpDb.AddParameters(command, productId);
+                await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    existing.Add(reader.GetInt64(0));
+                }
+            }
+
+            foreach (var id in existing)
+            {
+                if (keep.Contains(id))
+                {
+                    continue;
+                }
+
+                await ErpDb.ExecuteAsync(
+                    connection,
+                    transaction,
+                    ErpDb.Positional("DELETE FROM `shop_products_images` WHERE `id` = ? AND `product_id` = ?"),
+                    cancellationToken,
+                    id,
+                    productId).ConfigureAwait(false);
+            }
+        }
+
+        foreach (var image in images)
+        {
+            if (image.ServerId > 0)
+            {
+                continue;
+            }
+
+            if (image.Name.Length == 0)
+            {
+                continue;
+            }
+
+            await ErpDb.ExecuteAsync(
+                connection,
+                transaction,
+                ErpDb.Positional("INSERT INTO `shop_products_images` (`product_id`, `file_name`) VALUES (?, ?)"),
+                cancellationToken,
+                productId,
+                image.Name).ConfigureAwait(false);
         }
     }
 

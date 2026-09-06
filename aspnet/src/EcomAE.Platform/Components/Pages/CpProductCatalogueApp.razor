@@ -21,7 +21,7 @@
 
 
     <PhpCpModulePageHeader Title="Product catalogue"
-                           Subtitle="Min-limit, templates, line/tree lists, brunch, SKU profile/spec/photo-meta, homepage slots, special searches, catalogue tree, product create/edit (including type-5 manual line-list items), review delete, and product delete write here. Product/SKU/template/category images and drag-tree UX stay on the compare twin."
+                           Subtitle="Min-limit, templates, line/tree lists, brunch, SKU profile/spec/photo-meta, homepage slots, special searches, catalogue tree, product create/edit (including type-5 manual line-list items and images_list filename attach), review delete, and product delete write here. Multipart image bytes, SKU/template/category file uploads, and drag-tree UX stay on the compare twin."
                            PhpTabHref="@_phpTab">
         <a class="ghost" href="/cp/prices-upload-app">Prices upload</a>
         <a class="ghost" href="/cp/crosses-app">Crosses</a>
@@ -63,7 +63,7 @@
         </a>
         <a class="epc-scp-table-card" style="padding:1rem;text-decoration:none;color:inherit;" href="#product-save">
             <h3 style="margin:0 0 .35rem;font-size:1rem;">Product save</h3>
-            <p style="margin:0;color:#475569;font-size:.86rem;">Create / edit / type-5 manual line-list write here. Images stay Classic.</p>
+            <p style="margin:0;color:#475569;font-size:.86rem;">Create / edit / type-5 manual line-list / images_list attach write here. Multipart file bytes stay Classic.</p>
         </a>
         <a class="epc-scp-table-card" style="padding:1rem;text-decoration:none;color:inherit;" href="#product-delete">
             <h3 style="margin:0 0 .35rem;font-size:1rem;">Product delete</h3>
@@ -405,6 +405,9 @@
             </label>
             <label>Related JSON
                 <input type="text" name="relatedJson" value="[]" style="width:100%;font-family:monospace" />
+            </label>
+            <label>Images JSON
+                <input type="text" name="imagesJson" value="" style="width:100%;font-family:monospace" placeholder='[{"name":"pad.png","image_of_template":1}]' />
             </label>
             <button type="submit">Save product</button>
         </form>

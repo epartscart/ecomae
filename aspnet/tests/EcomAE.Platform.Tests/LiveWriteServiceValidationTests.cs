@@ -1224,6 +1224,17 @@ public sealed class LiveWriteServiceValidationTests
         var sortItems = new List<(long Id, string Caption, bool IsNew)> { (2, "b", false), (1, "a", false) };
         CpCatalogueProductWriteService.SortLineListItems(sortItems, "asc", "text");
         Assert.Equal("a", sortItems[0].Caption);
+        Assert.Equal("images_list is not valid JSON.", CpCatalogueProductWriteService.ParseImages("{").Error);
+        var noImages = CpCatalogueProductWriteService.ParseImages("");
+        Assert.False(noImages.Touched);
+        var okImages = CpCatalogueProductWriteService.ParseImages("""[{"name":"../pad.png","image_of_template":1,"server_id":0}]""");
+        Assert.True(okImages.Touched);
+        Assert.Equal("pad.png", okImages.Images[0].Name);
+        Assert.True(okImages.Images[0].ImageOfTemplate);
+        var prodImages = await new CpCatalogueProductWriteService(new ConfiguredNeverOpened())
+            .SaveAsync(new CpCatalogueProductSaveRequest(Action: "create", CategoryId: 1, Caption: "Pad", ImagesJson: "{"));
+        Assert.False(prodImages.Succeeded);
+        Assert.Equal("invalid", prodImages.Code);
 
         var reviewId = await new CpCatalogueReviewWriteService(new ConfiguredNeverOpened())
             .DeleteAsync(0);
