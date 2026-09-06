@@ -871,8 +871,10 @@ public static class EcomAeRoutes
     public const string ErpAjaxInvSyncWarehouses = "/erp/ajax/inv-sync-warehouses";
     /// <summary>PHP inv_create_warehouse. <c>confirmWrites=true</c> writes via <c>IErpInventoryMovementWriteService</c>.</summary>
     public const string ErpAjaxInvCreateWarehouse = "/erp/ajax/inv-create-warehouse";
-    /// <summary>PHP inv_create_item. <c>confirmWrites=true</c> writes via <c>IErpInventoryMovementWriteService</c>. Dimension-link save stays Classic.</summary>
+    /// <summary>PHP inv_create_item. <c>confirmWrites=true</c> writes via <c>IErpInventoryMovementWriteService</c>. Optional dim[] save via <c>IErpDimensionWriteService</c>.</summary>
     public const string ErpAjaxInvCreateItem = "/erp/ajax/inv-create-item";
+    /// <summary>PHP epc_erp_dim_save. <c>confirmWrites=true</c> writes via <c>IErpDimensionWriteService</c>. Schema-ensure stays Classic.</summary>
+    public const string ErpAjaxDimSave = "/erp/ajax/dim-save";
     /// <summary>PHP inv_set_reorder_level. <c>confirmWrites=true</c> writes via <c>IErpInventoryReorderWriteService</c>.</summary>
     public const string ErpAjaxInvSetReorderLevel = "/erp/ajax/inv-set-reorder-level";
     /// <summary>PHP inv_record_movement. <c>confirmWrites=true</c> writes via <c>IErpInventoryMovementWriteService</c>.</summary>

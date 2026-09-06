@@ -15,7 +15,7 @@
 
 
     
-    <PhpErpModulePageHeader Title="Inventory Stock" Subtitle="Create warehouse/item, sync from shop storages, set reorder, record movement, transfer, run a closing snapshot, or import csv_text. File CSV upload stays Classic." />
+    <PhpErpModulePageHeader Title="Inventory Stock" Subtitle="Create warehouse/item, sync from shop storages, set reorder, record movement, transfer, run a closing snapshot, import csv_text, or save dimension links. File CSV upload stays Classic." />
     <PhpErpD365ActionPane RefreshHref="/erp/inventory-stock-app" />
 
     @if (!string.IsNullOrWhiteSpace(_flashOk))
@@ -105,6 +105,16 @@
             <label>Default type <input type="text" name="defaultMovementType" value="purchase_in" /></label>
             <label>CSV text <textarea name="csvText" rows="3" cols="48" placeholder="sku,qty,unit_cost,movement_type,warehouse_code"></textarea></label>
             <button type="submit" class="btn btn-sm btn-primary">Import CSV text</button>
+        </form>
+        <form method="post" action="/erp/ajax/dim-save" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/erp/inventory-stock-app" />
+            <label>Entity type <input type="text" name="entityType" value="inventory_item" required /></label>
+            <label>Entity id <input type="number" name="entityId" min="1" required style="width:6rem" /></label>
+            <label>Business unit <input type="number" name="dim[business_unit]" min="0" style="width:6rem" /></label>
+            <label>Legal entity <input type="number" name="dim[legal_entity]" min="0" style="width:6rem" /></label>
+            <label>Class <input type="number" name="dim[class_unit]" min="0" style="width:6rem" /></label>
+            <button type="submit" class="btn btn-sm btn-primary">Save dimensions</button>
         </form>
     }
 

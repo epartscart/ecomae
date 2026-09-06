@@ -2778,6 +2778,7 @@ public sealed class ErpModule : ISurfaceModule
             ILegacySessionValidator validator,
             IErpInvCreateItemDryRun dryRun,
             IErpInventoryMovementWriteService writes,
+            IErpDimensionWriteService dimensions,
             CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateAsync(context, cancellationToken);
@@ -2796,6 +2797,7 @@ public sealed class ErpModule : ISurfaceModule
             var trackExpiry = body.TrackExpiry;
             var reorderLevel = body.ReorderLevel;
             IReadOnlyDictionary<string, string>? customFields = body.CustomFields;
+            IReadOnlyDictionary<string, long>? dim = body.Dim;
             var confirm = body.ConfirmWrites;
             if (context.Request.HasFormContentType)
             {
@@ -2831,6 +2833,8 @@ public sealed class ErpModule : ISurfaceModule
                 {
                     customFields = fromForm;
                 }
+
+                dim = ErpDimensionWriteService.ParseDimMap(form);
             }
 
             if (!confirm)
@@ -2841,12 +2845,72 @@ public sealed class ErpModule : ISurfaceModule
             var written = await writes.CreateItemAsync(
                 new ErpInventoryItemWriteRequest(sku, name, itemType, unit, barcode, productId, trackExpiry, reorderLevel, customFields),
                 cancellationToken);
+            if (written.Succeeded && written.Id > 0 && dim is { Count: > 0 })
+            {
+                await dimensions.SaveAsync("inventory_item", written.Id, dim, cancellationToken);
+            }
+
             return LiveWriteFormBinder.Complete(
                 context,
                 "/erp/inventory-stock-app",
                 written.Succeeded,
                 written.Message,
                 new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+        }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxDimSave, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IErpDimensionWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/inventory-stock-app", "Admin ERP capability required.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpDimSaveBody>(context, cancellationToken) ?? new();
+            var entityType = body.EntityType;
+            var entityId = body.EntityId;
+            IReadOnlyDictionary<string, long>? dim = body.Dim;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                entityType = LiveWriteFormBinder.Text(form, "entityType", "entity_type");
+                entityId = LiveWriteFormBinder.Long(form, "entityId", "entity_id");
+                dim = ErpDimensionWriteService.ParseDimMap(form);
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(new
+                {
+                    ok = true,
+                    surface = "erp",
+                    status = "dry-run-validated",
+                    writes = 0,
+                    writesBlocked = true,
+                    cutoverAllowed = false,
+                    phpAuthoritative = true,
+                    validation_code = "ok",
+                    would_write = true,
+                    intended = new { action = "dim_save", entityType, entityId },
+                    simulated = new[] { "epc_erp_dim_save (NOT executed)" },
+                    php_ajax = "/CP/content/shop/finance/erp/ajax_erp.php",
+                    session = SessionPayload(session),
+                    note = "ERP dim_save payload validated; UPDATE blocked."
+                });
+            }
+
+            var written = await writes.SaveAsync(entityType, entityId, dim, cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/erp/inventory-stock-app",
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, links = written.Id, session = SessionPayload(session) });
         }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxInvSetReorderLevel, async (
             HttpContext context,
@@ -5974,6 +6038,7 @@ public sealed class ErpModule : ISurfaceModule
         bool TrackExpiry = false,
         decimal? ReorderLevel = null,
         Dictionary<string, string>? CustomFields = null,
+        Dictionary<string, long>? Dim = null,
         bool ConfirmWrites = false);
     private sealed record ErpInvSetReorderLevelBody(long Id = 0, long ItemId = 0, decimal ReorderLevel = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpInvRecordMovementBody(
@@ -6014,6 +6079,11 @@ public sealed class ErpModule : ISurfaceModule
         string? CsvText = null,
         long WarehouseId = 0,
         string? DefaultMovementType = null);
+    private sealed record ErpDimSaveBody(
+        string? EntityType = null,
+        long EntityId = 0,
+        Dictionary<string, long>? Dim = null,
+        bool ConfirmWrites = false);
     private sealed record ErpInvRunClosingBody(string? PeriodEnd = null, long WarehouseId = 0, bool ConfirmWrites = false);
     private sealed record ErpHrEmpSaveBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpHrAttendanceBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);

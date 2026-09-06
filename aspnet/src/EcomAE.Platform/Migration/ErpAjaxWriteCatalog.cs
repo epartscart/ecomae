@@ -241,6 +241,7 @@ public sealed class ErpAjaxWriteCatalog : IErpAjaxWriteCatalog
         new("inv_sync_warehouses", "dedicated", "/erp/ajax/inv-sync-warehouses"),
         new("inv_create_warehouse", "dedicated", "/erp/ajax/inv-create-warehouse"),
         new("inv_create_item", "dedicated", "/erp/ajax/inv-create-item"),
+        new("dim_save", "dedicated", "/erp/ajax/dim-save"),
         new("inv_set_reorder_level", "dedicated", "/erp/ajax/inv-set-reorder-level"),
         new("inv_record_movement", "dedicated", "/erp/ajax/inv-record-movement"),
         new("ai_query", "dedicated", "/erp/ajax/ai-query"),

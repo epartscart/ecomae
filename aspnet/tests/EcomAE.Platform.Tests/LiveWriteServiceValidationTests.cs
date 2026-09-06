@@ -982,6 +982,16 @@ public sealed class LiveWriteServiceValidationTests
         Assert.Equal("E2E-FILTER", csvParsed[0]["sku"]);
         Assert.Equal("2", csvParsed[0]["qty"]);
 
+        var dimInvalid = await new ErpDimensionWriteService(new ConfiguredNeverOpened())
+            .SaveAsync("  ", 1, new Dictionary<string, long> { ["business_unit"] = 1 });
+        Assert.False(dimInvalid.Succeeded);
+        Assert.Equal("invalid", dimInvalid.Code);
+
+        var dimDb = await new ErpDimensionWriteService(new UnconfiguredConnections())
+            .SaveAsync("inventory_item", 1, new Dictionary<string, long> { ["business_unit"] = 1 });
+        Assert.False(dimDb.Succeeded);
+        Assert.Equal("db", dimDb.Code);
+
         var tplDel = await new CpCatalogueWriteService(new ConfiguredNeverOpened())
             .DeleteCategoryTemplateAsync(0);
         Assert.False(tplDel.Succeeded);
