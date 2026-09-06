@@ -2834,6 +2834,7 @@ public sealed class ControlPanelModule : ISurfaceModule
             var dataType = body.DataType;
             var treeJson = body.TreeJson ?? body.ItemsJson;
             var ids = body.Ids ?? body.TreeLists;
+            var parentId = body.ParentId;
             var langCode = body.LangCode;
             var confirm = body.ConfirmWrites;
             if (context.Request.HasFormContentType)
@@ -2841,6 +2842,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 var form = await context.Request.ReadFormAsync(cancellationToken);
                 action = LiveWriteFormBinder.Text(form, "action", "save_action");
                 listId = LiveWriteFormBinder.Long(form, "listId", "list_id", "id", "tree_list_id");
+                parentId = LiveWriteFormBinder.Long(form, "parentId", "parent_id");
                 caption = LiveWriteFormBinder.Text(form, "caption");
                 captionLangStrId = LiveWriteFormBinder.Text(form, "captionLangStrId", "caption_lang_str_id");
                 dataType = LiveWriteFormBinder.Text(form, "dataType", "data_type");
@@ -2871,6 +2873,21 @@ public sealed class ControlPanelModule : ISurfaceModule
             if (normalized == "delete")
             {
                 written = await writes.DeleteAsync(ids, cancellationToken);
+            }
+            else if (normalized is "branch_create" or "branch_edit")
+            {
+                written = await writes.SaveBranchAsync(
+                    new CpTreeListBranchSaveRequest(
+                        normalized,
+                        listId,
+                        parentId,
+                        caption,
+                        captionLangStrId,
+                        dataType,
+                        treeJson,
+                        langCode,
+                        domainPath),
+                    cancellationToken);
             }
             else
             {
@@ -9018,6 +9035,7 @@ public sealed class ControlPanelModule : ISurfaceModule
     private sealed record CpTreeListsWriteBody(
         string? Action = null,
         long ListId = 0,
+        long ParentId = 0,
         string? Caption = null,
         string? CaptionLangStrId = null,
         string? DataType = null,

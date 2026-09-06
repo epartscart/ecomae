@@ -1737,6 +1737,39 @@ public sealed class LiveWriteServiceValidationTests
         Assert.Equal(new long[] { 1, 2 }, treeListIds.Ids);
         Assert.Equal("tree_lists JSON is not valid.", CpTreeListWriteService.ParseIds("{").Error);
 
+        var brunchAction = await new CpTreeListWriteService(new ConfiguredNeverOpened())
+            .SaveBranchAsync(new CpTreeListBranchSaveRequest(Action: "rename", Caption: "Branch"));
+        Assert.False(brunchAction.Succeeded);
+        Assert.Equal("invalid", brunchAction.Code);
+
+        var brunchEditId = await new CpTreeListWriteService(new ConfiguredNeverOpened())
+            .SaveBranchAsync(new CpTreeListBranchSaveRequest(Action: "branch_edit", ListId: 0, Caption: "Branch", ItemsJson: "[]"));
+        Assert.False(brunchEditId.Succeeded);
+        Assert.Equal("invalid", brunchEditId.Code);
+
+        var brunchJsonBad = await new CpTreeListWriteService(new ConfiguredNeverOpened())
+            .SaveBranchAsync(new CpTreeListBranchSaveRequest(Action: "branch_create", Caption: "Branch", ItemsJson: "{"));
+        Assert.False(brunchJsonBad.Succeeded);
+        Assert.Equal("invalid", brunchJsonBad.Code);
+
+        var brunchDb = await new CpTreeListWriteService(new UnconfiguredConnections())
+            .SaveBranchAsync(new CpTreeListBranchSaveRequest(Action: "branch_create", Caption: "Branch", ItemsJson: """[{"id":1,"value":"Sib"}]"""));
+        Assert.False(brunchDb.Succeeded);
+        Assert.Equal("db", brunchDb.Code);
+
+        Assert.Equal("branch_create", CpTreeListWriteService.NormalizeAction("brunch_create"));
+        Assert.Equal("branch_edit", CpTreeListWriteService.NormalizeAction("save_branch_edit"));
+        var emptyBrunch = CpTreeListWriteService.ParseBranchItems("");
+        Assert.Null(emptyBrunch.Error);
+        Assert.Empty(emptyBrunch.Items);
+        Assert.Equal("tree_json must be a JSON array.", CpTreeListWriteService.ParseBranchItems("{").Error);
+        Assert.Equal("Each brunch item needs a positive id.", CpTreeListWriteService.ParseBranchItems("""[{"value":"Sib"}]""").Error);
+        var okBrunch = CpTreeListWriteService.ParseBranchItems("""[{"id":5,"value":"Sib","alias":"sib","url":"/sib","is_new":1}]""");
+        Assert.Null(okBrunch.Error);
+        Assert.Equal(5, okBrunch.Items[0].Id);
+        Assert.True(okBrunch.Items[0].IsNew);
+        Assert.Equal("sib", okBrunch.Items[0].Alias);
+
         var wmsInvalid = await new ErpWmsLocationWriteService(new ConfiguredNeverOpened())
             .DeleteAsync(0);
         Assert.False(wmsInvalid.Succeeded);

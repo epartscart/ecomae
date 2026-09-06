@@ -7,12 +7,14 @@ using EcomAE.Platform.Erp;
 namespace EcomAE.Platform.Cp;
 
 /// <summary>
-/// Live PHP <c>tree_list.php</c> save_action create/edit and <c>tree_lists_manager.php</c> delete twins.
-/// Drag-tree UX, brunch editor, and item image upload stay on the Classic twin.
+/// Live PHP <c>tree_list.php</c> save_action, <c>tree_list_brunch_editor.php</c> save_action,
+/// and <c>tree_lists_manager.php</c> delete twins. Drag-tree UX and item image upload stay Classic.
 /// </summary>
 public interface ICpTreeListWriteService
 {
     Task<ErpSimpleWriteResult> SaveAsync(CpTreeListSaveRequest request, CancellationToken cancellationToken = default);
+
+    Task<ErpSimpleWriteResult> SaveBranchAsync(CpTreeListBranchSaveRequest request, CancellationToken cancellationToken = default);
 
     Task<ErpSimpleWriteResult> DeleteAsync(string? idsJson, CancellationToken cancellationToken = default);
 }
@@ -26,6 +28,25 @@ public sealed record CpTreeListSaveRequest(
     string? TreeJson = null,
     string? LangCode = null,
     string? DomainPath = null);
+
+public sealed record CpTreeListBranchSaveRequest(
+    string? Action = null,
+    long ListId = 0,
+    long ParentId = 0,
+    string? Caption = null,
+    string? CaptionLangStrId = null,
+    string? DataType = null,
+    string? ItemsJson = null,
+    string? LangCode = null,
+    string? DomainPath = null);
+
+public sealed record CpTreeListBranchItem(
+    long Id,
+    string Value,
+    string ValueLangStrId,
+    string? Alias,
+    string Url,
+    bool IsNew);
 
 public sealed record CpTreeListNode(
     long Id,
@@ -257,6 +278,265 @@ public sealed class CpTreeListWriteService : ICpTreeListWriteService
         }
     }
 
+    public async Task<ErpSimpleWriteResult> SaveBranchAsync(CpTreeListBranchSaveRequest request, CancellationToken cancellationToken = default)
+    {
+        var action = NormalizeAction(request.Action);
+        if (action is "create" or "edit")
+        {
+            action = action == "edit" ? "branch_edit" : "branch_create";
+        }
+
+        if (action is not ("branch_create" or "branch_edit"))
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Action must be branch_create or branch_edit.");
+        }
+
+        if (action == "branch_edit" && request.ListId <= 0)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "A tree-list id is required to edit a branch.");
+        }
+
+        var parsed = ParseBranchItems(request.ItemsJson);
+        if (parsed.Error is not null)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", parsed.Error);
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return ErpSimpleWriteResult.Fail("db", "TenantRegistry DB is not configured.");
+        }
+
+        var caption = HtmlEncode(request.Caption);
+        var dataType = HtmlEncode(string.IsNullOrWhiteSpace(request.DataType) ? "text" : request.DataType.Trim());
+        var lang = NormalizeLang(request.LangCode);
+        var description = action == "branch_edit" ? "TREE LIST BY BRANCH EDITING" : "TREE LIST BY BRANCH CREATING";
+        await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await using var transaction = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            long listId = request.ListId;
+            var parentId = request.ParentId < 0 ? 0 : request.ParentId;
+            var level = 1;
+            if (action == "branch_edit")
+            {
+                var found = await ErpDb.LongAsync(
+                    connection,
+                    transaction,
+                    ErpDb.Positional("SELECT `id` FROM `shop_tree_lists` WHERE `id` = ? LIMIT 1"),
+                    cancellationToken,
+                    listId).ConfigureAwait(false);
+                if (found <= 0)
+                {
+                    await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
+                    return ErpSimpleWriteResult.Fail("invalid", "Tree list was not found.");
+                }
+
+                if (parentId > 0)
+                {
+                    var parentLevel = await ErpDb.LongAsync(
+                        connection,
+                        transaction,
+                        ErpDb.Positional("SELECT `level` FROM `shop_tree_lists_items` WHERE `id` = ? AND `tree_list_id` = ? LIMIT 1"),
+                        cancellationToken,
+                        parentId,
+                        listId).ConfigureAwait(false);
+                    if (parentLevel <= 0)
+                    {
+                        var parentExists = await ErpDb.LongAsync(
+                            connection,
+                            transaction,
+                            ErpDb.Positional("SELECT `id` FROM `shop_tree_lists_items` WHERE `id` = ? AND `tree_list_id` = ? LIMIT 1"),
+                            cancellationToken,
+                            parentId,
+                            listId).ConfigureAwait(false);
+                        if (parentExists <= 0)
+                        {
+                            await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
+                            return ErpSimpleWriteResult.Fail("invalid", "Branch parent was not found.");
+                        }
+                    }
+
+                    level = (int)parentLevel + 1;
+                }
+            }
+
+            var captionKey = await RequireTranslationAsync(
+                connection,
+                transaction,
+                request.CaptionLangStrId,
+                caption,
+                lang,
+                request.DomainPath,
+                description,
+                cancellationToken).ConfigureAwait(false);
+
+            if (action == "branch_create")
+            {
+                await ErpDb.ExecuteAsync(
+                    connection,
+                    transaction,
+                    ErpDb.Positional("INSERT INTO `shop_tree_lists` (`caption`, `data_type`) VALUES (?, ?)"),
+                    cancellationToken,
+                    captionKey,
+                    dataType).ConfigureAwait(false);
+                listId = await ErpDb.LastInsertIdAsync(connection, transaction, cancellationToken).ConfigureAwait(false);
+                var order = 1;
+                foreach (var item in parsed.Items)
+                {
+                    var valueKey = await RequireTranslationAsync(
+                        connection,
+                        transaction,
+                        item.ValueLangStrId,
+                        HtmlEncode(item.Value),
+                        lang,
+                        request.DomainPath,
+                        description,
+                        cancellationToken).ConfigureAwait(false);
+                    await ErpDb.ExecuteAsync(
+                        connection,
+                        transaction,
+                        ErpDb.Positional(
+                            """
+                            INSERT INTO `shop_tree_lists_items`
+                            (`id`, `tree_list_id`, `value`, `count`, `level`, `parent`, `order`, `open`, `alias`, `url`)
+                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                            """),
+                        cancellationToken,
+                        item.Id,
+                        listId,
+                        valueKey,
+                        0,
+                        1,
+                        0,
+                        order,
+                        1,
+                        item.Alias,
+                        item.Url).ConfigureAwait(false);
+                    order++;
+                }
+            }
+            else
+            {
+                await ErpDb.ExecuteAsync(
+                    connection,
+                    transaction,
+                    ErpDb.Positional("UPDATE `shop_tree_lists` SET `caption` = ?, `data_type` = ? WHERE `id` = ?"),
+                    cancellationToken,
+                    captionKey,
+                    dataType,
+                    listId).ConfigureAwait(false);
+
+                var keep = new HashSet<long>(parsed.Items.Select(i => i.Id));
+                var siblings = await LoadSiblingIdsAsync(connection, transaction, listId, parentId, cancellationToken)
+                    .ConfigureAwait(false);
+                foreach (var siblingId in siblings)
+                {
+                    if (keep.Contains(siblingId))
+                    {
+                        continue;
+                    }
+
+                    var doomed = new List<long> { siblingId };
+                    doomed.AddRange(await LoadDescendantIdsAsync(connection, transaction, siblingId, cancellationToken)
+                        .ConfigureAwait(false));
+                    var placeholders = string.Join(",", doomed.Select(_ => "?"));
+                    await ErpDb.ExecuteAsync(
+                        connection,
+                        transaction,
+                        ErpDb.Positional("DELETE FROM `shop_tree_lists_items` WHERE `id` IN (" + placeholders + ")"),
+                        cancellationToken,
+                        doomed.Cast<object?>().ToArray()).ConfigureAwait(false);
+                    if (parentId > 0)
+                    {
+                        await ErpDb.ExecuteAsync(
+                            connection,
+                            transaction,
+                            ErpDb.Positional("UPDATE `shop_tree_lists_items` SET `count` = `count` - 1 WHERE `id` = ?"),
+                            cancellationToken,
+                            parentId).ConfigureAwait(false);
+                    }
+                }
+
+                var order = 1;
+                foreach (var item in parsed.Items)
+                {
+                    var valueKey = await RequireTranslationAsync(
+                        connection,
+                        transaction,
+                        item.ValueLangStrId,
+                        HtmlEncode(item.Value),
+                        lang,
+                        request.DomainPath,
+                        description,
+                        cancellationToken).ConfigureAwait(false);
+                    if (item.IsNew)
+                    {
+                        await ErpDb.ExecuteAsync(
+                            connection,
+                            transaction,
+                            ErpDb.Positional(
+                                """
+                                INSERT INTO `shop_tree_lists_items`
+                                (`id`, `tree_list_id`, `value`, `count`, `level`, `parent`, `order`, `alias`, `url`)
+                                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                                """),
+                            cancellationToken,
+                            item.Id,
+                            listId,
+                            valueKey,
+                            0,
+                            level,
+                            parentId,
+                            order,
+                            item.Alias,
+                            item.Url).ConfigureAwait(false);
+                        if (parentId > 0)
+                        {
+                            await ErpDb.ExecuteAsync(
+                                connection,
+                                transaction,
+                                ErpDb.Positional("UPDATE `shop_tree_lists_items` SET `count` = `count` + 1 WHERE `id` = ?"),
+                                cancellationToken,
+                                parentId).ConfigureAwait(false);
+                        }
+                    }
+                    else
+                    {
+                        await ErpDb.ExecuteAsync(
+                            connection,
+                            transaction,
+                            ErpDb.Positional(
+                                "UPDATE `shop_tree_lists_items` SET `value` = ?, `order` = ?, `alias` = ?, `url` = ? WHERE `id` = ?"),
+                            cancellationToken,
+                            valueKey,
+                            order,
+                            item.Alias,
+                            item.Url,
+                            item.Id).ConfigureAwait(false);
+                    }
+
+                    order++;
+                }
+            }
+
+            await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
+            return ErpSimpleWriteResult.Ok(
+                action == "branch_create" ? "Tree-list branch created." : "Tree-list branch saved.",
+                listId);
+        }
+        catch (ErpWriteException ex)
+        {
+            await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
+            return ErpSimpleWriteResult.Fail("invalid", ex.Message);
+        }
+        catch (System.Data.Common.DbException)
+        {
+            await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
+            return ErpSimpleWriteResult.Fail("invalid", "Could not save the tree-list branch.");
+        }
+    }
+
     public async Task<ErpSimpleWriteResult> DeleteAsync(string? idsJson, CancellationToken cancellationToken = default)
     {
         var parsed = ParseIds(idsJson);
@@ -370,6 +650,75 @@ public sealed class CpTreeListWriteService : ICpTreeListWriteService
         }
     }
 
+    /// <summary>PHP tree_list_brunch_editor.php json_decode(tree_json) linear sibling array.</summary>
+    public static (IReadOnlyList<CpTreeListBranchItem> Items, string? Error) ParseBranchItems(string? raw)
+    {
+        var text = (raw ?? string.Empty).Trim();
+        if (text.Length == 0)
+        {
+            return ([], null);
+        }
+
+        if (text.Length > 200_000)
+        {
+            return ([], "tree_json is too large.");
+        }
+
+        if (text[0] != '[')
+        {
+            return ([], "tree_json must be a JSON array.");
+        }
+
+        try
+        {
+            using var doc = JsonDocument.Parse(text);
+            if (doc.RootElement.ValueKind != JsonValueKind.Array)
+            {
+                return ([], "tree_json must be a JSON array.");
+            }
+
+            var items = new List<CpTreeListBranchItem>();
+            foreach (var node in doc.RootElement.EnumerateArray())
+            {
+                if (node.ValueKind != JsonValueKind.Object)
+                {
+                    continue;
+                }
+
+                var id = ReadLong(node, "id");
+                if (id <= 0)
+                {
+                    return ([], "Each brunch item needs a positive id.");
+                }
+
+                var aliasRaw = ReadString(node, "alias");
+                items.Add(new CpTreeListBranchItem(
+                    id,
+                    ReadString(node, "value"),
+                    ReadString(node, "value_lang_str_id", "valueLangStrId"),
+                    string.IsNullOrWhiteSpace(aliasRaw) ? null : HtmlEncode(aliasRaw),
+                    HtmlEncode(ReadString(node, "url")),
+                    ReadFlag(node, "is_new", "isNew") == 1));
+                if (items.Count > 400)
+                {
+                    return ([], "tree_json has too many items.");
+                }
+            }
+
+            var ids = items.Select(i => i.Id).ToList();
+            if (ids.Count != ids.Distinct().Count())
+            {
+                return ([], "tree_json item ids must be unique.");
+            }
+
+            return (items, null);
+        }
+        catch (JsonException)
+        {
+            return ([], "tree_json is not valid JSON.");
+        }
+    }
+
     /// <summary>PHP tree_lists_manager.php tree_lists JSON array or csv of ids.</summary>
     public static (IReadOnlyList<long> Ids, string? Error) ParseIds(string? raw)
     {
@@ -439,6 +788,8 @@ public sealed class CpTreeListWriteService : ICpTreeListWriteService
         {
             "create" or "save_create" or "save_action_create" => "create",
             "edit" or "update" or "save_edit" or "save_update" => "edit",
+            "branch_create" or "brunch_create" or "save_branch_create" => "branch_create",
+            "branch_edit" or "brunch_edit" or "save_branch_edit" => "branch_edit",
             "delete" or "delete_tree_lists" or "del" => "delete",
             _ => action
         };
@@ -529,6 +880,58 @@ public sealed class CpTreeListWriteService : ICpTreeListWriteService
             ids.Add(reader.GetInt64(0));
         }
 
+        return ids;
+    }
+
+    private static async Task<List<long>> LoadSiblingIdsAsync(
+        System.Data.Common.DbConnection connection,
+        System.Data.Common.DbTransaction transaction,
+        long listId,
+        long parentId,
+        CancellationToken cancellationToken)
+    {
+        await using var command = connection.CreateCommand();
+        command.Transaction = transaction;
+        command.CommandText = ErpDb.Positional(
+            "SELECT `id` FROM `shop_tree_lists_items` WHERE `tree_list_id` = ? AND `parent` = ?");
+        ErpDb.AddParameters(command, listId, parentId);
+        var ids = new List<long>();
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+        while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+        {
+            ids.Add(reader.GetInt64(0));
+        }
+
+        return ids;
+    }
+
+    private static async Task<List<long>> LoadDescendantIdsAsync(
+        System.Data.Common.DbConnection connection,
+        System.Data.Common.DbTransaction transaction,
+        long parentId,
+        CancellationToken cancellationToken)
+    {
+        await using var command = connection.CreateCommand();
+        command.Transaction = transaction;
+        command.CommandText = ErpDb.Positional("SELECT `id` FROM `shop_tree_lists_items` WHERE `parent` = ?");
+        ErpDb.AddParameters(command, parentId);
+        var ids = new List<long>();
+        await using (var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false))
+        {
+            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                ids.Add(reader.GetInt64(0));
+            }
+        }
+
+        var nested = new List<long>();
+        foreach (var id in ids)
+        {
+            nested.AddRange(await LoadDescendantIdsAsync(connection, transaction, id, cancellationToken)
+                .ConfigureAwait(false));
+        }
+
+        ids.AddRange(nested);
         return ids;
     }
 

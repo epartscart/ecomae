@@ -21,7 +21,7 @@
 
 
     <PhpCpModulePageHeader Title="Product catalogue"
-                           Subtitle="Min-limit, category-template delete, and line/tree-list create/edit/delete write here. Tree brunch editor, SKU media, item images, and template create stay on the compare twin."
+                           Subtitle="Min-limit, category-template delete, line/tree-list create/edit/delete, and brunch save write here. SKU media, item images, and template create stay on the compare twin."
                            PhpTabHref="@_phpTab">
         <a class="ghost" href="/cp/prices-upload-app">Prices upload</a>
         <a class="ghost" href="/cp/crosses-app">Crosses</a>
@@ -35,7 +35,7 @@
         </a>
         <a class="epc-scp-table-card" style="padding:1rem;text-decoration:none;color:inherit;" href="#tree-lists">
             <h3 style="margin:0 0 .35rem;font-size:1rem;">Tree lists</h3>
-            <p style="margin:0;color:#475569;font-size:.86rem;">Save / delete write here. Brunch editor and images stay Classic.</p>
+            <p style="margin:0;color:#475569;font-size:.86rem;">Save / delete / brunch write here. Item images stay Classic.</p>
         </a>
         <a class="epc-scp-table-card" style="padding:1rem;text-decoration:none;color:inherit;" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref("/CP/shop/catalogue/main_page_products")">
             <h3 style="margin:0 0 .35rem;font-size:1rem;">Homepage slots</h3>
@@ -173,6 +173,32 @@
             <input type="hidden" name="action" value="delete" />
             <label>Ids <input type="text" name="ids" required placeholder="[1] or 1,2" /></label>
             <button type="submit">Delete tree lists</button>
+        </form>
+        <form id="tree-brunch" method="post" action="/cp/catalogue/tree-lists/write" style="display:flex;flex-direction:column;gap:.45rem;margin:0 0 1rem;max-width:52rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/product-catalogue-app" />
+            <input type="hidden" name="langCode" value="en" />
+            <div style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end">
+                <label>Action
+                    <select name="action">
+                        <option value="branch_create">branch_create</option>
+                        <option value="branch_edit">branch_edit</option>
+                    </select>
+                </label>
+                <label>List id <input type="number" name="listId" min="0" value="0" style="width:6rem" title="0 = create" /></label>
+                <label>Parent id <input type="number" name="parentId" min="0" value="0" style="width:6rem" /></label>
+                <label>Caption <input type="text" name="caption" /></label>
+                <label>Data type
+                    <select name="dataType">
+                        <option value="text">text</option>
+                        <option value="number">number</option>
+                    </select>
+                </label>
+            </div>
+            <label>Branch items JSON
+                <textarea name="treeJson" rows="4" style="width:100%;font-family:monospace" placeholder='[{"id":1,"value":"Sibling","alias":"sib","url":"/sib"}]'></textarea>
+            </label>
+            <button type="submit">Save brunch</button>
         </form>
     }
     @if (!_isAdmin)

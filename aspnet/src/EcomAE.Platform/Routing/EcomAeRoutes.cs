@@ -1240,7 +1240,7 @@ public static class EcomAeRoutes
     public const string CpTemplatesActions = "/cp/catalogue/templates-actions";
     /// <summary>PHP line_list.php save_action create/edit and line_lists_manager.php delete. <c>confirmWrites=true</c> writes via <c>ICpLineListWriteService</c>. Drag-tree item UX stays PHP. Manufacturers list id 10 cannot be deleted.</summary>
     public const string CpLineListsWrite = "/cp/catalogue/line-lists/write";
-    /// <summary>PHP tree_list.php save_action create/edit and tree_lists_manager.php delete. <c>confirmWrites=true</c> writes via <c>ICpTreeListWriteService</c>. Brunch editor and item image upload stay PHP.</summary>
+    /// <summary>PHP tree_list.php / tree_list_brunch_editor.php save_action and tree_lists_manager.php delete. <c>confirmWrites=true</c> writes via <c>ICpTreeListWriteService</c>. Item image upload stays PHP.</summary>
     public const string CpTreeListsWrite = "/cp/catalogue/tree-lists/write";
     /// <summary>Wave B dry-run for PHP cp/content/shop/prices_upload/price_review/ajax_price_review.php (writes=0).</summary>
     public const string CpPriceReviewWrite = "/cp/prices/review";
