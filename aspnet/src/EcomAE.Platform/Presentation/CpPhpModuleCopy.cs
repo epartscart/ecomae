@@ -81,8 +81,10 @@ public static class CpPhpModuleCopy
             return "Shop orders: status, fulfilment and item-level OMS.";
         if (path.Contains("/product-catalogue", StringComparison.OrdinalIgnoreCase))
             return "Product catalogue: SKUs, names and publish state.";
-        if (path.Contains("/pages-app", StringComparison.OrdinalIgnoreCase) || path.Contains("/page-builder", StringComparison.OrdinalIgnoreCase))
+        if (path.Contains("/page-builder", StringComparison.OrdinalIgnoreCase))
             return "CMS pages and page builder.";
+        if (path.Contains("/pages-app", StringComparison.OrdinalIgnoreCase))
+            return "Content pages. Set published or main, or save a text/php body here. TinyMCE image upload stays on the Classic twin.";
         if (path.Contains("/menus-app", StringComparison.OrdinalIgnoreCase))
             return "Storefront menus and navigation.";
         if (path.Contains("/seo-app", StringComparison.OrdinalIgnoreCase) || path.Contains("/sitemap", StringComparison.OrdinalIgnoreCase))

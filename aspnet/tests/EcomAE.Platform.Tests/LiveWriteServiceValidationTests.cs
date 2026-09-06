@@ -1413,6 +1413,34 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(contentMainDb.Succeeded);
         Assert.Equal("db", contentMainDb.Code);
 
+        var contentBodyId = await new CpContentManagerWriteService(new ConfiguredNeverOpened())
+            .SaveBodyAsync(new CpContentBodySaveRequest(0, "text", "Hello"));
+        Assert.False(contentBodyId.Succeeded);
+        Assert.Equal("invalid", contentBodyId.Code);
+
+        var contentBodyType = await new CpContentManagerWriteService(new ConfiguredNeverOpened())
+            .SaveBodyAsync(new CpContentBodySaveRequest(9, "html", "Hello"));
+        Assert.False(contentBodyType.Succeeded);
+        Assert.Equal("invalid", contentBodyType.Code);
+
+        var contentBodyPhp = await new CpContentManagerWriteService(new ConfiguredNeverOpened())
+            .SaveBodyAsync(new CpContentBodySaveRequest(9, "php", "not-a-php-path"));
+        Assert.False(contentBodyPhp.Succeeded);
+        Assert.Equal("invalid", contentBodyPhp.Code);
+
+        var contentBodyDb = await new CpContentManagerWriteService(new UnconfiguredConnections())
+            .SaveBodyAsync(new CpContentBodySaveRequest(9, "text", "<?php?>"));
+        Assert.False(contentBodyDb.Succeeded);
+        Assert.Equal("db", contentBodyDb.Code);
+
+        Assert.True(CpContentManagerWriteService.TryNormalizeType("PHP", out var bodyType));
+        Assert.Equal("php", bodyType);
+        Assert.False(CpContentManagerWriteService.TryNormalizeType("html", out _));
+        Assert.True(CpContentManagerWriteService.TryNormalizePhpPath("templates/page.php", out var phpPath, out _));
+        Assert.Equal("templates/page.php", phpPath);
+        Assert.False(CpContentManagerWriteService.TryNormalizePhpPath("../x.php", out _, out _));
+        Assert.Equal("[CODE]php[/CODE]", CpContentManagerWriteService.StripPhp("<?php?>"));
+
         var wmsInvalid = await new ErpWmsLocationWriteService(new ConfiguredNeverOpened())
             .DeleteAsync(0);
         Assert.False(wmsInvalid.Succeeded);

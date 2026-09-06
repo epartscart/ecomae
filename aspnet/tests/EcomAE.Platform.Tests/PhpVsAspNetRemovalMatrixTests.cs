@@ -162,6 +162,7 @@ public sealed class PhpVsAspNetRemovalMatrixTests
             ("CpPriceListsApp.razor", "/cp/prices/storage-rules"),
             ("CpPagesApp.razor", "/cp/content/published"),
             ("CpPagesApp.razor", "/cp/content/main"),
+            ("CpPagesApp.razor", "/cp/content/body"),
             ("ErpCashAccountsApp.razor", "/erp/offices-cash/add"),
             ("ErpCashAccountsApp.razor", "/erp/offices-cash/add"),
             ("ErpCashAccountsApp.razor", "/erp/offices-cash/codes/add"),

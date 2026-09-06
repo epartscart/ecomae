@@ -1055,8 +1055,10 @@ public static class EcomAeRoutes
     public const string CpPriceStorageRules = "/cp/prices/storage-rules";
     /// <summary>PHP content_manager.php set_published_flag (single id). System pages stay locked.</summary>
     public const string CpContentPublished = "/cp/content/published";
-    /// <summary>PHP content_manager.php set_main_flag. Body editor stays PHP.</summary>
+    /// <summary>PHP content_manager.php set_main_flag.</summary>
     public const string CpContentMain = "/cp/content/main";
+    /// <summary>PHP content.php save_content. <c>confirmWrites=true</c> writes via <c>ICpContentManagerWriteService.SaveBodyAsync</c>. TinyMCE upload stays PHP.</summary>
+    public const string CpContentBody = "/cp/content/body";
     /// <summary>PHP offices_cash.php action=add. Manager must belong to the office.</summary>
     public const string ErpOfficesCashAdd = "/erp/offices-cash/add";
     /// <summary>PHP offices_cash_editor.php action=add. <c>confirmWrites=true</c> writes lang string + cash code.</summary>

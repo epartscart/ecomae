@@ -2904,7 +2904,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only content pages metadata (body omitted). PHP content_manager remains authoritative."
+                note = "Content pages metadata (body omitted). Publish, main, and body save POST /cp/content/* when confirmWrites=true. TinyMCE upload stays PHP."
             });
         });
 
@@ -4219,6 +4219,62 @@ public sealed class ControlPanelModule : ISurfaceModule
                 written.Succeeded,
                 written.Message,
                 new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.CpContentBody, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpContentManagerWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/pages-app", "Admin CP capability required for content body save.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpContentBodyWriteBody>(context, cancellationToken) ?? new();
+            var contentId = body.ContentId;
+            var contentType = body.ContentType;
+            var content = body.Content;
+            var contentLangStrId = body.ContentLangStrId;
+            var langCode = body.LangCode;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                contentId = LiveWriteFormBinder.Long(form, "contentId", "content_id", "id");
+                contentType = LiveWriteFormBinder.Text(form, "contentType", "content_type");
+                content = LiveWriteFormBinder.Text(form, "content");
+                contentLangStrId = LiveWriteFormBinder.Text(form, "contentLangStrId", "content_lang_str_id");
+                langCode = LiveWriteFormBinder.Text(form, "langCode", "lang_code");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(new
+                {
+                    status = "dry-run",
+                    writes = 0,
+                    writesBlocked = true,
+                    phpAuthoritative = true,
+                    validation_code = "dry_run",
+                    message = "Set confirmWrites=true to save a content page body on ASP.NET.",
+                    session = SessionPayload(session)
+                });
+            }
+
+            var host = context.Request.Host.Host;
+            var domainPath = string.IsNullOrWhiteSpace(host) ? "http://localhost/" : "http://" + host + "/";
+            var written = await writes.SaveBodyAsync(
+                new CpContentBodySaveRequest(contentId, contentType, content, contentLangStrId, langCode, domainPath),
+                cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/cp/pages-app",
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
 
         endpoints.MapGet(EcomAeRoutes.ControlPanelCurrencies, async (
@@ -8521,4 +8577,11 @@ public sealed class ControlPanelModule : ISurfaceModule
         bool ConfirmWrites = false);
     private sealed record CpContentPublishedBody(long ContentId = 0, int PublishedFlag = 0, bool ConfirmWrites = false);
     private sealed record CpContentMainBody(long ContentId = 0, int IsFrontend = 1, bool ConfirmWrites = false);
+    private sealed record CpContentBodyWriteBody(
+        long ContentId = 0,
+        string? ContentType = null,
+        string? Content = null,
+        string? ContentLangStrId = null,
+        string? LangCode = null,
+        bool ConfirmWrites = false);
 }

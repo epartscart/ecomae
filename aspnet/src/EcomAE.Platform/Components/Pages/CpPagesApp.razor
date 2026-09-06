@@ -21,7 +21,7 @@
 
 
     <PhpCpModulePageHeader Title="Content Pages"
-                           Subtitle="Publish and main-page flags write here. Body/HTML editor stays on the classic twin.">
+                           Subtitle="Publish, main-page, and body save write here. TinyMCE image upload stays on the Classic twin.">
         <a class="ghost" href="/cp/menus-app">Menus</a>
         <a class="ghost" href="/cp/modules-app">Modules</a>
         <a class="ghost" href="/cp/page-builder-app">Page builder</a>
@@ -56,6 +56,25 @@
             <label>Page id <input type="number" name="contentId" min="1" required style="width:6rem" /></label>
             <button type="submit">Set as main page</button>
         </form>
+        <form method="post" action="/cp/content/body" style="display:flex;flex-direction:column;gap:.45rem;margin:0 0 1rem;max-width:52rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/pages-app" />
+            <input type="hidden" name="langCode" value="en" />
+            <div style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end">
+                <label>Page id <input type="number" name="contentId" min="1" required style="width:6rem" value="@(_selectedId > 0 ? _selectedId.ToString(CultureInfo.InvariantCulture) : "")" /></label>
+                <label>Type
+                    <select name="contentType">
+                        <option value="text">text</option>
+                        <option value="php">php</option>
+                    </select>
+                </label>
+                <label>Lang string id <input type="text" name="contentLangStrId" placeholder="0 = allocate" style="width:12rem" /></label>
+            </div>
+            <label>Body
+                <textarea name="content" rows="8" style="width:100%;font-family:monospace" placeholder="HTML for type=text, or a .php path for type=php"></textarea>
+            </label>
+            <button type="submit">Save body</button>
+        </form>
     }
 
     @if (!_isAdmin)
@@ -88,7 +107,7 @@
                 <div class="epc-scp-table-card__head">
                     <div>
                         <h3>Content pages</h3>
-                        <p class="epc-users-hint">Open a row for field preview — TinyMCE body edits stay on PHP</p>
+                        <p class="epc-users-hint">Open a row for field preview. Save body writes here; TinyMCE image upload stays Classic.</p>
                     </div>
                 </div>
                 <div class="table-responsive">
@@ -165,7 +184,7 @@
                         <dt>Frontend</dt><dd>@(_selected.IsFrontend ? "yes" : "no")</dd>
                     </dl>
                     <p style="margin:.85rem 0 0;font-size:.86rem;">
-                        Body HTML is intentionally omitted from digests.
+                        Body HTML is intentionally omitted from digests. Use Save body above.
                     </p>
                 </div>
             </div>
