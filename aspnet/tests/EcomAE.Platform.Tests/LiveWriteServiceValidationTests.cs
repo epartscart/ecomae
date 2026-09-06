@@ -1214,7 +1214,16 @@ public sealed class LiveWriteServiceValidationTests
         Assert.Equal("edit", CpCatalogueProductWriteService.NormalizeAction("save", 9));
         Assert.Equal("Pad", CpCatalogueProductWriteService.SanitizePlain(" Pa'd\n"));
         Assert.Equal("[CODE]x[/CODE]", CpCatalogueProductWriteService.StripPhp("<?x?>"));
-        var okProps = CpCatalogueProductWriteService.ParseProperties("""[{"property_id":1,"property_type_id":5,"value":[9]}]""");
+        var okProps = CpCatalogueProductWriteService.ParseProperties("""[{"property_id":1,"property_type_id":5,"list_type":2,"manual_input":"Ceramic","value":[9]}]""");
+        Assert.Null(okProps.Error);
+        Assert.Equal(9, okProps.Properties[0].OptionIds[0]);
+        Assert.Equal(2, okProps.Properties[0].ListType);
+        Assert.Equal("Ceramic", okProps.Properties[0].ManualInput);
+        Assert.Equal(new[] { "Ceramic;Pads" }, CpCatalogueProductWriteService.SplitManualInput("Ceramic;Pads", 1).ToArray());
+        Assert.Equal(new[] { "A", "B" }, CpCatalogueProductWriteService.SplitManualInput("A; B", 2).ToArray());
+        var sortItems = new List<(long Id, string Caption, bool IsNew)> { (2, "b", false), (1, "a", false) };
+        CpCatalogueProductWriteService.SortLineListItems(sortItems, "asc", "text");
+        Assert.Equal("a", sortItems[0].Caption);
 
         var reviewId = await new CpCatalogueReviewWriteService(new ConfiguredNeverOpened())
             .DeleteAsync(0);

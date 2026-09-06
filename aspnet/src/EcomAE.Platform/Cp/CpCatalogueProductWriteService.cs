@@ -8,8 +8,8 @@ using EcomAE.Platform.Erp;
 namespace EcomAE.Platform.Cp;
 
 /// <summary>
-/// Live PHP <c>product.php</c> create/edit twin.
-/// Image upload and manual line-list item create stay on the Classic twin.
+/// Live PHP <c>product.php</c> create/edit twin, including type-5
+/// <c>manual_input</c> line-list item create. Image upload stays Classic.
 /// </summary>
 public interface ICpCatalogueProductWriteService
 {
@@ -45,7 +45,9 @@ public sealed record CpCatalogueProductProperty(
     string Caption,
     string Value,
     string ValueLangStrId,
-    IReadOnlyList<long> OptionIds);
+    IReadOnlyList<long> OptionIds,
+    string ManualInput = "",
+    int ListType = 0);
 
 public sealed record CpCatalogueProductSticker(
     long Id,
@@ -270,6 +272,30 @@ public sealed class CpCatalogueProductWriteService : ICpCatalogueProductWriteSer
         return value.Trim();
     }
 
+    public static IReadOnlyList<string> SplitManualInput(string? raw, int listType)
+    {
+        var text = (raw ?? string.Empty).Trim();
+        if (text.Length == 0 || listType is not (1 or 2))
+        {
+            return [];
+        }
+
+        if (listType == 1)
+        {
+            return [text];
+        }
+
+        return text.Split(';', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+    }
+
+    public static void SortLineListItems(List<(long Id, string Caption, bool IsNew)> items, string autoSort, string dataType)
+    {
+        var key = (autoSort ?? string.Empty).Trim().ToLowerInvariant()
+            + "_"
+            + (dataType ?? string.Empty).Trim().ToLowerInvariant();
+        items.Sort((left, right) => CompareLineList(left.Caption, right.Caption, key));
+    }
+
     public static string StripPhp(string? raw)
     {
         var text = raw ?? string.Empty;
@@ -350,7 +376,9 @@ public sealed class CpCatalogueProductWriteService : ICpCatalogueProductWriteSer
                     ReadString(node, "caption"),
                     value,
                     ReadString(node, "value_lang_str_id", "valueLangStrId"),
-                    options));
+                    options,
+                    ReadString(node, "manual_input", "manualInput"),
+                    (int)ReadLong(node, "list_type", "listType")));
                 if (properties.Count > 80)
                 {
                     return ([], "properties_objects has too many entries.");
@@ -498,7 +526,15 @@ public sealed class CpCatalogueProductWriteService : ICpCatalogueProductWriteSer
                     var table = property.PropertyTypeId == 5
                         ? "shop_properties_values_list"
                         : "shop_properties_values_tree_list";
-                    foreach (var optionId in property.OptionIds)
+                    var optionIds = property.OptionIds;
+                    if (property.PropertyTypeId == 5)
+                    {
+                        optionIds = await ResolveManualLineListAsync(
+                            connection, transaction, property, lang, domainPath, langDescription, cancellationToken)
+                            .ConfigureAwait(false);
+                    }
+
+                    foreach (var optionId in optionIds)
                     {
                         await InsertPropertyAsync(
                             connection, transaction, table,
@@ -675,6 +711,167 @@ public sealed class CpCatalogueProductWriteService : ICpCatalogueProductWriteSer
                 order).ConfigureAwait(false);
             order++;
         }
+    }
+
+    private async Task<IReadOnlyList<long>> ResolveManualLineListAsync(
+        System.Data.Common.DbConnection connection,
+        System.Data.Common.DbTransaction transaction,
+        CpCatalogueProductProperty property,
+        string lang,
+        string? domainPath,
+        string langDescription,
+        CancellationToken cancellationToken)
+    {
+        var manuals = SplitManualInput(property.ManualInput, property.ListType);
+        var options = property.ListType == 1 && manuals.Count > 0
+            ? new List<long>()
+            : property.OptionIds.Where(id => id > 0).ToList();
+        if (manuals.Count == 0)
+        {
+            return options;
+        }
+
+        long listId = 0;
+        var autoSort = "no";
+        var dataType = "text";
+        await using (var command = connection.CreateCommand())
+        {
+            command.Transaction = transaction;
+            command.CommandText = ErpDb.Positional(
+                """
+                SELECT `shop_line_lists`.`id`, `shop_line_lists`.`auto_sort`, `shop_line_lists`.`data_type`
+                FROM `shop_categories_properties_map`
+                INNER JOIN `shop_line_lists` ON `shop_categories_properties_map`.`list_id` = `shop_line_lists`.`id`
+                WHERE `shop_categories_properties_map`.`id` = ?
+                """);
+            ErpDb.AddParameters(command, property.PropertyId);
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                listId = reader.GetInt64(0);
+                autoSort = reader.IsDBNull(1) ? "no" : reader.GetString(1);
+                dataType = reader.IsDBNull(2) ? "text" : reader.GetString(2);
+            }
+        }
+
+        if (listId <= 0)
+        {
+            throw new ErpWriteException("Line list was not found for this property.");
+        }
+
+        var items = await LoadLineListItemsAsync(connection, transaction, listId, lang, cancellationToken)
+            .ConfigureAwait(false);
+        foreach (var manual in manuals)
+        {
+            var match = items.FirstOrDefault(item => string.Equals(item.Caption, manual, StringComparison.Ordinal));
+            if (match.Id > 0)
+            {
+                if (!options.Contains(match.Id))
+                {
+                    options.Add(match.Id);
+                }
+
+                continue;
+            }
+
+            items.Add((0, HtmlEncode(manual), true));
+            if (!string.Equals(autoSort.Trim(), "no", StringComparison.OrdinalIgnoreCase))
+            {
+                SortLineListItems(items, autoSort, dataType);
+            }
+
+            var order = 1;
+            for (var i = 0; i < items.Count; i++)
+            {
+                var item = items[i];
+                if (item.IsNew)
+                {
+                    var key = await RequireTranslationAsync(
+                        connection, transaction, null, item.Caption,
+                        lang, domainPath, langDescription, cancellationToken).ConfigureAwait(false);
+                    await ErpDb.ExecuteAsync(
+                        connection,
+                        transaction,
+                        ErpDb.Positional("INSERT INTO `shop_line_lists_items` (`line_list_id`, `value`, `order`) VALUES (?, ?, ?)"),
+                        cancellationToken,
+                        listId,
+                        key,
+                        order).ConfigureAwait(false);
+                    var newId = await ErpDb.LastInsertIdAsync(connection, transaction, cancellationToken)
+                        .ConfigureAwait(false);
+                    items[i] = (newId, item.Caption, false);
+                    if (!options.Contains(newId))
+                    {
+                        options.Add(newId);
+                    }
+                }
+                else
+                {
+                    await ErpDb.ExecuteAsync(
+                        connection,
+                        transaction,
+                        ErpDb.Positional("UPDATE `shop_line_lists_items` SET `order` = ? WHERE `id` = ?"),
+                        cancellationToken,
+                        order,
+                        item.Id).ConfigureAwait(false);
+                }
+
+                order++;
+            }
+        }
+
+        return options;
+    }
+
+    private static async Task<List<(long Id, string Caption, bool IsNew)>> LoadLineListItemsAsync(
+        System.Data.Common.DbConnection connection,
+        System.Data.Common.DbTransaction transaction,
+        long listId,
+        string lang,
+        CancellationToken cancellationToken)
+    {
+        var items = new List<(long Id, string Caption, bool IsNew)>();
+        await using var command = connection.CreateCommand();
+        command.Transaction = transaction;
+        command.CommandText = ErpDb.Positional(
+            """
+            SELECT `i`.`id`, `i`.`value`,
+                   (SELECT `t`.`value` FROM `lang_text_strings_translation` `t`
+                    WHERE `t`.`str_key` = `i`.`value` AND `t`.`lang_code` = ? LIMIT 1)
+            FROM `shop_line_lists_items` `i`
+            WHERE `i`.`line_list_id` = ?
+            ORDER BY `i`.`order`
+            """);
+        ErpDb.AddParameters(command, lang, listId);
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+        while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+        {
+            var id = reader.GetInt64(0);
+            var key = reader.IsDBNull(1) ? string.Empty : reader.GetString(1);
+            var caption = reader.IsDBNull(2) ? key : reader.GetString(2);
+            items.Add((id, caption, false));
+        }
+
+        return items;
+    }
+
+    private static int CompareLineList(string left, string right, string sortKey)
+    {
+        var number = sortKey.Contains("number", StringComparison.Ordinal);
+        var descending = sortKey.StartsWith("desc", StringComparison.Ordinal);
+        int compared;
+        if (number
+            && double.TryParse(left, NumberStyles.Any, CultureInfo.InvariantCulture, out var leftNumber)
+            && double.TryParse(right, NumberStyles.Any, CultureInfo.InvariantCulture, out var rightNumber))
+        {
+            compared = leftNumber.CompareTo(rightNumber);
+        }
+        else
+        {
+            compared = string.Compare(left, right, StringComparison.OrdinalIgnoreCase);
+        }
+
+        return descending ? -compared : compared;
     }
 
     private static async Task InsertPropertyAsync(
