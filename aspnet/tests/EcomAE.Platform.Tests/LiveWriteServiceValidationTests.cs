@@ -1039,14 +1039,24 @@ public sealed class LiveWriteServiceValidationTests
         Assert.Equal("db", quoteLinesDb.Code);
 
         var vendorInvalid = await new CpVendorApprovalWriteService(new ConfiguredNeverOpened())
-            .SetStatusAsync(9, "approve");
+            .SetStatusAsync(0, "approve");
         Assert.False(vendorInvalid.Succeeded);
         Assert.Equal("invalid", vendorInvalid.Code);
 
+        var vendorAction = await new CpVendorApprovalWriteService(new ConfiguredNeverOpened())
+            .SetStatusAsync(9, "nope");
+        Assert.False(vendorAction.Succeeded);
+        Assert.Equal("invalid", vendorAction.Code);
+
         var vendorDb = await new CpVendorApprovalWriteService(new UnconfiguredConnections())
-            .SetStatusAsync(9, "suspend");
+            .SetStatusAsync(9, "approve");
         Assert.False(vendorDb.Succeeded);
         Assert.Equal("db", vendorDb.Code);
+
+        Assert.Equal("PadWH1", CpVendorApprovalWriteService.SanitizeShort(" Pad/WH#1 "));
+        Assert.Equal("Pad warehouse", CpVendorApprovalWriteService.SanitizeFull("  Pad   warehouse  "));
+        Assert.Equal("PADWH · Pad warehouse", CpVendorApprovalWriteService.ListBaseName("PADWH", "Pad warehouse"));
+        Assert.Equal("EPC_VENDOR", CpVendorApprovalWriteService.VendorGroupKey);
 
         var apiInvalid = await new CpApiClientWriteService(new ConfiguredNeverOpened())
             .SetActiveAsync(0, 1);

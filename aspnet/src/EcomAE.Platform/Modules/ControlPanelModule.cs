@@ -3278,12 +3278,12 @@ public sealed class ControlPanelModule : ISurfaceModule
                     writesBlocked = true,
                     phpAuthoritative = true,
                     validation_code = "dry_run",
-                    message = "Set confirmWrites=true to suspend or reject a vendor on ASP.NET.",
+                    message = "Set confirmWrites=true to approve, suspend, or reject a vendor on ASP.NET.",
                     session = SessionPayload(session)
                 });
             }
 
-            var written = await writes.SetStatusAsync(id, action, cancellationToken);
+            var written = await writes.SetStatusAsync(id, action, session.UserId, cancellationToken);
             return LiveWriteFormBinder.Complete(
                 context,
                 "/cp/users-app",

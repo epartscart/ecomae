@@ -31,7 +31,7 @@
         <div class="epc-users-page__hero">
             <div>
                 <h2><i class="fa fa-users"></i> Users · account console</h2>
-                <p>Same-to-same with PHP <code>users/usermanager</code> and <code>users/usermanager/user</code>: open a row to inspect profile, groups, balance, recent orders, and linked modules. Staff comment, lock/unlock, create, password, and vendor suspend/reject write on ASP.NET. Vendor approve stays on the classic editor.</p>
+                <p>Same-to-same with PHP <code>users/usermanager</code> and <code>users/usermanager/user</code>: open a row to inspect profile, groups, balance, recent orders, and linked modules. Staff comment, lock/unlock, create, password, and vendor approve / suspend / reject write on ASP.NET.</p>
             </div>
             <div class="epc-users-page__hero-actions">
                 <a class="btn btn-primary btn-sm" href="/cp/groups-app"><i class="fa fa-sitemap"></i> Groups</a>
@@ -134,11 +134,13 @@
                 <label>Vendor account id <input type="number" name="id" min="1" required style="width:6rem" /></label>
                 <label>Action
                     <select name="action">
+                        <option value="approve">Approve</option>
                         <option value="suspend">Suspend</option>
                         <option value="reject">Reject</option>
                     </select>
                 </label>
-                <button type="submit" class="btn btn-xs btn-default">Apply vendor status</button>
+                <button type="submit" class="btn btn-xs btn-primary">Apply vendor status</button>
+                <a class="btn btn-default btn-xs" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref("/CP/users/vendor_approvals")">Classic twin</a>
             </form>
         }
         @if (!_isAdmin)
