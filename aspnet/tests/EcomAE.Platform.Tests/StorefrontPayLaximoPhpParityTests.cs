@@ -149,6 +149,7 @@ public sealed class StorefrontPayLaximoPhpParityTests
         Assert.Equal("write-live-gated", SurfacePayloadContractCatalog.Functions.First(f => f.AspNetRouteOrCapability == "/erp/ajax/inv-import-csv").Status);
         Assert.Equal("write-live-gated", SurfacePayloadContractCatalog.Functions.First(f => f.AspNetRouteOrCapability == "/erp/ajax/dim-save").Status);
         Assert.Equal("write-live-gated", SurfacePayloadContractCatalog.Functions.First(f => f.AspNetRouteOrCapability == "/erp/customers/master-save").Status);
+        Assert.Equal("write-live-gated", SurfacePayloadContractCatalog.Functions.First(f => f.AspNetRouteOrCapability == "/erp/customers/settlement").Status);
 
         var pos = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/CpPosOverviewApp.razor"));
         Assert.Contains("action=\"/cp/pos/open-session\"", pos, StringComparison.Ordinal);
@@ -197,6 +198,8 @@ public sealed class StorefrontPayLaximoPhpParityTests
         var receivables = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/ErpReceivablesApp.razor"));
         Assert.Contains("action=\"/erp/customers/master-save\"", receivables, StringComparison.Ordinal);
         Assert.Contains("Save customer master", receivables, StringComparison.Ordinal);
+        Assert.Contains("action=\"/erp/customers/settlement\"", receivables, StringComparison.Ordinal);
+        Assert.Contains("Post customer settlement", receivables, StringComparison.Ordinal);
         Assert.DoesNotContain("@onclick", receivables, StringComparison.Ordinal);
         Assert.Equal("/storefront/garage/check-car", PhpCustomerWrites.GarageCheckCarHref);
         Assert.Equal("/storefront/profile/change-password", PhpCustomerWrites.ProfilePasswordHref);

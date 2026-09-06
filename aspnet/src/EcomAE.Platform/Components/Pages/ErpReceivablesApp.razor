@@ -45,6 +45,28 @@
             <label><input type="checkbox" name="on_hold" value="1" /> On credit hold</label>
             <button type="submit" class="btn btn-sm btn-primary">Save customer master</button>
         </form>
+        <form method="post" action="/erp/customers/settlement" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/erp/receivables-app" />
+            <label>Customer ID <input type="number" name="user_id" min="1" required style="width:6rem" /></label>
+            <label>Amount <input type="text" name="amount" required placeholder="0.00" /></label>
+            <label>Direction
+                <select name="direction">
+                    <option value="credit">credit</option>
+                    <option value="debit">debit</option>
+                </select>
+            </label>
+            <label>Kind
+                <select name="entry_kind">
+                    <option value="adjustment">adjustment</option>
+                    <option value="settlement">settlement</option>
+                    <option value="write_off">write_off</option>
+                </select>
+            </label>
+            <label>Reference <input type="text" name="reference" /></label>
+            <label>Note <input type="text" name="note" /></label>
+            <button type="submit" class="btn btn-sm btn-primary">Post customer settlement</button>
+        </form>
     }
 
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Receivables KPIs">

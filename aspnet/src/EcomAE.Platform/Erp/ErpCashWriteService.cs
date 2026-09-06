@@ -189,6 +189,11 @@ public interface IErpCashWriteService
     Task<ErpTransferVoucherResult> TransferVoucherAsync(ErpTransferVoucherInput input, int adminId, CancellationToken cancellationToken = default);
 
     Task<long> CustomerSettlementAsync(
+        ErpCustomerSettlementInput input,
+        int adminId,
+        CancellationToken cancellationToken = default);
+
+    Task<long> CustomerSettlementAsync(
         DbConnection connection,
         ErpCustomerSettlementInput input,
         int adminId,
@@ -864,6 +869,31 @@ public sealed class ErpCashWriteService : IErpCashWriteService
         return EntryTypes.Contains(requested, StringComparer.Ordinal)
             ? requested
             : direction ? "receipt" : "payment";
+    }
+
+    /// <summary>Dedicated PHP <c>customer_settlement</c> entry: opens the tenant DB, then posts the AR row.</summary>
+    public async Task<long> CustomerSettlementAsync(
+        ErpCustomerSettlementInput input,
+        int adminId,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        var amount = ErpTaxAmountCalculator.Round2(input.Amount);
+        if (input.UserId <= 0 || amount <= 0m)
+        {
+            throw new ErpWriteException("Customer and positive amount required");
+        }
+
+        var entryKind = NormalizeSettlementKind(input.EntryKind);
+        if (entryKind == "write_off" && input.Income)
+        {
+            throw new ErpWriteException("Write-off must reduce customer balance (debit direction)");
+        }
+
+        EnsureConfigured();
+        await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await AssertCustomerAsync(connection, input.UserId, cancellationToken).ConfigureAwait(false);
+        return await CustomerSettlementAsync(connection, input, adminId, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>PHP <c>epc_erp_customer_settlement</c>: AR ledger row on <c>shop_users_accounting</c> plus optional GL.</summary>

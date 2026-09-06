@@ -91,6 +91,33 @@ public sealed class ErpCashWriteServiceTests
     [InlineData(0, 100)]
     [InlineData(7, 0)]
     [InlineData(7, -5)]
+    public async Task CustomerSettlementRequiresCustomerAndPositiveAmount(int userId, decimal amount)
+    {
+        var ex = await Assert.ThrowsAsync<ErpWriteException>(() => Service().CustomerSettlementAsync(
+            new ErpCustomerSettlementInput { UserId = userId, Amount = amount, Income = true },
+            adminId: 1));
+        Assert.Equal("Customer and positive amount required", ex.Message);
+    }
+
+    [Fact]
+    public async Task CustomerWriteOffCannotCreditBalance()
+    {
+        var ex = await Assert.ThrowsAsync<ErpWriteException>(() => Service().CustomerSettlementAsync(
+            new ErpCustomerSettlementInput
+            {
+                UserId = 7,
+                Amount = 100m,
+                Income = true,
+                EntryKind = "write_off",
+            },
+            adminId: 1));
+        Assert.Equal("Write-off must reduce customer balance (debit direction)", ex.Message);
+    }
+
+    [Theory]
+    [InlineData(0, 100)]
+    [InlineData(7, 0)]
+    [InlineData(7, -5)]
     public async Task SupplierSettlementRequiresSupplierAndPositiveAmount(int supplierId, decimal amount)
     {
         var ex = await Assert.ThrowsAsync<ErpWriteException>(() => Service().SupplierSettlementAsync(

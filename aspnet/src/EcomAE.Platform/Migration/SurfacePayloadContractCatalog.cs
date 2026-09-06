@@ -1277,7 +1277,7 @@ public static class SurfacePayloadContractCatalog
         new("erp", "currency set-rate dry-run", "/erp/currency/set-rate", "write-dry-run-gated", "POST dry-run for PHP ccy_set_rate; writes=0; confirm_writes refused; PHP authoritative."),
         new("erp", "period soft-close dry-run", "/erp/periods/soft-close", "write-dry-run-gated", "POST dry-run for PHP period_soft_close; writes=0; confirm_writes refused; PHP authoritative."),
         new("erp", "period lock dry-run", "/erp/periods/lock", "write-dry-run-gated", "POST dry-run for PHP period_lock; writes=0; confirm_writes refused; PHP authoritative."),
-        new("erp", "customer settlement dry-run", "/erp/customers/settlement", "write-dry-run-gated", "POST dry-run for PHP customer_settlement; writes=0; confirm_writes refused; PHP authoritative."),
+        new("erp", "customer settlement write", "/erp/customers/settlement", "write-live-gated", "POST PHP customer_settlement; confirmWrites=true inserts shop_users_accounting. Schema-ensure stays PHP."),
         new("erp", "supplier settlement dry-run", "/erp/suppliers/settlement", "write-dry-run-gated", "POST dry-run for PHP supplier_settlement; writes=0; confirm_writes refused; PHP authoritative."),
         new("erp", "fiscal set-lock dry-run", "/erp/fiscal/set-lock", "write-dry-run-gated", "POST dry-run for PHP fiscal_set_lock; writes=0; confirm_writes refused; PHP authoritative."),
         new("erp", "period reopen dry-run", "/erp/periods/reopen", "write-dry-run-gated", "POST dry-run for PHP period_reopen; writes=0; confirm_writes refused; PHP authoritative."),
