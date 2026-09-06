@@ -1215,6 +1215,19 @@ public sealed class LiveWriteServiceValidationTests
         Assert.Equal("Pad", CpCatalogueProductWriteService.SanitizePlain(" Pa'd\n"));
         Assert.Equal("[CODE]x[/CODE]", CpCatalogueProductWriteService.StripPhp("<?x?>"));
         var okProps = CpCatalogueProductWriteService.ParseProperties("""[{"property_id":1,"property_type_id":5,"value":[9]}]""");
+
+        var reviewId = await new CpCatalogueReviewWriteService(new ConfiguredNeverOpened())
+            .DeleteAsync(0);
+        Assert.False(reviewId.Succeeded);
+        Assert.Equal("invalid", reviewId.Code);
+
+        var reviewDb = await new CpCatalogueReviewWriteService(new UnconfiguredConnections())
+            .DeleteAsync(9);
+        Assert.False(reviewDb.Succeeded);
+        Assert.Equal("db", reviewDb.Code);
+
+        Assert.Equal("delete", CpCatalogueReviewWriteService.NormalizeAction("delete_review"));
+        Assert.Equal("save", CpCatalogueReviewWriteService.NormalizeAction("save"));
         Assert.Null(okProps.Error);
         Assert.Equal(9, okProps.Properties[0].OptionIds[0]);
 

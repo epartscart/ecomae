@@ -3359,6 +3359,63 @@ public sealed class ControlPanelModule : ISurfaceModule
                 written.Message,
                 new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.CpCatalogueReviewsWrite, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpCatalogueReviewWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/product-catalogue-app", "Admin CP capability required for review writes.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpCatalogueReviewsWriteBody>(context, cancellationToken) ?? new();
+            var action = body.Action;
+            var reviewId = body.ReviewId != 0 ? body.ReviewId : body.Id;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                action = LiveWriteFormBinder.Text(form, "action");
+                reviewId = LiveWriteFormBinder.Long(form, "reviewId", "review_id", "id");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(new
+                {
+                    status = "dry-run",
+                    writes = 0,
+                    writesBlocked = true,
+                    phpAuthoritative = true,
+                    validation_code = "dry_run",
+                    message = "Set confirmWrites=true to delete a product review on ASP.NET.",
+                    session = SessionPayload(session)
+                });
+            }
+
+            var key = CpCatalogueReviewWriteService.NormalizeAction(action);
+            if (key != "delete")
+            {
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    "/cp/product-catalogue-app",
+                    false,
+                    "Action must be delete.",
+                    new { ok = false, writes = 0, phpAuthoritative = false, validation_code = "invalid", message = "Action must be delete.", session = SessionPayload(session) });
+            }
+
+            var written = await writes.DeleteAsync(reviewId, cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/cp/product-catalogue-app",
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.CpPriceReviewWrite, async (HttpContext context, CpPriceReviewWriteBody? body, ILegacySessionValidator validator, ICpPriceReviewWriteDryRun dryRun, CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateAsync(context, cancellationToken);
@@ -9567,6 +9624,11 @@ public sealed class ControlPanelModule : ISurfaceModule
     private sealed record CpCatalogueEditorWriteBody(
         string? TreeJson = null,
         string? LangCode = null,
+        bool ConfirmWrites = false);
+    private sealed record CpCatalogueReviewsWriteBody(
+        string? Action = null,
+        long ReviewId = 0,
+        long Id = 0,
         bool ConfirmWrites = false);
     private sealed record CpCatalogueProductWriteBody(
         string? Action = null,

@@ -725,6 +725,7 @@ builder.Services.AddScoped<EcomAE.Platform.Cp.ICpMainPageProductsWriteService, E
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpSpecialSearchWriteService, EcomAE.Platform.Cp.CpSpecialSearchWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpCatalogueEditorWriteService, EcomAE.Platform.Cp.CpCatalogueEditorWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpCatalogueProductWriteService, EcomAE.Platform.Cp.CpCatalogueProductWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Cp.ICpCatalogueReviewWriteService, EcomAE.Platform.Cp.CpCatalogueReviewWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpManufacturerSynonymWriteService, EcomAE.Platform.Cp.CpManufacturerSynonymWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpCrossWriteService, EcomAE.Platform.Cp.CpCrossWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpPricesEditWriteService, EcomAE.Platform.Cp.CpPricesEditWriteService>();

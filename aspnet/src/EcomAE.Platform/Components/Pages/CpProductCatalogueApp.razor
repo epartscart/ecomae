@@ -21,7 +21,7 @@
 
 
     <PhpCpModulePageHeader Title="Product catalogue"
-                           Subtitle="Min-limit, templates, line/tree lists, brunch, SKU profile/spec/photo-meta, homepage slots, special searches, catalogue tree, and product create/edit write here. Product/SKU/template/category images, manual line-list create, and drag-tree UX stay on the compare twin."
+                           Subtitle="Min-limit, templates, line/tree lists, brunch, SKU profile/spec/photo-meta, homepage slots, special searches, catalogue tree, product create/edit, and review delete write here. Product/SKU/template/category images, manual line-list create, and drag-tree UX stay on the compare twin."
                            PhpTabHref="@_phpTab">
         <a class="ghost" href="/cp/prices-upload-app">Prices upload</a>
         <a class="ghost" href="/cp/crosses-app">Crosses</a>
@@ -45,9 +45,9 @@
             <h3 style="margin:0 0 .35rem;font-size:1rem;">Related</h3>
             <p style="margin:0;color:#475569;font-size:.86rem;">PHP related_products</p>
         </a>
-        <a class="epc-scp-table-card" style="padding:1rem;text-decoration:none;color:inherit;" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref("/CP/shop/catalogue/reviews")">
+        <a class="epc-scp-table-card" style="padding:1rem;text-decoration:none;color:inherit;" href="#reviews">
             <h3 style="margin:0 0 .35rem;font-size:1rem;">Reviews</h3>
-            <p style="margin:0;color:#475569;font-size:.86rem;">PHP reviews</p>
+            <p style="margin:0;color:#475569;font-size:.86rem;">Delete writes here. Storefront create stays on the customer path.</p>
         </a>
         <a class="epc-scp-table-card" style="padding:1rem;text-decoration:none;color:inherit;" href="#sku-media">
             <h3 style="margin:0 0 .35rem;font-size:1rem;">SKU media</h3>
@@ -403,6 +403,13 @@
                 <input type="text" name="relatedJson" value="[]" style="width:100%;font-family:monospace" />
             </label>
             <button type="submit">Save product</button>
+        </form>
+        <form id="reviews" method="post" action="/cp/catalogue/reviews/write" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/product-catalogue-app" />
+            <input type="hidden" name="action" value="delete" />
+            <label>Review id <input type="number" name="reviewId" min="1" required style="width:6rem" /></label>
+            <button type="submit">Delete review</button>
         </form>
     }
     @if (!_isAdmin)
