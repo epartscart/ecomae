@@ -13,6 +13,8 @@ public interface ICpOfficeWriteService
     Task<ErpSimpleWriteResult> UpdateAsync(CpOfficeSaveRequest request, CancellationToken cancellationToken = default);
 
     Task<ErpSimpleWriteResult> DeleteAsync(string? officesJson, CancellationToken cancellationToken = default);
+
+    Task<ErpSimpleWriteResult> SaveGeoAsync(long officeId, string? geoListJson, CancellationToken cancellationToken = default);
 }
 
 public sealed record CpOfficeSaveRequest(
@@ -109,6 +111,73 @@ public sealed class CpOfficeWriteService : ICpOfficeWriteService
         }
 
         return new ErpSimpleWriteResult(true, "ok", "Deleted", parsed.Ids[0], parsed.Ids.Count);
+    }
+
+    public async Task<ErpSimpleWriteResult> SaveGeoAsync(long officeId, string? geoListJson, CancellationToken cancellationToken = default)
+    {
+        if (officeId <= 0)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "An office id is required.");
+        }
+
+        var parsed = ParseGeoIds(geoListJson);
+        if (parsed.Error is not null)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", parsed.Error);
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return ErpSimpleWriteResult.Fail("db", "TenantRegistry DB is not configured.");
+        }
+
+        await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await using var transaction = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            await ErpDb.ExecuteAsync(
+                connection,
+                transaction,
+                ErpDb.Positional("DELETE FROM `shop_offices_geo_map` WHERE `office_id` = ?"),
+                cancellationToken,
+                officeId).ConfigureAwait(false);
+            foreach (var geoId in parsed.Ids)
+            {
+                await ErpDb.ExecuteAsync(
+                    connection,
+                    transaction,
+                    ErpDb.Positional("INSERT INTO `shop_offices_geo_map` (`office_id`, `geo_id`) VALUES (?, ?)"),
+                    cancellationToken,
+                    officeId,
+                    geoId).ConfigureAwait(false);
+            }
+
+            await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
+        }
+        catch (System.Data.Common.DbException)
+        {
+            await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
+            return ErpSimpleWriteResult.Fail("invalid", "Could not save office geo membership.");
+        }
+
+        return new ErpSimpleWriteResult(true, "ok", "Saved", officeId, Math.Max(1, parsed.Ids.Count));
+    }
+
+    /// <summary>PHP office_geo_nodes.php <c>geo_list</c> JSON / comma list. Empty unlinks all.</summary>
+    public static (IReadOnlyList<long> Ids, string? Error) ParseGeoIds(string? raw)
+    {
+        var text = (raw ?? string.Empty).Trim();
+        if (text.Length == 0 || text == "[]")
+        {
+            return ([], null);
+        }
+
+        var parsed = ParseOfficeIds(text);
+        return parsed.Error is null
+            ? parsed
+            : ([], parsed.Error.Contains("JSON", StringComparison.OrdinalIgnoreCase)
+                ? "geo_list JSON is not valid."
+                : "geo_list must be a JSON array of ids.");
     }
 
     /// <summary>PHP offices.php <c>offices</c> JSON / comma list.</summary>

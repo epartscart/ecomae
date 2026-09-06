@@ -3284,6 +3284,132 @@ public sealed class ControlPanelModule : ISurfaceModule
                 written.Message,
                 new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.CpOfficesGeo, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpOfficeWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/offices-app", "Admin CP capability required for office geo.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpOfficesGeoBody>(context, cancellationToken) ?? new();
+            var officeId = body.OfficeId;
+            var geoList = body.GeoList;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                officeId = LiveWriteFormBinder.Long(form, "officeId", "office_id");
+                geoList = LiveWriteFormBinder.Text(form, "geoList", "geo_list");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(new
+                {
+                    status = "dry-run",
+                    writes = 0,
+                    writesBlocked = true,
+                    phpAuthoritative = true,
+                    validation_code = "dry_run",
+                    message = "Set confirmWrites=true to save office geo membership on ASP.NET.",
+                    session = SessionPayload(session)
+                });
+            }
+
+            var written = await writes.SaveGeoAsync(officeId, geoList, cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/cp/offices-app",
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.CpDeliveryMethodsWrite, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpObtainingModeWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/delivery-methods-app", "Admin CP capability required for delivery methods.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpDeliveryMethodsWriteBody>(context, cancellationToken) ?? new();
+            var action = body.Action;
+            var modeId = body.ModeId;
+            var available = body.Available;
+            var caption = body.Caption;
+            var captionLangStrId = body.CaptionLangStrId;
+            var sortOrder = body.SortOrder;
+            var parametersValues = body.ParametersValues;
+            var langCode = body.LangCode;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                action = LiveWriteFormBinder.Text(form, "action");
+                modeId = LiveWriteFormBinder.Long(form, "modeId", "mode_id", "id", "obtain_mode_id", "obtainModeId");
+                available = LiveWriteFormBinder.Int(form, "available", "activate_obtain_mode", "activateObtainMode");
+                caption = LiveWriteFormBinder.Text(form, "caption");
+                captionLangStrId = LiveWriteFormBinder.Text(form, "captionLangStrId", "caption_lang_str_id");
+                sortOrder = LiveWriteFormBinder.Int(form, "sortOrder", "sort_order", "order");
+                parametersValues = LiveWriteFormBinder.Text(form, "parametersValues", "parameters_values");
+                langCode = LiveWriteFormBinder.Text(form, "langCode", "lang_code");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(new
+                {
+                    status = "dry-run",
+                    writes = 0,
+                    writesBlocked = true,
+                    phpAuthoritative = true,
+                    validation_code = "dry_run",
+                    message = "Set confirmWrites=true to save the delivery method on ASP.NET.",
+                    session = SessionPayload(session)
+                });
+            }
+
+            var key = (action ?? string.Empty).Trim().ToLowerInvariant();
+            ErpSimpleWriteResult written;
+            if (key is "save" or "save_action" or "edit" or "update")
+            {
+                var host = context.Request.Host.Host;
+                var domainPath = string.IsNullOrWhiteSpace(host) ? "http://localhost/" : "http://" + host + "/";
+                written = await writes.SaveAsync(
+                    new CpObtainingModeSaveRequest(
+                        modeId,
+                        caption,
+                        captionLangStrId,
+                        sortOrder,
+                        available,
+                        parametersValues,
+                        langCode,
+                        domainPath),
+                    cancellationToken);
+            }
+            else
+            {
+                written = await writes.SetAvailableAsync(modeId, available, cancellationToken);
+            }
+
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/cp/delivery-methods-app",
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.CpQuoteSaveNote, async (
             HttpContext context,
             ILegacySessionValidator validator,
@@ -7841,6 +7967,17 @@ public sealed class ControlPanelModule : ISurfaceModule
         string? LangCode = null,
         bool ConfirmWrites = false);
     private sealed record CpOfficesDeleteBody(string? OfficeIds = null, string? Offices = null, bool ConfirmWrites = false);
+    private sealed record CpOfficesGeoBody(long OfficeId = 0, string? GeoList = null, bool ConfirmWrites = false);
+    private sealed record CpDeliveryMethodsWriteBody(
+        string? Action = null,
+        long ModeId = 0,
+        int Available = 0,
+        string? Caption = null,
+        string? CaptionLangStrId = null,
+        int SortOrder = 0,
+        string? ParametersValues = null,
+        string? LangCode = null,
+        bool ConfirmWrites = false);
     private sealed record CpQuoteSaveNoteBody(long QuoteId = 0, string? AdminNote = null, bool ConfirmWrites = false);
     private sealed record CpQuoteSaveLinesBody(
         long QuoteId = 0,

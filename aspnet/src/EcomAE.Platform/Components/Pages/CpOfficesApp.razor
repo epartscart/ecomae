@@ -64,12 +64,20 @@
             <label>Staff users <input type="text" name="users" placeholder="1" /></label>
             <button type="submit">Save office</button>
         </form>
-        <form method="post" action="/cp/offices/delete" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+        <form method="post" action="/cp/offices/delete" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 .65rem">
             <input type="hidden" name="confirmWrites" value="true" />
             <input type="hidden" name="returnUrl" value="/cp/offices-app" />
             <label>Office ids <input type="text" name="officeIds" required placeholder="[2] or 2,3" /></label>
             <button type="submit">Delete offices</button>
             <a class="btn btn-default btn-xs" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Classic twin</a>
+        </form>
+        <form method="post" action="/cp/offices/geo" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/offices-app" />
+            <label>Office id <input type="number" name="officeId" min="1" required value="1" style="width:6rem" /></label>
+            <label>Geo ids <input type="text" name="geoList" placeholder="[1,2] or empty to unlink" /></label>
+            <button type="submit">Save geo</button>
+            <a class="btn btn-default btn-xs" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref($"{_phpTab}/office/geo_nodes")">Classic geo</a>
         </form>
     }
 

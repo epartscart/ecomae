@@ -1063,6 +1063,50 @@ public sealed class LiveWriteServiceValidationTests
         Assert.Equal("Main office", CpOfficeWriteService.SanitizeField("Main office"));
         Assert.Contains("_1_", CpOfficeWriteService.NextStrKey("http://www.epartscart.com/", 1));
 
+        var geoInvalid = await new CpOfficeWriteService(new ConfiguredNeverOpened())
+            .SaveGeoAsync(0, "[]");
+        Assert.False(geoInvalid.Succeeded);
+        Assert.Equal("invalid", geoInvalid.Code);
+
+        var geoBad = await new CpOfficeWriteService(new ConfiguredNeverOpened())
+            .SaveGeoAsync(1, "[");
+        Assert.False(geoBad.Succeeded);
+        Assert.Equal("invalid", geoBad.Code);
+
+        var geoDb = await new CpOfficeWriteService(new UnconfiguredConnections())
+            .SaveGeoAsync(1, "[]");
+        Assert.False(geoDb.Succeeded);
+        Assert.Equal("db", geoDb.Code);
+
+        var geoParsed = CpOfficeWriteService.ParseGeoIds("[1,2,2]");
+        Assert.Null(geoParsed.Error);
+        Assert.Equal(new long[] { 1, 2 }, geoParsed.Ids);
+        Assert.Empty(CpOfficeWriteService.ParseGeoIds("").Ids);
+        Assert.Empty(CpOfficeWriteService.ParseGeoIds("[]").Ids);
+
+        var omAvail = await new CpObtainingModeWriteService(new ConfiguredNeverOpened())
+            .SetAvailableAsync(0, 1);
+        Assert.False(omAvail.Succeeded);
+        Assert.Equal("invalid", omAvail.Code);
+
+        var omSave = await new CpObtainingModeWriteService(new ConfiguredNeverOpened())
+            .SaveAsync(new CpObtainingModeSaveRequest(ModeId: 0, Caption: "Pickup"));
+        Assert.False(omSave.Succeeded);
+        Assert.Equal("invalid", omSave.Code);
+
+        var omJson = await new CpObtainingModeWriteService(new ConfiguredNeverOpened())
+            .SaveAsync(new CpObtainingModeSaveRequest(ModeId: 1, Caption: "Pickup", ParametersValues: "{"));
+        Assert.False(omJson.Succeeded);
+        Assert.Equal("invalid", omJson.Code);
+
+        var omDb = await new CpObtainingModeWriteService(new UnconfiguredConnections())
+            .SetAvailableAsync(1, 1);
+        Assert.False(omDb.Succeeded);
+        Assert.Equal("db", omDb.Code);
+
+        Assert.Equal("{}", CpObtainingModeWriteService.NormalizeParameters(null).Json);
+        Assert.Null(CpObtainingModeWriteService.NormalizeParameters("""{"demo":"1"}""").Error);
+
         Assert.Equal("[1,2]", CpStorageWriteService.NormalizeUsers("1,2").Json);
         Assert.Equal("[]", CpStorageWriteService.NormalizeUsers(null).Json);
         var opts = CpStorageWriteService.NormalizeConnectionOptions(

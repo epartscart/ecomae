@@ -57,6 +57,7 @@ public sealed class PhpVsAspNetRemovalMatrixTests
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "cp-prices-upload" && r.WritesOwner == "aspnet");
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "cp-storages" && r.WritesOwner == "aspnet");
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "cp-offices" && r.WritesOwner == "aspnet");
+        Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "cp-delivery-methods" && r.WritesOwner == "aspnet");
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "cp-quote-requests" && r.WritesOwner == "aspnet");
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "cp-vendor-approvals" && r.WritesOwner == "aspnet");
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "cp-api-clients" && r.WritesOwner == "aspnet");
@@ -216,6 +217,8 @@ public sealed class PhpVsAspNetRemovalMatrixTests
             ("CpStoragesApp.razor", "/cp/storages/membership"),
             ("CpOfficesApp.razor", "/cp/offices/write"),
             ("CpOfficesApp.razor", "/cp/offices/delete"),
+            ("CpOfficesApp.razor", "/cp/offices/geo"),
+            ("CpDeliveryMethodsApp.razor", "/cp/delivery-methods/write"),
             ("CpPricesUploadApp.razor", "/cp/prices/complete-session"),
             ("ErpPayrollApp.razor", "/erp/ajax/hr-update-days"),
             ("CpHrOverviewApp.razor", "/erp/ajax/hr-update-days"),
