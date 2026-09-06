@@ -1153,6 +1153,38 @@ public sealed class LiveWriteServiceValidationTests
         Assert.Null(okIds.Error);
         Assert.Equal(new long[] { 1, 2 }, okIds.Ids.ToArray());
 
+        var catEmpty = await new CpCatalogueEditorWriteService(new ConfiguredNeverOpened())
+            .SaveTreeAsync(new CpCatalogueEditorSaveRequest(TreeJson: ""));
+        Assert.False(catEmpty.Succeeded);
+        Assert.Equal("invalid", catEmpty.Code);
+
+        var catJson = await new CpCatalogueEditorWriteService(new ConfiguredNeverOpened())
+            .SaveTreeAsync(new CpCatalogueEditorSaveRequest(TreeJson: "{"));
+        Assert.False(catJson.Succeeded);
+        Assert.Equal("invalid", catJson.Code);
+
+        var catId = await new CpCatalogueEditorWriteService(new ConfiguredNeverOpened())
+            .SaveTreeAsync(new CpCatalogueEditorSaveRequest(TreeJson: """[{"value":"Tires"}]"""));
+        Assert.False(catId.Succeeded);
+        Assert.Equal("invalid", catId.Code);
+
+        var catDb = await new CpCatalogueEditorWriteService(new UnconfiguredConnections())
+            .SaveTreeAsync(new CpCatalogueEditorSaveRequest(TreeJson: """[{"id":9,"value":"Tires","published_flag":1}]"""));
+        Assert.False(catDb.Succeeded);
+        Assert.Equal("db", catDb.Code);
+
+        Assert.Equal("save", CpCatalogueEditorWriteService.NormalizeAction("save_tree"));
+        Assert.Equal("&lt;b&gt;", CpCatalogueEditorWriteService.HtmlEncode(" <b> "));
+        Assert.Equal("tree_json is not valid JSON.", CpCatalogueEditorWriteService.ParseTree("{").Error);
+        var okCat = CpCatalogueEditorWriteService.ParseTree("""[{"id":9,"value":"Tires","alias":"tires","published_flag":1,"$level":1,"$parent":0,"data":[{"id":10,"value":"Winter","$level":2,"$parent":9}]}]""");
+        Assert.Null(okCat.Error);
+        Assert.Equal(2, okCat.Categories.Count);
+        Assert.Equal("Tires", okCat.Categories[0].Value);
+        Assert.Equal(9, okCat.Categories[0].Id);
+        Assert.Equal(10, okCat.Categories[1].Id);
+        Assert.Equal(9, okCat.Categories[1].Parent);
+        Assert.Equal(1, okCat.Categories[0].PublishedFlag);
+
         var jwInvalid = await new ErpJwRepairWriteService(new ConfiguredNeverOpened())
             .SetStatusAsync(0, "ready");
         Assert.False(jwInvalid.Succeeded);

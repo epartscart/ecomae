@@ -21,7 +21,7 @@
 
 
     <PhpCpModulePageHeader Title="Product catalogue"
-                           Subtitle="Min-limit, templates, line/tree lists, brunch, SKU profile/spec/photo-meta, homepage slots, and special searches write here. SKU photo file upload, item images, template file upload, special-search images, and drag-tree UX stay on the compare twin."
+                           Subtitle="Min-limit, templates, line/tree lists, brunch, SKU profile/spec/photo-meta, homepage slots, special searches, and the catalogue tree write here. SKU photo file upload, item images, template file upload, special-search images, category images, and drag-tree UX stay on the compare twin."
                            PhpTabHref="@_phpTab">
         <a class="ghost" href="/cp/prices-upload-app">Prices upload</a>
         <a class="ghost" href="/cp/crosses-app">Crosses</a>
@@ -56,6 +56,10 @@
         <a class="epc-scp-table-card" style="padding:1rem;text-decoration:none;color:inherit;" href="#special-searches">
             <h3 style="margin:0 0 .35rem;font-size:1rem;">Special searches</h3>
             <p style="margin:0;color:#475569;font-size:.86rem;">Save / delete write here. Image upload stays Classic.</p>
+        </a>
+        <a class="epc-scp-table-card" style="padding:1rem;text-decoration:none;color:inherit;" href="#catalogue-tree">
+            <h3 style="margin:0 0 .35rem;font-size:1rem;">Catalogue tree</h3>
+            <p style="margin:0;color:#475569;font-size:.86rem;">Save writes here. Images and drag-tree stay Classic.</p>
         </a>
     </div>
 
@@ -349,6 +353,15 @@
             </label>
             <button type="submit">Delete special searches</button>
         </form>
+        <form id="catalogue-tree" method="post" action="/cp/catalogue/editor/write" style="display:flex;flex-direction:column;gap:.45rem;margin:0 0 1rem;max-width:52rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/product-catalogue-app" />
+            <input type="hidden" name="langCode" value="en" />
+            <label>Catalogue tree JSON
+                <textarea name="treeJson" rows="5" style="width:100%;font-family:monospace" placeholder='[{"id":1,"value":"Tires","alias":"tires","url":"/tires","published_flag":1,"$level":1,"$parent":0,"$count":0,"data":[]}]'></textarea>
+            </label>
+            <button type="submit">Save catalogue tree</button>
+        </form>
     }
     @if (!_isAdmin)
     {
@@ -384,7 +397,7 @@
                 <div class="epc-scp-table-card__head">
                     <div>
                         <h3>Catalogue products</h3>
-                        <p class="epc-users-hint">Open a row for read console — full tree/editor is PHP catalogue_editor</p>
+                        <p class="epc-users-hint">Open a row for read console. Tree JSON save writes here; drag-tree UX stays Classic.</p>
                     </div>
                     <a class="btn btn-primary btn-xs" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Open PHP editor</a>
                 </div>
