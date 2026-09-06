@@ -3814,6 +3814,56 @@ public sealed class ControlPanelModule : ISurfaceModule
                 written.Message,
                 new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.CpOrderStatusesWrite, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpOrderStatusWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/order-statuses-app", "Admin CP capability required for order statuses.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpOrderStatusesWriteBody>(context, cancellationToken) ?? new();
+            var ordersJson = body.OrdersJson ?? body.OrdersStatuses;
+            var itemsJson = body.ItemsJson ?? body.OrdersItemsStatuses;
+            var langCode = body.LangCode;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                ordersJson = LiveWriteFormBinder.Text(form, "ordersJson", "orders_statuses", "orders");
+                itemsJson = LiveWriteFormBinder.Text(form, "itemsJson", "orders_items_statuses", "items");
+                langCode = LiveWriteFormBinder.Text(form, "langCode", "lang_code");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(new
+                {
+                    status = "dry-run",
+                    writes = 0,
+                    writesBlocked = true,
+                    phpAuthoritative = true,
+                    validation_code = "dry_run",
+                    message = "Set confirmWrites=true to save order statuses on ASP.NET.",
+                    session = SessionPayload(session)
+                });
+            }
+
+            var host = context.Request.Host.Host;
+            var domainPath = string.IsNullOrWhiteSpace(host) ? "http://localhost/" : "http://" + host + "/";
+            var written = await writes.SaveAsync(ordersJson, itemsJson, langCode, domainPath, cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/cp/order-statuses-app",
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.CpQuoteSaveNote, async (
             HttpContext context,
             ILegacySessionValidator validator,
@@ -8416,6 +8466,13 @@ public sealed class ControlPanelModule : ISurfaceModule
         string? LangCode = null,
         bool ConfirmWrites = false);
     private sealed record CpAdditionalTextsDeleteBody(string? Ids = null, string? UrlsToDel = null, bool ConfirmWrites = false);
+    private sealed record CpOrderStatusesWriteBody(
+        string? OrdersJson = null,
+        string? OrdersStatuses = null,
+        string? ItemsJson = null,
+        string? OrdersItemsStatuses = null,
+        string? LangCode = null,
+        bool ConfirmWrites = false);
     private sealed record CpProductFiltersWriteBody(
         string? Action = null,
         long FilterId = 0,

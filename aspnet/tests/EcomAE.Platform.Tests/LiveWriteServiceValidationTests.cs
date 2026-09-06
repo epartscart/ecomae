@@ -1237,6 +1237,22 @@ public sealed class LiveWriteServiceValidationTests
         Assert.Equal(12.5m, money);
         Assert.Equal(1, CpProductFilterWriteService.ParseFlag("on", 0));
 
+        var stEmpty = CpOrderStatusWriteService.ParseOrderStatuses("");
+        Assert.Equal("orders_statuses is required.", stEmpty.Error);
+        var stBad = CpOrderStatusWriteService.ParseOrderStatuses("{");
+        Assert.Equal("orders_statuses is not valid JSON.", stBad.Error);
+        var stOk = CpOrderStatusWriteService.ParseOrderStatuses("""[{"id":1,"value":"New","color":"#00f","for_created":1,"created_earlier":1}]""");
+        Assert.Null(stOk.Error);
+        Assert.Equal("New", stOk.Rows[0].Name);
+        Assert.Equal("#00f", stOk.Rows[0].Color);
+        var itEmpty = CpOrderStatusWriteService.ParseItemStatuses("[]");
+        Assert.Equal("At least one item status is required.", itEmpty.Error);
+        var stDb = await new CpOrderStatusWriteService(new UnconfiguredConnections())
+            .SaveAsync("""[{"value":"New"}]""", """[{"value":"Line"}]""", "en", "http://localhost/");
+        Assert.False(stDb.Succeeded);
+        Assert.Equal("db", stDb.Code);
+        Assert.Equal("#777777", CpOrderStatusWriteService.NormalizeColor(""));
+
         Assert.Equal("[1,2]", CpStorageWriteService.NormalizeUsers("1,2").Json);
         Assert.Equal("[]", CpStorageWriteService.NormalizeUsers(null).Json);
         var opts = CpStorageWriteService.NormalizeConnectionOptions(

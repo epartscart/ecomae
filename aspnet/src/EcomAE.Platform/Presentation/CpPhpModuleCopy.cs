@@ -97,6 +97,8 @@ public static class CpPhpModuleCopy
             return "Storefront slider images. Save settings, add a path, reorder, or delete here. File upload stays on the Classic twin.";
         if (path.Contains("/product-filters", StringComparison.OrdinalIgnoreCase))
             return "Hide or keep search results by brand, article, name, warehouse, price, and lead time. Add, save, activate, or set scope here.";
+        if (path.Contains("/order-statuses", StringComparison.OrdinalIgnoreCase))
+            return "Order and line-item statuses used on the orders desk. Save replaces both ref tables — include every status you want to keep. Notification send stays Classic.";
         if (path.Contains("/additional-texts", StringComparison.OrdinalIgnoreCase))
             return "Extra HTML and SEO tags for a storefront URL. Save upserts by URL; delete removes selected rows.";
         if (path.Contains("/search-tabs", StringComparison.OrdinalIgnoreCase))
