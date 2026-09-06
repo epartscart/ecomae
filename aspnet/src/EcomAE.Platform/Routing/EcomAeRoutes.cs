@@ -1236,7 +1236,7 @@ public static class EcomAeRoutes
     public const string CpWorkshopWrite = "/cp/workshop/write";
     /// <summary>Catalogue min-limit. <c>confirmWrites=true</c> is the live twin of PHP ajax_operations_products.php save_product_*_limit.</summary>
     public const string CpCatalogueSetMinLimit = "/cp/catalogue/set-min-limit";
-    /// <summary>Category-template delete. <c>confirmWrites=true</c> is the live twin of PHP ajax_templates_actions.php delete. Create stays PHP.</summary>
+    /// <summary>Category-template create/delete. <c>confirmWrites=true</c> is the live twin of PHP ajax_templates_actions.php create/delete. File image upload and from-category disk copy stay PHP.</summary>
     public const string CpTemplatesActions = "/cp/catalogue/templates-actions";
     /// <summary>PHP line_list.php save_action create/edit and line_lists_manager.php delete. <c>confirmWrites=true</c> writes via <c>ICpLineListWriteService</c>. Drag-tree item UX stays PHP. Manufacturers list id 10 cannot be deleted.</summary>
     public const string CpLineListsWrite = "/cp/catalogue/line-lists/write";

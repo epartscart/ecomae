@@ -929,6 +929,45 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(tplDb.Succeeded);
         Assert.Equal("db", tplDb.Code);
 
+        var tplCreateCaption = await new CpCatalogueWriteService(new ConfiguredNeverOpened())
+            .CreateCategoryTemplateAsync(new CpCategoryTemplateCreateRequest(Caption: " ", CategoryObject: "{}"));
+        Assert.False(tplCreateCaption.Succeeded);
+        Assert.Equal("invalid", tplCreateCaption.Code);
+
+        var tplCreateJson = await new CpCatalogueWriteService(new ConfiguredNeverOpened())
+            .CreateCategoryTemplateAsync(new CpCategoryTemplateCreateRequest(Caption: "Tires", CategoryObject: "{"));
+        Assert.False(tplCreateJson.Succeeded);
+        Assert.Equal("invalid", tplCreateJson.Code);
+
+        var tplCreateArray = await new CpCatalogueWriteService(new ConfiguredNeverOpened())
+            .CreateCategoryTemplateAsync(new CpCategoryTemplateCreateRequest(Caption: "Tires", CategoryObject: "[]"));
+        Assert.False(tplCreateArray.Succeeded);
+        Assert.Equal("invalid", tplCreateArray.Code);
+
+        var tplCreateImage = await new CpCatalogueWriteService(new ConfiguredNeverOpened())
+            .CreateCategoryTemplateAsync(new CpCategoryTemplateCreateRequest(Caption: "Tires", CategoryObject: "{}", ImageBase64: "%%%"));
+        Assert.False(tplCreateImage.Succeeded);
+        Assert.Equal("invalid", tplCreateImage.Code);
+
+        var tplCreateDb = await new CpCatalogueWriteService(new UnconfiguredConnections())
+            .CreateCategoryTemplateAsync(new CpCategoryTemplateCreateRequest(Caption: "Tires", CategoryObject: """{"id":1,"value":"Root"}"""));
+        Assert.False(tplCreateDb.Succeeded);
+        Assert.Equal("db", tplCreateDb.Code);
+
+        Assert.Equal("create", CpCatalogueWriteService.NormalizeAction("save_create"));
+        Assert.Equal("delete", CpCatalogueWriteService.NormalizeAction("del"));
+        Assert.Equal("&lt;b&gt;", CpCatalogueWriteService.HtmlEncode(" <b> "));
+        Assert.Equal("category_object is not valid JSON.", CpCatalogueWriteService.TryParseCategoryObject("{").Error);
+        Assert.Equal("category_object must be a JSON object.", CpCatalogueWriteService.TryParseCategoryObject("[]").Error);
+        var okTpl = CpCatalogueWriteService.TryParseCategoryObject("""{"id":1}""");
+        Assert.Null(okTpl.Error);
+        Assert.Equal("""{"id":1}""", okTpl.Json);
+        Assert.Null(CpCatalogueWriteService.TryDecodeImage("").Error);
+        Assert.Equal("image must be base64.", CpCatalogueWriteService.TryDecodeImage("%%%").Error);
+        var okImg = CpCatalogueWriteService.TryDecodeImage("data:image/png;base64,QQ==");
+        Assert.Null(okImg.Error);
+        Assert.Equal(new byte[] { 0x41 }, okImg.Bytes);
+
         var jwInvalid = await new ErpJwRepairWriteService(new ConfiguredNeverOpened())
             .SetStatusAsync(0, "ready");
         Assert.False(jwInvalid.Succeeded);

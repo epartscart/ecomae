@@ -2703,12 +2703,22 @@ public sealed class ControlPanelModule : ISurfaceModule
             var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpTemplatesActionsBody>(context, cancellationToken) ?? new();
             var action = body.Action;
             var templateId = body.TemplateId;
+            var caption = body.Caption;
+            var categoryObject = body.CategoryObject;
+            var imageBase64 = body.ImageBase64;
+            var imageName = body.ImageName;
+            var imageType = body.ImageType;
             var confirm = body.ConfirmWrites;
             if (context.Request.HasFormContentType)
             {
                 var form = await context.Request.ReadFormAsync(cancellationToken);
                 action = LiveWriteFormBinder.Text(form, "action");
                 templateId = LiveWriteFormBinder.Long(form, "templateId", "template_id", "id");
+                caption = LiveWriteFormBinder.Text(form, "caption");
+                categoryObject = LiveWriteFormBinder.Text(form, "categoryObject", "category_object");
+                imageBase64 = LiveWriteFormBinder.Text(form, "imageBase64", "image_base64", "image");
+                imageName = LiveWriteFormBinder.Text(form, "imageName", "image_name");
+                imageType = LiveWriteFormBinder.Text(form, "imageType", "image_type");
                 confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
             }
 
@@ -2717,16 +2727,28 @@ public sealed class ControlPanelModule : ISurfaceModule
                 return Results.Ok(dryRun.Evaluate(new CpTemplatesActionsRequest(action, false)).ToPayload(SessionPayload(session)));
             }
 
-            var key = (action ?? string.Empty).Trim();
-            var written = key is "delete" or "del"
-                ? await writes.DeleteCategoryTemplateAsync(templateId, cancellationToken)
-                : ErpSimpleWriteResult.Fail("php", "Category template create stays PHP.");
+            var key = CpCatalogueWriteService.NormalizeAction(action);
+            ErpSimpleWriteResult written;
+            if (key == "delete")
+            {
+                written = await writes.DeleteCategoryTemplateAsync(templateId, cancellationToken);
+            }
+            else if (key == "create")
+            {
+                written = await writes.CreateCategoryTemplateAsync(
+                    new CpCategoryTemplateCreateRequest(caption, categoryObject, imageBase64, imageName, imageType),
+                    cancellationToken);
+            }
+            else
+            {
+                written = ErpSimpleWriteResult.Fail("invalid", "Action must be create or delete.");
+            }
             return LiveWriteFormBinder.Complete(
                 context,
                 "/cp/product-catalogue-app",
                 written.Succeeded,
                 written.Message,
-                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = !written.Succeeded && written.Code == "php", validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.CpLineListsWrite, async (
             HttpContext context,
@@ -9017,7 +9039,15 @@ public sealed class ControlPanelModule : ISurfaceModule
         int Null = 0,
         long IdFrom = 0,
         long IdBefore = 0);
-    private sealed record CpTemplatesActionsBody(string? Action = null, bool ConfirmWrites = false, long TemplateId = 0);
+    private sealed record CpTemplatesActionsBody(
+        string? Action = null,
+        bool ConfirmWrites = false,
+        long TemplateId = 0,
+        string? Caption = null,
+        string? CategoryObject = null,
+        string? ImageBase64 = null,
+        string? ImageName = null,
+        string? ImageType = null);
     private sealed record CpLineListsWriteBody(
         string? Action = null,
         long ListId = 0,

@@ -21,7 +21,7 @@
 
 
     <PhpCpModulePageHeader Title="Product catalogue"
-                           Subtitle="Min-limit, category-template delete, line/tree-list create/edit/delete, and brunch save write here. SKU media, item images, and template create stay on the compare twin."
+                           Subtitle="Min-limit, category-template create/delete, line/tree-list create/edit/delete, and brunch save write here. SKU media, item images, and template file upload stay on the compare twin."
                            PhpTabHref="@_phpTab">
         <a class="ghost" href="/cp/prices-upload-app">Prices upload</a>
         <a class="ghost" href="/cp/crosses-app">Crosses</a>
@@ -89,6 +89,23 @@
             <label>Product id <input type="number" name="productId" min="1" required value="@(_selectedId > 0 ? _selectedId.ToString(CultureInfo.InvariantCulture) : "")" style="width:6rem" /></label>
             <label>min_limit <input type="number" name="value" min="0" step="1" required style="width:6rem" /></label>
             <button type="submit" class="btn btn-xs btn-default">Save value</button>
+        </form>
+        <form id="category-templates" method="post" action="/cp/catalogue/templates-actions" style="display:flex;flex-direction:column;gap:.45rem;margin:0 0 1rem;max-width:52rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/product-catalogue-app" />
+            <input type="hidden" name="action" value="create" />
+            <input type="hidden" name="imageType" value="from_input" />
+            <div style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end">
+                <label>Caption <input type="text" name="caption" required /></label>
+                <label>Image name <input type="text" name="imageName" placeholder="optional" /></label>
+            </div>
+            <label>Category object JSON
+                <textarea name="categoryObject" rows="3" style="width:100%;font-family:monospace" placeholder='{"id":1,"value":"Root"}'></textarea>
+            </label>
+            <label>Image base64 (optional — file upload stays Classic)
+                <textarea name="imageBase64" rows="2" style="width:100%;font-family:monospace" placeholder="optional"></textarea>
+            </label>
+            <button type="submit">Create template</button>
         </form>
         <form method="post" action="/cp/catalogue/templates-actions" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
