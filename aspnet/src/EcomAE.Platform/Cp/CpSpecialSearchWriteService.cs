@@ -8,7 +8,8 @@ namespace EcomAE.Platform.Cp;
 
 /// <summary>
 /// Live PHP <c>special_search.php</c> create/edit and <c>special_searches.php</c>
-/// <c>delete_special_searches</c> twin. Image upload stays on the Classic twin.
+/// <c>delete_special_searches</c> twin. Filename <c>img</c> attach writes here.
+/// Multipart file bytes stay Classic.
 /// </summary>
 public interface ICpSpecialSearchWriteService
 {
@@ -33,6 +34,7 @@ public sealed record CpSpecialSearchSaveRequest(
     int Active = 0,
     string? TreeJson = null,
     string? DeletedStepsJson = null,
+    string? ImageName = null,
     string? LangCode = null,
     string? DomainPath = null);
 
@@ -98,6 +100,17 @@ public sealed class CpSpecialSearchWriteService : ICpSpecialSearchWriteService
                     return ErpSimpleWriteResult.Fail("invalid", "Each existing step needs a positive id.");
                 }
             }
+        }
+
+        var imageName = SanitizeImageName(request.ImageName);
+        if (!string.IsNullOrWhiteSpace(request.ImageName) && imageName.Length == 0)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Image name is not valid.");
+        }
+
+        if (imageName.Length > 0 && !HasAllowedImageExtension(imageName))
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Image must be png, jpg, jpeg, or gif.");
         }
 
         if (!_connections.IsConfigured)
@@ -179,6 +192,17 @@ public sealed class CpSpecialSearchWriteService : ICpSpecialSearchWriteService
                     description,
                     keywords,
                     robots,
+                    searchId).ConfigureAwait(false);
+            }
+
+            if (imageName.Length > 0)
+            {
+                await ErpDb.ExecuteAsync(
+                    connection,
+                    transaction,
+                    ErpDb.Positional("UPDATE `shop_special_searches` SET `img` = ? WHERE `id` = ?"),
+                    cancellationToken,
+                    imageName,
                     searchId).ConfigureAwait(false);
             }
 
@@ -483,6 +507,26 @@ public sealed class CpSpecialSearchWriteService : ICpSpecialSearchWriteService
 
     public static string HtmlEncode(string? raw)
         => WebUtility.HtmlEncode((raw ?? string.Empty).Trim());
+
+    public static string SanitizeImageName(string? raw)
+    {
+        var name = Path.GetFileName((raw ?? string.Empty).Trim().Replace('\\', '/'));
+        if (name.Contains("..", StringComparison.Ordinal))
+        {
+            return string.Empty;
+        }
+
+        return name.Replace("'", "", StringComparison.Ordinal)
+            .Replace("\"", "", StringComparison.Ordinal)
+            .Replace("`", "", StringComparison.Ordinal)
+            .Trim();
+    }
+
+    public static bool HasAllowedImageExtension(string? raw)
+    {
+        var ext = Path.GetExtension(raw ?? string.Empty).TrimStart('.').ToLowerInvariant();
+        return ext is "png" or "jpg" or "jpeg" or "gif";
+    }
 
     public static string NormalizeAction(string? raw)
     {

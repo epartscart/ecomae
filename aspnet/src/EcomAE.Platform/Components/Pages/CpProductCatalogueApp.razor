@@ -55,7 +55,7 @@
         </a>
         <a class="epc-scp-table-card" style="padding:1rem;text-decoration:none;color:inherit;" href="#special-searches">
             <h3 style="margin:0 0 .35rem;font-size:1rem;">Special searches</h3>
-            <p style="margin:0;color:#475569;font-size:.86rem;">Save / delete write here. Image upload stays Classic.</p>
+            <p style="margin:0;color:#475569;font-size:.86rem;">Save / delete / img filename write here. Multipart file bytes stay Classic.</p>
         </a>
         <a class="epc-scp-table-card" style="padding:1rem;text-decoration:none;color:inherit;" href="#catalogue-tree">
             <h3 style="margin:0 0 .35rem;font-size:1rem;">Catalogue tree</h3>
@@ -349,6 +349,9 @@
             </label>
             <label>Deleted step ids JSON
                 <input type="text" name="deletedSteps" value="[]" style="width:100%;font-family:monospace" />
+            </label>
+            <label>Image name
+                <input type="text" name="imageName" placeholder="special_search.png" />
             </label>
             <button type="submit">Save special search</button>
         </form>

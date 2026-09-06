@@ -3120,6 +3120,7 @@ public sealed class ControlPanelModule : ISurfaceModule
             var treeJson = body.TreeJson;
             var deletedSteps = body.DeletedSteps ?? body.DeletedStepsJson;
             var searchesIds = body.SearchesIds ?? body.SearchesIdsJson;
+            var imageName = body.ImageName ?? body.Img ?? body.FileLocal;
             var langCode = body.LangCode;
             var confirm = body.ConfirmWrites;
             if (context.Request.HasFormContentType)
@@ -3142,6 +3143,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 treeJson = LiveWriteFormBinder.Text(form, "treeJson", "tree_json");
                 deletedSteps = LiveWriteFormBinder.Text(form, "deletedSteps", "deleted_steps", "deletedStepsJson");
                 searchesIds = LiveWriteFormBinder.Text(form, "searchesIds", "searches_ids", "searchesIdsJson");
+                imageName = LiveWriteFormBinder.Text(form, "imageName", "img", "file_local", "fileLocal");
                 langCode = LiveWriteFormBinder.Text(form, "langCode", "lang_code");
                 confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
             }
@@ -3192,6 +3194,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                         active,
                         treeJson,
                         deletedSteps,
+                        imageName,
                         langCode,
                         domainPath),
                     cancellationToken);
@@ -9683,6 +9686,9 @@ public sealed class ControlPanelModule : ISurfaceModule
         string? DeletedStepsJson = null,
         string? SearchesIds = null,
         string? SearchesIdsJson = null,
+        string? ImageName = null,
+        string? Img = null,
+        string? FileLocal = null,
         string? LangCode = null,
         bool ConfirmWrites = false);
     private sealed record CpCatalogueEditorWriteBody(

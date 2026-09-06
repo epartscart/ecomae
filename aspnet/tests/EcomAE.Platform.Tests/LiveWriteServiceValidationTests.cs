@@ -1138,6 +1138,15 @@ public sealed class LiveWriteServiceValidationTests
         Assert.Equal("save", CpSpecialSearchWriteService.NormalizeAction("create"));
         Assert.Equal("delete", CpSpecialSearchWriteService.NormalizeAction("delete_special_searches"));
         Assert.Equal("&lt;b&gt;", CpSpecialSearchWriteService.HtmlEncode(" <b> "));
+        Assert.Equal("brakes.png", CpSpecialSearchWriteService.SanitizeImageName("../brakes.png"));
+        Assert.True(CpSpecialSearchWriteService.HasAllowedImageExtension("brakes.png"));
+        var searchImg = await new CpSpecialSearchWriteService(new ConfiguredNeverOpened())
+            .SaveAsync(new CpSpecialSearchSaveRequest(
+                Caption: "Brakes",
+                ImageName: "brakes.exe",
+                TreeJson: """[{"value":"Brand","alias":"brand","type":1,"objects":[1],"is_new":true}]"""));
+        Assert.False(searchImg.Succeeded);
+        Assert.Equal("invalid", searchImg.Code);
         var emptySearch = CpSpecialSearchWriteService.ParseSteps("");
         Assert.Null(emptySearch.Error);
         Assert.Empty(emptySearch.Steps);
