@@ -16,16 +16,61 @@
 
 
     <PhpCpModulePageHeader Title="Offices / pickup points"
-                           Subtitle="PHP offices.php parity — shop_offices caption, city, address, and phone. Create/edit/delete stay on classic PHP."
+                           Subtitle="PHP offices.php parity — create, edit, and delete shop_offices plus office-name lang strings on this host. Membership is on Warehouses."
                            PhpTabHref="@_phpTab">
         <a class="ghost" href="/cp/storages-app">Storages</a>
         <a class="ghost" href="/cp/delivery-methods-app">Obtaining modes</a>
         <a class="ghost" href="/cp/geo-regions-app">Geo</a>
     </PhpCpModulePageHeader>
 
+    @if (!string.IsNullOrWhiteSpace(_flashOk))
+    {
+        <div class="alert alert-success" role="status" style="margin:0 0 1rem;padding:.7rem .9rem;border-radius:.4rem;background:#ecfdf5;color:#065f46">@_flashOk</div>
+    }
+    @if (!string.IsNullOrWhiteSpace(_flashErr))
+    {
+        <div class="alert alert-danger" role="status" style="margin:0 0 1rem;padding:.7rem .9rem;border-radius:.4rem;background:#fef2f2;color:#991b1b">@_flashErr</div>
+    }
     @if (!_isAdmin)
     {
         <div class="alert alert-info" role="status">Sign in with a Control Panel admin session to load live tenant data. Guest browse shows the PHP-parity shell.</div>
+    }
+    else
+    {
+        <form method="post" action="/cp/offices/write" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 .65rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/offices-app" />
+            <input type="hidden" name="action" value="create" />
+            <label>Name <input type="text" name="caption" required /></label>
+            <label>Country <input type="text" name="country" /></label>
+            <label>Region <input type="text" name="region" /></label>
+            <label>City <input type="text" name="city" /></label>
+            <label>Address <input type="text" name="address" /></label>
+            <label>Phone <input type="text" name="phone" /></label>
+            <label>Email <input type="text" name="email" /></label>
+            <label>Coordinates <input type="text" name="coordinates" /></label>
+            <label>Staff users <input type="text" name="users" placeholder="1,2" /></label>
+            <button type="submit">Create office</button>
+        </form>
+        <form method="post" action="/cp/offices/write" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 .65rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/offices-app" />
+            <input type="hidden" name="action" value="edit" />
+            <label>Office id <input type="number" name="officeId" min="1" required style="width:6rem" /></label>
+            <label>Name <input type="text" name="caption" required /></label>
+            <label>City <input type="text" name="city" /></label>
+            <label>Address <input type="text" name="address" /></label>
+            <label>Phone <input type="text" name="phone" /></label>
+            <label>Staff users <input type="text" name="users" placeholder="1" /></label>
+            <button type="submit">Save office</button>
+        </form>
+        <form method="post" action="/cp/offices/delete" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/offices-app" />
+            <label>Office ids <input type="text" name="officeIds" required placeholder="[2] or 2,3" /></label>
+            <button type="submit">Delete offices</button>
+            <a class="btn btn-default btn-xs" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Classic twin</a>
+        </form>
     }
 
     <div class="epc-scp-kpi" aria-label="Office stats">
@@ -76,7 +121,11 @@
                             <td>@(string.IsNullOrWhiteSpace(row.Caption) ? "—" : row.Caption)</td>
                             <td>@(string.IsNullOrWhiteSpace(cityAddress) ? "—" : cityAddress)</td>
                             <td>@(string.IsNullOrWhiteSpace(row.Phone) ? "—" : row.Phone)</td>
-                            <td><a href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref($"{_phpTab}/office?office_id={row.Id.ToString(CultureInfo.InvariantCulture)}")">Open</a></td>
+                            <td>
+                                <a href="/cp/storages-app">Membership</a>
+                                ·
+                                <a href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref($"{_phpTab}/office?office_id={row.Id.ToString(CultureInfo.InvariantCulture)}")">Classic</a>
+                            </td>
                         </tr>
                     }
                 }
@@ -90,12 +139,16 @@
     private bool _isAdmin;
     private CpOfficesSummary _summary = new(0, 0, 0, "n/a", "");
     private IReadOnlyList<CpOfficeDigest> _offices = [];
+    private string _flashOk = "";
+    private string _flashErr = "";
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
 
+        _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
+        _flashErr = ctx.Request.Query["err"].ToString() ?? "";
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
         if (!_isAdmin)

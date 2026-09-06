@@ -1022,6 +1022,47 @@ public sealed class LiveWriteServiceValidationTests
         Assert.Null(memSkip.Error);
         Assert.Empty(memSkip.Rows);
 
+        var officeCreate = await new CpOfficeWriteService(new ConfiguredNeverOpened())
+            .CreateAsync(new CpOfficeSaveRequest(Caption: "  "));
+        Assert.False(officeCreate.Succeeded);
+        Assert.Equal("invalid", officeCreate.Code);
+
+        var officeEdit = await new CpOfficeWriteService(new ConfiguredNeverOpened())
+            .UpdateAsync(new CpOfficeSaveRequest(OfficeId: 0, Caption: "Main"));
+        Assert.False(officeEdit.Succeeded);
+        Assert.Equal("invalid", officeEdit.Code);
+
+        var officeUsers = await new CpOfficeWriteService(new ConfiguredNeverOpened())
+            .CreateAsync(new CpOfficeSaveRequest(Caption: "Main", UsersJson: "["));
+        Assert.False(officeUsers.Succeeded);
+        Assert.Equal("invalid", officeUsers.Code);
+
+        var officeDb = await new CpOfficeWriteService(new UnconfiguredConnections())
+            .CreateAsync(new CpOfficeSaveRequest(Caption: "Main", UsersJson: "1"));
+        Assert.False(officeDb.Succeeded);
+        Assert.Equal("db", officeDb.Code);
+
+        var officeDelEmpty = await new CpOfficeWriteService(new ConfiguredNeverOpened())
+            .DeleteAsync("");
+        Assert.False(officeDelEmpty.Succeeded);
+        Assert.Equal("invalid", officeDelEmpty.Code);
+
+        var officeDelJson = await new CpOfficeWriteService(new ConfiguredNeverOpened())
+            .DeleteAsync("{");
+        Assert.False(officeDelJson.Succeeded);
+        Assert.Equal("invalid", officeDelJson.Code);
+
+        var officeDelDb = await new CpOfficeWriteService(new UnconfiguredConnections())
+            .DeleteAsync("[1]");
+        Assert.False(officeDelDb.Succeeded);
+        Assert.Equal("db", officeDelDb.Code);
+
+        var officeIds = CpOfficeWriteService.ParseOfficeIds("[1,2,2]");
+        Assert.Null(officeIds.Error);
+        Assert.Equal(new long[] { 1, 2 }, officeIds.Ids);
+        Assert.Equal("Main office", CpOfficeWriteService.SanitizeField("Main office"));
+        Assert.Contains("_1_", CpOfficeWriteService.NextStrKey("http://www.epartscart.com/", 1));
+
         Assert.Equal("[1,2]", CpStorageWriteService.NormalizeUsers("1,2").Json);
         Assert.Equal("[]", CpStorageWriteService.NormalizeUsers(null).Json);
         var opts = CpStorageWriteService.NormalizeConnectionOptions(

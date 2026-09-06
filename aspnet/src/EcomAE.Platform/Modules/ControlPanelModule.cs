@@ -3129,6 +3129,161 @@ public sealed class ControlPanelModule : ISurfaceModule
                 written.Message,
                 new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.CpOfficesWrite, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpOfficeWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/offices-app", "Admin CP capability required for office save.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpOfficesWriteBody>(context, cancellationToken) ?? new();
+            var action = body.Action ?? body.SaveAction;
+            var officeId = body.OfficeId;
+            var caption = body.Caption;
+            var country = body.Country;
+            var region = body.Region;
+            var city = body.City;
+            var address = body.Address;
+            var phone = body.Phone;
+            var email = body.Email;
+            var coordinates = body.Coordinates;
+            var description = body.Description;
+            var timetable = body.Timetable;
+            var usersJson = body.UsersJson ?? body.Users;
+            var captionLangStrId = body.CaptionLangStrId;
+            var countryLangStrId = body.CountryLangStrId;
+            var regionLangStrId = body.RegionLangStrId;
+            var cityLangStrId = body.CityLangStrId;
+            var addressLangStrId = body.AddressLangStrId;
+            var descriptionLangStrId = body.DescriptionLangStrId;
+            var timetableLangStrId = body.TimetableLangStrId;
+            var langCode = body.LangCode;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                action = LiveWriteFormBinder.Text(form, "action", "saveAction", "save_action");
+                officeId = LiveWriteFormBinder.Long(form, "officeId", "office_id", "id");
+                caption = LiveWriteFormBinder.Text(form, "caption", "name");
+                country = LiveWriteFormBinder.Text(form, "country");
+                region = LiveWriteFormBinder.Text(form, "region");
+                city = LiveWriteFormBinder.Text(form, "city");
+                address = LiveWriteFormBinder.Text(form, "address");
+                phone = LiveWriteFormBinder.Text(form, "phone");
+                email = LiveWriteFormBinder.Text(form, "email");
+                coordinates = LiveWriteFormBinder.Text(form, "coordinates");
+                description = LiveWriteFormBinder.Text(form, "description");
+                timetable = LiveWriteFormBinder.Text(form, "timetable");
+                usersJson = LiveWriteFormBinder.Text(form, "usersJson", "users_json", "users");
+                captionLangStrId = LiveWriteFormBinder.Text(form, "captionLangStrId", "caption_lang_str_id");
+                countryLangStrId = LiveWriteFormBinder.Text(form, "countryLangStrId", "country_lang_str_id");
+                regionLangStrId = LiveWriteFormBinder.Text(form, "regionLangStrId", "region_lang_str_id");
+                cityLangStrId = LiveWriteFormBinder.Text(form, "cityLangStrId", "city_lang_str_id");
+                addressLangStrId = LiveWriteFormBinder.Text(form, "addressLangStrId", "address_lang_str_id");
+                descriptionLangStrId = LiveWriteFormBinder.Text(form, "descriptionLangStrId", "description_lang_str_id");
+                timetableLangStrId = LiveWriteFormBinder.Text(form, "timetableLangStrId", "timetable_lang_str_id");
+                langCode = LiveWriteFormBinder.Text(form, "langCode", "lang_code");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(new
+                {
+                    status = "dry-run",
+                    writes = 0,
+                    writesBlocked = true,
+                    phpAuthoritative = true,
+                    validation_code = "dry_run",
+                    message = "Set confirmWrites=true to save the office on ASP.NET.",
+                    session = SessionPayload(session)
+                });
+            }
+
+            var host = context.Request.Host.Host;
+            var domainPath = string.IsNullOrWhiteSpace(host) ? "http://localhost/" : "http://" + host + "/";
+            var request = new CpOfficeSaveRequest(
+                officeId,
+                caption,
+                country,
+                region,
+                city,
+                address,
+                phone,
+                email,
+                coordinates,
+                description,
+                usersJson,
+                timetable,
+                captionLangStrId,
+                countryLangStrId,
+                regionLangStrId,
+                cityLangStrId,
+                addressLangStrId,
+                descriptionLangStrId,
+                timetableLangStrId,
+                langCode,
+                domainPath);
+            var key = (action ?? string.Empty).Trim().ToLowerInvariant();
+            var written = key is "edit" or "update"
+                ? await writes.UpdateAsync(request, cancellationToken)
+                : await writes.CreateAsync(request, cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/cp/offices-app",
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.CpOfficesDelete, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpOfficeWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/offices-app", "Admin CP capability required for office delete.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpOfficesDeleteBody>(context, cancellationToken) ?? new();
+            var officeIds = body.OfficeIds ?? body.Offices;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                officeIds = LiveWriteFormBinder.Text(form, "officeIds", "office_ids", "offices");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(new
+                {
+                    status = "dry-run",
+                    writes = 0,
+                    writesBlocked = true,
+                    phpAuthoritative = true,
+                    validation_code = "dry_run",
+                    message = "Set confirmWrites=true to delete offices on ASP.NET.",
+                    session = SessionPayload(session)
+                });
+            }
+
+            var written = await writes.DeleteAsync(officeIds, cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/cp/offices-app",
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.CpQuoteSaveNote, async (
             HttpContext context,
             ILegacySessionValidator validator,
@@ -7660,6 +7815,32 @@ public sealed class ControlPanelModule : ISurfaceModule
         int BgLineColor = 0,
         bool ConfirmWrites = false);
     private sealed record CpStoragesMembershipBody(long OfficeId = 0, string? StoragesList = null, bool ConfirmWrites = false);
+    private sealed record CpOfficesWriteBody(
+        string? Action = null,
+        string? SaveAction = null,
+        long OfficeId = 0,
+        string? Caption = null,
+        string? Country = null,
+        string? Region = null,
+        string? City = null,
+        string? Address = null,
+        string? Phone = null,
+        string? Email = null,
+        string? Coordinates = null,
+        string? Description = null,
+        string? Timetable = null,
+        string? UsersJson = null,
+        string? Users = null,
+        string? CaptionLangStrId = null,
+        string? CountryLangStrId = null,
+        string? RegionLangStrId = null,
+        string? CityLangStrId = null,
+        string? AddressLangStrId = null,
+        string? DescriptionLangStrId = null,
+        string? TimetableLangStrId = null,
+        string? LangCode = null,
+        bool ConfirmWrites = false);
+    private sealed record CpOfficesDeleteBody(string? OfficeIds = null, string? Offices = null, bool ConfirmWrites = false);
     private sealed record CpQuoteSaveNoteBody(long QuoteId = 0, string? AdminNote = null, bool ConfirmWrites = false);
     private sealed record CpQuoteSaveLinesBody(
         long QuoteId = 0,
