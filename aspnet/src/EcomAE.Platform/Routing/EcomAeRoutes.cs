@@ -1310,7 +1310,9 @@ public static class EcomAeRoutes
     public const string ErpAjaxFyReopen = "/erp/ajax/fy-reopen";
     /// <summary>Live PHP epc_fy_set_period_status twin.</summary>
     public const string ErpAjaxFyPeriodStatus = "/erp/ajax/fy-period-status";
-    /// <summary>Wave B dry-run for PHP plt_job_save (writes=0).</summary>
+    /// <summary>Live PHP epc_plt_batch_job_save twin (ajax alias of <see cref="ErpPlatformJobsSave"/>).</summary>
+    public const string ErpPlatformJobsSave = "/erp/platform/jobs/save";
+    /// <summary>Live PHP epc_plt_batch_job_save ajax alias of <see cref="ErpPlatformJobsSave"/>.</summary>
     public const string ErpAjaxPltJobSave = "/erp/ajax/plt-job-save";
     /// <summary>Wave B dry-run for PHP plt_job_run (writes=0).</summary>
     public const string ErpAjaxPltJobRun = "/erp/ajax/plt-job-run";

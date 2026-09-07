@@ -9804,8 +9804,8 @@ public sealed class ErpModule : ISurfaceModule
                 written.Message,
                 new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxPltJobSave, async (HttpContext context, ErpPltJobSaveBody? body, ILegacySessionValidator validator, IErpPltJobSaveDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpPltJobSaveRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.ErpPlatformJobsSave, HandlePltJobSaveAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxPltJobSave, HandlePltJobSaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxPltJobRun, async (HttpContext context, ErpPltJobRunBody? body, ILegacySessionValidator validator, IErpPltJobRunDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(false); return Results.Ok(dryRun.Evaluate(new ErpPltJobRunRequest(body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxPltFeatureSave, async (HttpContext context, ErpPltFeatureSaveBody? body, ILegacySessionValidator validator, IErpPltFeatureSaveDryRun dryRun, CancellationToken cancellationToken) =>
@@ -11774,6 +11774,61 @@ public sealed class ErpModule : ISurfaceModule
         }
     }
 
+    private static async Task<IResult> HandlePltJobSaveAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpPltJobSaveDryRun dryRun,
+        IErpPltJobSaveWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/tenant-config-app?tab=platform", "Admin ERP capability required for batch job save.");
+        }
+
+        var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpPltJobSaveBody>(context, cancellationToken) ?? new();
+        var code = body.Code;
+        var name = body.Name;
+        var rec = body.RecurrenceMin;
+        var active = body.Active;
+        var companyId = body.CompanyId;
+        var confirm = body.ConfirmWrites;
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            code = LiveWriteFormBinder.Text(form, "code");
+            name = LiveWriteFormBinder.Text(form, "name");
+            rec = LiveWriteFormBinder.Int(form, "recurrenceMin", "recurrence_min");
+            companyId = LiveWriteFormBinder.Long(form, "companyId", "company_id", "company");
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            if (form.ContainsKey("active") || form.ContainsKey("Active"))
+            {
+                active = LiveWriteFormBinder.Flag(form, "active", "Active") ? 1 : 0;
+                var parsed = LiveWriteFormBinder.IntOrNull(form, "active", "Active");
+                if (parsed is not null)
+                {
+                    active = parsed.Value == 1 ? 1 : 0;
+                }
+            }
+        }
+
+        if (!confirm)
+        {
+            return Results.Ok(dryRun.Evaluate(new ErpPltJobSaveRequest(companyId, code, name, rec, active, false)).ToPayload(SessionPayload(session)));
+        }
+
+        var written = await writes.SaveAsync(
+            new ErpPltJobSaveWriteRequest(companyId, code, name, rec, active),
+            cancellationToken);
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/erp/tenant-config-app?tab=platform",
+            written.Succeeded,
+            written.Message,
+            new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+    }
+
     private static async Task<IResult> HandleWhtCodeSaveAsync(
         HttpContext context,
         ILegacySessionValidator validator,
@@ -12679,7 +12734,14 @@ public sealed class ErpModule : ISurfaceModule
     private sealed record ErpFyCloseBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpFyReopenBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpFyPeriodStatusBody(long Id, string? TargetStatus = null, bool ConfirmWrites = false, int PeriodNo = 0);
-    private sealed record ErpPltJobSaveBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
+    private sealed record ErpPltJobSaveBody(
+        long Id = 0,
+        string? Code = null,
+        string? Name = null,
+        int RecurrenceMin = 0,
+        int? Active = null,
+        long CompanyId = 0,
+        bool ConfirmWrites = false);
     private sealed record ErpPltJobRunBody(bool ConfirmWrites = false);
     private sealed record ErpPltFeatureSaveBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpOaPartySaveBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
