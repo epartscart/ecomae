@@ -50,6 +50,34 @@
     <PhpErpModulePageHeader Title="@_pageTitle"
                             Subtitle="@_book.Summary" />
 
+    @if (!string.IsNullOrWhiteSpace(_flashOk))
+    {
+        <div class="alert alert-success" role="status" style="margin:0 0 12px;padding:.7rem .9rem;border-radius:.4rem;background:#ecfdf5;color:#065f46">@_flashOk</div>
+    }
+    @if (!string.IsNullOrWhiteSpace(_flashErr))
+    {
+        <div class="alert alert-danger" role="status" style="margin:0 0 12px;padding:.7rem .9rem;border-radius:.4rem;background:#fef2f2;color:#991b1b">@_flashErr</div>
+    }
+    @if (_isAdmin)
+    {
+        <form method="post" action="/erp/guide/articles/save" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/erp/guide-app" />
+            <label>Title <input type="text" name="title" required maxlength="255" style="width:14rem" /></label>
+            <label>Category
+                <select name="category">
+                    <option value="general">General</option>
+                    <option value="finance">Finance</option>
+                    <option value="sales">Sales</option>
+                    <option value="operations">Operations</option>
+                </select>
+            </label>
+            <label>Summary <input type="text" name="summary" style="width:16rem" /></label>
+            <label>Body <input type="text" name="body_html" style="width:16rem" /></label>
+            <button type="submit" class="btn btn-sm btn-primary">Publish article</button>
+        </form>
+    }
+
     <nav class="epc-eg-books" aria-label="ERP guide books">
         @foreach (var book in ErpGuideBooks.All)
         {
@@ -177,6 +205,8 @@
     private IReadOnlyList<ErpGuideModuleRecord> _all = [];
     private IReadOnlyList<ErpGuideModuleRecord> _filtered = [];
     private ErpGuideModuleRecord? _selected;
+    private string _flashOk = "";
+    private string _flashErr = "";
 
     [SupplyParameterFromQuery(Name = "module")]
     public string? ModuleQuery { get; set; }
@@ -192,6 +222,8 @@
         var ctx = Http.HttpContext;
         if (ctx is not null)
         {
+            _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
+            _flashErr = ctx.Request.Query["err"].ToString() ?? "";
             var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
             _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("erp");
         }
