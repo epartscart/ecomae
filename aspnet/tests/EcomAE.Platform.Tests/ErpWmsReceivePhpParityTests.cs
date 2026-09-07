@@ -6,7 +6,7 @@ namespace EcomAE.Platform.Tests;
 
 /// <summary>
 /// Guards the live PHP <c>epc_wms_receive</c> twin: SSR form, DI, catalog, auto LP format.
-/// Wave create, pick add, work complete, and schema ensure stay PHP.
+/// Schema ensure stays PHP.
 /// </summary>
 public sealed class ErpWmsReceivePhpParityTests
 {

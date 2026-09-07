@@ -4,7 +4,7 @@ namespace EcomAE.Platform.Erp;
 
 /// <summary>
 /// Live PHP <c>epc_wms_wave_create</c> + <c>epc_wms_wave_add_pick</c> twin
-/// (ajax_erp <c>wms_wave_create</c>). Schema ensure, receive, and work complete stay PHP.
+/// (ajax_erp <c>wms_wave_create</c>). Schema ensure stays PHP.
 /// </summary>
 public interface IErpWmsWaveCreateWriteService
 {

@@ -2753,6 +2753,17 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(receiveDb.Succeeded);
         Assert.Equal("db", receiveDb.Code);
 
+        var workCompleteInvalid = await new ErpWmsWorkCompleteWriteService(new ConfiguredNeverOpened())
+            .CompleteAsync(0);
+        Assert.False(workCompleteInvalid.Succeeded);
+        Assert.Equal("invalid", workCompleteInvalid.Code);
+        Assert.Equal("id must be positive.", workCompleteInvalid.Message);
+
+        var workCompleteDb = await new ErpWmsWorkCompleteWriteService(new UnconfiguredConnections())
+            .CompleteAsync(4);
+        Assert.False(workCompleteDb.Succeeded);
+        Assert.Equal("db", workCompleteDb.Code);
+
         var insInvalid = await new ErpInsClaimStatusWriteService(new ConfiguredNeverOpened())
             .SetStatusAsync(9, "nope");
         Assert.False(insInvalid.Succeeded);

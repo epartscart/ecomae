@@ -4,7 +4,7 @@ using Xunit;
 
 namespace EcomAE.Platform.Tests;
 
-/// <summary>Guards /erp/wms/waves/create live writes without inventing work-complete.</summary>
+/// <summary>Guards /erp/wms/waves/create live writes. Schema ensure stays PHP.</summary>
 public sealed class ErpWmsWaveCreatePhpParityTests
 {
     [Fact]

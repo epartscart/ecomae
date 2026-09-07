@@ -47,7 +47,7 @@
         <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
         <h1>Warehouse WMS</h1>
         <p>@CpPhpModuleCopy.PurposeFor(Nav.Uri)</p>
-        <p>Save or delete a bin location, receive stock, and create or release a pick wave here. Work complete stays on the Classic twin.</p>
+        <p>Save or delete a bin location, receive stock, complete work, and create or release a pick wave here.</p>
         <div class="epc-wms-cta">
             <a href="/erp">ERP overview</a>
         </div>
@@ -105,6 +105,12 @@
             <label>Wave id <input type="number" name="id" min="1" required style="width:6rem" /></label>
             <button type="submit">Release wave</button>
         </form>
+        <form method="post" action="/erp/wms/work/complete" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="@(Http.HttpContext?.Request.Path.Value ?? "/erp/warehouse-wms-app")" />
+            <label>Work id <input type="number" name="id" min="1" required style="width:6rem" /></label>
+            <button type="submit">Complete work</button>
+        </form>
     }
 
     <div class="epc-wms-kpis" aria-label="Warehouse WMS stats">
@@ -145,7 +151,21 @@
                             <td>@row.Qty.ToString(CultureInfo.InvariantCulture)</td>
                             <td>@(!string.IsNullOrWhiteSpace(row.Status) ? row.Status : "—")</td>
                             <td>@(!string.IsNullOrWhiteSpace(row.AssignedTo) ? row.AssignedTo : "—")</td>
-                            <td><a href="/cp/warehouse-wms-app">Open</a></td>
+                            <td>
+                                @if (!string.Equals(row.Status, "closed", StringComparison.OrdinalIgnoreCase))
+                                {
+                                    <form method="post" action="/erp/wms/work/complete" style="display:inline;margin:0">
+                                        <input type="hidden" name="confirmWrites" value="true" />
+                                        <input type="hidden" name="returnUrl" value="@(Http.HttpContext?.Request.Path.Value ?? "/erp/warehouse-wms-app")" />
+                                        <input type="hidden" name="id" value="@row.Id.ToString(CultureInfo.InvariantCulture)" />
+                                        <button type="submit">Complete</button>
+                                    </form>
+                                }
+                                else
+                                {
+                                    <span>—</span>
+                                }
+                            </td>
                         </tr>
                     }
                 }
