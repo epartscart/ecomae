@@ -78,6 +78,7 @@ public sealed class PhpVsAspNetRemovalMatrixTests
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "erp-hr-leave-expense" && r.WritesOwner == "aspnet");
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "erp-cons-deletes" && r.WritesOwner == "aspnet");
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "erp-fy-reopen-period" && r.WritesOwner == "aspnet");
+        Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "erp-fin-period-status" && r.WritesOwner == "aspnet");
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "erp-wht-settle" && r.WritesOwner == "aspnet");
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "erp-marketing" && r.WritesOwner == "aspnet");
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "erp-multi-entity" && r.WritesOwner == "aspnet");
@@ -162,6 +163,7 @@ public sealed class PhpVsAspNetRemovalMatrixTests
             ("ErpContractsApp.razor", "/erp/contracts/save"),
             ("ErpContractsApp.razor", "/erp/ajax/ctr-status"),
             ("ErpWorkflowApp.razor", "/erp/workflow/status"),
+            ("CpCollectionsDunningApp.razor", "/erp/collections/cases/save"),
             ("ErpWorkflowApp.razor", "/erp/workflow/create"),
             ("CpCollectionsDunningApp.razor", "/erp/collections/cases/status"),
             ("CpCollectionsDunningApp.razor", "/cp/collections-dunning/write"),
@@ -169,14 +171,17 @@ public sealed class PhpVsAspNetRemovalMatrixTests
             ("CpPurchaseRequestsApp.razor", "/erp/procurement/requisitions/submit"),
             ("CpPurchaseRequestsApp.razor", "/erp/procurement/requisitions/decision"),
             ("CpPurchaseRequestsApp.razor", "/erp/ajax/proc-req-convert"),
+            ("CpInsuranceComplianceApp.razor", "/erp/ajax/ins-claim-add"),
             ("CpInsuranceComplianceApp.razor", "/erp/ajax/ins-claim-status"),
             ("CpInsuranceComplianceApp.razor", "/erp/ajax/ins-doc-delete"),
             ("CpHrOverviewApp.razor", "/erp/ajax/hr-leave-request"),
             ("CpHrOverviewApp.razor", "/erp/ajax/hr-leave-status"),
+            ("CpHrOverviewApp.razor", "/erp/ajax/hr-expense-save"),
             ("CpHrOverviewApp.razor", "/erp/ajax/hr-expense-status"),
             ("CpConsolidationsApp.razor", "/erp/ajax/cons-entity-save"),
             ("CpConsolidationsApp.razor", "/erp/ajax/cons-entity-delete"),
             ("CpConsolidationsApp.razor", "/erp/ajax/cons-ic-delete"),
+            ("ErpVatApp.razor", "/erp/ajax/bos-vat-refund-save"),
             ("ErpVatApp.razor", "/erp/ajax/bos-vat-refund-status"),
             ("ErpSalesOrdersApp.razor", "/erp/ajax/sub-invoice-paid"),
             ("ErpProcessFlowTasksApp.razor", "/erp/ajax/pf-case-cancel"),
@@ -185,6 +190,7 @@ public sealed class PhpVsAspNetRemovalMatrixTests
             ("CpSoc2ComplianceApp.razor", "/erp/ajax/bos-compliance-disable-obligation"),
             ("ErpPeriodCloseApp.razor", "/erp/ajax/fy-reopen"),
             ("ErpPeriodCloseApp.razor", "/erp/ajax/fy-period-status"),
+            ("CpFinAdvancedApp.razor", "/erp/fin/periods/status"),
             ("ErpWithholdingApp.razor", "/erp/ajax/wht-settle"),
             ("CpLanguagesApp.razor", "/cp/lang/set-is-custom"),
             ("CpLanguagesApp.razor", "/cp/lang/set-is-error"),

@@ -1,7 +1,7 @@
 namespace EcomAE.Platform.Erp;
 
 /// <summary>
-/// Live PHP <c>epc_bos_vat_refund_set_status</c> twin. Schema ensure and refund save stay PHP.
+/// Live PHP <c>epc_bos_vat_refund_set_status</c> twin. Schema ensure stays PHP. Save is <see cref="IErpBosVatRefundSaveWriteService"/>.
 /// </summary>
 public interface IErpBosVatRefundStatusWriteService
 {
