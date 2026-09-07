@@ -806,6 +806,8 @@ public static class EcomAeRoutes
     public const string ErpWithholdingApp = "/erp/withholding-app";
     /// <summary>Live PHP epc_wht_code_save twin.</summary>
     public const string ErpWithholdingCodesSave = "/erp/withholding/codes/save";
+    /// <summary>Live PHP epc_wht_record twin.</summary>
+    public const string ErpWithholdingTxnsRecord = "/erp/withholding/txns/record";
     /// <summary>Department workflow board from <c>epc_erp_workflow_tasks</c> (not process-flow cases).</summary>
     public const string ErpWorkflowTasks = "/erp/workflow-tasks";
     public const string ErpWorkflowApp = "/erp/workflow-app";
@@ -1266,7 +1268,7 @@ public static class EcomAeRoutes
     public const string ErpAjaxCftInstrumentStatus = "/erp/ajax/cft-instrument-status";
     /// <summary>Live PHP epc_wht_code_save twin (ajax alias of <see cref="ErpWithholdingCodesSave"/>).</summary>
     public const string ErpAjaxWhtCodeSave = "/erp/ajax/wht-code-save";
-    /// <summary>Wave B dry-run for PHP wht_record (writes=0).</summary>
+    /// <summary>Live PHP epc_wht_record twin (ajax alias of <see cref="ErpWithholdingTxnsRecord"/>).</summary>
     public const string ErpAjaxWhtRecord = "/erp/ajax/wht-record";
     /// <summary>Wave B dry-run for PHP wht_certificate (writes=0).</summary>
     public const string ErpAjaxWhtCertificate = "/erp/ajax/wht-certificate";
