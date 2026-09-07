@@ -7130,6 +7130,66 @@ public sealed class ErpModule : ISurfaceModule
                 session = SessionPayload(session)
             });
         }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpAmlAlertStatusForm, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IErpAmlAlertStatusDryRun dryRun,
+            IErpAmlAlertStatusWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (!PhpParityDumpCatalog.HasStaffAccess(session))
+            {
+                return LiveWriteFormBinder.LoginRedirect(
+                    context,
+                    "/erp/login?returnUrl=/erp/aml-compliance-app",
+                    "Admin ERP capability required for AML alert status.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpAmlAlertStatusLiveBody>(context, cancellationToken)
+                       ?? new();
+            var id = body.Id;
+            var targetStatus = body.TargetStatus;
+            var fileSar = body.FileSar;
+            var sarReference = body.SarReference;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                id = LiveWriteFormBinder.Long(form, "id", "txId", "tx_id", "transaction_id");
+                targetStatus = LiveWriteFormBinder.Text(form, "targetStatus", "target_status", "status", "review_status");
+                fileSar = LiveWriteFormBinder.Flag(form, "fileSar", "file_sar", "sar_filed");
+                sarReference = LiveWriteFormBinder.Text(form, "sarReference", "sar_reference", "sarRef");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            const string returnApp = "/erp/aml-compliance-app";
+            if (!confirm)
+            {
+                var result = dryRun.Evaluate(new ErpAmlAlertStatusRequest(id, targetStatus, false));
+                if (LiveWriteFormBinder.WantsHtml(context))
+                {
+                    return DryRunHtmlForm.Redirect(DryRunHtmlForm.SafeReturnUrl(context.Request, returnApp), result.ValidationCode == "ok", result.Detail);
+                }
+
+                return Results.Ok(result.ToPayload(SessionPayload(session)));
+            }
+
+            var written = await writes.SetStatusAsync(
+                new ErpAmlAlertStatusWriteRequest(id, targetStatus, session.UserId, fileSar, sarReference),
+                cancellationToken);
+            return LiveWriteFormBinder.Complete(context, returnApp, written.Succeeded, written.Message, new
+            {
+                ok = written.Succeeded,
+                status = written.Succeeded,
+                writes = written.Writes,
+                phpAuthoritative = false,
+                validation_code = written.Code,
+                message = written.Message,
+                id = written.Id,
+                session = SessionPayload(session)
+            });
+        }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpTicketsCreateForm, async (
             HttpContext context,
             ILegacySessionValidator validator,
@@ -12055,6 +12115,12 @@ public sealed class ErpModule : ISurfaceModule
         string? VerificationStatus = null,
         string? NextReview = null,
         string? Notes = null,
+        bool ConfirmWrites = false);
+    private sealed record ErpAmlAlertStatusLiveBody(
+        long Id = 0,
+        string? TargetStatus = null,
+        bool FileSar = false,
+        string? SarReference = null,
         bool ConfirmWrites = false);
     private sealed record ErpTicketsCreateBody(
         int CompanyId = 0,

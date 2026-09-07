@@ -1645,6 +1645,7 @@ public static class SurfacePayloadContractCatalog
         new("erp", "RFID scan", "/erp/rfid/scan", "write-live-gated", "POST PHP epc_rfid_process_scan; confirmWrites=true writes epc_rfid_scan_results. Schema-ensure stays PHP."),
         new("erp", "gold rate set", "/erp/gold-rate/set", "write-live-gated", "POST PHP epc_gold_rate_set; confirmWrites=true UPSERTs epc_gold_rates. API fetch stays PHP."),
         new("erp", "AML KYC save", "/erp/aml/kyc-save", "write-live-gated", "POST PHP epc_aml_kyc_save; confirmWrites=true writes epc_aml_kyc. Schema-ensure stays PHP."),
+        new("erp", "AML alert status", "/erp/aml/alert-status", "write-live-gated", "POST PHP epc_aml_alert_set_status; confirmWrites=true updates epc_aml_transactions.review_status. Schema-ensure stays PHP."),
         new("erp", "jw_repair_save write", "/erp/jewellery/repair-receipt-save", "write-live-gated", "POST PHP jw_repair_save / jw_repair_receipt_save; confirmWrites=true inserts epc_jewel_repair. Schema-ensure stays PHP."),
         new("erp", "jw_repair_transfer_save write", "/erp/jewellery/repair-transfer-save", "write-live-gated", "POST PHP jw_repair_transfer_save; confirmWrites=true inserts epc_jewel_repair_transfer. Schema-ensure stays PHP."),
         new("erp", "jw_workshop_receive_save write", "/erp/jewellery/workshop-receive-save", "write-live-gated", "POST PHP jw_workshop_receive_save; confirmWrites=true inserts epc_jewel_repair_workshop_receive. Schema-ensure stays PHP."),

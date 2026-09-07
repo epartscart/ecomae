@@ -80,6 +80,22 @@
             </label>
             <button type="submit">Save KYC</button>
         </form>
+        <form method="post" action="/erp/aml/alert-status" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/erp/aml-compliance-app" />
+            <label>Txn id <input name="id" type="number" min="1" required /></label>
+            <label>Status
+                <select name="status">
+                    <option value="open">open</option>
+                    <option value="reviewed">reviewed</option>
+                    <option value="escalated">escalated</option>
+                    <option value="closed">closed</option>
+                </select>
+            </label>
+            <label>SAR ref <input name="sar_reference" /></label>
+            <label><input type="checkbox" name="file_sar" value="1" /> File SAR</label>
+            <button type="submit">Set alert status</button>
+        </form>
     }
 
     <div class="epc-w14-kpis" aria-label="AML compliance stats">

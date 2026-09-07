@@ -1567,6 +1567,19 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(amlKycDb.Succeeded);
         Assert.Equal("db", amlKycDb.Code);
 
+        var amlAlert = await new ErpAmlAlertStatusWriteService(new ConfiguredNeverOpened())
+            .SetStatusAsync(new ErpAmlAlertStatusWriteRequest());
+        Assert.False(amlAlert.Succeeded);
+        Assert.Equal("invalid", amlAlert.Code);
+        var amlAlertStatus = await new ErpAmlAlertStatusWriteService(new ConfiguredNeverOpened())
+            .SetStatusAsync(new ErpAmlAlertStatusWriteRequest(Id: 3, TargetStatus: "nope"));
+        Assert.False(amlAlertStatus.Succeeded);
+        Assert.Equal("invalid", amlAlertStatus.Code);
+        var amlAlertDb = await new ErpAmlAlertStatusWriteService(new UnconfiguredConnections())
+            .SetStatusAsync(new ErpAmlAlertStatusWriteRequest(Id: 3, TargetStatus: "reviewed"));
+        Assert.False(amlAlertDb.Succeeded);
+        Assert.Equal("db", amlAlertDb.Code);
+
         var ticketCreate = await new ErpTicketsWriteService(new ConfiguredNeverOpened())
             .CreateAsync(new ErpTicketsCreateRequest());
         Assert.False(ticketCreate.Succeeded);

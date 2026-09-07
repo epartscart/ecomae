@@ -211,6 +211,7 @@ public sealed class PhpVsAspNetRemovalMatrixTests
             ("CpCrmTicketsApp.razor", "/erp/tickets/reply"),
             ("CpJewelleryMastersApp.razor", "/erp/gold-rate/set"),
             ("CpAmlComplianceApp.razor", "/erp/aml/kyc-save"),
+            ("CpAmlComplianceApp.razor", "/erp/aml/alert-status"),
             ("ErpSalesOrdersApp.razor", "/erp/ajax/sub-invoice-paid"),
             ("ErpProcessFlowTasksApp.razor", "/erp/ajax/pf-case-cancel"),
             ("ErpProcessFlowTasksApp.razor", "/erp/ajax/pf-step-delete"),
