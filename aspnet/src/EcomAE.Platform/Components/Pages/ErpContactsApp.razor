@@ -54,6 +54,20 @@
             <label><input type="checkbox" name="tax_exempt" value="1" /> Tax exempt</label>
             <button type="submit" class="btn btn-sm btn-primary">Save customer master</button>
         </form>
+        <form method="post" action="/erp/contacts/parties/save" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="@_returnUrl" />
+            <input type="hidden" name="id" value="0" />
+            <label>Name <input type="text" name="name" required maxlength="190" style="width:14rem" /></label>
+            <label>Type
+                <select name="party_type">
+                    <option value="organization" selected>organization</option>
+                    <option value="person">person</option>
+                </select>
+            </label>
+            <label>Company id <input type="number" name="company_id" min="0" value="0" style="width:5rem" /></label>
+            <button type="submit" class="btn btn-sm btn-primary">Save party</button>
+        </form>
     }
 
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Contacts KPIs">
@@ -111,7 +125,7 @@
 @code {
     private string _phpTab = "/ERP/?epc_erp_shell=1&area=common&tab=contacts";
     private string _title = "Contacts";
-    private string _subtitle = "Customer and vendor contacts. Customer master credit-profile save writes here when confirmWrites is set.";
+    private string _subtitle = "Customer and vendor contacts. Customer master and address-book party save write here when confirmWrites is set.";
     private string _returnUrl = "/erp/contacts-app";
     private string _flashOk = "";
     private string _flashErr = "";
