@@ -1,4 +1,5 @@
 @page "/cp/warehouse-wms-app"
+@page "/erp/warehouse-wms-app"
 @layout Layout.PhpChromeLayout
 @using System.Globalization
 @using EcomAE.Platform.Auth
@@ -66,13 +67,13 @@
     {
         <form method="post" action="/erp/wms/locations/delete" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="/cp/warehouse-wms-app" />
+            <input type="hidden" name="returnUrl" value="@(Http.HttpContext?.Request.Path.Value ?? "/cp/warehouse-wms-app")" />
             <label>Location id <input type="number" name="id" min="1" required style="width:6rem" /></label>
             <button type="submit">Delete location</button>
         </form>
         <form method="post" action="/erp/wms/waves/release" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="/cp/warehouse-wms-app" />
+            <input type="hidden" name="returnUrl" value="@(Http.HttpContext?.Request.Path.Value ?? "/cp/warehouse-wms-app")" />
             <label>Wave id <input type="number" name="id" min="1" required style="width:6rem" /></label>
             <button type="submit">Release wave</button>
         </form>

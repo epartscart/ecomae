@@ -12,6 +12,14 @@
   Auth chrome resolves legacy session itself so Sign in / Log out is correct on every page.
 *@
 
+@if (_useErpChrome)
+{
+    <PhpErpDesktopChrome IsAdmin="IsAdmin">
+        @ChildContent
+    </PhpErpDesktopChrome>
+}
+else
+{
 @*
   Critical shell CSS is duplicated into the BODY stream. Live SSR drops late HeadContent
   for /cp/* while body chrome survives — without body emission Super-CP renders unaligned.
@@ -343,12 +351,14 @@
     }
 })();
 </script>
+}
 
 @code {
     [Parameter] public RenderFragment? ChildContent { get; set; }
     /// <summary>Optional hint from the page; chrome re-validates cookies so Log out still appears when the page omits it.</summary>
     [Parameter] public bool IsAdmin { get; set; }
 
+    private bool _useErpChrome;
     private bool _showBos;
     private bool _signedIn;
     private string _userLabel = "Admin session";
@@ -356,6 +366,13 @@
 
     protected override async Task OnInitializedAsync()
     {
+        var path = Http.HttpContext?.Request.Path.Value ?? string.Empty;
+        _useErpChrome = path.StartsWith("/erp", StringComparison.OrdinalIgnoreCase);
+        if (_useErpChrome)
+        {
+            return;
+        }
+
         var host = Http.HttpContext?.Request.Host.Host;
         _showBos = PlatformHostPolicy.IsSuperCpHost(host);
         // Tenant industry (epartscart → auto_parts) drives jewellery menu filtering.
