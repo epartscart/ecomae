@@ -3070,6 +3070,16 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(whtCodeDb.Succeeded);
         Assert.Equal("db", whtCodeDb.Code);
 
+        var pltFeatureInvalid = await new ErpPltFeatureSaveWriteService(new ConfiguredNeverOpened())
+            .SaveAsync(new ErpPltFeatureSaveWriteRequest());
+        Assert.False(pltFeatureInvalid.Succeeded);
+        Assert.Equal("invalid", pltFeatureInvalid.Code);
+
+        var pltFeatureDb = await new ErpPltFeatureSaveWriteService(new UnconfiguredConnections())
+            .SaveAsync(new ErpPltFeatureSaveWriteRequest(Code: "NEW_GRID", Enabled: 1));
+        Assert.False(pltFeatureDb.Succeeded);
+        Assert.Equal("db", pltFeatureDb.Code);
+
         var whtRecordInvalid = await new ErpWhtRecordWriteService(new ConfiguredNeverOpened())
             .RecordAsync(new ErpWhtRecordWriteRequest());
         Assert.False(whtRecordInvalid.Succeeded);
