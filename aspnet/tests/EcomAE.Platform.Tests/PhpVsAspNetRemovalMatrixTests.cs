@@ -43,6 +43,7 @@ public sealed class PhpVsAspNetRemovalMatrixTests
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "cp-channels" && r.WritesOwner == "aspnet");
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "cp-carriers" && r.WritesOwner == "aspnet");
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "cp-workshop" && r.WritesOwner == "aspnet");
+        Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "cp-fulfillment" && r.WritesOwner == "aspnet");
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "cp-currencies" && r.WritesOwner == "aspnet");
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "cp-prices-edit" && r.WritesOwner == "aspnet");
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "cp-synonyms" && r.WritesOwner == "aspnet");
@@ -67,6 +68,7 @@ public sealed class PhpVsAspNetRemovalMatrixTests
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "erp-contracts" && r.WritesOwner == "aspnet");
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "erp-workflow" && r.WritesOwner == "aspnet");
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "erp-collections-cases" && r.WritesOwner == "aspnet");
+        Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "cp-collections" && r.WritesOwner == "aspnet");
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "erp-procurement-reqs" && r.WritesOwner == "aspnet");
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "erp-ins-claims" && r.WritesOwner == "aspnet");
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "erp-vat-refund-status" && r.WritesOwner == "aspnet");
@@ -77,6 +79,7 @@ public sealed class PhpVsAspNetRemovalMatrixTests
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "erp-cons-deletes" && r.WritesOwner == "aspnet");
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "erp-fy-reopen-period" && r.WritesOwner == "aspnet");
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "erp-wht-settle" && r.WritesOwner == "aspnet");
+        Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "erp-multi-currency-gl" && r.WritesOwner == "aspnet");
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "write-storefront-cart" && r.WritesOwner == "php");
     }
 
@@ -125,6 +128,7 @@ public sealed class PhpVsAspNetRemovalMatrixTests
             ("StorefrontCartApp.razor", "/storefront/cart/change-count-need"),
             ("ErpPayrollApp.razor", "/erp/ajax/payroll-approve"),
             ("ErpInventoryForecastApp.razor", "/erp/inventory-forecast/recompute"),
+            ("ErpMultiCurrencyGlApp.razor", "/erp/multi-currency-gl/set-rate"),
             ("CpCreditLimitsApp.razor", "/cp/credit-limits/set"),
             ("CpPoApprovalsApp.razor", "/cp/po-approvals/approve"),
             ("CpOrdersApp.razor", "/cp/orders/set-item-status"),
@@ -147,10 +151,13 @@ public sealed class PhpVsAspNetRemovalMatrixTests
             ("ErpCashAccountsApp.razor", "/erp/offices-cash/codes/delete"),
             ("CpWarehouseWmsApp.razor", "/erp/wms/locations/delete"),
             ("CpWarehouseWmsApp.razor", "/erp/wms/waves/release"),
+            ("CpWarehouseWmsApp.razor", "/erp/wms/waves/create"),
             ("ErpSalesOrdersApp.razor", "/erp/subscriptions/status"),
+            ("ErpContractsApp.razor", "/erp/contracts/save"),
             ("ErpContractsApp.razor", "/erp/ajax/ctr-status"),
             ("ErpWorkflowApp.razor", "/erp/workflow/status"),
             ("CpCollectionsDunningApp.razor", "/erp/collections/cases/status"),
+            ("CpCollectionsDunningApp.razor", "/cp/collections-dunning/write"),
             ("CpPurchaseRequestsApp.razor", "/erp/procurement/requisitions/submit"),
             ("CpPurchaseRequestsApp.razor", "/erp/procurement/requisitions/decision"),
             ("CpPurchaseRequestsApp.razor", "/erp/ajax/proc-req-convert"),
@@ -180,6 +187,7 @@ public sealed class PhpVsAspNetRemovalMatrixTests
             ("CpMarketplaceChannelsApp.razor", "/cp/channels/write"),
             ("CpCarriersApp.razor", "/cp/logistics/write"),
             ("CpWorkshopApp.razor", "/cp/workshop/write"),
+            ("CpFulfillmentQueueApp.razor", "/cp/fulfillment-queue/write"),
             ("CpSynonymsApp.razor", "/cp/synonyms/write"),
             ("CpCrossesApp.razor", "/cp/crosses/write"),
             ("CpPricesEditApp.razor", "/cp/prices-edit/write"),

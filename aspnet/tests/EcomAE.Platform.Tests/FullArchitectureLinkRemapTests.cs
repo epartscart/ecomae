@@ -38,9 +38,9 @@ public sealed class FullArchitectureLinkRemapTests
     // --- Industry *.ecomae.com ERP deep links (must not collapse to host+/erp) ---
     [Theory]
     [InlineData("https://agriculture.ecomae.com/ERP/?epc_erp_shell=1&area=sales&tab=sales_orders", "/erp/sales-orders-app")]
-    [InlineData("https://www.ecomae.com/ERP/?epc_erp_shell=1&area=tax&tab=einvoice", "/cp/einvoice-documents-app")]
+    [InlineData("https://www.ecomae.com/ERP/?epc_erp_shell=1&area=tax&tab=einvoice", "/erp/einvoice-documents-app")]
     [InlineData("https://www.ecomae.com/ERP/?epc_erp_shell=1&area=gl", "/erp/gl-journals-app")]
-    [InlineData("https://www.ecomae.com/ERP/?epc_erp_shell=1&area=payroll", "/cp/hr-overview-app")]
+    [InlineData("https://www.ecomae.com/ERP/?epc_erp_shell=1&area=payroll", "/erp/hr-overview-app")]
     public void EcomaeAbsoluteErp_KeepsDeepTabOrArea(string php, string expected)
     {
         Assert.Equal(expected, PhpSurfaceLinkMap.AspNetPrimaryHref(php));
@@ -50,12 +50,12 @@ public sealed class FullArchitectureLinkRemapTests
     [Theory]
     [InlineData("/ERP/?epc_erp_shell=1&area=sales&tab=sales_orders", "/erp/sales-orders-app")]
     [InlineData("/ERP/?epc_erp_shell=1&area=gl", "/erp/gl-journals-app")]
-    [InlineData("/ERP/?epc_erp_shell=1&area=payroll", "/cp/hr-overview-app")]
+    [InlineData("/ERP/?epc_erp_shell=1&area=payroll", "/erp/hr-overview-app")]
     [InlineData("/ERP/?epc_erp_shell=1&tab=agenda", "/erp/agenda-app")]
     [InlineData("/ERP/?epc_erp_shell=1&tab=contacts", "/erp/contacts-app")]
     [InlineData("/ERP/?epc_erp_shell=1&tab=documents", "/erp/documents-app")]
     [InlineData("/ERP/?epc_erp_shell=1&tab=year_end", "/erp/period-close-app")]
-    [InlineData("/ERP/?epc_erp_shell=1&tab=audit", "/cp/audit-trail-app")]
+    [InlineData("/ERP/?epc_erp_shell=1&tab=audit", "/erp/audit-trail-app")]
     [InlineData("/ERP/?epc_erp_shell=1&tab=unknown_future_tab_xyz", "/erp/module-app?tab=unknown_future_tab_xyz")]
     public void ErpRemaps_TabsAndAreas(string php, string expected)
     {

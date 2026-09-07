@@ -378,7 +378,7 @@
 
     private string ModuleHref(string? href)
     {
-        var mapped = PhpSurfaceLinkMap.AspNetPrimaryHref(href);
+        var mapped = ErpPhpTabRouteMap.PreferErpSurface(PhpSurfaceLinkMap.AspNetPrimaryHref(href));
         if (_activeCompanyId <= 0)
         {
             return mapped;
