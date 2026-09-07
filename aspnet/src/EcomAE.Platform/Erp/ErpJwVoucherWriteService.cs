@@ -170,6 +170,7 @@ public sealed class ErpJwVoucherWriteService : IErpJwVoucherWriteService
             "jw_sales_return_save" or "jw_sales_return" => "SRN",
             "jw_pos_advance_save" => "PAD",
             "jw_journal_voucher_save" => "JVG",
+            "jw_repair_sale_save" or "jw_repair_sale" => "RSL",
             _ => string.Empty
         };
     }

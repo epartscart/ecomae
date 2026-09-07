@@ -34,6 +34,22 @@ public sealed class ErpAftersalesRmaWriteServiceTests
     }
 
     [Fact]
+    public async Task ResolveRequiresRmaId()
+    {
+        var result = await Service().ResolveAsync(new ErpAftersalesRmaResolveRequest(0, "refund"));
+        Assert.False(result.Succeeded);
+        Assert.Equal("RMA id is required.", result.Message);
+    }
+
+    [Fact]
+    public async Task ResolveRequiresValidDisposition()
+    {
+        var result = await Service().ResolveAsync(new ErpAftersalesRmaResolveRequest(1, "nope"));
+        Assert.False(result.Succeeded);
+        Assert.Equal("Invalid disposition", result.Message);
+    }
+
+    [Fact]
     public void ParseLinesCsvSkipsHeaderAndBlank()
     {
         var lines = ErpAftersalesRmaWriteService.ParseLinesCsv(

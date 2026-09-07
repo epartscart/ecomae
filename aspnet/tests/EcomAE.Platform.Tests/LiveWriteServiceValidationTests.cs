@@ -1454,6 +1454,21 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(jwSv.Succeeded);
         Assert.Equal("invalid", jwSv.Code);
 
+        var asResolve = await new ErpAftersalesRmaWriteService(new ConfiguredNeverOpened())
+            .ResolveAsync(new ErpAftersalesRmaResolveRequest());
+        Assert.False(asResolve.Succeeded);
+        Assert.Equal("invalid", asResolve.Code);
+
+        var asWarranty = await new ErpAftersalesWarrantyWriteService(new ConfiguredNeverOpened())
+            .RegisterAsync(new ErpAftersalesWarrantyRegisterRequest());
+        Assert.False(asWarranty.Succeeded);
+        Assert.Equal("invalid", asWarranty.Code);
+
+        var asJob = await new ErpAftersalesJobWriteService(new ConfiguredNeverOpened())
+            .CreateAsync(new ErpAftersalesJobCreateRequest());
+        Assert.False(asJob.Succeeded);
+        Assert.Equal("invalid", asJob.Code);
+
         var jwInvalid = await new ErpJwRepairWriteService(new ConfiguredNeverOpened())
             .SetStatusAsync(0, "ready");
         Assert.False(jwInvalid.Succeeded);

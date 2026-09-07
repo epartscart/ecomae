@@ -27,6 +27,8 @@ public sealed class ErpJewelleryModuleParityTests
         Assert.Contains("Save transfer", text, StringComparison.Ordinal);
         Assert.Contains("Save workshop receive", text, StringComparison.Ordinal);
         Assert.Contains("Save delivery", text, StringComparison.Ordinal);
+        Assert.Contains("ErpJewelleryVoucherSaveForm", text, StringComparison.Ordinal);
+        Assert.Contains("Save repair sale", text, StringComparison.Ordinal);
         Assert.Contains(ErpJewelleryModuleChrome.RepairJobColumns, c => c == "Repair #");
         Assert.Contains(ErpJewelleryModuleChrome.RepairJobColumns, c => c.Contains("Wt In", StringComparison.Ordinal));
         Assert.Contains("epc_erp_jw_repairs", text, StringComparison.Ordinal);

@@ -113,12 +113,14 @@
     else if (_isAdmin && _tab == "jw_repair_sale")
     {
         <ErpPhpCreateWell Title="Invoice repair">
-            <form method="post" action="@EcomAeRoutes.ErpJewelleryModuleSaveForm" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+            <form method="post" action="@EcomAeRoutes.ErpJewelleryVoucherSaveForm" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+                <input type="hidden" name="confirmWrites" value="true" />
                 <input type="hidden" name="returnUrl" value="@_returnHere" />
-                <input type="hidden" name="action" value="jw_repair_sale_save" />
-                <label>Repair # <input class="form-control input-sm" name="code" required /></label>
-                <label>Customer <input class="form-control input-sm" name="customer_name" /></label>
-                <button type="submit" class="btn btn-primary btn-sm">Invoice</button>
+                <input type="hidden" name="voc_type" value="RSL" />
+                <label>Repair # <input class="form-control input-sm" name="repair_ref" required /></label>
+                <label>Customer <input class="form-control input-sm" name="party_name" /></label>
+                <label>Net <input class="form-control input-sm" name="net_amount" type="number" step="0.01" value="0" style="width:90px;" /></label>
+                <button type="submit" class="btn btn-primary btn-sm">Save repair sale</button>
             </form>
         </ErpPhpCreateWell>
     }

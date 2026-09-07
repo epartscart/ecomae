@@ -12,7 +12,16 @@ public interface IErpAftersalesRmaWriteService
     Task<ErpSimpleWriteResult> CreateAsync(
         ErpAftersalesRmaCreateRequest request,
         CancellationToken cancellationToken = default);
+
+    Task<ErpSimpleWriteResult> ResolveAsync(
+        ErpAftersalesRmaResolveRequest request,
+        CancellationToken cancellationToken = default);
 }
+
+public sealed record ErpAftersalesRmaResolveRequest(
+    long RmaId = 0,
+    string? Disposition = null,
+    decimal RefundAmount = -1);
 
 public sealed record ErpAftersalesRmaCreateRequest(
     long CustomerId = 0,
@@ -120,6 +129,75 @@ public sealed class ErpAftersalesRmaWriteService : IErpAftersalesRmaWriteService
         }
 
         return ErpSimpleWriteResult.Ok("RMA " + rmaNo + " created", rmaId);
+    }
+
+    public async Task<ErpSimpleWriteResult> ResolveAsync(
+        ErpAftersalesRmaResolveRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        if (request.RmaId <= 0)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "RMA id is required.");
+        }
+
+        var disposition = (request.Disposition ?? string.Empty).Trim().ToLowerInvariant();
+        if (disposition is not ("refund" or "replace" or "repair" or "reject"))
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Invalid disposition");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return ErpSimpleWriteResult.Fail("db", "TenantRegistry DB is not configured.");
+        }
+
+        await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        if (!await TableExistsAsync(connection, "epc_as_rma", cancellationToken).ConfigureAwait(false)
+            || !await TableExistsAsync(connection, "epc_as_rma_lines", cancellationToken).ConfigureAwait(false))
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "After-sales RMA tables are not provisioned");
+        }
+
+        var found = await ErpDb.LongAsync(
+            connection,
+            null,
+            ErpDb.Positional("SELECT COUNT(*) FROM `epc_as_rma` WHERE `id` = ?"),
+            cancellationToken,
+            request.RmaId).ConfigureAwait(false);
+        if (found <= 0)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "RMA not found");
+        }
+
+        var linesTotal = decimal.Round(
+            await ErpDb.DecimalAsync(
+                connection,
+                null,
+                ErpDb.Positional("SELECT COALESCE(SUM(`qty` * `unit_price`), 0) FROM `epc_as_rma_lines` WHERE `rma_id` = ?"),
+                cancellationToken,
+                request.RmaId).ConfigureAwait(false),
+            2,
+            MidpointRounding.AwayFromZero);
+        var refund = request.RefundAmount;
+        if (refund < 0)
+        {
+            refund = disposition == "refund" ? linesTotal : 0m;
+        }
+
+        refund = decimal.Round(refund < 0 ? 0 : refund, 2, MidpointRounding.AwayFromZero);
+        var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        await ErpDb.ExecuteAsync(
+            connection,
+            null,
+            ErpDb.Positional("UPDATE `epc_as_rma` SET `disposition` = ?, `status` = 'closed', `refund_amount` = ?, `time_updated` = ? WHERE `id` = ?"),
+            cancellationToken,
+            disposition,
+            refund,
+            now,
+            request.RmaId).ConfigureAwait(false);
+
+        return ErpSimpleWriteResult.Ok("RMA resolved (" + disposition + ")", request.RmaId);
     }
 
     /// <summary>PHP ajax <c>lines_csv</c>: <c>item_id,qty,unit_price,condition_note</c> per row.</summary>

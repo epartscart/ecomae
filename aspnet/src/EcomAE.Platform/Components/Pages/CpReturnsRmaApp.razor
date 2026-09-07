@@ -4,6 +4,7 @@
 @using EcomAE.Platform.Auth
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Routing
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
@@ -106,6 +107,38 @@
             <label>Note <input type="text" name="condition_note" /></label>
             <label><input type="checkbox" name="restock" value="1" /> Restock</label>
             <button type="submit" class="btn btn-xs btn-primary">Create aftersales RMA</button>
+        </form>
+        <form method="post" action="@EcomAeRoutes.ErpAftersalesRmaResolve" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/returns-rma-app" />
+            <label>RMA id <input type="number" name="rma_id" min="1" required style="width:5rem" /></label>
+            <label>Disposition
+                <select name="disposition">
+                    <option value="refund">Refund</option>
+                    <option value="replace">Replace</option>
+                    <option value="repair">Repair</option>
+                    <option value="reject">Reject</option>
+                </select>
+            </label>
+            <button type="submit" class="btn btn-xs btn-primary">Resolve RMA</button>
+        </form>
+        <form method="post" action="@EcomAeRoutes.ErpAftersalesWarrantyRegister" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/returns-rma-app" />
+            <label>Item id <input type="number" name="item_id" min="0" style="width:5rem" /></label>
+            <label>Serial <input type="text" name="serial_no" /></label>
+            <label>Customer id <input type="number" name="customer_id" min="0" style="width:5rem" /></label>
+            <label>Months <input type="number" name="months" min="0" value="12" style="width:4rem" /></label>
+            <button type="submit" class="btn btn-xs btn-primary">Register warranty</button>
+        </form>
+        <form method="post" action="@EcomAeRoutes.ErpAftersalesJobCreate" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/returns-rma-app" />
+            <label>Customer id <input type="number" name="customer_id" min="0" style="width:5rem" /></label>
+            <label>Asset <input type="text" name="asset_ref" /></label>
+            <label>Complaint <input type="text" name="complaint" required /></label>
+            <label><input type="checkbox" name="under_warranty" value="1" /> Under warranty</label>
+            <button type="submit" class="btn btn-xs btn-primary">Create service job</button>
         </form>
     }
     <div class="epc-rma-kpis" aria-label="Returns RMA stats">

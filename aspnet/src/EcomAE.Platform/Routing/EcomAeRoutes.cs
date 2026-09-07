@@ -612,6 +612,12 @@ public static class EcomAeRoutes
     public const string ErpCustomersMasterSave = "/erp/customers/master-save";
     /// <summary>Live PHP as_rma_create / epc_as_rma_create (confirmWrites required). Blockchain stays PHP.</summary>
     public const string ErpAftersalesRmaCreate = "/erp/aftersales/rma-create";
+    /// <summary>PHP epc_as_rma_resolve. Inventory restock stays PHP.</summary>
+    public const string ErpAftersalesRmaResolve = "/erp/aftersales/rma-resolve";
+    /// <summary>PHP epc_as_warranty_register. Schema-ensure stays PHP.</summary>
+    public const string ErpAftersalesWarrantyRegister = "/erp/aftersales/warranty-register";
+    /// <summary>PHP epc_as_job_create. Line add / close stay PHP.</summary>
+    public const string ErpAftersalesJobCreate = "/erp/aftersales/job-create";
     /// <summary>Wave B dry-run for PHP purchase_from_order (writes=0).</summary>
     public const string ErpPurchasesFromOrder = "/erp/purchases/from-order";
     /// <summary>Wave B dry-run for PHP ccy_set_rate (writes=0).</summary>
