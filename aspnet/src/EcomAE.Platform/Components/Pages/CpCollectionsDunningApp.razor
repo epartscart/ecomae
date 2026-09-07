@@ -1,4 +1,5 @@
 @page "/cp/collections-dunning-app"
+@page "/erp/collections-dunning-app"
 @layout Layout.PhpChromeLayout
 @using System.Globalization
 @using EcomAE.Platform.Auth
@@ -83,7 +84,7 @@
         </form>
         <form method="post" action="/cp/collections-dunning/write" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 .65rem">
             <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="/cp/collections-dunning-app" />
+            <input type="hidden" name="returnUrl" value="@(Http.HttpContext?.Request.Path.Value ?? "/cp/collections-dunning-app")" />
             <input type="hidden" name="action" value="update_status" />
             <label>Queue id <input type="number" name="queueId" min="1" required style="width:6rem" /></label>
             <label>Queue status
@@ -102,7 +103,7 @@
         </form>
         <form method="post" action="/cp/collections-dunning/write" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 .65rem">
             <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="/cp/collections-dunning-app" />
+            <input type="hidden" name="returnUrl" value="@(Http.HttpContext?.Request.Path.Value ?? "/cp/collections-dunning-app")" />
             <input type="hidden" name="action" value="record_payment" />
             <label>Queue id <input type="number" name="queueId" min="1" required style="width:6rem" /></label>
             <label>Amount <input type="number" name="amount" min="0.01" step="0.01" required style="width:7rem" /></label>
@@ -110,7 +111,7 @@
         </form>
         <form method="post" action="/erp/collections/cases/status" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="/cp/collections-dunning-app" />
+            <input type="hidden" name="returnUrl" value="@(Http.HttpContext?.Request.Path.Value ?? "/cp/collections-dunning-app")" />
             <label>Case id <input type="number" name="id" min="1" required style="width:6rem" /></label>
             <label>Status
                 <select name="status">
@@ -171,7 +172,7 @@
                                 {
                                     <form method="post" action="/cp/collections-dunning/write" style="display:inline-flex;flex-wrap:wrap;gap:.25rem;align-items:end;margin:0 0 .25rem">
                                         <input type="hidden" name="confirmWrites" value="true" />
-                                        <input type="hidden" name="returnUrl" value="/cp/collections-dunning-app" />
+                                        <input type="hidden" name="returnUrl" value="@(Http.HttpContext?.Request.Path.Value ?? "/cp/collections-dunning-app")" />
                                         <input type="hidden" name="action" value="update_status" />
                                         <input type="hidden" name="queueId" value="@row.Id.ToString(CultureInfo.InvariantCulture)" />
                                         <select name="status">
@@ -187,7 +188,7 @@
                                     </form>
                                     <form method="post" action="/cp/collections-dunning/write" style="display:inline-flex;flex-wrap:wrap;gap:.25rem;align-items:end;margin:0">
                                         <input type="hidden" name="confirmWrites" value="true" />
-                                        <input type="hidden" name="returnUrl" value="/cp/collections-dunning-app" />
+                                        <input type="hidden" name="returnUrl" value="@(Http.HttpContext?.Request.Path.Value ?? "/cp/collections-dunning-app")" />
                                         <input type="hidden" name="action" value="record_payment" />
                                         <input type="hidden" name="queueId" value="@row.Id.ToString(CultureInfo.InvariantCulture)" />
                                         <input type="number" name="amount" min="0.01" step="0.01" required style="width:5.5rem" title="Payment" />
