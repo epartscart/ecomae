@@ -2,7 +2,7 @@ namespace EcomAE.Platform.Erp;
 
 /// <summary>
 /// Live PHP <c>epc_cons_entity_delete</c> / <c>epc_cons_ic_delete</c> twins.
-/// Schema ensure, save, and figures stay PHP.
+/// Schema ensure, figures, and IC save stay PHP. Entity save is <c>IErpConsEntitySaveWriteService</c>.
 /// </summary>
 public interface IErpConsDeleteWriteService
 {
