@@ -3111,6 +3111,17 @@ public sealed class LiveWriteServiceValidationTests
             .LogAsync(new ErpHrAttendanceWriteRequest(EmployeeId: 1, Hours: 8));
         Assert.False(hrAttDb.Succeeded);
         Assert.Equal("db", hrAttDb.Code);
+
+        var procCatInvalid = await new ErpProcCategorySaveWriteService(new ConfiguredNeverOpened())
+            .SaveAsync(new ErpProcCategorySaveWriteRequest());
+        Assert.False(procCatInvalid.Succeeded);
+        Assert.Equal("invalid", procCatInvalid.Code);
+        Assert.Equal("Category code and name are required", procCatInvalid.Message);
+
+        var procCatDb = await new ErpProcCategorySaveWriteService(new UnconfiguredConnections())
+            .SaveAsync(new ErpProcCategorySaveWriteRequest(Code: "RAW", Name: "Raw"));
+        Assert.False(procCatDb.Succeeded);
+        Assert.Equal("db", procCatDb.Code);
     }
 
     [Fact]

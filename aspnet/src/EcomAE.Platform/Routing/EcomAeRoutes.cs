@@ -839,6 +839,8 @@ public static class EcomAeRoutes
     public const string ErpOrderPlanningApp = "/erp/order-planning-app";
     public const string ErpProcurementCategories = "/erp/procurement-categories";
     public const string ErpProcurementCategoriesApp = "/erp/procurement-categories-app";
+    /// <summary>HTML form POST for PHP <c>proc_category_save</c>. <c>confirmWrites=true</c> writes via <c>IErpProcCategorySaveWriteService</c>.</summary>
+    public const string ErpProcurementCategorySave = "/erp/procurement/categories/save";
     public const string ErpQuality = "/erp/quality";
     public const string ErpQualityApp = "/erp/quality-app";
     /// <summary>HTML form POST for PHP <c>qm_plan_save</c> dry-run (redirects with ?ok= / ?err=).</summary>
@@ -1688,7 +1690,7 @@ public static class EcomAeRoutes
     public const string ErpAjaxCollActivityLog = "/erp/ajax/coll-activity-log";
     /// <summary>Live PHP epc_coll_dunning_run twin (ajax alias of <see cref="ErpCollectionsDunningRun"/>).</summary>
     public const string ErpAjaxCollDunningRun = "/erp/ajax/coll-dunning-run";
-    /// <summary>Wave B dry-run for PHP proc_category_save (writes=0).</summary>
+    /// <summary>Live PHP epc_proc_category_save ajax alias of <see cref="ErpProcurementCategorySave"/>.</summary>
     public const string ErpAjaxProcCategorySave = "/erp/ajax/proc-category-save";
     /// <summary>Wave B dry-run for PHP proc_policy_save (writes=0).</summary>
     public const string ErpAjaxProcPolicySave = "/erp/ajax/proc-policy-save";
