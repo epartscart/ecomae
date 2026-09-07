@@ -2838,6 +2838,17 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(insAddDb.Succeeded);
         Assert.Equal("db", insAddDb.Code);
 
+        var insDocAddMissing = await new ErpInsDocAddWriteService(new ConfiguredNeverOpened())
+            .AddAsync(new ErpInsDocAddWriteRequest());
+        Assert.False(insDocAddMissing.Succeeded);
+        Assert.Equal("invalid", insDocAddMissing.Code);
+        Assert.Equal("Select a policy", insDocAddMissing.Message);
+
+        var insDocAddDb = await new ErpInsDocAddWriteService(new UnconfiguredConnections())
+            .AddAsync(new ErpInsDocAddWriteRequest(PolicyId: 3, Title: "Schedule"));
+        Assert.False(insDocAddDb.Succeeded);
+        Assert.Equal("db", insDocAddDb.Code);
+
         var vatInvalid = await new ErpBosVatRefundStatusWriteService(new ConfiguredNeverOpened())
             .SetStatusAsync(9, "nope");
         Assert.False(vatInvalid.Succeeded);

@@ -757,6 +757,7 @@ builder.Services.AddScoped<EcomAE.Platform.Erp.IErpWmsWaveCreateWriteService, Ec
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpMarketingWriteService, EcomAE.Platform.Erp.ErpMarketingWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpInsClaimStatusWriteService, EcomAE.Platform.Erp.ErpInsClaimStatusWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpInsClaimAddWriteService, EcomAE.Platform.Erp.ErpInsClaimAddWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpInsDocAddWriteService, EcomAE.Platform.Erp.ErpInsDocAddWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpBosVatRefundStatusWriteService, EcomAE.Platform.Erp.ErpBosVatRefundStatusWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpBosVatRefundSaveWriteService, EcomAE.Platform.Erp.ErpBosVatRefundSaveWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpSubInvoicePaidWriteService, EcomAE.Platform.Erp.ErpSubInvoicePaidWriteService>();

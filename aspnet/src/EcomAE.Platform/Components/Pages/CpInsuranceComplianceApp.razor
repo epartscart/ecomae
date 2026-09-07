@@ -90,6 +90,24 @@
             </label>
             <button type="submit">Set claim status</button>
         </form>
+        <form method="post" action="/erp/insurance/docs/add" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/insurance-compliance-app" />
+            <label>Policy id <input type="number" name="policy_id" min="1" required style="width:6rem" /></label>
+            <label>Type
+                <select name="doc_type">
+                    <option value="policy">Policy schedule</option>
+                    <option value="endorsement">Endorsement</option>
+                    <option value="invoice">Premium invoice</option>
+                    <option value="cover_note">Cover note</option>
+                    <option value="claim">Claim document</option>
+                    <option value="other">Other</option>
+                </select>
+            </label>
+            <label>Title <input type="text" name="title" /></label>
+            <label>File path / URL <input type="text" name="file_path" placeholder="/uploads/policy.pdf" /></label>
+            <button type="submit">Add document</button>
+        </form>
         <form method="post" action="/erp/ajax/ins-doc-delete" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
             <input type="hidden" name="returnUrl" value="@(Http.HttpContext?.Request.Path.Value ?? "/cp/insurance-compliance-app")" />
