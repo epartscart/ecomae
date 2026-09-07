@@ -184,7 +184,12 @@ public sealed class StorefrontPayLaximoPhpParityTests
         Assert.Contains("action=\"/cp/pos/complete-sale\"", pos, StringComparison.Ordinal);
         Assert.Contains("action=\"/cp/pos/save-settings\"", pos, StringComparison.Ordinal);
         Assert.Contains("name=\"confirmWrites\"", pos, StringComparison.Ordinal);
+        Assert.Contains("Save POS advance", pos, StringComparison.Ordinal);
+        Assert.Contains("voc_type\" value=\"PAD\"", pos, StringComparison.Ordinal);
         Assert.DoesNotContain("@onclick", pos, StringComparison.Ordinal);
+        var gl = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/ErpGlJournalsApp.razor"));
+        Assert.Contains("Save journal voucher", gl, StringComparison.Ordinal);
+        Assert.Contains("voc_type\" value=\"JVG\"", gl, StringComparison.Ordinal);
         var accessories = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/CpAccessoriesApp.razor"));
         Assert.Contains("action=\"/cp/accessories/photos\"", accessories, StringComparison.Ordinal);
         Assert.Contains("Save photo", accessories, StringComparison.Ordinal);

@@ -5,6 +5,7 @@
 @using EcomAE.Platform.Cp
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Routing
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
@@ -96,6 +97,18 @@
                     <label>Closing cash <input type="text" name="closingCash" value="0" inputmode="decimal" /></label>
                     <label>Notes <input type="text" name="notes" /></label>
                     <button type="submit">Close session</button>
+                </form>
+            </div>
+            <div class="epc-pos-form">
+                <h2>Jewellery POS advance</h2>
+                <form method="post" action="@EcomAeRoutes.ErpJewelleryVoucherSaveForm">
+                    <input type="hidden" name="confirmWrites" value="true" />
+                    <input type="hidden" name="returnUrl" value="/cp/pos-overview-app" />
+                    <input type="hidden" name="action" value="jw_pos_advance_save" />
+                    <input type="hidden" name="voc_type" value="PAD" />
+                    <label>Customer <input type="text" name="customer_name" required /></label>
+                    <label>Amount <input type="text" name="net_amount" value="0" inputmode="decimal" /></label>
+                    <button type="submit">Save POS advance</button>
                 </form>
             </div>
             <div class="epc-pos-form">

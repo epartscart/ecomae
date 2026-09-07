@@ -4,6 +4,7 @@
 @using EcomAE.Platform.Auth
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Routing
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
@@ -16,8 +17,21 @@
 
 
     
-    <PhpErpModulePageHeader Title="General Ledger Journals" Subtitle="Live shop digest. Writes stay on ERP ajax." PhpTabHref="@_phpTab" />
+    <PhpErpModulePageHeader Title="General Ledger Journals" Subtitle="Live shop digest. Jewellery journal voucher save is live when confirmed." PhpTabHref="@_phpTab" />
     <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
+    <ErpPhpFlash Ok="@_flashOk" Err="@_flashErr" />
+    @if (_isAdmin)
+    {
+        <form method="post" action="@EcomAeRoutes.ErpJewelleryVoucherSaveForm" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/erp/gl-journals-app?tab=jw_journal_voucher" />
+            <input type="hidden" name="action" value="jw_journal_voucher_save" />
+            <input type="hidden" name="voc_type" value="JVG" />
+            <label>Description <input type="text" name="party_name" required /></label>
+            <label>Amount <input type="text" name="net_amount" value="0" style="width:6rem" /></label>
+            <button type="submit" class="btn btn-xs btn-primary">Save journal voucher</button>
+        </form>
+    }
 
 
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="GL KPIs">
@@ -73,11 +87,15 @@
     private int _limit = 100;
     private string _source = "n/a";
     private string _message = "";
+    private string _flashOk = "";
+    private string _flashErr = "";
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
+        _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
+        _flashErr = ctx.Request.Query["err"].ToString() ?? "";
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);

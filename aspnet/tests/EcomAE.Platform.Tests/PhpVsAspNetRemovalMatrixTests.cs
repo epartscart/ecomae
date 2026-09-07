@@ -313,6 +313,8 @@ public sealed class PhpVsAspNetRemovalMatrixTests
             ("StorefrontProfileApp.razor", "ProfileWriteHref"),
             ("CpPosOverviewApp.razor", "/cp/pos/open-session"),
             ("CpPosOverviewApp.razor", "/cp/pos/complete-sale"),
+            ("CpPosOverviewApp.razor", "Save POS advance"),
+            ("ErpGlJournalsApp.razor", "Save journal voucher"),
             ("CpFulfillmentQueueApp.razor", "/cp/fulfillment-queue/write"),
             ("CpCollectionsDunningApp.razor", "/cp/collections-dunning/write"),
         };

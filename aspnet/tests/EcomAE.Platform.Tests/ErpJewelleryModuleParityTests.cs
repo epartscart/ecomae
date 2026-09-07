@@ -119,6 +119,16 @@ public sealed class ErpJewelleryModuleParityTests
         Assert.Contains("Save petty cash", petty, StringComparison.Ordinal);
         Assert.DoesNotContain("@onclick", petty, StringComparison.Ordinal);
 
+        var pos = ReadApp("CpPosOverviewApp.razor");
+        Assert.Contains("Save POS advance", pos, StringComparison.Ordinal);
+        Assert.Contains("jw_pos_advance_save", pos, StringComparison.Ordinal);
+        Assert.DoesNotContain("@onclick", pos, StringComparison.Ordinal);
+
+        var gl = ReadApp("ErpGlJournalsApp.razor");
+        Assert.Contains("Save journal voucher", gl, StringComparison.Ordinal);
+        Assert.Contains("jw_journal_voucher_save", gl, StringComparison.Ordinal);
+        Assert.DoesNotContain("@onclick", gl, StringComparison.Ordinal);
+
         var tourist = ReadApp("CpUaeTaxComplianceApp.razor");
         Assert.Contains("jw_tourist_vat", tourist, StringComparison.Ordinal);
         Assert.Contains("ErpJewelleryTouristVatSaveForm", tourist, StringComparison.Ordinal);

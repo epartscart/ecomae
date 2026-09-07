@@ -8496,6 +8496,8 @@ public sealed class ErpModule : ISurfaceModule
         "SRN" or "SRC" => "/cp/jewellery-retail-app?tab=jw_sales_return",
         "PCV" => "/erp/cash-accounts-app?tab=jw_petty_cash",
         "RSL" => "/cp/jewellery-repairs-app?tab=jw_repair_sale",
+        "PAD" => "/cp/pos-overview-app",
+        "JVG" => "/erp/gl-journals-app?tab=jw_journal_voucher",
         _ => "/cp/jewellery-retail-app?tab=jw_retail_sales"
     };
 
