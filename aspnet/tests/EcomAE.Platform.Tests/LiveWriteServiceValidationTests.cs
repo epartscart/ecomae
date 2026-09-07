@@ -1434,6 +1434,16 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(jwPay.Succeeded);
         Assert.Equal("invalid", jwPay.Code);
 
+        var jwFixUnfix = await new ErpJwFixUnfixWriteService(new ConfiguredNeverOpened())
+            .CreateAsync(new ErpJwFixUnfixCreateRequest());
+        Assert.False(jwFixUnfix.Succeeded);
+        Assert.Equal("invalid", jwFixUnfix.Code);
+
+        var jwSettle = await new ErpJwFixUnfixWriteService(new ConfiguredNeverOpened())
+            .SettleAsync(new ErpJwFixUnfixSettleRequest());
+        Assert.False(jwSettle.Succeeded);
+        Assert.Equal("invalid", jwSettle.Code);
+
         var jwMetal = await new ErpJwMetalStockWriteService(new ConfiguredNeverOpened())
             .SaveAsync(new ErpJwMetalStockSaveRequest());
         Assert.False(jwMetal.Succeeded);

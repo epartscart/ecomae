@@ -5840,6 +5840,164 @@ public sealed class ErpModule : ISurfaceModule
                 session = SessionPayload(session)
             });
         }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpJewelleryFixUnfixCreateForm, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IErpJwModuleSaveDryRun dryRun,
+            IErpJwFixUnfixWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (!ErpJewelleryModuleChrome.HasJewelleryStaffAccess(session))
+            {
+                return LiveWriteFormBinder.LoginRedirect(
+                    context,
+                    "/erp/login?returnUrl=/cp/jewellery-fixing-app?tab=fix_unfix",
+                    "Admin ERP capability required for fix/unfix create.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpJwFixUnfixCreateBody>(context, cancellationToken)
+                       ?? new();
+            var companyId = body.CompanyId;
+            var purchaseId = body.PurchaseId;
+            var supplierId = body.SupplierId;
+            var supplierName = body.SupplierName;
+            var purchaseDate = body.PurchaseDate;
+            var structureType = body.StructureType;
+            var metalType = body.MetalType;
+            var karat = body.Karat;
+            var weightGrams = body.WeightGrams;
+            var fixRate = body.FixRate;
+            var fixDate = body.FixDate;
+            var fixReference = body.FixReference;
+            var unfixEstimatedRate = body.UnfixEstimatedRate;
+            var marginOnFix = body.MarginOnFix;
+            var marginOnUnfix = body.MarginOnUnfix;
+            var makingCharges = body.MakingCharges;
+            var notes = body.Notes;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                companyId = LiveWriteFormBinder.Int(form, "companyId", "company_id", "company");
+                purchaseId = LiveWriteFormBinder.Int(form, "purchaseId", "purchase_id");
+                supplierId = LiveWriteFormBinder.Int(form, "supplierId", "supplier_id");
+                supplierName = LiveWriteFormBinder.Text(form, "supplierName", "supplier_name");
+                purchaseDate = LiveWriteFormBinder.Text(form, "purchaseDate", "purchase_date");
+                structureType = LiveWriteFormBinder.Text(form, "structureType", "structure_type");
+                metalType = LiveWriteFormBinder.Text(form, "metalType", "metal_type");
+                karat = LiveWriteFormBinder.Text(form, "karat");
+                weightGrams = LiveWriteFormBinder.Dec(form, "weightGrams", "weight_grams", "weight");
+                fixRate = LiveWriteFormBinder.Dec(form, "fixRate", "fix_rate");
+                fixDate = LiveWriteFormBinder.Text(form, "fixDate", "fix_date");
+                fixReference = LiveWriteFormBinder.Text(form, "fixReference", "fix_reference");
+                unfixEstimatedRate = LiveWriteFormBinder.Dec(form, "unfixEstimatedRate", "unfix_estimated_rate");
+                marginOnFix = LiveWriteFormBinder.Dec(form, "marginOnFix", "margin_on_fix");
+                marginOnUnfix = LiveWriteFormBinder.Dec(form, "marginOnUnfix", "margin_on_unfix");
+                makingCharges = LiveWriteFormBinder.Dec(form, "makingCharges", "making_charges");
+                notes = LiveWriteFormBinder.Text(form, "notes");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            const string returnApp = "/cp/jewellery-fixing-app?tab=fix_unfix";
+            if (!confirm)
+            {
+                var result = dryRun.Evaluate(new ErpJwModuleSaveRequest("jw_fix_unfix_create", supplierName, false));
+                if (LiveWriteFormBinder.WantsHtml(context))
+                {
+                    return DryRunHtmlForm.Redirect(DryRunHtmlForm.SafeReturnUrl(context.Request, returnApp), result.ValidationCode == "ok", result.Detail);
+                }
+
+                return Results.Ok(result.ToPayload(SessionPayload(session)));
+            }
+
+            var written = await writes.CreateAsync(
+                new ErpJwFixUnfixCreateRequest(
+                    companyId,
+                    purchaseId,
+                    supplierId,
+                    supplierName,
+                    purchaseDate,
+                    structureType,
+                    metalType,
+                    karat,
+                    weightGrams,
+                    fixRate,
+                    fixDate,
+                    fixReference,
+                    unfixEstimatedRate,
+                    marginOnFix,
+                    marginOnUnfix,
+                    makingCharges,
+                    notes),
+                cancellationToken);
+            return LiveWriteFormBinder.Complete(context, returnApp, written.Succeeded, written.Message, new
+            {
+                ok = written.Succeeded,
+                status = written.Succeeded,
+                writes = written.Writes,
+                phpAuthoritative = false,
+                validation_code = written.Code,
+                message = written.Message,
+                id = written.Id,
+                supplier_name = supplierName,
+                session = SessionPayload(session)
+            });
+        }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpJewelleryFixUnfixSettleForm, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IErpJwModuleSaveDryRun dryRun,
+            IErpJwFixUnfixWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (!ErpJewelleryModuleChrome.HasJewelleryStaffAccess(session))
+            {
+                return LiveWriteFormBinder.LoginRedirect(
+                    context,
+                    "/erp/login?returnUrl=/cp/jewellery-fixing-app?tab=fix_unfix",
+                    "Admin ERP capability required for fix/unfix settle.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpJwFixUnfixSettleBody>(context, cancellationToken)
+                       ?? new();
+            var id = body.Id;
+            var settleRate = body.SettleRate;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                id = LiveWriteFormBinder.Long(form, "id", "purchaseId", "purchase_id");
+                settleRate = LiveWriteFormBinder.Dec(form, "settleRate", "settle_rate");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            const string returnApp = "/cp/jewellery-fixing-app?tab=fix_unfix";
+            if (!confirm)
+            {
+                var result = dryRun.Evaluate(new ErpJwModuleSaveRequest("jw_fix_unfix_settle", id.ToString(CultureInfo.InvariantCulture), false));
+                if (LiveWriteFormBinder.WantsHtml(context))
+                {
+                    return DryRunHtmlForm.Redirect(DryRunHtmlForm.SafeReturnUrl(context.Request, returnApp), result.ValidationCode == "ok", result.Detail);
+                }
+
+                return Results.Ok(result.ToPayload(SessionPayload(session)));
+            }
+
+            var written = await writes.SettleAsync(new ErpJwFixUnfixSettleRequest(id, settleRate), cancellationToken);
+            return LiveWriteFormBinder.Complete(context, returnApp, written.Succeeded, written.Message, new
+            {
+                ok = written.Succeeded,
+                status = written.Succeeded,
+                writes = written.Writes,
+                phpAuthoritative = false,
+                validation_code = written.Code,
+                message = written.Message,
+                id = written.Id,
+                session = SessionPayload(session)
+            });
+        }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpJewelleryMetalStockSaveForm, async (
             HttpContext context,
             ILegacySessionValidator validator,
@@ -9834,6 +9992,29 @@ public sealed class ErpModule : ISurfaceModule
         decimal GoldRate = 0,
         string? ReceiptNo = null,
         string? PaymentDate = null,
+        bool ConfirmWrites = false);
+    private sealed record ErpJwFixUnfixCreateBody(
+        int CompanyId = 0,
+        int PurchaseId = 0,
+        int SupplierId = 0,
+        string? SupplierName = null,
+        string? PurchaseDate = null,
+        string? StructureType = null,
+        string? MetalType = null,
+        string? Karat = null,
+        decimal WeightGrams = 0,
+        decimal FixRate = 0,
+        string? FixDate = null,
+        string? FixReference = null,
+        decimal UnfixEstimatedRate = 0,
+        decimal MarginOnFix = 0,
+        decimal MarginOnUnfix = 0,
+        decimal MakingCharges = 0,
+        string? Notes = null,
+        bool ConfirmWrites = false);
+    private sealed record ErpJwFixUnfixSettleBody(
+        long Id = 0,
+        decimal SettleRate = 0,
         bool ConfirmWrites = false);
     private sealed record ErpJwColorStoneSaveBody(
         int CompanyId = 0,

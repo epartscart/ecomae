@@ -102,6 +102,10 @@ public sealed class ErpJewelleryModuleParityTests
         Assert.Contains("New Fixing", fixing, StringComparison.Ordinal);
         Assert.Contains("ErpJewelleryFixingSaveForm", fixing, StringComparison.Ordinal);
         Assert.Contains("Save fixing", fixing, StringComparison.Ordinal);
+        Assert.Contains("ErpJewelleryFixUnfixCreateForm", fixing, StringComparison.Ordinal);
+        Assert.Contains("Create fix / unfix", fixing, StringComparison.Ordinal);
+        Assert.Contains("ErpJewelleryFixUnfixSettleForm", fixing, StringComparison.Ordinal);
+        Assert.Contains("Settle unfix", fixing, StringComparison.Ordinal);
         Assert.Contains("Fixed Rate", fixing, StringComparison.Ordinal);
         Assert.DoesNotContain("@onclick", fixing, StringComparison.Ordinal);
 
@@ -215,6 +219,8 @@ public sealed class ErpJewelleryModuleParityTests
         Assert.Equal("/erp/jewellery/gold-scheme-create", EcomAeRoutes.ErpJewelleryGoldSchemeCreateForm);
         Assert.Equal("/erp/jewellery/gold-scheme-enroll", EcomAeRoutes.ErpJewelleryGoldSchemeEnrollForm);
         Assert.Equal("/erp/jewellery/gold-scheme-pay", EcomAeRoutes.ErpJewelleryGoldSchemePayForm);
+        Assert.Equal("/erp/jewellery/fix-unfix-create", EcomAeRoutes.ErpJewelleryFixUnfixCreateForm);
+        Assert.Equal("/erp/jewellery/fix-unfix-settle", EcomAeRoutes.ErpJewelleryFixUnfixSettleForm);
     }
 
     [Fact]

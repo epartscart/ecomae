@@ -288,6 +288,8 @@ public sealed class PhpVsAspNetRemovalMatrixTests
             ("CpJewelleryStockVerificationApp.razor", "Save metal stock"),
             ("CpJewelleryFixingApp.razor", "ErpJewelleryFixingSaveForm"),
             ("CpJewelleryFixingApp.razor", "Save fixing"),
+            ("CpJewelleryFixingApp.razor", "Create fix / unfix"),
+            ("CpJewelleryFixingApp.razor", "Settle unfix"),
             ("CpJewelleryRetailApp.razor", "ErpJewelleryVoucherSaveForm"),
             ("CpJewelleryRetailApp.razor", "Save voucher"),
             ("ErpCashAccountsApp.razor", "ErpJewelleryPettyCashSaveForm"),
