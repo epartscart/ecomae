@@ -1,4 +1,5 @@
 @page "/cp/warehouse-wms-app"
+@page "/erp/warehouse-wms-app"
 @layout Layout.PhpChromeLayout
 @using System.Globalization
 @using EcomAE.Platform.Auth
@@ -46,7 +47,7 @@
         <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
         <h1>Warehouse WMS</h1>
         <p>@CpPhpModuleCopy.PurposeFor(Nav.Uri)</p>
-        <p>Receive stock, delete an empty warehouse location, or release a pick wave here. Wave create, pick add, and work complete stay on the classic twin.</p>
+        <p>Receive stock, create or release a pick wave, or delete an empty location here. Work complete stays on the Classic twin.</p>
         <div class="epc-wms-cta">
             <a href="/erp">ERP overview</a>
         </div>
@@ -66,7 +67,7 @@
     {
         <form method="post" action="/erp/wms/receive" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="/cp/warehouse-wms-app" />
+            <input type="hidden" name="returnUrl" value="@(Http.HttpContext?.Request.Path.Value ?? "/erp/warehouse-wms-app")" />
             <label>Item / SKU <input type="text" name="item" required /></label>
             <label>Quantity <input type="number" step="0.001" name="qty" required /></label>
             <label>Receiving location <input type="number" name="receive_location_id" min="0" style="width:6rem" /></label>
@@ -75,15 +76,23 @@
             <label>License plate <input type="text" name="lp_code" placeholder="blank = auto" /></label>
             <button type="submit">Receive &amp; raise put-away</button>
         </form>
-        <form method="post" action="/erp/wms/locations/delete" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+        <form method="post" action="/erp/wms/waves/create" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
             <input type="hidden" name="returnUrl" value="/cp/warehouse-wms-app" />
+            <label>Item <input name="item" required maxlength="120" style="width:8rem" /></label>
+            <label>Qty <input type="number" name="qty" min="0.001" step="0.001" required style="width:5rem" /></label>
+            <label>Reference <input name="reference" maxlength="120" style="width:8rem" /></label>
+            <button type="submit">Create wave</button>
+        </form>
+        <form method="post" action="/erp/wms/locations/delete" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="@(Http.HttpContext?.Request.Path.Value ?? "/cp/warehouse-wms-app")" />
             <label>Location id <input type="number" name="id" min="1" required style="width:6rem" /></label>
             <button type="submit">Delete location</button>
         </form>
         <form method="post" action="/erp/wms/waves/release" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="/cp/warehouse-wms-app" />
+            <input type="hidden" name="returnUrl" value="@(Http.HttpContext?.Request.Path.Value ?? "/cp/warehouse-wms-app")" />
             <label>Wave id <input type="number" name="id" min="1" required style="width:6rem" /></label>
             <button type="submit">Release wave</button>
         </form>

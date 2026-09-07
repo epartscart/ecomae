@@ -196,6 +196,14 @@ for dir in "${DOCROOTS[@]+"${DOCROOTS[@]}"}"; do
   mkdir -p "$dir/content/shop/docpart"
   cp -f "$REPO/content/shop/docpart/ajax_epc_warehouse_offers.php" \
     "$dir/content/shop/docpart/ajax_epc_warehouse_offers.php" || true
+  # Classic CP/ERP twins — must not go through stolen /index.php.
+  if [[ -f "$REPO/epc_php_reference_boot.php" ]]; then
+    cp -f "$REPO/epc_php_reference_boot.php" "$dir/epc_php_reference_boot.php" || true
+  fi
+  if [[ -f "$REPO/content/general_pages/epc_php_reference_router.php" ]]; then
+    cp -f "$REPO/content/general_pages/epc_php_reference_router.php" \
+      "$dir/content/general_pages/epc_php_reference_router.php" || true
+  fi
   # Marker starts pending — status=pass is written ONLY after public :5100 prove.
   # A matching sha alone does NOT mean live ASP.NET was republished.
   printf 'status=pending sha=%s time=%s note=php-docroot-synced-aspnet-not-proven-yet\n' \
