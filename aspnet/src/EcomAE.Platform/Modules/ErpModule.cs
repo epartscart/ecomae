@@ -1797,14 +1797,60 @@ public sealed class ErpModule : ISurfaceModule
             return Results.Ok(dryRun.Evaluate(new ErpSubscriptionSaveRequest(body.Code, body.Customer, body.Id, body.ConfirmWrites)).ToPayload(SessionPayload(session)));
         });
 
-        endpoints.MapPost(EcomAeRoutes.ErpContractsSave, async (HttpContext context, ErpContractSaveBody? body, ILegacySessionValidator validator, IErpContractSaveDryRun dryRun, CancellationToken cancellationToken) =>
+        endpoints.MapPost(EcomAeRoutes.ErpContractsSave, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IErpContractSaveDryRun dryRun,
+            EcomAE.Platform.Erp.IErpContractSaveWriteService writes,
+            CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateAsync(context, cancellationToken);
             if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
-                return Unauthorized("Admin ERP capability required for contract save dry-run.");
-            body ??= new ErpContractSaveBody(null, null, 0, false);
-            return Results.Ok(dryRun.Evaluate(new ErpContractSaveRequest(body.Code, body.Title, body.Id, body.ConfirmWrites)).ToPayload(SessionPayload(session)));
-        });
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/contracts-app", "Admin ERP capability required for contract save.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpContractSaveBody>(context, cancellationToken)
+                       ?? new();
+            var code = body.Code;
+            var title = body.Title;
+            var counterparty = body.Counterparty;
+            var contractValue = body.ContractValue;
+            var currency = body.Currency;
+            var startDate = body.StartDate;
+            var endDate = body.EndDate;
+            var bodyText = body.BodyText;
+            var id = body.Id;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                code = LiveWriteFormBinder.Text(form, "code");
+                title = LiveWriteFormBinder.Text(form, "title");
+                counterparty = LiveWriteFormBinder.Text(form, "counterparty");
+                contractValue = LiveWriteFormBinder.Dec(form, "contractValue", "contract_value", "value");
+                currency = LiveWriteFormBinder.Text(form, "currency");
+                startDate = LiveWriteFormBinder.Text(form, "startDate", "start_date", "start_date_str", "start");
+                endDate = LiveWriteFormBinder.Text(form, "endDate", "end_date", "end_date_str", "end");
+                bodyText = LiveWriteFormBinder.Text(form, "bodyText", "body_text", "body");
+                id = LiveWriteFormBinder.Long(form, "id", "contractId", "contract_id");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (confirm)
+            {
+                var written = await writes.SaveAsync(
+                    code, title, counterparty, contractValue, currency, startDate, endDate, bodyText, id, cancellationToken);
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    "/erp/contracts-app",
+                    written.Succeeded,
+                    written.Message,
+                    new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+            }
+
+            return Results.Ok(dryRun.Evaluate(new ErpContractSaveRequest(code, title, id, false)).ToPayload(SessionPayload(session)));
+        }).DisableAntiforgery();
 
         endpoints.MapPost(EcomAeRoutes.ErpWmsReceive, async (HttpContext context, ErpWmsReceiveBody? body, ILegacySessionValidator validator, IErpWmsReceiveDryRun dryRun, CancellationToken cancellationToken) =>
         {
@@ -1885,8 +1931,53 @@ public sealed class ErpModule : ISurfaceModule
                 new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
         }).DisableAntiforgery();
 
-        endpoints.MapPost(EcomAeRoutes.ErpWmsWaveCreate, async (HttpContext context, ErpWmsWaveCreateBody? body, ILegacySessionValidator validator, IErpWmsWaveCreateDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(null,0,null,false); return Results.Ok(dryRun.Evaluate(new ErpWmsWaveCreateRequest(body.Item, body.Qty, body.Reference, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.ErpWmsWaveCreate, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IErpWmsWaveCreateDryRun dryRun,
+            EcomAE.Platform.Erp.IErpWmsWaveCreateWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/cp/warehouse-wms-app", "Admin ERP capability required for WMS wave create.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpWmsWaveCreateBody>(context, cancellationToken)
+                       ?? new();
+            var item = body.Item;
+            var qty = body.Qty;
+            var reference = body.Reference;
+            var companyId = body.CompanyId;
+            var fromLocationId = body.FromLocationId;
+            var toLocationId = body.ToLocationId;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                item = LiveWriteFormBinder.Text(form, "item");
+                qty = LiveWriteFormBinder.Dec(form, "qty");
+                reference = LiveWriteFormBinder.Text(form, "reference");
+                companyId = LiveWriteFormBinder.Int(form, "companyId", "company_id", "company");
+                fromLocationId = LiveWriteFormBinder.Long(form, "fromLocationId", "from_location_id");
+                toLocationId = LiveWriteFormBinder.Long(form, "toLocationId", "to_location_id");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (confirm)
+            {
+                var written = await writes.CreateWithPickAsync(item, qty, reference, companyId, fromLocationId, toLocationId, cancellationToken);
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    "/cp/warehouse-wms-app",
+                    written.Succeeded,
+                    written.Message,
+                    new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+            }
+
+            return Results.Ok(dryRun.Evaluate(new ErpWmsWaveCreateRequest(item, qty, reference, false)).ToPayload(SessionPayload(session)));
+        }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpWmsWaveRelease, async (
             HttpContext context,
             ILegacySessionValidator validator,
@@ -1897,7 +1988,7 @@ public sealed class ErpModule : ISurfaceModule
             var session = await validator.ValidateAsync(context, cancellationToken);
             if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
             {
-                return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/cp/warehouse-wms-app", "Admin ERP capability required for WMS wave release.");
+                return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/warehouse-wms-app", "Admin ERP capability required for WMS wave release.");
             }
 
             var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpWmsWaveReleaseBody>(context, cancellationToken) ?? new(0, false);
@@ -1918,7 +2009,7 @@ public sealed class ErpModule : ISurfaceModule
             var written = await writes.ReleaseAsync(id, cancellationToken);
             return LiveWriteFormBinder.Complete(
                 context,
-                "/cp/warehouse-wms-app",
+                "/erp/warehouse-wms-app",
                 written.Succeeded,
                 written.Message,
                 new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
@@ -2097,7 +2188,7 @@ public sealed class ErpModule : ISurfaceModule
             var session = await validator.ValidateAsync(context, cancellationToken);
             if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
             {
-                return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/cp/warehouse-wms-app", "Admin ERP capability required for WMS location delete.");
+                return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/warehouse-wms-app", "Admin ERP capability required for WMS location delete.");
             }
 
             var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpWmsLocationDeleteBody>(context, cancellationToken) ?? new(0, false);
@@ -2118,7 +2209,7 @@ public sealed class ErpModule : ISurfaceModule
             var written = await writes.DeleteAsync(id, cancellationToken);
             return LiveWriteFormBinder.Complete(
                 context,
-                "/cp/warehouse-wms-app",
+                "/erp/warehouse-wms-app",
                 written.Succeeded,
                 written.Message,
                 new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
@@ -4310,7 +4401,7 @@ public sealed class ErpModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only epc_erp_contracts (body/OCR omitted). PHP contracts tab remains authoritative."
+                note = "epc_erp_contracts (body/OCR omitted). Save on POST /erp/contracts/save when confirmWrites=true. Sign and OCR stay PHP."
             });
         });
 
@@ -4639,8 +4730,66 @@ public sealed class ErpModule : ISurfaceModule
             if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
                 return Unauthorized("Admin ERP capability required for multi-currency-gl digest.");
             var result = await dashboards.ListErpMultiCurrencyGlAsync(limit ?? 200, cancellationToken);
-            return Results.Ok(new { ok = true, surface = "erp", rates = result.Rates, entries = result.Entries, count = result.Count, entryCount = result.EntryCount, unrevaluedCount = result.UnrevaluedCount, revalGainLossTotal = result.RevalGainLossTotal, source = result.Source, message = result.Message, session = SessionPayload(session), note = "Read-only epc_fx_rates + epc_gl_currency_entries. PHP revaluation remains authoritative." });
+            return Results.Ok(new { ok = true, surface = "erp", rates = result.Rates, entries = result.Entries, count = result.Count, entryCount = result.EntryCount, unrevaluedCount = result.UnrevaluedCount, revalGainLossTotal = result.RevalGainLossTotal, source = result.Source, message = result.Message, session = SessionPayload(session), note = "epc_fx_rates + epc_gl_currency_entries. Rate UPSERT on POST /erp/multi-currency-gl/set-rate when confirmWrites=true. Revaluation, journal, and seed stay PHP." });
         });
+        endpoints.MapPost(EcomAeRoutes.ErpMultiCurrencyGlSetRate, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IErpMultiCurrencyGlWriteDryRun dryRun,
+            IErpMultiCurrencyGlWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/multi-currency-gl-app", "Admin ERP capability required for FX rate write.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpMultiCurrencyGlSetRateBody>(context, cancellationToken)
+                       ?? new();
+            var action = body.Action;
+            var baseCurrency = body.BaseCurrency;
+            var targetCurrency = body.TargetCurrency;
+            var rate = body.Rate;
+            var effectiveDate = body.EffectiveDate;
+            var source = body.Source;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                action = LiveWriteFormBinder.Text(form, "action");
+                baseCurrency = LiveWriteFormBinder.Text(form, "baseCurrency", "base_currency", "base");
+                targetCurrency = LiveWriteFormBinder.Text(form, "targetCurrency", "target_currency", "target");
+                rate = LiveWriteFormBinder.Dec(form, "rate");
+                effectiveDate = LiveWriteFormBinder.Text(form, "effectiveDate", "effective_date", "date");
+                source = LiveWriteFormBinder.Text(form, "source");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (confirm)
+            {
+                var key = (action ?? string.Empty).Trim();
+                if (key.Length == 0 || key is "set_rate" or "set-rate")
+                {
+                    var written = await writes.SetRateAsync(baseCurrency, targetCurrency, rate, effectiveDate, source, cancellationToken);
+                    return LiveWriteFormBinder.Complete(
+                        context,
+                        "/erp/multi-currency-gl-app",
+                        written.Succeeded,
+                        written.Message,
+                        new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+                }
+
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    "/erp/multi-currency-gl-app",
+                    false,
+                    "Unknown multi-currency GL action. set_rate is live; revaluation, journal, and seed stay PHP.",
+                    new { ok = false, writes = 0, phpAuthoritative = false, validation_code = "invalid", message = "Unknown multi-currency GL action. set_rate is live; revaluation, journal, and seed stay PHP.", session = SessionPayload(session) });
+            }
+
+            return Results.Ok(dryRun.Evaluate(new ErpMultiCurrencyGlWriteRequest(action ?? "set_rate", false)).ToPayload(SessionPayload(session)));
+        }).DisableAntiforgery();
 
         endpoints.MapGet(EcomAeRoutes.ErpReportCenter, async (
             HttpContext context,
@@ -5258,13 +5407,30 @@ public sealed class ErpModule : ISurfaceModule
         bool ConfirmWrites = false);
     private sealed record ErpMarketingCreateBody(string? Name, bool ConfirmWrites = false);
     private sealed record ErpSubscriptionSaveBody(string? Code, string? Customer, long Id = 0, bool ConfirmWrites = false);
-    private sealed record ErpContractSaveBody(string? Code, string? Title, long Id = 0, bool ConfirmWrites = false);
+    private sealed record ErpContractSaveBody(
+        string? Code = null,
+        string? Title = null,
+        long Id = 0,
+        bool ConfirmWrites = false,
+        string? Counterparty = null,
+        decimal ContractValue = 0,
+        string? Currency = null,
+        string? StartDate = null,
+        string? EndDate = null,
+        string? BodyText = null);
     private sealed record ErpWmsReceiveBody(string? Item, decimal Qty, long ReceiveLocationId = 0, long PutawayLocationId = 0, bool ConfirmWrites = false);
     private sealed record ErpWmsLocationSaveBody(string? Code, long Id = 0, bool ConfirmWrites = false);
     private sealed record ErpCollectionsCaseSaveBody(long CustomerId = 0, long Id = 0, bool ConfirmWrites = false);
     private sealed record ErpProcReqSaveBody(string? Requester, long Id = 0, bool ConfirmWrites = false);
     private sealed record ErpFinPeriodStatusBody(int Fy, int PeriodNo, string? Status = "open", bool ConfirmWrites = false, long CompanyId = 0);
-    private sealed record ErpWmsWaveCreateBody(string? Item, decimal Qty, string? Reference = null, bool ConfirmWrites = false);
+    private sealed record ErpWmsWaveCreateBody(
+        string? Item = null,
+        decimal Qty = 0,
+        string? Reference = null,
+        bool ConfirmWrites = false,
+        int CompanyId = 0,
+        long FromLocationId = 0,
+        long ToLocationId = 0);
     private sealed record ErpWmsWaveReleaseBody(long Id, bool ConfirmWrites = false);
     private sealed record ErpWmsWorkCompleteBody(long Id, bool ConfirmWrites = false);
     private sealed record ErpSubscriptionStatusBody(long Id, string? Status = "active", bool ConfirmWrites = false);
@@ -5453,6 +5619,14 @@ public sealed class ErpModule : ISurfaceModule
         int CurrentStock = 0,
         string? ProductName = null,
         int LeadTimeDays = 7,
+        bool ConfirmWrites = false);
+    private sealed record ErpMultiCurrencyGlSetRateBody(
+        string? Action = null,
+        string? BaseCurrency = null,
+        string? TargetCurrency = null,
+        decimal Rate = 0,
+        string? EffectiveDate = null,
+        string? Source = null,
         bool ConfirmWrites = false);
     private sealed record ErpPayrollPayBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpPayrollUpdateDaysBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
