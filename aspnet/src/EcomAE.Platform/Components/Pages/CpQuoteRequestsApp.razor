@@ -46,7 +46,7 @@
         <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
         <h1>Quote requests</h1>
         <p>@CpPhpModuleCopy.PurposeFor(Nav.Uri)</p>
-        <p>Save a staff note or mark a quote sent. Line quoting stays on the compare twin.</p>
+        <p>Save a staff note, quote a line, or mark a quote sent when confirmWrites is set.</p>
         <div class="epc-w19-cta">
             <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
         </div>
@@ -76,6 +76,16 @@
             <input type="hidden" name="returnUrl" value="/cp/quote-requests-app" />
             <label>Quote id <input type="number" name="quoteId" min="1" required style="width:6rem" /></label>
             <button type="submit">Send quote</button>
+        </form>
+        <form method="post" action="/cp/quote-requests/save-lines" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/quote-requests-app" />
+            <label>Quote id <input type="number" name="quoteId" min="1" required style="width:6rem" /></label>
+            <label>Line id <input type="number" name="lineId" min="1" required style="width:6rem" /></label>
+            <label>Price <input type="text" name="quotedPrice" /></label>
+            <label>Days <input type="number" name="quotedTimeToExe" min="0" /></label>
+            <label>Line note <input type="text" name="lineAdminNote" maxlength="4000" /></label>
+            <button type="submit">Save line</button>
         </form>
     }
 

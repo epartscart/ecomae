@@ -33,7 +33,7 @@ public interface ISurfaceDashboardSummaryReporter
 
     Task<CpUserListResult> ListCpUsersAsync(int limit, CancellationToken cancellationToken = default);
 
-    /// <summary>Read-only CP user detail console (PHP users/usermanager/user). Writes remain PHP-authoritative.</summary>
+    /// <summary>Read-only CP user detail console (PHP users/usermanager/user). Create / password / comment / lock write on ASP.NET.</summary>
     Task<CpUserDetailDigest?> GetCpUserDetailAsync(int userId, CancellationToken cancellationToken = default);
 
     /// <summary>Batch 4: read-only CP shop_orders list + KPI (writes remain PHP OMS).</summary>
@@ -352,8 +352,8 @@ public interface ISurfaceDashboardSummaryReporter
         CancellationToken cancellationToken = default,
         bool includeCrossbase = false);
 
-    /// <summary>Batch 4: read-only authenticated customer cart (qty/checkout writes remain PHP).</summary>
-    Task<StorefrontCartListResult> ListStorefrontCartAsync(int userId, int limit, CancellationToken cancellationToken = default);
+    /// <summary>Authenticated cart (<c>session_id=0</c>) or guest cart when <paramref name="sessionId"/> &gt; 0.</summary>
+    Task<StorefrontCartListResult> ListStorefrontCartAsync(int userId, int limit, CancellationToken cancellationToken = default, long sessionId = 0);
 
     /// <summary>Customer quote requests (PHP <c>my_quotes.php</c>); submit/accept remain PHP.</summary>
     Task<StorefrontQuoteListResult> ListStorefrontQuotesAsync(int userId, int limit, CancellationToken cancellationToken = default);
@@ -435,7 +435,7 @@ public interface ISurfaceDashboardSummaryReporter
 
     /// <summary>Next-wave: commerce statistics KPIs + top article queries (ip omitted).</summary>
     Task<CpStatisticsDigestResult> BuildCpStatisticsDigestAsync(int limit, CancellationToken cancellationToken = default);
-    /// <summary>Next-wave: accessories listings digest (photos/writes remain PHP dry-run).</summary>
+    /// <summary>Accessories listings digest. Listing and photo filename writes are live-gated.</summary>
     Task<CpAccessoriesDigestResult> BuildCpAccessoriesDigestAsync(int limit, CancellationToken cancellationToken = default);
     /// <summary>Next-wave: manufacturer synonyms digest (writes remain module-ajax dry-run).</summary>
     Task<CpSynonymsDigestResult> BuildCpSynonymsDigestAsync(int limit, CancellationToken cancellationToken = default);

@@ -81,10 +81,14 @@ public static class CpPhpModuleCopy
             return "Shop orders: status, fulfilment and item-level OMS.";
         if (path.Contains("/product-catalogue", StringComparison.OrdinalIgnoreCase))
             return "Product catalogue: SKUs, names and publish state.";
-        if (path.Contains("/pages-app", StringComparison.OrdinalIgnoreCase) || path.Contains("/page-builder", StringComparison.OrdinalIgnoreCase))
+        if (path.Contains("/page-builder", StringComparison.OrdinalIgnoreCase))
             return "CMS pages and page builder.";
+        if (path.Contains("/pages-app", StringComparison.OrdinalIgnoreCase))
+            return "Content pages. Create or edit a page, set published or main, save a text/php body, or save the page tree here. TinyMCE image upload stays on the Classic twin.";
+        if (path.Contains("/modules-app", StringComparison.OrdinalIgnoreCase))
+            return "Catalogue and control modules. Create, save, activate, or delete a module here. Page binding and group access write with the save.";
         if (path.Contains("/menus-app", StringComparison.OrdinalIgnoreCase))
-            return "Storefront menus and navigation.";
+            return "Storefront menus and navigation. Create, save, or delete a menu here. Drag-tree editor stays on the Classic twin.";
         if (path.Contains("/seo-app", StringComparison.OrdinalIgnoreCase) || path.Contains("/sitemap", StringComparison.OrdinalIgnoreCase))
             return "SEO titles, meta and sitemap.";
         if (path.Contains("/integrations", StringComparison.OrdinalIgnoreCase) || path.Contains("/marketplace", StringComparison.OrdinalIgnoreCase))
@@ -93,6 +97,18 @@ public static class CpPhpModuleCopy
             return "Payment gateway credentials and live/test mode.";
         if (path.Contains("/carriers", StringComparison.OrdinalIgnoreCase))
             return "Carriers and custom shipping methods.";
+        if (path.Contains("/slider-banners", StringComparison.OrdinalIgnoreCase))
+            return "Storefront slider images. Save settings, add a path, reorder, or delete here. File upload stays on the Classic twin.";
+        if (path.Contains("/product-filters", StringComparison.OrdinalIgnoreCase))
+            return "Hide or keep search results by brand, article, name, warehouse, price, and lead time. Add, save, activate, or set scope here.";
+        if (path.Contains("/order-statuses", StringComparison.OrdinalIgnoreCase))
+            return "Order and line-item statuses used on the orders desk. Save replaces both ref tables — include every status you want to keep. Notification send stays Classic.";
+        if (path.Contains("/additional-texts", StringComparison.OrdinalIgnoreCase))
+            return "Extra HTML and SEO tags for a storefront URL. Save upserts by URL; delete removes selected rows.";
+        if (path.Contains("/search-tabs", StringComparison.OrdinalIgnoreCase))
+            return "Storefront search tabs (article, VIN, catalogues). Activate a tab or save caption, sort, and parameters here.";
+        if (path.Contains("/geo-regions", StringComparison.OrdinalIgnoreCase))
+            return "Country and city tree used by offices and checkout. Save replaces the full shop_geo tree — include every node you want to keep.";
         if (path.Contains("/offices", StringComparison.OrdinalIgnoreCase) || path.Contains("/storages", StringComparison.OrdinalIgnoreCase))
             return "Offices and storage locations.";
         if (path.Contains("/data-migrations", StringComparison.OrdinalIgnoreCase) || path.Contains("/bulk-upload", StringComparison.OrdinalIgnoreCase))
@@ -113,6 +129,8 @@ public static class CpPhpModuleCopy
             return "Demand intelligence and forecast inputs.";
         if (path.Contains("/ops-guides", StringComparison.OrdinalIgnoreCase))
             return "Operations guides for CP and ERP staff.";
+        if (path.Contains("/languages", StringComparison.OrdinalIgnoreCase))
+            return "Language list and string editor. Create a string, save flags, translation, or description, or delete unused custom rows here. Used-found scan stays on the Classic twin.";
 
         var slug = path.Split('/', StringSplitOptions.RemoveEmptyEntries).LastOrDefault() ?? "module";
         slug = slug.Replace("-app", "", StringComparison.OrdinalIgnoreCase).Replace('-', ' ');

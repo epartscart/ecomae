@@ -27,26 +27,86 @@
 
     <ErpPhpViewTabs QueryName="tab" Active="@_tab" BaseHref="@_tabBase" Tabs="@ErpJewelleryModuleChrome.FixingTabs" />
 
-    @if (_isAdmin)
+    @if (_isAdmin && (_tab == "jw_metal_purchase" || _tab == "jw_diamond_purchase"))
+    {
+        <ErpPhpCreateWell Title="@("New " + _spec.Label)">
+            <form method="post" action="@EcomAeRoutes.ErpJewelleryVoucherSaveForm" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="@_returnHere" />
+                <input type="hidden" name="action" value="@(_tab == "jw_diamond_purchase" ? "jw_diamond_purchase_save" : "jw_metal_purchase_save")" />
+                <input type="hidden" name="voc_type" value="@(_tab == "jw_diamond_purchase" ? "DMP" : "MMP")" />
+                @if (_company > 0)
+                {
+                    <input type="hidden" name="company" value="@_company.ToString(CultureInfo.InvariantCulture)" />
+                }
+                <label>Party Code <input class="form-control input-sm" name="party_code" /></label>
+                <label>Party Name <input class="form-control input-sm" name="party_name" required /></label>
+                <label>Net Amt <input class="form-control input-sm" name="net_amount" type="number" step="0.01" value="0" /></label>
+                <button type="submit" class="btn btn-primary btn-sm">Save voucher</button>
+            </form>
+        </ErpPhpCreateWell>
+    }
+    else if (_isAdmin && _tab == "fix_unfix")
+    {
+        <ErpPhpCreateWell Title="Create fix / unfix">
+            <form method="post" action="@EcomAeRoutes.ErpJewelleryFixUnfixCreateForm" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="@_returnHere" />
+                @if (_company > 0)
+                {
+                    <input type="hidden" name="company" value="@_company.ToString(CultureInfo.InvariantCulture)" />
+                }
+                <label>Supplier <input class="form-control input-sm" name="supplier_name" required placeholder="Al Fahim" /></label>
+                <label>Structure
+                    <select class="form-control input-sm" name="structure_type">
+                        <option value="fix">Fix</option>
+                        <option value="unfix">Unfix</option>
+                    </select>
+                </label>
+                <label>Metal <input class="form-control input-sm" name="metal_type" value="gold" /></label>
+                <label>Karat <input class="form-control input-sm" name="karat" value="24K" /></label>
+                <label>Weight g <input class="form-control input-sm" name="weight_grams" type="number" step="0.001" value="0" /></label>
+                <label>Fix rate <input class="form-control input-sm" name="fix_rate" type="number" step="0.0001" value="0" /></label>
+                <label>Unfix est. rate <input class="form-control input-sm" name="unfix_estimated_rate" type="number" step="0.0001" value="0" /></label>
+                <label>Making <input class="form-control input-sm" name="making_charges" type="number" step="0.01" value="0" /></label>
+                <button type="submit" class="btn btn-primary btn-sm">Create fix / unfix</button>
+            </form>
+        </ErpPhpCreateWell>
+        <ErpPhpCreateWell Title="Settle unfix">
+            <form method="post" action="@EcomAeRoutes.ErpJewelleryFixUnfixSettleForm" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="@_returnHere" />
+                <label>Purchase id <input class="form-control input-sm" name="id" type="number" min="1" required /></label>
+                <label>Settle rate <input class="form-control input-sm" name="settle_rate" type="number" step="0.0001" value="0" /></label>
+                <button type="submit" class="btn btn-primary btn-sm">Settle unfix</button>
+            </form>
+        </ErpPhpCreateWell>
+    }
+    else if (_isAdmin)
     {
         <ErpPhpCreateWell Title="New Fixing">
-            <form method="post" action="@EcomAeRoutes.ErpJewelleryModuleSaveForm" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+            <form method="post" action="@EcomAeRoutes.ErpJewelleryFixingSaveForm" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+                <input type="hidden" name="confirmWrites" value="true" />
                 <input type="hidden" name="returnUrl" value="@_returnHere" />
-                <input type="hidden" name="action" value="jw_purchase_fixing_save" />
+                <input type="hidden" name="fix_type" value="@(_tab == "jw_sales_fixing" ? "SF" : "PF")" />
+                @if (_company > 0)
+                {
+                    <input type="hidden" name="company" value="@_company.ToString(CultureInfo.InvariantCulture)" />
+                }
                 <label>Fix No <input class="form-control input-sm" name="fix_no" placeholder="Auto" /></label>
                 <label>Ref Voc <input class="form-control input-sm" name="code" /></label>
-                <label>Party Code <input class="form-control input-sm" name="party_code" /></label>
+                <label>Party Code <input class="form-control input-sm" name="party_code" required /></label>
                 <label>Metal
                     <select class="form-control input-sm" name="metal">
-                        <option value="Gold">Gold</option>
-                        <option value="Silver">Silver</option>
-                        <option value="Platinum">Platinum</option>
+                        <option value="G">G Gold</option>
+                        <option value="S">S Silver</option>
+                        <option value="T">T Platinum</option>
                     </select>
                 </label>
                 <label>Karat <input class="form-control input-sm" name="karat" placeholder="22" style="width:70px;" /></label>
                 <label>Fixed Rate <input class="form-control input-sm" name="fixed_rate" type="number" step="0.00001" value="0" /></label>
                 <label>Net Wt <input class="form-control input-sm" name="net_wt" type="number" step="0.001" value="0" /></label>
-                <button type="submit" class="btn btn-primary btn-sm">Save</button>
+                <button type="submit" class="btn btn-primary btn-sm">Save fixing</button>
             </form>
         </ErpPhpCreateWell>
     }
@@ -89,7 +149,7 @@
     </div>
 
     <div class="epc-erp-empty" style="display:block;margin-top:12px;padding:8px 10px;border:1px solid #c5d4de;background:#f8fafc;color:#475569;font-size:12px;">
-        Source: @_source. Fixings bind from <code>epc_jewel_fixing</code>. Form posts are dry-run — writes=0.
+        Source: @_source. Fixings bind from <code>epc_jewel_fixing</code>. Fixing save, purchase voucher save, and fix/unfix create/settle are live when confirmed.
         @if (!string.IsNullOrWhiteSpace(_message)) { <span> @_message</span> }
     </div>
 </PhpErpDesktopChrome>

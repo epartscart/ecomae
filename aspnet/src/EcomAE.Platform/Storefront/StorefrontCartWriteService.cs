@@ -9,9 +9,9 @@ namespace EcomAE.Platform.Storefront;
 /// </summary>
 public interface IStorefrontCartWriteService
 {
-    Task<StorefrontCartWriteResult> ChangeCountNeedAsync(int userId, long cartId, decimal countNeed, CancellationToken cancellationToken = default);
-    Task<StorefrontCartWriteResult> DeleteAsync(int userId, IReadOnlyList<long> cartIds, CancellationToken cancellationToken = default);
-    Task<StorefrontCartWriteResult> CheckForOrderAsync(int userId, long cartId, bool checkedForOrder, CancellationToken cancellationToken = default);
+    Task<StorefrontCartWriteResult> ChangeCountNeedAsync(int userId, long cartId, decimal countNeed, CancellationToken cancellationToken = default, long sessionId = 0);
+    Task<StorefrontCartWriteResult> DeleteAsync(int userId, IReadOnlyList<long> cartIds, CancellationToken cancellationToken = default, long sessionId = 0);
+    Task<StorefrontCartWriteResult> CheckForOrderAsync(int userId, long cartId, bool checkedForOrder, CancellationToken cancellationToken = default, long sessionId = 0);
 }
 
 public sealed record StorefrontCartWriteResult(
@@ -52,11 +52,20 @@ public sealed class StorefrontCartWriteService : IStorefrontCartWriteService
         int userId,
         long cartId,
         decimal countNeed,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default,
+        long sessionId = 0)
     {
-        if (userId <= 0)
+        if (userId > 0)
+        {
+            sessionId = 0;
+        }
+        else if (sessionId <= 0)
         {
             return Fail("auth", "Please log in or register to continue.");
+        }
+        else
+        {
+            userId = 0;
         }
 
         if (!_connections.IsConfigured)
@@ -74,11 +83,12 @@ public sealed class StorefrontCartWriteService : IStorefrontCartWriteService
         select.CommandText = """
             SELECT `id`, `product_type`, `count_need`, IFNULL(`t2_exist`,0) AS t2_exist, IFNULL(`t2_min_order`,1) AS t2_min_order
             FROM `shop_carts`
-            WHERE `id` = @id AND `user_id` = @userId AND `session_id` = 0
+            WHERE `id` = @id AND `user_id` = @userId AND `session_id` = @sessionId
             LIMIT 1
             """;
         Add(select, "@id", cartId);
         Add(select, "@userId", userId);
+        Add(select, "@sessionId", sessionId);
         await using var reader = await select.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
         if (!await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
         {
@@ -115,10 +125,11 @@ public sealed class StorefrontCartWriteService : IStorefrontCartWriteService
         }
 
         await using var update = connection.CreateCommand();
-        update.CommandText = "UPDATE `shop_carts` SET `count_need` = @qty WHERE `id` = @id AND `user_id` = @userId AND `session_id` = 0 AND `product_type` IN (1, 2)";
+        update.CommandText = "UPDATE `shop_carts` SET `count_need` = @qty WHERE `id` = @id AND `user_id` = @userId AND `session_id` = @sessionId AND `product_type` IN (1, 2)";
         Add(update, "@qty", qty);
         Add(update, "@id", cartId);
         Add(update, "@userId", userId);
+        Add(update, "@sessionId", sessionId);
         var rows = await update.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
         if (rows <= 0)
         {
@@ -131,11 +142,20 @@ public sealed class StorefrontCartWriteService : IStorefrontCartWriteService
     public async Task<StorefrontCartWriteResult> DeleteAsync(
         int userId,
         IReadOnlyList<long> cartIds,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default,
+        long sessionId = 0)
     {
-        if (userId <= 0)
+        if (userId > 0)
+        {
+            sessionId = 0;
+        }
+        else if (sessionId <= 0)
         {
             return Fail("auth", "Please log in or register to continue.");
+        }
+        else
+        {
+            userId = 0;
         }
 
         if (!_connections.IsConfigured)
@@ -154,9 +174,10 @@ public sealed class StorefrontCartWriteService : IStorefrontCartWriteService
         foreach (var id in ids)
         {
             await using var cmd = connection.CreateCommand();
-            cmd.CommandText = "DELETE FROM `shop_carts` WHERE `id` = @id AND `user_id` = @userId AND `session_id` = 0 AND `product_type` IN (1, 2)";
+            cmd.CommandText = "DELETE FROM `shop_carts` WHERE `id` = @id AND `user_id` = @userId AND `session_id` = @sessionId AND `product_type` IN (1, 2)";
             Add(cmd, "@id", id);
             Add(cmd, "@userId", userId);
+            Add(cmd, "@sessionId", sessionId);
             writes += await cmd.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
         }
 
@@ -172,11 +193,20 @@ public sealed class StorefrontCartWriteService : IStorefrontCartWriteService
         int userId,
         long cartId,
         bool checkedForOrder,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default,
+        long sessionId = 0)
     {
-        if (userId <= 0)
+        if (userId > 0)
+        {
+            sessionId = 0;
+        }
+        else if (sessionId <= 0)
         {
             return Fail("auth", "Please log in or register to continue.");
+        }
+        else
+        {
+            userId = 0;
         }
 
         if (!_connections.IsConfigured)
@@ -191,10 +221,11 @@ public sealed class StorefrontCartWriteService : IStorefrontCartWriteService
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
         await using var cmd = connection.CreateCommand();
-        cmd.CommandText = "UPDATE `shop_carts` SET `checked_for_order` = @checked WHERE `id` = @id AND `user_id` = @userId AND `session_id` = 0";
+        cmd.CommandText = "UPDATE `shop_carts` SET `checked_for_order` = @checked WHERE `id` = @id AND `user_id` = @userId AND `session_id` = @sessionId";
         Add(cmd, "@checked", checkedForOrder ? 1 : 0);
         Add(cmd, "@id", cartId);
         Add(cmd, "@userId", userId);
+        Add(cmd, "@sessionId", sessionId);
         var rows = await cmd.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
         if (rows <= 0)
         {

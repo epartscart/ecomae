@@ -31,7 +31,7 @@
         <div class="epc-users-page__hero">
             <div>
                 <h2><i class="fa fa-users"></i> Users · account console</h2>
-                <p>Same-to-same with PHP <code>users/usermanager</code> and <code>users/usermanager/user</code>: open a row to inspect profile, groups, balance, recent orders, and linked modules. Staff comment, lock/unlock, and vendor suspend/reject write on ASP.NET. Password / create / vendor approve stay on the classic editor.</p>
+                <p>Same-to-same with PHP <code>users/usermanager</code> and <code>users/usermanager/user</code>: open a row to inspect profile, groups, balance, recent orders, and linked modules. Staff comment, lock/unlock, create, password, and vendor approve / suspend / reject write on ASP.NET.</p>
             </div>
             <div class="epc-users-page__hero-actions">
                 <a class="btn btn-primary btn-sm" href="/cp/groups-app"><i class="fa fa-sitemap"></i> Groups</a>
@@ -105,17 +105,42 @@
                 </label>
                 <button type="submit" class="btn btn-xs btn-default">Apply lock</button>
             </form>
+            <form method="post" action="/cp/users/create" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="/cp/users-app" />
+                <label>Email <input type="email" name="email" maxlength="255" style="width:14rem" /></label>
+                <label>Phone <input type="text" name="phone" maxlength="64" style="width:10rem" /></label>
+                <label>Password <input type="password" name="password" required maxlength="200" autocomplete="new-password" style="width:10rem" /></label>
+                <label>Account
+                    <select name="unlocked">
+                        <option value="1" selected>Unlocked</option>
+                        <option value="0">Locked</option>
+                    </select>
+                </label>
+                <label>Groups <input type="text" name="groups" placeholder="1,2" style="width:6rem" /></label>
+                <label>Profile JSON <input type="text" name="fieldsJson" placeholder='[{"name":"firstname","value":"Ada"}]' style="width:16rem" /></label>
+                <button type="submit" class="btn btn-xs btn-primary">Create user</button>
+            </form>
+            <form method="post" action="/cp/users/set-password" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="@(_selectedId > 0 ? DetailHref(_selectedId, _query, "profile") : "/cp/users-app")" />
+                <label>User id <input type="number" name="userId" min="1" required value="@(_selectedId > 0 ? _selectedId.ToString(CultureInfo.InvariantCulture) : "")" style="width:6rem" /></label>
+                <label>New password <input type="password" name="password" required maxlength="200" autocomplete="new-password" style="width:10rem" /></label>
+                <button type="submit" class="btn btn-xs btn-default">Set password</button>
+            </form>
             <form method="post" action="/cp/vendors/approvals" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
                 <input type="hidden" name="confirmWrites" value="true" />
                 <input type="hidden" name="returnUrl" value="@(_selectedId > 0 ? DetailHref(_selectedId, _query, "profile") : "/cp/users-app")" />
                 <label>Vendor account id <input type="number" name="id" min="1" required style="width:6rem" /></label>
                 <label>Action
                     <select name="action">
+                        <option value="approve">Approve</option>
                         <option value="suspend">Suspend</option>
                         <option value="reject">Reject</option>
                     </select>
                 </label>
-                <button type="submit" class="btn btn-xs btn-default">Apply vendor status</button>
+                <button type="submit" class="btn btn-xs btn-primary">Apply vendor status</button>
+                <a class="btn btn-default btn-xs" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref("/CP/users/vendor_approvals")">Classic twin</a>
             </form>
         }
         @if (!_isAdmin)
@@ -287,11 +312,11 @@
                                 }
 
                                 <div class="epc-ud__actions">
-                                    <a class="btn btn-primary btn-sm" href="@PhpReferenceEditorHref(d.UserId)"><i class="fa fa-pencil"></i> PHP reference editor</a>
+                                    <a class="btn btn-primary btn-sm" href="@PhpReferenceEditorHref(d.UserId)"><i class="fa fa-pencil"></i> Classic editor</a>
                                     <a class="btn btn-default btn-sm" href="/cp/orders"><i class="fa fa-shopping-basket"></i> Orders · OMS</a>
                                     <a class="btn btn-default btn-sm" href="@DetailHref(0, _query)"><i class="fa fa-times"></i> Close detail</a>
                                 </div>
-                                <p class="text-muted small" style="margin-top:10px">Password / create / auth-as-user writes remain on PHP <code>users/usermanager/user</code>. Lock/unlock and staff comment write on ASP.NET.</p>
+                                <p class="text-muted small" style="margin-top:10px">Create, password, lock/unlock, and staff comment write on ASP.NET. Auth-as-user stays on the classic editor.</p>
                             </section>
     <PhpParityModuleBody AppPath="/cp/users-app" IsAdmin="_isAdmin" />
 
@@ -406,8 +431,8 @@
                                         <span>Browse / session analytics</span>
                                     </a>
                                     <a href="@PhpReferenceEditorHref(d.UserId)">
-                                        <strong>PHP reference editor</strong>
-                                        <span>Compare / write path (may 503)</span>
+                                        <strong>Classic editor</strong>
+                                        <span>Compare twin (may 503)</span>
                                     </a>
                                 </div>
                             </section>
@@ -534,7 +559,7 @@
     }
 
     private static string PhpReferenceEditorHref(int userId)
-        => "/php-reference/CP/users/usermanager/user?user_id=" + userId.ToString(CultureInfo.InvariantCulture);
+        => PhpSurfaceLinkMap.PhpReferenceOnlyHref("/CP/users/usermanager/user?user_id=" + userId.ToString(CultureInfo.InvariantCulture));
 
     private static string PaidLabel(int paid) => paid switch
     {

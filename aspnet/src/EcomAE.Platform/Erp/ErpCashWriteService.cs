@@ -189,7 +189,17 @@ public interface IErpCashWriteService
     Task<ErpTransferVoucherResult> TransferVoucherAsync(ErpTransferVoucherInput input, int adminId, CancellationToken cancellationToken = default);
 
     Task<long> CustomerSettlementAsync(
+        ErpCustomerSettlementInput input,
+        int adminId,
+        CancellationToken cancellationToken = default);
+
+    Task<long> CustomerSettlementAsync(
         DbConnection connection,
+        ErpCustomerSettlementInput input,
+        int adminId,
+        CancellationToken cancellationToken = default);
+
+    Task<long> OrderSettlementAsync(
         ErpCustomerSettlementInput input,
         int adminId,
         CancellationToken cancellationToken = default);
@@ -866,6 +876,98 @@ public sealed class ErpCashWriteService : IErpCashWriteService
             : direction ? "receipt" : "payment";
     }
 
+    /// <summary>Dedicated PHP <c>customer_settlement</c> entry: opens the tenant DB, then posts the AR row.</summary>
+    public async Task<long> CustomerSettlementAsync(
+        ErpCustomerSettlementInput input,
+        int adminId,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        var amount = ErpTaxAmountCalculator.Round2(input.Amount);
+        if (input.UserId <= 0 || amount <= 0m)
+        {
+            throw new ErpWriteException("Customer and positive amount required");
+        }
+
+        var entryKind = NormalizeSettlementKind(input.EntryKind);
+        if (entryKind == "write_off" && input.Income)
+        {
+            throw new ErpWriteException("Write-off must reduce customer balance (debit direction)");
+        }
+
+        EnsureConfigured();
+        await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await AssertCustomerAsync(connection, input.UserId, cancellationToken).ConfigureAwait(false);
+        return await CustomerSettlementAsync(connection, input, adminId, cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>PHP <c>epc_erp_order_revenue_settlement</c>: resolve shop order → customer settlement.</summary>
+    public async Task<long> OrderSettlementAsync(
+        ErpCustomerSettlementInput input,
+        int adminId,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        if (input.OrderId <= 0)
+        {
+            throw new ErpWriteException("Order ID required");
+        }
+
+        var amount = ErpTaxAmountCalculator.Round2(input.Amount);
+        if (amount <= 0m)
+        {
+            throw new ErpWriteException("Customer and positive amount required");
+        }
+
+        var entryKind = NormalizeSettlementKind(input.EntryKind);
+        if (entryKind == "write_off" && input.Income)
+        {
+            throw new ErpWriteException("Write-off must reduce customer balance (debit direction)");
+        }
+
+        EnsureConfigured();
+        await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await ErpOrderCompletionGuard.AssertCompleteAsync(
+            connection,
+            input.OrderId,
+            "Order revenue settlement",
+            cancellationToken).ConfigureAwait(false);
+
+        var userId = (int)await ErpDb.LongAsync(
+            connection,
+            null,
+            ErpDb.Positional("SELECT `user_id` FROM `shop_orders` WHERE `id` = ? AND `successfully_created` = 1 LIMIT 1"),
+            cancellationToken,
+            input.OrderId).ConfigureAwait(false);
+        if (userId <= 0)
+        {
+            throw new ErpWriteException("Order not found");
+        }
+
+        var reference = input.Reference.Trim();
+        if (reference.Length == 0)
+        {
+            reference = "ORD-" + input.OrderId.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        }
+
+        return await CustomerSettlementAsync(
+            connection,
+            new ErpCustomerSettlementInput
+            {
+                UserId = userId,
+                Amount = amount,
+                Income = input.Income,
+                EntryKind = entryKind,
+                OrderId = input.OrderId,
+                Reference = reference,
+                Note = input.Note,
+                Time = input.Time,
+                PostGl = input.PostGl,
+            },
+            adminId,
+            cancellationToken).ConfigureAwait(false);
+    }
+
     /// <summary>PHP <c>epc_erp_customer_settlement</c>: AR ledger row on <c>shop_users_accounting</c> plus optional GL.</summary>
     public async Task<long> CustomerSettlementAsync(
         DbConnection connection,
@@ -1120,13 +1222,23 @@ public sealed class ErpCashWriteService : IErpCashWriteService
         }
     }
 
-    private static Task<long> CoaIdAsync(DbConnection connection, string code, CancellationToken cancellationToken)
-        => ErpDb.LongAsync(
-            connection,
-            null,
-            ErpDb.Positional("SELECT `id` FROM `epc_erp_coa_accounts` WHERE `code` = ? AND `active` = 1 LIMIT 1"),
-            cancellationToken,
-            code);
+    private static async Task<long> CoaIdAsync(DbConnection connection, string code, CancellationToken cancellationToken)
+    {
+        try
+        {
+            return await ErpDb.LongAsync(
+                connection,
+                null,
+                ErpDb.Positional("SELECT `id` FROM `epc_erp_coa_accounts` WHERE `code` = ? AND `active` = 1 LIMIT 1"),
+                cancellationToken,
+                code).ConfigureAwait(false);
+        }
+        catch (DbException)
+        {
+            // GL is optional: missing COA table is the same as an unmapped code.
+            return 0;
+        }
+    }
 
     private static async Task AssertAccountAsync(DbConnection connection, int accountId, CancellationToken cancellationToken)
     {

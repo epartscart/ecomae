@@ -6,8 +6,10 @@
 @using EcomAE.Platform.Auth
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Storefront
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
+@inject IStorefrontGuestSessionService Guests
 @inject IHttpContextAccessor Http
 
 <PageTitle>Cart · @_brand</PageTitle>
@@ -55,7 +57,7 @@
             <a class="btn btn-sm btn-default" href="@StorefrontSurfaceLinks.PartSearch">Continue shopping</a>
     </PhpStorefrontPageHeader>
 
-    @if (!_isCustomer)
+    @if (!_hasShopper)
     {
         <div class="epc-sf-cart-gate">
             <p style="margin:0 0 .75rem;color:#334155">Please log in or register to continue.</p>
@@ -153,6 +155,10 @@
 
         <p class="epc-sf-cart-note">
             Add to cart is live on ASP.NET. Quantity, check, and delete write here. Continue to checkout when you are ready.
+            @if (!_isCustomer)
+            {
+                <span> Guest cart uses your session cookie; checkout asks for a phone number.</span>
+            }
         </p>
     }
 
@@ -161,6 +167,7 @@
 @code {
     private string _brand = "eParts Cart";
     private bool _isCustomer;
+    private bool _hasShopper;
     private StorefrontCartSummary _summary = new(0, 0m, "n/a", "");
     private IReadOnlyList<StorefrontCartLineDigest> _lines = [];
     private string _flash = "";
@@ -180,13 +187,23 @@
 
         // Prefer storefront customer cookies (PHP DP_User) even if admin cookies are also set.
         var session = await Sessions.ValidateCustomerAsync(ctx, ctx.RequestAborted);
-        if (session.Kind != LegacySessionKind.Customer || session.UserId <= 0)
+        var shopper = session.Kind == LegacySessionKind.Customer && session.UserId > 0
+            ? new StorefrontShopper(session.UserId, 0, session.SessionId ?? "", false)
+            : await Guests.ResolveAsync(ctx, createIfMissing: true, ctx.RequestAborted);
+        if (!shopper.IsSignedIn)
+        {
+            Guests.ApplyGuestCookies(ctx.Response, shopper);
+        }
+
+        if (!shopper.CanShop)
         {
             _isCustomer = false;
+            _hasShopper = false;
             return;
         }
 
-        _isCustomer = true;
+        _isCustomer = shopper.IsSignedIn;
+        _hasShopper = true;
         var ok = ctx.Request.Query["ok"].ToString();
         var err = ctx.Request.Query["err"].ToString();
         if (!string.IsNullOrWhiteSpace(ok))
@@ -200,7 +217,7 @@
             _flashOk = false;
         }
 
-        var result = await Dashboards.ListStorefrontCartAsync(session.UserId, 100, ctx.RequestAborted);
+        var result = await Dashboards.ListStorefrontCartAsync(shopper.UserId, 100, ctx.RequestAborted, shopper.SessionRecordId);
         _summary = result.Summary;
         _lines = result.Lines;
     }

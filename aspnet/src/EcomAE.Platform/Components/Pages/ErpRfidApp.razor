@@ -75,6 +75,43 @@
         </div>
     </div>
 
+    @if (_isAdmin)
+    {
+        <form method="post" action="/erp/rfid/register" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/erp/rfid-app" />
+            <label>EPC <input name="rfid_epc" required maxlength="100" /></label>
+            <label>TID <input name="rfid_tid" maxlength="100" /></label>
+            <label>SKU <input name="sku" maxlength="100" /></label>
+            <label>Item <input name="item_description" maxlength="300" /></label>
+            <label>Warehouse <input type="number" name="warehouse_id" min="0" style="width:6rem" /></label>
+            <label>Zone <input name="location_zone" maxlength="50" /></label>
+            <button type="submit" class="btn btn-primary btn-sm">Register tag</button>
+        </form>
+        <form method="post" action="/erp/rfid/start-session" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/erp/rfid-app" />
+            <label>Type
+                <select name="session_type">
+                    <option value="stocktake">stocktake</option>
+                    <option value="audit">audit</option>
+                    <option value="gate_check">gate_check</option>
+                    <option value="search">search</option>
+                </select>
+            </label>
+            <label>Warehouse <input type="number" name="warehouse_id" min="0" style="width:6rem" /></label>
+            <label>Zone <input name="zone" maxlength="50" /></label>
+            <button type="submit" class="btn btn-primary btn-sm">Start scan session</button>
+        </form>
+        <form method="post" action="/erp/rfid/scan" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/erp/rfid-app" />
+            <label>Session <input type="number" name="session_id" min="1" required style="width:6rem" /></label>
+            <label>EPC <input name="rfid_epc" required maxlength="100" /></label>
+            <label>RSSI <input type="number" name="rssi" style="width:5rem" /></label>
+            <button type="submit" class="btn btn-primary btn-sm">Record scan</button>
+        </form>
+    }
     <h2 style="font-size:16px;">Tags</h2>
     <div class="epc-erp-table-wrap">
         <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
@@ -145,7 +182,7 @@
     </div>
 
     <div class="epc-erp-empty" style="display:block;margin-top:12px;padding:8px 10px;border:1px solid #c5d4de;background:#f8fafc;color:#475569;font-size:12px;">
-        Source: @_source. KPI values are live digest counts (0 when the shop database is empty). Register/scan writes stay on ERP ajax.
+        Source: @_source. KPI values are live digest counts (0 when the shop database is empty). Tag register writes here. Scan sessions stay on Classic ERP.
         @if (!string.IsNullOrWhiteSpace(_message)) { <span> @_message</span> }
     </div>
 </PhpErpDesktopChrome>

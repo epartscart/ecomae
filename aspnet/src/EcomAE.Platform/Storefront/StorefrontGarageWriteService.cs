@@ -23,6 +23,12 @@ public interface IStorefrontGarageWriteService
         int userId,
         StorefrontGarageSaveRequest request,
         CancellationToken cancellationToken = default);
+
+    Task<ErpSimpleWriteResult> CheckCarAsync(
+        int userId,
+        long carId,
+        long orderId,
+        CancellationToken cancellationToken = default);
 }
 
 public sealed record StorefrontGarageSaveRequest(
@@ -252,6 +258,76 @@ public sealed class StorefrontGarageWriteService : IStorefrontGarageWriteService
             caption, make, model, year, vin, frame, userId);
         var id = await ErpDb.LastInsertIdAsync(connection, null, cancellationToken).ConfigureAwait(false);
         return new ErpSimpleWriteResult(true, "ok", "Vehicle saved.", id, 1);
+    }
+
+    public async Task<ErpSimpleWriteResult> CheckCarAsync(
+        int userId,
+        long carId,
+        long orderId,
+        CancellationToken cancellationToken = default)
+    {
+        if (userId <= 0)
+        {
+            return ErpSimpleWriteResult.Fail("auth", "Please log in or register to continue.");
+        }
+
+        if (carId <= 0 || orderId <= 0)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Car and order are required.");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return ErpSimpleWriteResult.Fail("db", "Garage database is not configured.");
+        }
+
+        await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        var ownedCar = await ErpDb.LongAsync(
+            connection,
+            null,
+            ErpDb.Positional("SELECT `id` FROM `shop_docpart_garage` WHERE `id` = ? AND `user_id` = ? LIMIT 1"),
+            cancellationToken,
+            carId, userId);
+        if (ownedCar <= 0)
+        {
+            return ErpSimpleWriteResult.Fail("not_found", "Car is not in your garage.");
+        }
+
+        var ownedOrder = await ErpDb.LongAsync(
+            connection,
+            null,
+            ErpDb.Positional("SELECT `id` FROM `shop_orders` WHERE `id` = ? AND `user_id` = ? LIMIT 1"),
+            cancellationToken,
+            orderId, userId);
+        if (ownedOrder <= 0)
+        {
+            return ErpSimpleWriteResult.Fail("not_found", "Order is not in your account.");
+        }
+
+        var existing = await ErpDb.LongAsync(
+            connection,
+            null,
+            ErpDb.Positional("SELECT `id` FROM `shop_docpart_garage_orders` WHERE `order_id` = ? AND `garage_id` = ? LIMIT 1"),
+            cancellationToken,
+            orderId, carId);
+        if (existing > 0)
+        {
+            await ErpDb.ExecuteAsync(
+                connection,
+                null,
+                ErpDb.Positional("DELETE FROM `shop_docpart_garage_orders` WHERE `order_id` = ? AND `garage_id` = ?"),
+                cancellationToken,
+                orderId, carId);
+            return new ErpSimpleWriteResult(true, "ok", "Car unlinked from order.", 0, 1);
+        }
+
+        await ErpDb.ExecuteAsync(
+            connection,
+            null,
+            ErpDb.Positional("INSERT INTO `shop_docpart_garage_orders` (`garage_id`, `order_id`) VALUES (?, ?)"),
+            cancellationToken,
+            carId, orderId);
+        return new ErpSimpleWriteResult(true, "ok", "Car linked to order.", 1, 1);
     }
 
     private static string Upper(string? value)

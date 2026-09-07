@@ -281,7 +281,7 @@ public sealed record CpUserGroupDigest(
     bool ForBackend,
     bool Unblocked);
 
-/// <summary>Read-only CP user detail console (PHP users/usermanager/user). Writes remain PHP-authoritative.</summary>
+/// <summary>Read-only CP user detail console (PHP users/usermanager/user). Create / password / comment / lock write on ASP.NET.</summary>
 public sealed record CpUserDetailDigest(
     int UserId,
     string Email,
@@ -4001,7 +4001,7 @@ public sealed record CpFulfillmentItemDigest(
     string PickStatus,
     string Notes);
 
-/// <summary>PHP <c>epc_fulfillment_get</c> + packing-slip fields. Queue mutations write on ASP.NET; slip PDF stays PHP.</summary>
+/// <summary>PHP <c>epc_fulfillment_get</c> + packing-slip fields. Queue writes are ASP.NET-live.</summary>
 public sealed record CpFulfillmentDetailDigest(
     long Id,
     long OrderId,

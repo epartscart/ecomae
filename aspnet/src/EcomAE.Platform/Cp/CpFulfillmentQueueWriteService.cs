@@ -1,12 +1,15 @@
 using System.Globalization;
+using System.Text.Json;
 using EcomAE.Platform.Erp;
+using EcomAE.Platform.Migration;
 
 namespace EcomAE.Platform.Cp;
 
 /// <summary>
 /// Live PHP <c>epc_fulfillment_transition</c> / <c>assign</c> / <c>pick_item</c> /
-/// <c>pack_item</c> / <c>create_wave</c> twins. Queue-from-order INSERT, packing-slip
-/// PDF, and BOS provider enqueue stay PHP.
+/// <c>pack_item</c> / <c>create_wave</c> / <c>epc_fulfillment_queue</c> twins.
+/// Packing-slip data matches PHP <c>epc_fulfillment_packing_slip</c> (print HTML here;
+/// document-control branded PDF templates stay PHP). BOS provider enqueue stays PHP.
 /// </summary>
 public interface ICpFulfillmentQueueWriteService
 {
@@ -39,6 +42,21 @@ public interface ICpFulfillmentQueueWriteService
     Task<ErpSimpleWriteResult> CreateWaveAsync(
         string? siteKey,
         IReadOnlyList<long> fulfillmentIds,
+        CancellationToken cancellationToken = default);
+
+    Task<ErpSimpleWriteResult> QueueFromOrderAsync(
+        string? siteKey,
+        long orderId,
+        string? orderNumber,
+        string? customerName,
+        string? priority,
+        string? warehouse,
+        int totalItems,
+        decimal totalWeight,
+        string? shipAddressJson,
+        string? notes,
+        string? shippingMethod,
+        IReadOnlyList<CpFulfillmentQueueLineInput>? items,
         CancellationToken cancellationToken = default);
 }
 
@@ -314,6 +332,240 @@ public sealed class CpFulfillmentQueueWriteService : ICpFulfillmentQueueWriteSer
         return new ErpSimpleWriteResult(true, "ok", "Wave " + waveId.ToString(CultureInfo.InvariantCulture) + " created (" + affected.ToString(CultureInfo.InvariantCulture) + " queued jobs).", waveId, 1);
     }
 
+    public async Task<ErpSimpleWriteResult> QueueFromOrderAsync(
+        string? siteKey,
+        long orderId,
+        string? orderNumber,
+        string? customerName,
+        string? priority,
+        string? warehouse,
+        int totalItems,
+        decimal totalWeight,
+        string? shipAddressJson,
+        string? notes,
+        string? shippingMethod,
+        IReadOnlyList<CpFulfillmentQueueLineInput>? items,
+        CancellationToken cancellationToken = default)
+    {
+        var key = Clip(siteKey, 64);
+        if (key.Length == 0)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "A site key is required.");
+        }
+
+        if (orderId <= 0 && string.IsNullOrWhiteSpace(orderNumber))
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "An order id or order number is required.");
+        }
+
+        var lines = items ?? [];
+        var pri = NormalizeStatus(priority);
+        if (pri is not ("low" or "normal" or "high" or "urgent"))
+        {
+            pri = "normal";
+        }
+
+        var wh = Clip(warehouse, 64);
+        if (wh.Length == 0)
+        {
+            wh = "main";
+        }
+
+        var method = Clip(shippingMethod, 64);
+        if (method.Length == 0)
+        {
+            method = "standard";
+        }
+
+        var address = string.IsNullOrWhiteSpace(shipAddressJson) ? "[]" : shipAddressJson.Trim();
+        var qty = totalItems > 0 ? totalItems : lines.Sum(l => Math.Max(0, l.Qty));
+        var weight = totalWeight > 0 ? totalWeight : lines.Sum(l => Math.Max(0, l.Weight));
+
+        if (!_connections.IsConfigured)
+        {
+            return ErpSimpleWriteResult.Fail("db", "TenantRegistry DB is not configured.");
+        }
+
+        await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await using var tx = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
+        await ErpDb.ExecuteAsync(
+            connection,
+            tx,
+            ErpDb.Positional(
+                """
+                INSERT INTO `epc_fulfillment_orders`
+                    (`site_key`, `order_id`, `order_number`, `customer_name`, `priority`,
+                     `warehouse`, `total_items`, `total_weight`, `ship_address`, `notes`, `shipping_method`)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """),
+            cancellationToken,
+            key,
+            orderId < 0 ? 0 : orderId,
+            Clip(orderNumber, 64),
+            Clip(customerName, 255),
+            pri,
+            wh,
+            qty,
+            weight,
+            address,
+            notes ?? "",
+            method);
+        var fId = await ErpDb.LastInsertIdAsync(connection, tx, cancellationToken).ConfigureAwait(false);
+        foreach (var item in lines)
+        {
+            var sku = Clip(item.Sku, 64);
+            var name = Clip(item.ProductName, 255);
+            if (sku.Length == 0 && name.Length == 0)
+            {
+                continue;
+            }
+
+            await ErpDb.ExecuteAsync(
+                connection,
+                tx,
+                ErpDb.Positional(
+                    """
+                    INSERT INTO `epc_fulfillment_items`
+                        (`fulfillment_id`, `sku`, `product_name`, `qty_ordered`, `bin_location`, `weight`)
+                    VALUES (?, ?, ?, ?, ?, ?)
+                    """),
+                cancellationToken,
+                fId,
+                sku,
+                name,
+                item.Qty < 1 ? 1 : item.Qty,
+                Clip(item.BinLocation, 32),
+                item.Weight < 0 ? 0 : item.Weight);
+        }
+
+        await tx.CommitAsync(cancellationToken).ConfigureAwait(false);
+        return ErpSimpleWriteResult.Ok("Queued for fulfillment.", fId);
+    }
+
+    public static IReadOnlyList<CpFulfillmentQueueLineInput> ParseItemsJson(string? json)
+    {
+        if (string.IsNullOrWhiteSpace(json))
+        {
+            return [];
+        }
+
+        try
+        {
+            using var doc = JsonDocument.Parse(json);
+            if (doc.RootElement.ValueKind != JsonValueKind.Array)
+            {
+                return [];
+            }
+
+            var list = new List<CpFulfillmentQueueLineInput>();
+            foreach (var el in doc.RootElement.EnumerateArray())
+            {
+                if (el.ValueKind != JsonValueKind.Object)
+                {
+                    continue;
+                }
+
+                list.Add(new CpFulfillmentQueueLineInput(
+                    ReadString(el, "sku"),
+                    ReadString(el, "product_name", "productName", "name"),
+                    ReadInt(el, 1, "qty", "quantity"),
+                    ReadString(el, "bin_location", "binLocation", "bin"),
+                    ReadDecimal(el, 0, "weight")));
+            }
+
+            return list;
+        }
+        catch (JsonException)
+        {
+            return [];
+        }
+    }
+
+    public static CpFulfillmentPackingSlip BuildPackingSlip(CpFulfillmentDetailDigest? detail)
+    {
+        if (detail is null || detail.Id <= 0)
+        {
+            return new CpFulfillmentPackingSlip(false, "Not found", "", "", "", "", "", [], "");
+        }
+
+        var items = detail.Items.Select(item => new CpFulfillmentPackingSlipLine(
+            item.Sku,
+            item.ProductName,
+            item.QtyPacked > 0 ? item.QtyPacked : (item.QtyPicked > 0 ? item.QtyPicked : item.QtyOrdered),
+            item.BinLocation)).ToArray();
+        return new CpFulfillmentPackingSlip(
+            true,
+            "",
+            detail.OrderNumber,
+            detail.CustomerName,
+            detail.ShipAddressJson,
+            detail.Carrier,
+            detail.TrackingNumber,
+            items,
+            detail.PackCompletedAt);
+    }
+
+    private static string ReadString(JsonElement el, params string[] names)
+    {
+        foreach (var name in names)
+        {
+            if (el.TryGetProperty(name, out var prop) && prop.ValueKind == JsonValueKind.String)
+            {
+                return prop.GetString() ?? "";
+            }
+        }
+
+        return "";
+    }
+
+    private static int ReadInt(JsonElement el, int fallback, params string[] names)
+    {
+        foreach (var name in names)
+        {
+            if (!el.TryGetProperty(name, out var prop))
+            {
+                continue;
+            }
+
+            if (prop.ValueKind == JsonValueKind.Number && prop.TryGetInt32(out var n))
+            {
+                return n;
+            }
+
+            if (prop.ValueKind == JsonValueKind.String
+                && int.TryParse(prop.GetString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsed))
+            {
+                return parsed;
+            }
+        }
+
+        return fallback;
+    }
+
+    private static decimal ReadDecimal(JsonElement el, decimal fallback, params string[] names)
+    {
+        foreach (var name in names)
+        {
+            if (!el.TryGetProperty(name, out var prop))
+            {
+                continue;
+            }
+
+            if (prop.ValueKind == JsonValueKind.Number && prop.TryGetDecimal(out var n))
+            {
+                return n;
+            }
+
+            if (prop.ValueKind == JsonValueKind.String
+                && decimal.TryParse(prop.GetString(), NumberStyles.Number, CultureInfo.InvariantCulture, out var parsed))
+            {
+                return parsed;
+            }
+        }
+
+        return fallback;
+    }
+
     private static string NormalizeStatus(string? value)
         => (value ?? string.Empty).Trim().ToLowerInvariant();
 
@@ -323,3 +575,27 @@ public sealed class CpFulfillmentQueueWriteService : ICpFulfillmentQueueWriteSer
         return text.Length <= max ? text : text[..max];
     }
 }
+
+public sealed record CpFulfillmentQueueLineInput(
+    string? Sku = null,
+    string? ProductName = null,
+    int Qty = 1,
+    string? BinLocation = null,
+    decimal Weight = 0);
+
+public sealed record CpFulfillmentPackingSlip(
+    bool Ok,
+    string Error,
+    string OrderNumber,
+    string CustomerName,
+    string ShipAddressJson,
+    string Carrier,
+    string TrackingNumber,
+    IReadOnlyList<CpFulfillmentPackingSlipLine> Items,
+    string PackedAt);
+
+public sealed record CpFulfillmentPackingSlipLine(
+    string Sku,
+    string ProductName,
+    int Qty,
+    string Bin);

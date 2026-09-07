@@ -90,6 +90,8 @@ public static class EcomAeRoutes
     public const string ControlPanelCurrenciesApp = "/cp/currencies-app";
     /// <summary>Single shop_currencies.rate UPDATE. <c>confirmWrites=true</c> is the live twin of PHP currencies_turning.php general save.</summary>
     public const string CpCurrenciesSetRate = "/cp/currencies/set-rate";
+    /// <summary>PHP currencies_turning.php <c>available_currencies</c>. <c>confirmWrites=true</c> writes <c>shop_currencies.available</c>.</summary>
+    public const string CpCurrenciesSetAvailable = "/cp/currencies/set-available";
     public const string ControlPanelApiClients = "/cp/api-clients";
     /// <summary>CP API clients Blazor list (JSON digest remains <see cref="ControlPanelApiClients"/>; key hashes never returned).</summary>
     public const string ControlPanelApiClientsApp = "/cp/api-clients-app";
@@ -310,8 +312,10 @@ public static class EcomAeRoutes
     public const string ControlPanelCollectionsDunning = "/cp/collections-dunning";
     /// <summary>CP collections/dunning Blazor list (JSON digest remains <see cref="ControlPanelCollectionsDunning"/>).</summary>
     public const string ControlPanelCollectionsDunningApp = "/cp/collections-dunning-app";
-    /// <summary>Dunning queue status / payment. <c>confirmWrites=true</c> is the live twin of PHP epc_dunning_update_status / epc_dunning_record_payment. Letters and process stay PHP.</summary>
+    /// <summary>Dunning queue status / payment / profile / add-invoice / process. confirmWrites=true is the live twin of PHP epc_dunning_*. Schema-ensure stays PHP.</summary>
     public const string CpCollectionsDunningWrite = "/cp/collections-dunning/write";
+    /// <summary>Custom shipping core save / submit. confirmWrites=true is the live twin of PHP epc_cs_save_declaration / epc_cs_submit_declaration. PDF attach, box autofill, LGP, and schema-ensure stay PHP.</summary>
+    public const string CpCustomShippingWrite = "/cp/custom-shipping/write";
 
     public const string ControlPanelMarketplaceChannels = "/cp/marketplace-channels";
     /// <summary>CP marketplace channels Blazor list (JSON digest remains <see cref="ControlPanelMarketplaceChannels"/>).</summary>
@@ -512,8 +516,10 @@ public static class EcomAeRoutes
     public const string ControlPanelFulfillmentQueueApp = "/cp/fulfillment-queue-app";
     /// <summary>Read-only PHP <c>epc_fulfillment_get</c> digest for one fulfillment order.</summary>
     public const string ControlPanelFulfillmentQueueDetailDigest = "/cp/fulfillment-queue-detail-digest/{fulfillmentId:long}";
-    /// <summary>Queue transition / assign / pick / pack / wave. <c>confirmWrites=true</c> is the live twin of PHP epc_fulfillment_*. Queue-from-order and packing-slip PDF stay PHP.</summary>
+    /// <summary>Queue transition / assign / pick / pack / wave / queue-from-order. <c>confirmWrites=true</c> is the live twin of PHP epc_fulfillment_*. Printable packing slip is <see cref="ControlPanelFulfillmentPackingSlip"/>.</summary>
     public const string CpFulfillmentQueueWrite = "/cp/fulfillment-queue/write";
+    /// <summary>Printable PHP <c>epc_fulfillment_packing_slip</c> HTML. Document-control branded PDF templates stay PHP.</summary>
+    public const string ControlPanelFulfillmentPackingSlip = "/cp/fulfillment-queue/packing-slip/{fulfillmentId:long}";
     public const string ControlPanelSsoSaml = "/cp/sso-saml";
     public const string ControlPanelSsoSamlApp = "/cp/sso-saml-app";
     public const string ControlPanelEventBus = "/cp/event-bus";
@@ -540,11 +546,11 @@ public static class EcomAeRoutes
     public const string ControlPanelOmsAddComment = "/cp/orders/add-comment";
     /// <summary>OMS set viewed. <c>confirmWrites=true</c> is the live twin of PHP ajax_set_orders_viewed.php.</summary>
     public const string ControlPanelOmsSetViewed = "/cp/orders/set-viewed";
-    /// <summary>OMS update_item. <c>confirmWrites=true</c> is the live twin of PHP ajax_epc_orders_oms.php action=update_item. Warehouse reprice stays PHP.</summary>
+    /// <summary>OMS update_item. <c>confirmWrites=true</c> is the live twin of PHP ajax_epc_orders_oms.php action=update_item. Warehouse reprice uses the price-list lookup; customer-group markup stays sell=purchase.</summary>
     public const string ControlPanelOmsUpdateItem = "/cp/orders/update-item";
     /// <summary>Wave B dry-run for PHP ajax_order_pay_refund.php (writes=0; PHP authoritative).</summary>
     public const string ControlPanelOmsPayRefund = "/cp/orders/pay-refund";
-    /// <summary>OMS update_items. <c>confirmWrites=true</c> is the live twin of PHP ajax_epc_orders_oms.php action=update_items. Warehouse reprice stays PHP.</summary>
+    /// <summary>OMS update_items. <c>confirmWrites=true</c> is the live twin of PHP ajax_epc_orders_oms.php action=update_items. Warehouse reprice uses the price-list lookup; customer-group markup stays sell=purchase.</summary>
     public const string ControlPanelOmsUpdateItems = "/cp/orders/update-items";
     /// <summary>OMS supplier fulfillment set-stage. <c>confirmWrites=true</c> updates epc_order_supplier_fulfillment (no invented bootstrap).</summary>
     public const string ControlPanelOmsFulfillmentSetStage = "/cp/orders/fulfillment-set-stage";
@@ -602,10 +608,20 @@ public static class EcomAeRoutes
     public const string ErpPurchasesAmend = "/erp/purchases/amend";
     /// <summary>Wave B dry-run for PHP so_delete draft (writes=0).</summary>
     public const string ErpSalesOrdersDelete = "/erp/sales-orders/delete";
-    /// <summary>Wave B dry-run for PHP customer_master_save (writes=0).</summary>
+    /// <summary>Live PHP customer_master_save / epc_credit_set_master (confirmWrites required).</summary>
     public const string ErpCustomersMasterSave = "/erp/customers/master-save";
-    /// <summary>Wave B dry-run for PHP as_rma_create (writes=0).</summary>
+    /// <summary>Live PHP as_rma_create / epc_as_rma_create (confirmWrites required). Blockchain stays PHP.</summary>
     public const string ErpAftersalesRmaCreate = "/erp/aftersales/rma-create";
+    /// <summary>PHP epc_as_rma_resolve. Inventory restock stays PHP.</summary>
+    public const string ErpAftersalesRmaResolve = "/erp/aftersales/rma-resolve";
+    /// <summary>PHP epc_as_warranty_register. Schema-ensure stays PHP.</summary>
+    public const string ErpAftersalesWarrantyRegister = "/erp/aftersales/warranty-register";
+    /// <summary>PHP epc_as_job_create. Schema-ensure stays PHP.</summary>
+    public const string ErpAftersalesJobCreate = "/erp/aftersales/job-create";
+    /// <summary>PHP epc_as_job_add_line. Recalc stays in this twin.</summary>
+    public const string ErpAftersalesJobAddLine = "/erp/aftersales/job-add-line";
+    /// <summary>PHP epc_as_job_close. Recalc stays in this twin.</summary>
+    public const string ErpAftersalesJobClose = "/erp/aftersales/job-close";
     /// <summary>Wave B dry-run for PHP purchase_from_order (writes=0).</summary>
     public const string ErpPurchasesFromOrder = "/erp/purchases/from-order";
     /// <summary>Wave B dry-run for PHP ccy_set_rate (writes=0).</summary>
@@ -614,7 +630,7 @@ public static class EcomAeRoutes
     public const string ErpPeriodSoftClose = "/erp/periods/soft-close";
     /// <summary>Wave B dry-run for PHP period_lock (writes=0).</summary>
     public const string ErpPeriodLock = "/erp/periods/lock";
-    /// <summary>Wave B dry-run for PHP customer_settlement (writes=0).</summary>
+    /// <summary>Live PHP customer_settlement / epc_erp_customer_settlement (confirmWrites required).</summary>
     public const string ErpCustomerSettlement = "/erp/customers/settlement";
     /// <summary>Wave B dry-run for PHP supplier_settlement (writes=0).</summary>
     public const string ErpSupplierSettlement = "/erp/suppliers/settlement";
@@ -624,7 +640,7 @@ public static class EcomAeRoutes
     public const string ErpPeriodReopen = "/erp/periods/reopen";
     /// <summary>Wave B dry-run for PHP purchase_adjustment (writes=0).</summary>
     public const string ErpPurchasesAdjust = "/erp/purchases/adjust";
-    /// <summary>Wave B dry-run for PHP order_settlement (writes=0).</summary>
+    /// <summary>Live PHP order_settlement / epc_erp_order_revenue_settlement (confirmWrites required).</summary>
     public const string ErpOrderSettlement = "/erp/orders/settlement";
     /// <summary>Wave B dry-run for PHP sync_suppliers (writes=0).</summary>
     public const string ErpSuppliersSync = "/erp/suppliers/sync";
@@ -817,12 +833,96 @@ public static class EcomAeRoutes
     public const string ErpQualityNcrCreateForm = "/erp/quality/ncr-create";
     /// <summary>HTML form POST for PHP <c>inv_create_item</c> dry-run.</summary>
     public const string ErpProductInfoCreateItemForm = "/erp/product-info/create-item";
-    /// <summary>HTML form POST for PHP <c>jw_repair_create</c> dry-run.</summary>
+    /// <summary>HTML form POST for PHP <c>jw_repair_create</c>. <c>confirmWrites=true</c> inserts <c>epc_erp_jw_repairs</c>.</summary>
     public const string ErpJewelleryRepairCreateForm = "/erp/jewellery/repair-create";
-    /// <summary>HTML form POST for PHP <c>jw_repair_update_status</c> dry-run.</summary>
+    /// <summary>HTML form POST for PHP <c>jw_repair_update_status</c>. <c>confirmWrites=true</c> writes via <c>IErpJwRepairWriteService</c>.</summary>
     public const string ErpJewelleryRepairStatusForm = "/erp/jewellery/repair-status";
-    /// <summary>HTML form POST for PHP <c>jw_karat_save</c> dry-run.</summary>
+    /// <summary>PHP jw_karat_save. <c>confirmWrites=true</c> upserts <c>epc_jewel_karat_master</c>.</summary>
     public const string ErpJewelleryKaratSaveForm = "/erp/jewellery/karat-save";
+    /// <summary>PHP jw_rate_type_save. <c>confirmWrites=true</c> upserts <c>epc_jewel_rate_type</c>.</summary>
+    public const string ErpJewelleryRateTypeSaveForm = "/erp/jewellery/rate-type-save";
+    /// <summary>PHP jw_currency_save. <c>confirmWrites=true</c> upserts <c>epc_jewel_currency</c>.</summary>
+    public const string ErpJewelleryCurrencySaveForm = "/erp/jewellery/currency-save";
+    /// <summary>PHP jw_diamond_save. <c>confirmWrites=true</c> upserts <c>epc_jewel_diamond_master</c>.</summary>
+    public const string ErpJewelleryDiamondSaveForm = "/erp/jewellery/diamond-save";
+    /// <summary>PHP jw_design_save. <c>confirmWrites=true</c> upserts <c>epc_jewel_design</c>.</summary>
+    public const string ErpJewelleryDesignSaveForm = "/erp/jewellery/design-save";
+    /// <summary>PHP jw_pearl_save. <c>confirmWrites=true</c> upserts <c>epc_jewel_pearl_master</c>.</summary>
+    public const string ErpJewelleryPearlSaveForm = "/erp/jewellery/pearl-save";
+    /// <summary>PHP jw_color_stone_save. <c>confirmWrites=true</c> upserts <c>epc_jewel_color_stone_master</c>.</summary>
+    public const string ErpJewelleryColorStoneSaveForm = "/erp/jewellery/color-stone-save";
+    /// <summary>PHP epc_jewel_barcode_generate. <c>confirmWrites=true</c> inserts <c>epc_jewel_barcode</c>.</summary>
+    public const string ErpJewelleryBarcodeGenerateForm = "/erp/jewellery/barcode-generate";
+    /// <summary>PHP epc_jw_tag_create. <c>confirmWrites=true</c> inserts <c>epc_jw_tags</c>.</summary>
+    public const string ErpJewelleryTagCreateForm = "/erp/jewellery/tag-create";
+    /// <summary>PHP epc_jw_tag_sell. <c>confirmWrites=true</c> marks <c>epc_jw_tags</c> sold.</summary>
+    public const string ErpJewelleryTagSellForm = "/erp/jewellery/tag-sell";
+    /// <summary>PHP epc_gold_scheme_create. <c>confirmWrites=true</c> inserts <c>epc_gold_schemes</c>.</summary>
+    public const string ErpJewelleryGoldSchemeCreateForm = "/erp/jewellery/gold-scheme-create";
+    /// <summary>PHP epc_gold_scheme_enroll. <c>confirmWrites=true</c> inserts <c>epc_gold_scheme_enrollments</c>.</summary>
+    public const string ErpJewelleryGoldSchemeEnrollForm = "/erp/jewellery/gold-scheme-enroll";
+    /// <summary>PHP epc_gold_scheme_pay_installment. <c>confirmWrites=true</c> inserts <c>epc_gold_scheme_payments</c>.</summary>
+    public const string ErpJewelleryGoldSchemePayForm = "/erp/jewellery/gold-scheme-pay";
+    /// <summary>PHP epc_fix_unfix_create. <c>confirmWrites=true</c> inserts <c>epc_fix_unfix_purchases</c>.</summary>
+    public const string ErpJewelleryFixUnfixCreateForm = "/erp/jewellery/fix-unfix-create";
+    /// <summary>PHP epc_fix_unfix_settle. <c>confirmWrites=true</c> settles an unfix purchase.</summary>
+    public const string ErpJewelleryFixUnfixSettleForm = "/erp/jewellery/fix-unfix-settle";
+    /// <summary>PHP epc_barcode_purchase_create. <c>confirmWrites=true</c> inserts <c>epc_barcode_purchases</c>.</summary>
+    public const string ErpJewelleryBarcodePurchaseCreateForm = "/erp/jewellery/barcode-purchase-create";
+    /// <summary>PHP epc_barcode_purchase_sell. <c>confirmWrites=true</c> marks <c>epc_barcode_purchases</c> sold.</summary>
+    public const string ErpJewelleryBarcodePurchaseSellForm = "/erp/jewellery/barcode-purchase-sell";
+    /// <summary>PHP epc_tourist_refund_create. <c>confirmWrites=true</c> inserts <c>epc_tourist_refund_invoices</c>.</summary>
+    public const string ErpTouristRefundCreateForm = "/erp/tourist-refund/create";
+    /// <summary>PHP epc_tourist_refund_validate. <c>confirmWrites=true</c> marks a pending barcode validated.</summary>
+    public const string ErpTouristRefundValidateForm = "/erp/tourist-refund/validate";
+    /// <summary>PHP epc_rfid_register_tag. <c>confirmWrites=true</c> inserts <c>epc_rfid_tags</c>.</summary>
+    public const string ErpRfidRegisterForm = "/erp/rfid/register";
+    /// <summary>PHP epc_rfid_start_scan_session. <c>confirmWrites=true</c> inserts <c>epc_rfid_scan_sessions</c>.</summary>
+    public const string ErpRfidStartSessionForm = "/erp/rfid/start-session";
+    /// <summary>PHP epc_rfid_process_scan. <c>confirmWrites=true</c> writes scan results.</summary>
+    public const string ErpRfidProcessScanForm = "/erp/rfid/scan";
+    /// <summary>PHP epc_gold_rate_set (manual). <c>confirmWrites=true</c> UPSERTs <c>epc_gold_rates</c>. API fetch stays PHP.</summary>
+    public const string ErpGoldRateSetForm = "/erp/gold-rate/set";
+    /// <summary>PHP epc_aml_kyc_save. <c>confirmWrites=true</c> inserts/updates <c>epc_aml_kyc</c>.</summary>
+    public const string ErpAmlKycSaveForm = "/erp/aml/kyc-save";
+    /// <summary>PHP epc_aml_alert_set_status. <c>confirmWrites=true</c> updates <c>epc_aml_transactions.review_status</c>. Schema-ensure stays PHP.</summary>
+    public const string ErpAmlAlertStatusForm = "/erp/aml/alert-status";
+    /// <summary>PHP epc_sla_create. <c>confirmWrites=true</c> inserts <c>epc_sla_agreements</c>.</summary>
+    public const string ErpSlaCreateForm = "/erp/sla/create";
+    /// <summary>PHP epc_tickets_create. <c>confirmWrites=true</c> inserts <c>epc_tickets</c>.</summary>
+    public const string ErpTicketsCreateForm = "/erp/tickets/create";
+    /// <summary>PHP epc_tickets_add_reply. <c>confirmWrites=true</c> inserts <c>epc_ticket_replies</c>. File attachments stay PHP.</summary>
+    public const string ErpTicketsReplyForm = "/erp/tickets/reply";
+    /// <summary>PHP epc_cust_groups_create. <c>confirmWrites=true</c> inserts <c>epc_customer_groups</c>.</summary>
+    public const string ErpCustomerGroupsCreateForm = "/erp/customer-groups/create";
+    /// <summary>PHP epc_cust_groups_assign. <c>confirmWrites=true</c> inserts <c>epc_customer_group_members</c>.</summary>
+    public const string ErpCustomerGroupsAssignForm = "/erp/customer-groups/assign";
+    /// <summary>PHP epc_report_sched_create. <c>confirmWrites=true</c> inserts <c>epc_report_schedules</c>.</summary>
+    public const string ErpReportSchedulerCreateForm = "/erp/report-scheduler/create";
+    /// <summary>PHP epc_vwh_create_warehouse. <c>confirmWrites=true</c> inserts <c>epc_warehouses</c>.</summary>
+    public const string ErpVirtualWarehouseCreateForm = "/erp/virtual-warehouses/create";
+    /// <summary>PHP epc_vwh_create_transfer. <c>confirmWrites=true</c> inserts <c>epc_warehouse_transfers</c>.</summary>
+    public const string ErpVirtualWarehouseTransferForm = "/erp/virtual-warehouses/transfer";
+    /// <summary>PHP jw_metal_stock_save. <c>confirmWrites=true</c> upserts <c>epc_jewel_metal_stock</c>.</summary>
+    public const string ErpJewelleryMetalStockSaveForm = "/erp/jewellery/metal-stock-save";
+    /// <summary>PHP jw_purchase_fixing_save / jw_sales_fixing_save. <c>confirmWrites=true</c> inserts <c>epc_jewel_fixing</c>.</summary>
+    public const string ErpJewelleryFixingSaveForm = "/erp/jewellery/fixing-save";
+    /// <summary>PHP jw_voucher_save and purchase/sale aliases. <c>confirmWrites=true</c> inserts <c>epc_jewel_voucher</c>.</summary>
+    public const string ErpJewelleryVoucherSaveForm = "/erp/jewellery/voucher-save";
+    /// <summary>PHP jw_petty_cash_save. <c>confirmWrites=true</c> inserts PCV into <c>epc_jewel_voucher</c>.</summary>
+    public const string ErpJewelleryPettyCashSaveForm = "/erp/jewellery/petty-cash-save";
+    /// <summary>PHP jw_tourist_vat_save. <c>confirmWrites=true</c> inserts <c>epc_jewel_tourist_vat_refund</c>.</summary>
+    public const string ErpJewelleryTouristVatSaveForm = "/erp/jewellery/tourist-vat-save";
+    /// <summary>PHP jw_repair_save / jw_repair_receipt_save. <c>confirmWrites=true</c> inserts <c>epc_jewel_repair</c>.</summary>
+    public const string ErpJewelleryRepairReceiptSaveForm = "/erp/jewellery/repair-receipt-save";
+    /// <summary>PHP jw_repair_transfer_save. <c>confirmWrites=true</c> inserts <c>epc_jewel_repair_transfer</c>.</summary>
+    public const string ErpJewelleryRepairTransferSaveForm = "/erp/jewellery/repair-transfer-save";
+    /// <summary>PHP jw_workshop_receive_save. <c>confirmWrites=true</c> inserts <c>epc_jewel_repair_workshop_receive</c>.</summary>
+    public const string ErpJewelleryWorkshopReceiveSaveForm = "/erp/jewellery/workshop-receive-save";
+    /// <summary>PHP jw_repair_delivery_save. <c>confirmWrites=true</c> inserts <c>epc_jewel_repair_delivery</c>.</summary>
+    public const string ErpJewelleryRepairDeliverySaveForm = "/erp/jewellery/repair-delivery-save";
+    /// <summary>PHP jw_stock_verification_save. <c>confirmWrites=true</c> inserts <c>epc_jewel_stock_verification</c>.</summary>
+    public const string ErpJewelleryStockVerifySaveForm = "/erp/jewellery/stock-verify-save";
     /// <summary>HTML form POST for PHP <c>jw_karat_seed</c> / <c>jw_seed_sample_data</c> dry-run.</summary>
     public const string ErpJewelleryKaratSeedForm = "/erp/jewellery/karat-seed";
     /// <summary>HTML form POST for other jewellery module saves (fixing / retail / stock).</summary>
@@ -865,23 +965,25 @@ public static class EcomAeRoutes
     /// <summary>ERP tab→app coverage board.</summary>
     public const string ErpTabCoverage = "/erp/tab-coverage";
 
-    /// <summary>Wave B dry-run for PHP inv_sync_warehouses (writes=0).</summary>
+    /// <summary>PHP inv_sync_warehouses. <c>confirmWrites=true</c> writes via <c>IErpInventoryMovementWriteService</c>.</summary>
     public const string ErpAjaxInvSyncWarehouses = "/erp/ajax/inv-sync-warehouses";
-    /// <summary>Wave B dry-run for PHP inv_create_warehouse (writes=0).</summary>
+    /// <summary>PHP inv_create_warehouse. <c>confirmWrites=true</c> writes via <c>IErpInventoryMovementWriteService</c>.</summary>
     public const string ErpAjaxInvCreateWarehouse = "/erp/ajax/inv-create-warehouse";
-    /// <summary>Wave B dry-run for PHP inv_create_item (writes=0).</summary>
+    /// <summary>PHP inv_create_item. <c>confirmWrites=true</c> writes via <c>IErpInventoryMovementWriteService</c>. Optional dim[] save via <c>IErpDimensionWriteService</c>.</summary>
     public const string ErpAjaxInvCreateItem = "/erp/ajax/inv-create-item";
+    /// <summary>PHP epc_erp_dim_save. <c>confirmWrites=true</c> writes via <c>IErpDimensionWriteService</c>. Schema-ensure stays Classic.</summary>
+    public const string ErpAjaxDimSave = "/erp/ajax/dim-save";
     /// <summary>PHP inv_set_reorder_level. <c>confirmWrites=true</c> writes via <c>IErpInventoryReorderWriteService</c>.</summary>
     public const string ErpAjaxInvSetReorderLevel = "/erp/ajax/inv-set-reorder-level";
-    /// <summary>Wave B dry-run for PHP inv_record_movement (writes=0).</summary>
+    /// <summary>PHP inv_record_movement. <c>confirmWrites=true</c> writes via <c>IErpInventoryMovementWriteService</c>.</summary>
     public const string ErpAjaxInvRecordMovement = "/erp/ajax/inv-record-movement";
     /// <summary>Wave B dry-run for PHP inv_scan_lookup (writes=0).</summary>
     public const string ErpAjaxInvScanLookup = "/erp/ajax/inv-scan-lookup";
-    /// <summary>Wave B dry-run for PHP inv_transfer (writes=0).</summary>
+    /// <summary>PHP inv_transfer. <c>confirmWrites=true</c> writes via <c>IErpInventoryMovementWriteService</c>.</summary>
     public const string ErpAjaxInvTransfer = "/erp/ajax/inv-transfer";
-    /// <summary>Wave B dry-run for PHP inv_import_csv (writes=0).</summary>
+    /// <summary>PHP inv_import_csv csv_text. <c>confirmWrites=true</c> writes via <c>IErpInventoryMovementWriteService</c>. File bytes stay Classic.</summary>
     public const string ErpAjaxInvImportCsv = "/erp/ajax/inv-import-csv";
-    /// <summary>Wave B dry-run for PHP inv_run_closing (writes=0).</summary>
+    /// <summary>PHP inv_run_closing. <c>confirmWrites=true</c> writes via <c>IErpInventoryMovementWriteService</c>.</summary>
     public const string ErpAjaxInvRunClosing = "/erp/ajax/inv-run-closing";
     /// <summary>Wave B dry-run for PHP hr_emp_save (writes=0).</summary>
     public const string ErpAjaxHrEmpSave = "/erp/ajax/hr-emp-save";
@@ -899,11 +1001,11 @@ public static class EcomAeRoutes
     public const string ErpAjaxHrUpdateDays = "/erp/ajax/hr-update-days";
     /// <summary>Wave B dry-run for PHP einvoice_create (writes=0).</summary>
     public const string ErpAjaxEinvoiceCreate = "/erp/ajax/einvoice-create";
-    /// <summary>Wave B dry-run for PHP einvoice_save_seller (writes=0).</summary>
+    /// <summary>PHP einvoice_save_seller. <c>confirmWrites=true</c> writes via <c>IErpEinvoiceProfileWriteService</c>.</summary>
     public const string ErpAjaxEinvoiceSaveSeller = "/erp/ajax/einvoice-save-seller";
-    /// <summary>Wave B dry-run for PHP einvoice_save_buyer (writes=0).</summary>
+    /// <summary>PHP einvoice_save_buyer. <c>confirmWrites=true</c> writes via <c>IErpEinvoiceProfileWriteService</c>.</summary>
     public const string ErpAjaxEinvoiceSaveBuyer = "/erp/ajax/einvoice-save-buyer";
-    /// <summary>Wave B dry-run for PHP einvoice_save_asp (writes=0).</summary>
+    /// <summary>PHP einvoice_save_asp. <c>confirmWrites=true</c> writes via <c>IErpEinvoiceProfileWriteService</c>.</summary>
     public const string ErpAjaxEinvoiceSaveAsp = "/erp/ajax/einvoice-save-asp";
     /// <summary>Wave B dry-run for PHP einvoice_submit (writes=0).</summary>
     public const string ErpAjaxEinvoiceSubmit = "/erp/ajax/einvoice-submit";
@@ -969,7 +1071,7 @@ public static class EcomAeRoutes
     public const string StorefrontNewsletterSubscribe = "/storefront/newsletter/subscribe";
     /// <summary>Wave B dry-run for PHP content/shop/catalogue/evaluations/ajax_add_evaluation.php (writes=0).</summary>
     public const string StorefrontAddEvaluation = "/storefront/evaluations/add";
-    /// <summary>Wave B dry-run for PHP content/shop/finance/ajax_create_operation.php (writes=0).</summary>
+    /// <summary>Live twin of PHP content/shop/finance/ajax_create_operation.php. <c>confirmWrites=true</c> writes via <c>IStorefrontPaymentWriteService</c>.</summary>
     public const string StorefrontCreateOperation = "/storefront/finance/create-operation";
     /// <summary>Wave B dry-run for PHP content/shop/order_process/ajax_check_order_not_authorized.php (writes=0).</summary>
     public const string StorefrontCheckOrderNotAuthorized = "/storefront/orders/check-not-authorized";
@@ -985,8 +1087,10 @@ public static class EcomAeRoutes
     public const string StorefrontCompareAdd = "/storefront/compare/add";
     /// <summary>Compare cookie remove. Twin of PHP <c>removeCompare</c> in bottom_panel.php.</summary>
     public const string StorefrontCompareRemove = "/storefront/compare/remove";
-    /// <summary>Profile <c>users_profiles</c> UPSERT. Password / email / phone stay PHP.</summary>
+    /// <summary>Profile <c>users_profiles</c> UPSERT. Email / phone confirm stay PHP.</summary>
     public const string StorefrontProfileSave = "/storefront/profile/save";
+    /// <summary>PHP <c>users/editform.php</c> password UPDATE. <c>confirmWrites=true</c> writes <c>md5(password+secret_succession)</c>.</summary>
+    public const string StorefrontProfilePassword = "/storefront/profile/change-password";
     /// <summary>Wave B dry-run for PHP modules/login/code/frontAjax/ajax_sendCode.php (writes=0).</summary>
     public const string StorefrontLoginSendCode = "/storefront/login/send-code";
     /// <summary>Wave B dry-run for PHP modules/login/code/frontAjax/ajax_checkCode.php (writes=0).</summary>
@@ -999,17 +1103,51 @@ public static class EcomAeRoutes
     public const string CpSetUserComment = "/cp/users/set-comment";
     /// <summary>User lock/unlock. <c>confirmWrites=true</c> is the live twin of PHP user_manager.php unlock_user.</summary>
     public const string CpSetUserUnlocked = "/cp/users/set-unlocked";
+    /// <summary>PHP <c>users/user.php</c> save_action=create. <c>confirmWrites=true</c> writes users + profiles + groups.</summary>
+    public const string CpUsersCreate = "/cp/users/create";
+    /// <summary>PHP <c>users/user.php</c> password UPDATE. <c>confirmWrites=true</c> writes bcrypt and drops other sessions.</summary>
+    public const string CpUsersSetPassword = "/cp/users/set-password";
     /// <summary>Wave B dry-run for PHP cp/content/shop/prices_upload/ajax_5_import_csv_to_db.php (writes=0).</summary>
     public const string CpPricesImportCsv = "/cp/prices/import-csv";
     /// <summary>PHP ajax_6_complete_session last_updated / records_count. <c>confirmWrites=true</c> writes via <c>ICpPricesUploadWriteService</c>.</summary>
     public const string CpPricesCompleteSession = "/cp/prices/complete-session";
     /// <summary>PHP logistics groups add_group / del. <c>confirmWrites=true</c> writes via <c>ICpStorageGroupWriteService</c>.</summary>
     public const string CpStoragesGroups = "/cp/storages/groups";
+    /// <summary>PHP <c>storage.php</c> create / edit. <c>confirmWrites=true</c> writes via <c>ICpStorageWriteService</c>.</summary>
+    public const string CpStoragesWrite = "/cp/storages/write";
+    /// <summary>PHP office_storages_link.php save. <c>confirmWrites=true</c> writes via <c>ICpStorageWriteService.SaveMembershipAsync</c>.</summary>
+    public const string CpStoragesMembership = "/cp/storages/membership";
+    /// <summary>PHP <c>office.php</c> create / edit. <c>confirmWrites=true</c> writes via <c>ICpOfficeWriteService</c>.</summary>
+    public const string CpOfficesWrite = "/cp/offices/write";
+    /// <summary>PHP <c>offices.php</c> delete_offices. <c>confirmWrites=true</c> writes via <c>ICpOfficeWriteService.DeleteAsync</c>.</summary>
+    public const string CpOfficesDelete = "/cp/offices/delete";
+    /// <summary>PHP office_geo_nodes.php save. <c>confirmWrites=true</c> DELETE+INSERT shop_offices_geo_map.</summary>
+    public const string CpOfficesGeo = "/cp/offices/geo";
+    /// <summary>PHP obtaining_modes.php activation and obtaining_mode.php save. <c>confirmWrites=true</c> writes via <c>ICpObtainingModeWriteService</c>.</summary>
+    public const string CpDeliveryMethodsWrite = "/cp/delivery-methods/write";
+    /// <summary>PHP geo_tree.php save_tree. <c>confirmWrites=true</c> writes via <c>ICpGeoTreeWriteService</c>.</summary>
+    public const string CpGeoRegionsWrite = "/cp/geo-regions/write";
+    /// <summary>PHP search_tabs.php activation and search_tab.php save. <c>confirmWrites=true</c> writes via <c>ICpSearchTabWriteService</c>.</summary>
+    public const string CpSearchTabsWrite = "/cp/search-tabs/write";
+    /// <summary>PHP text_for_url.php save. <c>confirmWrites=true</c> writes via <c>ICpAdditionalTextWriteService</c>.</summary>
+    public const string CpAdditionalTextsWrite = "/cp/additional-texts/write";
+    /// <summary>PHP text_for_url_list.php delete. <c>confirmWrites=true</c> writes via <c>ICpAdditionalTextWriteService.DeleteAsync</c>.</summary>
+    public const string CpAdditionalTextsDelete = "/cp/additional-texts/delete";
+    /// <summary>PHP slider.php settings / move / delete / path-add. File upload stays Classic.</summary>
+    public const string CpSliderBannersWrite = "/cp/slider-banners/write";
+    /// <summary>PHP filter/ajax_operations.php add/save/del/active/save_storages. <c>confirmWrites=true</c> writes shop_docpart_filter.</summary>
+    public const string CpProductFiltersWrite = "/cp/product-filters/write";
+    /// <summary>PHP statuses.php save_action. <c>confirmWrites=true</c> writes shop_orders_statuses_ref + shop_orders_items_statuses_ref.</summary>
+    public const string CpOrderStatusesWrite = "/cp/order-statuses/write";
+    /// <summary>CP Order statuses Blazor list.</summary>
+    public const string ControlPanelOrderStatusesApp = "/cp/order-statuses-app";
     /// <summary>PHP quote_requests.php admin_note. <c>confirmWrites=true</c> writes via <c>ICpQuoteWriteService</c>.</summary>
     public const string CpQuoteSaveNote = "/cp/quote-requests/note";
+    /// <summary>PHP quote_requests.php save_quote line quoting. <c>confirmWrites=true</c> writes via <c>ICpQuoteWriteService</c>.</summary>
+    public const string CpQuoteSaveLines = "/cp/quote-requests/save-lines";
     /// <summary>PHP quote_requests.php send_quote. <c>confirmWrites=true</c> writes via <c>ICpQuoteWriteService</c>.</summary>
     public const string CpQuoteSend = "/cp/quote-requests/send";
-    /// <summary>PHP epc_vendor_approvals.php suspend/reject. Approve stays PHP.</summary>
+    /// <summary>PHP epc_vendor_approvals.php approve / suspend / reject. <c>confirmWrites=true</c> writes via <c>ICpVendorApprovalWriteService</c>.</summary>
     public const string CpVendorApprovals = "/cp/vendors/approvals";
     /// <summary>PHP epc_api_clients_manage.php revoke/activate. Super CP only.</summary>
     public const string CpApiClientsToggle = "/cp/api-clients/toggle";
@@ -1017,11 +1155,23 @@ public static class EcomAeRoutes
     public const string CpPriceStorageRules = "/cp/prices/storage-rules";
     /// <summary>PHP content_manager.php set_published_flag (single id). System pages stay locked.</summary>
     public const string CpContentPublished = "/cp/content/published";
-    /// <summary>PHP content_manager.php set_main_flag. Body editor stays PHP.</summary>
+    /// <summary>PHP content_manager.php set_main_flag.</summary>
     public const string CpContentMain = "/cp/content/main";
+    /// <summary>PHP content.php save_content. <c>confirmWrites=true</c> writes via <c>ICpContentManagerWriteService.SaveBodyAsync</c>. TinyMCE upload stays PHP.</summary>
+    public const string CpContentBody = "/cp/content/body";
+    /// <summary>PHP content_create_edit.php. <c>confirmWrites=true</c> writes via <c>ICpContentManagerWriteService.SaveMetaAsync</c>.</summary>
+    public const string CpContentSave = "/cp/content/save";
+    /// <summary>PHP content_tree.php save_tree. <c>confirmWrites=true</c> writes via <c>ICpContentManagerWriteService.SaveTreeAsync</c>. System pages cannot be removed.</summary>
+    public const string CpContentTree = "/cp/content/tree";
+    /// <summary>PHP menu_edit.php save_action + menu_manager.php delete. <c>confirmWrites=true</c> writes via <c>ICpMenuWriteService</c>. Drag-tree UX stays PHP.</summary>
+    public const string CpMenusWrite = "/cp/menus/write";
+    /// <summary>PHP edit_module.php create/edit and modules_manager.php delete/activate. <c>confirmWrites=true</c> writes via <c>ICpModuleWriteService</c>.</summary>
+    public const string CpModulesWrite = "/cp/modules/write";
     /// <summary>PHP offices_cash.php action=add. Manager must belong to the office.</summary>
     public const string ErpOfficesCashAdd = "/erp/offices-cash/add";
-    /// <summary>PHP offices_cash_editor.php action=del. Code add stays PHP.</summary>
+    /// <summary>PHP offices_cash_editor.php action=add. <c>confirmWrites=true</c> writes lang string + cash code.</summary>
+    public const string ErpOfficesCashCodeAdd = "/erp/offices-cash/codes/add";
+    /// <summary>PHP offices_cash_editor.php action=del. Unused codes only.</summary>
     public const string ErpOfficesCashCodeDelete = "/erp/offices-cash/codes/delete";
 
     /// <summary>Wave B dry-run for PHP period_log (writes=0).</summary>
@@ -1170,7 +1320,7 @@ public static class EcomAeRoutes
     public const string CpLangSaveTranslation = "/cp/lang/save-translation";
     /// <summary>Lang description UPDATE. <c>confirmWrites=true</c> is the live twin of PHP ajax_save_string_description.php.</summary>
     public const string CpLangSaveDescription = "/cp/lang/save-description";
-    /// <summary>Wave B dry-run for PHP cp/content/lang/ajax_create_new_string.php (writes=0).</summary>
+    /// <summary>PHP ajax_create_new_string.php. <c>confirmWrites=true</c> writes via <c>ICpLangWriteService.CreateStringAsync</c>. Restricted-mode stays PHP.</summary>
     public const string CpLangCreateString = "/cp/lang/create-string";
     /// <summary>Delete unused custom strings. <c>confirmWrites=true</c> is the live twin of PHP ajax_delete_not_used_found.php.</summary>
     public const string CpLangDeleteNotUsed = "/cp/lang/delete-not-used";
@@ -1186,14 +1336,36 @@ public static class EcomAeRoutes
     public const string CpWorkshopWrite = "/cp/workshop/write";
     /// <summary>Catalogue min-limit. <c>confirmWrites=true</c> is the live twin of PHP ajax_operations_products.php save_product_*_limit.</summary>
     public const string CpCatalogueSetMinLimit = "/cp/catalogue/set-min-limit";
-    /// <summary>Category-template delete. <c>confirmWrites=true</c> is the live twin of PHP ajax_templates_actions.php delete. Create stays PHP.</summary>
+    /// <summary>Category-template create/delete. <c>confirmWrites=true</c> is the live twin of PHP ajax_templates_actions.php create/delete. File image upload and from-category disk copy stay PHP.</summary>
     public const string CpTemplatesActions = "/cp/catalogue/templates-actions";
+    /// <summary>PHP line_list.php save_action create/edit and line_lists_manager.php delete. <c>confirmWrites=true</c> writes via <c>ICpLineListWriteService</c>. Drag-tree item UX stays PHP. Manufacturers list id 10 cannot be deleted.</summary>
+    public const string CpLineListsWrite = "/cp/catalogue/line-lists/write";
+    /// <summary>PHP tree_list.php / tree_list_brunch_editor.php save_action and tree_lists_manager.php delete. <c>confirmWrites=true</c> writes via <c>ICpTreeListWriteService</c>. Item image filename attach writes here. Multipart item image bytes stay PHP.</summary>
+    public const string CpTreeListsWrite = "/cp/catalogue/tree-lists/write";
+    /// <summary>PHP ajax_epc_sku_media.php save_profile / ensure / delete_profile / spec groups+rows / photo meta. <c>confirmWrites=true</c> writes via <c>ICpSkuMediaWriteService</c>. Photo file upload and file unlink stay PHP.</summary>
+    public const string CpSkuMediaWrite = "/cp/catalogue/sku-media/write";
+    /// <summary>PHP main_page_products.php save_action. <c>confirmWrites=true</c> writes via <c>ICpMainPageProductsWriteService</c>. Drag-tree UX stays PHP.</summary>
+    public const string CpMainPageProductsWrite = "/cp/catalogue/main-page-products/write";
+    /// <summary>PHP special_search.php create/edit and special_searches.php delete_special_searches. <c>confirmWrites=true</c> writes via <c>ICpSpecialSearchWriteService</c>. Image upload stays PHP.</summary>
+    public const string CpSpecialSearchesWrite = "/cp/catalogue/special-searches/write";
+    /// <summary>PHP catalogue_editor.php save_tree. <c>confirmWrites=true</c> writes via <c>ICpCatalogueEditorWriteService</c>. Image upload, template blob-to-disk, and drag-tree UX stay PHP.</summary>
+    public const string CpCatalogueEditorWrite = "/cp/catalogue/editor/write";
+    /// <summary>PHP product.php create/edit including type-5 manual_input and images_list template/filename attach. <c>confirmWrites=true</c> writes via <c>ICpCatalogueProductWriteService</c>. Multipart file bytes and image unlink stay PHP.</summary>
+    public const string CpCatalogueProductWrite = "/cp/catalogue/products/write";
+    /// <summary>PHP reviews.php delete. <c>confirmWrites=true</c> writes via <c>ICpCatalogueReviewWriteService</c>. Storefront review create stays on the customer write path.</summary>
+    public const string CpCatalogueReviewsWrite = "/cp/catalogue/reviews/write";
+    /// <summary>PHP products.php delete_products. <c>confirmWrites=true</c> writes via <c>ICpCatalogueProductsDeleteService</c>. Image file unlink stays PHP (commented out there too).</summary>
+    public const string CpCatalogueProductsDelete = "/cp/catalogue/products/delete";
     /// <summary>Wave B dry-run for PHP cp/content/shop/prices_upload/price_review/ajax_price_review.php (writes=0).</summary>
     public const string CpPriceReviewWrite = "/cp/prices/review";
     /// <summary>Wave B dry-run for PHP cp/content/shop/prices_upload/price_review/ajax_create_csv.php (writes=0).</summary>
     public const string CpPriceReviewCreateCsv = "/cp/prices/review-create-csv";
-    /// <summary>Wave B dry-run for PHP cp/content/shop/accessories/ajax_epc_accessories_photos.php (writes=0).</summary>
+    /// <summary>PHP ajax_epc_accessories_photos.php upload / delete / set_primary. <c>confirmWrites=true</c> writes via <c>ICpAccessoriesPhotoWriteService</c>. Multipart file bytes and disk unlink stay PHP.</summary>
     public const string CpAccessoriesPhotos = "/cp/accessories/photos";
+    /// <summary>PHP accessories_listings.php save / set_status / delete. <c>confirmWrites=true</c> writes via <c>ICpAccessoriesListingWriteService</c>. Multipart listing photos stay PHP.</summary>
+    public const string CpAccessoriesListingsWrite = "/cp/accessories/listings/write";
+    /// <summary>PHP accessories_listings.php save_category / set_category_active / delete_category / save_term / set_term_active / delete_term. <c>confirmWrites=true</c> writes via <c>ICpAccessoriesTaxonomyWriteService</c>. JSON seed stays PHP.</summary>
+    public const string CpAccessoriesTaxonomyWrite = "/cp/accessories/taxonomy/write";
     /// <summary>Wave B dry-run for PHP cp/content/control/version_control/ajax/ajax_clear_updates_dir.php (writes=0).</summary>
     public const string CpVersionClearUpdates = "/cp/version/clear-updates";
     /// <summary>Wave B dry-run for PHP content/shop/bulk_upload/ajax_process.php (writes=0).</summary>
@@ -1367,7 +1539,7 @@ public static class EcomAeRoutes
     public const string ErpAjaxCsImportDeclarationPdf = "/erp/ajax/cs-import-declaration-pdf";
     /// <summary>Wave B dry-run for PHP shortcut_list (writes=0).</summary>
     public const string ErpAjaxShortcutList = "/erp/ajax/shortcut-list";
-    /// <summary>Wave B dry-run for PHP shortcut_add (writes=0).</summary>
+    /// <summary>PHP shortcut_add. <c>confirmWrites=true</c> writes via <c>IErpWorkspaceFavoritesWriteService</c>.</summary>
     public const string ErpAjaxShortcutAdd = "/erp/ajax/shortcut-add";
     /// <summary>PHP shortcut_delete. <c>confirmWrites=true</c> writes via <c>IErpWorkspaceFavoritesWriteService</c>.</summary>
     public const string ErpAjaxShortcutDelete = "/erp/ajax/shortcut-delete";
@@ -1375,7 +1547,7 @@ public static class EcomAeRoutes
     public const string ErpAjaxShortcutDeleteKey = "/erp/ajax/shortcut-delete-key";
     /// <summary>PHP shortcut_reset. <c>confirmWrites=true</c> writes via <c>IErpWorkspaceFavoritesWriteService</c>.</summary>
     public const string ErpAjaxShortcutReset = "/erp/ajax/shortcut-reset";
-    /// <summary>Wave B dry-run for PHP shortcut_reorder (writes=0).</summary>
+    /// <summary>PHP shortcut_reorder. <c>confirmWrites=true</c> writes via <c>IErpWorkspaceFavoritesWriteService</c>.</summary>
     public const string ErpAjaxShortcutReorder = "/erp/ajax/shortcut-reorder";
     /// <summary>PHP erp_fav_add. <c>confirmWrites=true</c> writes via <c>IErpWorkspaceFavoritesWriteService</c>.</summary>
     public const string ErpAjaxErpFavAdd = "/erp/ajax/erp-fav-add";
@@ -1383,7 +1555,7 @@ public static class EcomAeRoutes
     public const string ErpAjaxErpFavRemove = "/erp/ajax/erp-fav-remove";
     /// <summary>Wave B dry-run for PHP erp_global_search (writes=0).</summary>
     public const string ErpAjaxErpGlobalSearch = "/erp/ajax/erp-global-search";
-    /// <summary>Wave B dry-run for PHP jw_repair_create (writes=0).</summary>
+    /// <summary>PHP jw_repair_create. <c>confirmWrites=true</c> inserts <c>epc_erp_jw_repairs</c>.</summary>
     public const string ErpAjaxJwRepairCreate = "/erp/ajax/jw-repair-create";
     /// <summary>PHP jw_repair_update_status. <c>confirmWrites=true</c> writes via <c>IErpJwRepairWriteService</c>.</summary>
     public const string ErpAjaxJwRepairUpdateStatus = "/erp/ajax/jw-repair-update-status";
@@ -1639,14 +1811,22 @@ public static class EcomAeRoutes
     public const string BosAjaxEvidence = "/bos/ajax/evidence";
     /// <summary>Wave B dry-run for BOS PHP create_policy (writes=0).</summary>
     public const string BosAjaxCreatePolicy = "/bos/ajax/create-policy";
-    /// <summary>Wave B dry-run for PHP cp/content/shop/pos/ajax_pos.php?action=open_session (writes=0).</summary>
+    /// <summary>Live PHP ajax_pos.php open_session. confirmWrites=true writes ASP.NET.</summary>
     public const string CpPosOpenSession = "/cp/pos/open-session";
-    /// <summary>Wave B dry-run for PHP cp/content/shop/pos/ajax_pos.php?action=close_session (writes=0).</summary>
+    /// <summary>Live PHP ajax_pos.php close_session. confirmWrites=true writes ASP.NET.</summary>
     public const string CpPosCloseSession = "/cp/pos/close-session";
-    /// <summary>Wave B dry-run for PHP cp/content/shop/pos/ajax_pos.php?action=complete_sale (writes=0).</summary>
+    /// <summary>Live PHP ajax_pos.php complete_sale POS INSERT plus ERP SO/invoice/voucher and inventory sale_out.</summary>
     public const string CpPosCompleteSale = "/cp/pos/complete-sale";
-    /// <summary>Wave B dry-run for PHP cp/content/shop/pos/ajax_pos.php?action=save_settings (writes=0).</summary>
+    /// <summary>Printable PHP epc_pos_receipt_html twin.</summary>
+    public const string ControlPanelPosReceipt = "/cp/pos/receipt/{saleId:long}";
+    /// <summary>Live PHP ajax_pos.php save_settings UPDATE. Schema ensure stays PHP.</summary>
     public const string CpPosSaveSettings = "/cp/pos/save-settings";
+    /// <summary>Live PHP ajax_pos.php search_products.</summary>
+    public const string CpPosSearchProducts = "/cp/pos/search-products";
+    /// <summary>Live PHP ajax_pos.php search_customers.</summary>
+    public const string CpPosSearchCustomers = "/cp/pos/search-customers";
+    /// <summary>Live PHP ajax_pos.php calc_cart.</summary>
+    public const string CpPosCalcCart = "/cp/pos/calc-cart";
     /// <summary>Wave B dry-run for PHP cp/content/control/portal/ajax_portal.php?action=save_settings (writes=0).</summary>
     public const string CpPortalSaveSettings = "/cp/portal/save-settings";
     /// <summary>Wave B dry-run for PHP cp/content/control/portal/ajax_portal.php?action=deploy_site (writes=0).</summary>
@@ -1886,8 +2066,20 @@ public static class EcomAeRoutes
     public const string StorefrontBulkUploadAddSelected = "/storefront/bulk-upload/add-selected";
     /// <summary>Sample CSV matching PHP Brand / Part Number / Qty columns.</summary>
     public const string StorefrontBulkUploadSample = "/storefront/bulk-upload/sample.csv";
-    /// <summary>VIN / Laximo shell (decode remains PHP katalog-laximo).</summary>
+    /// <summary>VIN / Laximo shell. Live decode is POST <see cref="StorefrontVinDecode"/>.</summary>
     public const string StorefrontVinApp = "/storefront/vin-app";
+    /// <summary>Live PHP Guayaquil FindVehicleByVIN twin.</summary>
+    public const string StorefrontVinDecode = "/storefront/vin/decode";
+    /// <summary>Live PHP send_vin_email users_vin INSERT. Captcha/files/email stay Classic.</summary>
+    public const string StorefrontVinRequestCreate = "/storefront/vin-request/create";
+    /// <summary>Live PHP ajax_send_message customer path on users_vin_messages.</summary>
+    public const string StorefrontVinRequestSendMessage = "/storefront/vin-request/send-message";
+    /// <summary>Live PHP ajax_create_operation twin.</summary>
+    public const string StorefrontPaymentCreateOperation = "/storefront/payment/create-operation";
+    /// <summary>Live PHP demo go_to_pay twin.</summary>
+    public const string StorefrontPaymentGoToPay = "/storefront/payment/go-to-pay";
+    /// <summary>Live PHP epc_demo notification + pay_for_order twin.</summary>
+    public const string StorefrontPaymentNotify = "/storefront/payment/notify";
     /// <summary>Vehicle year/make/model catalog shell (UMAPI tree from PHP widget).</summary>
     public const string StorefrontVehicleCatalogApp = "/storefront/vehicle-catalog-app";
     /// <summary>Customer quotes list/detail digest (submit/accept remain PHP).</summary>
@@ -1940,7 +2132,7 @@ public static class EcomAeRoutes
     public const string StorefrontGarageSetActive = "/storefront/garage/set-active";
     /// <summary>Garage delete. <c>confirmWrites=true</c> is the live twin of PHP ajax_operations_cars.php action=delete_car.</summary>
     public const string StorefrontGarageDelete = "/storefront/garage/delete";
-    /// <summary>Wave B dry-run garage check_car toggle (PHP ajax_operations_cars.php action=check_car remains authoritative).</summary>
+    /// <summary>PHP <c>ajax_operations_cars.php</c> action <c>check_car</c> garage↔order toggle. <c>confirmWrites=true</c> writes ASP.NET.</summary>
     public const string StorefrontGarageCheckCar = "/storefront/garage/check-car";
     /// <summary>Signed-in checkout create. <c>confirmWrites=true</c> is the live twin of PHP ajax_checkout_create.php. Guest stays PHP.</summary>
     public const string StorefrontCheckoutCreate = "/storefront/checkout/create";

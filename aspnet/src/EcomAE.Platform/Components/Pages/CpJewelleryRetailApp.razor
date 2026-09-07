@@ -26,16 +26,42 @@
 
     <ErpPhpViewTabs QueryName="tab" Active="@_tab" BaseHref="@_tabBase" Tabs="@ErpJewelleryModuleChrome.RetailTabs" />
 
-    @if (_isAdmin && (_tab == "jw_retail_sales" || _tab == "jewellery" || _tab == "retail_commerce"))
+    @if (_isAdmin && (_tab == "jw_retail_sales" || _tab == "jewellery" || _tab == "retail_commerce" || _tab == "jw_metal_sales" || _tab == "jw_sales_return"))
     {
-        <ErpPhpCreateWell Title="New Invoice">
-            <form method="post" action="@EcomAeRoutes.ErpJewelleryModuleSaveForm" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+        <ErpPhpCreateWell Title="@(_tab == "jw_retail_sales" || _tab == "jewellery" || _tab == "retail_commerce" ? "New Invoice" : "New " + _spec.Label)">
+            <form method="post" action="@EcomAeRoutes.ErpJewelleryVoucherSaveForm" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+                <input type="hidden" name="confirmWrites" value="true" />
                 <input type="hidden" name="returnUrl" value="@_returnHere" />
-                <input type="hidden" name="action" value="jw_retail_sales_save" />
+                <input type="hidden" name="action" value="@RetailVoucherAction(_tab)" />
+                <input type="hidden" name="voc_type" value="@RetailVocType(_tab)" />
+                @if (_company > 0)
+                {
+                    <input type="hidden" name="company" value="@_company.ToString(CultureInfo.InvariantCulture)" />
+                }
                 <label>Customer <input class="form-control input-sm" name="customer_name" required /></label>
                 <label>Party / salesman <input class="form-control input-sm" name="code" /></label>
                 <label>Net Amt <input class="form-control input-sm" name="net_amount" type="number" step="0.01" value="0" /></label>
-                <button type="submit" class="btn btn-primary btn-sm">Save</button>
+                <button type="submit" class="btn btn-primary btn-sm">Save voucher</button>
+            </form>
+        </ErpPhpCreateWell>
+    }
+    else if (_isAdmin && _tab == "retail_barcode")
+    {
+        <ErpPhpCreateWell Title="Generate barcode">
+            <form method="post" action="@EcomAeRoutes.ErpJewelleryBarcodeGenerateForm" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="@_returnHere" />
+                @if (_company > 0)
+                {
+                    <input type="hidden" name="company" value="@_company.ToString(CultureInfo.InvariantCulture)" />
+                }
+                <label>Stock code <input class="form-control input-sm" name="stock_code" required placeholder="MST-001" maxlength="20" /></label>
+                <label>Division <input class="form-control input-sm" name="division" value="G" maxlength="2" style="width:4rem" /></label>
+                <label>Karat <input class="form-control input-sm" name="karat" value="22K" /></label>
+                <label>Gross wt <input class="form-control input-sm" name="gross_wt" type="number" step="0.0001" value="0" /></label>
+                <label>Purity <input class="form-control input-sm" name="purity" type="number" step="0.000001" value="0.916" /></label>
+                <label>Tag price <input class="form-control input-sm" name="tag_price" type="number" step="0.01" value="0" /></label>
+                <button type="submit" class="btn btn-primary btn-sm">Generate barcode</button>
             </form>
         </ErpPhpCreateWell>
     }
@@ -88,7 +114,7 @@
     </div>
 
     <div class="epc-erp-empty" style="display:block;margin-top:12px;padding:8px 10px;border:1px solid #c5d4de;background:#f8fafc;color:#475569;font-size:12px;">
-        Source: @_source. Retail vouchers bind from jewellery voucher digest. Form posts are dry-run — writes=0.
+        Source: @_source. Retail vouchers bind from <code>epc_jewel_voucher</code>. Voucher save is live when confirmed. Other retail forms stay dry-run.
         @if (!string.IsNullOrWhiteSpace(_message)) { <span> @_message</span> }
     </div>
 </PhpErpDesktopChrome>
@@ -109,6 +135,20 @@
     private string _err = "";
 
     private sealed record SaleRow(string No, string InvNo, string InvDate, string Customer, string Net, string Status);
+
+    private static string RetailVocType(string tab) => tab switch
+    {
+        "jw_metal_sales" => "MSI",
+        "jw_sales_return" => "SRN",
+        _ => "RSI"
+    };
+
+    private static string RetailVoucherAction(string tab) => tab switch
+    {
+        "jw_metal_sales" => "jw_metal_sale_save",
+        "jw_sales_return" => "jw_sales_return_save",
+        _ => "jw_retail_sale_save"
+    };
 
     protected override async Task OnInitializedAsync()
     {
@@ -138,7 +178,7 @@
         _summary = result.Summary;
         _source = result.Source;
         _message = result.Message;
-        var showVouchers = _tab is "jw_retail_sales" or "jewellery" or "retail_commerce";
+        var showVouchers = _tab is "jw_retail_sales" or "jewellery" or "retail_commerce" or "jw_metal_sales" or "jw_sales_return";
         _display = showVouchers
             ? result.Vouchers.Select((v, i) => new SaleRow(
             (i + 1).ToString(CultureInfo.InvariantCulture),

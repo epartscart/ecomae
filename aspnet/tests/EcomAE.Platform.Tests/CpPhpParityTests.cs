@@ -100,7 +100,7 @@ public sealed class CpPhpParityTests
     [InlineData("/CP/shop/onlajn-kassy", "/cp/kkt-app")]
     [InlineData("/CP/shop/perenos-dannyx", "/cp/data-transfer-app")]
     [InlineData("/CP/shop/orders/items", "/cp/orders")]
-    [InlineData("/CP/shop/orders/statuses", "/cp/orders")]
+    [InlineData("/CP/shop/orders/statuses", "/cp/order-statuses-app")]
     [InlineData("/CP/shop/orders/sao_states_statuses_link", "/cp/sao-app")]
     [InlineData("/CP/shop/prices/multivendor", "/cp/prices-upload-app")]
     [InlineData("/CP/control/shop/multivendor", "/cp/prices-upload-app")]

@@ -4,6 +4,7 @@
 @using EcomAE.Platform.Auth
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Routing
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
@@ -42,6 +43,19 @@
             <label>Comment <input type="text" name="comment" /></label>
             <button type="submit">Add office cash</button>
         </form>
+        <form method="post" action="/erp/offices-cash/codes/add" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 .65rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/erp/cash-accounts-app" />
+            <label>Office id <input type="number" name="officeId" min="1" required style="width:6rem" /></label>
+            <label>Income
+                <select name="income">
+                    <option value="1">In</option>
+                    <option value="0">Out</option>
+                </select>
+            </label>
+            <label>Name <input type="text" name="name" required maxlength="255" /></label>
+            <button type="submit">Add cash code</button>
+        </form>
         <form method="post" action="/erp/offices-cash/codes/delete" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
             <input type="hidden" name="returnUrl" value="/erp/cash-accounts-app" />
@@ -55,11 +69,24 @@
         <a href="/erp/cash-accounts-app">Cash &amp; bank</a>
         · <a href="/erp/cash-accounts-app?tab=bank_setup">Bank setup</a>
         · <a href="/erp/cash-accounts-app?tab=petty_cash">Petty cash</a>
+        · <a href="/erp/cash-accounts-app?tab=jw_petty_cash">Jewellery petty cash</a>
         · <a href="/erp/cash-accounts-app?tab=cash_forecast">Cash forecast</a>
     </p>
 
     @if (_view == "petty_cash")
     {
+        @if (_isAdmin)
+        {
+            <form method="post" action="@EcomAeRoutes.ErpJewelleryPettyCashSaveForm" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="/erp/cash-accounts-app?tab=jw_petty_cash" />
+                <label>Paid to <input type="text" name="paid_to" required maxlength="120" /></label>
+                <label>Account <input type="text" name="account_code" maxlength="20" placeholder="PETTY-CASH" /></label>
+                <label>Amount <input type="number" name="total" step="0.01" value="0" style="width:6rem" /></label>
+                <label>Narration <input type="text" name="narration" maxlength="200" /></label>
+                <button type="submit">Save petty cash</button>
+            </form>
+        }
         <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Petty cash KPIs">
             <div class="kpi"><div class="lbl">Active floats</div><div class="val">@_floats.Count.ToString(CultureInfo.InvariantCulture)</div></div>
             <div class="kpi"><div class="lbl">Float total</div><div class="val">@_floats.Sum(f => f.FloatAmount).ToString("N2", CultureInfo.InvariantCulture)</div></div>

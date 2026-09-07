@@ -44,7 +44,8 @@
         <p>@CpPhpModuleCopy.PurposeFor(Nav.Uri)</p>
         <div class="epc-nw-cta">
             <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
-            <a class="ghost" href="/cp/accessories/photos">Photos dry-run</a>
+            <a class="ghost" href="#listings">Listings</a>
+            <a class="ghost" href="#photos">Photos</a>
         </div>
     </section>
     <PhpParityModuleBody AppPath="/cp/accessories-app" IsAdmin="_isAdmin" />
@@ -94,7 +95,125 @@
     </table>
     </div>
 
-    <div class="epc-nw-note">Listings are read-only here. Photo upload/delete use accessories photos dry-run; PHP accessories remains authoritative for writes.</div>
+    <form id="listings" method="post" action="/cp/accessories/listings/write" style="display:flex;flex-direction:column;gap:.45rem;margin:1rem 0;max-width:52rem">
+        <input type="hidden" name="confirmWrites" value="true" />
+        <input type="hidden" name="returnUrl" value="/cp/accessories-app" />
+        <input type="hidden" name="action" value="save" />
+        <div style="display:flex;flex-wrap:wrap;gap:.45rem;align-items:end">
+            <label>Listing id <input type="number" name="listingId" min="0" value="0" style="width:6rem" title="0 = create" /></label>
+            <label>Category id <input type="number" name="categoryId" min="1" required style="width:6rem" /></label>
+            <label>Subcategory id <input type="number" name="subcategoryId" min="0" value="0" style="width:6rem" /></label>
+            <label>Title <input type="text" name="title" required /></label>
+            <label>Make <input type="text" name="make" /></label>
+            <label>Model <input type="text" name="model" /></label>
+            <label>Price <input type="number" name="price" min="0" step="0.01" value="0" style="width:7rem" /></label>
+            <label>Status
+                <select name="status">
+                    <option value="published">published</option>
+                    <option value="draft">draft</option>
+                </select>
+            </label>
+        </div>
+        <label>Description <input type="text" name="description" style="width:100%" /></label>
+        <button type="submit">Save listing</button>
+    </form>
+    <form method="post" action="/cp/accessories/listings/write" style="display:flex;flex-wrap:wrap;gap:.45rem;align-items:end;margin:0 0 1rem;max-width:52rem">
+        <input type="hidden" name="confirmWrites" value="true" />
+        <input type="hidden" name="returnUrl" value="/cp/accessories-app" />
+        <input type="hidden" name="action" value="set_status" />
+        <label>Listing id <input type="number" name="listingId" min="1" required style="width:6rem" /></label>
+        <label>Status
+            <select name="status">
+                <option value="published">published</option>
+                <option value="draft">draft</option>
+            </select>
+        </label>
+        <button type="submit">Set listing status</button>
+    </form>
+    <form method="post" action="/cp/accessories/listings/write" style="display:flex;flex-wrap:wrap;gap:.45rem;align-items:end;margin:0 0 1rem;max-width:52rem">
+        <input type="hidden" name="confirmWrites" value="true" />
+        <input type="hidden" name="returnUrl" value="/cp/accessories-app" />
+        <input type="hidden" name="action" value="delete" />
+        <label>Listing id <input type="number" name="listingId" min="1" required style="width:6rem" /></label>
+        <button type="submit">Delete listing</button>
+    </form>
+
+    <form id="taxonomy" method="post" action="/cp/accessories/taxonomy/write" style="display:flex;flex-wrap:wrap;gap:.45rem;align-items:end;margin:1rem 0;max-width:52rem">
+        <input type="hidden" name="confirmWrites" value="true" />
+        <input type="hidden" name="returnUrl" value="/cp/accessories-app" />
+        <input type="hidden" name="action" value="save_category" />
+        <label>Category id <input type="number" name="id" min="0" value="0" style="width:6rem" title="0 = create" /></label>
+        <label>Parent id <input type="number" name="parentId" min="0" value="0" style="width:6rem" /></label>
+        <label>Label <input type="text" name="label" required /></label>
+        <button type="submit">Save category</button>
+    </form>
+    <form method="post" action="/cp/accessories/taxonomy/write" style="display:flex;flex-wrap:wrap;gap:.45rem;align-items:end;margin:0 0 1rem;max-width:52rem">
+        <input type="hidden" name="confirmWrites" value="true" />
+        <input type="hidden" name="returnUrl" value="/cp/accessories-app" />
+        <input type="hidden" name="action" value="set_category_active" />
+        <label>Category id <input type="number" name="id" min="1" required style="width:6rem" /></label>
+        <label>Active <input type="checkbox" name="active" value="1" checked /></label>
+        <button type="submit">Set category active</button>
+    </form>
+    <form method="post" action="/cp/accessories/taxonomy/write" style="display:flex;flex-wrap:wrap;gap:.45rem;align-items:end;margin:0 0 1rem;max-width:52rem">
+        <input type="hidden" name="confirmWrites" value="true" />
+        <input type="hidden" name="returnUrl" value="/cp/accessories-app" />
+        <input type="hidden" name="action" value="delete_category" />
+        <label>Category id <input type="number" name="id" min="1" required style="width:6rem" /></label>
+        <button type="submit">Delete category</button>
+    </form>
+    <form method="post" action="/cp/accessories/taxonomy/write" style="display:flex;flex-wrap:wrap;gap:.45rem;align-items:end;margin:0 0 1rem;max-width:52rem">
+        <input type="hidden" name="confirmWrites" value="true" />
+        <input type="hidden" name="returnUrl" value="/cp/accessories-app" />
+        <input type="hidden" name="action" value="save_term" />
+        <label>Term id <input type="number" name="id" min="0" value="0" style="width:6rem" title="0 = create" /></label>
+        <label>Type <input type="text" name="termType" value="make" required style="width:8rem" /></label>
+        <label>Label <input type="text" name="label" required /></label>
+        <button type="submit">Save term</button>
+    </form>
+    <form method="post" action="/cp/accessories/taxonomy/write" style="display:flex;flex-wrap:wrap;gap:.45rem;align-items:end;margin:0 0 1rem;max-width:52rem">
+        <input type="hidden" name="confirmWrites" value="true" />
+        <input type="hidden" name="returnUrl" value="/cp/accessories-app" />
+        <input type="hidden" name="action" value="set_term_active" />
+        <label>Term id <input type="number" name="id" min="1" required style="width:6rem" /></label>
+        <label>Active <input type="checkbox" name="active" value="1" checked /></label>
+        <button type="submit">Set term active</button>
+    </form>
+    <form method="post" action="/cp/accessories/taxonomy/write" style="display:flex;flex-wrap:wrap;gap:.45rem;align-items:end;margin:0 0 1rem;max-width:52rem">
+        <input type="hidden" name="confirmWrites" value="true" />
+        <input type="hidden" name="returnUrl" value="/cp/accessories-app" />
+        <input type="hidden" name="action" value="delete_term" />
+        <label>Term id <input type="number" name="id" min="1" required style="width:6rem" /></label>
+        <button type="submit">Delete term</button>
+    </form>
+
+    <form id="photos" method="post" action="/cp/accessories/photos" style="display:flex;flex-wrap:wrap;gap:.45rem;align-items:end;margin:1rem 0;max-width:52rem">
+        <input type="hidden" name="confirmWrites" value="true" />
+        <input type="hidden" name="returnUrl" value="/cp/accessories-app" />
+        <input type="hidden" name="action" value="upload" />
+        <label>Listing id <input type="number" name="listingId" min="1" required style="width:6rem" /></label>
+        <label>Image name <input type="text" name="fileName" placeholder="acc-cover.png" required /></label>
+        <label>Primary <input type="checkbox" name="asPrimary" value="1" /></label>
+        <button type="submit">Save photo</button>
+    </form>
+    <form method="post" action="/cp/accessories/photos" style="display:flex;flex-wrap:wrap;gap:.45rem;align-items:end;margin:0 0 1rem;max-width:52rem">
+        <input type="hidden" name="confirmWrites" value="true" />
+        <input type="hidden" name="returnUrl" value="/cp/accessories-app" />
+        <input type="hidden" name="action" value="set_primary" />
+        <label>Listing id <input type="number" name="listingId" min="1" required style="width:6rem" /></label>
+        <label>Photo id <input type="number" name="photoId" min="1" required style="width:6rem" /></label>
+        <button type="submit">Set primary photo</button>
+    </form>
+    <form method="post" action="/cp/accessories/photos" style="display:flex;flex-wrap:wrap;gap:.45rem;align-items:end;margin:0 0 1rem;max-width:52rem">
+        <input type="hidden" name="confirmWrites" value="true" />
+        <input type="hidden" name="returnUrl" value="/cp/accessories-app" />
+        <input type="hidden" name="action" value="delete" />
+        <label>Listing id <input type="number" name="listingId" min="1" required style="width:6rem" /></label>
+        <label>Photo id <input type="number" name="photoId" min="1" required style="width:6rem" /></label>
+        <button type="submit">Delete photo</button>
+    </form>
+
+    <div class="epc-nw-note">Listing save/status/delete, photo filename attach, and taxonomy write here. Multipart photo bytes stay Classic.</div>
 
 </PhpCpDesktopChrome>
 

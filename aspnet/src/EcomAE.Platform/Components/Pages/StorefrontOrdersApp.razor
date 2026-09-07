@@ -177,13 +177,18 @@
                     ·
                     <a href="@StorefrontAspNetCanonical.CustomerReturns">Return</a>
                     ·
-                    <a href="@StorefrontAspNetCanonical.Payment">Pay</a>
+                    <a href="@(StorefrontAspNetCanonical.Payment + "?order_id=" + _selected.Id.ToString(CultureInfo.InvariantCulture))">Pay</a>
                 </p>
-                <form method="post" action="@PhpCustomerWrites.OrderWriteHref" style="margin-bottom:1rem">
-                    <input type="hidden" name="order_id" value="@_selected.Id.ToString(CultureInfo.InvariantCulture)" />
-                    <input type="hidden" name="action" value="pay_on_place" />
-                    <button type="submit" style="padding:.55rem .9rem;border:0;border-radius:.4rem;background:#0f766e;color:#fff;font-weight:800;cursor:pointer">Pay on collection</button>
-                </form>
+                @if (_selected.Paid != 1)
+                {
+                    <form method="post" action="/storefront/payment/create-operation" style="margin-bottom:1rem">
+                        <input type="hidden" name="confirmWrites" value="true" />
+                        <input type="hidden" name="order_id" value="@_selected.Id.ToString(CultureInfo.InvariantCulture)" />
+                        <input type="hidden" name="pay_handler" value="epc_demo" />
+                        <label>Amount <input type="number" step="0.01" min="0.01" name="amount" required style="width:8rem" /></label>
+                        <button type="submit" style="padding:.55rem .9rem;border:0;border-radius:.4rem;background:#0f766e;color:#fff;font-weight:800;cursor:pointer">Pay now</button>
+                    </form>
+                }
                 @if (_messages.Count > 0)
                 {
                     <h3 style="margin:0 0 .45rem;font-size:.95rem">Messages</h3>
@@ -199,6 +204,13 @@
                         }
                     </ul>
                 }
+                <form method="post" action="@PhpCustomerWrites.GarageCheckCarHref" style="margin-bottom:1rem">
+                    <input type="hidden" name="confirmWrites" value="true" />
+                    <input type="hidden" name="returnUrl" value="@("/storefront/orders-app?order_id=" + _selected.Id.ToString(CultureInfo.InvariantCulture))" />
+                    <input type="hidden" name="orderId" value="@_selected.Id.ToString(CultureInfo.InvariantCulture)" />
+                    <label>Garage car id <input type="number" name="carId" required style="width:8rem" /></label>
+                    <button type="submit" style="padding:.45rem .75rem;border:0;border-radius:.4rem;background:#a16207;color:#fff;font-weight:800;cursor:pointer">Link / unlink car</button>
+                </form>
                 <form method="post" action="@PhpCustomerWrites.OrderMessageHref">
                     <input type="hidden" name="confirmWrites" value="true" />
                     <input type="hidden" name="returnUrl" value="@("/storefront/orders-app?order_id=" + _selected.Id.ToString(CultureInfo.InvariantCulture))" />

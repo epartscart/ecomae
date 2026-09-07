@@ -50,7 +50,7 @@
         <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
         <h1>Storages</h1>
         <p>@CpPhpModuleCopy.PurposeFor(Nav.Uri)</p>
-        <p>Add or delete a warehouse group here. Warehouse create and membership UI stay on the compare twin.</p>
+        <p>Add or delete a warehouse group, create or edit a warehouse, and save office membership here.</p>
         <div class="epc-st-cta">
             <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
             <a class="ghost" href="/cp/currencies-app">Currencies list</a>
@@ -84,6 +84,46 @@
             <input type="hidden" name="action" value="del" />
             <label>Group id <input type="number" name="id" min="1" required style="width:6rem" /></label>
             <button type="submit">Delete group</button>
+        </form>
+        <form method="post" action="/cp/storages/write" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 .65rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/storages-app" />
+            <input type="hidden" name="action" value="create" />
+            <label>Name <input type="text" name="name" required maxlength="255" /></label>
+            <label>Short name <input type="text" name="shortName" maxlength="64" /></label>
+            <label>Currency id <input type="number" name="currency" min="1" value="1" style="width:5rem" /></label>
+            <label>Interface <input type="number" name="interfaceType" min="1" value="1" style="width:5rem" /></label>
+            <label>Storekeepers <input type="text" name="users" placeholder="1,2" /></label>
+            <label>Hidden
+                <select name="hidden">
+                    <option value="0" selected>No</option>
+                    <option value="1">Yes</option>
+                </select>
+            </label>
+            <button type="submit">Create warehouse</button>
+        </form>
+        <form method="post" action="/cp/storages/write" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/storages-app" />
+            <input type="hidden" name="action" value="edit" />
+            <label>Warehouse id <input type="number" name="storageId" min="1" required style="width:6rem" /></label>
+            <label>Name <input type="text" name="name" required maxlength="255" /></label>
+            <label>Short name <input type="text" name="shortName" maxlength="64" /></label>
+            <label>Hidden
+                <select name="hidden">
+                    <option value="0">No</option>
+                    <option value="1">Yes</option>
+                </select>
+            </label>
+            <button type="submit">Save warehouse</button>
+        </form>
+        <form method="post" action="/cp/storages/membership" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/storages-app" />
+            <label>Office id <input type="number" name="officeId" min="1" required value="1" style="width:6rem" /></label>
+            <label>Membership JSON <input type="text" name="storagesList" required style="width:28rem" placeholder='[{"id":1,"checked":true,"time_to_shop":0,"groups":[{"id":2,"prices_ranges":[{"max_point":-1,"markup":0}]}]}]' /></label>
+            <button type="submit">Save membership</button>
+            <a class="btn btn-default btn-xs" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref("/CP/shop/logistics/offices/office/storages_link")">Classic twin</a>
         </form>
     }
 

@@ -5,6 +5,7 @@
 @using EcomAE.Platform.Auth
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Routing
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
@@ -54,6 +55,30 @@
     </section>
     <PhpParityModuleBody AppPath="/cp/uae-tax-compliance-app" IsAdmin="_isAdmin" />
 
+    @if (!string.IsNullOrWhiteSpace(_flashOk))
+    {
+        <div class="alert alert-success" role="status" style="margin:0 0 1rem;padding:.7rem .9rem;border-radius:.4rem;background:#ecfdf5;color:#065f46">@_flashOk</div>
+    }
+    @if (!string.IsNullOrWhiteSpace(_flashErr))
+    {
+        <div class="alert alert-danger" role="status" style="margin:0 0 1rem;padding:.7rem .9rem;border-radius:.4rem;background:#fef2f2;color:#991b1b">@_flashErr</div>
+    }
+
+    @if (_isAdmin && _tab == "jw_tourist_vat")
+    {
+        <form method="post" action="@EcomAeRoutes.ErpJewelleryTouristVatSaveForm" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/uae-tax-compliance-app?tab=jw_tourist_vat" />
+            <label>Tourist name <input type="text" name="tourist_name" required maxlength="120" /></label>
+            <label>Passport <input type="text" name="passport_no" maxlength="20" /></label>
+            <label>Nationality <input type="text" name="nationality" maxlength="50" /></label>
+            <label>Invoice no <input type="text" name="invoice_no" maxlength="30" /></label>
+            <label>VAT <input type="number" name="total_vat" step="0.01" value="0" style="width:6rem" /></label>
+            <label>Refund <input type="number" name="refund_amount" step="0.01" value="0" style="width:6rem" /></label>
+            <button type="submit">Save tourist VAT</button>
+        </form>
+        <p class="text-muted" style="margin:0 0 1rem;">Jewellery tourist VAT save is live when confirmed. Writes <code>epc_jewel_tourist_vat_refund</code>.</p>
+    }
 
     <div class="epc-uae-kpis" aria-label="UAE tax stats">
         <div class="epc-uae-kpi"><strong>@_summary.LegislationCount.ToString(CultureInfo.InvariantCulture)</strong><span>Legislation items</span></div>
@@ -109,6 +134,9 @@
 @code {
     private const string _phpTab = "/CP/shop/finance/erp/uae-tax-compliance?epc_erp_shell=1";
     private bool _isAdmin;
+    private string _tab = "";
+    private string _flashOk = "";
+    private string _flashErr = "";
     private CpUaeTaxComplianceSummary _summary = new(0, 0, 0, "n/a", "");
     private IReadOnlyList<CpUaeTaxItemDigest> _items = [];
     private string _source = "n/a";
@@ -118,6 +146,10 @@
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
+
+        _tab = (ctx.Request.Query["tab"].ToString() ?? "").Trim();
+        _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
+        _flashErr = ctx.Request.Query["err"].ToString() ?? "";
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);

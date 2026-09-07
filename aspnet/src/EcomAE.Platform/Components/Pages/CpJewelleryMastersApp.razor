@@ -30,7 +30,12 @@
     {
         <ErpPhpCreateWell Title="Add / Edit Karat">
             <form method="post" action="@EcomAeRoutes.ErpJewelleryKaratSaveForm" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+                <input type="hidden" name="confirmWrites" value="true" />
                 <input type="hidden" name="returnUrl" value="@_returnHere" />
+                @if (_company > 0)
+                {
+                    <input type="hidden" name="company" value="@_company.ToString(CultureInfo.InvariantCulture)" />
+                }
                 <label>Karat Code <input class="form-control input-sm" name="karat_code" required placeholder="22" /></label>
                 <label>Description <input class="form-control input-sm" name="description" placeholder="22 Karat" /></label>
                 <label>Division
@@ -44,7 +49,7 @@
                 <label>Range From <input class="form-control input-sm" name="range_from" type="number" step="0.000001" value="0.916000" /></label>
                 <label>Range To <input class="form-control input-sm" name="range_to" type="number" step="0.000001" value="0.918000" /></label>
                 <label>Sp Gravity <input class="form-control input-sm" name="sp_gravity" type="number" step="0.0001" value="0" /></label>
-                <button type="submit" class="btn btn-primary btn-sm">Save</button>
+                <button type="submit" class="btn btn-primary btn-sm">Save karat</button>
             </form>
         </ErpPhpCreateWell>
         @if (_rows.Count == 0)
@@ -71,7 +76,269 @@
                 <button type="submit" class="btn btn-success btn-sm">Refresh rates</button>
             </form>
         </ErpPhpCreateWell>
-        <p class="text-muted">Live rates bind when the shop gold-rate board is configured. Demo figures from the PHP sample page are not shown as KPIs.</p>
+        <ErpPhpCreateWell Title="Set manual rate">
+            <form method="post" action="/erp/gold-rate/set" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="@_returnHere" />
+                <input type="hidden" name="source" value="manual" />
+                <label>Karat <input class="form-control input-sm" name="karat" value="24K" /></label>
+                <label>Currency <input class="form-control input-sm" name="currency" value="AED" maxlength="3" /></label>
+                <label>Buy <input class="form-control input-sm" name="buy_rate" type="number" step="0.0001" min="0" /></label>
+                <label>Sell <input class="form-control input-sm" name="sell_rate" type="number" step="0.0001" min="0" /></label>
+                <label>Unit
+                    <select class="form-control input-sm" name="unit">
+                        <option value="gram">gram</option>
+                        <option value="ounce">ounce</option>
+                        <option value="tola">tola</option>
+                        <option value="kg">kg</option>
+                    </select>
+                </label>
+                <button type="submit" class="btn btn-primary btn-sm">Set rate</button>
+            </form>
+        </ErpPhpCreateWell>
+        <p class="text-muted">Manual set writes here. Live API refresh stays on Classic ERP.</p>
+    }
+    else if (_isAdmin && _tab == "gold_scheme")
+    {
+        <ErpPhpCreateWell Title="Create scheme">
+            <form method="post" action="@EcomAeRoutes.ErpJewelleryGoldSchemeCreateForm" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="@_returnHere" />
+                @if (_company > 0)
+                {
+                    <input type="hidden" name="company" value="@_company.ToString(CultureInfo.InvariantCulture)" />
+                }
+                <label>Scheme code <input class="form-control input-sm" name="scheme_code" required placeholder="GS-11" maxlength="32" /></label>
+                <label>Name <input class="form-control input-sm" name="scheme_name" placeholder="11-month value" /></label>
+                <label>Type
+                    <select class="form-control input-sm" name="scheme_type">
+                        <option value="value">Value</option>
+                        <option value="gram">Gram</option>
+                    </select>
+                </label>
+                <label>Months <input class="form-control input-sm" name="maturity_months" type="number" min="1" value="11" /></label>
+                <label>Bonus
+                    <select class="form-control input-sm" name="bonus_type">
+                        <option value="free_month">Free month</option>
+                        <option value="free_making">Free making</option>
+                        <option value="discount_pct">Discount %</option>
+                        <option value="bonus_gram">Bonus gram</option>
+                        <option value="none">None</option>
+                    </select>
+                </label>
+                <label>Min instalment <input class="form-control input-sm" name="min_installment" type="number" step="0.01" value="500" /></label>
+                <button type="submit" class="btn btn-primary btn-sm">Create scheme</button>
+            </form>
+        </ErpPhpCreateWell>
+        <ErpPhpCreateWell Title="Enroll customer">
+            <form method="post" action="@EcomAeRoutes.ErpJewelleryGoldSchemeEnrollForm" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="@_returnHere" />
+                <label>Scheme id <input class="form-control input-sm" name="scheme_id" type="number" min="1" required /></label>
+                <label>Customer <input class="form-control input-sm" name="customer_name" placeholder="Aisha" /></label>
+                <label>Instalment <input class="form-control input-sm" name="installment_amount" type="number" step="0.01" value="0" /></label>
+                <label>Start date <input class="form-control input-sm" name="start_date" type="date" /></label>
+                <button type="submit" class="btn btn-primary btn-sm">Enroll customer</button>
+            </form>
+        </ErpPhpCreateWell>
+        <ErpPhpCreateWell Title="Pay instalment">
+            <form method="post" action="@EcomAeRoutes.ErpJewelleryGoldSchemePayForm" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="@_returnHere" />
+                <label>Enrollment id <input class="form-control input-sm" name="enrollment_id" type="number" min="1" required /></label>
+                <label>Amount <input class="form-control input-sm" name="amount" type="number" step="0.01" value="0" /></label>
+                <label>Mode <input class="form-control input-sm" name="payment_mode" value="cash" /></label>
+                <label>Gold rate <input class="form-control input-sm" name="gold_rate" type="number" step="0.0001" value="0" /></label>
+                <label>Receipt <input class="form-control input-sm" name="receipt_no" /></label>
+                <button type="submit" class="btn btn-primary btn-sm">Pay instalment</button>
+            </form>
+        </ErpPhpCreateWell>
+    }
+    else if (_isAdmin && _tab == "jw_rate_type")
+    {
+        <ErpPhpCreateWell Title="Add / Edit Rate type">
+            <form method="post" action="@EcomAeRoutes.ErpJewelleryRateTypeSaveForm" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="@_returnHere" />
+                @if (_company > 0)
+                {
+                    <input type="hidden" name="company" value="@_company.ToString(CultureInfo.InvariantCulture)" />
+                }
+                <label>Metal
+                    <select class="form-control input-sm" name="metal">
+                        <option value="G">G Gold</option>
+                        <option value="S">S Silver</option>
+                        <option value="T">T Platinum</option>
+                    </select>
+                </label>
+                <label>Rate type <input class="form-control input-sm" name="rate_type" required placeholder="GMS" /></label>
+                <label>Currency <input class="form-control input-sm" name="currency" value="AED" style="width:70px;" /></label>
+                <label>Conv factor <input class="form-control input-sm" name="conv_factor" type="number" step="0.000001" value="1" /></label>
+                <label>Conv oz <input class="form-control input-sm" name="conv_factor_oz" type="number" step="0.0001" value="31.1035" /></label>
+                <button type="submit" class="btn btn-primary btn-sm">Save rate type</button>
+            </form>
+        </ErpPhpCreateWell>
+    }
+    else if (_isAdmin && _tab == "jw_currency")
+    {
+        <ErpPhpCreateWell Title="Add / Edit Currency">
+            <form method="post" action="@EcomAeRoutes.ErpJewelleryCurrencySaveForm" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="@_returnHere" />
+                @if (_company > 0)
+                {
+                    <input type="hidden" name="company" value="@_company.ToString(CultureInfo.InvariantCulture)" />
+                }
+                <label>Currency code <input class="form-control input-sm" name="curr_code" required placeholder="AED" maxlength="5" /></label>
+                <label>Description <input class="form-control input-sm" name="description" placeholder="U.A.E. Dirhams" /></label>
+                <label>Fraction <input class="form-control input-sm" name="fraction" placeholder="FILLS" /></label>
+                <label>Symbol <input class="form-control input-sm" name="symbol" placeholder="Dh" style="width:70px;" /></label>
+                <label>Conv rate <input class="form-control input-sm" name="conv_rate" type="number" step="0.000001" value="1" /></label>
+                <label>Min conv <input class="form-control input-sm" name="min_conv_rate" type="number" step="0.000001" value="1" /></label>
+                <label>Max conv <input class="form-control input-sm" name="max_conv_rate" type="number" step="0.000001" value="1" /></label>
+                <button type="submit" class="btn btn-primary btn-sm">Save currency</button>
+            </form>
+        </ErpPhpCreateWell>
+    }
+    else if (_isAdmin && _tab == "jw_diamond")
+    {
+        <ErpPhpCreateWell Title="Add / Edit Diamond">
+            <form method="post" action="@EcomAeRoutes.ErpJewelleryDiamondSaveForm" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="@_returnHere" />
+                @if (_company > 0)
+                {
+                    <input type="hidden" name="company" value="@_company.ToString(CultureInfo.InvariantCulture)" />
+                }
+                <label>Item code <input class="form-control input-sm" name="item_code" required placeholder="DIA-001" maxlength="20" /></label>
+                <label>Description <input class="form-control input-sm" name="description" placeholder="Round brilliant" /></label>
+                <label>Design <input class="form-control input-sm" name="design" /></label>
+                <label>Category <input class="form-control input-sm" name="category" /></label>
+                <label>Color <input class="form-control input-sm" name="color" placeholder="G" /></label>
+                <label>Clarity <input class="form-control input-sm" name="clarity" placeholder="VS1" /></label>
+                <label>Currency <input class="form-control input-sm" name="currency" value="AED" style="width:70px;" /></label>
+                <label>Cost <input class="form-control input-sm" name="cost_amount" type="number" step="0.01" value="0" /></label>
+                <label>Gross wt <input class="form-control input-sm" name="item_gr_wt" type="number" step="0.0001" value="0" /></label>
+                <button type="submit" class="btn btn-primary btn-sm">Save diamond</button>
+            </form>
+        </ErpPhpCreateWell>
+    }
+    else if (_isAdmin && _tab == "jw_design")
+    {
+        <ErpPhpCreateWell Title="Add / Edit Design">
+            <form method="post" action="@EcomAeRoutes.ErpJewelleryDesignSaveForm" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="@_returnHere" />
+                @if (_company > 0)
+                {
+                    <input type="hidden" name="company" value="@_company.ToString(CultureInfo.InvariantCulture)" />
+                }
+                <label>Design code <input class="form-control input-sm" name="design_code" required placeholder="DSN-001" maxlength="20" /></label>
+                <label>Description <input class="form-control input-sm" name="description" placeholder="Solitaire ring" /></label>
+                <label>Category <input class="form-control input-sm" name="category" /></label>
+                <label>Type <input class="form-control input-sm" name="type" /></label>
+                <label>Currency <input class="form-control input-sm" name="currency" value="AED" style="width:70px;" /></label>
+                <label>Cost <input class="form-control input-sm" name="cost_amount" type="number" step="0.01" value="0" /></label>
+                <button type="submit" class="btn btn-primary btn-sm">Save design</button>
+            </form>
+        </ErpPhpCreateWell>
+    }
+    else if (_isAdmin && _tab == "jw_pearl")
+    {
+        <ErpPhpCreateWell Title="Add / Edit Pearl">
+            <form method="post" action="@EcomAeRoutes.ErpJewelleryPearlSaveForm" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="@_returnHere" />
+                @if (_company > 0)
+                {
+                    <input type="hidden" name="company" value="@_company.ToString(CultureInfo.InvariantCulture)" />
+                }
+                <label>Pearl code <input class="form-control input-sm" name="code" required placeholder="PRL-001" maxlength="20" /></label>
+                <label>Description <input class="form-control input-sm" name="description" placeholder="Akoya" /></label>
+                <label>Nature <input class="form-control input-sm" name="nature" value="Cultured" /></label>
+                <label>Type <input class="form-control input-sm" name="type" /></label>
+                <label>Size <input class="form-control input-sm" name="size" /></label>
+                <label>Country <input class="form-control input-sm" name="country" /></label>
+                <label>Currency <input class="form-control input-sm" name="currency" value="AED" style="width:70px;" /></label>
+                <label>Cost <input class="form-control input-sm" name="cost_amount" type="number" step="0.01" value="0" /></label>
+                <button type="submit" class="btn btn-primary btn-sm">Save pearl</button>
+            </form>
+        </ErpPhpCreateWell>
+    }
+    else if (_isAdmin && _tab == "jw_color_stone")
+    {
+        <ErpPhpCreateWell Title="Add / Edit Color stone">
+            <form method="post" action="@EcomAeRoutes.ErpJewelleryColorStoneSaveForm" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="@_returnHere" />
+                @if (_company > 0)
+                {
+                    <input type="hidden" name="company" value="@_company.ToString(CultureInfo.InvariantCulture)" />
+                }
+                <label>Item code <input class="form-control input-sm" name="item_code" required placeholder="CST-001" maxlength="20" /></label>
+                <label>Description <input class="form-control input-sm" name="description" placeholder="Ruby oval" /></label>
+                <label>Stone <input class="form-control input-sm" name="stone_type" value="Ruby" /></label>
+                <label>Shape <input class="form-control input-sm" name="shape" value="Round" /></label>
+                <label>Clarity <input class="form-control input-sm" name="clarity" value="VS" /></label>
+                <label>Size <input class="form-control input-sm" name="size" /></label>
+                <label>Color <input class="form-control input-sm" name="color" /></label>
+                <label>Origin <input class="form-control input-sm" name="origin" /></label>
+                <button type="submit" class="btn btn-primary btn-sm">Save color stone</button>
+            </form>
+        </ErpPhpCreateWell>
+    }
+    else if (_isAdmin && _tab == "jewellery_tag")
+    {
+        <ErpPhpCreateWell Title="Create tag">
+            <form method="post" action="@EcomAeRoutes.ErpJewelleryTagCreateForm" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="@_returnHere" />
+                @if (_company > 0)
+                {
+                    <input type="hidden" name="company" value="@_company.ToString(CultureInfo.InvariantCulture)" />
+                }
+                <label>TAG # <input class="form-control input-sm" name="tag_no" placeholder="auto" maxlength="50" /></label>
+                <label>Description <input class="form-control input-sm" name="description" required placeholder="22K bangle" maxlength="500" /></label>
+                <label>Category <input class="form-control input-sm" name="category" placeholder="Bangle" /></label>
+                <label>Karat <input class="form-control input-sm" name="karat" value="22K" /></label>
+                <label>Gross wt <input class="form-control input-sm" name="gross_weight" type="number" step="0.001" value="0" /></label>
+                <label>Net wt <input class="form-control input-sm" name="net_weight" type="number" step="0.001" value="0" /></label>
+                <label>Stone wt <input class="form-control input-sm" name="stone_weight" type="number" step="0.001" value="0" /></label>
+                <label>Cost <input class="form-control input-sm" name="cost_price" type="number" step="0.01" value="0" /></label>
+                <label>Location <input class="form-control input-sm" name="location" value="showroom" /></label>
+                <button type="submit" class="btn btn-primary btn-sm">Create tag</button>
+            </form>
+        </ErpPhpCreateWell>
+        <ErpPhpCreateWell Title="Sell tag">
+            <form method="post" action="@EcomAeRoutes.ErpJewelleryTagSellForm" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="@_returnHere" />
+                <label>Tag id <input class="form-control input-sm" name="tag_id" type="number" min="1" required /></label>
+                <label>Invoice id <input class="form-control input-sm" name="invoice_id" type="number" min="0" value="0" /></label>
+                <label>Salesman id <input class="form-control input-sm" name="salesman_id" type="number" min="0" value="0" /></label>
+                <button type="submit" class="btn btn-primary btn-sm">Sell tag</button>
+            </form>
+        </ErpPhpCreateWell>
+    }
+    else if (_isAdmin && _tab == "jw_barcode")
+    {
+        <ErpPhpCreateWell Title="Generate barcode">
+            <form method="post" action="@EcomAeRoutes.ErpJewelleryBarcodeGenerateForm" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="@_returnHere" />
+                @if (_company > 0)
+                {
+                    <input type="hidden" name="company" value="@_company.ToString(CultureInfo.InvariantCulture)" />
+                }
+                <label>Stock code <input class="form-control input-sm" name="stock_code" required placeholder="MST-001" maxlength="20" /></label>
+                <label>Division <input class="form-control input-sm" name="division" value="G" maxlength="2" style="width:4rem" /></label>
+                <label>Karat <input class="form-control input-sm" name="karat" value="22K" /></label>
+                <label>Gross wt <input class="form-control input-sm" name="gross_wt" type="number" step="0.0001" value="0" /></label>
+                <label>Purity <input class="form-control input-sm" name="purity" type="number" step="0.000001" value="0.916" /></label>
+                <label>Tag price <input class="form-control input-sm" name="tag_price" type="number" step="0.01" value="0" /></label>
+                <button type="submit" class="btn btn-primary btn-sm">Generate barcode</button>
+            </form>
+        </ErpPhpCreateWell>
     }
     else if (_isAdmin && _tab == "jw_seed_data")
     {
@@ -129,7 +396,7 @@
     </div>
 
     <div class="epc-erp-empty" style="display:block;margin-top:12px;padding:8px 10px;border:1px solid #c5d4de;background:#f8fafc;color:#475569;font-size:12px;">
-        Source: @_source. Karat rows bind from <code>epc_jewel_karat_master</code>. Form posts are dry-run — writes=0.
+        Source: @_source. Karat rows bind from <code>epc_jewel_karat_master</code>. Karat, rate-type, currency, diamond, design, pearl, color-stone, barcode generate, tag create/sell, and gold-scheme create/enroll/pay are live when confirmed. Seed and gold-rate refresh stay Classic.
         @if (!string.IsNullOrWhiteSpace(_message)) { <span> @_message</span> }
     </div>
 </PhpErpDesktopChrome>

@@ -21,7 +21,7 @@
 
 
     <PhpCpModulePageHeader Title="Content Pages"
-                           Subtitle="Publish and main-page flags write here. Body/HTML editor stays on the classic twin.">
+                           Subtitle="Publish, main-page, body, page create/edit, and tree save write here. TinyMCE image upload stays on the Classic twin.">
         <a class="ghost" href="/cp/menus-app">Menus</a>
         <a class="ghost" href="/cp/modules-app">Modules</a>
         <a class="ghost" href="/cp/page-builder-app">Page builder</a>
@@ -56,6 +56,74 @@
             <label>Page id <input type="number" name="contentId" min="1" required style="width:6rem" /></label>
             <button type="submit">Set as main page</button>
         </form>
+        <form method="post" action="/cp/content/body" style="display:flex;flex-direction:column;gap:.45rem;margin:0 0 1rem;max-width:52rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/pages-app" />
+            <input type="hidden" name="langCode" value="en" />
+            <div style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end">
+                <label>Page id <input type="number" name="contentId" min="1" required style="width:6rem" value="@(_selectedId > 0 ? _selectedId.ToString(CultureInfo.InvariantCulture) : "")" /></label>
+                <label>Type
+                    <select name="contentType">
+                        <option value="text">text</option>
+                        <option value="php">php</option>
+                    </select>
+                </label>
+                <label>Lang string id <input type="text" name="contentLangStrId" placeholder="0 = allocate" style="width:12rem" /></label>
+            </div>
+            <label>Body
+                <textarea name="content" rows="8" style="width:100%;font-family:monospace" placeholder="HTML for type=text, or a .php path for type=php"></textarea>
+            </label>
+            <button type="submit">Save body</button>
+        </form>
+        <form method="post" action="/cp/content/save" style="display:flex;flex-direction:column;gap:.45rem;margin:0 0 1rem;max-width:52rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/pages-app" />
+            <input type="hidden" name="langCode" value="en" />
+            <div style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end">
+                <label>Page id <input type="number" name="contentId" min="0" value="0" style="width:6rem" title="0 = create" /></label>
+                <label>Alias <input type="text" name="alias" required maxlength="190" /></label>
+                <label>Caption <input type="text" name="value" /></label>
+                <label>Parent id <input type="number" name="parent" min="0" value="0" style="width:6rem" /></label>
+                <label>Type
+                    <select name="contentType">
+                        <option value="text">text</option>
+                        <option value="php">php</option>
+                    </select>
+                </label>
+                <label>Published
+                    <select name="publishedFlag">
+                        <option value="1">Yes</option>
+                        <option value="0">No</option>
+                    </select>
+                </label>
+                <label>Frontend
+                    <select name="isFrontend">
+                        <option value="1">Yes</option>
+                        <option value="0">No</option>
+                    </select>
+                </label>
+            </div>
+            <label>Body
+                <textarea name="content" rows="4" style="width:100%;font-family:monospace" placeholder="HTML for type=text, or a .php path for type=php"></textarea>
+            </label>
+            <div style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end">
+                <label>Title tag <input type="text" name="titleTag" /></label>
+                <label>Description <input type="text" name="description" /></label>
+                <label>Keywords <input type="text" name="keywordsTag" /></label>
+                <label>Groups <input type="text" name="groupsAccess" placeholder="[]" /></label>
+            </div>
+            <button type="submit">Save page</button>
+        </form>
+        <form method="post" action="/cp/content/tree" style="display:flex;flex-direction:column;gap:.45rem;margin:0 0 1rem;max-width:52rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/pages-app" />
+            <input type="hidden" name="langCode" value="en" />
+            <input type="hidden" name="isFrontend" value="1" />
+            <label>Tree JSON
+                <textarea name="treeJson" rows="6" style="width:100%;font-family:monospace" placeholder="Webix content tree. Include every non-system page you want to keep."></textarea>
+            </label>
+            <button type="submit">Save tree</button>
+        </form>
     }
 
     @if (!_isAdmin)
@@ -88,7 +156,7 @@
                 <div class="epc-scp-table-card__head">
                     <div>
                         <h3>Content pages</h3>
-                        <p class="epc-users-hint">Open a row for field preview — TinyMCE body edits stay on PHP</p>
+                        <p class="epc-users-hint">Open a row for field preview. Save body writes here; TinyMCE image upload stays Classic.</p>
                     </div>
                 </div>
                 <div class="table-responsive">
@@ -165,7 +233,7 @@
                         <dt>Frontend</dt><dd>@(_selected.IsFrontend ? "yes" : "no")</dd>
                     </dl>
                     <p style="margin:.85rem 0 0;font-size:.86rem;">
-                        Body HTML is intentionally omitted from digests.
+                        Body HTML is intentionally omitted from digests. Use Save body above.
                     </p>
                 </div>
             </div>

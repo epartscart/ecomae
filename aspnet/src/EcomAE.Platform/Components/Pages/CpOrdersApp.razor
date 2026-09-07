@@ -291,7 +291,16 @@
                                     <label>Brand <input type="text" name="manufacturer" maxlength="128" style="width:8rem" /></label>
                                     <label>Article <input type="text" name="article" maxlength="128" style="width:8rem" /></label>
                                     <label>Name <input type="text" name="name" maxlength="255" style="width:10rem" /></label>
+                                    <label>Warehouse <input type="number" min="1" name="storageId" style="width:4rem" /></label>
+                                    <label><input type="checkbox" name="repriceFromWarehouse" value="true" /> Reprice from warehouse</label>
                                     <button type="submit" class="btn btn-xs btn-primary">Save line</button>
+                                </form>
+                                <form method="post" action="/cp/orders/refresh-item-cost" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 .75rem">
+                                    <input type="hidden" name="confirmWrites" value="true" />
+                                    <input type="hidden" name="returnUrl" value="@OrdersHref(o.Id, detailTab: "items")" />
+                                    <input type="hidden" name="orderId" value="@o.Id.ToString(CultureInfo.InvariantCulture)" />
+                                    <label>Item id <input type="number" name="itemId" min="1" required style="width:5rem" /></label>
+                                    <button type="submit" class="btn btn-xs btn-primary">Refresh cost</button>
                                 </form>
                             }
                             <table class="table table-condensed epc-od__lines">
@@ -337,6 +346,21 @@
                                                         <input type="hidden" name="itemId" value="@line.Id.ToString(CultureInfo.InvariantCulture)" />
                                                         <input type="number" name="status" min="1" value="@line.Status.ToString(CultureInfo.InvariantCulture)" style="width:4rem" />
                                                         <button type="submit" class="btn btn-xs btn-primary">Set</button>
+                                                    </form>
+                                                    <form method="post" action="/cp/orders/refresh-item-cost" style="display:flex;gap:.3rem;align-items:center;margin:.25rem 0 0">
+                                                        <input type="hidden" name="confirmWrites" value="true" />
+                                                        <input type="hidden" name="returnUrl" value="@OrdersHref(o.Id, detailTab: "items")" />
+                                                        <input type="hidden" name="orderId" value="@o.Id.ToString(CultureInfo.InvariantCulture)" />
+                                                        <input type="hidden" name="itemId" value="@line.Id.ToString(CultureInfo.InvariantCulture)" />
+                                                        <button type="submit" class="btn btn-xs btn-default">Refresh cost</button>
+                                                    </form>
+                                                    <form method="post" action="/cp/orders/update-item" style="display:flex;gap:.3rem;align-items:center;margin:.25rem 0 0">
+                                                        <input type="hidden" name="confirmWrites" value="true" />
+                                                        <input type="hidden" name="returnUrl" value="@OrdersHref(o.Id, detailTab: "items")" />
+                                                        <input type="hidden" name="orderId" value="@o.Id.ToString(CultureInfo.InvariantCulture)" />
+                                                        <input type="hidden" name="itemId" value="@line.Id.ToString(CultureInfo.InvariantCulture)" />
+                                                        <input type="hidden" name="repriceFromWarehouse" value="true" />
+                                                        <button type="submit" class="btn btn-xs btn-default">Reprice from warehouse</button>
                                                     </form>
                                                 </td>
                                             </tr>
@@ -394,7 +418,15 @@
                             <div><span>Paid</span><strong class="is-ok">@d.PaidSum.ToString("N2", CultureInfo.InvariantCulture)</strong></div>
                             <div><span>Balance</span><strong class="@(d.PaidLeft > 0 ? "is-bad" : "is-ok")">@d.PaidLeft.ToString("N2", CultureInfo.InvariantCulture)</strong></div>
                         </div>
-                        <p class="text-muted small">Pay / refund dry-runs: <code>/cp/orders/pay-refund</code>. Live writes remain PHP.</p>
+                        <form method="post" action="/cp/orders/pay-refund" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:.5rem 0">
+                            <input type="hidden" name="confirmWrites" value="true" />
+                            <input type="hidden" name="returnUrl" value="@OrdersHref(o.Id, detailTab: "payment")" />
+                            <input type="hidden" name="orderId" value="@o.Id.ToString(CultureInfo.InvariantCulture)" />
+                            <label>Paid sum override <input type="number" step="0.01" min="0" name="paidSum" placeholder="auto" style="width:7rem" /></label>
+                            <label><input type="checkbox" name="directRefund" value="true" /> Cash / direct</label>
+                            <button type="submit" class="btn btn-xs btn-primary">Record refund</button>
+                        </form>
+                        <p class="text-muted small">Refund writes <code>5_refund_from_order_to_balance</code>. Check cash/direct to also post <code>6_refund_from_balance</code>. Manager email stays Classic.</p>
                     </section>
 
                     <section class="epc-od__panel @(_detailTab == "docs" ? "is-active" : null)" data-epc-od-panel="docs" style="@(_detailTab == "docs" ? null : "display:none")">

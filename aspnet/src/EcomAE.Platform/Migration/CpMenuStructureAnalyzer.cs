@@ -4,7 +4,7 @@ namespace EcomAE.Platform.Migration;
 
 /// <summary>
 /// Summarizes legacy PHP <c>menu.structure</c> JSON without returning the raw tree.
-/// Writes remain PHP menu_manager / menu_edit.
+/// Writes go through <c>ICpMenuWriteService</c>; drag-tree UX stays PHP menu_edit.
 /// </summary>
 public static class CpMenuStructureAnalyzer
 {

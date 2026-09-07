@@ -18,6 +18,43 @@
     
     <PhpErpModulePageHeader Title="@_title" Subtitle="@_subtitle" PhpTabHref="@_phpTab" />
 
+    @if (!string.IsNullOrWhiteSpace(_flashOk))
+    {
+        <div class="alert alert-success" role="status" style="margin:0 0 12px;padding:.7rem .9rem;border-radius:.4rem;background:#ecfdf5;color:#065f46">@_flashOk</div>
+    }
+    @if (!string.IsNullOrWhiteSpace(_flashErr))
+    {
+        <div class="alert alert-danger" role="status" style="margin:0 0 12px;padding:.7rem .9rem;border-radius:.4rem;background:#fef2f2;color:#991b1b">@_flashErr</div>
+    }
+    @if (_isAdmin)
+    {
+        <form method="post" action="/erp/customers/master-save" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="@_returnUrl" />
+            <label>Customer ID <input type="number" name="customer_id" min="1" required style="width:6rem" /></label>
+            <label>Account <input type="text" name="customer_account" maxlength="32" placeholder="C-0001" /></label>
+            <label>Name <input type="text" name="customer_name" maxlength="255" /></label>
+            <label>Group <input type="text" name="customer_group" maxlength="64" placeholder="Retail" /></label>
+            <label>Currency <input type="text" name="currency_code" maxlength="8" placeholder="AED" /></label>
+            <label>Credit limit <input type="text" name="credit_limit" placeholder="0.00" /></label>
+            <label>Terms days <input type="number" name="terms_days" min="0" style="width:5rem" /></label>
+            <label>Risk
+                <select name="risk_band">
+                    <option value="normal">normal</option>
+                    <option value="watch">watch</option>
+                    <option value="high">high</option>
+                </select>
+            </label>
+            <label>TRN <input type="text" name="trn" maxlength="64" /></label>
+            <label>City <input type="text" name="city" maxlength="128" /></label>
+            <label>Country <input type="text" name="country_code" maxlength="8" placeholder="AE" /></label>
+            <label>Business unit <input type="number" name="dim[business_unit]" min="0" style="width:6rem" /></label>
+            <label>Legal entity <input type="number" name="dim[legal_entity]" min="0" style="width:6rem" /></label>
+            <label><input type="checkbox" name="on_hold" value="1" /> On credit hold</label>
+            <label><input type="checkbox" name="tax_exempt" value="1" /> Tax exempt</label>
+            <button type="submit" class="btn btn-sm btn-primary">Save customer master</button>
+        </form>
+    }
 
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Contacts KPIs">
         <div class="kpi"><div class="lbl">Shown (limit @_limit)</div><div class="val">@_contacts.Count</div></div>
@@ -74,7 +111,10 @@
 @code {
     private string _phpTab = "/ERP/?epc_erp_shell=1&area=common&tab=contacts";
     private string _title = "Contacts";
-    private string _subtitle = "Customer and vendor contacts. Writes stay on ERP ajax.";
+    private string _subtitle = "Customer and vendor contacts. Customer master credit-profile save writes here when confirmWrites is set.";
+    private string _returnUrl = "/erp/contacts-app";
+    private string _flashOk = "";
+    private string _flashErr = "";
     private bool _isAdmin;
     private IReadOnlyList<ErpContactDigest> _contacts = [];
     private int _limit = 100;
@@ -91,9 +131,12 @@
         {
             _phpTab = "/ERP/?epc_erp_shell=1&area=ar&tab=ar_setup";
             _title = "AR setup";
-            _subtitle = "Customer contacts used for receivable posting.";
+            _subtitle = "Customer master credit-profile save writes here when confirmWrites is set.";
+            _returnUrl = "/erp/contacts-app?tab=ar_setup";
         }
 
+        _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
+        _flashErr = ctx.Request.Query["err"].ToString() ?? "";
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
         if (!_isAdmin)

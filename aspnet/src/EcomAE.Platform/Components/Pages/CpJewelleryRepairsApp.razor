@@ -58,10 +58,11 @@
 
     <ErpPhpViewTabs QueryName="tab" Active="@_tab" BaseHref="@_tabBase" Tabs="@ErpJewelleryModuleChrome.RepairTabs" />
 
-    @if (_isAdmin && (_tab == "jw_repairs" || _tab == "jw_repair_receipt"))
+    @if (_isAdmin && _tab == "jw_repairs")
     {
-        <ErpPhpCreateWell Title="@(_tab == "jw_repair_receipt" ? "New Receipt" : "New Repair Receipt")">
+        <ErpPhpCreateWell Title="New Repair Receipt">
             <form method="post" action="@EcomAeRoutes.ErpJewelleryRepairCreateForm" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+                <input type="hidden" name="confirmWrites" value="true" />
                 <input type="hidden" name="returnUrl" value="@_returnHere" />
                 <label>Customer Name <input class="form-control input-sm" name="customer_name" required /></label>
                 <label>Phone <input class="form-control input-sm" name="customer_phone" /></label>
@@ -90,53 +91,74 @@
                 </label>
                 <label>Est. Cost (AED) <input class="form-control input-sm" name="estimated_cost" type="number" step="0.01" value="0.00" style="width:90px;" /></label>
                 <label>Stone Details <input class="form-control input-sm" name="stone_details" /></label>
-                <button type="submit" class="btn btn-primary btn-sm">Create</button>
+                <button type="submit" class="btn btn-primary btn-sm">Create repair</button>
+            </form>
+        </ErpPhpCreateWell>
+    }
+    else if (_isAdmin && _tab == "jw_repair_receipt")
+    {
+        <ErpPhpCreateWell Title="New Receipt">
+            <form method="post" action="@EcomAeRoutes.ErpJewelleryRepairReceiptSaveForm" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="@_returnHere" />
+                <label>Customer Name <input class="form-control input-sm" name="customer_name" required /></label>
+                <label>Mobile <input class="form-control input-sm" name="mobile" /></label>
+                <label>Salesman <input class="form-control input-sm" name="salesman" /></label>
+                <label>Est. Cost <input class="form-control input-sm" name="total_est_cost" type="number" step="0.01" value="0" style="width:90px;" /></label>
+                <label>Narration <input class="form-control input-sm" name="narration" /></label>
+                <button type="submit" class="btn btn-primary btn-sm">Save repair receipt</button>
             </form>
         </ErpPhpCreateWell>
     }
     else if (_isAdmin && _tab == "jw_repair_sale")
     {
         <ErpPhpCreateWell Title="Invoice repair">
-            <form method="post" action="@EcomAeRoutes.ErpJewelleryModuleSaveForm" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+            <form method="post" action="@EcomAeRoutes.ErpJewelleryVoucherSaveForm" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+                <input type="hidden" name="confirmWrites" value="true" />
                 <input type="hidden" name="returnUrl" value="@_returnHere" />
-                <input type="hidden" name="action" value="jw_repair_sale_save" />
-                <label>Repair # <input class="form-control input-sm" name="code" required /></label>
-                <label>Customer <input class="form-control input-sm" name="customer_name" /></label>
-                <button type="submit" class="btn btn-primary btn-sm">Invoice</button>
+                <input type="hidden" name="voc_type" value="RSL" />
+                <label>Repair # <input class="form-control input-sm" name="repair_ref" required /></label>
+                <label>Customer <input class="form-control input-sm" name="party_name" /></label>
+                <label>Net <input class="form-control input-sm" name="net_amount" type="number" step="0.01" value="0" style="width:90px;" /></label>
+                <button type="submit" class="btn btn-primary btn-sm">Save repair sale</button>
             </form>
         </ErpPhpCreateWell>
     }
     else if (_isAdmin && _tab == "jw_repair_transfer")
     {
         <ErpPhpCreateWell Title="Transfer to workshop">
-            <form method="post" action="@EcomAeRoutes.ErpJewelleryModuleSaveForm" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+            <form method="post" action="@EcomAeRoutes.ErpJewelleryRepairTransferSaveForm" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+                <input type="hidden" name="confirmWrites" value="true" />
                 <input type="hidden" name="returnUrl" value="@_returnHere" />
-                <input type="hidden" name="action" value="jw_repair_transfer_save" />
                 <label>Repair # <input class="form-control input-sm" name="code" required /></label>
-                <label>To branch <input class="form-control input-sm" name="branch" value="HO" /></label>
-                <button type="submit" class="btn btn-primary btn-sm">Transfer</button>
+                <label>To branch <input class="form-control input-sm" name="to_branch" value="WS1" /></label>
+                <label>Narration <input class="form-control input-sm" name="narration" /></label>
+                <button type="submit" class="btn btn-primary btn-sm">Save transfer</button>
             </form>
         </ErpPhpCreateWell>
     }
     else if (_isAdmin && _tab == "jw_workshop_receive")
     {
         <ErpPhpCreateWell Title="Workshop receive">
-            <form method="post" action="@EcomAeRoutes.ErpJewelleryModuleSaveForm" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+            <form method="post" action="@EcomAeRoutes.ErpJewelleryWorkshopReceiveSaveForm" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+                <input type="hidden" name="confirmWrites" value="true" />
                 <input type="hidden" name="returnUrl" value="@_returnHere" />
-                <input type="hidden" name="action" value="jw_workshop_receive_save" />
-                <label>Repair # <input class="form-control input-sm" name="code" required /></label>
-                <button type="submit" class="btn btn-primary btn-sm">Receive</button>
+                <label>Transfer / repair # <input class="form-control input-sm" name="code" required /></label>
+                <label>From workshop <input class="form-control input-sm" name="from_workshop" /></label>
+                <button type="submit" class="btn btn-primary btn-sm">Save workshop receive</button>
             </form>
         </ErpPhpCreateWell>
     }
     else if (_isAdmin && _tab == "jw_repair_delivery")
     {
         <ErpPhpCreateWell Title="Deliver to customer">
-            <form method="post" action="@EcomAeRoutes.ErpJewelleryModuleSaveForm" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+            <form method="post" action="@EcomAeRoutes.ErpJewelleryRepairDeliverySaveForm" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+                <input type="hidden" name="confirmWrites" value="true" />
                 <input type="hidden" name="returnUrl" value="@_returnHere" />
-                <input type="hidden" name="action" value="jw_repair_delivery_save" />
                 <label>Repair # <input class="form-control input-sm" name="code" required /></label>
-                <button type="submit" class="btn btn-primary btn-sm">Deliver</button>
+                <label>Customer <input class="form-control input-sm" name="customer_name" /></label>
+                <label>Charge <input class="form-control input-sm" name="total_charge" type="number" step="0.01" value="0" style="width:90px;" /></label>
+                <button type="submit" class="btn btn-primary btn-sm">Save delivery</button>
             </form>
         </ErpPhpCreateWell>
     }
@@ -239,6 +261,7 @@
                                     @if (_isAdmin && row.NextStatus is not null)
                                     {
                                         <form method="post" action="@EcomAeRoutes.ErpJewelleryRepairStatusForm" style="display:inline">
+                                            <input type="hidden" name="confirmWrites" value="true" />
                                             <input type="hidden" name="returnUrl" value="@_returnHere" />
                                             <input type="hidden" name="repair_id" value="@row.Id" />
                                             <input type="hidden" name="new_status" value="@row.NextStatus" />
@@ -255,7 +278,7 @@
     </div>
 
     <div class="epc-erp-empty" style="display:block;margin-top:12px;padding:8px 10px;border:1px solid #c5d4de;background:#f8fafc;color:#475569;font-size:12px;">
-        Source: @_source. Jobs bind from <code>epc_jewel_repair</code> and <code>epc_erp_jw_repairs</code>. Form posts are dry-run — writes=0.
+        Source: @_source. Jobs bind from <code>epc_jewel_repair</code> and <code>epc_erp_jw_repairs</code>. Create, status, receipt, transfer, workshop-receive, and delivery writes are live when confirmed. Sample seed stays Classic.
         @if (!string.IsNullOrWhiteSpace(_message)) { <span> @_message</span> }
     </div>
 </PhpErpDesktopChrome>

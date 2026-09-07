@@ -32,9 +32,22 @@ public interface ICpOmsWriteService
     Task<ErpSimpleWriteResult> UpdateItemAsync(long orderId, CpOmsItemWritePatch patch, int adminUserId, CancellationToken cancellationToken = default, bool writeLog = true);
 
     Task<ErpSimpleWriteResult> UpdateItemsAsync(long orderId, IReadOnlyList<CpOmsItemWritePatch> patches, int adminUserId, CancellationToken cancellationToken = default);
+
+    Task<ErpSimpleWriteResult> PayRefundAsync(
+        long orderId,
+        bool directRefund,
+        decimal? paidSumOverride,
+        int adminUserId,
+        CancellationToken cancellationToken = default);
+
+    Task<ErpSimpleWriteResult> RefreshItemCostAsync(
+        long orderId,
+        long itemId,
+        int adminUserId,
+        CancellationToken cancellationToken = default);
 }
 
-/// <summary>PHP <c>ajax_epc_orders_oms.php</c> <c>update_item</c> / <c>update_items</c> field patch. Warehouse reprice is refused.</summary>
+/// <summary>PHP <c>ajax_epc_orders_oms.php</c> <c>update_item</c> / <c>update_items</c> field patch. Warehouse reprice uses the price-list lookup plus <c>epc_pricing_apply_sell_from_purchase</c>.</summary>
 public sealed record CpOmsItemWritePatch(
     long ItemId,
     decimal? Price = null,
@@ -554,11 +567,6 @@ public sealed class CpOmsWriteService : ICpOmsWriteService
             return ErpSimpleWriteResult.Fail("invalid", "Price must be greater than 0.");
         }
 
-        if (patch.RepriceFromWarehouse)
-        {
-            return ErpSimpleWriteResult.Fail("not_implemented", "Warehouse reprice stays PHP.");
-        }
-
         if (!_connections.IsConfigured)
         {
             return ErpSimpleWriteResult.Fail("db", "TenantRegistry DB is not configured.");
@@ -612,6 +620,39 @@ public sealed class CpOmsWriteService : ICpOmsWriteService
         if (articleShow.Length == 0)
         {
             articleShow = article;
+        }
+
+        if (patch.RepriceFromWarehouse && storageId > 0)
+        {
+            var orderUserId = await ErpDb.LongAsync(
+                connection,
+                null,
+                ErpDb.Positional("SELECT `user_id` FROM `shop_orders` WHERE `id` = ? LIMIT 1"),
+                cancellationToken,
+                orderId).ConfigureAwait(false);
+            var offer = await LookupWarehouseOfferAsync(connection, storageId, brand, article, orderUserId, cancellationToken)
+                .ConfigureAwait(false);
+            if (offer is null)
+            {
+                return ErpSimpleWriteResult.Fail("no_price", "No price found for this brand/article on the selected warehouse");
+            }
+
+            purchase = offer.Purchase;
+            price = offer.Sell;
+            if (name.Length == 0 && offer.Name.Length > 0)
+            {
+                name = SanitizeOmsText(offer.Name);
+            }
+
+            if (offer.ArticleShow.Length > 0)
+            {
+                articleShow = SanitizeOmsText(offer.ArticleShow);
+            }
+
+            if (offer.Manufacturer.Length > 0)
+            {
+                brand = SanitizeOmsText(offer.Manufacturer);
+            }
         }
 
         var isAlt = !string.Equals(brand, origBrand, StringComparison.Ordinal)
@@ -710,11 +751,6 @@ public sealed class CpOmsWriteService : ICpOmsWriteService
             return ErpSimpleWriteResult.Fail("invalid", "No items to update.");
         }
 
-        if (rows.Any(p => p.RepriceFromWarehouse))
-        {
-            return ErpSimpleWriteResult.Fail("not_implemented", "Warehouse reprice stays PHP.");
-        }
-
         if (rows.Any(p => p.CountNeed is < 1))
         {
             return ErpSimpleWriteResult.Fail("invalid", "Quantity must be at least 1.");
@@ -757,6 +793,567 @@ public sealed class CpOmsWriteService : ICpOmsWriteService
             "OMS batch-updated <b>" + updated.ToString(CultureInfo.InvariantCulture) + "</b> line(s)");
         return new ErpSimpleWriteResult(true, "ok", "Lines updated.", orderId, updated);
     }
+
+    public async Task<ErpSimpleWriteResult> PayRefundAsync(
+        long orderId,
+        bool directRefund,
+        decimal? paidSumOverride,
+        int adminUserId,
+        CancellationToken cancellationToken = default)
+    {
+        if (orderId <= 0)
+        {
+            return ErpSimpleWriteResult.Fail("forbidden", "Forbidden");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return ErpSimpleWriteResult.Fail("db", "TenantRegistry DB is not configured.");
+        }
+
+        await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await using var tx = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            var exists = await ErpDb.LongAsync(
+                connection,
+                tx,
+                ErpDb.Positional("SELECT `id` FROM `shop_orders` WHERE `id` = ? LIMIT 1"),
+                cancellationToken,
+                orderId);
+            if (exists <= 0)
+            {
+                await tx.RollbackAsync(cancellationToken).ConfigureAwait(false);
+                return ErpSimpleWriteResult.Fail("forbidden", "Forbidden");
+            }
+
+            var paid = await ErpDb.LongAsync(
+                connection,
+                tx,
+                ErpDb.Positional("SELECT `paid` FROM `shop_orders` WHERE `id` = ? LIMIT 1"),
+                cancellationToken,
+                orderId);
+
+            var orderUser = await ErpDb.LongAsync(
+                connection,
+                tx,
+                ErpDb.Positional("SELECT `user_id` FROM `shop_orders` WHERE `id` = ? LIMIT 1"),
+                cancellationToken,
+                orderId);
+            if (orderUser == 0 && !directRefund)
+            {
+                await tx.RollbackAsync(cancellationToken).ConfigureAwait(false);
+                return ErpSimpleWriteResult.Fail("forbidden", "Forbidden");
+            }
+
+            if (paid == 0)
+            {
+                await tx.RollbackAsync(cancellationToken).ConfigureAwait(false);
+                return ErpSimpleWriteResult.Fail("unpaid", "Order is not paid.");
+            }
+
+            var paidSum = paidSumOverride is > 0
+                ? paidSumOverride.Value
+                : await ErpDb.DecimalAsync(
+                    connection,
+                    tx,
+                    ErpDb.Positional("""
+                        SELECT CAST((IFNULL((SELECT SUM(`amount`) FROM `shop_users_accounting` WHERE `active`=1 AND `income`=0 AND `order_id`=?),0)
+                          - IFNULL((SELECT SUM(`amount`) FROM `shop_users_accounting` WHERE `active`=1 AND `income`=1 AND `order_id`=?),0)) AS DECIMAL(12,2))
+                        """),
+                    cancellationToken,
+                    orderId, orderId);
+            if (paidSum <= 0)
+            {
+                await tx.RollbackAsync(cancellationToken).ConfigureAwait(false);
+                return ErpSimpleWriteResult.Fail("forbidden", "Forbidden");
+            }
+
+            var refundCode = await ErpDb.LongAsync(
+                connection,
+                tx,
+                ErpDb.Positional("SELECT `id` FROM `shop_accounting_codes` WHERE `key` = ? LIMIT 1"),
+                cancellationToken,
+                "5_refund_from_order_to_balance");
+            if (refundCode <= 0)
+            {
+                await tx.RollbackAsync(cancellationToken).ConfigureAwait(false);
+                return ErpSimpleWriteResult.Fail("invalid", "Forbidden");
+            }
+
+            var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+            await ErpDb.ExecuteAsync(
+                connection,
+                tx,
+                ErpDb.Positional("""
+                    INSERT INTO `shop_users_accounting`
+                    (`user_id`, `time`, `income`, `amount`, `operation_code`, `active`, `order_id`, `office_id`)
+                    VALUES (?, ?, 1, ?, ?, 1, ?, (SELECT `office_id` FROM `shop_orders` WHERE `id` = ? LIMIT 1))
+                    """),
+                cancellationToken,
+                orderUser, now, paidSum, refundCode, orderId, orderId);
+            var writes = 1;
+
+            if (paidSumOverride is null or <= 0)
+            {
+                await ErpDb.ExecuteAsync(
+                    connection,
+                    tx,
+                    ErpDb.Positional("UPDATE `shop_orders` SET `paid` = 0 WHERE `id` = ?"),
+                    cancellationToken,
+                    orderId);
+                writes++;
+            }
+
+            if (directRefund)
+            {
+                var cashCode = await ErpDb.LongAsync(
+                    connection,
+                    tx,
+                    ErpDb.Positional("SELECT `id` FROM `shop_accounting_codes` WHERE `key` = ? LIMIT 1"),
+                    cancellationToken,
+                    "6_refund_from_balance");
+                if (cashCode <= 0)
+                {
+                    await tx.RollbackAsync(cancellationToken).ConfigureAwait(false);
+                    return ErpSimpleWriteResult.Fail("invalid", "Forbidden");
+                }
+
+                await ErpDb.ExecuteAsync(
+                    connection,
+                    tx,
+                    ErpDb.Positional("""
+                        INSERT INTO `shop_users_accounting`
+                        (`user_id`, `time`, `income`, `amount`, `operation_code`, `active`, `order_id`, `office_id`)
+                        VALUES (?, ?, 0, ?, ?, 1, 0, (SELECT `office_id` FROM `shop_orders` WHERE `id` = ? LIMIT 1))
+                        """),
+                    cancellationToken,
+                    orderUser, now, paidSum, cashCode, orderId);
+                writes++;
+            }
+
+            var logText = directRefund
+                ? "Refund <b>" + paidSum.ToString("0.00", CultureInfo.InvariantCulture) + "</b> (cash / direct)"
+                : "Refund <b>" + paidSum.ToString("0.00", CultureInfo.InvariantCulture) + "</b> (to balance)";
+            try
+            {
+                await ErpDb.ExecuteAsync(
+                    connection,
+                    tx,
+                    ErpDb.Positional("INSERT INTO `shop_orders_logs` (`order_id`,`time`,`user_id`,`is_manager`,`text`) VALUES (?, ?, ?, 1, ?)"),
+                    cancellationToken,
+                    orderId, now, adminUserId, logText);
+                writes++;
+            }
+            catch (DbException)
+            {
+                // log table optional
+            }
+
+            await tx.CommitAsync(cancellationToken).ConfigureAwait(false);
+            return new ErpSimpleWriteResult(true, "ok", "Refund recorded.", orderId, writes);
+        }
+        catch
+        {
+            try
+            {
+                await tx.RollbackAsync(cancellationToken).ConfigureAwait(false);
+            }
+            catch
+            {
+                // already rolled back
+            }
+
+            throw;
+        }
+    }
+
+    public async Task<ErpSimpleWriteResult> RefreshItemCostAsync(
+        long orderId,
+        long itemId,
+        int adminUserId,
+        CancellationToken cancellationToken = default)
+    {
+        if (orderId <= 0 || itemId <= 0)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Invalid item");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return ErpSimpleWriteResult.Fail("db", "TenantRegistry DB is not configured.");
+        }
+
+        await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        int storageId;
+        string brand;
+        string articleShow;
+        string article;
+        decimal stored;
+        decimal sell;
+        string jsonParams;
+        int productId;
+        await using (var select = connection.CreateCommand())
+        {
+            select.CommandText = ErpDb.Positional("""
+                SELECT `t2_storage_id`, `t2_manufacturer`, `t2_article_show`, `t2_article`,
+                       `t2_price_purchase`, `price`, `t2_json_params`, `product_id`
+                FROM `shop_orders_items` WHERE `id` = ? AND `order_id` = ? LIMIT 1
+                """);
+            ErpDb.AddParameters(select, itemId, orderId);
+            await using var reader = await select.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            if (!await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                return ErpSimpleWriteResult.Fail("not_found", "Item not found");
+            }
+
+            storageId = Convert.ToInt32(reader["t2_storage_id"] is DBNull ? 0 : reader["t2_storage_id"], CultureInfo.InvariantCulture);
+            brand = Convert.ToString(reader["t2_manufacturer"], CultureInfo.InvariantCulture) ?? "";
+            articleShow = Convert.ToString(reader["t2_article_show"], CultureInfo.InvariantCulture) ?? "";
+            article = Convert.ToString(reader["t2_article"], CultureInfo.InvariantCulture) ?? "";
+            stored = Round4(reader["t2_price_purchase"]);
+            sell = Round4(reader["price"]);
+            jsonParams = Convert.ToString(reader["t2_json_params"], CultureInfo.InvariantCulture) ?? "";
+            productId = Convert.ToInt32(reader["product_id"] is DBNull ? 0 : reader["product_id"], CultureInfo.InvariantCulture);
+        }
+
+        var lookupArticle = !string.IsNullOrWhiteSpace(articleShow) ? articleShow : article;
+        if (storageId > 0 && !string.IsNullOrWhiteSpace(lookupArticle))
+        {
+            var orderUserId = await ErpDb.LongAsync(
+                connection,
+                null,
+                ErpDb.Positional("SELECT `user_id` FROM `shop_orders` WHERE `id` = ? LIMIT 1"),
+                cancellationToken,
+                orderId).ConfigureAwait(false);
+            var offer = await LookupWarehouseOfferAsync(connection, storageId, brand, lookupArticle, orderUserId, cancellationToken)
+                .ConfigureAwait(false);
+            if (offer is { } warehouse)
+            {
+                await using var tx = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
+                await ErpDb.ExecuteAsync(
+                    connection,
+                    tx,
+                    ErpDb.Positional("UPDATE `shop_orders_items` SET `t2_price_purchase` = ?, `price` = ? WHERE `id` = ? AND `order_id` = ?"),
+                    cancellationToken,
+                    warehouse.Purchase, warehouse.Sell, itemId, orderId).ConfigureAwait(false);
+                var warehouseLog =
+                    "OMS refreshed warehouse price for item <b>id " + itemId.ToString(CultureInfo.InvariantCulture)
+                    + "</b>: purchase=" + warehouse.Purchase.ToString("0.00", CultureInfo.InvariantCulture)
+                    + " sell=" + warehouse.Sell.ToString("0.00", CultureInfo.InvariantCulture)
+                    + " (storage " + storageId.ToString(CultureInfo.InvariantCulture) + ")";
+                await ErpDb.ExecuteAsync(
+                    connection,
+                    tx,
+                    ErpDb.Positional("INSERT INTO `shop_orders_logs` (`order_id`,`time`,`user_id`,`is_manager`,`text`,`is_robot`) VALUES (?,?,?,1,?,0)"),
+                    cancellationToken,
+                    orderId, DateTimeOffset.UtcNow.ToUnixTimeSeconds(), adminUserId, warehouseLog).ConfigureAwait(false);
+                await tx.CommitAsync(cancellationToken).ConfigureAwait(false);
+                return new ErpSimpleWriteResult(true, "ok", "Warehouse price refreshed.", itemId, 2);
+            }
+        }
+
+        var (unit, source) = await EffectivePurchaseAsync(
+            connection, itemId, stored, sell, jsonParams, storageId, productId, cancellationToken).ConfigureAwait(false);
+        if (unit <= 0)
+        {
+            return ErpSimpleWriteResult.Fail("no_cost", "No purchase cost found for this line");
+        }
+
+        await using var fallbackTx = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
+        await ErpDb.ExecuteAsync(
+            connection,
+            fallbackTx,
+            ErpDb.Positional("UPDATE `shop_orders_items` SET `t2_price_purchase` = ? WHERE `id` = ? AND `order_id` = ?"),
+            cancellationToken,
+            unit, itemId, orderId).ConfigureAwait(false);
+        var fallbackLog =
+            "OMS refreshed purchase cost for item <b>id " + itemId.ToString(CultureInfo.InvariantCulture)
+            + "</b>: " + unit.ToString("0.00", CultureInfo.InvariantCulture)
+            + " AED (source " + source + ")";
+        await ErpDb.ExecuteAsync(
+            connection,
+            fallbackTx,
+            ErpDb.Positional("INSERT INTO `shop_orders_logs` (`order_id`,`time`,`user_id`,`is_manager`,`text`,`is_robot`) VALUES (?,?,?,1,?,0)"),
+            cancellationToken,
+            orderId, DateTimeOffset.UtcNow.ToUnixTimeSeconds(), adminUserId, fallbackLog).ConfigureAwait(false);
+        await fallbackTx.CommitAsync(cancellationToken).ConfigureAwait(false);
+        return new ErpSimpleWriteResult(true, "ok", "Purchase cost refreshed.", itemId, 2);
+    }
+
+    /// <summary>PHP <c>epc_oms_norm_article</c> / <c>docpart_normalize_article_for_price</c> sweep + UPPER.</summary>
+    public static string NormArticle(string? article)
+    {
+        if (string.IsNullOrEmpty(article))
+        {
+            return "";
+        }
+
+        var buffer = new char[article.Length];
+        var n = 0;
+        foreach (var c in article)
+        {
+            if (c is ' ' or '-' or '_' or '`' or '/' or '\'' or '"' or '.' or ',' or '#' or '\\' or '\r' or '\n' or '\t')
+            {
+                continue;
+            }
+
+            buffer[n++] = char.ToUpperInvariant(c);
+        }
+
+        return n == 0 ? "" : new string(buffer, 0, n);
+    }
+
+    private sealed record WarehouseOffer(decimal Purchase, decimal Sell, string Manufacturer, string ArticleShow, string Name);
+
+    private static async Task<WarehouseOffer?> LookupWarehouseOfferAsync(
+        DbConnection connection,
+        int storageId,
+        string brand,
+        string article,
+        long orderUserId,
+        CancellationToken cancellationToken)
+    {
+        int priceId;
+        try
+        {
+            var opts = await ErpDb.StringAsync(
+                connection,
+                null,
+                ErpDb.Positional("SELECT `connection_options` FROM `shop_storages` WHERE `id` = ? LIMIT 1"),
+                cancellationToken,
+                storageId).ConfigureAwait(false);
+            priceId = ParsePriceId(opts);
+        }
+        catch (DbException)
+        {
+            return null;
+        }
+
+        var artNorm = NormArticle(article);
+        if (priceId <= 0 || artNorm.Length == 0)
+        {
+            return null;
+        }
+
+        var brandNorm = brand.Trim().ToUpperInvariant();
+        try
+        {
+            await using var cmd = connection.CreateCommand();
+            cmd.CommandText = ErpDb.Positional("""
+                SELECT `manufacturer`, `article_show`, `article`, `name`, `price`
+                FROM `shop_docpart_prices_data`
+                WHERE `price_id` = ?
+                  AND (
+                        REPLACE(REPLACE(REPLACE(UPPER(`article`), '-', ''), ' ', ''), '.', '') = ?
+                     OR REPLACE(REPLACE(REPLACE(UPPER(`article_show`), '-', ''), ' ', ''), '.', '') = ?
+                  )
+                ORDER BY
+                    CASE WHEN UPPER(TRIM(`manufacturer`)) = ? THEN 0 ELSE 1 END,
+                    `price` ASC
+                LIMIT 1
+                """);
+            ErpDb.AddParameters(cmd, priceId, artNorm, artNorm, brandNorm);
+            decimal purchase;
+            string manufacturer;
+            string articleShow;
+            string name;
+            await using (var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false))
+            {
+                if (!await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    return null;
+                }
+
+                purchase = Math.Round(
+                    reader["price"] is DBNull ? 0m : Convert.ToDecimal(reader["price"], CultureInfo.InvariantCulture),
+                    2, MidpointRounding.AwayFromZero);
+                if (purchase <= 0)
+                {
+                    return null;
+                }
+
+                manufacturer = Convert.ToString(reader["manufacturer"], CultureInfo.InvariantCulture) ?? "";
+                articleShow = Convert.ToString(reader["article_show"], CultureInfo.InvariantCulture) ?? "";
+                if (string.IsNullOrWhiteSpace(articleShow))
+                {
+                    articleShow = Convert.ToString(reader["article"], CultureInfo.InvariantCulture) ?? "";
+                }
+
+                name = Convert.ToString(reader["name"], CultureInfo.InvariantCulture) ?? "";
+            }
+
+            var groupId = await EpcPricing.ResolveCustomerGroupIdAsync(connection, orderUserId, cancellationToken)
+                .ConfigureAwait(false);
+            var sell = await EpcPricing.ApplySellFromPurchaseAsync(
+                connection, groupId, manufacturer, purchase, articleShow, storageId, cancellationToken)
+                .ConfigureAwait(false);
+            if (sell <= 0)
+            {
+                sell = purchase;
+            }
+
+            return new WarehouseOffer(purchase, sell, manufacturer.Trim(), articleShow.Trim(), name.Trim());
+        }
+        catch (DbException)
+        {
+            return null;
+        }
+    }
+
+    private static async Task<(decimal Unit, string Source)> EffectivePurchaseAsync(
+        DbConnection connection,
+        long itemId,
+        decimal stored,
+        decimal sell,
+        string jsonParams,
+        int storageId,
+        int productId,
+        CancellationToken cancellationToken)
+    {
+        var unit = stored;
+        var source = "t2_price_purchase";
+
+        try
+        {
+            var avg = Math.Round(
+                await ErpDb.DecimalAsync(
+                    connection,
+                    null,
+                    ErpDb.Positional("""
+                        SELECT IFNULL(SUM(`price_purchase` * GREATEST(`count_reserved` + `count_issued`, 1)) /
+                            NULLIF(SUM(GREATEST(`count_reserved` + `count_issued`, 1)), 0), 0)
+                        FROM `shop_orders_items_details` WHERE `order_item_id` = ? AND `price_purchase` > 0
+                        """),
+                    cancellationToken,
+                    itemId).ConfigureAwait(false),
+                4, MidpointRounding.AwayFromZero);
+            if (avg > 0 && (stored <= 0 || NearlyEqual(stored, sell) || avg < stored - 0.0001m))
+            {
+                unit = avg;
+                source = "order_item_details";
+            }
+        }
+        catch (DbException)
+        {
+            // details table optional
+        }
+
+        var apaiCost = ReadApaiCost(jsonParams);
+        if (apaiCost > 0 && (unit <= 0 || NearlyEqual(unit, sell) || apaiCost < unit - 0.0001m))
+        {
+            unit = apaiCost;
+            source = "apai_cost";
+        }
+
+        if (unit <= 0 || NearlyEqual(unit, sell))
+        {
+            try
+            {
+                if (productId > 0)
+                {
+                    var sql = storageId > 0
+                        ? "SELECT MAX(`price_purchase`) FROM `shop_storages_data` WHERE `product_id` = ? AND `price_purchase` > 0 AND `storage_id` = ?"
+                        : "SELECT MAX(`price_purchase`) FROM `shop_storages_data` WHERE `product_id` = ? AND `price_purchase` > 0";
+                    var wh = Math.Round(
+                        storageId > 0
+                            ? await ErpDb.DecimalAsync(connection, null, ErpDb.Positional(sql), cancellationToken, productId, storageId).ConfigureAwait(false)
+                            : await ErpDb.DecimalAsync(connection, null, ErpDb.Positional(sql), cancellationToken, productId).ConfigureAwait(false),
+                        4, MidpointRounding.AwayFromZero);
+                    if (wh > 0)
+                    {
+                        unit = wh;
+                        source = "shop_storages_data";
+                    }
+                }
+            }
+            catch (DbException)
+            {
+                // storages_data optional
+            }
+        }
+
+        if (unit <= 0)
+        {
+            unit = stored > 0 ? stored : 0m;
+            source = "t2_price_purchase";
+        }
+
+        return (Math.Round(unit, 4, MidpointRounding.AwayFromZero), source);
+    }
+
+    private static int ParsePriceId(string? connectionOptions)
+    {
+        if (string.IsNullOrWhiteSpace(connectionOptions))
+        {
+            return 0;
+        }
+
+        try
+        {
+            using var doc = JsonDocument.Parse(connectionOptions);
+            if (!doc.RootElement.TryGetProperty("price_id", out var prop))
+            {
+                return 0;
+            }
+
+            if (prop.ValueKind == JsonValueKind.Number && prop.TryGetInt32(out var n))
+            {
+                return n;
+            }
+
+            return int.TryParse(prop.GetString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsed)
+                ? parsed
+                : 0;
+        }
+        catch (JsonException)
+        {
+            return 0;
+        }
+    }
+
+    private static decimal ReadApaiCost(string jsonParams)
+    {
+        if (string.IsNullOrWhiteSpace(jsonParams))
+        {
+            return 0;
+        }
+
+        try
+        {
+            using var doc = JsonDocument.Parse(jsonParams);
+            foreach (var key in new[] { "apai_cost", "import_warehouse_cost" })
+            {
+                if (!doc.RootElement.TryGetProperty(key, out var prop))
+                {
+                    continue;
+                }
+
+                if (prop.ValueKind == JsonValueKind.Number && prop.TryGetDecimal(out var n) && n > 0)
+                {
+                    return Math.Round(n, 4, MidpointRounding.AwayFromZero);
+                }
+
+                if (prop.ValueKind == JsonValueKind.String
+                    && decimal.TryParse(prop.GetString(), NumberStyles.Number, CultureInfo.InvariantCulture, out var parsed)
+                    && parsed > 0)
+                {
+                    return Math.Round(parsed, 4, MidpointRounding.AwayFromZero);
+                }
+            }
+        }
+        catch (JsonException)
+        {
+            // ignore malformed t2_json_params
+        }
+
+        return 0;
+    }
+
+    private static decimal Round4(object value)
+        => Math.Round(value is DBNull ? 0m : Convert.ToDecimal(value, CultureInfo.InvariantCulture), 4, MidpointRounding.AwayFromZero);
+
+    private static bool NearlyEqual(decimal a, decimal b) => Math.Abs(a - b) < 0.0001m;
 
     private static async Task<string> StorageCaptionAsync(
         DbConnection connection,

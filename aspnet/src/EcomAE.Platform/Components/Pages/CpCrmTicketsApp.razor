@@ -5,6 +5,7 @@
 @using EcomAE.Platform.Auth
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Routing
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
@@ -51,7 +52,58 @@
             <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
         </div>
     </section>
-    <PhpParityModuleBody AppPath="/cp/crm-tickets-app" IsAdmin="_isAdmin" />
+    @if (!_leftoverWrite)
+    {
+        <PhpParityModuleBody AppPath="/cp/crm-tickets-app" IsAdmin="_isAdmin" />
+    }
+    <ErpPhpFlash Ok="@_ok" Err="@_err" />
+    @if (_isAdmin && _tab == "sla")
+    {
+        <ErpPhpCreateWell Title="Create SLA">
+            <form method="post" action="@EcomAeRoutes.ErpSlaCreateForm" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="/cp/crm-tickets-app?tab=sla" />
+                <label>SLA code <input class="form-control input-sm" name="sla_code" placeholder="Auto" /></label>
+                <label>Client <input class="form-control input-sm" name="client_name" required placeholder="Al Noor" /></label>
+                <label>Service <input class="form-control input-sm" name="service_type" placeholder="repairs" /></label>
+                <label>Response h <input class="form-control input-sm" name="response_hours" type="number" step="0.01" value="4" /></label>
+                <label>Resolution h <input class="form-control input-sm" name="resolution_hours" type="number" step="0.01" value="24" /></label>
+                <label>Uptime % <input class="form-control input-sm" name="uptime_pct" type="number" step="0.01" value="99.5" /></label>
+                <button type="submit" class="btn btn-primary btn-sm">Create SLA</button>
+            </form>
+        </ErpPhpCreateWell>
+    }
+    else if (_isAdmin && _tab == "tickets")
+    {
+        <ErpPhpCreateWell Title="Create ticket">
+            <form method="post" action="@EcomAeRoutes.ErpTicketsCreateForm" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="/cp/crm-tickets-app?tab=tickets" />
+                <label>Subject <input class="form-control input-sm" name="subject" required placeholder="Resize ring" /></label>
+                <label>Client <input class="form-control input-sm" name="client_name" /></label>
+                <label>Category <input class="form-control input-sm" name="category" value="general" /></label>
+                <label>Priority
+                    <select class="form-control input-sm" name="priority">
+                        <option value="low">Low</option>
+                        <option value="medium" selected>Medium</option>
+                        <option value="high">High</option>
+                        <option value="critical">Critical</option>
+                    </select>
+                </label>
+                <button type="submit" class="btn btn-primary btn-sm">Create ticket</button>
+            </form>
+        </ErpPhpCreateWell>
+        <ErpPhpCreateWell Title="Reply to ticket">
+            <form method="post" action="/erp/tickets/reply" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="/cp/crm-tickets-app?tab=tickets" />
+                <label>Ticket id <input class="form-control input-sm" name="ticket_id" type="number" min="1" required /></label>
+                <label>Message <input class="form-control input-sm" name="message" required /></label>
+                <label>Author <input class="form-control input-sm" name="author_name" /></label>
+                <button type="submit" class="btn btn-primary btn-sm">Save reply</button>
+            </form>
+        </ErpPhpCreateWell>
+    }
 
 
     <div class="epc-ct-kpis" aria-label="CRM tickets stats">
@@ -100,11 +152,20 @@
         </table>
     </div>
 
+    @if (_leftoverWrite)
+    {
+        <div class="epc-ct-note">SLA, ticket create, and text replies are live when confirmed. Schema-ensure and file attachments stay Classic.</div>
+    }
+
 </PhpCpDesktopChrome>
 
 @code {
     private const string _phpTab = "/ERP/?epc_erp_shell=1&area=sales&tab=crm";
     private bool _isAdmin;
+    private string _tab = "";
+    private bool _leftoverWrite;
+    private string _ok = "";
+    private string _err = "";
     private CpCrmTicketsSummary _summary = new(0, 0, 0, 0, "n/a", "");
     private IReadOnlyList<CpCrmTicketDigest> _rows = [];
     private string _source = "n/a";
@@ -115,6 +176,10 @@
         var ctx = Http.HttpContext;
         if (ctx is null) return;
 
+        _tab = (ctx.Request.Query["tab"].ToString() ?? string.Empty).Trim();
+        _leftoverWrite = _tab is "sla" or "tickets";
+        _ok = ctx.Request.Query["ok"].ToString();
+        _err = ctx.Request.Query["err"].ToString();
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
         if (!_isAdmin)

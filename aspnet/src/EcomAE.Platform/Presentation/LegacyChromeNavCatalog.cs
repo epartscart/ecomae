@@ -123,6 +123,7 @@ public static class LegacyChromeNavCatalog
         new("Data migrations", "/cp/data-migrations-app"),
         new("Geo / regions", "/cp/geo-regions-app"),
         new("Product filters", "/cp/product-filters-app"),
+        new("Order statuses", "/cp/order-statuses-app"),
         new("Search tabs", "/cp/search-tabs-app"),
         new("System requests", "/cp/system-requests-app"),
         new("Additional texts", "/cp/additional-texts-app"),

@@ -2,7 +2,7 @@ namespace EcomAE.Platform.Presentation;
 
 /// <summary>
 /// PHP <c>content/general_pages/vin_zapros.php</c> + <c>content/requests/*</c> twins.
-/// Writes stay on the PHP compare archive.
+/// users_vin INSERT and customer messages are ASP.NET-live. Captcha, photos, and manager email stay Classic.
 /// </summary>
 public static class PhpSellerRequest
 {
@@ -28,8 +28,8 @@ public static class PhpSellerRequest
         ("invoice_for_payment", "Invoice for payment"),
     ];
 
-    public static string SellerWriteHref => "/php-reference/content/general_pages/vin_zapros/send_vin_email.php";
-    public static string MessageWriteHref => "/php-reference/content/requests/ajax_send_message.php";
+    public static string SellerWriteHref => "/storefront/vin-request/create";
+    public static string MessageWriteHref => "/storefront/vin-request/send-message";
     public static string PrintWriteHref => "/php-reference/content/shop/print_docs/service/print.php";
 
     public static string PrintHref(int orderId, string docName)

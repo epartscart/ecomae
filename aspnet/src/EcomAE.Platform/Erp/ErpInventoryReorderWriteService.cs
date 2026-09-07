@@ -2,7 +2,7 @@ using System.Globalization;
 
 namespace EcomAE.Platform.Erp;
 
-/// <summary>Live PHP <c>inv_set_reorder_level</c> twin. Schema ensure, movements, and transfers stay PHP.</summary>
+/// <summary>Live PHP <c>inv_set_reorder_level</c> twin. Movements and transfers write via <c>IErpInventoryMovementWriteService</c>. Schema-ensure stays PHP.</summary>
 public interface IErpInventoryReorderWriteService
 {
     Task<ErpSimpleWriteResult> SetReorderLevelAsync(long itemId, decimal level, CancellationToken cancellationToken = default);

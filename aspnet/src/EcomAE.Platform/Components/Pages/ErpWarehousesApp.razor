@@ -4,6 +4,7 @@
 @using EcomAE.Platform.Auth
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Routing
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
@@ -12,10 +13,11 @@
 <PageTitle>Warehouses · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Warehouses" BreadcrumbArea="Inventory & Fulfilment" BreadcrumbTab="Inventory">
-    <PhpParityModuleBody AppPath="/erp/warehouses-app" IsAdmin="_isAdmin" />
-
-
-    
+    @if (_view != "virtual_warehouse")
+    {
+        <PhpParityModuleBody AppPath="/erp/warehouses-app" IsAdmin="_isAdmin" />
+    }
+    <ErpPhpFlash Ok="@_ok" Err="@_err" />
     <PhpErpModulePageHeader Title="@_title" Subtitle="@_subtitle" PhpTabHref="@_phpTab" />
     <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
 
@@ -26,6 +28,41 @@
 
     @if (_view == "virtual_warehouse")
     {
+        @if (_isAdmin)
+        {
+            <ErpPhpCreateWell Title="New virtual warehouse">
+                <form method="post" action="@EcomAeRoutes.ErpVirtualWarehouseCreateForm" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+                    <input type="hidden" name="confirmWrites" value="true" />
+                    <input type="hidden" name="returnUrl" value="/erp/warehouses-app?tab=virtual_warehouse" />
+                    <input type="hidden" name="is_sellable" value="1" />
+                    <label>Code <input class="form-control input-sm" name="code" placeholder="Auto" /></label>
+                    <label>Name <input class="form-control input-sm" name="name" placeholder="Exhibition hall" /></label>
+                    <label>Type
+                        <select class="form-control input-sm" name="type">
+                            <option value="virtual" selected>Virtual</option>
+                            <option value="exhibition">Exhibition</option>
+                            <option value="consignment">Consignment</option>
+                            <option value="transit">Transit</option>
+                            <option value="physical">Physical</option>
+                        </select>
+                    </label>
+                    <label>Event <input class="form-control input-sm" name="event_name" placeholder="Dubai show" /></label>
+                    <button type="submit" class="btn btn-primary btn-sm">Create warehouse</button>
+                </form>
+            </ErpPhpCreateWell>
+            <ErpPhpCreateWell Title="Create transfer">
+                <form method="post" action="@EcomAeRoutes.ErpVirtualWarehouseTransferForm" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+                    <input type="hidden" name="confirmWrites" value="true" />
+                    <input type="hidden" name="returnUrl" value="/erp/warehouses-app?tab=virtual_warehouse" />
+                    <label>From id <input class="form-control input-sm" name="from_warehouse_id" type="number" min="1" required /></label>
+                    <label>To id <input class="form-control input-sm" name="to_warehouse_id" type="number" min="1" required /></label>
+                    <label>Reason <input class="form-control input-sm" name="reason" value="exhibition" /></label>
+                    <label>SKU <input class="form-control input-sm" name="sku" placeholder="SKU-1" /></label>
+                    <label>Qty <input class="form-control input-sm" name="qty" type="number" step="0.001" value="1" /></label>
+                    <button type="submit" class="btn btn-primary btn-sm">Create transfer</button>
+                </form>
+            </ErpPhpCreateWell>
+        }
         <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Virtual warehouse KPIs">
             <div class="kpi"><div class="lbl">Virtual locations</div><div class="val">@_virtual.Count.ToString(CultureInfo.InvariantCulture)</div></div>
             <div class="kpi"><div class="lbl">Transfers</div><div class="val">@_transfers.Summary.TransferCount.ToString(CultureInfo.InvariantCulture)</div></div>
@@ -158,12 +195,16 @@
     private int _limit = 100;
     private string _source = "n/a";
     private string _message = "";
+    private string _ok = "";
+    private string _err = "";
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
 
+        _ok = ctx.Request.Query["ok"].ToString();
+        _err = ctx.Request.Query["err"].ToString();
         var tab = (ctx.Request.Query["tab"].ToString() ?? "").Trim().ToLowerInvariant();
         _view = tab == "virtual_warehouse" ? "virtual_warehouse" : "warehouses";
         _phpTab = _view == "virtual_warehouse"
@@ -171,7 +212,7 @@
             : "/ERP/?epc_erp_shell=1&area=inventory_mgmt&tab=inventory";
         _title = _view == "virtual_warehouse" ? "Virtual warehouse" : "Warehouses";
         _subtitle = _view == "virtual_warehouse"
-            ? "Exhibition, display, consignment and transit locations from the warehouse master."
+            ? "Exhibition, display, consignment and transit locations. Create and transfer are live when confirmed."
             : "Warehouse master linked to shop storage.";
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);

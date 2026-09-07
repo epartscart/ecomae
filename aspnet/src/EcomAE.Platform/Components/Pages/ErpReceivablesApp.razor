@@ -23,6 +23,52 @@
     </PhpErpModulePageHeader>
     <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
 
+    @if (!string.IsNullOrWhiteSpace(_flashOk))
+    {
+        <div class="alert alert-success" role="status" style="margin:0 0 12px;padding:.7rem .9rem;border-radius:.4rem;background:#ecfdf5;color:#065f46">@_flashOk</div>
+    }
+    @if (!string.IsNullOrWhiteSpace(_flashErr))
+    {
+        <div class="alert alert-danger" role="status" style="margin:0 0 12px;padding:.7rem .9rem;border-radius:.4rem;background:#fef2f2;color:#991b1b">@_flashErr</div>
+    }
+    @if (_isAdmin)
+    {
+        <form method="post" action="/erp/customers/master-save" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/erp/receivables-app" />
+            <label>Customer ID <input type="number" name="customer_id" min="1" required style="width:6rem" /></label>
+            <label>Account <input type="text" name="customer_account" maxlength="32" placeholder="C-0001" /></label>
+            <label>Name <input type="text" name="customer_name" maxlength="255" /></label>
+            <label>Credit limit <input type="text" name="credit_limit" placeholder="0.00" /></label>
+            <label>Terms days <input type="number" name="terms_days" min="0" style="width:5rem" /></label>
+            <label>Currency <input type="text" name="currency_code" maxlength="8" placeholder="AED" /></label>
+            <label><input type="checkbox" name="on_hold" value="1" /> On credit hold</label>
+            <button type="submit" class="btn btn-sm btn-primary">Save customer master</button>
+        </form>
+        <form method="post" action="/erp/customers/settlement" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/erp/receivables-app" />
+            <label>Customer ID <input type="number" name="user_id" min="1" required style="width:6rem" /></label>
+            <label>Amount <input type="text" name="amount" required placeholder="0.00" /></label>
+            <label>Direction
+                <select name="direction">
+                    <option value="credit">credit</option>
+                    <option value="debit">debit</option>
+                </select>
+            </label>
+            <label>Kind
+                <select name="entry_kind">
+                    <option value="adjustment">adjustment</option>
+                    <option value="settlement">settlement</option>
+                    <option value="write_off">write_off</option>
+                </select>
+            </label>
+            <label>Reference <input type="text" name="reference" /></label>
+            <label>Note <input type="text" name="note" /></label>
+            <button type="submit" class="btn btn-sm btn-primary">Post customer settlement</button>
+        </form>
+    }
+
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Receivables KPIs">
         <div class="kpi"><div class="lbl">Customers shown</div><div class="val">@_summary.CustomerCount.ToString(CultureInfo.InvariantCulture)</div></div>
         <div class="kpi"><div class="lbl">With open balance</div><div class="val">@_summary.WithOpenBalance.ToString(CultureInfo.InvariantCulture)</div></div>
@@ -79,12 +125,16 @@
     private ErpReceivablesSummary _summary = new(0, 0, 0, 0, 0, "n/a", string.Empty);
     private IReadOnlyList<ErpReceivableDigest> _rows = [];
     private string _message = "";
+    private string _flashOk = "";
+    private string _flashErr = "";
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
 
+        _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
+        _flashErr = ctx.Request.Query["err"].ToString() ?? "";
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
         if (!_isAdmin)

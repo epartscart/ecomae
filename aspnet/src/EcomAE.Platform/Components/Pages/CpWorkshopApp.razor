@@ -16,7 +16,7 @@
 
 
     <PhpCpModulePageHeader Title="Workshop &amp; service desk"
-                           Subtitle="Assign, save bay, save tech, and set status write here. Seed, create-job, lines, and appointments stay on the PHP twin."
+                           Subtitle="Assign, save bay, save tech, set status, create job, add line, and appointments write here. Seed stays on the Classic twin."
                            PhpTabHref="@_phpTab">
         <a class="ghost" href="/cp/sao-app">SAO</a>
         <a class="ghost" href="/cp/orders">Orders</a>
@@ -95,6 +95,78 @@
                 </select>
             </label>
             <button type="submit" class="btn btn-xs btn-primary">Set status</button>
+        </form>
+        <form method="post" action="/cp/workshop/write" data-epc-ws-create-job style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 .65rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/workshop-app" />
+            <input type="hidden" name="action" value="create_job" />
+            <label>Job no <input type="text" name="job_no" maxlength="40" placeholder="auto" /></label>
+            <label>Status
+                <select name="status">
+                    <option value="checkin">checkin</option>
+                    <option value="estimate">estimate</option>
+                    <option value="approved">approved</option>
+                    <option value="in_progress">in_progress</option>
+                </select>
+            </label>
+            <label>Customer <input type="text" name="customer_name" maxlength="160" /></label>
+            <label>Phone <input type="text" name="customer_phone" maxlength="40" /></label>
+            <label>Email <input type="text" name="customer_email" maxlength="160" /></label>
+            <label>Plate <input type="text" name="plate" maxlength="40" /></label>
+            <label>VIN <input type="text" name="vin" maxlength="40" /></label>
+            <label>Make <input type="text" name="make" maxlength="80" /></label>
+            <label>Model <input type="text" name="model" maxlength="80" /></label>
+            <label>Year <input type="text" name="year" maxlength="10" /></label>
+            <label>Odometer <input type="number" name="odometer" min="0" value="0" style="width:7rem" /></label>
+            <label>Complaint <input type="text" name="complaint" /></label>
+            <label>Bay id <input type="number" name="bay_id" min="0" value="0" style="width:6rem" /></label>
+            <label>Tech id <input type="number" name="tech_id" min="0" value="0" style="width:6rem" /></label>
+            <label>Labour <input type="text" name="labour_desc" maxlength="190" /></label>
+            <label>Hours <input type="text" name="labour_hours" value="1" inputmode="decimal" style="width:4rem" /></label>
+            <label>Rate <input type="text" name="labour_rate" value="150" inputmode="decimal" style="width:5rem" /></label>
+            <label>Part <input type="text" name="part_desc" maxlength="190" /></label>
+            <label>Qty <input type="text" name="part_qty" value="1" inputmode="decimal" style="width:4rem" /></label>
+            <label>Price <input type="text" name="part_price" value="0" inputmode="decimal" style="width:5rem" /></label>
+            <label>Notes <input type="text" name="notes" /></label>
+            <button type="submit" class="btn btn-xs btn-primary">Create job</button>
+        </form>
+        <form method="post" action="/cp/workshop/write" data-epc-ws-add-line style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 .65rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/workshop-app" />
+            <input type="hidden" name="action" value="add_line" />
+            <label>Job id <input type="number" name="job_id" min="1" required style="width:6rem" /></label>
+            <label>Type
+                <select name="line_type">
+                    <option value="part">part</option>
+                    <option value="labour">labour</option>
+                </select>
+            </label>
+            <label>Description <input type="text" name="description" maxlength="190" /></label>
+            <label>Qty <input type="text" name="qty" value="1" inputmode="decimal" style="width:4rem" /></label>
+            <label>Unit price <input type="text" name="unit_price" value="0" inputmode="decimal" style="width:5rem" /></label>
+            <label>Tax % <input type="text" name="tax_percent" value="5" inputmode="decimal" style="width:4rem" /></label>
+            <button type="submit" class="btn btn-xs btn-default">Add line</button>
+        </form>
+        <form method="post" action="/cp/workshop/write" data-epc-ws-create-appointment style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 .65rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/workshop-app" />
+            <input type="hidden" name="action" value="create_appointment" />
+            <label>Customer <input type="text" name="customer_name" maxlength="160" /></label>
+            <label>Phone <input type="text" name="customer_phone" maxlength="40" /></label>
+            <label>Plate <input type="text" name="plate" maxlength="40" /></label>
+            <label>Make <input type="text" name="make" maxlength="80" /></label>
+            <label>Model <input type="text" name="model" maxlength="80" /></label>
+            <label>Year <input type="text" name="year" maxlength="10" /></label>
+            <label>Service <input type="text" name="service_type" value="General service" maxlength="80" /></label>
+            <label>Notes <input type="text" name="notes" /></label>
+            <button type="submit" class="btn btn-xs btn-default">Schedule appointment</button>
+        </form>
+        <form method="post" action="/cp/workshop/write" data-epc-ws-convert-appointment style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/workshop-app" />
+            <input type="hidden" name="action" value="convert_appointment" />
+            <label>Appointment id <input type="number" name="appointment_id" min="1" required style="width:7rem" /></label>
+            <button type="submit" class="btn btn-xs btn-primary">Check in</button>
         </form>
     }
 

@@ -47,10 +47,67 @@
         <h1>Slider / banners</h1>
         <p>@CpPhpModuleCopy.PurposeFor(Nav.Uri)</p>
         <div class="epc-w22-cta">
-            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
+            <a href="/cp/slider-banners-app">Slider</a>
+            <a class="ghost" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Classic twin</a>
         </div>
     </section>
     <PhpParityModuleBody AppPath="/cp/slider-banners-app" IsAdmin="_isAdmin" />
+
+    @if (!string.IsNullOrWhiteSpace(_flashOk))
+    {
+        <div class="alert alert-success" role="status" style="margin:0 0 1rem;padding:.7rem .9rem;border-radius:.4rem;background:#ecfdf5;color:#065f46">@_flashOk</div>
+    }
+    @if (!string.IsNullOrWhiteSpace(_flashErr))
+    {
+        <div class="alert alert-danger" role="status" style="margin:0 0 1rem;padding:.7rem .9rem;border-radius:.4rem;background:#fef2f2;color:#991b1b">@_flashErr</div>
+    }
+    @if (_isAdmin)
+    {
+        <form method="post" action="/cp/slider-banners/write" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 .65rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/slider-banners-app" />
+            <input type="hidden" name="action" value="setings" />
+            <label>Connected
+                <select name="connected">
+                    <option value="1">Yes</option>
+                    <option value="0">No</option>
+                </select>
+            </label>
+            <label>Visible <input type="number" name="cntImg" value="1" min="1" style="width:5rem" /></label>
+            <label>Scroll <input type="number" name="cntImgNext" value="1" min="1" style="width:5rem" /></label>
+            <label>Seconds <input type="number" name="timeNext" value="3" min="1" style="width:5rem" /></label>
+            <button type="submit">Save settings</button>
+        </form>
+        <form method="post" action="/cp/slider-banners/write" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 .65rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/slider-banners-app" />
+            <input type="hidden" name="action" value="add" />
+            <label>Path <input type="text" name="href" required placeholder="/content/files/images/slide.jpg" /></label>
+            <label>Link <input type="text" name="link" placeholder="/shop" /></label>
+            <button type="submit">Add path</button>
+        </form>
+        <form method="post" action="/cp/slider-banners/write" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 .65rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/slider-banners-app" />
+            <input type="hidden" name="action" value="up" />
+            <label>Image id <input type="number" name="imageId" min="1" required style="width:6rem" /></label>
+            <button type="submit">Move up</button>
+        </form>
+        <form method="post" action="/cp/slider-banners/write" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 .65rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/slider-banners-app" />
+            <input type="hidden" name="action" value="do" />
+            <label>Image id <input type="number" name="imageId" min="1" required style="width:6rem" /></label>
+            <button type="submit">Move down</button>
+        </form>
+        <form method="post" action="/cp/slider-banners/write" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/slider-banners-app" />
+            <input type="hidden" name="action" value="del" />
+            <label>Image id <input type="number" name="imageId" min="1" required style="width:6rem" /></label>
+            <button type="submit">Delete image</button>
+        </form>
+    }
 
 
     <div class="epc-w22-kpis" aria-label="Slider / banners stats">
@@ -102,14 +159,18 @@
     private IReadOnlyList<CpSliderBannersRowDigest> _rows = [];
     private string _source = "n/a";
     private string _message = "";
+    private string _flashOk = "";
+    private string _flashErr = "";
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
 
+        _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
+        _flashErr = ctx.Request.Query["err"].ToString() ?? "";
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
-        _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
+        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
         if (!_isAdmin)
         {
             return; // guest browse — Sign in for live data

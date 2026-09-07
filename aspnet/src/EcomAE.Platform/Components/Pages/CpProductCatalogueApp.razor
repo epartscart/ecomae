@@ -21,7 +21,7 @@
 
 
     <PhpCpModulePageHeader Title="Product catalogue"
-                           Subtitle="Min-limit flag/value and category-template delete write here. Tree editor, SKU media, and template create stay on the compare twin."
+                           Subtitle="Min-limit, templates, line/tree lists (including item image filename attach), brunch, SKU profile/spec/photo-meta, homepage slots, special searches, catalogue tree, product create/edit (including type-5 manual line-list items and images_list filename attach), review delete, and product delete write here. Multipart image bytes, SKU/template/category file uploads, and drag-tree UX stay on the compare twin."
                            PhpTabHref="@_phpTab">
         <a class="ghost" href="/cp/prices-upload-app">Prices upload</a>
         <a class="ghost" href="/cp/crosses-app">Crosses</a>
@@ -29,29 +29,45 @@
     </PhpCpModulePageHeader>
 
     <div class="epc-scp-tool-grid" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.75rem;margin-bottom:1rem;">
-        <a class="epc-scp-table-card" style="padding:1rem;text-decoration:none;color:inherit;" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref("/CP/shop/catalogue/tree_lists")">
-            <h3 style="margin:0 0 .35rem;font-size:1rem;">Tree lists</h3>
-            <p style="margin:0;color:#475569;font-size:.86rem;">PHP tree_lists_manager</p>
+        <a class="epc-scp-table-card" style="padding:1rem;text-decoration:none;color:inherit;" href="#line-lists">
+            <h3 style="margin:0 0 .35rem;font-size:1rem;">Line lists</h3>
+            <p style="margin:0;color:#475569;font-size:.86rem;">Save / delete write here. Drag-tree stays Classic.</p>
         </a>
-        <a class="epc-scp-table-card" style="padding:1rem;text-decoration:none;color:inherit;" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref("/CP/shop/catalogue/main_page_products")">
+        <a class="epc-scp-table-card" style="padding:1rem;text-decoration:none;color:inherit;" href="#tree-lists">
+            <h3 style="margin:0 0 .35rem;font-size:1rem;">Tree lists</h3>
+            <p style="margin:0;color:#475569;font-size:.86rem;">Save / delete / brunch write here. Item image filename attach writes here; multipart bytes stay Classic.</p>
+        </a>
+        <a class="epc-scp-table-card" style="padding:1rem;text-decoration:none;color:inherit;" href="#homepage-slots">
             <h3 style="margin:0 0 .35rem;font-size:1rem;">Homepage slots</h3>
-            <p style="margin:0;color:#475569;font-size:.86rem;">PHP main_page_products</p>
+            <p style="margin:0;color:#475569;font-size:.86rem;">Save writes here. Drag-tree stays Classic.</p>
         </a>
         <a class="epc-scp-table-card" style="padding:1rem;text-decoration:none;color:inherit;" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref("/CP/shop/catalogue/related_products")">
             <h3 style="margin:0 0 .35rem;font-size:1rem;">Related</h3>
             <p style="margin:0;color:#475569;font-size:.86rem;">PHP related_products</p>
         </a>
-        <a class="epc-scp-table-card" style="padding:1rem;text-decoration:none;color:inherit;" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref("/CP/shop/catalogue/reviews")">
+        <a class="epc-scp-table-card" style="padding:1rem;text-decoration:none;color:inherit;" href="#reviews">
             <h3 style="margin:0 0 .35rem;font-size:1rem;">Reviews</h3>
-            <p style="margin:0;color:#475569;font-size:.86rem;">PHP reviews</p>
+            <p style="margin:0;color:#475569;font-size:.86rem;">Delete writes here. Storefront create stays on the customer path.</p>
         </a>
-        <a class="epc-scp-table-card" style="padding:1rem;text-decoration:none;color:inherit;" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref("/CP/shop/catalogue/sku_media")">
+        <a class="epc-scp-table-card" style="padding:1rem;text-decoration:none;color:inherit;" href="#sku-media">
             <h3 style="margin:0 0 .35rem;font-size:1rem;">SKU media</h3>
-            <p style="margin:0;color:#475569;font-size:.86rem;">PHP epc_sku_media_manager</p>
+            <p style="margin:0;color:#475569;font-size:.86rem;">Profile / spec / photo-meta write here. Photo file upload stays Classic.</p>
         </a>
-        <a class="epc-scp-table-card" style="padding:1rem;text-decoration:none;color:inherit;" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref("/CP/shop/catalogue/special_searches")">
+        <a class="epc-scp-table-card" style="padding:1rem;text-decoration:none;color:inherit;" href="#special-searches">
             <h3 style="margin:0 0 .35rem;font-size:1rem;">Special searches</h3>
-            <p style="margin:0;color:#475569;font-size:.86rem;">PHP special_searches</p>
+            <p style="margin:0;color:#475569;font-size:.86rem;">Save / delete / img filename write here. Multipart file bytes stay Classic.</p>
+        </a>
+        <a class="epc-scp-table-card" style="padding:1rem;text-decoration:none;color:inherit;" href="#catalogue-tree">
+            <h3 style="margin:0 0 .35rem;font-size:1rem;">Catalogue tree</h3>
+            <p style="margin:0;color:#475569;font-size:.86rem;">Save writes here. Images and drag-tree stay Classic.</p>
+        </a>
+        <a class="epc-scp-table-card" style="padding:1rem;text-decoration:none;color:inherit;" href="#product-save">
+            <h3 style="margin:0 0 .35rem;font-size:1rem;">Product save</h3>
+            <p style="margin:0;color:#475569;font-size:.86rem;">Create / edit / type-5 manual line-list / images_list attach write here. Multipart file bytes stay Classic.</p>
+        </a>
+        <a class="epc-scp-table-card" style="padding:1rem;text-decoration:none;color:inherit;" href="#product-delete">
+            <h3 style="margin:0 0 .35rem;font-size:1rem;">Product delete</h3>
+            <p style="margin:0;color:#475569;font-size:.86rem;">Delete writes here. Image file unlink stays Classic.</p>
         </a>
     </div>
 
@@ -86,12 +102,334 @@
             <label>min_limit <input type="number" name="value" min="0" step="1" required style="width:6rem" /></label>
             <button type="submit" class="btn btn-xs btn-default">Save value</button>
         </form>
+        <form id="category-templates" method="post" action="/cp/catalogue/templates-actions" style="display:flex;flex-direction:column;gap:.45rem;margin:0 0 1rem;max-width:52rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/product-catalogue-app" />
+            <input type="hidden" name="action" value="create" />
+            <input type="hidden" name="imageType" value="from_input" />
+            <div style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end">
+                <label>Caption <input type="text" name="caption" required /></label>
+                <label>Image name <input type="text" name="imageName" placeholder="optional" /></label>
+            </div>
+            <label>Category object JSON
+                <textarea name="categoryObject" rows="3" style="width:100%;font-family:monospace" placeholder='{"id":1,"value":"Root"}'></textarea>
+            </label>
+            <label>Image base64 (optional — file upload stays Classic)
+                <textarea name="imageBase64" rows="2" style="width:100%;font-family:monospace" placeholder="optional"></textarea>
+            </label>
+            <button type="submit">Create template</button>
+        </form>
         <form method="post" action="/cp/catalogue/templates-actions" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
             <input type="hidden" name="returnUrl" value="/cp/product-catalogue-app" />
             <input type="hidden" name="action" value="delete" />
             <label>Category template id <input type="number" name="templateId" min="1" required style="width:6rem" /></label>
             <button type="submit" class="btn btn-xs btn-default">Delete template</button>
+        </form>
+        <form id="line-lists" method="post" action="/cp/catalogue/line-lists/write" style="display:flex;flex-direction:column;gap:.45rem;margin:0 0 1rem;max-width:52rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/product-catalogue-app" />
+            <input type="hidden" name="langCode" value="en" />
+            <div style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end">
+                <label>Action
+                    <select name="action">
+                        <option value="create">create</option>
+                        <option value="edit">edit</option>
+                    </select>
+                </label>
+                <label>List id <input type="number" name="listId" min="0" value="0" style="width:6rem" title="0 = create" /></label>
+                <label>Caption <input type="text" name="caption" /></label>
+                <label>Type
+                    <select name="type">
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                    </select>
+                </label>
+                <label>Data type
+                    <select name="dataType">
+                        <option value="text">text</option>
+                        <option value="number">number</option>
+                    </select>
+                </label>
+                <label>Auto sort
+                    <select name="autoSort">
+                        <option value="no">no</option>
+                        <option value="asc">asc</option>
+                        <option value="desc">desc</option>
+                    </select>
+                </label>
+            </div>
+            <label>Items JSON
+                <textarea name="itemsJson" rows="4" style="width:100%;font-family:monospace" placeholder='[{"value":"Red"}] or [{"id":1,"value":"Red","value_lang_str_id":"..."}]'></textarea>
+            </label>
+            <button type="submit">Save line list</button>
+        </form>
+        <form method="post" action="/cp/catalogue/line-lists/write" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/product-catalogue-app" />
+            <input type="hidden" name="action" value="delete" />
+            <label>Ids <input type="text" name="ids" required placeholder="[1] or 1,2" /></label>
+            <button type="submit">Delete line lists</button>
+        </form>
+        <form id="tree-lists" method="post" action="/cp/catalogue/tree-lists/write" style="display:flex;flex-direction:column;gap:.45rem;margin:0 0 1rem;max-width:52rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/product-catalogue-app" />
+            <input type="hidden" name="langCode" value="en" />
+            <div style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end">
+                <label>Action
+                    <select name="action">
+                        <option value="create">create</option>
+                        <option value="edit">edit</option>
+                    </select>
+                </label>
+                <label>List id <input type="number" name="listId" min="0" value="0" style="width:6rem" title="0 = create" /></label>
+                <label>Caption <input type="text" name="caption" /></label>
+                <label>Data type
+                    <select name="dataType">
+                        <option value="text">text</option>
+                        <option value="number">number</option>
+                    </select>
+                </label>
+            </div>
+            <label>Tree JSON
+                <textarea name="treeJson" rows="4" style="width:100%;font-family:monospace" placeholder='[{"id":1,"value":"Root","$count":0,"$level":1,"$parent":0,"image":"root.png"}]'></textarea>
+            </label>
+            <button type="submit">Save tree list</button>
+        </form>
+        <form method="post" action="/cp/catalogue/tree-lists/write" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/product-catalogue-app" />
+            <input type="hidden" name="action" value="delete" />
+            <label>Ids <input type="text" name="ids" required placeholder="[1] or 1,2" /></label>
+            <button type="submit">Delete tree lists</button>
+        </form>
+        <form id="tree-brunch" method="post" action="/cp/catalogue/tree-lists/write" style="display:flex;flex-direction:column;gap:.45rem;margin:0 0 1rem;max-width:52rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/product-catalogue-app" />
+            <input type="hidden" name="langCode" value="en" />
+            <div style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end">
+                <label>Action
+                    <select name="action">
+                        <option value="branch_create">branch_create</option>
+                        <option value="branch_edit">branch_edit</option>
+                    </select>
+                </label>
+                <label>List id <input type="number" name="listId" min="0" value="0" style="width:6rem" title="0 = create" /></label>
+                <label>Parent id <input type="number" name="parentId" min="0" value="0" style="width:6rem" /></label>
+                <label>Caption <input type="text" name="caption" /></label>
+                <label>Data type
+                    <select name="dataType">
+                        <option value="text">text</option>
+                        <option value="number">number</option>
+                    </select>
+                </label>
+            </div>
+            <label>Branch items JSON
+                <textarea name="treeJson" rows="4" style="width:100%;font-family:monospace" placeholder='[{"id":1,"value":"Sibling","alias":"sib","url":"/sib","image":"sib.png"}]'></textarea>
+            </label>
+            <button type="submit">Save brunch</button>
+        </form>
+        <form id="sku-media" method="post" action="/cp/catalogue/sku-media/write" style="display:flex;flex-direction:column;gap:.45rem;margin:0 0 1rem;max-width:52rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/product-catalogue-app" />
+            <div style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end">
+                <label>Action
+                    <select name="action">
+                        <option value="save_profile">save_profile</option>
+                        <option value="ensure">ensure</option>
+                        <option value="delete_profile">delete_profile</option>
+                    </select>
+                </label>
+                <label>Profile id <input type="number" name="profileId" min="0" value="0" style="width:6rem" title="0 = create" /></label>
+                <label>Product id <input type="number" name="productId" min="0" value="0" style="width:6rem" /></label>
+                <label>Brand <input type="text" name="brand" /></label>
+                <label>Article <input type="text" name="article" /></label>
+                <label>Title <input type="text" name="title" /></label>
+                <label>Subtitle <input type="text" name="subtitle" /></label>
+                <label>Status
+                    <select name="status">
+                        <option value="active">active</option>
+                        <option value="draft">draft</option>
+                        <option value="hidden">hidden</option>
+                    </select>
+                </label>
+            </div>
+            <button type="submit">Save SKU profile</button>
+        </form>
+        <form id="sku-specs" method="post" action="/cp/catalogue/sku-media/write" style="display:flex;flex-direction:column;gap:.45rem;margin:0 0 1rem;max-width:52rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/product-catalogue-app" />
+            <div style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end">
+                <label>Action
+                    <select name="action">
+                        <option value="add_spec_group">add_spec_group</option>
+                        <option value="delete_spec_group">delete_spec_group</option>
+                        <option value="add_spec_row">add_spec_row</option>
+                        <option value="update_spec_row">update_spec_row</option>
+                        <option value="delete_spec_row">delete_spec_row</option>
+                        <option value="update_photo">update_photo</option>
+                        <option value="delete_photo">delete_photo</option>
+                    </select>
+                </label>
+                <label>Profile id <input type="number" name="profileId" min="0" value="0" style="width:6rem" /></label>
+                <label>Group id <input type="number" name="groupId" min="0" value="0" style="width:6rem" /></label>
+                <label>Row id <input type="number" name="rowId" min="0" value="0" style="width:6rem" /></label>
+                <label>Photo id <input type="number" name="photoId" min="0" value="0" style="width:6rem" /></label>
+                <label>Name <input type="text" name="name" /></label>
+                <label>Code <input type="text" name="code" /></label>
+                <label>Icon <input type="text" name="icon" placeholder="fa-list" /></label>
+                <label>Label <input type="text" name="label" /></label>
+                <label>Value <input type="text" name="value" /></label>
+                <label>Value type
+                    <select name="valueType">
+                        <option value="text">text</option>
+                        <option value="number">number</option>
+                        <option value="bool">bool</option>
+                        <option value="list">list</option>
+                        <option value="rich">rich</option>
+                    </select>
+                </label>
+                <label>Unit <input type="text" name="unit" /></label>
+                <label>Alt <input type="text" name="alt" /></label>
+                <label>Caption <input type="text" name="caption" /></label>
+                <label>Photo type
+                    <select name="photoType">
+                        <option value="product">product</option>
+                        <option value="packaging">packaging</option>
+                        <option value="detail">detail</option>
+                        <option value="diagram">diagram</option>
+                        <option value="install">install</option>
+                        <option value="datasheet">datasheet</option>
+                        <option value="other">other</option>
+                    </select>
+                </label>
+                <label>Sort <input type="number" name="sortOrder" min="0" value="0" style="width:5rem" /></label>
+                <label>Primary
+                    <select name="isPrimary">
+                        <option value="">keep</option>
+                        <option value="1">1</option>
+                        <option value="0">0</option>
+                    </select>
+                </label>
+            </div>
+            <button type="submit">Save SKU spec</button>
+        </form>
+        <form id="homepage-slots" method="post" action="/cp/catalogue/main-page-products/write" style="display:flex;flex-direction:column;gap:.45rem;margin:0 0 1rem;max-width:52rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/product-catalogue-app" />
+            <input type="hidden" name="langCode" value="en" />
+            <label>Homepage groups JSON
+                <textarea name="treeJson" rows="5" style="width:100%;font-family:monospace" placeholder='[{"value":"Featured","show_caption":1,"active":1,"data":[{"product_id":1}]}]'></textarea>
+            </label>
+            <button type="submit">Save homepage slots</button>
+        </form>
+        <form id="special-searches" method="post" action="/cp/catalogue/special-searches/write" style="display:flex;flex-direction:column;gap:.45rem;margin:0 0 1rem;max-width:52rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/product-catalogue-app" />
+            <input type="hidden" name="langCode" value="en" />
+            <input type="hidden" name="action" value="save" />
+            <div style="display:flex;flex-wrap:wrap;gap:.45rem;align-items:end">
+                <label>Search id <input type="number" name="searchId" min="0" value="0" style="width:6rem" /></label>
+                <label>Caption <input type="text" name="caption" /></label>
+                <label>Alias <input type="text" name="alias" /></label>
+                <label>Title <input type="text" name="title" /></label>
+                <label>Order <input type="number" name="order" value="0" style="width:5rem" /></label>
+                <label>Active
+                    <select name="active">
+                        <option value="1">1</option>
+                        <option value="0">0</option>
+                    </select>
+                </label>
+            </div>
+            <label>Description <input type="text" name="description" style="width:100%" /></label>
+            <label>Keywords <input type="text" name="keywords" style="width:100%" /></label>
+            <label>Robots <input type="text" name="robots" value="index,follow" /></label>
+            <label>Steps JSON
+                <textarea name="treeJson" rows="5" style="width:100%;font-family:monospace" placeholder='[{"value":"Brand","alias":"brand","type":1,"objects":[1],"is_new":true,"levels":[{"value":"Level 1","h1":"H1","title":"Title","description":"Desc","keywords":"kw","robots":"index,follow"}]}]'></textarea>
+            </label>
+            <label>Deleted step ids JSON
+                <input type="text" name="deletedSteps" value="[]" style="width:100%;font-family:monospace" />
+            </label>
+            <label>Image name
+                <input type="text" name="imageName" placeholder="special_search.png" />
+            </label>
+            <button type="submit">Save special search</button>
+        </form>
+        <form id="special-searches-delete" method="post" action="/cp/catalogue/special-searches/write" style="display:flex;flex-wrap:wrap;gap:.45rem;align-items:end;margin:0 0 1rem;max-width:52rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/product-catalogue-app" />
+            <input type="hidden" name="action" value="delete" />
+            <label>Search ids JSON
+                <input type="text" name="searchesIds" placeholder="[1,2]" style="width:16rem;font-family:monospace" />
+            </label>
+            <button type="submit">Delete special searches</button>
+        </form>
+        <form id="catalogue-tree" method="post" action="/cp/catalogue/editor/write" style="display:flex;flex-direction:column;gap:.45rem;margin:0 0 1rem;max-width:52rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/product-catalogue-app" />
+            <input type="hidden" name="langCode" value="en" />
+            <label>Catalogue tree JSON
+                <textarea name="treeJson" rows="5" style="width:100%;font-family:monospace" placeholder='[{"id":1,"value":"Tires","alias":"tires","url":"/tires","published_flag":1,"$level":1,"$parent":0,"$count":0,"data":[]}]'></textarea>
+            </label>
+            <button type="submit">Save catalogue tree</button>
+        </form>
+        <form id="product-save" method="post" action="/cp/catalogue/products/write" style="display:flex;flex-direction:column;gap:.45rem;margin:0 0 1rem;max-width:52rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/product-catalogue-app" />
+            <input type="hidden" name="langCode" value="en" />
+            <div style="display:flex;flex-wrap:wrap;gap:.45rem;align-items:end">
+                <label>Action
+                    <select name="action">
+                        <option value="create">create</option>
+                        <option value="edit">edit</option>
+                    </select>
+                </label>
+                <label>Product id <input type="number" name="productId" min="0" value="0" style="width:6rem" /></label>
+                <label>Category id <input type="number" name="categoryId" min="1" value="401" style="width:6rem" /></label>
+                <label>Caption <input type="text" name="caption" /></label>
+                <label>Alias <input type="text" name="alias" /></label>
+                <label>Published
+                    <select name="publishedFlag">
+                        <option value="1">1</option>
+                        <option value="0">0</option>
+                    </select>
+                </label>
+            </div>
+            <label>Title tag <input type="text" name="titleTag" style="width:100%" /></label>
+            <label>Robots <input type="text" name="robotsTag" value="index,follow" /></label>
+            <label>Product text
+                <textarea name="productText" rows="3" style="width:100%"></textarea>
+            </label>
+            <label>Properties JSON
+                <textarea name="propertiesJson" rows="3" style="width:100%;font-family:monospace" placeholder='[{"property_id":21,"property_type_id":5,"list_type":1,"manual_input":"Ceramic","value":[]}]'></textarea>
+            </label>
+            <label>Stickers JSON
+                <input type="text" name="stickersJson" value="[]" style="width:100%;font-family:monospace" />
+            </label>
+            <label>Related JSON
+                <input type="text" name="relatedJson" value="[]" style="width:100%;font-family:monospace" />
+            </label>
+            <label>Images JSON
+                <input type="text" name="imagesJson" value="" style="width:100%;font-family:monospace" placeholder='[{"name":"pad.png","image_of_template":1}]' />
+            </label>
+            <button type="submit">Save product</button>
+        </form>
+        <form id="reviews" method="post" action="/cp/catalogue/reviews/write" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/product-catalogue-app" />
+            <input type="hidden" name="action" value="delete" />
+            <label>Review id <input type="number" name="reviewId" min="1" required style="width:6rem" /></label>
+            <button type="submit">Delete review</button>
+        </form>
+        <form id="product-delete" method="post" action="/cp/catalogue/products/delete" style="display:flex;flex-direction:column;gap:.45rem;margin:0 0 1rem;max-width:52rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/product-catalogue-app" />
+            <input type="hidden" name="action" value="delete" />
+            <div style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end">
+                <label>Category id <input type="number" name="categoryId" min="0" value="0" style="width:6rem" /></label>
+                <label>Product ids JSON <input type="text" name="productsJson" value="[]" style="width:16rem;font-family:monospace" /></label>
+                <button type="submit">Delete products</button>
+            </div>
         </form>
     }
     @if (!_isAdmin)
@@ -128,7 +466,7 @@
                 <div class="epc-scp-table-card__head">
                     <div>
                         <h3>Catalogue products</h3>
-                        <p class="epc-users-hint">Open a row for read console — full tree/editor is PHP catalogue_editor</p>
+                        <p class="epc-users-hint">Open a row for read console. Tree JSON save writes here; drag-tree UX stays Classic.</p>
                     </div>
                     <a class="btn btn-primary btn-xs" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Open PHP editor</a>
                 </div>

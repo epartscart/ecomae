@@ -47,11 +47,74 @@
         <h1>Product filters</h1>
         <p>@CpPhpModuleCopy.PurposeFor(Nav.Uri)</p>
         <div class="epc-w22-cta">
-            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
+            <a href="/cp/product-filters-app">Filters</a>
+            <a class="ghost" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Classic twin</a>
         </div>
     </section>
     <PhpParityModuleBody AppPath="/cp/product-filters-app" IsAdmin="_isAdmin" />
 
+    @if (!string.IsNullOrWhiteSpace(_flashOk))
+    {
+        <div class="alert alert-success" role="status" style="margin:0 0 1rem;padding:.7rem .9rem;border-radius:.4rem;background:#ecfdf5;color:#065f46">@_flashOk</div>
+    }
+    @if (!string.IsNullOrWhiteSpace(_flashErr))
+    {
+        <div class="alert alert-danger" role="status" style="margin:0 0 1rem;padding:.7rem .9rem;border-radius:.4rem;background:#fef2f2;color:#991b1b">@_flashErr</div>
+    }
+    @if (_isAdmin)
+    {
+        <form method="post" action="/cp/product-filters/write" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 .65rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/product-filters-app" />
+            <input type="hidden" name="action" value="add" />
+            <label>Manufacturer <input type="text" name="manufacturer" placeholder="BOSCH" /></label>
+            <label>Article <input type="text" name="article" placeholder="0986AB1234" /></label>
+            <label>Name <input type="text" name="name" placeholder="Brake pad" /></label>
+            <button type="submit">Add filter</button>
+        </form>
+        <form method="post" action="/cp/product-filters/write" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 .65rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/product-filters-app" />
+            <input type="hidden" name="action" value="save" />
+            <label>Id <input type="number" name="filterId" min="1" required style="width:6rem" /></label>
+            <label>Manufacturer <input type="text" name="manufacturer" /></label>
+            <label>Article <input type="text" name="article" /></label>
+            <label>Name <input type="text" name="name" /></label>
+            <button type="submit">Save filter</button>
+        </form>
+        <form method="post" action="/cp/product-filters/write" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 .65rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/product-filters-app" />
+            <input type="hidden" name="action" value="active" />
+            <label>Id <input type="number" name="filterId" min="1" required style="width:6rem" /></label>
+            <label>Enabled
+                <select name="flag">
+                    <option value="1">Yes</option>
+                    <option value="0">No</option>
+                </select>
+            </label>
+            <button type="submit">Set enabled</button>
+        </form>
+        <form method="post" action="/cp/product-filters/write" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 .65rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/product-filters-app" />
+            <input type="hidden" name="action" value="save_storages" />
+            <label>Id <input type="number" name="filterId" min="1" required style="width:6rem" /></label>
+            <label>Storages <input type="text" name="storagesJson" placeholder="[1,2]" /></label>
+            <label>Min price <input type="number" name="minPrice" step="0.01" min="0" style="width:6rem" /></label>
+            <label>Max price <input type="number" name="maxPrice" step="0.01" min="0" style="width:6rem" /></label>
+            <label>Min time <input type="number" name="minTime" min="0" style="width:5rem" /></label>
+            <label>Max time <input type="number" name="maxTime" min="0" style="width:5rem" /></label>
+            <button type="submit">Save scope</button>
+        </form>
+        <form method="post" action="/cp/product-filters/write" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/product-filters-app" />
+            <input type="hidden" name="action" value="del" />
+            <label>Id <input type="number" name="filterId" min="1" required style="width:6rem" /></label>
+            <button type="submit">Delete filter</button>
+        </form>
+    }
 
     <div class="epc-w22-kpis" aria-label="Product filters stats">
         <div class="epc-w22-kpi"><strong>@_summary.FilterCount.ToString(CultureInfo.InvariantCulture)</strong><span>Filters</span></div>
@@ -106,12 +169,16 @@
     private IReadOnlyList<CpProductFiltersRowDigest> _rows = [];
     private string _source = "n/a";
     private string _message = "";
+    private string _flashOk = "";
+    private string _flashErr = "";
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
 
+        _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
+        _flashErr = ctx.Request.Query["err"].ToString() ?? "";
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
         if (!_isAdmin)

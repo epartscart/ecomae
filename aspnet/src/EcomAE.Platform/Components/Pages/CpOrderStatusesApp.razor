@@ -1,0 +1,191 @@
+@page "/cp/order-statuses-app"
+@layout Layout.PhpChromeLayout
+@using System.Globalization
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Cp
+@using EcomAE.Platform.Presentation
+@inject ICpOrderStatusWriteService Writes
+@inject ILegacySessionValidator Sessions
+@inject IHttpContextAccessor Http
+@inject NavigationManager Nav
+
+<PageTitle>Order statuses · Control Panel · eParts Cart</PageTitle>
+<PhpChromeStyles Surface="cp" />
+<HeadContent>
+<style>
+        .epc-w22-hero {
+            margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
+            background:linear-gradient(135deg,#0c4a6e 0%,#2563eb 45%,#0ea5e9 100%);
+        }
+        .epc-w22-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
+        .epc-w22-hero p { margin:0; color:rgba(255,255,255,.88); max-width:44rem; font-size:.92rem; line-height:1.45; }
+        .epc-w22-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
+        .epc-w22-cta a {
+            display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
+            text-decoration:none; color:#0f172a; background:#fff;
+        }
+        .epc-w22-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); color:#fff; }
+        .epc-w22-kpis { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
+        .epc-w22-kpi { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; padding:.85rem .9rem; }
+        .epc-w22-kpi strong { display:block; font-size:1.2rem; word-break:break-word; }
+        .epc-w22-kpi span { color:#64748b; font-size:.78rem; }
+        .epc-w22-table-wrap { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; overflow:auto; margin-bottom:1rem; }
+        .epc-w22-table { width:100%; border-collapse:collapse; font-size:.86rem; }
+        .epc-w22-table th, .epc-w22-table td { padding:.55rem .7rem; border-bottom:1px solid #f1f5f9; text-align:left; white-space:nowrap; }
+        .epc-w22-table th { background:#f8fafc; color:#475569; font-size:.75rem; text-transform:uppercase; letter-spacing:.03em; }
+        @@media (max-width:900px){ .epc-w22-kpis{grid-template-columns:1fr 1fr;} }
+</style>
+</HeadContent>
+
+<PhpCpDesktopChrome IsAdmin="_isAdmin">
+
+    <section class="epc-w22-hero">
+        <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
+        <h1>Order statuses</h1>
+        <p>@CpPhpModuleCopy.PurposeFor(Nav.Uri)</p>
+        <div class="epc-w22-cta">
+            <a href="/cp/order-statuses-app">Statuses</a>
+            <a href="/cp/orders">Orders</a>
+            <a class="ghost" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Classic twin</a>
+        </div>
+    </section>
+    <PhpParityModuleBody AppPath="/cp/order-statuses-app" IsAdmin="_isAdmin" />
+
+    @if (!string.IsNullOrWhiteSpace(_flashOk))
+    {
+        <div class="alert alert-success" role="status" style="margin:0 0 1rem;padding:.7rem .9rem;border-radius:.4rem;background:#ecfdf5;color:#065f46">@_flashOk</div>
+    }
+    @if (!string.IsNullOrWhiteSpace(_flashErr))
+    {
+        <div class="alert alert-danger" role="status" style="margin:0 0 1rem;padding:.7rem .9rem;border-radius:.4rem;background:#fef2f2;color:#991b1b">@_flashErr</div>
+    }
+    @if (_isAdmin)
+    {
+        <form method="post" action="/cp/order-statuses/write" style="display:flex;flex-direction:column;gap:.45rem;margin:0 0 1rem;max-width:52rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/order-statuses-app" />
+            <label>Order statuses JSON
+                <textarea name="ordersJson" required rows="6" style="width:100%;font-family:ui-monospace,monospace;font-size:.82rem" placeholder='[{"id":1,"value":"New","color":"#3498db","for_created":1,"created_earlier":1}]'></textarea>
+            </label>
+            <label>Item statuses JSON
+                <textarea name="itemsJson" required rows="6" style="width:100%;font-family:ui-monospace,monospace;font-size:.82rem" placeholder='[{"id":1,"value":"Reserved","color":"#2ecc71","for_created":1,"count_flag":1,"created_earlier":1}]'></textarea>
+            </label>
+            <p style="margin:0;color:#475569;font-size:.82rem">Statuses not listed are deleted. Empty lists are refused. Notification send stays Classic; flags are stored.</p>
+            <button type="submit">Save statuses</button>
+        </form>
+    }
+
+    <div class="epc-w22-kpis" aria-label="Order statuses stats">
+        <div class="epc-w22-kpi"><strong>@_orders.Count.ToString(CultureInfo.InvariantCulture)</strong><span>Order statuses</span></div>
+        <div class="epc-w22-kpi"><strong>@_items.Count.ToString(CultureInfo.InvariantCulture)</strong><span>Item statuses</span></div>
+        <div class="epc-w22-kpi"><strong>@_orderFinish.ToString(CultureInfo.InvariantCulture)</strong><span>Order finish</span></div>
+        <div class="epc-w22-kpi"><strong>@_itemFinish.ToString(CultureInfo.InvariantCulture)</strong><span>Item finish</span></div>
+    </div>
+
+    <div class="epc-w22-table-wrap">
+    <table class="epc-w22-table">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Order</th>
+                <th>Name</th>
+                <th>Color</th>
+                <th>Created</th>
+                <th>Paid</th>
+                <th>Finish</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (_orders.Count == 0)
+            {
+                <tr><td colspan="7">No order statuses yet.</td></tr>
+            }
+            else
+            {
+                @foreach (var row in _orders)
+                {
+                    <tr>
+                        <td>@row.Id.ToString(CultureInfo.InvariantCulture)</td>
+                        <td>@row.SortOrder.ToString(CultureInfo.InvariantCulture)</td>
+                        <td>@(!string.IsNullOrWhiteSpace(row.Caption) ? row.Caption : "—")</td>
+                        <td>@(!string.IsNullOrWhiteSpace(row.Color) ? row.Color : "—")</td>
+                        <td>@row.ForCreated.ToString(CultureInfo.InvariantCulture)</td>
+                        <td>@row.ForPaid.ToString(CultureInfo.InvariantCulture)</td>
+                        <td>@row.ForFinish.ToString(CultureInfo.InvariantCulture)</td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+    </div>
+
+    <div class="epc-w22-table-wrap">
+    <table class="epc-w22-table">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Order</th>
+                <th>Name</th>
+                <th>Color</th>
+                <th>Created</th>
+                <th>Finish</th>
+                <th>Count</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (_items.Count == 0)
+            {
+                <tr><td colspan="7">No item statuses yet.</td></tr>
+            }
+            else
+            {
+                @foreach (var row in _items)
+                {
+                    <tr>
+                        <td>@row.Id.ToString(CultureInfo.InvariantCulture)</td>
+                        <td>@row.SortOrder.ToString(CultureInfo.InvariantCulture)</td>
+                        <td>@(!string.IsNullOrWhiteSpace(row.Caption) ? row.Caption : "—")</td>
+                        <td>@(!string.IsNullOrWhiteSpace(row.Color) ? row.Color : "—")</td>
+                        <td>@row.ForCreated.ToString(CultureInfo.InvariantCulture)</td>
+                        <td>@row.ForFinish.ToString(CultureInfo.InvariantCulture)</td>
+                        <td>@row.CountFlag.ToString(CultureInfo.InvariantCulture)</td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+    </div>
+
+</PhpCpDesktopChrome>
+
+@code {
+    private const string _phpTab = "/CP/shop/orders/statuses";
+    private bool _isAdmin;
+    private IReadOnlyList<CpOrderStatusRow> _orders = [];
+    private IReadOnlyList<CpItemStatusRow> _items = [];
+    private int _orderFinish;
+    private int _itemFinish;
+    private string _flashOk = "";
+    private string _flashErr = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null) return;
+
+        _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
+        _flashErr = ctx.Request.Query["err"].ToString() ?? "";
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
+        if (!_isAdmin)
+        {
+            return;
+        }
+
+        var result = await Writes.ReadAsync(ctx.RequestAborted);
+        _orders = result.Orders;
+        _items = result.Items;
+        _orderFinish = _orders.Count(r => r.ForFinish == 1);
+        _itemFinish = _items.Count(r => r.ForFinish == 1);
+    }
+}

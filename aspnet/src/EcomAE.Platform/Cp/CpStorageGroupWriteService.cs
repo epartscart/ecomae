@@ -2,7 +2,7 @@ using EcomAE.Platform.Erp;
 
 namespace EcomAE.Platform.Cp;
 
-/// <summary>Live PHP logistics groups <c>add_group</c> / <c>del</c> twins. Membership UI stay PHP.</summary>
+/// <summary>Live PHP logistics groups <c>add_group</c> / <c>del</c> twins.</summary>
 public interface ICpStorageGroupWriteService
 {
     Task<ErpSimpleWriteResult> AddAsync(string? name, string? storages, CancellationToken cancellationToken = default);

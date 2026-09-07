@@ -37,7 +37,7 @@ public static class PhpSurfaceLinkMap
         ("shop/order_process", "/cp/orders"),
         ("shop/orders/sao_states_statuses_link", "/cp/sao-app"),
         ("shop/orders/items", "/cp/orders"),
-        ("shop/orders/statuses", "/cp/orders"),
+        ("shop/orders/statuses", "/cp/order-statuses-app"),
         ("shop/orders/orders", "/cp/orders"),
         ("shop/orders/carts", "/cp/abandoned-carts-app"),
         // Hub before ops|guide catch-all so oms-guide / whatsapp-guide stay on OMS.
@@ -1164,6 +1164,18 @@ public static class PhpSurfaceLinkMap
             || value.Equals("/bos", StringComparison.OrdinalIgnoreCase))
         {
             return PrefixPhpReferenceShell(value, "bos", "BOS");
+        }
+
+        if (value.StartsWith("/en/", StringComparison.OrdinalIgnoreCase)
+            || value.StartsWith("/me/", StringComparison.OrdinalIgnoreCase)
+            || value.StartsWith("/ru/", StringComparison.OrdinalIgnoreCase))
+        {
+            return "/php-reference" + value;
+        }
+
+        if (value.StartsWith("/katalog-laximo", StringComparison.OrdinalIgnoreCase))
+        {
+            return "/php-reference/en" + value;
         }
 
         if (value.StartsWith("/shop/", StringComparison.OrdinalIgnoreCase)
