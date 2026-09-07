@@ -3111,6 +3111,22 @@ public sealed class LiveWriteServiceValidationTests
             .LogAsync(new ErpHrAttendanceWriteRequest(EmployeeId: 1, Hours: 8));
         Assert.False(hrAttDb.Succeeded);
         Assert.Equal("db", hrAttDb.Code);
+
+        var rtlDiscInvalid = await new ErpRtlDiscountSaveWriteService(new ConfiguredNeverOpened())
+            .SaveAsync(new ErpRtlDiscountSaveWriteRequest(DiscType: "magic"));
+        Assert.False(rtlDiscInvalid.Succeeded);
+        Assert.Equal("invalid", rtlDiscInvalid.Code);
+        Assert.Equal("Invalid discount type", rtlDiscInvalid.Message);
+
+        var rtlDiscEmpty = await new ErpRtlDiscountSaveWriteService(new ConfiguredNeverOpened())
+            .SaveAsync(new ErpRtlDiscountSaveWriteRequest(DiscType: ""));
+        Assert.False(rtlDiscEmpty.Succeeded);
+        Assert.Equal("Invalid discount type", rtlDiscEmpty.Message);
+
+        var rtlDiscDb = await new ErpRtlDiscountSaveWriteService(new UnconfiguredConnections())
+            .SaveAsync(new ErpRtlDiscountSaveWriteRequest(Code: "CH10", DiscType: "percent"));
+        Assert.False(rtlDiscDb.Succeeded);
+        Assert.Equal("db", rtlDiscDb.Code);
     }
 
     [Fact]

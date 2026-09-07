@@ -68,8 +68,8 @@ public sealed class ErpModule : ISurfaceModule
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(false); return Results.Ok(dryRun.Evaluate(new ErpBosComplianceFetchRequest(body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxRtlAssortmentSet, async (HttpContext context, ErpRtlAssortmentSetBody? body, ILegacySessionValidator validator, IErpRtlAssortmentSetDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpRtlAssortmentSetRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxRtlDiscountSave, async (HttpContext context, ErpRtlDiscountSaveBody? body, ILegacySessionValidator validator, IErpRtlDiscountSaveDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpRtlDiscountSaveRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.ErpRetailDiscountsSave, HandleRtlDiscountSaveAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxRtlDiscountSave, HandleRtlDiscountSaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxRtlPosSale, async (HttpContext context, ErpRtlPosSaleBody? body, ILegacySessionValidator validator, IErpRtlPosSaleDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpRtlPosSaleRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxInsClaimStatus, async (
@@ -11774,6 +11774,67 @@ public sealed class ErpModule : ISurfaceModule
         }
     }
 
+    private static async Task<IResult> HandleRtlDiscountSaveAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpRtlDiscountSaveDryRun dryRun,
+        IErpRtlDiscountSaveWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/cp/jewellery-retail-app?tab=retail_commerce", "Admin ERP capability required for discount save.");
+        }
+
+        var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpRtlDiscountSaveBody>(context, cancellationToken) ?? new();
+        var companyId = body.CompanyId;
+        var channelId = body.ChannelId;
+        var code = body.Code;
+        var name = body.Name;
+        var discType = body.DiscType;
+        var value = body.Value;
+        var starts = body.Starts;
+        var ends = body.Ends;
+        var active = body.Active;
+        var confirm = body.ConfirmWrites;
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            companyId = LiveWriteFormBinder.Long(form, "companyId", "company_id", "company");
+            channelId = LiveWriteFormBinder.Long(form, "channelId", "channel_id");
+            code = LiveWriteFormBinder.Text(form, "code");
+            name = LiveWriteFormBinder.Text(form, "name");
+            discType = form.ContainsKey("disc_type") || form.ContainsKey("discType")
+                ? LiveWriteFormBinder.Text(form, "disc_type", "discType")
+                : null;
+            value = LiveWriteFormBinder.Dec(form, "value");
+            starts = LiveWriteFormBinder.Long(form, "starts");
+            ends = LiveWriteFormBinder.Long(form, "ends");
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            if (form.ContainsKey("active") || form.ContainsKey("enabled"))
+            {
+                var parsed = LiveWriteFormBinder.IntOrNull(form, "active", "enabled");
+                active = parsed is null ? (LiveWriteFormBinder.Flag(form, "active", "enabled") ? 1 : 0) : parsed;
+            }
+        }
+
+        if (!confirm)
+        {
+            return Results.Ok(dryRun.Evaluate(new ErpRtlDiscountSaveRequest(companyId, channelId, code, name, discType, value, starts, ends, active, false)).ToPayload(SessionPayload(session)));
+        }
+
+        var written = await writes.SaveAsync(
+            new ErpRtlDiscountSaveWriteRequest(companyId, channelId, code, name, discType, value, starts, ends, active),
+            cancellationToken);
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/cp/jewellery-retail-app?tab=retail_commerce",
+            written.Succeeded,
+            written.Message,
+            new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+    }
+
     private static async Task<IResult> HandleWhtCodeSaveAsync(
         HttpContext context,
         ILegacySessionValidator validator,
@@ -12703,7 +12764,17 @@ public sealed class ErpModule : ISurfaceModule
     private sealed record ErpFxRevaluationPreviewBody(bool ConfirmWrites = false);
     private sealed record ErpBosComplianceFetchBody(bool ConfirmWrites = false);
     private sealed record ErpRtlAssortmentSetBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
-    private sealed record ErpRtlDiscountSaveBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
+    private sealed record ErpRtlDiscountSaveBody(
+        long CompanyId = 0,
+        long ChannelId = 0,
+        string? Code = null,
+        string? Name = null,
+        string? DiscType = null,
+        decimal Value = 0,
+        long Starts = 0,
+        long Ends = 0,
+        int? Active = null,
+        bool ConfirmWrites = false);
     private sealed record ErpRtlPosSaleBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpInsClaimStatusBody(long Id, string? TargetStatus = null, bool ConfirmWrites = false);
     private sealed record ErpPrjSaveBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
