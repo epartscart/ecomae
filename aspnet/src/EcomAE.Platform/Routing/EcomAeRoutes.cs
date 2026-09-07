@@ -871,10 +871,16 @@ public static class EcomAeRoutes
     public const string ErpJewelleryBarcodePurchaseCreateForm = "/erp/jewellery/barcode-purchase-create";
     /// <summary>PHP epc_barcode_purchase_sell. <c>confirmWrites=true</c> marks <c>epc_barcode_purchases</c> sold.</summary>
     public const string ErpJewelleryBarcodePurchaseSellForm = "/erp/jewellery/barcode-purchase-sell";
-    /// <summary>PHP epc_tourist_refund_create. <c>confirmWrites=true</c> inserts <c>epc_tourist_refund_invoices</c>. Validate stays PHP.</summary>
+    /// <summary>PHP epc_tourist_refund_create. <c>confirmWrites=true</c> inserts <c>epc_tourist_refund_invoices</c>.</summary>
     public const string ErpTouristRefundCreateForm = "/erp/tourist-refund/create";
-    /// <summary>PHP epc_rfid_register_tag. <c>confirmWrites=true</c> inserts <c>epc_rfid_tags</c>. Scan sessions stay PHP.</summary>
+    /// <summary>PHP epc_tourist_refund_validate. <c>confirmWrites=true</c> marks a pending barcode validated.</summary>
+    public const string ErpTouristRefundValidateForm = "/erp/tourist-refund/validate";
+    /// <summary>PHP epc_rfid_register_tag. <c>confirmWrites=true</c> inserts <c>epc_rfid_tags</c>.</summary>
     public const string ErpRfidRegisterForm = "/erp/rfid/register";
+    /// <summary>PHP epc_rfid_start_scan_session. <c>confirmWrites=true</c> inserts <c>epc_rfid_scan_sessions</c>.</summary>
+    public const string ErpRfidStartSessionForm = "/erp/rfid/start-session";
+    /// <summary>PHP epc_rfid_process_scan. <c>confirmWrites=true</c> writes scan results.</summary>
+    public const string ErpRfidProcessScanForm = "/erp/rfid/scan";
     /// <summary>PHP epc_gold_rate_set (manual). <c>confirmWrites=true</c> UPSERTs <c>epc_gold_rates</c>. API fetch stays PHP.</summary>
     public const string ErpGoldRateSetForm = "/erp/gold-rate/set";
     /// <summary>PHP epc_aml_kyc_save. <c>confirmWrites=true</c> inserts/updates <c>epc_aml_kyc</c>.</summary>
@@ -883,6 +889,8 @@ public static class EcomAeRoutes
     public const string ErpSlaCreateForm = "/erp/sla/create";
     /// <summary>PHP epc_tickets_create. <c>confirmWrites=true</c> inserts <c>epc_tickets</c>.</summary>
     public const string ErpTicketsCreateForm = "/erp/tickets/create";
+    /// <summary>PHP epc_tickets_add_reply. <c>confirmWrites=true</c> inserts <c>epc_ticket_replies</c>. File attachments stay PHP.</summary>
+    public const string ErpTicketsReplyForm = "/erp/tickets/reply";
     /// <summary>PHP epc_cust_groups_create. <c>confirmWrites=true</c> inserts <c>epc_customer_groups</c>.</summary>
     public const string ErpCustomerGroupsCreateForm = "/erp/customer-groups/create";
     /// <summary>PHP epc_cust_groups_assign. <c>confirmWrites=true</c> inserts <c>epc_customer_group_members</c>.</summary>

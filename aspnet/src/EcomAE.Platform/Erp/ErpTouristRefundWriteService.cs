@@ -4,7 +4,7 @@ using System.Globalization;
 namespace EcomAE.Platform.Erp;
 
 /// <summary>
-/// Live PHP <c>epc_tourist_refund_create</c> twin. Schema-ensure stays PHP.
+/// Live PHP <c>epc_tourist_refund_create</c> / <c>epc_tourist_refund_validate</c> twin. Schema-ensure stays PHP.
 /// Distinct from jewellery <c>epc_jewel_tourist_vat_refund</c>.
 /// </summary>
 public interface IErpTouristRefundWriteService
@@ -12,7 +12,13 @@ public interface IErpTouristRefundWriteService
     Task<ErpSimpleWriteResult> CreateAsync(
         ErpTouristRefundCreateRequest request,
         CancellationToken cancellationToken = default);
+
+    Task<ErpSimpleWriteResult> ValidateAsync(
+        ErpTouristRefundValidateRequest request,
+        CancellationToken cancellationToken = default);
 }
+
+public sealed record ErpTouristRefundValidateRequest(string? Barcode = null);
 
 public sealed record ErpTouristRefundCreateRequest(
     int CompanyId = 0,
@@ -99,6 +105,62 @@ public sealed class ErpTouristRefundWriteService : IErpTouristRefundWriteService
         }
 
         return ErpSimpleWriteResult.Ok("Tourist refund " + barcode + " created", id);
+    }
+
+    public async Task<ErpSimpleWriteResult> ValidateAsync(
+        ErpTouristRefundValidateRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        var barcode = Clip((request.Barcode ?? string.Empty).Trim(), 100);
+        if (barcode.Length == 0)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Barcode is required.");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return ErpSimpleWriteResult.Fail("db", "TenantRegistry DB is not configured.");
+        }
+
+        await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        if (!await TableExistsAsync(connection, "epc_tourist_refund_invoices", cancellationToken).ConfigureAwait(false)
+            || !await ColumnExistsAsync(connection, "epc_tourist_refund_invoices", "barcode", cancellationToken).ConfigureAwait(false)
+            || !await ColumnExistsAsync(connection, "epc_tourist_refund_invoices", "refund_status", cancellationToken).ConfigureAwait(false))
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Tourist refund tables are not provisioned");
+        }
+
+        var id = await ErpDb.LongAsync(
+            connection,
+            null,
+            ErpDb.Positional("SELECT `id` FROM `epc_tourist_refund_invoices` WHERE `barcode` = ? LIMIT 1"),
+            cancellationToken,
+            barcode).ConfigureAwait(false);
+        if (id <= 0)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Barcode not found");
+        }
+
+        var status = await ErpDb.StringAsync(
+            connection,
+            null,
+            ErpDb.Positional("SELECT `refund_status` FROM `epc_tourist_refund_invoices` WHERE `id` = ? LIMIT 1"),
+            cancellationToken,
+            id).ConfigureAwait(false);
+        if (!string.Equals(status, "pending", StringComparison.OrdinalIgnoreCase))
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Already processed: " + (status ?? string.Empty));
+        }
+
+        await ErpDb.ExecuteAsync(
+            connection,
+            null,
+            ErpDb.Positional("UPDATE `epc_tourist_refund_invoices` SET `refund_status` = 'validated', `validated_at` = NOW() WHERE `id` = ?"),
+            cancellationToken,
+            id).ConfigureAwait(false);
+
+        return ErpSimpleWriteResult.Ok("Tourist refund validated", id);
     }
 
     private static async Task<string> NextBarcodeAsync(DbConnection connection, int companyId, CancellationToken cancellationToken)

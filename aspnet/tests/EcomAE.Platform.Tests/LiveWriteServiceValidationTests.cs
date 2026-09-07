@@ -1515,6 +1515,14 @@ public sealed class LiveWriteServiceValidationTests
             .CreateAsync(new ErpTouristRefundCreateRequest(TouristName: "Ada"));
         Assert.False(touristRefundDb.Succeeded);
         Assert.Equal("db", touristRefundDb.Code);
+        var touristValidate = await new ErpTouristRefundWriteService(new ConfiguredNeverOpened())
+            .ValidateAsync(new ErpTouristRefundValidateRequest());
+        Assert.False(touristValidate.Succeeded);
+        Assert.Equal("invalid", touristValidate.Code);
+        var touristValidateDb = await new ErpTouristRefundWriteService(new UnconfiguredConnections())
+            .ValidateAsync(new ErpTouristRefundValidateRequest("TR-1"));
+        Assert.False(touristValidateDb.Succeeded);
+        Assert.Equal("db", touristValidateDb.Code);
 
         var rfidReg = await new ErpRfidRegisterWriteService(new ConfiguredNeverOpened())
             .RegisterAsync(new ErpRfidRegisterRequest());
@@ -1524,6 +1532,18 @@ public sealed class LiveWriteServiceValidationTests
             .RegisterAsync(new ErpRfidRegisterRequest(RfidEpc: "EPC-1"));
         Assert.False(rfidDb.Succeeded);
         Assert.Equal("db", rfidDb.Code);
+        var rfidSessionDb = await new ErpRfidScanWriteService(new UnconfiguredConnections())
+            .StartSessionAsync(new ErpRfidStartSessionRequest(WarehouseId: 1));
+        Assert.False(rfidSessionDb.Succeeded);
+        Assert.Equal("db", rfidSessionDb.Code);
+        var rfidScan = await new ErpRfidScanWriteService(new ConfiguredNeverOpened())
+            .ProcessScanAsync(new ErpRfidProcessScanRequest());
+        Assert.False(rfidScan.Succeeded);
+        Assert.Equal("invalid", rfidScan.Code);
+        var rfidScanDb = await new ErpRfidScanWriteService(new UnconfiguredConnections())
+            .ProcessScanAsync(new ErpRfidProcessScanRequest(SessionId: 1, RfidEpc: "EPC-1"));
+        Assert.False(rfidScanDb.Succeeded);
+        Assert.Equal("db", rfidScanDb.Code);
 
         var goldRate = await new ErpGoldRateSetWriteService(new ConfiguredNeverOpened())
             .SetAsync(new ErpGoldRateSetRequest());
@@ -1551,6 +1571,14 @@ public sealed class LiveWriteServiceValidationTests
             .CreateAsync(new ErpTicketsCreateRequest());
         Assert.False(ticketCreate.Succeeded);
         Assert.Equal("invalid", ticketCreate.Code);
+        var ticketReply = await new ErpTicketsWriteService(new ConfiguredNeverOpened())
+            .ReplyAsync(new ErpTicketsReplyRequest());
+        Assert.False(ticketReply.Succeeded);
+        Assert.Equal("invalid", ticketReply.Code);
+        var ticketReplyDb = await new ErpTicketsWriteService(new UnconfiguredConnections())
+            .ReplyAsync(new ErpTicketsReplyRequest(TicketId: 1, Message: "Noted"));
+        Assert.False(ticketReplyDb.Succeeded);
+        Assert.Equal("db", ticketReplyDb.Code);
 
         var groupCreate = await new ErpCustomerGroupsWriteService(new ConfiguredNeverOpened())
             .CreateAsync(new ErpCustomerGroupCreateRequest());

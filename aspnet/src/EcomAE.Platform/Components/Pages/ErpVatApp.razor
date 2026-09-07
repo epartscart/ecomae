@@ -55,6 +55,12 @@
                 <label>Refund % <input type="number" name="refund_pct" step="0.01" value="85" /></label>
                 <button type="submit">Create tourist refund</button>
             </form>
+            <form method="post" action="/erp/tourist-refund/validate" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="/erp/vat-app?tab=tourist_refund" />
+                <label>Barcode <input name="barcode" required maxlength="100" /></label>
+                <button type="submit">Validate tourist refund</button>
+            </form>
         }
     }
 

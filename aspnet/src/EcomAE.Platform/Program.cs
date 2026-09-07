@@ -695,6 +695,7 @@ builder.Services.AddScoped<EcomAE.Platform.Erp.IErpJwFixUnfixWriteService, EcomA
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpJwBarcodePurchaseWriteService, EcomAE.Platform.Erp.ErpJwBarcodePurchaseWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpTouristRefundWriteService, EcomAE.Platform.Erp.ErpTouristRefundWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpRfidRegisterWriteService, EcomAE.Platform.Erp.ErpRfidRegisterWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpRfidScanWriteService, EcomAE.Platform.Erp.ErpRfidScanWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpGoldRateSetWriteService, EcomAE.Platform.Erp.ErpGoldRateSetWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpAmlKycSaveWriteService, EcomAE.Platform.Erp.ErpAmlKycSaveWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpSlaWriteService, EcomAE.Platform.Erp.ErpSlaWriteService>();

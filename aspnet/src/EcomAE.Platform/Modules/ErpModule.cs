@@ -6517,6 +6517,58 @@ public sealed class ErpModule : ISurfaceModule
                 session = SessionPayload(session)
             });
         }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpTouristRefundValidateForm, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IErpJwModuleSaveDryRun dryRun,
+            IErpTouristRefundWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (!PhpParityDumpCatalog.HasStaffAccess(session))
+            {
+                return LiveWriteFormBinder.LoginRedirect(
+                    context,
+                    "/erp/login?returnUrl=/erp/vat-app?tab=tourist_refund",
+                    "Admin ERP capability required for tourist refund validate.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpTouristRefundValidateBody>(context, cancellationToken)
+                       ?? new();
+            var barcode = body.Barcode;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                barcode = LiveWriteFormBinder.Text(form, "barcode");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            const string returnApp = "/erp/vat-app?tab=tourist_refund";
+            if (!confirm)
+            {
+                var result = dryRun.Evaluate(new ErpJwModuleSaveRequest("tourist_refund_validate", barcode, false));
+                if (LiveWriteFormBinder.WantsHtml(context))
+                {
+                    return DryRunHtmlForm.Redirect(DryRunHtmlForm.SafeReturnUrl(context.Request, returnApp), result.ValidationCode == "ok", result.Detail);
+                }
+
+                return Results.Ok(result.ToPayload(SessionPayload(session)));
+            }
+
+            var written = await writes.ValidateAsync(new ErpTouristRefundValidateRequest(barcode), cancellationToken);
+            return LiveWriteFormBinder.Complete(context, returnApp, written.Succeeded, written.Message, new
+            {
+                ok = written.Succeeded,
+                status = written.Succeeded,
+                writes = written.Writes,
+                phpAuthoritative = false,
+                validation_code = written.Code,
+                message = written.Message,
+                id = written.Id,
+                session = SessionPayload(session)
+            });
+        }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpRfidRegisterForm, async (
             HttpContext context,
             ILegacySessionValidator validator,
@@ -6574,6 +6626,126 @@ public sealed class ErpModule : ISurfaceModule
 
             var written = await writes.RegisterAsync(
                 new ErpRfidRegisterRequest(companyId, rfidEpc, rfidTid, productId, barcode, sku, itemDescription, warehouseId, locationZone, session.UserId),
+                cancellationToken);
+            return LiveWriteFormBinder.Complete(context, returnApp, written.Succeeded, written.Message, new
+            {
+                ok = written.Succeeded,
+                status = written.Succeeded,
+                writes = written.Writes,
+                phpAuthoritative = false,
+                validation_code = written.Code,
+                message = written.Message,
+                id = written.Id,
+                session = SessionPayload(session)
+            });
+        }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpRfidStartSessionForm, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IErpJwModuleSaveDryRun dryRun,
+            IErpRfidScanWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (!PhpParityDumpCatalog.HasStaffAccess(session))
+            {
+                return LiveWriteFormBinder.LoginRedirect(
+                    context,
+                    "/erp/login?returnUrl=/erp/rfid-app",
+                    "Admin ERP capability required for RFID scan session.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpRfidStartSessionBody>(context, cancellationToken)
+                       ?? new();
+            var companyId = body.CompanyId;
+            var sessionType = body.SessionType;
+            var warehouseId = body.WarehouseId;
+            var zone = body.Zone;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                companyId = LiveWriteFormBinder.Int(form, "companyId", "company_id", "company");
+                sessionType = LiveWriteFormBinder.Text(form, "sessionType", "session_type");
+                warehouseId = LiveWriteFormBinder.Long(form, "warehouseId", "warehouse_id");
+                zone = LiveWriteFormBinder.Text(form, "zone", "location_zone");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            const string returnApp = "/erp/rfid-app";
+            if (!confirm)
+            {
+                var result = dryRun.Evaluate(new ErpJwModuleSaveRequest("rfid_start_session", sessionType ?? zone, false));
+                if (LiveWriteFormBinder.WantsHtml(context))
+                {
+                    return DryRunHtmlForm.Redirect(DryRunHtmlForm.SafeReturnUrl(context.Request, returnApp), result.ValidationCode == "ok", result.Detail);
+                }
+
+                return Results.Ok(result.ToPayload(SessionPayload(session)));
+            }
+
+            var written = await writes.StartSessionAsync(
+                new ErpRfidStartSessionRequest(companyId, sessionType, warehouseId, zone, session.UserId, session.Email),
+                cancellationToken);
+            return LiveWriteFormBinder.Complete(context, returnApp, written.Succeeded, written.Message, new
+            {
+                ok = written.Succeeded,
+                status = written.Succeeded,
+                writes = written.Writes,
+                phpAuthoritative = false,
+                validation_code = written.Code,
+                message = written.Message,
+                id = written.Id,
+                session = SessionPayload(session)
+            });
+        }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpRfidProcessScanForm, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IErpJwModuleSaveDryRun dryRun,
+            IErpRfidScanWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (!PhpParityDumpCatalog.HasStaffAccess(session))
+            {
+                return LiveWriteFormBinder.LoginRedirect(
+                    context,
+                    "/erp/login?returnUrl=/erp/rfid-app",
+                    "Admin ERP capability required for RFID scan.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpRfidProcessScanBody>(context, cancellationToken)
+                       ?? new();
+            var sessionId = body.SessionId;
+            var companyId = body.CompanyId;
+            var rfidEpc = body.RfidEpc;
+            var rssi = body.Rssi;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                sessionId = LiveWriteFormBinder.Long(form, "sessionId", "session_id");
+                companyId = LiveWriteFormBinder.Int(form, "companyId", "company_id", "company");
+                rfidEpc = LiveWriteFormBinder.Text(form, "rfidEpc", "rfid_epc", "epc");
+                rssi = LiveWriteFormBinder.Int(form, "rssi", "signal_strength");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            const string returnApp = "/erp/rfid-app";
+            if (!confirm)
+            {
+                var result = dryRun.Evaluate(new ErpJwModuleSaveRequest("rfid_scan", rfidEpc, false));
+                if (LiveWriteFormBinder.WantsHtml(context))
+                {
+                    return DryRunHtmlForm.Redirect(DryRunHtmlForm.SafeReturnUrl(context.Request, returnApp), result.ValidationCode == "ok", result.Detail);
+                }
+
+                return Results.Ok(result.ToPayload(SessionPayload(session)));
+            }
+
+            var written = await writes.ProcessScanAsync(
+                new ErpRfidProcessScanRequest(sessionId, companyId, rfidEpc, rssi),
                 cancellationToken);
             return LiveWriteFormBinder.Complete(context, returnApp, written.Succeeded, written.Message, new
             {
@@ -6823,6 +6995,68 @@ public sealed class ErpModule : ISurfaceModule
                 message = written.Message,
                 id = written.Id,
                 subject,
+                session = SessionPayload(session)
+            });
+        }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpTicketsReplyForm, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IErpJwModuleSaveDryRun dryRun,
+            IErpTicketsWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (!PhpParityDumpCatalog.HasStaffAccess(session))
+            {
+                return LiveWriteFormBinder.LoginRedirect(
+                    context,
+                    "/erp/login?returnUrl=/cp/crm-tickets-app?tab=tickets",
+                    "Admin ERP capability required for ticket reply.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpTicketsReplyBody>(context, cancellationToken)
+                       ?? new();
+            var ticketId = body.TicketId;
+            var authorName = body.AuthorName;
+            var authorType = body.AuthorType;
+            var message = body.Message;
+            var isInternal = body.IsInternal;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                ticketId = LiveWriteFormBinder.Long(form, "ticketId", "ticket_id");
+                authorName = LiveWriteFormBinder.Text(form, "authorName", "author_name");
+                authorType = LiveWriteFormBinder.Text(form, "authorType", "author_type");
+                message = LiveWriteFormBinder.Text(form, "message");
+                isInternal = LiveWriteFormBinder.Flag(form, "isInternal", "is_internal");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            const string returnApp = "/cp/crm-tickets-app?tab=tickets";
+            if (!confirm)
+            {
+                var result = dryRun.Evaluate(new ErpJwModuleSaveRequest("tickets_reply", message, false));
+                if (LiveWriteFormBinder.WantsHtml(context))
+                {
+                    return DryRunHtmlForm.Redirect(DryRunHtmlForm.SafeReturnUrl(context.Request, returnApp), result.ValidationCode == "ok", result.Detail);
+                }
+
+                return Results.Ok(result.ToPayload(SessionPayload(session)));
+            }
+
+            var written = await writes.ReplyAsync(
+                new ErpTicketsReplyRequest(ticketId, session.UserId, authorName, authorType, message, isInternal),
+                cancellationToken);
+            return LiveWriteFormBinder.Complete(context, returnApp, written.Succeeded, written.Message, new
+            {
+                ok = written.Succeeded,
+                status = written.Succeeded,
+                writes = written.Writes,
+                phpAuthoritative = false,
+                validation_code = written.Code,
+                message = written.Message,
+                id = written.Id,
                 session = SessionPayload(session)
             });
         }).DisableAntiforgery();
@@ -11508,6 +11742,7 @@ public sealed class ErpModule : ISurfaceModule
         decimal RefundPct = 85,
         string? RefundProvider = null,
         bool ConfirmWrites = false);
+    private sealed record ErpTouristRefundValidateBody(string? Barcode = null, bool ConfirmWrites = false);
     private sealed record ErpRfidRegisterBody(
         int CompanyId = 0,
         string? RfidEpc = null,
@@ -11518,6 +11753,18 @@ public sealed class ErpModule : ISurfaceModule
         string? ItemDescription = null,
         long WarehouseId = 0,
         string? LocationZone = null,
+        bool ConfirmWrites = false);
+    private sealed record ErpRfidStartSessionBody(
+        int CompanyId = 0,
+        string? SessionType = null,
+        long WarehouseId = 0,
+        string? Zone = null,
+        bool ConfirmWrites = false);
+    private sealed record ErpRfidProcessScanBody(
+        long SessionId = 0,
+        int CompanyId = 0,
+        string? RfidEpc = null,
+        int Rssi = 0,
         bool ConfirmWrites = false);
     private sealed record ErpGoldRateSetBody(
         int CompanyId = 0,
@@ -11559,6 +11806,13 @@ public sealed class ErpModule : ISurfaceModule
         int SlaId = 0,
         string? ResponseDeadline = null,
         string? ResolutionDeadline = null,
+        bool ConfirmWrites = false);
+    private sealed record ErpTicketsReplyBody(
+        long TicketId = 0,
+        string? AuthorName = null,
+        string? AuthorType = null,
+        string? Message = null,
+        bool IsInternal = false,
         bool ConfirmWrites = false);
     private sealed record ErpCustomerGroupCreateBody(
         int CompanyId = 0,

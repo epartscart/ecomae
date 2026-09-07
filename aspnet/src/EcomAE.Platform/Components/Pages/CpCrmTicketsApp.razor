@@ -93,6 +93,16 @@
                 <button type="submit" class="btn btn-primary btn-sm">Create ticket</button>
             </form>
         </ErpPhpCreateWell>
+        <ErpPhpCreateWell Title="Reply to ticket">
+            <form method="post" action="@EcomAeRoutes.ErpTicketsReplyForm" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="/cp/crm-tickets-app?tab=tickets" />
+                <label>Ticket id <input class="form-control input-sm" name="ticket_id" type="number" min="1" required /></label>
+                <label>Message <input class="form-control input-sm" name="message" required /></label>
+                <label>Author <input class="form-control input-sm" name="author_name" /></label>
+                <button type="submit" class="btn btn-primary btn-sm">Save reply</button>
+            </form>
+        </ErpPhpCreateWell>
     }
 
 
@@ -144,7 +154,7 @@
 
     @if (_leftoverWrite)
     {
-        <div class="epc-ct-note">SLA and ticket create are live when confirmed. Schema-ensure and ticket reply attachments stay Classic.</div>
+        <div class="epc-ct-note">SLA, ticket create, and text replies are live when confirmed. Schema-ensure and file attachments stay Classic.</div>
     }
 
 </PhpCpDesktopChrome>

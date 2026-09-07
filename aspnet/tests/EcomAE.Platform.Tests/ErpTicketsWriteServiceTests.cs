@@ -23,4 +23,19 @@ public sealed class ErpTicketsWriteServiceTests
         Assert.Equal("invalid", result.Code);
         Assert.Equal("Subject is required.", result.Message);
     }
+
+    [Fact]
+    public async Task ReplyRequiresTicketAndMessage()
+    {
+        var missingTicket = await new ErpTicketsWriteService(new UnusedConnections())
+            .ReplyAsync(new ErpTicketsReplyRequest(Message: "Noted"));
+        Assert.False(missingTicket.Succeeded);
+        Assert.Equal("invalid", missingTicket.Code);
+
+        var missingMessage = await new ErpTicketsWriteService(new UnusedConnections())
+            .ReplyAsync(new ErpTicketsReplyRequest(TicketId: 9));
+        Assert.False(missingMessage.Succeeded);
+        Assert.Equal("invalid", missingMessage.Code);
+        Assert.Equal("Reply message is required.", missingMessage.Message);
+    }
 }
