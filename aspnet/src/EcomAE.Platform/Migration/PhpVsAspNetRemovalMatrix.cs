@@ -58,7 +58,7 @@ public static class PhpVsAspNetRemovalMatrix
         Row("cp-currencies", "cp", "content/shop/finance/nastrojka-kursov-valyut.php", "/CP/shop/finance/nastrojka-kursov-valyut", "/cp/currencies-app", "aspnet-digest", "aspnet", "Single shop_currencies.rate UPDATE is ASP.NET-live. Bulk available flags and live FX pull stay PHP."),
         Row("cp-prices-edit", "cp", "cp/content/shop/prices_edit", "/CP/shop/prices_edit", "/cp/prices-edit-app", "aspnet-digest", "aspnet", "shop_docpart_prices_data add/save/del are ASP.NET-live. Table list and del_search stay PHP."),
         Row("cp-payments", "cp", "cp/content/shop/payments", "/CP/shop/payments", "/cp/payment-gateways-app", "aspnet-digest", "php", "Gateway secrets/config writes stay PHP."),
-        Row("cp-fulfillment", "cp", "content/shop/finance/epc_fulfillment_queue.php", "/CP/shop/finance/epc_fulfillment_queue", "/cp/fulfillment-queue-app", "aspnet-digest", "php", "Queue mutations stay PHP."),
+        Row("cp-fulfillment", "cp", "content/shop/finance/epc_fulfillment_queue.php", "/CP/shop/finance/epc_fulfillment_queue", "/cp/fulfillment-queue-app", "aspnet-digest", "aspnet", "transition / assign / pick_item / pack_item / create_wave are ASP.NET-live. Queue-from-order INSERT, packing-slip PDF, and BOS provider enqueue stay PHP."),
         Row("cp-collections", "cp", "content/shop/finance/epc_collections_dunning.php", "/CP/shop/finance/epc_collections_dunning", "/cp/collections-dunning-app", "aspnet-digest", "php", "Dunning letters stay PHP. Case status writes live on the ERP collections twin."),
         Row("cp-credit-limits", "cp", "content/shop/finance/epc_credit_limit.php", "/CP/shop/finance/epc_credit_limit", "/cp/credit-limits-app", "aspnet-digest", "aspnet", "epc_credit_set_limit UPSERT is ASP.NET-live."),
         Row("cp-po-approvals", "cp", "content/shop/finance/epc_po_approval.php", "/CP/shop/finance/epc_po_approval", "/cp/po-approvals-app", "aspnet-digest", "aspnet", "epc_po_approve / epc_po_reject are ASP.NET-live."),
@@ -202,7 +202,8 @@ public static class PhpVsAspNetRemovalMatrix
                 "shop/finance/epc_inventory_forecast → /erp/inventory-forecast-app (new digest)",
                 "shop/finance/epc_multi_entity → /erp/multi-entity-app (new digest)",
                 "shop/finance/epc_multi_currency_gl → /erp/multi-currency-gl-app (new digest)",
-                "/CP/shop/finance hub still maps to /erp (intentional)"
+                "/CP/shop/finance hub still maps to /erp (intentional)",
+                "Fulfilment queue transition / assign / pick / pack / wave → /cp/fulfillment-queue/write live"
             },
             ["rows"] = rows,
             ["endpoint"] = "/migration/php-vs-aspnet-matrix",

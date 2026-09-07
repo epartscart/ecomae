@@ -510,6 +510,8 @@ public static class EcomAeRoutes
     public const string ControlPanelFulfillmentQueueApp = "/cp/fulfillment-queue-app";
     /// <summary>Read-only PHP <c>epc_fulfillment_get</c> digest for one fulfillment order.</summary>
     public const string ControlPanelFulfillmentQueueDetailDigest = "/cp/fulfillment-queue-detail-digest/{fulfillmentId:long}";
+    /// <summary>Queue transition / assign / pick / pack / wave. <c>confirmWrites=true</c> is the live twin of PHP epc_fulfillment_*. Queue-from-order and packing-slip PDF stay PHP.</summary>
+    public const string CpFulfillmentQueueWrite = "/cp/fulfillment-queue/write";
     public const string ControlPanelSsoSaml = "/cp/sso-saml";
     public const string ControlPanelSsoSamlApp = "/cp/sso-saml-app";
     public const string ControlPanelEventBus = "/cp/event-bus";

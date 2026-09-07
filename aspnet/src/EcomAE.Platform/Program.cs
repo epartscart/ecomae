@@ -545,6 +545,7 @@ builder.Services.AddSingleton<ICpChannelsWriteDryRun, CpChannelsWriteDryRun>();
 builder.Services.AddSingleton<ICpLogisticsWriteDryRun, CpLogisticsWriteDryRun>();
 builder.Services.AddSingleton<ICpPaymentsWriteDryRun, CpPaymentsWriteDryRun>();
 builder.Services.AddSingleton<ICpWorkshopWriteDryRun, CpWorkshopWriteDryRun>();
+builder.Services.AddSingleton<ICpFulfillmentQueueWriteDryRun, CpFulfillmentQueueWriteDryRun>();
 builder.Services.AddSingleton<ICpTemplatesActionsDryRun, CpTemplatesActionsDryRun>();
 builder.Services.AddSingleton<ICpPriceReviewWriteDryRun, CpPriceReviewWriteDryRun>();
 builder.Services.AddSingleton<ICpPriceReviewCreateCsvDryRun, CpPriceReviewCreateCsvDryRun>();
@@ -694,6 +695,7 @@ builder.Services.AddScoped<EcomAE.Platform.Cp.ICpLangWriteService, EcomAE.Platfo
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpChannelWriteService, EcomAE.Platform.Cp.CpChannelWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpLogisticsWriteService, EcomAE.Platform.Cp.CpLogisticsWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpWorkshopWriteService, EcomAE.Platform.Cp.CpWorkshopWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Cp.ICpFulfillmentQueueWriteService, EcomAE.Platform.Cp.CpFulfillmentQueueWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpCatalogueWriteService, EcomAE.Platform.Cp.CpCatalogueWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpManufacturerSynonymWriteService, EcomAE.Platform.Cp.CpManufacturerSynonymWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpCrossWriteService, EcomAE.Platform.Cp.CpCrossWriteService>();
