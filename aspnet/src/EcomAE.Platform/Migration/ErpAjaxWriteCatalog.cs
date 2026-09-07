@@ -127,7 +127,7 @@ public sealed class ErpAjaxWriteCatalog : IErpAjaxWriteCatalog
         new("coll_case_promise", "dedicated", "/erp/collections/cases/promise"),
         new("coll_activity_log", "dedicated", "/erp/collections/activity/log"),
         new("coll_dunning_run", "dedicated", "/erp/ajax/coll-dunning-run"),
-        new("coll_hold_set", "dedicated", "/erp/ajax/coll-hold-set"),
+        new("coll_hold_set", "dedicated", "/erp/collections/hold/set"),
         new("proc_category_save", "dedicated", "/erp/ajax/proc-category-save"),
         new("proc_policy_save", "dedicated", "/erp/ajax/proc-policy-save"),
         new("proc_req_save", "dedicated", "/erp/procurement/requisitions/save"),

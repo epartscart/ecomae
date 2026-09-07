@@ -178,7 +178,20 @@
             <label>Amount <input type="number" name="amount" step="0.01" style="width:7rem" /></label>
             <button type="submit">Log activity</button>
         </form>
-        <p class="epc-w15-note">Dunning run and credit hold stay on the Classic twin.</p>
+        <form method="post" action="/erp/collections/hold/set" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="@(Http.HttpContext?.Request.Path.Value ?? "/cp/collections-dunning-app")" />
+            <label>Customer id <input type="number" name="customer_id" min="1" required style="width:6rem" /></label>
+            <label>Action
+                <select name="place">
+                    <option value="1">place</option>
+                    <option value="0">release</option>
+                </select>
+            </label>
+            <label>Reason <input type="text" name="reason" maxlength="255" /></label>
+            <button type="submit">Set credit hold</button>
+        </form>
+        <p class="epc-w15-note">Dunning run stays on the Classic twin.</p>
     }
 
     <div class="epc-w15-kpis" aria-label="Collections dunning stats">
