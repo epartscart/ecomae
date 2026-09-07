@@ -1444,6 +1444,11 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(jwSettle.Succeeded);
         Assert.Equal("invalid", jwSettle.Code);
 
+        var jwBarcodePurchase = await new ErpJwBarcodePurchaseWriteService(new ConfiguredNeverOpened())
+            .CreateAsync(new ErpJwBarcodePurchaseCreateRequest());
+        Assert.False(jwBarcodePurchase.Succeeded);
+        Assert.Equal("invalid", jwBarcodePurchase.Code);
+
         var jwMetal = await new ErpJwMetalStockWriteService(new ConfiguredNeverOpened())
             .SaveAsync(new ErpJwMetalStockSaveRequest());
         Assert.False(jwMetal.Succeeded);

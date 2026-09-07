@@ -145,6 +145,12 @@ public sealed class ErpJewelleryModuleParityTests
         Assert.Contains("jw_journal_voucher_save", gl, StringComparison.Ordinal);
         Assert.DoesNotContain("@onclick", gl, StringComparison.Ordinal);
 
+        var barcodePurchase = ReadApp("ErpPurchaseOrdersApp.razor");
+        Assert.Contains("ErpJewelleryBarcodePurchaseCreateForm", barcodePurchase, StringComparison.Ordinal);
+        Assert.Contains("Create barcode purchase", barcodePurchase, StringComparison.Ordinal);
+        Assert.Contains("barcode_purchase", barcodePurchase, StringComparison.Ordinal);
+        Assert.DoesNotContain("@onclick", barcodePurchase, StringComparison.Ordinal);
+
         var tourist = ReadApp("CpUaeTaxComplianceApp.razor");
         Assert.Contains("jw_tourist_vat", tourist, StringComparison.Ordinal);
         Assert.Contains("ErpJewelleryTouristVatSaveForm", tourist, StringComparison.Ordinal);
@@ -221,6 +227,7 @@ public sealed class ErpJewelleryModuleParityTests
         Assert.Equal("/erp/jewellery/gold-scheme-pay", EcomAeRoutes.ErpJewelleryGoldSchemePayForm);
         Assert.Equal("/erp/jewellery/fix-unfix-create", EcomAeRoutes.ErpJewelleryFixUnfixCreateForm);
         Assert.Equal("/erp/jewellery/fix-unfix-settle", EcomAeRoutes.ErpJewelleryFixUnfixSettleForm);
+        Assert.Equal("/erp/jewellery/barcode-purchase-create", EcomAeRoutes.ErpJewelleryBarcodePurchaseCreateForm);
     }
 
     [Fact]
@@ -232,6 +239,8 @@ public sealed class ErpJewelleryModuleParityTests
         Assert.Contains("tab=jw_karat", karat, StringComparison.Ordinal);
         Assert.True(ErpPhpTabRouteMap.TryMapTab("gold_rate", out var gold));
         Assert.Contains("jewellery-masters-app", gold, StringComparison.Ordinal);
+        Assert.True(ErpPhpTabRouteMap.TryMapTab("barcode_purchase", out var barcodePurchase));
+        Assert.Equal("/erp/purchase-orders-app?tab=barcode_purchase", barcodePurchase);
     }
 
     [Fact]

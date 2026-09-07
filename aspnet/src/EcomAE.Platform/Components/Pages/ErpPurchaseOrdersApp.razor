@@ -4,6 +4,7 @@
 @using EcomAE.Platform.Auth
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Routing
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
@@ -16,7 +17,8 @@
 
 
     
-    <PhpErpModulePageHeader Title="Purchase Orders" Subtitle="Live shop digest. Writes stay on ERP ajax." PhpTabHref="@_phpTab" />
+    <PhpErpModulePageHeader Title="@(_barcodePurchase ? "Barcode / Purchase Margin" : "Purchase Orders")" Subtitle="@(_barcodePurchase ? "In jewellery, the barcode is the purchase — cost, margin, and salesman at barcode level." : "Live shop digest. Writes stay on ERP ajax.")" PhpTabHref="@_phpTab" />
+    <ErpPhpFlash Ok="@_ok" Err="@_err" />
     <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
 
 
@@ -26,7 +28,25 @@
         <div class="kpi"><div class="lbl">Page total amount</div><div class="val">@_totalAmount.ToString("N2", CultureInfo.InvariantCulture)</div></div>
     </div>
 
-    @if (_isAdmin)
+    @if (_isAdmin && _barcodePurchase)
+    {
+        <ErpPhpCreateWell Title="Create barcode purchase">
+            <form method="post" action="@EcomAeRoutes.ErpJewelleryBarcodePurchaseCreateForm" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="/erp/purchase-orders-app?tab=barcode_purchase" />
+                <label>Barcode <input class="form-control input-sm" name="barcode" placeholder="Auto" /></label>
+                <label>Description <input class="form-control input-sm" name="item_description" required placeholder="22K bangle" /></label>
+                <label>Supplier <input class="form-control input-sm" name="supplier_name" /></label>
+                <label>Karat <input class="form-control input-sm" name="karat" value="22K" /></label>
+                <label>Net wt <input class="form-control input-sm" name="net_weight" type="number" step="0.001" value="0" /></label>
+                <label>Gold rate <input class="form-control input-sm" name="gold_rate_at_purchase" type="number" step="0.0001" value="0" /></label>
+                <label>Making <input class="form-control input-sm" name="making_charges" type="number" step="0.01" value="0" /></label>
+                <label>Margin % <input class="form-control input-sm" name="margin_pct" type="number" step="0.01" value="15" /></label>
+                <button type="submit" class="btn btn-primary btn-sm">Create barcode purchase</button>
+            </form>
+        </ErpPhpCreateWell>
+    }
+    else if (_isAdmin)
     {
         <div class="panel panel-default" id="epc-po-new">
             <div class="panel-heading"><strong>New purchase order</strong> <span class="text-muted">PO number, VAT and totals follow the tenant jurisdiction kit.</span></div>
@@ -185,6 +205,13 @@
         </table>
     </div>
 
+    @if (_barcodePurchase)
+    {
+        <div class="epc-erp-empty" style="display:block;margin-top:12px;padding:8px 10px;border:1px solid #c5d4de;background:#f8fafc;color:#475569;font-size:12px;">
+            Barcode purchase create is live when confirmed. Schema-ensure and barcode sell stay Classic.
+        </div>
+    }
+
 </PhpErpDesktopChrome>
 
 @if (_isAdmin)
@@ -195,6 +222,9 @@
 @code {
     private const string _phpTab = "/ERP/?epc_erp_shell=1&area=purchasing&tab=purchase_orders";
     private bool _isAdmin;
+    private bool _barcodePurchase;
+    private string _ok = "";
+    private string _err = "";
     private IReadOnlyList<ErpPurchaseOrderDigest> _orders = [];
     private IReadOnlyList<ErpInventoryItemPickerDigest> _items = [];
     private int _open;
@@ -208,6 +238,9 @@
         var ctx = Http.HttpContext;
         if (ctx is null) return;
 
+        _barcodePurchase = string.Equals(ctx.Request.Query["tab"].ToString(), "barcode_purchase", StringComparison.OrdinalIgnoreCase);
+        _ok = ctx.Request.Query["ok"].ToString();
+        _err = ctx.Request.Query["err"].ToString();
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
         if (!_isAdmin)

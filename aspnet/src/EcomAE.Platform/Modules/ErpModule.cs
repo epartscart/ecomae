@@ -5998,6 +5998,131 @@ public sealed class ErpModule : ISurfaceModule
                 session = SessionPayload(session)
             });
         }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpJewelleryBarcodePurchaseCreateForm, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IErpJwModuleSaveDryRun dryRun,
+            IErpJwBarcodePurchaseWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (!ErpJewelleryModuleChrome.HasJewelleryStaffAccess(session))
+            {
+                return LiveWriteFormBinder.LoginRedirect(
+                    context,
+                    "/erp/login?returnUrl=/erp/purchase-orders-app?tab=barcode_purchase",
+                    "Admin ERP capability required for barcode purchase create.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpJwBarcodePurchaseCreateBody>(context, cancellationToken)
+                       ?? new();
+            var companyId = body.CompanyId;
+            var barcode = body.Barcode;
+            var itemDescription = body.ItemDescription;
+            var supplierId = body.SupplierId;
+            var supplierName = body.SupplierName;
+            var purchaseDate = body.PurchaseDate;
+            var purchaseInvoiceNo = body.PurchaseInvoiceNo;
+            var metalType = body.MetalType;
+            var karat = body.Karat;
+            var grossWeight = body.GrossWeight;
+            var netWeight = body.NetWeight;
+            var stoneWeight = body.StoneWeight;
+            var goldRateAtPurchase = body.GoldRateAtPurchase;
+            var makingCharges = body.MakingCharges;
+            var stoneValue = body.StoneValue;
+            var otherCharges = body.OtherCharges;
+            var marginPct = body.MarginPct;
+            var salesmanId = body.SalesmanId;
+            var salesmanName = body.SalesmanName;
+            var salesmanCommissionPct = body.SalesmanCommissionPct;
+            var category = body.Category;
+            var designNo = body.DesignNo;
+            var hallmarkNo = body.HallmarkNo;
+            var certificateNo = body.CertificateNo;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                companyId = LiveWriteFormBinder.Int(form, "companyId", "company_id", "company");
+                barcode = LiveWriteFormBinder.Text(form, "barcode");
+                itemDescription = LiveWriteFormBinder.Text(form, "itemDescription", "item_description", "description");
+                supplierId = LiveWriteFormBinder.Int(form, "supplierId", "supplier_id");
+                supplierName = LiveWriteFormBinder.Text(form, "supplierName", "supplier_name");
+                purchaseDate = LiveWriteFormBinder.Text(form, "purchaseDate", "purchase_date");
+                purchaseInvoiceNo = LiveWriteFormBinder.Text(form, "purchaseInvoiceNo", "purchase_invoice_no");
+                metalType = LiveWriteFormBinder.Text(form, "metalType", "metal_type");
+                karat = LiveWriteFormBinder.Text(form, "karat");
+                grossWeight = LiveWriteFormBinder.Dec(form, "grossWeight", "gross_weight");
+                netWeight = LiveWriteFormBinder.Dec(form, "netWeight", "net_weight");
+                stoneWeight = LiveWriteFormBinder.Dec(form, "stoneWeight", "stone_weight");
+                goldRateAtPurchase = LiveWriteFormBinder.Dec(form, "goldRateAtPurchase", "gold_rate_at_purchase", "gold_rate");
+                makingCharges = LiveWriteFormBinder.Dec(form, "makingCharges", "making_charges");
+                stoneValue = LiveWriteFormBinder.Dec(form, "stoneValue", "stone_value");
+                otherCharges = LiveWriteFormBinder.Dec(form, "otherCharges", "other_charges");
+                marginPct = LiveWriteFormBinder.Dec(form, "marginPct", "margin_pct");
+                salesmanId = LiveWriteFormBinder.Int(form, "salesmanId", "salesman_id");
+                salesmanName = LiveWriteFormBinder.Text(form, "salesmanName", "salesman_name");
+                salesmanCommissionPct = LiveWriteFormBinder.Dec(form, "salesmanCommissionPct", "salesman_commission_pct");
+                category = LiveWriteFormBinder.Text(form, "category");
+                designNo = LiveWriteFormBinder.Text(form, "designNo", "design_no");
+                hallmarkNo = LiveWriteFormBinder.Text(form, "hallmarkNo", "hallmark_no");
+                certificateNo = LiveWriteFormBinder.Text(form, "certificateNo", "certificate_no");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            const string returnApp = "/erp/purchase-orders-app?tab=barcode_purchase";
+            if (!confirm)
+            {
+                var result = dryRun.Evaluate(new ErpJwModuleSaveRequest("jw_barcode_purchase_create", barcode ?? itemDescription, false));
+                if (LiveWriteFormBinder.WantsHtml(context))
+                {
+                    return DryRunHtmlForm.Redirect(DryRunHtmlForm.SafeReturnUrl(context.Request, returnApp), result.ValidationCode == "ok", result.Detail);
+                }
+
+                return Results.Ok(result.ToPayload(SessionPayload(session)));
+            }
+
+            var written = await writes.CreateAsync(
+                new ErpJwBarcodePurchaseCreateRequest(
+                    companyId,
+                    barcode,
+                    itemDescription,
+                    supplierId,
+                    supplierName,
+                    purchaseDate,
+                    purchaseInvoiceNo,
+                    metalType,
+                    karat,
+                    grossWeight,
+                    netWeight,
+                    stoneWeight,
+                    goldRateAtPurchase,
+                    makingCharges,
+                    stoneValue,
+                    otherCharges,
+                    marginPct,
+                    salesmanId,
+                    salesmanName,
+                    salesmanCommissionPct,
+                    category,
+                    designNo,
+                    hallmarkNo,
+                    certificateNo),
+                cancellationToken);
+            return LiveWriteFormBinder.Complete(context, returnApp, written.Succeeded, written.Message, new
+            {
+                ok = written.Succeeded,
+                status = written.Succeeded,
+                writes = written.Writes,
+                phpAuthoritative = false,
+                validation_code = written.Code,
+                message = written.Message,
+                id = written.Id,
+                barcode,
+                session = SessionPayload(session)
+            });
+        }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpJewelleryMetalStockSaveForm, async (
             HttpContext context,
             ILegacySessionValidator validator,
@@ -10015,6 +10140,32 @@ public sealed class ErpModule : ISurfaceModule
     private sealed record ErpJwFixUnfixSettleBody(
         long Id = 0,
         decimal SettleRate = 0,
+        bool ConfirmWrites = false);
+    private sealed record ErpJwBarcodePurchaseCreateBody(
+        int CompanyId = 0,
+        string? Barcode = null,
+        string? ItemDescription = null,
+        int SupplierId = 0,
+        string? SupplierName = null,
+        string? PurchaseDate = null,
+        string? PurchaseInvoiceNo = null,
+        string? MetalType = null,
+        string? Karat = null,
+        decimal GrossWeight = 0,
+        decimal NetWeight = 0,
+        decimal StoneWeight = 0,
+        decimal GoldRateAtPurchase = 0,
+        decimal MakingCharges = 0,
+        decimal StoneValue = 0,
+        decimal OtherCharges = 0,
+        decimal MarginPct = 15,
+        int SalesmanId = 0,
+        string? SalesmanName = null,
+        decimal SalesmanCommissionPct = 2,
+        string? Category = null,
+        string? DesignNo = null,
+        string? HallmarkNo = null,
+        string? CertificateNo = null,
         bool ConfirmWrites = false);
     private sealed record ErpJwColorStoneSaveBody(
         int CompanyId = 0,
