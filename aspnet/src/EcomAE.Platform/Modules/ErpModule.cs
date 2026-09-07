@@ -9826,8 +9826,8 @@ public sealed class ErpModule : ISurfaceModule
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpRbacRoleDutyRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxRbacUserRole, async (HttpContext context, ErpRbacUserRoleBody? body, ILegacySessionValidator validator, IErpRbacUserRoleDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpRbacUserRoleRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxRtlChannelSave, async (HttpContext context, ErpRtlChannelSaveBody? body, ILegacySessionValidator validator, IErpRtlChannelSaveDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpRtlChannelSaveRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.ErpRetailChannelsSave, HandleRtlChannelSaveAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxRtlChannelSave, HandleRtlChannelSaveAsync).DisableAntiforgery();
 
         endpoints.MapPost(EcomAeRoutes.ErpInvoicesDelete, async (
             HttpContext context,
@@ -11774,6 +11774,65 @@ public sealed class ErpModule : ISurfaceModule
         }
     }
 
+    private static async Task<IResult> HandleRtlChannelSaveAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpRtlChannelSaveDryRun dryRun,
+        IErpRtlChannelSaveWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/jewellery-retail-app?tab=retail_commerce", "Admin ERP capability required for retail channel save.");
+        }
+
+        var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpRtlChannelSaveBody>(context, cancellationToken) ?? new();
+        var id = body.Id;
+        var code = body.Code;
+        var name = body.Name;
+        var type = body.ChannelType;
+        var currency = body.Currency;
+        var active = body.Active;
+        var companyId = body.CompanyId;
+        var confirm = body.ConfirmWrites;
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            id = LiveWriteFormBinder.Long(form, "id");
+            code = LiveWriteFormBinder.Text(form, "code");
+            name = LiveWriteFormBinder.Text(form, "name");
+            type = LiveWriteFormBinder.Text(form, "channelType", "channel_type");
+            currency = LiveWriteFormBinder.Text(form, "currency");
+            companyId = LiveWriteFormBinder.Long(form, "companyId", "company_id", "company");
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            if (form.ContainsKey("active") || form.ContainsKey("Active"))
+            {
+                active = LiveWriteFormBinder.Flag(form, "active", "Active") ? 1 : 0;
+                var parsed = LiveWriteFormBinder.IntOrNull(form, "active", "Active");
+                if (parsed is not null)
+                {
+                    active = parsed.Value == 1 ? 1 : 0;
+                }
+            }
+        }
+
+        if (!confirm)
+        {
+            return Results.Ok(dryRun.Evaluate(new ErpRtlChannelSaveRequest(id, code, name, string.IsNullOrWhiteSpace(type) ? null : type, currency, active, companyId, false)).ToPayload(SessionPayload(session)));
+        }
+
+        var written = await writes.SaveAsync(
+            new ErpRtlChannelSaveWriteRequest(id, companyId, code, name, string.IsNullOrWhiteSpace(type) ? null : type, currency, active),
+            cancellationToken);
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/erp/jewellery-retail-app?tab=retail_commerce",
+            written.Succeeded,
+            written.Message,
+            new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+    }
+
     private static async Task<IResult> HandleWhtCodeSaveAsync(
         HttpContext context,
         ILegacySessionValidator validator,
@@ -12690,7 +12749,15 @@ public sealed class ErpModule : ISurfaceModule
     private sealed record ErpRbacRoleSaveBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpRbacRoleDutyBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpRbacUserRoleBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
-    private sealed record ErpRtlChannelSaveBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
+    private sealed record ErpRtlChannelSaveBody(
+        long Id = 0,
+        string? Code = null,
+        string? Name = null,
+        string? ChannelType = null,
+        string? Currency = null,
+        int? Active = null,
+        long CompanyId = 0,
+        bool ConfirmWrites = false);
     private sealed record ErpConcurrencyStatusBody(long Id, string? TargetStatus = null, bool ConfirmWrites = false);
     private sealed record ErpSettlementOpenDocsBody(bool ConfirmWrites = false);
     private sealed record ErpDashboardBody(bool ConfirmWrites = false);

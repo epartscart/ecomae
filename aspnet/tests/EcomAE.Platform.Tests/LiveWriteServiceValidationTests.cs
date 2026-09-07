@@ -3070,6 +3070,16 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(whtCodeDb.Succeeded);
         Assert.Equal("db", whtCodeDb.Code);
 
+        var rtlChannelInvalid = await new ErpRtlChannelSaveWriteService(new ConfiguredNeverOpened())
+            .SaveAsync(new ErpRtlChannelSaveWriteRequest());
+        Assert.False(rtlChannelInvalid.Succeeded);
+        Assert.Equal("invalid", rtlChannelInvalid.Code);
+
+        var rtlChannelDb = await new ErpRtlChannelSaveWriteService(new UnconfiguredConnections())
+            .SaveAsync(new ErpRtlChannelSaveWriteRequest(Code: "STORE1", ChannelType: "store", Active: 1));
+        Assert.False(rtlChannelDb.Succeeded);
+        Assert.Equal("db", rtlChannelDb.Code);
+
         var whtRecordInvalid = await new ErpWhtRecordWriteService(new ConfiguredNeverOpened())
             .RecordAsync(new ErpWhtRecordWriteRequest());
         Assert.False(whtRecordInvalid.Succeeded);

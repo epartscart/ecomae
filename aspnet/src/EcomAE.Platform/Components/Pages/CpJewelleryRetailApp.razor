@@ -17,6 +17,33 @@
     <PhpErpModulePageHeader Title="@_spec.Title" Subtitle="@_spec.Subtitle" />
     <ErpPhpFlash Ok="@_ok" Err="@_err" />
 
+    @if (_isAdmin)
+    {
+        <form method="post" action="/erp/retail/channels/save" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="@_returnHere" />
+            <input type="hidden" name="id" value="0" />
+            <label>Code <input type="text" name="code" required maxlength="40" style="width:8rem" /></label>
+            <label>Name <input type="text" name="name" maxlength="160" style="width:12rem" /></label>
+            <label>Type
+                <select name="channel_type">
+                    <option value="store" selected>store</option>
+                    <option value="online">online</option>
+                    <option value="callcenter">callcenter</option>
+                </select>
+            </label>
+            <label>Currency <input type="text" name="currency" maxlength="8" placeholder="AED" style="width:5rem" /></label>
+            <label>Active
+                <select name="active">
+                    <option value="1" selected>active</option>
+                    <option value="0">inactive</option>
+                </select>
+            </label>
+            <label>Company id <input type="number" name="company_id" min="0" value="0" style="width:5rem" /></label>
+            <button type="submit" class="btn btn-sm btn-primary">Save channel</button>
+        </form>
+    }
+
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Jewellery retail stats">
         <div class="kpi"><div class="lbl">Vouchers</div><div class="val">@_summary.VoucherCount.ToString(CultureInfo.InvariantCulture)</div></div>
         <div class="kpi"><div class="lbl">Open vouchers</div><div class="val">@_summary.OpenVouchers.ToString(CultureInfo.InvariantCulture)</div></div>
