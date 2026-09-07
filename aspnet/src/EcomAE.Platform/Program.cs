@@ -683,12 +683,14 @@ builder.Services.AddScoped<EcomAE.Platform.Erp.IErpContractSaveWriteService, Eco
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpWorkflowStatusWriteService, EcomAE.Platform.Erp.ErpWorkflowStatusWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpWorkflowCreateWriteService, EcomAE.Platform.Erp.ErpWorkflowCreateWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpCollectionsCaseStatusWriteService, EcomAE.Platform.Erp.ErpCollectionsCaseStatusWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpCollectionsCaseSaveWriteService, EcomAE.Platform.Erp.ErpCollectionsCaseSaveWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpProcurementReqWriteService, EcomAE.Platform.Erp.ErpProcurementReqWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpProcurementReqSaveWriteService, EcomAE.Platform.Erp.ErpProcurementReqSaveWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpWmsWaveReleaseWriteService, EcomAE.Platform.Erp.ErpWmsWaveReleaseWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpWmsWaveCreateWriteService, EcomAE.Platform.Erp.ErpWmsWaveCreateWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpMarketingWriteService, EcomAE.Platform.Erp.ErpMarketingWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpInsClaimStatusWriteService, EcomAE.Platform.Erp.ErpInsClaimStatusWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpInsClaimAddWriteService, EcomAE.Platform.Erp.ErpInsClaimAddWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpBosVatRefundStatusWriteService, EcomAE.Platform.Erp.ErpBosVatRefundStatusWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpBosVatRefundSaveWriteService, EcomAE.Platform.Erp.ErpBosVatRefundSaveWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpSubInvoicePaidWriteService, EcomAE.Platform.Erp.ErpSubInvoicePaidWriteService>();
@@ -697,6 +699,7 @@ builder.Services.AddScoped<EcomAE.Platform.Erp.IErpPfStepDeleteWriteService, Eco
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpBosWfDisableRuleWriteService, EcomAE.Platform.Erp.ErpBosWfDisableRuleWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpBosComplianceDisableObligationWriteService, EcomAE.Platform.Erp.ErpBosComplianceDisableObligationWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpHrStatusWriteService, EcomAE.Platform.Erp.ErpHrStatusWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpHrExpenseSaveWriteService, EcomAE.Platform.Erp.ErpHrExpenseSaveWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpHrLeaveRequestWriteService, EcomAE.Platform.Erp.ErpHrLeaveRequestWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpConsDeleteWriteService, EcomAE.Platform.Erp.ErpConsDeleteWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpConsEntitySaveWriteService, EcomAE.Platform.Erp.ErpConsEntitySaveWriteService>();
