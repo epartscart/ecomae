@@ -73,6 +73,7 @@ public sealed class PhpVsAspNetRemovalMatrixTests
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "cp-collections" && r.WritesOwner == "aspnet");
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "erp-procurement-reqs" && r.WritesOwner == "aspnet");
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "erp-ins-claims" && r.WritesOwner == "aspnet");
+        Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "erp-mfg-wo" && r.WritesOwner == "aspnet");
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "erp-vat-refund-status" && r.WritesOwner == "aspnet");
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "erp-pf-case-cancel" && r.WritesOwner == "aspnet");
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "erp-bos-wf-disable-rule" && r.WritesOwner == "aspnet");
@@ -203,6 +204,7 @@ public sealed class PhpVsAspNetRemovalMatrixTests
             ("CpPurchaseRequestsApp.razor", "/erp/procurement/requisitions/submit"),
             ("CpPurchaseRequestsApp.razor", "/erp/procurement/requisitions/decision"),
             ("CpPurchaseRequestsApp.razor", "/erp/ajax/proc-req-convert"),
+            ("CpProductionOverviewApp.razor", "/erp/manufacturing/work-orders/create"),
             ("CpInsuranceComplianceApp.razor", "/erp/ajax/ins-claim-add"),
             ("CpInsuranceComplianceApp.razor", "/erp/ajax/ins-claim-status"),
             ("CpInsuranceComplianceApp.razor", "/erp/ajax/ins-doc-delete"),

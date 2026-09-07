@@ -244,8 +244,7 @@ public sealed class ErpModule : ISurfaceModule
         }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxMfgBomSave, async (HttpContext context, ErpMfgBomSaveBody? body, ILegacySessionValidator validator, IErpMfgBomSaveDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpMfgBomSaveRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxMfgWoCreate, async (HttpContext context, ErpMfgWoCreateBody? body, ILegacySessionValidator validator, IErpMfgWoCreateDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpMfgWoCreateRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        // ErpAjaxMfgWoCreate is mapped with ErpManufacturingWoCreate via HandleMfgWoCreateAsync.
         endpoints.MapPost(EcomAeRoutes.ErpAjaxMfgWoIssue, async (HttpContext context, ErpMfgWoIssueBody? body, ILegacySessionValidator validator, IErpMfgWoIssueDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpMfgWoIssueRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxMfgWoComplete, async (HttpContext context, ErpMfgWoCompleteBody? body, ILegacySessionValidator validator, IErpMfgWoCompleteDryRun dryRun, CancellationToken cancellationToken) =>
@@ -4969,6 +4968,8 @@ public sealed class ErpModule : ISurfaceModule
         }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpHrEmployeesSave, HandleHrEmpSaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxHrEmpSave, HandleHrEmpSaveAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpManufacturingWoCreate, HandleMfgWoCreateAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxMfgWoCreate, HandleMfgWoCreateAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpHrAttendanceLog, HandleHrAttendanceAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxHrAttendance, HandleHrAttendanceAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxHrLeaveRequest, async (
@@ -12004,6 +12005,51 @@ public sealed class ErpModule : ISurfaceModule
             new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
     }
 
+    private static async Task<IResult> HandleMfgWoCreateAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpMfgWoCreateDryRun dryRun,
+        IErpMfgWoCreateWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/cp/production-overview-app", "Admin ERP capability required for manufacturing work-order create.");
+        }
+
+        var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpMfgWoCreateBody>(context, cancellationToken) ?? new();
+        var bomId = body.BomId;
+        var woNo = body.WoNo;
+        var qtyPlanned = body.QtyPlanned;
+        var warehouseId = body.WarehouseId;
+        var confirm = body.ConfirmWrites;
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            bomId = LiveWriteFormBinder.Long(form, "bomId", "bom_id");
+            woNo = LiveWriteFormBinder.Text(form, "woNo", "wo_no");
+            qtyPlanned = LiveWriteFormBinder.Dec(form, "qtyPlanned", "qty_planned");
+            warehouseId = LiveWriteFormBinder.Long(form, "warehouseId", "warehouse_id");
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+        }
+
+        if (!confirm)
+        {
+            return Results.Ok(dryRun.Evaluate(new ErpMfgWoCreateRequest(bomId, woNo, false)).ToPayload(SessionPayload(session)));
+        }
+
+        var written = await writes.CreateAsync(
+            new ErpMfgWoCreateWriteRequest(bomId, woNo, qtyPlanned, warehouseId),
+            cancellationToken);
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/cp/production-overview-app",
+            written.Succeeded,
+            written.Message,
+            new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+    }
+
     private static async Task<IResult> HandleWhtCertificateAsync(
         HttpContext context,
         ILegacySessionValidator validator,
@@ -12723,7 +12769,12 @@ public sealed class ErpModule : ISurfaceModule
     private sealed record ErpConsIcSaveBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpConsIcDeleteBody(long Id, bool ConfirmWrites = false);
     private sealed record ErpMfgBomSaveBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
-    private sealed record ErpMfgWoCreateBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
+    private sealed record ErpMfgWoCreateBody(
+        long BomId = 0,
+        string? WoNo = null,
+        decimal QtyPlanned = 0,
+        long WarehouseId = 0,
+        bool ConfirmWrites = false);
     private sealed record ErpMfgWoIssueBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpMfgWoCompleteBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpPayrollGenerateBody(bool ConfirmWrites = false);

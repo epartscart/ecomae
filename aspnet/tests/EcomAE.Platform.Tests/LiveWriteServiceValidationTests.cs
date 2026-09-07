@@ -2954,6 +2954,17 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(expDb.Succeeded);
         Assert.Equal("db", expDb.Code);
 
+        var mfgWoMissing = await new ErpMfgWoCreateWriteService(new ConfiguredNeverOpened())
+            .CreateAsync(new ErpMfgWoCreateWriteRequest());
+        Assert.False(mfgWoMissing.Succeeded);
+        Assert.Equal("invalid", mfgWoMissing.Code);
+        Assert.Equal("BOM not found", mfgWoMissing.Message);
+
+        var mfgWoDb = await new ErpMfgWoCreateWriteService(new UnconfiguredConnections())
+            .CreateAsync(new ErpMfgWoCreateWriteRequest(BomId: 4, WoNo: "WO-T1", QtyPlanned: 10));
+        Assert.False(mfgWoDb.Succeeded);
+        Assert.Equal("db", mfgWoDb.Code);
+
         var expSaveInvalid = await new ErpHrExpenseSaveWriteService(new ConfiguredNeverOpened())
             .SaveAsync(0, "Taxi", [new ErpHrExpenseLine("taxi", 12)]);
         Assert.False(expSaveInvalid.Succeeded);

@@ -54,6 +54,26 @@
     </section>
     <PhpParityModuleBody AppPath="/cp/production-overview-app" IsAdmin="_isAdmin" />
 
+    @if (!string.IsNullOrWhiteSpace(_flashOk))
+    {
+        <div class="alert alert-success" role="status" style="margin:0 0 1rem;padding:.7rem .9rem;border-radius:.4rem;background:#ecfdf5;color:#065f46">@_flashOk</div>
+    }
+    @if (!string.IsNullOrWhiteSpace(_flashErr))
+    {
+        <div class="alert alert-danger" role="status" style="margin:0 0 1rem;padding:.7rem .9rem;border-radius:.4rem;background:#fef2f2;color:#991b1b">@_flashErr</div>
+    }
+    @if (_isAdmin)
+    {
+        <form method="post" action="/erp/manufacturing/work-orders/create" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="@(Http.HttpContext?.Request.Path.Value ?? "/cp/production-overview-app")" />
+            <label>BOM id <input type="number" name="bom_id" min="1" required style="width:7rem" /></label>
+            <label>WO no <input type="text" name="wo_no" /></label>
+            <label>Qty planned <input type="number" name="qty_planned" step="0.0001" value="1" style="width:7rem" /></label>
+            <label>Warehouse id <input type="number" name="warehouse_id" min="0" style="width:7rem" /></label>
+            <button type="submit">Create work order</button>
+        </form>
+    }
 
     <div class="epc-mfg-kpis" aria-label="Production stats">
         <div class="epc-mfg-kpi"><strong>@_summary.BomCount.ToString(CultureInfo.InvariantCulture)</strong><span>Active BOMs</span></div>
@@ -107,11 +127,16 @@
     private IReadOnlyList<CpProductionWorkOrderDigest> _workOrders = [];
     private string _source = "n/a";
     private string _message = "";
+    private string _flashOk = "";
+    private string _flashErr = "";
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
+
+        _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
+        _flashErr = ctx.Request.Query["err"].ToString() ?? "";
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
