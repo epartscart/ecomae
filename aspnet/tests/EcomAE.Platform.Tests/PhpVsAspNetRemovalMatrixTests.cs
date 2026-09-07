@@ -80,6 +80,7 @@ public sealed class PhpVsAspNetRemovalMatrixTests
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "erp-fy-reopen-period" && r.WritesOwner == "aspnet");
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "erp-wht-settle" && r.WritesOwner == "aspnet");
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "erp-multi-entity" && r.WritesOwner == "aspnet");
+        Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "erp-multi-currency-gl" && r.WritesOwner == "aspnet");
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "write-storefront-cart" && r.WritesOwner == "php");
     }
 
@@ -129,6 +130,7 @@ public sealed class PhpVsAspNetRemovalMatrixTests
             ("ErpPayrollApp.razor", "/erp/ajax/payroll-approve"),
             ("ErpInventoryForecastApp.razor", "/erp/inventory-forecast/recompute"),
             ("ErpMultiEntityApp.razor", "/erp/multi-entity/write"),
+            ("ErpMultiCurrencyGlApp.razor", "/erp/multi-currency-gl/set-rate"),
             ("CpCreditLimitsApp.razor", "/cp/credit-limits/set"),
             ("CpPoApprovalsApp.razor", "/cp/po-approvals/approve"),
             ("CpOrdersApp.razor", "/cp/orders/set-item-status"),
