@@ -94,7 +94,7 @@
             </form>
         </ErpPhpCreateWell>
         <ErpPhpCreateWell Title="Reply to ticket">
-            <form method="post" action="@EcomAeRoutes.ErpTicketsReplyForm" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+            <form method="post" action="/erp/tickets/reply" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
                 <input type="hidden" name="confirmWrites" value="true" />
                 <input type="hidden" name="returnUrl" value="/cp/crm-tickets-app?tab=tickets" />
                 <label>Ticket id <input class="form-control input-sm" name="ticket_id" type="number" min="1" required /></label>
