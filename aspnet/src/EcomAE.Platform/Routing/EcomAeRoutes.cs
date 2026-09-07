@@ -1328,7 +1328,9 @@ public static class EcomAeRoutes
     public const string ErpAjaxOaHolidayAdd = "/erp/ajax/oa-holiday-add";
     /// <summary>Wave B dry-run for PHP rbac_role_save (writes=0).</summary>
     public const string ErpAjaxRbacRoleSave = "/erp/ajax/rbac-role-save";
-    /// <summary>Wave B dry-run for PHP rbac_role_duty (writes=0).</summary>
+    /// <summary>Live PHP epc_rbac_role_attach_duty twin (ajax alias of <see cref="ErpSecurityRolesAttachDuty"/>).</summary>
+    public const string ErpSecurityRolesAttachDuty = "/erp/security/roles/attach-duty";
+    /// <summary>Live PHP epc_rbac_role_attach_duty ajax alias of <see cref="ErpSecurityRolesAttachDuty"/>.</summary>
     public const string ErpAjaxRbacRoleDuty = "/erp/ajax/rbac-role-duty";
     /// <summary>Wave B dry-run for PHP rbac_user_role (writes=0).</summary>
     public const string ErpAjaxRbacUserRole = "/erp/ajax/rbac-user-role";
