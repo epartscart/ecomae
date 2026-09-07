@@ -3,10 +3,10 @@ using System.Globalization;
 namespace EcomAE.Platform.Erp;
 
 /// <summary>
-/// Live PHP <c>epc_coll_case_save</c> twin. Schema ensure, dunning run,
-/// and credit hold stay PHP. Promise is
-/// <c>IErpCollectionsCasePromiseWriteService</c>. Activity is
-/// <c>IErpCollectionsActivityLogWriteService</c>.
+/// Live PHP <c>epc_coll_case_save</c> twin. Schema ensure and dunning run
+/// stay PHP. Promise is <c>IErpCollectionsCasePromiseWriteService</c>.
+/// Activity is <c>IErpCollectionsActivityLogWriteService</c>. Hold is
+/// <c>IErpCollectionsHoldSetWriteService</c>.
 /// </summary>
 public interface IErpCollectionsCaseSaveWriteService
 {

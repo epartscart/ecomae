@@ -3,8 +3,9 @@ using System.Data.Common;
 namespace EcomAE.Platform.Erp;
 
 /// <summary>
-/// Live PHP <c>epc_coll_activity_log</c> twin. Schema ensure, dunning run,
-/// and credit hold stay PHP. Does not CREATE tables.
+/// Live PHP <c>epc_coll_activity_log</c> twin. Schema ensure and dunning
+/// run stay PHP. Hold is <c>IErpCollectionsHoldSetWriteService</c>.
+/// Does not CREATE tables.
 /// </summary>
 public interface IErpCollectionsActivityLogWriteService
 {

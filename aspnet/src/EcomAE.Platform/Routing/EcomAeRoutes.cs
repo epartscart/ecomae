@@ -668,6 +668,10 @@ public static class EcomAeRoutes
     public const string ErpCollectionsCasePromise = "/erp/collections/cases/promise";
     /// <summary>Live PHP epc_coll_activity_log twin (confirmWrites=true). Schema ensure stays PHP.</summary>
     public const string ErpCollectionsActivityLog = "/erp/collections/activity/log";
+    /// <summary>Live PHP epc_coll_hold_set twin (confirmWrites=true). Schema ensure stays PHP.</summary>
+    public const string ErpCollectionsHoldSet = "/erp/collections/hold/set";
+    /// <summary>Live PHP epc_coll_dunning_run twin (confirmWrites=true). Schema ensure stays PHP.</summary>
+    public const string ErpCollectionsDunningRun = "/erp/collections/dunning/run";
     /// <summary>PHP epc_proc_req_save. <c>confirmWrites=true</c> writes via <c>IErpProcurementReqSaveWriteService</c>.</summary>
     public const string ErpProcurementReqSave = "/erp/procurement/requisitions/save";
     /// <summary>Live PHP epc_proc_req_add_line twin (confirmWrites=true). Schema ensure stays PHP.</summary>
@@ -1232,7 +1236,7 @@ public static class EcomAeRoutes
     public const string ErpAjaxFinAllocRun = "/erp/ajax/fin-alloc-run";
     /// <summary>Wave B dry-run for PHP fin_accrual_save (writes=0).</summary>
     public const string ErpAjaxFinAccrualSave = "/erp/ajax/fin-accrual-save";
-    /// <summary>Wave B dry-run for PHP coll_hold_set (writes=0).</summary>
+    /// <summary>Live PHP epc_coll_hold_set twin (ajax alias of <see cref="ErpCollectionsHoldSet"/>).</summary>
     public const string ErpAjaxCollHoldSet = "/erp/ajax/coll-hold-set";
     /// <summary>Wave B dry-run for PHP bplan_line_add (writes=0).</summary>
     public const string ErpAjaxBplanLineAdd = "/erp/ajax/bplan-line-add";
@@ -1672,7 +1676,7 @@ public static class EcomAeRoutes
     public const string ErpAjaxCollCasePromise = "/erp/ajax/coll-case-promise";
     /// <summary>Live PHP epc_coll_activity_log twin (ajax alias of <see cref="ErpCollectionsActivityLog"/>).</summary>
     public const string ErpAjaxCollActivityLog = "/erp/ajax/coll-activity-log";
-    /// <summary>Wave B dry-run for PHP coll_dunning_run (writes=0).</summary>
+    /// <summary>Live PHP epc_coll_dunning_run twin (ajax alias of <see cref="ErpCollectionsDunningRun"/>).</summary>
     public const string ErpAjaxCollDunningRun = "/erp/ajax/coll-dunning-run";
     /// <summary>Wave B dry-run for PHP proc_category_save (writes=0).</summary>
     public const string ErpAjaxProcCategorySave = "/erp/ajax/proc-category-save";
