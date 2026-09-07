@@ -53,6 +53,34 @@
     </section>
     <PhpParityModuleBody AppPath="/cp/cost-models-app" IsAdmin="_isAdmin" />
 
+    @if (!string.IsNullOrWhiteSpace(_flashOk))
+    {
+        <div class="alert alert-success" role="status" style="margin:0 0 12px;padding:.7rem .9rem;border-radius:.4rem;background:#ecfdf5;color:#065f46">@_flashOk</div>
+    }
+    @if (!string.IsNullOrWhiteSpace(_flashErr))
+    {
+        <div class="alert alert-danger" role="status" style="margin:0 0 12px;padding:.7rem .9rem;border-radius:.4rem;background:#fef2f2;color:#991b1b">@_flashErr</div>
+    }
+    @if (_isAdmin)
+    {
+        <form method="post" action="/erp/cost-models/items/set" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/cost-models-app" />
+            <strong style="width:100%;font-size:.85rem">Assign costing model</strong>
+            <label>Item id <input type="number" name="item_id" min="0" required style="width:7rem" /></label>
+            <label>Model
+                <select name="model">
+                    <option value="moving_avg">moving_avg</option>
+                    <option value="standard">standard</option>
+                    <option value="fifo">fifo</option>
+                    <option value="lifo">lifo</option>
+                </select>
+            </label>
+            <label>Std cost <input type="text" name="std_cost" placeholder="0.0000" style="width:7rem" /></label>
+            <label>Company id <input type="number" name="company_id" min="0" value="0" style="width:5rem" /></label>
+            <button type="submit" class="btn btn-sm btn-primary">Save</button>
+        </form>
+    }
 
     <div class="epc-costm-kpis" aria-label="Cost models stats">
         <div class="epc-costm-kpi"><strong>@_summary.ItemCount.ToString(CultureInfo.InvariantCulture)</strong><span>Items</span></div>
@@ -107,12 +135,16 @@
     private IReadOnlyList<CpCostModelItemDigest> _rows = [];
     private string _source = "n/a";
     private string _message = "";
+    private string _flashOk = "";
+    private string _flashErr = "";
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
 
+        _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
+        _flashErr = ctx.Request.Query["err"].ToString() ?? "";
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
         if (!_isAdmin)
