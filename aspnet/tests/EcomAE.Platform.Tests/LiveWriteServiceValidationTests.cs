@@ -3070,6 +3070,16 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(whtCodeDb.Succeeded);
         Assert.Equal("db", whtCodeDb.Code);
 
+        var oaAddrInvalid = await new ErpOaAddressSaveWriteService(new ConfiguredNeverOpened())
+            .SaveAsync(new ErpOaAddressSaveWriteRequest(Purpose: "alien"));
+        Assert.False(oaAddrInvalid.Succeeded);
+        Assert.Equal("invalid", oaAddrInvalid.Code);
+
+        var oaAddrDb = await new ErpOaAddressSaveWriteService(new UnconfiguredConnections())
+            .SaveAsync(new ErpOaAddressSaveWriteRequest(1, "business", "1 Sheikh Zayed Rd"));
+        Assert.False(oaAddrDb.Succeeded);
+        Assert.Equal("db", oaAddrDb.Code);
+
         var whtRecordInvalid = await new ErpWhtRecordWriteService(new ConfiguredNeverOpened())
             .RecordAsync(new ErpWhtRecordWriteRequest());
         Assert.False(whtRecordInvalid.Succeeded);

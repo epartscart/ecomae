@@ -1318,7 +1318,9 @@ public static class EcomAeRoutes
     public const string ErpAjaxPltFeatureSave = "/erp/ajax/plt-feature-save";
     /// <summary>Wave B dry-run for PHP oa_party_save (writes=0).</summary>
     public const string ErpAjaxOaPartySave = "/erp/ajax/oa-party-save";
-    /// <summary>Wave B dry-run for PHP oa_address_save (writes=0).</summary>
+    /// <summary>Live PHP epc_oa_address_save twin (ajax alias of <see cref="ErpContactsAddressesSave"/>).</summary>
+    public const string ErpContactsAddressesSave = "/erp/contacts/addresses/save";
+    /// <summary>Live PHP epc_oa_address_save ajax alias of <see cref="ErpContactsAddressesSave"/>.</summary>
     public const string ErpAjaxOaAddressSave = "/erp/ajax/oa-address-save";
     /// <summary>Wave B dry-run for PHP oa_contact_save (writes=0).</summary>
     public const string ErpAjaxOaContactSave = "/erp/ajax/oa-contact-save";
