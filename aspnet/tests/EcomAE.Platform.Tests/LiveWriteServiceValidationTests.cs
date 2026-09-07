@@ -3111,6 +3111,16 @@ public sealed class LiveWriteServiceValidationTests
             .LogAsync(new ErpHrAttendanceWriteRequest(EmployeeId: 1, Hours: 8));
         Assert.False(hrAttDb.Succeeded);
         Assert.Equal("db", hrAttDb.Code);
+
+        var pltRunInvalid = await new ErpPltJobRunWriteService(new ConfiguredNeverOpened())
+            .RunAsync(new ErpPltJobRunWriteRequest(JobId: 1, Status: "bogus"));
+        Assert.False(pltRunInvalid.Succeeded);
+        Assert.Equal("invalid", pltRunInvalid.Code);
+
+        var pltRunDb = await new ErpPltJobRunWriteService(new UnconfiguredConnections())
+            .RunAsync(new ErpPltJobRunWriteRequest(JobId: 1, Status: "ended"));
+        Assert.False(pltRunDb.Succeeded);
+        Assert.Equal("db", pltRunDb.Code);
     }
 
     [Fact]

@@ -234,6 +234,7 @@ public sealed class PhpVsAspNetRemovalMatrixTests
             ("ErpPeriodCloseApp.razor", "/erp/ajax/fy-reopen"),
             ("ErpPeriodCloseApp.razor", "/erp/ajax/fy-period-status"),
             ("CpFinAdvancedApp.razor", "/erp/fin/periods/status"),
+            ("CpTenantConfigApp.razor", "/erp/platform/jobs/run"),
             ("ErpWithholdingApp.razor", "/erp/ajax/wht-settle"),
             ("ErpWithholdingApp.razor", "/erp/withholding/codes/save"),
             ("ErpWithholdingApp.razor", "/erp/withholding/txns/record"),
