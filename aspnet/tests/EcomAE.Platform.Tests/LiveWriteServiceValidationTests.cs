@@ -3111,6 +3111,17 @@ public sealed class LiveWriteServiceValidationTests
             .LogAsync(new ErpHrAttendanceWriteRequest(EmployeeId: 1, Hours: 8));
         Assert.False(hrAttDb.Succeeded);
         Assert.Equal("db", hrAttDb.Code);
+
+        var hrPayInvalid = await new ErpHrPayrollRunWriteService(new ConfiguredNeverOpened())
+            .GenerateAsync(new ErpHrPayrollRunWriteRequest(Period: "not-a-period"));
+        Assert.False(hrPayInvalid.Succeeded);
+        Assert.Equal("invalid", hrPayInvalid.Code);
+        Assert.Equal("Invalid period (use YYYY-MM)", hrPayInvalid.Message);
+
+        var hrPayDb = await new ErpHrPayrollRunWriteService(new UnconfiguredConnections())
+            .GenerateAsync(new ErpHrPayrollRunWriteRequest(Period: "2026-01"));
+        Assert.False(hrPayDb.Succeeded);
+        Assert.Equal("db", hrPayDb.Code);
     }
 
     [Fact]

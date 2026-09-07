@@ -1350,6 +1350,8 @@ public static class SurfacePayloadContractCatalog
         new("erp", "hr_emp_save", "/erp/ajax/hr-emp-save", "write-live-gated", "POST PHP epc_hr_employee_save ajax alias; confirmWrites=true writes ASP.NET; schema ensure stays PHP."),
         new("erp", "hr attendance log", "/erp/hr/attendance/log", "write-live-gated", "POST PHP epc_hr_attendance_log; confirmWrites=true writes ASP.NET; schema ensure stays PHP."),
         new("erp", "hr_attendance", "/erp/ajax/hr-attendance", "write-live-gated", "POST PHP epc_hr_attendance_log ajax alias; confirmWrites=true writes ASP.NET; schema ensure stays PHP."),
+        new("erp", "hr payroll generate", "/erp/hr/payroll/generate", "write-live-gated", "POST PHP epc_hr_payroll_run; confirmWrites=true writes ASP.NET; schema ensure stays PHP."),
+        new("erp", "hr_payroll_generate", "/erp/ajax/hr-payroll-generate", "write-live-gated", "POST PHP epc_hr_payroll_run ajax alias; confirmWrites=true writes ASP.NET; schema ensure stays PHP."),
         new("erp", "hr_leave_request", "/erp/ajax/hr-leave-request", "write-live-gated", "POST PHP epc_hr_leave_request; confirmWrites=true writes ASP.NET; schema ensure stays PHP."),
         new("erp", "hr_leave_status", "/erp/ajax/hr-leave-status", "write-live-gated", "POST PHP epc_hr_leave_set_status; confirmWrites=true writes ASP.NET; schema ensure stays PHP."),
         new("erp", "hr_expense_save", "/erp/ajax/hr-expense-save", "write-live-gated", "POST PHP epc_hr_expense_save; confirmWrites=true writes ASP.NET; schema ensure stays PHP."),
