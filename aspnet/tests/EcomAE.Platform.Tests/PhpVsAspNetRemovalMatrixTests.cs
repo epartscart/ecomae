@@ -90,6 +90,7 @@ public sealed class PhpVsAspNetRemovalMatrixTests
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "cp-custom-ship" && r.WritesOwner == "aspnet");
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "write-laximo" && r.WritesOwner == "aspnet");
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "write-payments" && r.WritesOwner == "aspnet");
+        Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "erp-marketing" && r.WritesOwner == "aspnet");
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "erp-multi-entity" && r.WritesOwner == "aspnet");
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "erp-multi-currency-gl" && r.WritesOwner == "aspnet");
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "write-storefront-cart" && r.WritesOwner == "php");
@@ -338,6 +339,7 @@ public sealed class PhpVsAspNetRemovalMatrixTests
             ("CpReturnsRmaApp.razor", "Add job line"),
             ("CpReturnsRmaApp.razor", "Close job"),
             ("CpJewelleryMastersApp.razor", "Save rate type"),
+            ("ErpMarketingApp.razor", "/erp/marketing/create"),
             ("CpReturnsRmaApp.razor", "/cp/returns/action"),
             ("CpSystemRequestsApp.razor", "/cp/requests/set-vin-viewed"),
             ("StorefrontWishlistApp.razor", "WishlistRemoveHref"),
