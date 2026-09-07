@@ -1,7 +1,7 @@
 namespace EcomAE.Platform.Erp;
 
 /// <summary>
-/// Live PHP <c>epc_bos_compliance_disable_obligation</c> twin. Add, file, and retention stay PHP.
+/// Live PHP <c>epc_bos_compliance_disable_obligation</c> twin. File, retention, and schema ensure stay PHP.
 /// </summary>
 public interface IErpBosComplianceDisableObligationWriteService
 {

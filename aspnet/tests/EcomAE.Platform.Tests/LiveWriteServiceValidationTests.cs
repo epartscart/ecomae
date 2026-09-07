@@ -2919,6 +2919,17 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(oblDb.Succeeded);
         Assert.Equal("db", oblDb.Code);
 
+        var oblAddMissing = await new ErpBosComplianceAddObligationWriteService(new ConfiguredNeverOpened())
+            .AddAsync(new ErpBosComplianceAddObligationWriteRequest());
+        Assert.False(oblAddMissing.Succeeded);
+        Assert.Equal("invalid", oblAddMissing.Code);
+        Assert.Equal("Title required", oblAddMissing.Message);
+
+        var oblAddDb = await new ErpBosComplianceAddObligationWriteService(new UnconfiguredConnections())
+            .AddAsync(new ErpBosComplianceAddObligationWriteRequest(Title: "VAT return"));
+        Assert.False(oblAddDb.Succeeded);
+        Assert.Equal("db", oblAddDb.Code);
+
         var leaveReqInvalid = await new ErpHrLeaveRequestWriteService(new ConfiguredNeverOpened())
             .RequestAsync(0, "annual", 2, null, null);
         Assert.False(leaveReqInvalid.Succeeded);

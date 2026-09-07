@@ -3899,8 +3899,8 @@ public sealed class ErpModule : ISurfaceModule
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(null,false); return Results.Ok(dryRun.Evaluate(new ErpEditLockReleaseRequest(body.ResourceKey, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxPresenceHeartbeat, async (HttpContext context, ErpPresenceHeartbeatBody? body, ILegacySessionValidator validator, IErpPresenceHeartbeatDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(null,false); return Results.Ok(dryRun.Evaluate(new ErpPresenceHeartbeatRequest(body.ResourceKey, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxBosComplianceAddObligation, async (HttpContext context, ErpBosComplianceAddObligationBody? body, ILegacySessionValidator validator, IErpBosComplianceAddObligationDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpBosComplianceAddObligationRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.ErpComplianceObligationAdd, HandleBosComplianceAddObligationAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxBosComplianceAddObligation, HandleBosComplianceAddObligationAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxBosComplianceDisableObligation, async (
             HttpContext context,
             ILegacySessionValidator validator,
@@ -11774,6 +11774,70 @@ public sealed class ErpModule : ISurfaceModule
         }
     }
 
+    private static async Task<IResult> HandleBosComplianceAddObligationAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpBosComplianceAddObligationDryRun dryRun,
+        IErpBosComplianceAddObligationWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/cp/soc2-compliance-app", "Admin ERP capability required for compliance add obligation.");
+        }
+
+        var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpBosComplianceAddObligationBody>(context, cancellationToken) ?? new();
+        var title = body.Title;
+        var code = body.Code;
+        var regime = body.Regime;
+        var authority = body.Authority;
+        var frequency = body.Frequency;
+        var leadDays = body.LeadDays;
+        var docs = body.DocRequirements;
+        var confirm = body.ConfirmWrites;
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            title = LiveWriteFormBinder.Text(form, "title");
+            code = LiveWriteFormBinder.Text(form, "code");
+            regime = LiveWriteFormBinder.Text(form, "regime");
+            authority = LiveWriteFormBinder.Text(form, "authority");
+            frequency = LiveWriteFormBinder.Text(form, "frequency");
+            leadDays = LiveWriteFormBinder.Int(form, "leadDays", "lead_days");
+            if (leadDays == 0 && string.IsNullOrWhiteSpace(form["lead_days"].ToString()) && string.IsNullOrWhiteSpace(form["leadDays"].ToString()))
+            {
+                leadDays = 28;
+            }
+
+            docs = LiveWriteFormBinder.Text(form, "docRequirements", "doc_requirements");
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+        }
+
+        if (!confirm)
+        {
+            return Results.Ok(dryRun.Evaluate(new ErpBosComplianceAddObligationRequest(title, code, false)).ToPayload(SessionPayload(session)));
+        }
+
+        var written = await writes.AddAsync(
+            new ErpBosComplianceAddObligationWriteRequest(
+                title,
+                code,
+                regime,
+                authority,
+                frequency,
+                leadDays,
+                docs,
+                session.UserId),
+            cancellationToken);
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/cp/soc2-compliance-app",
+            written.Succeeded,
+            written.Message,
+            new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+    }
+
     private static async Task<IResult> HandleWhtCodeSaveAsync(
         HttpContext context,
         ILegacySessionValidator validator,
@@ -13489,7 +13553,15 @@ public sealed class ErpModule : ISurfaceModule
     private sealed record ErpEditLockHeartbeatBody(string? ResourceKey = null, bool ConfirmWrites = false);
     private sealed record ErpEditLockReleaseBody(string? ResourceKey = null, bool ConfirmWrites = false);
     private sealed record ErpPresenceHeartbeatBody(string? ResourceKey = null, bool ConfirmWrites = false);
-    private sealed record ErpBosComplianceAddObligationBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
+    private sealed record ErpBosComplianceAddObligationBody(
+        string? Title = null,
+        string? Code = null,
+        string? Regime = null,
+        string? Authority = null,
+        string? Frequency = null,
+        int LeadDays = 28,
+        string? DocRequirements = null,
+        bool ConfirmWrites = false);
     private sealed record ErpBosComplianceDisableObligationBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpBosComplianceFileBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpBosComplianceSaveRetentionBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);

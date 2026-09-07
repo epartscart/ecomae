@@ -1634,7 +1634,9 @@ public static class EcomAeRoutes
     public const string ErpAjaxEditLockRelease = "/erp/ajax/edit-lock-release";
     /// <summary>Wave B dry-run for PHP presence_heartbeat (writes=0).</summary>
     public const string ErpAjaxPresenceHeartbeat = "/erp/ajax/presence-heartbeat";
-    /// <summary>Wave B dry-run for PHP bos_compliance_add_obligation (writes=0).</summary>
+    /// <summary>Live PHP bos_compliance_add_obligation twin (confirmWrites=true writes).</summary>
+    public const string ErpComplianceObligationAdd = "/erp/compliance/obligations/add";
+    /// <summary>Live PHP bos_compliance_add_obligation ajax alias of <see cref="ErpComplianceObligationAdd"/>.</summary>
     public const string ErpAjaxBosComplianceAddObligation = "/erp/ajax/bos-compliance-add-obligation";
     /// <summary>Live PHP bos_compliance_disable_obligation twin (confirmWrites=true writes).</summary>
     public const string ErpAjaxBosComplianceDisableObligation = "/erp/ajax/bos-compliance-disable-obligation";
