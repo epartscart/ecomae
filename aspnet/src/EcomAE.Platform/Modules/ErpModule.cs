@@ -2190,14 +2190,48 @@ public sealed class ErpModule : ISurfaceModule
             return Results.Ok(dryRun.Evaluate(new ErpProcReqSaveRequest(requester, id, false)).ToPayload(SessionPayload(session)));
         }).DisableAntiforgery();
 
-        endpoints.MapPost(EcomAeRoutes.ErpFinPeriodStatus, async (HttpContext context, ErpFinPeriodStatusBody? body, ILegacySessionValidator validator, IErpFinPeriodStatusDryRun dryRun, CancellationToken cancellationToken) =>
+        endpoints.MapPost(EcomAeRoutes.ErpFinPeriodStatus, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IErpFinPeriodStatusDryRun dryRun,
+            IErpFinPeriodStatusWriteService writes,
+            CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateAsync(context, cancellationToken);
             if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
-                return Unauthorized("Admin ERP capability required for fin period status dry-run.");
-            body ??= new ErpFinPeriodStatusBody(0, 0, "open", false);
-            return Results.Ok(dryRun.Evaluate(new ErpFinPeriodStatusRequest(body.Fy, body.PeriodNo, body.Status, body.ConfirmWrites)).ToPayload(SessionPayload(session)));
-        });
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/cp/fin-advanced-app", "Admin ERP capability required for fin period status.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpFinPeriodStatusBody>(context, cancellationToken) ?? new(0, 0, "open", false);
+            var fy = body.Fy;
+            var periodNo = body.PeriodNo;
+            var status = body.Status;
+            var companyId = body.CompanyId;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                fy = LiveWriteFormBinder.Int(form, "fy");
+                periodNo = LiveWriteFormBinder.Int(form, "period_no", "periodNo");
+                status = LiveWriteFormBinder.Text(form, "status");
+                companyId = LiveWriteFormBinder.Long(form, "company_id", "companyId", "company");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(dryRun.Evaluate(new ErpFinPeriodStatusRequest(fy, periodNo, status, false, companyId)).ToPayload(SessionPayload(session)));
+            }
+
+            var written = await writes.SetStatusAsync(companyId, fy, periodNo, status, cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/cp/fin-advanced-app",
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+        }).DisableAntiforgery();
 
         endpoints.MapPost(EcomAeRoutes.ErpWmsWaveCreate, async (
             HttpContext context,
@@ -6025,7 +6059,7 @@ public sealed class ErpModule : ISurfaceModule
         long CompanyId = 0,
         long Id = 0,
         bool ConfirmWrites = false);
-    private sealed record ErpFinPeriodStatusBody(int Fy, int PeriodNo, string? Status = "open", bool ConfirmWrites = false);
+    private sealed record ErpFinPeriodStatusBody(int Fy, int PeriodNo, string? Status = "open", bool ConfirmWrites = false, long CompanyId = 0);
     private sealed record ErpWmsWaveCreateBody(
         string? Item = null,
         decimal Qty = 0,
