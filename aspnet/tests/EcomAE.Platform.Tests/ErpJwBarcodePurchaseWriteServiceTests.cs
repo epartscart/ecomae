@@ -23,4 +23,14 @@ public sealed class ErpJwBarcodePurchaseWriteServiceTests
         Assert.Equal("invalid", result.Code);
         Assert.Equal("Barcode or description is required.", result.Message);
     }
+
+    [Fact]
+    public async Task SellRequiresPurchaseId()
+    {
+        var result = await new ErpJwBarcodePurchaseWriteService(new UnusedConnections())
+            .SellAsync(new ErpJwBarcodePurchaseSellRequest(CustomerId: 9, InvoiceId: 501));
+        Assert.False(result.Succeeded);
+        Assert.Equal("invalid", result.Code);
+        Assert.Equal("Purchase id is required.", result.Message);
+    }
 }

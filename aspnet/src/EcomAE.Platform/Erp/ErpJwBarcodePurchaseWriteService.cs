@@ -4,12 +4,16 @@ using System.Globalization;
 namespace EcomAE.Platform.Erp;
 
 /// <summary>
-/// Live PHP <c>epc_barcode_purchase_create</c> twin. Schema-ensure and sell stay PHP.
+/// Live PHP <c>epc_barcode_purchase_create</c> / <c>epc_barcode_purchase_sell</c> twin. Schema-ensure stays PHP.
 /// </summary>
 public interface IErpJwBarcodePurchaseWriteService
 {
     Task<ErpSimpleWriteResult> CreateAsync(
         ErpJwBarcodePurchaseCreateRequest request,
+        CancellationToken cancellationToken = default);
+
+    Task<ErpSimpleWriteResult> SellAsync(
+        ErpJwBarcodePurchaseSellRequest request,
         CancellationToken cancellationToken = default);
 }
 
@@ -38,6 +42,11 @@ public sealed record ErpJwBarcodePurchaseCreateRequest(
     string? DesignNo = null,
     string? HallmarkNo = null,
     string? CertificateNo = null);
+
+public sealed record ErpJwBarcodePurchaseSellRequest(
+    long Id = 0,
+    int CustomerId = 0,
+    int InvoiceId = 0);
 
 public sealed class ErpJwBarcodePurchaseWriteService : IErpJwBarcodePurchaseWriteService
 {
@@ -161,6 +170,62 @@ public sealed class ErpJwBarcodePurchaseWriteService : IErpJwBarcodePurchaseWrit
         }
 
         return ErpSimpleWriteResult.Ok("Barcode purchase " + barcode + " created", id);
+    }
+
+    public async Task<ErpSimpleWriteResult> SellAsync(
+        ErpJwBarcodePurchaseSellRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        if (request.Id <= 0)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Purchase id is required.");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return ErpSimpleWriteResult.Fail("db", "TenantRegistry DB is not configured.");
+        }
+
+        await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        if (!await TableExistsAsync(connection, "epc_barcode_purchases", cancellationToken).ConfigureAwait(false)
+            || !await ColumnExistsAsync(connection, "epc_barcode_purchases", "status", cancellationToken).ConfigureAwait(false))
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Barcode purchase tables are not provisioned");
+        }
+
+        var status = await ErpDb.StringAsync(
+            connection,
+            null,
+            ErpDb.Positional("SELECT `status` FROM `epc_barcode_purchases` WHERE `id` = ? LIMIT 1"),
+            cancellationToken,
+            request.Id).ConfigureAwait(false);
+        if (string.IsNullOrEmpty(status))
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Purchase is missing.");
+        }
+
+        if (string.Equals(status, "sold", StringComparison.OrdinalIgnoreCase))
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Purchase is already sold.");
+        }
+
+        var updated = await ErpDb.ExecuteAsync(
+            connection,
+            null,
+            ErpDb.Positional(
+                "UPDATE `epc_barcode_purchases` SET `status` = 'sold', `sold_to_customer_id` = ?, `sold_invoice_id` = ?, `time_updated` = ? WHERE `id` = ?"),
+            cancellationToken,
+            request.CustomerId < 0 ? 0 : request.CustomerId,
+            request.InvoiceId < 0 ? 0 : request.InvoiceId,
+            UnixNow(),
+            request.Id).ConfigureAwait(false);
+        if (updated <= 0)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Purchase is missing.");
+        }
+
+        return ErpSimpleWriteResult.Ok("Barcode purchase sold", request.Id);
     }
 
     private static async Task<bool> TableExistsAsync(DbConnection connection, string table, CancellationToken cancellationToken)

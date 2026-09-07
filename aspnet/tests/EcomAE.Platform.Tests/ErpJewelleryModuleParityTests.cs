@@ -148,6 +148,8 @@ public sealed class ErpJewelleryModuleParityTests
         var barcodePurchase = ReadApp("ErpPurchaseOrdersApp.razor");
         Assert.Contains("ErpJewelleryBarcodePurchaseCreateForm", barcodePurchase, StringComparison.Ordinal);
         Assert.Contains("Create barcode purchase", barcodePurchase, StringComparison.Ordinal);
+        Assert.Contains("ErpJewelleryBarcodePurchaseSellForm", barcodePurchase, StringComparison.Ordinal);
+        Assert.Contains("Sell barcode purchase", barcodePurchase, StringComparison.Ordinal);
         Assert.Contains("barcode_purchase", barcodePurchase, StringComparison.Ordinal);
         Assert.DoesNotContain("@onclick", barcodePurchase, StringComparison.Ordinal);
 
@@ -228,6 +230,9 @@ public sealed class ErpJewelleryModuleParityTests
         Assert.Equal("/erp/jewellery/fix-unfix-create", EcomAeRoutes.ErpJewelleryFixUnfixCreateForm);
         Assert.Equal("/erp/jewellery/fix-unfix-settle", EcomAeRoutes.ErpJewelleryFixUnfixSettleForm);
         Assert.Equal("/erp/jewellery/barcode-purchase-create", EcomAeRoutes.ErpJewelleryBarcodePurchaseCreateForm);
+        Assert.Equal("/erp/jewellery/barcode-purchase-sell", EcomAeRoutes.ErpJewelleryBarcodePurchaseSellForm);
+        Assert.Equal("/erp/sla/create", EcomAeRoutes.ErpSlaCreateForm);
+        Assert.Equal("/erp/tickets/create", EcomAeRoutes.ErpTicketsCreateForm);
     }
 
     [Fact]

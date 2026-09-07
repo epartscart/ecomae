@@ -256,6 +256,15 @@ public sealed class LiveSurfaceLinkReporterTests
             && link.AspNetRouteHint == "/erp/jewellery/barcode-purchase-create");
         Assert.Contains(report.Links, link =>
             link.HostClass == "aspnet-diagnostics"
+            && link.AspNetRouteHint == "/erp/jewellery/barcode-purchase-sell");
+        Assert.Contains(report.Links, link =>
+            link.HostClass == "aspnet-diagnostics"
+            && link.AspNetRouteHint == "/erp/sla/create");
+        Assert.Contains(report.Links, link =>
+            link.HostClass == "aspnet-diagnostics"
+            && link.AspNetRouteHint == "/erp/tickets/create");
+        Assert.Contains(report.Links, link =>
+            link.HostClass == "aspnet-diagnostics"
             && link.AspNetRouteHint == "/erp/jewellery/metal-stock-save");
         Assert.Contains(report.Links, link =>
             link.HostClass == "aspnet-diagnostics"

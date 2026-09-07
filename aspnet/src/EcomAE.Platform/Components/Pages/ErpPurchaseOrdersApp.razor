@@ -43,6 +43,16 @@
                 <button type="submit" class="btn btn-primary btn-sm">Create barcode purchase</button>
             </form>
         </ErpPhpCreateWell>
+        <ErpPhpCreateWell Title="Sell barcode purchase">
+            <form method="post" action="@EcomAeRoutes.ErpJewelleryBarcodePurchaseSellForm" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="/erp/purchase-orders-app?tab=barcode_purchase" />
+                <label>Purchase id <input class="form-control input-sm" name="id" type="number" min="1" required /></label>
+                <label>Customer id <input class="form-control input-sm" name="customer_id" type="number" min="0" value="0" /></label>
+                <label>Invoice id <input class="form-control input-sm" name="invoice_id" type="number" min="0" value="0" /></label>
+                <button type="submit" class="btn btn-primary btn-sm">Sell barcode purchase</button>
+            </form>
+        </ErpPhpCreateWell>
     }
 
     @if (!_barcodePurchase)
@@ -216,7 +226,7 @@
     @if (_barcodePurchase)
     {
         <div class="epc-erp-empty" style="display:block;margin-top:12px;padding:8px 10px;border:1px solid #c5d4de;background:#f8fafc;color:#475569;font-size:12px;">
-            Barcode purchase create is live when confirmed. Schema-ensure and barcode sell stay Classic.
+            Barcode purchase create and sell are live when confirmed. Schema-ensure stays Classic.
         </div>
     }
 

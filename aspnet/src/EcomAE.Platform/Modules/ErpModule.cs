@@ -6123,6 +6123,246 @@ public sealed class ErpModule : ISurfaceModule
                 session = SessionPayload(session)
             });
         }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpJewelleryBarcodePurchaseSellForm, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IErpJwModuleSaveDryRun dryRun,
+            IErpJwBarcodePurchaseWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (!ErpJewelleryModuleChrome.HasJewelleryStaffAccess(session))
+            {
+                return LiveWriteFormBinder.LoginRedirect(
+                    context,
+                    "/erp/login?returnUrl=/erp/purchase-orders-app?tab=barcode_purchase",
+                    "Admin ERP capability required for barcode purchase sell.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpJwBarcodePurchaseSellBody>(context, cancellationToken)
+                       ?? new();
+            var id = body.Id;
+            var customerId = body.CustomerId;
+            var invoiceId = body.InvoiceId;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                id = LiveWriteFormBinder.Long(form, "id", "purchaseId", "purchase_id");
+                customerId = LiveWriteFormBinder.Int(form, "customerId", "customer_id");
+                invoiceId = LiveWriteFormBinder.Int(form, "invoiceId", "invoice_id");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            const string returnApp = "/erp/purchase-orders-app?tab=barcode_purchase";
+            if (!confirm)
+            {
+                var result = dryRun.Evaluate(new ErpJwModuleSaveRequest("jw_barcode_purchase_sell", id.ToString(CultureInfo.InvariantCulture), false));
+                if (LiveWriteFormBinder.WantsHtml(context))
+                {
+                    return DryRunHtmlForm.Redirect(DryRunHtmlForm.SafeReturnUrl(context.Request, returnApp), result.ValidationCode == "ok", result.Detail);
+                }
+
+                return Results.Ok(result.ToPayload(SessionPayload(session)));
+            }
+
+            var written = await writes.SellAsync(new ErpJwBarcodePurchaseSellRequest(id, customerId, invoiceId), cancellationToken);
+            return LiveWriteFormBinder.Complete(context, returnApp, written.Succeeded, written.Message, new
+            {
+                ok = written.Succeeded,
+                status = written.Succeeded,
+                writes = written.Writes,
+                phpAuthoritative = false,
+                validation_code = written.Code,
+                message = written.Message,
+                id = written.Id,
+                session = SessionPayload(session)
+            });
+        }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpSlaCreateForm, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IErpJwModuleSaveDryRun dryRun,
+            IErpSlaWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (!PhpParityDumpCatalog.HasStaffAccess(session))
+            {
+                return LiveWriteFormBinder.LoginRedirect(
+                    context,
+                    "/erp/login?returnUrl=/cp/crm-tickets-app?tab=sla",
+                    "Admin ERP capability required for SLA create.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpSlaCreateBody>(context, cancellationToken)
+                       ?? new();
+            var companyId = body.CompanyId;
+            var slaCode = body.SlaCode;
+            var clientName = body.ClientName;
+            var clientId = body.ClientId;
+            var serviceType = body.ServiceType;
+            var responseHours = body.ResponseHours;
+            var resolutionHours = body.ResolutionHours;
+            var uptimePct = body.UptimePct;
+            var penaltyType = body.PenaltyType;
+            var penaltyAmount = body.PenaltyAmount;
+            var startDate = body.StartDate;
+            var endDate = body.EndDate;
+            var status = body.Status;
+            var notes = body.Notes;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                companyId = LiveWriteFormBinder.Int(form, "companyId", "company_id", "company");
+                slaCode = LiveWriteFormBinder.Text(form, "slaCode", "sla_code", "code");
+                clientName = LiveWriteFormBinder.Text(form, "clientName", "client_name");
+                clientId = LiveWriteFormBinder.Int(form, "clientId", "client_id");
+                serviceType = LiveWriteFormBinder.Text(form, "serviceType", "service_type");
+                responseHours = LiveWriteFormBinder.Dec(form, "responseHours", "response_hours");
+                resolutionHours = LiveWriteFormBinder.Dec(form, "resolutionHours", "resolution_hours");
+                uptimePct = LiveWriteFormBinder.Dec(form, "uptimePct", "uptime_pct");
+                penaltyType = LiveWriteFormBinder.Text(form, "penaltyType", "penalty_type");
+                penaltyAmount = LiveWriteFormBinder.Dec(form, "penaltyAmount", "penalty_amount");
+                startDate = LiveWriteFormBinder.Text(form, "startDate", "start_date");
+                endDate = LiveWriteFormBinder.Text(form, "endDate", "end_date");
+                status = LiveWriteFormBinder.Text(form, "status");
+                notes = LiveWriteFormBinder.Text(form, "notes");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            const string returnApp = "/cp/crm-tickets-app?tab=sla";
+            if (!confirm)
+            {
+                var result = dryRun.Evaluate(new ErpJwModuleSaveRequest("sla_create", slaCode ?? clientName, false));
+                if (LiveWriteFormBinder.WantsHtml(context))
+                {
+                    return DryRunHtmlForm.Redirect(DryRunHtmlForm.SafeReturnUrl(context.Request, returnApp), result.ValidationCode == "ok", result.Detail);
+                }
+
+                return Results.Ok(result.ToPayload(SessionPayload(session)));
+            }
+
+            var written = await writes.CreateAsync(
+                new ErpSlaCreateRequest(
+                    companyId,
+                    slaCode,
+                    clientName,
+                    clientId,
+                    serviceType,
+                    responseHours,
+                    resolutionHours,
+                    uptimePct,
+                    penaltyType,
+                    penaltyAmount,
+                    startDate,
+                    endDate,
+                    status,
+                    notes),
+                cancellationToken);
+            return LiveWriteFormBinder.Complete(context, returnApp, written.Succeeded, written.Message, new
+            {
+                ok = written.Succeeded,
+                status = written.Succeeded,
+                writes = written.Writes,
+                phpAuthoritative = false,
+                validation_code = written.Code,
+                message = written.Message,
+                id = written.Id,
+                sla_code = slaCode,
+                session = SessionPayload(session)
+            });
+        }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpTicketsCreateForm, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IErpJwModuleSaveDryRun dryRun,
+            IErpTicketsWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (!PhpParityDumpCatalog.HasStaffAccess(session))
+            {
+                return LiveWriteFormBinder.LoginRedirect(
+                    context,
+                    "/erp/login?returnUrl=/cp/crm-tickets-app?tab=tickets",
+                    "Admin ERP capability required for ticket create.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpTicketsCreateBody>(context, cancellationToken)
+                       ?? new();
+            var companyId = body.CompanyId;
+            var subject = body.Subject;
+            var description = body.Description;
+            var category = body.Category;
+            var priority = body.Priority;
+            var clientId = body.ClientId;
+            var clientName = body.ClientName;
+            var assignedTo = body.AssignedTo;
+            var assignedName = body.AssignedName;
+            var slaId = body.SlaId;
+            var responseDeadline = body.ResponseDeadline;
+            var resolutionDeadline = body.ResolutionDeadline;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                companyId = LiveWriteFormBinder.Int(form, "companyId", "company_id", "company");
+                subject = LiveWriteFormBinder.Text(form, "subject");
+                description = LiveWriteFormBinder.Text(form, "description");
+                category = LiveWriteFormBinder.Text(form, "category");
+                priority = LiveWriteFormBinder.Text(form, "priority");
+                clientId = LiveWriteFormBinder.Int(form, "clientId", "client_id");
+                clientName = LiveWriteFormBinder.Text(form, "clientName", "client_name");
+                assignedTo = LiveWriteFormBinder.Int(form, "assignedTo", "assigned_to");
+                assignedName = LiveWriteFormBinder.Text(form, "assignedName", "assigned_name");
+                slaId = LiveWriteFormBinder.Int(form, "slaId", "sla_id");
+                responseDeadline = LiveWriteFormBinder.Text(form, "responseDeadline", "response_deadline");
+                resolutionDeadline = LiveWriteFormBinder.Text(form, "resolutionDeadline", "resolution_deadline");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            const string returnApp = "/cp/crm-tickets-app?tab=tickets";
+            if (!confirm)
+            {
+                var result = dryRun.Evaluate(new ErpJwModuleSaveRequest("tickets_create", subject, false));
+                if (LiveWriteFormBinder.WantsHtml(context))
+                {
+                    return DryRunHtmlForm.Redirect(DryRunHtmlForm.SafeReturnUrl(context.Request, returnApp), result.ValidationCode == "ok", result.Detail);
+                }
+
+                return Results.Ok(result.ToPayload(SessionPayload(session)));
+            }
+
+            var written = await writes.CreateAsync(
+                new ErpTicketsCreateRequest(
+                    companyId,
+                    subject,
+                    description,
+                    category,
+                    priority,
+                    clientId,
+                    clientName,
+                    assignedTo,
+                    assignedName,
+                    slaId,
+                    responseDeadline,
+                    resolutionDeadline),
+                cancellationToken);
+            return LiveWriteFormBinder.Complete(context, returnApp, written.Succeeded, written.Message, new
+            {
+                ok = written.Succeeded,
+                status = written.Succeeded,
+                writes = written.Writes,
+                phpAuthoritative = false,
+                validation_code = written.Code,
+                message = written.Message,
+                id = written.Id,
+                subject,
+                session = SessionPayload(session)
+            });
+        }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpJewelleryMetalStockSaveForm, async (
             HttpContext context,
             ILegacySessionValidator validator,
@@ -10166,6 +10406,41 @@ public sealed class ErpModule : ISurfaceModule
         string? DesignNo = null,
         string? HallmarkNo = null,
         string? CertificateNo = null,
+        bool ConfirmWrites = false);
+    private sealed record ErpJwBarcodePurchaseSellBody(
+        long Id = 0,
+        int CustomerId = 0,
+        int InvoiceId = 0,
+        bool ConfirmWrites = false);
+    private sealed record ErpSlaCreateBody(
+        int CompanyId = 0,
+        string? SlaCode = null,
+        string? ClientName = null,
+        int ClientId = 0,
+        string? ServiceType = null,
+        decimal ResponseHours = 4,
+        decimal ResolutionHours = 24,
+        decimal UptimePct = 99.5m,
+        string? PenaltyType = null,
+        decimal PenaltyAmount = 0,
+        string? StartDate = null,
+        string? EndDate = null,
+        string? Status = null,
+        string? Notes = null,
+        bool ConfirmWrites = false);
+    private sealed record ErpTicketsCreateBody(
+        int CompanyId = 0,
+        string? Subject = null,
+        string? Description = null,
+        string? Category = null,
+        string? Priority = null,
+        int ClientId = 0,
+        string? ClientName = null,
+        int AssignedTo = 0,
+        string? AssignedName = null,
+        int SlaId = 0,
+        string? ResponseDeadline = null,
+        string? ResolutionDeadline = null,
         bool ConfirmWrites = false);
     private sealed record ErpJwColorStoneSaveBody(
         int CompanyId = 0,

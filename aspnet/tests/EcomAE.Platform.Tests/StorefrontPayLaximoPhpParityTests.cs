@@ -170,6 +170,9 @@ public sealed class StorefrontPayLaximoPhpParityTests
         Assert.Equal("write-live-gated", SurfacePayloadContractCatalog.Functions.First(f => f.AspNetRouteOrCapability == "/erp/jewellery/fix-unfix-create").Status);
         Assert.Equal("write-live-gated", SurfacePayloadContractCatalog.Functions.First(f => f.AspNetRouteOrCapability == "/erp/jewellery/fix-unfix-settle").Status);
         Assert.Equal("write-live-gated", SurfacePayloadContractCatalog.Functions.First(f => f.AspNetRouteOrCapability == "/erp/jewellery/barcode-purchase-create").Status);
+        Assert.Equal("write-live-gated", SurfacePayloadContractCatalog.Functions.First(f => f.AspNetRouteOrCapability == "/erp/jewellery/barcode-purchase-sell").Status);
+        Assert.Equal("write-live-gated", SurfacePayloadContractCatalog.Functions.First(f => f.AspNetRouteOrCapability == "/erp/sla/create").Status);
+        Assert.Equal("write-live-gated", SurfacePayloadContractCatalog.Functions.First(f => f.AspNetRouteOrCapability == "/erp/tickets/create").Status);
         Assert.Equal("write-live-gated", SurfacePayloadContractCatalog.Functions.First(f => f.AspNetRouteOrCapability == "/erp/jewellery/metal-stock-save").Status);
         Assert.Equal("write-live-gated", SurfacePayloadContractCatalog.Functions.First(f => f.AspNetRouteOrCapability == "/erp/jewellery/fixing-save").Status);
         Assert.Equal("write-live-gated", SurfacePayloadContractCatalog.Functions.First(f => f.AspNetRouteOrCapability == "/erp/jewellery/voucher-save").Status);

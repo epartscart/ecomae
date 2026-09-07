@@ -869,6 +869,12 @@ public static class EcomAeRoutes
     public const string ErpJewelleryFixUnfixSettleForm = "/erp/jewellery/fix-unfix-settle";
     /// <summary>PHP epc_barcode_purchase_create. <c>confirmWrites=true</c> inserts <c>epc_barcode_purchases</c>.</summary>
     public const string ErpJewelleryBarcodePurchaseCreateForm = "/erp/jewellery/barcode-purchase-create";
+    /// <summary>PHP epc_barcode_purchase_sell. <c>confirmWrites=true</c> marks <c>epc_barcode_purchases</c> sold.</summary>
+    public const string ErpJewelleryBarcodePurchaseSellForm = "/erp/jewellery/barcode-purchase-sell";
+    /// <summary>PHP epc_sla_create. <c>confirmWrites=true</c> inserts <c>epc_sla_agreements</c>.</summary>
+    public const string ErpSlaCreateForm = "/erp/sla/create";
+    /// <summary>PHP epc_tickets_create. <c>confirmWrites=true</c> inserts <c>epc_tickets</c>.</summary>
+    public const string ErpTicketsCreateForm = "/erp/tickets/create";
     /// <summary>PHP jw_metal_stock_save. <c>confirmWrites=true</c> upserts <c>epc_jewel_metal_stock</c>.</summary>
     public const string ErpJewelleryMetalStockSaveForm = "/erp/jewellery/metal-stock-save";
     /// <summary>PHP jw_purchase_fixing_save / jw_sales_fixing_save. <c>confirmWrites=true</c> inserts <c>epc_jewel_fixing</c>.</summary>
