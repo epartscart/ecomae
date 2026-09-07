@@ -2707,6 +2707,17 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(collPromiseDb.Succeeded);
         Assert.Equal("db", collPromiseDb.Code);
 
+        var collActivityInvalid = await new ErpCollectionsActivityLogWriteService(new ConfiguredNeverOpened())
+            .LogAsync(new ErpCollectionsActivityLogWriteRequest());
+        Assert.False(collActivityInvalid.Succeeded);
+        Assert.Equal("invalid", collActivityInvalid.Code);
+        Assert.Equal("id must be positive.", collActivityInvalid.Message);
+
+        var collActivityDb = await new ErpCollectionsActivityLogWriteService(new UnconfiguredConnections())
+            .LogAsync(new ErpCollectionsActivityLogWriteRequest(CaseId: 4, Type: "call", Outcome: "Left voicemail"));
+        Assert.False(collActivityDb.Succeeded);
+        Assert.Equal("db", collActivityDb.Code);
+
         var procSaveInvalid = await new ErpProcurementReqSaveWriteService(new ConfiguredNeverOpened())
             .SaveAsync("", 0, "laptops", null, 0, 0);
         Assert.False(procSaveInvalid.Succeeded);
