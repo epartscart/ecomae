@@ -3070,6 +3070,16 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(whtCodeDb.Succeeded);
         Assert.Equal("db", whtCodeDb.Code);
 
+        var oaHolidayInvalid = await new ErpOaHolidayAddWriteService(new ConfiguredNeverOpened())
+            .AddAsync(new ErpOaHolidayAddWriteRequest(1, "bad"));
+        Assert.False(oaHolidayInvalid.Succeeded);
+        Assert.Equal("invalid", oaHolidayInvalid.Code);
+
+        var oaHolidayDb = await new ErpOaHolidayAddWriteService(new UnconfiguredConnections())
+            .AddAsync(new ErpOaHolidayAddWriteRequest(1, "2026-12-02", "UAE National Day"));
+        Assert.False(oaHolidayDb.Succeeded);
+        Assert.Equal("db", oaHolidayDb.Code);
+
         var whtRecordInvalid = await new ErpWhtRecordWriteService(new ConfiguredNeverOpened())
             .RecordAsync(new ErpWhtRecordWriteRequest());
         Assert.False(whtRecordInvalid.Succeeded);
