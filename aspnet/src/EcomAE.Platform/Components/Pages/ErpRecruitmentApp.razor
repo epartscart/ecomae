@@ -4,6 +4,7 @@
 @using EcomAE.Platform.Auth
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Routing
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IErpHrtJobSaveDryRun JobSave
@@ -13,8 +14,9 @@
 <PageTitle>Recruitment · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Recruitment" BreadcrumbArea="People" BreadcrumbTab="Recruitment">
-    <PhpErpModulePageHeader Title="Recruitment pipeline" Subtitle="Job requisitions and applicants. Saves stay dry-run." PhpTabHref="@_phpTab" />
+    <PhpErpModulePageHeader Title="Recruitment pipeline" Subtitle="Job requisitions and applicants. Applicant add is live-gated; job save stays Classic on this leftover." PhpTabHref="@_phpTab" />
     <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
+    <ErpPhpFlash Ok="@_ok" Err="@_err" />
 
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Recruitment KPIs">
         <div class="kpi"><div class="lbl">Jobs</div><div class="val">@_count.ToString(CultureInfo.InvariantCulture)</div></div>
@@ -62,6 +64,30 @@
     </div>
 
     <h2 style="font-size:16px;">Applicants</h2>
+    @if (_isAdmin)
+    {
+        <ErpPhpCreateWell Title="New applicant">
+            <form method="post" action="@EcomAeRoutes.ErpRecruitmentApplicantAdd" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+                <input type="hidden" name="returnUrl" value="/erp/recruitment-app" />
+                <input type="hidden" name="confirmWrites" value="true" />
+                <label>Job
+                    <select class="form-control input-sm" name="job_id">
+                        <option value="0">(select)</option>
+                        @foreach (var job in _jobs)
+                        {
+                            <option value="@job.Id.ToString(CultureInfo.InvariantCulture)">@(string.IsNullOrWhiteSpace(job.Title) ? $"#{job.Id.ToString(CultureInfo.InvariantCulture)}" : job.Title)</option>
+                        }
+                    </select>
+                </label>
+                <label>Name <input class="form-control input-sm" name="name" placeholder="Name" style="width:160px;" required /></label>
+                <label>Email <input class="form-control input-sm" name="email" placeholder="Email" style="width:160px;" /></label>
+                <label>Phone <input class="form-control input-sm" name="phone" placeholder="Phone" style="width:120px;" /></label>
+                <label>Rating <input class="form-control input-sm" name="rating" value="0" style="width:60px;" /></label>
+                <label>Notes <input class="form-control input-sm" name="notes" placeholder="Notes" style="width:160px;" /></label>
+                <button type="submit" class="btn btn-primary btn-sm">Add</button>
+            </form>
+        </ErpPhpCreateWell>
+    }
     <div class="epc-erp-table-wrap">
         <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
             <thead><tr><th>Name</th><th>Job</th><th>Email</th><th>Phone</th><th>Stage</th><th class="text-right">Rating</th></tr></thead>
@@ -86,7 +112,7 @@
     </div>
 
     <div class="epc-erp-empty" style="display:block;margin-top:12px;padding:8px 10px;border:1px solid #c5d4de;background:#f8fafc;color:#475569;font-size:12px;">
-        Source: @_source. Dry-run: <code>hrt_job_save</code> — writes=0.
+        Source: @_source. Applicant add is live-gated (<code>hrt_applicant_add</code>). Job save stays dry-run on this leftover.
         @if (!string.IsNullOrWhiteSpace(_message)) { <span> @_message</span> }
     </div>
 </PhpErpDesktopChrome>
@@ -101,11 +127,15 @@
     private string _message = "";
     private string _formCode = "";
     private string _formResult = "";
+    private string _ok = "";
+    private string _err = "";
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
+        _ok = ctx.Request.Query["ok"].ToString();
+        _err = ctx.Request.Query["err"].ToString();
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("erp");
         if (!_isAdmin) { _message = "Sign in for live data."; return; }

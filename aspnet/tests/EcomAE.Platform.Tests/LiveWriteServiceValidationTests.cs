@@ -3111,6 +3111,23 @@ public sealed class LiveWriteServiceValidationTests
             .LogAsync(new ErpHrAttendanceWriteRequest(EmployeeId: 1, Hours: 8));
         Assert.False(hrAttDb.Succeeded);
         Assert.Equal("db", hrAttDb.Code);
+
+        var hrtAppJob = await new ErpHrtApplicantAddWriteService(new ConfiguredNeverOpened())
+            .AddAsync(new ErpHrtApplicantAddWriteRequest(Name: "Sara"));
+        Assert.False(hrtAppJob.Succeeded);
+        Assert.Equal("invalid", hrtAppJob.Code);
+        Assert.Equal("Job requisition not found", hrtAppJob.Message);
+
+        var hrtAppName = await new ErpHrtApplicantAddWriteService(new ConfiguredNeverOpened())
+            .AddAsync(new ErpHrtApplicantAddWriteRequest(JobId: 1));
+        Assert.False(hrtAppName.Succeeded);
+        Assert.Equal("invalid", hrtAppName.Code);
+        Assert.Equal("Applicant name is required", hrtAppName.Message);
+
+        var hrtAppDb = await new ErpHrtApplicantAddWriteService(new UnconfiguredConnections())
+            .AddAsync(new ErpHrtApplicantAddWriteRequest(JobId: 1, Name: "Sara"));
+        Assert.False(hrtAppDb.Succeeded);
+        Assert.Equal("db", hrtAppDb.Code);
     }
 
     [Fact]
