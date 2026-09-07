@@ -841,7 +841,7 @@ public static class EcomAeRoutes
     public const string ErpProcurementCategoriesApp = "/erp/procurement-categories-app";
     public const string ErpQuality = "/erp/quality";
     public const string ErpQualityApp = "/erp/quality-app";
-    /// <summary>HTML form POST for PHP <c>qm_plan_save</c> dry-run (redirects with ?ok= / ?err=).</summary>
+    /// <summary>HTML form POST for PHP <c>qm_plan_save</c>. <c>confirmWrites=true</c> writes via <c>IErpQmPlanSaveWriteService</c>.</summary>
     public const string ErpQualityPlanSaveForm = "/erp/quality/plan-save";
     /// <summary>HTML form POST for PHP <c>qm_order_create</c> dry-run.</summary>
     public const string ErpQualityOrderCreateForm = "/erp/quality/order-create";
@@ -1069,7 +1069,7 @@ public static class EcomAeRoutes
     public const string ErpAjaxMfgrMrpRun = "/erp/ajax/mfgr-mrp-run";
     /// <summary>Wave B dry-run for PHP mfgr_planned_firm (writes=0).</summary>
     public const string ErpAjaxMfgrPlannedFirm = "/erp/ajax/mfgr-planned-firm";
-    /// <summary>Wave B dry-run for PHP qm_plan_save (writes=0).</summary>
+    /// <summary>Live PHP epc_qm_plan_save ajax alias of <see cref="ErpQualityPlanSaveForm"/>.</summary>
     public const string ErpAjaxQmPlanSave = "/erp/ajax/qm-plan-save";
     /// <summary>Wave B dry-run for PHP qm_test_add (writes=0).</summary>
     public const string ErpAjaxQmTestAdd = "/erp/ajax/qm-test-add";

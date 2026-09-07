@@ -36,6 +36,7 @@
                     <ErpPhpCreateWell Title="New test plan">
                         <form method="post" action="@EcomAeRoutes.ErpQualityPlanSaveForm" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
                             <input type="hidden" name="returnUrl" value="/erp/quality-app?qv=plans" />
+                            <input type="hidden" name="confirmWrites" value="true" />
                             <label>Code <input class="form-control input-sm" name="code" placeholder="Code" style="width:110px;" required /></label>
                             <label>Name <input class="form-control input-sm" name="name" placeholder="Name" style="width:180px;" /></label>
                             <label><input type="checkbox" name="active" value="1" checked /> active</label>
@@ -218,7 +219,7 @@
     }
 
     <div class="epc-erp-empty" style="display:block;margin-top:12px;padding:8px 10px;border:1px solid #c5d4de;background:#f8fafc;color:#475569;font-size:12px;">
-        Source: @_source. Form posts are dry-run (<code>qm_plan_save</code> / <code>qm_order_create</code> / <code>qm_ncr_create</code>) — writes=0.
+        Source: @_source. Test-plan save is live-gated (<code>qm_plan_save</code>). Quality order and NCR form posts stay dry-run (<code>qm_order_create</code> / <code>qm_ncr_create</code>).
         @if (!string.IsNullOrWhiteSpace(_message)) { <span> @_message</span> }
     </div>
 </PhpErpDesktopChrome>
