@@ -2879,6 +2879,23 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(pfDb.Succeeded);
         Assert.Equal("db", pfDb.Code);
 
+        var headMissing = await new ErpPfSetDeptHeadWriteService(new ConfiguredNeverOpened())
+            .SaveAsync(null, 9);
+        Assert.False(headMissing.Succeeded);
+        Assert.Equal("invalid", headMissing.Code);
+        Assert.Equal("Department code is required", headMissing.Message);
+
+        var headUser = await new ErpPfSetDeptHeadWriteService(new ConfiguredNeverOpened())
+            .SaveAsync("finance", 0);
+        Assert.False(headUser.Succeeded);
+        Assert.Equal("invalid", headUser.Code);
+        Assert.Equal("Select a department head", headUser.Message);
+
+        var headDb = await new ErpPfSetDeptHeadWriteService(new UnconfiguredConnections())
+            .SaveAsync("finance", 9);
+        Assert.False(headDb.Succeeded);
+        Assert.Equal("db", headDb.Code);
+
         var convInvalid = await new ErpProcurementReqWriteService(new ConfiguredNeverOpened())
             .ConvertAsync(0);
         Assert.False(convInvalid.Succeeded);

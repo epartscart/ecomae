@@ -1202,7 +1202,9 @@ public static class EcomAeRoutes
     public const string ErpAjaxOplSeedDemo = "/erp/ajax/opl-seed-demo";
     /// <summary>Wave B dry-run for PHP opl_clear_demo (writes=0).</summary>
     public const string ErpAjaxOplClearDemo = "/erp/ajax/opl-clear-demo";
-    /// <summary>Wave B dry-run for PHP pf_set_dept_head (writes=0).</summary>
+    /// <summary>Live PHP pf_set_dept_head twin (confirmWrites=true writes).</summary>
+    public const string ErpProcessFlowDeptHeadSave = "/erp/process-flow/dept-heads/save";
+    /// <summary>Live PHP pf_set_dept_head ajax alias of <see cref="ErpProcessFlowDeptHeadSave"/>.</summary>
     public const string ErpAjaxPfSetDeptHead = "/erp/ajax/pf-set-dept-head";
     /// <summary>Wave B dry-run for PHP pf_case_reassign (writes=0).</summary>
     public const string ErpAjaxPfCaseReassign = "/erp/ajax/pf-case-reassign";

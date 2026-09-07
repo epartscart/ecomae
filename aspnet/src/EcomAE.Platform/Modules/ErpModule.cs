@@ -9412,8 +9412,8 @@ public sealed class ErpModule : ISurfaceModule
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(false); return Results.Ok(dryRun.Evaluate(new ErpOplSeedDemoRequest(body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxOplClearDemo, async (HttpContext context, ErpOplClearDemoBody? body, ILegacySessionValidator validator, IErpOplClearDemoDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(false); return Results.Ok(dryRun.Evaluate(new ErpOplClearDemoRequest(body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxPfSetDeptHead, async (HttpContext context, ErpPfSetDeptHeadBody? body, ILegacySessionValidator validator, IErpPfSetDeptHeadDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpPfSetDeptHeadRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.ErpProcessFlowDeptHeadSave, HandlePfSetDeptHeadAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxPfSetDeptHead, HandlePfSetDeptHeadAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxPfCaseReassign, async (HttpContext context, ErpPfCaseReassignBody? body, ILegacySessionValidator validator, IErpPfCaseReassignDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,false); return Results.Ok(dryRun.Evaluate(new ErpPfCaseReassignRequest(body.Id, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxPfCaseCancel, async (
@@ -11774,6 +11774,45 @@ public sealed class ErpModule : ISurfaceModule
         }
     }
 
+    private static async Task<IResult> HandlePfSetDeptHeadAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpPfSetDeptHeadDryRun dryRun,
+        IErpPfSetDeptHeadWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/process-flow-tasks-app", "Admin ERP capability required for department-head save.");
+        }
+
+        var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpPfSetDeptHeadBody>(context, cancellationToken) ?? new();
+        var dept = body.DepartmentCode ?? body.Code;
+        var userId = body.HeadUserId > 0 ? body.HeadUserId : body.Id;
+        var confirm = body.ConfirmWrites;
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            dept = LiveWriteFormBinder.Text(form, "departmentCode", "department_code", "code");
+            userId = LiveWriteFormBinder.Long(form, "headUserId", "head_user_id", "user_id", "id");
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+        }
+
+        if (!confirm)
+        {
+            return Results.Ok(dryRun.Evaluate(new ErpPfSetDeptHeadRequest(dept, userId, false)).ToPayload(SessionPayload(session)));
+        }
+
+        var written = await writes.SaveAsync(dept, userId, cancellationToken);
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/erp/process-flow-tasks-app",
+            written.Succeeded,
+            written.Message,
+            new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+    }
+
     private static async Task<IResult> HandleWhtCodeSaveAsync(
         HttpContext context,
         ILegacySessionValidator validator,
@@ -12585,7 +12624,12 @@ public sealed class ErpModule : ISurfaceModule
     private sealed record ErpOplAutoplanBody(bool ConfirmWrites = false);
     private sealed record ErpOplSeedDemoBody(bool ConfirmWrites = false);
     private sealed record ErpOplClearDemoBody(bool ConfirmWrites = false);
-    private sealed record ErpPfSetDeptHeadBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
+    private sealed record ErpPfSetDeptHeadBody(
+        string? DepartmentCode = null,
+        string? Code = null,
+        long HeadUserId = 0,
+        long Id = 0,
+        bool ConfirmWrites = false);
     private sealed record ErpPfCaseReassignBody(long Id, bool ConfirmWrites = false);
     private sealed record ErpPfCaseCancelBody(long Id, bool ConfirmWrites = false);
     private sealed record ErpPfSeedDemoBody(bool ConfirmWrites = false);
