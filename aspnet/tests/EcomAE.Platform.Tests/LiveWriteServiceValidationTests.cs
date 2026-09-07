@@ -3111,6 +3111,16 @@ public sealed class LiveWriteServiceValidationTests
             .LogAsync(new ErpHrAttendanceWriteRequest(EmployeeId: 1, Hours: 8));
         Assert.False(hrAttDb.Succeeded);
         Assert.Equal("db", hrAttDb.Code);
+
+        var intgSubInvalid = await new ErpIntgSubSaveWriteService(new ConfiguredNeverOpened())
+            .SaveAsync(new ErpIntgSubSaveWriteRequest(TargetType: "ftp"));
+        Assert.False(intgSubInvalid.Succeeded);
+        Assert.Equal("invalid", intgSubInvalid.Code);
+
+        var intgSubDb = await new ErpIntgSubSaveWriteService(new UnconfiguredConnections())
+            .SaveAsync(new ErpIntgSubSaveWriteRequest(Event: "PaymentPosted", TargetType: "webhook"));
+        Assert.False(intgSubDb.Succeeded);
+        Assert.Equal("db", intgSubDb.Code);
     }
 
     [Fact]

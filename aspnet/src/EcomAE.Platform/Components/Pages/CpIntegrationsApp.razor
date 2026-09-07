@@ -52,6 +52,44 @@
         </div>
     </section>
 
+    @if (!string.IsNullOrWhiteSpace(_flashOk))
+    {
+        <div class="alert alert-success" role="status" style="margin:0 0 12px;padding:.7rem .9rem;border-radius:.4rem;background:#ecfdf5;color:#065f46">@_flashOk</div>
+    }
+    @if (!string.IsNullOrWhiteSpace(_flashErr))
+    {
+        <div class="alert alert-danger" role="status" style="margin:0 0 12px;padding:.7rem .9rem;border-radius:.4rem;background:#fef2f2;color:#991b1b">@_flashErr</div>
+    }
+    @if (_isAdmin)
+    {
+        <form method="post" action="/erp/integrations/subscriptions/save" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/integrations-app" />
+            <label>Event
+                <select name="event">
+                    <option value="SalesOrderConfirmed">SalesOrderConfirmed</option>
+                    <option value="SalesOrderInvoiced">SalesOrderInvoiced</option>
+                    <option value="PurchaseOrderConfirmed">PurchaseOrderConfirmed</option>
+                    <option value="PaymentPosted">PaymentPosted</option>
+                    <option value="InventoryLowStock">InventoryLowStock</option>
+                    <option value="CustomerCreditHold">CustomerCreditHold</option>
+                    <option value="DocumentExpiring">DocumentExpiring</option>
+                    <option value="InsuranceRenewalDue">InsuranceRenewalDue</option>
+                </select>
+            </label>
+            <label>Target type
+                <select name="target_type">
+                    <option value="webhook">webhook</option>
+                    <option value="internal">internal</option>
+                    <option value="email">email</option>
+                </select>
+            </label>
+            <label>Target <input type="text" name="target" maxlength="255" placeholder="URL / email" style="width:14rem" /></label>
+            <label>Company id <input type="number" name="company_id" min="0" value="0" style="width:5rem" /></label>
+            <button type="submit" class="btn btn-sm btn-primary">Subscribe</button>
+        </form>
+    }
+
     <div class="epc-int-kpis" aria-label="Integrations stats">
         <div class="epc-int-kpi"><strong>@_summary.CatalogCount.ToString(CultureInfo.InvariantCulture)</strong><span>Integrations</span></div>
         <div class="epc-int-kpi"><strong>@_summary.ActiveCount.ToString(CultureInfo.InvariantCulture)</strong><span>Active</span></div>
@@ -108,12 +146,16 @@
     private bool _isAdmin;
     private CpIntegrationsSummary _summary = new(0, 0, 0, 0, "n/a", "");
     private IReadOnlyList<CpIntegrationDigest> _integrations = [];
+    private string _flashOk = "";
+    private string _flashErr = "";
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
 
+        _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
+        _flashErr = ctx.Request.Query["err"].ToString() ?? "";
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
         if (!_isAdmin)
