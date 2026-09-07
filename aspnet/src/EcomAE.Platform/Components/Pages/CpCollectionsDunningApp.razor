@@ -45,9 +45,10 @@
     <section class="epc-w15-hero">
         <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
         <h1>Collections dunning</h1>
-        <p>@CpPhpModuleCopy.PurposeFor(Nav.Uri)</p>
+        <p>Queue status and payment write here. Letter process, profiles, and add-invoice stay on the Classic twin. Case status is a separate ERP form below.</p>
         <div class="epc-w15-cta">
             <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
+            <a class="ghost" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Classic twin</a>
         </div>
     </section>
     <PhpParityModuleBody AppPath="/cp/collections-dunning-app" IsAdmin="_isAdmin" />
@@ -63,6 +64,33 @@
     }
     @if (_isAdmin)
     {
+        <form method="post" action="/cp/collections-dunning/write" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 .65rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/collections-dunning-app" />
+            <input type="hidden" name="action" value="update_status" />
+            <label>Queue id <input type="number" name="queueId" min="1" required style="width:6rem" /></label>
+            <label>Queue status
+                <select name="status">
+                    <option value="open">open</option>
+                    <option value="in_progress">in_progress</option>
+                    <option value="promised">promised</option>
+                    <option value="partial">partial</option>
+                    <option value="paid">paid</option>
+                    <option value="written_off">written_off</option>
+                    <option value="disputed">disputed</option>
+                </select>
+            </label>
+            <label>Notes <input type="text" name="notes" maxlength="400" /></label>
+            <button type="submit">Set queue status</button>
+        </form>
+        <form method="post" action="/cp/collections-dunning/write" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 .65rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/collections-dunning-app" />
+            <input type="hidden" name="action" value="record_payment" />
+            <label>Queue id <input type="number" name="queueId" min="1" required style="width:6rem" /></label>
+            <label>Amount <input type="number" name="amount" min="0.01" step="0.01" required style="width:7rem" /></label>
+            <button type="submit">Record payment</button>
+        </form>
         <form method="post" action="/erp/collections/cases/status" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
             <input type="hidden" name="returnUrl" value="/cp/collections-dunning-app" />
@@ -96,6 +124,7 @@
                     <th>Customer</th>
                     <th>Invoice</th>
                     <th>Due</th>
+                    <th>Amount due</th>
                     <th>Overdue</th>
                     <th>Status</th>
                     <th></th>
@@ -104,7 +133,7 @@
         <tbody>
             @if (_rows.Count == 0)
             {
-                <tr><td colspan="8">No records yet.</td></tr>
+                <tr><td colspan="9">No records yet.</td></tr>
             }
             else
             {
@@ -116,9 +145,42 @@
                             <td>@row.CustomerId.ToString(CultureInfo.InvariantCulture)</td>
                             <td>@(!string.IsNullOrWhiteSpace(row.InvoiceRef) ? row.InvoiceRef : "—")</td>
                             <td>@(!string.IsNullOrWhiteSpace(row.DueDate) ? row.DueDate : "—")</td>
+                            <td>@row.AmountDue.ToString("N2", CultureInfo.InvariantCulture)</td>
                             <td>@row.DaysOverdue.ToString(CultureInfo.InvariantCulture)</td>
                             <td>@(!string.IsNullOrWhiteSpace(row.Status) ? row.Status : "—")</td>
-                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
+                            <td>
+                                @if (_isAdmin)
+                                {
+                                    <form method="post" action="/cp/collections-dunning/write" style="display:inline-flex;flex-wrap:wrap;gap:.25rem;align-items:end;margin:0 0 .25rem">
+                                        <input type="hidden" name="confirmWrites" value="true" />
+                                        <input type="hidden" name="returnUrl" value="/cp/collections-dunning-app" />
+                                        <input type="hidden" name="action" value="update_status" />
+                                        <input type="hidden" name="queueId" value="@row.Id.ToString(CultureInfo.InvariantCulture)" />
+                                        <select name="status">
+                                            <option value="open">open</option>
+                                            <option value="in_progress">in_progress</option>
+                                            <option value="promised">promised</option>
+                                            <option value="partial">partial</option>
+                                            <option value="paid">paid</option>
+                                            <option value="written_off">written_off</option>
+                                            <option value="disputed">disputed</option>
+                                        </select>
+                                        <button type="submit">Status</button>
+                                    </form>
+                                    <form method="post" action="/cp/collections-dunning/write" style="display:inline-flex;flex-wrap:wrap;gap:.25rem;align-items:end;margin:0">
+                                        <input type="hidden" name="confirmWrites" value="true" />
+                                        <input type="hidden" name="returnUrl" value="/cp/collections-dunning-app" />
+                                        <input type="hidden" name="action" value="record_payment" />
+                                        <input type="hidden" name="queueId" value="@row.Id.ToString(CultureInfo.InvariantCulture)" />
+                                        <input type="number" name="amount" min="0.01" step="0.01" required style="width:5.5rem" title="Payment" />
+                                        <button type="submit">Pay</button>
+                                    </form>
+                                }
+                                else
+                                {
+                                    <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a>
+                                }
+                            </td>
                     </tr>
                 }
             }
