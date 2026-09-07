@@ -3937,8 +3937,8 @@ public sealed class ErpModule : ISurfaceModule
                 written.Message,
                 new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxBosComplianceFile, async (HttpContext context, ErpBosComplianceFileBody? body, ILegacySessionValidator validator, IErpBosComplianceFileDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpBosComplianceFileRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.ErpComplianceFilingSave, HandleBosComplianceFileAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxBosComplianceFile, HandleBosComplianceFileAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxBosComplianceSaveRetention, async (HttpContext context, ErpBosComplianceSaveRetentionBody? body, ILegacySessionValidator validator, IErpBosComplianceSaveRetentionDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpBosComplianceSaveRetentionRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxBosWfSaveRule, async (HttpContext context, ErpBosWfSaveRuleBody? body, ILegacySessionValidator validator, IErpBosWfSaveRuleDryRun dryRun, CancellationToken cancellationToken) =>
@@ -11774,6 +11774,58 @@ public sealed class ErpModule : ISurfaceModule
         }
     }
 
+    private static async Task<IResult> HandleBosComplianceFileAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpBosComplianceFileDryRun dryRun,
+        IErpBosComplianceFileWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/cp/soc2-compliance-app", "Admin ERP capability required for compliance filing.");
+        }
+
+        var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpBosComplianceFileBody>(context, cancellationToken) ?? new();
+        var obligationId = body.ObligationId > 0 ? body.ObligationId : body.Id;
+        var periodLabel = body.PeriodLabel;
+        var periodEnd = body.PeriodEnd;
+        var dueDate = body.DueDate;
+        var status = body.Status;
+        var reference = body.Reference;
+        var notes = body.Notes;
+        var confirm = body.ConfirmWrites;
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            obligationId = LiveWriteFormBinder.Long(form, "obligationId", "obligation_id", "id");
+            periodLabel = LiveWriteFormBinder.Text(form, "periodLabel", "period_label");
+            periodEnd = LiveWriteFormBinder.Long(form, "periodEnd", "period_end");
+            dueDate = LiveWriteFormBinder.Long(form, "dueDate", "due_date");
+            status = LiveWriteFormBinder.Text(form, "status");
+            reference = LiveWriteFormBinder.Text(form, "reference");
+            notes = LiveWriteFormBinder.Text(form, "notes");
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+        }
+
+        if (!confirm)
+        {
+            return Results.Ok(dryRun.Evaluate(new ErpBosComplianceFileRequest(obligationId, periodLabel, false)).ToPayload(SessionPayload(session)));
+        }
+
+        var written = await writes.FileAsync(
+            new ErpBosComplianceFileWriteRequest(
+                obligationId, periodLabel, periodEnd, dueDate, status, reference, notes, session.UserId),
+            cancellationToken);
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/cp/soc2-compliance-app",
+            written.Succeeded,
+            written.Message,
+            new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+    }
+
     private static async Task<IResult> HandleWhtCodeSaveAsync(
         HttpContext context,
         ILegacySessionValidator validator,
@@ -13491,7 +13543,16 @@ public sealed class ErpModule : ISurfaceModule
     private sealed record ErpPresenceHeartbeatBody(string? ResourceKey = null, bool ConfirmWrites = false);
     private sealed record ErpBosComplianceAddObligationBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpBosComplianceDisableObligationBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
-    private sealed record ErpBosComplianceFileBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
+    private sealed record ErpBosComplianceFileBody(
+        long ObligationId = 0,
+        long Id = 0,
+        string? PeriodLabel = null,
+        long PeriodEnd = 0,
+        long DueDate = 0,
+        string? Status = null,
+        string? Reference = null,
+        string? Notes = null,
+        bool ConfirmWrites = false);
     private sealed record ErpBosComplianceSaveRetentionBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpBosWfSaveRuleBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpBosWfDisableRuleBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);

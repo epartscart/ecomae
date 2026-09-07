@@ -2919,6 +2919,23 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(oblDb.Succeeded);
         Assert.Equal("db", oblDb.Code);
 
+        var fileMissingObl = await new ErpBosComplianceFileWriteService(new ConfiguredNeverOpened())
+            .FileAsync(new ErpBosComplianceFileWriteRequest());
+        Assert.False(fileMissingObl.Succeeded);
+        Assert.Equal("invalid", fileMissingObl.Code);
+        Assert.Equal("Select an obligation", fileMissingObl.Message);
+
+        var fileMissingPeriod = await new ErpBosComplianceFileWriteService(new ConfiguredNeverOpened())
+            .FileAsync(new ErpBosComplianceFileWriteRequest(ObligationId: 4));
+        Assert.False(fileMissingPeriod.Succeeded);
+        Assert.Equal("invalid", fileMissingPeriod.Code);
+        Assert.Equal("Period label is required", fileMissingPeriod.Message);
+
+        var fileDb = await new ErpBosComplianceFileWriteService(new UnconfiguredConnections())
+            .FileAsync(new ErpBosComplianceFileWriteRequest(ObligationId: 4, PeriodLabel: "2026-09"));
+        Assert.False(fileDb.Succeeded);
+        Assert.Equal("db", fileDb.Code);
+
         var leaveReqInvalid = await new ErpHrLeaveRequestWriteService(new ConfiguredNeverOpened())
             .RequestAsync(0, "annual", 2, null, null);
         Assert.False(leaveReqInvalid.Succeeded);

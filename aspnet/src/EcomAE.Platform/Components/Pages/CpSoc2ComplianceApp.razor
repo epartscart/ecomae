@@ -64,6 +64,21 @@
     }
     @if (_isAdmin)
     {
+        <form method="post" action="/erp/compliance/filings/save" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="@(Http.HttpContext?.Request.Path.Value ?? "/cp/soc2-compliance-app")" />
+            <label>Obligation id <input type="number" name="obligation_id" min="1" required style="width:6rem" /></label>
+            <label>Period <input type="text" name="period_label" required placeholder="2026-09" /></label>
+            <label>Status
+                <select name="status">
+                    <option value="filed">Filed</option>
+                    <option value="open">Open</option>
+                    <option value="waived">Waived</option>
+                </select>
+            </label>
+            <label>Reference <input type="text" name="reference" /></label>
+            <button type="submit">Save filing</button>
+        </form>
         <form method="post" action="/erp/ajax/bos-compliance-disable-obligation" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
             <input type="hidden" name="returnUrl" value="@(Http.HttpContext?.Request.Path.Value ?? "/cp/soc2-compliance-app")" />
