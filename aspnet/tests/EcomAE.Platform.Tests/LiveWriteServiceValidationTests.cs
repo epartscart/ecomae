@@ -3362,4 +3362,13 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(missingDb.Succeeded);
         Assert.Equal("db", missingDb.Code);
     }
+
+    [Fact]
+    public async Task Bos_wf_raise_rejects_unconfigured_db()
+    {
+        var missingDb = await new ErpBosWfRaiseWriteService(new UnconfiguredConnections())
+            .RaiseAsync(new ErpBosWfRaiseWriteRequest("purchase_order", 9, "PO-9", 12000));
+        Assert.False(missingDb.Succeeded);
+        Assert.Equal("db", missingDb.Code);
+    }
 }

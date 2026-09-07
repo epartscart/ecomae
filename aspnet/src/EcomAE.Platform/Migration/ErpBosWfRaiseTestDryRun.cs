@@ -1,25 +1,65 @@
 namespace EcomAE.Platform.Migration;
 
-/// <summary>Wave B dry-run for PHP <c>bos_wf_raise_test</c>. Never UPDATE. PHP authoritative.</summary>
-public interface IErpBosWfRaiseTestDryRun { ErpBosWfRaiseTestDryRunResult Evaluate(ErpBosWfRaiseTestRequest request); }
+/// <summary>
+/// Dry-run envelope for PHP <c>bos_wf_raise_test</c> / <c>epc_bos_wf_raise</c>
+/// when <c>confirmWrites</c> is omitted. Live INSERT is
+/// <c>IErpBosWfRaiseWriteService</c>.
+/// </summary>
+public interface IErpBosWfRaiseTestDryRun
+{
+    ErpBosWfRaiseTestDryRunResult Evaluate(ErpBosWfRaiseTestRequest request);
+}
+
 public sealed class ErpBosWfRaiseTestDryRun : IErpBosWfRaiseTestDryRun
 {
     public ErpBosWfRaiseTestDryRunResult Evaluate(ErpBosWfRaiseTestRequest request)
     {
         ArgumentNullException.ThrowIfNull(request);
         if (request.ConfirmWrites)
-            return Refuse("dry-run-confirm-refused","confirm_writes_refused","confirm_writes requested but live ASP.NET bos_wf_raise_test is not implemented; PHP ajax_erp.php remains authoritative.", request);
-        
-        return new("dry-run-validated",0,true,false,true,"ok",true,
-            ["ajax_erp.php?action=bos_wf_raise_test (NOT executed)"],
-            "ERP bos_wf_raise_test payload validated; UPDATE blocked.",
-            "/CP/content/shop/finance/erp/ajax_erp.php?action=bos_wf_raise_test");
+        {
+            return Refuse(
+                "dry-run-confirm-refused",
+                "confirm_writes_refused",
+                "confirm_writes refused on the dry-run path; POST confirmWrites=true to write on ASP.NET.",
+                request);
+        }
+
+        return new ErpBosWfRaiseTestDryRunResult(
+            "dry-run-validated", 0, true, false, false, "ok", true,
+            request.EntityType, request.EntityId, request.Amount,
+            ["INSERT `epc_bos_approval_requests` + `epc_bos_approval_log` (NOT executed)"],
+            "ErpBosWfRaise payload validated; write blocked until confirmWrites=true.",
+            "content/shop/finance/epc_bos_workflow.php");
     }
-    private static ErpBosWfRaiseTestDryRunResult Refuse(string s,string c,string d,ErpBosWfRaiseTestRequest r)=>
-        new(s,0,true,false,true,c,false,[],d,"/CP/content/shop/finance/erp/ajax_erp.php?action=bos_wf_raise_test");
+
+    private static ErpBosWfRaiseTestDryRunResult Refuse(
+        string status,
+        string code,
+        string detail,
+        ErpBosWfRaiseTestRequest request) =>
+        new(status, 0, true, false, false, code, false, request.EntityType, request.EntityId, request.Amount, [], detail,
+            "content/shop/finance/epc_bos_workflow.php");
 }
-public sealed record ErpBosWfRaiseTestRequest(bool ConfirmWrites = false);
-public sealed record ErpBosWfRaiseTestDryRunResult(string Status,int Writes,bool WritesBlocked,bool CutoverAllowed,bool PhpAuthoritative,string ValidationCode,bool WouldWrite,IReadOnlyList<string> SimulatedSql,string Detail,string PhpAjax)
+
+public sealed record ErpBosWfRaiseTestRequest(
+    string? EntityType = null,
+    long EntityId = 0,
+    string? EntityRef = null,
+    decimal Amount = 0,
+    string? Title = null,
+    bool ConfirmWrites = false);
+
+public sealed record ErpBosWfRaiseTestDryRunResult(
+    string Status, int Writes, bool WritesBlocked, bool CutoverAllowed, bool PhpAuthoritative,
+    string ValidationCode, bool WouldWrite, string? EntityType, long EntityId, decimal Amount,
+    IReadOnlyList<string> SimulatedSql, string Detail, string PhpAjax)
 {
-    public object ToPayload(object session)=>new{ok=true,surface="erp",status=Status,writes=Writes,writesBlocked=WritesBlocked,cutoverAllowed=CutoverAllowed,phpAuthoritative=PhpAuthoritative,validation_code=ValidationCode,would_write=WouldWrite,intended=new{action="bos_wf_raise_test"},simulated=SimulatedSql,php_ajax=PhpAjax,session,note=Detail};
+    public object ToPayload(object session) => new
+    {
+        ok = true, surface = "erp", status = Status, writes = Writes, writesBlocked = WritesBlocked,
+        cutoverAllowed = CutoverAllowed, phpAuthoritative = PhpAuthoritative,
+        validation_code = ValidationCode, would_write = WouldWrite,
+        intended = new { entityType = EntityType, entityId = EntityId, amount = Amount, action = "bos_wf_raise_test" },
+        simulated = SimulatedSql, php_ajax = PhpAjax, session, note = Detail
+    };
 }
