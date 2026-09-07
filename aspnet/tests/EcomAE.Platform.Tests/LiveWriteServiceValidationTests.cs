@@ -3111,6 +3111,17 @@ public sealed class LiveWriteServiceValidationTests
             .LogAsync(new ErpHrAttendanceWriteRequest(EmployeeId: 1, Hours: 8));
         Assert.False(hrAttDb.Succeeded);
         Assert.Equal("db", hrAttDb.Code);
+
+        var bplanLineInvalid = await new ErpBplanLineAddWriteService(new ConfiguredNeverOpened())
+            .AddAsync(new ErpBplanLineAddWriteRequest());
+        Assert.False(bplanLineInvalid.Succeeded);
+        Assert.Equal("invalid", bplanLineInvalid.Code);
+        Assert.Equal("Plan not found", bplanLineInvalid.Message);
+
+        var bplanLineDb = await new ErpBplanLineAddWriteService(new UnconfiguredConnections())
+            .AddAsync(new ErpBplanLineAddWriteRequest(PlanId: 1, Account: "6100"));
+        Assert.False(bplanLineDb.Succeeded);
+        Assert.Equal("db", bplanLineDb.Code);
     }
 
     [Fact]
