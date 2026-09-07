@@ -12,21 +12,19 @@
 
 <PageTitle>Purchase Orders · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
-<PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Purchase Orders" BreadcrumbArea="Procure to Pay" BreadcrumbTab="Purchase Orders">
-    <PhpParityModuleBody AppPath="/erp/purchase-orders-app" IsAdmin="_isAdmin" />
+<PhpErpDesktopChrome IsAdmin="_isAdmin" Title="@(_barcodePurchase ? "Barcode / Purchase Margin" : "Purchase Orders")" BreadcrumbArea="Procure to Pay" BreadcrumbTab="@(_barcodePurchase ? "Barcode purchase" : "Purchase Orders")">
+    @if (!_barcodePurchase)
+    {
+        <PhpParityModuleBody AppPath="/erp/purchase-orders-app" IsAdmin="_isAdmin" />
+    }
 
-
-    
     <PhpErpModulePageHeader Title="@(_barcodePurchase ? "Barcode / Purchase Margin" : "Purchase Orders")" Subtitle="@(_barcodePurchase ? "In jewellery, the barcode is the purchase — cost, margin, and salesman at barcode level." : "Live shop digest. Writes stay on ERP ajax.")" PhpTabHref="@_phpTab" />
     <ErpPhpFlash Ok="@_ok" Err="@_err" />
-    <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
+    @if (!_barcodePurchase)
+    {
+        <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
+    }
 
-
-    <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Purchase order KPIs">
-        <div class="kpi"><div class="lbl">Shown (limit @_limit)</div><div class="val">@_orders.Count</div></div>
-        <div class="kpi"><div class="lbl">Non-closed in page</div><div class="val">@_open</div></div>
-        <div class="kpi"><div class="lbl">Page total amount</div><div class="val">@_totalAmount.ToString("N2", CultureInfo.InvariantCulture)</div></div>
-    </div>
 
     @if (_isAdmin && _barcodePurchase)
     {
@@ -46,7 +44,16 @@
             </form>
         </ErpPhpCreateWell>
     }
-    else if (_isAdmin)
+
+    @if (!_barcodePurchase)
+    {
+    <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Purchase order KPIs">
+        <div class="kpi"><div class="lbl">Shown (limit @_limit)</div><div class="val">@_orders.Count</div></div>
+        <div class="kpi"><div class="lbl">Non-closed in page</div><div class="val">@_open</div></div>
+        <div class="kpi"><div class="lbl">Page total amount</div><div class="val">@_totalAmount.ToString("N2", CultureInfo.InvariantCulture)</div></div>
+    </div>
+
+    @if (_isAdmin)
     {
         <div class="panel panel-default" id="epc-po-new">
             <div class="panel-heading"><strong>New purchase order</strong> <span class="text-muted">PO number, VAT and totals follow the tenant jurisdiction kit.</span></div>
@@ -204,6 +211,7 @@
             </tbody>
         </table>
     </div>
+    }
 
     @if (_barcodePurchase)
     {
@@ -214,7 +222,7 @@
 
 </PhpErpDesktopChrome>
 
-@if (_isAdmin)
+@if (_isAdmin && !_barcodePurchase)
 {
     <script src="/erp/erp-purchase-orders.js" defer></script>
 }
