@@ -3111,6 +3111,17 @@ public sealed class LiveWriteServiceValidationTests
             .LogAsync(new ErpHrAttendanceWriteRequest(EmployeeId: 1, Hours: 8));
         Assert.False(hrAttDb.Succeeded);
         Assert.Equal("db", hrAttDb.Code);
+
+        var qmTestInvalid = await new ErpQmTestAddWriteService(new ConfiguredNeverOpened())
+            .AddAsync(new ErpQmTestAddWriteRequest(PlanId: 1, Name: "Hardness", TestType: "bogus"));
+        Assert.False(qmTestInvalid.Succeeded);
+        Assert.Equal("invalid", qmTestInvalid.Code);
+        Assert.Equal("Invalid test type", qmTestInvalid.Message);
+
+        var qmTestDb = await new ErpQmTestAddWriteService(new UnconfiguredConnections())
+            .AddAsync(new ErpQmTestAddWriteRequest(PlanId: 1, Name: "Hardness"));
+        Assert.False(qmTestDb.Succeeded);
+        Assert.Equal("db", qmTestDb.Code);
     }
 
     [Fact]

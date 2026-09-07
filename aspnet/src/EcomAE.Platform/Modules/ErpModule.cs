@@ -5441,8 +5441,7 @@ public sealed class ErpModule : ISurfaceModule
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpMfgrPlannedFirmRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxQmPlanSave, async (HttpContext context, ErpQmPlanSaveBody? body, ILegacySessionValidator validator, IErpQmPlanSaveDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpQmPlanSaveRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxQmTestAdd, async (HttpContext context, ErpQmTestAddBody? body, ILegacySessionValidator validator, IErpQmTestAddDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpQmTestAddRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxQmTestAdd, HandleQmTestAddAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxQmOrderCreate, async (HttpContext context, ErpQmOrderCreateBody? body, ILegacySessionValidator validator, IErpQmOrderCreateDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpQmOrderCreateRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxQmOrderRecord, async (HttpContext context, ErpQmOrderRecordBody? body, ILegacySessionValidator validator, IErpQmOrderRecordDryRun dryRun, CancellationToken cancellationToken) =>
@@ -5452,6 +5451,7 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapPost(EcomAeRoutes.ErpAjaxQmNcrUpdate, async (HttpContext context, ErpQmNcrUpdateBody? body, ILegacySessionValidator validator, IErpQmNcrUpdateDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpQmNcrUpdateRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
 
+        endpoints.MapPost(EcomAeRoutes.ErpQualityTestAddForm, HandleQmTestAddAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpQualityPlanSaveForm, async (HttpContext context, ILegacySessionValidator validator, IErpQmPlanSaveDryRun dryRun, CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateAsync(context, cancellationToken);
@@ -11774,6 +11774,65 @@ public sealed class ErpModule : ISurfaceModule
         }
     }
 
+    private static async Task<IResult> HandleQmTestAddAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpQmTestAddDryRun dryRun,
+        IErpQmTestAddWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/quality-app?qv=plans", "Admin ERP capability required for quality test add.");
+        }
+
+        var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpQmTestAddBody>(context, cancellationToken) ?? new();
+        var planId = body.PlanId;
+        var name = body.Name;
+        var testType = body.TestType;
+        var unit = body.Unit;
+        var minVal = body.MinVal;
+        var maxVal = body.MaxVal;
+        var expected = body.Expected;
+        var sort = body.Sort;
+        var confirm = body.ConfirmWrites;
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            planId = LiveWriteFormBinder.Long(form, "planId", "plan_id");
+            name = LiveWriteFormBinder.Text(form, "name");
+            if (form.ContainsKey("testType") || form.ContainsKey("test_type"))
+            {
+                testType = LiveWriteFormBinder.Text(form, "testType", "test_type");
+            }
+            unit = LiveWriteFormBinder.Text(form, "unit");
+            minVal = LiveWriteFormBinder.DecOrNull(form, "minVal", "min_val");
+            maxVal = LiveWriteFormBinder.DecOrNull(form, "maxVal", "max_val");
+            expected = LiveWriteFormBinder.Text(form, "expected");
+            sort = LiveWriteFormBinder.Int(form, "sort");
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+        }
+
+        if (!confirm)
+        {
+            return Results.Ok(dryRun.Evaluate(new ErpQmTestAddRequest(planId, name, testType, unit, minVal, maxVal, expected, sort, false)).ToPayload(SessionPayload(session)));
+        }
+
+        var written = await writes.AddAsync(
+            new ErpQmTestAddWriteRequest(planId, name, testType, unit, minVal, maxVal, expected, sort),
+            cancellationToken);
+        var fallback = planId > 0
+            ? "/erp/quality-app?qv=plans&plan_id=" + planId.ToString(CultureInfo.InvariantCulture)
+            : "/erp/quality-app?qv=plans";
+        return LiveWriteFormBinder.Complete(
+            context,
+            fallback,
+            written.Succeeded,
+            written.Message,
+            new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+    }
+
     private static async Task<IResult> HandleWhtCodeSaveAsync(
         HttpContext context,
         ILegacySessionValidator validator,
@@ -12573,7 +12632,16 @@ public sealed class ErpModule : ISurfaceModule
     private sealed record ErpMfgrMrpRunBody(bool ConfirmWrites = false);
     private sealed record ErpMfgrPlannedFirmBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpQmPlanSaveBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
-    private sealed record ErpQmTestAddBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
+    private sealed record ErpQmTestAddBody(
+        long PlanId = 0,
+        string? Name = null,
+        string? TestType = null,
+        string? Unit = null,
+        decimal? MinVal = null,
+        decimal? MaxVal = null,
+        string? Expected = null,
+        int Sort = 0,
+        bool ConfirmWrites = false);
     private sealed record ErpQmOrderCreateBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpQmOrderRecordBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpQmNcrCreateBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);

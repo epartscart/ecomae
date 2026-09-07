@@ -73,7 +73,30 @@
                     <div class="panel panel-default">
                         <div class="panel-heading"><strong>Plan tests</strong></div>
                         <div class="panel-body">
-                            <p class="text-muted">Pick a plan to manage its tests. Add-test writes stay on ERP ajax (<code>qm_test_add</code>).</p>
+                            <p class="text-muted">Pick a plan to manage its tests.</p>
+                            @if (_isAdmin)
+                            {
+                                <ErpPhpCreateWell Title="Add test">
+                                    <form method="post" action="@EcomAeRoutes.ErpQualityTestAddForm" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+                                        <input type="hidden" name="returnUrl" value="@($"/erp/quality-app?qv=plans&plan_id={_selPlan.ToString(CultureInfo.InvariantCulture)}")" />
+                                        <input type="hidden" name="confirmWrites" value="true" />
+                                        <input type="hidden" name="plan_id" value="@_selPlan.ToString(CultureInfo.InvariantCulture)" />
+                                        <label>Name <input class="form-control input-sm" name="name" placeholder="Name" style="width:160px;" /></label>
+                                        <label>Type
+                                            <select class="form-control input-sm" name="test_type">
+                                                <option value="quantitative">quantitative</option>
+                                                <option value="qualitative">qualitative</option>
+                                            </select>
+                                        </label>
+                                        <label>Unit <input class="form-control input-sm" name="unit" placeholder="Unit" style="width:80px;" /></label>
+                                        <label>Min <input class="form-control input-sm" name="min_val" placeholder="Min" style="width:80px;" /></label>
+                                        <label>Max <input class="form-control input-sm" name="max_val" placeholder="Max" style="width:80px;" /></label>
+                                        <label>Expected <input class="form-control input-sm" name="expected" placeholder="Expected" style="width:120px;" /></label>
+                                        <label>Sort <input class="form-control input-sm" name="sort" value="0" style="width:60px;" /></label>
+                                        <button type="submit" class="btn btn-primary btn-sm">Add</button>
+                                    </form>
+                                </ErpPhpCreateWell>
+                            }
                             <table class="table table-condensed table-epc">
                                 <thead><tr><th>Test</th><th>Type</th><th>Acceptance</th></tr></thead>
                                 <tbody><tr><td colspan="3" class="text-muted">No tests yet.</td></tr></tbody>
@@ -218,7 +241,7 @@
     }
 
     <div class="epc-erp-empty" style="display:block;margin-top:12px;padding:8px 10px;border:1px solid #c5d4de;background:#f8fafc;color:#475569;font-size:12px;">
-        Source: @_source. Form posts are dry-run (<code>qm_plan_save</code> / <code>qm_order_create</code> / <code>qm_ncr_create</code>) — writes=0.
+        Source: @_source. Test add is live-gated (<code>qm_test_add</code>). Plan, quality order, and NCR form posts stay dry-run.
         @if (!string.IsNullOrWhiteSpace(_message)) { <span> @_message</span> }
     </div>
 </PhpErpDesktopChrome>
