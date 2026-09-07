@@ -2686,6 +2686,16 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(collDb.Succeeded);
         Assert.Equal("db", collDb.Code);
 
+        var collSaveInvalid = await new ErpCollectionsCaseSaveWriteService(new ConfiguredNeverOpened())
+            .SaveAsync(-1, "new", 10, 0, null, "Aisha", "", 0, 0);
+        Assert.False(collSaveInvalid.Succeeded);
+        Assert.Equal("invalid", collSaveInvalid.Code);
+
+        var collSaveDb = await new ErpCollectionsCaseSaveWriteService(new UnconfiguredConnections())
+            .SaveAsync(501, "new", 12000, 0, null, "Aisha", "", 0, 0);
+        Assert.False(collSaveDb.Succeeded);
+        Assert.Equal("db", collSaveDb.Code);
+
         var procSaveInvalid = await new ErpProcurementReqSaveWriteService(new ConfiguredNeverOpened())
             .SaveAsync("", 0, "laptops", null, 0, 0);
         Assert.False(procSaveInvalid.Succeeded);
@@ -2726,6 +2736,23 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(waveDb.Succeeded);
         Assert.Equal("db", waveDb.Code);
 
+        var receiveItemInvalid = await new ErpWmsReceiveWriteService(new ConfiguredNeverOpened())
+            .ReceiveAsync("", 10, 1, 2, null, null, 0);
+        Assert.False(receiveItemInvalid.Succeeded);
+        Assert.Equal("invalid", receiveItemInvalid.Code);
+        Assert.Equal("Item is required", receiveItemInvalid.Message);
+
+        var receiveQtyInvalid = await new ErpWmsReceiveWriteService(new ConfiguredNeverOpened())
+            .ReceiveAsync("WIDGET", 0, 1, 2, null, null, 0);
+        Assert.False(receiveQtyInvalid.Succeeded);
+        Assert.Equal("invalid", receiveQtyInvalid.Code);
+        Assert.Equal("qty must be positive.", receiveQtyInvalid.Message);
+
+        var receiveDb = await new ErpWmsReceiveWriteService(new UnconfiguredConnections())
+            .ReceiveAsync("WIDGET", 10, 1, 2, "ASN-1", "LP-TEST", 0);
+        Assert.False(receiveDb.Succeeded);
+        Assert.Equal("db", receiveDb.Code);
+
         var insInvalid = await new ErpInsClaimStatusWriteService(new ConfiguredNeverOpened())
             .SetStatusAsync(9, "nope");
         Assert.False(insInvalid.Succeeded);
@@ -2736,6 +2763,16 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(insDb.Succeeded);
         Assert.Equal("db", insDb.Code);
 
+        var insAddInvalid = await new ErpInsClaimAddWriteService(new ConfiguredNeverOpened())
+            .SaveAsync(-1, 0, "CL-1", null, null, null, null, 0, 0, null, null, null);
+        Assert.False(insAddInvalid.Succeeded);
+        Assert.Equal("invalid", insAddInvalid.Code);
+
+        var insAddDb = await new ErpInsClaimAddWriteService(new UnconfiguredConnections())
+            .SaveAsync(0, 3, "CL-1", "2026-09-04", null, null, "loss", 10, 0, null, "notified", null);
+        Assert.False(insAddDb.Succeeded);
+        Assert.Equal("db", insAddDb.Code);
+
         var vatInvalid = await new ErpBosVatRefundStatusWriteService(new ConfiguredNeverOpened())
             .SetStatusAsync(9, "nope");
         Assert.False(vatInvalid.Succeeded);
@@ -2745,6 +2782,17 @@ public sealed class LiveWriteServiceValidationTests
             .SetStatusAsync(9, "refunded");
         Assert.False(vatDb.Succeeded);
         Assert.Equal("db", vatDb.Code);
+
+        var vatSaveInvalid = await new ErpBosVatRefundSaveWriteService(new ConfiguredNeverOpened())
+            .SaveAsync(-1, null, null, null, null, null, 0, null, null, null, null, 1);
+        Assert.False(vatSaveInvalid.Succeeded);
+        Assert.Equal("invalid", vatSaveInvalid.Code);
+        Assert.Equal("A refund id must be >= 0.", vatSaveInvalid.Message);
+
+        var vatSaveDb = await new ErpBosVatRefundSaveWriteService(new UnconfiguredConnections())
+            .SaveAsync(0, "TAG-1", "SI-1", null, null, null, 250, null, null, null, null, 1);
+        Assert.False(vatSaveDb.Succeeded);
+        Assert.Equal("db", vatSaveDb.Code);
 
         var invInvalid = await new ErpSubInvoicePaidWriteService(new ConfiguredNeverOpened())
             .MarkPaidAsync(0);
@@ -2841,6 +2889,16 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(expDb.Succeeded);
         Assert.Equal("db", expDb.Code);
 
+        var expSaveInvalid = await new ErpHrExpenseSaveWriteService(new ConfiguredNeverOpened())
+            .SaveAsync(0, "Taxi", [new ErpHrExpenseLine("taxi", 12)]);
+        Assert.False(expSaveInvalid.Succeeded);
+        Assert.Equal("invalid", expSaveInvalid.Code);
+
+        var expSaveDb = await new ErpHrExpenseSaveWriteService(new UnconfiguredConnections())
+            .SaveAsync(9, "Taxi", [new ErpHrExpenseLine("taxi", 12)]);
+        Assert.False(expSaveDb.Succeeded);
+        Assert.Equal("db", expSaveDb.Code);
+
         var consEntInvalid = await new ErpConsDeleteWriteService(new ConfiguredNeverOpened())
             .DeleteEntityAsync(0);
         Assert.False(consEntInvalid.Succeeded);
@@ -2910,6 +2968,22 @@ public sealed class LiveWriteServiceValidationTests
             .SetPeriodStatusAsync(9, 1, "open");
         Assert.False(fyPeriodDb.Succeeded);
         Assert.Equal("db", fyPeriodDb.Code);
+
+        var finPeriodInvalid = await new ErpFinPeriodStatusWriteService(new ConfiguredNeverOpened())
+            .SetStatusAsync(1, 2026, 1, "nope");
+        Assert.False(finPeriodInvalid.Succeeded);
+        Assert.Equal("invalid", finPeriodInvalid.Code);
+        Assert.Equal("Invalid period status", finPeriodInvalid.Message);
+
+        var finPeriodFy = await new ErpFinPeriodStatusWriteService(new ConfiguredNeverOpened())
+            .SetStatusAsync(1, 0, 1, "open");
+        Assert.False(finPeriodFy.Succeeded);
+        Assert.Equal("invalid", finPeriodFy.Code);
+
+        var finPeriodDb = await new ErpFinPeriodStatusWriteService(new UnconfiguredConnections())
+            .SetStatusAsync(1, 2026, 1, "closed");
+        Assert.False(finPeriodDb.Succeeded);
+        Assert.Equal("db", finPeriodDb.Code);
 
         var whtSettleInvalid = await new ErpWhtSettleWriteService(new ConfiguredNeverOpened())
             .SettleAsync(0);
