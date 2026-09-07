@@ -881,6 +881,10 @@ public static class EcomAeRoutes
     public const string ErpCustomerGroupsAssignForm = "/erp/customer-groups/assign";
     /// <summary>PHP epc_report_sched_create. <c>confirmWrites=true</c> inserts <c>epc_report_schedules</c>.</summary>
     public const string ErpReportSchedulerCreateForm = "/erp/report-scheduler/create";
+    /// <summary>PHP epc_vwh_create_warehouse. <c>confirmWrites=true</c> inserts <c>epc_warehouses</c>.</summary>
+    public const string ErpVirtualWarehouseCreateForm = "/erp/virtual-warehouses/create";
+    /// <summary>PHP epc_vwh_create_transfer. <c>confirmWrites=true</c> inserts <c>epc_warehouse_transfers</c>.</summary>
+    public const string ErpVirtualWarehouseTransferForm = "/erp/virtual-warehouses/transfer";
     /// <summary>PHP jw_metal_stock_save. <c>confirmWrites=true</c> upserts <c>epc_jewel_metal_stock</c>.</summary>
     public const string ErpJewelleryMetalStockSaveForm = "/erp/jewellery/metal-stock-save";
     /// <summary>PHP jw_purchase_fixing_save / jw_sales_fixing_save. <c>confirmWrites=true</c> inserts <c>epc_jewel_fixing</c>.</summary>

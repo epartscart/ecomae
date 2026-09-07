@@ -1479,6 +1479,16 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(reportSched.Succeeded);
         Assert.Equal("invalid", reportSched.Code);
 
+        var vwhCreate = await new ErpVirtualWarehouseWriteService(new ConfiguredNeverOpened())
+            .CreateAsync(new ErpVirtualWarehouseCreateRequest());
+        Assert.False(vwhCreate.Succeeded);
+        Assert.Equal("invalid", vwhCreate.Code);
+
+        var vwhTransfer = await new ErpVirtualWarehouseWriteService(new ConfiguredNeverOpened())
+            .TransferAsync(new ErpVirtualWarehouseTransferRequest());
+        Assert.False(vwhTransfer.Succeeded);
+        Assert.Equal("invalid", vwhTransfer.Code);
+
         var jwMetal = await new ErpJwMetalStockWriteService(new ConfiguredNeverOpened())
             .SaveAsync(new ErpJwMetalStockSaveRequest());
         Assert.False(jwMetal.Succeeded);

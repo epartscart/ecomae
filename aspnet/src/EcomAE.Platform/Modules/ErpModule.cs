@@ -6594,6 +6594,189 @@ public sealed class ErpModule : ISurfaceModule
                 session = SessionPayload(session)
             });
         }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpVirtualWarehouseCreateForm, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IErpJwModuleSaveDryRun dryRun,
+            IErpVirtualWarehouseWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (!PhpParityDumpCatalog.HasStaffAccess(session))
+            {
+                return LiveWriteFormBinder.LoginRedirect(
+                    context,
+                    "/erp/login?returnUrl=/erp/warehouses-app?tab=virtual_warehouse",
+                    "Admin ERP capability required for virtual warehouse create.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpVirtualWarehouseCreateBody>(context, cancellationToken)
+                       ?? new();
+            var companyId = body.CompanyId;
+            var code = body.Code;
+            var name = body.Name;
+            var type = body.Type;
+            var address = body.Address;
+            var managerId = body.ManagerId;
+            var managerName = body.ManagerName;
+            var isSellable = body.IsSellable;
+            var eventName = body.EventName;
+            var eventStart = body.EventStart;
+            var eventEnd = body.EventEnd;
+            var returnWarehouseId = body.ReturnWarehouseId;
+            var notes = body.Notes;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                companyId = LiveWriteFormBinder.Int(form, "companyId", "company_id", "company");
+                code = LiveWriteFormBinder.Text(form, "code");
+                name = LiveWriteFormBinder.Text(form, "name");
+                type = LiveWriteFormBinder.Text(form, "type");
+                address = LiveWriteFormBinder.Text(form, "address");
+                managerId = LiveWriteFormBinder.Int(form, "managerId", "manager_id");
+                managerName = LiveWriteFormBinder.Text(form, "managerName", "manager_name");
+                isSellable = LiveWriteFormBinder.Flag(form, "isSellable", "is_sellable") ? 1 : LiveWriteFormBinder.Int(form, "isSellable", "is_sellable");
+                if (isSellable == 0 && LiveWriteFormBinder.Text(form, "isSellable", "is_sellable").Length == 0)
+                {
+                    isSellable = 1;
+                }
+
+                eventName = LiveWriteFormBinder.Text(form, "eventName", "event_name");
+                eventStart = LiveWriteFormBinder.Text(form, "eventStart", "event_start");
+                eventEnd = LiveWriteFormBinder.Text(form, "eventEnd", "event_end");
+                returnWarehouseId = LiveWriteFormBinder.Int(form, "returnWarehouseId", "return_warehouse_id");
+                notes = LiveWriteFormBinder.Text(form, "notes");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            const string returnApp = "/erp/warehouses-app?tab=virtual_warehouse";
+            if (!confirm)
+            {
+                var result = dryRun.Evaluate(new ErpJwModuleSaveRequest("virtual_warehouse_create", code ?? name, false));
+                if (LiveWriteFormBinder.WantsHtml(context))
+                {
+                    return DryRunHtmlForm.Redirect(DryRunHtmlForm.SafeReturnUrl(context.Request, returnApp), result.ValidationCode == "ok", result.Detail);
+                }
+
+                return Results.Ok(result.ToPayload(SessionPayload(session)));
+            }
+
+            var written = await writes.CreateAsync(
+                new ErpVirtualWarehouseCreateRequest(
+                    companyId,
+                    code,
+                    name,
+                    type,
+                    address,
+                    managerId,
+                    managerName,
+                    isSellable,
+                    eventName,
+                    eventStart,
+                    eventEnd,
+                    returnWarehouseId,
+                    notes),
+                cancellationToken);
+            return LiveWriteFormBinder.Complete(context, returnApp, written.Succeeded, written.Message, new
+            {
+                ok = written.Succeeded,
+                status = written.Succeeded,
+                writes = written.Writes,
+                phpAuthoritative = false,
+                validation_code = written.Code,
+                message = written.Message,
+                id = written.Id,
+                code,
+                session = SessionPayload(session)
+            });
+        }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpVirtualWarehouseTransferForm, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IErpJwModuleSaveDryRun dryRun,
+            IErpVirtualWarehouseWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (!PhpParityDumpCatalog.HasStaffAccess(session))
+            {
+                return LiveWriteFormBinder.LoginRedirect(
+                    context,
+                    "/erp/login?returnUrl=/erp/warehouses-app?tab=virtual_warehouse",
+                    "Admin ERP capability required for virtual warehouse transfer.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpVirtualWarehouseTransferBody>(context, cancellationToken)
+                       ?? new();
+            var companyId = body.CompanyId;
+            var fromWarehouseId = body.FromWarehouseId;
+            var toWarehouseId = body.ToWarehouseId;
+            var reason = body.Reason;
+            var notes = body.Notes;
+            var linesJson = body.LinesJson;
+            var productId = body.ProductId;
+            var sku = body.Sku;
+            var barcode = body.Barcode;
+            var qty = body.Qty;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                companyId = LiveWriteFormBinder.Int(form, "companyId", "company_id", "company");
+                fromWarehouseId = LiveWriteFormBinder.Long(form, "fromWarehouseId", "from_warehouse_id");
+                toWarehouseId = LiveWriteFormBinder.Long(form, "toWarehouseId", "to_warehouse_id");
+                reason = LiveWriteFormBinder.Text(form, "reason");
+                notes = LiveWriteFormBinder.Text(form, "notes");
+                linesJson = LiveWriteFormBinder.Text(form, "linesJson", "lines_json", "lines");
+                productId = LiveWriteFormBinder.Int(form, "productId", "product_id");
+                sku = LiveWriteFormBinder.Text(form, "sku");
+                barcode = LiveWriteFormBinder.Text(form, "barcode");
+                qty = LiveWriteFormBinder.Dec(form, "qty");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            const string returnApp = "/erp/warehouses-app?tab=virtual_warehouse";
+            if (!confirm)
+            {
+                var result = dryRun.Evaluate(new ErpJwModuleSaveRequest("virtual_warehouse_transfer", fromWarehouseId.ToString(CultureInfo.InvariantCulture), false));
+                if (LiveWriteFormBinder.WantsHtml(context))
+                {
+                    return DryRunHtmlForm.Redirect(DryRunHtmlForm.SafeReturnUrl(context.Request, returnApp), result.ValidationCode == "ok", result.Detail);
+                }
+
+                return Results.Ok(result.ToPayload(SessionPayload(session)));
+            }
+
+            var written = await writes.TransferAsync(
+                new ErpVirtualWarehouseTransferRequest(
+                    companyId,
+                    fromWarehouseId,
+                    toWarehouseId,
+                    reason,
+                    notes,
+                    session.UserId,
+                    linesJson,
+                    body.Lines,
+                    productId,
+                    sku,
+                    barcode,
+                    qty),
+                cancellationToken);
+            return LiveWriteFormBinder.Complete(context, returnApp, written.Succeeded, written.Message, new
+            {
+                ok = written.Succeeded,
+                status = written.Succeeded,
+                writes = written.Writes,
+                phpAuthoritative = false,
+                validation_code = written.Code,
+                message = written.Message,
+                id = written.Id,
+                from_warehouse_id = fromWarehouseId,
+                to_warehouse_id = toWarehouseId,
+                session = SessionPayload(session)
+            });
+        }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpJewelleryMetalStockSaveForm, async (
             HttpContext context,
             ILegacySessionValidator validator,
@@ -8845,7 +9028,7 @@ public sealed class ErpModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only virtual/exhibition warehouse locations + transfer history. PHP virtual_warehouse tab remains authoritative."
+                note = "Read digest over warehouse locations + transfer history. Virtual-warehouse create/transfer are live when confirmed."
             });
         });
 
@@ -10703,6 +10886,34 @@ public sealed class ErpModule : ISurfaceModule
         string? BodyTemplate = null,
         string? Filters = null,
         int CreatedBy = 0,
+        bool ConfirmWrites = false);
+    private sealed record ErpVirtualWarehouseCreateBody(
+        int CompanyId = 0,
+        string? Code = null,
+        string? Name = null,
+        string? Type = null,
+        string? Address = null,
+        int ManagerId = 0,
+        string? ManagerName = null,
+        int IsSellable = 1,
+        string? EventName = null,
+        string? EventStart = null,
+        string? EventEnd = null,
+        int ReturnWarehouseId = 0,
+        string? Notes = null,
+        bool ConfirmWrites = false);
+    private sealed record ErpVirtualWarehouseTransferBody(
+        int CompanyId = 0,
+        long FromWarehouseId = 0,
+        long ToWarehouseId = 0,
+        string? Reason = null,
+        string? Notes = null,
+        string? LinesJson = null,
+        IReadOnlyList<ErpVirtualWarehouseTransferLine>? Lines = null,
+        int ProductId = 0,
+        string? Sku = null,
+        string? Barcode = null,
+        decimal Qty = 0,
         bool ConfirmWrites = false);
     private sealed record ErpJwColorStoneSaveBody(
         int CompanyId = 0,
