@@ -81,7 +81,12 @@ public sealed class ErpBosWfSaveRuleWriteService : IErpBosWfSaveRuleWriteService
 
         var threshold = decimal.Round(request.ThresholdAmount, 2, MidpointRounding.AwayFromZero);
         var priority = request.Priority;
-        var stepsJson = JsonSerializer.Serialize(NormalizeSteps(request.Steps));
+        var stepsJson = JsonSerializer.Serialize(
+            NormalizeSteps(request.Steps).Select(step => new Dictionary<string, string>
+            {
+                ["role"] = step.Role,
+                ["label"] = step.Label,
+            }));
         var active = request.Disable ? 0 : 1;
         var adminId = request.AdminId < 0 ? 0 : request.AdminId;
         var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
