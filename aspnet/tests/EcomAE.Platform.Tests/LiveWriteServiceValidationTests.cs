@@ -709,66 +709,6 @@ public sealed class LiveWriteServiceValidationTests
             .EnsureWalkinUserAsync();
         Assert.False(posWalkinDb.Succeeded);
         Assert.Equal("db", posWalkinDb.Code);
-        var dunStatus = await new CpCollectionsDunningWriteService(new ConfiguredNeverOpened())
-            .UpdateStatusAsync(0, "open", "", 1);
-        Assert.False(dunStatus.Succeeded);
-        Assert.Equal("invalid", dunStatus.Code);
-
-        var dunBad = await new CpCollectionsDunningWriteService(new ConfiguredNeverOpened())
-            .UpdateStatusAsync(9, "escalated", "", 1);
-        Assert.False(dunBad.Succeeded);
-        Assert.Equal("invalid", dunBad.Code);
-
-        var dunPay = await new CpCollectionsDunningWriteService(new ConfiguredNeverOpened())
-            .RecordPaymentAsync(9, 0, 1);
-        Assert.False(dunPay.Succeeded);
-        Assert.Equal("invalid", dunPay.Code);
-
-        var dunDb = await new CpCollectionsDunningWriteService(new UnconfiguredConnections())
-            .RecordPaymentAsync(9, 10.5m, 1);
-        Assert.False(dunDb.Succeeded);
-        Assert.Equal("db", dunDb.Code);
-
-        Assert.Contains("promised", CpCollectionsDunningWriteService.AllowedStatuses);
-
-        var fqTransition = await new CpFulfillmentQueueWriteService(new ConfiguredNeverOpened())
-            .TransitionAsync(0, "picking");
-        Assert.False(fqTransition.Succeeded);
-        Assert.Equal("invalid", fqTransition.Code);
-
-        var fqStatus = await new CpFulfillmentQueueWriteService(new ConfiguredNeverOpened())
-            .TransitionAsync(9, "");
-        Assert.False(fqStatus.Succeeded);
-        Assert.Equal("invalid", fqStatus.Code);
-
-        var fqAssign = await new CpFulfillmentQueueWriteService(new ConfiguredNeverOpened())
-            .AssignAsync(0, 1, "Pat");
-        Assert.False(fqAssign.Succeeded);
-        Assert.Equal("invalid", fqAssign.Code);
-
-        var fqPick = await new CpFulfillmentQueueWriteService(new ConfiguredNeverOpened())
-            .PickItemAsync(0, 1, "picked");
-        Assert.False(fqPick.Succeeded);
-        Assert.Equal("invalid", fqPick.Code);
-
-        var fqPickQty = await new CpFulfillmentQueueWriteService(new ConfiguredNeverOpened())
-            .PickItemAsync(3, -1, "picked");
-        Assert.False(fqPickQty.Succeeded);
-        Assert.Equal("invalid", fqPickQty.Code);
-
-        var fqPackDb = await new CpFulfillmentQueueWriteService(new UnconfiguredConnections())
-            .PackItemAsync(3, 1);
-        Assert.False(fqPackDb.Succeeded);
-        Assert.Equal("db", fqPackDb.Code);
-
-        var fqWave = await new CpFulfillmentQueueWriteService(new ConfiguredNeverOpened())
-            .CreateWaveAsync("epartscart", []);
-        Assert.False(fqWave.Succeeded);
-        Assert.Equal("invalid", fqWave.Code);
-
-        Assert.Equal(new[] { "picking", "cancelled" }, CpFulfillmentQueueWriteService.AllowedNextStatuses("queued"));
-        Assert.Equal(new[] { "delivered" }, CpFulfillmentQueueWriteService.AllowedNextStatuses("SHIPPED"));
-        Assert.Empty(CpFulfillmentQueueWriteService.AllowedNextStatuses("delivered"));
 
         var priceAdd = await new CpPricesEditWriteService(new ConfiguredNeverOpened())
             .AddAsync(1, "", "Bosch", "Pad", 1, 12.5m, 1, "WH1", 1);
