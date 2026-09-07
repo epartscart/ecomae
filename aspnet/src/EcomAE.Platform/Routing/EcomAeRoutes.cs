@@ -1292,7 +1292,9 @@ public static class EcomAeRoutes
     public const string ErpAjaxPrjaRecognize = "/erp/ajax/prja-recognize";
     /// <summary>Wave B dry-run for PHP costm_item_set (writes=0).</summary>
     public const string ErpAjaxCostmItemSet = "/erp/ajax/costm-item-set";
-    /// <summary>Wave B dry-run for PHP costm_txn_add (writes=0).</summary>
+    /// <summary>Live PHP epc_costm_txn_add twin (ajax alias of <see cref="ErpCostModelsTxnsAdd"/>).</summary>
+    public const string ErpCostModelsTxnsAdd = "/erp/cost-models/txns/add";
+    /// <summary>Live PHP epc_costm_txn_add ajax alias of <see cref="ErpCostModelsTxnsAdd"/>.</summary>
     public const string ErpAjaxCostmTxnAdd = "/erp/ajax/costm-txn-add";
     /// <summary>Wave B dry-run for PHP costm_close_run (writes=0).</summary>
     public const string ErpAjaxCostmCloseRun = "/erp/ajax/costm-close-run";

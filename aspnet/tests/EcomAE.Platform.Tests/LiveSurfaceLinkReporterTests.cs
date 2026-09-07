@@ -770,6 +770,12 @@ public sealed class LiveSurfaceLinkReporterTests
         Assert.Contains(report.Links, link =>
             link.HostClass == "aspnet-presentation-preview"
             && link.AspNetRouteHint == "/cp/insurance-compliance-app");
+        Assert.Contains(report.Links, link =>
+            link.HostClass == "aspnet-diagnostics"
+            && link.AspNetRouteHint == "/erp/cost-models/txns/add");
+        Assert.Contains(report.Links, link =>
+            link.HostClass == "aspnet-diagnostics"
+            && link.AspNetRouteHint == "/erp/ajax/costm-txn-add");
         Assert.Equal(4, report.Links.Count(link => link.HostClass == "aspnet-login-bridge"));
         Assert.Contains(report.NextActions, action => action.Contains("cloudpanel_ensure_epc_api_clients_table.sh", StringComparison.Ordinal));
 
