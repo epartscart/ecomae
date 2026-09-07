@@ -1,177 +1,83 @@
 @page "/cp/warehouse-wms-app"
-@layout Layout.PhpChromeLayout
-@using System.Globalization
-@using EcomAE.Platform.Auth
-@using EcomAE.Platform.Migration
-@using EcomAE.Platform.Presentation
-@inject ISurfaceDashboardSummaryReporter Dashboards
-@inject ILegacySessionValidator Sessions
-@inject IHttpContextAccessor Http
-@inject NavigationManager Nav
+@using EcomAE.Platform.PhpParity
+@using EcomAE.Platform.Services
+@inject IHttpContextAccessor HttpContextAccessor
+@inject ErpWarehouseWmsWriteService WmsWrites
+@inject ErpWmsWaveWriteService WaveWrites
 
-<PageTitle>Warehouse WMS · Control Panel · eParts Cart</PageTitle>
-<PhpChromeStyles Surface="cp" />
-<HeadContent>
-<style>
-        .epc-wms-hero {
-            margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
-            background:linear-gradient(135deg,#0c4a6e 0%,#2563eb 45%,#0ea5e9 100%);
-        }
-        .epc-wms-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
-        .epc-wms-hero p { margin:0; color:rgba(255,255,255,.88); max-width:44rem; font-size:.92rem; line-height:1.45; }
-        .epc-wms-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
-        .epc-wms-cta a {
-            display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
-            text-decoration:none; color:#0f172a; background:#fff;
-        }
-        .epc-wms-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); color:#fff; }
-        .epc-wms-kpis { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
-        .epc-wms-kpi { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; padding:.85rem .9rem; }
-        .epc-wms-kpi strong { display:block; font-size:1.2rem; word-break:break-word; }
-        .epc-wms-kpi span { color:#64748b; font-size:.78rem; }
-        .epc-wms-table-wrap { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; overflow:auto; }
-        .epc-wms-table { width:100%; border-collapse:collapse; font-size:.86rem; }
-        .epc-wms-table th, .epc-wms-table td { padding:.55rem .7rem; border-bottom:1px solid #f1f5f9; text-align:left; white-space:nowrap; }
-        .epc-wms-table th { background:#f8fafc; color:#475569; font-size:.75rem; text-transform:uppercase; letter-spacing:.03em; }
-        .epc-wms-note { margin-top:1rem; padding:.75rem .9rem; background:#f8fafc; border:1px solid #cbd5e1; border-radius:.45rem; color:#334155; font-size:.86rem; }
-        @@media (max-width:900px){ .epc-wms-kpis{grid-template-columns:1fr 1fr;} }
-    
-</style>
-</HeadContent>
-
-
-<PhpCpDesktopChrome IsAdmin="_isAdmin">
-
-    <section class="epc-wms-hero">
-        <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
-        <h1>Warehouse WMS</h1>
-        <p>@CpPhpModuleCopy.PurposeFor(Nav.Uri)</p>
-        <p>Save or delete a warehouse location, or release a pick wave here. Wave create, pick add, and work complete stay on the Classic twin.</p>
-        <div class="epc-wms-cta">
-            <a href="/erp">ERP overview</a>
+<PhpParityPageShell Title="Warehouse WMS" Surface="cp">
+    <PhpCpDesktopChrome Title="Warehouse WMS" Surface="cp" ActiveTab="wms">
+        <div class="php-parity-prose">
+            <p>Live on this page: save or delete a bin location, and create or release a pick wave. Receiving and work-complete stay on Classic ERP until those helpers persist here.</p>
+            <p><a class="php-parity-btn" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref("/php-reference/erp/wms")">Open Classic WMS twin</a></p>
         </div>
-    </section>
-    <PhpParityModuleBody AppPath="/cp/warehouse-wms-app" IsAdmin="_isAdmin" />
-
-
-    @if (!string.IsNullOrWhiteSpace(_flashOk))
-    {
-        <div class="alert alert-success" role="status" style="margin:0 0 1rem;padding:.7rem .9rem;border-radius:.4rem;background:#ecfdf5;color:#065f46">@_flashOk</div>
-    }
-    @if (!string.IsNullOrWhiteSpace(_flashErr))
-    {
-        <div class="alert alert-danger" role="status" style="margin:0 0 1rem;padding:.7rem .9rem;border-radius:.4rem;background:#fef2f2;color:#991b1b">@_flashErr</div>
-    }
-    @if (_isAdmin)
-    {
-        <form method="post" action="/erp/wms/locations/save" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
-            <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="/cp/warehouse-wms-app" />
-            <label>Code <input name="code" required maxlength="60" style="width:8rem" /></label>
-            <label>Warehouse <input name="warehouse" value="MAIN" maxlength="40" style="width:6rem" /></label>
-            <label>Zone <input name="zone" maxlength="40" style="width:5rem" /></label>
-            <label>Type
-                <select name="type">
-                    <option value="pick" selected>pick</option>
-                    <option value="receive">receive</option>
-                    <option value="bulk">bulk</option>
-                    <option value="ship">ship</option>
-                    <option value="count">count</option>
-                </select>
-            </label>
-            <label>Capacity <input type="number" name="capacity" min="0" value="0" style="width:5rem" /></label>
-            <button type="submit">Save location</button>
-        </form>
-        <form method="post" action="/erp/wms/locations/delete" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
-            <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="/cp/warehouse-wms-app" />
-            <label>Location id <input type="number" name="id" min="1" required style="width:6rem" /></label>
-            <button type="submit">Delete location</button>
-        </form>
-        <form method="post" action="/erp/wms/waves/release" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
-            <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="/cp/warehouse-wms-app" />
-            <label>Wave id <input type="number" name="id" min="1" required style="width:6rem" /></label>
-            <button type="submit">Release wave</button>
-        </form>
-    }
-
-    <div class="epc-wms-kpis" aria-label="Warehouse WMS stats">
-        <div class="epc-wms-kpi"><strong>@_summary.LocationCount.ToString(CultureInfo.InvariantCulture)</strong><span>Locations</span></div>
-        <div class="epc-wms-kpi"><strong>@_summary.LpCount.ToString(CultureInfo.InvariantCulture)</strong><span>License plates</span></div>
-        <div class="epc-wms-kpi"><strong>@_summary.WaveCount.ToString(CultureInfo.InvariantCulture)</strong><span>Waves</span></div>
-        <div class="epc-wms-kpi"><strong>@_summary.OpenWorkCount.ToString(CultureInfo.InvariantCulture)</strong><span>Open work</span></div>
-    </div>
-
-    <div class="epc-wms-table-wrap">
-        <table class="epc-wms-table">
-            <thead>
-                <tr>
-                    <th>Id</th>
-                    <th>Type</th>
-                    <th>Reference</th>
-                    <th>Item</th>
-                    <th>Qty</th>
-                    <th>Status</th>
-                    <th>Assigned</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody>
-                @if (_rows.Count == 0)
-                {
-                    <tr><td colspan="8">No records yet.</td></tr>
-                }
-                else
-                {
-                    @foreach (var row in _rows)
-                    {
-                        <tr>
-                            <td>@row.Id.ToString(CultureInfo.InvariantCulture)</td>
-                            <td>@(!string.IsNullOrWhiteSpace(row.WorkType) ? row.WorkType : "—")</td>
-                            <td>@(!string.IsNullOrWhiteSpace(row.Reference) ? row.Reference : "—")</td>
-                            <td>@(!string.IsNullOrWhiteSpace(row.Item) ? row.Item : "—")</td>
-                            <td>@row.Qty.ToString(CultureInfo.InvariantCulture)</td>
-                            <td>@(!string.IsNullOrWhiteSpace(row.Status) ? row.Status : "—")</td>
-                            <td>@(!string.IsNullOrWhiteSpace(row.AssignedTo) ? row.AssignedTo : "—")</td>
-                            <td><a href="/cp/warehouse-wms-app">Open</a></td>
-                        </tr>
-                    }
-                }
-            </tbody>
-        </table>
-    </div>
-
-</PhpCpDesktopChrome>
+        @if (!string.IsNullOrWhiteSpace(ok))
+        {
+            <p class="php-parity-note">Saved. Code @ok.</p>
+        }
+        @if (saveError is not null)
+        {
+            <p class="php-parity-note">@saveError</p>
+        }
+        <div class="php-parity-panel" style="margin-top:12px">
+            <h3>Save location</h3>
+            <form method="post" action="/erp/wms/locations/save" class="php-parity-form">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="@ReturnUrl" />
+                <label>Code <input name="code" value="BIN-A1" /></label>
+                <label>Name <input name="name" value="Aisle A bin 1" /></label>
+                <label>Warehouse <input name="warehouse_id" value="1" /></label>
+                <label>Zone <input name="zone" value="A" /></label>
+                <label>Aisle <input name="aisle" value="1" /></label>
+                <label>Rack <input name="rack" value="R1" /></label>
+                <label>Bin <input name="bin" value="B1" /></label>
+                <button type="submit" class="php-parity-btn">Save location</button>
+            </form>
+        </div>
+        <div class="php-parity-panel" style="margin-top:12px">
+            <h3>Delete location</h3>
+            <form method="post" action="/erp/wms/locations/delete" class="php-parity-form">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="@ReturnUrl" />
+                <label>Location id <input name="id" value="" /></label>
+                <button type="submit" class="php-parity-btn">Delete location</button>
+            </form>
+        </div>
+        <div class="php-parity-panel" style="margin-top:12px">
+            <h3>Create wave</h3>
+            <form method="post" action="/erp/wms/waves/create" class="php-parity-form">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="@ReturnUrl" />
+                <label>Code <input name="code" value="WAVE-1" /></label>
+                <label>Warehouse <input name="warehouse_id" value="1" /></label>
+                <label>Strategy <input name="strategy" value="fifo" /></label>
+                <button type="submit" class="php-parity-btn">Create wave</button>
+            </form>
+        </div>
+        <div class="php-parity-panel" style="margin-top:12px">
+            <h3>Release wave</h3>
+            <form method="post" action="/erp/wms/waves/release" class="php-parity-form">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="@ReturnUrl" />
+                <label>Wave id <input name="id" value="" /></label>
+                <button type="submit" class="php-parity-btn">Release wave</button>
+            </form>
+        </div>
+    </PhpCpDesktopChrome>
+</PhpParityPageShell>
 
 @code {
-    private bool _isAdmin;
-    private CpWarehouseWmsSummary _summary = new(0, 0, 0, 0, "n/a", "");
-    private IReadOnlyList<CpWarehouseWmsWorkDigest> _rows = [];
-    private string _source = "n/a";
-    private string _message = "";
-    private string _flashOk = "";
-    private string _flashErr = "";
+    [SupplyParameterFromQuery]
+    public string? ok { get; set; }
 
-    protected override async Task OnInitializedAsync()
+    private string? saveError;
+    private string ReturnUrl => HttpContextAccessor.HttpContext?.Request.Path.Value ?? "/cp/warehouse-wms-app";
+
+    protected override void OnInitialized()
     {
-        var ctx = Http.HttpContext;
-        if (ctx is null) return;
-
-        _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
-        _flashErr = ctx.Request.Query["err"].ToString() ?? "";
-
-        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
-        _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
-        if (!_isAdmin)
-        {
-            return; // guest browse — Sign in for live data
-        }
-
-        var result = await Dashboards.BuildCpWarehouseWmsDigestAsync(200, ctx.RequestAborted);
-        _summary = result.Summary;
-        _rows = result.Work;
-        _source = result.Source;
-        _message = result.Message;
+        if (WmsWrites.IsLiveWriteUnavailable)
+            saveError = WmsWrites.LiveWriteUnavailableReason;
+        else if (WaveWrites.IsLiveWriteUnavailable)
+            saveError = WaveWrites.LiveWriteUnavailableReason;
     }
 }
