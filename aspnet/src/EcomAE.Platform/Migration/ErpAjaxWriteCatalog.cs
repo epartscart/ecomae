@@ -151,7 +151,7 @@ public sealed class ErpAjaxWriteCatalog : IErpAjaxWriteCatalog
         new("cft_instrument_status", "dedicated", "/erp/ajax/cft-instrument-status"),
         new("wht_code_save", "dedicated", "/erp/withholding/codes/save"),
         new("wht_record", "dedicated", "/erp/withholding/txns/record"),
-        new("wht_certificate", "dedicated", "/erp/ajax/wht-certificate"),
+        new("wht_certificate", "dedicated", "/erp/withholding/txns/certificate"),
         new("wht_settle", "dedicated", "/erp/ajax/wht-settle"),
         new("er_format_save", "dedicated", "/erp/ajax/er-format-save"),
         new("er_field_add", "dedicated", "/erp/ajax/er-field-add"),
