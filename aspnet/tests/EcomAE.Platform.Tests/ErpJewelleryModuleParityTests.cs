@@ -86,6 +86,8 @@ public sealed class ErpJewelleryModuleParityTests
         var retail = ReadApp("CpJewelleryRetailApp.razor");
         Assert.Contains("jw_retail_sales", retail, StringComparison.Ordinal);
         Assert.Contains("New Invoice", retail, StringComparison.Ordinal);
+        Assert.Contains("ErpJewelleryVoucherSaveForm", retail, StringComparison.Ordinal);
+        Assert.Contains("Save voucher", retail, StringComparison.Ordinal);
         Assert.Equal("Retail Sales (POS)", ErpJewelleryModuleChrome.RetailSpec("jw_retail_sales").Title);
         Assert.DoesNotContain("@onclick", retail, StringComparison.Ordinal);
 
@@ -149,6 +151,7 @@ public sealed class ErpJewelleryModuleParityTests
         Assert.Equal("/erp/jewellery/color-stone-save", EcomAeRoutes.ErpJewelleryColorStoneSaveForm);
         Assert.Equal("/erp/jewellery/metal-stock-save", EcomAeRoutes.ErpJewelleryMetalStockSaveForm);
         Assert.Equal("/erp/jewellery/fixing-save", EcomAeRoutes.ErpJewelleryFixingSaveForm);
+        Assert.Equal("/erp/jewellery/voucher-save", EcomAeRoutes.ErpJewelleryVoucherSaveForm);
         Assert.Equal("/erp/jewellery/karat-seed", EcomAeRoutes.ErpJewelleryKaratSeedForm);
         Assert.Equal("/erp/jewellery/module-save", EcomAeRoutes.ErpJewelleryModuleSaveForm);
     }

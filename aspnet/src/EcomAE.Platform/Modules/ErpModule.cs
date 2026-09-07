@@ -5285,6 +5285,129 @@ public sealed class ErpModule : ISurfaceModule
                     session = SessionPayload(session)
                 });
         }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpJewelleryVoucherSaveForm, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IErpJwModuleSaveDryRun dryRun,
+            IErpJwVoucherWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (!ErpJewelleryModuleChrome.HasJewelleryStaffAccess(session))
+            {
+                return LiveWriteFormBinder.LoginRedirect(
+                    context,
+                    "/erp/login?returnUrl=/cp/jewellery-retail-app?tab=jw_retail_sales",
+                    "Admin ERP capability required for jewellery voucher save.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpJwVoucherSaveBody>(context, cancellationToken)
+                       ?? new();
+            var companyId = body.CompanyId;
+            var action = body.Action;
+            var vocType = body.VocType;
+            var branch = body.Branch;
+            var vocDate = body.VocDate;
+            var vocNo = body.VocNo;
+            var partyCode = body.PartyCode;
+            var partyName = body.PartyName;
+            var customerName = body.CustomerName;
+            var currency = body.Currency;
+            var currencyRate = body.CurrencyRate;
+            var salesman = body.Salesman;
+            var refInvoiceNo = body.RefInvoiceNo;
+            var creditDays = body.CreditDays;
+            var narration = body.Narration;
+            var netAmount = body.NetAmount;
+            var vatAmount = body.VatAmount;
+            var roundOff = body.RoundOff;
+            var grossTotal = body.GrossTotal;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                companyId = LiveWriteFormBinder.Int(form, "companyId", "company_id", "company");
+                action = LiveWriteFormBinder.Text(form, "action");
+                vocType = LiveWriteFormBinder.Text(form, "voc_type", "vocType");
+                branch = LiveWriteFormBinder.Text(form, "branch");
+                vocDate = LiveWriteFormBinder.Text(form, "voc_date", "vocDate");
+                vocNo = LiveWriteFormBinder.Int(form, "voc_no", "vocNo");
+                partyCode = LiveWriteFormBinder.Text(form, "party_code", "partyCode");
+                partyName = LiveWriteFormBinder.Text(form, "party_name", "partyName");
+                customerName = LiveWriteFormBinder.Text(form, "customer_name", "customerName");
+                currency = LiveWriteFormBinder.Text(form, "currency", "party_curr", "partyCurr");
+                currencyRate = LiveWriteFormBinder.Dec(form, "currency_rate", "party_curr_rate", "currencyRate");
+                salesman = LiveWriteFormBinder.Text(form, "salesman", "code");
+                refInvoiceNo = LiveWriteFormBinder.Text(form, "ref_invoice_no", "supp_inv_no", "refInvoiceNo");
+                creditDays = LiveWriteFormBinder.Int(form, "credit_days", "cr_days", "creditDays");
+                narration = LiveWriteFormBinder.Text(form, "narration", "remarks");
+                netAmount = LiveWriteFormBinder.Dec(form, "net_amount", "netAmount");
+                vatAmount = LiveWriteFormBinder.Dec(form, "vat_amount", "vatAmount");
+                roundOff = LiveWriteFormBinder.Dec(form, "round_off", "rnd_off_amount", "roundOff");
+                grossTotal = LiveWriteFormBinder.Dec(form, "gross_total", "grossTotal");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            var resolvedType = ErpJwVoucherWriteService.NormalizeVocType(vocType, action);
+            var dryAction = !string.IsNullOrWhiteSpace(action) ? action : "jw_voucher_save";
+            var returnApp = JewelleryVoucherReturnApp(resolvedType);
+            if (!confirm)
+            {
+                var result = dryRun.Evaluate(new ErpJwModuleSaveRequest(
+                    dryAction,
+                    !string.IsNullOrWhiteSpace(resolvedType) ? resolvedType : dryAction,
+                    false));
+                if (LiveWriteFormBinder.WantsHtml(context))
+                {
+                    return DryRunHtmlForm.Redirect(
+                        DryRunHtmlForm.SafeReturnUrl(context.Request, returnApp),
+                        result.ValidationCode == "ok",
+                        result.Detail);
+                }
+
+                return Results.Ok(result.ToPayload(SessionPayload(session)));
+            }
+
+            var written = await writes.SaveAsync(
+                new ErpJwVoucherSaveRequest(
+                    CompanyId: companyId,
+                    Action: action,
+                    VocType: vocType,
+                    Branch: branch,
+                    VocDate: vocDate,
+                    VocNo: vocNo,
+                    PartyCode: partyCode,
+                    PartyName: partyName,
+                    CustomerName: customerName,
+                    Currency: currency,
+                    CurrencyRate: currencyRate,
+                    Salesman: salesman,
+                    RefInvoiceNo: refInvoiceNo,
+                    CreditDays: creditDays,
+                    Narration: narration,
+                    NetAmount: netAmount,
+                    VatAmount: vatAmount,
+                    RoundOff: roundOff,
+                    GrossTotal: grossTotal),
+                cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                returnApp,
+                written.Succeeded,
+                written.Message,
+                new
+                {
+                    ok = written.Succeeded,
+                    status = written.Succeeded,
+                    writes = written.Writes,
+                    phpAuthoritative = false,
+                    validation_code = written.Code,
+                    message = written.Message,
+                    id = written.Id,
+                    voc_type = resolvedType,
+                    session = SessionPayload(session)
+                });
+        }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpJewelleryKaratSeedForm, async (HttpContext context, ILegacySessionValidator validator, IErpJwSeedSampleDataDryRun dryRun, CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateAsync(context, cancellationToken);
@@ -7388,6 +7511,15 @@ public sealed class ErpModule : ISurfaceModule
         new { ok = false, error = new { code = "unauthorized", message } },
         statusCode: StatusCodes.Status401Unauthorized);
 
+    private static string JewelleryVoucherReturnApp(string vocType) => vocType switch
+    {
+        "MMP" or "MLP" => "/cp/jewellery-fixing-app?tab=jw_metal_purchase",
+        "DMP" or "DLP" => "/cp/jewellery-fixing-app?tab=jw_diamond_purchase",
+        "MSI" or "MSC" => "/cp/jewellery-retail-app?tab=jw_metal_sales",
+        "SRN" or "SRC" => "/cp/jewellery-retail-app?tab=jw_sales_return",
+        _ => "/cp/jewellery-retail-app?tab=jw_retail_sales"
+    };
+
     /// <summary>
     /// Executes a live ERP write and shapes the PHP <c>epc_erp_json</c> response
     /// (<c>status</c>/<c>message</c> + action payload). Validation failures answer HTTP 200
@@ -8061,6 +8193,27 @@ public sealed class ErpModule : ISurfaceModule
         decimal EstimatedCost = 0,
         long ReceivedDate = 0,
         long PromisedDate = 0);
+    private sealed record ErpJwVoucherSaveBody(
+        int CompanyId = 0,
+        string? Action = null,
+        string? VocType = null,
+        string? Branch = null,
+        string? VocDate = null,
+        int VocNo = 0,
+        string? PartyCode = null,
+        string? PartyName = null,
+        string? CustomerName = null,
+        string? Currency = null,
+        decimal CurrencyRate = 0,
+        string? Salesman = null,
+        string? RefInvoiceNo = null,
+        int CreditDays = 0,
+        string? Narration = null,
+        decimal NetAmount = 0,
+        decimal VatAmount = 0,
+        decimal RoundOff = 0,
+        decimal GrossTotal = 0,
+        bool ConfirmWrites = false);
     private sealed record ErpJwFixingSaveBody(
         int CompanyId = 0,
         string? PartyCode = null,
