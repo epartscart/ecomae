@@ -490,7 +490,7 @@ public interface ISurfaceDashboardSummaryReporter
     /// <summary>Operational VAT 201 boxes (shop orders + purchases). FTA filing stays PHP.</summary>
     Task<ErpVatReturnDigestResult> BuildErpVatReturnDigestAsync(long? fromUnix = null, long? toUnix = null, CancellationToken cancellationToken = default);
 
-    /// <summary>Read-only withholding codes + transactions (PHP <c>epc_wht_*</c>). Settle, code save, and record writes are live.</summary>
+    /// <summary>Read-only withholding codes + transactions (PHP <c>epc_wht_*</c>). Settle, code save, record, and certificate writes are live.</summary>
     Task<ErpWithholdingDigestResult> BuildErpWithholdingDigestAsync(int limit, CancellationToken cancellationToken = default);
 
     /// <summary>Read-only petty cash floats (PHP <c>epc_erp_petty_cash</c>).</summary>

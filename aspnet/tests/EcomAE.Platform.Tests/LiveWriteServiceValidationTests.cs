@@ -3079,6 +3079,16 @@ public sealed class LiveWriteServiceValidationTests
             .RecordAsync(new ErpWhtRecordWriteRequest(CodeId: 1, BaseAmount: 10000));
         Assert.False(whtRecordDb.Succeeded);
         Assert.Equal("db", whtRecordDb.Code);
+
+        var whtCertInvalid = await new ErpWhtCertificateWriteService(new ConfiguredNeverOpened())
+            .IssueAsync(new ErpWhtCertificateWriteRequest());
+        Assert.False(whtCertInvalid.Succeeded);
+        Assert.Equal("invalid", whtCertInvalid.Code);
+
+        var whtCertDb = await new ErpWhtCertificateWriteService(new UnconfiguredConnections())
+            .IssueAsync(new ErpWhtCertificateWriteRequest(Id: 1));
+        Assert.False(whtCertDb.Succeeded);
+        Assert.Equal("db", whtCertDb.Code);
     }
 
     [Fact]

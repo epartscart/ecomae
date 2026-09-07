@@ -13,7 +13,7 @@
 <PhpChromeStyles Surface="erp" />
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Withholding" BreadcrumbArea="Tax" BreadcrumbTab="Withholding">
 
-    <PhpErpModulePageHeader Title="Withholding tax" Subtitle="Save a withholding code, apply it on a payment, or settle an accrued transaction here. Certificate minting stays on the classic twin." />
+    <PhpErpModulePageHeader Title="Withholding tax" Subtitle="Save a withholding code, apply it on a payment, issue a certificate, or settle an accrued transaction here." />
     <PhpErpD365ActionPane RefreshHref="@Nav.Uri" />
 
     @if (!string.IsNullOrWhiteSpace(_flashOk))
@@ -53,6 +53,13 @@
             <label>Base amount <input type="number" name="base_amount" step="0.01" min="0.01" required style="width:8rem" /></label>
             <label>Company id <input type="number" name="company_id" min="0" value="0" style="width:5rem" /></label>
             <button type="submit">Apply withholding</button>
+        </form>
+        <form method="post" action="/erp/withholding/txns/certificate" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/erp/withholding-app" />
+            <label>Transaction id <input type="number" name="id" min="1" required style="width:6rem" /></label>
+            <label>Certificate no <input type="text" name="certificate_no" maxlength="60" placeholder="auto" style="width:10rem" /></label>
+            <button type="submit">Issue certificate</button>
         </form>
         <form method="post" action="/erp/ajax/wht-settle" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
@@ -145,7 +152,7 @@
     </div>
 
     <div class="epc-erp-empty" style="display:block;margin-top:12px;padding:8px 10px;border:1px solid #c5d4de;background:#f8fafc;color:#475569;font-size:12px;">
-        Source: @_source. Settle, code save, and record write here. Certificate stays on the classic twin.
+        Source: @_source. Settle, code save, record, and certificate write here. Schema ensure stays on the classic twin.
     </div>
 </PhpErpDesktopChrome>
 
