@@ -1414,6 +1414,9 @@ public static class EcomAeRoutes
     /// <summary>Wave B dry-run for PHP bos_compliance_fetch (writes=0).</summary>
     public const string ErpAjaxBosComplianceFetch = "/erp/ajax/bos-compliance-fetch";
     /// <summary>Wave B dry-run for PHP rtl_assortment_set (writes=0).</summary>
+    /// <summary>Live PHP epc_rtl_assortment_set twin (ajax alias of <see cref="ErpRetailAssortmentsSet"/>).</summary>
+    public const string ErpRetailAssortmentsSet = "/erp/retail/assortments/set";
+    /// <summary>Live PHP epc_rtl_assortment_set ajax alias of <see cref="ErpRetailAssortmentsSet"/>.</summary>
     public const string ErpAjaxRtlAssortmentSet = "/erp/ajax/rtl-assortment-set";
     /// <summary>Wave B dry-run for PHP rtl_discount_save (writes=0).</summary>
     public const string ErpAjaxRtlDiscountSave = "/erp/ajax/rtl-discount-save";

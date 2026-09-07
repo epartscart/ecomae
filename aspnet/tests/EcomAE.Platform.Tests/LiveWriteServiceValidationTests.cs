@@ -3111,6 +3111,11 @@ public sealed class LiveWriteServiceValidationTests
             .LogAsync(new ErpHrAttendanceWriteRequest(EmployeeId: 1, Hours: 8));
         Assert.False(hrAttDb.Succeeded);
         Assert.Equal("db", hrAttDb.Code);
+
+        var rtlAssortDb = await new ErpRtlAssortmentSetWriteService(new UnconfiguredConnections())
+            .SetAsync(new ErpRtlAssortmentSetWriteRequest(ChannelId: 1, ItemId: 9, Active: 1));
+        Assert.False(rtlAssortDb.Succeeded);
+        Assert.Equal("db", rtlAssortDb.Code);
     }
 
     [Fact]
