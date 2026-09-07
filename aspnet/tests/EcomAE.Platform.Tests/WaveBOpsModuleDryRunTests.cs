@@ -17,6 +17,12 @@ public sealed class WaveBOpsModuleDryRunTests
     {
         var r = new ErpSubscriptionSaveDryRun().Evaluate(new ErpSubscriptionSaveRequest("", "Acme"));
         Assert.Equal("code_customer_required", r.ValidationCode);
+        var ok = new ErpSubscriptionSaveDryRun().Evaluate(new ErpSubscriptionSaveRequest("SUB-1", "Acme"));
+        Assert.Equal("dry-run-validated", ok.Status);
+        Assert.Equal(0, ok.Writes);
+        Assert.False(ok.PhpAuthoritative);
+        var refused = new ErpSubscriptionSaveDryRun().Evaluate(new ErpSubscriptionSaveRequest("SUB-1", "Acme", ConfirmWrites: true));
+        Assert.Equal("dry-run-confirm-refused", refused.Status);
     }
 
     [Fact] public void ContractSaveValidated()
