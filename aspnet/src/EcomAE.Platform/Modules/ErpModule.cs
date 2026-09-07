@@ -2086,14 +2086,60 @@ public sealed class ErpModule : ISurfaceModule
             return Results.Ok(dryRun.Evaluate(new ErpWmsLocationSaveRequest(code, id, false)).ToPayload(SessionPayload(session)));
         }).DisableAntiforgery();
 
-        endpoints.MapPost(EcomAeRoutes.ErpCollectionsCaseSave, async (HttpContext context, ErpCollectionsCaseSaveBody? body, ILegacySessionValidator validator, IErpCollectionsCaseSaveDryRun dryRun, CancellationToken cancellationToken) =>
+        endpoints.MapPost(EcomAeRoutes.ErpCollectionsCaseSave, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IErpCollectionsCaseSaveDryRun dryRun,
+            EcomAE.Platform.Erp.IErpCollectionsCaseSaveWriteService writes,
+            CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateAsync(context, cancellationToken);
             if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
-                return Unauthorized("Admin ERP capability required for collections case save dry-run.");
-            body ??= new ErpCollectionsCaseSaveBody(0, 0, false);
-            return Results.Ok(dryRun.Evaluate(new ErpCollectionsCaseSaveRequest(body.CustomerId, body.Id, body.ConfirmWrites)).ToPayload(SessionPayload(session)));
-        });
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/cp/collections-dunning-app", "Admin ERP capability required for collections case save.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpCollectionsCaseSaveBody>(context, cancellationToken)
+                       ?? new();
+            var customerId = body.CustomerId;
+            var status = body.Status;
+            var balance = body.Balance;
+            var promiseAmount = body.PromiseAmount;
+            var promiseDate = body.PromiseDate;
+            var assignedTo = body.AssignedTo;
+            var notes = body.Notes;
+            var companyId = body.CompanyId;
+            var id = body.Id;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                customerId = LiveWriteFormBinder.Long(form, "customerId", "customer_id");
+                status = LiveWriteFormBinder.Text(form, "status");
+                balance = LiveWriteFormBinder.Dec(form, "balance");
+                promiseAmount = LiveWriteFormBinder.Dec(form, "promiseAmount", "promise_amount");
+                promiseDate = LiveWriteFormBinder.Text(form, "promiseDate", "promise_date");
+                assignedTo = LiveWriteFormBinder.Text(form, "assignedTo", "assigned_to");
+                notes = LiveWriteFormBinder.Text(form, "notes");
+                companyId = LiveWriteFormBinder.Long(form, "companyId", "company_id");
+                id = LiveWriteFormBinder.Long(form, "id", "caseId", "case_id");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (confirm)
+            {
+                var written = await writes.SaveAsync(
+                    customerId, status, balance, promiseAmount, promiseDate, assignedTo, notes, companyId, id, cancellationToken);
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    "/cp/collections-dunning-app",
+                    written.Succeeded,
+                    written.Message,
+                    new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+            }
+
+            return Results.Ok(dryRun.Evaluate(new ErpCollectionsCaseSaveRequest(customerId, id, false)).ToPayload(SessionPayload(session)));
+        }).DisableAntiforgery();
 
         endpoints.MapPost(EcomAeRoutes.ErpProcurementReqSave, async (
             HttpContext context,
@@ -5795,7 +5841,17 @@ public sealed class ErpModule : ISurfaceModule
         int Capacity = 0,
         int Active = 1,
         int CompanyId = 0);
-    private sealed record ErpCollectionsCaseSaveBody(long CustomerId = 0, long Id = 0, bool ConfirmWrites = false);
+    private sealed record ErpCollectionsCaseSaveBody(
+        long CustomerId = 0,
+        string? Status = null,
+        decimal Balance = 0,
+        decimal PromiseAmount = 0,
+        string? PromiseDate = null,
+        string? AssignedTo = null,
+        string? Notes = null,
+        long CompanyId = 0,
+        long Id = 0,
+        bool ConfirmWrites = false);
     private sealed record ErpProcReqSaveBody(
         string? Requester = null,
         long BusinessUnitId = 0,

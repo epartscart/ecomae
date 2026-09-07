@@ -1280,7 +1280,7 @@ public static class SurfacePayloadContractCatalog
         new("erp", "contract save", "/erp/contracts/save", "write-live-gated", "POST PHP epc_ctr_save. confirmWrites=true writes on ASP.NET. Sign, OCR, and schema ensure stay PHP."),
         new("erp", "WMS receive dry-run", "/erp/wms/receive", "write-dry-run-gated", "POST dry-run for PHP wms_receive; writes=0; confirm_writes refused; PHP authoritative."),
         new("erp", "WMS location save", "/erp/wms/locations/save", "write-live-gated", "POST PHP epc_wms_location_save. confirmWrites=true writes on ASP.NET. Schema ensure stays PHP."),
-        new("erp", "collections case save dry-run", "/erp/collections/cases/save", "write-dry-run-gated", "POST dry-run for PHP coll_case_save; writes=0; confirm_writes refused; PHP authoritative."),
+        new("erp", "collections case save", "/erp/collections/cases/save", "write-live-gated", "POST PHP epc_coll_case_save; confirmWrites=true writes ASP.NET; schema ensure, promise, activity, dunning run, and hold stay PHP."),
         new("erp", "procurement req save", "/erp/procurement/requisitions/save", "write-live-gated", "POST PHP epc_proc_req_save; confirmWrites=true writes ASP.NET; schema ensure and add-line stay PHP."),
         new("erp", "fin period status dry-run", "/erp/fin/periods/status", "write-dry-run-gated", "POST dry-run for PHP fin_period_status; writes=0; confirm_writes refused; PHP authoritative."),
         new("erp", "WMS wave create", "/erp/wms/waves/create", "write-live-gated", "POST PHP epc_wms_wave_create + epc_wms_wave_add_pick. confirmWrites=true writes on ASP.NET. Receive and work complete stay PHP."),

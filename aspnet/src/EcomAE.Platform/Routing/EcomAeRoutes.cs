@@ -646,7 +646,7 @@ public static class EcomAeRoutes
     public const string ErpWmsReceive = "/erp/wms/receive";
     /// <summary>PHP epc_wms_location_save. <c>confirmWrites=true</c> writes via <c>IErpWmsLocationWriteService</c>.</summary>
     public const string ErpWmsLocationSave = "/erp/wms/locations/save";
-    /// <summary>Wave B dry-run for PHP coll_case_save (writes=0).</summary>
+    /// <summary>PHP epc_coll_case_save. <c>confirmWrites=true</c> writes via <c>IErpCollectionsCaseSaveWriteService</c>.</summary>
     public const string ErpCollectionsCaseSave = "/erp/collections/cases/save";
     /// <summary>PHP epc_proc_req_save. <c>confirmWrites=true</c> writes via <c>IErpProcurementReqSaveWriteService</c>.</summary>
     public const string ErpProcurementReqSave = "/erp/procurement/requisitions/save";
