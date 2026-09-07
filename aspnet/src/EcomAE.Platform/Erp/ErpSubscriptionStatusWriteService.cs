@@ -1,7 +1,7 @@
 namespace EcomAE.Platform.Erp;
 
 /// <summary>
-/// Live PHP <c>epc_sub_set_status</c> twin. Schema ensure, save, generate, and invoice-paid stay PHP.
+/// Live PHP <c>epc_sub_set_status</c> twin. Schema ensure and cycle-invoice generate stay PHP.
 /// </summary>
 public interface IErpSubscriptionStatusWriteService
 {
