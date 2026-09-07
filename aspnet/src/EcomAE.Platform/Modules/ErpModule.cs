@@ -2036,6 +2036,128 @@ public sealed class ErpModule : ISurfaceModule
                 session = SessionPayload(session)
             });
         }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpAftersalesJobAddLine, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IErpJwModuleSaveDryRun dryRun,
+            IErpAftersalesJobWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(
+                    context,
+                    "/erp/login?returnUrl=/cp/returns-rma-app",
+                    "Admin ERP capability required for aftersales job line add.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpAsJobAddLineBody>(context, cancellationToken)
+                       ?? new();
+            var jobId = body.JobId;
+            var lineType = body.LineType;
+            var description = body.Description;
+            var itemId = body.ItemId;
+            var qty = body.Qty;
+            var unitPrice = body.UnitPrice;
+            var taxPercent = body.TaxPercent;
+            var chargeable = body.Chargeable;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                jobId = LiveWriteFormBinder.Long(form, "jobId", "job_id");
+                lineType = LiveWriteFormBinder.Text(form, "lineType", "line_type");
+                description = LiveWriteFormBinder.Text(form, "description");
+                itemId = LiveWriteFormBinder.Long(form, "itemId", "item_id");
+                qty = LiveWriteFormBinder.Dec(form, "qty");
+                unitPrice = LiveWriteFormBinder.Dec(form, "unitPrice", "unit_price");
+                taxPercent = LiveWriteFormBinder.Dec(form, "taxPercent", "tax_percent");
+                chargeable = LiveWriteFormBinder.Flag(form, "chargeable");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            const string returnApp = "/cp/returns-rma-app";
+            if (!confirm)
+            {
+                var result = dryRun.Evaluate(new ErpJwModuleSaveRequest("as_job_add_line", jobId.ToString(CultureInfo.InvariantCulture), false));
+                if (LiveWriteFormBinder.WantsHtml(context))
+                {
+                    return DryRunHtmlForm.Redirect(DryRunHtmlForm.SafeReturnUrl(context.Request, returnApp), result.ValidationCode == "ok", result.Detail);
+                }
+
+                return Results.Ok(result.ToPayload(SessionPayload(session)));
+            }
+
+            var written = await writes.AddLineAsync(
+                new ErpAftersalesJobAddLineRequest(jobId, lineType, description, itemId, qty, unitPrice, taxPercent, chargeable),
+                cancellationToken);
+            return LiveWriteFormBinder.Complete(context, returnApp, written.Succeeded, written.Message, new
+            {
+                ok = written.Succeeded,
+                status = written.Succeeded,
+                writes = written.Writes,
+                phpAuthoritative = false,
+                validation_code = written.Code,
+                message = written.Message,
+                id = written.Id,
+                job_id = jobId,
+                session = SessionPayload(session)
+            });
+        }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpAftersalesJobClose, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IErpJwModuleSaveDryRun dryRun,
+            IErpAftersalesJobWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(
+                    context,
+                    "/erp/login?returnUrl=/cp/returns-rma-app",
+                    "Admin ERP capability required for aftersales job close.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpAsJobCloseBody>(context, cancellationToken)
+                       ?? new();
+            var jobId = body.JobId;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                jobId = LiveWriteFormBinder.Long(form, "jobId", "job_id", "id");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            const string returnApp = "/cp/returns-rma-app";
+            if (!confirm)
+            {
+                var result = dryRun.Evaluate(new ErpJwModuleSaveRequest("as_job_close", jobId.ToString(CultureInfo.InvariantCulture), false));
+                if (LiveWriteFormBinder.WantsHtml(context))
+                {
+                    return DryRunHtmlForm.Redirect(DryRunHtmlForm.SafeReturnUrl(context.Request, returnApp), result.ValidationCode == "ok", result.Detail);
+                }
+
+                return Results.Ok(result.ToPayload(SessionPayload(session)));
+            }
+
+            var written = await writes.CloseAsync(new ErpAftersalesJobCloseRequest(jobId), cancellationToken);
+            return LiveWriteFormBinder.Complete(context, returnApp, written.Succeeded, written.Message, new
+            {
+                ok = written.Succeeded,
+                status = written.Succeeded,
+                writes = written.Writes,
+                phpAuthoritative = false,
+                validation_code = written.Code,
+                message = written.Message,
+                id = written.Id,
+                job_id = written.Id,
+                session = SessionPayload(session)
+            });
+        }).DisableAntiforgery();
 
         endpoints.MapPost(EcomAeRoutes.ErpPurchasesFromOrder, async (
             HttpContext context,
@@ -8525,6 +8647,17 @@ public sealed class ErpModule : ISurfaceModule
         string? Complaint = null,
         bool UnderWarranty = false,
         bool ConfirmWrites = false);
+    private sealed record ErpAsJobAddLineBody(
+        long JobId = 0,
+        string? LineType = null,
+        string? Description = null,
+        long ItemId = 0,
+        decimal Qty = 0,
+        decimal UnitPrice = 0,
+        decimal TaxPercent = 0,
+        bool Chargeable = true,
+        bool ConfirmWrites = false);
+    private sealed record ErpAsJobCloseBody(long JobId = 0, bool ConfirmWrites = false);
     private sealed record ErpAsRmaCreateBody(
         long CustomerId = 0,
         long SourceId = 0,

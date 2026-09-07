@@ -140,6 +140,30 @@
             <label><input type="checkbox" name="under_warranty" value="1" /> Under warranty</label>
             <button type="submit" class="btn btn-xs btn-primary">Create service job</button>
         </form>
+        <form method="post" action="@EcomAeRoutes.ErpAftersalesJobAddLine" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/returns-rma-app" />
+            <label>Job id <input type="number" name="job_id" min="1" required style="width:5rem" /></label>
+            <label>Type
+                <select name="line_type">
+                    <option value="part">Part</option>
+                    <option value="labour">Labour</option>
+                </select>
+            </label>
+            <label>Description <input type="text" name="description" /></label>
+            <label>Item id <input type="number" name="item_id" min="0" style="width:5rem" /></label>
+            <label>Qty <input type="text" name="qty" value="1" /></label>
+            <label>Unit price <input type="text" name="unit_price" value="0" /></label>
+            <label>Tax % <input type="text" name="tax_percent" value="0" /></label>
+            <label><input type="checkbox" name="chargeable" value="1" checked /> Chargeable</label>
+            <button type="submit" class="btn btn-xs btn-primary">Add job line</button>
+        </form>
+        <form method="post" action="@EcomAeRoutes.ErpAftersalesJobClose" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/returns-rma-app" />
+            <label>Job id <input type="number" name="job_id" min="1" required style="width:5rem" /></label>
+            <button type="submit" class="btn btn-xs btn-primary">Close job</button>
+        </form>
     }
     <div class="epc-rma-kpis" aria-label="Returns RMA stats">
         <div class="epc-rma-kpi"><strong>@_summary.RmaCount.ToString(CultureInfo.InvariantCulture)</strong><span>RMAs</span></div>

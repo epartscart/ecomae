@@ -616,8 +616,12 @@ public static class EcomAeRoutes
     public const string ErpAftersalesRmaResolve = "/erp/aftersales/rma-resolve";
     /// <summary>PHP epc_as_warranty_register. Schema-ensure stays PHP.</summary>
     public const string ErpAftersalesWarrantyRegister = "/erp/aftersales/warranty-register";
-    /// <summary>PHP epc_as_job_create. Line add / close stay PHP.</summary>
+    /// <summary>PHP epc_as_job_create. Schema-ensure stays PHP.</summary>
     public const string ErpAftersalesJobCreate = "/erp/aftersales/job-create";
+    /// <summary>PHP epc_as_job_add_line. Recalc stays in this twin.</summary>
+    public const string ErpAftersalesJobAddLine = "/erp/aftersales/job-add-line";
+    /// <summary>PHP epc_as_job_close. Recalc stays in this twin.</summary>
+    public const string ErpAftersalesJobClose = "/erp/aftersales/job-close";
     /// <summary>Wave B dry-run for PHP purchase_from_order (writes=0).</summary>
     public const string ErpPurchasesFromOrder = "/erp/purchases/from-order";
     /// <summary>Wave B dry-run for PHP ccy_set_rate (writes=0).</summary>

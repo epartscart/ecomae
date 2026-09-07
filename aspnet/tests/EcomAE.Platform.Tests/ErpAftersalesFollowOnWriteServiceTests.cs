@@ -33,4 +33,34 @@ public sealed class ErpAftersalesFollowOnWriteServiceTests
         Assert.Equal("invalid", result.Code);
         Assert.Equal("Complaint or asset reference is required.", result.Message);
     }
+
+    [Fact]
+    public async Task JobAddLineRequiresJobId()
+    {
+        var result = await new ErpAftersalesJobWriteService(new UnusedConnections())
+            .AddLineAsync(new ErpAftersalesJobAddLineRequest(Description: "Pad"));
+        Assert.False(result.Succeeded);
+        Assert.Equal("invalid", result.Code);
+        Assert.Equal("Job id is required.", result.Message);
+    }
+
+    [Fact]
+    public async Task JobAddLineRequiresDescriptionOrItem()
+    {
+        var result = await new ErpAftersalesJobWriteService(new UnusedConnections())
+            .AddLineAsync(new ErpAftersalesJobAddLineRequest(JobId: 3, Qty: 1, UnitPrice: 10));
+        Assert.False(result.Succeeded);
+        Assert.Equal("invalid", result.Code);
+        Assert.Equal("Description or item id is required.", result.Message);
+    }
+
+    [Fact]
+    public async Task JobCloseRequiresJobId()
+    {
+        var result = await new ErpAftersalesJobWriteService(new UnusedConnections())
+            .CloseAsync(new ErpAftersalesJobCloseRequest());
+        Assert.False(result.Succeeded);
+        Assert.Equal("invalid", result.Code);
+        Assert.Equal("Job id is required.", result.Message);
+    }
 }

@@ -302,6 +302,8 @@ public sealed class PhpVsAspNetRemovalMatrixTests
             ("CpReturnsRmaApp.razor", "Resolve RMA"),
             ("CpReturnsRmaApp.razor", "Register warranty"),
             ("CpReturnsRmaApp.razor", "Create service job"),
+            ("CpReturnsRmaApp.razor", "Add job line"),
+            ("CpReturnsRmaApp.razor", "Close job"),
             ("CpJewelleryMastersApp.razor", "Save rate type"),
             ("CpReturnsRmaApp.razor", "/cp/returns/action"),
             ("CpSystemRequestsApp.razor", "/cp/requests/set-vin-viewed"),
