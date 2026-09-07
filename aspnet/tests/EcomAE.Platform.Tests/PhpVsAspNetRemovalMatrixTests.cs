@@ -234,6 +234,7 @@ public sealed class PhpVsAspNetRemovalMatrixTests
             ("CpFinAdvancedApp.razor", "/erp/fin/periods/status"),
             ("ErpWithholdingApp.razor", "/erp/ajax/wht-settle"),
             ("ErpWithholdingApp.razor", "/erp/withholding/codes/save"),
+            ("ErpWithholdingApp.razor", "/erp/withholding/txns/record"),
             ("CpLanguagesApp.razor", "/cp/lang/set-is-custom"),
             ("CpLanguagesApp.razor", "/cp/lang/set-is-error"),
             ("CpLanguagesApp.razor", "/cp/lang/set-same"),
