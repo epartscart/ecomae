@@ -13,7 +13,7 @@
 <PhpChromeStyles Surface="erp" />
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Payroll" BreadcrumbArea="People" BreadcrumbTab="Payroll">
 
-    <PhpErpModulePageHeader Title="Payroll runs" Subtitle="Period totals from the shop payroll register. Approve writes on ASP.NET." />
+    <PhpErpModulePageHeader Title="Payroll runs" Subtitle="Period totals from the shop payroll register. Approve and line-days write here." />
     <PhpErpD365ActionPane RefreshHref="/erp/payroll-app" />
 
     @if (!string.IsNullOrWhiteSpace(_flash))
@@ -35,6 +35,13 @@
             <label>Staff profile id <input type="number" name="staffProfileId" min="1" required style="width:6rem;margin:0 8px" /></label>
             <label>Days worked <input type="text" name="daysWorked" required style="width:5rem;margin:0 8px" /></label>
             <button type="submit" class="btn btn-sm btn-default">Save days</button>
+        </form>
+        <form method="post" action="/erp/payroll/update-days" class="form-inline" style="margin:0 0 12px;padding:10px;border:1px solid #c5d4de;background:#fff">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/erp/payroll-app" />
+            <label>Line id <input type="number" name="line_id" min="1" required style="width:6rem;margin:0 8px" /></label>
+            <label>Days worked <input type="text" name="days_worked" required style="width:5rem;margin:0 8px" /></label>
+            <button type="submit" class="btn btn-sm btn-primary">Save line days</button>
         </form>
     }
 
@@ -99,7 +106,7 @@
     </div>
 
     <div class="epc-erp-empty" style="display:block;margin-top:12px;padding:8px 10px;border:1px solid #c5d4de;background:#f8fafc;color:#475569;font-size:12px;">
-        Source: @_source. Staff directory stays on <a href="/erp/staff-app">staff</a>. Approve is live on <code>/erp/ajax/payroll-approve</code>.
+        Source: @_source. Staff directory stays on <a href="/erp/staff-app">staff</a>. Approve and line-days write here. Generate and pay stay on the Classic twin.
         @if (!string.IsNullOrWhiteSpace(_message)) { <span> @_message</span> }
     </div>
 </PhpErpDesktopChrome>

@@ -101,6 +101,17 @@ public sealed class LiveWriteServiceValidationTests
             .ApproveRunAsync(0);
         Assert.False(invalid.Succeeded);
         Assert.Equal("invalid", invalid.Code);
+
+        var daysDb = await new ErpPayrollUpdateDaysWriteService(new UnconfiguredConnections())
+            .UpdateLineDaysAsync(1, 15);
+        Assert.False(daysDb.Succeeded);
+        Assert.Equal("db", daysDb.Code);
+
+        var daysInvalid = await new ErpPayrollUpdateDaysWriteService(new ConfiguredNeverOpened())
+            .UpdateLineDaysAsync(0, 15);
+        Assert.False(daysInvalid.Succeeded);
+        Assert.Equal("invalid", daysInvalid.Code);
+        Assert.Equal("Cannot edit paid payroll line", daysInvalid.Message);
     }
 
     [Fact]
