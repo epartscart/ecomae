@@ -1300,7 +1300,9 @@ public static class EcomAeRoutes
     public const string ErpAjaxIntgEntitySave = "/erp/ajax/intg-entity-save";
     /// <summary>Wave B dry-run for PHP intg_sub_save (writes=0).</summary>
     public const string ErpAjaxIntgSubSave = "/erp/ajax/intg-sub-save";
-    /// <summary>Wave B dry-run for PHP intg_event_raise (writes=0).</summary>
+    /// <summary>Live PHP epc_intg_event_raise twin (ajax alias of <see cref="ErpIntegrationsEventsRaise"/>).</summary>
+    public const string ErpIntegrationsEventsRaise = "/erp/integrations/events/raise";
+    /// <summary>Live PHP epc_intg_event_raise ajax alias of <see cref="ErpIntegrationsEventsRaise"/>.</summary>
     public const string ErpAjaxIntgEventRaise = "/erp/ajax/intg-event-raise";
     /// <summary>Wave B dry-run for PHP fy_create (writes=0).</summary>
     public const string ErpAjaxFyCreate = "/erp/ajax/fy-create";

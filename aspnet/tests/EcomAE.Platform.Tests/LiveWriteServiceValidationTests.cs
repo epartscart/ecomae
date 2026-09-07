@@ -3111,6 +3111,11 @@ public sealed class LiveWriteServiceValidationTests
             .LogAsync(new ErpHrAttendanceWriteRequest(EmployeeId: 1, Hours: 8));
         Assert.False(hrAttDb.Succeeded);
         Assert.Equal("db", hrAttDb.Code);
+
+        var intgRaiseDb = await new ErpIntgEventRaiseWriteService(new UnconfiguredConnections())
+            .RaiseAsync(new ErpIntgEventRaiseWriteRequest(Event: "PaymentPosted", Payload: "{\"amt\":1}"));
+        Assert.False(intgRaiseDb.Succeeded);
+        Assert.Equal("db", intgRaiseDb.Code);
     }
 
     [Fact]
