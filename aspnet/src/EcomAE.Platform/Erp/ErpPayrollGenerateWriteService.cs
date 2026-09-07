@@ -51,7 +51,7 @@ public sealed class ErpPayrollGenerateWriteService : IErpPayrollGenerateWriteSer
             || !await ColumnExistsAsync(connection, "epc_erp_payroll_runs", "standard_days", cancellationToken).ConfigureAwait(false)
             || !await ColumnExistsAsync(connection, "epc_erp_payroll_lines", "monthly_basic", cancellationToken).ConfigureAwait(false)
             || !await ColumnExistsAsync(connection, "epc_erp_staff_profiles", "active", cancellationToken).ConfigureAwait(false)
-            || !await ColumnExistsAsync(connection, "epc_erp_hr_records", "staff_profile_id", cancellationToken).ConfigureAwait(false))
+            || !await ColumnExistsAsync(connection, "epc_erp_hr_records", "basic_salary", cancellationToken).ConfigureAwait(false))
         {
             return ErpSimpleWriteResult.Fail("invalid", "Payroll table is not provisioned");
         }
