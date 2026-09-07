@@ -83,7 +83,8 @@ public sealed class ErpJwTagWriteService : IErpJwTagWriteService
         }
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
-        if (!await TableExistsAsync(connection, "epc_jw_tags", cancellationToken).ConfigureAwait(false))
+        if (!await TableExistsAsync(connection, "epc_jw_tags", cancellationToken).ConfigureAwait(false)
+            || !await ColumnExistsAsync(connection, "epc_jw_tags", "tag_no", cancellationToken).ConfigureAwait(false))
         {
             return ErpSimpleWriteResult.Fail("invalid", "Jewellery tag tables are not provisioned");
         }
@@ -206,7 +207,8 @@ public sealed class ErpJwTagWriteService : IErpJwTagWriteService
         }
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
-        if (!await TableExistsAsync(connection, "epc_jw_tags", cancellationToken).ConfigureAwait(false))
+        if (!await TableExistsAsync(connection, "epc_jw_tags", cancellationToken).ConfigureAwait(false)
+            || !await ColumnExistsAsync(connection, "epc_jw_tags", "status", cancellationToken).ConfigureAwait(false))
         {
             return ErpSimpleWriteResult.Fail("invalid", "Jewellery tag tables are not provisioned");
         }
@@ -319,6 +321,18 @@ public sealed class ErpJwTagWriteService : IErpJwTagWriteService
             ErpDb.Positional("SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ?"),
             cancellationToken,
             table).ConfigureAwait(false);
+        return n > 0;
+    }
+
+    private static async Task<bool> ColumnExistsAsync(DbConnection connection, string table, string column, CancellationToken cancellationToken)
+    {
+        var n = await ErpDb.LongAsync(
+            connection,
+            null,
+            ErpDb.Positional("SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ?"),
+            cancellationToken,
+            table,
+            column).ConfigureAwait(false);
         return n > 0;
     }
 
