@@ -4971,6 +4971,108 @@ public sealed class ErpModule : ISurfaceModule
                     session = SessionPayload(session)
                 });
         }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpJewelleryColorStoneSaveForm, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IErpJwModuleSaveDryRun dryRun,
+            IErpJwColorStoneWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (!ErpJewelleryModuleChrome.HasJewelleryStaffAccess(session))
+            {
+                return LiveWriteFormBinder.LoginRedirect(
+                    context,
+                    "/erp/login?returnUrl=/cp/jewellery-masters-app?tab=jw_color_stone",
+                    "Admin ERP capability required for jewellery color stone save.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpJwColorStoneSaveBody>(context, cancellationToken)
+                       ?? new();
+            var companyId = body.CompanyId;
+            var code = body.Code;
+            var description = body.Description;
+            var category = body.Category;
+            var shape = body.Shape;
+            var clarity = body.Clarity;
+            var size = body.Size;
+            var color = body.Color;
+            var finish = body.Finish;
+            var country = body.Country;
+            var certificateNo = body.CertificateNo;
+            var vendor = body.Vendor;
+            var costCentre = body.CostCentre;
+            var grade = body.Grade;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                companyId = LiveWriteFormBinder.Int(form, "companyId", "company_id", "company");
+                code = LiveWriteFormBinder.Text(form, "item_code", "itemCode", "code");
+                description = LiveWriteFormBinder.Text(form, "description", "name");
+                category = LiveWriteFormBinder.Text(form, "stone_type", "stoneType", "category");
+                shape = LiveWriteFormBinder.Text(form, "shape");
+                clarity = LiveWriteFormBinder.Text(form, "clarity");
+                size = LiveWriteFormBinder.Text(form, "size_mm", "sizeMm", "size");
+                color = LiveWriteFormBinder.Text(form, "color_grade", "colorGrade", "color");
+                finish = LiveWriteFormBinder.Text(form, "treatment", "finish");
+                country = LiveWriteFormBinder.Text(form, "origin", "country");
+                certificateNo = LiveWriteFormBinder.Text(form, "certificate_no", "certificateNo");
+                vendor = LiveWriteFormBinder.Text(form, "vendor");
+                costCentre = LiveWriteFormBinder.Text(form, "cost_centre", "costCentre");
+                grade = LiveWriteFormBinder.Text(form, "grade");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                var result = dryRun.Evaluate(new ErpJwModuleSaveRequest("jw_color_stone_save", code, false));
+                if (LiveWriteFormBinder.WantsHtml(context))
+                {
+                    return DryRunHtmlForm.Redirect(
+                        DryRunHtmlForm.SafeReturnUrl(context.Request, "/cp/jewellery-masters-app?tab=jw_color_stone"),
+                        result.ValidationCode == "ok",
+                        result.Detail);
+                }
+
+                return Results.Ok(result.ToPayload(SessionPayload(session)));
+            }
+
+            var written = await writes.SaveAsync(
+                new ErpJwColorStoneSaveRequest(
+                    companyId,
+                    code,
+                    description,
+                    category,
+                    shape,
+                    clarity,
+                    size,
+                    color,
+                    finish,
+                    country,
+                    certificateNo,
+                    vendor,
+                    costCentre,
+                    grade),
+                cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/cp/jewellery-masters-app?tab=jw_color_stone",
+                written.Succeeded,
+                written.Message,
+                new
+                {
+                    ok = written.Succeeded,
+                    status = written.Succeeded,
+                    writes = written.Writes,
+                    phpAuthoritative = false,
+                    validation_code = written.Code,
+                    message = written.Message,
+                    id = written.Id,
+                    code,
+                    session = SessionPayload(session)
+                });
+        }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpJewelleryKaratSeedForm, async (HttpContext context, ILegacySessionValidator validator, IErpJwSeedSampleDataDryRun dryRun, CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateAsync(context, cancellationToken);
@@ -7747,6 +7849,22 @@ public sealed class ErpModule : ISurfaceModule
         decimal EstimatedCost = 0,
         long ReceivedDate = 0,
         long PromisedDate = 0);
+    private sealed record ErpJwColorStoneSaveBody(
+        int CompanyId = 0,
+        string? Code = null,
+        string? Description = null,
+        string? Category = null,
+        string? Shape = null,
+        string? Clarity = null,
+        string? Size = null,
+        string? Color = null,
+        string? Finish = null,
+        string? Country = null,
+        string? CertificateNo = null,
+        string? Vendor = null,
+        string? CostCentre = null,
+        string? Grade = null,
+        bool ConfirmWrites = false);
     private sealed record ErpJwPearlSaveBody(
         int CompanyId = 0,
         string? Code = null,

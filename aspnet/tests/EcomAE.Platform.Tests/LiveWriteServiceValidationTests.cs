@@ -1399,6 +1399,11 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(jwPearl.Succeeded);
         Assert.Equal("invalid", jwPearl.Code);
 
+        var jwColorStone = await new ErpJwColorStoneWriteService(new ConfiguredNeverOpened())
+            .SaveAsync(new ErpJwColorStoneSaveRequest());
+        Assert.False(jwColorStone.Succeeded);
+        Assert.Equal("invalid", jwColorStone.Code);
+
         var jwInvalid = await new ErpJwRepairWriteService(new ConfiguredNeverOpened())
             .SetStatusAsync(0, "ready");
         Assert.False(jwInvalid.Succeeded);
