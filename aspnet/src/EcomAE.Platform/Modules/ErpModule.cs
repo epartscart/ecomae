@@ -1864,14 +1864,60 @@ public sealed class ErpModule : ISurfaceModule
             return Results.Ok(dryRun.Evaluate(new ErpMarketingCreateRequest(name, false, channel, budget, status, timeStart, timeEnd, notes)).ToPayload(SessionPayload(session)));
         }).DisableAntiforgery();
 
-        endpoints.MapPost(EcomAeRoutes.ErpSubscriptionsSave, async (HttpContext context, ErpSubscriptionSaveBody? body, ILegacySessionValidator validator, IErpSubscriptionSaveDryRun dryRun, CancellationToken cancellationToken) =>
+        endpoints.MapPost(EcomAeRoutes.ErpSubscriptionsSave, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IErpSubscriptionSaveDryRun dryRun,
+            EcomAE.Platform.Erp.IErpSubscriptionSaveWriteService writes,
+            CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateAsync(context, cancellationToken);
             if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
-                return Unauthorized("Admin ERP capability required for subscription save dry-run.");
-            body ??= new ErpSubscriptionSaveBody(null, null, 0, false);
-            return Results.Ok(dryRun.Evaluate(new ErpSubscriptionSaveRequest(body.Code, body.Customer, body.Id, body.ConfirmWrites)).ToPayload(SessionPayload(session)));
-        });
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/sales-orders-app?tab=subscriptions", "Admin ERP capability required for subscription save.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpSubscriptionSaveBody>(context, cancellationToken)
+                       ?? new();
+            var code = body.Code;
+            var customer = body.Customer;
+            var planName = body.PlanName;
+            var amount = body.Amount;
+            var currency = body.Currency;
+            var cycle = body.Cycle;
+            var termMonths = body.TermMonths;
+            var startDate = body.StartDate;
+            var id = body.Id;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                code = LiveWriteFormBinder.Text(form, "code");
+                customer = LiveWriteFormBinder.Text(form, "customer");
+                planName = LiveWriteFormBinder.Text(form, "planName", "plan_name", "plan");
+                amount = LiveWriteFormBinder.Dec(form, "amount");
+                currency = LiveWriteFormBinder.Text(form, "currency");
+                cycle = LiveWriteFormBinder.Text(form, "cycle");
+                termMonths = LiveWriteFormBinder.Int(form, "termMonths", "term_months");
+                startDate = LiveWriteFormBinder.Text(form, "startDate", "start_date", "start_date_str", "start");
+                id = LiveWriteFormBinder.Long(form, "id", "subscriptionId", "subscription_id");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (confirm)
+            {
+                var written = await writes.SaveAsync(
+                    code, customer, planName, amount, currency, cycle, termMonths, startDate, id, cancellationToken);
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    "/erp/sales-orders-app?tab=subscriptions",
+                    written.Succeeded,
+                    written.Message,
+                    new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+            }
+
+            return Results.Ok(dryRun.Evaluate(new ErpSubscriptionSaveRequest(code, customer, id, false)).ToPayload(SessionPayload(session)));
+        }).DisableAntiforgery();
 
         endpoints.MapPost(EcomAeRoutes.ErpContractsSave, async (
             HttpContext context,
@@ -1937,14 +1983,60 @@ public sealed class ErpModule : ISurfaceModule
             return Results.Ok(dryRun.Evaluate(new ErpWmsReceiveRequest(body.Item, body.Qty, body.ReceiveLocationId, body.PutawayLocationId, body.ConfirmWrites)).ToPayload(SessionPayload(session)));
         });
 
-        endpoints.MapPost(EcomAeRoutes.ErpWmsLocationSave, async (HttpContext context, ErpWmsLocationSaveBody? body, ILegacySessionValidator validator, IErpWmsLocationSaveDryRun dryRun, CancellationToken cancellationToken) =>
+        endpoints.MapPost(EcomAeRoutes.ErpWmsLocationSave, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IErpWmsLocationSaveDryRun dryRun,
+            EcomAE.Platform.Erp.IErpWmsLocationWriteService writes,
+            CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateAsync(context, cancellationToken);
             if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
-                return Unauthorized("Admin ERP capability required for WMS location save dry-run.");
-            body ??= new ErpWmsLocationSaveBody(null, 0, false);
-            return Results.Ok(dryRun.Evaluate(new ErpWmsLocationSaveRequest(body.Code, body.Id, body.ConfirmWrites)).ToPayload(SessionPayload(session)));
-        });
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/cp/warehouse-wms-app", "Admin ERP capability required for WMS location save.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpWmsLocationSaveBody>(context, cancellationToken)
+                       ?? new();
+            var code = body.Code;
+            var warehouse = body.Warehouse;
+            var zone = body.Zone;
+            var type = body.Type;
+            var capacity = body.Capacity;
+            var active = body.Active;
+            var companyId = body.CompanyId;
+            var id = body.Id;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                code = LiveWriteFormBinder.Text(form, "code");
+                warehouse = LiveWriteFormBinder.Text(form, "warehouse");
+                zone = LiveWriteFormBinder.Text(form, "zone");
+                type = LiveWriteFormBinder.Text(form, "type");
+                capacity = LiveWriteFormBinder.Int(form, "capacity");
+                active = form.ContainsKey("active") || form.ContainsKey("is_active")
+                    ? LiveWriteFormBinder.Int(form, "active", "is_active")
+                    : 1;
+                companyId = LiveWriteFormBinder.Int(form, "companyId", "company_id");
+                id = LiveWriteFormBinder.Long(form, "id", "locationId", "location_id");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (confirm)
+            {
+                var written = await writes.SaveAsync(
+                    code, warehouse, zone, type, capacity, active, companyId, id, cancellationToken);
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    "/cp/warehouse-wms-app",
+                    written.Succeeded,
+                    written.Message,
+                    new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+            }
+
+            return Results.Ok(dryRun.Evaluate(new ErpWmsLocationSaveRequest(code, id, false)).ToPayload(SessionPayload(session)));
+        }).DisableAntiforgery();
 
         endpoints.MapPost(EcomAeRoutes.ErpCollectionsCaseSave, async (HttpContext context, ErpCollectionsCaseSaveBody? body, ILegacySessionValidator validator, IErpCollectionsCaseSaveDryRun dryRun, CancellationToken cancellationToken) =>
         {
@@ -1955,14 +2047,54 @@ public sealed class ErpModule : ISurfaceModule
             return Results.Ok(dryRun.Evaluate(new ErpCollectionsCaseSaveRequest(body.CustomerId, body.Id, body.ConfirmWrites)).ToPayload(SessionPayload(session)));
         });
 
-        endpoints.MapPost(EcomAeRoutes.ErpProcurementReqSave, async (HttpContext context, ErpProcReqSaveBody? body, ILegacySessionValidator validator, IErpProcReqSaveDryRun dryRun, CancellationToken cancellationToken) =>
+        endpoints.MapPost(EcomAeRoutes.ErpProcurementReqSave, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IErpProcReqSaveDryRun dryRun,
+            EcomAE.Platform.Erp.IErpProcurementReqSaveWriteService writes,
+            CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateAsync(context, cancellationToken);
             if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
-                return Unauthorized("Admin ERP capability required for procurement req save dry-run.");
-            body ??= new ErpProcReqSaveBody(null, 0, false);
-            return Results.Ok(dryRun.Evaluate(new ErpProcReqSaveRequest(body.Requester, body.Id, body.ConfirmWrites)).ToPayload(SessionPayload(session)));
-        });
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/cp/purchase-requests-app", "Admin ERP capability required for procurement req save.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpProcReqSaveBody>(context, cancellationToken)
+                       ?? new();
+            var requester = body.Requester;
+            var businessUnitId = body.BusinessUnitId;
+            var justification = body.Justification;
+            var reqNumber = body.ReqNumber;
+            var companyId = body.CompanyId;
+            var id = body.Id;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                requester = LiveWriteFormBinder.Text(form, "requester");
+                businessUnitId = LiveWriteFormBinder.Long(form, "businessUnitId", "business_unit_id");
+                justification = LiveWriteFormBinder.Text(form, "justification");
+                reqNumber = LiveWriteFormBinder.Text(form, "reqNumber", "req_number");
+                companyId = LiveWriteFormBinder.Long(form, "companyId", "company_id");
+                id = LiveWriteFormBinder.Long(form, "id", "reqId", "req_id");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (confirm)
+            {
+                var written = await writes.SaveAsync(
+                    requester, businessUnitId, justification, reqNumber, companyId, id, cancellationToken);
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    "/cp/purchase-requests-app",
+                    written.Succeeded,
+                    written.Message,
+                    new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+            }
+
+            return Results.Ok(dryRun.Evaluate(new ErpProcReqSaveRequest(requester, id, false)).ToPayload(SessionPayload(session)));
+        }).DisableAntiforgery();
 
         endpoints.MapPost(EcomAeRoutes.ErpFinPeriodStatus, async (
             HttpContext context,
@@ -4405,7 +4537,7 @@ public sealed class ErpModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only epc_erp_subscriptions + MRR/ARR. PHP subscriptions tab remains authoritative."
+                note = "epc_erp_subscriptions + MRR/ARR. Save on POST /erp/subscriptions/save when confirmWrites=true. Cycle generate stays PHP."
             });
         });
 
@@ -5616,7 +5748,17 @@ public sealed class ErpModule : ISurfaceModule
         string? TimeStart = null,
         string? TimeEnd = null,
         string? Notes = null);
-    private sealed record ErpSubscriptionSaveBody(string? Code, string? Customer, long Id = 0, bool ConfirmWrites = false);
+    private sealed record ErpSubscriptionSaveBody(
+        string? Code = null,
+        string? Customer = null,
+        long Id = 0,
+        bool ConfirmWrites = false,
+        string? PlanName = null,
+        decimal Amount = 0,
+        string? Currency = null,
+        string? Cycle = null,
+        int TermMonths = 12,
+        string? StartDate = null);
     private sealed record ErpContractSaveBody(
         string? Code = null,
         string? Title = null,
@@ -5629,9 +5771,25 @@ public sealed class ErpModule : ISurfaceModule
         string? EndDate = null,
         string? BodyText = null);
     private sealed record ErpWmsReceiveBody(string? Item, decimal Qty, long ReceiveLocationId = 0, long PutawayLocationId = 0, bool ConfirmWrites = false);
-    private sealed record ErpWmsLocationSaveBody(string? Code, long Id = 0, bool ConfirmWrites = false);
+    private sealed record ErpWmsLocationSaveBody(
+        string? Code = null,
+        long Id = 0,
+        bool ConfirmWrites = false,
+        string? Warehouse = null,
+        string? Zone = null,
+        string? Type = null,
+        int Capacity = 0,
+        int Active = 1,
+        int CompanyId = 0);
     private sealed record ErpCollectionsCaseSaveBody(long CustomerId = 0, long Id = 0, bool ConfirmWrites = false);
-    private sealed record ErpProcReqSaveBody(string? Requester, long Id = 0, bool ConfirmWrites = false);
+    private sealed record ErpProcReqSaveBody(
+        string? Requester = null,
+        long BusinessUnitId = 0,
+        string? Justification = null,
+        string? ReqNumber = null,
+        long CompanyId = 0,
+        long Id = 0,
+        bool ConfirmWrites = false);
     private sealed record ErpFinPeriodStatusBody(int Fy, int PeriodNo, string? Status = "open", bool ConfirmWrites = false, long CompanyId = 0);
     private sealed record ErpWmsWaveCreateBody(
         string? Item = null,
