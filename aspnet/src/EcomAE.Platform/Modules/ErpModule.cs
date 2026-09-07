@@ -4969,6 +4969,8 @@ public sealed class ErpModule : ISurfaceModule
         }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpHrEmployeesSave, HandleHrEmpSaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxHrEmpSave, HandleHrEmpSaveAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpInsuranceSave, HandleInsSaveAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxInsSave, HandleInsSaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpHrAttendanceLog, HandleHrAttendanceAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxHrAttendance, HandleHrAttendanceAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxHrLeaveRequest, async (
@@ -9470,8 +9472,7 @@ public sealed class ErpModule : ISurfaceModule
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,false); return Results.Ok(dryRun.Evaluate(new ErpDocxDeleteRequest(body.Id, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxDocxRunReminders, async (HttpContext context, ErpDocxRunRemindersBody? body, ILegacySessionValidator validator, IErpDocxRunRemindersDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(false); return Results.Ok(dryRun.Evaluate(new ErpDocxRunRemindersRequest(body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxInsSave, async (HttpContext context, ErpInsSaveBody? body, ILegacySessionValidator validator, IErpInsSaveDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpInsSaveRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        // ErpAjaxInsSave is mapped with ErpInsuranceSave via HandleInsSaveAsync.
         endpoints.MapPost(EcomAeRoutes.ErpAjaxInsDelete, async (HttpContext context, ErpInsDeleteBody? body, ILegacySessionValidator validator, IErpInsDeleteDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,false); return Results.Ok(dryRun.Evaluate(new ErpInsDeleteRequest(body.Id, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxInsDocAdd, async (HttpContext context, ErpInsDocAddBody? body, ILegacySessionValidator validator, IErpInsDocAddDryRun dryRun, CancellationToken cancellationToken) =>
@@ -12004,6 +12005,98 @@ public sealed class ErpModule : ISurfaceModule
             new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
     }
 
+    private static async Task<IResult> HandleInsSaveAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpInsSaveDryRun dryRun,
+        IErpInsSaveWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/cp/insurance-compliance-app", "Admin ERP capability required for insurance policy save.");
+        }
+
+        var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpInsSaveBody>(context, cancellationToken) ?? new();
+        var id = body.Id;
+        var companyId = body.CompanyId;
+        var policyNo = body.PolicyNo;
+        var klass = body.Class;
+        var title = body.Title;
+        var insurer = body.Insurer;
+        var broker = body.Broker;
+        var insuredName = body.InsuredName;
+        var sumInsured = body.SumInsured;
+        var premium = body.Premium;
+        var deductible = body.Deductible;
+        var currency = body.Currency;
+        var startDate = FirstNonEmpty(body.StartDate, body.StartDateStr);
+        var expiryDate = FirstNonEmpty(body.ExpiryDate, body.ExpiryDateStr);
+        var reminderDays = body.ReminderDays;
+        var contactEmail = body.ContactEmail;
+        var status = body.Status;
+        var note = body.Note;
+        var confirm = body.ConfirmWrites;
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            id = LiveWriteFormBinder.Long(form, "id");
+            companyId = LiveWriteFormBinder.Long(form, "companyId", "company_id");
+            policyNo = LiveWriteFormBinder.Text(form, "policyNo", "policy_no");
+            klass = LiveWriteFormBinder.Text(form, "class");
+            title = LiveWriteFormBinder.Text(form, "title");
+            insurer = LiveWriteFormBinder.Text(form, "insurer");
+            broker = LiveWriteFormBinder.Text(form, "broker");
+            insuredName = LiveWriteFormBinder.Text(form, "insuredName", "insured_name");
+            sumInsured = LiveWriteFormBinder.Dec(form, "sumInsured", "sum_insured");
+            premium = LiveWriteFormBinder.Dec(form, "premium");
+            deductible = LiveWriteFormBinder.Dec(form, "deductible");
+            currency = LiveWriteFormBinder.Text(form, "currency");
+            startDate = FirstNonEmpty(
+                LiveWriteFormBinder.Text(form, "startDate", "start_date", "start_date_str"),
+                startDate);
+            expiryDate = FirstNonEmpty(
+                LiveWriteFormBinder.Text(form, "expiryDate", "expiry_date", "expiry_date_str"),
+                expiryDate);
+            reminderDays = LiveWriteFormBinder.Text(form, "reminderDays", "reminder_days");
+            contactEmail = LiveWriteFormBinder.Text(form, "contactEmail", "contact_email");
+            status = LiveWriteFormBinder.Text(form, "status");
+            note = LiveWriteFormBinder.Text(form, "note");
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+        }
+
+        if (!confirm)
+        {
+            return Results.Ok(dryRun.Evaluate(new ErpInsSaveRequest(id, policyNo, expiryDate, false)).ToPayload(SessionPayload(session)));
+        }
+
+        var written = await writes.SaveAsync(
+            new ErpInsSaveWriteRequest(
+                id, companyId, policyNo, klass, title, insurer, broker, insuredName,
+                sumInsured, premium, deductible, currency, startDate, expiryDate,
+                reminderDays, contactEmail, status, note),
+            cancellationToken);
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/cp/insurance-compliance-app",
+            written.Succeeded,
+            written.Message,
+            new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+    }
+
+    private static string? FirstNonEmpty(string? preferred, string? fallback)
+    {
+        var first = (preferred ?? string.Empty).Trim();
+        if (first.Length > 0)
+        {
+            return first;
+        }
+
+        var second = (fallback ?? string.Empty).Trim();
+        return second.Length > 0 ? second : preferred ?? fallback;
+    }
+
     private static async Task<IResult> HandleWhtCertificateAsync(
         HttpContext context,
         ILegacySessionValidator validator,
@@ -12597,7 +12690,28 @@ public sealed class ErpModule : ISurfaceModule
     private sealed record ErpDocxSaveBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpDocxDeleteBody(long Id, bool ConfirmWrites = false);
     private sealed record ErpDocxRunRemindersBody(bool ConfirmWrites = false);
-    private sealed record ErpInsSaveBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
+    private sealed record ErpInsSaveBody(
+        long Id = 0,
+        long CompanyId = 0,
+        string? PolicyNo = null,
+        string? Class = null,
+        string? Title = null,
+        string? Insurer = null,
+        string? Broker = null,
+        string? InsuredName = null,
+        decimal SumInsured = 0,
+        decimal Premium = 0,
+        decimal Deductible = 0,
+        string? Currency = null,
+        string? StartDate = null,
+        string? StartDateStr = null,
+        string? ExpiryDate = null,
+        string? ExpiryDateStr = null,
+        string? ReminderDays = null,
+        string? ContactEmail = null,
+        string? Status = null,
+        string? Note = null,
+        bool ConfirmWrites = false);
     private sealed record ErpInsDeleteBody(long Id, bool ConfirmWrites = false);
     private sealed record ErpInsDocAddBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpInsDocDeleteBody(long Id, bool ConfirmWrites = false);

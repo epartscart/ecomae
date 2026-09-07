@@ -2838,6 +2838,22 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(insAddDb.Succeeded);
         Assert.Equal("db", insAddDb.Code);
 
+        var insSaveMissing = await new ErpInsSaveWriteService(new ConfiguredNeverOpened())
+            .SaveAsync(new ErpInsSaveWriteRequest());
+        Assert.False(insSaveMissing.Succeeded);
+        Assert.Equal("invalid", insSaveMissing.Code);
+        Assert.Equal("Policy number is required", insSaveMissing.Message);
+
+        var insSaveExpiry = await new ErpInsSaveWriteService(new ConfiguredNeverOpened())
+            .SaveAsync(new ErpInsSaveWriteRequest(PolicyNo: "MAR-001"));
+        Assert.False(insSaveExpiry.Succeeded);
+        Assert.Equal("Expiry date is required", insSaveExpiry.Message);
+
+        var insSaveDb = await new ErpInsSaveWriteService(new UnconfiguredConnections())
+            .SaveAsync(new ErpInsSaveWriteRequest(PolicyNo: "MAR-001", ExpiryDate: "2026-12-31"));
+        Assert.False(insSaveDb.Succeeded);
+        Assert.Equal("db", insSaveDb.Code);
+
         var vatInvalid = await new ErpBosVatRefundStatusWriteService(new ConfiguredNeverOpened())
             .SetStatusAsync(9, "nope");
         Assert.False(vatInvalid.Succeeded);

@@ -64,6 +64,27 @@
     }
     @if (_isAdmin)
     {
+        <form method="post" action="/erp/insurance/save" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/insurance-compliance-app" />
+            <label>Policy no <input type="text" name="policy_no" required /></label>
+            <label>Class
+                <select name="class">
+                    <option value="marine">Marine Cargo / Hull</option>
+                    <option value="property_air">Property All-Risk</option>
+                    <option value="medical">Group Medical / Health</option>
+                    <option value="motor">Motor / Fleet</option>
+                    <option value="other">Other</option>
+                </select>
+            </label>
+            <label>Title <input type="text" name="title" /></label>
+            <label>Insurer <input type="text" name="insurer" /></label>
+            <label>Sum <input type="number" name="sum_insured" step="0.01" style="width:7rem" /></label>
+            <label>Premium <input type="number" name="premium" step="0.01" style="width:7rem" /></label>
+            <label>Expiry <input type="date" name="expiry_date_str" required /></label>
+            <label>Currency <input type="text" name="currency" maxlength="3" value="AED" style="width:4rem" /></label>
+            <button type="submit">Save policy</button>
+        </form>
         <form method="post" action="/erp/ajax/ins-claim-add" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
             <input type="hidden" name="returnUrl" value="/cp/insurance-compliance-app" />
