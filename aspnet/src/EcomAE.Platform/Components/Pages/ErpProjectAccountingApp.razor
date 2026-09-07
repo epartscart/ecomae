@@ -13,8 +13,17 @@
 <PageTitle>Project accounting · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Project accounting" BreadcrumbArea="Projects" BreadcrumbTab="Project accounting">
-    <PhpErpModulePageHeader Title="Project accounting" Subtitle="Budgets, cost/revenue postings and recognition. Saves stay dry-run." PhpTabHref="@_phpTab" />
+    <PhpErpModulePageHeader Title="Project accounting" Subtitle="Budgets, cost/revenue postings and recognition. Transaction post is live; budget save and recognition stay dry-run." PhpTabHref="@_phpTab" />
     <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
+
+    @if (!string.IsNullOrWhiteSpace(_flashOk))
+    {
+        <div class="alert alert-success" role="status" style="margin:0 0 12px;padding:.7rem .9rem;border-radius:.4rem;background:#ecfdf5;color:#065f46">@_flashOk</div>
+    }
+    @if (!string.IsNullOrWhiteSpace(_flashErr))
+    {
+        <div class="alert alert-danger" role="status" style="margin:0 0 12px;padding:.7rem .9rem;border-radius:.4rem;background:#fef2f2;color:#991b1b">@_flashErr</div>
+    }
 
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Project accounting KPIs">
         <div class="kpi"><div class="lbl">Budgets</div><div class="val">@_count.ToString(CultureInfo.InvariantCulture)</div></div>
@@ -31,6 +40,23 @@
                 <button type="submit" class="btn btn-primary">Validate save</button>
             </div>
             @if (!string.IsNullOrWhiteSpace(_formResult)) { <p style="margin:8px 0 0;font-size:12px;">@_formResult</p> }
+        </form>
+        <form method="post" action="/erp/project-accounting/txns/add" style="margin:12px 0;padding:10px;border:1px solid #c5d4de;background:#fff;display:flex;flex-wrap:wrap;gap:.4rem;align-items:end">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/erp/project-accounting-app" />
+            <strong style="width:100%">Post transaction</strong>
+            <label>Project id <input type="number" name="project_id" min="0" required style="width:7rem" /></label>
+            <label>Type
+                <select name="txn_type">
+                    <option value="cost">cost</option>
+                    <option value="revenue">revenue</option>
+                    <option value="billing">billing</option>
+                </select>
+            </label>
+            <label>Description <input type="text" name="description" maxlength="200" /></label>
+            <label>Amount <input type="text" name="amount" placeholder="0.00" style="width:7rem" /></label>
+            <label>Company id <input type="number" name="company_id" min="0" value="0" style="width:5rem" /></label>
+            <button type="submit" class="btn btn-primary">Post</button>
         </form>
     }
 
@@ -107,7 +133,7 @@
     </div>
 
     <div class="epc-erp-empty" style="display:block;margin-top:12px;padding:8px 10px;border:1px solid #c5d4de;background:#f8fafc;color:#475569;font-size:12px;">
-        Source: @_source. Dry-run: <code>prja_budget_save</code> — writes=0.
+        Source: @_source. Live: <code>prja_txn_add</code>. Dry-run: <code>prja_budget_save</code> / <code>prja_recognize</code>.
         @if (!string.IsNullOrWhiteSpace(_message)) { <span> @_message</span> }
     </div>
 </PhpErpDesktopChrome>
@@ -123,11 +149,15 @@
     private string _message = "";
     private string _formCode = "";
     private string _formResult = "";
+    private string _flashOk = "";
+    private string _flashErr = "";
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
+        _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
+        _flashErr = ctx.Request.Query["err"].ToString() ?? "";
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("erp");
         if (!_isAdmin) { _message = "Sign in for live data."; return; }
