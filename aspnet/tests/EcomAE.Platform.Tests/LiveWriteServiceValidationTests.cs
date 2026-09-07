@@ -1174,6 +1174,11 @@ public sealed class LiveWriteServiceValidationTests
 
         var missingDb = await new ErpWorkflowCreateWriteService(new UnconfiguredConnections())
             .CreateAsync("Pick parts", "warehouse", "high", 9, "", "", 0, "", 1);
+        Assert.False(missingDb.Succeeded);
+        Assert.Equal("db", missingDb.Code);
+    }
+
+    [Fact]
     public async Task Wms_wave_create_rejects_invalid_item_qty_and_unconfigured_db()
     {
         var invalid = await new ErpWmsWaveCreateWriteService(new ConfiguredNeverOpened())
