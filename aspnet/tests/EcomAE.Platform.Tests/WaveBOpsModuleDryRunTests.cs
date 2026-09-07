@@ -17,6 +17,12 @@ public sealed class WaveBOpsModuleDryRunTests
     {
         var r = new ErpSubscriptionSaveDryRun().Evaluate(new ErpSubscriptionSaveRequest("", "Acme"));
         Assert.Equal("code_customer_required", r.ValidationCode);
+        var ok = new ErpSubscriptionSaveDryRun().Evaluate(new ErpSubscriptionSaveRequest("SUB-1", "Acme"));
+        Assert.Equal("dry-run-validated", ok.Status);
+        Assert.Equal(0, ok.Writes);
+        Assert.False(ok.PhpAuthoritative);
+        var refused = new ErpSubscriptionSaveDryRun().Evaluate(new ErpSubscriptionSaveRequest("SUB-1", "Acme", ConfirmWrites: true));
+        Assert.Equal("dry-run-confirm-refused", refused.Status);
     }
 
     [Fact] public void ContractSaveValidated()
@@ -41,6 +47,12 @@ public sealed class WaveBOpsModuleDryRunTests
     {
         var r = new ErpWmsLocationSaveDryRun().Evaluate(new ErpWmsLocationSaveRequest("A-01-01"));
         Assert.Equal("dry-run-validated", r.Status);
+        Assert.Equal(0, r.Writes);
+        Assert.False(r.PhpAuthoritative);
+        var missing = new ErpWmsLocationSaveDryRun().Evaluate(new ErpWmsLocationSaveRequest(""));
+        Assert.Equal("code_required", missing.ValidationCode);
+        var refused = new ErpWmsLocationSaveDryRun().Evaluate(new ErpWmsLocationSaveRequest("A-01-01", ConfirmWrites: true));
+        Assert.Equal("dry-run-confirm-refused", refused.Status);
     }
 
     [Fact] public void CollectionsCaseSaveValidated()
@@ -57,6 +69,12 @@ public sealed class WaveBOpsModuleDryRunTests
     {
         var r = new ErpProcReqSaveDryRun().Evaluate(new ErpProcReqSaveRequest("buyer@ecom.ae"));
         Assert.Equal("dry-run-validated", r.Status);
+        Assert.False(r.PhpAuthoritative);
+        Assert.Equal(0, r.Writes);
+        var refused = new ErpProcReqSaveDryRun().Evaluate(new ErpProcReqSaveRequest("buyer@ecom.ae", 0, true));
+        Assert.Equal("confirm_writes_refused", refused.ValidationCode);
+        var missing = new ErpProcReqSaveDryRun().Evaluate(new ErpProcReqSaveRequest(""));
+        Assert.Equal("requester_required", missing.ValidationCode);
     }
 
     [Fact] public void FinPeriodStatusValidated()

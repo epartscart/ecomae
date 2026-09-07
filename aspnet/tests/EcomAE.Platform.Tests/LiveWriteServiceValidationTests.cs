@@ -897,6 +897,16 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(wmsDb.Succeeded);
         Assert.Equal("db", wmsDb.Code);
 
+        var wmsSaveInvalid = await new ErpWmsLocationWriteService(new ConfiguredNeverOpened())
+            .SaveAsync("  ", "MAIN", "", "pick", 0, 1, 0, 0);
+        Assert.False(wmsSaveInvalid.Succeeded);
+        Assert.Equal("invalid", wmsSaveInvalid.Code);
+
+        var wmsSaveDb = await new ErpWmsLocationWriteService(new UnconfiguredConnections())
+            .SaveAsync("A-01-01", "MAIN", "A", "pick", 0, 1, 0, 0);
+        Assert.False(wmsSaveDb.Succeeded);
+        Assert.Equal("db", wmsSaveDb.Code);
+
         var brandMissing = await new CpPriceStorageRuleWriteService(new ConfiguredNeverOpened())
             .ApplyAsync("save_storage_article_rule", 0, 4, "bosch", "---", "10", 1);
         Assert.False(brandMissing.Succeeded);
@@ -916,6 +926,16 @@ public sealed class LiveWriteServiceValidationTests
             .SetStatusAsync(9, "paused");
         Assert.False(subDb.Succeeded);
         Assert.Equal("db", subDb.Code);
+
+        var subSaveInvalid = await new ErpSubscriptionSaveWriteService(new ConfiguredNeverOpened())
+            .SaveAsync("SUB-1", "", "", 0, "AED", "monthly", 12, null, 0);
+        Assert.False(subSaveInvalid.Succeeded);
+        Assert.Equal("invalid", subSaveInvalid.Code);
+
+        var subSaveDb = await new ErpSubscriptionSaveWriteService(new UnconfiguredConnections())
+            .SaveAsync("SUB-1", "Acme", "Pro", 99, "AED", "monthly", 12, null, 0);
+        Assert.False(subSaveDb.Succeeded);
+        Assert.Equal("db", subSaveDb.Code);
 
         var ctrInvalid = await new ErpContractStatusWriteService(new ConfiguredNeverOpened())
             .SetStatusAsync(9, "nope");
@@ -971,6 +991,16 @@ public sealed class LiveWriteServiceValidationTests
             .SaveAsync(501, "new", 12000, 0, null, "Aisha", "", 0, 0);
         Assert.False(collSaveDb.Succeeded);
         Assert.Equal("db", collSaveDb.Code);
+
+        var procSaveInvalid = await new ErpProcurementReqSaveWriteService(new ConfiguredNeverOpened())
+            .SaveAsync("", 0, "laptops", null, 0, 0);
+        Assert.False(procSaveInvalid.Succeeded);
+        Assert.Equal("invalid", procSaveInvalid.Code);
+
+        var procSaveDb = await new ErpProcurementReqSaveWriteService(new UnconfiguredConnections())
+            .SaveAsync("Sara", 7, "Laptops", null, 1, 0);
+        Assert.False(procSaveDb.Succeeded);
+        Assert.Equal("db", procSaveDb.Code);
 
         var procSubmitInvalid = await new ErpProcurementReqWriteService(new ConfiguredNeverOpened())
             .SubmitAsync(0);

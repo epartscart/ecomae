@@ -677,6 +677,7 @@ builder.Services.AddScoped<EcomAE.Platform.Cp.ICpContentManagerWriteService, Eco
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpOfficesCashWriteService, EcomAE.Platform.Erp.ErpOfficesCashWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpWmsLocationWriteService, EcomAE.Platform.Erp.ErpWmsLocationWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpSubscriptionStatusWriteService, EcomAE.Platform.Erp.ErpSubscriptionStatusWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpSubscriptionSaveWriteService, EcomAE.Platform.Erp.ErpSubscriptionSaveWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpContractStatusWriteService, EcomAE.Platform.Erp.ErpContractStatusWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpContractSaveWriteService, EcomAE.Platform.Erp.ErpContractSaveWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpWorkflowStatusWriteService, EcomAE.Platform.Erp.ErpWorkflowStatusWriteService>();
@@ -684,6 +685,7 @@ builder.Services.AddScoped<EcomAE.Platform.Erp.IErpWorkflowCreateWriteService, E
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpCollectionsCaseStatusWriteService, EcomAE.Platform.Erp.ErpCollectionsCaseStatusWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpCollectionsCaseSaveWriteService, EcomAE.Platform.Erp.ErpCollectionsCaseSaveWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpProcurementReqWriteService, EcomAE.Platform.Erp.ErpProcurementReqWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpProcurementReqSaveWriteService, EcomAE.Platform.Erp.ErpProcurementReqSaveWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpWmsWaveReleaseWriteService, EcomAE.Platform.Erp.ErpWmsWaveReleaseWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpWmsWaveCreateWriteService, EcomAE.Platform.Erp.ErpWmsWaveCreateWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpMarketingWriteService, EcomAE.Platform.Erp.ErpMarketingWriteService>();
