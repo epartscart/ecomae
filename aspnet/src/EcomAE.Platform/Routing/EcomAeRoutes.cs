@@ -1330,7 +1330,9 @@ public static class EcomAeRoutes
     public const string ErpAjaxRbacRoleSave = "/erp/ajax/rbac-role-save";
     /// <summary>Wave B dry-run for PHP rbac_role_duty (writes=0).</summary>
     public const string ErpAjaxRbacRoleDuty = "/erp/ajax/rbac-role-duty";
-    /// <summary>Wave B dry-run for PHP rbac_user_role (writes=0).</summary>
+    /// <summary>Live PHP epc_rbac_user_assign_role twin (ajax alias of <see cref="ErpSecurityUsersAssignRole"/>).</summary>
+    public const string ErpSecurityUsersAssignRole = "/erp/security/users/assign-role";
+    /// <summary>Live PHP epc_rbac_user_assign_role ajax alias of <see cref="ErpSecurityUsersAssignRole"/>.</summary>
     public const string ErpAjaxRbacUserRole = "/erp/ajax/rbac-user-role";
     /// <summary>Wave B dry-run for PHP rtl_channel_save (writes=0).</summary>
     public const string ErpAjaxRtlChannelSave = "/erp/ajax/rtl-channel-save";
