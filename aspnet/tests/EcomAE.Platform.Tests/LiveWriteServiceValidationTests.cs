@@ -3362,4 +3362,19 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(missingDb.Succeeded);
         Assert.Equal("db", missingDb.Code);
     }
+
+    [Fact]
+    public async Task Bos_wf_decide_rejects_missing_request_and_unconfigured_db()
+    {
+        var invalid = await new ErpBosWfDecideWriteService(new ConfiguredNeverOpened())
+            .DecideAsync(new ErpBosWfDecideWriteRequest());
+        Assert.False(invalid.Succeeded);
+        Assert.Equal("invalid", invalid.Code);
+        Assert.Equal("Request not pending", invalid.Message);
+
+        var missingDb = await new ErpBosWfDecideWriteService(new UnconfiguredConnections())
+            .DecideAsync(new ErpBosWfDecideWriteRequest(4, "approve"));
+        Assert.False(missingDb.Succeeded);
+        Assert.Equal("db", missingDb.Code);
+    }
 }

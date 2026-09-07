@@ -15,7 +15,7 @@
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Approvals" BreadcrumbArea="Home" BreadcrumbTab="Approvals">
 
     
-    <PhpErpModulePageHeader Title="Approval queue" Subtitle="Disable a BOS approval rule here. Save, decide, and raise stay on the classic twin." />
+    <PhpErpModulePageHeader Title="Approval queue" Subtitle="Disable a rule or decide a pending request here. Save and raise stay on the classic twin." />
 
     @if (!string.IsNullOrWhiteSpace(_flashOk))
     {
@@ -27,6 +27,19 @@
     }
     @if (_isAdmin)
     {
+        <form method="post" action="/erp/approvals/requests/decide" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/erp/approvals-app" />
+            <label>Request id <input type="number" name="request_id" min="1" required style="width:6rem" /></label>
+            <label>Decision
+                <select name="decision">
+                    <option value="approve">Approve</option>
+                    <option value="reject">Reject</option>
+                </select>
+            </label>
+            <label>Comment <input type="text" name="comment" /></label>
+            <button type="submit">Decide request</button>
+        </form>
         <form method="post" action="/erp/ajax/bos-wf-disable-rule" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
             <input type="hidden" name="returnUrl" value="/erp/approvals-app" />

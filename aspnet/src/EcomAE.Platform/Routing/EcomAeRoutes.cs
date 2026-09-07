@@ -1646,7 +1646,9 @@ public static class EcomAeRoutes
     public const string ErpAjaxBosWfSaveRule = "/erp/ajax/bos-wf-save-rule";
     /// <summary>Live PHP bos_wf_disable_rule twin (confirmWrites=true writes).</summary>
     public const string ErpAjaxBosWfDisableRule = "/erp/ajax/bos-wf-disable-rule";
-    /// <summary>Wave B dry-run for PHP bos_wf_decide (writes=0).</summary>
+    /// <summary>Live PHP bos_wf_decide twin (confirmWrites=true writes).</summary>
+    public const string ErpApprovalsRequestDecide = "/erp/approvals/requests/decide";
+    /// <summary>Live PHP bos_wf_decide ajax alias of <see cref="ErpApprovalsRequestDecide"/>.</summary>
     public const string ErpAjaxBosWfDecide = "/erp/ajax/bos-wf-decide";
     /// <summary>Wave B dry-run for PHP bos_wf_raise_test (writes=0).</summary>
     public const string ErpAjaxBosWfRaiseTest = "/erp/ajax/bos-wf-raise-test";
