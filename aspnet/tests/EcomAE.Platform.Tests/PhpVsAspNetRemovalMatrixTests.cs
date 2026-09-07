@@ -277,6 +277,7 @@ public sealed class PhpVsAspNetRemovalMatrixTests
             ("CpJewelleryMastersApp.razor", "Save pearl"),
             ("CpJewelleryMastersApp.razor", "ErpJewelleryColorStoneSaveForm"),
             ("CpJewelleryMastersApp.razor", "Save color stone"),
+            ("CpJewelleryMastersApp.razor", "Generate barcode"),
             ("CpJewelleryStockVerificationApp.razor", "ErpJewelleryMetalStockSaveForm"),
             ("CpJewelleryStockVerificationApp.razor", "Save metal stock"),
             ("CpJewelleryFixingApp.razor", "ErpJewelleryFixingSaveForm"),

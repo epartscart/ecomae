@@ -1613,6 +1613,7 @@ public static class SurfacePayloadContractCatalog
         new("erp", "jw_design_save write", "/erp/jewellery/design-save", "write-live-gated", "POST PHP jw_design_save; confirmWrites=true upserts epc_jewel_design. Schema-ensure stays PHP."),
         new("erp", "jw_pearl_save write", "/erp/jewellery/pearl-save", "write-live-gated", "POST PHP jw_pearl_save; confirmWrites=true upserts epc_jewel_pearl_master. Schema-ensure stays PHP."),
         new("erp", "jw_color_stone_save write", "/erp/jewellery/color-stone-save", "write-live-gated", "POST PHP jw_color_stone_save; confirmWrites=true upserts epc_jewel_color_stone_master. Schema-ensure stays PHP."),
+        new("erp", "jw_barcode_generate write", "/erp/jewellery/barcode-generate", "write-live-gated", "POST PHP epc_jewel_barcode_generate; confirmWrites=true inserts epc_jewel_barcode. Schema-ensure stays PHP."),
         new("erp", "jw_metal_stock_save write", "/erp/jewellery/metal-stock-save", "write-live-gated", "POST PHP jw_metal_stock_save; confirmWrites=true upserts epc_jewel_metal_stock. Schema-ensure stays PHP."),
         new("erp", "jw_purchase_fixing_save write", "/erp/jewellery/fixing-save", "write-live-gated", "POST PHP jw_purchase_fixing_save / jw_sales_fixing_save; confirmWrites=true inserts epc_jewel_fixing. Schema-ensure stays PHP."),
         new("erp", "jw_voucher_save write", "/erp/jewellery/voucher-save", "write-live-gated", "POST PHP jw_voucher_save and purchase/sale aliases; confirmWrites=true inserts epc_jewel_voucher. Schema-ensure stays PHP."),

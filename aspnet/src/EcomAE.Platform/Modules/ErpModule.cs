@@ -5382,6 +5382,73 @@ public sealed class ErpModule : ISurfaceModule
                     session = SessionPayload(session)
                 });
         }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpJewelleryBarcodeGenerateForm, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IErpJwModuleSaveDryRun dryRun,
+            IErpJwBarcodeWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (!ErpJewelleryModuleChrome.HasJewelleryStaffAccess(session))
+            {
+                return LiveWriteFormBinder.LoginRedirect(
+                    context,
+                    "/erp/login?returnUrl=/cp/jewellery-masters-app?tab=jw_barcode",
+                    "Admin ERP capability required for jewellery barcode generate.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpJwBarcodeGenerateBody>(context, cancellationToken)
+                       ?? new();
+            var companyId = body.CompanyId;
+            var stockCode = body.StockCode;
+            var division = body.Division;
+            var karat = body.Karat;
+            var grossWt = body.GrossWt;
+            var purity = body.Purity;
+            var tagPrice = body.TagPrice;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                companyId = LiveWriteFormBinder.Int(form, "companyId", "company_id", "company");
+                stockCode = LiveWriteFormBinder.Text(form, "stockCode", "stock_code", "item_code", "code");
+                division = LiveWriteFormBinder.Text(form, "division");
+                karat = LiveWriteFormBinder.Text(form, "karat");
+                grossWt = LiveWriteFormBinder.Dec(form, "grossWt", "gross_wt");
+                purity = LiveWriteFormBinder.Dec(form, "purity");
+                tagPrice = LiveWriteFormBinder.Dec(form, "tagPrice", "tag_price");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            const string returnApp = "/cp/jewellery-masters-app?tab=jw_barcode";
+            if (!confirm)
+            {
+                var result = dryRun.Evaluate(new ErpJwModuleSaveRequest("jw_barcode_generate", stockCode, false));
+                if (LiveWriteFormBinder.WantsHtml(context))
+                {
+                    return DryRunHtmlForm.Redirect(DryRunHtmlForm.SafeReturnUrl(context.Request, returnApp), result.ValidationCode == "ok", result.Detail);
+                }
+
+                return Results.Ok(result.ToPayload(SessionPayload(session)));
+            }
+
+            var written = await writes.GenerateAsync(
+                new ErpJwBarcodeGenerateRequest(companyId, stockCode, division, karat, grossWt, purity, tagPrice),
+                cancellationToken);
+            return LiveWriteFormBinder.Complete(context, returnApp, written.Succeeded, written.Message, new
+            {
+                ok = written.Succeeded,
+                status = written.Succeeded,
+                writes = written.Writes,
+                phpAuthoritative = false,
+                validation_code = written.Code,
+                message = written.Message,
+                id = written.Id,
+                stock_code = stockCode,
+                session = SessionPayload(session)
+            });
+        }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpJewelleryMetalStockSaveForm, async (
             HttpContext context,
             ILegacySessionValidator validator,
@@ -9308,6 +9375,15 @@ public sealed class ErpModule : ISurfaceModule
         decimal ConvFactorOz = 31.10347m,
         string? Price1Code = null,
         string? Price1Label = null,
+        bool ConfirmWrites = false);
+    private sealed record ErpJwBarcodeGenerateBody(
+        int CompanyId = 0,
+        string? StockCode = null,
+        string? Division = null,
+        string? Karat = null,
+        decimal GrossWt = 0,
+        decimal Purity = 0,
+        decimal TagPrice = 0,
         bool ConfirmWrites = false);
     private sealed record ErpJwColorStoneSaveBody(
         int CompanyId = 0,
