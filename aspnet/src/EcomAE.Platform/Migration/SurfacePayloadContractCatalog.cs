@@ -1605,6 +1605,7 @@ public static class SurfacePayloadContractCatalog
         new("erp", "jw_rate_type_save write", "/erp/jewellery/rate-type-save", "write-live-gated", "POST PHP jw_rate_type_save; confirmWrites=true upserts epc_jewel_rate_type. Schema-ensure and rate-type seed stay PHP."),
         new("erp", "jw_currency_save write", "/erp/jewellery/currency-save", "write-live-gated", "POST PHP jw_currency_save; confirmWrites=true upserts epc_jewel_currency. Schema-ensure and currency seed stay PHP."),
         new("erp", "jw_diamond_save write", "/erp/jewellery/diamond-save", "write-live-gated", "POST PHP jw_diamond_save; confirmWrites=true upserts epc_jewel_diamond_master. Schema-ensure stays PHP."),
+        new("erp", "jw_design_save write", "/erp/jewellery/design-save", "write-live-gated", "POST PHP jw_design_save; confirmWrites=true upserts epc_jewel_design. Schema-ensure stays PHP."),
         new("erp", "jw_repair_update_status write", "/erp/ajax/jw-repair-update-status", "write-live-gated", "POST PHP jw_repair_update_status; confirmWrites=true updates epc_erp_jw_repairs.status. Schema-ensure stays PHP."),
         new("erp", "jw_seed_sample_data dry-run", "/erp/ajax/jw-seed-sample-data", "write-dry-run-gated", "POST dry-run for PHP jw_seed_sample_data; writes=0; confirm_writes refused; PHP authoritative."),
         new("erp", "ai_assistant_query dry-run", "/erp/ajax/ai-assistant-query", "write-dry-run-gated", "POST dry-run for PHP ai_assistant_query; writes=0; confirm_writes refused; PHP authoritative."),
