@@ -1,4 +1,5 @@
 @page "/cp/hr-overview-app"
+@page "/erp/hr-overview-app"
 @layout Layout.PhpChromeLayout
 @using System.Globalization
 @using EcomAE.Platform.Auth
@@ -68,14 +69,14 @@
     {
         <form method="post" action="/erp/ajax/hr-update-days" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="/cp/hr-overview-app" />
+            <input type="hidden" name="returnUrl" value="@(Http.HttpContext?.Request.Path.Value ?? "/cp/hr-overview-app")" />
             <label>Staff profile id <input type="number" name="staffProfileId" min="1" required style="width:6rem" /></label>
             <label>Days worked <input type="text" name="daysWorked" required /></label>
             <button type="submit">Save days</button>
         </form>
         <form method="post" action="/erp/ajax/hr-leave-status" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="/cp/hr-overview-app" />
+            <input type="hidden" name="returnUrl" value="@(Http.HttpContext?.Request.Path.Value ?? "/cp/hr-overview-app")" />
             <label>Leave id <input type="number" name="id" min="1" required style="width:6rem" /></label>
             <label>Status
                 <select name="status">
@@ -88,7 +89,7 @@
         </form>
         <form method="post" action="/erp/ajax/hr-expense-status" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="/cp/hr-overview-app" />
+            <input type="hidden" name="returnUrl" value="@(Http.HttpContext?.Request.Path.Value ?? "/cp/hr-overview-app")" />
             <label>Expense id <input type="number" name="id" min="1" required style="width:6rem" /></label>
             <label>Status
                 <select name="status">
