@@ -1081,7 +1081,9 @@ public static class EcomAeRoutes
     public const string ErpAjaxQmNcrCreate = "/erp/ajax/qm-ncr-create";
     /// <summary>Wave B dry-run for PHP qm_ncr_update (writes=0).</summary>
     public const string ErpAjaxQmNcrUpdate = "/erp/ajax/qm-ncr-update";
-    /// <summary>Wave B dry-run for PHP rbac_priv_save (writes=0).</summary>
+    /// <summary>Live PHP epc_rbac_privilege_save twin (ajax alias of <see cref="ErpSecurityPrivilegesSave"/>).</summary>
+    public const string ErpSecurityPrivilegesSave = "/erp/security/privileges/save";
+    /// <summary>Live PHP epc_rbac_privilege_save ajax alias of <see cref="ErpSecurityPrivilegesSave"/>.</summary>
     public const string ErpAjaxRbacPrivSave = "/erp/ajax/rbac-priv-save";
     /// <summary>Wave B dry-run for PHP rbac_duty_save (writes=0).</summary>
     public const string ErpAjaxRbacDutySave = "/erp/ajax/rbac-duty-save";

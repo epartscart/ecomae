@@ -3111,6 +3111,22 @@ public sealed class LiveWriteServiceValidationTests
             .LogAsync(new ErpHrAttendanceWriteRequest(EmployeeId: 1, Hours: 8));
         Assert.False(hrAttDb.Succeeded);
         Assert.Equal("db", hrAttDb.Code);
+
+        var rbacPrivEmpty = await new ErpRbacPrivSaveWriteService(new ConfiguredNeverOpened())
+            .SaveAsync(new ErpRbacPrivSaveWriteRequest());
+        Assert.False(rbacPrivEmpty.Succeeded);
+        Assert.Equal("invalid", rbacPrivEmpty.Code);
+        Assert.Equal("Privilege code is required", rbacPrivEmpty.Message);
+
+        var rbacPrivLevel = await new ErpRbacPrivSaveWriteService(new ConfiguredNeverOpened())
+            .SaveAsync(new ErpRbacPrivSaveWriteRequest(Code: "ar.read", AccessLevel: "magic"));
+        Assert.False(rbacPrivLevel.Succeeded);
+        Assert.Equal("Invalid access level", rbacPrivLevel.Message);
+
+        var rbacPrivDb = await new ErpRbacPrivSaveWriteService(new UnconfiguredConnections())
+            .SaveAsync(new ErpRbacPrivSaveWriteRequest(Code: "ar.read", AccessLevel: "read"));
+        Assert.False(rbacPrivDb.Succeeded);
+        Assert.Equal("db", rbacPrivDb.Code);
     }
 
     [Fact]
