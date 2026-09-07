@@ -92,6 +92,8 @@ public sealed class ErpJewelleryModuleParityTests
         Assert.Contains("jw_stock_verification", stock, StringComparison.Ordinal);
         Assert.Contains(ErpJewelleryModuleChrome.StockTabs, t => t.Key == "jw_metal_stock");
         Assert.Contains("New Count", stock, StringComparison.Ordinal);
+        Assert.Contains("ErpJewelleryMetalStockSaveForm", stock, StringComparison.Ordinal);
+        Assert.Contains("Save metal stock", stock, StringComparison.Ordinal);
         Assert.DoesNotContain("@onclick", stock, StringComparison.Ordinal);
     }
 
@@ -144,6 +146,7 @@ public sealed class ErpJewelleryModuleParityTests
         Assert.Equal("/erp/jewellery/design-save", EcomAeRoutes.ErpJewelleryDesignSaveForm);
         Assert.Equal("/erp/jewellery/pearl-save", EcomAeRoutes.ErpJewelleryPearlSaveForm);
         Assert.Equal("/erp/jewellery/color-stone-save", EcomAeRoutes.ErpJewelleryColorStoneSaveForm);
+        Assert.Equal("/erp/jewellery/metal-stock-save", EcomAeRoutes.ErpJewelleryMetalStockSaveForm);
         Assert.Equal("/erp/jewellery/karat-seed", EcomAeRoutes.ErpJewelleryKaratSeedForm);
         Assert.Equal("/erp/jewellery/module-save", EcomAeRoutes.ErpJewelleryModuleSaveForm);
     }

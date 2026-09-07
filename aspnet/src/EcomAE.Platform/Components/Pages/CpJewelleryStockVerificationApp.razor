@@ -38,6 +38,35 @@
             </form>
         </ErpPhpCreateWell>
     }
+    else if (_isAdmin && _tab == "jw_metal_stock")
+    {
+        <ErpPhpCreateWell Title="Add / Edit Metal stock">
+            <form method="post" action="@EcomAeRoutes.ErpJewelleryMetalStockSaveForm" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="@_returnHere" />
+                @if (_company > 0)
+                {
+                    <input type="hidden" name="company" value="@_company.ToString(CultureInfo.InvariantCulture)" />
+                }
+                <label>Item code <input class="form-control input-sm" name="item_code" required placeholder="MST-001" maxlength="20" /></label>
+                <label>Description <input class="form-control input-sm" name="description" placeholder="22K chain" /></label>
+                <label>Metal
+                    <select class="form-control input-sm" name="metal">
+                        <option value="G">G Gold</option>
+                        <option value="S">S Silver</option>
+                        <option value="T">T Platinum</option>
+                    </select>
+                </label>
+                <label>Karat <input class="form-control input-sm" name="karat" placeholder="22" style="width:70px;" /></label>
+                <label>Purity <input class="form-control input-sm" name="purity" type="number" step="0.000001" value="0.917000" /></label>
+                <label>Type <input class="form-control input-sm" name="type" /></label>
+                <label>Category <input class="form-control input-sm" name="category" /></label>
+                <label>Unit <input class="form-control input-sm" name="mc_unit" value="GMS" style="width:70px;" /></label>
+                <label>Std cost <input class="form-control input-sm" name="std_cost" type="number" step="0.01" value="0" /></label>
+                <button type="submit" class="btn btn-primary btn-sm">Save metal stock</button>
+            </form>
+        </ErpPhpCreateWell>
+    }
     else if (_isAdmin)
     {
         <ErpPhpCreateWell Title="@("New " + _spec.Label)">
@@ -94,7 +123,7 @@
     </div>
 
     <div class="epc-erp-empty" style="display:block;margin-top:12px;padding:8px 10px;border:1px solid #c5d4de;background:#f8fafc;color:#475569;font-size:12px;">
-        Source: @_source. Counts bind from <code>epc_jewel_stock_verification</code>. Form posts are dry-run — writes=0.
+        Source: @_source. Counts bind from <code>epc_jewel_stock_verification</code>. Metal-stock save is live when confirmed. Other stock forms stay dry-run.
         @if (!string.IsNullOrWhiteSpace(_message)) { <span> @_message</span> }
     </div>
 </PhpErpDesktopChrome>

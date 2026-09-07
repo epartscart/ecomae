@@ -841,6 +841,8 @@ public static class EcomAeRoutes
     public const string ErpJewelleryPearlSaveForm = "/erp/jewellery/pearl-save";
     /// <summary>PHP jw_color_stone_save. <c>confirmWrites=true</c> upserts <c>epc_jewel_color_stone_master</c>.</summary>
     public const string ErpJewelleryColorStoneSaveForm = "/erp/jewellery/color-stone-save";
+    /// <summary>PHP jw_metal_stock_save. <c>confirmWrites=true</c> upserts <c>epc_jewel_metal_stock</c>.</summary>
+    public const string ErpJewelleryMetalStockSaveForm = "/erp/jewellery/metal-stock-save";
     /// <summary>HTML form POST for PHP <c>jw_karat_seed</c> / <c>jw_seed_sample_data</c> dry-run.</summary>
     public const string ErpJewelleryKaratSeedForm = "/erp/jewellery/karat-seed";
     /// <summary>HTML form POST for other jewellery module saves (fixing / retail / stock).</summary>

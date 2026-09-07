@@ -5073,6 +5073,102 @@ public sealed class ErpModule : ISurfaceModule
                     session = SessionPayload(session)
                 });
         }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpJewelleryMetalStockSaveForm, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IErpJwModuleSaveDryRun dryRun,
+            IErpJwMetalStockWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (!ErpJewelleryModuleChrome.HasJewelleryStaffAccess(session))
+            {
+                return LiveWriteFormBinder.LoginRedirect(
+                    context,
+                    "/erp/login?returnUrl=/cp/jewellery-stock-verification-app?tab=jw_metal_stock",
+                    "Admin ERP capability required for jewellery metal stock save.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpJwMetalStockSaveBody>(context, cancellationToken)
+                       ?? new();
+            var companyId = body.CompanyId;
+            var metal = body.Metal;
+            var itemCode = body.ItemCode;
+            var description = body.Description;
+            var karat = body.Karat;
+            var purity = body.Purity;
+            var type = body.Type;
+            var category = body.Category;
+            var mcUnit = body.McUnit;
+            var stdCost = body.StdCost;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                companyId = LiveWriteFormBinder.Int(form, "companyId", "company_id", "company");
+                metal = LiveWriteFormBinder.Text(form, "metal");
+                itemCode = LiveWriteFormBinder.Text(form, "item_code", "itemCode", "code");
+                description = LiveWriteFormBinder.Text(form, "description", "name");
+                karat = LiveWriteFormBinder.Text(form, "karat");
+                purity = LiveWriteFormBinder.Dec(form, "purity");
+                type = LiveWriteFormBinder.Text(form, "type");
+                category = LiveWriteFormBinder.Text(form, "category");
+                mcUnit = LiveWriteFormBinder.Text(form, "mc_unit", "mcUnit");
+                stdCost = LiveWriteFormBinder.Dec(form, "std_cost", "stdCost");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                var result = dryRun.Evaluate(new ErpJwModuleSaveRequest("jw_metal_stock_save", itemCode, false));
+                if (LiveWriteFormBinder.WantsHtml(context))
+                {
+                    return DryRunHtmlForm.Redirect(
+                        DryRunHtmlForm.SafeReturnUrl(context.Request, "/cp/jewellery-stock-verification-app?tab=jw_metal_stock"),
+                        result.ValidationCode == "ok",
+                        result.Detail);
+                }
+
+                return Results.Ok(result.ToPayload(SessionPayload(session)));
+            }
+
+            var written = await writes.SaveAsync(
+                new ErpJwMetalStockSaveRequest(
+                    CompanyId: companyId,
+                    Metal: metal,
+                    ItemCode: itemCode,
+                    Description: description,
+                    Karat: karat,
+                    Purity: purity,
+                    Type: type,
+                    Category: category,
+                    McUnit: mcUnit,
+                    StdCost: stdCost,
+                    IncludeStoneWeight: body.IncludeStoneWeight,
+                    InPieces: body.InPieces,
+                    GstTrnOnMakingStone: body.GstTrnOnMakingStone,
+                    ConvFactorOz: body.ConvFactorOz,
+                    Price1Code: body.Price1Code,
+                    Price1Label: body.Price1Label),
+                cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/cp/jewellery-stock-verification-app?tab=jw_metal_stock",
+                written.Succeeded,
+                written.Message,
+                new
+                {
+                    ok = written.Succeeded,
+                    status = written.Succeeded,
+                    writes = written.Writes,
+                    phpAuthoritative = false,
+                    validation_code = written.Code,
+                    message = written.Message,
+                    id = written.Id,
+                    item_code = itemCode,
+                    session = SessionPayload(session)
+                });
+        }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpJewelleryKaratSeedForm, async (HttpContext context, ILegacySessionValidator validator, IErpJwSeedSampleDataDryRun dryRun, CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateAsync(context, cancellationToken);
@@ -7849,6 +7945,24 @@ public sealed class ErpModule : ISurfaceModule
         decimal EstimatedCost = 0,
         long ReceivedDate = 0,
         long PromisedDate = 0);
+    private sealed record ErpJwMetalStockSaveBody(
+        int CompanyId = 0,
+        string? Metal = null,
+        string? ItemCode = null,
+        string? Description = null,
+        string? Karat = null,
+        decimal Purity = 0,
+        string? Type = null,
+        string? Category = null,
+        string? McUnit = null,
+        decimal StdCost = 0,
+        bool IncludeStoneWeight = false,
+        bool InPieces = true,
+        bool GstTrnOnMakingStone = true,
+        decimal ConvFactorOz = 31.10347m,
+        string? Price1Code = null,
+        string? Price1Label = null,
+        bool ConfirmWrites = false);
     private sealed record ErpJwColorStoneSaveBody(
         int CompanyId = 0,
         string? Code = null,
