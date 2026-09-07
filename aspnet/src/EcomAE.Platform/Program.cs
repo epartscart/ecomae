@@ -678,6 +678,7 @@ builder.Services.AddScoped<EcomAE.Platform.Erp.IErpJwRateTypeWriteService, EcomA
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpJwCurrencyWriteService, EcomAE.Platform.Erp.ErpJwCurrencyWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpJwDiamondWriteService, EcomAE.Platform.Erp.ErpJwDiamondWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpJwDesignWriteService, EcomAE.Platform.Erp.ErpJwDesignWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpJwPearlWriteService, EcomAE.Platform.Erp.ErpJwPearlWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpHrDaysWriteService, EcomAE.Platform.Erp.ErpHrDaysWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpStorageGroupWriteService, EcomAE.Platform.Cp.CpStorageGroupWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpStorageWriteService, EcomAE.Platform.Cp.CpStorageWriteService>();

@@ -4831,6 +4831,146 @@ public sealed class ErpModule : ISurfaceModule
                     session = SessionPayload(session)
                 });
         }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpJewelleryPearlSaveForm, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IErpJwModuleSaveDryRun dryRun,
+            IErpJwPearlWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (!ErpJewelleryModuleChrome.HasJewelleryStaffAccess(session))
+            {
+                return LiveWriteFormBinder.LoginRedirect(
+                    context,
+                    "/erp/login?returnUrl=/cp/jewellery-masters-app?tab=jw_pearl",
+                    "Admin ERP capability required for jewellery pearl save.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpJwPearlSaveBody>(context, cancellationToken)
+                       ?? new();
+            var companyId = body.CompanyId;
+            var code = body.Code;
+            var nature = body.Nature;
+            var description = body.Description;
+            var design = body.Design;
+            var type = body.Type;
+            var costCentre = body.CostCentre;
+            var category = body.Category;
+            var color = body.Color;
+            var vendor = body.Vendor;
+            var vendorRef = body.VendorRef;
+            var luster = body.Luster;
+            var shape = body.Shape;
+            var size = body.Size;
+            var brand = body.Brand;
+            var country = body.Country;
+            var grade = body.Grade;
+            var subCategory = body.SubCategory;
+            var currency = body.Currency;
+            var currencyRate = body.CurrencyRate;
+            var costAmount = body.CostAmount;
+            var price1Code = body.Price1Code;
+            var price1Pct = body.Price1Pct;
+            var price1Fc = body.Price1Fc;
+            var price1Lc = body.Price1Lc;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                companyId = LiveWriteFormBinder.Int(form, "companyId", "company_id", "company");
+                code = LiveWriteFormBinder.Text(form, "code", "pearl_code", "item_code");
+                nature = LiveWriteFormBinder.Text(form, "nature");
+                description = LiveWriteFormBinder.Text(form, "description", "name");
+                design = LiveWriteFormBinder.Text(form, "design");
+                type = LiveWriteFormBinder.Text(form, "type");
+                costCentre = LiveWriteFormBinder.Text(form, "costCentre", "cost_centre");
+                category = LiveWriteFormBinder.Text(form, "category");
+                color = LiveWriteFormBinder.Text(form, "color");
+                vendor = LiveWriteFormBinder.Text(form, "vendor");
+                vendorRef = LiveWriteFormBinder.Text(form, "vendorRef", "vendor_ref");
+                luster = LiveWriteFormBinder.Text(form, "luster");
+                shape = LiveWriteFormBinder.Text(form, "shape");
+                size = LiveWriteFormBinder.Text(form, "size");
+                brand = LiveWriteFormBinder.Text(form, "brand");
+                country = LiveWriteFormBinder.Text(form, "country");
+                grade = LiveWriteFormBinder.Text(form, "grade");
+                subCategory = LiveWriteFormBinder.Text(form, "subCategory", "sub_category");
+                currency = LiveWriteFormBinder.Text(form, "currency");
+                currencyRate = LiveWriteFormBinder.Dec(form, "currencyRate", "currency_rate");
+                if (currencyRate == 0 && string.IsNullOrWhiteSpace(LiveWriteFormBinder.Text(form, "currencyRate", "currency_rate")))
+                {
+                    currencyRate = 1;
+                }
+
+                costAmount = LiveWriteFormBinder.Dec(form, "costAmount", "cost_amount");
+                price1Code = LiveWriteFormBinder.Text(form, "price1Code", "price1_code");
+                price1Pct = LiveWriteFormBinder.Dec(form, "price1Pct", "price1_pct");
+                price1Fc = LiveWriteFormBinder.Dec(form, "price1Fc", "price1_fc");
+                price1Lc = LiveWriteFormBinder.Dec(form, "price1Lc", "price1_lc");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                var result = dryRun.Evaluate(new ErpJwModuleSaveRequest("jw_pearl_save", code, false));
+                if (LiveWriteFormBinder.WantsHtml(context))
+                {
+                    return DryRunHtmlForm.Redirect(
+                        DryRunHtmlForm.SafeReturnUrl(context.Request, "/cp/jewellery-masters-app?tab=jw_pearl"),
+                        result.ValidationCode == "ok",
+                        result.Detail);
+                }
+
+                return Results.Ok(result.ToPayload(SessionPayload(session)));
+            }
+
+            var written = await writes.SaveAsync(
+                new ErpJwPearlSaveRequest(
+                    companyId,
+                    code,
+                    nature,
+                    description,
+                    design,
+                    type,
+                    costCentre,
+                    category,
+                    color,
+                    vendor,
+                    vendorRef,
+                    luster,
+                    shape,
+                    size,
+                    brand,
+                    country,
+                    grade,
+                    subCategory,
+                    currency,
+                    currencyRate,
+                    costAmount,
+                    price1Code,
+                    price1Pct,
+                    price1Fc,
+                    price1Lc),
+                cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/cp/jewellery-masters-app?tab=jw_pearl",
+                written.Succeeded,
+                written.Message,
+                new
+                {
+                    ok = written.Succeeded,
+                    status = written.Succeeded,
+                    writes = written.Writes,
+                    phpAuthoritative = false,
+                    validation_code = written.Code,
+                    message = written.Message,
+                    id = written.Id,
+                    code,
+                    session = SessionPayload(session)
+                });
+        }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpJewelleryKaratSeedForm, async (HttpContext context, ILegacySessionValidator validator, IErpJwSeedSampleDataDryRun dryRun, CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateAsync(context, cancellationToken);
@@ -7607,6 +7747,33 @@ public sealed class ErpModule : ISurfaceModule
         decimal EstimatedCost = 0,
         long ReceivedDate = 0,
         long PromisedDate = 0);
+    private sealed record ErpJwPearlSaveBody(
+        int CompanyId = 0,
+        string? Code = null,
+        string? Nature = null,
+        string? Description = null,
+        string? Design = null,
+        string? Type = null,
+        string? CostCentre = null,
+        string? Category = null,
+        string? Color = null,
+        string? Vendor = null,
+        string? VendorRef = null,
+        string? Luster = null,
+        string? Shape = null,
+        string? Size = null,
+        string? Brand = null,
+        string? Country = null,
+        string? Grade = null,
+        string? SubCategory = null,
+        string? Currency = null,
+        decimal CurrencyRate = 1,
+        decimal CostAmount = 0,
+        string? Price1Code = null,
+        decimal Price1Pct = 0,
+        decimal Price1Fc = 0,
+        decimal Price1Lc = 0,
+        bool ConfirmWrites = false);
     private sealed record ErpJwDesignSaveBody(
         int CompanyId = 0,
         string? DesignCode = null,

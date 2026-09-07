@@ -167,6 +167,28 @@
             </form>
         </ErpPhpCreateWell>
     }
+    else if (_isAdmin && _tab == "jw_pearl")
+    {
+        <ErpPhpCreateWell Title="Add / Edit Pearl">
+            <form method="post" action="@EcomAeRoutes.ErpJewelleryPearlSaveForm" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="@_returnHere" />
+                @if (_company > 0)
+                {
+                    <input type="hidden" name="company" value="@_company.ToString(CultureInfo.InvariantCulture)" />
+                }
+                <label>Pearl code <input class="form-control input-sm" name="code" required placeholder="PRL-001" maxlength="20" /></label>
+                <label>Description <input class="form-control input-sm" name="description" placeholder="Akoya" /></label>
+                <label>Nature <input class="form-control input-sm" name="nature" value="Cultured" /></label>
+                <label>Type <input class="form-control input-sm" name="type" /></label>
+                <label>Size <input class="form-control input-sm" name="size" /></label>
+                <label>Country <input class="form-control input-sm" name="country" /></label>
+                <label>Currency <input class="form-control input-sm" name="currency" value="AED" style="width:70px;" /></label>
+                <label>Cost <input class="form-control input-sm" name="cost_amount" type="number" step="0.01" value="0" /></label>
+                <button type="submit" class="btn btn-primary btn-sm">Save pearl</button>
+            </form>
+        </ErpPhpCreateWell>
+    }
     else if (_isAdmin && _tab == "jw_seed_data")
     {
         <ErpPhpCreateWell Title="Seed jewellery defaults">
@@ -223,7 +245,7 @@
     </div>
 
     <div class="epc-erp-empty" style="display:block;margin-top:12px;padding:8px 10px;border:1px solid #c5d4de;background:#f8fafc;color:#475569;font-size:12px;">
-        Source: @_source. Karat rows bind from <code>epc_jewel_karat_master</code>. Karat, rate-type, currency, diamond, and design save are live when confirmed. Seed stays Classic.
+        Source: @_source. Karat rows bind from <code>epc_jewel_karat_master</code>. Karat, rate-type, currency, diamond, design, and pearl save are live when confirmed. Seed stays Classic.
         @if (!string.IsNullOrWhiteSpace(_message)) { <span> @_message</span> }
     </div>
 </PhpErpDesktopChrome>
