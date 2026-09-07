@@ -594,8 +594,8 @@ public sealed class ErpModule : ISurfaceModule
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpAgendaSaveRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxKbSave, async (HttpContext context, ErpKbSaveBody? body, ILegacySessionValidator validator, IErpKbSaveDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpKbSaveRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxMultiEntitySave, async (HttpContext context, ErpMultiEntitySaveBody? body, ILegacySessionValidator validator, IErpMultiEntitySaveDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpMultiEntitySaveRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.ErpMultiEntityPreferenceSave, HandleMultiEntitySaveAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxMultiEntitySave, HandleMultiEntitySaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxCsSaveDeclaration, async (HttpContext context, ErpCsSaveDeclarationBody? body, ILegacySessionValidator validator, IErpCsSaveDeclarationDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpCsSaveDeclarationRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxCsSubmitDeclaration, async (HttpContext context, ErpCsSubmitDeclarationBody? body, ILegacySessionValidator validator, IErpCsSubmitDeclarationDryRun dryRun, CancellationToken cancellationToken) =>
@@ -11162,7 +11162,7 @@ public sealed class ErpModule : ISurfaceModule
             if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
                 return Unauthorized("Admin ERP capability required for multi-entity digest.");
             var result = await dashboards.ListErpMultiEntityAsync(limit ?? 200, cancellationToken);
-            return Results.Ok(new { ok = true, surface = "erp", groups = result.Groups, intercompany = result.Intercompany, count = result.Count, memberTotal = result.MemberTotal, icTxnCount = result.IcTxnCount, pendingIcCount = result.PendingIcCount, source = result.Source, message = result.Message, session = SessionPayload(session), note = "epc_entity_groups + epc_intercompany_txns. Group/member/IC/eliminate on POST /erp/multi-entity/write when confirmWrites=true. ajax_erp multi_entity_save stays dry-run." });
+            return Results.Ok(new { ok = true, surface = "erp", groups = result.Groups, intercompany = result.Intercompany, count = result.Count, memberTotal = result.MemberTotal, icTxnCount = result.IcTxnCount, pendingIcCount = result.PendingIcCount, source = result.Source, message = result.Message, session = SessionPayload(session), note = "epc_entity_groups + epc_intercompany_txns. Group/member/IC/eliminate on POST /erp/multi-entity/write when confirmWrites=true. ajax_erp multi_entity_save is live on /erp/multi-entity/preference/save." });
         });
         endpoints.MapPost(EcomAeRoutes.ErpMultiEntityWrite, async (
             HttpContext context,
@@ -11231,7 +11231,7 @@ public sealed class ErpModule : ISurfaceModule
                         await writes.RecordIntercompanyAsync(groupId, fromSiteKey, toSiteKey, amount, description, cancellationToken),
                     "eliminate" =>
                         await writes.EliminateAsync(groupId, cancellationToken),
-                    _ => ErpSimpleWriteResult.Fail("invalid", "Unknown multi-entity action. create_group / add_member / record_intercompany / eliminate are live; ajax_erp multi_entity_save stays PHP."),
+                    _ => ErpSimpleWriteResult.Fail("invalid", "Unknown multi-entity action. create_group / add_member / record_intercompany / eliminate are live; preference save is /erp/multi-entity/preference/save."),
                 };
                 return LiveWriteFormBinder.Complete(
                     context,
@@ -11772,6 +11772,53 @@ public sealed class ErpModule : ISurfaceModule
                 session = SessionPayload(session),
             });
         }
+    }
+
+    private static async Task<IResult> HandleMultiEntitySaveAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpMultiEntitySaveDryRun dryRun,
+        IErpMultiEntitySaveWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/multi-entity-app", "Admin ERP capability required for multi-entity preference save.");
+        }
+
+        var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpMultiEntitySaveBody>(context, cancellationToken) ?? new();
+        var enabled = body.Enabled;
+        var confirm = body.ConfirmWrites;
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            if (form.ContainsKey("enabled") || form.ContainsKey("Enabled"))
+            {
+                enabled = LiveWriteFormBinder.Flag(form, "enabled", "Enabled") ? 1 : 0;
+                var parsed = LiveWriteFormBinder.IntOrNull(form, "enabled", "Enabled");
+                if (parsed is not null)
+                {
+                    enabled = parsed.Value == 0 ? 0 : 1;
+                }
+            }
+        }
+
+        if (!confirm)
+        {
+            return Results.Ok(dryRun.Evaluate(new ErpMultiEntitySaveRequest(enabled, false)).ToPayload(SessionPayload(session)));
+        }
+
+        var written = await writes.SaveAsync(
+            new ErpMultiEntitySaveWriteRequest(enabled),
+            cancellationToken);
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/erp/multi-entity-app",
+            written.Succeeded,
+            written.Message,
+            new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, enabled, session = SessionPayload(session) });
     }
 
     private static async Task<IResult> HandleWhtCodeSaveAsync(
@@ -12837,7 +12884,9 @@ public sealed class ErpModule : ISurfaceModule
     private sealed record ErpPettyCashSaveBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpAgendaSaveBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpKbSaveBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
-    private sealed record ErpMultiEntitySaveBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
+    private sealed record ErpMultiEntitySaveBody(
+        int? Enabled = null,
+        bool ConfirmWrites = false);
     private sealed record ErpCsSaveDeclarationBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpCsSubmitDeclarationBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpCsDeleteDeclarationBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);

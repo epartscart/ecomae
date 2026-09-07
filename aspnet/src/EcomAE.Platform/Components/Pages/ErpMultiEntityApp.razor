@@ -63,12 +63,23 @@
             <label style="margin-right:8px">Note <input name="description" maxlength="255" style="width:10rem" /></label>
             <button type="submit" class="btn btn-sm btn-default">Record IC</button>
         </form>
-        <form method="post" action="/erp/multi-entity/write" class="form-inline" style="margin:0 0 12px;padding:10px;border:1px solid #c5d4de;background:#fff">
+        <form method="post" action="/erp/multi-entity/write" class="form-inline" style="margin:0 0 8px;padding:10px;border:1px solid #c5d4de;background:#fff">
             <input type="hidden" name="confirmWrites" value="true" />
             <input type="hidden" name="returnUrl" value="/erp/multi-entity-app" />
             <input type="hidden" name="action" value="eliminate" />
             <label style="margin-right:8px">Group id <input type="number" name="groupId" min="1" required style="width:5rem" /></label>
             <button type="submit" class="btn btn-sm btn-default">Eliminate matched</button>
+        </form>
+        <form method="post" action="/erp/multi-entity/preference/save" class="form-inline" style="margin:0 0 12px;padding:10px;border:1px solid #c5d4de;background:#fff">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/erp/multi-entity-app" />
+            <label style="margin-right:8px">Cross-tenant mode
+                <select name="enabled">
+                    <option value="1">enabled</option>
+                    <option value="0" selected>disabled</option>
+                </select>
+            </label>
+            <button type="submit" class="btn btn-sm btn-primary">Save preference</button>
         </form>
     }
 
