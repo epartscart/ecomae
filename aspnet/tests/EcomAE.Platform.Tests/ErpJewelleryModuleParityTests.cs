@@ -72,6 +72,12 @@ public sealed class ErpJewelleryModuleParityTests
         Assert.Contains("Create tag", text, StringComparison.Ordinal);
         Assert.Contains("ErpJewelleryTagSellForm", text, StringComparison.Ordinal);
         Assert.Contains("Sell tag", text, StringComparison.Ordinal);
+        Assert.Contains("ErpJewelleryGoldSchemeCreateForm", text, StringComparison.Ordinal);
+        Assert.Contains("Create scheme", text, StringComparison.Ordinal);
+        Assert.Contains("ErpJewelleryGoldSchemeEnrollForm", text, StringComparison.Ordinal);
+        Assert.Contains("Enroll customer", text, StringComparison.Ordinal);
+        Assert.Contains("ErpJewelleryGoldSchemePayForm", text, StringComparison.Ordinal);
+        Assert.Contains("Pay instalment", text, StringComparison.Ordinal);
         Assert.Contains(ErpJewelleryModuleChrome.KaratColumns, c => c.Contains("Purity", StringComparison.Ordinal));
         Assert.DoesNotContain("295.50", text, StringComparison.Ordinal);
         Assert.DoesNotContain("2,458", text, StringComparison.Ordinal);
@@ -206,6 +212,9 @@ public sealed class ErpJewelleryModuleParityTests
         Assert.Equal("/erp/jewellery/barcode-generate", EcomAeRoutes.ErpJewelleryBarcodeGenerateForm);
         Assert.Equal("/erp/jewellery/tag-create", EcomAeRoutes.ErpJewelleryTagCreateForm);
         Assert.Equal("/erp/jewellery/tag-sell", EcomAeRoutes.ErpJewelleryTagSellForm);
+        Assert.Equal("/erp/jewellery/gold-scheme-create", EcomAeRoutes.ErpJewelleryGoldSchemeCreateForm);
+        Assert.Equal("/erp/jewellery/gold-scheme-enroll", EcomAeRoutes.ErpJewelleryGoldSchemeEnrollForm);
+        Assert.Equal("/erp/jewellery/gold-scheme-pay", EcomAeRoutes.ErpJewelleryGoldSchemePayForm);
     }
 
     [Fact]

@@ -78,6 +78,62 @@
         </ErpPhpCreateWell>
         <p class="text-muted">Live rates bind when the shop gold-rate board is configured. Demo figures from the PHP sample page are not shown as KPIs.</p>
     }
+    else if (_isAdmin && _tab == "gold_scheme")
+    {
+        <ErpPhpCreateWell Title="Create scheme">
+            <form method="post" action="@EcomAeRoutes.ErpJewelleryGoldSchemeCreateForm" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="@_returnHere" />
+                @if (_company > 0)
+                {
+                    <input type="hidden" name="company" value="@_company.ToString(CultureInfo.InvariantCulture)" />
+                }
+                <label>Scheme code <input class="form-control input-sm" name="scheme_code" required placeholder="GS-11" maxlength="32" /></label>
+                <label>Name <input class="form-control input-sm" name="scheme_name" placeholder="11-month value" /></label>
+                <label>Type
+                    <select class="form-control input-sm" name="scheme_type">
+                        <option value="value">Value</option>
+                        <option value="gram">Gram</option>
+                    </select>
+                </label>
+                <label>Months <input class="form-control input-sm" name="maturity_months" type="number" min="1" value="11" /></label>
+                <label>Bonus
+                    <select class="form-control input-sm" name="bonus_type">
+                        <option value="free_month">Free month</option>
+                        <option value="free_making">Free making</option>
+                        <option value="discount_pct">Discount %</option>
+                        <option value="bonus_gram">Bonus gram</option>
+                        <option value="none">None</option>
+                    </select>
+                </label>
+                <label>Min instalment <input class="form-control input-sm" name="min_installment" type="number" step="0.01" value="500" /></label>
+                <button type="submit" class="btn btn-primary btn-sm">Create scheme</button>
+            </form>
+        </ErpPhpCreateWell>
+        <ErpPhpCreateWell Title="Enroll customer">
+            <form method="post" action="@EcomAeRoutes.ErpJewelleryGoldSchemeEnrollForm" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="@_returnHere" />
+                <label>Scheme id <input class="form-control input-sm" name="scheme_id" type="number" min="1" required /></label>
+                <label>Customer <input class="form-control input-sm" name="customer_name" placeholder="Aisha" /></label>
+                <label>Instalment <input class="form-control input-sm" name="installment_amount" type="number" step="0.01" value="0" /></label>
+                <label>Start date <input class="form-control input-sm" name="start_date" type="date" /></label>
+                <button type="submit" class="btn btn-primary btn-sm">Enroll customer</button>
+            </form>
+        </ErpPhpCreateWell>
+        <ErpPhpCreateWell Title="Pay instalment">
+            <form method="post" action="@EcomAeRoutes.ErpJewelleryGoldSchemePayForm" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="@_returnHere" />
+                <label>Enrollment id <input class="form-control input-sm" name="enrollment_id" type="number" min="1" required /></label>
+                <label>Amount <input class="form-control input-sm" name="amount" type="number" step="0.01" value="0" /></label>
+                <label>Mode <input class="form-control input-sm" name="payment_mode" value="cash" /></label>
+                <label>Gold rate <input class="form-control input-sm" name="gold_rate" type="number" step="0.0001" value="0" /></label>
+                <label>Receipt <input class="form-control input-sm" name="receipt_no" /></label>
+                <button type="submit" class="btn btn-primary btn-sm">Pay instalment</button>
+            </form>
+        </ErpPhpCreateWell>
+    }
     else if (_isAdmin && _tab == "jw_rate_type")
     {
         <ErpPhpCreateWell Title="Add / Edit Rate type">
@@ -320,7 +376,7 @@
     </div>
 
     <div class="epc-erp-empty" style="display:block;margin-top:12px;padding:8px 10px;border:1px solid #c5d4de;background:#f8fafc;color:#475569;font-size:12px;">
-        Source: @_source. Karat rows bind from <code>epc_jewel_karat_master</code>. Karat, rate-type, currency, diamond, design, pearl, color-stone, barcode generate, and tag create/sell are live when confirmed. Seed stays Classic.
+        Source: @_source. Karat rows bind from <code>epc_jewel_karat_master</code>. Karat, rate-type, currency, diamond, design, pearl, color-stone, barcode generate, tag create/sell, and gold-scheme create/enroll/pay are live when confirmed. Seed and gold-rate refresh stay Classic.
         @if (!string.IsNullOrWhiteSpace(_message)) { <span> @_message</span> }
     </div>
 </PhpErpDesktopChrome>

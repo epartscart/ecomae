@@ -1419,6 +1419,21 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(jwTagSell.Succeeded);
         Assert.Equal("invalid", jwTagSell.Code);
 
+        var jwScheme = await new ErpJwGoldSchemeWriteService(new ConfiguredNeverOpened())
+            .CreateAsync(new ErpJwGoldSchemeCreateRequest());
+        Assert.False(jwScheme.Succeeded);
+        Assert.Equal("invalid", jwScheme.Code);
+
+        var jwEnroll = await new ErpJwGoldSchemeWriteService(new ConfiguredNeverOpened())
+            .EnrollAsync(new ErpJwGoldSchemeEnrollRequest());
+        Assert.False(jwEnroll.Succeeded);
+        Assert.Equal("invalid", jwEnroll.Code);
+
+        var jwPay = await new ErpJwGoldSchemeWriteService(new ConfiguredNeverOpened())
+            .PayAsync(new ErpJwGoldSchemePayRequest());
+        Assert.False(jwPay.Succeeded);
+        Assert.Equal("invalid", jwPay.Code);
+
         var jwMetal = await new ErpJwMetalStockWriteService(new ConfiguredNeverOpened())
             .SaveAsync(new ErpJwMetalStockSaveRequest());
         Assert.False(jwMetal.Succeeded);

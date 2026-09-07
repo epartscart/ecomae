@@ -5627,6 +5627,219 @@ public sealed class ErpModule : ISurfaceModule
                 session = SessionPayload(session)
             });
         }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpJewelleryGoldSchemeCreateForm, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IErpJwModuleSaveDryRun dryRun,
+            IErpJwGoldSchemeWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (!ErpJewelleryModuleChrome.HasJewelleryStaffAccess(session))
+            {
+                return LiveWriteFormBinder.LoginRedirect(
+                    context,
+                    "/erp/login?returnUrl=/cp/jewellery-masters-app?tab=gold_scheme",
+                    "Admin ERP capability required for gold scheme create.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpJwGoldSchemeCreateBody>(context, cancellationToken)
+                       ?? new();
+            var companyId = body.CompanyId;
+            var schemeCode = body.SchemeCode;
+            var schemeName = body.SchemeName;
+            var schemeType = body.SchemeType;
+            var maturityMonths = body.MaturityMonths;
+            var bonusType = body.BonusType;
+            var bonusValue = body.BonusValue;
+            var minInstallment = body.MinInstallment;
+            var maxInstallment = body.MaxInstallment;
+            var termsText = body.TermsText;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                companyId = LiveWriteFormBinder.Int(form, "companyId", "company_id", "company");
+                schemeCode = LiveWriteFormBinder.Text(form, "schemeCode", "scheme_code", "code");
+                schemeName = LiveWriteFormBinder.Text(form, "schemeName", "scheme_name", "name");
+                schemeType = LiveWriteFormBinder.Text(form, "schemeType", "scheme_type");
+                maturityMonths = LiveWriteFormBinder.Int(form, "maturityMonths", "maturity_months");
+                bonusType = LiveWriteFormBinder.Text(form, "bonusType", "bonus_type");
+                bonusValue = LiveWriteFormBinder.Dec(form, "bonusValue", "bonus_value");
+                minInstallment = LiveWriteFormBinder.Dec(form, "minInstallment", "min_installment");
+                maxInstallment = LiveWriteFormBinder.Dec(form, "maxInstallment", "max_installment");
+                termsText = LiveWriteFormBinder.Text(form, "termsText", "terms_text", "terms");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            const string returnApp = "/cp/jewellery-masters-app?tab=gold_scheme";
+            if (!confirm)
+            {
+                var result = dryRun.Evaluate(new ErpJwModuleSaveRequest("jw_gold_scheme_create", schemeCode ?? schemeName, false));
+                if (LiveWriteFormBinder.WantsHtml(context))
+                {
+                    return DryRunHtmlForm.Redirect(DryRunHtmlForm.SafeReturnUrl(context.Request, returnApp), result.ValidationCode == "ok", result.Detail);
+                }
+
+                return Results.Ok(result.ToPayload(SessionPayload(session)));
+            }
+
+            var written = await writes.CreateAsync(
+                new ErpJwGoldSchemeCreateRequest(
+                    companyId,
+                    schemeCode,
+                    schemeName,
+                    schemeType,
+                    maturityMonths,
+                    bonusType,
+                    bonusValue,
+                    minInstallment,
+                    maxInstallment,
+                    termsText),
+                cancellationToken);
+            return LiveWriteFormBinder.Complete(context, returnApp, written.Succeeded, written.Message, new
+            {
+                ok = written.Succeeded,
+                status = written.Succeeded,
+                writes = written.Writes,
+                phpAuthoritative = false,
+                validation_code = written.Code,
+                message = written.Message,
+                id = written.Id,
+                scheme_code = schemeCode,
+                session = SessionPayload(session)
+            });
+        }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpJewelleryGoldSchemeEnrollForm, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IErpJwModuleSaveDryRun dryRun,
+            IErpJwGoldSchemeWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (!ErpJewelleryModuleChrome.HasJewelleryStaffAccess(session))
+            {
+                return LiveWriteFormBinder.LoginRedirect(
+                    context,
+                    "/erp/login?returnUrl=/cp/jewellery-masters-app?tab=gold_scheme",
+                    "Admin ERP capability required for gold scheme enroll.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpJwGoldSchemeEnrollBody>(context, cancellationToken)
+                       ?? new();
+            var companyId = body.CompanyId;
+            var schemeId = body.SchemeId;
+            var customerId = body.CustomerId;
+            var customerName = body.CustomerName;
+            var installmentAmount = body.InstallmentAmount;
+            var startDate = body.StartDate;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                companyId = LiveWriteFormBinder.Int(form, "companyId", "company_id", "company");
+                schemeId = LiveWriteFormBinder.Long(form, "schemeId", "scheme_id");
+                customerId = LiveWriteFormBinder.Int(form, "customerId", "customer_id");
+                customerName = LiveWriteFormBinder.Text(form, "customerName", "customer_name");
+                installmentAmount = LiveWriteFormBinder.Dec(form, "installmentAmount", "installment_amount");
+                startDate = LiveWriteFormBinder.Text(form, "startDate", "start_date");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            const string returnApp = "/cp/jewellery-masters-app?tab=gold_scheme";
+            if (!confirm)
+            {
+                var result = dryRun.Evaluate(new ErpJwModuleSaveRequest("jw_gold_scheme_enroll", schemeId.ToString(CultureInfo.InvariantCulture), false));
+                if (LiveWriteFormBinder.WantsHtml(context))
+                {
+                    return DryRunHtmlForm.Redirect(DryRunHtmlForm.SafeReturnUrl(context.Request, returnApp), result.ValidationCode == "ok", result.Detail);
+                }
+
+                return Results.Ok(result.ToPayload(SessionPayload(session)));
+            }
+
+            var written = await writes.EnrollAsync(
+                new ErpJwGoldSchemeEnrollRequest(companyId, schemeId, customerId, customerName, installmentAmount, startDate),
+                cancellationToken);
+            return LiveWriteFormBinder.Complete(context, returnApp, written.Succeeded, written.Message, new
+            {
+                ok = written.Succeeded,
+                status = written.Succeeded,
+                writes = written.Writes,
+                phpAuthoritative = false,
+                validation_code = written.Code,
+                message = written.Message,
+                id = written.Id,
+                scheme_id = schemeId,
+                session = SessionPayload(session)
+            });
+        }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpJewelleryGoldSchemePayForm, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IErpJwModuleSaveDryRun dryRun,
+            IErpJwGoldSchemeWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (!ErpJewelleryModuleChrome.HasJewelleryStaffAccess(session))
+            {
+                return LiveWriteFormBinder.LoginRedirect(
+                    context,
+                    "/erp/login?returnUrl=/cp/jewellery-masters-app?tab=gold_scheme",
+                    "Admin ERP capability required for gold scheme pay.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpJwGoldSchemePayBody>(context, cancellationToken)
+                       ?? new();
+            var enrollmentId = body.EnrollmentId;
+            var amount = body.Amount;
+            var paymentMode = body.PaymentMode;
+            var goldRate = body.GoldRate;
+            var receiptNo = body.ReceiptNo;
+            var paymentDate = body.PaymentDate;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                enrollmentId = LiveWriteFormBinder.Long(form, "enrollmentId", "enrollment_id");
+                amount = LiveWriteFormBinder.Dec(form, "amount");
+                paymentMode = LiveWriteFormBinder.Text(form, "paymentMode", "payment_mode");
+                goldRate = LiveWriteFormBinder.Dec(form, "goldRate", "gold_rate");
+                receiptNo = LiveWriteFormBinder.Text(form, "receiptNo", "receipt_no");
+                paymentDate = LiveWriteFormBinder.Text(form, "paymentDate", "payment_date");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            const string returnApp = "/cp/jewellery-masters-app?tab=gold_scheme";
+            if (!confirm)
+            {
+                var result = dryRun.Evaluate(new ErpJwModuleSaveRequest("jw_gold_scheme_pay", enrollmentId.ToString(CultureInfo.InvariantCulture), false));
+                if (LiveWriteFormBinder.WantsHtml(context))
+                {
+                    return DryRunHtmlForm.Redirect(DryRunHtmlForm.SafeReturnUrl(context.Request, returnApp), result.ValidationCode == "ok", result.Detail);
+                }
+
+                return Results.Ok(result.ToPayload(SessionPayload(session)));
+            }
+
+            var written = await writes.PayAsync(
+                new ErpJwGoldSchemePayRequest(enrollmentId, amount, paymentMode, goldRate, receiptNo, paymentDate),
+                cancellationToken);
+            return LiveWriteFormBinder.Complete(context, returnApp, written.Succeeded, written.Message, new
+            {
+                ok = written.Succeeded,
+                status = written.Succeeded,
+                writes = written.Writes,
+                phpAuthoritative = false,
+                validation_code = written.Code,
+                message = written.Message,
+                id = written.Id,
+                enrollment_id = enrollmentId,
+                session = SessionPayload(session)
+            });
+        }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpJewelleryMetalStockSaveForm, async (
             HttpContext context,
             ILegacySessionValidator validator,
@@ -9593,6 +9806,34 @@ public sealed class ErpModule : ISurfaceModule
         long TagId = 0,
         int InvoiceId = 0,
         int SalesmanId = 0,
+        bool ConfirmWrites = false);
+    private sealed record ErpJwGoldSchemeCreateBody(
+        int CompanyId = 0,
+        string? SchemeCode = null,
+        string? SchemeName = null,
+        string? SchemeType = null,
+        int MaturityMonths = 11,
+        string? BonusType = null,
+        decimal BonusValue = 0,
+        decimal MinInstallment = 500,
+        decimal MaxInstallment = 50000,
+        string? TermsText = null,
+        bool ConfirmWrites = false);
+    private sealed record ErpJwGoldSchemeEnrollBody(
+        int CompanyId = 0,
+        long SchemeId = 0,
+        int CustomerId = 0,
+        string? CustomerName = null,
+        decimal InstallmentAmount = 0,
+        string? StartDate = null,
+        bool ConfirmWrites = false);
+    private sealed record ErpJwGoldSchemePayBody(
+        long EnrollmentId = 0,
+        decimal Amount = 0,
+        string? PaymentMode = null,
+        decimal GoldRate = 0,
+        string? ReceiptNo = null,
+        string? PaymentDate = null,
         bool ConfirmWrites = false);
     private sealed record ErpJwColorStoneSaveBody(
         int CompanyId = 0,
