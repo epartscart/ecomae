@@ -3070,6 +3070,16 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(whtCodeDb.Succeeded);
         Assert.Equal("db", whtCodeDb.Code);
 
+        var oaContactInvalid = await new ErpOaContactSaveWriteService(new ConfiguredNeverOpened())
+            .SaveAsync(new ErpOaContactSaveWriteRequest(ContactType: "alien"));
+        Assert.False(oaContactInvalid.Succeeded);
+        Assert.Equal("invalid", oaContactInvalid.Code);
+
+        var oaContactDb = await new ErpOaContactSaveWriteService(new UnconfiguredConnections())
+            .SaveAsync(new ErpOaContactSaveWriteRequest(1, "email", "ops@local.test"));
+        Assert.False(oaContactDb.Succeeded);
+        Assert.Equal("db", oaContactDb.Code);
+
         var whtRecordInvalid = await new ErpWhtRecordWriteService(new ConfiguredNeverOpened())
             .RecordAsync(new ErpWhtRecordWriteRequest());
         Assert.False(whtRecordInvalid.Succeeded);
