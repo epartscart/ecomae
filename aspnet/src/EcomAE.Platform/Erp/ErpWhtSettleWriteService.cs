@@ -2,6 +2,7 @@ namespace EcomAE.Platform.Erp;
 
 /// <summary>
 /// Live PHP <c>epc_wht_settle</c> twin. Schema ensure, record, and certificate minting stay PHP.
+/// Code save is a separate live twin.
 /// </summary>
 public interface IErpWhtSettleWriteService
 {
