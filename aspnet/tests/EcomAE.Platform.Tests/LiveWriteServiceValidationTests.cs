@@ -3070,6 +3070,16 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(whtCodeDb.Succeeded);
         Assert.Equal("db", whtCodeDb.Code);
 
+        var erFieldInvalid = await new ErpErFieldAddWriteService(new ConfiguredNeverOpened())
+            .AddAsync(new ErpErFieldAddWriteRequest());
+        Assert.False(erFieldInvalid.Succeeded);
+        Assert.Equal("invalid", erFieldInvalid.Code);
+
+        var erFieldDb = await new ErpErFieldAddWriteService(new UnconfiguredConnections())
+            .AddAsync(new ErpErFieldAddWriteRequest(1, "Vendor", "name"));
+        Assert.False(erFieldDb.Succeeded);
+        Assert.Equal("db", erFieldDb.Code);
+
         var whtRecordInvalid = await new ErpWhtRecordWriteService(new ConfiguredNeverOpened())
             .RecordAsync(new ErpWhtRecordWriteRequest());
         Assert.False(whtRecordInvalid.Succeeded);
