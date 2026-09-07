@@ -1204,7 +1204,9 @@ public static class EcomAeRoutes
     public const string ErpAjaxOplClearDemo = "/erp/ajax/opl-clear-demo";
     /// <summary>Wave B dry-run for PHP pf_set_dept_head (writes=0).</summary>
     public const string ErpAjaxPfSetDeptHead = "/erp/ajax/pf-set-dept-head";
-    /// <summary>Wave B dry-run for PHP pf_case_reassign (writes=0).</summary>
+    /// <summary>Live PHP pf_case_reassign twin (confirmWrites=true writes).</summary>
+    public const string ErpProcessFlowCaseReassign = "/erp/process-flow/cases/reassign";
+    /// <summary>Live PHP pf_case_reassign ajax alias of <see cref="ErpProcessFlowCaseReassign"/>.</summary>
     public const string ErpAjaxPfCaseReassign = "/erp/ajax/pf-case-reassign";
     /// <summary>Wave B dry-run for PHP pf_case_cancel (writes=0).</summary>
     public const string ErpAjaxPfCaseCancel = "/erp/ajax/pf-case-cancel";

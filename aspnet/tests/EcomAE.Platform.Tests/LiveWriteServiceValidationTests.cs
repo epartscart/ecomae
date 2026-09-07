@@ -2879,6 +2879,22 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(pfDb.Succeeded);
         Assert.Equal("db", pfDb.Code);
 
+        var pfReassignMissing = await new ErpPfCaseReassignWriteService(new ConfiguredNeverOpened())
+            .ReassignAsync(0, 0);
+        Assert.False(pfReassignMissing.Succeeded);
+        Assert.Equal("invalid", pfReassignMissing.Code);
+        Assert.Equal("Case is not open", pfReassignMissing.Message);
+
+        var pfReassignNoUser = await new ErpPfCaseReassignWriteService(new ConfiguredNeverOpened())
+            .ReassignAsync(4, 0);
+        Assert.False(pfReassignNoUser.Succeeded);
+        Assert.Equal("Select an assignee", pfReassignNoUser.Message);
+
+        var pfReassignDb = await new ErpPfCaseReassignWriteService(new UnconfiguredConnections())
+            .ReassignAsync(4, 9);
+        Assert.False(pfReassignDb.Succeeded);
+        Assert.Equal("db", pfReassignDb.Code);
+
         var convInvalid = await new ErpProcurementReqWriteService(new ConfiguredNeverOpened())
             .ConvertAsync(0);
         Assert.False(convInvalid.Succeeded);
