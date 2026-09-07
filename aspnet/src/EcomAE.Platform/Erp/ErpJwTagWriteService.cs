@@ -96,12 +96,15 @@ public sealed class ErpJwTagWriteService : IErpJwTagWriteService
             location = "showroom";
         }
 
+        var hasHistory = await TableExistsAsync(connection, "epc_jw_tag_history", cancellationToken).ConfigureAwait(false);
+        var hasSequences = await TableExistsAsync(connection, "epc_jw_tag_sequences", cancellationToken).ConfigureAwait(false);
+
         await using var transaction = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
         try
         {
             if (tagNo.Length == 0)
             {
-                tagNo = await NextTagNoAsync(connection, transaction, companyId, cancellationToken).ConfigureAwait(false);
+                tagNo = await NextTagNoAsync(connection, transaction, companyId, hasSequences, cancellationToken).ConfigureAwait(false);
             }
             else
             {
@@ -161,7 +164,7 @@ public sealed class ErpJwTagWriteService : IErpJwTagWriteService
                 return ErpSimpleWriteResult.Fail("invalid", "Failed");
             }
 
-            if (await TableExistsAsync(connection, "epc_jw_tag_history", cancellationToken).ConfigureAwait(false))
+            if (hasHistory)
             {
                 var purchaseId = request.PurchaseId < 0 ? 0 : request.PurchaseId;
                 await ErpDb.ExecuteAsync(
@@ -216,6 +219,7 @@ public sealed class ErpJwTagWriteService : IErpJwTagWriteService
         var invoiceId = request.InvoiceId < 0 ? 0 : request.InvoiceId;
         var salesmanId = request.SalesmanId < 0 ? 0 : request.SalesmanId;
         var now = UnixNow();
+        var hasHistory = await TableExistsAsync(connection, "epc_jw_tag_history", cancellationToken).ConfigureAwait(false);
 
         await using var transaction = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
         try
@@ -236,7 +240,7 @@ public sealed class ErpJwTagWriteService : IErpJwTagWriteService
                 return ErpSimpleWriteResult.Fail("invalid", "Tag is missing.");
             }
 
-            if (await TableExistsAsync(connection, "epc_jw_tag_history", cancellationToken).ConfigureAwait(false))
+            if (hasHistory)
             {
                 await ErpDb.ExecuteAsync(
                     connection,
@@ -264,10 +268,11 @@ public sealed class ErpJwTagWriteService : IErpJwTagWriteService
         DbConnection connection,
         DbTransaction transaction,
         int companyId,
+        bool hasSequences,
         CancellationToken cancellationToken)
     {
         var year = DateTime.Now.Year.ToString(CultureInfo.InvariantCulture);
-        if (await TableExistsAsync(connection, "epc_jw_tag_sequences", cancellationToken).ConfigureAwait(false))
+        if (hasSequences)
         {
             var prefix = await ErpDb.StringAsync(
                 connection,
