@@ -871,6 +871,14 @@ public static class EcomAeRoutes
     public const string ErpJewelleryBarcodePurchaseCreateForm = "/erp/jewellery/barcode-purchase-create";
     /// <summary>PHP epc_barcode_purchase_sell. <c>confirmWrites=true</c> marks <c>epc_barcode_purchases</c> sold.</summary>
     public const string ErpJewelleryBarcodePurchaseSellForm = "/erp/jewellery/barcode-purchase-sell";
+    /// <summary>PHP epc_tourist_refund_create. <c>confirmWrites=true</c> inserts <c>epc_tourist_refund_invoices</c>. Validate stays PHP.</summary>
+    public const string ErpTouristRefundCreateForm = "/erp/tourist-refund/create";
+    /// <summary>PHP epc_rfid_register_tag. <c>confirmWrites=true</c> inserts <c>epc_rfid_tags</c>. Scan sessions stay PHP.</summary>
+    public const string ErpRfidRegisterForm = "/erp/rfid/register";
+    /// <summary>PHP epc_gold_rate_set (manual). <c>confirmWrites=true</c> UPSERTs <c>epc_gold_rates</c>. API fetch stays PHP.</summary>
+    public const string ErpGoldRateSetForm = "/erp/gold-rate/set";
+    /// <summary>PHP epc_aml_kyc_save. <c>confirmWrites=true</c> inserts/updates <c>epc_aml_kyc</c>.</summary>
+    public const string ErpAmlKycSaveForm = "/erp/aml/kyc-save";
     /// <summary>PHP epc_sla_create. <c>confirmWrites=true</c> inserts <c>epc_sla_agreements</c>.</summary>
     public const string ErpSlaCreateForm = "/erp/sla/create";
     /// <summary>PHP epc_tickets_create. <c>confirmWrites=true</c> inserts <c>epc_tickets</c>.</summary>

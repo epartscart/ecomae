@@ -1480,6 +1480,46 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(slaCreate.Succeeded);
         Assert.Equal("invalid", slaCreate.Code);
 
+        var touristRefund = await new ErpTouristRefundWriteService(new ConfiguredNeverOpened())
+            .CreateAsync(new ErpTouristRefundCreateRequest());
+        Assert.False(touristRefund.Succeeded);
+        Assert.Equal("invalid", touristRefund.Code);
+        var touristRefundDb = await new ErpTouristRefundWriteService(new UnconfiguredConnections())
+            .CreateAsync(new ErpTouristRefundCreateRequest(TouristName: "Ada"));
+        Assert.False(touristRefundDb.Succeeded);
+        Assert.Equal("db", touristRefundDb.Code);
+
+        var rfidReg = await new ErpRfidRegisterWriteService(new ConfiguredNeverOpened())
+            .RegisterAsync(new ErpRfidRegisterRequest());
+        Assert.False(rfidReg.Succeeded);
+        Assert.Equal("invalid", rfidReg.Code);
+        var rfidDb = await new ErpRfidRegisterWriteService(new UnconfiguredConnections())
+            .RegisterAsync(new ErpRfidRegisterRequest(RfidEpc: "EPC-1"));
+        Assert.False(rfidDb.Succeeded);
+        Assert.Equal("db", rfidDb.Code);
+
+        var goldRate = await new ErpGoldRateSetWriteService(new ConfiguredNeverOpened())
+            .SetAsync(new ErpGoldRateSetRequest());
+        Assert.False(goldRate.Succeeded);
+        Assert.Equal("invalid", goldRate.Code);
+        var goldRateCcy = await new ErpGoldRateSetWriteService(new ConfiguredNeverOpened())
+            .SetAsync(new ErpGoldRateSetRequest(BuyRate: 240, Currency: "AE"));
+        Assert.False(goldRateCcy.Succeeded);
+        Assert.Equal("invalid", goldRateCcy.Code);
+        var goldRateDb = await new ErpGoldRateSetWriteService(new UnconfiguredConnections())
+            .SetAsync(new ErpGoldRateSetRequest(BuyRate: 240, Currency: "AED"));
+        Assert.False(goldRateDb.Succeeded);
+        Assert.Equal("db", goldRateDb.Code);
+
+        var amlKyc = await new ErpAmlKycSaveWriteService(new ConfiguredNeverOpened())
+            .SaveAsync(new ErpAmlKycSaveWriteRequest());
+        Assert.False(amlKyc.Succeeded);
+        Assert.Equal("invalid", amlKyc.Code);
+        var amlKycDb = await new ErpAmlKycSaveWriteService(new UnconfiguredConnections())
+            .SaveAsync(new ErpAmlKycSaveWriteRequest(CustomerName: "Ada"));
+        Assert.False(amlKycDb.Succeeded);
+        Assert.Equal("db", amlKycDb.Code);
+
         var ticketCreate = await new ErpTicketsWriteService(new ConfiguredNeverOpened())
             .CreateAsync(new ErpTicketsCreateRequest());
         Assert.False(ticketCreate.Succeeded);

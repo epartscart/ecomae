@@ -41,6 +41,21 @@
             </label>
             <button type="submit">Set refund status</button>
         </form>
+        @if (_tabLabel == "Tourist refund")
+        {
+            <form method="post" action="/erp/tourist-refund/create" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="/erp/vat-app?tab=tourist_refund" />
+                <label>Tourist name <input name="tourist_name" required /></label>
+                <label>Passport <input name="passport_no" /></label>
+                <label>Nationality <input name="nationality" /></label>
+                <label>Invoice <input name="invoice_no" /></label>
+                <label>Total <input type="number" name="total_amount" step="0.01" min="0" /></label>
+                <label>VAT <input type="number" name="vat_amount" step="0.01" min="0" /></label>
+                <label>Refund % <input type="number" name="refund_pct" step="0.01" value="85" /></label>
+                <button type="submit">Create tourist refund</button>
+            </form>
+        }
     }
 
     <p class="text-muted" style="margin:8px 0 12px;">

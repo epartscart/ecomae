@@ -6365,6 +6365,300 @@ public sealed class ErpModule : ISurfaceModule
                 session = SessionPayload(session)
             });
         }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpTouristRefundCreateForm, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IErpJwModuleSaveDryRun dryRun,
+            IErpTouristRefundWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (!PhpParityDumpCatalog.HasStaffAccess(session))
+            {
+                return LiveWriteFormBinder.LoginRedirect(
+                    context,
+                    "/erp/login?returnUrl=/erp/vat-app?tab=tourist_refund",
+                    "Admin ERP capability required for tourist refund create.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpTouristRefundCreateBody>(context, cancellationToken)
+                       ?? new();
+            var companyId = body.CompanyId;
+            var invoiceId = body.InvoiceId;
+            var invoiceNo = body.InvoiceNo;
+            var touristName = body.TouristName;
+            var passportNo = body.PassportNo;
+            var nationality = body.Nationality;
+            var departureDate = body.DepartureDate;
+            var totalAmount = body.TotalAmount;
+            var vatAmount = body.VatAmount;
+            var refundPct = body.RefundPct;
+            var refundProvider = body.RefundProvider;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                companyId = LiveWriteFormBinder.Int(form, "companyId", "company_id", "company");
+                invoiceId = LiveWriteFormBinder.Long(form, "invoiceId", "invoice_id");
+                invoiceNo = LiveWriteFormBinder.Text(form, "invoiceNo", "invoice_no");
+                touristName = LiveWriteFormBinder.Text(form, "touristName", "tourist_name");
+                passportNo = LiveWriteFormBinder.Text(form, "passportNo", "passport_no");
+                nationality = LiveWriteFormBinder.Text(form, "nationality");
+                departureDate = LiveWriteFormBinder.Text(form, "departureDate", "departure_date");
+                totalAmount = LiveWriteFormBinder.Dec(form, "totalAmount", "total_amount");
+                vatAmount = LiveWriteFormBinder.Dec(form, "vatAmount", "vat_amount");
+                refundPct = LiveWriteFormBinder.Dec(form, "refundPct", "refund_pct");
+                refundProvider = LiveWriteFormBinder.Text(form, "refundProvider", "refund_provider");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            const string returnApp = "/erp/vat-app?tab=tourist_refund";
+            if (!confirm)
+            {
+                var result = dryRun.Evaluate(new ErpJwModuleSaveRequest("tourist_refund_create", touristName, false));
+                if (LiveWriteFormBinder.WantsHtml(context))
+                {
+                    return DryRunHtmlForm.Redirect(DryRunHtmlForm.SafeReturnUrl(context.Request, returnApp), result.ValidationCode == "ok", result.Detail);
+                }
+
+                return Results.Ok(result.ToPayload(SessionPayload(session)));
+            }
+
+            var written = await writes.CreateAsync(
+                new ErpTouristRefundCreateRequest(companyId, invoiceId, invoiceNo, touristName, passportNo, nationality, departureDate, totalAmount, vatAmount, refundPct, refundProvider),
+                cancellationToken);
+            return LiveWriteFormBinder.Complete(context, returnApp, written.Succeeded, written.Message, new
+            {
+                ok = written.Succeeded,
+                status = written.Succeeded,
+                writes = written.Writes,
+                phpAuthoritative = false,
+                validation_code = written.Code,
+                message = written.Message,
+                id = written.Id,
+                session = SessionPayload(session)
+            });
+        }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpRfidRegisterForm, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IErpJwModuleSaveDryRun dryRun,
+            IErpRfidRegisterWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (!PhpParityDumpCatalog.HasStaffAccess(session))
+            {
+                return LiveWriteFormBinder.LoginRedirect(
+                    context,
+                    "/erp/login?returnUrl=/erp/rfid-app",
+                    "Admin ERP capability required for RFID register.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpRfidRegisterBody>(context, cancellationToken)
+                       ?? new();
+            var companyId = body.CompanyId;
+            var rfidEpc = body.RfidEpc;
+            var rfidTid = body.RfidTid;
+            var productId = body.ProductId;
+            var barcode = body.Barcode;
+            var sku = body.Sku;
+            var itemDescription = body.ItemDescription;
+            var warehouseId = body.WarehouseId;
+            var locationZone = body.LocationZone;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                companyId = LiveWriteFormBinder.Int(form, "companyId", "company_id", "company");
+                rfidEpc = LiveWriteFormBinder.Text(form, "rfidEpc", "rfid_epc", "epc");
+                rfidTid = LiveWriteFormBinder.Text(form, "rfidTid", "rfid_tid", "tid");
+                productId = LiveWriteFormBinder.Long(form, "productId", "product_id");
+                barcode = LiveWriteFormBinder.Text(form, "barcode");
+                sku = LiveWriteFormBinder.Text(form, "sku");
+                itemDescription = LiveWriteFormBinder.Text(form, "itemDescription", "item_description");
+                warehouseId = LiveWriteFormBinder.Long(form, "warehouseId", "warehouse_id");
+                locationZone = LiveWriteFormBinder.Text(form, "locationZone", "location_zone", "zone");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            const string returnApp = "/erp/rfid-app";
+            if (!confirm)
+            {
+                var result = dryRun.Evaluate(new ErpJwModuleSaveRequest("rfid_register", rfidEpc, false));
+                if (LiveWriteFormBinder.WantsHtml(context))
+                {
+                    return DryRunHtmlForm.Redirect(DryRunHtmlForm.SafeReturnUrl(context.Request, returnApp), result.ValidationCode == "ok", result.Detail);
+                }
+
+                return Results.Ok(result.ToPayload(SessionPayload(session)));
+            }
+
+            var written = await writes.RegisterAsync(
+                new ErpRfidRegisterRequest(companyId, rfidEpc, rfidTid, productId, barcode, sku, itemDescription, warehouseId, locationZone, session.UserId),
+                cancellationToken);
+            return LiveWriteFormBinder.Complete(context, returnApp, written.Succeeded, written.Message, new
+            {
+                ok = written.Succeeded,
+                status = written.Succeeded,
+                writes = written.Writes,
+                phpAuthoritative = false,
+                validation_code = written.Code,
+                message = written.Message,
+                id = written.Id,
+                session = SessionPayload(session)
+            });
+        }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpGoldRateSetForm, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IErpJwModuleSaveDryRun dryRun,
+            IErpGoldRateSetWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (!PhpParityDumpCatalog.HasStaffAccess(session))
+            {
+                return LiveWriteFormBinder.LoginRedirect(
+                    context,
+                    "/erp/login?returnUrl=/erp/jewellery-masters-app?tab=gold_rate",
+                    "Admin ERP capability required for gold rate set.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpGoldRateSetBody>(context, cancellationToken)
+                       ?? new();
+            var companyId = body.CompanyId;
+            var rateDate = body.RateDate;
+            var karat = body.Karat;
+            var currency = body.Currency;
+            var buyRate = body.BuyRate;
+            var sellRate = body.SellRate;
+            var unit = body.Unit;
+            var source = body.Source;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                companyId = LiveWriteFormBinder.Int(form, "companyId", "company_id", "company");
+                rateDate = LiveWriteFormBinder.Text(form, "rateDate", "rate_date");
+                karat = LiveWriteFormBinder.Text(form, "karat");
+                currency = LiveWriteFormBinder.Text(form, "currency");
+                buyRate = LiveWriteFormBinder.Dec(form, "buyRate", "buy_rate");
+                sellRate = LiveWriteFormBinder.Dec(form, "sellRate", "sell_rate");
+                unit = LiveWriteFormBinder.Text(form, "unit");
+                source = LiveWriteFormBinder.Text(form, "source");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            const string returnApp = "/erp/jewellery-masters-app?tab=gold_rate";
+            if (!confirm)
+            {
+                var result = dryRun.Evaluate(new ErpJwModuleSaveRequest("gold_rate_set", karat ?? currency, false));
+                if (LiveWriteFormBinder.WantsHtml(context))
+                {
+                    return DryRunHtmlForm.Redirect(DryRunHtmlForm.SafeReturnUrl(context.Request, returnApp), result.ValidationCode == "ok", result.Detail);
+                }
+
+                return Results.Ok(result.ToPayload(SessionPayload(session)));
+            }
+
+            var written = await writes.SetAsync(
+                new ErpGoldRateSetRequest(companyId, rateDate, karat, currency, buyRate, sellRate, unit, source),
+                cancellationToken);
+            return LiveWriteFormBinder.Complete(context, returnApp, written.Succeeded, written.Message, new
+            {
+                ok = written.Succeeded,
+                status = written.Succeeded,
+                writes = written.Writes,
+                phpAuthoritative = false,
+                validation_code = written.Code,
+                message = written.Message,
+                id = written.Id,
+                session = SessionPayload(session)
+            });
+        }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpAmlKycSaveForm, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IErpAmlKycSaveDryRun dryRun,
+            IErpAmlKycSaveWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (!PhpParityDumpCatalog.HasStaffAccess(session))
+            {
+                return LiveWriteFormBinder.LoginRedirect(
+                    context,
+                    "/erp/login?returnUrl=/erp/aml-compliance-app",
+                    "Admin ERP capability required for AML KYC save.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpAmlKycLiveSaveBody>(context, cancellationToken)
+                       ?? new();
+            var id = body.Id;
+            var companyId = body.CompanyId;
+            var customerId = body.CustomerId;
+            var customerName = body.CustomerName;
+            var idType = body.IdType;
+            var idNumber = body.IdNumber;
+            var idExpiry = body.IdExpiry;
+            var nationality = body.Nationality;
+            var riskLevel = body.RiskLevel;
+            var pepStatus = body.PepStatus;
+            var sanctionsChecked = body.SanctionsChecked;
+            var sanctionsMatch = body.SanctionsMatch;
+            var verificationStatus = body.VerificationStatus;
+            var nextReview = body.NextReview;
+            var notes = body.Notes;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                id = LiveWriteFormBinder.Long(form, "id");
+                companyId = LiveWriteFormBinder.Int(form, "companyId", "company_id", "company");
+                customerId = LiveWriteFormBinder.Long(form, "customerId", "customer_id");
+                customerName = LiveWriteFormBinder.Text(form, "customerName", "customer_name");
+                idType = LiveWriteFormBinder.Text(form, "idType", "id_type");
+                idNumber = LiveWriteFormBinder.Text(form, "idNumber", "id_number");
+                idExpiry = LiveWriteFormBinder.Text(form, "idExpiry", "id_expiry");
+                nationality = LiveWriteFormBinder.Text(form, "nationality");
+                riskLevel = LiveWriteFormBinder.Text(form, "riskLevel", "risk_level");
+                pepStatus = LiveWriteFormBinder.Flag(form, "pepStatus", "pep_status");
+                sanctionsChecked = LiveWriteFormBinder.Flag(form, "sanctionsChecked", "sanctions_checked");
+                sanctionsMatch = LiveWriteFormBinder.Flag(form, "sanctionsMatch", "sanctions_match");
+                verificationStatus = LiveWriteFormBinder.Text(form, "verificationStatus", "verification_status", "status");
+                nextReview = LiveWriteFormBinder.Text(form, "nextReview", "next_review");
+                notes = LiveWriteFormBinder.Text(form, "notes");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            const string returnApp = "/erp/aml-compliance-app";
+            if (!confirm)
+            {
+                var result = dryRun.Evaluate(new ErpAmlKycSaveRequest(id, customerName, false));
+                if (LiveWriteFormBinder.WantsHtml(context))
+                {
+                    return DryRunHtmlForm.Redirect(DryRunHtmlForm.SafeReturnUrl(context.Request, returnApp), result.ValidationCode == "ok", result.Detail);
+                }
+
+                return Results.Ok(result.ToPayload(SessionPayload(session)));
+            }
+
+            var written = await writes.SaveAsync(
+                new ErpAmlKycSaveWriteRequest(id, companyId, customerId, customerName, idType, idNumber, idExpiry, nationality, riskLevel, pepStatus, sanctionsChecked, sanctionsMatch, verificationStatus, nextReview, notes),
+                cancellationToken);
+            return LiveWriteFormBinder.Complete(context, returnApp, written.Succeeded, written.Message, new
+            {
+                ok = written.Succeeded,
+                status = written.Succeeded,
+                writes = written.Writes,
+                phpAuthoritative = false,
+                validation_code = written.Code,
+                message = written.Message,
+                id = written.Id,
+                session = SessionPayload(session)
+            });
+        }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpTicketsCreateForm, async (
             HttpContext context,
             ILegacySessionValidator validator,
@@ -11014,6 +11308,57 @@ public sealed class ErpModule : ISurfaceModule
         string? StartDate = null,
         string? EndDate = null,
         string? Status = null,
+        string? Notes = null,
+        bool ConfirmWrites = false);
+    private sealed record ErpTouristRefundCreateBody(
+        int CompanyId = 0,
+        long InvoiceId = 0,
+        string? InvoiceNo = null,
+        string? TouristName = null,
+        string? PassportNo = null,
+        string? Nationality = null,
+        string? DepartureDate = null,
+        decimal TotalAmount = 0,
+        decimal VatAmount = 0,
+        decimal RefundPct = 85,
+        string? RefundProvider = null,
+        bool ConfirmWrites = false);
+    private sealed record ErpRfidRegisterBody(
+        int CompanyId = 0,
+        string? RfidEpc = null,
+        string? RfidTid = null,
+        long ProductId = 0,
+        string? Barcode = null,
+        string? Sku = null,
+        string? ItemDescription = null,
+        long WarehouseId = 0,
+        string? LocationZone = null,
+        bool ConfirmWrites = false);
+    private sealed record ErpGoldRateSetBody(
+        int CompanyId = 0,
+        string? RateDate = null,
+        string? Karat = null,
+        string? Currency = null,
+        decimal BuyRate = 0,
+        decimal SellRate = 0,
+        string? Unit = null,
+        string? Source = null,
+        bool ConfirmWrites = false);
+    private sealed record ErpAmlKycLiveSaveBody(
+        long Id = 0,
+        int CompanyId = 0,
+        long CustomerId = 0,
+        string? CustomerName = null,
+        string? IdType = null,
+        string? IdNumber = null,
+        string? IdExpiry = null,
+        string? Nationality = null,
+        string? RiskLevel = null,
+        bool PepStatus = false,
+        bool SanctionsChecked = false,
+        bool SanctionsMatch = false,
+        string? VerificationStatus = null,
+        string? NextReview = null,
         string? Notes = null,
         bool ConfirmWrites = false);
     private sealed record ErpTicketsCreateBody(

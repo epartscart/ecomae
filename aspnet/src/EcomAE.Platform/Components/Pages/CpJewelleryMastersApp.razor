@@ -76,7 +76,27 @@
                 <button type="submit" class="btn btn-success btn-sm">Refresh rates</button>
             </form>
         </ErpPhpCreateWell>
-        <p class="text-muted">Live rates bind when the shop gold-rate board is configured. Demo figures from the PHP sample page are not shown as KPIs.</p>
+        <ErpPhpCreateWell Title="Set manual rate">
+            <form method="post" action="/erp/gold-rate/set" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="@_returnHere" />
+                <input type="hidden" name="source" value="manual" />
+                <label>Karat <input class="form-control input-sm" name="karat" value="24K" /></label>
+                <label>Currency <input class="form-control input-sm" name="currency" value="AED" maxlength="3" /></label>
+                <label>Buy <input class="form-control input-sm" name="buy_rate" type="number" step="0.0001" min="0" /></label>
+                <label>Sell <input class="form-control input-sm" name="sell_rate" type="number" step="0.0001" min="0" /></label>
+                <label>Unit
+                    <select class="form-control input-sm" name="unit">
+                        <option value="gram">gram</option>
+                        <option value="ounce">ounce</option>
+                        <option value="tola">tola</option>
+                        <option value="kg">kg</option>
+                    </select>
+                </label>
+                <button type="submit" class="btn btn-primary btn-sm">Set rate</button>
+            </form>
+        </ErpPhpCreateWell>
+        <p class="text-muted">Manual set writes here. Live API refresh stays on Classic ERP.</p>
     }
     else if (_isAdmin && _tab == "gold_scheme")
     {
