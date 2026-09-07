@@ -2984,6 +2984,17 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(consSaveDb.Succeeded);
         Assert.Equal("db", consSaveDb.Code);
 
+        var prjInvalid = await new ErpPrjSaveWriteService(new ConfiguredNeverOpened())
+            .SaveAsync(new ErpPrjSaveWriteRequest());
+        Assert.False(prjInvalid.Succeeded);
+        Assert.Equal("invalid", prjInvalid.Code);
+        Assert.Equal("Project code is required", prjInvalid.Message);
+
+        var prjDb = await new ErpPrjSaveWriteService(new UnconfiguredConnections())
+            .SaveAsync(new ErpPrjSaveWriteRequest(Code: "PRJ-001", Name: "Pilot"));
+        Assert.False(prjDb.Succeeded);
+        Assert.Equal("db", prjDb.Code);
+
         var consIcInvalid = await new ErpConsDeleteWriteService(new ConfiguredNeverOpened())
             .DeleteIcAsync(0);
         Assert.False(consIcInvalid.Succeeded);
