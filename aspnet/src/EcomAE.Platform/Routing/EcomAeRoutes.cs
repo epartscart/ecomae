@@ -1437,7 +1437,9 @@ public static class EcomAeRoutes
     public const string ErpAjaxConsIcSave = "/erp/ajax/cons-ic-save";
     /// <summary>Live PHP cons_ic_delete twin (confirmWrites=true writes).</summary>
     public const string ErpAjaxConsIcDelete = "/erp/ajax/cons-ic-delete";
-    /// <summary>Wave B dry-run for PHP mfg_bom_save (writes=0).</summary>
+    /// <summary>Live PHP epc_mfg_bom_save twin. confirmWrites=true writes via IErpMfgBomSaveWriteService.</summary>
+    public const string ErpManufacturingBomSave = "/erp/manufacturing/bom/save";
+    /// <summary>Live PHP mfg_bom_save ajax alias of <see cref="ErpManufacturingBomSave"/>.</summary>
     public const string ErpAjaxMfgBomSave = "/erp/ajax/mfg-bom-save";
     /// <summary>Wave B dry-run for PHP mfg_wo_create (writes=0).</summary>
     public const string ErpAjaxMfgWoCreate = "/erp/ajax/mfg-wo-create";

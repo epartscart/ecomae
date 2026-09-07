@@ -766,6 +766,7 @@ builder.Services.AddScoped<EcomAE.Platform.Erp.IErpBosWfDisableRuleWriteService,
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpBosComplianceDisableObligationWriteService, EcomAE.Platform.Erp.ErpBosComplianceDisableObligationWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpHrStatusWriteService, EcomAE.Platform.Erp.ErpHrStatusWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpHrExpenseSaveWriteService, EcomAE.Platform.Erp.ErpHrExpenseSaveWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpMfgBomSaveWriteService, EcomAE.Platform.Erp.ErpMfgBomSaveWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpHrLeaveRequestWriteService, EcomAE.Platform.Erp.ErpHrLeaveRequestWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpHrEmpSaveWriteService, EcomAE.Platform.Erp.ErpHrEmpSaveWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpHrAttendanceWriteService, EcomAE.Platform.Erp.ErpHrAttendanceWriteService>();

@@ -242,8 +242,7 @@ public sealed class ErpModule : ISurfaceModule
                 written.Message,
                 new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxMfgBomSave, async (HttpContext context, ErpMfgBomSaveBody? body, ILegacySessionValidator validator, IErpMfgBomSaveDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpMfgBomSaveRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        // ErpAjaxMfgBomSave is mapped with ErpManufacturingBomSave via HandleMfgBomSaveAsync.
         endpoints.MapPost(EcomAeRoutes.ErpAjaxMfgWoCreate, async (HttpContext context, ErpMfgWoCreateBody? body, ILegacySessionValidator validator, IErpMfgWoCreateDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpMfgWoCreateRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxMfgWoIssue, async (HttpContext context, ErpMfgWoIssueBody? body, ILegacySessionValidator validator, IErpMfgWoIssueDryRun dryRun, CancellationToken cancellationToken) =>
@@ -4969,6 +4968,8 @@ public sealed class ErpModule : ISurfaceModule
         }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpHrEmployeesSave, HandleHrEmpSaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxHrEmpSave, HandleHrEmpSaveAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpManufacturingBomSave, HandleMfgBomSaveAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxMfgBomSave, HandleMfgBomSaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpHrAttendanceLog, HandleHrAttendanceAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxHrAttendance, HandleHrAttendanceAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxHrLeaveRequest, async (
@@ -12004,6 +12005,61 @@ public sealed class ErpModule : ISurfaceModule
             new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
     }
 
+    private static async Task<IResult> HandleMfgBomSaveAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpMfgBomSaveDryRun dryRun,
+        IErpMfgBomSaveWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/cp/production-overview-app", "Admin ERP capability required for manufacturing BOM save.");
+        }
+
+        var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpMfgBomSaveBody>(context, cancellationToken) ?? new();
+        var id = body.Id;
+        var productItemId = body.ProductItemId;
+        var name = body.Name;
+        var outputQty = body.OutputQty;
+        var labourCost = body.LabourCost;
+        var overheadCost = body.OverheadCost;
+        var confirm = body.ConfirmWrites;
+        IFormCollection? form = null;
+        if (context.Request.HasFormContentType)
+        {
+            form = await context.Request.ReadFormAsync(cancellationToken);
+            id = LiveWriteFormBinder.Long(form, "id");
+            productItemId = LiveWriteFormBinder.Long(form, "productItemId", "product_item_id");
+            name = LiveWriteFormBinder.Text(form, "name");
+            if (form.ContainsKey("output_qty") || form.ContainsKey("outputQty"))
+            {
+                outputQty = LiveWriteFormBinder.Dec(form, "outputQty", "output_qty");
+            }
+
+            labourCost = LiveWriteFormBinder.Dec(form, "labourCost", "labour_cost");
+            overheadCost = LiveWriteFormBinder.Dec(form, "overheadCost", "overhead_cost");
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+        }
+
+        var lines = ErpMfgBomSaveWriteService.ParseLines(body.Lines, body.LinesJson, form);
+        if (!confirm)
+        {
+            return Results.Ok(dryRun.Evaluate(new ErpMfgBomSaveRequest(id, productItemId, lines.Count, false)).ToPayload(SessionPayload(session)));
+        }
+
+        var written = await writes.SaveAsync(
+            new ErpMfgBomSaveWriteRequest(id, productItemId, name, outputQty, labourCost, overheadCost, lines),
+            cancellationToken);
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/cp/production-overview-app",
+            written.Succeeded,
+            written.Message,
+            new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+    }
+
     private static async Task<IResult> HandleWhtCertificateAsync(
         HttpContext context,
         ILegacySessionValidator validator,
@@ -12722,7 +12778,16 @@ public sealed class ErpModule : ISurfaceModule
     private sealed record ErpConsFiguresSaveBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpConsIcSaveBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpConsIcDeleteBody(long Id, bool ConfirmWrites = false);
-    private sealed record ErpMfgBomSaveBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
+    private sealed record ErpMfgBomSaveBody(
+        long Id = 0,
+        long ProductItemId = 0,
+        string? Name = null,
+        decimal OutputQty = 1,
+        decimal LabourCost = 0,
+        decimal OverheadCost = 0,
+        IReadOnlyList<ErpMfgBomLine>? Lines = null,
+        string? LinesJson = null,
+        bool ConfirmWrites = false);
     private sealed record ErpMfgWoCreateBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpMfgWoIssueBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpMfgWoCompleteBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);

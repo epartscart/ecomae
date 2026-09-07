@@ -2954,6 +2954,22 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(expDb.Succeeded);
         Assert.Equal("db", expDb.Code);
 
+        var mfgBomMissing = await new ErpMfgBomSaveWriteService(new ConfiguredNeverOpened())
+            .SaveAsync(new ErpMfgBomSaveWriteRequest());
+        Assert.False(mfgBomMissing.Succeeded);
+        Assert.Equal("invalid", mfgBomMissing.Code);
+        Assert.Equal("Select a finished product", mfgBomMissing.Message);
+
+        var mfgBomNoLines = await new ErpMfgBomSaveWriteService(new ConfiguredNeverOpened())
+            .SaveAsync(new ErpMfgBomSaveWriteRequest(ProductItemId: 100));
+        Assert.False(mfgBomNoLines.Succeeded);
+        Assert.Equal("Add at least one component", mfgBomNoLines.Message);
+
+        var mfgBomDb = await new ErpMfgBomSaveWriteService(new UnconfiguredConnections())
+            .SaveAsync(new ErpMfgBomSaveWriteRequest(ProductItemId: 100, Lines: [new ErpMfgBomLine(200, 1, 0)]));
+        Assert.False(mfgBomDb.Succeeded);
+        Assert.Equal("db", mfgBomDb.Code);
+
         var expSaveInvalid = await new ErpHrExpenseSaveWriteService(new ConfiguredNeverOpened())
             .SaveAsync(0, "Taxi", [new ErpHrExpenseLine("taxi", 12)]);
         Assert.False(expSaveInvalid.Succeeded);
