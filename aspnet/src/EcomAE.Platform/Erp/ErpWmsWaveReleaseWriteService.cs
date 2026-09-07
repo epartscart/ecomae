@@ -1,8 +1,7 @@
 namespace EcomAE.Platform.Erp;
 
 /// <summary>
-/// Live PHP <c>epc_wms_wave_release</c> twin. Schema ensure, wave create, pick add,
-/// and work complete stay PHP.
+/// Live PHP <c>epc_wms_wave_release</c> twin. Schema ensure stays PHP.
 /// </summary>
 public interface IErpWmsWaveReleaseWriteService
 {

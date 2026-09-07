@@ -4,7 +4,7 @@ namespace EcomAE.Platform.Erp;
 
 /// <summary>
 /// Live PHP <c>epc_wms_receive</c> twin. Creates/merges an LP and raises put-away work.
-/// Schema ensure, wave create, pick add, and work complete stay PHP.
+/// Schema ensure stays PHP.
 /// </summary>
 public interface IErpWmsReceiveWriteService
 {

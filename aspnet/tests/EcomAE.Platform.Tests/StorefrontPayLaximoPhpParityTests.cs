@@ -180,6 +180,8 @@ public sealed class StorefrontPayLaximoPhpParityTests
         Assert.Equal("write-live-gated", SurfacePayloadContractCatalog.Functions.First(f => f.AspNetRouteOrCapability == "/erp/gold-rate/set").Status);
         Assert.Equal("write-live-gated", SurfacePayloadContractCatalog.Functions.First(f => f.AspNetRouteOrCapability == "/erp/aml/kyc-save").Status);
         Assert.Equal("write-live-gated", SurfacePayloadContractCatalog.Functions.First(f => f.AspNetRouteOrCapability == "/erp/aml/alert-status").Status);
+        Assert.Equal("write-live-gated", SurfacePayloadContractCatalog.Functions.First(f => f.AspNetRouteOrCapability == "/erp/wms/work/complete").Status);
+        Assert.Equal("write-live-gated", SurfacePayloadContractCatalog.Functions.First(f => f.AspNetRouteOrCapability == "/erp/wms/locations/delete").Status);
         Assert.Equal("write-live-gated", SurfacePayloadContractCatalog.Functions.First(f => f.AspNetRouteOrCapability == "/erp/tickets/create").Status);
         Assert.Equal("write-live-gated", SurfacePayloadContractCatalog.Functions.First(f => f.AspNetRouteOrCapability == "/erp/tickets/reply").Status);
         Assert.Equal("write-live-gated", SurfacePayloadContractCatalog.Functions.First(f => f.AspNetRouteOrCapability == "/erp/customer-groups/create").Status);
