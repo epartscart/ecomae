@@ -14,7 +14,7 @@
 
 @if (_useErpChrome)
 {
-    <PhpErpDesktopChrome IsAdmin="IsAdmin">
+    <PhpErpDesktopChrome IsAdmin="IsAdmin" Title="@_erpTitle" BreadcrumbArea="@_erpArea" BreadcrumbTab="@_erpTitle">
         @ChildContent
     </PhpErpDesktopChrome>
 }
@@ -359,6 +359,8 @@ else
     [Parameter] public bool IsAdmin { get; set; }
 
     private bool _useErpChrome;
+    private string _erpTitle = "Module";
+    private string _erpArea = "Modules";
     private bool _showBos;
     private bool _signedIn;
     private string _userLabel = "Admin session";
@@ -370,6 +372,8 @@ else
         _useErpChrome = path.StartsWith("/erp", StringComparison.OrdinalIgnoreCase);
         if (_useErpChrome)
         {
+            _erpTitle = TitleFromErpPath(path);
+            _erpArea = AreaFromErpPath(path);
             return;
         }
 
@@ -394,6 +398,45 @@ else
         {
             _userLabel = string.IsNullOrWhiteSpace(session.Email) ? "Admin session" : session.Email!;
         }
+    }
+
+    private static string TitleFromErpPath(string path)
+    {
+        var slug = path.Split('?', 2)[0].Trim('/').Split('/').LastOrDefault() ?? "module";
+        slug = slug.Replace("-app", "", StringComparison.OrdinalIgnoreCase).Replace('-', ' ').Trim();
+        if (string.IsNullOrWhiteSpace(slug) || slug.Equals("erp", StringComparison.OrdinalIgnoreCase))
+        {
+            return "Dashboard";
+        }
+
+        var parts = slug.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        for (var i = 0; i < parts.Length; i++)
+        {
+            var p = parts[i];
+            parts[i] = char.ToUpperInvariant(p[0]) + p[1..];
+        }
+
+        return string.Join(' ', parts);
+    }
+
+    private static string AreaFromErpPath(string path)
+    {
+        var title = TitleFromErpPath(path);
+        if (title.Contains("Warehouse", StringComparison.OrdinalIgnoreCase)
+            || title.Contains("Fulfil", StringComparison.OrdinalIgnoreCase)
+            || title.Contains("Fulfill", StringComparison.OrdinalIgnoreCase))
+        {
+            return "Inventory";
+        }
+
+        if (title.Contains("Collection", StringComparison.OrdinalIgnoreCase)
+            || title.Contains("Hr", StringComparison.OrdinalIgnoreCase)
+            || title.Contains("Payroll", StringComparison.OrdinalIgnoreCase))
+        {
+            return title.Contains("Collection", StringComparison.OrdinalIgnoreCase) ? "Finance" : "People";
+        }
+
+        return "Modules";
     }
 
     private static bool IsBosNavGroup(LegacyDesktopChromeCatalog.MegaGroup group)
