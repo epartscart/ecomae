@@ -47,14 +47,11 @@
         <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
         <h1>Warehouse WMS</h1>
         <p>@CpPhpModuleCopy.PurposeFor(Nav.Uri)</p>
-        <p>Receive stock, create or release a pick wave, or delete an empty location here. Work complete stays on the Classic twin.</p>
+        <p>Save or delete a bin location, receive stock, and create or release a pick wave here. Work complete stays on the Classic twin.</p>
         <div class="epc-wms-cta">
             <a href="/erp">ERP overview</a>
         </div>
     </section>
-    <PhpParityModuleBody AppPath="/cp/warehouse-wms-app" IsAdmin="_isAdmin" />
-
-
     @if (!string.IsNullOrWhiteSpace(_flashOk))
     {
         <div class="alert alert-success" role="status" style="margin:0 0 1rem;padding:.7rem .9rem;border-radius:.4rem;background:#ecfdf5;color:#065f46">@_flashOk</div>
@@ -76,9 +73,21 @@
             <label>License plate <input type="text" name="lp_code" placeholder="blank = auto" /></label>
             <button type="submit">Receive &amp; raise put-away</button>
         </form>
+        <form method="post" action="/erp/wms/locations/save" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="@(Http.HttpContext?.Request.Path.Value ?? "/erp/warehouse-wms-app")" />
+            <label>Code <input name="code" required maxlength="64" style="width:7rem" /></label>
+            <label>Name <input name="name" maxlength="120" style="width:10rem" /></label>
+            <label>Warehouse <input type="number" name="warehouse_id" min="0" style="width:5rem" /></label>
+            <label>Zone <input name="zone" maxlength="40" style="width:5rem" /></label>
+            <label>Aisle <input name="aisle" maxlength="40" style="width:5rem" /></label>
+            <label>Rack <input name="rack" maxlength="40" style="width:5rem" /></label>
+            <label>Bin <input name="bin" maxlength="40" style="width:5rem" /></label>
+            <button type="submit">Save location</button>
+        </form>
         <form method="post" action="/erp/wms/waves/create" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="/cp/warehouse-wms-app" />
+            <input type="hidden" name="returnUrl" value="/erp/warehouse-wms-app" />
             <label>Item <input name="item" required maxlength="120" style="width:8rem" /></label>
             <label>Qty <input type="number" name="qty" min="0.001" step="0.001" required style="width:5rem" /></label>
             <label>Reference <input name="reference" maxlength="120" style="width:8rem" /></label>
@@ -86,13 +95,13 @@
         </form>
         <form method="post" action="/erp/wms/locations/delete" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="@(Http.HttpContext?.Request.Path.Value ?? "/cp/warehouse-wms-app")" />
+            <input type="hidden" name="returnUrl" value="@(Http.HttpContext?.Request.Path.Value ?? "/erp/warehouse-wms-app")" />
             <label>Location id <input type="number" name="id" min="1" required style="width:6rem" /></label>
             <button type="submit">Delete location</button>
         </form>
         <form method="post" action="/erp/wms/waves/release" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="@(Http.HttpContext?.Request.Path.Value ?? "/cp/warehouse-wms-app")" />
+            <input type="hidden" name="returnUrl" value="@(Http.HttpContext?.Request.Path.Value ?? "/erp/warehouse-wms-app")" />
             <label>Wave id <input type="number" name="id" min="1" required style="width:6rem" /></label>
             <button type="submit">Release wave</button>
         </form>
