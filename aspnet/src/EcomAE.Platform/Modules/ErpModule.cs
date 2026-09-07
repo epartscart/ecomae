@@ -4969,8 +4969,8 @@ public sealed class ErpModule : ISurfaceModule
         }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpHrEmployeesSave, HandleHrEmpSaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxHrEmpSave, HandleHrEmpSaveAsync).DisableAntiforgery();
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxHrAttendance, async (HttpContext context, ErpHrAttendanceBody? body, ILegacySessionValidator validator, IErpHrAttendanceDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpHrAttendanceRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.ErpHrAttendanceLog, HandleHrAttendanceAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxHrAttendance, HandleHrAttendanceAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxHrLeaveRequest, async (
             HttpContext context,
             ILegacySessionValidator validator,
@@ -11877,6 +11877,53 @@ public sealed class ErpModule : ISurfaceModule
             new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
     }
 
+    private static async Task<IResult> HandleHrAttendanceAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpHrAttendanceDryRun dryRun,
+        IErpHrAttendanceWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/cp/hr-overview-app", "Admin ERP capability required for attendance.");
+        }
+
+        var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpHrAttendanceBody>(context, cancellationToken) ?? new();
+        var employeeId = body.EmployeeId > 0 ? body.EmployeeId : body.Id;
+        var workDate = body.WorkDate;
+        var workDateStr = body.WorkDateStr;
+        var hours = body.Hours;
+        var status = body.Status;
+        var confirm = body.ConfirmWrites;
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            employeeId = LiveWriteFormBinder.Long(form, "employeeId", "employee_id", "id");
+            workDate = LiveWriteFormBinder.Text(form, "workDate", "work_date");
+            workDateStr = LiveWriteFormBinder.Text(form, "workDateStr", "work_date_str");
+            hours = LiveWriteFormBinder.Dec(form, "hours");
+            status = LiveWriteFormBinder.Text(form, "status");
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+        }
+
+        if (!confirm)
+        {
+            return Results.Ok(dryRun.Evaluate(new ErpHrAttendanceRequest(employeeId, status, false)).ToPayload(SessionPayload(session)));
+        }
+
+        var written = await writes.LogAsync(
+            new ErpHrAttendanceWriteRequest(employeeId, workDate, workDateStr, hours, status),
+            cancellationToken);
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/cp/hr-overview-app",
+            written.Succeeded,
+            written.Message,
+            new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+    }
+
     private static async Task<IResult> HandleHrEmpSaveAsync(
         HttpContext context,
         ILegacySessionValidator validator,
@@ -12430,7 +12477,14 @@ public sealed class ErpModule : ISurfaceModule
         [JsonExtensionData]
         public Dictionary<string, JsonElement>? Extra { get; set; }
     }
-    private sealed record ErpHrAttendanceBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
+    private sealed record ErpHrAttendanceBody(
+        long Id = 0,
+        long EmployeeId = 0,
+        string? WorkDate = null,
+        string? WorkDateStr = null,
+        decimal Hours = 0,
+        string? Status = null,
+        bool ConfirmWrites = false);
     private sealed record ErpHrLeaveRequestBody(
         long EmployeeId = 0,
         string? Type = null,

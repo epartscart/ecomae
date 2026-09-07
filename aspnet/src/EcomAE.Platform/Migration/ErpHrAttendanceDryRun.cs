@@ -1,26 +1,62 @@
 namespace EcomAE.Platform.Migration;
 
-/// <summary>Wave B dry-run for PHP <c>hr_attendance</c>. Never UPDATE. PHP authoritative.</summary>
-public interface IErpHrAttendanceDryRun { ErpHrAttendanceDryRunResult Evaluate(ErpHrAttendanceRequest request); }
+/// <summary>
+/// Dry-run envelope for PHP <c>epc_hr_attendance_log</c> when <c>confirmWrites</c> is omitted.
+/// Live upsert is <c>IErpHrAttendanceWriteService</c>. Schema ensure stays PHP.
+/// </summary>
+public interface IErpHrAttendanceDryRun
+{
+    ErpHrAttendanceDryRunResult Evaluate(ErpHrAttendanceRequest request);
+}
+
 public sealed class ErpHrAttendanceDryRun : IErpHrAttendanceDryRun
 {
     public ErpHrAttendanceDryRunResult Evaluate(ErpHrAttendanceRequest request)
     {
         ArgumentNullException.ThrowIfNull(request);
         if (request.ConfirmWrites)
-            return Refuse("dry-run-confirm-refused","confirm_writes_refused","confirm_writes requested but live ASP.NET hr_attendance is not implemented; PHP ajax_erp.php remains authoritative.", request);
-        if (request.Id < 0)
-            return Refuse("dry-run-invalid","invalid_request","id must be >= 0.", request);
-        return new("dry-run-validated",0,true,false,true,"ok",true,request.Id, request.Code,
-            ["ajax_erp.php?action=hr_attendance (NOT executed)"],
-            "ERP hr_attendance payload validated; UPDATE blocked.",
-            "/CP/content/shop/finance/erp/ajax_erp.php?action=hr_attendance");
+        {
+            return Refuse(
+                "dry-run-confirm-refused",
+                "confirm_writes_refused",
+                "confirm_writes refused on the dry-run path; POST confirmWrites=true to write on ASP.NET.",
+                request);
+        }
+
+        if (request.EmployeeId <= 0)
+        {
+            return Refuse("dry-run-invalid", "invalid_request", "Select an employee", request);
+        }
+
+        return new ErpHrAttendanceDryRunResult(
+            "dry-run-validated", 0, true, false, false, "ok", true,
+            request.EmployeeId, request.Status,
+            ["INSERT/UPDATE `epc_hr_attendance` (NOT executed)"],
+            "ErpHrAttendance payload validated; write blocked until confirmWrites=true.",
+            "content/shop/finance/epc_erp_hr.php");
     }
-    private static ErpHrAttendanceDryRunResult Refuse(string s,string c,string d,ErpHrAttendanceRequest r)=>
-        new(s,0,true,false,true,c,false,r.Id, r.Code,[],d,"/CP/content/shop/finance/erp/ajax_erp.php?action=hr_attendance");
+
+    private static ErpHrAttendanceDryRunResult Refuse(string status, string code, string detail, ErpHrAttendanceRequest request) =>
+        new(status, 0, true, false, false, code, false, request.EmployeeId, request.Status, [], detail,
+            "content/shop/finance/epc_erp_hr.php");
 }
-public sealed record ErpHrAttendanceRequest(long Id = 0, string? Code = null, bool ConfirmWrites = false);
-public sealed record ErpHrAttendanceDryRunResult(string Status,int Writes,bool WritesBlocked,bool CutoverAllowed,bool PhpAuthoritative,string ValidationCode,bool WouldWrite,long Id, string? Code,IReadOnlyList<string> SimulatedSql,string Detail,string PhpAjax)
+
+public sealed record ErpHrAttendanceRequest(
+    long EmployeeId = 0,
+    string? Status = null,
+    bool ConfirmWrites = false);
+
+public sealed record ErpHrAttendanceDryRunResult(
+    string Status, int Writes, bool WritesBlocked, bool CutoverAllowed, bool PhpAuthoritative,
+    string ValidationCode, bool WouldWrite, long EmployeeId, string? AttendanceStatus,
+    IReadOnlyList<string> SimulatedSql, string Detail, string PhpAjax)
 {
-    public object ToPayload(object session)=>new{ok=true,surface="erp",status=Status,writes=Writes,writesBlocked=WritesBlocked,cutoverAllowed=CutoverAllowed,phpAuthoritative=PhpAuthoritative,validation_code=ValidationCode,would_write=WouldWrite,intended=new{id=Id,code=Code},simulated=SimulatedSql,php_ajax=PhpAjax,session,note=Detail};
+    public object ToPayload(object session) => new
+    {
+        ok = true, surface = "erp", status = Status, writes = Writes, writesBlocked = WritesBlocked,
+        cutoverAllowed = CutoverAllowed, phpAuthoritative = PhpAuthoritative,
+        validation_code = ValidationCode, would_write = WouldWrite,
+        intended = new { employee_id = EmployeeId, status = AttendanceStatus },
+        simulated = SimulatedSql, php_ajax = PhpAjax, session, note = Detail
+    };
 }
