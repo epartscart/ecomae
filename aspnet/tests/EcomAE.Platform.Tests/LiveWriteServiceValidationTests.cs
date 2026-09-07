@@ -3070,6 +3070,16 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(whtCodeDb.Succeeded);
         Assert.Equal("db", whtCodeDb.Code);
 
+        var pfStepInvalid = await new ErpPfStepSaveWriteService(new ConfiguredNeverOpened())
+            .SaveAsync(new ErpPfStepSaveWriteRequest());
+        Assert.False(pfStepInvalid.Succeeded);
+        Assert.Equal("invalid", pfStepInvalid.Code);
+
+        var pfStepDb = await new ErpPfStepSaveWriteService(new UnconfiguredConnections())
+            .SaveAsync(new ErpPfStepSaveWriteRequest(ProcessId: 1, Name: "Review"));
+        Assert.False(pfStepDb.Succeeded);
+        Assert.Equal("db", pfStepDb.Code);
+
         var whtRecordInvalid = await new ErpWhtRecordWriteService(new ConfiguredNeverOpened())
             .RecordAsync(new ErpWhtRecordWriteRequest());
         Assert.False(whtRecordInvalid.Succeeded);

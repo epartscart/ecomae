@@ -4102,8 +4102,8 @@ public sealed class ErpModule : ISurfaceModule
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(false); return Results.Ok(dryRun.Evaluate(new ErpOplCreatePosRequest(body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxPfProcessSave, async (HttpContext context, ErpPfProcessSaveBody? body, ILegacySessionValidator validator, IErpPfProcessSaveDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpPfProcessSaveRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxPfStepSave, async (HttpContext context, ErpPfStepSaveBody? body, ILegacySessionValidator validator, IErpPfStepSaveDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpPfStepSaveRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.ErpProcessFlowStepsSave, HandlePfStepSaveAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxPfStepSave, HandlePfStepSaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxPfStepDelete, async (
             HttpContext context,
             ILegacySessionValidator validator,
@@ -11774,6 +11774,63 @@ public sealed class ErpModule : ISurfaceModule
         }
     }
 
+    private static async Task<IResult> HandlePfStepSaveAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpPfStepSaveDryRun dryRun,
+        IErpPfStepSaveWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/process-flow-tasks-app", "Admin ERP capability required for process step save.");
+        }
+
+        var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpPfStepSaveBody>(context, cancellationToken) ?? new();
+        var processId = body.ProcessId;
+        var name = body.Name;
+        var assignType = body.AssignType;
+        var assignUserId = body.AssignUserId;
+        var assignDepartment = body.AssignDepartment;
+        var stepNo = body.StepNo;
+        var slaHours = body.SlaHours;
+        var instructions = body.Instructions;
+        var confirm = body.ConfirmWrites;
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            processId = LiveWriteFormBinder.Long(form, "processId", "process_id");
+            name = LiveWriteFormBinder.Text(form, "name");
+            assignType = LiveWriteFormBinder.Text(form, "assignType", "assign_type");
+            assignUserId = LiveWriteFormBinder.Long(form, "assignUserId", "assign_user_id");
+            assignDepartment = LiveWriteFormBinder.Text(form, "assignDepartment", "assign_department");
+            stepNo = LiveWriteFormBinder.Int(form, "stepNo", "step_no");
+            slaHours = LiveWriteFormBinder.Int(form, "slaHours", "sla_hours");
+            if (slaHours == 0 && !form.ContainsKey("sla_hours") && !form.ContainsKey("slaHours"))
+            {
+                slaHours = 24;
+            }
+            instructions = LiveWriteFormBinder.Text(form, "instructions");
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+        }
+
+        if (!confirm)
+        {
+            return Results.Ok(dryRun.Evaluate(new ErpPfStepSaveRequest(processId, name, assignType, stepNo, slaHours, false)).ToPayload(SessionPayload(session)));
+        }
+
+        var written = await writes.SaveAsync(
+            new ErpPfStepSaveWriteRequest(processId, name, assignType, assignUserId, assignDepartment, stepNo, slaHours, instructions),
+            cancellationToken);
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/erp/process-flow-tasks-app",
+            written.Succeeded,
+            written.Message,
+            new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+    }
+
     private static async Task<IResult> HandleWhtCodeSaveAsync(
         HttpContext context,
         ILegacySessionValidator validator,
@@ -13517,7 +13574,16 @@ public sealed class ErpModule : ISurfaceModule
     private sealed record ErpOplConfirmAllBody(bool ConfirmWrites = false);
     private sealed record ErpOplCreatePosBody(bool ConfirmWrites = false);
     private sealed record ErpPfProcessSaveBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
-    private sealed record ErpPfStepSaveBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
+    private sealed record ErpPfStepSaveBody(
+        long ProcessId = 0,
+        string? Name = null,
+        string? AssignType = null,
+        long AssignUserId = 0,
+        string? AssignDepartment = null,
+        int StepNo = 0,
+        int SlaHours = 24,
+        string? Instructions = null,
+        bool ConfirmWrites = false);
     private sealed record ErpPfStepDeleteBody(long Id, bool ConfirmWrites = false);
     private sealed record ErpPfCaseStartBody(long Id, bool ConfirmWrites = false);
     private sealed record ErpPfCaseActBody(long Id, bool ConfirmWrites = false);
