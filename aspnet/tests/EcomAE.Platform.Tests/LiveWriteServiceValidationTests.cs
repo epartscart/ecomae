@@ -1419,6 +1419,16 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(jwVoucher.Succeeded);
         Assert.Equal("invalid", jwVoucher.Code);
 
+        var jwPetty = await new ErpJwPettyCashWriteService(new ErpJwVoucherWriteService(new ConfiguredNeverOpened()))
+            .SaveAsync(new ErpJwPettyCashSaveRequest());
+        Assert.False(jwPetty.Succeeded);
+        Assert.Equal("invalid", jwPetty.Code);
+
+        var jwTourist = await new ErpJwTouristVatWriteService(new ConfiguredNeverOpened())
+            .SaveAsync(new ErpJwTouristVatSaveRequest());
+        Assert.False(jwTourist.Succeeded);
+        Assert.Equal("invalid", jwTourist.Code);
+
         var jwInvalid = await new ErpJwRepairWriteService(new ConfiguredNeverOpened())
             .SetStatusAsync(0, "ready");
         Assert.False(jwInvalid.Succeeded);

@@ -5408,6 +5408,223 @@ public sealed class ErpModule : ISurfaceModule
                     session = SessionPayload(session)
                 });
         }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpJewelleryPettyCashSaveForm, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IErpJwModuleSaveDryRun dryRun,
+            IErpJwPettyCashWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (!ErpJewelleryModuleChrome.HasJewelleryStaffAccess(session))
+            {
+                return LiveWriteFormBinder.LoginRedirect(
+                    context,
+                    "/erp/login?returnUrl=/erp/cash-accounts-app?tab=jw_petty_cash",
+                    "Admin ERP capability required for jewellery petty cash save.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpJwPettyCashSaveBody>(context, cancellationToken)
+                       ?? new();
+            var companyId = body.CompanyId;
+            var branch = body.Branch;
+            var vocDate = body.VocDate;
+            var vocNo = body.VocNo;
+            var payTo = body.PayTo;
+            var paidTo = body.PaidTo;
+            var cashAccount = body.CashAccount;
+            var accountCode = body.AccountCode;
+            var narration = body.Narration;
+            var total = body.Total;
+            var grandTotal = body.GrandTotal;
+            var totalAmount = body.TotalAmount;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                companyId = LiveWriteFormBinder.Int(form, "companyId", "company_id", "company");
+                branch = LiveWriteFormBinder.Text(form, "branch");
+                vocDate = LiveWriteFormBinder.Text(form, "voc_date", "vocDate");
+                vocNo = LiveWriteFormBinder.Int(form, "voc_no", "vocNo");
+                payTo = LiveWriteFormBinder.Text(form, "pay_to", "payTo");
+                paidTo = LiveWriteFormBinder.Text(form, "paid_to", "paidTo");
+                cashAccount = LiveWriteFormBinder.Text(form, "cash_account", "cashAccount");
+                accountCode = LiveWriteFormBinder.Text(form, "account_code", "accountCode");
+                narration = LiveWriteFormBinder.Text(form, "narration", "remarks");
+                total = LiveWriteFormBinder.Dec(form, "total");
+                grandTotal = LiveWriteFormBinder.Dec(form, "grand_total", "grandTotal");
+                totalAmount = LiveWriteFormBinder.Dec(form, "total_amount", "li_total", "totalAmount");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            const string returnApp = "/erp/cash-accounts-app?tab=jw_petty_cash";
+            if (!confirm)
+            {
+                var result = dryRun.Evaluate(new ErpJwModuleSaveRequest(
+                    "jw_petty_cash_save",
+                    !string.IsNullOrWhiteSpace(payTo) ? payTo : paidTo,
+                    false));
+                if (LiveWriteFormBinder.WantsHtml(context))
+                {
+                    return DryRunHtmlForm.Redirect(
+                        DryRunHtmlForm.SafeReturnUrl(context.Request, returnApp),
+                        result.ValidationCode == "ok",
+                        result.Detail);
+                }
+
+                return Results.Ok(result.ToPayload(SessionPayload(session)));
+            }
+
+            var written = await writes.SaveAsync(
+                new ErpJwPettyCashSaveRequest(
+                    CompanyId: companyId,
+                    Branch: branch,
+                    VocDate: vocDate,
+                    VocNo: vocNo,
+                    PayTo: payTo,
+                    PaidTo: paidTo,
+                    CashAccount: cashAccount,
+                    AccountCode: accountCode,
+                    Narration: narration,
+                    Total: total,
+                    GrandTotal: grandTotal,
+                    TotalAmount: totalAmount),
+                cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                returnApp,
+                written.Succeeded,
+                written.Message,
+                new
+                {
+                    ok = written.Succeeded,
+                    status = written.Succeeded,
+                    writes = written.Writes,
+                    phpAuthoritative = false,
+                    validation_code = written.Code,
+                    message = written.Message,
+                    id = written.Id,
+                    session = SessionPayload(session)
+                });
+        }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpJewelleryTouristVatSaveForm, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IErpJwModuleSaveDryRun dryRun,
+            IErpJwTouristVatWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (!ErpJewelleryModuleChrome.HasJewelleryStaffAccess(session))
+            {
+                return LiveWriteFormBinder.LoginRedirect(
+                    context,
+                    "/erp/login?returnUrl=/cp/uae-tax-compliance-app?tab=jw_tourist_vat",
+                    "Admin ERP capability required for jewellery tourist VAT save.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpJwTouristVatSaveBody>(context, cancellationToken)
+                       ?? new();
+            var companyId = body.CompanyId;
+            var branch = body.Branch;
+            var refundDate = body.RefundDate;
+            var vocDate = body.VocDate;
+            var touristName = body.TouristName;
+            var passportNo = body.PassportNo;
+            var nationality = body.Nationality;
+            var mobile = body.Mobile;
+            var email = body.Email;
+            var flightNo = body.FlightNo;
+            var departureDate = body.DepartureDate;
+            var invoiceNo = body.InvoiceNo;
+            var invoiceDate = body.InvoiceDate;
+            var salesman = body.Salesman;
+            var narration = body.Narration;
+            var totalVat = body.TotalVat;
+            var vatAmount = body.VatAmount;
+            var totalRefund = body.TotalRefund;
+            var refundAmount = body.RefundAmount;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                companyId = LiveWriteFormBinder.Int(form, "companyId", "company_id", "company");
+                branch = LiveWriteFormBinder.Text(form, "branch");
+                refundDate = LiveWriteFormBinder.Text(form, "refund_date", "refundDate");
+                vocDate = LiveWriteFormBinder.Text(form, "voc_date", "vocDate");
+                touristName = LiveWriteFormBinder.Text(form, "tourist_name", "touristName");
+                passportNo = LiveWriteFormBinder.Text(form, "passport_no", "passportNo");
+                nationality = LiveWriteFormBinder.Text(form, "nationality");
+                mobile = LiveWriteFormBinder.Text(form, "mobile");
+                email = LiveWriteFormBinder.Text(form, "email");
+                flightNo = LiveWriteFormBinder.Text(form, "flight_no", "flightNo");
+                departureDate = LiveWriteFormBinder.Text(form, "departure_date", "departureDate");
+                invoiceNo = LiveWriteFormBinder.Text(form, "invoice_no", "invoiceNo");
+                invoiceDate = LiveWriteFormBinder.Text(form, "invoice_date", "invoiceDate");
+                salesman = LiveWriteFormBinder.Text(form, "salesman");
+                narration = LiveWriteFormBinder.Text(form, "narration", "remarks");
+                totalVat = LiveWriteFormBinder.Dec(form, "total_vat", "totalVat");
+                vatAmount = LiveWriteFormBinder.Dec(form, "vat_amount", "vatAmount");
+                totalRefund = LiveWriteFormBinder.Dec(form, "total_refund", "totalRefund");
+                refundAmount = LiveWriteFormBinder.Dec(form, "refund_amount", "refundAmount");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            const string returnApp = "/cp/uae-tax-compliance-app?tab=jw_tourist_vat";
+            if (!confirm)
+            {
+                var result = dryRun.Evaluate(new ErpJwModuleSaveRequest("jw_tourist_vat_save", touristName, false));
+                if (LiveWriteFormBinder.WantsHtml(context))
+                {
+                    return DryRunHtmlForm.Redirect(
+                        DryRunHtmlForm.SafeReturnUrl(context.Request, returnApp),
+                        result.ValidationCode == "ok",
+                        result.Detail);
+                }
+
+                return Results.Ok(result.ToPayload(SessionPayload(session)));
+            }
+
+            var written = await writes.SaveAsync(
+                new ErpJwTouristVatSaveRequest(
+                    CompanyId: companyId,
+                    Branch: branch,
+                    RefundDate: refundDate,
+                    VocDate: vocDate,
+                    TouristName: touristName,
+                    PassportNo: passportNo,
+                    Nationality: nationality,
+                    Mobile: mobile,
+                    Email: email,
+                    FlightNo: flightNo,
+                    DepartureDate: departureDate,
+                    InvoiceNo: invoiceNo,
+                    InvoiceDate: invoiceDate,
+                    Salesman: salesman,
+                    Narration: narration,
+                    TotalVat: totalVat,
+                    VatAmount: vatAmount,
+                    TotalRefund: totalRefund,
+                    RefundAmount: refundAmount),
+                cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                returnApp,
+                written.Succeeded,
+                written.Message,
+                new
+                {
+                    ok = written.Succeeded,
+                    status = written.Succeeded,
+                    writes = written.Writes,
+                    phpAuthoritative = false,
+                    validation_code = written.Code,
+                    message = written.Message,
+                    id = written.Id,
+                    tourist_name = touristName,
+                    session = SessionPayload(session)
+                });
+        }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpJewelleryKaratSeedForm, async (HttpContext context, ILegacySessionValidator validator, IErpJwSeedSampleDataDryRun dryRun, CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateAsync(context, cancellationToken);
@@ -7517,6 +7734,7 @@ public sealed class ErpModule : ISurfaceModule
         "DMP" or "DLP" => "/cp/jewellery-fixing-app?tab=jw_diamond_purchase",
         "MSI" or "MSC" => "/cp/jewellery-retail-app?tab=jw_metal_sales",
         "SRN" or "SRC" => "/cp/jewellery-retail-app?tab=jw_sales_return",
+        "PCV" => "/erp/cash-accounts-app?tab=jw_petty_cash",
         _ => "/cp/jewellery-retail-app?tab=jw_retail_sales"
     };
 
@@ -8193,6 +8411,41 @@ public sealed class ErpModule : ISurfaceModule
         decimal EstimatedCost = 0,
         long ReceivedDate = 0,
         long PromisedDate = 0);
+    private sealed record ErpJwPettyCashSaveBody(
+        int CompanyId = 0,
+        string? Branch = null,
+        string? VocDate = null,
+        int VocNo = 0,
+        string? PayTo = null,
+        string? PaidTo = null,
+        string? CashAccount = null,
+        string? AccountCode = null,
+        string? Narration = null,
+        decimal Total = 0,
+        decimal GrandTotal = 0,
+        decimal TotalAmount = 0,
+        bool ConfirmWrites = false);
+    private sealed record ErpJwTouristVatSaveBody(
+        int CompanyId = 0,
+        string? Branch = null,
+        string? RefundDate = null,
+        string? VocDate = null,
+        string? TouristName = null,
+        string? PassportNo = null,
+        string? Nationality = null,
+        string? Mobile = null,
+        string? Email = null,
+        string? FlightNo = null,
+        string? DepartureDate = null,
+        string? InvoiceNo = null,
+        string? InvoiceDate = null,
+        string? Salesman = null,
+        string? Narration = null,
+        decimal TotalVat = 0,
+        decimal VatAmount = 0,
+        decimal TotalRefund = 0,
+        decimal RefundAmount = 0,
+        bool ConfirmWrites = false);
     private sealed record ErpJwVoucherSaveBody(
         int CompanyId = 0,
         string? Action = null,

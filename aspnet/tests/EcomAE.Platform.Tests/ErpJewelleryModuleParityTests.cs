@@ -98,6 +98,18 @@ public sealed class ErpJewelleryModuleParityTests
         Assert.Contains("ErpJewelleryMetalStockSaveForm", stock, StringComparison.Ordinal);
         Assert.Contains("Save metal stock", stock, StringComparison.Ordinal);
         Assert.DoesNotContain("@onclick", stock, StringComparison.Ordinal);
+
+        var petty = ReadApp("ErpCashAccountsApp.razor");
+        Assert.Contains("jw_petty_cash", petty, StringComparison.Ordinal);
+        Assert.Contains("ErpJewelleryPettyCashSaveForm", petty, StringComparison.Ordinal);
+        Assert.Contains("Save petty cash", petty, StringComparison.Ordinal);
+        Assert.DoesNotContain("@onclick", petty, StringComparison.Ordinal);
+
+        var tourist = ReadApp("CpUaeTaxComplianceApp.razor");
+        Assert.Contains("jw_tourist_vat", tourist, StringComparison.Ordinal);
+        Assert.Contains("ErpJewelleryTouristVatSaveForm", tourist, StringComparison.Ordinal);
+        Assert.Contains("Save tourist VAT", tourist, StringComparison.Ordinal);
+        Assert.DoesNotContain("@onclick", tourist, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -152,6 +164,8 @@ public sealed class ErpJewelleryModuleParityTests
         Assert.Equal("/erp/jewellery/metal-stock-save", EcomAeRoutes.ErpJewelleryMetalStockSaveForm);
         Assert.Equal("/erp/jewellery/fixing-save", EcomAeRoutes.ErpJewelleryFixingSaveForm);
         Assert.Equal("/erp/jewellery/voucher-save", EcomAeRoutes.ErpJewelleryVoucherSaveForm);
+        Assert.Equal("/erp/jewellery/petty-cash-save", EcomAeRoutes.ErpJewelleryPettyCashSaveForm);
+        Assert.Equal("/erp/jewellery/tourist-vat-save", EcomAeRoutes.ErpJewelleryTouristVatSaveForm);
         Assert.Equal("/erp/jewellery/karat-seed", EcomAeRoutes.ErpJewelleryKaratSeedForm);
         Assert.Equal("/erp/jewellery/module-save", EcomAeRoutes.ErpJewelleryModuleSaveForm);
     }
