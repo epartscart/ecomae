@@ -1541,7 +1541,9 @@ public static class EcomAeRoutes
     public const string ErpAjaxPaymentBatchSave = "/erp/ajax/payment-batch-save";
     /// <summary>Wave B dry-run for PHP petty_cash_save (writes=0).</summary>
     public const string ErpAjaxPettyCashSave = "/erp/ajax/petty-cash-save";
-    /// <summary>Wave B dry-run for PHP agenda_save (writes=0).</summary>
+    /// <summary>Live PHP epc_erp_agenda_save twin (ajax alias of <see cref="ErpAgendaEventsSave"/>).</summary>
+    public const string ErpAgendaEventsSave = "/erp/agenda/events/save";
+    /// <summary>Live PHP epc_erp_agenda_save ajax alias of <see cref="ErpAgendaEventsSave"/>.</summary>
     public const string ErpAjaxAgendaSave = "/erp/ajax/agenda-save";
     /// <summary>Wave B dry-run for PHP kb_save (writes=0).</summary>
     public const string ErpAjaxKbSave = "/erp/ajax/kb-save";
