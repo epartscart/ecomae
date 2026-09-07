@@ -124,6 +124,29 @@
             </form>
         </ErpPhpCreateWell>
     }
+    else if (_isAdmin && _tab == "jw_diamond")
+    {
+        <ErpPhpCreateWell Title="Add / Edit Diamond">
+            <form method="post" action="@EcomAeRoutes.ErpJewelleryDiamondSaveForm" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="@_returnHere" />
+                @if (_company > 0)
+                {
+                    <input type="hidden" name="company" value="@_company.ToString(CultureInfo.InvariantCulture)" />
+                }
+                <label>Item code <input class="form-control input-sm" name="item_code" required placeholder="DIA-001" maxlength="20" /></label>
+                <label>Description <input class="form-control input-sm" name="description" placeholder="Round brilliant" /></label>
+                <label>Design <input class="form-control input-sm" name="design" /></label>
+                <label>Category <input class="form-control input-sm" name="category" /></label>
+                <label>Color <input class="form-control input-sm" name="color" placeholder="G" /></label>
+                <label>Clarity <input class="form-control input-sm" name="clarity" placeholder="VS1" /></label>
+                <label>Currency <input class="form-control input-sm" name="currency" value="AED" style="width:70px;" /></label>
+                <label>Cost <input class="form-control input-sm" name="cost_amount" type="number" step="0.01" value="0" /></label>
+                <label>Gross wt <input class="form-control input-sm" name="item_gr_wt" type="number" step="0.0001" value="0" /></label>
+                <button type="submit" class="btn btn-primary btn-sm">Save diamond</button>
+            </form>
+        </ErpPhpCreateWell>
+    }
     else if (_isAdmin && _tab == "jw_seed_data")
     {
         <ErpPhpCreateWell Title="Seed jewellery defaults">
@@ -180,7 +203,7 @@
     </div>
 
     <div class="epc-erp-empty" style="display:block;margin-top:12px;padding:8px 10px;border:1px solid #c5d4de;background:#f8fafc;color:#475569;font-size:12px;">
-        Source: @_source. Karat rows bind from <code>epc_jewel_karat_master</code>. Karat, rate-type, and currency save are live when confirmed. Seed stays Classic.
+        Source: @_source. Karat rows bind from <code>epc_jewel_karat_master</code>. Karat, rate-type, currency, and diamond save are live when confirmed. Seed stays Classic.
         @if (!string.IsNullOrWhiteSpace(_message)) { <span> @_message</span> }
     </div>
 </PhpErpDesktopChrome>

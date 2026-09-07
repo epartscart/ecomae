@@ -1384,6 +1384,11 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(jwCurrency.Succeeded);
         Assert.Equal("invalid", jwCurrency.Code);
 
+        var jwDiamond = await new ErpJwDiamondWriteService(new ConfiguredNeverOpened())
+            .SaveAsync(new ErpJwDiamondSaveRequest());
+        Assert.False(jwDiamond.Succeeded);
+        Assert.Equal("invalid", jwDiamond.Code);
+
         var jwInvalid = await new ErpJwRepairWriteService(new ConfiguredNeverOpened())
             .SetStatusAsync(0, "ready");
         Assert.False(jwInvalid.Succeeded);

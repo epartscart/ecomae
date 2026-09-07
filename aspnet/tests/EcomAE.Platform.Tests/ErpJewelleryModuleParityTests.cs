@@ -48,6 +48,8 @@ public sealed class ErpJewelleryModuleParityTests
         Assert.Contains("Save rate type", text, StringComparison.Ordinal);
         Assert.Contains("ErpJewelleryCurrencySaveForm", text, StringComparison.Ordinal);
         Assert.Contains("Save currency", text, StringComparison.Ordinal);
+        Assert.Contains("ErpJewelleryDiamondSaveForm", text, StringComparison.Ordinal);
+        Assert.Contains("Save diamond", text, StringComparison.Ordinal);
         Assert.Contains(ErpJewelleryModuleChrome.KaratColumns, c => c.Contains("Purity", StringComparison.Ordinal));
         Assert.DoesNotContain("295.50", text, StringComparison.Ordinal);
         Assert.DoesNotContain("2,458", text, StringComparison.Ordinal);
@@ -132,6 +134,7 @@ public sealed class ErpJewelleryModuleParityTests
         Assert.Equal("/erp/jewellery/karat-save", EcomAeRoutes.ErpJewelleryKaratSaveForm);
         Assert.Equal("/erp/jewellery/rate-type-save", EcomAeRoutes.ErpJewelleryRateTypeSaveForm);
         Assert.Equal("/erp/jewellery/currency-save", EcomAeRoutes.ErpJewelleryCurrencySaveForm);
+        Assert.Equal("/erp/jewellery/diamond-save", EcomAeRoutes.ErpJewelleryDiamondSaveForm);
         Assert.Equal("/erp/jewellery/karat-seed", EcomAeRoutes.ErpJewelleryKaratSeedForm);
         Assert.Equal("/erp/jewellery/module-save", EcomAeRoutes.ErpJewelleryModuleSaveForm);
     }

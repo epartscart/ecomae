@@ -4563,6 +4563,152 @@ public sealed class ErpModule : ISurfaceModule
                     session = SessionPayload(session)
                 });
         }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpJewelleryDiamondSaveForm, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IErpJwModuleSaveDryRun dryRun,
+            IErpJwDiamondWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (!ErpJewelleryModuleChrome.HasJewelleryStaffAccess(session))
+            {
+                return LiveWriteFormBinder.LoginRedirect(
+                    context,
+                    "/erp/login?returnUrl=/cp/jewellery-masters-app?tab=jw_diamond",
+                    "Admin ERP capability required for jewellery diamond save.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpJwDiamondSaveBody>(context, cancellationToken)
+                       ?? new();
+            var companyId = body.CompanyId;
+            var itemCode = body.ItemCode;
+            var description = body.Description;
+            var design = body.Design;
+            var rfid = body.Rfid;
+            var category = body.Category;
+            var subCategory = body.SubCategory;
+            var type = body.Type;
+            var brand = body.Brand;
+            var color = body.Color;
+            var clarity = body.Clarity;
+            var fluorescence = body.Fluorescence;
+            var style = body.Style;
+            var setRef = body.SetRef;
+            var country = body.Country;
+            var vendor = body.Vendor;
+            var vendorRef = body.VendorRef;
+            var currency = body.Currency;
+            var currencyRate = body.CurrencyRate;
+            var costCentre = body.CostCentre;
+            var costAmount = body.CostAmount;
+            var itemGrWt = body.ItemGrWt;
+            var price1Code = body.Price1Code;
+            var price1Pct = body.Price1Pct;
+            var price1Fc = body.Price1Fc;
+            var price1Lc = body.Price1Lc;
+            var promotional = body.Promotional;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                companyId = LiveWriteFormBinder.Int(form, "companyId", "company_id", "company");
+                itemCode = LiveWriteFormBinder.Text(form, "itemCode", "item_code", "code");
+                description = LiveWriteFormBinder.Text(form, "description", "name");
+                design = LiveWriteFormBinder.Text(form, "design");
+                rfid = LiveWriteFormBinder.Text(form, "rfid");
+                category = LiveWriteFormBinder.Text(form, "category");
+                subCategory = LiveWriteFormBinder.Text(form, "subCategory", "sub_category");
+                type = LiveWriteFormBinder.Text(form, "type");
+                brand = LiveWriteFormBinder.Text(form, "brand");
+                color = LiveWriteFormBinder.Text(form, "color");
+                clarity = LiveWriteFormBinder.Text(form, "clarity");
+                fluorescence = LiveWriteFormBinder.Text(form, "fluorescence");
+                style = LiveWriteFormBinder.Text(form, "style");
+                setRef = LiveWriteFormBinder.Text(form, "setRef", "set_ref");
+                country = LiveWriteFormBinder.Text(form, "country");
+                vendor = LiveWriteFormBinder.Text(form, "vendor");
+                vendorRef = LiveWriteFormBinder.Text(form, "vendorRef", "vendor_ref");
+                currency = LiveWriteFormBinder.Text(form, "currency");
+                currencyRate = LiveWriteFormBinder.Dec(form, "currencyRate", "currency_rate");
+                if (currencyRate == 0 && string.IsNullOrWhiteSpace(LiveWriteFormBinder.Text(form, "currencyRate", "currency_rate")))
+                {
+                    currencyRate = 1;
+                }
+
+                costCentre = LiveWriteFormBinder.Text(form, "costCentre", "cost_centre");
+                costAmount = LiveWriteFormBinder.Dec(form, "costAmount", "cost_amount");
+                itemGrWt = LiveWriteFormBinder.Dec(form, "itemGrWt", "item_gr_wt");
+                price1Code = LiveWriteFormBinder.Text(form, "price1Code", "price1_code");
+                price1Pct = LiveWriteFormBinder.Dec(form, "price1Pct", "price1_pct");
+                price1Fc = LiveWriteFormBinder.Dec(form, "price1Fc", "price1_fc");
+                price1Lc = LiveWriteFormBinder.Dec(form, "price1Lc", "price1_lc");
+                promotional = LiveWriteFormBinder.Flag(form, "promotional");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                var result = dryRun.Evaluate(new ErpJwModuleSaveRequest("jw_diamond_save", itemCode, false));
+                if (LiveWriteFormBinder.WantsHtml(context))
+                {
+                    return DryRunHtmlForm.Redirect(
+                        DryRunHtmlForm.SafeReturnUrl(context.Request, "/cp/jewellery-masters-app?tab=jw_diamond"),
+                        result.ValidationCode == "ok",
+                        result.Detail);
+                }
+
+                return Results.Ok(result.ToPayload(SessionPayload(session)));
+            }
+
+            var written = await writes.SaveAsync(
+                new ErpJwDiamondSaveRequest(
+                    companyId,
+                    itemCode,
+                    description,
+                    design,
+                    rfid,
+                    category,
+                    subCategory,
+                    type,
+                    brand,
+                    color,
+                    clarity,
+                    fluorescence,
+                    style,
+                    setRef,
+                    country,
+                    vendor,
+                    vendorRef,
+                    currency,
+                    currencyRate,
+                    costCentre,
+                    costAmount,
+                    itemGrWt,
+                    price1Code,
+                    price1Pct,
+                    price1Fc,
+                    price1Lc,
+                    promotional),
+                cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/cp/jewellery-masters-app?tab=jw_diamond",
+                written.Succeeded,
+                written.Message,
+                new
+                {
+                    ok = written.Succeeded,
+                    status = written.Succeeded,
+                    writes = written.Writes,
+                    phpAuthoritative = false,
+                    validation_code = written.Code,
+                    message = written.Message,
+                    id = written.Id,
+                    item_code = itemCode,
+                    session = SessionPayload(session)
+                });
+        }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpJewelleryKaratSeedForm, async (HttpContext context, ILegacySessionValidator validator, IErpJwSeedSampleDataDryRun dryRun, CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateAsync(context, cancellationToken);
@@ -7339,6 +7485,35 @@ public sealed class ErpModule : ISurfaceModule
         decimal EstimatedCost = 0,
         long ReceivedDate = 0,
         long PromisedDate = 0);
+    private sealed record ErpJwDiamondSaveBody(
+        int CompanyId = 0,
+        string? ItemCode = null,
+        string? Description = null,
+        string? Design = null,
+        string? Rfid = null,
+        string? Category = null,
+        string? SubCategory = null,
+        string? Type = null,
+        string? Brand = null,
+        string? Color = null,
+        string? Clarity = null,
+        string? Fluorescence = null,
+        string? Style = null,
+        string? SetRef = null,
+        string? Country = null,
+        string? Vendor = null,
+        string? VendorRef = null,
+        string? Currency = null,
+        decimal CurrencyRate = 1,
+        string? CostCentre = null,
+        decimal CostAmount = 0,
+        decimal ItemGrWt = 0,
+        string? Price1Code = null,
+        decimal Price1Pct = 0,
+        decimal Price1Fc = 0,
+        decimal Price1Lc = 0,
+        bool Promotional = false,
+        bool ConfirmWrites = false);
     private sealed record ErpJwCurrencySaveBody(
         int CompanyId = 0,
         string? CurrCode = null,

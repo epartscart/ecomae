@@ -269,6 +269,8 @@ public sealed class PhpVsAspNetRemovalMatrixTests
             ("CpJewelleryMastersApp.razor", "ErpJewelleryRateTypeSaveForm"),
             ("CpJewelleryMastersApp.razor", "ErpJewelleryCurrencySaveForm"),
             ("CpJewelleryMastersApp.razor", "Save currency"),
+            ("CpJewelleryMastersApp.razor", "ErpJewelleryDiamondSaveForm"),
+            ("CpJewelleryMastersApp.razor", "Save diamond"),
             ("CpJewelleryMastersApp.razor", "Save rate type"),
             ("CpReturnsRmaApp.razor", "/cp/returns/action"),
             ("CpSystemRequestsApp.razor", "/cp/requests/set-vin-viewed"),
