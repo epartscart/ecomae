@@ -2,7 +2,7 @@ namespace EcomAE.Platform.Erp;
 
 /// <summary>
 /// Live PHP <c>epc_proc_req_submit</c> / <c>epc_proc_req_decision</c> / <c>epc_proc_req_convert</c> twins.
-/// Schema ensure and add-line stay PHP. Header save is <c>IErpProcurementReqSaveWriteService</c>.
+/// Schema ensure stays PHP. Header save is <c>IErpProcurementReqSaveWriteService</c>.
 /// </summary>
 public interface IErpProcurementReqWriteService
 {

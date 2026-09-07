@@ -3140,6 +3140,57 @@ public sealed class ErpModule : ISurfaceModule
             return Results.Ok(dryRun.Evaluate(new ErpProcReqSaveRequest(requester, id, false)).ToPayload(SessionPayload(session)));
         }).DisableAntiforgery();
 
+        endpoints.MapPost(EcomAeRoutes.ErpProcurementReqAddLine, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IErpProcReqAddLineDryRun dryRun,
+            IErpProcurementReqAddLineWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/cp/purchase-requests-app", "Admin ERP capability required for procurement req add-line.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpProcReqAddLineBody>(context, cancellationToken) ?? new();
+            var id = body.Id;
+            var categoryId = body.CategoryId;
+            var itemCode = body.ItemCode;
+            var description = body.Description;
+            var qty = body.Qty;
+            var unitPrice = body.UnitPrice;
+            var preferredVendor = body.PreferredVendor;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                id = LiveWriteFormBinder.Long(form, "id", "reqId", "req_id");
+                categoryId = LiveWriteFormBinder.Long(form, "category_id", "categoryId");
+                itemCode = LiveWriteFormBinder.Text(form, "item_code", "itemCode");
+                description = LiveWriteFormBinder.Text(form, "description");
+                qty = LiveWriteFormBinder.Dec(form, "qty");
+                unitPrice = LiveWriteFormBinder.Dec(form, "unit_price", "unitPrice");
+                preferredVendor = LiveWriteFormBinder.Text(form, "preferred_vendor", "preferredVendor");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(dryRun.Evaluate(new ErpProcReqAddLineRequest(id, false, categoryId, itemCode, description, qty, unitPrice, preferredVendor)).ToPayload(SessionPayload(session)));
+            }
+
+            var written = await writes.AddLineAsync(
+                new ErpProcurementReqAddLineWriteRequest(id, categoryId, itemCode, description, qty, unitPrice, preferredVendor),
+                cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/cp/purchase-requests-app",
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+        }).DisableAntiforgery();
+
         endpoints.MapPost(EcomAeRoutes.ErpFinPeriodStatus, async (
             HttpContext context,
             ILegacySessionValidator validator,
@@ -3995,8 +4046,56 @@ public sealed class ErpModule : ISurfaceModule
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpProcCategorySaveRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxProcPolicySave, async (HttpContext context, ErpProcPolicySaveBody? body, ILegacySessionValidator validator, IErpProcPolicySaveDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpProcPolicySaveRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxProcReqAddLine, async (HttpContext context, ErpProcReqAddLineBody? body, ILegacySessionValidator validator, IErpProcReqAddLineDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,false); return Results.Ok(dryRun.Evaluate(new ErpProcReqAddLineRequest(body.Id, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxProcReqAddLine, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IErpProcReqAddLineDryRun dryRun,
+            IErpProcurementReqAddLineWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/cp/purchase-requests-app", "Admin ERP capability required for procurement req add-line.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpProcReqAddLineBody>(context, cancellationToken) ?? new();
+            var id = body.Id;
+            var categoryId = body.CategoryId;
+            var itemCode = body.ItemCode;
+            var description = body.Description;
+            var qty = body.Qty;
+            var unitPrice = body.UnitPrice;
+            var preferredVendor = body.PreferredVendor;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                id = LiveWriteFormBinder.Long(form, "id", "reqId", "req_id");
+                categoryId = LiveWriteFormBinder.Long(form, "category_id", "categoryId");
+                itemCode = LiveWriteFormBinder.Text(form, "item_code", "itemCode");
+                description = LiveWriteFormBinder.Text(form, "description");
+                qty = LiveWriteFormBinder.Dec(form, "qty");
+                unitPrice = LiveWriteFormBinder.Dec(form, "unit_price", "unitPrice");
+                preferredVendor = LiveWriteFormBinder.Text(form, "preferred_vendor", "preferredVendor");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(dryRun.Evaluate(new ErpProcReqAddLineRequest(id, false, categoryId, itemCode, description, qty, unitPrice, preferredVendor)).ToPayload(SessionPayload(session)));
+            }
+
+            var written = await writes.AddLineAsync(
+                new ErpProcurementReqAddLineWriteRequest(id, categoryId, itemCode, description, qty, unitPrice, preferredVendor),
+                cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/cp/purchase-requests-app",
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+        }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxProcReqConvert, async (
             HttpContext context,
             ILegacySessionValidator validator,
@@ -12748,7 +12847,15 @@ public sealed class ErpModule : ISurfaceModule
     private sealed record ErpCollDunningRunBody(bool ConfirmWrites = false);
     private sealed record ErpProcCategorySaveBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpProcPolicySaveBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
-    private sealed record ErpProcReqAddLineBody(long Id, bool ConfirmWrites = false);
+    private sealed record ErpProcReqAddLineBody(
+        long Id = 0,
+        bool ConfirmWrites = false,
+        long CategoryId = 0,
+        string? ItemCode = null,
+        string? Description = null,
+        decimal Qty = 0,
+        decimal UnitPrice = 0,
+        string? PreferredVendor = null);
     private sealed record ErpProcReqConvertBody(long Id, bool ConfirmWrites = false);
     private sealed record ErpBplanSaveBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpBplanAdvanceBody(long Id, bool ConfirmWrites = false);
