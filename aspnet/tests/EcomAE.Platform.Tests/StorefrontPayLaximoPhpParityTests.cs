@@ -156,6 +156,7 @@ public sealed class StorefrontPayLaximoPhpParityTests
         Assert.Equal("write-live-gated", SurfacePayloadContractCatalog.Functions.First(f => f.AspNetRouteOrCapability == "/erp/ajax/jw-repair-update-status").Status);
         Assert.Equal("write-live-gated", SurfacePayloadContractCatalog.Functions.First(f => f.AspNetRouteOrCapability == "/erp/jewellery/karat-save").Status);
         Assert.Equal("write-live-gated", SurfacePayloadContractCatalog.Functions.First(f => f.AspNetRouteOrCapability == "/erp/jewellery/rate-type-save").Status);
+        Assert.Equal("write-live-gated", SurfacePayloadContractCatalog.Functions.First(f => f.AspNetRouteOrCapability == "/erp/jewellery/currency-save").Status);
 
         var pos = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/CpPosOverviewApp.razor"));
         Assert.Contains("action=\"/cp/pos/open-session\"", pos, StringComparison.Ordinal);
@@ -224,6 +225,8 @@ public sealed class StorefrontPayLaximoPhpParityTests
         Assert.Contains("Save karat", masters, StringComparison.Ordinal);
         Assert.Contains("ErpJewelleryRateTypeSaveForm", masters, StringComparison.Ordinal);
         Assert.Contains("Save rate type", masters, StringComparison.Ordinal);
+        Assert.Contains("ErpJewelleryCurrencySaveForm", masters, StringComparison.Ordinal);
+        Assert.Contains("Save currency", masters, StringComparison.Ordinal);
         Assert.Contains("name=\"confirmWrites\"", masters, StringComparison.Ordinal);
         Assert.DoesNotContain("@onclick", masters, StringComparison.Ordinal);
         Assert.Equal("/storefront/garage/check-car", PhpCustomerWrites.GarageCheckCarHref);

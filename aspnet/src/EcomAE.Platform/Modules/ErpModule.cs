@@ -4461,6 +4461,108 @@ public sealed class ErpModule : ISurfaceModule
                     session = SessionPayload(session)
                 });
         }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpJewelleryCurrencySaveForm, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IErpJwModuleSaveDryRun dryRun,
+            IErpJwCurrencyWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (!ErpJewelleryModuleChrome.HasJewelleryStaffAccess(session))
+            {
+                return LiveWriteFormBinder.LoginRedirect(
+                    context,
+                    "/erp/login?returnUrl=/cp/jewellery-masters-app?tab=jw_currency",
+                    "Admin ERP capability required for jewellery currency save.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpJwCurrencySaveBody>(context, cancellationToken)
+                       ?? new();
+            var companyId = body.CompanyId;
+            var currCode = body.CurrCode;
+            var description = body.Description;
+            var fraction = body.Fraction;
+            var symbol = body.Symbol;
+            var convRate = body.ConvRate;
+            var minConvRate = body.MinConvRate;
+            var maxConvRate = body.MaxConvRate;
+            var status = body.Status;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                companyId = LiveWriteFormBinder.Int(form, "companyId", "company_id", "company");
+                currCode = LiveWriteFormBinder.Text(form, "currCode", "curr_code", "code");
+                description = LiveWriteFormBinder.Text(form, "description", "name");
+                fraction = LiveWriteFormBinder.Text(form, "fraction");
+                symbol = LiveWriteFormBinder.Text(form, "symbol");
+                convRate = LiveWriteFormBinder.Dec(form, "convRate", "conv_rate");
+                if (convRate == 0 && string.IsNullOrWhiteSpace(LiveWriteFormBinder.Text(form, "convRate", "conv_rate")))
+                {
+                    convRate = 1;
+                }
+
+                minConvRate = LiveWriteFormBinder.Dec(form, "minConvRate", "min_conv_rate");
+                if (minConvRate == 0 && string.IsNullOrWhiteSpace(LiveWriteFormBinder.Text(form, "minConvRate", "min_conv_rate")))
+                {
+                    minConvRate = 1;
+                }
+
+                maxConvRate = LiveWriteFormBinder.Dec(form, "maxConvRate", "max_conv_rate");
+                if (maxConvRate == 0 && string.IsNullOrWhiteSpace(LiveWriteFormBinder.Text(form, "maxConvRate", "max_conv_rate")))
+                {
+                    maxConvRate = 1;
+                }
+
+                status = LiveWriteFormBinder.Text(form, "status");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                var result = dryRun.Evaluate(new ErpJwModuleSaveRequest("jw_currency_save", currCode, false));
+                if (LiveWriteFormBinder.WantsHtml(context))
+                {
+                    return DryRunHtmlForm.Redirect(
+                        DryRunHtmlForm.SafeReturnUrl(context.Request, "/cp/jewellery-masters-app?tab=jw_currency"),
+                        result.ValidationCode == "ok",
+                        result.Detail);
+                }
+
+                return Results.Ok(result.ToPayload(SessionPayload(session)));
+            }
+
+            var written = await writes.SaveAsync(
+                new ErpJwCurrencySaveRequest(
+                    companyId,
+                    currCode,
+                    description,
+                    fraction,
+                    symbol,
+                    convRate,
+                    minConvRate,
+                    maxConvRate,
+                    status),
+                cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/cp/jewellery-masters-app?tab=jw_currency",
+                written.Succeeded,
+                written.Message,
+                new
+                {
+                    ok = written.Succeeded,
+                    status = written.Succeeded,
+                    writes = written.Writes,
+                    phpAuthoritative = false,
+                    validation_code = written.Code,
+                    message = written.Message,
+                    id = written.Id,
+                    curr_code = currCode,
+                    session = SessionPayload(session)
+                });
+        }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpJewelleryKaratSeedForm, async (HttpContext context, ILegacySessionValidator validator, IErpJwSeedSampleDataDryRun dryRun, CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateAsync(context, cancellationToken);
@@ -7237,6 +7339,17 @@ public sealed class ErpModule : ISurfaceModule
         decimal EstimatedCost = 0,
         long ReceivedDate = 0,
         long PromisedDate = 0);
+    private sealed record ErpJwCurrencySaveBody(
+        int CompanyId = 0,
+        string? CurrCode = null,
+        string? Description = null,
+        string? Fraction = null,
+        string? Symbol = null,
+        decimal ConvRate = 1,
+        decimal MinConvRate = 1,
+        decimal MaxConvRate = 1,
+        string? Status = null,
+        bool ConfirmWrites = false);
     private sealed record ErpJwRateTypeSaveBody(
         int CompanyId = 0,
         string? Metal = null,
