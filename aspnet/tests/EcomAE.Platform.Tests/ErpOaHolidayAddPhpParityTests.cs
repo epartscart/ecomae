@@ -14,6 +14,7 @@ public sealed class ErpOaHolidayAddPhpParityTests
         Assert.Contains("name=\"confirmWrites\"", text, StringComparison.Ordinal);
         Assert.Contains("name=\"calendar_id\"", text, StringComparison.Ordinal);
         Assert.Contains("name=\"holiday_date\"", text, StringComparison.Ordinal);
+        Assert.Contains("placeholder=\"2026-12-02\"", text, StringComparison.Ordinal);
         Assert.Contains("Add holiday", text, StringComparison.Ordinal);
         Assert.DoesNotContain("@onclick", text, StringComparison.Ordinal);
         Assert.DoesNotContain("ASP.NET", text, StringComparison.Ordinal);

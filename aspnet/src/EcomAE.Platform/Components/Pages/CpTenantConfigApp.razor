@@ -67,7 +67,7 @@
             <input type="hidden" name="confirmWrites" value="true" />
             <input type="hidden" name="returnUrl" value="@_returnUrl" />
             <label>Calendar id <input type="number" name="calendar_id" min="1" required style="width:6rem" /></label>
-            <label>Date <input type="date" name="holiday_date" required /></label>
+            <label>Date <input type="text" name="holiday_date" required maxlength="10" placeholder="2026-12-02" style="width:8rem" /></label>
             <label>Name <input type="text" name="name" maxlength="160" style="width:12rem" /></label>
             <button type="submit" class="btn btn-sm btn-primary">Add holiday</button>
         </form>
