@@ -685,6 +685,11 @@ builder.Services.AddScoped<EcomAE.Platform.Erp.IErpJwFixingWriteService, EcomAE.
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpJwVoucherWriteService, EcomAE.Platform.Erp.ErpJwVoucherWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpJwPettyCashWriteService, EcomAE.Platform.Erp.ErpJwPettyCashWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpJwTouristVatWriteService, EcomAE.Platform.Erp.ErpJwTouristVatWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpJwRepairReceiptWriteService, EcomAE.Platform.Erp.ErpJwRepairReceiptWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpJwRepairTransferWriteService, EcomAE.Platform.Erp.ErpJwRepairTransferWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpJwWorkshopReceiveWriteService, EcomAE.Platform.Erp.ErpJwWorkshopReceiveWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpJwRepairDeliveryWriteService, EcomAE.Platform.Erp.ErpJwRepairDeliveryWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpJwStockVerifyWriteService, EcomAE.Platform.Erp.ErpJwStockVerifyWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpHrDaysWriteService, EcomAE.Platform.Erp.ErpHrDaysWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpStorageGroupWriteService, EcomAE.Platform.Cp.CpStorageGroupWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpStorageWriteService, EcomAE.Platform.Cp.CpStorageWriteService>();

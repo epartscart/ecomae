@@ -16,9 +16,17 @@ public sealed class ErpJewelleryModuleParityTests
         Assert.Contains("repair_status", text, StringComparison.Ordinal);
         Assert.Contains("New Repair Receipt", text, StringComparison.Ordinal);
         Assert.Contains("ErpJewelleryRepairCreateForm", text, StringComparison.Ordinal);
+        Assert.Contains("ErpJewelleryRepairReceiptSaveForm", text, StringComparison.Ordinal);
+        Assert.Contains("ErpJewelleryRepairTransferSaveForm", text, StringComparison.Ordinal);
+        Assert.Contains("ErpJewelleryWorkshopReceiveSaveForm", text, StringComparison.Ordinal);
+        Assert.Contains("ErpJewelleryRepairDeliverySaveForm", text, StringComparison.Ordinal);
         Assert.Contains("ErpJewelleryRepairStatusForm", text, StringComparison.Ordinal);
         Assert.Contains("confirmWrites", text, StringComparison.Ordinal);
         Assert.Contains("Create repair", text, StringComparison.Ordinal);
+        Assert.Contains("Save repair receipt", text, StringComparison.Ordinal);
+        Assert.Contains("Save transfer", text, StringComparison.Ordinal);
+        Assert.Contains("Save workshop receive", text, StringComparison.Ordinal);
+        Assert.Contains("Save delivery", text, StringComparison.Ordinal);
         Assert.Contains(ErpJewelleryModuleChrome.RepairJobColumns, c => c == "Repair #");
         Assert.Contains(ErpJewelleryModuleChrome.RepairJobColumns, c => c.Contains("Wt In", StringComparison.Ordinal));
         Assert.Contains("epc_erp_jw_repairs", text, StringComparison.Ordinal);
@@ -95,6 +103,8 @@ public sealed class ErpJewelleryModuleParityTests
         Assert.Contains("jw_stock_verification", stock, StringComparison.Ordinal);
         Assert.Contains(ErpJewelleryModuleChrome.StockTabs, t => t.Key == "jw_metal_stock");
         Assert.Contains("New Count", stock, StringComparison.Ordinal);
+        Assert.Contains("ErpJewelleryStockVerifySaveForm", stock, StringComparison.Ordinal);
+        Assert.Contains("Save stock verification", stock, StringComparison.Ordinal);
         Assert.Contains("ErpJewelleryMetalStockSaveForm", stock, StringComparison.Ordinal);
         Assert.Contains("Save metal stock", stock, StringComparison.Ordinal);
         Assert.DoesNotContain("@onclick", stock, StringComparison.Ordinal);
@@ -166,6 +176,11 @@ public sealed class ErpJewelleryModuleParityTests
         Assert.Equal("/erp/jewellery/voucher-save", EcomAeRoutes.ErpJewelleryVoucherSaveForm);
         Assert.Equal("/erp/jewellery/petty-cash-save", EcomAeRoutes.ErpJewelleryPettyCashSaveForm);
         Assert.Equal("/erp/jewellery/tourist-vat-save", EcomAeRoutes.ErpJewelleryTouristVatSaveForm);
+        Assert.Equal("/erp/jewellery/repair-receipt-save", EcomAeRoutes.ErpJewelleryRepairReceiptSaveForm);
+        Assert.Equal("/erp/jewellery/repair-transfer-save", EcomAeRoutes.ErpJewelleryRepairTransferSaveForm);
+        Assert.Equal("/erp/jewellery/workshop-receive-save", EcomAeRoutes.ErpJewelleryWorkshopReceiveSaveForm);
+        Assert.Equal("/erp/jewellery/repair-delivery-save", EcomAeRoutes.ErpJewelleryRepairDeliverySaveForm);
+        Assert.Equal("/erp/jewellery/stock-verify-save", EcomAeRoutes.ErpJewelleryStockVerifySaveForm);
         Assert.Equal("/erp/jewellery/karat-seed", EcomAeRoutes.ErpJewelleryKaratSeedForm);
         Assert.Equal("/erp/jewellery/module-save", EcomAeRoutes.ErpJewelleryModuleSaveForm);
     }

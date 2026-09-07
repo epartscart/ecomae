@@ -851,6 +851,16 @@ public static class EcomAeRoutes
     public const string ErpJewelleryPettyCashSaveForm = "/erp/jewellery/petty-cash-save";
     /// <summary>PHP jw_tourist_vat_save. <c>confirmWrites=true</c> inserts <c>epc_jewel_tourist_vat_refund</c>.</summary>
     public const string ErpJewelleryTouristVatSaveForm = "/erp/jewellery/tourist-vat-save";
+    /// <summary>PHP jw_repair_save / jw_repair_receipt_save. <c>confirmWrites=true</c> inserts <c>epc_jewel_repair</c>.</summary>
+    public const string ErpJewelleryRepairReceiptSaveForm = "/erp/jewellery/repair-receipt-save";
+    /// <summary>PHP jw_repair_transfer_save. <c>confirmWrites=true</c> inserts <c>epc_jewel_repair_transfer</c>.</summary>
+    public const string ErpJewelleryRepairTransferSaveForm = "/erp/jewellery/repair-transfer-save";
+    /// <summary>PHP jw_workshop_receive_save. <c>confirmWrites=true</c> inserts <c>epc_jewel_repair_workshop_receive</c>.</summary>
+    public const string ErpJewelleryWorkshopReceiveSaveForm = "/erp/jewellery/workshop-receive-save";
+    /// <summary>PHP jw_repair_delivery_save. <c>confirmWrites=true</c> inserts <c>epc_jewel_repair_delivery</c>.</summary>
+    public const string ErpJewelleryRepairDeliverySaveForm = "/erp/jewellery/repair-delivery-save";
+    /// <summary>PHP jw_stock_verification_save. <c>confirmWrites=true</c> inserts <c>epc_jewel_stock_verification</c>.</summary>
+    public const string ErpJewelleryStockVerifySaveForm = "/erp/jewellery/stock-verify-save";
     /// <summary>HTML form POST for PHP <c>jw_karat_seed</c> / <c>jw_seed_sample_data</c> dry-run.</summary>
     public const string ErpJewelleryKaratSeedForm = "/erp/jewellery/karat-seed";
     /// <summary>HTML form POST for other jewellery module saves (fixing / retail / stock).</summary>

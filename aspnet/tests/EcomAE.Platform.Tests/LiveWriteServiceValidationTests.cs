@@ -1429,6 +1429,31 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(jwTourist.Succeeded);
         Assert.Equal("invalid", jwTourist.Code);
 
+        var jwReceipt = await new ErpJwRepairReceiptWriteService(new ConfiguredNeverOpened())
+            .SaveAsync(new ErpJwRepairReceiptSaveRequest());
+        Assert.False(jwReceipt.Succeeded);
+        Assert.Equal("invalid", jwReceipt.Code);
+
+        var jwXfer = await new ErpJwRepairTransferWriteService(new ConfiguredNeverOpened())
+            .SaveAsync(new ErpJwRepairTransferSaveRequest());
+        Assert.False(jwXfer.Succeeded);
+        Assert.Equal("invalid", jwXfer.Code);
+
+        var jwWs = await new ErpJwWorkshopReceiveWriteService(new ConfiguredNeverOpened())
+            .SaveAsync(new ErpJwWorkshopReceiveSaveRequest());
+        Assert.False(jwWs.Succeeded);
+        Assert.Equal("invalid", jwWs.Code);
+
+        var jwDel = await new ErpJwRepairDeliveryWriteService(new ConfiguredNeverOpened())
+            .SaveAsync(new ErpJwRepairDeliverySaveRequest());
+        Assert.False(jwDel.Succeeded);
+        Assert.Equal("invalid", jwDel.Code);
+
+        var jwSv = await new ErpJwStockVerifyWriteService(new ConfiguredNeverOpened())
+            .SaveAsync(new ErpJwStockVerifySaveRequest());
+        Assert.False(jwSv.Succeeded);
+        Assert.Equal("invalid", jwSv.Code);
+
         var jwInvalid = await new ErpJwRepairWriteService(new ConfiguredNeverOpened())
             .SetStatusAsync(0, "ready");
         Assert.False(jwInvalid.Succeeded);

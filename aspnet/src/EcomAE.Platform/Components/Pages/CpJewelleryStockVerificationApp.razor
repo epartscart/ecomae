@@ -29,12 +29,13 @@
     @if (_isAdmin && _tab == "jw_stock_verification")
     {
         <ErpPhpCreateWell Title="New Count">
-            <form method="post" action="@EcomAeRoutes.ErpJewelleryModuleSaveForm" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+            <form method="post" action="@EcomAeRoutes.ErpJewelleryStockVerifySaveForm" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+                <input type="hidden" name="confirmWrites" value="true" />
                 <input type="hidden" name="returnUrl" value="@_returnHere" />
-                <input type="hidden" name="action" value="jw_stock_verification_save" />
                 <label>Branch <input class="form-control input-sm" name="branch" value="HO" /></label>
-                <label>Location <input class="form-control input-sm" name="code" placeholder="Showroom" /></label>
-                <button type="submit" class="btn btn-primary btn-sm">Save</button>
+                <label>Location <input class="form-control input-sm" name="code" placeholder="Showroom" required /></label>
+                <label>Supervisor <input class="form-control input-sm" name="supervisor" /></label>
+                <button type="submit" class="btn btn-primary btn-sm">Save stock verification</button>
             </form>
         </ErpPhpCreateWell>
     }
