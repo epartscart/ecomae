@@ -194,6 +194,7 @@ public sealed class PhpVsAspNetRemovalMatrixTests
             ("ErpWorkflowApp.razor", "/erp/workflow/create"),
             ("CpCollectionsDunningApp.razor", "/erp/collections/cases/status"),
             ("CpCollectionsDunningApp.razor", "/erp/collections/cases/promise"),
+            ("CpCollectionsDunningApp.razor", "/erp/collections/activity/log"),
             ("CpCollectionsDunningApp.razor", "/cp/collections-dunning/write"),
             ("CpPurchaseRequestsApp.razor", "/erp/procurement/requisitions/save"),
             ("CpPurchaseRequestsApp.razor", "/erp/procurement/requisitions/add-line"),

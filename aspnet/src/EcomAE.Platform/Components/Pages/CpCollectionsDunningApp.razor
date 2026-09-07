@@ -162,7 +162,23 @@
             <label>Promise date <input type="date" name="promise_date" /></label>
             <button type="submit">Record promise</button>
         </form>
-        <p class="epc-w15-note">Activity log, dunning run, and credit hold stay on the Classic twin.</p>
+        <form method="post" action="/erp/collections/activity/log" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="@(Http.HttpContext?.Request.Path.Value ?? "/cp/collections-dunning-app")" />
+            <label>Case id <input type="number" name="case_id" min="1" required style="width:6rem" /></label>
+            <label>Type
+                <select name="type">
+                    <option value="call">call</option>
+                    <option value="email">email</option>
+                    <option value="letter">letter</option>
+                    <option value="note">note</option>
+                </select>
+            </label>
+            <label>Outcome <input type="text" name="outcome" maxlength="200" /></label>
+            <label>Amount <input type="number" name="amount" step="0.01" style="width:7rem" /></label>
+            <button type="submit">Log activity</button>
+        </form>
+        <p class="epc-w15-note">Dunning run and credit hold stay on the Classic twin.</p>
     }
 
     <div class="epc-w15-kpis" aria-label="Collections dunning stats">
