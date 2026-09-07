@@ -1,6 +1,9 @@
 namespace EcomAE.Platform.Migration;
 
-/// <summary>Wave B dry-run for PHP <c>workflow_create</c>. Never INSERT. PHP authoritative.</summary>
+/// <summary>
+/// Dry-run envelope for PHP <c>epc_erp_workflow_create</c> when <c>confirmWrites</c> is omitted.
+/// Live INSERT is <c>IErpWorkflowCreateWriteService</c>.
+/// </summary>
 public interface IErpWorkflowCreateDryRun
 {
     ErpWorkflowCreateDryRunResult Evaluate(ErpWorkflowCreateRequest request);
@@ -13,8 +16,10 @@ public sealed class ErpWorkflowCreateDryRun : IErpWorkflowCreateDryRun
         ArgumentNullException.ThrowIfNull(request);
         if (request.ConfirmWrites)
         {
-            return Refuse("dry-run-confirm-refused", "confirm_writes_refused",
-                "confirm_writes requested but live ASP.NET workflow_create is not implemented; PHP ajax_erp.php remains authoritative.",
+            return Refuse(
+                "dry-run-confirm-refused",
+                "confirm_writes_refused",
+                "confirm_writes refused on the dry-run path; POST confirmWrites=true to write on ASP.NET.",
                 request);
         }
 
@@ -37,17 +42,17 @@ public sealed class ErpWorkflowCreateDryRun : IErpWorkflowCreateDryRun
         }
 
         return new ErpWorkflowCreateDryRunResult(
-            "dry-run-validated", 0, true, false, true, "ok", true,
+            "dry-run-validated", 0, true, false, false, "ok", true,
             title, dept, priority, request.OrderId,
             ["INSERT INTO `epc_erp_workflow_tasks` (…) (NOT executed)"],
-            "Workflow task create payload validated; INSERT blocked until dual-sample.",
-            "/CP/content/shop/finance/erp/ajax_erp.php?action=workflow_create");
+            "ErpWorkflowCreate payload validated; INSERT blocked until confirmWrites=true.",
+            "content/shop/finance/epc_erp_staff.php");
     }
 
     private static ErpWorkflowCreateDryRunResult Refuse(
         string status, string code, string detail, ErpWorkflowCreateRequest request) =>
-        new(status, 0, true, false, true, code, false, request.Title, request.DepartmentCode, request.Priority, request.OrderId,
-            [], detail, "/CP/content/shop/finance/erp/ajax_erp.php?action=workflow_create");
+        new(status, 0, true, false, false, code, false, request.Title, request.DepartmentCode, request.Priority, request.OrderId,
+            [], detail, "content/shop/finance/epc_erp_staff.php");
 }
 
 public sealed record ErpWorkflowCreateRequest(
