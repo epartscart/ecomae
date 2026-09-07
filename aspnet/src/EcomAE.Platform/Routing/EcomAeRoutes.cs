@@ -1640,7 +1640,9 @@ public static class EcomAeRoutes
     public const string ErpAjaxBosComplianceDisableObligation = "/erp/ajax/bos-compliance-disable-obligation";
     /// <summary>Wave B dry-run for PHP bos_compliance_file (writes=0).</summary>
     public const string ErpAjaxBosComplianceFile = "/erp/ajax/bos-compliance-file";
-    /// <summary>Wave B dry-run for PHP bos_compliance_save_retention (writes=0).</summary>
+    /// <summary>Live PHP bos_compliance_save_retention twin (confirmWrites=true writes).</summary>
+    public const string ErpComplianceRetentionSave = "/erp/compliance/retention/save";
+    /// <summary>Live PHP bos_compliance_save_retention ajax alias of <see cref="ErpComplianceRetentionSave"/>.</summary>
     public const string ErpAjaxBosComplianceSaveRetention = "/erp/ajax/bos-compliance-save-retention";
     /// <summary>Wave B dry-run for PHP bos_wf_save_rule (writes=0).</summary>
     public const string ErpAjaxBosWfSaveRule = "/erp/ajax/bos-wf-save-rule";
