@@ -1250,7 +1250,9 @@ public static class EcomAeRoutes
     public const string ErpAjaxCollHoldSet = "/erp/ajax/coll-hold-set";
     /// <summary>Wave B dry-run for PHP bplan_line_add (writes=0).</summary>
     public const string ErpAjaxBplanLineAdd = "/erp/ajax/bplan-line-add";
-    /// <summary>Wave B dry-run for PHP bplan_position_add (writes=0).</summary>
+    /// <summary>HTML form POST for PHP <c>bplan_position_add</c>. <c>confirmWrites=true</c> writes via <c>IErpBplanPositionAddWriteService</c>.</summary>
+    public const string ErpBudgetPlanPositionAdd = "/erp/budget-planning/positions/add";
+    /// <summary>Live PHP epc_bplan_position_add ajax alias of <see cref="ErpBudgetPlanPositionAdd"/>.</summary>
     public const string ErpAjaxBplanPositionAdd = "/erp/ajax/bplan-position-add";
     /// <summary>Wave B dry-run for PHP hrt_job_save (writes=0).</summary>
     public const string ErpAjaxHrtJobSave = "/erp/ajax/hrt-job-save";

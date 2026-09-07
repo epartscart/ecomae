@@ -9638,8 +9638,8 @@ public sealed class ErpModule : ISurfaceModule
         }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxBplanLineAdd, async (HttpContext context, ErpBplanLineAddBody? body, ILegacySessionValidator validator, IErpBplanLineAddDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpBplanLineAddRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxBplanPositionAdd, async (HttpContext context, ErpBplanPositionAddBody? body, ILegacySessionValidator validator, IErpBplanPositionAddDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpBplanPositionAddRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxBplanPositionAdd, HandleBplanPositionAddAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpBudgetPlanPositionAdd, HandleBplanPositionAddAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxHrtJobSave, async (HttpContext context, ErpHrtJobSaveBody? body, ILegacySessionValidator validator, IErpHrtJobSaveDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpHrtJobSaveRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxHrtApplicantAdd, async (HttpContext context, ErpHrtApplicantAddBody? body, ILegacySessionValidator validator, IErpHrtApplicantAddDryRun dryRun, CancellationToken cancellationToken) =>
@@ -11774,6 +11774,58 @@ public sealed class ErpModule : ISurfaceModule
         }
     }
 
+    private static async Task<IResult> HandleBplanPositionAddAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpBplanPositionAddDryRun dryRun,
+        IErpBplanPositionAddWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/budgets-app", "Admin ERP capability required for budget forecast position add.");
+        }
+
+        var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpBplanPositionAddBody>(context, cancellationToken) ?? new();
+        var planId = body.PlanId;
+        var title = body.Title;
+        var department = body.Department;
+        var headcount = body.Headcount ?? 0;
+        var annualCost = body.AnnualCost;
+        var startPeriod = body.StartPeriod;
+        var confirm = body.ConfirmWrites;
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            planId = LiveWriteFormBinder.Long(form, "planId", "plan_id");
+            title = LiveWriteFormBinder.Text(form, "title");
+            department = LiveWriteFormBinder.Text(form, "department");
+            if (form.ContainsKey("headcount"))
+            {
+                headcount = LiveWriteFormBinder.Int(form, "headcount");
+            }
+            annualCost = LiveWriteFormBinder.Dec(form, "annual_cost", "annualCost");
+            startPeriod = LiveWriteFormBinder.Text(form, "start_period", "startPeriod");
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+        }
+
+        if (!confirm)
+        {
+            return Results.Ok(dryRun.Evaluate(new ErpBplanPositionAddRequest(planId, title, department, headcount, annualCost, startPeriod, false)).ToPayload(SessionPayload(session)));
+        }
+
+        var written = await writes.AddAsync(
+            new ErpBplanPositionAddWriteRequest(planId, title, department, headcount, annualCost, startPeriod),
+            cancellationToken);
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/erp/budgets-app",
+            written.Succeeded,
+            written.Message,
+            new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+    }
+
     private static async Task<IResult> HandleWhtCodeSaveAsync(
         HttpContext context,
         ILegacySessionValidator validator,
@@ -12628,7 +12680,14 @@ public sealed class ErpModule : ISurfaceModule
         string? Actor = null,
         long CompanyId = 0);
     private sealed record ErpBplanLineAddBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
-    private sealed record ErpBplanPositionAddBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
+    private sealed record ErpBplanPositionAddBody(
+        long PlanId = 0,
+        string? Title = null,
+        string? Department = null,
+        int? Headcount = null,
+        decimal AnnualCost = 0,
+        string? StartPeriod = null,
+        bool ConfirmWrites = false);
     private sealed record ErpHrtJobSaveBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpHrtApplicantAddBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpHrtApplicantStageBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);

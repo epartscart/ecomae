@@ -5,6 +5,7 @@
 @using EcomAE.Platform.Auth
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Routing
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
@@ -52,7 +53,24 @@
         </div>
     </section>
     <PhpParityModuleBody AppPath="/cp/budgets-app" IsAdmin="_isAdmin" />
+    <ErpPhpFlash Ok="@_ok" Err="@_err" />
 
+    @if (_isErp)
+    {
+        <ErpPhpCreateWell Title="Add forecast position">
+            <form method="post" action="@EcomAeRoutes.ErpBudgetPlanPositionAdd" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin-bottom:1rem;">
+                <input type="hidden" name="returnUrl" value="/erp/budgets-app" />
+                <input type="hidden" name="confirmWrites" value="true" />
+                <label>Plan <input class="form-control input-sm" name="plan_id" placeholder="Plan id" style="width:80px;" required /></label>
+                <label>Title <input class="form-control input-sm" name="title" placeholder="Title" style="width:160px;" required /></label>
+                <label>Department <input class="form-control input-sm" name="department" placeholder="Department" style="width:140px;" /></label>
+                <label>Headcount <input class="form-control input-sm" name="headcount" value="1" style="width:70px;" /></label>
+                <label>Annual cost <input class="form-control input-sm" name="annual_cost" placeholder="0" style="width:90px;" /></label>
+                <label>Start period <input class="form-control input-sm" name="start_period" placeholder="Period" style="width:90px;" /></label>
+                <button type="submit" class="btn btn-primary btn-sm">Add</button>
+            </form>
+        </ErpPhpCreateWell>
+    }
 
     <div class="epc-bud-kpis" aria-label="Budgets stats">
         <div class="epc-bud-kpi"><strong>@_summary.BudgetCount.ToString(CultureInfo.InvariantCulture)</strong><span>Budgets</span></div>
@@ -105,18 +123,24 @@
 @code {
     private const string _phpTab = "/CP/shop/finance/erp?area=budgeting&tab=budgeting&epc_erp_shell=1";
     private bool _isAdmin;
+    private bool _isErp;
     private CpBudgetsSummary _summary = new(0, 0, 0, 0, "n/a", "");
     private IReadOnlyList<CpBudgetDigest> _budgets = [];
     private string _source = "n/a";
     private string _message = "";
+    private string _ok = "";
+    private string _err = "";
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
+        _ok = ctx.Request.Query["ok"].ToString();
+        _err = ctx.Request.Query["err"].ToString();
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
+        _isErp = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("erp");
         if (!_isAdmin)
         {
             return; // guest browse — Sign in for live data
