@@ -1248,7 +1248,9 @@ public static class EcomAeRoutes
     public const string ErpAjaxFinAccrualSave = "/erp/ajax/fin-accrual-save";
     /// <summary>Live PHP epc_coll_hold_set twin (ajax alias of <see cref="ErpCollectionsHoldSet"/>).</summary>
     public const string ErpAjaxCollHoldSet = "/erp/ajax/coll-hold-set";
-    /// <summary>Wave B dry-run for PHP bplan_line_add (writes=0).</summary>
+    /// <summary>HTML form POST for PHP <c>bplan_line_add</c>. <c>confirmWrites=true</c> writes via <c>IErpBplanLineAddWriteService</c>.</summary>
+    public const string ErpBudgetPlanLineAdd = "/erp/budget-planning/lines/add";
+    /// <summary>Live PHP epc_bplan_line_add ajax alias of <see cref="ErpBudgetPlanLineAdd"/>.</summary>
     public const string ErpAjaxBplanLineAdd = "/erp/ajax/bplan-line-add";
     /// <summary>Wave B dry-run for PHP bplan_position_add (writes=0).</summary>
     public const string ErpAjaxBplanPositionAdd = "/erp/ajax/bplan-position-add";

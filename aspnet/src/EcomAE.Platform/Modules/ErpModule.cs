@@ -9636,8 +9636,8 @@ public sealed class ErpModule : ISurfaceModule
                 written.Message,
                 new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
         }).DisableAntiforgery();
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxBplanLineAdd, async (HttpContext context, ErpBplanLineAddBody? body, ILegacySessionValidator validator, IErpBplanLineAddDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpBplanLineAddRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxBplanLineAdd, HandleBplanLineAddAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpBudgetPlanLineAdd, HandleBplanLineAddAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxBplanPositionAdd, async (HttpContext context, ErpBplanPositionAddBody? body, ILegacySessionValidator validator, IErpBplanPositionAddDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpBplanPositionAddRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxHrtJobSave, async (HttpContext context, ErpHrtJobSaveBody? body, ILegacySessionValidator validator, IErpHrtJobSaveDryRun dryRun, CancellationToken cancellationToken) =>
@@ -11774,6 +11774,58 @@ public sealed class ErpModule : ISurfaceModule
         }
     }
 
+    private static async Task<IResult> HandleBplanLineAddAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpBplanLineAddDryRun dryRun,
+        IErpBplanLineAddWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/budgets-app", "Admin ERP capability required for budget worksheet line add.");
+        }
+
+        var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpBplanLineAddBody>(context, cancellationToken) ?? new();
+        var planId = body.PlanId;
+        var account = body.Account;
+        var dimension = body.Dimension;
+        var scenario = body.Scenario;
+        var period = body.Period;
+        var amount = body.Amount;
+        var confirm = body.ConfirmWrites;
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            planId = LiveWriteFormBinder.Long(form, "planId", "plan_id");
+            account = LiveWriteFormBinder.Text(form, "account");
+            dimension = LiveWriteFormBinder.Text(form, "dimension");
+            if (form.ContainsKey("scenario"))
+            {
+                scenario = LiveWriteFormBinder.Text(form, "scenario");
+            }
+            period = LiveWriteFormBinder.Text(form, "period");
+            amount = LiveWriteFormBinder.Dec(form, "amount");
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+        }
+
+        if (!confirm)
+        {
+            return Results.Ok(dryRun.Evaluate(new ErpBplanLineAddRequest(planId, account, dimension, scenario, period, amount, false)).ToPayload(SessionPayload(session)));
+        }
+
+        var written = await writes.AddAsync(
+            new ErpBplanLineAddWriteRequest(planId, account, dimension, scenario, period, amount),
+            cancellationToken);
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/erp/budgets-app",
+            written.Succeeded,
+            written.Message,
+            new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+    }
+
     private static async Task<IResult> HandleWhtCodeSaveAsync(
         HttpContext context,
         ILegacySessionValidator validator,
@@ -12627,7 +12679,14 @@ public sealed class ErpModule : ISurfaceModule
         string? Reason = null,
         string? Actor = null,
         long CompanyId = 0);
-    private sealed record ErpBplanLineAddBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
+    private sealed record ErpBplanLineAddBody(
+        long PlanId = 0,
+        string? Account = null,
+        string? Dimension = null,
+        string? Scenario = null,
+        string? Period = null,
+        decimal Amount = 0,
+        bool ConfirmWrites = false);
     private sealed record ErpBplanPositionAddBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpHrtJobSaveBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpHrtApplicantAddBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
