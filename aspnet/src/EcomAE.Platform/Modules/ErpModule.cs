@@ -6499,6 +6499,101 @@ public sealed class ErpModule : ISurfaceModule
                 session = SessionPayload(session)
             });
         }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpReportSchedulerCreateForm, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IErpJwModuleSaveDryRun dryRun,
+            IErpReportSchedulerWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(
+                    context,
+                    "/erp/login?returnUrl=/erp/report-scheduler-app",
+                    "Admin ERP capability required for report schedule create.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpReportScheduleCreateBody>(context, cancellationToken)
+                       ?? new();
+            var companyId = body.CompanyId;
+            var reportName = body.ReportName;
+            var reportType = body.ReportType;
+            var frequency = body.Frequency;
+            var dayOfWeek = body.DayOfWeek;
+            var dayOfMonth = body.DayOfMonth;
+            var timeOfDay = body.TimeOfDay;
+            var format = body.Format;
+            var recipients = body.Recipients;
+            var ccRecipients = body.CcRecipients;
+            var subjectTemplate = body.SubjectTemplate;
+            var bodyTemplate = body.BodyTemplate;
+            var filters = body.Filters;
+            var createdBy = body.CreatedBy;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                companyId = LiveWriteFormBinder.Int(form, "companyId", "company_id", "company");
+                reportName = LiveWriteFormBinder.Text(form, "reportName", "report_name", "name");
+                reportType = LiveWriteFormBinder.Text(form, "reportType", "report_type");
+                frequency = LiveWriteFormBinder.Text(form, "frequency");
+                dayOfWeek = LiveWriteFormBinder.Int(form, "dayOfWeek", "day_of_week");
+                dayOfMonth = LiveWriteFormBinder.Int(form, "dayOfMonth", "day_of_month");
+                timeOfDay = LiveWriteFormBinder.Text(form, "timeOfDay", "time_of_day");
+                format = LiveWriteFormBinder.Text(form, "format");
+                recipients = LiveWriteFormBinder.Text(form, "recipients");
+                ccRecipients = LiveWriteFormBinder.Text(form, "ccRecipients", "cc_recipients");
+                subjectTemplate = LiveWriteFormBinder.Text(form, "subjectTemplate", "subject_template");
+                bodyTemplate = LiveWriteFormBinder.Text(form, "bodyTemplate", "body_template");
+                filters = LiveWriteFormBinder.Text(form, "filters");
+                createdBy = LiveWriteFormBinder.Int(form, "createdBy", "created_by");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            const string returnApp = "/erp/report-scheduler-app";
+            if (!confirm)
+            {
+                var result = dryRun.Evaluate(new ErpJwModuleSaveRequest("report_scheduler_create", reportName, false));
+                if (LiveWriteFormBinder.WantsHtml(context))
+                {
+                    return DryRunHtmlForm.Redirect(DryRunHtmlForm.SafeReturnUrl(context.Request, returnApp), result.ValidationCode == "ok", result.Detail);
+                }
+
+                return Results.Ok(result.ToPayload(SessionPayload(session)));
+            }
+
+            var written = await writes.CreateAsync(
+                new ErpReportScheduleCreateRequest(
+                    companyId,
+                    reportName,
+                    reportType,
+                    frequency,
+                    dayOfWeek,
+                    dayOfMonth,
+                    timeOfDay,
+                    format,
+                    recipients,
+                    ccRecipients,
+                    subjectTemplate,
+                    bodyTemplate,
+                    filters,
+                    createdBy > 0 ? createdBy : session.UserId),
+                cancellationToken);
+            return LiveWriteFormBinder.Complete(context, returnApp, written.Succeeded, written.Message, new
+            {
+                ok = written.Succeeded,
+                status = written.Succeeded,
+                writes = written.Writes,
+                phpAuthoritative = false,
+                validation_code = written.Code,
+                message = written.Message,
+                id = written.Id,
+                report_name = reportName,
+                session = SessionPayload(session)
+            });
+        }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpJewelleryMetalStockSaveForm, async (
             HttpContext context,
             ILegacySessionValidator validator,
@@ -9009,7 +9104,7 @@ public sealed class ErpModule : ISurfaceModule
             if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
                 return Unauthorized("Admin ERP capability required for report-scheduler digest.");
             var result = await dashboards.BuildErpReportSchedulerDigestAsync(limit ?? 200, cancellationToken);
-            return Results.Ok(new { ok = true, surface = "erp", schedules = result.Schedules, count = result.Count, activeCount = result.ActiveCount, source = result.Source, message = result.Message, session = SessionPayload(session), note = "Read-only epc_report_schedules (recipients/body omitted). PHP report_scheduler remains authoritative." });
+            return Results.Ok(new { ok = true, surface = "erp", schedules = result.Schedules, count = result.Count, activeCount = result.ActiveCount, source = result.Source, message = result.Message, session = SessionPayload(session), note = "Read digest over epc_report_schedules (recipients/body omitted). Create is live when confirmed; send/email stay Classic." });
         });
 
         endpoints.MapGet(EcomAeRoutes.ErpProjectAccounting, async (HttpContext context, int? limit, ILegacySessionValidator validator, ISurfaceDashboardSummaryReporter dashboards, CancellationToken cancellationToken) =>
@@ -10592,6 +10687,22 @@ public sealed class ErpModule : ISurfaceModule
     private sealed record ErpCustomerGroupAssignBody(
         long GroupId = 0,
         int CustomerId = 0,
+        bool ConfirmWrites = false);
+    private sealed record ErpReportScheduleCreateBody(
+        int CompanyId = 0,
+        string? ReportName = null,
+        string? ReportType = null,
+        string? Frequency = null,
+        int DayOfWeek = 1,
+        int DayOfMonth = 1,
+        string? TimeOfDay = null,
+        string? Format = null,
+        string? Recipients = null,
+        string? CcRecipients = null,
+        string? SubjectTemplate = null,
+        string? BodyTemplate = null,
+        string? Filters = null,
+        int CreatedBy = 0,
         bool ConfirmWrites = false);
     private sealed record ErpJwColorStoneSaveBody(
         int CompanyId = 0,

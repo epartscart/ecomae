@@ -4,6 +4,7 @@
 @using EcomAE.Platform.Auth
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Routing
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
@@ -12,27 +13,70 @@
 <PageTitle>Report scheduler · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Report scheduler" BreadcrumbArea="Reports" BreadcrumbTab="Report scheduler">
-    <PhpErpModulePageHeader Title="Report scheduler" Subtitle="Automated report cadence. Recipients and body stay on ERP ajax." PhpTabHref="@_phpTab" />
+    <PhpErpModulePageHeader Title="Report scheduler" Subtitle="Automated report cadence. Create is live when confirmed. Send and email stay Classic." PhpTabHref="@_phpTab" />
     <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
+    <ErpPhpFlash Ok="@_ok" Err="@_err" />
 
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Report scheduler KPIs">
         <div class="kpi"><div class="lbl">Schedules</div><div class="val">@_count.ToString(CultureInfo.InvariantCulture)</div></div>
         <div class="kpi"><div class="lbl">Active</div><div class="val">@_active.ToString(CultureInfo.InvariantCulture)</div></div>
     </div>
 
+    @if (_isAdmin)
+    {
+        <ErpPhpCreateWell Title="New report schedule">
+            <form method="post" action="@EcomAeRoutes.ErpReportSchedulerCreateForm" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="/erp/report-scheduler-app" />
+                <label>Name <input class="form-control input-sm" name="report_name" required placeholder="Weekly aging" /></label>
+                <label>Type
+                    <select class="form-control input-sm" name="report_type">
+                        <option value="sales">Sales</option>
+                        <option value="aging">Aging</option>
+                        <option value="inventory">Inventory</option>
+                        <option value="vat">VAT</option>
+                        <option value="pl">P&amp;L</option>
+                        <option value="balance_sheet">Balance sheet</option>
+                        <option value="custom">Custom</option>
+                    </select>
+                </label>
+                <label>Frequency
+                    <select class="form-control input-sm" name="frequency">
+                        <option value="daily">Daily</option>
+                        <option value="weekly" selected>Weekly</option>
+                        <option value="monthly">Monthly</option>
+                        <option value="quarterly">Quarterly</option>
+                    </select>
+                </label>
+                <label>Time <input class="form-control input-sm" name="time_of_day" value="08:00" /></label>
+                <label>Format
+                    <select class="form-control input-sm" name="format">
+                        <option value="pdf">PDF</option>
+                        <option value="excel">Excel</option>
+                        <option value="csv">CSV</option>
+                        <option value="html">HTML</option>
+                    </select>
+                </label>
+                <label>Recipients <input class="form-control input-sm" name="recipients" placeholder="ops@local.test" /></label>
+                <button type="submit" class="btn btn-primary btn-sm">Create schedule</button>
+            </form>
+        </ErpPhpCreateWell>
+    }
+
     <div class="epc-erp-table-wrap">
         <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
-            <thead><tr><th>Name</th><th>Type</th><th>Frequency</th><th>Time</th><th>Format</th><th>Last status</th><th>Status</th></tr></thead>
+            <thead><tr><th>Id</th><th>Name</th><th>Type</th><th>Frequency</th><th>Time</th><th>Format</th><th>Last status</th><th>Status</th></tr></thead>
             <tbody>
                 @if (_schedules.Count == 0)
                 {
-                    <tr><td colspan="7">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? "No report schedules yet." : _message) : "Sign in with ERP capability for live rows.")</td></tr>
+                    <tr><td colspan="8">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? "No report schedules yet." : _message) : "Sign in with ERP capability for live rows.")</td></tr>
                 }
                 else
                 {
                     @foreach (var row in _schedules)
                     {
                         <tr>
+                            <td>@row.Id.ToString(CultureInfo.InvariantCulture)</td>
                             <td><strong>@(string.IsNullOrWhiteSpace(row.ReportName) ? $"#{row.Id.ToString(CultureInfo.InvariantCulture)}" : row.ReportName)</strong></td>
                             <td>@(string.IsNullOrWhiteSpace(row.ReportType) ? "—" : row.ReportType)</td>
                             <td>@row.Frequency</td>
@@ -48,8 +92,9 @@
     </div>
 
     <div class="epc-erp-empty" style="display:block;margin-top:12px;padding:8px 10px;border:1px solid #c5d4de;background:#f8fafc;color:#475569;font-size:12px;">
-        Source: @_source. Recipients and body omitted.
+        Source: @_source. Recipients and body omitted from the digest.
         @if (!string.IsNullOrWhiteSpace(_message)) { <span> @_message</span> }
+        Report schedule create is live when confirmed. Send and email stay Classic.
     </div>
 </PhpErpDesktopChrome>
 
@@ -60,11 +105,15 @@
     private int _count, _active;
     private string _source = "n/a";
     private string _message = "";
+    private string _ok = "";
+    private string _err = "";
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
+        _ok = ctx.Request.Query["ok"].ToString();
+        _err = ctx.Request.Query["err"].ToString();
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("erp");
         if (!_isAdmin) { _message = "Sign in for live data."; return; }

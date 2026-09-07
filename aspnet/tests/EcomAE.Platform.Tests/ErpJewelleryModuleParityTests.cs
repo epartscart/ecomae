@@ -235,6 +235,7 @@ public sealed class ErpJewelleryModuleParityTests
         Assert.Equal("/erp/tickets/create", EcomAeRoutes.ErpTicketsCreateForm);
         Assert.Equal("/erp/customer-groups/create", EcomAeRoutes.ErpCustomerGroupsCreateForm);
         Assert.Equal("/erp/customer-groups/assign", EcomAeRoutes.ErpCustomerGroupsAssignForm);
+        Assert.Equal("/erp/report-scheduler/create", EcomAeRoutes.ErpReportSchedulerCreateForm);
     }
 
     [Fact]

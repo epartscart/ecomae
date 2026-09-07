@@ -1474,6 +1474,11 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(groupAssign.Succeeded);
         Assert.Equal("invalid", groupAssign.Code);
 
+        var reportSched = await new ErpReportSchedulerWriteService(new ConfiguredNeverOpened())
+            .CreateAsync(new ErpReportScheduleCreateRequest());
+        Assert.False(reportSched.Succeeded);
+        Assert.Equal("invalid", reportSched.Code);
+
         var jwMetal = await new ErpJwMetalStockWriteService(new ConfiguredNeverOpened())
             .SaveAsync(new ErpJwMetalStockSaveRequest());
         Assert.False(jwMetal.Succeeded);

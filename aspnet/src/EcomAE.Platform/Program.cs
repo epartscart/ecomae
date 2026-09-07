@@ -690,6 +690,7 @@ builder.Services.AddScoped<EcomAE.Platform.Erp.IErpJwBarcodePurchaseWriteService
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpSlaWriteService, EcomAE.Platform.Erp.ErpSlaWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpTicketsWriteService, EcomAE.Platform.Erp.ErpTicketsWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpCustomerGroupsWriteService, EcomAE.Platform.Erp.ErpCustomerGroupsWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpReportSchedulerWriteService, EcomAE.Platform.Erp.ErpReportSchedulerWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpJwMetalStockWriteService, EcomAE.Platform.Erp.ErpJwMetalStockWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpJwFixingWriteService, EcomAE.Platform.Erp.ErpJwFixingWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpJwVoucherWriteService, EcomAE.Platform.Erp.ErpJwVoucherWriteService>();
