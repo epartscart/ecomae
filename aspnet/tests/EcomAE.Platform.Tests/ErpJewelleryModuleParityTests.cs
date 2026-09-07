@@ -78,7 +78,8 @@ public sealed class ErpJewelleryModuleParityTests
         var fixing = ReadApp("CpJewelleryFixingApp.razor");
         Assert.Contains("jw_purchase_fixing", fixing, StringComparison.Ordinal);
         Assert.Contains("New Fixing", fixing, StringComparison.Ordinal);
-        Assert.Contains("ErpJewelleryModuleSaveForm", fixing, StringComparison.Ordinal);
+        Assert.Contains("ErpJewelleryFixingSaveForm", fixing, StringComparison.Ordinal);
+        Assert.Contains("Save fixing", fixing, StringComparison.Ordinal);
         Assert.Contains("Fixed Rate", fixing, StringComparison.Ordinal);
         Assert.DoesNotContain("@onclick", fixing, StringComparison.Ordinal);
 
@@ -147,6 +148,7 @@ public sealed class ErpJewelleryModuleParityTests
         Assert.Equal("/erp/jewellery/pearl-save", EcomAeRoutes.ErpJewelleryPearlSaveForm);
         Assert.Equal("/erp/jewellery/color-stone-save", EcomAeRoutes.ErpJewelleryColorStoneSaveForm);
         Assert.Equal("/erp/jewellery/metal-stock-save", EcomAeRoutes.ErpJewelleryMetalStockSaveForm);
+        Assert.Equal("/erp/jewellery/fixing-save", EcomAeRoutes.ErpJewelleryFixingSaveForm);
         Assert.Equal("/erp/jewellery/karat-seed", EcomAeRoutes.ErpJewelleryKaratSeedForm);
         Assert.Equal("/erp/jewellery/module-save", EcomAeRoutes.ErpJewelleryModuleSaveForm);
     }

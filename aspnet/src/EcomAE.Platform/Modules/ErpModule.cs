@@ -5169,6 +5169,122 @@ public sealed class ErpModule : ISurfaceModule
                     session = SessionPayload(session)
                 });
         }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpJewelleryFixingSaveForm, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IErpJwModuleSaveDryRun dryRun,
+            IErpJwFixingWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (!ErpJewelleryModuleChrome.HasJewelleryStaffAccess(session))
+            {
+                return LiveWriteFormBinder.LoginRedirect(
+                    context,
+                    "/erp/login?returnUrl=/cp/jewellery-fixing-app?tab=jw_purchase_fixing",
+                    "Admin ERP capability required for jewellery fixing save.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpJwFixingSaveBody>(context, cancellationToken)
+                       ?? new();
+            var companyId = body.CompanyId;
+            var partyCode = body.PartyCode;
+            var partyName = body.PartyName;
+            var metal = body.Metal;
+            var karat = body.Karat;
+            var rateType = body.RateType;
+            var fixingWt = body.FixingWt != 0 ? body.FixingWt : (body.NetWt != 0 ? body.NetWt : body.FixQtyGms);
+            var fixingRate = body.FixingRate != 0 ? body.FixingRate : (body.FixedRate != 0 ? body.FixedRate : body.FixRate);
+            var fixingAmount = body.FixingAmount != 0 ? body.FixingAmount : body.FixAmount;
+            var refVoucher = !string.IsNullOrWhiteSpace(body.RefVoucher)
+                ? body.RefVoucher
+                : !string.IsNullOrWhiteSpace(body.Code) ? body.Code : body.ReferenceVoc;
+            var narration = !string.IsNullOrWhiteSpace(body.Narration) ? body.Narration : body.Remarks;
+            var fixDirection = !string.IsNullOrWhiteSpace(body.FixDirection) ? body.FixDirection : body.FixType;
+            var branch = body.Branch;
+            var fixDate = body.FixDate;
+            var fixNo = body.FixNo;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                companyId = LiveWriteFormBinder.Int(form, "companyId", "company_id", "company");
+                partyCode = LiveWriteFormBinder.Text(form, "party_code", "partyCode");
+                partyName = LiveWriteFormBinder.Text(form, "party_name", "partyName");
+                metal = LiveWriteFormBinder.Text(form, "metal");
+                karat = LiveWriteFormBinder.Text(form, "karat");
+                rateType = LiveWriteFormBinder.Text(form, "rate_type", "rateType");
+                fixingWt = LiveWriteFormBinder.Dec(form, "fixing_wt", "net_wt", "fix_qty_gms", "fixingWt", "netWt", "fixQtyGms");
+                fixingRate = LiveWriteFormBinder.Dec(form, "fixing_rate", "fixed_rate", "fix_rate", "fixingRate", "fixedRate", "fixRate");
+                fixingAmount = LiveWriteFormBinder.Dec(form, "fixing_amount", "fix_amount", "fixingAmount", "fixAmount");
+                refVoucher = LiveWriteFormBinder.Text(form, "ref_voucher", "code", "reference_voc", "refVoucher", "referenceVoc");
+                narration = LiveWriteFormBinder.Text(form, "narration", "remarks");
+                fixDirection = LiveWriteFormBinder.Text(form, "fix_direction", "fix_type", "fixDirection", "fixType");
+                branch = LiveWriteFormBinder.Text(form, "branch");
+                fixDate = LiveWriteFormBinder.Text(form, "fix_date", "fixDate");
+                fixNo = LiveWriteFormBinder.Int(form, "fix_no", "fixNo");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            var sales = (fixDirection ?? string.Empty).Contains("sale", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(fixDirection, "SF", StringComparison.OrdinalIgnoreCase);
+            var dryAction = sales ? "jw_sales_fixing_save" : "jw_purchase_fixing_save";
+            var returnTab = sales ? "jw_sales_fixing" : "jw_purchase_fixing";
+            var returnApp = "/cp/jewellery-fixing-app?tab=" + returnTab;
+            if (!confirm)
+            {
+                var result = dryRun.Evaluate(new ErpJwModuleSaveRequest(
+                    dryAction,
+                    !string.IsNullOrWhiteSpace(partyCode) ? partyCode : refVoucher,
+                    false));
+                if (LiveWriteFormBinder.WantsHtml(context))
+                {
+                    return DryRunHtmlForm.Redirect(
+                        DryRunHtmlForm.SafeReturnUrl(context.Request, returnApp),
+                        result.ValidationCode == "ok",
+                        result.Detail);
+                }
+
+                return Results.Ok(result.ToPayload(SessionPayload(session)));
+            }
+
+            var written = await writes.SaveAsync(
+                new ErpJwFixingSaveRequest(
+                    CompanyId: companyId,
+                    FixType: fixDirection,
+                    FixDirection: fixDirection,
+                    Branch: branch,
+                    FixDate: fixDate,
+                    FixNo: fixNo,
+                    PartyCode: partyCode,
+                    PartyName: partyName,
+                    Metal: metal,
+                    Karat: karat,
+                    RateType: rateType,
+                    FixingWt: fixingWt,
+                    FixingRate: fixingRate,
+                    FixingAmount: fixingAmount,
+                    RefVoucher: refVoucher,
+                    Narration: narration),
+                cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                returnApp,
+                written.Succeeded,
+                written.Message,
+                new
+                {
+                    ok = written.Succeeded,
+                    status = written.Succeeded,
+                    writes = written.Writes,
+                    phpAuthoritative = false,
+                    validation_code = written.Code,
+                    message = written.Message,
+                    id = written.Id,
+                    party_code = partyCode,
+                    session = SessionPayload(session)
+                });
+        }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpJewelleryKaratSeedForm, async (HttpContext context, ILegacySessionValidator validator, IErpJwSeedSampleDataDryRun dryRun, CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateAsync(context, cancellationToken);
@@ -7945,6 +8061,32 @@ public sealed class ErpModule : ISurfaceModule
         decimal EstimatedCost = 0,
         long ReceivedDate = 0,
         long PromisedDate = 0);
+    private sealed record ErpJwFixingSaveBody(
+        int CompanyId = 0,
+        string? PartyCode = null,
+        string? PartyName = null,
+        string? Metal = null,
+        string? Karat = null,
+        string? RateType = null,
+        decimal FixingWt = 0,
+        decimal NetWt = 0,
+        decimal FixQtyGms = 0,
+        decimal FixingRate = 0,
+        decimal FixedRate = 0,
+        decimal FixRate = 0,
+        decimal FixingAmount = 0,
+        decimal FixAmount = 0,
+        string? RefVoucher = null,
+        string? Code = null,
+        string? ReferenceVoc = null,
+        string? Narration = null,
+        string? Remarks = null,
+        string? FixDirection = null,
+        string? FixType = null,
+        string? Branch = null,
+        string? FixDate = null,
+        int FixNo = 0,
+        bool ConfirmWrites = false);
     private sealed record ErpJwMetalStockSaveBody(
         int CompanyId = 0,
         string? Metal = null,
