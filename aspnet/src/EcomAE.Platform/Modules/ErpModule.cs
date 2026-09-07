@@ -1954,7 +1954,7 @@ public sealed class ErpModule : ISurfaceModule
             var session = await validator.ValidateAsync(context, cancellationToken);
             if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
             {
-                return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/cp/warehouse-wms-app", "Admin ERP capability required for WMS wave release.");
+                return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/warehouse-wms-app", "Admin ERP capability required for WMS wave release.");
             }
 
             var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpWmsWaveReleaseBody>(context, cancellationToken) ?? new(0, false);
@@ -1975,7 +1975,7 @@ public sealed class ErpModule : ISurfaceModule
             var written = await writes.ReleaseAsync(id, cancellationToken);
             return LiveWriteFormBinder.Complete(
                 context,
-                "/cp/warehouse-wms-app",
+                "/erp/warehouse-wms-app",
                 written.Succeeded,
                 written.Message,
                 new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
@@ -2154,7 +2154,7 @@ public sealed class ErpModule : ISurfaceModule
             var session = await validator.ValidateAsync(context, cancellationToken);
             if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
             {
-                return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/cp/warehouse-wms-app", "Admin ERP capability required for WMS location delete.");
+                return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/warehouse-wms-app", "Admin ERP capability required for WMS location delete.");
             }
 
             var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpWmsLocationDeleteBody>(context, cancellationToken) ?? new(0, false);
@@ -2175,7 +2175,7 @@ public sealed class ErpModule : ISurfaceModule
             var written = await writes.DeleteAsync(id, cancellationToken);
             return LiveWriteFormBinder.Complete(
                 context,
-                "/cp/warehouse-wms-app",
+                "/erp/warehouse-wms-app",
                 written.Succeeded,
                 written.Message,
                 new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
