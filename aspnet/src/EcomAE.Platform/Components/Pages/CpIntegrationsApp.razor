@@ -52,6 +52,34 @@
         </div>
     </section>
 
+    @if (!string.IsNullOrWhiteSpace(_flashOk))
+    {
+        <div class="alert alert-success" role="status" style="margin:0 0 12px;padding:.7rem .9rem;border-radius:.4rem;background:#ecfdf5;color:#065f46">@_flashOk</div>
+    }
+    @if (!string.IsNullOrWhiteSpace(_flashErr))
+    {
+        <div class="alert alert-danger" role="status" style="margin:0 0 12px;padding:.7rem .9rem;border-radius:.4rem;background:#fef2f2;color:#991b1b">@_flashErr</div>
+    }
+    @if (_isAdmin)
+    {
+        <form method="post" action="/erp/integrations/entities/save" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="@_returnUrl" />
+            <label>Name <input type="text" name="name" required maxlength="80" style="width:10rem" /></label>
+            <label>Source table <input type="text" name="source_table" maxlength="120" style="width:12rem" /></label>
+            <label>Key field <input type="text" name="key_field" maxlength="80" placeholder="id" style="width:7rem" /></label>
+            <label>Fields <input type="text" name="fields" placeholder="id,name" style="width:14rem" /></label>
+            <label>Enabled
+                <select name="enabled">
+                    <option value="1" selected>enabled</option>
+                    <option value="0">disabled</option>
+                </select>
+            </label>
+            <label>Company id <input type="number" name="company_id" min="0" value="0" style="width:5rem" /></label>
+            <button type="submit" class="btn btn-sm btn-primary">Save data entity</button>
+        </form>
+    }
+
     <div class="epc-int-kpis" aria-label="Integrations stats">
         <div class="epc-int-kpi"><strong>@_summary.CatalogCount.ToString(CultureInfo.InvariantCulture)</strong><span>Integrations</span></div>
         <div class="epc-int-kpi"><strong>@_summary.ActiveCount.ToString(CultureInfo.InvariantCulture)</strong><span>Active</span></div>
@@ -105,6 +133,9 @@
 @code {
     private const string _hubHref = "/cp/integrations-app";
     private const string _guideHref = "/cp/ops-guides-app";
+    private string _returnUrl = "/erp/integrations-app";
+    private string _flashOk = "";
+    private string _flashErr = "";
     private bool _isAdmin;
     private CpIntegrationsSummary _summary = new(0, 0, 0, 0, "n/a", "");
     private IReadOnlyList<CpIntegrationDigest> _integrations = [];
@@ -114,8 +145,10 @@
         var ctx = Http.HttpContext;
         if (ctx is null) return;
 
+        _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
+        _flashErr = ctx.Request.Query["err"].ToString() ?? "";
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
-        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
+        _isAdmin = session.Kind == LegacySessionKind.Admin && (session.Capabilities.Contains("cp") || session.Capabilities.Contains("erp"));
         if (!_isAdmin)
         {
             return; // guest browse — Sign in for live data

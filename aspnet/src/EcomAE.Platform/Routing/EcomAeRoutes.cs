@@ -1296,7 +1296,9 @@ public static class EcomAeRoutes
     public const string ErpAjaxCostmTxnAdd = "/erp/ajax/costm-txn-add";
     /// <summary>Wave B dry-run for PHP costm_close_run (writes=0).</summary>
     public const string ErpAjaxCostmCloseRun = "/erp/ajax/costm-close-run";
-    /// <summary>Wave B dry-run for PHP intg_entity_save (writes=0).</summary>
+    /// <summary>Live PHP epc_intg_entity_save twin (ajax alias of <see cref="ErpIntegrationsEntitiesSave"/>).</summary>
+    public const string ErpIntegrationsEntitiesSave = "/erp/integrations/entities/save";
+    /// <summary>Live PHP epc_intg_entity_save ajax alias of <see cref="ErpIntegrationsEntitiesSave"/>.</summary>
     public const string ErpAjaxIntgEntitySave = "/erp/ajax/intg-entity-save";
     /// <summary>Wave B dry-run for PHP intg_sub_save (writes=0).</summary>
     public const string ErpAjaxIntgSubSave = "/erp/ajax/intg-sub-save";

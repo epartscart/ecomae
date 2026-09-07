@@ -3070,6 +3070,16 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(whtCodeDb.Succeeded);
         Assert.Equal("db", whtCodeDb.Code);
 
+        var intgEntityInvalid = await new ErpIntgEntitySaveWriteService(new ConfiguredNeverOpened())
+            .SaveAsync(new ErpIntgEntitySaveWriteRequest());
+        Assert.False(intgEntityInvalid.Succeeded);
+        Assert.Equal("invalid", intgEntityInvalid.Code);
+
+        var intgEntityDb = await new ErpIntgEntitySaveWriteService(new UnconfiguredConnections())
+            .SaveAsync(new ErpIntgEntitySaveWriteRequest(Name: "DemoEntity", SourceTable: "epc_intg_demo", Enabled: 1));
+        Assert.False(intgEntityDb.Succeeded);
+        Assert.Equal("db", intgEntityDb.Code);
+
         var whtRecordInvalid = await new ErpWhtRecordWriteService(new ConfiguredNeverOpened())
             .RecordAsync(new ErpWhtRecordWriteRequest());
         Assert.False(whtRecordInvalid.Succeeded);
