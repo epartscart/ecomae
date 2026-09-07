@@ -3362,4 +3362,25 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(missingDb.Succeeded);
         Assert.Equal("db", missingDb.Code);
     }
+
+    [Fact]
+    public async Task Fy_create_rejects_invalid_dates_and_unconfigured_db()
+    {
+        var invalid = await new ErpFyCreateWriteService(new ConfiguredNeverOpened())
+            .CreateAsync(new ErpFyCreateWriteRequest("FY26"));
+        Assert.False(invalid.Succeeded);
+        Assert.Equal("invalid", invalid.Code);
+        Assert.Equal("Valid start and end dates are required", invalid.Message);
+
+        var inverted = await new ErpFyCreateWriteService(new ConfiguredNeverOpened())
+            .CreateAsync(new ErpFyCreateWriteRequest("FY26", 1798761599, 1767225600));
+        Assert.False(inverted.Succeeded);
+        Assert.Equal("invalid", inverted.Code);
+        Assert.Equal("Valid start and end dates are required", inverted.Message);
+
+        var missingDb = await new ErpFyCreateWriteService(new UnconfiguredConnections())
+            .CreateAsync(new ErpFyCreateWriteRequest("FY26", 1767225600, 1798761599, true));
+        Assert.False(missingDb.Succeeded);
+        Assert.Equal("db", missingDb.Code);
+    }
 }

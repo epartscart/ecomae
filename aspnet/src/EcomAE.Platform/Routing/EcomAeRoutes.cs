@@ -1302,7 +1302,9 @@ public static class EcomAeRoutes
     public const string ErpAjaxIntgSubSave = "/erp/ajax/intg-sub-save";
     /// <summary>Wave B dry-run for PHP intg_event_raise (writes=0).</summary>
     public const string ErpAjaxIntgEventRaise = "/erp/ajax/intg-event-raise";
-    /// <summary>Wave B dry-run for PHP fy_create (writes=0).</summary>
+    /// <summary>Live PHP fy_create twin (confirmWrites=true writes).</summary>
+    public const string ErpFiscalYearCreate = "/erp/fiscal-years/create";
+    /// <summary>Live PHP fy_create ajax alias of <see cref="ErpFiscalYearCreate"/>.</summary>
     public const string ErpAjaxFyCreate = "/erp/ajax/fy-create";
     /// <summary>Wave B dry-run for PHP fy_close (writes=0).</summary>
     public const string ErpAjaxFyClose = "/erp/ajax/fy-close";
