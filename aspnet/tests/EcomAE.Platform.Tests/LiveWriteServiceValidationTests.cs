@@ -2909,6 +2909,17 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(wfRuleDb.Succeeded);
         Assert.Equal("db", wfRuleDb.Code);
 
+        var wfSaveMissing = await new ErpBosWfSaveRuleWriteService(new ConfiguredNeverOpened())
+            .SaveAsync(new ErpBosWfSaveRuleWriteRequest());
+        Assert.False(wfSaveMissing.Succeeded);
+        Assert.Equal("invalid", wfSaveMissing.Code);
+        Assert.Equal("Name and document type required", wfSaveMissing.Message);
+
+        var wfSaveDb = await new ErpBosWfSaveRuleWriteService(new UnconfiguredConnections())
+            .SaveAsync(new ErpBosWfSaveRuleWriteRequest(Name: "High-value PO", EntityType: "purchase_order"));
+        Assert.False(wfSaveDb.Succeeded);
+        Assert.Equal("db", wfSaveDb.Code);
+
         var oblInvalid = await new ErpBosComplianceDisableObligationWriteService(new ConfiguredNeverOpened())
             .DisableAsync(0);
         Assert.False(oblInvalid.Succeeded);

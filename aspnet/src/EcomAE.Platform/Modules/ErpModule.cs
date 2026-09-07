@@ -3941,8 +3941,8 @@ public sealed class ErpModule : ISurfaceModule
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpBosComplianceFileRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxBosComplianceSaveRetention, async (HttpContext context, ErpBosComplianceSaveRetentionBody? body, ILegacySessionValidator validator, IErpBosComplianceSaveRetentionDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpBosComplianceSaveRetentionRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxBosWfSaveRule, async (HttpContext context, ErpBosWfSaveRuleBody? body, ILegacySessionValidator validator, IErpBosWfSaveRuleDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpBosWfSaveRuleRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.ErpApprovalsRuleSave, HandleBosWfSaveRuleAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxBosWfSaveRule, HandleBosWfSaveRuleAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxBosWfDisableRule, async (
             HttpContext context,
             ILegacySessionValidator validator,
@@ -11774,6 +11774,79 @@ public sealed class ErpModule : ISurfaceModule
         }
     }
 
+    private static async Task<IResult> HandleBosWfSaveRuleAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpBosWfSaveRuleDryRun dryRun,
+        IErpBosWfSaveRuleWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/approvals-app", "Admin ERP capability required for approval rule save.");
+        }
+
+        var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpBosWfSaveRuleBody>(context, cancellationToken) ?? new();
+        var id = body.RuleId > 0 ? body.RuleId : body.Id;
+        var name = body.Name;
+        var entityType = body.EntityType;
+        var op = body.Operator;
+        var threshold = body.ThresholdAmount;
+        var priority = body.Priority;
+        var disable = body.Disable;
+        var confirm = body.ConfirmWrites;
+        IFormCollection? form = null;
+        if (context.Request.HasFormContentType)
+        {
+            form = await context.Request.ReadFormAsync(cancellationToken);
+            id = LiveWriteFormBinder.Long(form, "ruleId", "rule_id", "id");
+            name = LiveWriteFormBinder.Text(form, "name");
+            entityType = LiveWriteFormBinder.Text(form, "entityType", "entity_type");
+            op = LiveWriteFormBinder.Text(form, "operator");
+            threshold = LiveWriteFormBinder.Dec(form, "thresholdAmount", "threshold_amount");
+            priority = LiveWriteFormBinder.Int(form, "priority");
+            if (priority == 0 && string.IsNullOrWhiteSpace(form["priority"].ToString()))
+            {
+                priority = 100;
+            }
+
+            disable = LiveWriteFormBinder.Flag(form, "disable");
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+        }
+
+        if (!confirm)
+        {
+            return Results.Ok(dryRun.Evaluate(new ErpBosWfSaveRuleRequest(id, name, entityType, false)).ToPayload(SessionPayload(session)));
+        }
+
+        var steps = ErpBosWfSaveRuleWriteService.ParseSteps(body.Steps, body.StepsJson, form);
+        if (steps.Count == 1 && steps[0].Role == "Manager" && !string.IsNullOrWhiteSpace(body.ApproverRole))
+        {
+            steps = ErpBosWfSaveRuleWriteService.NormalizeSteps(
+                [new ErpBosWfSaveStep(body.ApproverRole, body.ApproverLabel ?? "")]);
+        }
+
+        var written = await writes.SaveAsync(
+            new ErpBosWfSaveRuleWriteRequest(
+                id,
+                name,
+                entityType,
+                op,
+                threshold,
+                priority,
+                disable,
+                steps,
+                session.UserId),
+            cancellationToken);
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/erp/approvals-app",
+            written.Succeeded,
+            written.Message,
+            new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+    }
+
     private static async Task<IResult> HandleWhtCodeSaveAsync(
         HttpContext context,
         ILegacySessionValidator validator,
@@ -13493,7 +13566,20 @@ public sealed class ErpModule : ISurfaceModule
     private sealed record ErpBosComplianceDisableObligationBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpBosComplianceFileBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpBosComplianceSaveRetentionBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
-    private sealed record ErpBosWfSaveRuleBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
+    private sealed record ErpBosWfSaveRuleBody(
+        long Id = 0,
+        long RuleId = 0,
+        string? Name = null,
+        string? EntityType = null,
+        string? Operator = null,
+        decimal ThresholdAmount = 0,
+        int Priority = 100,
+        bool Disable = false,
+        string? ApproverRole = null,
+        string? ApproverLabel = null,
+        string? StepsJson = null,
+        IReadOnlyList<ErpBosWfSaveStep>? Steps = null,
+        bool ConfirmWrites = false);
     private sealed record ErpBosWfDisableRuleBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpBosWfDecideBody(long Id, bool Approve = true, string? Note = null, bool ConfirmWrites = false);
     private sealed record ErpBosWfRaiseTestBody(bool ConfirmWrites = false);

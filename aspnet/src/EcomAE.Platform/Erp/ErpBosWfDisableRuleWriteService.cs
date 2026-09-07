@@ -1,7 +1,7 @@
 namespace EcomAE.Platform.Erp;
 
 /// <summary>
-/// Live PHP <c>epc_bos_wf_disable_rule</c> twin. Rule save, decide, and raise stay PHP.
+/// Live PHP <c>epc_bos_wf_disable_rule</c> twin. Decide, raise, and schema ensure stay PHP.
 /// </summary>
 public interface IErpBosWfDisableRuleWriteService
 {
