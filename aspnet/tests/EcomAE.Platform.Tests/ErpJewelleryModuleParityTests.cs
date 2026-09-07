@@ -68,6 +68,10 @@ public sealed class ErpJewelleryModuleParityTests
         Assert.Contains("Save color stone", text, StringComparison.Ordinal);
         Assert.Contains("ErpJewelleryBarcodeGenerateForm", text, StringComparison.Ordinal);
         Assert.Contains("Generate barcode", text, StringComparison.Ordinal);
+        Assert.Contains("ErpJewelleryTagCreateForm", text, StringComparison.Ordinal);
+        Assert.Contains("Create tag", text, StringComparison.Ordinal);
+        Assert.Contains("ErpJewelleryTagSellForm", text, StringComparison.Ordinal);
+        Assert.Contains("Sell tag", text, StringComparison.Ordinal);
         Assert.Contains(ErpJewelleryModuleChrome.KaratColumns, c => c.Contains("Purity", StringComparison.Ordinal));
         Assert.DoesNotContain("295.50", text, StringComparison.Ordinal);
         Assert.DoesNotContain("2,458", text, StringComparison.Ordinal);
@@ -100,6 +104,8 @@ public sealed class ErpJewelleryModuleParityTests
         Assert.Contains("New Invoice", retail, StringComparison.Ordinal);
         Assert.Contains("ErpJewelleryVoucherSaveForm", retail, StringComparison.Ordinal);
         Assert.Contains("Save voucher", retail, StringComparison.Ordinal);
+        Assert.Contains("ErpJewelleryBarcodeGenerateForm", retail, StringComparison.Ordinal);
+        Assert.Contains("retail_barcode", retail, StringComparison.Ordinal);
         Assert.Equal("Retail Sales (POS)", ErpJewelleryModuleChrome.RetailSpec("jw_retail_sales").Title);
         Assert.DoesNotContain("@onclick", retail, StringComparison.Ordinal);
 
@@ -197,6 +203,9 @@ public sealed class ErpJewelleryModuleParityTests
         Assert.Equal("/erp/jewellery/stock-verify-save", EcomAeRoutes.ErpJewelleryStockVerifySaveForm);
         Assert.Equal("/erp/jewellery/karat-seed", EcomAeRoutes.ErpJewelleryKaratSeedForm);
         Assert.Equal("/erp/jewellery/module-save", EcomAeRoutes.ErpJewelleryModuleSaveForm);
+        Assert.Equal("/erp/jewellery/barcode-generate", EcomAeRoutes.ErpJewelleryBarcodeGenerateForm);
+        Assert.Equal("/erp/jewellery/tag-create", EcomAeRoutes.ErpJewelleryTagCreateForm);
+        Assert.Equal("/erp/jewellery/tag-sell", EcomAeRoutes.ErpJewelleryTagSellForm);
     }
 
     [Fact]

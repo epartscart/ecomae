@@ -853,6 +853,10 @@ public static class EcomAeRoutes
     public const string ErpJewelleryColorStoneSaveForm = "/erp/jewellery/color-stone-save";
     /// <summary>PHP epc_jewel_barcode_generate. <c>confirmWrites=true</c> inserts <c>epc_jewel_barcode</c>.</summary>
     public const string ErpJewelleryBarcodeGenerateForm = "/erp/jewellery/barcode-generate";
+    /// <summary>PHP epc_jw_tag_create. <c>confirmWrites=true</c> inserts <c>epc_jw_tags</c>.</summary>
+    public const string ErpJewelleryTagCreateForm = "/erp/jewellery/tag-create";
+    /// <summary>PHP epc_jw_tag_sell. <c>confirmWrites=true</c> marks <c>epc_jw_tags</c> sold.</summary>
+    public const string ErpJewelleryTagSellForm = "/erp/jewellery/tag-sell";
     /// <summary>PHP jw_metal_stock_save. <c>confirmWrites=true</c> upserts <c>epc_jewel_metal_stock</c>.</summary>
     public const string ErpJewelleryMetalStockSaveForm = "/erp/jewellery/metal-stock-save";
     /// <summary>PHP jw_purchase_fixing_save / jw_sales_fixing_save. <c>confirmWrites=true</c> inserts <c>epc_jewel_fixing</c>.</summary>

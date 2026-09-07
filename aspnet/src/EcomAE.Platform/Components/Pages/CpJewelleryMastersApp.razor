@@ -211,6 +211,39 @@
             </form>
         </ErpPhpCreateWell>
     }
+    else if (_isAdmin && _tab == "jewellery_tag")
+    {
+        <ErpPhpCreateWell Title="Create tag">
+            <form method="post" action="@EcomAeRoutes.ErpJewelleryTagCreateForm" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="@_returnHere" />
+                @if (_company > 0)
+                {
+                    <input type="hidden" name="company" value="@_company.ToString(CultureInfo.InvariantCulture)" />
+                }
+                <label>TAG # <input class="form-control input-sm" name="tag_no" placeholder="auto" maxlength="50" /></label>
+                <label>Description <input class="form-control input-sm" name="description" required placeholder="22K bangle" maxlength="500" /></label>
+                <label>Category <input class="form-control input-sm" name="category" placeholder="Bangle" /></label>
+                <label>Karat <input class="form-control input-sm" name="karat" value="22K" /></label>
+                <label>Gross wt <input class="form-control input-sm" name="gross_weight" type="number" step="0.001" value="0" /></label>
+                <label>Net wt <input class="form-control input-sm" name="net_weight" type="number" step="0.001" value="0" /></label>
+                <label>Stone wt <input class="form-control input-sm" name="stone_weight" type="number" step="0.001" value="0" /></label>
+                <label>Cost <input class="form-control input-sm" name="cost_price" type="number" step="0.01" value="0" /></label>
+                <label>Location <input class="form-control input-sm" name="location" value="showroom" /></label>
+                <button type="submit" class="btn btn-primary btn-sm">Create tag</button>
+            </form>
+        </ErpPhpCreateWell>
+        <ErpPhpCreateWell Title="Sell tag">
+            <form method="post" action="@EcomAeRoutes.ErpJewelleryTagSellForm" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="@_returnHere" />
+                <label>Tag id <input class="form-control input-sm" name="tag_id" type="number" min="1" required /></label>
+                <label>Invoice id <input class="form-control input-sm" name="invoice_id" type="number" min="0" value="0" /></label>
+                <label>Salesman id <input class="form-control input-sm" name="salesman_id" type="number" min="0" value="0" /></label>
+                <button type="submit" class="btn btn-primary btn-sm">Sell tag</button>
+            </form>
+        </ErpPhpCreateWell>
+    }
     else if (_isAdmin && _tab == "jw_barcode")
     {
         <ErpPhpCreateWell Title="Generate barcode">
@@ -287,7 +320,7 @@
     </div>
 
     <div class="epc-erp-empty" style="display:block;margin-top:12px;padding:8px 10px;border:1px solid #c5d4de;background:#f8fafc;color:#475569;font-size:12px;">
-        Source: @_source. Karat rows bind from <code>epc_jewel_karat_master</code>. Karat, rate-type, currency, diamond, design, pearl, color-stone, and barcode generate are live when confirmed. Seed stays Classic.
+        Source: @_source. Karat rows bind from <code>epc_jewel_karat_master</code>. Karat, rate-type, currency, diamond, design, pearl, color-stone, barcode generate, and tag create/sell are live when confirmed. Seed stays Classic.
         @if (!string.IsNullOrWhiteSpace(_message)) { <span> @_message</span> }
     </div>
 </PhpErpDesktopChrome>

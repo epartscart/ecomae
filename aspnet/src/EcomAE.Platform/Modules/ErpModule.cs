@@ -5449,6 +5449,184 @@ public sealed class ErpModule : ISurfaceModule
                 session = SessionPayload(session)
             });
         }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpJewelleryTagCreateForm, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IErpJwModuleSaveDryRun dryRun,
+            IErpJwTagWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (!ErpJewelleryModuleChrome.HasJewelleryStaffAccess(session))
+            {
+                return LiveWriteFormBinder.LoginRedirect(
+                    context,
+                    "/erp/login?returnUrl=/cp/jewellery-masters-app?tab=jewellery_tag",
+                    "Admin ERP capability required for jewellery tag create.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpJwTagCreateBody>(context, cancellationToken)
+                       ?? new();
+            var companyId = body.CompanyId;
+            var tagNo = body.TagNo;
+            var barcode = body.Barcode;
+            var itemType = body.ItemType;
+            var karat = body.Karat;
+            var grossWeight = body.GrossWeight;
+            var netWeight = body.NetWeight;
+            var stoneWeight = body.StoneWeight;
+            var stoneCount = body.StoneCount;
+            var makingCharges = body.MakingCharges;
+            var makingType = body.MakingType;
+            var costPrice = body.CostPrice;
+            var sellPrice = body.SellPrice;
+            var marginPct = body.MarginPct;
+            var designNo = body.DesignNo;
+            var category = body.Category;
+            var subcategory = body.Subcategory;
+            var supplierId = body.SupplierId;
+            var purchaseId = body.PurchaseId;
+            var purchaseDate = body.PurchaseDate;
+            var location = body.Location;
+            var description = body.Description;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                companyId = LiveWriteFormBinder.Int(form, "companyId", "company_id", "company");
+                tagNo = LiveWriteFormBinder.Text(form, "tagNo", "tag_no");
+                barcode = LiveWriteFormBinder.Text(form, "barcode");
+                itemType = LiveWriteFormBinder.Text(form, "itemType", "item_type");
+                karat = LiveWriteFormBinder.Text(form, "karat");
+                grossWeight = LiveWriteFormBinder.Dec(form, "grossWeight", "gross_weight", "gross_wt");
+                netWeight = LiveWriteFormBinder.Dec(form, "netWeight", "net_weight", "net_wt");
+                stoneWeight = LiveWriteFormBinder.Dec(form, "stoneWeight", "stone_weight", "stone_wt");
+                stoneCount = LiveWriteFormBinder.Int(form, "stoneCount", "stone_count");
+                makingCharges = LiveWriteFormBinder.Dec(form, "makingCharges", "making_charges");
+                makingType = LiveWriteFormBinder.Text(form, "makingType", "making_type");
+                costPrice = LiveWriteFormBinder.Dec(form, "costPrice", "cost_price", "cost");
+                sellPrice = LiveWriteFormBinder.Dec(form, "sellPrice", "sell_price");
+                marginPct = LiveWriteFormBinder.Dec(form, "marginPct", "margin_pct");
+                designNo = LiveWriteFormBinder.Text(form, "designNo", "design_no");
+                category = LiveWriteFormBinder.Text(form, "category");
+                subcategory = LiveWriteFormBinder.Text(form, "subcategory");
+                supplierId = LiveWriteFormBinder.Int(form, "supplierId", "supplier_id");
+                purchaseId = LiveWriteFormBinder.Int(form, "purchaseId", "purchase_id");
+                purchaseDate = LiveWriteFormBinder.Text(form, "purchaseDate", "purchase_date");
+                location = LiveWriteFormBinder.Text(form, "location");
+                description = LiveWriteFormBinder.Text(form, "description");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            const string returnApp = "/cp/jewellery-masters-app?tab=jewellery_tag";
+            if (!confirm)
+            {
+                var result = dryRun.Evaluate(new ErpJwModuleSaveRequest("jw_tag_create", tagNo ?? description, false));
+                if (LiveWriteFormBinder.WantsHtml(context))
+                {
+                    return DryRunHtmlForm.Redirect(DryRunHtmlForm.SafeReturnUrl(context.Request, returnApp), result.ValidationCode == "ok", result.Detail);
+                }
+
+                return Results.Ok(result.ToPayload(SessionPayload(session)));
+            }
+
+            var written = await writes.CreateAsync(
+                new ErpJwTagCreateRequest(
+                    companyId,
+                    tagNo,
+                    barcode,
+                    itemType,
+                    karat,
+                    grossWeight,
+                    netWeight,
+                    stoneWeight,
+                    stoneCount,
+                    makingCharges,
+                    makingType,
+                    costPrice,
+                    sellPrice,
+                    marginPct,
+                    designNo,
+                    category,
+                    subcategory,
+                    supplierId,
+                    purchaseId,
+                    purchaseDate,
+                    location,
+                    description),
+                cancellationToken);
+            return LiveWriteFormBinder.Complete(context, returnApp, written.Succeeded, written.Message, new
+            {
+                ok = written.Succeeded,
+                status = written.Succeeded,
+                writes = written.Writes,
+                phpAuthoritative = false,
+                validation_code = written.Code,
+                message = written.Message,
+                id = written.Id,
+                tag_no = tagNo,
+                session = SessionPayload(session)
+            });
+        }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpJewelleryTagSellForm, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IErpJwModuleSaveDryRun dryRun,
+            IErpJwTagWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (!ErpJewelleryModuleChrome.HasJewelleryStaffAccess(session))
+            {
+                return LiveWriteFormBinder.LoginRedirect(
+                    context,
+                    "/erp/login?returnUrl=/cp/jewellery-masters-app?tab=jewellery_tag",
+                    "Admin ERP capability required for jewellery tag sell.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpJwTagSellBody>(context, cancellationToken)
+                       ?? new();
+            var tagId = body.TagId;
+            var invoiceId = body.InvoiceId;
+            var salesmanId = body.SalesmanId;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                tagId = LiveWriteFormBinder.Long(form, "tagId", "tag_id", "id");
+                invoiceId = LiveWriteFormBinder.Int(form, "invoiceId", "invoice_id", "sold_invoice_id");
+                salesmanId = LiveWriteFormBinder.Int(form, "salesmanId", "salesman_id");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            const string returnApp = "/cp/jewellery-masters-app?tab=jewellery_tag";
+            if (!confirm)
+            {
+                var result = dryRun.Evaluate(new ErpJwModuleSaveRequest("jw_tag_sell", tagId.ToString(CultureInfo.InvariantCulture), false));
+                if (LiveWriteFormBinder.WantsHtml(context))
+                {
+                    return DryRunHtmlForm.Redirect(DryRunHtmlForm.SafeReturnUrl(context.Request, returnApp), result.ValidationCode == "ok", result.Detail);
+                }
+
+                return Results.Ok(result.ToPayload(SessionPayload(session)));
+            }
+
+            var written = await writes.SellAsync(
+                new ErpJwTagSellRequest(tagId, invoiceId, salesmanId),
+                cancellationToken);
+            return LiveWriteFormBinder.Complete(context, returnApp, written.Succeeded, written.Message, new
+            {
+                ok = written.Succeeded,
+                status = written.Succeeded,
+                writes = written.Writes,
+                phpAuthoritative = false,
+                validation_code = written.Code,
+                message = written.Message,
+                id = written.Id,
+                tag_id = tagId,
+                session = SessionPayload(session)
+            });
+        }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpJewelleryMetalStockSaveForm, async (
             HttpContext context,
             ILegacySessionValidator validator,
@@ -9386,6 +9564,35 @@ public sealed class ErpModule : ISurfaceModule
         decimal GrossWt = 0,
         decimal Purity = 0,
         decimal TagPrice = 0,
+        bool ConfirmWrites = false);
+    private sealed record ErpJwTagCreateBody(
+        int CompanyId = 0,
+        string? TagNo = null,
+        string? Barcode = null,
+        string? ItemType = null,
+        string? Karat = null,
+        decimal GrossWeight = 0,
+        decimal NetWeight = 0,
+        decimal StoneWeight = 0,
+        int StoneCount = 0,
+        decimal MakingCharges = 0,
+        string? MakingType = null,
+        decimal CostPrice = 0,
+        decimal SellPrice = 0,
+        decimal MarginPct = 0,
+        string? DesignNo = null,
+        string? Category = null,
+        string? Subcategory = null,
+        int SupplierId = 0,
+        int PurchaseId = 0,
+        string? PurchaseDate = null,
+        string? Location = null,
+        string? Description = null,
+        bool ConfirmWrites = false);
+    private sealed record ErpJwTagSellBody(
+        long TagId = 0,
+        int InvoiceId = 0,
+        int SalesmanId = 0,
         bool ConfirmWrites = false);
     private sealed record ErpJwColorStoneSaveBody(
         int CompanyId = 0,

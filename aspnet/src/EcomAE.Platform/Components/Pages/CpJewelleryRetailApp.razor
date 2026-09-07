@@ -45,6 +45,26 @@
             </form>
         </ErpPhpCreateWell>
     }
+    else if (_isAdmin && _tab == "retail_barcode")
+    {
+        <ErpPhpCreateWell Title="Generate barcode">
+            <form method="post" action="@EcomAeRoutes.ErpJewelleryBarcodeGenerateForm" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="@_returnHere" />
+                @if (_company > 0)
+                {
+                    <input type="hidden" name="company" value="@_company.ToString(CultureInfo.InvariantCulture)" />
+                }
+                <label>Stock code <input class="form-control input-sm" name="stock_code" required placeholder="MST-001" maxlength="20" /></label>
+                <label>Division <input class="form-control input-sm" name="division" value="G" maxlength="2" style="width:4rem" /></label>
+                <label>Karat <input class="form-control input-sm" name="karat" value="22K" /></label>
+                <label>Gross wt <input class="form-control input-sm" name="gross_wt" type="number" step="0.0001" value="0" /></label>
+                <label>Purity <input class="form-control input-sm" name="purity" type="number" step="0.000001" value="0.916" /></label>
+                <label>Tag price <input class="form-control input-sm" name="tag_price" type="number" step="0.01" value="0" /></label>
+                <button type="submit" class="btn btn-primary btn-sm">Generate barcode</button>
+            </form>
+        </ErpPhpCreateWell>
+    }
     else if (_isAdmin)
     {
         <ErpPhpCreateWell Title="@("New " + _spec.Label)">
