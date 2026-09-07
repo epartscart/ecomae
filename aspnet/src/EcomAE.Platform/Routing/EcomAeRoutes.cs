@@ -310,6 +310,8 @@ public static class EcomAeRoutes
     public const string ControlPanelCollectionsDunning = "/cp/collections-dunning";
     /// <summary>CP collections/dunning Blazor list (JSON digest remains <see cref="ControlPanelCollectionsDunning"/>).</summary>
     public const string ControlPanelCollectionsDunningApp = "/cp/collections-dunning-app";
+    /// <summary>Dunning queue status / payment. <c>confirmWrites=true</c> is the live twin of PHP epc_dunning_update_status / epc_dunning_record_payment. Letters and process stay PHP.</summary>
+    public const string CpCollectionsDunningWrite = "/cp/collections-dunning/write";
 
     public const string ControlPanelMarketplaceChannels = "/cp/marketplace-channels";
     /// <summary>CP marketplace channels Blazor list (JSON digest remains <see cref="ControlPanelMarketplaceChannels"/>).</summary>
