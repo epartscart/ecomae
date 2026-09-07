@@ -3091,6 +3091,49 @@ public sealed class ErpModule : ISurfaceModule
             return Results.Ok(dryRun.Evaluate(new ErpCollectionsCaseSaveRequest(customerId, id, false)).ToPayload(SessionPayload(session)));
         }).DisableAntiforgery();
 
+        endpoints.MapPost(EcomAeRoutes.ErpCollectionsCasePromise, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IErpCollCasePromiseDryRun dryRun,
+            IErpCollectionsCasePromiseWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/cp/collections-dunning-app", "Admin ERP capability required for collections case promise.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpCollCasePromiseBody>(context, cancellationToken) ?? new();
+            var id = body.Id;
+            var amount = body.Amount;
+            var promiseDate = body.PromiseDate;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                id = LiveWriteFormBinder.Long(form, "id", "caseId", "case_id");
+                amount = LiveWriteFormBinder.Dec(form, "amount", "promiseAmount", "promise_amount");
+                promiseDate = LiveWriteFormBinder.Text(form, "promise_date", "promiseDate");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(dryRun.Evaluate(new ErpCollCasePromiseRequest(id, false, amount, promiseDate)).ToPayload(SessionPayload(session)));
+            }
+
+            var written = await writes.PromiseAsync(
+                new ErpCollectionsCasePromiseWriteRequest(id, amount, promiseDate),
+                cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/cp/collections-dunning-app",
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+        }).DisableAntiforgery();
+
         endpoints.MapPost(EcomAeRoutes.ErpProcurementReqSave, async (
             HttpContext context,
             ILegacySessionValidator validator,
@@ -4036,8 +4079,48 @@ public sealed class ErpModule : ISurfaceModule
         }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxCtrSign, async (HttpContext context, ErpCtrSignBody? body, ILegacySessionValidator validator, IErpCtrSignDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,false); return Results.Ok(dryRun.Evaluate(new ErpCtrSignRequest(body.Id, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxCollCasePromise, async (HttpContext context, ErpCollCasePromiseBody? body, ILegacySessionValidator validator, IErpCollCasePromiseDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,false); return Results.Ok(dryRun.Evaluate(new ErpCollCasePromiseRequest(body.Id, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxCollCasePromise, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IErpCollCasePromiseDryRun dryRun,
+            IErpCollectionsCasePromiseWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/cp/collections-dunning-app", "Admin ERP capability required for collections case promise.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpCollCasePromiseBody>(context, cancellationToken) ?? new();
+            var id = body.Id;
+            var amount = body.Amount;
+            var promiseDate = body.PromiseDate;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                id = LiveWriteFormBinder.Long(form, "id", "caseId", "case_id");
+                amount = LiveWriteFormBinder.Dec(form, "amount", "promiseAmount", "promise_amount");
+                promiseDate = LiveWriteFormBinder.Text(form, "promise_date", "promiseDate");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(dryRun.Evaluate(new ErpCollCasePromiseRequest(id, false, amount, promiseDate)).ToPayload(SessionPayload(session)));
+            }
+
+            var written = await writes.PromiseAsync(
+                new ErpCollectionsCasePromiseWriteRequest(id, amount, promiseDate),
+                cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/cp/collections-dunning-app",
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+        }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxCollActivityLog, async (HttpContext context, ErpCollActivityLogBody? body, ILegacySessionValidator validator, IErpCollActivityLogDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,false); return Results.Ok(dryRun.Evaluate(new ErpCollActivityLogRequest(body.Id, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxCollDunningRun, async (HttpContext context, ErpCollDunningRunBody? body, ILegacySessionValidator validator, IErpCollDunningRunDryRun dryRun, CancellationToken cancellationToken) =>
@@ -12842,7 +12925,11 @@ public sealed class ErpModule : ISurfaceModule
     private sealed record ErpSubInvoicePaidBody(long Id, bool ConfirmWrites = false);
     private sealed record ErpCtrStatusBody(long Id, string? TargetStatus = null, bool ConfirmWrites = false);
     private sealed record ErpCtrSignBody(long Id, bool ConfirmWrites = false);
-    private sealed record ErpCollCasePromiseBody(long Id, bool ConfirmWrites = false);
+    private sealed record ErpCollCasePromiseBody(
+        long Id = 0,
+        bool ConfirmWrites = false,
+        decimal Amount = 0,
+        string? PromiseDate = null);
     private sealed record ErpCollActivityLogBody(long Id, bool ConfirmWrites = false);
     private sealed record ErpCollDunningRunBody(bool ConfirmWrites = false);
     private sealed record ErpProcCategorySaveBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);

@@ -14,6 +14,7 @@ public sealed class ErpCollectionsCaseSavePhpParityTests
         var text = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/CpCollectionsDunningApp.razor"));
         Assert.Contains("/erp/collections/cases/save", text, StringComparison.Ordinal);
         Assert.Contains("/erp/collections/cases/status", text, StringComparison.Ordinal);
+        Assert.Contains("/erp/collections/cases/promise", text, StringComparison.Ordinal);
         Assert.Contains("confirmWrites", text, StringComparison.Ordinal);
         Assert.Contains("Save case", text, StringComparison.Ordinal);
         Assert.DoesNotContain("@onclick", text, StringComparison.Ordinal);

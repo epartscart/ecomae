@@ -1,8 +1,10 @@
 namespace EcomAE.Platform.Erp;
 
 /// <summary>
-/// Live PHP <c>epc_coll_case_set_status</c> twin. Schema ensure, promise,
-/// activity, dunning run, and hold stay PHP. Case save is <c>IErpCollectionsCaseSaveWriteService</c>.
+/// Live PHP <c>epc_coll_case_set_status</c> twin. Schema ensure, dedicated
+/// activity, dunning run, and hold stay PHP. Case save is
+/// <c>IErpCollectionsCaseSaveWriteService</c>. Promise is
+/// <c>IErpCollectionsCasePromiseWriteService</c>.
 /// </summary>
 public interface IErpCollectionsCaseStatusWriteService
 {

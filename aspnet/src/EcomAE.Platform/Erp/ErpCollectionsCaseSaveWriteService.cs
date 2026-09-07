@@ -3,8 +3,9 @@ using System.Globalization;
 namespace EcomAE.Platform.Erp;
 
 /// <summary>
-/// Live PHP <c>epc_coll_case_save</c> twin. Schema ensure, promise-to-pay,
-/// activity log, dunning run, and credit hold stay PHP.
+/// Live PHP <c>epc_coll_case_save</c> twin. Schema ensure, dedicated
+/// activity log, dunning run, and credit hold stay PHP. Promise is
+/// <c>IErpCollectionsCasePromiseWriteService</c>.
 /// </summary>
 public interface IErpCollectionsCaseSaveWriteService
 {

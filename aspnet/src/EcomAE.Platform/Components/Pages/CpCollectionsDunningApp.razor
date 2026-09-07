@@ -154,7 +154,15 @@
             </label>
             <button type="submit">Set case status</button>
         </form>
-        <p class="epc-w15-note">Promise to pay, activity log, dunning run, and credit hold stay on the Classic twin.</p>
+        <form method="post" action="/erp/collections/cases/promise" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="@(Http.HttpContext?.Request.Path.Value ?? "/cp/collections-dunning-app")" />
+            <label>Case id <input type="number" name="id" min="1" required style="width:6rem" /></label>
+            <label>Amount <input type="number" name="amount" step="0.01" style="width:7rem" /></label>
+            <label>Promise date <input type="date" name="promise_date" /></label>
+            <button type="submit">Record promise</button>
+        </form>
+        <p class="epc-w15-note">Activity log, dunning run, and credit hold stay on the Classic twin.</p>
     }
 
     <div class="epc-w15-kpis" aria-label="Collections dunning stats">

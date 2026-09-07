@@ -2696,6 +2696,17 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(collSaveDb.Succeeded);
         Assert.Equal("db", collSaveDb.Code);
 
+        var collPromiseInvalid = await new ErpCollectionsCasePromiseWriteService(new ConfiguredNeverOpened())
+            .PromiseAsync(new ErpCollectionsCasePromiseWriteRequest());
+        Assert.False(collPromiseInvalid.Succeeded);
+        Assert.Equal("invalid", collPromiseInvalid.Code);
+        Assert.Equal("id must be positive.", collPromiseInvalid.Message);
+
+        var collPromiseDb = await new ErpCollectionsCasePromiseWriteService(new UnconfiguredConnections())
+            .PromiseAsync(new ErpCollectionsCasePromiseWriteRequest(Id: 4, Amount: 5000, PromiseDate: "2026-09-11"));
+        Assert.False(collPromiseDb.Succeeded);
+        Assert.Equal("db", collPromiseDb.Code);
+
         var procSaveInvalid = await new ErpProcurementReqSaveWriteService(new ConfiguredNeverOpened())
             .SaveAsync("", 0, "laptops", null, 0, 0);
         Assert.False(procSaveInvalid.Succeeded);

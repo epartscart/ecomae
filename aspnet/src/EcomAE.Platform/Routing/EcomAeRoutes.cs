@@ -664,6 +664,8 @@ public static class EcomAeRoutes
     public const string ErpWmsLocationSave = "/erp/wms/locations/save";
     /// <summary>PHP epc_coll_case_save. <c>confirmWrites=true</c> writes via <c>IErpCollectionsCaseSaveWriteService</c>.</summary>
     public const string ErpCollectionsCaseSave = "/erp/collections/cases/save";
+    /// <summary>Live PHP epc_coll_case_promise twin (confirmWrites=true). Schema ensure stays PHP.</summary>
+    public const string ErpCollectionsCasePromise = "/erp/collections/cases/promise";
     /// <summary>PHP epc_proc_req_save. <c>confirmWrites=true</c> writes via <c>IErpProcurementReqSaveWriteService</c>.</summary>
     public const string ErpProcurementReqSave = "/erp/procurement/requisitions/save";
     /// <summary>Live PHP epc_proc_req_add_line twin (confirmWrites=true). Schema ensure stays PHP.</summary>
@@ -1664,7 +1666,7 @@ public static class EcomAeRoutes
     public const string ErpAjaxCtrStatus = "/erp/ajax/ctr-status";
     /// <summary>Wave B dry-run for PHP ctr_sign (writes=0).</summary>
     public const string ErpAjaxCtrSign = "/erp/ajax/ctr-sign";
-    /// <summary>Wave B dry-run for PHP coll_case_promise (writes=0).</summary>
+    /// <summary>Live PHP epc_coll_case_promise twin (ajax alias of <see cref="ErpCollectionsCasePromise"/>).</summary>
     public const string ErpAjaxCollCasePromise = "/erp/ajax/coll-case-promise";
     /// <summary>Wave B dry-run for PHP coll_activity_log (writes=0).</summary>
     public const string ErpAjaxCollActivityLog = "/erp/ajax/coll-activity-log";
