@@ -1001,7 +1001,9 @@ public static class EcomAeRoutes
     public const string ErpAjaxInvImportCsv = "/erp/ajax/inv-import-csv";
     /// <summary>PHP inv_run_closing. <c>confirmWrites=true</c> writes via <c>IErpInventoryMovementWriteService</c>.</summary>
     public const string ErpAjaxInvRunClosing = "/erp/ajax/inv-run-closing";
-    /// <summary>Wave B dry-run for PHP hr_emp_save (writes=0).</summary>
+    /// <summary>PHP epc_hr_employee_save. <c>confirmWrites=true</c> writes via <c>IErpHrEmpSaveWriteService</c>.</summary>
+    public const string ErpHrEmployeesSave = "/erp/hr/employees/save";
+    /// <summary>Live PHP hr_emp_save twin (ajax alias of <see cref="ErpHrEmployeesSave"/>).</summary>
     public const string ErpAjaxHrEmpSave = "/erp/ajax/hr-emp-save";
     /// <summary>Wave B dry-run for PHP hr_attendance (writes=0).</summary>
     public const string ErpAjaxHrAttendance = "/erp/ajax/hr-attendance";

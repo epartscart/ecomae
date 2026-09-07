@@ -3089,6 +3089,17 @@ public sealed class LiveWriteServiceValidationTests
             .IssueAsync(new ErpWhtCertificateWriteRequest(Id: 1));
         Assert.False(whtCertDb.Succeeded);
         Assert.Equal("db", whtCertDb.Code);
+
+        var hrEmpInvalid = await new ErpHrEmpSaveWriteService(new ConfiguredNeverOpened())
+            .SaveAsync(new ErpHrEmpSaveWriteRequest());
+        Assert.False(hrEmpInvalid.Succeeded);
+        Assert.Equal("invalid", hrEmpInvalid.Code);
+        Assert.Equal("Code and name are required", hrEmpInvalid.Message);
+
+        var hrEmpDb = await new ErpHrEmpSaveWriteService(new UnconfiguredConnections())
+            .SaveAsync(new ErpHrEmpSaveWriteRequest(Code: "E001", Name: "Ahmed"));
+        Assert.False(hrEmpDb.Succeeded);
+        Assert.Equal("db", hrEmpDb.Code);
     }
 
     [Fact]

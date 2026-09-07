@@ -1,4 +1,6 @@
 using System.Globalization;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using EcomAE.Platform.Auth;
 using EcomAE.Platform.Erp;
 using EcomAE.Platform.Middleware;
@@ -4965,8 +4967,8 @@ public sealed class ErpModule : ISurfaceModule
                 written.Message,
                 new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, lines = written.Id, session = SessionPayload(session) });
         }).DisableAntiforgery();
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxHrEmpSave, async (HttpContext context, ErpHrEmpSaveBody? body, ILegacySessionValidator validator, IErpHrEmpSaveDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpHrEmpSaveRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.ErpHrEmployeesSave, HandleHrEmpSaveAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxHrEmpSave, HandleHrEmpSaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxHrAttendance, async (HttpContext context, ErpHrAttendanceBody? body, ILegacySessionValidator validator, IErpHrAttendanceDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpHrAttendanceRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxHrLeaveRequest, async (
@@ -11875,6 +11877,86 @@ public sealed class ErpModule : ISurfaceModule
             new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
     }
 
+    private static async Task<IResult> HandleHrEmpSaveAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpHrEmpSaveDryRun dryRun,
+        IErpHrEmpSaveWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/cp/hr-overview-app", "Admin ERP capability required for employee save.");
+        }
+
+        var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpHrEmpSaveBody>(context, cancellationToken) ?? new();
+        var id = body.Id;
+        var code = body.Code;
+        var name = body.Name;
+        var department = body.Department;
+        var branchId = body.BranchId;
+        var joinDate = body.JoinDate;
+        var joinDateStr = body.JoinDateStr;
+        var basicSalary = body.BasicSalary;
+        var allowances = body.Allowances;
+        var currency = body.Currency;
+        var annualLeaveDays = body.AnnualLeaveDays;
+        var status = body.Status;
+        var confirm = body.ConfirmWrites;
+        IFormCollection? form = null;
+        if (context.Request.HasFormContentType)
+        {
+            form = await context.Request.ReadFormAsync(cancellationToken);
+            id = LiveWriteFormBinder.Long(form, "id");
+            code = LiveWriteFormBinder.Text(form, "code");
+            name = LiveWriteFormBinder.Text(form, "name");
+            department = LiveWriteFormBinder.Text(form, "department");
+            branchId = LiveWriteFormBinder.Long(form, "branchId", "branch_id");
+            joinDate = LiveWriteFormBinder.Text(form, "joinDate", "join_date");
+            joinDateStr = LiveWriteFormBinder.Text(form, "joinDateStr", "join_date_str");
+            basicSalary = LiveWriteFormBinder.Dec(form, "basicSalary", "basic_salary");
+            allowances = LiveWriteFormBinder.Dec(form, "allowances");
+            currency = LiveWriteFormBinder.Text(form, "currency");
+            if (form.ContainsKey("annual_leave_days") || form.ContainsKey("annualLeaveDays"))
+            {
+                annualLeaveDays = LiveWriteFormBinder.Dec(form, "annualLeaveDays", "annual_leave_days");
+            }
+
+            status = LiveWriteFormBinder.Text(form, "status");
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+        }
+
+        if (!confirm)
+        {
+            return Results.Ok(dryRun.Evaluate(new ErpHrEmpSaveRequest(id, code, false, name)).ToPayload(SessionPayload(session)));
+        }
+
+        var extras = ErpHrEmpSaveWriteService.CollectProvidedExtras(form, body.Extra);
+        var written = await writes.SaveAsync(
+            new ErpHrEmpSaveWriteRequest(
+                id,
+                code,
+                name,
+                department,
+                branchId,
+                joinDate,
+                joinDateStr,
+                basicSalary,
+                allowances,
+                currency,
+                annualLeaveDays,
+                status,
+                extras),
+            cancellationToken);
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/cp/hr-overview-app",
+            written.Succeeded,
+            written.Message,
+            new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+    }
+
     private static async Task<IResult> HandleWhtCertificateAsync(
         HttpContext context,
         ILegacySessionValidator validator,
@@ -12329,7 +12411,25 @@ public sealed class ErpModule : ISurfaceModule
         Dictionary<string, long>? Dim = null,
         bool ConfirmWrites = false);
     private sealed record ErpInvRunClosingBody(string? PeriodEnd = null, long WarehouseId = 0, bool ConfirmWrites = false);
-    private sealed record ErpHrEmpSaveBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
+    private sealed class ErpHrEmpSaveBody
+    {
+        public long Id { get; set; }
+        public string? Code { get; set; }
+        public string? Name { get; set; }
+        public string? Department { get; set; }
+        public long BranchId { get; set; }
+        public string? JoinDate { get; set; }
+        public string? JoinDateStr { get; set; }
+        public decimal BasicSalary { get; set; }
+        public decimal Allowances { get; set; }
+        public string? Currency { get; set; }
+        public decimal? AnnualLeaveDays { get; set; }
+        public string? Status { get; set; }
+        public bool ConfirmWrites { get; set; }
+
+        [JsonExtensionData]
+        public Dictionary<string, JsonElement>? Extra { get; set; }
+    }
     private sealed record ErpHrAttendanceBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpHrLeaveRequestBody(
         long EmployeeId = 0,

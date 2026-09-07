@@ -6,8 +6,7 @@ using EcomAE.Platform.Migration;
 namespace EcomAE.Platform.Erp;
 
 /// <summary>
-/// Live PHP <c>epc_hr_expense_save</c> twin. Schema ensure, employee save,
-/// leave request, and attendance stay PHP.
+/// Live PHP <c>epc_hr_expense_save</c> twin. Schema ensure and attendance stay PHP.
 /// </summary>
 public interface IErpHrExpenseSaveWriteService
 {
