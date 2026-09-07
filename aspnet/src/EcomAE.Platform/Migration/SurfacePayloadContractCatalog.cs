@@ -1278,7 +1278,7 @@ public static class SurfacePayloadContractCatalog
         new("erp", "marketing create", "/erp/marketing/create", "write-live-gated", "POST PHP epc_erp_marketing_create. confirmWrites=true writes on ASP.NET. Staff schema seed stays PHP."),
         new("erp", "subscription save", "/erp/subscriptions/save", "write-live-gated", "POST PHP epc_sub_save. confirmWrites=true writes on ASP.NET. Cycle generate and schema ensure stay PHP."),
         new("erp", "contract save", "/erp/contracts/save", "write-live-gated", "POST PHP epc_ctr_save. confirmWrites=true writes on ASP.NET. Sign, OCR, and schema ensure stay PHP."),
-        new("erp", "WMS receive dry-run", "/erp/wms/receive", "write-dry-run-gated", "POST dry-run for PHP wms_receive; writes=0; confirm_writes refused; PHP authoritative."),
+        new("erp", "wms_receive", "/erp/wms/receive", "write-live-gated", "POST PHP epc_wms_receive; confirmWrites=true writes ASP.NET; work complete and schema ensure stay PHP."),
         new("erp", "WMS location save", "/erp/wms/locations/save", "write-live-gated", "POST PHP epc_wms_location_save. confirmWrites=true writes on ASP.NET. Schema ensure stays PHP."),
         new("erp", "collections case save", "/erp/collections/cases/save", "write-live-gated", "POST PHP epc_coll_case_save; confirmWrites=true writes ASP.NET; schema ensure, promise, activity, dunning run, and hold stay PHP."),
         new("erp", "procurement req save", "/erp/procurement/requisitions/save", "write-live-gated", "POST PHP epc_proc_req_save; confirmWrites=true writes ASP.NET; schema ensure and add-line stay PHP."),

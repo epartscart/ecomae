@@ -47,7 +47,7 @@
         <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
         <h1>Warehouse WMS</h1>
         <p>@CpPhpModuleCopy.PurposeFor(Nav.Uri)</p>
-        <p>Save or delete a bin location, and create or release a pick wave here. Receive and work complete stay on the Classic twin.</p>
+        <p>Save or delete a bin location, receive stock, and create or release a pick wave here. Work complete stays on the Classic twin.</p>
         <div class="epc-wms-cta">
             <a href="/erp">ERP overview</a>
         </div>
@@ -62,6 +62,17 @@
     }
     @if (_isAdmin)
     {
+        <form method="post" action="/erp/wms/receive" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="@(Http.HttpContext?.Request.Path.Value ?? "/erp/warehouse-wms-app")" />
+            <label>Item / SKU <input type="text" name="item" required /></label>
+            <label>Quantity <input type="number" step="0.001" name="qty" required /></label>
+            <label>Receiving location <input type="number" name="receive_location_id" min="0" style="width:6rem" /></label>
+            <label>Put-away destination <input type="number" name="putaway_location_id" min="0" style="width:6rem" /></label>
+            <label>Reference <input type="text" name="reference" placeholder="PO / ASN" /></label>
+            <label>License plate <input type="text" name="lp_code" placeholder="blank = auto" /></label>
+            <button type="submit">Receive &amp; raise put-away</button>
+        </form>
         <form method="post" action="/erp/wms/locations/save" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
             <input type="hidden" name="returnUrl" value="@(Http.HttpContext?.Request.Path.Value ?? "/erp/warehouse-wms-app")" />
