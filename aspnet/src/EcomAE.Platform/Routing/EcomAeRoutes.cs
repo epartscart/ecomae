@@ -1280,7 +1280,9 @@ public static class EcomAeRoutes
     public const string ErpAjaxWhtCertificate = "/erp/ajax/wht-certificate";
     /// <summary>Live PHP epc_wht_settle twin.</summary>
     public const string ErpAjaxWhtSettle = "/erp/ajax/wht-settle";
-    /// <summary>Wave B dry-run for PHP er_format_save (writes=0).</summary>
+    /// <summary>Live PHP epc_er_format_save twin (ajax alias of <see cref="ErpElectronicReportingFormatsSave"/>).</summary>
+    public const string ErpElectronicReportingFormatsSave = "/erp/electronic-reporting/formats/save";
+    /// <summary>Live PHP epc_er_format_save ajax alias of <see cref="ErpElectronicReportingFormatsSave"/>.</summary>
     public const string ErpAjaxErFormatSave = "/erp/ajax/er-format-save";
     /// <summary>Wave B dry-run for PHP er_field_add (writes=0).</summary>
     public const string ErpAjaxErFieldAdd = "/erp/ajax/er-field-add";

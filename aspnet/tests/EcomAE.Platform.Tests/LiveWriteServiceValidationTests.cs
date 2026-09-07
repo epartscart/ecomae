@@ -3070,6 +3070,21 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(whtCodeDb.Succeeded);
         Assert.Equal("db", whtCodeDb.Code);
 
+        var erFormatInvalid = await new ErpErFormatSaveWriteService(new ConfiguredNeverOpened())
+            .SaveAsync(new ErpErFormatSaveWriteRequest());
+        Assert.False(erFormatInvalid.Succeeded);
+        Assert.Equal("invalid", erFormatInvalid.Code);
+
+        var erFormatType = await new ErpErFormatSaveWriteService(new ConfiguredNeverOpened())
+            .SaveAsync(new ErpErFormatSaveWriteRequest(Code: "X", Name: "X", OutputType: "pdf"));
+        Assert.False(erFormatType.Succeeded);
+        Assert.Equal("invalid", erFormatType.Code);
+
+        var erFormatDb = await new ErpErFormatSaveWriteService(new UnconfiguredConnections())
+            .SaveAsync(new ErpErFormatSaveWriteRequest(Code: "VENDLIST", Name: "Vendor list", OutputType: "csv"));
+        Assert.False(erFormatDb.Succeeded);
+        Assert.Equal("db", erFormatDb.Code);
+
         var whtRecordInvalid = await new ErpWhtRecordWriteService(new ConfiguredNeverOpened())
             .RecordAsync(new ErpWhtRecordWriteRequest());
         Assert.False(whtRecordInvalid.Succeeded);
