@@ -1664,7 +1664,9 @@ public static class EcomAeRoutes
     public const string ErpAjaxOplConfirmAll = "/erp/ajax/opl-confirm-all";
     /// <summary>Wave B dry-run for PHP opl_create_pos (writes=0).</summary>
     public const string ErpAjaxOplCreatePos = "/erp/ajax/opl-create-pos";
-    /// <summary>Wave B dry-run for PHP pf_process_save (writes=0).</summary>
+    /// <summary>Live PHP epc_pf_process_save twin (ajax alias of <see cref="ErpProcessFlowProcessesSave"/>).</summary>
+    public const string ErpProcessFlowProcessesSave = "/erp/process-flow/processes/save";
+    /// <summary>Live PHP epc_pf_process_save ajax alias of <see cref="ErpProcessFlowProcessesSave"/>.</summary>
     public const string ErpAjaxPfProcessSave = "/erp/ajax/pf-process-save";
     /// <summary>Wave B dry-run for PHP pf_step_save (writes=0).</summary>
     public const string ErpAjaxPfStepSave = "/erp/ajax/pf-step-save";
