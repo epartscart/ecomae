@@ -3111,6 +3111,11 @@ public sealed class LiveWriteServiceValidationTests
             .LogAsync(new ErpHrAttendanceWriteRequest(EmployeeId: 1, Hours: 8));
         Assert.False(hrAttDb.Succeeded);
         Assert.Equal("db", hrAttDb.Code);
+
+        var rbacDutyPrivDb = await new ErpRbacDutyPrivWriteService(new UnconfiguredConnections())
+            .AttachAsync(new ErpRbacDutyPrivWriteRequest(DutyId: 1, PrivilegeId: 2, Attach: 1));
+        Assert.False(rbacDutyPrivDb.Succeeded);
+        Assert.Equal("db", rbacDutyPrivDb.Code);
     }
 
     [Fact]

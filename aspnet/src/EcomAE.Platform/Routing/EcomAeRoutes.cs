@@ -1085,7 +1085,9 @@ public static class EcomAeRoutes
     public const string ErpAjaxRbacPrivSave = "/erp/ajax/rbac-priv-save";
     /// <summary>Wave B dry-run for PHP rbac_duty_save (writes=0).</summary>
     public const string ErpAjaxRbacDutySave = "/erp/ajax/rbac-duty-save";
-    /// <summary>Wave B dry-run for PHP rbac_duty_priv (writes=0).</summary>
+    /// <summary>Live PHP epc_rbac_duty_attach_priv twin (ajax alias of <see cref="ErpSecurityDutiesAttachPriv"/>).</summary>
+    public const string ErpSecurityDutiesAttachPriv = "/erp/security/duties/attach-priv";
+    /// <summary>Live PHP epc_rbac_duty_attach_priv ajax alias of <see cref="ErpSecurityDutiesAttachPriv"/>.</summary>
     public const string ErpAjaxRbacDutyPriv = "/erp/ajax/rbac-duty-priv";
     /// <summary>Newsletter subscribe. <c>confirmWrites=true</c> is the live twin of PHP ajax_newsletter_subscribe.php.</summary>
     public const string StorefrontNewsletterSubscribe = "/storefront/newsletter/subscribe";
