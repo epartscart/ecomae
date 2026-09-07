@@ -4,6 +4,7 @@
 @using EcomAE.Platform.Auth
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Routing
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
@@ -12,8 +13,9 @@
 <PageTitle>Customer groups · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Customer groups" BreadcrumbArea="Sales" BreadcrumbTab="Customer groups">
-    <PhpErpModulePageHeader Title="Customer groups" Subtitle="Wholesale, corporate and price-list tiers. Membership writes stay on ERP ajax." PhpTabHref="@_phpTab" />
+    <PhpErpModulePageHeader Title="Customer groups" Subtitle="Wholesale, corporate and price-list tiers. Create and assign are live when confirmed." PhpTabHref="@_phpTab" />
     <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
+    <ErpPhpFlash Ok="@_ok" Err="@_err" />
 
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Customer group KPIs">
         <div class="kpi"><div class="lbl">Groups</div><div class="val">@_count.ToString(CultureInfo.InvariantCulture)</div></div>
@@ -24,34 +26,52 @@
     @if (_isAdmin)
     {
         <ErpPhpCreateWell Title="New customer group">
-            <form method="get" action="/erp/customer-groups-app" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
-                <label>Code <input class="form-control input-sm" name="code" placeholder="Code" required /></label>
-                <label>Name <input class="form-control input-sm" name="name" placeholder="Name" /></label>
+            <form method="post" action="@EcomAeRoutes.ErpCustomerGroupsCreateForm" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="/erp/customer-groups-app" />
+                <label>Code <input class="form-control input-sm" name="group_code" placeholder="Auto" /></label>
+                <label>Name <input class="form-control input-sm" name="group_name" placeholder="Wholesale" /></label>
                 <label>Type
                     <select class="form-control input-sm" name="group_type">
-                        <option value="wholesale">Wholesale</option>
+                        <option value="general">General</option>
+                        <option value="wholesale" selected>Wholesale</option>
                         <option value="corporate">Corporate</option>
                         <option value="retail">Retail</option>
+                        <option value="vip">VIP</option>
+                        <option value="government">Government</option>
                     </select>
                 </label>
-                <button type="submit" class="btn btn-primary btn-sm">Save record</button>
+                <label>Discount % <input class="form-control input-sm" name="discount_pct" type="number" step="0.01" value="0" /></label>
+                <label>Credit <input class="form-control input-sm" name="credit_limit" type="number" step="0.01" value="0" /></label>
+                <label>Terms <input class="form-control input-sm" name="payment_terms_days" type="number" value="30" /></label>
+                <button type="submit" class="btn btn-primary btn-sm">Create group</button>
+            </form>
+        </ErpPhpCreateWell>
+        <ErpPhpCreateWell Title="Assign customer">
+            <form method="post" action="@EcomAeRoutes.ErpCustomerGroupsAssignForm" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="/erp/customer-groups-app" />
+                <label>Group id <input class="form-control input-sm" name="group_id" type="number" min="1" required /></label>
+                <label>Customer id <input class="form-control input-sm" name="customer_id" type="number" min="1" required /></label>
+                <button type="submit" class="btn btn-primary btn-sm">Assign customer</button>
             </form>
         </ErpPhpCreateWell>
     }
 
     <div class="epc-erp-table-wrap">
         <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
-            <thead><tr><th>Code</th><th>Name</th><th>Type</th><th class="text-right">Discount %</th><th class="text-right">Credit</th><th class="text-right">Terms</th><th class="text-right">Members</th><th>Status</th></tr></thead>
+            <thead><tr><th>Id</th><th>Code</th><th>Name</th><th>Type</th><th class="text-right">Discount %</th><th class="text-right">Credit</th><th class="text-right">Terms</th><th class="text-right">Members</th><th>Status</th></tr></thead>
             <tbody>
                 @if (_groups.Count == 0)
                 {
-                    <tr><td colspan="8">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? "No customer groups yet." : _message) : "Sign in with ERP capability for live rows.")</td></tr>
+                    <tr><td colspan="9">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? "No customer groups yet." : _message) : "Sign in with ERP capability for live rows.")</td></tr>
                 }
                 else
                 {
                     @foreach (var row in _groups)
                     {
                         <tr>
+                            <td>@row.Id.ToString(CultureInfo.InvariantCulture)</td>
                             <td>@(string.IsNullOrWhiteSpace(row.GroupCode) ? "—" : row.GroupCode)</td>
                             <td><strong>@(string.IsNullOrWhiteSpace(row.GroupName) ? $"#{row.Id.ToString(CultureInfo.InvariantCulture)}" : row.GroupName)</strong></td>
                             <td>@row.GroupType</td>
@@ -70,6 +90,7 @@
     <div class="epc-erp-empty" style="display:block;margin-top:12px;padding:8px 10px;border:1px solid #c5d4de;background:#f8fafc;color:#475569;font-size:12px;">
         Source: @_source.
         @if (!string.IsNullOrWhiteSpace(_message)) { <span> @_message</span> }
+        Customer group create and assign are live when confirmed. Schema-ensure stays Classic.
     </div>
 </PhpErpDesktopChrome>
 
@@ -80,11 +101,15 @@
     private int _count, _active, _members;
     private string _source = "n/a";
     private string _message = "";
+    private string _ok = "";
+    private string _err = "";
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
+        _ok = ctx.Request.Query["ok"].ToString();
+        _err = ctx.Request.Query["err"].ToString();
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("erp");
         if (!_isAdmin) { _message = "Sign in for live data."; return; }

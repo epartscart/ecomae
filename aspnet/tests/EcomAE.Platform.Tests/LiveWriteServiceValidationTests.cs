@@ -1464,6 +1464,16 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(ticketCreate.Succeeded);
         Assert.Equal("invalid", ticketCreate.Code);
 
+        var groupCreate = await new ErpCustomerGroupsWriteService(new ConfiguredNeverOpened())
+            .CreateAsync(new ErpCustomerGroupCreateRequest());
+        Assert.False(groupCreate.Succeeded);
+        Assert.Equal("invalid", groupCreate.Code);
+
+        var groupAssign = await new ErpCustomerGroupsWriteService(new ConfiguredNeverOpened())
+            .AssignAsync(new ErpCustomerGroupAssignRequest());
+        Assert.False(groupAssign.Succeeded);
+        Assert.Equal("invalid", groupAssign.Code);
+
         var jwMetal = await new ErpJwMetalStockWriteService(new ConfiguredNeverOpened())
             .SaveAsync(new ErpJwMetalStockSaveRequest());
         Assert.False(jwMetal.Succeeded);

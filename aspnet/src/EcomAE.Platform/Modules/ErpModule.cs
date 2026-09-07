@@ -6363,6 +6363,142 @@ public sealed class ErpModule : ISurfaceModule
                 session = SessionPayload(session)
             });
         }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpCustomerGroupsCreateForm, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IErpJwModuleSaveDryRun dryRun,
+            IErpCustomerGroupsWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(
+                    context,
+                    "/erp/login?returnUrl=/erp/customer-groups-app",
+                    "Admin ERP capability required for customer group create.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpCustomerGroupCreateBody>(context, cancellationToken)
+                       ?? new();
+            var companyId = body.CompanyId;
+            var groupCode = body.GroupCode;
+            var groupName = body.GroupName;
+            var groupType = body.GroupType;
+            var discountPct = body.DiscountPct;
+            var creditLimit = body.CreditLimit;
+            var paymentTermsDays = body.PaymentTermsDays;
+            var priceListId = body.PriceListId;
+            var description = body.Description;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                companyId = LiveWriteFormBinder.Int(form, "companyId", "company_id", "company");
+                groupCode = LiveWriteFormBinder.Text(form, "groupCode", "group_code", "code");
+                groupName = LiveWriteFormBinder.Text(form, "groupName", "group_name", "name");
+                groupType = LiveWriteFormBinder.Text(form, "groupType", "group_type");
+                discountPct = LiveWriteFormBinder.Dec(form, "discountPct", "discount_pct");
+                creditLimit = LiveWriteFormBinder.Dec(form, "creditLimit", "credit_limit");
+                paymentTermsDays = LiveWriteFormBinder.Int(form, "paymentTermsDays", "payment_terms_days");
+                priceListId = LiveWriteFormBinder.Int(form, "priceListId", "price_list_id");
+                description = LiveWriteFormBinder.Text(form, "description");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            const string returnApp = "/erp/customer-groups-app";
+            if (!confirm)
+            {
+                var result = dryRun.Evaluate(new ErpJwModuleSaveRequest("customer_groups_create", groupCode ?? groupName, false));
+                if (LiveWriteFormBinder.WantsHtml(context))
+                {
+                    return DryRunHtmlForm.Redirect(DryRunHtmlForm.SafeReturnUrl(context.Request, returnApp), result.ValidationCode == "ok", result.Detail);
+                }
+
+                return Results.Ok(result.ToPayload(SessionPayload(session)));
+            }
+
+            var written = await writes.CreateAsync(
+                new ErpCustomerGroupCreateRequest(
+                    companyId,
+                    groupCode,
+                    groupName,
+                    groupType,
+                    discountPct,
+                    creditLimit,
+                    paymentTermsDays,
+                    priceListId,
+                    description),
+                cancellationToken);
+            return LiveWriteFormBinder.Complete(context, returnApp, written.Succeeded, written.Message, new
+            {
+                ok = written.Succeeded,
+                status = written.Succeeded,
+                writes = written.Writes,
+                phpAuthoritative = false,
+                validation_code = written.Code,
+                message = written.Message,
+                id = written.Id,
+                group_code = groupCode,
+                session = SessionPayload(session)
+            });
+        }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpCustomerGroupsAssignForm, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IErpJwModuleSaveDryRun dryRun,
+            IErpCustomerGroupsWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(
+                    context,
+                    "/erp/login?returnUrl=/erp/customer-groups-app",
+                    "Admin ERP capability required for customer group assign.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpCustomerGroupAssignBody>(context, cancellationToken)
+                       ?? new();
+            var groupId = body.GroupId;
+            var customerId = body.CustomerId;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                groupId = LiveWriteFormBinder.Long(form, "groupId", "group_id");
+                customerId = LiveWriteFormBinder.Int(form, "customerId", "customer_id");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            const string returnApp = "/erp/customer-groups-app";
+            if (!confirm)
+            {
+                var result = dryRun.Evaluate(new ErpJwModuleSaveRequest("customer_groups_assign", groupId.ToString(CultureInfo.InvariantCulture), false));
+                if (LiveWriteFormBinder.WantsHtml(context))
+                {
+                    return DryRunHtmlForm.Redirect(DryRunHtmlForm.SafeReturnUrl(context.Request, returnApp), result.ValidationCode == "ok", result.Detail);
+                }
+
+                return Results.Ok(result.ToPayload(SessionPayload(session)));
+            }
+
+            var written = await writes.AssignAsync(new ErpCustomerGroupAssignRequest(groupId, customerId), cancellationToken);
+            return LiveWriteFormBinder.Complete(context, returnApp, written.Succeeded, written.Message, new
+            {
+                ok = written.Succeeded,
+                status = written.Succeeded,
+                writes = written.Writes,
+                phpAuthoritative = false,
+                validation_code = written.Code,
+                message = written.Message,
+                id = written.Id,
+                group_id = groupId,
+                customer_id = customerId,
+                session = SessionPayload(session)
+            });
+        }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpJewelleryMetalStockSaveForm, async (
             HttpContext context,
             ILegacySessionValidator validator,
@@ -8846,7 +8982,7 @@ public sealed class ErpModule : ISurfaceModule
             if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
                 return Unauthorized("Admin ERP capability required for customer-groups digest.");
             var result = await dashboards.ListErpCustomerGroupsAsync(limit ?? 200, cancellationToken);
-            return Results.Ok(new { ok = true, surface = "erp", groups = result.Groups, count = result.Count, activeCount = result.ActiveCount, memberTotal = result.MemberTotal, source = result.Source, message = result.Message, session = SessionPayload(session), note = "Read-only epc_customer_groups. PHP customer_groups tab remains authoritative." });
+            return Results.Ok(new { ok = true, surface = "erp", groups = result.Groups, count = result.Count, activeCount = result.ActiveCount, memberTotal = result.MemberTotal, source = result.Source, message = result.Message, session = SessionPayload(session), note = "Read digest over epc_customer_groups. Create/assign are live when confirmed." });
         });
 
         endpoints.MapGet(EcomAeRoutes.ErpPerformance, async (HttpContext context, int? limit, ILegacySessionValidator validator, ISurfaceDashboardSummaryReporter dashboards, CancellationToken cancellationToken) =>
@@ -10441,6 +10577,21 @@ public sealed class ErpModule : ISurfaceModule
         int SlaId = 0,
         string? ResponseDeadline = null,
         string? ResolutionDeadline = null,
+        bool ConfirmWrites = false);
+    private sealed record ErpCustomerGroupCreateBody(
+        int CompanyId = 0,
+        string? GroupCode = null,
+        string? GroupName = null,
+        string? GroupType = null,
+        decimal DiscountPct = 0,
+        decimal CreditLimit = 0,
+        int PaymentTermsDays = 30,
+        int PriceListId = 0,
+        string? Description = null,
+        bool ConfirmWrites = false);
+    private sealed record ErpCustomerGroupAssignBody(
+        long GroupId = 0,
+        int CustomerId = 0,
         bool ConfirmWrites = false);
     private sealed record ErpJwColorStoneSaveBody(
         int CompanyId = 0,
