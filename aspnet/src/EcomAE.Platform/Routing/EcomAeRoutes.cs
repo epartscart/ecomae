@@ -1445,7 +1445,9 @@ public static class EcomAeRoutes
     public const string ErpAjaxMfgWoIssue = "/erp/ajax/mfg-wo-issue";
     /// <summary>Wave B dry-run for PHP mfg_wo_complete (writes=0).</summary>
     public const string ErpAjaxMfgWoComplete = "/erp/ajax/mfg-wo-complete";
-    /// <summary>Wave B dry-run for PHP payroll_generate (writes=0).</summary>
+    /// <summary>PHP epc_erp_payroll_generate_run. <c>confirmWrites=true</c> writes via <c>IErpPayrollGenerateWriteService</c>.</summary>
+    public const string ErpPayrollGenerate = "/erp/payroll/generate";
+    /// <summary>Live PHP epc_erp_payroll_generate_run twin (ajax alias of <see cref="ErpPayrollGenerate"/>).</summary>
     public const string ErpAjaxPayrollGenerate = "/erp/ajax/payroll-generate";
     /// <summary>PHP payroll_approve. <c>confirmWrites=true</c> writes via <c>IErpPayrollWriteService</c>.</summary>
     public const string ErpAjaxPayrollApprove = "/erp/ajax/payroll-approve";
