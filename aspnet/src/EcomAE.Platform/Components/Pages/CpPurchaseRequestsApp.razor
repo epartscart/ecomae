@@ -1,4 +1,5 @@
 @page "/cp/purchase-requests-app"
+@page "/erp/purchase-requests-app"
 @layout Layout.PhpChromeLayout
 @using System.Globalization
 @using EcomAE.Platform.Auth
@@ -65,13 +66,13 @@
     {
         <form method="post" action="/erp/procurement/requisitions/submit" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 .65rem">
             <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="/cp/purchase-requests-app" />
+            <input type="hidden" name="returnUrl" value="@(Http.HttpContext?.Request.Path.Value ?? "/cp/purchase-requests-app")" />
             <label>Req id <input type="number" name="id" min="1" required style="width:6rem" /></label>
             <button type="submit">Submit requisition</button>
         </form>
         <form method="post" action="/erp/procurement/requisitions/decision" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="/cp/purchase-requests-app" />
+            <input type="hidden" name="returnUrl" value="@(Http.HttpContext?.Request.Path.Value ?? "/cp/purchase-requests-app")" />
             <label>Req id <input type="number" name="id" min="1" required style="width:6rem" /></label>
             <label>Decision
                 <select name="approve">
@@ -84,7 +85,7 @@
         </form>
         <form method="post" action="/erp/ajax/proc-req-convert" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="/cp/purchase-requests-app" />
+            <input type="hidden" name="returnUrl" value="@(Http.HttpContext?.Request.Path.Value ?? "/cp/purchase-requests-app")" />
             <label>Req id <input type="number" name="id" min="1" required style="width:6rem" /></label>
             <button type="submit">Convert to PO</button>
         </form>

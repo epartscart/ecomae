@@ -40,12 +40,46 @@ public sealed class CpFulfillmentQueuePhpParityTests
         Assert.Contains("QtyPicked", text, StringComparison.Ordinal);
         Assert.Contains("QtyPacked", text, StringComparison.Ordinal);
         Assert.Contains("/cp/orders?order_id=", text, StringComparison.Ordinal);
+        Assert.Contains("/cp/fulfillment-queue/write", text, StringComparison.Ordinal);
+        Assert.Contains("confirmWrites", text, StringComparison.Ordinal);
+        Assert.Contains("action\" value=\"transition\"", text, StringComparison.Ordinal);
+        Assert.Contains("action\" value=\"assign\"", text, StringComparison.Ordinal);
+        Assert.Contains("action\" value=\"create_wave\"", text, StringComparison.Ordinal);
+        Assert.Contains("action\" value=\"pick_item\"", text, StringComparison.Ordinal);
+        Assert.Contains("action\" value=\"pack_item\"", text, StringComparison.Ordinal);
+        Assert.Contains("QtyPicked", text, StringComparison.Ordinal);
+        Assert.Contains("CpFulfillmentQueueWriteService.AllowedNextStatuses", text, StringComparison.Ordinal);
+        Assert.Contains("PhpSurfaceLinkMap.PhpReferenceOnlyHref", text, StringComparison.Ordinal);
+        var routes = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs"));
+        Assert.Contains("CpFulfillmentQueueWrite", routes, StringComparison.Ordinal);
+        Assert.Contains("/cp/fulfillment-queue/write", routes, StringComparison.Ordinal);
+        var program = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Program.cs"));
+        Assert.Contains("ICpFulfillmentQueueWriteService", program, StringComparison.Ordinal);
+        Assert.Contains("ICpFulfillmentQueueWriteDryRun", program, StringComparison.Ordinal);
+        var module = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Modules/ControlPanelModule.cs"));
+        Assert.Contains("CpFulfillmentQueueWrite", module, StringComparison.Ordinal);
+        Assert.Contains("ICpFulfillmentQueueWriteService", module, StringComparison.Ordinal);
         Assert.DoesNotContain("@onclick", text, StringComparison.Ordinal);
         Assert.DoesNotContain("javascript:void(0)", text, StringComparison.Ordinal);
         Assert.DoesNotContain("Open PHP reference", text, StringComparison.Ordinal);
         Assert.DoesNotContain("ASP.NET", text, StringComparison.Ordinal);
         Assert.DoesNotContain("/php-reference/", text, StringComparison.Ordinal);
         Assert.DoesNotContain("epc-nw-hero", text, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void DryRun_BlocksUntilConfirmWrites()
+    {
+        var dry = new CpFulfillmentQueueWriteDryRun();
+        var blocked = dry.Evaluate(new CpFulfillmentQueueWriteRequest("transition", false));
+        Assert.Equal("dry-run-validated", blocked.Status);
+        Assert.Equal(0, blocked.Writes);
+        Assert.True(blocked.WritesBlocked);
+        Assert.False(blocked.PhpAuthoritative);
+        Assert.False(blocked.CutoverAllowed);
+        var refused = dry.Evaluate(new CpFulfillmentQueueWriteRequest("transition", true));
+        Assert.Equal("dry-run-confirm-refused", refused.Status);
+        Assert.Equal(0, refused.Writes);
     }
 
     [Fact]

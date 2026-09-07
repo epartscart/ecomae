@@ -115,7 +115,7 @@ public sealed class ErpModuleBodyParityTests
     [InlineData("/ERP/?epc_erp_shell=1&area=sales", "/erp/sales-orders-app")]
     [InlineData("/ERP/?epc_erp_shell=1&area=finance", "/erp/gl-journals-app")]
     [InlineData("/ERP/?epc_erp_shell=1&area=tax", "/erp/vat-app")]
-    [InlineData("/ERP/?epc_erp_shell=1&area=logistics", "/cp/fulfillment-queue-app")]
+    [InlineData("/ERP/?epc_erp_shell=1&area=logistics", "/erp/fulfillment-queue-app")]
     public void AreaHubsStayOnAspNetApps(string php, string expected)
     {
         var href = PhpSurfaceLinkMap.AspNetPrimaryHref(php);
