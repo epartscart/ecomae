@@ -9658,8 +9658,8 @@ public sealed class ErpModule : ISurfaceModule
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpCftInstrumentSaveRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxCftInstrumentStatus, async (HttpContext context, ErpCftInstrumentStatusBody? body, ILegacySessionValidator validator, IErpCftInstrumentStatusDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpCftInstrumentStatusRequest(body.Id, body.TargetStatus, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxWhtCodeSave, async (HttpContext context, ErpWhtCodeSaveBody? body, ILegacySessionValidator validator, IErpWhtCodeSaveDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpWhtCodeSaveRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.ErpWithholdingCodesSave, HandleWhtCodeSaveAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxWhtCodeSave, HandleWhtCodeSaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxWhtRecord, async (HttpContext context, ErpWhtRecordBody? body, ILegacySessionValidator validator, IErpWhtRecordDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpWhtRecordRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxWhtCertificate, async (HttpContext context, ErpWhtCertificateBody? body, ILegacySessionValidator validator, IErpWhtCertificateDryRun dryRun, CancellationToken cancellationToken) =>
@@ -10612,7 +10612,7 @@ public sealed class ErpModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only epc_wht_code + epc_wht_txn. PHP epc_erp_withholding.php writes remain authoritative."
+                note = "Read-only epc_wht_code + epc_wht_txn digest. Settle and code save are ASP.NET-live; record and certificate stay PHP."
             });
         });
 
@@ -11772,6 +11772,60 @@ public sealed class ErpModule : ISurfaceModule
         }
     }
 
+    private static async Task<IResult> HandleWhtCodeSaveAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpWhtCodeSaveDryRun dryRun,
+        IErpWhtCodeSaveWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/withholding-app", "Admin ERP capability required for withholding code save.");
+        }
+
+        var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpWhtCodeSaveBody>(context, cancellationToken) ?? new();
+        var id = body.Id;
+        var code = body.Code;
+        var name = body.Name;
+        var rate = body.Rate;
+        var account = body.Account;
+        var active = body.Active;
+        var companyId = body.CompanyId;
+        var confirm = body.ConfirmWrites;
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            id = LiveWriteFormBinder.Long(form, "id");
+            code = LiveWriteFormBinder.Text(form, "code");
+            name = LiveWriteFormBinder.Text(form, "name");
+            rate = LiveWriteFormBinder.Dec(form, "rate");
+            account = LiveWriteFormBinder.Text(form, "account");
+            companyId = LiveWriteFormBinder.Long(form, "companyId", "company_id");
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            if (form.ContainsKey("active") || form.ContainsKey("Active"))
+            {
+                active = LiveWriteFormBinder.Flag(form, "active", "Active") ? 1 : 0;
+            }
+        }
+
+        if (!confirm)
+        {
+            return Results.Ok(dryRun.Evaluate(new ErpWhtCodeSaveRequest(id, code, false, name, rate, account, active, companyId)).ToPayload(SessionPayload(session)));
+        }
+
+        var written = await writes.SaveAsync(
+            new ErpWhtCodeSaveWriteRequest(id, companyId, code, name, rate, account, active),
+            cancellationToken);
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/erp/withholding-app",
+            written.Succeeded,
+            written.Message,
+            new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+    }
+
     private static object SessionPayload(LegacySessionContext session) => new
     {
         kind = session.Kind.ToString(),
@@ -12341,7 +12395,15 @@ public sealed class ErpModule : ISurfaceModule
     private sealed record ErpCftLineAddBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpCftInstrumentSaveBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpCftInstrumentStatusBody(long Id, string? TargetStatus = null, bool ConfirmWrites = false);
-    private sealed record ErpWhtCodeSaveBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
+    private sealed record ErpWhtCodeSaveBody(
+        long Id = 0,
+        string? Code = null,
+        bool ConfirmWrites = false,
+        string? Name = null,
+        decimal Rate = 0,
+        string? Account = null,
+        int? Active = null,
+        long CompanyId = 0);
     private sealed record ErpWhtRecordBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpWhtCertificateBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpWhtSettleBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
