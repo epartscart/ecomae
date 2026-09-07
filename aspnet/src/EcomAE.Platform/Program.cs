@@ -674,10 +674,12 @@ builder.Services.AddScoped<EcomAE.Platform.Erp.IErpOfficesCashWriteService, Ecom
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpWmsLocationWriteService, EcomAE.Platform.Erp.ErpWmsLocationWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpSubscriptionStatusWriteService, EcomAE.Platform.Erp.ErpSubscriptionStatusWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpContractStatusWriteService, EcomAE.Platform.Erp.ErpContractStatusWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpContractSaveWriteService, EcomAE.Platform.Erp.ErpContractSaveWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpWorkflowStatusWriteService, EcomAE.Platform.Erp.ErpWorkflowStatusWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpCollectionsCaseStatusWriteService, EcomAE.Platform.Erp.ErpCollectionsCaseStatusWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpProcurementReqWriteService, EcomAE.Platform.Erp.ErpProcurementReqWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpWmsWaveReleaseWriteService, EcomAE.Platform.Erp.ErpWmsWaveReleaseWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpWmsWaveCreateWriteService, EcomAE.Platform.Erp.ErpWmsWaveCreateWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpInsClaimStatusWriteService, EcomAE.Platform.Erp.ErpInsClaimStatusWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpBosVatRefundStatusWriteService, EcomAE.Platform.Erp.ErpBosVatRefundStatusWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpSubInvoicePaidWriteService, EcomAE.Platform.Erp.ErpSubInvoicePaidWriteService>();
