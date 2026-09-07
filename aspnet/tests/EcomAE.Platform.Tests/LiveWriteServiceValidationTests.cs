@@ -3070,6 +3070,11 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(whtCodeDb.Succeeded);
         Assert.Equal("db", whtCodeDb.Code);
 
+        var prjaBudgetDb = await new ErpPrjaBudgetSaveWriteService(new UnconfiguredConnections())
+            .SaveAsync(new ErpPrjaBudgetSaveWriteRequest(ProjectId: 1, Category: "labor", CostBudget: 100));
+        Assert.False(prjaBudgetDb.Succeeded);
+        Assert.Equal("db", prjaBudgetDb.Code);
+
         var whtRecordInvalid = await new ErpWhtRecordWriteService(new ConfiguredNeverOpened())
             .RecordAsync(new ErpWhtRecordWriteRequest());
         Assert.False(whtRecordInvalid.Succeeded);
