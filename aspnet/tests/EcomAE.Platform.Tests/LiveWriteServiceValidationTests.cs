@@ -1369,6 +1369,11 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(jwCreate.Succeeded);
         Assert.Equal("invalid", jwCreate.Code);
 
+        var jwKarat = await new ErpJwKaratWriteService(new ConfiguredNeverOpened())
+            .SaveAsync(new ErpJwKaratSaveRequest());
+        Assert.False(jwKarat.Succeeded);
+        Assert.Equal("invalid", jwKarat.Code);
+
         var jwInvalid = await new ErpJwRepairWriteService(new ConfiguredNeverOpened())
             .SetStatusAsync(0, "ready");
         Assert.False(jwInvalid.Succeeded);

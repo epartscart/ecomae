@@ -42,6 +42,8 @@ public sealed class ErpJewelleryModuleParityTests
         Assert.Contains("Seed defaults", text, StringComparison.Ordinal);
         Assert.Contains("ErpJewelleryKaratSaveForm", text, StringComparison.Ordinal);
         Assert.Contains("ErpJewelleryKaratSeedForm", text, StringComparison.Ordinal);
+        Assert.Contains("confirmWrites", text, StringComparison.Ordinal);
+        Assert.Contains("Save karat", text, StringComparison.Ordinal);
         Assert.Contains(ErpJewelleryModuleChrome.KaratColumns, c => c.Contains("Purity", StringComparison.Ordinal));
         Assert.DoesNotContain("295.50", text, StringComparison.Ordinal);
         Assert.DoesNotContain("2,458", text, StringComparison.Ordinal);

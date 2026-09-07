@@ -30,7 +30,12 @@
     {
         <ErpPhpCreateWell Title="Add / Edit Karat">
             <form method="post" action="@EcomAeRoutes.ErpJewelleryKaratSaveForm" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+                <input type="hidden" name="confirmWrites" value="true" />
                 <input type="hidden" name="returnUrl" value="@_returnHere" />
+                @if (_company > 0)
+                {
+                    <input type="hidden" name="company" value="@_company.ToString(CultureInfo.InvariantCulture)" />
+                }
                 <label>Karat Code <input class="form-control input-sm" name="karat_code" required placeholder="22" /></label>
                 <label>Description <input class="form-control input-sm" name="description" placeholder="22 Karat" /></label>
                 <label>Division
@@ -44,7 +49,7 @@
                 <label>Range From <input class="form-control input-sm" name="range_from" type="number" step="0.000001" value="0.916000" /></label>
                 <label>Range To <input class="form-control input-sm" name="range_to" type="number" step="0.000001" value="0.918000" /></label>
                 <label>Sp Gravity <input class="form-control input-sm" name="sp_gravity" type="number" step="0.0001" value="0" /></label>
-                <button type="submit" class="btn btn-primary btn-sm">Save</button>
+                <button type="submit" class="btn btn-primary btn-sm">Save karat</button>
             </form>
         </ErpPhpCreateWell>
         @if (_rows.Count == 0)
@@ -129,7 +134,7 @@
     </div>
 
     <div class="epc-erp-empty" style="display:block;margin-top:12px;padding:8px 10px;border:1px solid #c5d4de;background:#f8fafc;color:#475569;font-size:12px;">
-        Source: @_source. Karat rows bind from <code>epc_jewel_karat_master</code>. Form posts are dry-run — writes=0.
+        Source: @_source. Karat rows bind from <code>epc_jewel_karat_master</code>. Karat save is live when confirmed. Seed stays Classic.
         @if (!string.IsNullOrWhiteSpace(_message)) { <span> @_message</span> }
     </div>
 </PhpErpDesktopChrome>

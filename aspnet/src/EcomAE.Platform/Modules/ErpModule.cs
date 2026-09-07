@@ -4248,15 +4248,92 @@ public sealed class ErpModule : ISurfaceModule
                 written.Message,
                 new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
-        endpoints.MapPost(EcomAeRoutes.ErpJewelleryKaratSaveForm, async (HttpContext context, ILegacySessionValidator validator, IErpJwModuleSaveDryRun dryRun, CancellationToken cancellationToken) =>
+        endpoints.MapPost(EcomAeRoutes.ErpJewelleryKaratSaveForm, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IErpJwModuleSaveDryRun dryRun,
+            IErpJwKaratWriteService writes,
+            CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateAsync(context, cancellationToken);
-            var ret = DryRunHtmlForm.SafeReturnUrl(context.Request, "/cp/jewellery-masters-app?tab=jw_karat");
             if (!ErpJewelleryModuleChrome.HasJewelleryStaffAccess(session))
-                return Results.Redirect("/erp/login");
-            var code = DryRunHtmlForm.Read(context.Request, "karat_code");
-            var result = dryRun.Evaluate(new ErpJwModuleSaveRequest("jw_karat_save", code, false));
-            return DryRunHtmlForm.Redirect(ret, result.ValidationCode == "ok", result.Detail);
+            {
+                return LiveWriteFormBinder.LoginRedirect(
+                    context,
+                    "/erp/login?returnUrl=/cp/jewellery-masters-app?tab=jw_karat",
+                    "Admin ERP capability required for jewellery karat save.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpJwKaratSaveBody>(context, cancellationToken)
+                       ?? new();
+            var companyId = body.CompanyId;
+            var karatCode = body.KaratCode;
+            var description = body.Description;
+            var stdPurity = body.StdPurity;
+            var rangeFrom = body.RangeFrom;
+            var rangeTo = body.RangeTo;
+            var spGravity = body.SpGravity;
+            var posRate = body.PosRateMinMax;
+            var division = body.Division;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                companyId = LiveWriteFormBinder.Int(form, "companyId", "company_id", "company");
+                karatCode = LiveWriteFormBinder.Text(form, "karatCode", "karat_code", "code");
+                description = LiveWriteFormBinder.Text(form, "description");
+                stdPurity = LiveWriteFormBinder.Dec(form, "stdPurity", "std_purity");
+                rangeFrom = LiveWriteFormBinder.Dec(form, "rangeFrom", "range_from");
+                rangeTo = LiveWriteFormBinder.Dec(form, "rangeTo", "range_to");
+                spGravity = LiveWriteFormBinder.Dec(form, "spGravity", "sp_gravity");
+                posRate = LiveWriteFormBinder.Dec(form, "posRateMinMax", "pos_rate_min_max");
+                division = LiveWriteFormBinder.Text(form, "division");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                var result = dryRun.Evaluate(new ErpJwModuleSaveRequest("jw_karat_save", karatCode, false));
+                if (LiveWriteFormBinder.WantsHtml(context))
+                {
+                    return DryRunHtmlForm.Redirect(
+                        DryRunHtmlForm.SafeReturnUrl(context.Request, "/cp/jewellery-masters-app?tab=jw_karat"),
+                        result.ValidationCode == "ok",
+                        result.Detail);
+                }
+
+                return Results.Ok(result.ToPayload(SessionPayload(session)));
+            }
+
+            var written = await writes.SaveAsync(
+                new ErpJwKaratSaveRequest(
+                    companyId,
+                    karatCode,
+                    description,
+                    stdPurity,
+                    rangeFrom,
+                    rangeTo,
+                    spGravity,
+                    posRate,
+                    division),
+                cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/cp/jewellery-masters-app?tab=jw_karat",
+                written.Succeeded,
+                written.Message,
+                new
+                {
+                    ok = written.Succeeded,
+                    status = written.Succeeded,
+                    writes = written.Writes,
+                    phpAuthoritative = false,
+                    validation_code = written.Code,
+                    message = written.Message,
+                    id = written.Id,
+                    karat_code = karatCode,
+                    session = SessionPayload(session)
+                });
         }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpJewelleryKaratSeedForm, async (HttpContext context, ILegacySessionValidator validator, IErpJwSeedSampleDataDryRun dryRun, CancellationToken cancellationToken) =>
         {
@@ -7034,6 +7111,17 @@ public sealed class ErpModule : ISurfaceModule
         decimal EstimatedCost = 0,
         long ReceivedDate = 0,
         long PromisedDate = 0);
+    private sealed record ErpJwKaratSaveBody(
+        int CompanyId = 0,
+        string? KaratCode = null,
+        string? Description = null,
+        decimal StdPurity = 0,
+        decimal RangeFrom = 0,
+        decimal RangeTo = 0,
+        decimal SpGravity = 0,
+        decimal PosRateMinMax = 0,
+        string? Division = null,
+        bool ConfirmWrites = false);
     private sealed record ErpJwRepairUpdateStatusBody(long Id = 0, long RepairId = 0, string? TargetStatus = null, string? NewStatus = null, bool ConfirmWrites = false);
     private sealed record ErpJwSeedSampleDataBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpAiAssistantQueryBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);

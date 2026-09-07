@@ -60,4 +60,23 @@ public sealed record ErpJwModuleSaveDryRunResult(
     string? Code,
     IReadOnlyList<string> SimulatedSql,
     string Detail,
-    string PhpAjax);
+    string PhpAjax)
+{
+    public object ToPayload(object session) => new
+    {
+        ok = true,
+        surface = "erp",
+        status = Status,
+        writes = Writes,
+        writesBlocked = WritesBlocked,
+        cutoverAllowed = CutoverAllowed,
+        phpAuthoritative = PhpAuthoritative,
+        validation_code = ValidationCode,
+        would_write = WouldWrite,
+        intended = new { action = Action, code = Code },
+        simulated = SimulatedSql,
+        php_ajax = PhpAjax,
+        session,
+        note = Detail
+    };
+}
