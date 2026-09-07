@@ -1,6 +1,9 @@
 namespace EcomAE.Platform.Migration;
 
-/// <summary>Wave B dry-run for PHP <c>marketing_create</c>. Never INSERT. PHP authoritative.</summary>
+/// <summary>
+/// Dry-run envelope for PHP <c>epc_erp_marketing_create</c> when <c>confirmWrites</c> is omitted.
+/// Live INSERT is <c>IErpMarketingWriteService</c>.
+/// </summary>
 public interface IErpMarketingCreateDryRun
 {
     ErpMarketingCreateDryRunResult Evaluate(ErpMarketingCreateRequest request);
@@ -12,8 +15,13 @@ public sealed class ErpMarketingCreateDryRun : IErpMarketingCreateDryRun
     {
         ArgumentNullException.ThrowIfNull(request);
         if (request.ConfirmWrites)
-            return Refuse("dry-run-confirm-refused", "confirm_writes_refused",
-                "confirm_writes requested but live ASP.NET marketing_create is not implemented; PHP ajax_erp.php remains authoritative.", request);
+        {
+            return Refuse(
+                "dry-run-confirm-refused",
+                "confirm_writes_refused",
+                "confirm_writes refused on the dry-run path; POST confirmWrites=true to write on ASP.NET.",
+                request);
+        }
 
         // PHP defaults empty name to "Campaign".
         var name = (request.Name ?? string.Empty).Trim();
@@ -23,18 +31,38 @@ public sealed class ErpMarketingCreateDryRun : IErpMarketingCreateDryRun
         }
 
         return new ErpMarketingCreateDryRunResult(
-            "dry-run-validated", 0, true, false, true, "ok", true, name,
+            "dry-run-validated",
+            0,
+            true,
+            false,
+            false,
+            "ok",
+            true,
+            name,
             ["INSERT INTO `epc_erp_marketing_campaigns` (…) (NOT executed)"],
-            "Marketing campaign create payload validated; INSERT blocked.",
-            "/CP/content/shop/finance/erp/ajax_erp.php?action=marketing_create");
+            "ErpMarketingCreate payload validated; INSERT blocked until confirmWrites=true.",
+            "content/shop/finance/epc_erp_staff.php");
     }
 
-    private static ErpMarketingCreateDryRunResult Refuse(string status, string code, string detail, ErpMarketingCreateRequest request) =>
-        new(status, 0, true, false, true, code, false, request.Name, [], detail,
-            "/CP/content/shop/finance/erp/ajax_erp.php?action=marketing_create");
+    private static ErpMarketingCreateDryRunResult Refuse(
+        string status,
+        string code,
+        string detail,
+        ErpMarketingCreateRequest request) =>
+        new(status, 0, true, false, false, code, false, request.Name, [], detail,
+            "content/shop/finance/epc_erp_staff.php");
 }
 
-public sealed record ErpMarketingCreateRequest(string? Name, bool ConfirmWrites = false);
+public sealed record ErpMarketingCreateRequest(
+    string? Name,
+    bool ConfirmWrites = false,
+    string? Channel = null,
+    decimal Budget = 0,
+    string? Status = null,
+    string? TimeStart = null,
+    string? TimeEnd = null,
+    string? Notes = null);
+
 public sealed record ErpMarketingCreateDryRunResult(
     string Status, int Writes, bool WritesBlocked, bool CutoverAllowed, bool PhpAuthoritative,
     string ValidationCode, bool WouldWrite, string? Name,
