@@ -1228,7 +1228,9 @@ public static class EcomAeRoutes
     public const string ErpAjaxDocxRunReminders = "/erp/ajax/docx-run-reminders";
     /// <summary>Wave B dry-run for PHP ins_save (writes=0).</summary>
     public const string ErpAjaxInsSave = "/erp/ajax/ins-save";
-    /// <summary>Wave B dry-run for PHP ins_delete (writes=0).</summary>
+    /// <summary>PHP epc_ins_delete. <c>confirmWrites=true</c> writes via <c>IErpInsDeleteWriteService</c>.</summary>
+    public const string ErpInsuranceDelete = "/erp/insurance/delete";
+    /// <summary>PHP epc_ins_delete ajax alias.</summary>
     public const string ErpAjaxInsDelete = "/erp/ajax/ins-delete";
     /// <summary>Wave B dry-run for PHP ins_doc_add (writes=0).</summary>
     public const string ErpAjaxInsDocAdd = "/erp/ajax/ins-doc-add";

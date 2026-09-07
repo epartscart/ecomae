@@ -4969,6 +4969,8 @@ public sealed class ErpModule : ISurfaceModule
         }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpHrEmployeesSave, HandleHrEmpSaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxHrEmpSave, HandleHrEmpSaveAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpInsuranceDelete, HandleInsDeleteAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxInsDelete, HandleInsDeleteAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpHrAttendanceLog, HandleHrAttendanceAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxHrAttendance, HandleHrAttendanceAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxHrLeaveRequest, async (
@@ -9472,8 +9474,7 @@ public sealed class ErpModule : ISurfaceModule
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(false); return Results.Ok(dryRun.Evaluate(new ErpDocxRunRemindersRequest(body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxInsSave, async (HttpContext context, ErpInsSaveBody? body, ILegacySessionValidator validator, IErpInsSaveDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpInsSaveRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxInsDelete, async (HttpContext context, ErpInsDeleteBody? body, ILegacySessionValidator validator, IErpInsDeleteDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,false); return Results.Ok(dryRun.Evaluate(new ErpInsDeleteRequest(body.Id, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        // ErpAjaxInsDelete is mapped with ErpInsuranceDelete via HandleInsDeleteAsync.
         endpoints.MapPost(EcomAeRoutes.ErpAjaxInsDocAdd, async (HttpContext context, ErpInsDocAddBody? body, ILegacySessionValidator validator, IErpInsDocAddDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpInsDocAddRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxInsDocDelete, async (
@@ -12004,6 +12005,43 @@ public sealed class ErpModule : ISurfaceModule
             new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
     }
 
+    private static async Task<IResult> HandleInsDeleteAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpInsDeleteDryRun dryRun,
+        IErpInsDeleteWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/cp/insurance-compliance-app", "Admin ERP capability required for insurance policy delete.");
+        }
+
+        var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpInsDeleteBody>(context, cancellationToken) ?? new();
+        var id = body.Id;
+        var confirm = body.ConfirmWrites;
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            id = LiveWriteFormBinder.Long(form, "id", "policyId", "policy_id");
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+        }
+
+        if (!confirm)
+        {
+            return Results.Ok(dryRun.Evaluate(new ErpInsDeleteRequest(id, false)).ToPayload(SessionPayload(session)));
+        }
+
+        var written = await writes.DeleteAsync(id, cancellationToken);
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/cp/insurance-compliance-app",
+            written.Succeeded,
+            written.Message,
+            new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+    }
+
     private static async Task<IResult> HandleWhtCertificateAsync(
         HttpContext context,
         ILegacySessionValidator validator,
@@ -12598,7 +12636,7 @@ public sealed class ErpModule : ISurfaceModule
     private sealed record ErpDocxDeleteBody(long Id, bool ConfirmWrites = false);
     private sealed record ErpDocxRunRemindersBody(bool ConfirmWrites = false);
     private sealed record ErpInsSaveBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
-    private sealed record ErpInsDeleteBody(long Id, bool ConfirmWrites = false);
+    private sealed record ErpInsDeleteBody(long Id = 0, bool ConfirmWrites = false);
     private sealed record ErpInsDocAddBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpInsDocDeleteBody(long Id, bool ConfirmWrites = false);
     private sealed record ErpInsClaimAddBody(

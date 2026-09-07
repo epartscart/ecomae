@@ -2838,6 +2838,17 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(insAddDb.Succeeded);
         Assert.Equal("db", insAddDb.Code);
 
+        var insPolDelMissing = await new ErpInsDeleteWriteService(new ConfiguredNeverOpened())
+            .DeleteAsync(0);
+        Assert.False(insPolDelMissing.Succeeded);
+        Assert.Equal("invalid", insPolDelMissing.Code);
+        Assert.Equal("A policy id is required.", insPolDelMissing.Message);
+
+        var insPolDelDb = await new ErpInsDeleteWriteService(new UnconfiguredConnections())
+            .DeleteAsync(3);
+        Assert.False(insPolDelDb.Succeeded);
+        Assert.Equal("db", insPolDelDb.Code);
+
         var vatInvalid = await new ErpBosVatRefundStatusWriteService(new ConfiguredNeverOpened())
             .SetStatusAsync(9, "nope");
         Assert.False(vatInvalid.Succeeded);
