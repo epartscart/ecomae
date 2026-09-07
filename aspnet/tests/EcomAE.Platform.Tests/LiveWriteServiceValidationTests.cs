@@ -3070,6 +3070,16 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(whtCodeDb.Succeeded);
         Assert.Equal("db", whtCodeDb.Code);
 
+        var oaCalendarInvalid = await new ErpOaCalendarSaveWriteService(new ConfiguredNeverOpened())
+            .SaveAsync(new ErpOaCalendarSaveWriteRequest());
+        Assert.False(oaCalendarInvalid.Succeeded);
+        Assert.Equal("invalid", oaCalendarInvalid.Code);
+
+        var oaCalendarDb = await new ErpOaCalendarSaveWriteService(new UnconfiguredConnections())
+            .SaveAsync(new ErpOaCalendarSaveWriteRequest(Code: "UAE", WorkingDays: "1,2,3,4,5"));
+        Assert.False(oaCalendarDb.Succeeded);
+        Assert.Equal("db", oaCalendarDb.Code);
+
         var whtRecordInvalid = await new ErpWhtRecordWriteService(new ConfiguredNeverOpened())
             .RecordAsync(new ErpWhtRecordWriteRequest());
         Assert.False(whtRecordInvalid.Succeeded);

@@ -1322,7 +1322,9 @@ public static class EcomAeRoutes
     public const string ErpAjaxOaAddressSave = "/erp/ajax/oa-address-save";
     /// <summary>Wave B dry-run for PHP oa_contact_save (writes=0).</summary>
     public const string ErpAjaxOaContactSave = "/erp/ajax/oa-contact-save";
-    /// <summary>Wave B dry-run for PHP oa_calendar_save (writes=0).</summary>
+    /// <summary>Live PHP epc_oa_calendar_save twin (ajax alias of <see cref="ErpOrgCalendarsSave"/>).</summary>
+    public const string ErpOrgCalendarsSave = "/erp/org/calendars/save";
+    /// <summary>Live PHP epc_oa_calendar_save ajax alias of <see cref="ErpOrgCalendarsSave"/>.</summary>
     public const string ErpAjaxOaCalendarSave = "/erp/ajax/oa-calendar-save";
     /// <summary>Wave B dry-run for PHP oa_holiday_add (writes=0).</summary>
     public const string ErpAjaxOaHolidayAdd = "/erp/ajax/oa-holiday-add";

@@ -9816,8 +9816,8 @@ public sealed class ErpModule : ISurfaceModule
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpOaAddressSaveRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxOaContactSave, async (HttpContext context, ErpOaContactSaveBody? body, ILegacySessionValidator validator, IErpOaContactSaveDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpOaContactSaveRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxOaCalendarSave, async (HttpContext context, ErpOaCalendarSaveBody? body, ILegacySessionValidator validator, IErpOaCalendarSaveDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpOaCalendarSaveRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.ErpOrgCalendarsSave, HandleOaCalendarSaveAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxOaCalendarSave, HandleOaCalendarSaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxOaHolidayAdd, async (HttpContext context, ErpOaHolidayAddBody? body, ILegacySessionValidator validator, IErpOaHolidayAddDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpOaHolidayAddRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxRbacRoleSave, async (HttpContext context, ErpRbacRoleSaveBody? body, ILegacySessionValidator validator, IErpRbacRoleSaveDryRun dryRun, CancellationToken cancellationToken) =>
@@ -11774,6 +11774,51 @@ public sealed class ErpModule : ISurfaceModule
         }
     }
 
+    private static async Task<IResult> HandleOaCalendarSaveAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpOaCalendarSaveDryRun dryRun,
+        IErpOaCalendarSaveWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/tenant-config-app?tab=org_admin", "Admin ERP capability required for working calendar save.");
+        }
+
+        var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpOaCalendarSaveBody>(context, cancellationToken) ?? new();
+        var code = body.Code;
+        var name = body.Name;
+        var workingDays = body.WorkingDays;
+        var companyId = body.CompanyId;
+        var confirm = body.ConfirmWrites;
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            code = LiveWriteFormBinder.Text(form, "code");
+            name = LiveWriteFormBinder.Text(form, "name");
+            workingDays = LiveWriteFormBinder.Text(form, "workingDays", "working_days");
+            companyId = LiveWriteFormBinder.Long(form, "companyId", "company_id", "company");
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+        }
+
+        if (!confirm)
+        {
+            return Results.Ok(dryRun.Evaluate(new ErpOaCalendarSaveRequest(companyId, code, name, workingDays, false)).ToPayload(SessionPayload(session)));
+        }
+
+        var written = await writes.SaveAsync(
+            new ErpOaCalendarSaveWriteRequest(companyId, code, name, workingDays),
+            cancellationToken);
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/erp/tenant-config-app?tab=org_admin",
+            written.Succeeded,
+            written.Message,
+            new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+    }
+
     private static async Task<IResult> HandleWhtCodeSaveAsync(
         HttpContext context,
         ILegacySessionValidator validator,
@@ -12685,7 +12730,13 @@ public sealed class ErpModule : ISurfaceModule
     private sealed record ErpOaPartySaveBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpOaAddressSaveBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpOaContactSaveBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
-    private sealed record ErpOaCalendarSaveBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
+    private sealed record ErpOaCalendarSaveBody(
+        long Id = 0,
+        string? Code = null,
+        string? Name = null,
+        string? WorkingDays = null,
+        long CompanyId = 0,
+        bool ConfirmWrites = false);
     private sealed record ErpOaHolidayAddBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpRbacRoleSaveBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpRbacRoleDutyBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
