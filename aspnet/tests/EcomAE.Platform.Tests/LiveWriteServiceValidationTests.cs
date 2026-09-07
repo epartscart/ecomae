@@ -3362,4 +3362,29 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(missingDb.Succeeded);
         Assert.Equal("db", missingDb.Code);
     }
+
+    [Fact]
+    public async Task Cons_ic_save_rejects_invalid_pair_amount_and_unconfigured_db()
+    {
+        var missing = await new ErpConsIcSaveWriteService(new ConfiguredNeverOpened())
+            .SaveAsync(new ErpConsIcSaveWriteRequest());
+        Assert.False(missing.Succeeded);
+        Assert.Equal("invalid", missing.Code);
+        Assert.Equal("From and to entities are required", missing.Message);
+
+        var same = await new ErpConsIcSaveWriteService(new ConfiguredNeverOpened())
+            .SaveAsync(new ErpConsIcSaveWriteRequest(FromEntity: "HOME", ToEntity: "home", Amount: 10));
+        Assert.False(same.Succeeded);
+        Assert.Equal("Intercompany needs two different entities", same.Message);
+
+        var zero = await new ErpConsIcSaveWriteService(new ConfiguredNeverOpened())
+            .SaveAsync(new ErpConsIcSaveWriteRequest(FromEntity: "HOME", ToEntity: "SUB1", Amount: 0));
+        Assert.False(zero.Succeeded);
+        Assert.Equal("Amount must be positive", zero.Message);
+
+        var missingDb = await new ErpConsIcSaveWriteService(new UnconfiguredConnections())
+            .SaveAsync(new ErpConsIcSaveWriteRequest(FromEntity: "HOME", ToEntity: "SUB1", Amount: 25));
+        Assert.False(missingDb.Succeeded);
+        Assert.Equal("db", missingDb.Code);
+    }
 }
