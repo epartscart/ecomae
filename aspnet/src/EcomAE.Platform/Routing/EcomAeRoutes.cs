@@ -949,6 +949,8 @@ public static class EcomAeRoutes
     public const string ErpRfidApp = "/erp/rfid-app";
     public const string ErpRecruitment = "/erp/recruitment";
     public const string ErpRecruitmentApp = "/erp/recruitment-app";
+    /// <summary>HTML form POST for PHP <c>hrt_job_save</c>. <c>confirmWrites=true</c> writes via <c>IErpHrtJobSaveWriteService</c>.</summary>
+    public const string ErpRecruitmentJobSave = "/erp/recruitment/jobs/save";
     public const string ErpCustomerGroups = "/erp/customer-groups";
     public const string ErpCustomerGroupsApp = "/erp/customer-groups-app";
     public const string ErpPerformance = "/erp/performance";
@@ -1252,7 +1254,7 @@ public static class EcomAeRoutes
     public const string ErpAjaxBplanLineAdd = "/erp/ajax/bplan-line-add";
     /// <summary>Wave B dry-run for PHP bplan_position_add (writes=0).</summary>
     public const string ErpAjaxBplanPositionAdd = "/erp/ajax/bplan-position-add";
-    /// <summary>Wave B dry-run for PHP hrt_job_save (writes=0).</summary>
+    /// <summary>Live PHP epc_hrt_job_save ajax alias of <see cref="ErpRecruitmentJobSave"/>.</summary>
     public const string ErpAjaxHrtJobSave = "/erp/ajax/hrt-job-save";
     /// <summary>Wave B dry-run for PHP hrt_applicant_add (writes=0).</summary>
     public const string ErpAjaxHrtApplicantAdd = "/erp/ajax/hrt-applicant-add";
