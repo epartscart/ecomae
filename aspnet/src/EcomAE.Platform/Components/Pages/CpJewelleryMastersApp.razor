@@ -78,6 +78,31 @@
         </ErpPhpCreateWell>
         <p class="text-muted">Live rates bind when the shop gold-rate board is configured. Demo figures from the PHP sample page are not shown as KPIs.</p>
     }
+    else if (_isAdmin && _tab == "jw_rate_type")
+    {
+        <ErpPhpCreateWell Title="Add / Edit Rate type">
+            <form method="post" action="@EcomAeRoutes.ErpJewelleryRateTypeSaveForm" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="@_returnHere" />
+                @if (_company > 0)
+                {
+                    <input type="hidden" name="company" value="@_company.ToString(CultureInfo.InvariantCulture)" />
+                }
+                <label>Metal
+                    <select class="form-control input-sm" name="metal">
+                        <option value="G">G Gold</option>
+                        <option value="S">S Silver</option>
+                        <option value="T">T Platinum</option>
+                    </select>
+                </label>
+                <label>Rate type <input class="form-control input-sm" name="rate_type" required placeholder="GMS" /></label>
+                <label>Currency <input class="form-control input-sm" name="currency" value="AED" style="width:70px;" /></label>
+                <label>Conv factor <input class="form-control input-sm" name="conv_factor" type="number" step="0.000001" value="1" /></label>
+                <label>Conv oz <input class="form-control input-sm" name="conv_factor_oz" type="number" step="0.0001" value="31.1035" /></label>
+                <button type="submit" class="btn btn-primary btn-sm">Save rate type</button>
+            </form>
+        </ErpPhpCreateWell>
+    }
     else if (_isAdmin && _tab == "jw_seed_data")
     {
         <ErpPhpCreateWell Title="Seed jewellery defaults">

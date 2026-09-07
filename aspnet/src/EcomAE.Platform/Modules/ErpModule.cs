@@ -4335,6 +4335,132 @@ public sealed class ErpModule : ISurfaceModule
                     session = SessionPayload(session)
                 });
         }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpJewelleryRateTypeSaveForm, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IErpJwModuleSaveDryRun dryRun,
+            IErpJwRateTypeWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (!ErpJewelleryModuleChrome.HasJewelleryStaffAccess(session))
+            {
+                return LiveWriteFormBinder.LoginRedirect(
+                    context,
+                    "/erp/login?returnUrl=/cp/jewellery-masters-app?tab=jw_rate_type",
+                    "Admin ERP capability required for jewellery rate type save.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpJwRateTypeSaveBody>(context, cancellationToken)
+                       ?? new();
+            var companyId = body.CompanyId;
+            var metal = body.Metal;
+            var rateType = body.RateType;
+            var convFactor = body.ConvFactor;
+            var convFactorOz = body.ConvFactorOz;
+            var currency = body.Currency;
+            var currRate = body.CurrRate;
+            var rateVariancePct = body.RateVariancePct;
+            var posMarginMin = body.PosMarginMin;
+            var posMarginMax = body.PosMarginMax;
+            var status = body.Status;
+            var isDefault = body.IsDefault;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                companyId = LiveWriteFormBinder.Int(form, "companyId", "company_id", "company");
+                metal = LiveWriteFormBinder.Text(form, "metal");
+                rateType = LiveWriteFormBinder.Text(form, "rateType", "rate_type", "code");
+                convFactor = LiveWriteFormBinder.Dec(form, "convFactor", "conv_factor");
+                if (convFactor == 0 && string.IsNullOrWhiteSpace(LiveWriteFormBinder.Text(form, "convFactor", "conv_factor")))
+                {
+                    convFactor = 1;
+                }
+
+                convFactorOz = LiveWriteFormBinder.Dec(form, "convFactorOz", "conv_factor_oz");
+                if (convFactorOz == 0 && string.IsNullOrWhiteSpace(LiveWriteFormBinder.Text(form, "convFactorOz", "conv_factor_oz")))
+                {
+                    convFactorOz = 31.1035m;
+                }
+
+                currency = LiveWriteFormBinder.Text(form, "currency");
+                currRate = LiveWriteFormBinder.Dec(form, "currRate", "curr_rate");
+                if (currRate == 0 && string.IsNullOrWhiteSpace(LiveWriteFormBinder.Text(form, "currRate", "curr_rate")))
+                {
+                    currRate = 1;
+                }
+
+                rateVariancePct = LiveWriteFormBinder.Dec(form, "rateVariancePct", "rate_variance_pct");
+                if (rateVariancePct == 0 && string.IsNullOrWhiteSpace(LiveWriteFormBinder.Text(form, "rateVariancePct", "rate_variance_pct")))
+                {
+                    rateVariancePct = 50;
+                }
+
+                posMarginMin = LiveWriteFormBinder.Dec(form, "posMarginMin", "pos_margin_min");
+                if (posMarginMin == 0 && string.IsNullOrWhiteSpace(LiveWriteFormBinder.Text(form, "posMarginMin", "pos_margin_min")))
+                {
+                    posMarginMin = 1;
+                }
+
+                posMarginMax = LiveWriteFormBinder.Dec(form, "posMarginMax", "pos_margin_max");
+                if (posMarginMax == 0 && string.IsNullOrWhiteSpace(LiveWriteFormBinder.Text(form, "posMarginMax", "pos_margin_max")))
+                {
+                    posMarginMax = 50;
+                }
+
+                status = LiveWriteFormBinder.Text(form, "status");
+                isDefault = LiveWriteFormBinder.Flag(form, "isDefault", "is_default");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                var result = dryRun.Evaluate(new ErpJwModuleSaveRequest("jw_rate_type_save", rateType, false));
+                if (LiveWriteFormBinder.WantsHtml(context))
+                {
+                    return DryRunHtmlForm.Redirect(
+                        DryRunHtmlForm.SafeReturnUrl(context.Request, "/cp/jewellery-masters-app?tab=jw_rate_type"),
+                        result.ValidationCode == "ok",
+                        result.Detail);
+                }
+
+                return Results.Ok(result.ToPayload(SessionPayload(session)));
+            }
+
+            var written = await writes.SaveAsync(
+                new ErpJwRateTypeSaveRequest(
+                    companyId,
+                    metal,
+                    rateType,
+                    convFactor,
+                    convFactorOz,
+                    currency,
+                    currRate,
+                    rateVariancePct,
+                    posMarginMin,
+                    posMarginMax,
+                    status,
+                    isDefault),
+                cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/cp/jewellery-masters-app?tab=jw_rate_type",
+                written.Succeeded,
+                written.Message,
+                new
+                {
+                    ok = written.Succeeded,
+                    status = written.Succeeded,
+                    writes = written.Writes,
+                    phpAuthoritative = false,
+                    validation_code = written.Code,
+                    message = written.Message,
+                    id = written.Id,
+                    rate_type = rateType,
+                    session = SessionPayload(session)
+                });
+        }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpJewelleryKaratSeedForm, async (HttpContext context, ILegacySessionValidator validator, IErpJwSeedSampleDataDryRun dryRun, CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateAsync(context, cancellationToken);
@@ -7111,6 +7237,20 @@ public sealed class ErpModule : ISurfaceModule
         decimal EstimatedCost = 0,
         long ReceivedDate = 0,
         long PromisedDate = 0);
+    private sealed record ErpJwRateTypeSaveBody(
+        int CompanyId = 0,
+        string? Metal = null,
+        string? RateType = null,
+        decimal ConvFactor = 1,
+        decimal ConvFactorOz = 31.1035m,
+        string? Currency = null,
+        decimal CurrRate = 1,
+        decimal RateVariancePct = 50,
+        decimal PosMarginMin = 1,
+        decimal PosMarginMax = 50,
+        string? Status = null,
+        bool IsDefault = false,
+        bool ConfirmWrites = false);
     private sealed record ErpJwKaratSaveBody(
         int CompanyId = 0,
         string? KaratCode = null,

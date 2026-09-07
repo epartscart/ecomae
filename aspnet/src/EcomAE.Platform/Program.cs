@@ -674,6 +674,7 @@ builder.Services.AddScoped<EcomAE.Platform.Erp.IErpCustomerMasterWriteService, E
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpAftersalesRmaWriteService, EcomAE.Platform.Erp.ErpAftersalesRmaWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpJwRepairWriteService, EcomAE.Platform.Erp.ErpJwRepairWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpJwKaratWriteService, EcomAE.Platform.Erp.ErpJwKaratWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpJwRateTypeWriteService, EcomAE.Platform.Erp.ErpJwRateTypeWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpHrDaysWriteService, EcomAE.Platform.Erp.ErpHrDaysWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpStorageGroupWriteService, EcomAE.Platform.Cp.CpStorageGroupWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpStorageWriteService, EcomAE.Platform.Cp.CpStorageWriteService>();

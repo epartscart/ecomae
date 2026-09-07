@@ -829,6 +829,8 @@ public static class EcomAeRoutes
     public const string ErpJewelleryRepairStatusForm = "/erp/jewellery/repair-status";
     /// <summary>PHP jw_karat_save. <c>confirmWrites=true</c> upserts <c>epc_jewel_karat_master</c>.</summary>
     public const string ErpJewelleryKaratSaveForm = "/erp/jewellery/karat-save";
+    /// <summary>PHP jw_rate_type_save. <c>confirmWrites=true</c> upserts <c>epc_jewel_rate_type</c>.</summary>
+    public const string ErpJewelleryRateTypeSaveForm = "/erp/jewellery/rate-type-save";
     /// <summary>HTML form POST for PHP <c>jw_karat_seed</c> / <c>jw_seed_sample_data</c> dry-run.</summary>
     public const string ErpJewelleryKaratSeedForm = "/erp/jewellery/karat-seed";
     /// <summary>HTML form POST for other jewellery module saves (fixing / retail / stock).</summary>
