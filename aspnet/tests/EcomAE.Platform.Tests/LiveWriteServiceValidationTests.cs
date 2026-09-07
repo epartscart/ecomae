@@ -529,6 +529,32 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(ccyDb.Succeeded);
         Assert.Equal("db", ccyDb.Code);
 
+        var meCode = await new ErpMultiEntityWriteService(new ConfiguredNeverOpened())
+            .CreateGroupAsync("BAD CODE", "HoldCo", "", "AED", "12-31");
+        Assert.False(meCode.Succeeded);
+        Assert.Equal("invalid", meCode.Code);
+
+        var meMember = await new ErpMultiEntityWriteService(new ConfiguredNeverOpened())
+            .AddMemberAsync(0, "epartscart", "eParts", 100, "AED", "full");
+        Assert.False(meMember.Succeeded);
+        Assert.Equal("invalid", meMember.Code);
+
+        var meConsol = await new ErpMultiEntityWriteService(new ConfiguredNeverOpened())
+            .AddMemberAsync(9, "epartscart", "eParts", 100, "AED", "nope");
+        Assert.False(meConsol.Succeeded);
+        Assert.Equal("invalid", meConsol.Code);
+
+        var meIc = await new ErpMultiEntityWriteService(new ConfiguredNeverOpened())
+            .RecordIntercompanyAsync(9, "a", "b", 0, "x");
+        Assert.False(meIc.Succeeded);
+        Assert.Equal("invalid", meIc.Code);
+
+        var meDb = await new ErpMultiEntityWriteService(new UnconfiguredConnections())
+            .EliminateAsync(9);
+        Assert.False(meDb.Succeeded);
+        Assert.Equal("db", meDb.Code);
+
+        Assert.Contains("proportional", ErpMultiEntityWriteService.AllowedConsolidations);
         var fxInvalid = await new ErpMultiCurrencyGlWriteService(new ConfiguredNeverOpened())
             .SetRateAsync("US", "AED", 3.67m, "2026-09-04", "manual");
         Assert.False(fxInvalid.Succeeded);
@@ -1063,6 +1089,16 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(oblDb.Succeeded);
         Assert.Equal("db", oblDb.Code);
 
+        var leaveReqInvalid = await new ErpHrLeaveRequestWriteService(new ConfiguredNeverOpened())
+            .RequestAsync(0, "annual", 2, null, null);
+        Assert.False(leaveReqInvalid.Succeeded);
+        Assert.Equal("invalid", leaveReqInvalid.Code);
+
+        var leaveReqDb = await new ErpHrLeaveRequestWriteService(new UnconfiguredConnections())
+            .RequestAsync(9, "annual", 2, "2026-09-04", "2026-09-08");
+        Assert.False(leaveReqDb.Succeeded);
+        Assert.Equal("db", leaveReqDb.Code);
+
         var leaveInvalid = await new ErpHrStatusWriteService(new ConfiguredNeverOpened())
             .SetLeaveStatusAsync(0, "approved");
         Assert.False(leaveInvalid.Succeeded);
@@ -1201,6 +1237,20 @@ public sealed class LiveWriteServiceValidationTests
         });
         Assert.Single(clean);
         Assert.Equal("Ada &lt;b&gt;Lovelace&lt;/b&gt;", clean["name"]);
+    }
+
+    [Fact]
+    public async Task Workflow_create_rejects_empty_title_and_unconfigured_db()
+    {
+        var invalid = await new ErpWorkflowCreateWriteService(new ConfiguredNeverOpened())
+            .CreateAsync("  ", "admin", "normal", 0, "", "", 0, "", 1);
+        Assert.False(invalid.Succeeded);
+        Assert.Equal("invalid", invalid.Code);
+
+        var missingDb = await new ErpWorkflowCreateWriteService(new UnconfiguredConnections())
+            .CreateAsync("Pick parts", "warehouse", "high", 9, "", "", 0, "", 1);
+        Assert.False(missingDb.Succeeded);
+        Assert.Equal("db", missingDb.Code);
     }
 
     [Fact]
