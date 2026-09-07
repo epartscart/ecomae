@@ -3111,6 +3111,17 @@ public sealed class LiveWriteServiceValidationTests
             .LogAsync(new ErpHrAttendanceWriteRequest(EmployeeId: 1, Hours: 8));
         Assert.False(hrAttDb.Succeeded);
         Assert.Equal("db", hrAttDb.Code);
+
+        var rbacRoleEmpty = await new ErpRbacRoleSaveWriteService(new ConfiguredNeverOpened())
+            .SaveAsync(new ErpRbacRoleSaveWriteRequest());
+        Assert.False(rbacRoleEmpty.Succeeded);
+        Assert.Equal("invalid", rbacRoleEmpty.Code);
+        Assert.Equal("Role code is required", rbacRoleEmpty.Message);
+
+        var rbacRoleDb = await new ErpRbacRoleSaveWriteService(new UnconfiguredConnections())
+            .SaveAsync(new ErpRbacRoleSaveWriteRequest(Code: "AR_CLERK"));
+        Assert.False(rbacRoleDb.Succeeded);
+        Assert.Equal("db", rbacRoleDb.Code);
     }
 
     [Fact]
