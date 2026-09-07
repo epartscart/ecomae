@@ -80,6 +80,7 @@ public sealed class PhpVsAspNetRemovalMatrixTests
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "erp-fy-reopen-period" && r.WritesOwner == "aspnet");
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "erp-wht-settle" && r.WritesOwner == "aspnet");
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "erp-marketing" && r.WritesOwner == "aspnet");
+        Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "erp-multi-entity" && r.WritesOwner == "aspnet");
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "erp-multi-currency-gl" && r.WritesOwner == "aspnet");
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "write-storefront-cart" && r.WritesOwner == "php");
     }
@@ -129,6 +130,7 @@ public sealed class PhpVsAspNetRemovalMatrixTests
             ("StorefrontCartApp.razor", "/storefront/cart/change-count-need"),
             ("ErpPayrollApp.razor", "/erp/ajax/payroll-approve"),
             ("ErpInventoryForecastApp.razor", "/erp/inventory-forecast/recompute"),
+            ("ErpMultiEntityApp.razor", "/erp/multi-entity/write"),
             ("ErpMultiCurrencyGlApp.razor", "/erp/multi-currency-gl/set-rate"),
             ("CpCreditLimitsApp.razor", "/cp/credit-limits/set"),
             ("CpPoApprovalsApp.razor", "/cp/po-approvals/approve"),
@@ -157,6 +159,7 @@ public sealed class PhpVsAspNetRemovalMatrixTests
             ("ErpContractsApp.razor", "/erp/contracts/save"),
             ("ErpContractsApp.razor", "/erp/ajax/ctr-status"),
             ("ErpWorkflowApp.razor", "/erp/workflow/status"),
+            ("ErpWorkflowApp.razor", "/erp/workflow/create"),
             ("CpCollectionsDunningApp.razor", "/erp/collections/cases/status"),
             ("CpCollectionsDunningApp.razor", "/cp/collections-dunning/write"),
             ("CpPurchaseRequestsApp.razor", "/erp/procurement/requisitions/submit"),
@@ -164,6 +167,7 @@ public sealed class PhpVsAspNetRemovalMatrixTests
             ("CpPurchaseRequestsApp.razor", "/erp/ajax/proc-req-convert"),
             ("CpInsuranceComplianceApp.razor", "/erp/ajax/ins-claim-status"),
             ("CpInsuranceComplianceApp.razor", "/erp/ajax/ins-doc-delete"),
+            ("CpHrOverviewApp.razor", "/erp/ajax/hr-leave-request"),
             ("CpHrOverviewApp.razor", "/erp/ajax/hr-leave-status"),
             ("CpHrOverviewApp.razor", "/erp/ajax/hr-expense-status"),
             ("CpConsolidationsApp.razor", "/erp/ajax/cons-entity-delete"),
