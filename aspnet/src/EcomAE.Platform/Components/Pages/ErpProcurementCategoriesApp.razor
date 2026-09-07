@@ -4,6 +4,7 @@
 @using EcomAE.Platform.Auth
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Routing
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IErpProcCategorySaveDryRun CategorySave
@@ -13,8 +14,9 @@
 <PageTitle>Procurement categories · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Procurement categories" BreadcrumbArea="Procure to Pay" BreadcrumbTab="Categories">
-    <PhpErpModulePageHeader Title="Procurement categories" Subtitle="Category master and approval policies. Saves stay dry-run." PhpTabHref="@_phpTab" />
+    <PhpErpModulePageHeader Title="Procurement categories" Subtitle="Category master and approval policies. Policy save is live-gated; category save stays Classic on this leftover." PhpTabHref="@_phpTab" />
     <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
+    <ErpPhpFlash Ok="@_ok" Err="@_err" />
 
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Procurement category KPIs">
         <div class="kpi"><div class="lbl">Categories</div><div class="val">@_count.ToString(CultureInfo.InvariantCulture)</div></div>
@@ -60,6 +62,21 @@
     </div>
 
     <h2 style="font-size:16px;">Policies</h2>
+    @if (_isAdmin)
+    {
+        <ErpPhpCreateWell Title="New policy">
+            <form method="post" action="@EcomAeRoutes.ErpProcurementPolicySave" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+                <input type="hidden" name="returnUrl" value="/erp/procurement-categories-app" />
+                <input type="hidden" name="confirmWrites" value="true" />
+                <label>Name <input class="form-control input-sm" name="name" placeholder="Name" style="width:180px;" required /></label>
+                <label>Category <input class="form-control input-sm" name="category_id" placeholder="0" style="width:80px;" /></label>
+                <label>Threshold <input class="form-control input-sm" name="approval_threshold" placeholder="0" style="width:90px;" /></label>
+                <label>Vendor <input class="form-control input-sm" name="preferred_vendor" placeholder="Vendor" style="width:140px;" /></label>
+                <label><input type="checkbox" name="active" value="1" checked /> active</label>
+                <button type="submit" class="btn btn-primary btn-sm">Save</button>
+            </form>
+        </ErpPhpCreateWell>
+    }
     <div class="epc-erp-table-wrap">
         <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
             <thead><tr><th>Name</th><th>Category</th><th class="text-right">Threshold</th><th>Vendor</th><th>Status</th></tr></thead>
@@ -86,7 +103,7 @@
     </div>
 
     <div class="epc-erp-empty" style="display:block;margin-top:12px;padding:8px 10px;border:1px solid #c5d4de;background:#f8fafc;color:#475569;font-size:12px;">
-        Source: @_source. Dry-run: <code>proc_category_save</code> — writes=0.
+        Source: @_source. Policy save is live-gated (<code>proc_policy_save</code>). Category save stays dry-run on this leftover.
         @if (!string.IsNullOrWhiteSpace(_message)) { <span> @_message</span> }
     </div>
 </PhpErpDesktopChrome>
@@ -101,11 +118,15 @@
     private string _message = "";
     private string _formCode = "";
     private string _formResult = "";
+    private string _ok = "";
+    private string _err = "";
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
+        _ok = ctx.Request.Query["ok"].ToString();
+        _err = ctx.Request.Query["err"].ToString();
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("erp");
         if (!_isAdmin) { _message = "Sign in for live data."; return; }

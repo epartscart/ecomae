@@ -4353,8 +4353,8 @@ public sealed class ErpModule : ISurfaceModule
         }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxProcCategorySave, async (HttpContext context, ErpProcCategorySaveBody? body, ILegacySessionValidator validator, IErpProcCategorySaveDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpProcCategorySaveRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxProcPolicySave, async (HttpContext context, ErpProcPolicySaveBody? body, ILegacySessionValidator validator, IErpProcPolicySaveDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpProcPolicySaveRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxProcPolicySave, HandleProcPolicySaveAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpProcurementPolicySave, HandleProcPolicySaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxProcReqAddLine, async (
             HttpContext context,
             ILegacySessionValidator validator,
@@ -11774,6 +11774,61 @@ public sealed class ErpModule : ISurfaceModule
         }
     }
 
+    private static async Task<IResult> HandleProcPolicySaveAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpProcPolicySaveDryRun dryRun,
+        IErpProcPolicySaveWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/procurement-categories-app", "Admin ERP capability required for procurement policy save.");
+        }
+
+        var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpProcPolicySaveBody>(context, cancellationToken) ?? new();
+        var id = body.Id;
+        var companyId = body.CompanyId;
+        var name = body.Name;
+        var categoryId = body.CategoryId;
+        var threshold = body.ApprovalThreshold;
+        var vendor = body.PreferredVendor;
+        var active = body.Active;
+        var confirm = body.ConfirmWrites;
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            id = LiveWriteFormBinder.Long(form, "id");
+            companyId = LiveWriteFormBinder.Long(form, "companyId", "company_id", "company");
+            name = LiveWriteFormBinder.Text(form, "name");
+            categoryId = LiveWriteFormBinder.Long(form, "categoryId", "category_id");
+            threshold = LiveWriteFormBinder.Dec(form, "approvalThreshold", "approval_threshold");
+            vendor = LiveWriteFormBinder.Text(form, "preferredVendor", "preferred_vendor");
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            if (form.ContainsKey("active") || form.ContainsKey("enabled"))
+            {
+                var parsed = LiveWriteFormBinder.IntOrNull(form, "active", "enabled");
+                active = parsed is null ? (LiveWriteFormBinder.Flag(form, "active", "enabled") ? 1 : 0) : parsed;
+            }
+        }
+
+        if (!confirm)
+        {
+            return Results.Ok(dryRun.Evaluate(new ErpProcPolicySaveRequest(id, companyId, name, categoryId, threshold, vendor, active, false)).ToPayload(SessionPayload(session)));
+        }
+
+        var written = await writes.SaveAsync(
+            new ErpProcPolicySaveWriteRequest(id, companyId, name, categoryId, threshold, vendor, active),
+            cancellationToken);
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/erp/procurement-categories-app",
+            written.Succeeded,
+            written.Message,
+            new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+    }
+
     private static async Task<IResult> HandleWhtCodeSaveAsync(
         HttpContext context,
         ILegacySessionValidator validator,
@@ -13542,7 +13597,15 @@ public sealed class ErpModule : ISurfaceModule
         string? Customers = null,
         long CompanyId = 0);
     private sealed record ErpProcCategorySaveBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
-    private sealed record ErpProcPolicySaveBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
+    private sealed record ErpProcPolicySaveBody(
+        long Id = 0,
+        long CompanyId = 0,
+        string? Name = null,
+        long CategoryId = 0,
+        decimal ApprovalThreshold = 0,
+        string? PreferredVendor = null,
+        int? Active = null,
+        bool ConfirmWrites = false);
     private sealed record ErpProcReqAddLineBody(
         long Id = 0,
         bool ConfirmWrites = false,

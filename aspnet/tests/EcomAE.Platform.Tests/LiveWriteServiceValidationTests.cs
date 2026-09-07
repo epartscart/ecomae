@@ -3111,6 +3111,17 @@ public sealed class LiveWriteServiceValidationTests
             .LogAsync(new ErpHrAttendanceWriteRequest(EmployeeId: 1, Hours: 8));
         Assert.False(hrAttDb.Succeeded);
         Assert.Equal("db", hrAttDb.Code);
+
+        var procPolInvalid = await new ErpProcPolicySaveWriteService(new ConfiguredNeverOpened())
+            .SaveAsync(new ErpProcPolicySaveWriteRequest());
+        Assert.False(procPolInvalid.Succeeded);
+        Assert.Equal("invalid", procPolInvalid.Code);
+        Assert.Equal("Policy name is required", procPolInvalid.Message);
+
+        var procPolDb = await new ErpProcPolicySaveWriteService(new UnconfiguredConnections())
+            .SaveAsync(new ErpProcPolicySaveWriteRequest(Name: "Over 5k"));
+        Assert.False(procPolDb.Succeeded);
+        Assert.Equal("db", procPolDb.Code);
     }
 
     [Fact]
