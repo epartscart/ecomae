@@ -2706,6 +2706,17 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(procSaveDb.Succeeded);
         Assert.Equal("db", procSaveDb.Code);
 
+        var procAddLineInvalid = await new ErpProcurementReqAddLineWriteService(new ConfiguredNeverOpened())
+            .AddLineAsync(new ErpProcurementReqAddLineWriteRequest());
+        Assert.False(procAddLineInvalid.Succeeded);
+        Assert.Equal("invalid", procAddLineInvalid.Code);
+        Assert.Equal("id must be positive.", procAddLineInvalid.Message);
+
+        var procAddLineDb = await new ErpProcurementReqAddLineWriteService(new UnconfiguredConnections())
+            .AddLineAsync(new ErpProcurementReqAddLineWriteRequest(ReqId: 4, ItemCode: "SKU-1", Qty: 2, UnitPrice: 10));
+        Assert.False(procAddLineDb.Succeeded);
+        Assert.Equal("db", procAddLineDb.Code);
+
         var procSubmitInvalid = await new ErpProcurementReqWriteService(new ConfiguredNeverOpened())
             .SubmitAsync(0);
         Assert.False(procSubmitInvalid.Succeeded);

@@ -131,7 +131,7 @@ public sealed class ErpAjaxWriteCatalog : IErpAjaxWriteCatalog
         new("proc_category_save", "dedicated", "/erp/ajax/proc-category-save"),
         new("proc_policy_save", "dedicated", "/erp/ajax/proc-policy-save"),
         new("proc_req_save", "dedicated", "/erp/procurement/requisitions/save"),
-        new("proc_req_add_line", "dedicated", "/erp/ajax/proc-req-add-line"),
+        new("proc_req_add_line", "dedicated", "/erp/procurement/requisitions/add-line"),
         new("proc_req_submit", "dedicated", "/erp/procurement/requisitions/submit"),
         new("proc_req_decision", "dedicated", "/erp/procurement/requisitions/decision"),
         new("proc_req_convert", "dedicated", "/erp/ajax/proc-req-convert"),

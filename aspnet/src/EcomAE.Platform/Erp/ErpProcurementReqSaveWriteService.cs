@@ -3,7 +3,7 @@ using System.Globalization;
 namespace EcomAE.Platform.Erp;
 
 /// <summary>
-/// Live PHP <c>epc_proc_req_save</c> twin. Schema ensure and add-line stay PHP.
+/// Live PHP <c>epc_proc_req_save</c> twin. Schema ensure stays PHP.
 /// Submit / decision / convert are <c>IErpProcurementReqWriteService</c>.
 /// </summary>
 public interface IErpProcurementReqSaveWriteService

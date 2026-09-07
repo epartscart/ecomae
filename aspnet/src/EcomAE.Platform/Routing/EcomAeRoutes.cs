@@ -666,6 +666,8 @@ public static class EcomAeRoutes
     public const string ErpCollectionsCaseSave = "/erp/collections/cases/save";
     /// <summary>PHP epc_proc_req_save. <c>confirmWrites=true</c> writes via <c>IErpProcurementReqSaveWriteService</c>.</summary>
     public const string ErpProcurementReqSave = "/erp/procurement/requisitions/save";
+    /// <summary>Live PHP epc_proc_req_add_line twin (confirmWrites=true). Schema ensure stays PHP.</summary>
+    public const string ErpProcurementReqAddLine = "/erp/procurement/requisitions/add-line";
     /// <summary>Live PHP epc_fin_period_set_status twin (confirmWrites=true). Schema ensure and generate stay PHP.</summary>
     public const string ErpFinPeriodStatus = "/erp/fin/periods/status";
     /// <summary>Wave B dry-run for PHP wms_wave_create (writes=0).</summary>
@@ -1672,7 +1674,7 @@ public static class EcomAeRoutes
     public const string ErpAjaxProcCategorySave = "/erp/ajax/proc-category-save";
     /// <summary>Wave B dry-run for PHP proc_policy_save (writes=0).</summary>
     public const string ErpAjaxProcPolicySave = "/erp/ajax/proc-policy-save";
-    /// <summary>Wave B dry-run for PHP proc_req_add_line (writes=0).</summary>
+    /// <summary>Live PHP epc_proc_req_add_line twin (ajax alias of <see cref="ErpProcurementReqAddLine"/>).</summary>
     public const string ErpAjaxProcReqAddLine = "/erp/ajax/proc-req-add-line";
     /// <summary>Wave B dry-run for PHP proc_req_convert (writes=0).</summary>
     public const string ErpAjaxProcReqConvert = "/erp/ajax/proc-req-convert";
