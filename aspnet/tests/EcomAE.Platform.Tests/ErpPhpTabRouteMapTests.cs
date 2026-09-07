@@ -34,9 +34,9 @@ public sealed class ErpPhpTabRouteMapTests
     [InlineData("contacts", "/erp/contacts-app")]
     [InlineData("payment_batches", "/erp/payment-batches-app")]
     [InlineData("year_end", "/erp/period-close-app")]
-    [InlineData("collections", "/cp/collections-dunning-app")]
-    [InlineData("wms", "/cp/warehouse-wms-app")]
-    [InlineData("tenant_config", "/cp/tenant-config-app")]
+    [InlineData("collections", "/erp/collections-dunning-app")]
+    [InlineData("wms", "/erp/warehouse-wms-app")]
+    [InlineData("tenant_config", "/erp/tenant-config-app")]
     [InlineData("agenda", "/erp/agenda-app")]
     [InlineData("documents", "/erp/documents-app")]
     [InlineData("expense_reports", "/erp/expense-reports-app")]
@@ -83,6 +83,36 @@ public sealed class ErpPhpTabRouteMapTests
     }
 
     [Fact]
+    public void ErpTabAndAreaMapsNeverLeaveErpSurface()
+    {
+        foreach (var (tab, href) in ErpPhpTabRouteMap.All)
+        {
+            Assert.False(href.StartsWith("/cp/", StringComparison.OrdinalIgnoreCase), tab + " -> " + href);
+            Assert.StartsWith("/erp", href, StringComparison.OrdinalIgnoreCase);
+        }
+
+        Assert.Equal("/erp/collections-dunning-app", ErpPhpTabRouteMap.PreferErpSurface("/cp/collections-dunning-app"));
+        Assert.Equal("/erp/hr-overview-app?tab=hr_ops", ErpPhpTabRouteMap.PreferErpSurface("/cp/hr-overview-app?tab=hr_ops"));
+
+        foreach (var php in new[]
+                 {
+                     "/ERP/?epc_erp_shell=1&area=credit_coll",
+                     "/ERP/?epc_erp_shell=1&area=logistics",
+                     "/ERP/?epc_erp_shell=1&area=payroll",
+                     "/ERP/?epc_erp_shell=1&area=people",
+                     "/ERP/?epc_erp_shell=1&tab=wms",
+                     "/ERP/?epc_erp_shell=1&tab=collections",
+                     "/ERP/?epc_erp_shell=1&tab=hr",
+                     "/ERP/?epc_erp_shell=1&tab=jw_repairs",
+                 })
+        {
+            var mapped = PhpSurfaceLinkMap.AspNetPrimaryHref(php);
+            Assert.False(mapped.StartsWith("/cp/", StringComparison.OrdinalIgnoreCase), php + " -> " + mapped);
+            Assert.StartsWith("/erp", mapped, StringComparison.OrdinalIgnoreCase);
+        }
+    }
+
+    [Fact]
     public void PhpSurfaceLinkMapUsesTabRouteMap()
     {
         var href = PhpSurfaceLinkMap.AspNetPrimaryHref("/ERP/?epc_erp_shell=1&area=purchasing&tab=rfq");
@@ -99,7 +129,7 @@ public sealed class ErpPhpTabRouteMapTests
     [InlineData("/ERP/?epc_erp_shell=1&area=ar", "/erp/receivables-app")]
     [InlineData("/ERP/?epc_erp_shell=1&area=purchasing", "/erp/purchase-orders-app")]
     [InlineData("/ERP/?epc_erp_shell=1&area=sales", "/erp/sales-orders-app")]
-    [InlineData("/ERP/?epc_erp_shell=1&area=credit_coll", "/cp/collections-dunning-app")]
+    [InlineData("/ERP/?epc_erp_shell=1&area=credit_coll", "/erp/collections-dunning-app")]
     [InlineData("/ERP/?epc_erp_shell=1&area=banking", "/erp/cash-accounts-app")]
     [InlineData("/ERP/?epc_erp_shell=1&area=finance", "/erp/gl-journals-app")]
     public void AreaAndTabHubsMatchModuleNames(string php, string expected)
