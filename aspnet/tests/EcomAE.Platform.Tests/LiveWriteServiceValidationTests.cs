@@ -2729,6 +2729,16 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(collHoldDb.Succeeded);
         Assert.Equal("db", collHoldDb.Code);
 
+        var collDunningInvalid = await new ErpCollectionsDunningRunWriteService(new ConfiguredNeverOpened())
+            .RunAsync(new ErpCollectionsDunningRunWriteRequest());
+        Assert.False(collDunningInvalid.Succeeded);
+        Assert.Equal("invalid", collDunningInvalid.Code);
+
+        var collDunningDb = await new ErpCollectionsDunningRunWriteService(new UnconfiguredConnections())
+            .RunAsync(new ErpCollectionsDunningRunWriteRequest("502|500|0|0|0", 1));
+        Assert.False(collDunningDb.Succeeded);
+        Assert.Equal("db", collDunningDb.Code);
+
         var procSaveInvalid = await new ErpProcurementReqSaveWriteService(new ConfiguredNeverOpened())
             .SaveAsync("", 0, "laptops", null, 0, 0);
         Assert.False(procSaveInvalid.Succeeded);

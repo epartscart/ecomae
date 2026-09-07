@@ -746,6 +746,7 @@ builder.Services.AddScoped<EcomAE.Platform.Erp.IErpCollectionsCaseSaveWriteServi
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpCollectionsCasePromiseWriteService, EcomAE.Platform.Erp.ErpCollectionsCasePromiseWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpCollectionsActivityLogWriteService, EcomAE.Platform.Erp.ErpCollectionsActivityLogWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpCollectionsHoldSetWriteService, EcomAE.Platform.Erp.ErpCollectionsHoldSetWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpCollectionsDunningRunWriteService, EcomAE.Platform.Erp.ErpCollectionsDunningRunWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpProcurementReqWriteService, EcomAE.Platform.Erp.ErpProcurementReqWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpProcurementReqSaveWriteService, EcomAE.Platform.Erp.ErpProcurementReqSaveWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpProcurementReqAddLineWriteService, EcomAE.Platform.Erp.ErpProcurementReqAddLineWriteService>();

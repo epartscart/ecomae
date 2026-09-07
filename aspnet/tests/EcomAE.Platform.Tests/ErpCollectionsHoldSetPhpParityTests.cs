@@ -18,7 +18,7 @@ public sealed class ErpCollectionsHoldSetPhpParityTests
         Assert.Contains("name=\"customer_id\"", text, StringComparison.Ordinal);
         Assert.Contains("name=\"place\"", text, StringComparison.Ordinal);
         Assert.Contains("Set credit hold", text, StringComparison.Ordinal);
-        Assert.DoesNotContain("Dunning run and credit hold stay", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("Dunning run stays on the Classic twin", text, StringComparison.Ordinal);
         Assert.DoesNotContain("@onclick", text, StringComparison.Ordinal);
         Assert.DoesNotContain("ASP.NET", text, StringComparison.Ordinal);
         Assert.DoesNotContain("/php-reference/", text, StringComparison.Ordinal);

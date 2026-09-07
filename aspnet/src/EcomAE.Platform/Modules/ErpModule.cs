@@ -3235,6 +3235,47 @@ public sealed class ErpModule : ISurfaceModule
                 new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
         }).DisableAntiforgery();
 
+        endpoints.MapPost(EcomAeRoutes.ErpCollectionsDunningRun, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IErpCollDunningRunDryRun dryRun,
+            IErpCollectionsDunningRunWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/cp/collections-dunning-app", "Admin ERP capability required for collections dunning run.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpCollDunningRunBody>(context, cancellationToken) ?? new();
+            var customers = body.Customers;
+            var companyId = body.CompanyId;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                customers = LiveWriteFormBinder.Text(form, "customers");
+                companyId = LiveWriteFormBinder.Long(form, "companyId", "company_id");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(dryRun.Evaluate(new ErpCollDunningRunRequest(false, customers, companyId)).ToPayload(SessionPayload(session)));
+            }
+
+            var written = await writes.RunAsync(
+                new ErpCollectionsDunningRunWriteRequest(customers, companyId),
+                cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/cp/collections-dunning-app",
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+        }).DisableAntiforgery();
+
         endpoints.MapPost(EcomAeRoutes.ErpProcurementReqSave, async (
             HttpContext context,
             ILegacySessionValidator validator,
@@ -4268,8 +4309,46 @@ public sealed class ErpModule : ISurfaceModule
                 written.Message,
                 new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
         }).DisableAntiforgery();
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxCollDunningRun, async (HttpContext context, ErpCollDunningRunBody? body, ILegacySessionValidator validator, IErpCollDunningRunDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(false); return Results.Ok(dryRun.Evaluate(new ErpCollDunningRunRequest(body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxCollDunningRun, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IErpCollDunningRunDryRun dryRun,
+            IErpCollectionsDunningRunWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/cp/collections-dunning-app", "Admin ERP capability required for collections dunning run.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpCollDunningRunBody>(context, cancellationToken) ?? new();
+            var customers = body.Customers;
+            var companyId = body.CompanyId;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                customers = LiveWriteFormBinder.Text(form, "customers");
+                companyId = LiveWriteFormBinder.Long(form, "companyId", "company_id");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(dryRun.Evaluate(new ErpCollDunningRunRequest(false, customers, companyId)).ToPayload(SessionPayload(session)));
+            }
+
+            var written = await writes.RunAsync(
+                new ErpCollectionsDunningRunWriteRequest(customers, companyId),
+                cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/cp/collections-dunning-app",
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+        }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxProcCategorySave, async (HttpContext context, ErpProcCategorySaveBody? body, ILegacySessionValidator validator, IErpProcCategorySaveDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpProcCategorySaveRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxProcPolicySave, async (HttpContext context, ErpProcPolicySaveBody? body, ILegacySessionValidator validator, IErpProcPolicySaveDryRun dryRun, CancellationToken cancellationToken) =>
@@ -13139,7 +13218,10 @@ public sealed class ErpModule : ISurfaceModule
         string? Outcome = null,
         decimal Amount = 0,
         string? FollowUpDate = null);
-    private sealed record ErpCollDunningRunBody(bool ConfirmWrites = false);
+    private sealed record ErpCollDunningRunBody(
+        bool ConfirmWrites = false,
+        string? Customers = null,
+        long CompanyId = 0);
     private sealed record ErpProcCategorySaveBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpProcPolicySaveBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpProcReqAddLineBody(
