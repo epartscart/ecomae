@@ -4128,6 +4128,49 @@ public sealed record CpPoApprovalsDigestResult(
     string Source,
     string Message);
 
+public sealed record CpPoApprovalsDetail(
+    long Id,
+    string SiteKey,
+    string PoNumber,
+    long RequesterId,
+    long VendorId,
+    string VendorName,
+    string Currency,
+    decimal Subtotal,
+    decimal Tax,
+    decimal Total,
+    string Status,
+    int CurrentTier,
+    string Priority,
+    string ApprovedAt,
+    string RejectedAt,
+    string CreatedAt,
+    int DescriptionLen,
+    string DescriptionExcerpt,
+    int NotesLen,
+    string NotesExcerpt,
+    int RejectionLen,
+    string RejectionExcerpt);
+
+public sealed record CpPoApprovalStepDigest(
+    long Id,
+    long PoId,
+    int Tier,
+    string TierLabel,
+    long ApproverId,
+    string ApproverName,
+    string Decision,
+    string DecidedAt,
+    int CommentLen,
+    string CommentExcerpt);
+
+public sealed record CpPoApprovalsDetailResult(
+    CpPoApprovalsDetail? Request,
+    IReadOnlyList<CpPoApprovalStepDigest> Steps,
+    IReadOnlyList<CpPoApprovalsRowDigest> Siblings,
+    string Source,
+    string Message);
+
 public sealed record CpFinanceCloseSummary(
     int BatchCount,
     int PostedBatchCount,

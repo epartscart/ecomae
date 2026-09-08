@@ -7771,7 +7771,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only epc_po_requests + approval_steps KPIs + requests (description/notes/attachments/items JSON omitted). PHP PO approval remains authoritative."
+                note = "Read-only epc_po_requests + approval_steps KPIs + requests. Open ?po_req_id= loads 280-char description/notes excerpts plus steps. items/attachments JSON omitted. Approve/reject write here."
             });
         });
 

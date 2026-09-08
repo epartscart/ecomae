@@ -4436,6 +4436,54 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>Opened PO request. Description/notes are short excerpts. items/attachments JSON omitted.</summary>
+    public const string SelectCpPoApprovalsDetail = """
+        SELECT `id`, IFNULL(`site_key`,'') AS site_key, IFNULL(`po_number`,'') AS po_number,
+               IFNULL(`requester_id`,0) AS requester_id, IFNULL(`vendor_id`,0) AS vendor_id,
+               IFNULL(`vendor_name`,'') AS vendor_name, IFNULL(`currency`,'') AS currency,
+               IFNULL(`subtotal`,0) AS subtotal, IFNULL(`tax`,0) AS tax, IFNULL(`total`,0) AS total,
+               IFNULL(`status`,'') AS status, IFNULL(`current_tier`,0) AS current_tier,
+               IFNULL(`priority`,'') AS priority,
+               IFNULL(`approved_at`,'') AS approved_at, IFNULL(`rejected_at`,'') AS rejected_at,
+               IFNULL(`created_at`,'') AS created_at,
+               CHAR_LENGTH(IFNULL(`description`,'')) AS description_len,
+               LEFT(IFNULL(`description`,''), 280) AS description_excerpt,
+               CHAR_LENGTH(IFNULL(`notes`,'')) AS notes_len,
+               LEFT(IFNULL(`notes`,''), 280) AS notes_excerpt,
+               CHAR_LENGTH(IFNULL(`rejection_reason`,'')) AS rejection_len,
+               LEFT(IFNULL(`rejection_reason`,''), 280) AS rejection_excerpt
+        FROM `epc_po_requests`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Approval steps for the opened PO. Comments are a short excerpt.</summary>
+    public const string SelectCpPoApprovalSteps = """
+        SELECT `id`, IFNULL(`po_id`,0) AS po_id, IFNULL(`tier`,0) AS tier,
+               IFNULL(`tier_label`,'') AS tier_label, IFNULL(`approver_id`,0) AS approver_id,
+               IFNULL(`approver_name`,'') AS approver_name, IFNULL(`decision`,'') AS decision,
+               IFNULL(`decided_at`,'') AS decided_at,
+               CHAR_LENGTH(IFNULL(`comment`,'')) AS comment_len,
+               LEFT(IFNULL(`comment`,''), 280) AS comment_excerpt
+        FROM `epc_po_approval_steps`
+        WHERE `po_id` = @id
+        ORDER BY `tier` ASC, `id` ASC
+        LIMIT 50
+        """;
+
+    /// <summary>Other PO requests on the same site. Description/notes/JSON omitted.</summary>
+    public const string SelectCpPoApprovalsSiteSiblings = """
+        SELECT `id`, IFNULL(`site_key`,'') AS site_key, IFNULL(`po_number`,'') AS po_number,
+               IFNULL(`requester_id`,0) AS requester_id, IFNULL(`vendor_name`,'') AS vendor_name,
+               IFNULL(`currency`,'') AS currency, IFNULL(`total`,0) AS total,
+               IFNULL(`status`,'') AS status, IFNULL(`current_tier`,0) AS current_tier,
+               IFNULL(`priority`,'') AS priority, IFNULL(`created_at`,'') AS created_at
+        FROM `epc_po_requests`
+        WHERE `site_key` = @site_key AND `id` <> @id
+        ORDER BY `id` DESC
+        LIMIT 50
+        """;
+
     /// <summary>Finance close KPIs from epc_erp_opening_batches/lines + epc_erp_periods/close_log (CREATE TABLE unused cluster).</summary>
     public const string SelectCpFinanceCloseStats = """
         SELECT
