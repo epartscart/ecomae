@@ -274,6 +274,32 @@ public sealed class StorefrontCatalogDedicatedAppsTests : IDisposable
         Assert.DoesNotContain("epc-w22-hero", filters, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void PluginsTemplatesDumpsPriceListApps_UseClassicHpanelNotInventHero()
+    {
+        var plugins = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/CpPluginsManagerApp.razor"));
+        Assert.Contains("class=\"hpanel\"", plugins, StringComparison.Ordinal);
+        Assert.Contains("HasStaffAccess", plugins, StringComparison.Ordinal);
+        Assert.DoesNotContain("epc-w22-hero", plugins, StringComparison.Ordinal);
+
+        var templates = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/CpTemplatesManagerApp.razor"));
+        Assert.Contains("class=\"hpanel\"", templates, StringComparison.Ordinal);
+        Assert.DoesNotContain("epc-w22-hero", templates, StringComparison.Ordinal);
+
+        var dumps = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/CpStructureDumpsApp.razor"));
+        Assert.Contains("class=\"hpanel\"", dumps, StringComparison.Ordinal);
+        Assert.DoesNotContain("epc-w22-hero", dumps, StringComparison.Ordinal);
+
+        var prices = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/CpPriceListsApp.razor"));
+        Assert.Contains("class=\"hpanel\"", prices, StringComparison.Ordinal);
+        Assert.Contains("/cp/prices/storage-rules", prices, StringComparison.Ordinal);
+        Assert.Contains("save_storage_rule", prices, StringComparison.Ordinal);
+        Assert.Contains("Classic twin", prices, StringComparison.Ordinal);
+        Assert.DoesNotContain("stays PHP", prices, StringComparison.Ordinal);
+        Assert.DoesNotContain("epc-pl-hero", prices, StringComparison.Ordinal);
+        Assert.DoesNotContain("epc-pl-kpis", prices, StringComparison.Ordinal);
+    }
+
     private static void AssertPage(string fileName, string phpAlias, string aspNetApp)
     {
         var path = Find("aspnet/src/EcomAE.Platform/Components/Pages/" + fileName);
