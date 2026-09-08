@@ -6137,9 +6137,12 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only epc_tax_toolkits metadata (rules_json/reg_number omitted). Install/configure remains PHP epc_tax_toolkit_manage."
+                note = "epc_tax_toolkits metadata (rules_json/reg_number omitted). Install and assign write on POST /cp/tax-toolkits/* when confirmWrites=true. Refresh, seed, and migrate-all stay PHP."
             });
         });
+
+        endpoints.MapPost(EcomAeRoutes.ControlPanelTaxToolkitInstall, HandleTaxToolkitInstallAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ControlPanelTaxToolkitAssign, HandleTaxToolkitAssignAsync).DisableAntiforgery();
 
         endpoints.MapGet(EcomAeRoutes.ControlPanelSmsWhatsapp, async (
             HttpContext context,
@@ -9500,6 +9503,139 @@ public sealed class ControlPanelModule : ISurfaceModule
         }
 
         return false;
+    }
+
+    private static async Task<IResult> HandleTaxToolkitInstallAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        ICpTaxToolkitInstallDryRun dryRun,
+        ICpTaxToolkitWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        if (!SuperCpHostGate.IsAllowed(context))
+        {
+            return Results.NotFound(new { ok = false, surface = "cp", message = "Tax toolkit install is Super CP only." });
+        }
+
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/tax-toolkits-app", "Admin CP capability required for tax toolkit install.");
+        }
+
+        var kitCode = "";
+        var setDefault = false;
+        var confirm = false;
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            kitCode = LiveWriteFormBinder.Text(form, "kit_code", "kitCode");
+            setDefault = LiveWriteFormBinder.Flag(form, "set_default", "setDefault");
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+        }
+        else
+        {
+            var root = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<System.Text.Json.JsonElement>(context, cancellationToken);
+            if (root.ValueKind == System.Text.Json.JsonValueKind.Object)
+            {
+                kitCode = JsonText(root, "kit_code", "kitCode") ?? "";
+                setDefault = JsonFlag(root, "set_default", "setDefault");
+                confirm = JsonFlag(root, "confirmWrites", "confirm_writes");
+            }
+        }
+
+        if (!confirm)
+        {
+            return Results.Ok(dryRun.Evaluate(new CpTaxToolkitInstallRequest(kitCode, setDefault, false)).ToPayload(SessionPayload(session)));
+        }
+
+        var written = await writes.InstallAsync(
+            new CpTaxToolkitInstallWriteRequest(kitCode, setDefault, session.UserId),
+            cancellationToken);
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/cp/tax-toolkits-app",
+            written.Succeeded,
+            written.Message,
+            new
+            {
+                ok = written.Succeeded,
+                writes = written.Writes,
+                phpAuthoritative = false,
+                validation_code = written.Code,
+                message = written.Message,
+                kit_code = written.KitCode,
+                id = written.Id,
+                session = SessionPayload(session),
+            });
+    }
+
+    private static async Task<IResult> HandleTaxToolkitAssignAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        ICpTaxToolkitAssignDryRun dryRun,
+        ICpTaxToolkitWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        if (!SuperCpHostGate.IsAllowed(context))
+        {
+            return Results.NotFound(new { ok = false, surface = "cp", message = "Tax toolkit assign is Super CP only." });
+        }
+
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/tax-toolkits-app", "Admin CP capability required for tax toolkit assign.");
+        }
+
+        var kitCode = "";
+        var country = "";
+        var siteKey = "platform";
+        var confirm = false;
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            kitCode = LiveWriteFormBinder.Text(form, "kit_code", "kitCode");
+            country = LiveWriteFormBinder.Text(form, "country_code", "countryCode");
+            siteKey = LiveWriteFormBinder.Text(form, "site_key", "siteKey");
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+        }
+        else
+        {
+            var root = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<System.Text.Json.JsonElement>(context, cancellationToken);
+            if (root.ValueKind == System.Text.Json.JsonValueKind.Object)
+            {
+                kitCode = JsonText(root, "kit_code", "kitCode") ?? "";
+                country = JsonText(root, "country_code", "countryCode") ?? "";
+                siteKey = JsonText(root, "site_key", "siteKey") ?? "platform";
+                confirm = JsonFlag(root, "confirmWrites", "confirm_writes");
+            }
+        }
+
+        if (!confirm)
+        {
+            return Results.Ok(dryRun.Evaluate(new CpTaxToolkitAssignRequest(country, kitCode, siteKey, false)).ToPayload(SessionPayload(session)));
+        }
+
+        var written = await writes.AssignTenantAsync(
+            new CpTaxToolkitAssignWriteRequest(country, kitCode, siteKey, "", session.UserId),
+            cancellationToken);
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/cp/tax-toolkits-app",
+            written.Succeeded,
+            written.Message,
+            new
+            {
+                ok = written.Succeeded,
+                writes = written.Writes,
+                phpAuthoritative = false,
+                validation_code = written.Code,
+                message = written.Message,
+                kit_code = written.KitCode,
+                id = written.Id,
+                session = SessionPayload(session),
+            });
     }
 
     private static IResult Unauthorized(string message) => Results.Json(

@@ -132,6 +132,10 @@ public static class EcomAeRoutes
     public const string ControlPanelTaxToolkits = "/cp/tax-toolkits";
     /// <summary>CP tax toolkits Blazor list (JSON digest remains <see cref="ControlPanelTaxToolkits"/>).</summary>
     public const string ControlPanelTaxToolkitsApp = "/cp/tax-toolkits-app";
+    /// <summary>HTML form POST for PHP <c>epc_tax_toolkit_install</c>. Super CP only. <c>confirmWrites=true</c> writes via <c>ICpTaxToolkitWriteService</c>.</summary>
+    public const string ControlPanelTaxToolkitInstall = "/cp/tax-toolkits/install";
+    /// <summary>HTML form POST for PHP <c>epc_tax_toolkit_assign_tenant</c>. Super CP only. <c>confirmWrites=true</c> writes via <c>ICpTaxToolkitWriteService</c>.</summary>
+    public const string ControlPanelTaxToolkitAssign = "/cp/tax-toolkits/assign";
     /// <summary>CP SMS operators + WhatsApp notify log (parameters_values / tokens / raw phone omitted).</summary>
     public const string ControlPanelSmsWhatsapp = "/cp/sms-whatsapp";
     /// <summary>CP SMS/WhatsApp Blazor list (JSON digest remains <see cref="ControlPanelSmsWhatsapp"/>).</summary>
