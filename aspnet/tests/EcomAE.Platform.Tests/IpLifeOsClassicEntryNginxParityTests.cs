@@ -84,6 +84,7 @@ public sealed class IpLifeOsClassicEntryNginxParityTests
         Assert.DoesNotContain("guest must browse ASP.NET shell", text, StringComparison.Ordinal);
         Assert.Contains("TemporarilyDeactivatePhpServing", text, StringComparison.Ordinal);
         Assert.Contains("HTTP 503", text, StringComparison.Ordinal);
+        Assert.Contains("x-ecomae-industry-showcase", text, StringComparison.Ordinal);
     }
 
     private static string Read(string relative)

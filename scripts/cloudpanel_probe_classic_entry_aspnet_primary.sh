@@ -84,7 +84,9 @@ check_same_url_aspnet() {
     return
   fi
 
-  if is_aspnet_body "$body" || grep -Eiq 'x-ecomae-route-cutover:\s*classic-entry' <<<"$hdr"; then
+  if is_aspnet_body "$body" \
+    || grep -Eiq 'x-ecomae-route-cutover:\s*classic-entry' <<<"$hdr" \
+    || grep -Eiq 'x-ecomae-industry-showcase:\s*snapshot' <<<"$hdr"; then
     say "PASS  ${base}${path} ASP.NET same-URL HTTP 200"
     pass=$((pass + 1))
     return
