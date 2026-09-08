@@ -3292,6 +3292,31 @@ public sealed record CpIsolationAuditDigestResult(
     string Source,
     string Message);
 
+public sealed record CpIsolationAuditRunDetail(
+    long Id,
+    string RunAt,
+    int TotalTenants,
+    int Passed,
+    int Failed,
+    int Warnings,
+    string TriggeredBy,
+    int ReportLen,
+    string ReportExcerpt);
+
+public sealed record CpIsolationAuditViolationDigest(
+    long Id,
+    string SiteKey,
+    string Actor,
+    int DetailLen,
+    string DetailExcerpt,
+    string CreatedAt);
+
+public sealed record CpIsolationAuditRunDetailResult(
+    CpIsolationAuditRunDetail? Run,
+    IReadOnlyList<CpIsolationAuditViolationDigest> Violations,
+    string Source,
+    string Message);
+
 public sealed record CpAmlComplianceSummary(
     int KycCount,
     int PendingKycCount,

@@ -3632,6 +3632,33 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>Opened isolation audit run. report_json is a short excerpt.</summary>
+    public const string SelectCpIsolationAuditRunDetail = """
+        SELECT `id`, IFNULL(`run_at`,'') AS run_at,
+               IFNULL(`total_tenants`,0) AS total_tenants,
+               IFNULL(`passed`,0) AS passed, IFNULL(`failed`,0) AS failed,
+               IFNULL(`warnings`,0) AS warnings,
+               IFNULL(`triggered_by`,'') AS triggered_by,
+               CHAR_LENGTH(IFNULL(`report_json`,'')) AS report_len,
+               LEFT(IFNULL(`report_json`,''), 280) AS report_excerpt
+        FROM `epc_ci_audit_runs`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Violations on the same calendar day as the opened run. IP omitted; detail excerpt only.</summary>
+    public const string SelectCpIsolationAuditDayViolations = """
+        SELECT `id`, IFNULL(`site_key`,'') AS site_key,
+               IFNULL(`actor`,'') AS actor,
+               CHAR_LENGTH(IFNULL(`detail`,'')) AS detail_len,
+               LEFT(IFNULL(`detail`,''), 140) AS detail_excerpt,
+               IFNULL(CAST(`created_at` AS CHAR),'') AS created_at
+        FROM `epc_ci_violations`
+        WHERE DATE(`created_at`) = DATE(@run_at)
+        ORDER BY `id` DESC
+        LIMIT 50
+        """;
+
     /// <summary>AML KPIs from epc_aml_* (CREATE TABLE in epc_erp_aml_compliance.php).</summary>
     public const string SelectCpAmlComplianceStats = """
         SELECT

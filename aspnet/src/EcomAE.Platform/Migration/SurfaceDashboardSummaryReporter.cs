@@ -11325,6 +11325,74 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    public async Task<CpIsolationAuditRunDetailResult> BuildCpIsolationAuditRunDetailAsync(long id, CancellationToken cancellationToken = default)
+    {
+        if (id <= 0)
+        {
+            return new(null, [], "n/a", "");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return new(null, [], "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            CpIsolationAuditRunDetail? header = null;
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectCpIsolationAuditRunDetail;
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    header = new CpIsolationAuditRunDetail(
+                        Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["run_at"] is DBNull ? string.Empty : reader["run_at"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt32(reader["total_tenants"] is DBNull ? 0 : reader["total_tenants"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["passed"] is DBNull ? 0 : reader["passed"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["failed"] is DBNull ? 0 : reader["failed"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["warnings"] is DBNull ? 0 : reader["warnings"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["triggered_by"] is DBNull ? string.Empty : reader["triggered_by"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt32(reader["report_len"] is DBNull ? 0 : reader["report_len"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["report_excerpt"] is DBNull ? string.Empty : reader["report_excerpt"], CultureInfo.InvariantCulture) ?? string.Empty);
+                }
+            }
+
+            if (header is null)
+            {
+                return new(null, [], "database", "Run not found.");
+            }
+
+            var violations = new List<CpIsolationAuditViolationDigest>();
+            if (!string.IsNullOrWhiteSpace(header.RunAt))
+            {
+                await using var cmd = connection.CreateCommand();
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectCpIsolationAuditDayViolations;
+                AddParameter(cmd, "@run_at", header.RunAt);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    violations.Add(new CpIsolationAuditViolationDigest(
+                        Convert.ToInt64(reader["id"] is DBNull ? 0 : reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["site_key"] is DBNull ? string.Empty : reader["site_key"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["actor"] is DBNull ? string.Empty : reader["actor"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt32(reader["detail_len"] is DBNull ? 0 : reader["detail_len"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["detail_excerpt"] is DBNull ? string.Empty : reader["detail_excerpt"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["created_at"] is DBNull ? string.Empty : reader["created_at"], CultureInfo.InvariantCulture) ?? string.Empty));
+                }
+            }
+
+            return new(header, violations, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(null, [], "database-error", ex.Message);
+        }
+    }
+
     public async Task<CpAmlComplianceDigestResult> BuildCpAmlComplianceDigestAsync(int limit, CancellationToken cancellationToken = default)
     {
         var safeLimit = Math.Clamp(limit, 1, 500);
