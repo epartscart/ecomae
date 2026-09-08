@@ -4607,6 +4607,37 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>Opened migration includes mapping/errors/options/path omitted from the list dump.</summary>
+    public const string SelectCpDataMigrationsDetail = """
+        SELECT `id`, IFNULL(`company_id`,0) AS company_id, IFNULL(`migration_type`,'') AS migration_type,
+               IFNULL(`entity_type`,'') AS entity_type, IFNULL(`file_name`,'') AS file_name,
+               IFNULL(`file_path`,'') AS file_path,
+               IFNULL(`total_rows`,0) AS total_rows, IFNULL(`valid_rows`,0) AS valid_rows,
+               IFNULL(`error_rows`,0) AS error_rows, IFNULL(`imported_rows`,0) AS imported_rows,
+               IFNULL(`status`,'') AS status,
+               IFNULL(`column_mapping`,'') AS column_mapping,
+               IFNULL(`validation_errors`,'') AS validation_errors,
+               IFNULL(`options`,'') AS options,
+               IFNULL(`imported_by`,0) AS imported_by,
+               IFNULL(`imported_by_name`,'') AS imported_by_name,
+               IFNULL(`time_created`,0) AS time_created,
+               IFNULL(`time_completed`,0) AS time_completed
+        FROM `epc_data_migrations`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    public const string SelectCpDataMigrationLines = """
+        SELECT `id`, IFNULL(`row_number`,0) AS row_number,
+               IFNULL(`status`,'') AS status,
+               IFNULL(`error_message`,'') AS error_message,
+               IFNULL(`created_entity_id`,0) AS created_entity_id
+        FROM `epc_data_migration_rows`
+        WHERE `migration_id` = @id
+        ORDER BY `row_number` ASC, `id` ASC
+        LIMIT 200
+        """;
+
 
     // ---- Wave 22 CMS/platform leftover digests ----
     public const string CountCpGeoRegionsNodeCount = "SELECT COUNT(*) FROM `shop_geo`";

@@ -13733,6 +13733,82 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             return new(err, [], 0, "database-error", ex.Message);
         }
     }
+
+    public async Task<CpDataMigrationsDetailResult> BuildCpDataMigrationsDetailAsync(long id, CancellationToken cancellationToken = default)
+    {
+        if (id <= 0)
+        {
+            return new(null, [], "n/a", "");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return new(null, [], "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            CpDataMigrationsDetail? header = null;
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectCpDataMigrationsDetail;
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    header = new CpDataMigrationsDetail(
+                        Convert.ToInt64(reader["id"] is DBNull ? 0 : reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["company_id"] is DBNull ? 0 : reader["company_id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["migration_type"] is DBNull ? string.Empty : reader["migration_type"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["entity_type"] is DBNull ? string.Empty : reader["entity_type"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["file_name"] is DBNull ? string.Empty : reader["file_name"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["file_path"] is DBNull ? string.Empty : reader["file_path"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt64(reader["total_rows"] is DBNull ? 0 : reader["total_rows"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["valid_rows"] is DBNull ? 0 : reader["valid_rows"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["error_rows"] is DBNull ? 0 : reader["error_rows"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["imported_rows"] is DBNull ? 0 : reader["imported_rows"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["status"] is DBNull ? string.Empty : reader["status"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["column_mapping"] is DBNull ? string.Empty : reader["column_mapping"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["validation_errors"] is DBNull ? string.Empty : reader["validation_errors"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["options"] is DBNull ? string.Empty : reader["options"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt64(reader["imported_by"] is DBNull ? 0 : reader["imported_by"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["imported_by_name"] is DBNull ? string.Empty : reader["imported_by_name"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt64(reader["time_created"] is DBNull ? 0 : reader["time_created"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["time_completed"] is DBNull ? 0 : reader["time_completed"], CultureInfo.InvariantCulture));
+                }
+            }
+
+            if (header is null)
+            {
+                return new(null, [], "database", "Migration not found.");
+            }
+
+            var lines = new List<CpDataMigrationLineDigest>();
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectCpDataMigrationLines;
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    lines.Add(new CpDataMigrationLineDigest(
+                        Convert.ToInt64(reader["id"] is DBNull ? 0 : reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["row_number"] is DBNull ? 0 : reader["row_number"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["status"] is DBNull ? string.Empty : reader["status"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["error_message"] is DBNull ? string.Empty : reader["error_message"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt64(reader["created_entity_id"] is DBNull ? 0 : reader["created_entity_id"], CultureInfo.InvariantCulture)));
+                }
+            }
+
+            return new(header, lines, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(null, [], "database-error", ex.Message);
+        }
+    }
+
     public async Task<CpGeoRegionsDigestResult> BuildCpGeoRegionsDigestAsync(int limit, CancellationToken cancellationToken = default)
     {
         var safeLimit = Math.Clamp(limit, 1, 500);
