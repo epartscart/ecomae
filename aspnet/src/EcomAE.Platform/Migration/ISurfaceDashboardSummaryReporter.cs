@@ -317,6 +317,9 @@ public interface ISurfaceDashboardSummaryReporter
     /// <summary>Read-only commerce isolation audit runs (report_json omitted).</summary>
     Task<CpIsolationAuditDigestResult> BuildCpIsolationAuditDigestAsync(int limit, CancellationToken cancellationToken = default);
 
+    /// <summary>Opened isolation audit run (PHP <c>run_id</c>) plus same-day violation excerpts. report_json excerpt only.</summary>
+    Task<CpIsolationAuditRunDetailResult> BuildCpIsolationAuditRunDetailAsync(long id, CancellationToken cancellationToken = default);
+
     /// <summary>Read-only AML KYC rows (notes/document paths omitted).</summary>
     Task<CpAmlComplianceDigestResult> BuildCpAmlComplianceDigestAsync(int limit, CancellationToken cancellationToken = default);
 

@@ -7292,7 +7292,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only epc_ci_* KPIs + audit runs (report_json omitted). PHP commerce isolation audit remains authoritative."
+                note = "Read-only epc_ci_* KPIs + audit runs. Open ?run_id= loads a 280-char report excerpt plus same-day violation excerpts. IP omitted. PHP commerce isolation audit remains authoritative."
             });
         });
 
