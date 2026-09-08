@@ -368,10 +368,8 @@
             : "/ERP/?epc_erp_shell=1&area=sales&tab=sales_orders";
         _title = _view == "subscriptions" ? "Subscriptions" : "Sales Orders";
         _subtitle = _view == "subscriptions"
-            ? "Save a subscription or set status here."
-            : "Sales orders with line totals, customer, and status.";
             ? "Save a subscription, generate a cycle invoice, or set status here."
-            : "Sales orders with line totals.";
+            : "Sales orders with line totals, customer, and status.";
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
