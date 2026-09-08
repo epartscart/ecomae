@@ -3391,6 +3391,30 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>Opened tenant config row — includes config_value/description.</summary>
+    public const string SelectCpTenantConfigEntryDetail = """
+        SELECT `id`, IFNULL(`site_key`,'') AS site_key, IFNULL(`config_group`,'') AS config_group,
+               IFNULL(`config_key`,'') AS config_key, IFNULL(`config_value`,'') AS config_value,
+               IFNULL(`value_type`,'') AS value_type, IFNULL(`label`,'') AS label,
+               IFNULL(`description`,'') AS description, IFNULL(`editable`,0) AS editable,
+               IFNULL(`updated_by`,0) AS updated_by, IFNULL(`updated_at`,'') AS updated_at
+        FROM `epc_tenant_config`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Opened config history (PHP epc_tenant_config_history).</summary>
+    public const string SelectCpTenantConfigHistory = """
+        SELECT `id`, IFNULL(`old_value`,'') AS old_value, IFNULL(`new_value`,'') AS new_value,
+               IFNULL(`changed_by`,0) AS changed_by, IFNULL(`changed_at`,'') AS changed_at
+        FROM `epc_tenant_config_history`
+        WHERE `site_key` = @site
+          AND `config_group` = @group
+          AND `config_key` = @key
+        ORDER BY `id` DESC
+        LIMIT 20
+        """;
+
     /// <summary>Jewellery stock verification KPIs. Open = in_progress/Draft (PHP schema default + save path); complete = remaining_pcs=0 (PHP INSERT/schema status vocabulary is inconsistent).</summary>
     public const string SelectCpJewelleryStockVerificationStats = """
         SELECT

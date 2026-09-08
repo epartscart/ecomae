@@ -11001,6 +11001,72 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    public async Task<CpTenantConfigDetailResult> BuildCpTenantConfigDetailAsync(long id, CancellationToken cancellationToken = default)
+    {
+        if (id <= 0)
+        {
+            return new(null, [], "n/a", "");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return new(null, [], "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            CpTenantConfigEntryDetail? header = null;
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectCpTenantConfigEntryDetail;
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    header = new CpTenantConfigEntryDetail(
+                        Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["site_key"] is DBNull ? string.Empty : reader["site_key"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["config_group"] is DBNull ? string.Empty : reader["config_group"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["config_key"] is DBNull ? string.Empty : reader["config_key"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["config_value"] is DBNull ? string.Empty : reader["config_value"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["value_type"] is DBNull ? string.Empty : reader["value_type"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["label"] is DBNull ? string.Empty : reader["label"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["description"] is DBNull ? string.Empty : reader["description"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt32(reader["editable"] is DBNull ? 0 : reader["editable"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["updated_by"] is DBNull ? 0 : reader["updated_by"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["updated_at"] is DBNull ? string.Empty : reader["updated_at"], CultureInfo.InvariantCulture) ?? string.Empty);
+                }
+            }
+
+            var history = new List<CpTenantConfigHistoryDigest>();
+            if (header is not null)
+            {
+                await using var cmd = connection.CreateCommand();
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectCpTenantConfigHistory;
+                AddParameter(cmd, "@site", header.SiteKey);
+                AddParameter(cmd, "@group", header.ConfigGroup);
+                AddParameter(cmd, "@key", header.ConfigKey);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    history.Add(new CpTenantConfigHistoryDigest(
+                        Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["old_value"] is DBNull ? string.Empty : reader["old_value"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["new_value"] is DBNull ? string.Empty : reader["new_value"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt64(reader["changed_by"] is DBNull ? 0 : reader["changed_by"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["changed_at"] is DBNull ? string.Empty : reader["changed_at"], CultureInfo.InvariantCulture) ?? string.Empty));
+                }
+            }
+
+            return new(header, history, "database", header is null ? "Config not found." : string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(null, [], "database-error", ex.Message);
+        }
+    }
+
     public async Task<CpJewelleryStockVerificationDigestResult> BuildCpJewelleryStockVerificationDigestAsync(int limit, CancellationToken cancellationToken = default)
     {
         var safeLimit = Math.Clamp(limit, 1, 500);
