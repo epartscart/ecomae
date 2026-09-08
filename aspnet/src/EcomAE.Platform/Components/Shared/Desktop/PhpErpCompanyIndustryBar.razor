@@ -215,7 +215,7 @@
             : _companies[0].Id;
         var current = _companies.FirstOrDefault(c => c.Id == _activeCompanyId) ?? _companies[0];
         _activeLabel = $"{current.Code} · {current.Name}";
-        _jewellery = ErpIndustryNav.IsJewelleryCompany(current);
+        _jewellery = ErpIndustryNav.ShowJewelleryModules(_ctx.IndustryCode, current);
         _industryCode = _jewellery ? "jewellery" : (string.IsNullOrWhiteSpace(current.IndustryPack) ? "core" : current.IndustryPack);
         _industryLabel = ErpIndustryNav.IndustryLabelForPack(current.IndustryPack, _jewellery);
     }

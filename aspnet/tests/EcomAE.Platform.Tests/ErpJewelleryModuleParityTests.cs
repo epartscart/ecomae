@@ -184,6 +184,8 @@ public sealed class ErpJewelleryModuleParityTests
         Assert.False(ErpIndustryNav.IsJewelleryCompany(main));
         Assert.True(ErpIndustryNav.IsJewelleryFromHostOrPack("jewellery", null, null));
         Assert.False(ErpIndustryNav.IsJewelleryFromHostOrPack("auto_parts", null, main));
+        Assert.True(ErpIndustryNav.ShowJewelleryModules("jewellery", main));
+        Assert.False(ErpIndustryNav.ShowJewelleryModules("auto_parts", main));
     }
 
     [Fact]
