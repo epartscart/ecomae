@@ -21,12 +21,157 @@
             </div>
             <div class="panel-body">
                 <p>@CpPhpModuleCopy.PurposeFor("/cp/cost-models-app")</p>
-                <p>Add a costing transaction or assign a costing model here.</p>
+                <p>Open an assignment to see transactions and close detail. Add a costing transaction or assign a costing model here.</p>
             </div>
         </div>
     </div>
-    <PhpParityModuleBody AppPath="/cp/cost-models-app" IsAdmin="_isAdmin" />
+    <PhpParityModuleBody AppPath="/cp/cost-models-app" IsAdmin="_isAdmin" ShowGhostScaffold="false" />
 
+    <ErpOpenedRecordBanner Id="_openedId" Found="@(_openedItem is not null)" Caption="@OpenedCaption" ListHref="@_listHref" />
+
+    <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Cost model KPIs">
+        <div class="kpi"><div class="lbl">Items</div><div class="val">@_summary.ItemCount.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Txns</div><div class="val">@_summary.TxnCount.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Closes</div><div class="val">@_summary.CloseCount.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Models</div><div class="val">@_summary.ModelCount.ToString(CultureInfo.InvariantCulture)</div></div>
+    </div>
+
+    @if (_isAdmin)
+    {
+        <form method="post" action="/erp/cost-models/txns/add" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="@_returnHref" />
+            <strong style="width:100%;font-size:.85rem">Add transaction</strong>
+            <label>Item id <input type="number" name="item_id" min="0" required style="width:7rem" value="@OpenedItemIdValue" /></label>
+            <label>Type
+                <select name="txn_type">
+                    <option value="receipt">receipt</option>
+                    <option value="issue">issue</option>
+                </select>
+            </label>
+            <label>Qty <input type="text" name="qty" placeholder="0.0000" style="width:7rem" /></label>
+            <label>Unit cost <input type="text" name="unit_cost" placeholder="0.0000" style="width:7rem" /></label>
+            <label>Company id <input type="number" name="company_id" min="0" style="width:5rem" value="@OpenedCompanyValue" /></label>
+            <button type="submit" class="btn btn-sm btn-primary">Add</button>
+        </form>
+
+        <form method="post" action="/erp/cost-models/items/set" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="@_returnHref" />
+            <strong style="width:100%;font-size:.85rem">Assign costing model</strong>
+            <label>Item id <input type="number" name="item_id" min="0" required style="width:7rem" value="@OpenedItemIdValue" /></label>
+            <label>Model
+                <select name="model">
+                    <option value="moving_avg" selected="@(OpenedModelValue == "moving_avg" || string.IsNullOrWhiteSpace(OpenedModelValue))">moving_avg</option>
+                    <option value="standard" selected="@(OpenedModelValue == "standard")">standard</option>
+                    <option value="fifo" selected="@(OpenedModelValue == "fifo")">fifo</option>
+                    <option value="lifo" selected="@(OpenedModelValue == "lifo")">lifo</option>
+                </select>
+            </label>
+            <label>Std cost <input type="text" name="std_cost" placeholder="0.0000" style="width:7rem" value="@OpenedStdCostValue" /></label>
+            <label>Company id <input type="number" name="company_id" min="0" style="width:5rem" value="@OpenedCompanyValue" /></label>
+            <button type="submit" class="btn btn-sm btn-primary">Save</button>
+        </form>
+    }
+
+    @if (_openedItem is not null)
+    {
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">
+                    Item @_openedItem.ItemId.ToString(CultureInfo.InvariantCulture)
+                    <span class="label label-default pull-right">@(!string.IsNullOrWhiteSpace(_openedItem.Model) ? _openedItem.Model : "—")</span>
+                </div>
+                <div class="panel-body">
+                    <p>Assignment @_openedItem.Id.ToString(CultureInfo.InvariantCulture)
+                        · Company @_openedItem.CompanyId.ToString(CultureInfo.InvariantCulture)
+                        · Std cost @_openedItem.StdCost.ToString("0.0000", CultureInfo.InvariantCulture)</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">Transactions</div>
+                <div class="panel-body">
+                    <div class="table-responsive">
+                        <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped table-bordered table-epc epc-erp-table">
+                            <thead>
+                                <tr>
+                                    <th>Id</th>
+                                    <th>Type</th>
+                                    <th>Qty</th>
+                                    <th>Unit cost</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (_openedTxns.Count == 0)
+                                {
+                                    <tr><td colspan="4">No transactions yet.</td></tr>
+                                }
+                                else
+                                {
+                                    @foreach (var row in _openedTxns)
+                                    {
+                                        <tr>
+                                            <td>@row.Id.ToString(CultureInfo.InvariantCulture)</td>
+                                            <td>@(!string.IsNullOrWhiteSpace(row.TxnType) ? row.TxnType : "—")</td>
+                                            <td>@row.Qty.ToString("0.0000", CultureInfo.InvariantCulture)</td>
+                                            <td>@row.UnitCost.ToString("0.0000", CultureInfo.InvariantCulture)</td>
+                                        </tr>
+                                    }
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">Closes</div>
+                <div class="panel-body">
+                    <div class="table-responsive">
+                        <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped table-bordered table-epc epc-erp-table">
+                            <thead>
+                                <tr>
+                                    <th>Id</th>
+                                    <th>Label</th>
+                                    <th>COGS</th>
+                                    <th>Qty</th>
+                                    <th>Value</th>
+                                    <th>Variance</th>
+                                    <th>Detail</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (_openedCloses.Count == 0)
+                                {
+                                    <tr><td colspan="7">No closes yet.</td></tr>
+                                }
+                                else
+                                {
+                                    @foreach (var row in _openedCloses)
+                                    {
+                                        <tr>
+                                            <td>@row.Id.ToString(CultureInfo.InvariantCulture)</td>
+                                            <td>@(!string.IsNullOrWhiteSpace(row.Label) ? row.Label : "—")</td>
+                                            <td>@row.Cogs.ToString("0.00", CultureInfo.InvariantCulture)</td>
+                                            <td>@row.ClosingQty.ToString("0.0000", CultureInfo.InvariantCulture)</td>
+                                            <td>@row.ClosingValue.ToString("0.00", CultureInfo.InvariantCulture)</td>
+                                            <td>@row.Variance.ToString("0.00", CultureInfo.InvariantCulture)</td>
+                                            <td>@(!string.IsNullOrWhiteSpace(row.DetailJson) ? row.DetailJson : "—")</td>
+                                        </tr>
+                                    }
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
 
     <p class="help-block">@_summary.ItemCount.ToString(CultureInfo.InvariantCulture) Items · @_summary.TxnCount.ToString(CultureInfo.InvariantCulture) Txns · @_summary.CloseCount.ToString(CultureInfo.InvariantCulture) Closes · @_summary.ModelCount.ToString(CultureInfo.InvariantCulture) Models.</p>
 
@@ -35,7 +180,7 @@
             <div class="panel-heading hbuilt">Records</div>
             <div class="panel-body">
                 <div class="table-responsive">
-                    <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped">
+                    <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped table-bordered table-epc epc-erp-table">
             <thead>
                 <tr>
                     <th>Id</th>
@@ -50,20 +195,20 @@
             <tbody>
                 @if (_rows.Count == 0)
                 {
-                    <tr><td colspan="7">No records yet.</td></tr>
+                    <tr><td colspan="7">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? "No records yet." : _message) : "Sign in with a staff session for live rows.")</td></tr>
                 }
                 else
                 {
                     @foreach (var row in _rows)
                     {
-                        <tr>
+                        <tr id="erp-row-@row.Id.ToString(CultureInfo.InvariantCulture)" class="@ErpRecordOpen.RowClass(row.Id, _openedId)">
                             <td>@row.Id.ToString(CultureInfo.InvariantCulture)</td>
                             <td>@row.CompanyId.ToString(CultureInfo.InvariantCulture)</td>
                             <td>@row.ItemId.ToString(CultureInfo.InvariantCulture)</td>
                             <td>@(!string.IsNullOrWhiteSpace(row.Model) ? row.Model : "—")</td>
                             <td>@row.StdCost.ToString("0.0000", CultureInfo.InvariantCulture)</td>
                             <td>@row.TimeUpdated.ToString(CultureInfo.InvariantCulture)</td>
-                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
+                            <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href(_listHref, "costm_id", row.Id)">Open</a></td>
                         </tr>
                     }
                 }
@@ -76,53 +221,43 @@
 
 </PhpCpDesktopChrome>
 
-<form method="post" action="/erp/cost-models/txns/add" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
-            <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="/cp/cost-models-app" />
-            <strong style="width:100%;font-size:.85rem">Add transaction</strong>
-            <label>Item id <input type="number" name="item_id" min="0" required style="width:7rem" /></label>
-            <label>Type
-                <select name="txn_type">
-                    <option value="receipt">receipt</option>
-                    <option value="issue">issue</option>
-                </select>
-            </label>
-            <label>Qty <input type="text" name="qty" placeholder="0.0000" style="width:7rem" /></label>
-            <label>Unit cost <input type="text" name="unit_cost" placeholder="0.0000" style="width:7rem" /></label>
-            <label>Company id <input type="number" name="company_id" min="0" value="0" style="width:5rem" /></label>
-            <button type="submit" class="btn btn-sm btn-primary">Add</button>
-        </form>
-
-<form method="post" action="/erp/cost-models/items/set" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
-            <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="/cp/cost-models-app" />
-            <strong style="width:100%;font-size:.85rem">Assign costing model</strong>
-            <label>Item id <input type="number" name="item_id" min="0" required style="width:7rem" /></label>
-            <label>Model
-                <select name="model">
-                    <option value="moving_avg">moving_avg</option>
-                    <option value="standard">standard</option>
-                    <option value="fifo">fifo</option>
-                    <option value="lifo">lifo</option>
-                </select>
-            </label>
-            <label>Std cost <input type="text" name="std_cost" placeholder="0.0000" style="width:7rem" /></label>
-            <label>Company id <input type="number" name="company_id" min="0" value="0" style="width:5rem" /></label>
-            <button type="submit" class="btn btn-sm btn-primary">Save</button>
-        </form>
-
 @code {
     private const string _phpTab = "/ERP/?epc_erp_shell=1&area=cost_mgmt&tab=cost_models";
+    private string _listHref = "/cp/cost-models-app";
     private bool _isAdmin;
     private CpCostModelsSummary _summary = new(0, 0, 0, 0, "n/a", "");
     private IReadOnlyList<CpCostModelItemDigest> _rows = [];
     private string _source = "n/a";
     private string _message = "";
+    private long _openedId;
+    private string _returnHref = "/cp/cost-models-app";
+    private CpCostModelItemDigest? _openedItem;
+    private IReadOnlyList<CpCostModelTxnDigest> _openedTxns = [];
+    private IReadOnlyList<CpCostModelCloseDigest> _openedCloses = [];
+
+    private string OpenedCaption => _openedItem is null
+        ? ""
+        : ("Item " + _openedItem.ItemId.ToString(CultureInfo.InvariantCulture)
+            + (string.IsNullOrWhiteSpace(_openedItem.Model) ? "" : (" · " + _openedItem.Model)));
+
+    private string OpenedItemIdValue => _openedItem is null ? "" : _openedItem.ItemId.ToString(CultureInfo.InvariantCulture);
+    private string OpenedCompanyValue => _openedItem is null ? "0" : _openedItem.CompanyId.ToString(CultureInfo.InvariantCulture);
+    private string OpenedModelValue => _openedItem?.Model ?? "";
+    private string OpenedStdCostValue => _openedItem is null ? "" : _openedItem.StdCost.ToString("0.0000", CultureInfo.InvariantCulture);
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
+
+        var path = ctx.Request.Path.Value;
+        _listHref = string.Equals(path, "/erp/cost-models-app", StringComparison.OrdinalIgnoreCase)
+            ? "/erp/cost-models-app"
+            : "/cp/cost-models-app";
+        _openedId = ErpRecordOpen.ReadId(ctx.Request, "costm_id");
+        _returnHref = _openedId > 0
+            ? ErpRecordOpen.Href(_listHref, "costm_id", _openedId).Split('#')[0]
+            : _listHref;
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
@@ -136,5 +271,25 @@
         _rows = result.Items;
         _source = result.Source;
         _message = result.Message;
+
+        if (_openedId > 0)
+        {
+            var detail = await Dashboards.BuildCpCostModelItemDetailAsync(_openedId, ctx.RequestAborted);
+            _openedItem = detail.Item;
+            _openedTxns = detail.Txns;
+            _openedCloses = detail.Closes;
+            if (_openedItem is not null)
+            {
+                var openedList = _rows.FirstOrDefault(r => r.Id == _openedId);
+                if (openedList is not null)
+                {
+                    _rows = new[] { openedList }.Concat(_rows.Where(r => r.Id != _openedId)).ToList();
+                }
+            }
+            else if (!string.IsNullOrWhiteSpace(detail.Message))
+            {
+                _message = detail.Message;
+            }
+        }
     }
 }
