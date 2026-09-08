@@ -1339,6 +1339,36 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>Opened NL report definition. Query is a short excerpt; recipients/parameters omitted.</summary>
+    public const string SelectCpNlReportDefinitionDetail = """
+        SELECT `id`, IFNULL(`site_key`, '') AS site_key,
+               IFNULL(`name`, '') AS name,
+               IFNULL(`description`, '') AS description,
+               IFNULL(`report_type`, '') AS report_type,
+               IFNULL(`schedule`, '') AS schedule,
+               IFNULL(`format`, '') AS format,
+               `active`,
+               IFNULL(`created_by`, 0) AS created_by,
+               CHAR_LENGTH(IFNULL(`query_template`,'')) AS query_len,
+               LEFT(IFNULL(`query_template`,''), 280) AS query_excerpt
+        FROM `epc_report_definitions`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Opened definition runs. File path omitted.</summary>
+    public const string SelectCpNlReportRuns = """
+        SELECT `id`, IFNULL(`status`,'') AS status, IFNULL(`row_count`,0) AS row_count,
+               IFNULL(`execution_ms`,0) AS execution_ms,
+               IFNULL(`error_message`,'') AS error_message,
+               IFNULL(CAST(`created_at` AS CHAR),'') AS created_at,
+               IFNULL(CAST(`completed_at` AS CHAR),'') AS completed_at
+        FROM `epc_report_runs`
+        WHERE `definition_id` = @id
+        ORDER BY `id` DESC
+        LIMIT 50
+        """;
+
     public const string SelectCpMarketingBroadcastStats = """
         SELECT
             (SELECT COUNT(*) FROM `epc_marketing_broadcast_campaigns`) AS campaigns,

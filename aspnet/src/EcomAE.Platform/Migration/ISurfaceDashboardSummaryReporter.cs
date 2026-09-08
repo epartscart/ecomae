@@ -122,6 +122,9 @@ public interface ISurfaceDashboardSummaryReporter
     /// <summary>Read-only NL report definitions metadata (query/recipients omitted).</summary>
     Task<CpNlReportingDigestResult> ListCpNlReportDefinitionsAsync(int limit, CancellationToken cancellationToken = default);
 
+    /// <summary>Opened NL report definition (PHP <c>report_id</c>) plus runs. Query excerpt only; recipients omitted.</summary>
+    Task<CpNlReportDefinitionDetailResult> BuildCpNlReportDefinitionDetailAsync(long id, CancellationToken cancellationToken = default);
+
     /// <summary>Read-only marketing broadcast campaigns (bodies omitted; send remains PHP).</summary>
     Task<CpMarketingBroadcastDigestResult> BuildCpMarketingBroadcastDigestAsync(int limit, CancellationToken cancellationToken = default);
 

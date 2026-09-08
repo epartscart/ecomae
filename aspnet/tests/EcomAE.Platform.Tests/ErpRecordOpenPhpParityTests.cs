@@ -36,6 +36,7 @@ public sealed class ErpRecordOpenPhpParityTests
     [InlineData("/ERP/?epc_erp_shell=1&area=audit_wb&tab=blockchain_proofs&proof_id=4", "/erp/blockchain-proofs-app?proof_id=4")]
     [InlineData("/CP/control/version_control?item_id=4", "/cp/ops-guides-app?item_id=4")]
     [InlineData("/CP/control/portal/epc_marketplace?app_id=7", "/cp/marketplace-apps-app?app_id=7")]
+    [InlineData("/CP/control/portal/epc_nl_reporting?report_id=8", "/cp/nl-reporting-app?report_id=8")]
     [InlineData("/ERP/?epc_erp_shell=1&area=landed_cost_area&tab=landed_cost&sheet_id=6", "/erp/landed-cost-app?sheet_id=6")]
     [InlineData("/CP/control/portal/epc_soc2_compliance?soc2_id=8", "/cp/soc2-compliance-app?soc2_id=8")]
     [InlineData("/ERP/?epc_erp_shell=1&area=tax&tab=compliance&soc2_id=8", "/erp/soc2-compliance-app?soc2_id=8")]
@@ -425,6 +426,36 @@ public sealed class ErpRecordOpenPhpParityTests
             ErpRecordOpen.PreserveRecordQuery(
                 "/cp/marketplace-apps-app",
                 "/CP/control/portal/epc_marketplace?app_id=7"));
+    }
+
+    [Fact]
+    public void NlReportingApp_OpenLoadsQueryExcerptAndRuns()
+    {
+        var root = FindRepoRoot();
+        var text = File.ReadAllText(Path.Combine(root,
+            "aspnet/src/EcomAE.Platform/Components/Pages/CpNlReportingApp.razor"));
+        Assert.Contains("ErpRecordOpen.Href(_listHref, \"report_id\"", text, StringComparison.Ordinal);
+        Assert.Contains("ErpOpenedRecordBanner", text, StringComparison.Ordinal);
+        Assert.Contains("ReadId(ctx.Request, \"report_id\")", text, StringComparison.Ordinal);
+        Assert.Contains("BuildCpNlReportDefinitionDetailAsync", text, StringComparison.Ordinal);
+        Assert.Contains("No query excerpt yet.", text, StringComparison.Ordinal);
+        Assert.Contains("No runs yet.", text, StringComparison.Ordinal);
+        Assert.Contains("ShowGhostScaffold=\"false\"", text, StringComparison.Ordinal);
+        Assert.Contains("table-epc", text, StringComparison.Ordinal);
+        Assert.Contains("PhpParityModuleBody", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)\">Open", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("/php-reference/", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("ASP.NET", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("query_template", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("file_path", text, StringComparison.Ordinal);
+
+        Assert.Equal("/cp/nl-reporting-app?report_id=8#erp-row-8",
+            ErpRecordOpen.Href("/cp/nl-reporting-app", "report_id", 8));
+        Assert.Equal(
+            "/cp/nl-reporting-app?report_id=8",
+            ErpRecordOpen.PreserveRecordQuery(
+                "/cp/nl-reporting-app",
+                "/CP/control/portal/epc_nl_reporting?report_id=8"));
     }
 
     [Fact]
