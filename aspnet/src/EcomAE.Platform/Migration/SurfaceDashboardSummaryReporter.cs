@@ -11216,6 +11216,81 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    public async Task<CpAiServiceQueryDetailResult> BuildCpAiServiceQueryDetailAsync(long id, CancellationToken cancellationToken = default)
+    {
+        if (id <= 0)
+        {
+            return new(null, [], "n/a", "");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return new(null, [], "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            CpAiServiceQueryDetail? header = null;
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectCpAiServiceQueryDetail;
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    header = new CpAiServiceQueryDetail(
+                        Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["site_key"] is DBNull ? string.Empty : reader["site_key"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt64(reader["user_id"] is DBNull ? 0 : reader["user_id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["service"] is DBNull ? string.Empty : reader["service"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["intent"] is DBNull ? string.Empty : reader["intent"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt32(reader["tokens_used"] is DBNull ? 0 : reader["tokens_used"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["execution_ms"] is DBNull ? 0 : reader["execution_ms"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["pii_stripped"] is DBNull ? 0 : reader["pii_stripped"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["status"] is DBNull ? string.Empty : reader["status"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["created_at"] is DBNull ? string.Empty : reader["created_at"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt32(reader["input_len"] is DBNull ? 0 : reader["input_len"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["input_excerpt"] is DBNull ? string.Empty : reader["input_excerpt"], CultureInfo.InvariantCulture) ?? string.Empty);
+                }
+            }
+
+            if (header is null)
+            {
+                return new(null, [], "database", "Query not found.");
+            }
+
+            var siblings = new List<CpAiServiceQueryDigest>();
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectCpAiServiceServiceSiblings;
+                AddParameter(cmd, "@service", header.Service);
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    siblings.Add(new CpAiServiceQueryDigest(
+                        Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["site_key"] is DBNull ? string.Empty : reader["site_key"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt64(reader["user_id"] is DBNull ? 0 : reader["user_id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["service"] is DBNull ? string.Empty : reader["service"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["intent"] is DBNull ? string.Empty : reader["intent"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt32(reader["tokens_used"] is DBNull ? 0 : reader["tokens_used"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["execution_ms"] is DBNull ? 0 : reader["execution_ms"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["pii_stripped"] is DBNull ? 0 : reader["pii_stripped"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["status"] is DBNull ? string.Empty : reader["status"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["created_at"] is DBNull ? string.Empty : reader["created_at"], CultureInfo.InvariantCulture) ?? string.Empty));
+                }
+            }
+
+            return new(header, siblings, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(null, [], "database-error", ex.Message);
+        }
+    }
+
     public async Task<CpReturnsRmaDigestResult> BuildCpReturnsRmaDigestAsync(int limit, CancellationToken cancellationToken = default)
     {
         var safeLimit = Math.Clamp(limit, 1, 500);

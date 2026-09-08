@@ -20,20 +20,101 @@
             </div>
             <div class="panel-body">
                 <p>@CpPhpModuleCopy.PurposeFor("/cp/ai-service-app")</p>
+                <p>Open a query for a short input excerpt and other queries on the same service. Full output stays on the Classic twin.</p>
             </div>
         </div>
     </div>
-    <PhpParityModuleBody AppPath="/cp/ai-service-app" IsAdmin="_isAdmin" />
+    <PhpParityModuleBody AppPath="/cp/ai-service-app" IsAdmin="_isAdmin" ShowGhostScaffold="false" />
 
+    <ErpOpenedRecordBanner Id="_openedId" Found="@(_openedQuery is not null)" Caption="@OpenedCaption" ListHref="@_listHref" />
 
-    <p class="help-block">@_summary.QueryCount.ToString(CultureInfo.InvariantCulture) Queries · @_summary.SuccessCount.ToString(CultureInfo.InvariantCulture) Success · @_summary.BlockedCount.ToString(CultureInfo.InvariantCulture) Blocked · @_summary.ProviderCount.ToString(CultureInfo.InvariantCulture) Providers.</p>
+    <div class="epc-erp-kpi epc-erp-stat-row" aria-label="AI service KPIs">
+        <div class="kpi"><div class="lbl">Queries</div><div class="val">@_summary.QueryCount.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Success</div><div class="val">@_summary.SuccessCount.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Blocked</div><div class="val">@_summary.BlockedCount.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Opened siblings</div><div class="val">@_openedSiblings.Count.ToString(CultureInfo.InvariantCulture)</div></div>
+    </div>
+
+    @if (_openedQuery is not null)
+    {
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">
+                    Query #@_openedQuery.Id.ToString(CultureInfo.InvariantCulture)
+                    <span class="label label-default pull-right">@(!string.IsNullOrWhiteSpace(_openedQuery.Status) ? _openedQuery.Status : "—")</span>
+                </div>
+                <div class="panel-body">
+                    <p>@(!string.IsNullOrWhiteSpace(_openedQuery.SiteKey) ? _openedQuery.SiteKey : "—")
+                        · @(!string.IsNullOrWhiteSpace(_openedQuery.Service) ? _openedQuery.Service : "—")
+                        · @(!string.IsNullOrWhiteSpace(_openedQuery.Intent) ? _openedQuery.Intent : "—")
+                        · user @_openedQuery.UserId.ToString(CultureInfo.InvariantCulture)</p>
+                    <p>@_openedQuery.TokensUsed.ToString(CultureInfo.InvariantCulture) tokens
+                        · @_openedQuery.ExecutionMs.ToString(CultureInfo.InvariantCulture) ms
+                        · PII stripped @_openedQuery.PiiStripped.ToString(CultureInfo.InvariantCulture)
+                        · @_openedQuery.CreatedAt</p>
+                    @if (!string.IsNullOrWhiteSpace(_openedQuery.InputExcerpt))
+                    {
+                        <pre style="max-height:12rem;overflow:auto;white-space:pre-wrap;margin:0">@_openedQuery.InputExcerpt</pre>
+                        @if (_openedQuery.InputLen > _openedQuery.InputExcerpt.Length)
+                        {
+                            <p class="text-muted">Excerpt only (@_openedQuery.InputExcerpt.Length.ToString(CultureInfo.InvariantCulture) of @_openedQuery.InputLen.ToString(CultureInfo.InvariantCulture) chars). Full output stays on the Classic twin.</p>
+                        }
+                    }
+                    else
+                    {
+                        <p class="text-muted">No input excerpt yet.</p>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">Service siblings</div>
+                <div class="panel-body">
+                    <div class="table-responsive">
+                        <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped table-bordered table-epc epc-erp-table">
+                            <thead>
+                                <tr>
+                                    <th>Id</th>
+                                    <th>Site</th>
+                                    <th>Intent</th>
+                                    <th>Status</th>
+                                    <th>Created</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (_openedSiblings.Count == 0)
+                                {
+                                    <tr><td colspan="5">No service siblings yet.</td></tr>
+                                }
+                                else
+                                {
+                                    @foreach (var sib in _openedSiblings)
+                                    {
+                                        <tr>
+                                            <td>@sib.Id.ToString(CultureInfo.InvariantCulture)</td>
+                                            <td>@(!string.IsNullOrWhiteSpace(sib.SiteKey) ? sib.SiteKey : "—")</td>
+                                            <td>@(!string.IsNullOrWhiteSpace(sib.Intent) ? sib.Intent : "—")</td>
+                                            <td>@(!string.IsNullOrWhiteSpace(sib.Status) ? sib.Status : "—")</td>
+                                            <td>@(!string.IsNullOrWhiteSpace(sib.CreatedAt) ? sib.CreatedAt : "—")</td>
+                                        </tr>
+                                    }
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
 
     <div class="col-lg-12">
         <div class="hpanel">
             <div class="panel-heading hbuilt">Records</div>
             <div class="panel-body">
                 <div class="table-responsive">
-                    <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped">
+                    <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped table-bordered table-epc epc-erp-table">
             <thead>
                 <tr>
                     <th>Id</th>
@@ -52,13 +133,13 @@
             <tbody>
                 @if (_rows.Count == 0)
                 {
-                    <tr><td colspan="11">No records yet.</td></tr>
+                    <tr><td colspan="11">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? "No records yet." : _message) : "Sign in with a staff session for live rows.")</td></tr>
                 }
                 else
                 {
                     @foreach (var row in _rows)
                     {
-                        <tr>
+                        <tr id="erp-row-@row.Id.ToString(CultureInfo.InvariantCulture)" class="@ErpRecordOpen.RowClass(row.Id, _openedId)">
                             <td>@row.Id.ToString(CultureInfo.InvariantCulture)</td>
                             <td>@(!string.IsNullOrWhiteSpace(row.SiteKey) ? row.SiteKey : "—")</td>
                             <td>@row.UserId.ToString(CultureInfo.InvariantCulture)</td>
@@ -69,12 +150,12 @@
                             <td>@row.ExecutionMs.ToString(CultureInfo.InvariantCulture)</td>
                             <td>@row.PiiStripped.ToString(CultureInfo.InvariantCulture)</td>
                             <td>@(!string.IsNullOrWhiteSpace(row.CreatedAt) ? row.CreatedAt : "—")</td>
-                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
+                            <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href(_listHref, "query_id", row.Id)">Open</a></td>
                         </tr>
                     }
                 }
             </tbody>
-                        </table>
+                    </table>
                 </div>
             </div>
         </div>
@@ -84,16 +165,28 @@
 
 @code {
     private const string _phpTab = "/CP/general_pages/epc_ai_service";
+    private const string _listHref = "/cp/ai-service-app";
     private bool _isAdmin;
     private CpAiServiceSummary _summary = new(0, 0, 0, 0, "n/a", "");
     private IReadOnlyList<CpAiServiceQueryDigest> _rows = [];
     private string _source = "n/a";
     private string _message = "";
+    private long _openedId;
+    private CpAiServiceQueryDetail? _openedQuery;
+    private IReadOnlyList<CpAiServiceQueryDigest> _openedSiblings = [];
+
+    private string OpenedCaption => _openedQuery is null
+        ? ""
+        : ("Query #" + _openedQuery.Id.ToString(CultureInfo.InvariantCulture)
+            + (string.IsNullOrWhiteSpace(_openedQuery.Service) ? "" : (" · " + _openedQuery.Service))
+            + (string.IsNullOrWhiteSpace(_openedQuery.Status) ? "" : (" · " + _openedQuery.Status)));
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
+
+        _openedId = ErpRecordOpen.ReadId(ctx.Request, "query_id");
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
@@ -107,5 +200,24 @@
         _rows = result.Queries;
         _source = result.Source;
         _message = result.Message;
+
+        if (_openedId > 0)
+        {
+            var detail = await Dashboards.BuildCpAiServiceQueryDetailAsync(_openedId, ctx.RequestAborted);
+            _openedQuery = detail.Query;
+            _openedSiblings = detail.Siblings;
+            if (_openedQuery is not null)
+            {
+                var openedList = _rows.FirstOrDefault(r => r.Id == _openedId);
+                if (openedList is not null)
+                {
+                    _rows = new[] { openedList }.Concat(_rows.Where(r => r.Id != _openedId)).ToList();
+                }
+            }
+            else if (!string.IsNullOrWhiteSpace(detail.Message))
+            {
+                _message = detail.Message;
+            }
+        }
     }
 }

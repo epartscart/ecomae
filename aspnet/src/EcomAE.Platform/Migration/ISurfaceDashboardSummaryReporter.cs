@@ -311,6 +311,9 @@ public interface ISurfaceDashboardSummaryReporter
     /// <summary>Read-only AI service queries (input/output text omitted).</summary>
     Task<CpAiServiceDigestResult> BuildCpAiServiceDigestAsync(int limit, CancellationToken cancellationToken = default);
 
+    /// <summary>Opened AI query (PHP <c>query_id</c>) plus service siblings. Input excerpt only; output omitted.</summary>
+    Task<CpAiServiceQueryDetailResult> BuildCpAiServiceQueryDetailAsync(long id, CancellationToken cancellationToken = default);
+
     /// <summary>Read-only returns/RMA requests (description/notes omitted).</summary>
     Task<CpReturnsRmaDigestResult> BuildCpReturnsRmaDigestAsync(int limit, CancellationToken cancellationToken = default);
 

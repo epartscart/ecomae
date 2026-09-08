@@ -3224,6 +3224,26 @@ public sealed record CpAiServiceDigestResult(
     string Source,
     string Message);
 
+public sealed record CpAiServiceQueryDetail(
+    long Id,
+    string SiteKey,
+    long UserId,
+    string Service,
+    string Intent,
+    int TokensUsed,
+    int ExecutionMs,
+    int PiiStripped,
+    string Status,
+    string CreatedAt,
+    int InputLen,
+    string InputExcerpt);
+
+public sealed record CpAiServiceQueryDetailResult(
+    CpAiServiceQueryDetail? Query,
+    IReadOnlyList<CpAiServiceQueryDigest> Siblings,
+    string Source,
+    string Message);
+
 public sealed record CpReturnsRmaSummary(
     int RmaCount,
     int OpenCount,
