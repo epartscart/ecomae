@@ -11718,6 +11718,73 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    public async Task<CpQuoteRequestDetailResult> BuildCpQuoteRequestDetailAsync(long id, CancellationToken cancellationToken = default)
+    {
+        if (id <= 0)
+        {
+            return new(null, [], "n/a", "");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return new(null, [], "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            CpQuoteRequestDetail? header = null;
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectCpQuoteRequestDetail;
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    header = new CpQuoteRequestDetail(
+                        Convert.ToInt64(reader["id"] is DBNull ? 0 : reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["user_id"] is DBNull ? 0 : reader["user_id"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["session_id"] is DBNull ? 0 : reader["session_id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["status"] is DBNull ? string.Empty : reader["status"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt64(reader["time_created"] is DBNull ? 0 : reader["time_created"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["time_updated"] is DBNull ? 0 : reader["time_updated"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["time_submitted"] is DBNull ? 0 : reader["time_submitted"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["accepted_order_id"] is DBNull ? 0 : reader["accepted_order_id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["admin_note"] is DBNull ? string.Empty : reader["admin_note"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["customer_note"] is DBNull ? string.Empty : reader["customer_note"], CultureInfo.InvariantCulture) ?? string.Empty);
+                }
+            }
+
+            var lines = new List<CpQuoteRequestLineDigest>();
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectCpQuoteRequestLines;
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    lines.Add(new CpQuoteRequestLineDigest(
+                        Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["quote_id"] is DBNull ? 0 : reader["quote_id"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["count_need"] is DBNull ? 0 : reader["count_need"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(reader["quoted_price"] is DBNull ? 0 : reader["quoted_price"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["quoted_time_to_exe"] is DBNull ? 0 : reader["quoted_time_to_exe"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["line_admin_note"] is DBNull ? string.Empty : reader["line_admin_note"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt32(reader["offer_alternative"] is DBNull ? 0 : reader["offer_alternative"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["alt_manufacturer"] is DBNull ? string.Empty : reader["alt_manufacturer"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["alt_article"] is DBNull ? string.Empty : reader["alt_article"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["alt_name"] is DBNull ? string.Empty : reader["alt_name"], CultureInfo.InvariantCulture) ?? string.Empty));
+                }
+            }
+
+            return new(header, lines, "database", header is null ? "Quote not found." : string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(null, [], "database-error", ex.Message);
+        }
+    }
+
     public async Task<CpPlatformCommunicationDigestResult> BuildCpPlatformCommunicationDigestAsync(int limit, CancellationToken cancellationToken = default)
     {
         var safeLimit = Math.Clamp(limit, 1, 500);

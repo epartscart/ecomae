@@ -3490,6 +3490,36 @@ public sealed record CpQuoteRequestsDigestResult(
     string Source,
     string Message);
 
+public sealed record CpQuoteRequestDetail(
+    long Id,
+    long UserId,
+    long SessionId,
+    string Status,
+    long TimeCreated,
+    long TimeUpdated,
+    long TimeSubmitted,
+    long AcceptedOrderId,
+    string AdminNote,
+    string CustomerNote);
+
+public sealed record CpQuoteRequestLineDigest(
+    long Id,
+    long QuoteId,
+    int CountNeed,
+    decimal QuotedPrice,
+    int QuotedTimeToExe,
+    string LineAdminNote,
+    int OfferAlternative,
+    string AltManufacturer,
+    string AltArticle,
+    string AltName);
+
+public sealed record CpQuoteRequestDetailResult(
+    CpQuoteRequestDetail? Quote,
+    IReadOnlyList<CpQuoteRequestLineDigest> Lines,
+    string Source,
+    string Message);
+
 public sealed record CpPlatformCommunicationSummary(
     int SettingCount,
     int TaskCount,
