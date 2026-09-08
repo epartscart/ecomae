@@ -9,7 +9,7 @@ public sealed class ErpCftLineAddPhpParityTests
     public void CashAccountsApp_PostsNativeLineForm()
     {
         var text = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/ErpCashAccountsApp.razor"));
-        Assert.Contains("ErpCashForecastLineAdd", text, StringComparison.Ordinal);
+        Assert.Contains("/erp/cash-forecast/lines/add", text, StringComparison.Ordinal);
         Assert.Contains("name=\"confirmWrites\"", text, StringComparison.Ordinal);
         Assert.Contains("name=\"forecast_id\"", text, StringComparison.Ordinal);
         Assert.Contains("Add forecast line", text, StringComparison.Ordinal);

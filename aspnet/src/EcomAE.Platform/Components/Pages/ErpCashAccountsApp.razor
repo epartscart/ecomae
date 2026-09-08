@@ -137,7 +137,7 @@
         @if (_isAdmin)
         {
             <ErpPhpCreateWell Title="Add forecast line">
-                <form method="post" action="@EcomAeRoutes.ErpCashForecastLineAdd" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin-bottom:1rem;">
+                <form method="post" action="/erp/cash-forecast/lines/add" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin-bottom:1rem;">
                     <input type="hidden" name="returnUrl" value="/erp/cash-accounts-app?tab=cash_forecast" />
                     <input type="hidden" name="confirmWrites" value="true" />
                     <label>Forecast id <input class="form-control input-sm" type="number" name="forecast_id" min="1" required style="width:80px;" /></label>
