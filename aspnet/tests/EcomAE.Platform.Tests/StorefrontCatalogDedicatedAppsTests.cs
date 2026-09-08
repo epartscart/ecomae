@@ -300,6 +300,29 @@ public sealed class StorefrontCatalogDedicatedAppsTests : IDisposable
         Assert.DoesNotContain("epc-pl-kpis", prices, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void StoragesRequestsTokensApps_UseClassicHpanelNotInventHero()
+    {
+        var storages = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/CpStoragesApp.razor"));
+        Assert.Contains("class=\"hpanel\"", storages, StringComparison.Ordinal);
+        Assert.Contains("/cp/storages/groups", storages, StringComparison.Ordinal);
+        Assert.Contains("/cp/storages/write", storages, StringComparison.Ordinal);
+        Assert.Contains("/cp/storages/membership", storages, StringComparison.Ordinal);
+        Assert.DoesNotContain("epc-st-hero", storages, StringComparison.Ordinal);
+        Assert.DoesNotContain("epc-st-kpis", storages, StringComparison.Ordinal);
+
+        var requests = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/CpSystemRequestsApp.razor"));
+        Assert.Contains("class=\"hpanel\"", requests, StringComparison.Ordinal);
+        Assert.Contains("/cp/requests/set-vin-viewed", requests, StringComparison.Ordinal);
+        Assert.DoesNotContain("ASP.NET", requests, StringComparison.Ordinal);
+        Assert.DoesNotContain("epc-w22-hero", requests, StringComparison.Ordinal);
+
+        var tokens = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/CpDesignTokensApp.razor"));
+        Assert.Contains("class=\"hpanel\"", tokens, StringComparison.Ordinal);
+        Assert.Contains("HasStaffAccess", tokens, StringComparison.Ordinal);
+        Assert.DoesNotContain("epc-w22-hero", tokens, StringComparison.Ordinal);
+    }
+
     private static void AssertPage(string fileName, string phpAlias, string aspNetApp)
     {
         var path = Find("aspnet/src/EcomAE.Platform/Components/Pages/" + fileName);
