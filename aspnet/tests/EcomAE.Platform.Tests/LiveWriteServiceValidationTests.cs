@@ -2880,6 +2880,17 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(invDb.Succeeded);
         Assert.Equal("db", invDb.Code);
 
+        var subGenInvalid = await new ErpSubGenerateWriteService(new ConfiguredNeverOpened())
+            .GenerateAsync(0);
+        Assert.False(subGenInvalid.Succeeded);
+        Assert.Equal("invalid", subGenInvalid.Code);
+        Assert.Equal("Subscription not found", subGenInvalid.Message);
+
+        var subGenDb = await new ErpSubGenerateWriteService(new UnconfiguredConnections())
+            .GenerateAsync(9);
+        Assert.False(subGenDb.Succeeded);
+        Assert.Equal("db", subGenDb.Code);
+
         var pfInvalid = await new ErpPfCaseCancelWriteService(new ConfiguredNeverOpened())
             .CancelAsync(0);
         Assert.False(pfInvalid.Succeeded);
