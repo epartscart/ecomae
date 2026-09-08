@@ -184,9 +184,13 @@ public sealed class EpartscartCustomerJourneyParityTests
         Assert.Contains("id=\"requestSeller\"", seller, StringComparison.Ordinal);
         Assert.Contains("request-seller", seller, StringComparison.Ordinal);
         Assert.Contains("section-form", seller, StringComparison.Ordinal);
-        Assert.Contains("name=\"client_vin\"", seller, StringComparison.Ordinal);
+        Assert.Contains("name=\"@field.Name\"", seller, StringComparison.Ordinal);
+        Assert.Contains("PhpSellerRequest.Fields", seller, StringComparison.Ordinal);
         Assert.Contains("name=\"client_parts\"", seller, StringComparison.Ordinal);
         Assert.Contains("name=\"confirmWrites\"", seller, StringComparison.Ordinal);
+        var sellerFields = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Presentation/PhpSellerRequest.cs"));
+        Assert.Contains("client_vin", sellerFields, StringComparison.Ordinal);
+        Assert.Contains("client_parts", seller, StringComparison.Ordinal);
 
         var requests = File.ReadAllText(Find(
             "aspnet/src/EcomAE.Platform/Components/Pages/StorefrontCustomerRequestsApp.razor"));
