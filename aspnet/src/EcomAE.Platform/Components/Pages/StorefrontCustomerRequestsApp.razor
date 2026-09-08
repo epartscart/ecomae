@@ -27,9 +27,11 @@
             <p style="color:#475569">VIN and part requests you sent to the store. Replies stay on this inbox.</p>
             @if (!_isCustomer)
             {
-                <div style="padding:1.15rem 1.2rem;background:#fff;border:1px solid #e2e8f0;border-radius:.55rem">
-                    <p style="margin:0 0 .75rem">Sign in to see your seller requests.</p>
-                    <a class="btn btn-primary" href="@StorefrontSurfaceLinks.Login">Sign in</a>
+                <div class="panel panel-primary">
+                    <div class="panel-body">
+                        <p style="margin:0 0 .75rem">Sign in to see your seller requests.</p>
+                        <a class="btn btn-ar btn-primary" href="@StorefrontSurfaceLinks.Login">Sign in</a>
+                    </div>
                 </div>
             }
             else if (RequestId is > 0)

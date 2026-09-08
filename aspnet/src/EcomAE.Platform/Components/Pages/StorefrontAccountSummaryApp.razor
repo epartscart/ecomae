@@ -60,10 +60,12 @@
 
     @if (!_isCustomer)
     {
-        <div class="epc-sf-acc-gate">
-            <p style="margin:0 0 .75rem;color:#44403c">Sign in with your store account to load account summary.</p>
-            <a href="/storefront/login" style="display:inline-flex;padding:.55rem .9rem;border-radius:.4rem;background:#dc2626;color:#fff;font-weight:700;text-decoration:none">Sign in</a>
-            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpAccount)" style="display:inline-flex;margin-left:.45rem;padding:.55rem .9rem;border-radius:.4rem;border:1px solid #d6d3d1;color:#111;font-weight:700;text-decoration:none">Account</a>
+        <div class="panel panel-primary epc-sf-acc-gate">
+            <div class="panel-body">
+                <p style="margin:0 0 .75rem;color:#44403c">Sign in with your store account to load account summary.</p>
+                <a class="btn btn-ar btn-primary" href="@StorefrontSurfaceLinks.Login">Sign in</a>
+                <a class="btn btn-ar btn-default" href="@StorefrontSurfaceLinks.Registration">Register</a>
+            </div>
         </div>
     }
     else
@@ -75,9 +77,9 @@
             <div class="epc-sf-acc-kpi"><strong>@_summary.GarageVehicles.ToString(CultureInfo.InvariantCulture)</strong><span>Garage vehicles</span></div>
         </div>
 
-        <h2 style="margin:0 0 .5rem;font-size:1rem;">Recent orders</h2>
-        <div class="epc-sf-acc-table-wrap">
-            <table class="epc-sf-acc-table">
+        <p class="lead">Recent orders</p>
+        <div class="epc-sf-acc-table-wrap" style="overflow: hidden; overflow-x: auto;">
+            <table class="table epc-sf-acc-table" style="margin-bottom:0;">
                 <thead>
                     <tr><th>Id</th><th>Time</th><th>Paid</th><th>Status</th><th>Created</th></tr>
                 </thead>
@@ -103,11 +105,31 @@
             </table>
         </div>
 
-        <form method="post" action="@PhpCustomerWrites.BalanceTopUpHref" style="background:#fff;border:1px solid #e7e5e4;border-radius:.55rem;padding:1.1rem 1.2rem;margin-bottom:1rem">
-            <label for="money_value">Top up (AED)</label>
-            <input id="money_value" type="number" name="amount" min="1" step="0.01" required style="width:100%;margin:.25rem 0 1rem;padding:.5rem" />
-            <button type="submit" style="padding:.55rem .95rem;border:0;border-radius:.4rem;background:#0f766e;color:#fff;font-weight:800;cursor:pointer">Create top-up</button>
-        </form>
+        <div class="panel panel-primary">
+            <div class="panel-heading">Top up</div>
+            <div class="panel-body">
+                <form method="post" action="@PhpCustomerWrites.BalanceTopUpHref">
+                    <input type="hidden" name="confirmWrites" value="true" />
+                    <input type="hidden" name="returnUrl" value="/storefront/account-summary-app" />
+                    <div class="col-md-12">
+                        <label for="money_value">Amount</label>
+                        <input id="money_value" class="form-control" type="number" name="amount" min="1" step="0.01" required placeholder="Amount" />
+                    </div>
+                    <div class="col-md-12" style="margin-top:.75rem">
+                        <div class="epc-pay-method-picker">
+                            <label for="epc_pay_handler">Pay with</label>
+                            <select id="epc_pay_handler" name="pay_handler" class="form-control">
+                                @foreach (var gate in PhpCustomerWrites.PayGateways)
+                                {
+                                    <option value="@gate.Code">@gate.Label</option>
+                                }
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-ar btn-primary" style="margin-top:7px;">Create top-up</button>
+                    </div>
+                </form>
+            </div>
+        </div>
 
         <div class="epc-sf-acc-links" aria-label="Account shortcuts">
             <a href="@StorefrontSurfaceLinks.Orders">Orders list</a>

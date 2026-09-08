@@ -139,6 +139,45 @@ public sealed class EpartscartCustomerJourneyParityTests
         Assert.Contains("id=\"compare_count\"", chrome, StringComparison.Ordinal);
         Assert.Contains("id=\"bookmarks_count\"", chrome, StringComparison.Ordinal);
         Assert.Contains("id=\"cart_items_count\"", chrome, StringComparison.Ordinal);
+
+        var newsletter = File.ReadAllText(Find(
+            "aspnet/src/EcomAE.Platform/Components/Pages/StorefrontNewsletterApp.razor"));
+        Assert.Contains("epc-wc-newsletter", newsletter, StringComparison.Ordinal);
+        Assert.Contains("epc-wc-newsletter__form", newsletter, StringComparison.Ordinal);
+        Assert.Contains("name=\"email\"", newsletter, StringComparison.Ordinal);
+        Assert.Contains("name=\"confirmWrites\"", newsletter, StringComparison.Ordinal);
+
+        var returns = File.ReadAllText(Find(
+            "aspnet/src/EcomAE.Platform/Components/Pages/StorefrontReturnsApp.razor"));
+        Assert.Contains("panel panel-primary", returns, StringComparison.Ordinal);
+        Assert.Contains("id=\"search-text\"", returns, StringComparison.Ordinal);
+        Assert.Contains("id=\"orders_returns_table\"", returns, StringComparison.Ordinal);
+        Assert.Contains("return_options_data", returns, StringComparison.Ordinal);
+        Assert.Contains("id=\"chat_block\"", returns, StringComparison.Ordinal);
+        Assert.Contains("id=\"new_message_area\"", returns, StringComparison.Ordinal);
+        Assert.Contains("name=\"order_id\"", returns, StringComparison.Ordinal);
+        Assert.Contains("name=\"item_id\"", returns, StringComparison.Ordinal);
+        Assert.Contains("name=\"reason_id\"", returns, StringComparison.Ordinal);
+        Assert.Contains("name=\"comment\"", returns, StringComparison.Ordinal);
+
+        var account = File.ReadAllText(Find(
+            "aspnet/src/EcomAE.Platform/Components/Pages/StorefrontAccountSummaryApp.razor"));
+        Assert.Contains("panel panel-primary", account, StringComparison.Ordinal);
+        Assert.Contains("id=\"money_value\"", account, StringComparison.Ordinal);
+        Assert.Contains("id=\"epc_pay_handler\"", account, StringComparison.Ordinal);
+        Assert.Contains("name=\"amount\"", account, StringComparison.Ordinal);
+        Assert.Contains("name=\"confirmWrites\"", account, StringComparison.Ordinal);
+        Assert.Contains("class=\"table", account, StringComparison.Ordinal);
+
+        var payment = File.ReadAllText(Find(
+            "aspnet/src/EcomAE.Platform/Components/Pages/StorefrontPaymentApp.razor"));
+        Assert.Contains("panel panel-primary", payment, StringComparison.Ordinal);
+        Assert.Contains("id=\"money_value\"", payment, StringComparison.Ordinal);
+        Assert.Contains("id=\"epc_pay_handler\"", payment, StringComparison.Ordinal);
+        Assert.Contains("name=\"amount\"", payment, StringComparison.Ordinal);
+        Assert.Contains("name=\"pay_handler\"", payment, StringComparison.Ordinal);
+        Assert.Contains("name=\"confirmWrites\"", payment, StringComparison.Ordinal);
+        Assert.Contains("action=\"/storefront/payment/create-operation\"", payment, StringComparison.Ordinal);
     }
 
     [Fact]

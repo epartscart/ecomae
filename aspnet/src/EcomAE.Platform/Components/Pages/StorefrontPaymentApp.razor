@@ -36,41 +36,54 @@
             }
             @if (!_isCustomer)
             {
-                <div style="padding:1.15rem 1.2rem;background:#fff;border:1px solid #e2e8f0;border-radius:.55rem">
-                    <p style="margin:0 0 .75rem">Sign in to continue payment, or track a guest order first.</p>
-                    <a class="btn btn-primary" href="@StorefrontSurfaceLinks.Login">Sign in</a>
-                    <a class="btn btn-default" href="@StorefrontAspNetCanonical.GuestOrder" style="margin-left:.45rem">Guest order</a>
+                <div class="panel panel-primary">
+                    <div class="panel-body">
+                        <p style="margin:0 0 .75rem">Sign in to continue payment, or track a guest order first.</p>
+                        <a class="btn btn-ar btn-primary" href="@StorefrontSurfaceLinks.Login">Sign in</a>
+                        <a class="btn btn-ar btn-default" href="@StorefrontAspNetCanonical.GuestOrder">Guest order</a>
+                    </div>
                 </div>
             }
             else
             {
-                <form method="post" action="/storefront/payment/create-operation" style="background:#fff;border:1px solid #e2e8f0;border-radius:.55rem;padding:1.1rem 1.2rem;margin:0 0 1rem">
-                    <input type="hidden" name="confirmWrites" value="true" />
-                    <label for="amount">Amount</label>
-                    <input id="amount" type="number" step="0.01" min="0.01" name="amount" required style="width:100%;margin:.25rem 0 .75rem;padding:.5rem" />
-                    <label for="order_id">Order id (blank = balance top-up)</label>
-                    <input id="order_id" type="number" min="0" name="order_id" value="@OrderId" style="width:100%;margin:.25rem 0 .75rem;padding:.5rem" />
-                    <label for="pay_handler">Gateway</label>
-                    <select id="pay_handler" name="pay_handler" style="width:100%;margin:.25rem 0 1rem;padding:.5rem">
-                        @foreach (var gate in PhpCustomerWrites.PayGateways)
-                        {
-                            <option value="@gate.Code">@gate.Label</option>
-                        }
-                    </select>
-                    <button type="submit" style="padding:.65rem 1.1rem;border:0;border-radius:.45rem;background:#0f766e;color:#fff;font-weight:800;cursor:pointer">Create operation &amp; pay</button>
-                </form>
-                <form method="get" action="@PhpCustomerWrites.PaymentDemoHref" style="background:#fff;border:1px solid #e2e8f0;border-radius:.55rem;padding:1.1rem 1.2rem">
-                    <label for="operation">Existing operation number</label>
-                    <input id="operation" type="text" name="operation" required value="@Operation" style="width:100%;margin:.25rem 0 .75rem;padding:.5rem" />
-                    <label for="gateway">Gateway</label>
-                    <select id="gateway" name="pay_system" style="width:100%;margin:.25rem 0 1rem;padding:.5rem">
-                        @foreach (var gate in PhpCustomerWrites.PayGateways)
-                        {
-                            <option value="@gate.Code">@gate.Label</option>
-                        }
-                    </select>
-                    <button type="submit" style="padding:.65rem 1.1rem;border:0;border-radius:.45rem;background:#0f766e;color:#fff;font-weight:800;cursor:pointer">Continue to pay</button>
-                </form>
+                <div class="panel panel-primary">
+                    <div class="panel-heading">Pay an order or top-up</div>
+                    <div class="panel-body">
+                        <form method="post" action="/storefront/payment/create-operation">
+                            <input type="hidden" name="confirmWrites" value="true" />
+                            <label for="money_value">Amount</label>
+                            <input id="money_value" class="form-control" type="number" step="0.01" min="0.01" name="amount" required />
+                            <label for="order_id">Order id (blank = balance top-up)</label>
+                            <input id="order_id" class="form-control" type="number" min="0" name="order_id" value="@OrderId" />
+                            <div class="epc-pay-method-picker" style="margin:12px 0 16px">
+                                <label for="epc_pay_handler">Pay with</label>
+                                <select id="epc_pay_handler" name="pay_handler" class="form-control">
+                                    @foreach (var gate in PhpCustomerWrites.PayGateways)
+                                    {
+                                        <option value="@gate.Code">@gate.Label</option>
+                                    }
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-ar btn-primary">Create operation &amp; pay</button>
+                        </form>
+                    </div>
+                </div>
+                <div class="panel panel-default">
+                    <div class="panel-body">
+                        <form method="get" action="@PhpCustomerWrites.PaymentDemoHref">
+                            <label for="operation">Existing operation number</label>
+                            <input id="operation" class="form-control" type="text" name="operation" required value="@Operation" />
+                            <label for="gateway">Gateway</label>
+                            <select id="gateway" name="pay_system" class="form-control">
+                                @foreach (var gate in PhpCustomerWrites.PayGateways)
+                                {
+                                    <option value="@gate.Code">@gate.Label</option>
+                                }
+                            </select>
+                            <button type="submit" class="btn btn-ar btn-primary" style="margin-top:.75rem">Continue to pay</button>
+                        </form>
+                    </div>
+                </div>
             }
         </div>
     </section>

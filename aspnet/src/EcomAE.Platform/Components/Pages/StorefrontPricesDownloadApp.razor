@@ -26,9 +26,11 @@
             <p style="color:#475569">CSV with your account markup-group prices. Open in Excel or Google Sheets.</p>
             @if (!_isCustomer)
             {
-                <div style="padding:1.15rem 1.2rem;background:#fff;border:1px solid #e2e8f0;border-radius:.55rem">
-                    <p style="margin:0 0 .75rem">Sign in to download the list published for your group.</p>
-                    <a class="btn btn-primary" href="@StorefrontSurfaceLinks.Login">Sign in</a>
+                <div class="panel panel-primary">
+                    <div class="panel-body">
+                        <p style="margin:0 0 .75rem">Sign in to download the list published for your group.</p>
+                        <a class="btn btn-ar btn-primary" href="@StorefrontSurfaceLinks.Login">Sign in</a>
+                    </div>
                 </div>
             }
             else if (_groupId > 0 && !string.IsNullOrWhiteSpace(_fileHref))
