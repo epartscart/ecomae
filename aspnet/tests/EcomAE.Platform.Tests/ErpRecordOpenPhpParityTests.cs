@@ -19,6 +19,9 @@ public sealed class ErpRecordOpenPhpParityTests
     [InlineData("/ERP/?epc_erp_shell=1&area=credit_coll&queue_id=12", "/erp/collections-dunning-app?queue_id=12")]
     [InlineData("/ERP/?epc_erp_shell=1&area=risk&tab=insurance&pol=7", "/erp/insurance-compliance-app?pol=7")]
     [InlineData("/ERP/?epc_erp_shell=1&area=risk&tab=insurance&policy_id=7", "/erp/insurance-compliance-app?policy_id=7")]
+    [InlineData("/CP/shop/returns-manager?page=detail&return_id=8", "/cp/returns-rma-app?return_id=8")]
+    [InlineData("/CP/shop/finance/epc_warranty_rma?rma_id=6", "/cp/returns-rma-app?rma_id=6")]
+    [InlineData("/CP/shop/quote-requests?quote_id=15", "/cp/quote-requests-app?quote_id=15")]
     public void AspNetPrimaryHref_KeepsErpRecordId(string php, string expected)
     {
         var href = PhpSurfaceLinkMap.AspNetPrimaryHref(php);
@@ -104,6 +107,8 @@ public sealed class ErpRecordOpenPhpParityTests
     [InlineData("CpPurchaseRequestsApp.razor", "req_id")]
     [InlineData("CpCollectionsDunningApp.razor", "queue_id")]
     [InlineData("CpInsuranceComplianceApp.razor", "pol")]
+    [InlineData("CpReturnsRmaApp.razor", "rma_id")]
+    [InlineData("CpQuoteRequestsApp.razor", "quote_id")]
     public void DumpListApps_RowOpenIsRecordUrl(string fileName, string param)
     {
         var root = FindRepoRoot();
@@ -124,6 +129,22 @@ public sealed class ErpRecordOpenPhpParityTests
         Assert.Contains("ErpOpenedRecordBanner", text, StringComparison.Ordinal);
         Assert.Contains("ReadId(ctx.Request, \"req_id\", \"rq\")", text, StringComparison.Ordinal);
         Assert.Contains("BuildCpPurchaseRequestDetailAsync", text, StringComparison.Ordinal);
+        Assert.Contains("No lines yet.", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)\">Open", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("/php-reference/", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("ASP.NET", text, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void QuoteRequestsApp_OpenLoadsDetailAndAcceptsPhpQuoteId()
+    {
+        var root = FindRepoRoot();
+        var text = File.ReadAllText(Path.Combine(root,
+            "aspnet/src/EcomAE.Platform/Components/Pages/CpQuoteRequestsApp.razor"));
+        Assert.Contains("ErpRecordOpen.Href(_listHref, \"quote_id\"", text, StringComparison.Ordinal);
+        Assert.Contains("ErpOpenedRecordBanner", text, StringComparison.Ordinal);
+        Assert.Contains("ReadId(ctx.Request, \"quote_id\")", text, StringComparison.Ordinal);
+        Assert.Contains("BuildCpQuoteRequestDetailAsync", text, StringComparison.Ordinal);
         Assert.Contains("No lines yet.", text, StringComparison.Ordinal);
         Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)\">Open", text, StringComparison.Ordinal);
         Assert.DoesNotContain("/php-reference/", text, StringComparison.Ordinal);
@@ -164,6 +185,25 @@ public sealed class ErpRecordOpenPhpParityTests
     }
 
     [Fact]
+    public void ReturnsRmaApp_OpenLoadsDetailAndAcceptsPhpReturnId()
+    {
+        var root = FindRepoRoot();
+        var text = File.ReadAllText(Path.Combine(root,
+            "aspnet/src/EcomAE.Platform/Components/Pages/CpReturnsRmaApp.razor"));
+        Assert.Contains("ErpRecordOpen.Href(_listHref, \"rma_id\"", text, StringComparison.Ordinal);
+        Assert.Contains("ErpOpenedRecordBanner", text, StringComparison.Ordinal);
+        Assert.Contains("ReadId(ctx.Request, \"rma_id\")", text, StringComparison.Ordinal);
+        Assert.Contains("ReadId(ctx.Request, \"return_id\")", text, StringComparison.Ordinal);
+        Assert.Contains("BuildCpReturnsRmaDetailAsync", text, StringComparison.Ordinal);
+        Assert.Contains("BuildCpShopReturnDetailAsync", text, StringComparison.Ordinal);
+        Assert.Contains("No items yet.", text, StringComparison.Ordinal);
+        Assert.Contains("No lines yet.", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)\">Open", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("/php-reference/", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("ASP.NET", text, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void ReadId_AcceptsReqIdAndPhpRqAlias()
     {
         Assert.Equal("/erp/purchase-requests-app?req_id=9#erp-row-9",
@@ -178,6 +218,13 @@ public sealed class ErpRecordOpenPhpParityTests
             ErpRecordOpen.PreserveRecordQuery(
                 "/erp/purchase-requests-app",
                 "/ERP/?epc_erp_shell=1&area=purchasing&tab=purchase_requisitions&req_id=4"));
+        Assert.Equal("/cp/quote-requests-app?quote_id=15#erp-row-15",
+            ErpRecordOpen.Href("/cp/quote-requests-app", "quote_id", 15));
+        Assert.Equal(
+            "/cp/quote-requests-app?quote_id=15",
+            ErpRecordOpen.PreserveRecordQuery(
+                "/cp/quote-requests-app",
+                "/CP/shop/quote-requests?quote_id=15"));
         Assert.Equal("/cp/collections-dunning-app?queue_id=12#erp-row-12",
             ErpRecordOpen.Href("/cp/collections-dunning-app", "queue_id", 12));
         Assert.Equal(
@@ -192,6 +239,13 @@ public sealed class ErpRecordOpenPhpParityTests
             ErpRecordOpen.PreserveRecordQuery(
                 "/erp/insurance-compliance-app",
                 "/ERP/?epc_erp_shell=1&area=risk&tab=insurance&pol=7"));
+        Assert.Equal("/cp/returns-rma-app?rma_id=6#erp-row-6",
+            ErpRecordOpen.Href("/cp/returns-rma-app", "rma_id", 6));
+        Assert.Equal(
+            "/cp/returns-rma-app?return_id=8",
+            ErpRecordOpen.PreserveRecordQuery(
+                "/cp/returns-rma-app",
+                "/CP/shop/returns-manager?page=detail&return_id=8"));
     }
 
     private static string FindRepoRoot()
