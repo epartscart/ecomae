@@ -516,6 +516,9 @@ public interface ISurfaceDashboardSummaryReporter
 
     Task<CpTaxExternalReportingDigestResult> BuildCpTaxExternalReportingDigestAsync(int limit, CancellationToken cancellationToken = default);
     Task<CpPoApprovalsDigestResult> BuildCpPoApprovalsDigestAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Opened PO request (PHP <c>po_req_id</c>) plus step excerpts. items/attachments JSON omitted.</summary>
+    Task<CpPoApprovalsDetailResult> BuildCpPoApprovalsDetailAsync(long id, CancellationToken cancellationToken = default);
     Task<CpFinanceCloseDigestResult> BuildCpFinanceCloseDigestAsync(int limit, CancellationToken cancellationToken = default);
 
     /// <summary>Opened finance-close batch (PHP <c>batch_id=</c> detail) plus opening lines.</summary>
