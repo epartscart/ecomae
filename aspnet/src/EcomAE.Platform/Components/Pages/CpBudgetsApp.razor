@@ -53,6 +53,23 @@
     </section>
     <PhpParityModuleBody AppPath="/cp/budgets-app" IsAdmin="_isAdmin" />
 
+    @if (!string.IsNullOrWhiteSpace(_flashOk))
+    {
+        <div class="alert alert-success" role="status" style="margin:0 0 1rem;padding:.7rem .9rem;border-radius:.4rem;background:#ecfdf5;color:#065f46">@_flashOk</div>
+    }
+    @if (!string.IsNullOrWhiteSpace(_flashErr))
+    {
+        <div class="alert alert-danger" role="status" style="margin:0 0 1rem;padding:.7rem .9rem;border-radius:.4rem;background:#fef2f2;color:#991b1b">@_flashErr</div>
+    }
+    @if (_isErp)
+    {
+        <form method="post" action="/erp/budgets/advance" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/erp/budgets-app" />
+            <label>Plan id <input type="number" name="id" min="1" required style="width:6rem" /></label>
+            <button type="submit">Advance plan</button>
+        </form>
+    }
 
     <div class="epc-bud-kpis" aria-label="Budgets stats">
         <div class="epc-bud-kpi"><strong>@_summary.BudgetCount.ToString(CultureInfo.InvariantCulture)</strong><span>Budgets</span></div>
@@ -105,18 +122,24 @@
 @code {
     private const string _phpTab = "/CP/shop/finance/erp?area=budgeting&tab=budgeting&epc_erp_shell=1";
     private bool _isAdmin;
+    private bool _isErp;
     private CpBudgetsSummary _summary = new(0, 0, 0, 0, "n/a", "");
     private IReadOnlyList<CpBudgetDigest> _budgets = [];
     private string _source = "n/a";
     private string _message = "";
+    private string _flashOk = "";
+    private string _flashErr = "";
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
+        _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
+        _flashErr = ctx.Request.Query["err"].ToString() ?? "";
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
+        _isErp = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("erp");
         if (!_isAdmin)
         {
             return; // guest browse — Sign in for live data

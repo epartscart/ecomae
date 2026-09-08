@@ -1698,7 +1698,9 @@ public static class EcomAeRoutes
     public const string ErpAjaxProcReqConvert = "/erp/ajax/proc-req-convert";
     /// <summary>Wave B dry-run for PHP bplan_save (writes=0).</summary>
     public const string ErpAjaxBplanSave = "/erp/ajax/bplan-save";
-    /// <summary>Wave B dry-run for PHP bplan_advance (writes=0).</summary>
+    /// <summary>HTML form POST for PHP bplan_advance. confirmWrites=true writes via IErpBplanAdvanceWriteService.</summary>
+    public const string ErpBplanAdvance = "/erp/budgets/advance";
+    /// <summary>Live PHP bplan_advance ajax alias of <see cref="ErpBplanAdvance"/>.</summary>
     public const string ErpAjaxBplanAdvance = "/erp/ajax/bplan-advance";
     /// <summary>Wave B dry-run for PHP aml_kyc_save (writes=0).</summary>
     public const string ErpAjaxAmlKycSave = "/erp/ajax/aml-kyc-save";

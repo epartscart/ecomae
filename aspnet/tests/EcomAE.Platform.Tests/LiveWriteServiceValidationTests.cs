@@ -3060,6 +3060,17 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(whtSettleDb.Succeeded);
         Assert.Equal("db", whtSettleDb.Code);
 
+        var bplanAdvInvalid = await new ErpBplanAdvanceWriteService(new ConfiguredNeverOpened())
+            .AdvanceAsync(new ErpBplanAdvanceWriteRequest());
+        Assert.False(bplanAdvInvalid.Succeeded);
+        Assert.Equal("invalid", bplanAdvInvalid.Code);
+        Assert.Equal("Plan not found", bplanAdvInvalid.Message);
+
+        var bplanAdvDb = await new ErpBplanAdvanceWriteService(new UnconfiguredConnections())
+            .AdvanceAsync(new ErpBplanAdvanceWriteRequest(4));
+        Assert.False(bplanAdvDb.Succeeded);
+        Assert.Equal("db", bplanAdvDb.Code);
+
         var whtCodeInvalid = await new ErpWhtCodeSaveWriteService(new ConfiguredNeverOpened())
             .SaveAsync(new ErpWhtCodeSaveWriteRequest());
         Assert.False(whtCodeInvalid.Succeeded);
