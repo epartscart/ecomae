@@ -3668,6 +3668,35 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>Opened quote request — includes notes (PHP quote_id detail).</summary>
+    public const string SelectCpQuoteRequestDetail = """
+        SELECT `id`, IFNULL(`user_id`,0) AS user_id, IFNULL(`session_id`,0) AS session_id,
+               IFNULL(`status`,'') AS status, IFNULL(`time_created`,0) AS time_created,
+               IFNULL(`time_updated`,0) AS time_updated, IFNULL(`time_submitted`,0) AS time_submitted,
+               IFNULL(`accepted_order_id`,0) AS accepted_order_id,
+               IFNULL(`admin_note`,'') AS admin_note,
+               IFNULL(`customer_note`,'') AS customer_note
+        FROM `shop_quote_requests`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Opened quote lines — omits product_object_json.</summary>
+    public const string SelectCpQuoteRequestLines = """
+        SELECT `id`, IFNULL(`quote_id`,0) AS quote_id,
+               IFNULL(`count_need`,0) AS count_need,
+               IFNULL(`quoted_price`,0) AS quoted_price,
+               IFNULL(`quoted_time_to_exe`,0) AS quoted_time_to_exe,
+               IFNULL(`line_admin_note`,'') AS line_admin_note,
+               IFNULL(`offer_alternative`,0) AS offer_alternative,
+               IFNULL(`alt_manufacturer`,'') AS alt_manufacturer,
+               IFNULL(`alt_article`,'') AS alt_article,
+               IFNULL(`alt_name`,'') AS alt_name
+        FROM `shop_quote_items`
+        WHERE `quote_id` = @id
+        ORDER BY `id` ASC
+        """;
+
     /// <summary>Platform communication KPIs from epc_platform_comm_settings + internal_tasks (CREATE TABLE in epc_super_cp_platform.php).</summary>
     public const string SelectCpPlatformCommunicationStats = """
         SELECT

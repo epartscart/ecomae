@@ -172,6 +172,7 @@ public sealed class SurfaceDashboardSummaryReporterTests
         var eventBus = await reporter.BuildCpEventBusDigestAsync(10);
         var abandonedCarts = await reporter.BuildCpAbandonedCartsDigestAsync(10);
         var quoteRequests = await reporter.BuildCpQuoteRequestsDigestAsync(10);
+        var quoteRequestDetail = await reporter.BuildCpQuoteRequestDetailAsync(15);
         var platformCommunication = await reporter.BuildCpPlatformCommunicationDigestAsync(10);
         var infoBlocks = await reporter.BuildCpInfoBlocksDigestAsync(10);
         var freeTools = await reporter.BuildCpFreeToolsDigestAsync(10);
@@ -392,6 +393,7 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.Equal("migration", eventBus.Source);
         Assert.Equal("migration", abandonedCarts.Source);
         Assert.Equal("migration", quoteRequests.Source);
+        Assert.Equal("migration", quoteRequestDetail.Source);
         Assert.Equal("migration", platformCommunication.Source);
         Assert.Equal("migration", infoBlocks.Source);
         Assert.Equal("migration", freeTools.Source);
@@ -638,6 +640,11 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.DoesNotContain("DELETE", LegacySurfaceDashboardSql.SelectCpAbandonedCartsRows, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("shop_quote_requests", LegacySurfaceDashboardSql.SelectCpQuoteRequestsStats, StringComparison.Ordinal);
         Assert.DoesNotContain("admin_note", LegacySurfaceDashboardSql.SelectCpQuoteRequestsRows, StringComparison.Ordinal);
+        Assert.Contains("admin_note", LegacySurfaceDashboardSql.SelectCpQuoteRequestDetail, StringComparison.Ordinal);
+        Assert.Contains("customer_note", LegacySurfaceDashboardSql.SelectCpQuoteRequestDetail, StringComparison.Ordinal);
+        Assert.Contains("shop_quote_items", LegacySurfaceDashboardSql.SelectCpQuoteRequestLines, StringComparison.Ordinal);
+        Assert.DoesNotContain("product_object_json", LegacySurfaceDashboardSql.SelectCpQuoteRequestLines, StringComparison.Ordinal);
+        Assert.Contains("`quote_id` = @id", LegacySurfaceDashboardSql.SelectCpQuoteRequestLines, StringComparison.Ordinal);
         Assert.Contains("epc_platform_comm_settings", LegacySurfaceDashboardSql.SelectCpPlatformCommunicationStats, StringComparison.Ordinal);
         Assert.DoesNotContain("`description`", LegacySurfaceDashboardSql.SelectCpPlatformCommunicationRows, StringComparison.Ordinal);
         Assert.Contains("epc_platform_info_blocks", LegacySurfaceDashboardSql.SelectCpInfoBlocksStats, StringComparison.Ordinal);
