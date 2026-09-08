@@ -1569,6 +1569,8 @@ check 'classic-entry probe exists' test -x "$ROOT/scripts/cloudpanel_probe_class
 check 'classic-entry probe asserts same-URL' contains "$ROOT/scripts/cloudpanel_probe_classic_entry_aspnet_primary.sh" 'tenant-shared URL must stay unchanged'
 check 'classic-entry probe checks epartscart' contains "$ROOT/scripts/cloudpanel_probe_classic_entry_aspnet_primary.sh" 'epartscart.com'
 check 'classic-entry probe keeps PHP reference links' contains "$ROOT/scripts/cloudpanel_probe_classic_entry_aspnet_primary.sh" '/php-reference/cp'
+check 'classic-entry probe honors guestBrowseShells false' contains "$ROOT/scripts/cloudpanel_probe_classic_entry_aspnet_primary.sh" 'guestBrowseShells=false'
+check 'classic-entry probe accepts paused php-reference 503' contains "$ROOT/scripts/cloudpanel_probe_classic_entry_aspnet_primary.sh" 'TemporarilyDeactivatePhpServing'
 check 'classic-entry evidence exists' test -f "$ROOT/docs/migration/evidence/presentation/classic-entry-aspnet-primary.json"
 check 'classic-entry evidence routeCount is 24' contains "$ROOT/docs/migration/evidence/presentation/classic-entry-aspnet-primary.json" '"routeCount": 24'
 check 'classic-entry evidence urlPreserved true' contains "$ROOT/docs/migration/evidence/presentation/classic-entry-aspnet-primary.json" '"urlPreserved": true'
