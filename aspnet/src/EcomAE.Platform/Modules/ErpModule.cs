@@ -1034,8 +1034,8 @@ public sealed class ErpModule : ISurfaceModule
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpJwSeedSampleDataRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxAiAssistantQuery, async (HttpContext context, ErpAiAssistantQueryBody? body, ILegacySessionValidator validator, IErpAiAssistantQueryDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpAiAssistantQueryRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxPrintDesignerSave, async (HttpContext context, ErpPrintDesignerSaveBody? body, ILegacySessionValidator validator, IErpPrintDesignerSaveDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpPrintDesignerSaveRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxPrintDesignerSave, HandlePrintDesignerSaveAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpPrintDesignerSave, HandlePrintDesignerSaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxWorkflowSave, async (HttpContext context, ErpWorkflowSaveBody? body, ILegacySessionValidator validator, IErpWorkflowSaveDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpWorkflowSaveRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxWorkflowRun, async (HttpContext context, ErpWorkflowRunBody? body, ILegacySessionValidator validator, IErpWorkflowRunDryRun dryRun, CancellationToken cancellationToken) =>
@@ -11774,6 +11774,73 @@ public sealed class ErpModule : ISurfaceModule
         }
     }
 
+    private static async Task<IResult> HandlePrintDesignerSaveAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpPrintDesignerSaveDryRun dryRun,
+        IErpPrintDesignerSaveWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/print-designer-app", "Admin ERP capability required for print template save.");
+        }
+
+        var id = 0L;
+        var fields = new Dictionary<string, string>(StringComparer.Ordinal);
+        var isDefault = false;
+        var confirm = false;
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            id = LiveWriteFormBinder.Long(form, "id");
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            if (form.ContainsKey("is_default") || form.ContainsKey("isDefault"))
+            {
+                isDefault = ErpPrintDesignerSaveWriteService.IsPhpNonEmpty(form["is_default"].ToString())
+                    || ErpPrintDesignerSaveWriteService.IsPhpNonEmpty(form["isDefault"].ToString());
+            }
+
+            foreach (var key in ErpPrintDesignerSaveWriteService.AllowedFields)
+            {
+                if (form.ContainsKey(key))
+                {
+                    fields[key] = LiveWriteFormBinder.Text(form, key);
+                }
+            }
+        }
+        else
+        {
+            var root = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<System.Text.Json.JsonElement>(context, cancellationToken);
+            confirm = ErpPrintDesignerSaveWriteService.JsonFlag(root, "confirmWrites", "confirm_writes");
+            isDefault = ErpPrintDesignerSaveWriteService.JsonFlag(root, "is_default", "isDefault");
+            fields = ErpPrintDesignerSaveWriteService.CollectFromJson(root);
+            if (root.ValueKind == System.Text.Json.JsonValueKind.Object)
+            {
+                if (root.TryGetProperty("id", out var idEl) && idEl.TryGetInt64(out var parsed))
+                {
+                    id = parsed;
+                }
+            }
+        }
+
+        if (!confirm)
+        {
+            return Results.Ok(dryRun.Evaluate(new ErpPrintDesignerSaveRequest(id, null, false)).ToPayload(SessionPayload(session)));
+        }
+
+        var written = await writes.SaveAsync(
+            new ErpPrintDesignerSaveWriteRequest(id, fields, isDefault),
+            cancellationToken);
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/erp/print-designer-app",
+            written.Succeeded,
+            written.Message,
+            new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+    }
+
     private static async Task<IResult> HandleWhtCodeSaveAsync(
         HttpContext context,
         ILegacySessionValidator validator,
@@ -13471,7 +13538,6 @@ public sealed class ErpModule : ISurfaceModule
     private sealed record ErpJwRepairUpdateStatusBody(long Id = 0, long RepairId = 0, string? TargetStatus = null, string? NewStatus = null, bool ConfirmWrites = false);
     private sealed record ErpJwSeedSampleDataBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpAiAssistantQueryBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
-    private sealed record ErpPrintDesignerSaveBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpWorkflowSaveBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpWorkflowRunBody(bool ConfirmWrites = false);
     private sealed record ErpAutomationActivateBody(bool ConfirmWrites = false);

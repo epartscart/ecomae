@@ -1583,7 +1583,9 @@ public static class EcomAeRoutes
     public const string ErpAjaxJwSeedSampleData = "/erp/ajax/jw-seed-sample-data";
     /// <summary>Wave B dry-run for PHP ai_assistant_query (writes=0).</summary>
     public const string ErpAjaxAiAssistantQuery = "/erp/ajax/ai-assistant-query";
-    /// <summary>Wave B dry-run for PHP print_designer_save (writes=0).</summary>
+    /// <summary>HTML form POST for PHP <c>print_designer_save</c>. <c>confirmWrites=true</c> writes via <c>IErpPrintDesignerSaveWriteService</c>.</summary>
+    public const string ErpPrintDesignerSave = "/erp/print-designer/save";
+    /// <summary>Live PHP print_designer_save ajax alias of <see cref="ErpPrintDesignerSave"/>.</summary>
     public const string ErpAjaxPrintDesignerSave = "/erp/ajax/print-designer-save";
     /// <summary>Wave B dry-run for PHP workflow_save (writes=0).</summary>
     public const string ErpAjaxWorkflowSave = "/erp/ajax/workflow-save";

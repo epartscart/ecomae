@@ -3111,6 +3111,11 @@ public sealed class LiveWriteServiceValidationTests
             .LogAsync(new ErpHrAttendanceWriteRequest(EmployeeId: 1, Hours: 8));
         Assert.False(hrAttDb.Succeeded);
         Assert.Equal("db", hrAttDb.Code);
+
+        var printDb = await new ErpPrintDesignerSaveWriteService(new UnconfiguredConnections())
+            .SaveAsync(new ErpPrintDesignerSaveWriteRequest(Fields: new Dictionary<string, string> { ["doc_type"] = "invoice" }));
+        Assert.False(printDb.Succeeded);
+        Assert.Equal("db", printDb.Code);
     }
 
     [Fact]
