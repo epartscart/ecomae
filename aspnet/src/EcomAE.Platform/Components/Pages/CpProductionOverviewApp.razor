@@ -22,12 +22,71 @@
             </div>
             <div class="panel-body">
                 <p>@CpPhpModuleCopy.PurposeFor("/cp/production-overview-app")</p>
-                <p>Firm a planned order, save a route or work center, create a work order, or save a BOM here.</p>
+                <p>Open a work order to see costs and BOM lines. Firm a planned order, save a route or work center, create a work order, or save a BOM here.</p>
             </div>
         </div>
     </div>
-    <PhpParityModuleBody AppPath="/cp/production-overview-app" IsAdmin="_isAdmin" />
+    <PhpParityModuleBody AppPath="/cp/production-overview-app" IsAdmin="_isAdmin" ShowGhostScaffold="false" />
 
+    <ErpOpenedRecordBanner Id="_openedId" Found="@(_openedWo is not null)" Caption="@OpenedCaption" ListHref="@_listHref" />
+
+    <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Production KPIs">
+        <div class="kpi"><div class="lbl">Active BOMs</div><div class="val">@_summary.BomCount.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Open work orders</div><div class="val">@_summary.OpenWorkOrders.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Completed</div><div class="val">@_summary.CompletedWorkOrders.ToString(CultureInfo.InvariantCulture)</div></div>
+    </div>
+
+    @if (_openedWo is not null)
+    {
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">
+                    @(!string.IsNullOrWhiteSpace(_openedWo.WoNo) ? _openedWo.WoNo : ("WO #" + _openedWo.Id.ToString(CultureInfo.InvariantCulture)))
+                    <span class="label label-default pull-right">@(!string.IsNullOrWhiteSpace(_openedWo.Status) ? _openedWo.Status : "—")</span>
+                </div>
+                <div class="panel-body">
+                    <p>BOM @_openedWo.BomId.ToString(CultureInfo.InvariantCulture)
+                        · Product @_openedWo.ProductItemId.ToString(CultureInfo.InvariantCulture)
+                        · Warehouse @_openedWo.WarehouseId.ToString(CultureInfo.InvariantCulture)</p>
+                    <p>Planned @_openedWo.QtyPlanned.ToString("N2", CultureInfo.InvariantCulture)
+                        · Produced @_openedWo.QtyProduced.ToString("N2", CultureInfo.InvariantCulture)</p>
+                    <p>Material @_openedWo.MaterialCost.ToString("0.00", CultureInfo.InvariantCulture)
+                        · Labour @_openedWo.LabourCost.ToString("0.00", CultureInfo.InvariantCulture)
+                        · Overhead @_openedWo.OverheadCost.ToString("0.00", CultureInfo.InvariantCulture)</p>
+                    <div class="table-responsive">
+                        <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped table-bordered table-epc epc-erp-table">
+                            <thead>
+                                <tr>
+                                    <th>Line</th>
+                                    <th>Component</th>
+                                    <th>Qty per</th>
+                                    <th>Scrap %</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (_openedBomLines.Count == 0)
+                                {
+                                    <tr><td colspan="4">No BOM lines yet.</td></tr>
+                                }
+                                else
+                                {
+                                    @foreach (var row in _openedBomLines)
+                                    {
+                                        <tr>
+                                            <td>@row.Id.ToString(CultureInfo.InvariantCulture)</td>
+                                            <td>@row.ComponentItemId.ToString(CultureInfo.InvariantCulture)</td>
+                                            <td>@row.QtyPer.ToString("N4", CultureInfo.InvariantCulture)</td>
+                                            <td>@row.ScrapPercent.ToString("N3", CultureInfo.InvariantCulture)</td>
+                                        </tr>
+                                    }
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
 
     <p class="help-block">@_summary.BomCount.ToString(CultureInfo.InvariantCulture) Active BOMs · @_summary.OpenWorkOrders.ToString(CultureInfo.InvariantCulture) Open work orders · @_summary.CompletedWorkOrders.ToString(CultureInfo.InvariantCulture) Completed work orders.</p>
 
@@ -36,7 +95,7 @@
             <div class="panel-heading hbuilt">Records</div>
             <div class="panel-body">
                 <div class="table-responsive">
-                    <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped">
+                    <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped table-bordered table-epc epc-erp-table">
             <thead>
                 <tr>
                     <th>ID</th>
@@ -51,20 +110,20 @@
             <tbody>
                 @if (_workOrders.Count == 0)
                 {
-                    <tr><td colspan="7">No records yet.</td></tr>
+                    <tr><td colspan="7">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? "No records yet." : _message) : "Sign in with a staff session for live rows.")</td></tr>
                 }
                 else
                 {
                     @foreach (var w in _workOrders)
                     {
-                        <tr>
+                        <tr id="erp-row-@w.Id.ToString(CultureInfo.InvariantCulture)" class="@ErpRecordOpen.RowClass(w.Id, _openedId)">
                             <td><strong>@w.Id.ToString(CultureInfo.InvariantCulture)</strong></td>
                             <td>@(string.IsNullOrWhiteSpace(w.WoNo) ? "—" : w.WoNo)</td>
                             <td>@(string.IsNullOrWhiteSpace(w.Status) ? "—" : w.Status)</td>
                             <td>@w.QtyPlanned.ToString("N2", CultureInfo.InvariantCulture)</td>
                             <td>@w.QtyProduced.ToString("N2", CultureInfo.InvariantCulture)</td>
                             <td>@(w.UpdatedAt > 0 ? w.UpdatedAt.ToString(CultureInfo.InvariantCulture) : "—")</td>
-                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
+                            <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href(_listHref, "wo_id", w.Id)">Open</a></td>
                         </tr>
                     }
                 }
@@ -158,16 +217,31 @@
 
 @code {
     private const string _phpTab = "/CP/shop/finance/erp?area=production&tab=manufacturing&epc_erp_shell=1";
+    private string _listHref = "/cp/production-overview-app";
     private bool _isAdmin;
     private CpProductionOverviewSummary _summary = new(0, 0, 0, "n/a", "");
     private IReadOnlyList<CpProductionWorkOrderDigest> _workOrders = [];
     private string _source = "n/a";
     private string _message = "";
+    private long _openedId;
+    private CpProductionWorkOrderDetail? _openedWo;
+    private IReadOnlyList<CpProductionBomLineDigest> _openedBomLines = [];
+
+    private string OpenedCaption => _openedWo is null
+        ? ""
+        : (string.IsNullOrWhiteSpace(_openedWo.WoNo) ? ("WO #" + _openedWo.Id.ToString(CultureInfo.InvariantCulture)) : _openedWo.WoNo)
+            + (string.IsNullOrWhiteSpace(_openedWo.Status) ? "" : (" · " + _openedWo.Status));
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
+
+        var path = ctx.Request.Path.Value;
+        _listHref = string.Equals(path, "/erp/production-overview-app", StringComparison.OrdinalIgnoreCase)
+            ? "/erp/production-overview-app"
+            : "/cp/production-overview-app";
+        _openedId = ErpRecordOpen.ReadId(ctx.Request, "wo_id");
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
@@ -181,5 +255,24 @@
         _workOrders = result.WorkOrders;
         _source = result.Source;
         _message = result.Message;
+
+        if (_openedId > 0)
+        {
+            var detail = await Dashboards.BuildCpProductionWorkOrderDetailAsync(_openedId, ctx.RequestAborted);
+            _openedWo = detail.WorkOrder;
+            _openedBomLines = detail.BomLines;
+            if (_openedWo is not null)
+            {
+                var openedList = _workOrders.FirstOrDefault(r => r.Id == _openedId);
+                if (openedList is not null)
+                {
+                    _workOrders = new[] { openedList }.Concat(_workOrders.Where(r => r.Id != _openedId)).ToList();
+                }
+            }
+            else if (!string.IsNullOrWhiteSpace(detail.Message))
+            {
+                _message = detail.Message;
+            }
+        }
     }
 }
