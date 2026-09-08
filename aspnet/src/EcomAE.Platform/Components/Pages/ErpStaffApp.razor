@@ -20,10 +20,12 @@
         <div class="kpi"><div class="lbl">Active staff</div><div class="val">@_active.ToString(CultureInfo.InvariantCulture)</div></div>
         <div class="kpi"><div class="lbl">Shown</div><div class="val">@_count.ToString(CultureInfo.InvariantCulture)</div></div>
         <div class="kpi"><div class="lbl">Departments</div><div class="val">@ErpStaffDepartmentCatalog.All.Count.ToString(CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">Open workflow tasks</div><div class="val">0</div></div>
+        <div class="kpi"><div class="lbl">Open workflow tasks</div><div class="val">@_openTasks.ToString(CultureInfo.InvariantCulture)</div></div>
     </div>
 
-    <h5>Department map</h5>
+    <div class="hpanel epc-erp-section">
+        <div class="panel-heading hbuilt"><i class="fa fa-sitemap"></i> Department map</div>
+        <div class="panel-body">
     <div class="epc-erp-table-wrap">
         <table class="table table-bordered table-condensed table-epc epc-erp-table">
             <thead><tr><th>Department</th><th>ERP tabs</th><th>Open tasks</th><th>Standard workflow</th></tr></thead>
@@ -33,15 +35,19 @@
                     <tr>
                         <td><i class="fa @d.Icon" style="color:@d.Color" aria-hidden="true"></i> <strong>@d.Name</strong></td>
                         <td><small>@d.TabsLabel</small></td>
-                        <td>0</td>
+                        <td>@OpenTasksFor(d.Code).ToString(CultureInfo.InvariantCulture)</td>
                         <td><small>@string.Join(" → ", d.Workflows)</small></td>
                     </tr>
                 }
             </tbody>
         </table>
     </div>
+        </div>
+    </div>
 
-    <h5>Staff directory &amp; dashboard centres</h5>
+    <div class="hpanel epc-erp-section">
+        <div class="panel-heading hbuilt"><i class="fa fa-users"></i> Staff directory &amp; dashboard centres</div>
+        <div class="panel-body">
     <p class="text-muted" style="margin-top:0;">Dashboard centre is resolved from: explicit override → job title (CEO/CFO) → department default. Example: Sales Executive never sees profit.</p>
     <div class="epc-erp-table-wrap">
         <table class="table table-striped table-condensed table-epc epc-erp-table">
@@ -79,6 +85,8 @@
             </tbody>
         </table>
     </div>
+        </div>
+    </div>
 
     <div class="epc-erp-empty" style="display:block;margin-top:12px;padding:8px 10px;border:1px solid #c5d4de;background:#f8fafc;color:#475569;font-size:12px;">
         Source: @_source. Payroll stays on <a href="/erp/payroll-app">payroll</a>. HR salaries stay on <a href="/cp/hr-overview-app">HR</a>.
@@ -92,6 +100,8 @@
     private IReadOnlyList<ErpStaffProfileDigest> _staff = [];
     private int _count;
     private int _active;
+    private int _openTasks;
+    private IReadOnlyList<ErpWorkflowTaskDigest> _workflowTasks = [];
     private string _source = "n/a";
     private string _message = "";
 
@@ -113,5 +123,16 @@
         _active = result.ActiveCount;
         _source = result.Source;
         _message = result.Message;
+        var wf = await Dashboards.BuildErpWorkflowTasksDigestAsync(200, ctx.RequestAborted);
+        _workflowTasks = wf.Tasks;
+        _openTasks = wf.Summary.OpenCount;
     }
+
+    private int OpenTasksFor(string departmentCode)
+        => _workflowTasks.Count(t =>
+            string.Equals(t.DepartmentCode, departmentCode, StringComparison.OrdinalIgnoreCase)
+            && !string.Equals(t.Status, "done", StringComparison.OrdinalIgnoreCase)
+            && !string.Equals(t.Status, "completed", StringComparison.OrdinalIgnoreCase)
+            && !string.Equals(t.Status, "cancelled", StringComparison.OrdinalIgnoreCase)
+            && !string.Equals(t.Status, "canceled", StringComparison.OrdinalIgnoreCase));
 }

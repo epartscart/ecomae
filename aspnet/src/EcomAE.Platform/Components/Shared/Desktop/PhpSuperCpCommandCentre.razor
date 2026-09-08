@@ -21,6 +21,8 @@
     .epc-boc__topnav { background:linear-gradient(135deg,#b91c1c,#7f1d1d); color:#fff; }
     .epc-boc__topnav-inner { display:flex; align-items:center; gap:6px; padding:0 14px; flex-wrap:wrap; }
     .epc-boc__topnav-brand { color:#fff; font-weight:900; display:inline-flex; gap:8px; align-items:center; padding:10px 12px; text-decoration:none; }
+    .epc-boc__topnav-brand .epc-ecomae-logo__word { color:#fff; }
+    .epc-boc__topnav-brand .epc-ecomae-logo__word em { color:#fecaca; }
     .epc-boc__topnav-list { display:flex; list-style:none; margin:0; padding:0; flex-wrap:wrap; }
     .epc-boc__topnav-item { position:static; display:flex; align-items:stretch; }
     .epc-boc__topnav-btn { background:transparent; border:0; color:rgba(255,255,255,.92); font-weight:700; padding:12px 10px; cursor:pointer; }
@@ -93,7 +95,10 @@
     <nav class="epc-boc__topnav" id="epc_boc_topnav" aria-label="Business Operation Control">
         <div class="epc-boc__topnav-inner">
             @* Brand short-name is "BOS" in PHP BOC, but the home stays Super CP (/cp) — not product Super BOS (/bos). *@
-            <a class="epc-boc__topnav-brand" href="/cp" title="Super CP — Business Operation Control"><i class="fa fa-cubes" aria-hidden="true"></i><span>BOS</span><small class="epc-boc__topnav-brand-sub">Control</small></a>
+            <a class="epc-boc__topnav-brand" href="/cp" title="Super CP — Business Operation Control">
+                <PhpEcomaeAnimatedLogo Variant="compact" ShowWordmark="true" />
+                <span>BOS</span><small class="epc-boc__topnav-brand-sub">Control</small>
+            </a>
             <ul class="epc-boc__topnav-list" role="menubar">
                 @foreach (var (group, areas) in PhpSuperCpBocNav.Nav())
                 {

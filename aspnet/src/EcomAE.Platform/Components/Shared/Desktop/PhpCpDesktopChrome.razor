@@ -104,7 +104,7 @@ else
     <div class="splash">
         <div class="color-line"></div>
         <div class="splash-title">
-            <h1>eParts Cart - Control Panel</h1>
+            <h1>@_brand.Label - Control Panel</h1>
             <p>Loading...</p>
             <div class="spinner">
                 <div class="rect1"></div>
@@ -120,7 +120,7 @@ else
         <div class="color-line"></div>
         <div class="epc-cp-header-bar">
             <a class="light-version ech-logo-wrap epc-cp-header-logo" href="/cp" id="logo">
-                <PhpEpartsCartAnimatedLogo Variant="header" />
+                <PhpSurfaceHostLogo Surface="cp" Variant="header" />
             </a>
             <div class="epc-cp-topbar-strip hidden-xs">
                 <nav class="epc-cp-topbar-ctas" aria-label="Quick destinations">
@@ -466,6 +466,7 @@ else
     private string _erpTitle = "Module";
     private string _erpArea = "Modules";
     private bool _showBos;
+    private LoginHostBrand.Brand _brand = LoginHostBrand.Resolve(null, "cp");
     private bool _signedIn;
     private string _userLabel = "Admin session";
     private string? _industryCode;
@@ -507,6 +508,7 @@ else
         }
 
         var host = Http.HttpContext?.Request.Host.Host;
+        _brand = LoginHostBrand.Resolve(host, "cp");
         _showBos = PlatformHostPolicy.IsSuperCpHost(host);
         // Tenant industry (epartscart → auto_parts) drives jewellery menu filtering.
         if (!_showBos && !string.IsNullOrWhiteSpace(host))
