@@ -92,9 +92,9 @@
                 <div><label style="margin-bottom: 0;" for="operation_code">Operation</label></div>
                 <select id="operation_code" class="form-control">
                     <option value="-1">All</option>
-                    @foreach (var code in _ops.Select(o => o.OperationCode).Where(c => c > 0).Distinct().OrderBy(c => c))
+                    @foreach (var opCode in _ops.Select(o => o.OperationCode).Where(c => c > 0).Distinct().OrderBy(c => c))
                     {
-                        <option value="@code.ToString(CultureInfo.InvariantCulture)">@code.ToString(CultureInfo.InvariantCulture)</option>
+                        <option value="@opCode.ToString(CultureInfo.InvariantCulture)">@opCode.ToString(CultureInfo.InvariantCulture)</option>
                     }
                 </select>
             </div>
