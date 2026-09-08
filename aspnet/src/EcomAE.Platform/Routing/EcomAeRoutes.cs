@@ -634,8 +634,10 @@ public static class EcomAeRoutes
     public const string ErpCustomerSettlement = "/erp/customers/settlement";
     /// <summary>Wave B dry-run for PHP supplier_settlement (writes=0).</summary>
     public const string ErpSupplierSettlement = "/erp/suppliers/settlement";
-    /// <summary>Wave B dry-run for PHP fiscal_set_lock (writes=0).</summary>
+    /// <summary>HTML form POST for PHP fiscal_set_lock. confirmWrites=true writes via IErpFiscalSetLockWriteService.</summary>
     public const string ErpFiscalSetLock = "/erp/fiscal/set-lock";
+    /// <summary>Live PHP fiscal_set_lock ajax alias of <see cref="ErpFiscalSetLock"/>.</summary>
+    public const string ErpAjaxFiscalSetLock = "/erp/ajax/fiscal-set-lock";
     /// <summary>Wave B dry-run for PHP period_reopen (writes=0).</summary>
     public const string ErpPeriodReopen = "/erp/periods/reopen";
     /// <summary>Wave B dry-run for PHP purchase_adjustment (writes=0).</summary>

@@ -2452,22 +2452,8 @@ public sealed class ErpModule : ISurfaceModule
             });
         });
 
-        endpoints.MapPost(EcomAeRoutes.ErpFiscalSetLock, async (
-            HttpContext context,
-            ErpFiscalSetLockBody? body,
-            ILegacySessionValidator validator,
-            IErpFiscalSetLockDryRun dryRun,
-            CancellationToken cancellationToken) =>
-        {
-            var session = await validator.ValidateAsync(context, cancellationToken);
-            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
-            {
-                return Unauthorized("Admin ERP capability required for fiscal set-lock dry-run.");
-            }
-            body ??= new ErpFiscalSetLockBody(0, null, false);
-            var result = dryRun.Evaluate(new ErpFiscalSetLockRequest(body.LockDateUnix, body.Note, body.ConfirmWrites));
-            return Results.Ok(result.ToPayload(SessionPayload(session)));
-        });
+        endpoints.MapPost(EcomAeRoutes.ErpFiscalSetLock, HandleFiscalSetLockAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxFiscalSetLock, HandleFiscalSetLockAsync).DisableAntiforgery();
 
         endpoints.MapPost(EcomAeRoutes.ErpPeriodReopen, async (
             HttpContext context,
@@ -11772,6 +11758,57 @@ public sealed class ErpModule : ISurfaceModule
                 session = SessionPayload(session),
             });
         }
+    }
+
+    private static async Task<IResult> HandleFiscalSetLockAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpFiscalSetLockDryRun dryRun,
+        IErpFiscalSetLockWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/period-close-app", "Admin ERP capability required for fiscal set-lock.");
+        }
+
+        var lockDate = "";
+        var lockDateUnix = 0L;
+        var note = "";
+        var confirm = false;
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            lockDate = LiveWriteFormBinder.Text(form, "lock_date", "lockDate");
+            lockDateUnix = LiveWriteFormBinder.Long(form, "lockDateUnix", "lock_date_unix");
+            note = LiveWriteFormBinder.Text(form, "note");
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+        }
+        else
+        {
+            var root = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<System.Text.Json.JsonElement>(context, cancellationToken);
+            confirm = ErpFiscalSetLockWriteService.JsonFlag(root, "confirmWrites", "confirm_writes");
+            lockDate = ErpFiscalSetLockWriteService.JsonText(root, "lock_date", "lockDate");
+            lockDateUnix = ErpFiscalSetLockWriteService.JsonLong(root, "lockDateUnix", "lock_date_unix");
+            note = ErpFiscalSetLockWriteService.JsonText(root, "note");
+        }
+
+        var unix = ErpFiscalSetLockWriteService.ResolveLockDateUnix(lockDate, lockDateUnix);
+        if (!confirm)
+        {
+            return Results.Ok(dryRun.Evaluate(new ErpFiscalSetLockRequest(unix, note, false)).ToPayload(SessionPayload(session)));
+        }
+
+        var written = await writes.SetAsync(
+            new ErpFiscalSetLockWriteRequest(unix, note, session.UserId),
+            cancellationToken);
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/erp/period-close-app",
+            written.Succeeded,
+            written.Message,
+            new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, lock_date = unix, session = SessionPayload(session) });
     }
 
     private static async Task<IResult> HandleWhtCodeSaveAsync(

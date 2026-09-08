@@ -38,7 +38,7 @@ public sealed class ErpAjaxWriteCatalog : IErpAjaxWriteCatalog
         new("create_coa", "dedicated", "/erp/coa-accounts/create"),
         new("gl_manual_entry", "dedicated", "/erp/gl-journals/manual"),
         new("gl_reverse_journal", "dedicated", "/erp/gl-journals/reverse"),
-        new("fiscal_set_lock", "dedicated", "/erp/fiscal/set-lock"),
+        new("fiscal_set_lock", "dedicated", "/erp/ajax/fiscal-set-lock"),
         new("period_list", "dedicated", "/erp/ajax/period-list"),
         new("period_checklist", "dedicated", "/erp/ajax/period-checklist"),
         new("period_soft_close", "dedicated", "/erp/periods/soft-close"),

@@ -3111,6 +3111,11 @@ public sealed class LiveWriteServiceValidationTests
             .LogAsync(new ErpHrAttendanceWriteRequest(EmployeeId: 1, Hours: 8));
         Assert.False(hrAttDb.Succeeded);
         Assert.Equal("db", hrAttDb.Code);
+
+        var fiscalDb = await new ErpFiscalSetLockWriteService(new UnconfiguredConnections())
+            .SetAsync(new ErpFiscalSetLockWriteRequest(LockDateUnix: 1788911999, Note: "wave-b"));
+        Assert.False(fiscalDb.Succeeded);
+        Assert.Equal("db", fiscalDb.Code);
     }
 
     [Fact]
