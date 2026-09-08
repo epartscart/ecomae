@@ -72,7 +72,7 @@ public static class PhpVsAspNetRemovalMatrix
         Row("cp-tax-toolkit", "cp", "content/shop/finance/epc_tax_toolkit.php", "/CP/shop/finance/epc_tax_toolkit", "/cp/tax-toolkits-app", "aspnet-routed", "php", "Super-CP gated toolkit; tenant tax UI is UAE compliance."),
         Row("cp-einvoice", "cp", "content/shop/finance/epc_einvoice.php", "/CP/shop/finance/epc_einvoice", "/cp/einvoice-documents-app", "aspnet-digest", "aspnet", "Seller / buyer / ASP profile UPSERTs are ASP.NET-live. Create, submit, credit-note, and ASP poll stay PHP."),
         Row("cp-live-fx", "cp", "content/shop/finance/epc_currency_live_rates.php", "/CP/shop/finance/epc_currency_live_rates", "/cp/currencies-app", "aspnet-routed", "php", "Live FX pull stays PHP."),
-        Row("cp-custom-ship", "cp", "content/shop/finance/epc_custom_shipping.php", "/CP/shop/finance/epc_custom_shipping", "/cp/carriers-app", "aspnet-digest", "aspnet", "epc_cs_save_declaration / epc_cs_submit_declaration core SQL are ASP.NET-live on /cp/custom-shipping/write. PDF attach, box autofill, LGP, and schema-ensure stay PHP."),
+        Row("cp-custom-ship", "cp", "content/shop/finance/epc_custom_shipping.php", "/CP/shop/finance/epc_custom_shipping", "/cp/carriers-app", "aspnet-digest", "aspnet", "epc_cs_save_declaration / epc_cs_submit_declaration core SQL are ASP.NET-live on /cp/custom-shipping/write. epc_cs_delete_declaration is ASP.NET-live on /erp/custom-shipping/delete. PDF attach / unlink, box autofill, LGP, and schema-ensure stay PHP."),
         Row("cp-finance-hub", "cp", "cp/content/shop/finance", "/CP/shop/finance", "/erp", "aspnet-hub", "php", "Module hub is intentional. Specific epc_* hrefs must map before this catch-all."),
 
         // ERP standalone finance pages closed in this wave

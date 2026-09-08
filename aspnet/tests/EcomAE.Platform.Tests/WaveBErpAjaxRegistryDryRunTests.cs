@@ -87,6 +87,17 @@ public sealed class WaveBErpAjaxRegistryDryRunTests
     }
 
     [Fact]
+    public void CsDeleteDeclarationValidated()
+    {
+        var r = new ErpCsDeleteDeclarationDryRun().Evaluate(new());
+        Assert.Equal("dry-run-validated", r.Status);
+        Assert.Equal(0, r.Writes);
+        Assert.Equal(
+            "confirm_writes_refused",
+            new ErpCsDeleteDeclarationDryRun().Evaluate(new(1, "x", true)).ValidationCode);
+    }
+
+    [Fact]
     public void BosWfDecideValidated()
     {
         var r = new ErpBosWfDecideDryRun().Evaluate(new(3, true, "ok"));

@@ -3060,6 +3060,17 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(whtSettleDb.Succeeded);
         Assert.Equal("db", whtSettleDb.Code);
 
+        var csDelInvalid = await new ErpCsDeleteDeclarationWriteService(new ConfiguredNeverOpened())
+            .DeleteAsync(0);
+        Assert.False(csDelInvalid.Succeeded);
+        Assert.Equal("invalid", csDelInvalid.Code);
+        Assert.Equal("Invalid declaration id", csDelInvalid.Message);
+
+        var csDelDb = await new ErpCsDeleteDeclarationWriteService(new UnconfiguredConnections())
+            .DeleteAsync(9);
+        Assert.False(csDelDb.Succeeded);
+        Assert.Equal("db", csDelDb.Code);
+
         var whtCodeInvalid = await new ErpWhtCodeSaveWriteService(new ConfiguredNeverOpened())
             .SaveAsync(new ErpWhtCodeSaveWriteRequest());
         Assert.False(whtCodeInvalid.Succeeded);

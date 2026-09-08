@@ -1551,7 +1551,9 @@ public static class EcomAeRoutes
     public const string ErpAjaxCsSaveDeclaration = "/erp/ajax/cs-save-declaration";
     /// <summary>Wave B dry-run for PHP cs_submit_declaration (writes=0).</summary>
     public const string ErpAjaxCsSubmitDeclaration = "/erp/ajax/cs-submit-declaration";
-    /// <summary>Wave B dry-run for PHP cs_delete_declaration (writes=0).</summary>
+    /// <summary>HTML form POST for PHP cs_delete_declaration. confirmWrites=true writes via IErpCsDeleteDeclarationWriteService.</summary>
+    public const string ErpCsDeleteDeclaration = "/erp/custom-shipping/delete";
+    /// <summary>Live PHP cs_delete_declaration ajax alias of <see cref="ErpCsDeleteDeclaration"/>.</summary>
     public const string ErpAjaxCsDeleteDeclaration = "/erp/ajax/cs-delete-declaration";
     /// <summary>Wave B dry-run for PHP cs_list_declarations (writes=0).</summary>
     public const string ErpAjaxCsListDeclarations = "/erp/ajax/cs-list-declarations";

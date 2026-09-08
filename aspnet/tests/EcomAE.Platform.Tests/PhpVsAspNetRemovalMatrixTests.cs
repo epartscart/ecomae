@@ -248,6 +248,7 @@ public sealed class PhpVsAspNetRemovalMatrixTests
             ("CpLanguagesApp.razor", "/cp/lang/create-string"),
             ("CpMarketplaceChannelsApp.razor", "/cp/channels/write"),
             ("CpCarriersApp.razor", "/cp/logistics/write"),
+            ("CpCarriersApp.razor", "/erp/custom-shipping/delete"),
             ("CpWorkshopApp.razor", "/cp/workshop/write"),
             ("CpFulfillmentQueueApp.razor", "/cp/fulfillment-queue/write"),
             ("CpSynonymsApp.razor", "/cp/synonyms/write"),
