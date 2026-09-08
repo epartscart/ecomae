@@ -8815,6 +8815,47 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    public async Task<CpPageBuilderLayoutDetailResult> BuildCpPageBuilderLayoutDetailAsync(long id, CancellationToken cancellationToken = default)
+    {
+        if (id <= 0)
+        {
+            return new(null, "n/a", "");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return new(null, "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            await using var cmd = connection.CreateCommand();
+            cmd.CommandText = LegacySurfaceDashboardSql.SelectCpPageBuilderLayoutDetail;
+            AddParameter(cmd, "@id", id);
+            await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            if (!await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                return new(null, "database", "Layout not found.");
+            }
+
+            var header = new CpPageBuilderLayoutDetail(
+                Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                Convert.ToString(reader["site_key"] is DBNull ? string.Empty : reader["site_key"], CultureInfo.InvariantCulture) ?? string.Empty,
+                Convert.ToString(reader["page_key"] is DBNull ? string.Empty : reader["page_key"], CultureInfo.InvariantCulture) ?? string.Empty,
+                Convert.ToString(reader["layout_json"] is DBNull ? string.Empty : reader["layout_json"], CultureInfo.InvariantCulture) ?? string.Empty,
+                Convert.ToString(reader["brand_json"] is DBNull ? string.Empty : reader["brand_json"], CultureInfo.InvariantCulture) ?? string.Empty,
+                Convert.ToInt32(reader["is_published"] is DBNull ? 0 : reader["is_published"], CultureInfo.InvariantCulture) != 0,
+                Convert.ToInt64(reader["updated_at"] is DBNull ? 0 : reader["updated_at"], CultureInfo.InvariantCulture),
+                Convert.ToInt64(reader["published_at"] is DBNull ? 0 : reader["published_at"], CultureInfo.InvariantCulture));
+            return new(header, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(null, "database-error", ex.Message);
+        }
+    }
+
     public async Task<CpProductCatalogueDigestResult> BuildCpProductCatalogueDigestAsync(int limit, CancellationToken cancellationToken = default)
     {
         var safeLimit = Math.Clamp(limit, 1, 500);

@@ -574,6 +574,9 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.Contains("epc_page_builder_layouts", LegacySurfaceDashboardSql.SelectCpPageBuilderLayouts, StringComparison.Ordinal);
         Assert.DoesNotContain("layout_json", LegacySurfaceDashboardSql.SelectCpPageBuilderLayouts, StringComparison.Ordinal);
         Assert.DoesNotContain("brand_json", LegacySurfaceDashboardSql.SelectCpPageBuilderLayouts, StringComparison.Ordinal);
+        Assert.Contains("layout_json", LegacySurfaceDashboardSql.SelectCpPageBuilderLayoutDetail, StringComparison.Ordinal);
+        Assert.Contains("brand_json", LegacySurfaceDashboardSql.SelectCpPageBuilderLayoutDetail, StringComparison.Ordinal);
+        Assert.Contains("`id` = @id", LegacySurfaceDashboardSql.SelectCpPageBuilderLayoutDetail, StringComparison.Ordinal);
         Assert.Contains("shop_catalogue_products", LegacySurfaceDashboardSql.SelectCpProductCatalogue, StringComparison.Ordinal);
         Assert.Contains("epc_platform_governance_rules", LegacySurfaceDashboardSql.SelectCpPlatformGovernanceRules, StringComparison.Ordinal);
         Assert.DoesNotContain("config_json", LegacySurfaceDashboardSql.SelectCpPlatformGovernanceRules, StringComparison.Ordinal);
