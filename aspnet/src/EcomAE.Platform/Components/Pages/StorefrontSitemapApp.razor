@@ -20,12 +20,12 @@
             @foreach (var group in _entries.GroupBy(e => e.Group))
             {
                 <h2 style="margin:1.25rem 0 .45rem;font-size:1.05rem">@group.Key</h2>
-                <ul style="margin:0;padding-left:1.15rem;line-height:1.7">
+                <div class="list-group">
                     @foreach (var item in group)
                     {
-                        <li><a href="@item.Href">@item.Label</a></li>
+                        <a class="list-group-item" href="@item.Href">@item.Label</a>
                     }
-                </ul>
+                </div>
             }
         </div>
     </section>

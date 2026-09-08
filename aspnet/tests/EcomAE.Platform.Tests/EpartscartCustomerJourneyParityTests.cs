@@ -232,6 +232,18 @@ public sealed class EpartscartCustomerJourneyParityTests
         Assert.Contains("name=\"ref\"", workshop, StringComparison.Ordinal);
         Assert.Contains("id=\"book\"", workshop, StringComparison.Ordinal);
         Assert.Contains("id=\"track\"", workshop, StringComparison.Ordinal);
+
+        var sitemap = File.ReadAllText(Find(
+            "aspnet/src/EcomAE.Platform/Components/Pages/StorefrontSitemapApp.razor"));
+        Assert.Contains("list-group", sitemap, StringComparison.Ordinal);
+        Assert.Contains("list-group-item", sitemap, StringComparison.Ordinal);
+
+        var vendorReg = File.ReadAllText(Find(
+            "aspnet/src/EcomAE.Platform/Components/Pages/StorefrontVendorRegisterApp.razor"));
+        Assert.Contains("panel panel-primary", vendorReg, StringComparison.Ordinal);
+        Assert.Contains("name=\"email\"", vendorReg, StringComparison.Ordinal);
+        Assert.Contains("name=\"legal_name\"", vendorReg, StringComparison.Ordinal);
+        Assert.Contains("name=\"trn\"", vendorReg, StringComparison.Ordinal);
     }
 
     [Fact]
