@@ -4464,6 +4464,29 @@ public sealed record CpConfigSandboxDigestResult(
     string Source,
     string Message);
 
+public sealed record CpConfigSandboxSnapshotDetail(
+    long Id,
+    string SiteKey,
+    string SnapshotName,
+    string Status,
+    long CreatedBy,
+    string CreatedAt,
+    string PromotedAt,
+    int ConfigLen,
+    string ConfigExcerpt);
+
+public sealed record CpConfigSandboxChangeDigest(
+    long Id,
+    string ChangeKey,
+    string ChangeType,
+    string CreatedAt);
+
+public sealed record CpConfigSandboxSnapshotDetailResult(
+    CpConfigSandboxSnapshotDetail? Snapshot,
+    IReadOnlyList<CpConfigSandboxChangeDigest> Changes,
+    string Source,
+    string Message);
+
 public sealed record CpMarketplaceAppsSummary(
     int AppCount,
     int PublishedCount,

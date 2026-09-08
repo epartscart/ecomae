@@ -8254,7 +8254,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only epc_config_snapshots + epc_sandbox_changes KPIs + snapshots (config_data/old_value/new_value omitted). PHP config sandbox remains authoritative."
+                note = "Read-only epc_config_snapshots + epc_sandbox_changes. Open ?snapshot_id= loads a 280-char config excerpt plus change keys. old_value/new_value omitted. PHP config sandbox remains authoritative."
             });
         });
 

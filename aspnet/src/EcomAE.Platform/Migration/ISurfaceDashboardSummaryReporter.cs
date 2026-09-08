@@ -521,6 +521,9 @@ public interface ISurfaceDashboardSummaryReporter
     Task<CpInfoBlocksDigestResult> BuildCpInfoBlocksDigestAsync(int limit, CancellationToken cancellationToken = default);
     Task<CpFreeToolsDigestResult> BuildCpFreeToolsDigestAsync(int limit, CancellationToken cancellationToken = default);
     Task<CpConfigSandboxDigestResult> BuildCpConfigSandboxDigestAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Opened config snapshot (PHP <c>snapshot_id</c>) plus change keys. config_data excerpt only; old/new values omitted.</summary>
+    Task<CpConfigSandboxSnapshotDetailResult> BuildCpConfigSandboxSnapshotDetailAsync(long id, CancellationToken cancellationToken = default);
     Task<CpMarketplaceAppsDigestResult> BuildCpMarketplaceAppsDigestAsync(int limit, CancellationToken cancellationToken = default);
 
     /// <summary>Opened marketplace app (PHP <c>app_id</c>) plus installs/reviews. Config JSON and review_text omitted.</summary>

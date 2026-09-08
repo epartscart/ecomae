@@ -20,20 +20,95 @@
             </div>
             <div class="panel-body">
                 <p>@CpPhpModuleCopy.PurposeFor("/cp/config-sandbox-app")</p>
+                <p>Open a snapshot for a short config excerpt and change keys. Full config, old/new values, promote, and discard stay on the Classic twin.</p>
             </div>
         </div>
     </div>
-    <PhpParityModuleBody AppPath="/cp/config-sandbox-app" IsAdmin="_isAdmin" />
+    <PhpParityModuleBody AppPath="/cp/config-sandbox-app" IsAdmin="_isAdmin" ShowGhostScaffold="false" />
 
+    <ErpOpenedRecordBanner Id="_openedId" Found="@(_openedSnap is not null)" Caption="@OpenedCaption" ListHref="@_listHref" />
 
-    <p class="help-block">@_summary.SnapshotCount.ToString(CultureInfo.InvariantCulture) Snapshots · @_summary.ActiveSnapshotCount.ToString(CultureInfo.InvariantCulture) Active · @_summary.PromotedSnapshotCount.ToString(CultureInfo.InvariantCulture) Promoted · @_summary.ChangeCount.ToString(CultureInfo.InvariantCulture) Changes.</p>
+    <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Config sandbox KPIs">
+        <div class="kpi"><div class="lbl">Snapshots</div><div class="val">@_summary.SnapshotCount.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Active</div><div class="val">@_summary.ActiveSnapshotCount.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Promoted</div><div class="val">@_summary.PromotedSnapshotCount.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Opened changes</div><div class="val">@_openedChanges.Count.ToString(CultureInfo.InvariantCulture)</div></div>
+    </div>
+
+    @if (_openedSnap is not null)
+    {
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">
+                    @(!string.IsNullOrWhiteSpace(_openedSnap.SnapshotName) ? _openedSnap.SnapshotName : ("Snapshot #" + _openedSnap.Id.ToString(CultureInfo.InvariantCulture)))
+                    <span class="label label-default pull-right">@(!string.IsNullOrWhiteSpace(_openedSnap.Status) ? _openedSnap.Status : "—")</span>
+                </div>
+                <div class="panel-body">
+                    <p>@(!string.IsNullOrWhiteSpace(_openedSnap.SiteKey) ? _openedSnap.SiteKey : "—")
+                        · by @_openedSnap.CreatedBy.ToString(CultureInfo.InvariantCulture)
+                        · @(!string.IsNullOrWhiteSpace(_openedSnap.CreatedAt) ? _openedSnap.CreatedAt : "—")
+                        · @(!string.IsNullOrWhiteSpace(_openedSnap.PromotedAt) ? _openedSnap.PromotedAt : "not promoted")</p>
+                    @if (!string.IsNullOrWhiteSpace(_openedSnap.ConfigExcerpt))
+                    {
+                        <pre style="max-height:12rem;overflow:auto;white-space:pre-wrap;margin:0">@_openedSnap.ConfigExcerpt</pre>
+                        @if (_openedSnap.ConfigLen > _openedSnap.ConfigExcerpt.Length)
+                        {
+                            <p class="text-muted">Excerpt only (@_openedSnap.ConfigExcerpt.Length.ToString(CultureInfo.InvariantCulture) of @_openedSnap.ConfigLen.ToString(CultureInfo.InvariantCulture) chars). Full config and values stay on the Classic twin.</p>
+                        }
+                    }
+                    else
+                    {
+                        <p class="text-muted">No config excerpt yet.</p>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">Changes</div>
+                <div class="panel-body">
+                    <div class="table-responsive">
+                        <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped table-bordered table-epc epc-erp-table">
+                            <thead>
+                                <tr>
+                                    <th>Id</th>
+                                    <th>Key</th>
+                                    <th>Type</th>
+                                    <th>When</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (_openedChanges.Count == 0)
+                                {
+                                    <tr><td colspan="4">No changes yet.</td></tr>
+                                }
+                                else
+                                {
+                                    @foreach (var ch in _openedChanges)
+                                    {
+                                        <tr>
+                                            <td>@ch.Id.ToString(CultureInfo.InvariantCulture)</td>
+                                            <td>@(!string.IsNullOrWhiteSpace(ch.ChangeKey) ? ch.ChangeKey : "—")</td>
+                                            <td>@(!string.IsNullOrWhiteSpace(ch.ChangeType) ? ch.ChangeType : "—")</td>
+                                            <td>@(!string.IsNullOrWhiteSpace(ch.CreatedAt) ? ch.CreatedAt : "—")</td>
+                                        </tr>
+                                    }
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
 
     <div class="col-lg-12">
         <div class="hpanel">
             <div class="panel-heading hbuilt">Records</div>
             <div class="panel-body">
                 <div class="table-responsive">
-                    <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped">
+                    <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped table-bordered table-epc epc-erp-table">
         <thead>
             <tr>
                     <th>Id</th>
@@ -49,13 +124,13 @@
         <tbody>
             @if (_rows.Count == 0)
             {
-                <tr><td colspan="8">No records yet.</td></tr>
+                <tr><td colspan="8">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? "No records yet." : _message) : "Sign in with a staff session for live rows.")</td></tr>
             }
             else
             {
                 @foreach (var row in _rows)
                 {
-                    <tr>
+                    <tr id="erp-row-@row.Id.ToString(CultureInfo.InvariantCulture)" class="@ErpRecordOpen.RowClass(row.Id, _openedId)">
                             <td>@row.Id.ToString(CultureInfo.InvariantCulture)</td>
                             <td>@(!string.IsNullOrWhiteSpace(row.SiteKey) ? row.SiteKey : "—")</td>
                             <td>@(!string.IsNullOrWhiteSpace(row.SnapshotName) ? row.SnapshotName : "—")</td>
@@ -63,7 +138,7 @@
                             <td>@row.CreatedBy.ToString(CultureInfo.InvariantCulture)</td>
                             <td>@(!string.IsNullOrWhiteSpace(row.CreatedAt) ? row.CreatedAt : "—")</td>
                             <td>@(!string.IsNullOrWhiteSpace(row.PromotedAt) ? row.PromotedAt : "—")</td>
-                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
+                            <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href(_listHref, "snapshot_id", row.Id)">Open</a></td>
                     </tr>
                 }
             }
@@ -78,16 +153,29 @@
 
 @code {
     private const string _phpTab = "/CP/control/portal/epc_config_sandbox";
+    private const string _listHref = "/cp/config-sandbox-app";
     private bool _isAdmin;
     private CpConfigSandboxSummary _summary = new(0, 0, 0, 0, "n/a", "");
     private IReadOnlyList<CpConfigSandboxRowDigest> _rows = [];
     private string _source = "n/a";
     private string _message = "";
+    private long _openedId;
+    private CpConfigSandboxSnapshotDetail? _openedSnap;
+    private IReadOnlyList<CpConfigSandboxChangeDigest> _openedChanges = [];
+
+    private string OpenedCaption => _openedSnap is null
+        ? ""
+        : (string.IsNullOrWhiteSpace(_openedSnap.SnapshotName)
+            ? ("Snapshot #" + _openedSnap.Id.ToString(CultureInfo.InvariantCulture))
+            : _openedSnap.SnapshotName)
+            + (string.IsNullOrWhiteSpace(_openedSnap.Status) ? "" : (" · " + _openedSnap.Status));
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
+
+        _openedId = ErpRecordOpen.ReadId(ctx.Request, "snapshot_id");
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
@@ -101,5 +189,24 @@
         _rows = result.Snapshots;
         _source = result.Source;
         _message = result.Message;
+
+        if (_openedId > 0)
+        {
+            var detail = await Dashboards.BuildCpConfigSandboxSnapshotDetailAsync(_openedId, ctx.RequestAborted);
+            _openedSnap = detail.Snapshot;
+            _openedChanges = detail.Changes;
+            if (_openedSnap is not null)
+            {
+                var openedList = _rows.FirstOrDefault(r => r.Id == _openedId);
+                if (openedList is not null)
+                {
+                    _rows = new[] { openedList }.Concat(_rows.Where(r => r.Id != _openedId)).ToList();
+                }
+            }
+            else if (!string.IsNullOrWhiteSpace(detail.Message))
+            {
+                _message = detail.Message;
+            }
+        }
     }
 }

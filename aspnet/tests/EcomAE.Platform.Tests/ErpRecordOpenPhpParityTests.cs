@@ -44,6 +44,7 @@ public sealed class ErpRecordOpenPhpParityTests
     [InlineData("/CP/control/portal/epc_commerce_isolation_audit?run_id=3", "/cp/isolation-audit-app?run_id=3")]
     [InlineData("/CP/control/portal/industry_settings?pack_id=2", "/cp/industry-packs-app?pack_id=2")]
     [InlineData("/CP/control/portal/epc_industry_packs?pack_id=2", "/cp/industry-packs-app?pack_id=2")]
+    [InlineData("/CP/control/portal/epc_config_sandbox?snapshot_id=4", "/cp/config-sandbox-app?snapshot_id=4")]
     [InlineData("/ERP/?epc_erp_shell=1&area=landed_cost_area&tab=landed_cost&sheet_id=6", "/erp/landed-cost-app?sheet_id=6")]
     [InlineData("/CP/control/portal/epc_soc2_compliance?soc2_id=8", "/cp/soc2-compliance-app?soc2_id=8")]
     [InlineData("/ERP/?epc_erp_shell=1&area=tax&tab=compliance&soc2_id=8", "/erp/soc2-compliance-app?soc2_id=8")]
@@ -609,6 +610,37 @@ public sealed class ErpRecordOpenPhpParityTests
             ErpRecordOpen.PreserveRecordQuery(
                 "/cp/industry-packs-app",
                 "/CP/control/portal/industry_settings?pack_id=2"));
+    }
+
+    [Fact]
+    public void ConfigSandboxApp_OpenLoadsConfigExcerptAndChangeKeys()
+    {
+        var root = FindRepoRoot();
+        var text = File.ReadAllText(Path.Combine(root,
+            "aspnet/src/EcomAE.Platform/Components/Pages/CpConfigSandboxApp.razor"));
+        Assert.Contains("ErpRecordOpen.Href(_listHref, \"snapshot_id\"", text, StringComparison.Ordinal);
+        Assert.Contains("ErpOpenedRecordBanner", text, StringComparison.Ordinal);
+        Assert.Contains("ReadId(ctx.Request, \"snapshot_id\")", text, StringComparison.Ordinal);
+        Assert.Contains("BuildCpConfigSandboxSnapshotDetailAsync", text, StringComparison.Ordinal);
+        Assert.Contains("No config excerpt yet.", text, StringComparison.Ordinal);
+        Assert.Contains("No changes yet.", text, StringComparison.Ordinal);
+        Assert.Contains("ShowGhostScaffold=\"false\"", text, StringComparison.Ordinal);
+        Assert.Contains("table-epc", text, StringComparison.Ordinal);
+        Assert.Contains("PhpParityModuleBody", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)\">Open", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("/php-reference/", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("ASP.NET", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("old_value", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("new_value", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("config_data", text, StringComparison.Ordinal);
+
+        Assert.Equal("/cp/config-sandbox-app?snapshot_id=4#erp-row-4",
+            ErpRecordOpen.Href("/cp/config-sandbox-app", "snapshot_id", 4));
+        Assert.Equal(
+            "/cp/config-sandbox-app?snapshot_id=4",
+            ErpRecordOpen.PreserveRecordQuery(
+                "/cp/config-sandbox-app",
+                "/CP/control/portal/epc_config_sandbox?snapshot_id=4"));
     }
 
     [Fact]
