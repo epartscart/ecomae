@@ -60,6 +60,12 @@ public sealed class EpartscartCustomerJourneyParityTests
         Assert.Contains("radio_how_get", checkout, StringComparison.Ordinal);
         Assert.Contains("label_how_get", checkout, StringComparison.Ordinal);
         Assert.Contains("id=\"how_get_options_div\"", checkout, StringComparison.Ordinal);
+        Assert.Contains("office_box", checkout, StringComparison.Ordinal);
+        Assert.Contains("list-group", checkout, StringComparison.Ordinal);
+        Assert.Contains("office_info", checkout, StringComparison.Ordinal);
+        Assert.Contains("BuildCpOfficesDigestAsync", checkout, StringComparison.Ordinal);
+        Assert.Contains("name=\"office_id\"", checkout, StringComparison.Ordinal);
+        Assert.Contains("name=\"officeId\"", checkout, StringComparison.Ordinal);
         Assert.Contains("onHowGetChanged", checkout, StringComparison.Ordinal);
         Assert.Contains("class=\"table\"", checkout, StringComparison.Ordinal);
         Assert.Contains("product_div_first", checkout, StringComparison.Ordinal);
@@ -71,6 +77,11 @@ public sealed class EpartscartCustomerJourneyParityTests
         Assert.Contains("@page \"/en/shop/orders\"", orders, StringComparison.Ordinal);
         Assert.Contains("@page \"/en/shop/orders/order\"", orders, StringComparison.Ordinal);
         Assert.Contains("panel panel-primary", orders, StringComparison.Ordinal);
+
+        var offices = File.ReadAllText(Find(
+            "aspnet/src/EcomAE.Platform/Components/Pages/StorefrontOfficesApp.razor"));
+        Assert.Contains("class=\"office_box list-group-item\"", offices, StringComparison.Ordinal);
+        Assert.Contains("id=\"office_list\"", offices, StringComparison.Ordinal);
 
         var garage = File.ReadAllText(Find(
             "aspnet/src/EcomAE.Platform/Components/Pages/StorefrontGarageApp.razor"));

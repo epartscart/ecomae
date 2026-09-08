@@ -50,6 +50,9 @@
         .epc-sf-co-step a { color:#15803d; font-weight:700; text-decoration:none; }
         .epc-sf-co-note { margin-top:1rem; padding:.75rem .9rem; background:#fff8e8; border:1px solid #f1d49a; border-radius:.45rem; color:#7a4e00; font-size:.86rem; }
         .epc-sf-co-gate { padding:1.25rem; background:#fff; border:1px solid #e5e7eb; border-radius:.55rem; }
+        .office_box { cursor:pointer; }
+        .office_box input { margin-right:.45rem; }
+        .office_info.hidden_info { display:none; }
         @@media (max-width:900px){ .epc-sf-co-kpis{grid-template-columns:1fr 1fr;} }
     
 </style>
@@ -105,6 +108,30 @@
                             </div>
                         }
                         <div id="how_get_options_div">
+                            <p class="lead">Pickup office:</p>
+                            <div class="list-group">
+                                @if (_offices.Count == 0)
+                                {
+                                    <div class="office_box list-group-item">No pickup offices are listed for this shop yet.</div>
+                                }
+                                else
+                                {
+                                    @foreach (var office in _offices)
+                                    {
+                                        var officeBoxId = "office_box_" + office.Id.ToString(CultureInfo.InvariantCulture);
+                                        var officeInfoId = "office_info_" + office.Id.ToString(CultureInfo.InvariantCulture);
+                                        var officeRadioId = "office_radio_" + office.Id.ToString(CultureInfo.InvariantCulture);
+                                        <label class="office_box list-group-item" id="@officeBoxId" for="@officeRadioId">
+                                            <input type="radio"
+                                                   name="office_id"
+                                                   value="@office.Id.ToString(CultureInfo.InvariantCulture)"
+                                                   id="@officeRadioId" />
+                                            <span>@(string.IsNullOrWhiteSpace(office.Caption) ? ("Office #" + office.Id.ToString(CultureInfo.InvariantCulture)) : office.Caption), city: @(string.IsNullOrWhiteSpace(office.City) ? "—" : office.City), @(string.IsNullOrWhiteSpace(office.Address) ? "—" : office.Address)</span>
+                                        </label>
+                                        <div class="office_info hidden_info" id="@officeInfoId"></div>
+                                    }
+                                }
+                            </div>
                             <label style="display:block;margin:.65rem 0 .25rem">City / area</label>
                             <input type="text" name="city" style="width:100%;max-width:22rem;padding:.45rem" />
                             <p style="margin:.75rem 0 .35rem"><a href="@StorefrontSurfaceLinks.Offices">Pickup points</a></p>
@@ -185,8 +212,28 @@
                             <label class="label_how_get" for="@confirmRadioId">@mode.Label</label>
                         </div>
                     }
-                    <label style="display:block;margin:.65rem 0 .25rem">Pickup office id (mode 1)</label>
-                    <input type="number" name="officeId" min="0" style="width:8rem;padding:.4rem" />
+                    <p class="lead" style="margin:.75rem 0 .35rem">Pickup office:</p>
+                    <div class="list-group">
+                        @if (_offices.Count == 0)
+                        {
+                            <label style="display:block;margin:.65rem 0 .25rem">Pickup office id (mode 1)</label>
+                            <input type="number" name="officeId" min="0" style="width:8rem;padding:.4rem" />
+                        }
+                        else
+                        {
+                            @foreach (var office in _offices)
+                            {
+                                var confirmOfficeId = "confirm_office_" + office.Id.ToString(CultureInfo.InvariantCulture);
+                                <label class="office_box list-group-item" id="office_box_confirm_@office.Id.ToString(CultureInfo.InvariantCulture)" for="@confirmOfficeId">
+                                    <input type="radio"
+                                           name="officeId"
+                                           value="@office.Id.ToString(CultureInfo.InvariantCulture)"
+                                           id="@confirmOfficeId" />
+                                    <span>@(string.IsNullOrWhiteSpace(office.Caption) ? ("Office #" + office.Id.ToString(CultureInfo.InvariantCulture)) : office.Caption), city: @(string.IsNullOrWhiteSpace(office.City) ? "—" : office.City), @(string.IsNullOrWhiteSpace(office.Address) ? "—" : office.Address)</span>
+                                </label>
+                            }
+                        }
+                    </div>
                     @if (!_isCustomer)
                     {
                         <label style="display:block;margin:.65rem 0 .25rem">Phone</label>
@@ -315,6 +362,7 @@
     private string _stepHeading = "";
     private string _stepHelp = "";
     private IReadOnlyList<(string Code, string Label)> _obtainModes = PhpCustomerWrites.ObtainModes;
+    private IReadOnlyList<CpOfficeDigest> _offices = [];
     private string _flashOk = "";
     private string _flashErr = "";
     protected override async Task OnInitializedAsync()
@@ -325,6 +373,7 @@
         _flashErr = ctx?.Request.Query["err"].ToString() ?? "";
         if (ctx is null) return;
         _brand = StorefrontIndustryHostResolver.ResolveBrandLabel(ctx.Request.Host.Host);
+        await LoadOfficesAndModesAsync(ctx);
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         var shopper = session.Kind == LegacySessionKind.Customer && session.UserId > 0
@@ -352,6 +401,22 @@
         _readiness = result.Summary.Count > 0
             ? (result.Lines.Any(l => l.CheckedForOrder) ? "ready for delivery" : "cart has lines")
             : "empty cart";
+    }
+
+    private async Task LoadOfficesAndModesAsync(HttpContext ctx)
+    {
+        try
+        {
+            var offices = await Dashboards.BuildCpOfficesDigestAsync(40, ctx.RequestAborted);
+            if (offices.Offices.Count > 0)
+            {
+                _offices = offices.Offices;
+            }
+        }
+        catch (Exception)
+        {
+            _offices = [];
+        }
 
         try
         {
