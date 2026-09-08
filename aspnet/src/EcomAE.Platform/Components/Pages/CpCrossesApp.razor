@@ -20,12 +20,11 @@
             </div>
             <div class="panel-body">
                 <p>@CpPhpModuleCopy.PurposeFor("/cp/crosses-app")</p>
-                <p>Cross add/save/delete write here when confirmWrites is set.</p>
+                <p>Open a pair to see other crosses for the same article. Cross add/save/delete write here when confirmWrites is set.</p>
             </div>
         </div>
     </div>
-    <PhpParityModuleBody AppPath="/cp/crosses-app" IsAdmin="_isAdmin" />
-
+    <PhpParityModuleBody AppPath="/cp/crosses-app" IsAdmin="_isAdmin" ShowGhostScaffold="false" />
 
     @if (!string.IsNullOrWhiteSpace(_flashOk))
     {
@@ -35,30 +34,38 @@
     {
         <div class="alert alert-danger" role="status" style="margin:0 0 1rem;padding:.7rem .9rem;border-radius:.4rem;background:#fef2f2;color:#991b1b">@_flashErr</div>
     }
+
+    <ErpOpenedRecordBanner Id="_openedId" Found="@(_openedPair is not null)" Caption="@OpenedCaption" ListHref="@_listHref" />
+
+    <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Cross pair KPIs">
+        <div class="kpi"><div class="lbl">Total pairs</div><div class="val">@_summary.TotalPairs.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Brands</div><div class="val">@_summary.Brands.ToString(CultureInfo.InvariantCulture)</div></div>
+    </div>
+
     @if (_isAdmin)
     {
         <div style="display:grid;gap:.65rem;margin:0 0 1rem">
             <form method="post" action="/cp/crosses/write" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end">
                 <input type="hidden" name="confirmWrites" value="true" />
-                <input type="hidden" name="returnUrl" value="/cp/crosses-app" />
+                <input type="hidden" name="returnUrl" value="@_returnHref" />
                 <input type="hidden" name="action" value="save_crosses" />
-                <label>Id <input type="number" name="id" min="1" required /></label>
-                <label>Article <input type="text" name="article" required maxlength="255" /></label>
-                <label>Manufacturer <input type="text" name="manufacturer_article" required maxlength="255" /></label>
-                <label>Analog <input type="text" name="analog" required maxlength="255" /></label>
-                <label>Analog manufacturer <input type="text" name="manufacturer_analog" required maxlength="255" /></label>
+                <label>Id <input type="number" name="id" min="1" required value="@OpenedIdValue" /></label>
+                <label>Article <input type="text" name="article" required maxlength="255" value="@OpenedArticleValue" /></label>
+                <label>Manufacturer <input type="text" name="manufacturer_article" required maxlength="255" value="@OpenedManufacturerValue" /></label>
+                <label>Analog <input type="text" name="analog" required maxlength="255" value="@OpenedAnalogValue" /></label>
+                <label>Analog manufacturer <input type="text" name="manufacturer_analog" required maxlength="255" value="@OpenedAnalogManufacturerValue" /></label>
                 <button type="submit">Save cross</button>
             </form>
             <form method="post" action="/cp/crosses/write" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end">
                 <input type="hidden" name="confirmWrites" value="true" />
-                <input type="hidden" name="returnUrl" value="/cp/crosses-app" />
+                <input type="hidden" name="returnUrl" value="@_returnHref" />
                 <input type="hidden" name="action" value="del_crosses" />
-                <label>Id <input type="number" name="id" min="1" required /></label>
+                <label>Id <input type="number" name="id" min="1" required value="@OpenedIdValue" /></label>
                 <button type="submit">Delete cross</button>
             </form>
             <form method="post" action="/cp/crosses/write" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end">
                 <input type="hidden" name="confirmWrites" value="true" />
-                <input type="hidden" name="returnUrl" value="/cp/crosses-app" />
+                <input type="hidden" name="returnUrl" value="@_listHref" />
                 <input type="hidden" name="action" value="add_crosses" />
                 <label>Article <input type="text" name="article" required maxlength="255" /></label>
                 <label>Manufacturer <input type="text" name="manufacturer_article" maxlength="255" placeholder="optional" /></label>
@@ -68,7 +75,7 @@
             </form>
             <form method="post" action="/cp/crosses/write" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end">
                 <input type="hidden" name="confirmWrites" value="true" />
-                <input type="hidden" name="returnUrl" value="/cp/crosses-app" />
+                <input type="hidden" name="returnUrl" value="@_listHref" />
                 <input type="hidden" name="action" value="del_search_crosses" />
                 <label>Article <input type="text" name="article" maxlength="255" /></label>
                 <label>Manufacturer <input type="text" name="manufacturer" maxlength="255" /></label>
@@ -80,6 +87,55 @@
         </div>
     }
 
+    @if (_openedPair is not null)
+    {
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">
+                    @(!string.IsNullOrWhiteSpace(_openedPair.Article) ? _openedPair.Article : ("Cross #" + _openedPair.Id.ToString(CultureInfo.InvariantCulture)))
+                    <span class="label label-default pull-right">@_openedPair.Id.ToString(CultureInfo.InvariantCulture)</span>
+                </div>
+                <div class="panel-body">
+                    <p>Manufacturer: <strong>@(!string.IsNullOrWhiteSpace(_openedPair.Manufacturer) ? _openedPair.Manufacturer : "—")</strong>
+                        · Analog: <strong>@(!string.IsNullOrWhiteSpace(_openedPair.CrossArticle) ? _openedPair.CrossArticle : "—")</strong>
+                        · Analog manufacturer: <strong>@(!string.IsNullOrWhiteSpace(_openedPair.CrossManufacturer) ? _openedPair.CrossManufacturer : "—")</strong></p>
+                    <div class="table-responsive">
+                        <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped table-bordered table-epc epc-erp-table">
+                            <thead>
+                                <tr>
+                                    <th>Id</th>
+                                    <th>Manufacturer</th>
+                                    <th>Article</th>
+                                    <th>Cross mfr</th>
+                                    <th>Cross article</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (_openedSiblings.Count == 0)
+                                {
+                                    <tr><td colspan="5">No siblings yet.</td></tr>
+                                }
+                                else
+                                {
+                                    @foreach (var row in _openedSiblings)
+                                    {
+                                        <tr>
+                                            <td>@row.Id.ToString(CultureInfo.InvariantCulture)</td>
+                                            <td>@(!string.IsNullOrWhiteSpace(row.Manufacturer) ? row.Manufacturer : "—")</td>
+                                            <td>@(!string.IsNullOrWhiteSpace(row.Article) ? row.Article : "—")</td>
+                                            <td>@(!string.IsNullOrWhiteSpace(row.CrossManufacturer) ? row.CrossManufacturer : "—")</td>
+                                            <td>@(!string.IsNullOrWhiteSpace(row.CrossArticle) ? row.CrossArticle : "—")</td>
+                                        </tr>
+                                    }
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
     <p class="help-block">@_summary.TotalPairs.ToString(CultureInfo.InvariantCulture) Total pairs · @_summary.Brands.ToString(CultureInfo.InvariantCulture) Brands.</p>
 
     <div class="col-lg-12">
@@ -87,7 +143,7 @@
             <div class="panel-heading hbuilt">Records</div>
             <div class="panel-body">
                 <div class="table-responsive">
-                    <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped">
+                    <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped table-bordered table-epc epc-erp-table">
             <thead>
                 <tr>
                     <th>ID</th>
@@ -101,19 +157,19 @@
             <tbody>
                 @if (_pairs.Count == 0)
                 {
-                    <tr><td colspan="6">No records yet.</td></tr>
+                    <tr><td colspan="6">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? "No records yet." : _message) : "Sign in with a staff session for live rows.")</td></tr>
                 }
                 else
                 {
                     @foreach (var p in _pairs)
                     {
-                        <tr>
+                        <tr id="erp-row-@p.Id.ToString(CultureInfo.InvariantCulture)" class="@ErpRecordOpen.RowClass(p.Id, _openedId)">
                             <td><strong>@p.Id.ToString(CultureInfo.InvariantCulture)</strong></td>
                             <td>@(string.IsNullOrWhiteSpace(p.Manufacturer) ? "—" : p.Manufacturer)</td>
                             <td>@(string.IsNullOrWhiteSpace(p.Article) ? "—" : p.Article)</td>
                             <td>@(string.IsNullOrWhiteSpace(p.CrossManufacturer) ? "—" : p.CrossManufacturer)</td>
                             <td>@(string.IsNullOrWhiteSpace(p.CrossArticle) ? "—" : p.CrossArticle)</td>
-                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
+                            <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href(_listHref, "cross_id", p.Id)">Open</a></td>
                         </tr>
                     }
                 }
@@ -124,12 +180,13 @@
         </div>
     </div>
 
-    <div class="epc-x-note">Save, add, delete, and search-delete write when confirmWrites is set. File import and crossbase stay on the PHP twin.</div>
+    <div class="epc-x-note">Save, add, delete, and search-delete write when confirmWrites is set. File import and crossbase stay on the Classic twin.</div>
 
 </PhpCpDesktopChrome>
 
 @code {
     private const string _phpTab = "/CP/shop/crosses";
+    private const string _listHref = "/cp/crosses-app";
     private bool _isAdmin;
     private CpCrossesSummary _summary = new(0, 0, "n/a", "");
     private IReadOnlyList<CpCrossPairDigest> _pairs = [];
@@ -137,6 +194,21 @@
     private string _message = "";
     private string _flashOk = "";
     private string _flashErr = "";
+    private long _openedId;
+    private string _returnHref = "/cp/crosses-app";
+    private CpCrossPairDetail? _openedPair;
+    private IReadOnlyList<CpCrossPairDigest> _openedSiblings = [];
+
+    private string OpenedCaption => _openedPair is null
+        ? ""
+        : (string.IsNullOrWhiteSpace(_openedPair.Article) ? ("Cross #" + _openedPair.Id.ToString(CultureInfo.InvariantCulture)) : _openedPair.Article)
+            + (string.IsNullOrWhiteSpace(_openedPair.CrossArticle) ? "" : (" → " + _openedPair.CrossArticle));
+
+    private string OpenedIdValue => _openedId > 0 ? _openedId.ToString(CultureInfo.InvariantCulture) : "";
+    private string OpenedArticleValue => _openedPair?.Article ?? "";
+    private string OpenedManufacturerValue => _openedPair?.Manufacturer ?? "";
+    private string OpenedAnalogValue => _openedPair?.CrossArticle ?? "";
+    private string OpenedAnalogManufacturerValue => _openedPair?.CrossManufacturer ?? "";
 
     protected override async Task OnInitializedAsync()
     {
@@ -145,6 +217,11 @@
 
         _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
         _flashErr = ctx.Request.Query["err"].ToString() ?? "";
+        _openedId = ErpRecordOpen.ReadId(ctx.Request, "cross_id");
+        _returnHref = _openedId > 0
+            ? ErpRecordOpen.Href(_listHref, "cross_id", _openedId).Split('#')[0]
+            : _listHref;
+
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
         if (!_isAdmin)
@@ -157,5 +234,24 @@
         _pairs = result.Pairs;
         _source = result.Source;
         _message = result.Message;
+
+        if (_openedId > 0)
+        {
+            var detail = await Dashboards.BuildCpCrossPairDetailAsync(_openedId, ctx.RequestAborted);
+            _openedPair = detail.Pair;
+            _openedSiblings = detail.Siblings;
+            if (_openedPair is not null)
+            {
+                var openedList = _pairs.FirstOrDefault(r => r.Id == _openedId);
+                if (openedList is not null)
+                {
+                    _pairs = new[] { openedList }.Concat(_pairs.Where(r => r.Id != _openedId)).ToList();
+                }
+            }
+            else if (!string.IsNullOrWhiteSpace(detail.Message))
+            {
+                _message = detail.Message;
+            }
+        }
     }
 }

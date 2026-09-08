@@ -1443,7 +1443,7 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
-    /// <summary>Tax toolkit catalog — omits rules_json.</summary>
+    /// <summary>Tax toolkit catalog — omits rules_json / country_codes_json.</summary>
     public const string SelectCpTaxToolkits = """
         SELECT `id`, IFNULL(`kit_code`, '') AS kit_code,
                IFNULL(`name`, '') AS name,
@@ -1455,6 +1455,44 @@ public static class LegacySurfaceDashboardSql
         WHERE IFNULL(`active`, 0) = 1
         ORDER BY `kit_code` ASC, `id` ASC
         LIMIT @limit
+        """;
+
+    /// <summary>Opened tax toolkit — includes rules_json and country_codes_json.</summary>
+    public const string SelectCpTaxToolkitDetail = """
+        SELECT `id`, IFNULL(`kit_code`, '') AS kit_code,
+               IFNULL(`name`, '') AS name,
+               IFNULL(`jurisdiction`, '') AS jurisdiction,
+               IFNULL(`country_codes_json`, '') AS country_codes_json,
+               IFNULL(`tax_type`, '') AS tax_type,
+               IFNULL(`rules_json`, '') AS rules_json,
+               IFNULL(`is_system`, 0) AS is_system,
+               IFNULL(`active`, 0) AS active,
+               IFNULL(`time_created`, 0) AS time_created
+        FROM `epc_tax_toolkits`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Opened tax toolkit installs (PHP epc_tax_toolkit_installs by kit_id).</summary>
+    public const string SelectCpTaxToolkitInstalls = """
+        SELECT `id`, IFNULL(`kit_id`, 0) AS kit_id, IFNULL(`kit_code`, '') AS kit_code,
+               IFNULL(`is_default`, 0) AS is_default, IFNULL(`installed_by`, 0) AS installed_by,
+               IFNULL(`time_installed`, 0) AS time_installed
+        FROM `epc_tax_toolkit_installs`
+        WHERE `kit_id` = @id
+        ORDER BY `id` DESC
+        LIMIT 20
+        """;
+
+    /// <summary>Opened tax toolkit refresh history (changelog only; rules_hash is a fingerprint).</summary>
+    public const string SelectCpTaxToolkitUpdates = """
+        SELECT `id`, IFNULL(`kit_code`, '') AS kit_code, IFNULL(`source`, '') AS source,
+               IFNULL(`changelog`, '') AS changelog, IFNULL(`rules_hash`, '') AS rules_hash,
+               IFNULL(`admin_id`, 0) AS admin_id, IFNULL(`time_updated`, 0) AS time_updated
+        FROM `epc_tax_toolkit_updates`
+        WHERE `kit_code` = @kit_code
+        ORDER BY `id` DESC
+        LIMIT 20
         """;
 
     public const string SelectCpTaxToolkitStats = """
@@ -1580,6 +1618,7 @@ public static class LegacySurfaceDashboardSql
             (SELECT COUNT(DISTINCT `manufacturer_article`) FROM `shop_docpart_articles_analogs_list`) AS brands
         """;
 
+    /// <summary>Cross pairs dump — article/manufacturer/analog columns only.</summary>
     public const string SelectCpCrossPairs = """
         SELECT `id`,
                IFNULL(`manufacturer_article`, '') AS manufacturer,
@@ -1589,6 +1628,33 @@ public static class LegacySurfaceDashboardSql
         FROM `shop_docpart_articles_analogs_list`
         ORDER BY `id` DESC
         LIMIT @limit
+        """;
+
+    /// <summary>Opened cross pair.</summary>
+    public const string SelectCpCrossPairDetail = """
+        SELECT `id`,
+               IFNULL(`manufacturer_article`, '') AS manufacturer,
+               IFNULL(`article`, '') AS article,
+               IFNULL(`manufacturer_analog`, '') AS cross_manufacturer,
+               IFNULL(`analog`, '') AS cross_article
+        FROM `shop_docpart_articles_analogs_list`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Sibling crosses for the same article + manufacturer (PHP analog family).</summary>
+    public const string SelectCpCrossPairSiblings = """
+        SELECT `id`,
+               IFNULL(`manufacturer_article`, '') AS manufacturer,
+               IFNULL(`article`, '') AS article,
+               IFNULL(`manufacturer_analog`, '') AS cross_manufacturer,
+               IFNULL(`analog`, '') AS cross_article
+        FROM `shop_docpart_articles_analogs_list`
+        WHERE `article` = @article
+          AND `manufacturer_article` = @manufacturer
+          AND `id` <> @id
+        ORDER BY `id` DESC
+        LIMIT 20
         """;
 
     /// <summary>HR overview KPIs — omits salary/allowances/currency/payslip detail.</summary>
@@ -1969,7 +2035,7 @@ public static class LegacySurfaceDashboardSql
             (SELECT COUNT(*) FROM `epc_loy_accounts`) AS loyalty_accounts
         """;
 
-    /// <summary>Promotions from epc_promo_promotions.</summary>
+    /// <summary>Promotions from epc_promo_promotions (list already has every dump column; dates stay off the grid).</summary>
     public const string SelectCpPromotions = """
         SELECT `id`, IFNULL(`code`,'') AS code, IFNULL(`name`,'') AS name,
                IFNULL(`type`,'') AS type, IFNULL(`value`,0) AS value,
@@ -1978,6 +2044,17 @@ public static class LegacySurfaceDashboardSql
         FROM `epc_promo_promotions`
         ORDER BY `id` DESC
         LIMIT @limit
+        """;
+
+    /// <summary>Opened promotion — same dump columns, including valid_from/valid_to the list grid hides.</summary>
+    public const string SelectCpPromotionDetail = """
+        SELECT `id`, IFNULL(`code`,'') AS code, IFNULL(`name`,'') AS name,
+               IFNULL(`type`,'') AS type, IFNULL(`value`,0) AS value,
+               IFNULL(`min_spend`,0) AS min_spend, IFNULL(`valid_from`,0) AS valid_from,
+               IFNULL(`valid_to`,0) AS valid_to, IFNULL(`active`,0) AS active
+        FROM `epc_promo_promotions`
+        WHERE `id` = @id
+        LIMIT 1
         """;
 
     /// <summary>CRM opportunity KPIs — omits notes.</summary>
@@ -1998,6 +2075,31 @@ public static class LegacySurfaceDashboardSql
         FROM `epc_crm_opportunities`
         ORDER BY `id` DESC
         LIMIT @limit
+        """;
+
+    /// <summary>Opened CRM opportunity — includes notes.</summary>
+    public const string SelectCpCrmOpportunityDetail = """
+        SELECT `id`, IFNULL(`lead_id`,0) AS lead_id, IFNULL(`title`,'') AS title,
+               IFNULL(`stage`,'') AS stage, IFNULL(`amount`,0) AS amount,
+               IFNULL(`probability`,0) AS probability, IFNULL(`close_date`,0) AS close_date,
+               IFNULL(`owner_user_id`,0) AS owner_user_id,
+               IFNULL(`linked_user_id`,0) AS linked_user_id,
+               IFNULL(`notes`,'') AS notes, IFNULL(`active`,0) AS active,
+               IFNULL(`time_created`,0) AS time_created
+        FROM `epc_crm_opportunities`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Opened opportunity activities (PHP epc_crm_activities).</summary>
+    public const string SelectCpCrmOpportunityActivities = """
+        SELECT `id`, IFNULL(`activity_type`,'') AS activity_type,
+               IFNULL(`due_date`,0) AS due_date, IFNULL(`done`,0) AS done,
+               IFNULL(`notes`,'') AS notes
+        FROM `epc_crm_activities`
+        WHERE `related_type` = 'opportunity'
+          AND `related_id` = @id
+        ORDER BY `id` DESC
         """;
 
     /// <summary>Optional tenant feature flags overlay for Integrations Hub (secrets/config_json omitted).</summary>
@@ -2083,6 +2185,7 @@ public static class LegacySurfaceDashboardSql
             (SELECT COUNT(DISTINCT `manufacturer_id`) FROM `shop_docpart_manufacturers_synonyms`) AS mapped_count
         """;
 
+    /// <summary>Brand synonym dump — omits synonym id.</summary>
     public const string SelectCpSynonymsRows = """
         SELECT IFNULL(m.`name`,'') AS manufacturer,
                IFNULL(s.`synonym`,'') AS synonym,
@@ -2091,6 +2194,23 @@ public static class LegacySurfaceDashboardSql
         LEFT JOIN `shop_docpart_manufacturers` m ON m.`id` = s.`manufacturer_id`
         ORDER BY manufacturer ASC, synonym ASC
         LIMIT @limit
+        """;
+
+    /// <summary>Opened manufacturer header for brand synonyms.</summary>
+    public const string SelectCpSynonymManufacturerDetail = """
+        SELECT `id`, IFNULL(`name`,'') AS name
+        FROM `shop_docpart_manufacturers`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Opened manufacturer synonym children — includes synonym id omitted from the dump.</summary>
+    public const string SelectCpSynonymChildren = """
+        SELECT s.`id`, IFNULL(s.`manufacturer_id`,0) AS manufacturer_id,
+               IFNULL(s.`synonym`,'') AS synonym
+        FROM `shop_docpart_manufacturers_synonyms` s
+        WHERE s.`manufacturer_id` = @id
+        ORDER BY s.`synonym` ASC
         """;
 
     public const string SelectCpSeoStats = """
@@ -2602,6 +2722,17 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>Opened page-builder layout — includes layout_json/brand_json omitted from the list.</summary>
+    public const string SelectCpPageBuilderLayoutDetail = """
+        SELECT `id`, IFNULL(`site_key`,'') AS site_key, IFNULL(`page_key`,'') AS page_key,
+               IFNULL(`layout_json`,'') AS layout_json, IFNULL(`brand_json`,'') AS brand_json,
+               IFNULL(`is_published`,0) AS is_published, IFNULL(`updated_at`,0) AS updated_at,
+               IFNULL(`published_at`,0) AS published_at
+        FROM `epc_page_builder_layouts`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
     /// <summary>Product catalogue KPIs from shop_catalogue_products.</summary>
     public const string SelectCpProductCatalogueStats = """
         SELECT
@@ -2786,6 +2917,32 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>Opened SOC 2 control — includes description/implementation and review dates.</summary>
+    public const string SelectCpSoc2ControlDetail = """
+        SELECT `id`, IFNULL(`control_id`,'') AS control_id, IFNULL(`category`,'') AS category,
+               IFNULL(`title`,'') AS title, IFNULL(`description`,'') AS description,
+               IFNULL(`implementation`,'') AS implementation, IFNULL(`status`,'') AS status,
+               IFNULL(`owner`,'') AS owner, IFNULL(`frequency`,'') AS frequency,
+               IFNULL(`last_tested`,'') AS last_tested, IFNULL(`next_review`,'') AS next_review,
+               IFNULL(`risk_level`,'') AS risk_level
+        FROM `epc_soc2_controls`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Opened SOC 2 control evidence (PHP epc_soc2_evidence by string control_id).</summary>
+    public const string SelectCpSoc2ControlEvidence = """
+        SELECT `id`, IFNULL(`control_id`,'') AS control_id,
+               IFNULL(`evidence_type`,'') AS evidence_type, IFNULL(`title`,'') AS title,
+               IFNULL(`file_path`,'') AS file_path, IFNULL(`collected_at`,'') AS collected_at,
+               IFNULL(`collected_by`,'') AS collected_by, IFNULL(`valid_from`,'') AS valid_from,
+               IFNULL(`valid_to`,'') AS valid_to, IFNULL(`notes`,'') AS notes
+        FROM `epc_soc2_evidence`
+        WHERE `control_id` = @control_id
+        ORDER BY `id` DESC
+        LIMIT 50
+        """;
+
     /// <summary>Cost model KPIs from epc_costm_* (CREATE TABLE in epc_erp_cost_models.php).</summary>
     public const string SelectCpCostModelsStats = """
         SELECT
@@ -2869,6 +3026,46 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>Opened landed cost sheet — includes notes and posted_at.</summary>
+    public const string SelectCpLandedCostSheetDetail = """
+        SELECT `id`, IFNULL(`company_id`,0) AS company_id, IFNULL(`sheet_no`,'') AS sheet_no,
+               IFNULL(`po_reference`,'') AS po_reference, IFNULL(`grn_reference`,'') AS grn_reference,
+               IFNULL(`supplier_id`,0) AS supplier_id, IFNULL(`supplier_name`,'') AS supplier_name,
+               IFNULL(`goods_value`,0) AS goods_value, IFNULL(`total_expenses`,0) AS total_expenses,
+               IFNULL(`distribution_method`,'') AS distribution_method, IFNULL(`currency`,'') AS currency,
+               IFNULL(`status`,'') AS status, IFNULL(`posted_at`,'') AS posted_at,
+               IFNULL(`created_by`,0) AS created_by, IFNULL(`notes`,'') AS notes,
+               IFNULL(`time_created`,0) AS time_created
+        FROM `epc_landed_cost_sheets`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Opened landed cost expenses (PHP epc_landed_cost_expenses by sheet_id).</summary>
+    public const string SelectCpLandedCostExpenses = """
+        SELECT `id`, IFNULL(`sheet_id`,0) AS sheet_id,
+               IFNULL(`expense_type`,'') AS expense_type, IFNULL(`vendor_name`,'') AS vendor_name,
+               IFNULL(`reference`,'') AS reference, IFNULL(`amount`,0) AS amount,
+               IFNULL(`currency`,'') AS currency, IFNULL(`exchange_rate`,0) AS exchange_rate,
+               IFNULL(`amount_local`,0) AS amount_local
+        FROM `epc_landed_cost_expenses`
+        WHERE `sheet_id` = @id
+        ORDER BY `id` ASC
+        """;
+
+    /// <summary>Opened landed cost allocation lines (PHP epc_landed_cost_lines by sheet_id).</summary>
+    public const string SelectCpLandedCostLines = """
+        SELECT `id`, IFNULL(`sheet_id`,0) AS sheet_id, IFNULL(`product_id`,0) AS product_id,
+               IFNULL(`sku`,'') AS sku, IFNULL(`description`,'') AS description,
+               IFNULL(`qty`,0) AS qty, IFNULL(`unit_cost`,0) AS unit_cost,
+               IFNULL(`line_value`,0) AS line_value, IFNULL(`weight`,0) AS weight,
+               IFNULL(`volume`,0) AS volume, IFNULL(`allocated_cost`,0) AS allocated_cost,
+               IFNULL(`new_unit_cost`,0) AS new_unit_cost
+        FROM `epc_landed_cost_lines`
+        WHERE `sheet_id` = @id
+        ORDER BY `id` ASC
+        """;
+
     /// <summary>WMS KPIs from epc_erp_wms_* (CREATE TABLE in epc_erp_wms.php).</summary>
     public const string SelectCpWarehouseWmsStats = """
         SELECT
@@ -2932,6 +3129,68 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>Opened aftersales RMA — includes description/resolution_notes (PHP rma_id detail).</summary>
+    public const string SelectCpReturnsRmaRequestDetail = """
+        SELECT `id`, IFNULL(`site_key`,'') AS site_key, IFNULL(`rma_number`,'') AS rma_number,
+               `warranty_id`, IFNULL(`customer_id`,0) AS customer_id,
+               IFNULL(`customer_name`,'') AS customer_name, IFNULL(`reason`,'') AS reason,
+               IFNULL(`description`,'') AS description,
+               IFNULL(`status`,'') AS status, IFNULL(`resolution_type`,'') AS resolution_type,
+               IFNULL(`resolution_notes`,'') AS resolution_notes,
+               IFNULL(`created_at`,'') AS created_at,
+               IFNULL(`updated_at`,'') AS updated_at,
+               IFNULL(`completed_at`,'') AS completed_at
+        FROM `epc_rma_requests`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Opened aftersales RMA lines (PHP epc_rma_items).</summary>
+    public const string SelectCpReturnsRmaItems = """
+        SELECT `id`, IFNULL(`rma_id`,0) AS rma_id,
+               IFNULL(`product_sku`,'') AS product_sku,
+               IFNULL(`product_name`,'') AS product_name,
+               IFNULL(`qty`,0) AS qty,
+               IFNULL(`unit_price`,0) AS unit_price,
+               IFNULL(`condition_received`,'') AS condition_received,
+               IFNULL(`inspection_notes`,'') AS inspection_notes
+        FROM `epc_rma_items`
+        WHERE `rma_id` = @id
+        ORDER BY `id` ASC
+        """;
+
+    /// <summary>Opened shop return header (PHP returns-manager return_id).</summary>
+    public const string SelectCpShopReturnDetail = """
+        SELECT r.`id`, IFNULL(r.`user_id`,0) AS user_id,
+               IFNULL(r.`status_id`,0) AS status_id,
+               IFNULL(s.`caption`,'') AS status_caption,
+               IFNULL(r.`return_complete`,0) AS return_complete,
+               IFNULL(r.`sum`,0) AS declared_sum
+        FROM `shop_orders_returns` r
+        LEFT JOIN `shop_orders_returns_statuses` s ON s.`id` = r.`status_id`
+        WHERE r.`id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Opened shop return lines (PHP return_detail.php).</summary>
+    public const string SelectCpShopReturnLines = """
+        SELECT ri.`id`, IFNULL(ri.`return_id`,0) AS return_id, IFNULL(ri.`item_id`,0) AS item_id,
+               IFNULL(ri.`comment`,'') AS comment,
+               IFNULL(ri.`return_success`,'') AS return_success,
+               IFNULL(ri.`count_need`,0) AS return_qty,
+               IFNULL(rr.`caption`,'') AS reason_caption,
+               IFNULL(oi.`order_id`,0) AS order_id,
+               IFNULL(oi.`price`,0) AS price,
+               IFNULL(oi.`t2_manufacturer`,'') AS brand,
+               IFNULL(oi.`t2_article`,'') AS article,
+               IFNULL(oi.`t2_name`,'') AS name
+        FROM `shop_orders_returns_items` ri
+        LEFT JOIN `shop_orders_returns_reasons` rr ON rr.`id` = ri.`reason_id`
+        LEFT JOIN `shop_orders_items` oi ON oi.`id` = ri.`item_id`
+        WHERE ri.`return_id` = @id
+        ORDER BY ri.`id` ASC
+        """;
+
     /// <summary>Isolation audit KPIs from epc_ci_* (CREATE TABLE in epc_commerce_isolation.php).</summary>
     public const string SelectCpIsolationAuditStats = """
         SELECT
@@ -2962,7 +3221,7 @@ public static class LegacySurfaceDashboardSql
             (SELECT COUNT(*) FROM `epc_aml_rules` WHERE IFNULL(`is_active`,0)=1) AS active_rule_count
         """;
 
-    /// <summary>AML KYC rows — omits notes/id_document_path.</summary>
+    /// <summary>AML KYC rows — omits notes/id_number/id_document_path.</summary>
     public const string SelectCpAmlComplianceKyc = """
         SELECT `id`, IFNULL(`company_id`,0) AS company_id, IFNULL(`customer_id`,0) AS customer_id,
                IFNULL(`customer_name`,'') AS customer_name, IFNULL(`id_type`,'') AS id_type,
@@ -2972,6 +3231,41 @@ public static class LegacySurfaceDashboardSql
         FROM `epc_aml_kyc`
         ORDER BY `id` DESC
         LIMIT @limit
+        """;
+
+    /// <summary>Opened AML KYC — includes notes, id_number, document path, nationality, dates.</summary>
+    public const string SelectCpAmlComplianceKycDetail = """
+        SELECT `id`, IFNULL(`company_id`,0) AS company_id, IFNULL(`customer_id`,0) AS customer_id,
+               IFNULL(`customer_name`,'') AS customer_name, IFNULL(`id_type`,'') AS id_type,
+               IFNULL(`id_number`,'') AS id_number, IFNULL(`id_expiry`,'') AS id_expiry,
+               IFNULL(`id_document_path`,'') AS id_document_path,
+               IFNULL(`nationality`,'') AS nationality, IFNULL(`dob`,'') AS dob,
+               IFNULL(`risk_level`,'') AS risk_level, IFNULL(`pep_status`,0) AS pep_status,
+               IFNULL(`sanctions_checked`,0) AS sanctions_checked,
+               IFNULL(`sanctions_match`,0) AS sanctions_match,
+               IFNULL(`verification_status`,'') AS verification_status,
+               IFNULL(`verified_by`,0) AS verified_by, IFNULL(`verified_at`,'') AS verified_at,
+               IFNULL(`next_review`,'') AS next_review, IFNULL(`notes`,'') AS notes,
+               IFNULL(`time_created`,0) AS time_created, IFNULL(`time_updated`,0) AS time_updated
+        FROM `epc_aml_kyc`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Opened AML KYC child transactions (PHP monitoring by customer_id).</summary>
+    public const string SelectCpAmlComplianceKycTransactions = """
+        SELECT `id`, IFNULL(`customer_id`,0) AS customer_id,
+               IFNULL(`transaction_type`,'') AS transaction_type,
+               IFNULL(`amount`,0) AS amount, IFNULL(`currency`,'') AS currency,
+               IFNULL(`reference`,'') AS reference, IFNULL(`risk_score`,0) AS risk_score,
+               IFNULL(`flagged`,0) AS flagged, IFNULL(`flag_reason`,'') AS flag_reason,
+               IFNULL(`review_status`,'') AS review_status,
+               IFNULL(`sar_filed`,0) AS sar_filed, IFNULL(`sar_reference`,'') AS sar_reference,
+               IFNULL(`time_created`,0) AS time_created
+        FROM `epc_aml_transactions`
+        WHERE `customer_id` = @customer_id AND @customer_id > 0
+        ORDER BY `id` DESC
+        LIMIT 50
         """;
 
     /// <summary>Jewellery master KPIs from epc_jewel_* masters (CREATE TABLE in epc_erp_jewellery.php).</summary>
@@ -3212,6 +3506,47 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>Opened insurance policy — includes note/contact_email (PHP pol= detail).</summary>
+    public const string SelectCpInsuranceCompliancePolicyDetail = """
+        SELECT `id`, IFNULL(`company_id`,0) AS company_id, IFNULL(`policy_no`,'') AS policy_no,
+               IFNULL(`class`,'') AS policy_class, IFNULL(`title`,'') AS title,
+               IFNULL(`insurer`,'') AS insurer, IFNULL(`broker`,'') AS broker,
+               IFNULL(`insured_name`,'') AS insured_name,
+               IFNULL(`sum_insured`,0) AS sum_insured, IFNULL(`premium`,0) AS premium,
+               IFNULL(`deductible`,0) AS deductible, IFNULL(`currency`,'') AS currency,
+               IFNULL(`start_date`,0) AS start_date, IFNULL(`expiry_date`,0) AS expiry_date,
+               IFNULL(`reminder_days`,'') AS reminder_days,
+               IFNULL(`contact_email`,'') AS contact_email,
+               IFNULL(`status`,'') AS status, IFNULL(`note`,'') AS note,
+               IFNULL(`time_created`,0) AS time_created
+        FROM `epc_erp_ins_policies`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Opened policy documents (PHP epc_ins_docs).</summary>
+    public const string SelectCpInsuranceComplianceDocuments = """
+        SELECT `id`, IFNULL(`policy_id`,0) AS policy_id,
+               IFNULL(`doc_type`,'') AS doc_type, IFNULL(`title`,'') AS title,
+               IFNULL(`file_path`,'') AS file_path, IFNULL(`time_created`,0) AS time_created
+        FROM `epc_erp_ins_documents`
+        WHERE `policy_id` = @id
+        ORDER BY `id` ASC
+        """;
+
+    /// <summary>Opened policy claims (PHP epc_ins_claims).</summary>
+    public const string SelectCpInsuranceComplianceClaims = """
+        SELECT `id`, IFNULL(`policy_id`,0) AS policy_id,
+               IFNULL(`claim_no`,'') AS claim_no,
+               IFNULL(`description`,'') AS description,
+               IFNULL(`claim_amount`,0) AS claim_amount,
+               IFNULL(`settled_amount`,0) AS settled_amount,
+               IFNULL(`status`,'') AS status, IFNULL(`time_created`,0) AS time_created
+        FROM `epc_erp_ins_claims`
+        WHERE `policy_id` = @id
+        ORDER BY `id` DESC
+        """;
+
     /// <summary>ERP audit trail KPIs from epc_erp_audit_log (CREATE TABLE in epc_erp_audit.php).</summary>
     public const string SelectCpAuditTrailStats = """
         SELECT
@@ -3229,6 +3564,19 @@ public static class LegacySurfaceDashboardSql
         FROM `epc_erp_audit_log`
         ORDER BY `id` DESC
         LIMIT @limit
+        """;
+
+    /// <summary>Opened audit event — includes detail/old/new JSON and IP/UA (PHP list shows them).</summary>
+    public const string SelectCpAuditTrailEntryDetail = """
+        SELECT `id`, IFNULL(`time`,0) AS time_unix, IFNULL(`admin_id`,0) AS admin_id,
+               IFNULL(`action`,'') AS action, IFNULL(`entity_type`,'') AS entity_type,
+               IFNULL(`entity_id`,0) AS entity_id, IFNULL(`summary`,'') AS summary,
+               IFNULL(`detail_json`,'') AS detail_json, IFNULL(`old_json`,'') AS old_json,
+               IFNULL(`new_json`,'') AS new_json, IFNULL(`ip_address`,'') AS ip_address,
+               IFNULL(`user_agent`,'') AS user_agent
+        FROM `epc_erp_audit_log`
+        WHERE `id` = @id
+        LIMIT 1
         """;
 
     /// <summary>Document expiry KPIs from epc_erp_doc_expiry* (CREATE TABLE in epc_erp_doc_expiry.php).</summary>
@@ -3253,6 +3601,36 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>Opened expiry document — includes note/owner_email/attachment_path (PHP doc=).</summary>
+    public const string SelectCpDocExpiryDocumentDetail = """
+        SELECT `id`, IFNULL(`company_id`,0) AS company_id, IFNULL(`category`,'') AS category,
+               IFNULL(`doc_type`,'') AS doc_type, IFNULL(`title`,'') AS title,
+               IFNULL(`ref_no`,'') AS ref_no, IFNULL(`owner`,'') AS owner,
+               IFNULL(`owner_email`,'') AS owner_email, IFNULL(`issuer`,'') AS issuer,
+               IFNULL(`issue_date`,0) AS issue_date, IFNULL(`expiry_date`,0) AS expiry_date,
+               IFNULL(`reminder_days`,'') AS reminder_days,
+               IFNULL(`attachment_path`,'') AS attachment_path,
+               IFNULL(`note`,'') AS note,
+               IFNULL(`source_module`,'') AS source_module, IFNULL(`active`,0) AS active,
+               IFNULL(`time_created`,0) AS time_created
+        FROM `epc_erp_doc_expiry`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Opened document reminder log (PHP epc_docx_reminders_sent).</summary>
+    public const string SelectCpDocExpiryReminders = """
+        SELECT `id`, IFNULL(`doc_id`,0) AS doc_id,
+               IFNULL(`threshold_days`,0) AS threshold_days,
+               IFNULL(`days_left`,0) AS days_left,
+               IFNULL(`recipient`,'') AS recipient,
+               IFNULL(`channel`,'') AS channel,
+               IFNULL(`sent_at`,0) AS sent_at
+        FROM `epc_erp_doc_expiry_reminders`
+        WHERE `doc_id` = @id
+        ORDER BY `threshold_days` DESC
+        """;
+
     /// <summary>Tenant config KPIs from epc_tenant_config* (CREATE TABLE in epc_tenant_config.php).</summary>
     public const string SelectCpTenantConfigStats = """
         SELECT
@@ -3271,6 +3649,30 @@ public static class LegacySurfaceDashboardSql
         FROM `epc_tenant_config`
         ORDER BY `id` DESC
         LIMIT @limit
+        """;
+
+    /// <summary>Opened tenant config row — includes config_value/description.</summary>
+    public const string SelectCpTenantConfigEntryDetail = """
+        SELECT `id`, IFNULL(`site_key`,'') AS site_key, IFNULL(`config_group`,'') AS config_group,
+               IFNULL(`config_key`,'') AS config_key, IFNULL(`config_value`,'') AS config_value,
+               IFNULL(`value_type`,'') AS value_type, IFNULL(`label`,'') AS label,
+               IFNULL(`description`,'') AS description, IFNULL(`editable`,0) AS editable,
+               IFNULL(`updated_by`,0) AS updated_by, IFNULL(`updated_at`,'') AS updated_at
+        FROM `epc_tenant_config`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Opened config history (PHP epc_tenant_config_history).</summary>
+    public const string SelectCpTenantConfigHistory = """
+        SELECT `id`, IFNULL(`old_value`,'') AS old_value, IFNULL(`new_value`,'') AS new_value,
+               IFNULL(`changed_by`,0) AS changed_by, IFNULL(`changed_at`,'') AS changed_at
+        FROM `epc_tenant_config_history`
+        WHERE `site_key` = @site
+          AND `config_group` = @group
+          AND `config_key` = @key
+        ORDER BY `id` DESC
+        LIMIT 20
         """;
 
     /// <summary>Jewellery stock verification KPIs. Open = in_progress/Draft (PHP schema default + save path); complete = remaining_pcs=0 (PHP INSERT/schema status vocabulary is inconsistent).</summary>
@@ -3422,6 +3824,7 @@ public static class LegacySurfaceDashboardSql
     /// <summary>
     /// Abandoned cart lines (read-only subset of carts.php). Deletes/filters remain PHP.
     /// Prefer guest/session rows first, then authenticated user carts.
+    /// Omits lead-time / exist / min-order (shown on Open detail).
     /// </summary>
     public const string SelectCpAbandonedCartsRows = """
         SELECT `id`, IFNULL(`user_id`,0) AS user_id, IFNULL(`session_id`,0) AS session_id,
@@ -3433,6 +3836,42 @@ public static class LegacySurfaceDashboardSql
         FROM `shop_carts`
         ORDER BY CASE WHEN IFNULL(`session_id`,0) != 0 THEN 0 ELSE 1 END ASC, `id` DESC
         LIMIT @limit
+        """;
+
+    /// <summary>Opened abandoned cart line — includes lead-time / exist / min-order from PHP cart.php.</summary>
+    public const string SelectCpAbandonedCartsLineDetail = """
+        SELECT `id`, IFNULL(`user_id`,0) AS user_id, IFNULL(`session_id`,0) AS session_id,
+               IFNULL(`price`,0) AS price, IFNULL(`count_need`,0) AS count_need,
+               IFNULL(`checked_for_order`,0) AS checked_for_order, IFNULL(`product_type`,0) AS product_type,
+               IFNULL(`t2_manufacturer`,'') AS manufacturer, IFNULL(`t2_article`,'') AS article,
+               IFNULL(`t2_name`,'') AS name, IFNULL(`time`,0) AS time,
+               CAST(IFNULL(`price`,0) * IFNULL(`count_need`,0) AS DECIMAL(20,2)) AS price_sum,
+               IFNULL(`t2_time_to_exe`,'') AS time_to_exe,
+               IFNULL(`t2_time_to_exe_guaranteed`,'') AS time_to_exe_guaranteed,
+               IFNULL(`t2_min_order`,0) AS min_order, IFNULL(`t2_exist`,0) AS t2_exist
+        FROM `shop_carts`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Sibling lines in the same guest session or user cart.</summary>
+    public const string SelectCpAbandonedCartsSiblings = """
+        SELECT `id`, IFNULL(`user_id`,0) AS user_id, IFNULL(`session_id`,0) AS session_id,
+               IFNULL(`price`,0) AS price, IFNULL(`count_need`,0) AS count_need,
+               IFNULL(`checked_for_order`,0) AS checked_for_order, IFNULL(`product_type`,0) AS product_type,
+               IFNULL(`t2_manufacturer`,'') AS manufacturer, IFNULL(`t2_article`,'') AS article,
+               IFNULL(`t2_name`,'') AS name, IFNULL(`time`,0) AS time,
+               CAST(IFNULL(`price`,0) * IFNULL(`count_need`,0) AS DECIMAL(20,2)) AS price_sum,
+               IFNULL(`t2_time_to_exe`,'') AS time_to_exe,
+               IFNULL(`t2_time_to_exe_guaranteed`,'') AS time_to_exe_guaranteed,
+               IFNULL(`t2_min_order`,0) AS min_order, IFNULL(`t2_exist`,0) AS t2_exist
+        FROM `shop_carts`
+        WHERE (
+            (@session_id > 0 AND IFNULL(`session_id`,0) = @session_id)
+            OR (@session_id = 0 AND @user_id > 0 AND IFNULL(`session_id`,0) = 0 AND IFNULL(`user_id`,0) = @user_id)
+        )
+        ORDER BY `id` DESC
+        LIMIT 50
         """;
 
     /// <summary>Customer quote list (PHP <c>my_quotes.php</c>).</summary>
@@ -3726,6 +4165,35 @@ public static class LegacySurfaceDashboardSql
         FROM `shop_quote_requests`
         ORDER BY `id` DESC
         LIMIT @limit
+        """;
+
+    /// <summary>Opened quote request — includes notes (PHP quote_id detail).</summary>
+    public const string SelectCpQuoteRequestDetail = """
+        SELECT `id`, IFNULL(`user_id`,0) AS user_id, IFNULL(`session_id`,0) AS session_id,
+               IFNULL(`status`,'') AS status, IFNULL(`time_created`,0) AS time_created,
+               IFNULL(`time_updated`,0) AS time_updated, IFNULL(`time_submitted`,0) AS time_submitted,
+               IFNULL(`accepted_order_id`,0) AS accepted_order_id,
+               IFNULL(`admin_note`,'') AS admin_note,
+               IFNULL(`customer_note`,'') AS customer_note
+        FROM `shop_quote_requests`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Opened quote lines — omits product_object_json.</summary>
+    public const string SelectCpQuoteRequestLines = """
+        SELECT `id`, IFNULL(`quote_id`,0) AS quote_id,
+               IFNULL(`count_need`,0) AS count_need,
+               IFNULL(`quoted_price`,0) AS quoted_price,
+               IFNULL(`quoted_time_to_exe`,0) AS quoted_time_to_exe,
+               IFNULL(`line_admin_note`,'') AS line_admin_note,
+               IFNULL(`offer_alternative`,0) AS offer_alternative,
+               IFNULL(`alt_manufacturer`,'') AS alt_manufacturer,
+               IFNULL(`alt_article`,'') AS alt_article,
+               IFNULL(`alt_name`,'') AS alt_name
+        FROM `shop_quote_items`
+        WHERE `quote_id` = @id
+        ORDER BY `id` ASC
         """;
 
     /// <summary>Platform communication KPIs from epc_platform_comm_settings + internal_tasks (CREATE TABLE in epc_super_cp_platform.php).</summary>
@@ -4435,6 +4903,26 @@ public const string SelectCpOpsGuidesStats = """
         LEFT JOIN `epc_wht_code` c ON c.`id` = t.`code_id`
         ORDER BY t.`id` DESC
         LIMIT @limit
+        """;
+
+    /// <summary>Opened withholding txn — includes company_id (list omits it).</summary>
+    public const string SelectErpWithholdingTxnDetail = """
+        SELECT t.`id`, IFNULL(t.`company_id`,0) AS company_id,
+               IFNULL(t.`code_id`,0) AS code_id,
+               IFNULL(c.`code`,'') AS code,
+               IFNULL(t.`vendor`,'') AS vendor,
+               IFNULL(t.`doc_ref`,'') AS doc_ref,
+               IFNULL(t.`txn_date`,'') AS txn_date,
+               IFNULL(t.`base_amount`,0) AS base_amount,
+               IFNULL(t.`wht_amount`,0) AS wht_amount,
+               IFNULL(t.`rate`,0) AS rate,
+               IFNULL(t.`certificate_no`,'') AS certificate_no,
+               IFNULL(t.`status`,'accrued') AS status,
+               IFNULL(t.`time_created`,0) AS time_created
+        FROM `epc_wht_txn` t
+        LEFT JOIN `epc_wht_code` c ON c.`id` = t.`code_id`
+        WHERE t.`id` = @id
+        LIMIT 1
         """;
 
     /// <summary>PHP <c>epc_erp_petty_cash_list</c>.</summary>
