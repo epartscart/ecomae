@@ -8,6 +8,7 @@
 @using EcomAE.Platform.Routing
 @inject ILegacySessionValidator Sessions
 @inject IErpExternalReportingFetchDryRun FetchDryRun
+@inject ISurfaceDashboardSummaryReporter Dashboards
 @inject IHttpContextAccessor Http
 @inject NavigationManager Nav
 
@@ -39,6 +40,9 @@
 .epc-ext-steps{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;}
 .epc-ext-panel{flex:1;min-width:300px;border:1px solid #e2e6ee;border-radius:6px;padding:14px;}
 .epc-ext-actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:14px;}
+.epc-ext-doc.is-audit{border-color:#e7c3c9;}
+.epc-ext-doc.is-audit .epc-ext-doc-head{border-bottom-color:#b3122a;}
+.epc-ext-sum>div{border-top:3px solid #2b6cb0;background:#fff;}
 </style>
 </HeadContent>
 
@@ -125,7 +129,7 @@
                         <input type="file" accept=".xlsx,.csv" class="form-control input-sm" style="margin:4px 6px 4px 0;" />
                         <button type="button" class="btn btn-primary btn-sm" @onclick="OnImport"><i class="fa fa-cogs"></i> @(_impKind == "fin" ? "Build report" : "Build return")</button>
                     </div>
-                    <p class="text-muted" style="font-size:11px;margin-top:8px;">@_impHint Accepts <code>.xlsx</code> or <code>.csv</code>. Off-system — parsed in-memory, not stored. Live generate stays on the PHP tab.</p>
+                    <p class="text-muted" style="font-size:11px;margin-top:8px;">@_impHint Accepts <code>.xlsx</code> or <code>.csv</code>. Off-system — parsed in-memory, not stored. Open a VAT, CT, IFRS or e-invoice report to Fetch &amp; build the live pack, then Download PDF / Word.</p>
                 </div>
             </div>
         </div>
@@ -199,7 +203,9 @@
         </p>
         <div class="epc-erp-section" style="margin-bottom:14px;">
             <div class="epc-ext-actions">
-                <button type="button" class="btn btn-primary btn-sm" @onclick="OnFetch"><i class="fa fa-refresh"></i> Fetch &amp; build</button>
+                <a class="btn btn-primary btn-sm" href="@ReportHref(fetch: true)" title="Re-fetch ERP data and rebuild this report"><i class="fa fa-refresh"></i> Fetch &amp; build</a>
+                <button type="button" class="btn btn-default btn-sm" onclick="epcExtPrint();"><i class="fa fa-file-pdf-o"></i> Download PDF</button>
+                <button type="button" class="btn btn-default btn-sm" onclick="epcExtWord('@_docName');" title="Download this report as an editable Microsoft Word document (same layout, theme and tables)"><i class="fa fa-file-word-o"></i> Download Word</button>
                 <a class="btn btn-default btn-sm" href="@auth.Url" target="_blank" rel="noopener noreferrer"><i class="fa fa-university"></i> Official source — @auth.Name</a>
                 <a class="btn btn-default btn-sm" href="@auth.Format" target="_blank" rel="noopener noreferrer"><i class="fa fa-file-o"></i> Official format / filing portal</a>
                 @if (ifrs is not null)
@@ -211,6 +217,7 @@
                     <input type="hidden" name="cat" value="@def.Cat" />
                     <input type="hidden" name="rep" value="@def.Key" />
                     <input type="hidden" name="rep_country" value="@_prevCountry" />
+                    <input type="hidden" name="fetch" value="1" />
                     <label style="font-size:12px;margin:0 6px;"><i class="fa fa-calendar"></i> Reporting period</label>
                     <select name="basis" class="form-control input-sm" onchange="this.form.submit()">
                         @foreach (var b in _periodBases)
@@ -234,19 +241,23 @@
                     }
                     <button type="submit" class="btn btn-success btn-sm" style="margin-left:6px;"><i class="fa fa-calculator"></i> Run / Recalculate</button>
                 </form>
+                @if (_fetched)
+                {
+                    <span class="text-success" style="margin-left:4px;"><i class="fa fa-check-circle"></i> Built from live ERP data — verify on the official source.@_ifrsRefreshNote</span>
+                }
             </div>
             <div style="margin-top:8px;font-size:12px;" class="text-muted">
                 <strong>Governing law:</strong> @auth.Law
                 &nbsp;·&nbsp; <strong>Frequency:</strong> @ErpExternalReportingCatalog.Frequency(def.Cat)
                 &nbsp;·&nbsp; <strong>Period:</strong> @_period.Label (@_period.From.ToString("dd MMM yyyy") — @_period.To.ToString("dd MMM yyyy"))
-                &nbsp;·&nbsp; @if (live) { <span class="label label-success">Live build</span> } else { <span class="label label-default">Formatted template</span> }
+                &nbsp;·&nbsp; @if (_built is { Live: true } || live) { <span class="label label-success">Live data</span> } else { <span class="label label-default">Formatted template</span> }
             </div>
         </div>
-        <div id="epc_ext_doc" class="epc-erp-section epc-ext-doc">
+        <div id="epc_ext_doc" class="epc-erp-section epc-ext-doc @(_built?.Theme == "red" ? "is-audit" : "")">
             <div class="epc-ext-doc-head">
                 <div>
                     <div style="font-size:20px;font-weight:800;color:#1d2740;">@_companyLabel</div>
-                    <div class="text-muted" style="font-size:12px;">@_regName · TRN on file in company profile</div>
+                    <div class="text-muted" style="font-size:12px;">@_regName @(_trn.Length > 0 ? " · TRN: " + _trn : " · TRN on file in company profile")</div>
                 </div>
                 <div style="text-align:right;">
                     <div style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#7a869a;">Statutory report</div>
@@ -255,28 +266,23 @@
                     <div class="text-muted" style="font-size:12px;">@_period.From.ToString("dd MMM yyyy")  —  @_period.To.ToString("dd MMM yyyy")</div>
                 </div>
             </div>
-            <h3 style="margin-top:0;color:#1d2740;">@def.Name</h3>
+            <h3 style="margin-top:0;color:#1d2740;">@(_built?.Title ?? def.Name)</h3>
             <div class="text-muted" style="font-size:12px;margin-bottom:6px;">
                 <strong>To:</strong> @auth.Name &nbsp;·&nbsp; <strong>Under:</strong> @auth.Law
             </div>
-            <div class="epc-ext-sum">
-                <div><div class="k">Jurisdiction</div><div class="v">@_prevName</div></div>
-                <div><div class="k">Standard</div><div class="v">@(string.IsNullOrWhiteSpace(def.Std) ? "Local statute" : def.Std)</div></div>
-                <div><div class="k">Builder</div><div class="v">@(live ? "Live ERP data" : "Template")</div></div>
-                <div><div class="k">Company</div><div class="v">@(_companyId > 0 ? _companyId.ToString(CultureInfo.InvariantCulture) : "default")</div></div>
-            </div>
-            <p style="font-size:13px;line-height:1.55;max-width:52rem;">
-                This is the statutory pack for <strong>@def.Name</strong> under <strong>@auth.Name</strong>.
-                @if (live)
-                {
-                    <span>Priority reports (VAT, Corporate Tax, IFRS financial statements, WPS, UBO, Economic Substance) rebuild from posted ERP data when you Fetch &amp; build.</span>
-                }
-                else
-                {
-                    <span>This type is a formatted statutory structure with the correct authority, law and filing-portal links for @_prevName.</span>
-                }
-                Live file generate, FTA submit and Excel/Word packs stay on the PHP External Reporting tab until that write path is cut over.
-            </p>
+            @if (_built is { Summary.Count: > 0 })
+            {
+                <div class="epc-ext-sum">
+                    @foreach (var card in _built.Summary)
+                    {
+                        <div style="border-top-color:@card.Color;"><div class="k">@card.Label</div><div class="v" style="color:@card.Color;">@card.Value</div></div>
+                    }
+                </div>
+            }
+            @if (!string.IsNullOrWhiteSpace(_built?.BodyHtml))
+            {
+                @((MarkupString)_built!.BodyHtml)
+            }
             <div style="margin-top:28px;display:flex;justify-content:space-between;gap:30px;">
                 <div style="flex:1;border-top:1px solid #aaa;padding-top:6px;font-size:12px;color:#555;">Prepared by &amp; date</div>
                 <div style="flex:1;border-top:1px solid #aaa;padding-top:6px;font-size:12px;color:#555;">Authorised signatory &amp; stamp</div>
@@ -285,6 +291,8 @@
                 Generated by External Reporting from posted ERP data. Informational — verify figures and the latest format against the official source (@auth.Name) before filing.
             </p>
         </div>
+        @((MarkupString)ErpExternalReportingHtml.PrintCtxJs(_printCtx))
+        @((MarkupString)ErpExternalReportingHtml.PrintFnJs)
     }
     else if (_category is not null)
     {
@@ -403,6 +411,13 @@
     private ErpExternalReportingCatalog.Report? _report;
     private ErpExternalReportingCatalog.Category? _category;
     private string? _catLabel;
+    private ErpExternalReportingBuilt? _built;
+    private bool _fetched;
+    private string _trn = "";
+    private string _ccy = "AED";
+    private string _docName = "Report";
+    private string _ifrsRefreshNote = "";
+    private Dictionary<string, string> _printCtx = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -459,6 +474,112 @@
         {
             _actionResult = "Sign in for live data.";
         }
+
+        decimal sales = 0, purch = 0, outVat = 0, inVat = 0, rate = 5;
+        var liveFigs = false;
+        if (_isAdmin)
+        {
+            try
+            {
+                var companies = await Dashboards.BuildErpCompaniesDigestAsync(50, ctx.RequestAborted);
+                var match = companies.Companies.FirstOrDefault(c => _companyId > 0 && c.Id == _companyId)
+                    ?? companies.Companies.FirstOrDefault(c => c.Active)
+                    ?? companies.Companies.FirstOrDefault();
+                if (match is not null)
+                {
+                    _companyLabel = string.IsNullOrWhiteSpace(match.Name) ? _companyLabel : match.Name;
+                    if (!string.IsNullOrWhiteSpace(match.CurrencyCode)) _ccy = match.CurrencyCode.Trim().ToUpperInvariant();
+                    if (string.IsNullOrWhiteSpace(ctx.Request.Query["reg_country"].ToString())
+                        && !string.IsNullOrWhiteSpace(match.CountryCode))
+                    {
+                        _regCountry = ErpExternalReportingCatalog.NormalizeCountry(match.CountryCode);
+                        _regName = ErpExternalReportingCatalog.CountryName(_regCountry);
+                        if (string.IsNullOrWhiteSpace(ctx.Request.Query["rep_country"].ToString()))
+                        {
+                            _prevCountry = _regCountry;
+                            _prevName = _regName;
+                        }
+                    }
+                }
+            }
+            catch
+            {
+                // Presentation still builds from the period sample.
+            }
+
+            if (_report is not null)
+            {
+                try
+                {
+                    var fromUnix = new DateTimeOffset(DateTime.SpecifyKind(_period.From, DateTimeKind.Utc)).ToUnixTimeSeconds();
+                    var toUnix = new DateTimeOffset(DateTime.SpecifyKind(_period.To.AddDays(1).AddSeconds(-1), DateTimeKind.Utc)).ToUnixTimeSeconds();
+                    var vat = await Dashboards.BuildErpVatReturnDigestAsync(fromUnix, toUnix, ctx.RequestAborted);
+                    sales = vat.Summary.SalesExVat;
+                    purch = vat.Summary.PurchaseExVat;
+                    outVat = vat.Summary.OutputVat;
+                    inVat = vat.Summary.InputVat;
+                    if (vat.Summary.VatRatePercent > 0) rate = vat.Summary.VatRatePercent;
+                    liveFigs = sales > 0.005m;
+                }
+                catch
+                {
+                    liveFigs = false;
+                }
+            }
+        }
+
+        if (_report is not null)
+        {
+            _fetched = !string.IsNullOrWhiteSpace(ctx.Request.Query["fetch"].ToString());
+            _built = ErpExternalReportingBuild.Build(new ErpExternalReportingBuildInput(
+                _report,
+                _prevCountry,
+                _prevName,
+                _ccy,
+                _companyLabel,
+                _trn,
+                _period.From,
+                _period.To,
+                _period.Label,
+                sales,
+                purch,
+                outVat,
+                inVat,
+                rate,
+                liveFigs));
+            _docName = _built.DocName;
+            var ifrsKeys = new HashSet<string>(StringComparer.Ordinal)
+            {
+                "audit__external_audit_report",
+                "fin__annual_financial_statements",
+                "fin__statutory_accounts_filing",
+                "fin__ifrs_reporting",
+                "fin__gaap_reporting",
+                "fin__interim_financial_statements",
+                "fin__consolidated_financial_statements",
+            };
+            if (_fetched && _period.To.Year >= 2026 && ifrsKeys.Contains(_report.Key))
+            {
+                _ifrsRefreshNote = " Presentation refreshed — IFRS 18 early-applied (IAS 1 superseded for presentation & disclosure).";
+            }
+
+            _printCtx = new Dictionary<string, string>
+            {
+                ["co"] = _companyLabel,
+                ["addr"] = _regName,
+                ["trnL"] = "TRN",
+                ["trn"] = _trn,
+                ["ttl"] = _built.Title,
+                ["juris"] = _prevName,
+                ["auth"] = ErpExternalReportingCatalog.ResolveAuthority(_prevCountry, _report.Cat).Name,
+                ["law"] = ErpExternalReportingCatalog.ResolveAuthority(_prevCountry, _report.Cat).Law,
+                ["perL"] = _period.Label,
+                ["perR"] = _period.From.ToString("dd MMM yyyy", CultureInfo.InvariantCulture) + "  —  "
+                    + _period.To.ToString("dd MMM yyyy", CultureInfo.InvariantCulture),
+                ["gen"] = DateTime.UtcNow.ToString("dd MMM yyyy HH:mm", CultureInfo.InvariantCulture),
+                ["theme"] = _built.Theme,
+            };
+        }
     }
 
     private string Href(string? cat = null, string? rep = null, string? tool = null)
@@ -470,6 +591,32 @@
         if (!string.IsNullOrWhiteSpace(cat)) q.Add("cat=" + Uri.EscapeDataString(cat));
         if (!string.IsNullOrWhiteSpace(rep)) q.Add("rep=" + Uri.EscapeDataString(rep));
         if (!string.IsNullOrWhiteSpace(tool)) q.Add("tool=" + Uri.EscapeDataString(tool));
+        return q.Count == 0 ? _self : _self + "?" + string.Join("&", q);
+    }
+
+    private string ReportHref(bool fetch = false)
+    {
+        var q = new List<string>();
+        if (_companyId > 0) q.Add("company=" + _companyId.ToString(CultureInfo.InvariantCulture));
+        if (!string.IsNullOrWhiteSpace(_prevCountry) && !string.Equals(_prevCountry, _regCountry, StringComparison.OrdinalIgnoreCase))
+            q.Add("rep_country=" + Uri.EscapeDataString(_prevCountry));
+        if (_report is not null)
+        {
+            q.Add("cat=" + Uri.EscapeDataString(_report.Cat));
+            q.Add("rep=" + Uri.EscapeDataString(_report.Key));
+        }
+        q.Add("basis=" + Uri.EscapeDataString(_selBasis));
+        if (_selBasis == "custom")
+        {
+            q.Add("pfrom=" + _period.From.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture));
+            q.Add("pto=" + _period.To.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture));
+        }
+        else
+        {
+            q.Add("period=" + Uri.EscapeDataString(_period.Token));
+        }
+
+        if (fetch) q.Add("fetch=1");
         return q.Count == 0 ? _self : _self + "?" + string.Join("&", q);
     }
 
@@ -498,12 +645,6 @@
         OnPickKind((e.Value as string) ?? "vat");
     }
 
-    private void OnFetch()
-    {
-        var result = FetchDryRun.Evaluate(new ErpExternalReportingFetchRequest("fetch", _selRep, false));
-        _actionResult = result.Detail + " writes=" + result.Writes.ToString(CultureInfo.InvariantCulture) + ".";
-    }
-
     private void OnImport()
     {
         var result = FetchDryRun.Evaluate(new ErpExternalReportingFetchRequest("import", _impKind, false));
@@ -524,6 +665,6 @@
             "fin" => "IFRS18_financials_import_template.csv",
             _ => "VAT201_import_template.csv",
         };
-        _actionResult = "CSV template (" + name + ") — copy from the hidden field or use the PHP tab for the full multi-sheet workbook.";
+        _actionResult = "CSV template (" + name + ") — copy from the hidden field. Full VAT / CT / IFRS / e-invoice packs open as reports with Download PDF and Download Word.";
     }
 }
