@@ -21,12 +21,153 @@
             </div>
             <div class="panel-body">
                 <p>@CpPhpModuleCopy.PurposeFor("/cp/electronic-reporting-app")</p>
-                <p>Add a reporting field or save a format here.</p>
+                <p>Open a format to see fields and run previews. Add a reporting field or save a format here.</p>
             </div>
         </div>
     </div>
-    <PhpParityModuleBody AppPath="/cp/electronic-reporting-app" IsAdmin="_isAdmin" />
+    <PhpParityModuleBody AppPath="/cp/electronic-reporting-app" IsAdmin="_isAdmin" ShowGhostScaffold="false" />
 
+    <ErpOpenedRecordBanner Id="_openedId" Found="@(_openedFormat is not null)" Caption="@OpenedCaption" ListHref="@_listHref" />
+
+    <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Electronic reporting KPIs">
+        <div class="kpi"><div class="lbl">Formats</div><div class="val">@_summary.FormatCount.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Fields</div><div class="val">@_summary.FieldCount.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Runs</div><div class="val">@_summary.RunCount.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Output types</div><div class="val">@_summary.OutputTypeCount.ToString(CultureInfo.InvariantCulture)</div></div>
+    </div>
+
+    @if (_isAdmin)
+    {
+        <form method="post" action="/erp/electronic-reporting/fields/add" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="@_returnHref" />
+            <label>Format id <input type="number" name="format_id" min="1" required style="width:6rem" value="@OpenedIdValue" /></label>
+            <label>Label <input type="text" name="label" required maxlength="80" style="width:10rem" /></label>
+            <label>Source key <input type="text" name="source_key" required maxlength="80" style="width:10rem" /></label>
+            <label>Ordinal <input type="number" name="ordinal" min="0" value="0" style="width:5rem" /></label>
+            <button type="submit">Add field</button>
+        </form>
+
+        <form method="post" action="/erp/electronic-reporting/formats/save" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="@_returnHref" />
+            <label>Id <input type="number" name="id" min="0" style="width:5rem" placeholder="new" value="@OpenedIdOrBlank" /></label>
+            <label>Code <input type="text" name="code" required maxlength="40" style="width:8rem" value="@OpenedCodeValue" /></label>
+            <label>Name <input type="text" name="name" required maxlength="160" style="width:14rem" value="@OpenedNameValue" /></label>
+            <label>Output
+                <select name="output_type">
+                    <option value="csv" selected="@(OpenedOutputValue == "csv" || string.IsNullOrWhiteSpace(OpenedOutputValue))">csv</option>
+                    <option value="xml" selected="@(OpenedOutputValue == "xml")">xml</option>
+                    <option value="json" selected="@(OpenedOutputValue == "json")">json</option>
+                </select>
+            </label>
+            <label>Root <input type="text" name="root_element" maxlength="60" value="@OpenedRootValue" style="width:7rem" /></label>
+            <label>Row <input type="text" name="row_element" maxlength="60" value="@OpenedRowValue" style="width:7rem" /></label>
+            <label>Active
+                <select name="active">
+                    <option value="1" selected="@(_openedFormat is null || _openedFormat.Active != 0)">active</option>
+                    <option value="0" selected="@(_openedFormat is not null && _openedFormat.Active == 0)">inactive</option>
+                </select>
+            </label>
+            <label>Company id <input type="number" name="company_id" min="0" style="width:5rem" value="@OpenedCompanyValue" /></label>
+            <button type="submit">Save format</button>
+        </form>
+    }
+
+    @if (_openedFormat is not null)
+    {
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">
+                    @(!string.IsNullOrWhiteSpace(_openedFormat.Code) ? _openedFormat.Code : ("Format #" + _openedFormat.Id.ToString(CultureInfo.InvariantCulture)))
+                    <span class="label label-default pull-right">@(_openedFormat.Active != 0 ? "active" : "inactive")</span>
+                </div>
+                <div class="panel-body">
+                    <p><strong>@(!string.IsNullOrWhiteSpace(_openedFormat.Name) ? _openedFormat.Name : "—")</strong>
+                        · @(!string.IsNullOrWhiteSpace(_openedFormat.OutputType) ? _openedFormat.OutputType : "—")
+                        · Root @(!string.IsNullOrWhiteSpace(_openedFormat.RootElement) ? _openedFormat.RootElement : "—")
+                        · Row @(!string.IsNullOrWhiteSpace(_openedFormat.RowElement) ? _openedFormat.RowElement : "—")
+                        · Company @_openedFormat.CompanyId.ToString(CultureInfo.InvariantCulture)</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">Fields</div>
+                <div class="panel-body">
+                    <div class="table-responsive">
+                        <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped table-bordered table-epc epc-erp-table">
+                            <thead>
+                                <tr>
+                                    <th>Id</th>
+                                    <th>Ordinal</th>
+                                    <th>Label</th>
+                                    <th>Source key</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (_openedFields.Count == 0)
+                                {
+                                    <tr><td colspan="4">No fields yet.</td></tr>
+                                }
+                                else
+                                {
+                                    @foreach (var row in _openedFields)
+                                    {
+                                        <tr>
+                                            <td>@row.Id.ToString(CultureInfo.InvariantCulture)</td>
+                                            <td>@row.Ordinal.ToString(CultureInfo.InvariantCulture)</td>
+                                            <td>@(!string.IsNullOrWhiteSpace(row.Label) ? row.Label : "—")</td>
+                                            <td>@(!string.IsNullOrWhiteSpace(row.SourceKey) ? row.SourceKey : "—")</td>
+                                        </tr>
+                                    }
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">Runs</div>
+                <div class="panel-body">
+                    <div class="table-responsive">
+                        <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped table-bordered table-epc epc-erp-table">
+                            <thead>
+                                <tr>
+                                    <th>Id</th>
+                                    <th>Output</th>
+                                    <th>Rows</th>
+                                    <th>Preview</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (_openedRuns.Count == 0)
+                                {
+                                    <tr><td colspan="4">No runs yet.</td></tr>
+                                }
+                                else
+                                {
+                                    @foreach (var row in _openedRuns)
+                                    {
+                                        <tr>
+                                            <td>@row.Id.ToString(CultureInfo.InvariantCulture)</td>
+                                            <td>@(!string.IsNullOrWhiteSpace(row.OutputType) ? row.OutputType : "—")</td>
+                                            <td>@row.RowCount.ToString(CultureInfo.InvariantCulture)</td>
+                                            <td>@(!string.IsNullOrWhiteSpace(row.Preview) ? row.Preview : "—")</td>
+                                        </tr>
+                                    }
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
 
     <p class="help-block">@_summary.FormatCount.ToString(CultureInfo.InvariantCulture) Formats · @_summary.FieldCount.ToString(CultureInfo.InvariantCulture) Fields · @_summary.RunCount.ToString(CultureInfo.InvariantCulture) Runs · @_summary.OutputTypeCount.ToString(CultureInfo.InvariantCulture) Output types.</p>
 
@@ -35,7 +176,7 @@
             <div class="panel-heading hbuilt">Records</div>
             <div class="panel-body">
                 <div class="table-responsive">
-                    <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped">
+                    <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped table-bordered table-epc epc-erp-table">
         <thead>
             <tr>
                     <th>Id</th>
@@ -51,13 +192,13 @@
         <tbody>
             @if (_rows.Count == 0)
             {
-                <tr><td colspan="8">No records yet.</td></tr>
+                <tr><td colspan="8">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? "No records yet." : _message) : "Sign in with a staff session for live rows.")</td></tr>
             }
             else
             {
                 @foreach (var row in _rows)
                 {
-                    <tr>
+                    <tr id="erp-row-@row.Id.ToString(CultureInfo.InvariantCulture)" class="@ErpRecordOpen.RowClass(row.Id, _openedId)">
                             <td>@row.Id.ToString(CultureInfo.InvariantCulture)</td>
                             <td>@row.CompanyId.ToString(CultureInfo.InvariantCulture)</td>
                             <td>@(!string.IsNullOrWhiteSpace(row.Code) ? row.Code : "—")</td>
@@ -65,7 +206,7 @@
                             <td>@(!string.IsNullOrWhiteSpace(row.OutputType) ? row.OutputType : "—")</td>
                             <td>@(!string.IsNullOrWhiteSpace(row.RootElement) ? row.RootElement : "—")</td>
                             <td>@row.Active.ToString(CultureInfo.InvariantCulture)</td>
-                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
+                            <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href(_listHref, "format_id", row.Id)">Open</a></td>
                     </tr>
                 }
             }
@@ -78,53 +219,47 @@
 
 </PhpCpDesktopChrome>
 
-<form method="post" action="/erp/electronic-reporting/fields/add" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
-            <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="@_returnUrl" />
-            <label>Format id <input type="number" name="format_id" min="1" required style="width:6rem" /></label>
-            <label>Label <input type="text" name="label" required maxlength="80" style="width:10rem" /></label>
-            <label>Source key <input type="text" name="source_key" required maxlength="80" style="width:10rem" /></label>
-            <label>Ordinal <input type="number" name="ordinal" min="0" value="0" style="width:5rem" /></label>
-            <button type="submit">Add field</button>
-        </form>
-
-<form method="post" action="/erp/electronic-reporting/formats/save" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
-            <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="@_returnUrl" />
-            <input type="hidden" name="id" value="0" />
-            <label>Code <input type="text" name="code" required maxlength="40" style="width:8rem" /></label>
-            <label>Name <input type="text" name="name" required maxlength="160" style="width:14rem" /></label>
-            <label>Output
-                <select name="output_type">
-                    <option value="csv" selected>csv</option>
-                    <option value="xml">xml</option>
-                    <option value="json">json</option>
-                </select>
-            </label>
-            <label>Root <input type="text" name="root_element" maxlength="60" value="rows" style="width:7rem" /></label>
-            <label>Row <input type="text" name="row_element" maxlength="60" value="row" style="width:7rem" /></label>
-            <label>Active
-                <select name="active">
-                    <option value="1" selected>active</option>
-                    <option value="0">inactive</option>
-                </select>
-            </label>
-            <label>Company id <input type="number" name="company_id" min="0" value="0" style="width:5rem" /></label>
-            <button type="submit">Save format</button>
-        </form>
-
 @code {
     private const string _phpTab = "/ERP/?epc_erp_shell=1&area=tax&tab=elec_reporting";
+    private string _listHref = "/cp/electronic-reporting-app";
     private bool _isAdmin;
     private CpElectronicReportingSummary _summary = new(0, 0, 0, 0, "n/a", "");
     private IReadOnlyList<CpElectronicReportingFormatDigest> _rows = [];
     private string _source = "n/a";
     private string _message = "";
+    private long _openedId;
+    private string _returnHref = "/cp/electronic-reporting-app";
+    private CpElectronicReportingFormatDigest? _openedFormat;
+    private IReadOnlyList<CpElectronicReportingFieldDigest> _openedFields = [];
+    private IReadOnlyList<CpElectronicReportingRunDigest> _openedRuns = [];
+
+    private string OpenedCaption => _openedFormat is null
+        ? ""
+        : (string.IsNullOrWhiteSpace(_openedFormat.Code) ? ("Format #" + _openedFormat.Id.ToString(CultureInfo.InvariantCulture)) : _openedFormat.Code)
+            + (string.IsNullOrWhiteSpace(_openedFormat.Name) ? "" : (" · " + _openedFormat.Name));
+
+    private string OpenedIdValue => _openedId > 0 ? _openedId.ToString(CultureInfo.InvariantCulture) : "";
+    private string OpenedIdOrBlank => _openedId > 0 ? _openedId.ToString(CultureInfo.InvariantCulture) : "";
+    private string OpenedCodeValue => _openedFormat?.Code ?? "";
+    private string OpenedNameValue => _openedFormat?.Name ?? "";
+    private string OpenedOutputValue => _openedFormat?.OutputType ?? "";
+    private string OpenedRootValue => _openedFormat is null ? "rows" : _openedFormat.RootElement;
+    private string OpenedRowValue => _openedFormat is null ? "row" : _openedFormat.RowElement;
+    private string OpenedCompanyValue => _openedFormat is null ? "0" : _openedFormat.CompanyId.ToString(CultureInfo.InvariantCulture);
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
+
+        var path = ctx.Request.Path.Value;
+        _listHref = string.Equals(path, "/erp/electronic-reporting-app", StringComparison.OrdinalIgnoreCase)
+            ? "/erp/electronic-reporting-app"
+            : "/cp/electronic-reporting-app";
+        _openedId = ErpRecordOpen.ReadId(ctx.Request, "format_id");
+        _returnHref = _openedId > 0
+            ? ErpRecordOpen.Href(_listHref, "format_id", _openedId).Split('#')[0]
+            : _listHref;
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
@@ -138,6 +273,25 @@
         _rows = result.Formats;
         _source = result.Source;
         _message = result.Message;
+
+        if (_openedId > 0)
+        {
+            var detail = await Dashboards.BuildCpElectronicReportingFormatDetailAsync(_openedId, ctx.RequestAborted);
+            _openedFormat = detail.Format;
+            _openedFields = detail.Fields;
+            _openedRuns = detail.Runs;
+            if (_openedFormat is not null)
+            {
+                var openedList = _rows.FirstOrDefault(r => r.Id == _openedId);
+                if (openedList is not null)
+                {
+                    _rows = new[] { openedList }.Concat(_rows.Where(r => r.Id != _openedId)).ToList();
+                }
+            }
+            else if (!string.IsNullOrWhiteSpace(detail.Message))
+            {
+                _message = detail.Message;
+            }
+        }
     }
-    private string _returnUrl => "/cp/electronic-reporting-app";
 }
