@@ -118,6 +118,32 @@
                     <button type="submit" class="btn btn-primary btn-sm">Raise</button>
                 </form>
             </ErpPhpCreateWell>
+            <ErpPhpCreateWell Title="Update non-conformance">
+                <form method="post" action="/erp/quality/ncr-update" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+                    <input type="hidden" name="returnUrl" value="/erp/quality-app?qv=ncr" />
+                    <input type="hidden" name="confirmWrites" value="true" />
+                    <label>Id <input class="form-control input-sm" name="id" placeholder="NCR id" style="width:90px;" /></label>
+                    <label>Status
+                        <select class="form-control input-sm" name="status">
+                            <option value="open">open</option>
+                            <option value="investigate">investigate</option>
+                            <option value="action">action</option>
+                            <option value="closed">closed</option>
+                        </select>
+                    </label>
+                    <label>Disposition
+                        <select class="form-control input-sm" name="disposition">
+                            <option value="">disposition…</option>
+                            <option value="use_as_is">use as-is</option>
+                            <option value="rework">rework</option>
+                            <option value="scrap">scrap</option>
+                            <option value="return">return</option>
+                        </select>
+                    </label>
+                    <label>Corrective action <input class="form-control input-sm" name="corrective_action" placeholder="Action" style="width:200px;" /></label>
+                    <button type="submit" class="btn btn-primary btn-sm">Update</button>
+                </form>
+            </ErpPhpCreateWell>
         }
         <div class="epc-erp-table-wrap">
             <table class="table table-bordered table-condensed table-epc epc-erp-table">
@@ -218,7 +244,7 @@
     }
 
     <div class="epc-erp-empty" style="display:block;margin-top:12px;padding:8px 10px;border:1px solid #c5d4de;background:#f8fafc;color:#475569;font-size:12px;">
-        Source: @_source. Form posts are dry-run (<code>qm_plan_save</code> / <code>qm_order_create</code> / <code>qm_ncr_create</code>) — writes=0.
+        Source: @_source. Live: <code>qm_ncr_update</code>. Order create/record and NCR create stay Classic.
         @if (!string.IsNullOrWhiteSpace(_message)) { <span> @_message</span> }
     </div>
 </PhpErpDesktopChrome>
