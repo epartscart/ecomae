@@ -278,7 +278,7 @@
                         <button type="submit" style="padding:.55rem .9rem;border:0;border-radius:.4rem;background:#0f766e;color:#fff;font-weight:800;cursor:pointer">Pay now</button>
                     </form>
                     <a class="btn btn-xs btn-ar btn-default" href="javascript:void(0);" onclick="pay_on_place();">Pay on place</a>
-                    <form id="pay_form" name="pay_form" method="post" action="@("/storefront/orders-app?order_id=" + _selected.Id.ToString(CultureInfo.InvariantCulture))" style="display:none;">
+                    <form id="pay_form" name="pay_form" method="post" action="@PhpCustomerWrites.PayOnPlaceHref" style="display:none;">
                         <input type="hidden" name="action" id="action" value="pay_on_place" />
                         <input type="hidden" name="order_id" value="@_selected.Id.ToString(CultureInfo.InvariantCulture)" />
                         <input type="hidden" name="confirmWrites" value="true" />

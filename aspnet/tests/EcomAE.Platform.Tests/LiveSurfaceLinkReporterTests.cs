@@ -191,6 +191,9 @@ public sealed class LiveSurfaceLinkReporterTests
             && link.AspNetRouteHint == "/storefront/garage/check-car");
         Assert.Contains(report.Links, link =>
             link.HostClass == "aspnet-diagnostics"
+            && link.AspNetRouteHint == "/storefront/orders/pay-on-place");
+        Assert.Contains(report.Links, link =>
+            link.HostClass == "aspnet-diagnostics"
             && link.AspNetRouteHint == "/cp/orders/fulfillment-set-stage");
         Assert.Contains(report.Links, link =>
             link.HostClass == "aspnet-diagnostics"

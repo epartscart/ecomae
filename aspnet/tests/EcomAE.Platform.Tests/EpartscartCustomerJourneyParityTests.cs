@@ -97,6 +97,7 @@ public sealed class EpartscartCustomerJourneyParityTests
         Assert.Contains("class=\"table\"", orders, StringComparison.Ordinal);
         Assert.Contains("id=\"pay_form\"", orders, StringComparison.Ordinal);
         Assert.Contains("pay_on_place", orders, StringComparison.Ordinal);
+        Assert.Contains("PhpCustomerWrites.PayOnPlaceHref", orders, StringComparison.Ordinal);
         Assert.Contains("car_tr_", orders, StringComparison.Ordinal);
         Assert.Contains("PhpCustomerWrites.GarageCheckCarHref", orders, StringComparison.Ordinal);
         Assert.Contains("function check_car", orders, StringComparison.Ordinal);

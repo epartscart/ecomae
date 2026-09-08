@@ -94,6 +94,7 @@ public sealed class StorefrontPayLaximoPhpParityTests
 
         var orders = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/StorefrontOrdersApp.razor"));
         Assert.Contains("action=\"@PhpCustomerWrites.GarageCheckCarHref\"", orders, StringComparison.Ordinal);
+        Assert.Contains("action=\"@PhpCustomerWrites.PayOnPlaceHref\"", orders, StringComparison.Ordinal);
 
         var profile = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/StorefrontProfileApp.razor"));
         Assert.Contains("action=\"@PhpCustomerWrites.ProfilePasswordHref\"", profile, StringComparison.Ordinal);
@@ -108,6 +109,7 @@ public sealed class StorefrontPayLaximoPhpParityTests
         Assert.DoesNotContain("Live writes remain PHP", cp, StringComparison.Ordinal);
 
         Assert.Equal("write-live-gated", SurfacePayloadContractCatalog.Functions.First(f => f.AspNetRouteOrCapability == "/storefront/garage/check-car").Status);
+        Assert.Equal("write-live-gated", SurfacePayloadContractCatalog.Functions.First(f => f.AspNetRouteOrCapability == "/storefront/orders/pay-on-place").Status);
         Assert.Equal("write-live-gated", SurfacePayloadContractCatalog.Functions.First(f => f.AspNetRouteOrCapability == "/storefront/profile/change-password").Status);
         Assert.Equal("write-live-gated", SurfacePayloadContractCatalog.Functions.First(f => f.AspNetRouteOrCapability == "/cp/orders/pay-refund").Status);
         Assert.Equal("write-live-gated", SurfacePayloadContractCatalog.Functions.First(f => f.AspNetRouteOrCapability == "/cp/orders/refresh-item-cost").Status);

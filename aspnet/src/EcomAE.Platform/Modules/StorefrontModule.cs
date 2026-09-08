@@ -2368,6 +2368,55 @@ public sealed class StorefrontModule : ISurfaceModule
             return Results.Ok(result.ToPayload(SessionPayload(session)));
         }).DisableAntiforgery();
 
+        endpoints.MapPost(EcomAeRoutes.StorefrontOrdersPayOnPlace, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IStorefrontPaymentWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Customer || session.UserId <= 0)
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/storefront/login?returnUrl=/storefront/orders-app", "Customer session required for pay on place.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<StorefrontPayOnPlaceBody>(context, cancellationToken)
+                       ?? new(0, false);
+            var orderId = body.OrderId;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                orderId = LiveWriteFormBinder.Long(form, "order_id", "orderId");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(new
+                {
+                    ok = true,
+                    surface = "storefront",
+                    writes = 0,
+                    writesBlocked = true,
+                    phpAuthoritative = false,
+                    validation_code = orderId > 0 ? "ok" : "invalid",
+                    message = orderId > 0
+                        ? "Pay on place validated; write blocked until confirmWrites=true."
+                        : "Order is required.",
+                    session = SessionPayload(session)
+                });
+            }
+
+            var written = await writes.PayOnPlaceAsync(session.UserId, orderId, cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/storefront/orders-app?order_id=" + orderId.ToString(CultureInfo.InvariantCulture),
+                written.Ok,
+                written.Message,
+                written.ToPayload(SessionPayload(session)));
+        }).DisableAntiforgery();
+
         endpoints.MapPost(EcomAeRoutes.StorefrontReturnsSendMessage, async (
             HttpContext context,
             ILegacySessionValidator validator,
@@ -2534,6 +2583,7 @@ public sealed class StorefrontModule : ISurfaceModule
     private sealed record StorefrontGarageSetActiveBody(long CarId, bool ConfirmWrites = false);
     private sealed record StorefrontGarageDeleteBody(long CarId, bool ConfirmWrites = false);
     private sealed record StorefrontGarageCheckCarBody(long CarId, long OrderId, bool ConfirmWrites = false);
+    private sealed record StorefrontPayOnPlaceBody(long OrderId, bool ConfirmWrites = false);
     private sealed record StorefrontCheckoutCreateBody(
         int HowGetMode,
         int? OfficeId = null,
