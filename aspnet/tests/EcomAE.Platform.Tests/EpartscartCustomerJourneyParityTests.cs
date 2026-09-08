@@ -200,6 +200,18 @@ public sealed class EpartscartCustomerJourneyParityTests
         Assert.Contains("id=\"new_message_area\"", requests, StringComparison.Ordinal);
         Assert.Contains("name=\"vin_id\"", requests, StringComparison.Ordinal);
         Assert.Contains("class=\"table\"", requests, StringComparison.Ordinal);
+
+        var print = File.ReadAllText(Find(
+            "aspnet/src/EcomAE.Platform/Components/Pages/StorefrontCustomerPrintApp.razor"));
+        Assert.Contains("panel panel-primary", print, StringComparison.Ordinal);
+        Assert.Contains("name=\"order_id\"", print, StringComparison.Ordinal);
+        Assert.Contains("name=\"doc_name\"", print, StringComparison.Ordinal);
+        Assert.Contains("btn btn-ar btn-primary", print, StringComparison.Ordinal);
+
+        var special = File.ReadAllText(Find(
+            "aspnet/src/EcomAE.Platform/Components/Pages/StorefrontSpecialSearchApp.razor"));
+        Assert.Contains("list-group", special, StringComparison.Ordinal);
+        Assert.Contains("list-group-item", special, StringComparison.Ordinal);
     }
 
     [Fact]

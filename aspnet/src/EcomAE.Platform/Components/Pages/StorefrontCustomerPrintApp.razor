@@ -24,25 +24,32 @@
             <p style="color:#475569">Open a sales receipt or invoice for a paid order. Printing stays on the classic document service.</p>
             @if (!_isCustomer)
             {
-                <div style="padding:1.15rem 1.2rem;background:#fff;border:1px solid #e2e8f0;border-radius:.55rem">
-                    <p style="margin:0 0 .75rem">Sign in to print order documents.</p>
-                    <a class="btn btn-primary" href="@StorefrontSurfaceLinks.Login">Sign in</a>
+                <div class="panel panel-primary">
+                    <div class="panel-body">
+                        <p style="margin:0 0 .75rem">Sign in to print order documents.</p>
+                        <a class="btn btn-ar btn-primary" href="@StorefrontSurfaceLinks.Login">Sign in</a>
+                    </div>
                 </div>
             }
             else
             {
-                <form method="get" action="@PhpSellerRequest.PrintWriteHref" target="_blank" style="background:#fff;border:1px solid #e2e8f0;border-radius:.55rem;padding:1.1rem 1.2rem">
-                    <label for="order_id">Order number</label>
-                    <input id="order_id" type="number" name="order_id" min="1" required value="@OrderId" style="width:100%;margin:.25rem 0 .75rem;padding:.5rem" />
-                    <label for="doc_name">Document</label>
-                    <select id="doc_name" name="doc_name" style="width:100%;margin:.25rem 0 1rem;padding:.5rem">
-                        @foreach (var doc in PhpSellerRequest.PrintDocs)
-                        {
-                            <option value="@doc.Code" selected="@(string.Equals(doc.Code, DocName, StringComparison.OrdinalIgnoreCase))">@doc.Label</option>
-                        }
-                    </select>
-                    <button type="submit" style="padding:.65rem 1.1rem;border:0;border-radius:.45rem;background:#0f766e;color:#fff;font-weight:800;cursor:pointer">Open print</button>
-                </form>
+                <div class="panel panel-primary">
+                    <div class="panel-heading">Print</div>
+                    <div class="panel-body">
+                        <form method="get" action="@PhpSellerRequest.PrintWriteHref" target="_blank">
+                            <label for="order_id">Order number</label>
+                            <input id="order_id" class="form-control" type="number" name="order_id" min="1" required value="@OrderId" />
+                            <label for="doc_name">Document</label>
+                            <select id="doc_name" class="form-control" name="doc_name">
+                                @foreach (var doc in PhpSellerRequest.PrintDocs)
+                                {
+                                    <option value="@doc.Code" selected="@(string.Equals(doc.Code, DocName, StringComparison.OrdinalIgnoreCase))">@doc.Label</option>
+                                }
+                            </select>
+                            <button type="submit" class="btn btn-ar btn-primary" style="margin-top:10px;"><i class="fa fa-print"></i> Open print</button>
+                        </form>
+                    </div>
+                </div>
             }
         </div>
     </section>

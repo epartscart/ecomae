@@ -35,9 +35,12 @@
             }
             else if (_groupId > 0 && !string.IsNullOrWhiteSpace(_fileHref))
             {
-                <div style="padding:1.15rem 1.2rem;background:#0f172a;color:#eff6ff;border-radius:.7rem">
-                    <p style="margin:0 0 .65rem">Group @_groupId.ToString(CultureInfo.InvariantCulture)</p>
-                    <a href="@_fileHref" style="display:inline-block;background:#fff;color:#1e3a8a;padding:.55rem .95rem;border-radius:.45rem;font-weight:700;text-decoration:none">Download price list</a>
+                <div class="panel panel-primary">
+                    <div class="panel-heading">Price list</div>
+                    <div class="panel-body">
+                        <p>Group @_groupId.ToString(CultureInfo.InvariantCulture)</p>
+                        <a class="btn btn-ar btn-primary" href="@_fileHref">Download price list</a>
+                    </div>
                 </div>
             }
             else
