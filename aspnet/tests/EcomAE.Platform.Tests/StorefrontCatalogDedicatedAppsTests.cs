@@ -400,6 +400,41 @@ public sealed class StorefrontCatalogDedicatedAppsTests : IDisposable
         Assert.DoesNotContain("/php-reference", cons, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void HrUaeWorkflowsCollectionsApps_UseClassicHpanelNotInventHero()
+    {
+        var hr = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/CpHrOverviewApp.razor"));
+        Assert.Contains("class=\"hpanel\"", hr, StringComparison.Ordinal);
+        Assert.Contains("Add an employee", hr, StringComparison.Ordinal);
+        Assert.Contains("/erp/hr/employees/save", hr, StringComparison.Ordinal);
+        Assert.Contains("/erp/hr/attendance/log", hr, StringComparison.Ordinal);
+        Assert.Contains("/erp/hr/payroll/generate", hr, StringComparison.Ordinal);
+        Assert.Contains("CpPhpModuleCopy.PurposeFor", hr, StringComparison.Ordinal);
+        Assert.DoesNotContain("epc-hr-hero", hr, StringComparison.Ordinal);
+        Assert.DoesNotContain("/php-reference", hr, StringComparison.Ordinal);
+
+        var uae = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/CpUaeTaxComplianceApp.razor"));
+        Assert.Contains("class=\"hpanel\"", uae, StringComparison.Ordinal);
+        Assert.Contains("/erp/uae-tax/ct-adjustments/save", uae, StringComparison.Ordinal);
+        Assert.Contains("/erp/uae-tax/legislation/checklist/set", uae, StringComparison.Ordinal);
+        Assert.Contains("Save tourist VAT", uae, StringComparison.Ordinal);
+        Assert.DoesNotContain("epc-uae-hero", uae, StringComparison.Ordinal);
+        Assert.DoesNotContain("/php-reference", uae, StringComparison.Ordinal);
+
+        var wf = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/CpWorkflowsApp.razor"));
+        Assert.Contains("class=\"hpanel\"", wf, StringComparison.Ordinal);
+        Assert.Contains("/erp/automation/deactivate", wf, StringComparison.Ordinal);
+        Assert.DoesNotContain("epc-wf-hero", wf, StringComparison.Ordinal);
+        Assert.DoesNotContain("/php-reference", wf, StringComparison.Ordinal);
+
+        var dunning = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/CpCollectionsDunningApp.razor"));
+        Assert.Contains("class=\"hpanel\"", dunning, StringComparison.Ordinal);
+        Assert.Contains("/cp/collections-dunning/write", dunning, StringComparison.Ordinal);
+        Assert.Contains("PhpReferenceOnlyHref", dunning, StringComparison.Ordinal);
+        Assert.DoesNotContain("epc-w15-hero", dunning, StringComparison.Ordinal);
+        Assert.DoesNotContain("/php-reference", dunning, StringComparison.Ordinal);
+    }
+
     private static void AssertPage(string fileName, string phpAlias, string aspNetApp)
     {
         var path = Find("aspnet/src/EcomAE.Platform/Components/Pages/" + fileName);
