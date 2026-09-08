@@ -7,7 +7,6 @@
 @using EcomAE.Platform.Presentation
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
-@inject IErpOplParamsSaveDryRun OplSave
 @inject IHttpContextAccessor Http
 @inject NavigationManager Nav
 
@@ -25,16 +24,8 @@
     </div>
 
     @if (_isAdmin)
-    {
-        <form @onsubmit="OnSave" @onsubmit:preventDefault="true" style="margin:12px 0;padding:10px;border:1px solid #c5d4de;background:#fff;">
-            <strong>Planning param (dry-run)</strong>
-            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;align-items:end;">
-                <label>Item / code <input class="form-control" @bind="_formCode" /></label>
-                <button type="submit" class="btn btn-primary">Validate save</button>
-            </div>
-            @if (!string.IsNullOrWhiteSpace(_formResult)) { <p style="margin:8px 0 0;font-size:12px;">@_formResult</p> }
-        </form>
-        <form method="post" action="/erp/order-planning/set-status" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+    {        <ErpPhpCreateWell Title="Set recommendation status">
+<form method="post" action="/erp/order-planning/set-status" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
                 <input type="hidden" name="returnUrl" value="/erp/order-planning-app" />
                 <input type="hidden" name="confirmWrites" value="true" />
                 <label>Item <input class="form-control input-sm" name="item_id" placeholder="Item id" style="width:80px;" /></label>
@@ -51,7 +42,9 @@
                 </label>
                 <button type="submit" class="btn btn-primary btn-sm">Save</button>
             </form>
-        <form method="post" action="@EcomAeRoutes.ErpOrderPlanningParamsSave" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+</ErpPhpCreateWell>
+        <ErpPhpCreateWell Title="Planning parameters">
+<form method="post" action="@EcomAeRoutes.ErpOrderPlanningParamsSave" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
                 <input type="hidden" name="returnUrl" value="/erp/order-planning-app" />
                 <input type="hidden" name="confirmWrites" value="true" />
                 <label>Item <input class="form-control input-sm" name="item_id" placeholder="Item id" style="width:80px;" required /></label>
@@ -71,6 +64,7 @@
                 </label>
                 <button type="submit" class="btn btn-primary btn-sm">Save</button>
             </form>
+</ErpPhpCreateWell>
     }
 
     <h2 style="font-size:16px;">Recommendations</h2>
@@ -103,7 +97,7 @@
     </div>
 
     <div class="epc-erp-empty" style="display:block;margin-top:12px;padding:8px 10px;border:1px solid #c5d4de;background:#f8fafc;color:#475569;font-size:12px;">
-        Source: @_source. Dry-run: <code>opl_params_save</code> — writes=0.
+        Source: @_source. Live: <code>opl_set_status</code>. Confirm, draft POs, and autoplan stay Classic.
         @if (!string.IsNullOrWhiteSpace(_message)) { <span> @_message</span> }
     </div>
 </PhpErpDesktopChrome>
@@ -118,8 +112,6 @@
     private decimal _pendingValue;
     private string _source = "n/a";
     private string _message = "";
-    private string _formCode = "";
-    private string _formResult = "";
 
     protected override async Task OnInitializedAsync()
     {
@@ -146,9 +138,4 @@
         _message = result.Message;
     }
 
-    private void OnSave()
-    {
-        var result = OplSave.Evaluate(new ErpOplParamsSaveRequest(ConfirmWrites: false));
-        _formResult = $"{result.Status}: {result.Detail} (writes={result.Writes.ToString(CultureInfo.InvariantCulture)})";
-    }
 }

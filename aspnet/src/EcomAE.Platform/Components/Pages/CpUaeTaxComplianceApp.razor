@@ -142,6 +142,7 @@
                 <button type="submit" class="btn btn-primary btn-sm">Save CT adjustments</button>
             </form>
 
+<ErpPhpCreateWell Title="Checklist step">
 <form method="post" action="/erp/uae-tax/legislation/checklist/set" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin-bottom:1rem;">
                 <input type="hidden" name="returnUrl" value="/erp/uae-tax-compliance-app" />
                 <input type="hidden" name="confirmWrites" value="true" />
@@ -156,6 +157,7 @@
                 </label>
                 <button type="submit" class="btn btn-primary btn-sm">Set status</button>
             </form>
+</ErpPhpCreateWell>
 
 @code {
     private const string _phpTab = "/CP/shop/finance/erp/uae-tax-compliance?epc_erp_shell=1";

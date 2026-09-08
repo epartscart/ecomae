@@ -23,16 +23,7 @@
     </div>
 
     @if (_isAdmin)
-    {
-        <form @onsubmit="OnSave" @onsubmit:preventDefault="true" style="margin:12px 0;padding:10px;border:1px solid #c5d4de;background:#fff;">
-            <strong>New budget (dry-run)</strong>
-            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;align-items:end;">
-                <label>Category <input class="form-control" @bind="_formCode" /></label>
-                <button type="submit" class="btn btn-primary">Validate save</button>
-            </div>
-            @if (!string.IsNullOrWhiteSpace(_formResult)) { <p style="margin:8px 0 0;font-size:12px;">@_formResult</p> }
-        </form>
-        <form method="post" action="/erp/project-accounting/txns/add" style="margin:12px 0;padding:10px;border:1px solid #c5d4de;background:#fff;display:flex;flex-wrap:wrap;gap:.4rem;align-items:end">
+    {        <form method="post" action="/erp/project-accounting/txns/add" style="margin:12px 0;padding:10px;border:1px solid #c5d4de;background:#fff;display:flex;flex-wrap:wrap;gap:.4rem;align-items:end">
             <input type="hidden" name="confirmWrites" value="true" />
             <input type="hidden" name="returnUrl" value="/erp/project-accounting-app" />
             <strong style="width:100%">Post transaction</strong>
@@ -149,8 +140,6 @@
     private int _count, _txnCount, _recCount;
     private string _source = "n/a";
     private string _message = "";
-    private string _formCode = "";
-    private string _formResult = "";
 
     protected override async Task OnInitializedAsync()
     {
@@ -171,10 +160,5 @@
         _message = result.Message;
     }
 
-    private void OnSave()
-    {
-        var result = BudgetSave.Evaluate(new ErpPrjaBudgetSaveRequest(Code: _formCode, ConfirmWrites: false));
-        _formResult = $"{result.Status}: {result.Detail} (writes={result.Writes.ToString(CultureInfo.InvariantCulture)})";
-    }
     private string _returnUrl => "/erp/project-accounting-app";
 }

@@ -124,6 +124,7 @@
 
 </PhpErpDesktopChrome>
 
+<ErpPhpCreateWell Title="Match statement line">
 <form method="post" action="/erp/bank-reconciliation/match" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin-bottom:1rem;">
                 <input type="hidden" name="returnUrl" value="/erp/bank-reconciliation-app" />
                 <input type="hidden" name="confirmWrites" value="true" />
@@ -139,7 +140,9 @@
                 <label>Cash entry <input class="form-control input-sm" name="entry_id" type="number" min="1" style="width:8rem;" /></label>
                 <button type="submit" class="btn btn-primary btn-sm">Match</button>
             </form>
+</ErpPhpCreateWell>
 
+<ErpPhpCreateWell Title="Advance status">
 <form method="post" action="/erp/bank-instruments/status" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin-bottom:1rem;">
                     <input type="hidden" name="returnUrl" value="/erp/bank-reconciliation-app?tab=bank_instruments" />
                     <input type="hidden" name="confirmWrites" value="true" />
@@ -158,7 +161,9 @@
                     <label>Amount <input class="form-control input-sm" type="number" step="0.01" name="amount" value="0" style="width:90px;" /></label>
                     <button type="submit" class="btn btn-primary btn-sm">Move status</button>
                 </form>
+</ErpPhpCreateWell>
 
+<ErpPhpCreateWell Title="New instrument">
 <form method="post" action="/erp/bank-instruments/save" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin-bottom:1rem;">
                     <input type="hidden" name="returnUrl" value="/erp/bank-reconciliation-app?tab=bank_instruments" />
                     <input type="hidden" name="confirmWrites" value="true" />
@@ -177,6 +182,7 @@
                     <label>Expiry <input class="form-control input-sm" type="date" name="expiry_date" /></label>
                     <button type="submit" class="btn btn-success btn-sm">Create instrument</button>
                 </form>
+</ErpPhpCreateWell>
 
 @code {
     private string _phpTab = "/ERP/?epc_erp_shell=1&area=banking&tab=bank_recon";

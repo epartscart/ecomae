@@ -112,13 +112,16 @@
 
 </PhpCpDesktopChrome>
 
+<ErpPhpCreateWell Title="Remove document">
 <form method="post" action="/erp/doc-expiry/delete" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin-bottom:1rem;">
                 <input type="hidden" name="returnUrl" value="/erp/doc-expiry-app" />
                 <input type="hidden" name="confirmWrites" value="true" />
                 <label>Id <input class="form-control input-sm" type="number" name="id" min="1" required style="width:90px;" /></label>
                 <button type="submit" class="btn btn-danger btn-sm">Remove from register</button>
             </form>
+</ErpPhpCreateWell>
 
+<ErpPhpCreateWell Title="Add document">
 <form method="post" action="/erp/doc-expiry/save" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin-bottom:1rem;">
                 <input type="hidden" name="returnUrl" value="/erp/doc-expiry-app" />
                 <input type="hidden" name="confirmWrites" value="true" />
@@ -144,6 +147,7 @@
                 <label>Note <input class="form-control input-sm" name="note" style="width:180px;" /></label>
                 <button type="submit" class="btn btn-primary btn-sm">Add to register</button>
             </form>
+</ErpPhpCreateWell>
 
 @code {
     private const string _phpTab = "/ERP/?epc_erp_shell=1&area=risk&tab=doc_expiry";

@@ -62,11 +62,12 @@
     </div>
 
     <div class="epc-erp-empty" style="display:block;margin-top:12px;padding:8px 10px;border:1px solid #c5d4de;background:#f8fafc;color:#475569;font-size:12px;">
-        Source: @_source. Dry-run: <code>print_designer_save</code> — writes=0.
+        Source: @_source.
         @if (!string.IsNullOrWhiteSpace(_message)) { <span> @_message</span> }
     </div>
 </PhpErpDesktopChrome>
 
+<ErpPhpCreateWell Title="New print template">
 <form method="post" action="/erp/print-designer/save" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin-bottom:1rem;">
                 <input type="hidden" name="returnUrl" value="/erp/print-designer-app" />
                 <input type="hidden" name="confirmWrites" value="true" />
@@ -100,6 +101,7 @@
                 <label><input type="checkbox" name="is_default" value="1" /> Default</label>
                 <button type="submit" class="btn btn-primary btn-sm">Save template</button>
             </form>
+</ErpPhpCreateWell>
 
 @code {
     private const string _phpTab = "/ERP/?epc_erp_shell=1&area=setup&tab=print_designer";

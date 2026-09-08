@@ -7,7 +7,6 @@
 @using EcomAE.Platform.Presentation
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
-@inject IErpHrtJobSaveDryRun JobSave
 @inject IHttpContextAccessor Http
 @inject NavigationManager Nav
 
@@ -24,16 +23,8 @@
     </div>
 
     @if (_isAdmin)
-    {
-        <form @onsubmit="OnSave" @onsubmit:preventDefault="true" style="margin:12px 0;padding:10px;border:1px solid #c5d4de;background:#fff;">
-            <strong>New job (dry-run)</strong>
-            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;align-items:end;">
-                <label>Title / code <input class="form-control" @bind="_formCode" /></label>
-                <button type="submit" class="btn btn-primary">Validate save</button>
-            </div>
-            @if (!string.IsNullOrWhiteSpace(_formResult)) { <p style="margin:8px 0 0;font-size:12px;">@_formResult</p> }
-        </form>
-        <form method="post" action="/erp/recruitment/applicants/stage" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+    {        <ErpPhpCreateWell Title="Move applicant">
+<form method="post" action="/erp/recruitment/applicants/stage" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
                 <input type="hidden" name="returnUrl" value="/erp/recruitment-app" />
                 <input type="hidden" name="confirmWrites" value="true" />
                 <label>Applicant
@@ -57,7 +48,9 @@
                 </label>
                 <button type="submit" class="btn btn-primary btn-sm">Move</button>
             </form>
-        <form method="post" action="@EcomAeRoutes.ErpRecruitmentApplicantAdd" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+</ErpPhpCreateWell>
+        <ErpPhpCreateWell Title="New applicant">
+<form method="post" action="@EcomAeRoutes.ErpRecruitmentApplicantAdd" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
                 <input type="hidden" name="returnUrl" value="/erp/recruitment-app" />
                 <input type="hidden" name="confirmWrites" value="true" />
                 <label>Job
@@ -76,6 +69,8 @@
                 <label>Notes <input class="form-control input-sm" name="notes" placeholder="Notes" style="width:160px;" /></label>
                 <button type="submit" class="btn btn-primary btn-sm">Add</button>
             </form>
+</ErpPhpCreateWell>
+        <ErpPhpCreateWell Title="New job">
         <form method="post" action="@EcomAeRoutes.ErpRecruitmentJobSave" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
                 <input type="hidden" name="returnUrl" value="/erp/recruitment-app" />
                 <input type="hidden" name="confirmWrites" value="true" />
@@ -86,6 +81,7 @@
                 <label>Notes <input class="form-control input-sm" name="notes" placeholder="Notes" style="width:180px;" /></label>
                 <button type="submit" class="btn btn-primary btn-sm">Save</button>
             </form>
+        </ErpPhpCreateWell>
     }
 
     <h2 style="font-size:16px;">Jobs</h2>
@@ -153,8 +149,6 @@
     private int _count, _open, _applicantCount;
     private string _source = "n/a";
     private string _message = "";
-    private string _formCode = "";
-    private string _formResult = "";
 
     protected override async Task OnInitializedAsync()
     {
@@ -174,9 +168,4 @@
         _message = result.Message;
     }
 
-    private void OnSave()
-    {
-        var result = JobSave.Evaluate(new ErpHrtJobSaveRequest(Title: _formCode, ConfirmWrites: false));
-        _formResult = $"{result.Status}: {result.Detail} (writes={result.Writes.ToString(CultureInfo.InvariantCulture)})";
-    }
 }

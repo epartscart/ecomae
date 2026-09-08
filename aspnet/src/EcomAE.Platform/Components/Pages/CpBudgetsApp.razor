@@ -110,6 +110,7 @@
             <button type="submit">Advance plan</button>
         </form>
 
+<ErpPhpCreateWell Title="Attach listing to voucher">
 <form method="post" action="/erp/pm/listings/attach" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin-bottom:1rem;">
                 <input type="hidden" name="returnUrl" value="/erp/budgets-app" />
                 <input type="hidden" name="confirmWrites" value="true" />
@@ -117,7 +118,9 @@
                 <label>Voucher <input class="form-control input-sm" name="voucher_ref" placeholder="Ref" style="width:180px;" /></label>
                 <button type="submit" class="btn btn-primary btn-sm">Attach</button>
             </form>
+</ErpPhpCreateWell>
 
+<ErpPhpCreateWell Title="Record cheque">
 <form method="post" action="/erp/pm/cheques/save" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin-bottom:1rem;">
                 <input type="hidden" name="returnUrl" value="/erp/budgets-app" />
                 <input type="hidden" name="confirmWrites" value="true" />
@@ -129,7 +132,9 @@
                 <label>Memo <input class="form-control input-sm" name="memo" placeholder="Memo" style="width:180px;" /></label>
                 <button type="submit" class="btn btn-primary btn-sm">Record</button>
             </form>
+</ErpPhpCreateWell>
 
+<ErpPhpCreateWell Title="Toggle platform master">
 <form method="post" action="/erp/pm/toggle" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin-bottom:1rem;">
                 <input type="hidden" name="returnUrl" value="/erp/budgets-app" />
                 <input type="hidden" name="confirmWrites" value="true" />
@@ -157,7 +162,9 @@
                 </label>
                 <button type="submit" class="btn btn-primary btn-sm">Update</button>
             </form>
+</ErpPhpCreateWell>
 
+<ErpPhpCreateWell Title="Add budget line">
 <form method="post" action="/erp/pm/budget-lines/add" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin-bottom:1rem;">
                 <input type="hidden" name="returnUrl" value="/erp/budgets-app" />
                 <input type="hidden" name="confirmWrites" value="true" />
@@ -168,7 +175,9 @@
                 <label>Amount <input class="form-control input-sm" name="amount" placeholder="0.00" style="width:100px;" /></label>
                 <button type="submit" class="btn btn-primary btn-sm">Add line</button>
             </form>
+</ErpPhpCreateWell>
 
+<ErpPhpCreateWell Title="Save platform budget">
 <form method="post" action="/erp/pm/budgets/save" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin-bottom:1rem;">
                 <input type="hidden" name="returnUrl" value="/erp/budgets-app" />
                 <input type="hidden" name="confirmWrites" value="true" />
@@ -186,7 +195,9 @@
                 <label>Note <input class="form-control input-sm" name="note" placeholder="Note" style="width:180px;" /></label>
                 <button type="submit" class="btn btn-primary btn-sm">Save</button>
             </form>
+</ErpPhpCreateWell>
 
+<ErpPhpCreateWell Title="Save platform master">
 <form method="post" action="/erp/pm/save" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin-bottom:1rem;">
                 <input type="hidden" name="returnUrl" value="/erp/budgets-app" />
                 <input type="hidden" name="confirmWrites" value="true" />
@@ -211,7 +222,9 @@
                 <label>Note <input class="form-control input-sm" name="note" placeholder="Note" style="width:180px;" /></label>
                 <button type="submit" class="btn btn-primary btn-sm">Save</button>
             </form>
+</ErpPhpCreateWell>
 
+<ErpPhpCreateWell Title="Add forecast position">
 <form method="post" action="@EcomAeRoutes.ErpBudgetPlanPositionAdd" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin-bottom:1rem;">
                 <input type="hidden" name="returnUrl" value="/erp/budgets-app" />
                 <input type="hidden" name="confirmWrites" value="true" />
@@ -223,7 +236,9 @@
                 <label>Start period <input class="form-control input-sm" name="start_period" placeholder="Period" style="width:90px;" /></label>
                 <button type="submit" class="btn btn-primary btn-sm">Add</button>
             </form>
+</ErpPhpCreateWell>
 
+<ErpPhpCreateWell Title="Add worksheet line">
 <form method="post" action="@EcomAeRoutes.ErpBudgetPlanLineAdd" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin-bottom:1rem;">
                 <input type="hidden" name="returnUrl" value="/erp/budgets-app" />
                 <input type="hidden" name="confirmWrites" value="true" />
@@ -235,7 +250,9 @@
                 <label>Amount <input class="form-control input-sm" name="amount" placeholder="0" style="width:90px;" /></label>
                 <button type="submit" class="btn btn-primary btn-sm">Add</button>
             </form>
+</ErpPhpCreateWell>
 
+<ErpPhpCreateWell Title="New budget plan">
 <form method="post" action="@EcomAeRoutes.ErpBudgetPlanSave" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin-bottom:1rem;">
                 <input type="hidden" name="returnUrl" value="/erp/budgets-app" />
                 <input type="hidden" name="confirmWrites" value="true" />
@@ -245,6 +262,7 @@
                 <label>Notes <input class="form-control input-sm" name="notes" placeholder="Notes" style="width:180px;" /></label>
                 <button type="submit" class="btn btn-primary btn-sm">Save</button>
             </form>
+</ErpPhpCreateWell>
 
 @code {
     private const string _phpTab = "/CP/shop/finance/erp?area=budgeting&tab=budgeting&epc_erp_shell=1";

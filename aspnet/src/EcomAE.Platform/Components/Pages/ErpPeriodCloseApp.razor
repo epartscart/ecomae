@@ -60,6 +60,12 @@
             <label>Note <input name="note" maxlength="255" /></label>
             <button type="submit">Set fiscal lock</button>
         </form>
+        <form method="post" action="/erp/fiscal/set-lock" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/erp/period-close-app" />
+            <input type="hidden" name="lock_date" value="" />
+            <button type="submit">Clear fiscal lock</button>
+        </form>
         <form method="post" action="/erp/fiscal-years/create" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
             <input type="hidden" name="returnUrl" value="/erp/period-close-app" />

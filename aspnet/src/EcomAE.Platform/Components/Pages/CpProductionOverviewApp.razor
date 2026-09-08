@@ -100,12 +100,14 @@
 
 </PhpCpDesktopChrome>
 
+<ErpPhpCreateWell Title="Firm planned order">
 <form method="post" action="/erp/mfgr/planned/firm" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin-bottom:1rem;">
                 <input type="hidden" name="returnUrl" value="/erp/production-overview-app" />
                 <input type="hidden" name="confirmWrites" value="true" />
                 <label>Id <input class="form-control input-sm" name="id" placeholder="Planned id" style="width:100px;" /></label>
                 <button type="submit" class="btn btn-primary btn-sm">Firm</button>
             </form>
+</ErpPhpCreateWell>
 
 <form method="post" action="/erp/mfgr/routes/save" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin-bottom:1rem;">
                 <input type="hidden" name="returnUrl" value="/erp/production-overview-app" />
@@ -134,6 +136,7 @@
                 <button type="submit" class="btn btn-primary btn-sm">Save route</button>
             </form>
 
+<ErpPhpCreateWell Title="Save work center">
 <form method="post" action="/erp/mfgr/work-centers/save" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin-bottom:1rem;">
                 <input type="hidden" name="returnUrl" value="/erp/production-overview-app" />
                 <input type="hidden" name="confirmWrites" value="true" />
@@ -150,6 +153,7 @@
                 </label>
                 <button type="submit" class="btn btn-primary btn-sm">Save</button>
             </form>
+</ErpPhpCreateWell>
 
 <form method="post" action="/erp/manufacturing/work-orders/create" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />

@@ -7,7 +7,6 @@
 @using EcomAE.Platform.Presentation
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
-@inject IErpProcCategorySaveDryRun CategorySave
 @inject IHttpContextAccessor Http
 @inject NavigationManager Nav
 
@@ -24,16 +23,8 @@
     </div>
 
     @if (_isAdmin)
-    {
-        <form @onsubmit="OnSave" @onsubmit:preventDefault="true" style="margin:12px 0;padding:10px;border:1px solid #c5d4de;background:#fff;">
-            <strong>New category (dry-run)</strong>
-            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;align-items:end;">
-                <label>Code <input class="form-control" @bind="_formCode" /></label>
-                <button type="submit" class="btn btn-primary">Validate save</button>
-            </div>
-            @if (!string.IsNullOrWhiteSpace(_formResult)) { <p style="margin:8px 0 0;font-size:12px;">@_formResult</p> }
-        </form>
-        <form method="post" action="@EcomAeRoutes.ErpProcurementPolicySave" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+    {        <ErpPhpCreateWell Title="New policy">
+<form method="post" action="@EcomAeRoutes.ErpProcurementPolicySave" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
                 <input type="hidden" name="returnUrl" value="/erp/procurement-categories-app" />
                 <input type="hidden" name="confirmWrites" value="true" />
                 <label>Name <input class="form-control input-sm" name="name" placeholder="Name" style="width:180px;" required /></label>
@@ -43,6 +34,8 @@
                 <label><input type="checkbox" name="active" value="1" checked /> active</label>
                 <button type="submit" class="btn btn-primary btn-sm">Save</button>
             </form>
+</ErpPhpCreateWell>
+        <ErpPhpCreateWell Title="New category">
         <form method="post" action="@EcomAeRoutes.ErpProcurementCategorySave" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
                 <input type="hidden" name="returnUrl" value="/erp/procurement-categories-app" />
                 <input type="hidden" name="confirmWrites" value="true" />
@@ -53,6 +46,7 @@
                 <label><input type="checkbox" name="active" value="1" checked /> active</label>
                 <button type="submit" class="btn btn-primary btn-sm">Save</button>
             </form>
+        </ErpPhpCreateWell>
     }
 
     <div class="epc-erp-table-wrap">
@@ -120,8 +114,6 @@
     private int _count, _active, _policyCount;
     private string _source = "n/a";
     private string _message = "";
-    private string _formCode = "";
-    private string _formResult = "";
 
     protected override async Task OnInitializedAsync()
     {
@@ -141,9 +133,4 @@
         _message = result.Message;
     }
 
-    private void OnSave()
-    {
-        var result = CategorySave.Evaluate(new ErpProcCategorySaveRequest(Code: _formCode, ConfirmWrites: false));
-        _formResult = $"{result.Status}: {result.Detail} (writes={result.Writes.ToString(CultureInfo.InvariantCulture)})";
-    }
 }

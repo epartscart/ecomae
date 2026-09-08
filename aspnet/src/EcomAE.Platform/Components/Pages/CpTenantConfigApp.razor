@@ -104,6 +104,7 @@
 
 </PhpCpDesktopChrome>
 
+<ErpPhpCreateWell Title="ERP settings">
 <form method="post" action="/erp/tenant-config/save" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin-bottom:1rem;">
                 <input type="hidden" name="returnUrl" value="/erp/tenant-config-app" />
                 <input type="hidden" name="confirmWrites" value="true" />
@@ -117,6 +118,7 @@
                 <label>INV prefix <input class="form-control input-sm" name="inv_prefix" style="width:70px;" /></label>
                 <button type="submit" class="btn btn-primary btn-sm">Save settings</button>
             </form>
+</ErpPhpCreateWell>
 
 <form method="post" action="/erp/security/users/assign-role" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
