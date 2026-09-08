@@ -323,6 +323,83 @@ public sealed class StorefrontCatalogDedicatedAppsTests : IDisposable
         Assert.DoesNotContain("epc-w22-hero", tokens, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void AutoPriceAndInfoBlocksApps_UseClassicHpanelNotInventHero()
+    {
+        var auto = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/CpAutoPriceApp.razor"));
+        Assert.Contains("class=\"hpanel\"", auto, StringComparison.Ordinal);
+        Assert.Contains("HasStaffAccess", auto, StringComparison.Ordinal);
+        Assert.Contains("Classic twin", auto, StringComparison.Ordinal);
+        Assert.Contains("PhpReferenceOnlyHref", auto, StringComparison.Ordinal);
+        Assert.DoesNotContain("epc-ap-hero", auto, StringComparison.Ordinal);
+        Assert.DoesNotContain("epc-ap-kpis", auto, StringComparison.Ordinal);
+        Assert.DoesNotContain("/php-reference", auto, StringComparison.Ordinal);
+
+        var blocks = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/CpInfoBlocksApp.razor"));
+        Assert.Contains("class=\"hpanel\"", blocks, StringComparison.Ordinal);
+        Assert.Contains("Classic twin", blocks, StringComparison.Ordinal);
+        Assert.Contains("PhpReferenceOnlyHref", blocks, StringComparison.Ordinal);
+        Assert.DoesNotContain("epc-w19-hero", blocks, StringComparison.Ordinal);
+        Assert.DoesNotContain("epc-w19-kpis", blocks, StringComparison.Ordinal);
+        Assert.DoesNotContain("SuperCpHostGate", blocks, StringComparison.Ordinal);
+        Assert.DoesNotContain("/php-reference", blocks, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void CrmWmsBudgetsConsolidationsApps_UseClassicHpanelNotInventHero()
+    {
+        var board = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/CpCrmBoardApp.razor"));
+        Assert.Contains("class=\"hpanel\"", board, StringComparison.Ordinal);
+        Assert.Contains("Classic twin", board, StringComparison.Ordinal);
+        Assert.DoesNotContain("epc-crm-hero", board, StringComparison.Ordinal);
+        Assert.DoesNotContain("epc-crm-kpis", board, StringComparison.Ordinal);
+        Assert.DoesNotContain("/php-reference", board, StringComparison.Ordinal);
+
+        var tickets = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/CpCrmTicketsApp.razor"));
+        Assert.Contains("class=\"hpanel\"", tickets, StringComparison.Ordinal);
+        Assert.Contains("/erp/tickets/reply", tickets, StringComparison.Ordinal);
+        Assert.Contains("ErpSlaCreateForm", tickets, StringComparison.Ordinal);
+        Assert.Contains("ErpTicketsCreateForm", tickets, StringComparison.Ordinal);
+        Assert.DoesNotContain("epc-ct-hero", tickets, StringComparison.Ordinal);
+        Assert.DoesNotContain("/php-reference", tickets, StringComparison.Ordinal);
+
+        var opps = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/CpCrmOpportunitiesApp.razor"));
+        Assert.Contains("class=\"hpanel\"", opps, StringComparison.Ordinal);
+        Assert.DoesNotContain("epc-opp-hero", opps, StringComparison.Ordinal);
+        Assert.DoesNotContain("/php-reference", opps, StringComparison.Ordinal);
+
+        var activities = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/CpCrmActivitiesApp.razor"));
+        Assert.Contains("class=\"hpanel\"", activities, StringComparison.Ordinal);
+        Assert.DoesNotContain("epc-w15-hero", activities, StringComparison.Ordinal);
+
+        var wms = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/CpWarehouseWmsApp.razor"));
+        Assert.Contains("class=\"hpanel\"", wms, StringComparison.Ordinal);
+        Assert.Contains("PhpParityModuleBody", wms, StringComparison.Ordinal);
+        Assert.Contains("/erp/wms/receive", wms, StringComparison.Ordinal);
+        Assert.Contains("/erp/wms/locations/save", wms, StringComparison.Ordinal);
+        Assert.Contains("/erp/wms/locations/delete", wms, StringComparison.Ordinal);
+        Assert.Contains("/erp/wms/waves/create", wms, StringComparison.Ordinal);
+        Assert.Contains("/erp/wms/waves/release", wms, StringComparison.Ordinal);
+        Assert.Contains("/erp/wms/work/complete", wms, StringComparison.Ordinal);
+        Assert.DoesNotContain("epc-wms-hero", wms, StringComparison.Ordinal);
+        Assert.DoesNotContain("/php-reference", wms, StringComparison.Ordinal);
+
+        var budgets = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/CpBudgetsApp.razor"));
+        Assert.Contains("class=\"hpanel\"", budgets, StringComparison.Ordinal);
+        Assert.Contains("/erp/pm/budgets/save", budgets, StringComparison.Ordinal);
+        Assert.Contains("/erp/pm/budget-lines/add", budgets, StringComparison.Ordinal);
+        Assert.Contains("/erp/budgets/advance", budgets, StringComparison.Ordinal);
+        Assert.DoesNotContain("epc-bud-hero", budgets, StringComparison.Ordinal);
+        Assert.DoesNotContain("/php-reference", budgets, StringComparison.Ordinal);
+
+        var cons = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/CpConsolidationsApp.razor"));
+        Assert.Contains("class=\"hpanel\"", cons, StringComparison.Ordinal);
+        Assert.Contains("/erp/consolidations/figures/save", cons, StringComparison.Ordinal);
+        Assert.Contains("/erp/consolidations/ic/save", cons, StringComparison.Ordinal);
+        Assert.DoesNotContain("epc-w14-hero", cons, StringComparison.Ordinal);
+        Assert.DoesNotContain("/php-reference", cons, StringComparison.Ordinal);
+    }
+
     private static void AssertPage(string fileName, string phpAlias, string aspNetApp)
     {
         var path = Find("aspnet/src/EcomAE.Platform/Components/Pages/" + fileName);
