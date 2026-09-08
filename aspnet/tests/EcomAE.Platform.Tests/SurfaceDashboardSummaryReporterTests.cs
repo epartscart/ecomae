@@ -595,6 +595,13 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.Contains("epc_erp_ins_claims", LegacySurfaceDashboardSql.SelectCpInsuranceComplianceClaims, StringComparison.Ordinal);
         Assert.Contains("`policy_id` = @id", LegacySurfaceDashboardSql.SelectCpInsuranceComplianceClaims, StringComparison.Ordinal);
         Assert.Contains("epc_promo_promotions", LegacySurfaceDashboardSql.SelectCpPromotions, StringComparison.Ordinal);
+        Assert.Contains("epc_acc_listings", LegacySurfaceDashboardSql.SelectCpAccessoriesRows, StringComparison.Ordinal);
+        Assert.DoesNotContain("description", LegacySurfaceDashboardSql.SelectCpAccessoriesRows, StringComparison.Ordinal);
+        Assert.DoesNotContain("image_url", LegacySurfaceDashboardSql.SelectCpAccessoriesRows, StringComparison.Ordinal);
+        Assert.Contains("description", LegacySurfaceDashboardSql.SelectCpAccessoriesListingDetail, StringComparison.Ordinal);
+        Assert.Contains("`id` = @id", LegacySurfaceDashboardSql.SelectCpAccessoriesListingDetail, StringComparison.Ordinal);
+        Assert.Contains("epc_acc_photos", LegacySurfaceDashboardSql.SelectCpAccessoriesPhotos, StringComparison.Ordinal);
+        Assert.Contains("`listing_id` = @id", LegacySurfaceDashboardSql.SelectCpAccessoriesPhotos, StringComparison.Ordinal);
         Assert.Contains("valid_from", LegacySurfaceDashboardSql.SelectCpPromotionDetail, StringComparison.Ordinal);
         Assert.Contains("valid_to", LegacySurfaceDashboardSql.SelectCpPromotionDetail, StringComparison.Ordinal);
         Assert.Contains("`id` = @id", LegacySurfaceDashboardSql.SelectCpPromotionDetail, StringComparison.Ordinal);

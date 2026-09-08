@@ -17,6 +17,7 @@ public sealed class ErpRecordOpenPhpParityTests
     [InlineData("/ERP/?epc_erp_shell=1&area=purchasing&tab=purchase_requisitions&req_id=4", "/erp/purchase-requests-app?req_id=4")]
     [InlineData("/CP/shop/finance/epc_collections_dunning?queue_id=12", "/cp/collections-dunning-app?queue_id=12")]
     [InlineData("/ERP/?epc_erp_shell=1&area=credit_coll&queue_id=12", "/erp/collections-dunning-app?queue_id=12")]
+    [InlineData("/CP/shop/accessories?listing_id=9", "/cp/accessories-app?listing_id=9")]
     [InlineData("/CP/shop/crosses?cross_id=14", "/cp/crosses-app?cross_id=14")]
     [InlineData("/CP/shop/manufacturers_synonyms?manufacturer_id=5", "/cp/synonyms-app?manufacturer_id=5")]
     [InlineData("/CP/control/portal/epc_promotions_engine?promo_id=6", "/cp/promotions-app?promo_id=6")]
@@ -124,6 +125,7 @@ public sealed class ErpRecordOpenPhpParityTests
     [InlineData("ErpPayablesApp.razor", "supplier_id")]
     [InlineData("CpPurchaseRequestsApp.razor", "req_id")]
     [InlineData("CpCollectionsDunningApp.razor", "queue_id")]
+    [InlineData("CpAccessoriesApp.razor", "listing_id")]
     [InlineData("CpCrossesApp.razor", "cross_id")]
     [InlineData("CpSynonymsApp.razor", "manufacturer_id")]
     [InlineData("CpPromotionsApp.razor", "promo_id")]
@@ -345,6 +347,31 @@ public sealed class ErpRecordOpenPhpParityTests
             ErpRecordOpen.PreserveRecordQuery(
                 "/cp/collections-dunning-app",
                 "/CP/shop/finance/epc_collections_dunning?queue_id=12"));
+        Assert.Equal("/cp/accessories-app?listing_id=9#erp-row-9",
+            ErpRecordOpen.Href("/cp/accessories-app", "listing_id", 9));
+        Assert.Equal(
+            "/cp/accessories-app?listing_id=9",
+            ErpRecordOpen.PreserveRecordQuery(
+                "/cp/accessories-app",
+                "/CP/shop/accessories?listing_id=9"));
+    }
+
+    [Fact]
+    public void AccessoriesApp_OpenLoadsDescriptionAndPhotos()
+    {
+        var root = FindRepoRoot();
+        var text = File.ReadAllText(Path.Combine(root,
+            "aspnet/src/EcomAE.Platform/Components/Pages/CpAccessoriesApp.razor"));
+        Assert.Contains("ErpRecordOpen.Href(_listHref, \"listing_id\"", text, StringComparison.Ordinal);
+        Assert.Contains("ErpOpenedRecordBanner", text, StringComparison.Ordinal);
+        Assert.Contains("ReadId(ctx.Request, \"listing_id\")", text, StringComparison.Ordinal);
+        Assert.Contains("BuildCpAccessoriesListingDetailAsync", text, StringComparison.Ordinal);
+        Assert.Contains("No description yet.", text, StringComparison.Ordinal);
+        Assert.Contains("No photos yet.", text, StringComparison.Ordinal);
+        Assert.Contains("ShowGhostScaffold=\"false\"", text, StringComparison.Ordinal);
+        Assert.Contains("table-epc", text, StringComparison.Ordinal);
+        Assert.Contains("/cp/accessories/listings/write", text, StringComparison.Ordinal);
+
         Assert.Equal("/cp/crosses-app?cross_id=14#erp-row-14",
             ErpRecordOpen.Href("/cp/crosses-app", "cross_id", 14));
         Assert.Equal(
@@ -400,6 +427,8 @@ public sealed class ErpRecordOpenPhpParityTests
         Assert.DoesNotContain("/php-reference/", text, StringComparison.Ordinal);
         Assert.DoesNotContain("ASP.NET", text, StringComparison.Ordinal);
         Assert.DoesNotContain("epc-nw-hero", text, StringComparison.Ordinal);
+
+
 
         Assert.Equal("/cp/promotions-app?promo_id=6#erp-row-6",
             ErpRecordOpen.Href("/cp/promotions-app", "promo_id", 6));

@@ -2139,12 +2139,40 @@ public static class LegacySurfaceDashboardSql
             (SELECT COUNT(*) FROM `epc_acc_photos`) AS photo_count
         """;
 
+    /// <summary>Accessories listings dump — omits description and photo rows.</summary>
     public const string SelectCpAccessoriesRows = """
         SELECT `id`, IFNULL(`title`,'') AS title, IFNULL(`make`,'') AS make, IFNULL(`model`,'') AS model,
                IFNULL(`price`,0) AS price, IFNULL(`status`,'') AS status
         FROM `epc_acc_listings`
         ORDER BY `id` DESC
         LIMIT @limit
+        """;
+
+    /// <summary>Opened accessory listing — includes description and fields the dump hides.</summary>
+    public const string SelectCpAccessoriesListingDetail = """
+        SELECT `id`, IFNULL(`category_id`,0) AS category_id, IFNULL(`subcategory_id`,0) AS subcategory_id,
+               IFNULL(`title`,'') AS title, IFNULL(`description`,'') AS description,
+               IFNULL(`make`,'') AS make, IFNULL(`model`,'') AS model, IFNULL(`year`,'') AS year,
+               IFNULL(`city`,'') AS city, IFNULL(`condition_type`,'') AS condition_type,
+               IFNULL(`price`,0) AS price, IFNULL(`compare_price`,0) AS compare_price,
+               IFNULL(`currency`,'') AS currency, IFNULL(`image_url`,'') AS image_url,
+               IFNULL(`external_url`,'') AS external_url, IFNULL(`photo_count`,0) AS photo_count,
+               IFNULL(`featured`,0) AS featured, IFNULL(`stock_qty`,0) AS stock_qty,
+               IFNULL(`status`,'') AS status, IFNULL(`created_at`,0) AS created_at,
+               IFNULL(`updated_at`,0) AS updated_at
+        FROM `epc_acc_listings`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Opened accessory listing photos (PHP epc_acc_photos by listing_id).</summary>
+    public const string SelectCpAccessoriesPhotos = """
+        SELECT `id`, IFNULL(`listing_id`,0) AS listing_id, IFNULL(`file_name`,'') AS file_name,
+               IFNULL(`sort_order`,0) AS sort_order, IFNULL(`is_primary`,0) AS is_primary,
+               IFNULL(`created_at`,0) AS created_at
+        FROM `epc_acc_photos`
+        WHERE `listing_id` = @id
+        ORDER BY `is_primary` DESC, `sort_order` ASC, `id` ASC
         """;
 
     public const string SelectCpSynonymsStats = """
