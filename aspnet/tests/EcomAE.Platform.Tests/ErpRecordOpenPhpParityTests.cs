@@ -17,6 +17,7 @@ public sealed class ErpRecordOpenPhpParityTests
     [InlineData("/ERP/?epc_erp_shell=1&area=purchasing&tab=purchase_requisitions&req_id=4", "/erp/purchase-requests-app?req_id=4")]
     [InlineData("/CP/shop/finance/epc_collections_dunning?queue_id=12", "/cp/collections-dunning-app?queue_id=12")]
     [InlineData("/ERP/?epc_erp_shell=1&area=credit_coll&queue_id=12", "/erp/collections-dunning-app?queue_id=12")]
+    [InlineData("/ERP/?epc_erp_shell=1&area=tax&tab=elec_reporting&format_id=6", "/erp/electronic-reporting-app?format_id=6")]
     [InlineData("/CP/shop/finance/epc_einvoice?ei_id=8", "/cp/einvoice-documents-app?ei_id=8")]
     [InlineData("/ERP/?epc_erp_shell=1&area=tax&tab=einvoice&ei_id=8", "/erp/einvoice-documents-app?ei_id=8")]
     [InlineData("/ERP/?epc_erp_shell=1&area=projects&tab=projects&project_id=4", "/erp/projects-overview-app?project_id=4")]
@@ -129,6 +130,7 @@ public sealed class ErpRecordOpenPhpParityTests
     [InlineData("ErpPayablesApp.razor", "supplier_id")]
     [InlineData("CpPurchaseRequestsApp.razor", "req_id")]
     [InlineData("CpCollectionsDunningApp.razor", "queue_id")]
+    [InlineData("CpElectronicReportingApp.razor", "format_id")]
     [InlineData("CpEinvoiceDocumentsApp.razor", "ei_id")]
     [InlineData("CpProjectsOverviewApp.razor", "project_id")]
     [InlineData("CpProductionOverviewApp.razor", "wo_id")]
@@ -354,6 +356,35 @@ public sealed class ErpRecordOpenPhpParityTests
             ErpRecordOpen.PreserveRecordQuery(
                 "/cp/collections-dunning-app",
                 "/CP/shop/finance/epc_collections_dunning?queue_id=12"));
+        Assert.Equal("/erp/electronic-reporting-app?format_id=6#erp-row-6",
+            ErpRecordOpen.Href("/erp/electronic-reporting-app", "format_id", 6));
+        Assert.Equal(
+            "/erp/electronic-reporting-app?format_id=6",
+            ErpRecordOpen.PreserveRecordQuery(
+                "/erp/electronic-reporting-app",
+                "/ERP/?epc_erp_shell=1&area=tax&tab=elec_reporting&format_id=6"));
+    }
+
+    [Fact]
+    public void ElectronicReportingApp_OpenLoadsFieldsAndRunPreviews()
+    {
+        var root = FindRepoRoot();
+        var text = File.ReadAllText(Path.Combine(root,
+            "aspnet/src/EcomAE.Platform/Components/Pages/CpElectronicReportingApp.razor"));
+        Assert.Contains("ErpRecordOpen.Href(_listHref, \"format_id\"", text, StringComparison.Ordinal);
+        Assert.Contains("ErpOpenedRecordBanner", text, StringComparison.Ordinal);
+        Assert.Contains("ReadId(ctx.Request, \"format_id\")", text, StringComparison.Ordinal);
+        Assert.Contains("BuildCpElectronicReportingFormatDetailAsync", text, StringComparison.Ordinal);
+        Assert.Contains("No fields yet.", text, StringComparison.Ordinal);
+        Assert.Contains("No runs yet.", text, StringComparison.Ordinal);
+        Assert.Contains("ShowGhostScaffold=\"false\"", text, StringComparison.Ordinal);
+        Assert.Contains("table-epc", text, StringComparison.Ordinal);
+        Assert.Contains("/erp/electronic-reporting/formats/save", text, StringComparison.Ordinal);
+        Assert.Contains("/erp/electronic-reporting/fields/add", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)\">Open", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("/php-reference/", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("ASP.NET", text, StringComparison.Ordinal);
+
         Assert.Equal("/cp/einvoice-documents-app?ei_id=8#erp-row-8",
             ErpRecordOpen.Href("/cp/einvoice-documents-app", "ei_id", 8));
         Assert.Equal(

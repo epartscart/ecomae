@@ -561,6 +561,13 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.Contains("`notes`", LegacySurfaceDashboardSql.SelectCpCollectionsDunningQueueDetail, StringComparison.Ordinal);
         Assert.Contains("epc_dunning_log", LegacySurfaceDashboardSql.SelectCpCollectionsDunningLog, StringComparison.Ordinal);
         Assert.Contains("`queue_id` = @id", LegacySurfaceDashboardSql.SelectCpCollectionsDunningLog, StringComparison.Ordinal);
+        Assert.Contains("epc_er_format", LegacySurfaceDashboardSql.SelectCpElectronicReportingFormats, StringComparison.Ordinal);
+        Assert.DoesNotContain("preview", LegacySurfaceDashboardSql.SelectCpElectronicReportingFormats, StringComparison.Ordinal);
+        Assert.Contains("`id` = @id", LegacySurfaceDashboardSql.SelectCpElectronicReportingFormatDetail, StringComparison.Ordinal);
+        Assert.Contains("epc_er_field", LegacySurfaceDashboardSql.SelectCpElectronicReportingFields, StringComparison.Ordinal);
+        Assert.Contains("`format_id` = @id", LegacySurfaceDashboardSql.SelectCpElectronicReportingFields, StringComparison.Ordinal);
+        Assert.Contains("preview", LegacySurfaceDashboardSql.SelectCpElectronicReportingRuns, StringComparison.Ordinal);
+        Assert.Contains("epc_er_run", LegacySurfaceDashboardSql.SelectCpElectronicReportingRuns, StringComparison.Ordinal);
         Assert.Contains("epc_einvoice_documents", LegacySurfaceDashboardSql.SelectCpEinvoiceDocuments, StringComparison.Ordinal);
         Assert.DoesNotContain("seller_json", LegacySurfaceDashboardSql.SelectCpEinvoiceDocuments, StringComparison.Ordinal);
         Assert.DoesNotContain("buyer_json", LegacySurfaceDashboardSql.SelectCpEinvoiceDocuments, StringComparison.Ordinal);

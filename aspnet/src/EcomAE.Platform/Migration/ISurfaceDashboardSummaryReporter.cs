@@ -311,6 +311,9 @@ public interface ISurfaceDashboardSummaryReporter
     /// <summary>Read-only electronic reporting formats (preview omitted).</summary>
     Task<CpElectronicReportingDigestResult> BuildCpElectronicReportingDigestAsync(int limit, CancellationToken cancellationToken = default);
 
+    /// <summary>Opened electronic reporting format (PHP <c>format_id=</c> detail) plus fields and run previews.</summary>
+    Task<CpElectronicReportingFormatDetailResult> BuildCpElectronicReportingFormatDetailAsync(long id, CancellationToken cancellationToken = default);
+
     /// <summary>Read-only collections/dunning queue (notes omitted).</summary>
     Task<CpCollectionsDunningDigestResult> BuildCpCollectionsDunningDigestAsync(int limit, CancellationToken cancellationToken = default);
 

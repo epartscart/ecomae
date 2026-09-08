@@ -3473,6 +3473,37 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>Opened electronic reporting format.</summary>
+    public const string SelectCpElectronicReportingFormatDetail = """
+        SELECT `id`, IFNULL(`company_id`,0) AS company_id, IFNULL(`code`,'') AS code,
+               IFNULL(`name`,'') AS name, IFNULL(`output_type`,'') AS output_type,
+               IFNULL(`root_element`,'') AS root_element, IFNULL(`row_element`,'') AS row_element,
+               IFNULL(`active`,1) AS active, IFNULL(`time_created`,0) AS time_created
+        FROM `epc_er_format`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Opened electronic reporting fields (PHP epc_er_field by format_id).</summary>
+    public const string SelectCpElectronicReportingFields = """
+        SELECT `id`, IFNULL(`format_id`,0) AS format_id, IFNULL(`label`,'') AS label,
+               IFNULL(`source_key`,'') AS source_key, IFNULL(`ordinal`,0) AS ordinal
+        FROM `epc_er_field`
+        WHERE `format_id` = @id
+        ORDER BY `ordinal` ASC, `id` ASC
+        """;
+
+    /// <summary>Opened electronic reporting runs — includes preview omitted from the dump.</summary>
+    public const string SelectCpElectronicReportingRuns = """
+        SELECT `id`, IFNULL(`format_id`,0) AS format_id, IFNULL(`company_id`,0) AS company_id,
+               IFNULL(`row_count`,0) AS row_count, IFNULL(`output_type`,'') AS output_type,
+               IFNULL(`preview`,'') AS preview, IFNULL(`time_created`,0) AS time_created
+        FROM `epc_er_run`
+        WHERE `format_id` = @id
+        ORDER BY `id` DESC
+        LIMIT 20
+        """;
+
     /// <summary>Collections/dunning KPIs from epc_dunning_* (CREATE TABLE in epc_collections_dunning.php).</summary>
     public const string SelectCpCollectionsDunningStats = """
         SELECT
