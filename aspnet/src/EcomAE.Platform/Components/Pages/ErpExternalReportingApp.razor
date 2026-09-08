@@ -3,12 +3,11 @@
 @layout Layout.PhpChromeLayout
 @using System.Globalization
 @using EcomAE.Platform.Auth
-@using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
 @using EcomAE.Platform.Routing
 @inject ILegacySessionValidator Sessions
-@inject IErpExternalReportingFetchDryRun FetchDryRun
 @inject ISurfaceDashboardSummaryReporter Dashboards
+@inject IErpExternalReportingPackCache Packs
 @inject IHttpContextAccessor Http
 @inject NavigationManager Nav
 
@@ -111,28 +110,32 @@
                     <div style="font-weight:700;color:#1d2740;margin-bottom:6px;">1 · Download a template</div>
                     <p class="text-muted" style="font-size:12px;">Keep the <code>Code</code> column unchanged; edit the values. Choosing a template also selects the matching upload type.</p>
                     <div style="margin-bottom:6px;">
-                        <button type="button" class="btn btn-success btn-sm" @onclick='() => OnPickKind("vat")'><i class="fa fa-file-excel-o"></i> VAT 201 workbook (.csv)</button>
-                        <button type="button" class="btn btn-success btn-sm" @onclick='() => OnPickKind("ct")'><i class="fa fa-file-excel-o"></i> Corporate Tax workbook (.csv)</button>
-                        <button type="button" class="btn btn-success btn-sm" @onclick='() => OnPickKind("fin")'><i class="fa fa-file-excel-o"></i> IFRS 18 Financials workbook (.csv)</button>
+                        <a class="btn btn-success btn-sm" href="@EcomAeRoutes.ErpExternalReportingTemplate?kind=vat"><i class="fa fa-file-excel-o"></i> VAT 201 workbook (.csv)</a>
+                        <a class="btn btn-success btn-sm" href="@EcomAeRoutes.ErpExternalReportingTemplate?kind=ct"><i class="fa fa-file-excel-o"></i> Corporate Tax workbook (.csv)</a>
+                        <a class="btn btn-success btn-sm" href="@EcomAeRoutes.ErpExternalReportingTemplate?kind=fin"><i class="fa fa-file-excel-o"></i> IFRS 18 Financials workbook (.csv)</a>
                     </div>
-                    <button type="button" class="btn btn-default btn-xs" @onclick="DownloadTemplate"><i class="fa fa-file-text-o"></i> Download @_impKind.ToUpperInvariant() CSV</button>
-                    <textarea id="epcTplCsv" style="display:none;">@_templateCsv</textarea>
+                    <a class="btn btn-default btn-xs" href="@EcomAeRoutes.ErpExternalReportingTemplate?kind=@_impKind"><i class="fa fa-file-text-o"></i> Download @_impKind.ToUpperInvariant() CSV</a>
                 </div>
                 <div class="epc-ext-panel">
                     <div style="font-weight:700;color:#1d2740;margin-bottom:6px;">2 · Upload &amp; build</div>
-                    <div class="form-inline" style="margin:0;">
-                        <select class="form-control input-sm" style="margin:4px 6px 4px 0;" value="@_impKind" @onchange="OnKindChange">
-                            <option value="vat">VAT Return (FTA VAT 201)</option>
-                            <option value="ct">Corporate Tax Return</option>
-                            <option value="fin">IFRS 18 Financial Statements &amp; Audit Report</option>
+                    <form method="post" action="@EcomAeRoutes.ErpExternalReportingImport" enctype="multipart/form-data" class="form-inline" style="margin:0;">
+                        <input type="hidden" name="returnUrl" value="@Href(tool: "import")" />
+                        <select name="kind" class="form-control input-sm" style="margin:4px 6px 4px 0;">
+                            <option value="vat" selected="@(_impKind == "vat")">VAT Return (FTA VAT 201)</option>
+                            <option value="ct" selected="@(_impKind == "ct")">Corporate Tax Return</option>
+                            <option value="fin" selected="@(_impKind == "fin")">IFRS 18 Financial Statements &amp; Audit Report</option>
                         </select>
-                        <input type="file" accept=".xlsx,.csv" class="form-control input-sm" style="margin:4px 6px 4px 0;" />
-                        <button type="button" class="btn btn-primary btn-sm" @onclick="OnImport"><i class="fa fa-cogs"></i> @(_impKind == "fin" ? "Build report" : "Build return")</button>
-                    </div>
-                    <p class="text-muted" style="font-size:11px;margin-top:8px;">@_impHint Accepts <code>.xlsx</code> or <code>.csv</code>. Off-system — parsed in-memory, not stored. Open a VAT, CT, IFRS or e-invoice report to Fetch &amp; build the live pack, then Download PDF / Word.</p>
+                        <input type="file" name="imp_file" accept=".xlsx,.csv" class="form-control input-sm" style="margin:4px 6px 4px 0;" required />
+                        <button type="submit" class="btn btn-primary btn-sm"><i class="fa fa-cogs"></i> @(_impKind == "fin" ? "Build report" : "Build return")</button>
+                    </form>
+                    <p class="text-muted" style="font-size:11px;margin-top:8px;">@_impHint Accepts <code>.xlsx</code> or <code>.csv</code>. Off-system — parsed in-memory, not stored. Then Download PDF / Word on the built pack.</p>
                 </div>
             </div>
         </div>
+        @if (_pack is not null)
+        {
+            @RenderPack(_pack)
+        }
     }
     else if (_selTool == "intake")
     {
@@ -158,30 +161,37 @@
                 }
             </div>
         </div>
-        <div class="epc-erp-section" style="margin-bottom:14px;">
-            <div style="display:flex;flex-wrap:wrap;gap:18px;">
-                <div class="epc-ext-panel">
-                    <div style="font-weight:700;color:#b3122a;margin-bottom:8px;">1 · Your latest signed financials (PDF)</div>
-                    <p class="text-muted" style="font-size:12px;">Attach the most recent accounts (e.g. <strong>FY@(_targetYear - 1)</strong> with its comparative). You can attach several prior years at once.</p>
-                    <input type="file" accept="application/pdf,.pdf" class="form-control input-sm" multiple />
+        <form method="post" action="@EcomAeRoutes.ErpExternalReportingIntake" enctype="multipart/form-data" style="margin:0;">
+            <input type="hidden" name="returnUrl" value="@Href(tool: "intake")" />
+            <div class="epc-erp-section" style="margin-bottom:14px;">
+                <div style="display:flex;flex-wrap:wrap;gap:18px;">
+                    <div class="epc-ext-panel">
+                        <div style="font-weight:700;color:#b3122a;margin-bottom:8px;">1 · Your latest signed financials (PDF, optional)</div>
+                        <p class="text-muted" style="font-size:12px;">Attach the most recent accounts (e.g. <strong>FY@(_targetYear - 1)</strong> with its comparative) if you have them. Scanned PDFs are not stored. If the file cannot be read, the pack still builds from the entity and year you confirm below.</p>
+                        <input type="file" name="pdf" accept="application/pdf,.pdf" class="form-control input-sm" multiple />
+                    </div>
+                    <div class="epc-ext-panel">
+                        <div style="font-weight:700;color:#b3122a;margin-bottom:8px;">2 · The report you need</div>
+                        <label style="font-size:12px;display:block;margin-bottom:4px;">Entity legal name</label>
+                        <input type="text" name="entity" class="form-control input-sm" style="margin-bottom:8px;" placeholder="e.g. Acme Trading LLC" value="@_intakeEntity" />
+                        <label style="font-size:12px;display:block;margin-bottom:4px;">Target reporting year</label>
+                        <select name="year" class="form-control input-sm">
+                            @for (var yy = DateTime.UtcNow.Year + 1; yy >= DateTime.UtcNow.Year - 4; yy--)
+                            {
+                                <option value="@yy" selected="@(yy == _targetYear)">FY@(yy) (comparative FY@(yy - 1))</option>
+                            }
+                        </select>
+                        <label style="font-size:12px;display:block;margin:8px 0 4px;">Business units / divisions <span class="text-muted">(optional — comma-separated)</span></label>
+                        <input type="text" name="units" class="form-control input-sm" placeholder="e.g. Trading, Contracting, Real Estate" value="@_intakeUnits" />
+                    </div>
                 </div>
-                <div class="epc-ext-panel">
-                    <div style="font-weight:700;color:#b3122a;margin-bottom:8px;">2 · The report you need</div>
-                    <label style="font-size:12px;display:block;margin-bottom:4px;">Entity legal name</label>
-                    <input type="text" class="form-control input-sm" style="margin-bottom:8px;" placeholder="e.g. Acme Trading LLC" @bind="_intakeEntity" />
-                    <label style="font-size:12px;display:block;margin-bottom:4px;">Target reporting year</label>
-                    <select class="form-control input-sm" @bind="_targetYear">
-                        @for (var yy = DateTime.UtcNow.Year + 1; yy >= DateTime.UtcNow.Year - 4; yy--)
-                        {
-                            <option value="@yy">FY@(yy) (comparative FY@(yy - 1))</option>
-                        }
-                    </select>
-                    <label style="font-size:12px;display:block;margin:8px 0 4px;">Business units / divisions <span class="text-muted">(optional — comma-separated)</span></label>
-                    <input type="text" class="form-control input-sm" placeholder="e.g. Trading, Contracting, Real Estate" @bind="_intakeUnits" />
-                </div>
+                <button type="submit" class="btn btn-primary btn-sm" style="margin-top:12px;background:#b3122a;border-color:#7a0c1c;"><i class="fa fa-search"></i> Upload &amp; review against IFRS 18</button>
             </div>
-            <button type="button" class="btn btn-primary btn-sm" style="margin-top:12px;background:#b3122a;border-color:#7a0c1c;" @onclick="OnIntake"><i class="fa fa-search"></i> Upload &amp; review against IFRS 18</button>
-        </div>
+        </form>
+        @if (_pack is not null)
+        {
+            @RenderPack(_pack)
+        }
     }
     else if (_report is not null)
     {
@@ -398,7 +408,6 @@
     private string _selTool = "";
     private string _impKind = "vat";
     private string _impHint = "VAT 201 — codes BOX1A…BOX14 (FDL 8/2017).";
-    private string _templateCsv = ErpExternalReportingCatalog.ImportTemplateCsv("vat");
     private string _actionResult = "";
     private string _companyLabel = "Company";
     private string _intakeEntity = "";
@@ -418,6 +427,7 @@
     private string _docName = "Report";
     private string _ifrsRefreshNote = "";
     private Dictionary<string, string> _printCtx = new();
+    private ErpExternalReportingPack? _pack;
 
     protected override async Task OnInitializedAsync()
     {
@@ -450,6 +460,31 @@
         {
             _impKind = kind;
             OnPickKind(kind);
+        }
+
+        var ok = ctx.Request.Query["ok"].ToString();
+        var err = ctx.Request.Query["err"].ToString();
+        if (!string.IsNullOrWhiteSpace(err)) _actionResult = err;
+        else if (!string.IsNullOrWhiteSpace(ok)) _actionResult = ok;
+        if (Packs.TryGet(ctx.Request.Query["pack"].ToString(), out var pack) && pack is not null)
+        {
+            _pack = pack;
+            _docName = pack.Built.DocName;
+            _printCtx = new Dictionary<string, string>
+            {
+                ["co"] = _companyLabel,
+                ["addr"] = _regName,
+                ["trnL"] = "TRN",
+                ["trn"] = "",
+                ["ttl"] = pack.Built.Title,
+                ["juris"] = _prevName,
+                ["auth"] = pack.Kind == "fin" ? "IFRS Foundation" : "Federal Tax Authority (FTA)",
+                ["law"] = pack.Kind == "ct" ? "Federal Decree-Law 47/2022" : pack.Kind == "fin" ? "IFRS 18" : "Federal Decree-Law 8/2017",
+                ["perL"] = pack.Built.Title,
+                ["perR"] = DateTime.UtcNow.ToString("dd MMM yyyy", CultureInfo.InvariantCulture),
+                ["gen"] = DateTime.UtcNow.ToString("dd MMM yyyy HH:mm", CultureInfo.InvariantCulture),
+                ["theme"] = pack.Built.Theme,
+            };
         }
 
         _report = ErpExternalReportingCatalog.Find(_selRep);
@@ -632,7 +667,6 @@
     private void OnPickKind(string kind)
     {
         _impKind = kind;
-        _templateCsv = ErpExternalReportingCatalog.ImportTemplateCsv(kind);
         _impHint = kind == "fin"
             ? "IFRS 18 Financials — codes FIN_… + META_PERIOD_TO for presentation year."
             : kind == "ct"
@@ -640,31 +674,50 @@
                 : "VAT 201 — codes BOX1A…BOX14 (FDL 8/2017).";
     }
 
-    private void OnKindChange(ChangeEventArgs e)
+    private RenderFragment RenderPack(ErpExternalReportingPack pack) => __builder =>
     {
-        OnPickKind((e.Value as string) ?? "vat");
-    }
-
-    private void OnImport()
-    {
-        var result = FetchDryRun.Evaluate(new ErpExternalReportingFetchRequest("import", _impKind, false));
-        _actionResult = result.Detail + " writes=" + result.Writes.ToString(CultureInfo.InvariantCulture) + ".";
-    }
-
-    private void OnIntake()
-    {
-        var result = FetchDryRun.Evaluate(new ErpExternalReportingFetchRequest("intake", "fin", false));
-        _actionResult = result.Detail + " writes=" + result.Writes.ToString(CultureInfo.InvariantCulture) + ".";
-    }
-
-    private void DownloadTemplate()
-    {
-        var name = _impKind switch
-        {
-            "ct" => "CT_return_import_template.csv",
-            "fin" => "IFRS18_financials_import_template.csv",
-            _ => "VAT201_import_template.csv",
-        };
-        _actionResult = "CSV template (" + name + ") — copy from the hidden field. Full VAT / CT / IFRS / e-invoice packs open as reports with Download PDF and Download Word.";
-    }
+        var built = pack.Built;
+        <div class="epc-erp-section" style="margin-bottom:14px;">
+            <div class="epc-ext-actions">
+                <button type="button" class="btn btn-default btn-sm" onclick="epcExtPrint();"><i class="fa fa-file-pdf-o"></i> Download PDF</button>
+                <button type="button" class="btn btn-default btn-sm" onclick="epcExtWord('@built.DocName');" title="Download this report as an editable Microsoft Word document (same layout, theme and tables)"><i class="fa fa-file-word-o"></i> Download Word</button>
+            </div>
+            @if (!string.IsNullOrWhiteSpace(pack.Notice))
+            {
+                <p class="text-muted" style="font-size:12px;margin:8px 0 0;">@pack.Notice</p>
+            }
+        </div>
+        <div id="epc_ext_doc" class="epc-erp-section epc-ext-doc @(built.Theme == "red" ? "is-audit" : "")">
+            <div class="epc-ext-doc-head">
+                <div>
+                    <div style="font-size:20px;font-weight:800;color:#1d2740;">@_companyLabel</div>
+                    <div class="text-muted" style="font-size:12px;">@_regName</div>
+                </div>
+                <div style="text-align:right;">
+                    <div style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#7a869a;">Off-system pack</div>
+                    <div style="font-weight:700;">@built.Title</div>
+                </div>
+            </div>
+            <h3 style="margin-top:0;color:#1d2740;">@built.Title</h3>
+            @if (built.Summary.Count > 0)
+            {
+                <div class="epc-ext-sum">
+                    @foreach (var card in built.Summary)
+                    {
+                        <div style="border-top-color:@card.Color;"><div class="k">@card.Label</div><div class="v" style="color:@card.Color;">@card.Value</div></div>
+                    }
+                </div>
+            }
+            @if (!string.IsNullOrWhiteSpace(built.BodyHtml))
+            {
+                @((MarkupString)built.BodyHtml)
+            }
+            <div style="margin-top:28px;display:flex;justify-content:space-between;gap:30px;">
+                <div style="flex:1;border-top:1px solid #aaa;padding-top:6px;font-size:12px;color:#555;">Prepared by &amp; date</div>
+                <div style="flex:1;border-top:1px solid #aaa;padding-top:6px;font-size:12px;color:#555;">Authorised signatory &amp; stamp</div>
+            </div>
+        </div>
+        @((MarkupString)ErpExternalReportingHtml.PrintCtxJs(_printCtx))
+        @((MarkupString)ErpExternalReportingHtml.PrintFnJs)
+    };
 }

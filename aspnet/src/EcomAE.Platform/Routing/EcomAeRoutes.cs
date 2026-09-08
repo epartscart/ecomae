@@ -359,6 +359,12 @@ public static class EcomAeRoutes
     public const string ErpTaxExternalReporting = "/erp/tax-external-reporting";
     /// <summary>Dry-run fetch / import / intake for External Reporting (writes=0).</summary>
     public const string ErpAjaxExternalReportingFetch = "/erp/ajax/ext-reports-fetch";
+    /// <summary>Off-system CSV/XLSX import → VAT / CT / IFRS pack (no shop writes).</summary>
+    public const string ErpExternalReportingImport = "/erp/external-reporting/import";
+    /// <summary>Guided IFRS intake → audit / financials pack (no shop writes).</summary>
+    public const string ErpExternalReportingIntake = "/erp/external-reporting/intake";
+    /// <summary>VAT / CT / IFRS import CSV template download.</summary>
+    public const string ErpExternalReportingTemplate = "/erp/external-reporting/template";
     public const string ControlPanelPoApprovals = "/cp/po-approvals";
     /// <summary>CP PO approvals Blazor list (JSON digest remains <see cref="ControlPanelPoApprovals"/>).</summary>
     public const string ControlPanelPoApprovalsApp = "/cp/po-approvals-app";

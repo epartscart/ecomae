@@ -5414,11 +5414,14 @@ public sealed class ErpModule : ISurfaceModule
                 source = "catalog",
                 message = string.Empty,
                 session = SessionPayload(session),
-                note = "Read-only PHP epc_ext_reports_* catalogue. Fetch / import / intake generate stay PHP (writes=0 dry-run)."
+                note = "Read-only catalogue. Fetch & build and off-system import / intake generate statutory packs on this host (no shop writes)."
             });
         });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxExternalReportingFetch, async (HttpContext context, ErpExternalReportingFetchBody? body, ILegacySessionValidator validator, IErpExternalReportingFetchDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new("fetch", null, false); return Results.Ok(dryRun.Evaluate(new ErpExternalReportingFetchRequest(body.Action, body.ReportKey, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapGet(EcomAeRoutes.ErpExternalReportingTemplate, (HttpContext context, ErpExternalReportingFormService forms) => forms.Template(context));
+        endpoints.MapPost(EcomAeRoutes.ErpExternalReportingImport, (HttpContext context, ErpExternalReportingFormService forms, CancellationToken cancellationToken) => forms.ImportAsync(context, cancellationToken)).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpExternalReportingIntake, (HttpContext context, ErpExternalReportingFormService forms, CancellationToken cancellationToken) => forms.IntakeAsync(context, cancellationToken)).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxOrderFulfillmentBootstrap, async (HttpContext context, ErpOrderFulfillmentBootstrapBody? body, ILegacySessionValidator validator, IErpOrderFulfillmentBootstrapDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(false); return Results.Ok(dryRun.Evaluate(new ErpOrderFulfillmentBootstrapRequest(body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxOrderFulfillmentStatus, async (HttpContext context, ErpOrderFulfillmentStatusBody? body, ILegacySessionValidator validator, IErpOrderFulfillmentStatusDryRun dryRun, CancellationToken cancellationToken) =>
