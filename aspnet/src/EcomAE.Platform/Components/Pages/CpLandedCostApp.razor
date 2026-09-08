@@ -8,61 +8,33 @@
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
-@inject NavigationManager Nav
 
 <PageTitle>Landed cost · Control Panel · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="cp" />
-<HeadContent>
-<style>
-        .epc-lc-hero {
-            margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
-            background:linear-gradient(135deg,#0c4a6e 0%,#2563eb 45%,#0ea5e9 100%);
-        }
-        .epc-lc-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
-        .epc-lc-hero p { margin:0; color:rgba(255,255,255,.88); max-width:44rem; font-size:.92rem; line-height:1.45; }
-        .epc-lc-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
-        .epc-lc-cta a {
-            display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
-            text-decoration:none; color:#0f172a; background:#fff;
-        }
-        .epc-lc-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); color:#fff; }
-        .epc-lc-kpis { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
-        .epc-lc-kpi { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; padding:.85rem .9rem; }
-        .epc-lc-kpi strong { display:block; font-size:1.2rem; word-break:break-word; }
-        .epc-lc-kpi span { color:#64748b; font-size:.78rem; }
-        .epc-lc-table-wrap { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; overflow:auto; }
-        .epc-lc-table { width:100%; border-collapse:collapse; font-size:.86rem; }
-        .epc-lc-table th, .epc-lc-table td { padding:.55rem .7rem; border-bottom:1px solid #f1f5f9; text-align:left; white-space:nowrap; }
-        .epc-lc-table th { background:#f8fafc; color:#475569; font-size:.75rem; text-transform:uppercase; letter-spacing:.03em; }
-        .epc-lc-note { margin-top:1rem; padding:.75rem .9rem; background:#f8fafc; border:1px solid #cbd5e1; border-radius:.45rem; color:#334155; font-size:.86rem; }
-        @@media (max-width:900px){ .epc-lc-kpis{grid-template-columns:1fr 1fr;} }
-    
-</style>
-</HeadContent>
-
-
 <PhpCpDesktopChrome IsAdmin="_isAdmin">
 
-    <section class="epc-lc-hero">
-        <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
-        <h1>Landed cost</h1>
-        <p>@CpPhpModuleCopy.PurposeFor(Nav.Uri)</p>
-        <div class="epc-lc-cta">
-            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
+    <div class="col-lg-12">
+        <div class="hpanel">
+            <div class="panel-heading hbuilt">
+                Landed cost
+                <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Classic twin</a>
+            </div>
+            <div class="panel-body">
+                <p>@CpPhpModuleCopy.PurposeFor("/cp/landed-cost-app")</p>
+            </div>
         </div>
-    </section>
+    </div>
     <PhpParityModuleBody AppPath="/cp/landed-cost-app" IsAdmin="_isAdmin" />
 
 
-    <div class="epc-lc-kpis" aria-label="Landed cost stats">
-        <div class="epc-lc-kpi"><strong>@_summary.SheetCount.ToString(CultureInfo.InvariantCulture)</strong><span>Sheets</span></div>
-        <div class="epc-lc-kpi"><strong>@_summary.PostedCount.ToString(CultureInfo.InvariantCulture)</strong><span>Posted/calc</span></div>
-        <div class="epc-lc-kpi"><strong>@_summary.ExpenseCount.ToString(CultureInfo.InvariantCulture)</strong><span>Expenses</span></div>
-        <div class="epc-lc-kpi"><strong>@_summary.LineCount.ToString(CultureInfo.InvariantCulture)</strong><span>Lines</span></div>
-    </div>
+    <p class="help-block">@_summary.SheetCount.ToString(CultureInfo.InvariantCulture) Sheets · @_summary.PostedCount.ToString(CultureInfo.InvariantCulture) Posted/calc · @_summary.ExpenseCount.ToString(CultureInfo.InvariantCulture) Expenses · @_summary.LineCount.ToString(CultureInfo.InvariantCulture) Lines.</p>
 
-    <div class="epc-lc-table-wrap">
-        <table class="epc-lc-table">
+    <div class="col-lg-12">
+        <div class="hpanel">
+            <div class="panel-heading hbuilt">Records</div>
+            <div class="panel-body">
+                <div class="table-responsive">
+                    <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped">
             <thead>
                 <tr>
                     <th>Id</th>
@@ -97,7 +69,10 @@
                     }
                 }
             </tbody>
-        </table>
+                        </table>
+                </div>
+            </div>
+        </div>
     </div>
 
 </PhpCpDesktopChrome>

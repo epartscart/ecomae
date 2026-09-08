@@ -9,50 +9,25 @@
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
-@inject NavigationManager Nav
 
 <PageTitle>UAE Tax Compliance · Control Panel · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="cp" />
-<HeadContent>
-<style>
-        .epc-uae-hero {
-            margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
-            background:linear-gradient(135deg,#0c4a6e 0%,#2563eb 45%,#0ea5e9 100%);
-        }
-        .epc-uae-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
-        .epc-uae-hero p { margin:0; color:#dcfce7; max-width:44rem; font-size:.92rem; line-height:1.45; }
-        .epc-uae-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
-        .epc-uae-cta a {
-            display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
-            text-decoration:none; color:#14532d; background:#e0f2fe;
-        }
-        .epc-uae-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); color:#fff; }
-        .epc-uae-kpis { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
-        .epc-uae-kpi { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; padding:.85rem .9rem; }
-        .epc-uae-kpi strong { display:block; font-size:1.2rem; word-break:break-word; }
-        .epc-uae-kpi span { color:#64748b; font-size:.78rem; }
-        .epc-uae-table-wrap { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; overflow:auto; }
-        .epc-uae-table { width:100%; border-collapse:collapse; font-size:.86rem; }
-        .epc-uae-table th, .epc-uae-table td { padding:.55rem .7rem; border-bottom:1px solid #f1f5f9; text-align:left; white-space:nowrap; }
-        .epc-uae-table th { background:#f8fafc; color:#475569; font-size:.75rem; text-transform:uppercase; letter-spacing:.03em; }
-        .epc-uae-note { margin-top:1rem; padding:.75rem .9rem; background:#f0fdf4; border:1px solid #86efac; border-radius:.45rem; color:#14532d; font-size:.86rem; }
-        @@media (max-width:900px){ .epc-uae-kpis{grid-template-columns:1fr;} }
-    
-</style>
-</HeadContent>
-
 
 <PhpCpDesktopChrome IsAdmin="_isAdmin">
 
-    <section class="epc-uae-hero">
-        <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
-        <h1>UAE Tax Compliance</h1>
-        <p>@CpPhpModuleCopy.PurposeFor(Nav.Uri)</p>
-        <div class="epc-uae-cta">
-            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
-            <a class="ghost" href="/cp/tax-toolkits-app">Tax toolkits</a>
+    <div class="col-lg-12">
+        <div class="hpanel">
+            <div class="panel-heading hbuilt">
+                UAE tax compliance
+                <a class="btn btn-xs btn-default pull-right" href="/cp/tax-toolkits-app">Tax toolkits</a>
+                <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)" style="margin-right:.4rem">Classic twin</a>
+            </div>
+            <div class="panel-body">
+                <p>@CpPhpModuleCopy.PurposeFor("/cp/uae-tax-compliance-app")</p>
+                <p>Save tourist VAT, CT adjustments, and checklist status here. Legislation ingest stays on the Classic twin.</p>
+            </div>
         </div>
-    </section>
+    </div>
     <PhpParityModuleBody AppPath="/cp/uae-tax-compliance-app" IsAdmin="_isAdmin" />
 
     @if (!string.IsNullOrWhiteSpace(_flashOk))
@@ -80,14 +55,10 @@
         <p class="text-muted" style="margin:0 0 1rem;">Jewellery tourist VAT save is live when confirmed. Writes <code>epc_jewel_tourist_vat_refund</code>.</p>
     }
 
-    <div class="epc-uae-kpis" aria-label="UAE tax stats">
-        <div class="epc-uae-kpi"><strong>@_summary.LegislationCount.ToString(CultureInfo.InvariantCulture)</strong><span>Legislation items</span></div>
-        <div class="epc-uae-kpi"><strong>@_summary.VatAdvanceRows.ToString(CultureInfo.InvariantCulture)</strong><span>VAT advance rows</span></div>
-        <div class="epc-uae-kpi"><strong>@_summary.VatRefundRows.ToString(CultureInfo.InvariantCulture)</strong><span>VAT refund rows</span></div>
-    </div>
+    <p class="help-block">@_summary.LegislationCount.ToString(CultureInfo.InvariantCulture) legislation items · @_summary.VatAdvanceRows.ToString(CultureInfo.InvariantCulture) VAT advance rows · @_summary.VatRefundRows.ToString(CultureInfo.InvariantCulture) VAT refund rows.</p>
 
-    <div class="epc-uae-table-wrap">
-        <table class="epc-uae-table">
+    <div class="table-responsive">
+        <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped">
             <thead>
                 <tr>
                     <th>ID</th>
@@ -99,13 +70,12 @@
                     <th>New</th>
                     <th>Updated</th>
                     <th>Synced</th>
-                    <th></th>
                 </tr>
             </thead>
             <tbody>
                 @if (_items.Count == 0)
                 {
-                    <tr><td colspan="10">No records yet.</td></tr>
+                    <tr><td colspan="9">No records yet.</td></tr>
                 }
                 else
                 {
@@ -121,15 +91,12 @@
                             <td>@(i.IsNew ? "yes" : "no")</td>
                             <td>@(i.IsUpdated ? "yes" : "no")</td>
                             <td>@(i.TimeSynced > 0 ? i.TimeSynced.ToString(CultureInfo.InvariantCulture) : "—")</td>
-                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
                         </tr>
                     }
                 }
             </tbody>
         </table>
     </div>
-
-</PhpCpDesktopChrome>
 
 <form method="post" action="/erp/uae-tax/ct-adjustments/save" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin-bottom:1rem;">
                 <input type="hidden" name="returnUrl" value="/cp/uae-tax-compliance-app" />
@@ -158,6 +125,8 @@
                 <button type="submit" class="btn btn-primary btn-sm">Set status</button>
             </form>
 </ErpPhpCreateWell>
+
+</PhpCpDesktopChrome>
 
 @code {
     private const string _phpTab = "/CP/shop/finance/erp/uae-tax-compliance?epc_erp_shell=1";

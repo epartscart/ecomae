@@ -8,61 +8,33 @@
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
-@inject NavigationManager Nav
 
 <PageTitle>Industry Packs · Control Panel · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="cp" />
-<HeadContent>
-<style>
-        .epc-pack-hero {
-            margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
-            background:linear-gradient(135deg,#0c4a6e 0%,#2563eb 45%,#0ea5e9 100%);
-        }
-        .epc-pack-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
-        .epc-pack-hero p { margin:0; color:#dcfce7; max-width:44rem; font-size:.92rem; line-height:1.45; }
-        .epc-pack-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
-        .epc-pack-cta a {
-            display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
-            text-decoration:none; color:#166534; background:#bbf7d0;
-        }
-        .epc-pack-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); color:#fff; }
-        .epc-pack-kpis { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
-        .epc-pack-kpi { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; padding:.85rem .9rem; }
-        .epc-pack-kpi strong { display:block; font-size:1.2rem; word-break:break-word; }
-        .epc-pack-kpi span { color:#64748b; font-size:.78rem; }
-        .epc-pack-table-wrap { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; overflow:auto; }
-        .epc-pack-table { width:100%; border-collapse:collapse; font-size:.86rem; }
-        .epc-pack-table th, .epc-pack-table td { padding:.55rem .7rem; border-bottom:1px solid #f1f5f9; text-align:left; white-space:nowrap; }
-        .epc-pack-table th { background:#f8fafc; color:#475569; font-size:.75rem; text-transform:uppercase; letter-spacing:.03em; }
-        .epc-pack-note { margin-top:1rem; padding:.75rem .9rem; background:#f0fdf4; border:1px solid #bbf7d0; border-radius:.45rem; color:#14532d; font-size:.86rem; }
-        @@media (max-width:900px){ .epc-pack-kpis{grid-template-columns:1fr;} }
-    
-</style>
-</HeadContent>
-
-
 <PhpCpDesktopChrome IsAdmin="_isAdmin">
 
-    <section class="epc-pack-hero">
-        <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
-        <h1>Industry Packs</h1>
-        <p>@CpPhpModuleCopy.PurposeFor(Nav.Uri)</p>
-        <div class="epc-pack-cta">
-            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
-            <a class="ghost" href="/cp/hr-overview-app">HR overview</a>
+    <div class="col-lg-12">
+        <div class="hpanel">
+            <div class="panel-heading hbuilt">
+                Industry Packs
+                <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Classic twin</a>
+            </div>
+            <div class="panel-body">
+                <p>@CpPhpModuleCopy.PurposeFor("/cp/industry-packs-app")</p>
+            </div>
         </div>
-    </section>
+    </div>
     <PhpParityModuleBody AppPath="/cp/industry-packs-app" IsAdmin="_isAdmin" />
 
 
-    <div class="epc-pack-kpis" aria-label="Industry pack stats">
-        <div class="epc-pack-kpi"><strong>@_summary.PackCount.ToString(CultureInfo.InvariantCulture)</strong><span>Packs</span></div>
-        <div class="epc-pack-kpi"><strong>@_summary.ActivePacks.ToString(CultureInfo.InvariantCulture)</strong><span>Active packs</span></div>
-        <div class="epc-pack-kpi"><strong>@_summary.Assignments.ToString(CultureInfo.InvariantCulture)</strong><span>Assignments</span></div>
-    </div>
+    <p class="help-block">@_summary.PackCount.ToString(CultureInfo.InvariantCulture) Packs · @_summary.ActivePacks.ToString(CultureInfo.InvariantCulture) Active packs · @_summary.Assignments.ToString(CultureInfo.InvariantCulture) Assignments.</p>
 
-    <div class="epc-pack-table-wrap">
-        <table class="epc-pack-table">
+    <div class="col-lg-12">
+        <div class="hpanel">
+            <div class="panel-heading hbuilt">Records</div>
+            <div class="panel-body">
+                <div class="table-responsive">
+                    <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped">
             <thead>
                 <tr>
                     <th>ID</th>
@@ -95,7 +67,10 @@
                     }
                 }
             </tbody>
-        </table>
+                        </table>
+                </div>
+            </div>
+        </div>
     </div>
 
 </PhpCpDesktopChrome>

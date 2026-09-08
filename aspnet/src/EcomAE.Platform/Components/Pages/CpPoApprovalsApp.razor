@@ -7,71 +7,39 @@
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
-@inject NavigationManager Nav
 
 <PageTitle>PO approvals · Control Panel · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="cp" />
-<HeadContent>
-<style>
-        .epc-w18-hero {
-            margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
-            background:linear-gradient(135deg,#0c4a6e 0%,#2563eb 45%,#0ea5e9 100%);
-        }
-        .epc-w18-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
-        .epc-w18-hero p { margin:0; color:rgba(255,255,255,.88); max-width:44rem; font-size:.92rem; line-height:1.45; }
-        .epc-w18-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
-        .epc-w18-cta a {
-            display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
-            text-decoration:none; color:#0f172a; background:#fff;
-        }
-        .epc-w18-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); color:#fff; }
-        .epc-w18-kpis { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
-        .epc-w18-kpi { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; padding:.85rem .9rem; }
-        .epc-w18-kpi strong { display:block; font-size:1.2rem; word-break:break-word; }
-        .epc-w18-kpi span { color:#64748b; font-size:.78rem; }
-        .epc-w18-table-wrap { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; overflow:auto; }
-        .epc-w18-table { width:100%; border-collapse:collapse; font-size:.86rem; }
-        .epc-w18-table th, .epc-w18-table td { padding:.55rem .7rem; border-bottom:1px solid #f1f5f9; text-align:left; white-space:nowrap; }
-        .epc-w18-table th { background:#f8fafc; color:#475569; font-size:.75rem; text-transform:uppercase; letter-spacing:.03em; }
-        .epc-w18-note { margin-top:1rem; padding:.75rem .9rem; background:#f8fafc; border:1px solid #cbd5e1; border-radius:.45rem; color:#334155; font-size:.86rem; }
-        @@media (max-width:900px){ .epc-w18-kpis{grid-template-columns:1fr 1fr;} }
-    
-</style>
-</HeadContent>
-
-
 <PhpCpDesktopChrome IsAdmin="_isAdmin">
 
-    <section class="epc-w18-hero">
-        <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
-        <h1>PO approvals</h1>
-        <p>@CpPhpModuleCopy.PurposeFor(Nav.Uri)</p>
-        <div class="epc-w18-cta">
-            <a href="/cp/po-approvals-app">Refresh</a>
+    <div class="col-lg-12">
+        <div class="hpanel">
+            <div class="panel-heading hbuilt">
+                PO approvals
+                <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Classic twin</a>
+            </div>
+            <div class="panel-body">
+                <p>@CpPhpModuleCopy.PurposeFor("/cp/po-approvals-app")</p>
+                <p>Approve or reject a pending purchase-order request here.</p>
+            </div>
         </div>
-    </section>
+    </div>
     <PhpParityModuleBody AppPath="/cp/po-approvals-app" IsAdmin="_isAdmin" />
 
 
     @if (!string.IsNullOrWhiteSpace(_flash))
     {
-        <p class="epc-w18-note" style="@(_flashOk ? "background:#ecfdf5;border-color:#a7f3d0;color:#065f46" : "background:#fffbeb;border-color:#fde68a;color:#92400e")">@_flash</p>
+        <div class="alert @(_flashOk ? "alert-success" : "alert-danger")" role="status" style="margin:0 0 1rem;padding:.7rem .9rem">@_flash</div>
     }
 
-    @if (!string.IsNullOrWhiteSpace(_flash))
-    {
-        <p class="epc-w18-note" style="@(_flashOk ? "background:#ecfdf5;border-color:#a7f3d0;color:#065f46" : "background:#fffbeb;border-color:#fde68a;color:#92400e")">@_flash</p>
-    }
+    <p class="help-block">@_summary.RequestCount.ToString(CultureInfo.InvariantCulture) Requests · @_summary.PendingCount.ToString(CultureInfo.InvariantCulture) Pending · @_summary.ApprovedCount.ToString(CultureInfo.InvariantCulture) Approved · @_summary.StepCount.ToString(CultureInfo.InvariantCulture) Steps.</p>
 
-    <div class="epc-w18-kpis" aria-label="PO approvals stats">
-        <div class="epc-w18-kpi"><strong>@_summary.RequestCount.ToString(CultureInfo.InvariantCulture)</strong><span>Requests</span></div>
-        <div class="epc-w18-kpi"><strong>@_summary.PendingCount.ToString(CultureInfo.InvariantCulture)</strong><span>Pending</span></div>
-        <div class="epc-w18-kpi"><strong>@_summary.ApprovedCount.ToString(CultureInfo.InvariantCulture)</strong><span>Approved</span></div>
-        <div class="epc-w18-kpi"><strong>@_summary.StepCount.ToString(CultureInfo.InvariantCulture)</strong><span>Steps</span></div>
-    </div>
-
-    <div class="epc-w18-table-wrap">
-    <table class="epc-w18-table">
+    <div class="col-lg-12">
+        <div class="hpanel">
+            <div class="panel-heading hbuilt">Records</div>
+            <div class="panel-body">
+                <div class="table-responsive">
+                    <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped">
         <thead>
             <tr>
                     <th>Id</th>
@@ -133,12 +101,16 @@
                 }
             }
         </tbody>
-    </table>
+                    </table>
+                </div>
+            </div>
+        </div>
     </div>
 
 </PhpCpDesktopChrome>
 
 @code {
+    private const string _phpTab = "/CP/shop/finance/epc_po_approval";
     private bool _isAdmin;
     private CpPoApprovalsSummary _summary = new(0, 0, 0, 0, "n/a", "");
     private IReadOnlyList<CpPoApprovalsRowDigest> _rows = [];

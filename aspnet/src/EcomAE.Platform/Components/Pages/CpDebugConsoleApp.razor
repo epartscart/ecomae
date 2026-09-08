@@ -7,55 +7,41 @@
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
-@inject NavigationManager Nav
 
 <PageTitle>Debug console · Control Panel · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="cp" />
-<HeadContent>
-<style>
-        .epc-w23-hero { margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff; background:linear-gradient(135deg,#0c4a6e 0%,#2563eb 45%,#0ea5e9 100%); }
-        .epc-w23-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
-        .epc-w23-hero p { margin:0; color:rgba(255,255,255,.88); max-width:44rem; font-size:.92rem; }
-        .epc-w23-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
-        .epc-w23-cta a { display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem; text-decoration:none; color:#0f172a; background:#fff; }
-        .epc-w23-kpis { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
-        .epc-w23-kpi { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; padding:.85rem .9rem; }
-        .epc-w23-kpi strong { display:block; font-size:1.2rem; }
-        .epc-w23-kpi span { color:#64748b; font-size:.78rem; }
-        .epc-w23-table-wrap { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; overflow:auto; }
-        .epc-w23-table { width:100%; border-collapse:collapse; font-size:.86rem; }
-        .epc-w23-table th, .epc-w23-table td { padding:.55rem .7rem; border-bottom:1px solid #f1f5f9; text-align:left; white-space:nowrap; }
-        .epc-w23-table th { background:#f8fafc; color:#475569; font-size:.75rem; text-transform:uppercase; }
-        .epc-w23-note { margin-top:1rem; padding:.75rem .9rem; background:#f8fafc; border:1px solid #cbd5e1; border-radius:.45rem; color:#334155; font-size:.86rem; }
-        @@media (max-width:900px){ .epc-w23-kpis{grid-template-columns:1fr 1fr;} }
-    
-</style>
-</HeadContent>
-
 <PhpCpDesktopChrome IsAdmin="_isAdmin">
-    <section class="epc-w23-hero">
-        <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
-        <h1>Debug console</h1>
-        <p>Allowlisted debug temp log metadata (basename dmY_Hi.php only). File contents are not exposed.</p>
-        <div class="epc-w23-cta">
-            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
+    <div class="col-lg-12">
+        <div class="hpanel">
+            <div class="panel-heading hbuilt">
+                Debug console
+                <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Classic twin</a>
+            </div>
+            <div class="panel-body">
+                <p>@CpPhpModuleCopy.PurposeFor("/cp/debug-console-app")</p>
+                <p>Allowlisted debug temp log metadata (basename dmY_Hi.php only). File contents are not exposed.</p>
+            </div>
         </div>
-    </section>
+    </div>
     <PhpParityModuleBody AppPath="/cp/debug-console-app" IsAdmin="_isAdmin" />
 
-    <div class="epc-w23-kpis">
-        <div class="epc-w23-kpi"><strong>@_summary.FileCount.ToString(CultureInfo.InvariantCulture)</strong><span>Files</span></div>
-        <div class="epc-w23-kpi"><strong>@_summary.TmpRootPresent.ToString(CultureInfo.InvariantCulture)</strong><span>Tmp root</span></div>
-        <div class="epc-w23-kpi"><strong>@_summary.AllowlistOnly.ToString(CultureInfo.InvariantCulture)</strong><span>Allowlist only</span></div>
-        <div class="epc-w23-kpi"><strong>@_summary.TotalBytes.ToString(CultureInfo.InvariantCulture)</strong><span>Total bytes</span></div>
-    </div>
-    <div class="epc-w23-table-wrap"><table class="epc-w23-table">
+    <p class="help-block">@_summary.FileCount.ToString(CultureInfo.InvariantCulture) Files · @_summary.TmpRootPresent.ToString(CultureInfo.InvariantCulture) Tmp root · @_summary.AllowlistOnly.ToString(CultureInfo.InvariantCulture) Allowlist only · @_summary.TotalBytes.ToString(CultureInfo.InvariantCulture) Total bytes.</p>
+    <div class="col-lg-12">
+        <div class="hpanel">
+            <div class="panel-heading hbuilt">Records</div>
+            <div class="panel-body">
+                <div class="table-responsive">
+                    <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped">
         <thead><tr><th>Basename</th><th>Size</th><th>Modified</th><th></th></tr></thead>
         <tbody>
         @if (_rows.Count==0) { <tr><td colspan="4">No records yet.</td></tr> }
         else { @foreach (var row in _rows) { <tr><td>@row.Basename</td><td>@row.SizeBytes</td><td>@row.LastModifiedUnix</td><td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td></tr> } }
         </tbody>
-    </table></div>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
 
 </PhpCpDesktopChrome>
 @code {
