@@ -553,6 +553,129 @@ public static class ErpUaeTaxFtaLegislation
         }
     }
 
+    public static IReadOnlyList<ErpUaeTaxFtaItem> ItemsFromCacheJson(string? json)
+    {
+        if (string.IsNullOrWhiteSpace(json))
+        {
+            return [];
+        }
+
+        try
+        {
+            using var doc = JsonDocument.Parse(json);
+            var root = doc.RootElement;
+            JsonElement arr;
+            if (root.ValueKind == JsonValueKind.Array)
+            {
+                arr = root;
+            }
+            else if (root.ValueKind == JsonValueKind.Object
+                && root.TryGetProperty("legislation", out arr)
+                && arr.ValueKind == JsonValueKind.Array)
+            {
+                // keep arr
+            }
+            else if (root.ValueKind == JsonValueKind.Object
+                && root.TryGetProperty("items", out arr)
+                && arr.ValueKind == JsonValueKind.Array)
+            {
+                // keep arr
+            }
+            else
+            {
+                return [];
+            }
+
+            var items = new List<ErpUaeTaxFtaItem>();
+            foreach (var row in arr.EnumerateArray())
+            {
+                if (row.ValueKind != JsonValueKind.Object)
+                {
+                    continue;
+                }
+
+                var slug = ReadCacheString(row, "slug");
+                var itemKey = ReadCacheString(row, "item_key");
+                var title = ReadCacheString(row, "title");
+                if (itemKey.Length == 0)
+                {
+                    itemKey = slug;
+                }
+
+                if (itemKey.Length == 0 && title.Length == 0)
+                {
+                    continue;
+                }
+
+                IReadOnlyList<string>? actions = null;
+                if (row.TryGetProperty("compliance_actions", out var acts) && acts.ValueKind == JsonValueKind.Array)
+                {
+                    actions = acts.EnumerateArray()
+                        .Select(a => a.ValueKind == JsonValueKind.String ? a.GetString() ?? "" : a.ToString())
+                        .Where(a => a.Length > 0)
+                        .ToList();
+                }
+
+                items.Add(new ErpUaeTaxFtaItem(
+                    Slug: slug,
+                    ItemKey: itemKey,
+                    Title: title,
+                    IssueDate: ReadCacheString(row, "issue_date"),
+                    PublishDate: ReadCacheString(row, "publish_date"),
+                    Category: ReadCacheString(row, "category"),
+                    TaxCategory: ReadCacheString(row, "tax_category"),
+                    PdfUrl: ReadCacheString(row, "pdf_url"),
+                    IsNew: ReadCacheBool(row, "is_new"),
+                    IsChanged: ReadCacheBool(row, "is_changed"),
+                    IsUpdated: ReadCacheBool(row, "is_updated"),
+                    PatternKey: ReadCacheString(row, "pattern_key"),
+                    ErpSummary: ReadCacheString(row, "erp_summary"),
+                    ErpApply: ReadCacheString(row, "erp_apply"),
+                    ComplianceActions: actions));
+            }
+
+            return items;
+        }
+        catch (JsonException)
+        {
+            return [];
+        }
+    }
+
+    private static string ReadCacheString(JsonElement row, string name)
+    {
+        if (!row.TryGetProperty(name, out var value))
+        {
+            return "";
+        }
+
+        return value.ValueKind switch
+        {
+            JsonValueKind.String => value.GetString() ?? "",
+            JsonValueKind.Number => value.ToString(),
+            JsonValueKind.True => "1",
+            JsonValueKind.False => "0",
+            _ => ""
+        };
+    }
+
+    private static bool ReadCacheBool(JsonElement row, string name)
+    {
+        if (!row.TryGetProperty(name, out var value))
+        {
+            return false;
+        }
+
+        return value.ValueKind switch
+        {
+            JsonValueKind.True => true,
+            JsonValueKind.False => false,
+            JsonValueKind.Number => value.TryGetInt32(out var n) && n != 0,
+            JsonValueKind.String => value.GetString() is "1" or "true" or "yes",
+            _ => false
+        };
+    }
+
     private static (string ErpSummary, string ErpApply) BuildSummary(ErpUaeTaxFtaItem item, string patternKey)
     {
         if (!Catalog.TryGetValue(patternKey, out var pat))

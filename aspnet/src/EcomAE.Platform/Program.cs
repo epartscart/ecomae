@@ -858,6 +858,8 @@ builder.Services.AddHttpClient<EcomAE.Platform.Erp.IErpUaeFtaHttpClient, EcomAE.
     client.DefaultRequestHeaders.UserAgent.ParseAdd(EcomAE.Platform.Erp.ErpUaeTaxFtaLegislation.UserAgent);
 });
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpUaeTaxFtaFetchWriteService, EcomAE.Platform.Erp.ErpUaeTaxFtaFetchWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpUaeTaxLegislationAskWriteService, EcomAE.Platform.Erp.ErpUaeTaxLegislationAskWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpUaeTaxLegislationRegenWriteService, EcomAE.Platform.Erp.ErpUaeTaxLegislationRegenWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpUaeTaxLegislationChecklistSetWriteService, EcomAE.Platform.Erp.ErpUaeTaxLegislationChecklistSetWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpPmSaveWriteService, EcomAE.Platform.Erp.ErpPmSaveWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpPmBudgetSaveWriteService, EcomAE.Platform.Erp.ErpPmBudgetSaveWriteService>();

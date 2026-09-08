@@ -1491,10 +1491,14 @@ public static class EcomAeRoutes
     public const string ErpAjaxAmlReportGenerate = "/erp/ajax/aml-report-generate";
     /// <summary>Wave B dry-run for PHP aml_seed_rules (writes=0).</summary>
     public const string ErpAjaxAmlSeedRules = "/erp/ajax/aml-seed-rules";
-    /// <summary>Wave B dry-run for PHP uae_tax_legislation_regen_summaries (writes=0).</summary>
-    public const string ErpAjaxUaeTaxLegislationRegenSummaries = "/erp/ajax/uae-tax-legislation-regen-summaries";
-    /// <summary>Wave B dry-run for PHP uae_tax_legislation_ask (writes=0).</summary>
+    /// <summary>HTML form POST for PHP <c>uae_tax_legislation_ask</c>. <c>confirmWrites=true</c> writes via <c>IErpUaeTaxLegislationAskWriteService</c>.</summary>
+    public const string ErpUaeTaxLegislationAsk = "/erp/uae-tax/legislation/ask";
+    /// <summary>Live PHP <c>epc_uae_tax_legislation_ask</c> ajax alias of <see cref="ErpUaeTaxLegislationAsk"/>.</summary>
     public const string ErpAjaxUaeTaxLegislationAsk = "/erp/ajax/uae-tax-legislation-ask";
+    /// <summary>HTML form POST for PHP <c>uae_tax_legislation_regen_summaries</c>. <c>confirmWrites=true</c> writes via <c>IErpUaeTaxLegislationRegenWriteService</c>.</summary>
+    public const string ErpUaeTaxLegislationRegen = "/erp/uae-tax/legislation/regen";
+    /// <summary>Live PHP <c>epc_uae_tax_legislation_backfill_summaries</c> ajax alias of <see cref="ErpUaeTaxLegislationRegen"/>.</summary>
+    public const string ErpAjaxUaeTaxLegislationRegenSummaries = "/erp/ajax/uae-tax-legislation-regen-summaries";
     /// <summary>Wave B dry-run for PHP uae_tax_save_ct_adjustments (writes=0).</summary>
     public const string ErpAjaxUaeTaxSaveCtAdjustments = "/erp/ajax/uae-tax-save-ct-adjustments";
     /// <summary>Wave B dry-run for PHP uae_tax_legislation_checklist_set (writes=0).</summary>
