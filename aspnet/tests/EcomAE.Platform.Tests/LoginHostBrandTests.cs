@@ -52,7 +52,7 @@ public sealed class LoginHostBrandTests
         var brand = LoginHostBrand.Resolve("www.ecomae.com", "erp");
         Assert.Equal(LoginHostBrand.Kind.Platform, brand.LogoKind);
         Assert.True(string.IsNullOrWhiteSpace(brand.LogoUrl));
-        Assert.Contains("ERP", brand.Label, StringComparison.OrdinalIgnoreCase);
+        Assert.Equal("ECOM AE", brand.Label);
     }
 
     [Fact]

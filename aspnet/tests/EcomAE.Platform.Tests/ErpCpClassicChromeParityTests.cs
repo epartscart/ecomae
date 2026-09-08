@@ -80,6 +80,23 @@ public sealed class ErpCpClassicChromeParityTests
     }
 
     [Fact]
+    public void CommandCentreAndStorefront_DoNotHardcodeEpartsMark()
+    {
+        var command = File.ReadAllText(Path.Combine(FindRepoRoot(),
+            "aspnet/src/EcomAE.Platform/Components/Pages/CpCommandCentreApp.razor"));
+        var storefront = File.ReadAllText(Path.Combine(FindRepoRoot(),
+            "aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpStorefrontDesktopChrome.razor"));
+        var super = File.ReadAllText(Path.Combine(FindRepoRoot(),
+            "aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpSuperCpCommandCentre.razor"));
+        Assert.Contains("PhpSurfaceHostLogo", command, StringComparison.Ordinal);
+        Assert.DoesNotContain("PhpEpartsCartAnimatedLogo", command, StringComparison.Ordinal);
+        Assert.DoesNotContain("private string _brandLabel = \"eParts Cart\"", command, StringComparison.Ordinal);
+        Assert.Contains("PhpSurfaceHostLogo", storefront, StringComparison.Ordinal);
+        Assert.DoesNotContain("PhpEpartsCartAnimatedLogo", storefront, StringComparison.Ordinal);
+        Assert.Contains("PhpEcomaeAnimatedLogo", super, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void OrderStatuses_UsesHpanelNotInventHero()
     {
         var text = File.ReadAllText(Path.Combine(FindRepoRoot(),

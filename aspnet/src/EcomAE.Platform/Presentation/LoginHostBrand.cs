@@ -137,7 +137,7 @@ public static class LoginHostBrand
         "erp" => new(
             Kind.Platform,
             "platform",
-            "ERP",
+            "ECOM AE",
             "Enterprise Resource Planning",
             null,
             "#0d9488",
@@ -151,7 +151,7 @@ public static class LoginHostBrand
         "bos" => new(
             Kind.Platform,
             "platform",
-            "BOS",
+            "ECOM AE",
             "Business Operating System",
             null,
             "#0ea5e9",
@@ -165,7 +165,7 @@ public static class LoginHostBrand
         _ => new(
             Kind.Platform,
             "platform",
-            "CP",
+            "ECOM AE",
             "Control Panel · Operator Console",
             null,
             "#e11d48",
