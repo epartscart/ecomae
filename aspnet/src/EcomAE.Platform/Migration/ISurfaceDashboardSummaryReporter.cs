@@ -344,6 +344,9 @@ public interface ISurfaceDashboardSummaryReporter
     /// <summary>Read-only consolidation group entities.</summary>
     Task<CpConsolidationsDigestResult> BuildCpConsolidationsDigestAsync(int limit, CancellationToken cancellationToken = default);
 
+    /// <summary>Opened consolidation entity (PHP <c>cons_id</c>) plus figures and IC rows.</summary>
+    Task<CpConsolidationsDetailResult> BuildCpConsolidationsDetailAsync(long id, CancellationToken cancellationToken = default);
+
     /// <summary>Read-only CRM activities (notes omitted).</summary>
     Task<CpCrmActivitiesDigestResult> BuildCpCrmActivitiesDigestAsync(int limit, CancellationToken cancellationToken = default);
 

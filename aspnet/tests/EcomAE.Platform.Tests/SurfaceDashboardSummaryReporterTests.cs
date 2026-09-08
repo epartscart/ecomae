@@ -917,6 +917,15 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.Contains("users_vin_messages", LegacySurfaceDashboardSql.SelectCpSystemRequestMessages, StringComparison.Ordinal);
         Assert.Contains("LEFT(IFNULL(`text`,''), 280)", LegacySurfaceDashboardSql.SelectCpSystemRequestMessages, StringComparison.Ordinal);
         Assert.DoesNotContain("`text`", LegacySurfaceDashboardSql.SelectCpSystemRequestUserSiblings, StringComparison.Ordinal);
+        Assert.Contains("epc_cons_entities", LegacySurfaceDashboardSql.SelectCpConsolidationsEntities, StringComparison.Ordinal);
+        Assert.DoesNotContain("epc_cons_figures", LegacySurfaceDashboardSql.SelectCpConsolidationsEntities, StringComparison.Ordinal);
+        Assert.DoesNotContain("epc_cons_ic", LegacySurfaceDashboardSql.SelectCpConsolidationsEntities, StringComparison.Ordinal);
+        Assert.Contains("`id` = @id", LegacySurfaceDashboardSql.SelectCpConsolidationsEntityDetail, StringComparison.Ordinal);
+        Assert.Contains("epc_cons_figures", LegacySurfaceDashboardSql.SelectCpConsolidationsFigures, StringComparison.Ordinal);
+        Assert.Contains("`entity_code` = @code", LegacySurfaceDashboardSql.SelectCpConsolidationsFigures, StringComparison.Ordinal);
+        Assert.Contains("epc_cons_ic", LegacySurfaceDashboardSql.SelectCpConsolidationsIc, StringComparison.Ordinal);
+        Assert.Contains("`from_entity` = @code", LegacySurfaceDashboardSql.SelectCpConsolidationsIc, StringComparison.Ordinal);
+        Assert.Contains("`to_entity` = @code", LegacySurfaceDashboardSql.SelectCpConsolidationsIc, StringComparison.Ordinal);
         Assert.Contains("epc_portal_site_settings", LegacySurfaceDashboardSql.SelectCpPortalSettingsStats, StringComparison.Ordinal);
         Assert.Contains("epc_portal_deploy_targets", LegacySurfaceDashboardSql.SelectCpPortalSettingsStats, StringComparison.Ordinal);
         Assert.DoesNotContain("contact_json", LegacySurfaceDashboardSql.SelectCpPortalSettingsRows, StringComparison.Ordinal);
