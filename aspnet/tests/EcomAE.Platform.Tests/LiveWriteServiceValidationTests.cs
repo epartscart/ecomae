@@ -102,7 +102,18 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(invalid.Succeeded);
         Assert.Equal("invalid", invalid.Code);
 
-var daysDb = await new ErpPayrollUpdateDaysWriteService(new UnconfiguredConnections())
+        var payDb = await new ErpPayrollPayWriteService(new UnconfiguredConnections())
+            .PayRunAsync(1);
+        Assert.False(payDb.Succeeded);
+        Assert.Equal("db", payDb.Code);
+
+        var payInvalid = await new ErpPayrollPayWriteService(new ConfiguredNeverOpened())
+            .PayRunAsync(0);
+        Assert.False(payInvalid.Succeeded);
+        Assert.Equal("invalid", payInvalid.Code);
+        Assert.Equal("Payroll run not found", payInvalid.Message);
+
+        var daysDb = await new ErpPayrollUpdateDaysWriteService(new UnconfiguredConnections())
             .UpdateLineDaysAsync(1, 15);
         Assert.False(daysDb.Succeeded);
         Assert.Equal("db", daysDb.Code);
