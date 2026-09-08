@@ -401,8 +401,6 @@ public sealed class LiveSurfaceLinkReporterTests
             && link.AspNetRouteHint == "/erp/withholding/txns/certificate");
         Assert.Contains(report.Links, link =>
             link.HostClass == "aspnet-diagnostics"
-        Assert.Contains(report.Links, link =>
-            link.HostClass == "aspnet-diagnostics"
             && link.AspNetRouteHint == "/erp/ajax/cft-instrument-save");
         Assert.Contains(report.Links, link =>
             link.HostClass == "aspnet-diagnostics"
