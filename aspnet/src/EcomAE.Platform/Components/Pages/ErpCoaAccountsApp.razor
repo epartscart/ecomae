@@ -59,7 +59,7 @@
                             <td>@a.OpeningBalance.ToString("N2", CultureInfo.InvariantCulture)</td>
                             <td>@a.Balance.ToString("N2", CultureInfo.InvariantCulture)</td>
                             <td>@(a.Active ? "yes" : "no")</td>
-                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
+                            <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href("/erp/coa-accounts-app", "account_id", a.Id)">Open</a></td>
                         </tr>
                     }
                 }

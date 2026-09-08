@@ -61,7 +61,7 @@
                             <td>@(!string.IsNullOrWhiteSpace(row.Status) ? row.Status : "—")</td>
                             <td>@row.TotalItems.ToString(CultureInfo.InvariantCulture)</td>
                             <td>@row.TotalQty.ToString("0.###", CultureInfo.InvariantCulture)</td>
-                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
+                            <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href("/erp/stock-transfers-app", "transfer_id", row.Id)">Open</a></td>
                         </tr>
                     }
                 }

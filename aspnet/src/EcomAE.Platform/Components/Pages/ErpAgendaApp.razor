@@ -54,7 +54,7 @@
                             <td>@FormatTime(row.EndAt)</td>
                             <td>@(string.IsNullOrWhiteSpace(row.Location) ? "—" : row.Location)</td>
                             <td><span class="label label-default">@row.EntityType</span></td>
-                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
+                            <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href("/erp/agenda-app", "event_id", row.Id)">Open</a></td>
                         </tr>
                     }
                 }

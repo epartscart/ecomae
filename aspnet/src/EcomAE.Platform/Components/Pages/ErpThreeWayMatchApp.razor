@@ -53,7 +53,7 @@
                             <td>@(string.IsNullOrWhiteSpace(row.InvoiceNumber) ? "—" : row.InvoiceNumber)</td>
                             <td>@row.InvoiceTotal.ToString("N2", CultureInfo.InvariantCulture)</td>
                             <td>@(row.ReceiptCount > 0 ? row.ReceiptCount.ToString(CultureInfo.InvariantCulture) : "—")</td>
-                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
+                            <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href("/erp/three-way-match-app", "po_id", row.PoId)">Open</a></td>
                         </tr>
                     }
                 }

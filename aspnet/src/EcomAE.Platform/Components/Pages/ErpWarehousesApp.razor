@@ -169,7 +169,7 @@
                             <td>@(w.StorageId > 0 ? w.StorageId.ToString(CultureInfo.InvariantCulture) : "—")</td>
                             <td>@FormatTime(w.TimeCreated)</td>
                             <td><span class="label label-default">@(w.Active ? "active" : "inactive")</span></td>
-                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
+                            <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href("/erp/warehouses-app", "warehouse_id", w.Id)">Open</a></td>
                         </tr>
                     }
                 }

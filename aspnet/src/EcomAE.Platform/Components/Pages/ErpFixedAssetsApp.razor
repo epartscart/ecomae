@@ -63,7 +63,7 @@
                             <td>@row.BookValue.ToString("0.00", CultureInfo.InvariantCulture)</td>
                             <td>@(!string.IsNullOrWhiteSpace(row.DepreciationMethod) ? row.DepreciationMethod : "—")</td>
                             <td>@(!string.IsNullOrWhiteSpace(row.Status) ? row.Status : "—")</td>
-                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
+                            <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href("/erp/fixed-assets-app", "asset_id", row.Id)">Open</a></td>
                         </tr>
                     }
                 }

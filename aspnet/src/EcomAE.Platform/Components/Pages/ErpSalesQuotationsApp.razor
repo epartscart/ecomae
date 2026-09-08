@@ -61,7 +61,7 @@
                             <td>@(row.OpportunityId > 0 ? row.OpportunityId.ToString(CultureInfo.InvariantCulture) : "—")</td>
                             <td>@(row.ShopOrderId > 0 ? row.ShopOrderId.ToString(CultureInfo.InvariantCulture) : "—")</td>
                             <td>@(row.Active ? "yes" : "no")</td>
-                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
+                            <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href("/erp/sales-quotations-app", "quote_id", row.Id)">Open</a></td>
                         </tr>
                     }
                 }

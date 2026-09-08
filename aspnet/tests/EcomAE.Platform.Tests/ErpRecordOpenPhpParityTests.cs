@@ -85,6 +85,23 @@ public sealed class ErpRecordOpenPhpParityTests
         Assert.DoesNotContain("PhpReferenceOnlyHref(phpHref)", text, StringComparison.Ordinal);
     }
 
+    [Theory]
+    [InlineData("ErpRfqApp.razor", "rfq_id")]
+    [InlineData("ErpWarehousesApp.razor", "warehouse_id")]
+    [InlineData("ErpDeliveryNotesApp.razor", "delivery_note_id")]
+    [InlineData("ErpSalesQuotationsApp.razor", "quote_id")]
+    [InlineData("ErpMarketingApp.razor", "campaign_id")]
+    [InlineData("ErpContactsApp.razor", "contact_id")]
+    public void DumpListApps_RowOpenIsRecordUrl(string fileName, string param)
+    {
+        var root = FindRepoRoot();
+        var text = File.ReadAllText(Path.Combine(root,
+            "aspnet/src/EcomAE.Platform/Components/Pages", fileName));
+        Assert.Contains("ErpRecordOpen.Href(", text, StringComparison.Ordinal);
+        Assert.Contains("\"" + param + "\"", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)\">Open", text, StringComparison.Ordinal);
+    }
+
     private static string FindRepoRoot()
     {
         var dir = new DirectoryInfo(AppContext.BaseDirectory);

@@ -57,7 +57,7 @@
                             <td>@(row.LineCount > 0 ? row.LineCount.ToString(CultureInfo.InvariantCulture) : "—")</td>
                             <td><span class="label label-default">@row.Status</span></td>
                             <td>@FormatTime(row.ExecutionDate)</td>
-                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
+                            <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href("/erp/payment-batches-app", "batch_id", row.Id)">Open</a></td>
                         </tr>
                     }
                 }

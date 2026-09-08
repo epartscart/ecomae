@@ -113,7 +113,7 @@
                             <td>@(row.Direction == 1 ? "in" : "out")</td>
                             <td>@(row.MatchedEntryId > 0 ? row.MatchedEntryId.ToString(CultureInfo.InvariantCulture) : "—")</td>
                             <td>@(!string.IsNullOrWhiteSpace(row.ImportBatch) ? row.ImportBatch : "—")</td>
-                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
+                            <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href("/erp/bank-reconciliation-app", "recon_line_id", row.Id)">Open</a></td>
                         </tr>
                     }
                 }
