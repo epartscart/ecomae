@@ -33,6 +33,8 @@ public sealed class CpErpChromeDashboardParityTests
         Assert.Contains("data-topnav-toggle=", src);
         Assert.Contains("hidden data-topnav-panel=", src);
         Assert.Contains("bindErpTopNav", src);
+        Assert.Contains("GroupIsActive", src);
+        Assert.Contains("is-active", src);
         Assert.DoesNotContain("epc-erp-topnav-item:hover .epc-erp-topnav-panel", src);
         Assert.DoesNotContain("font-size:.8rem", src);
         Assert.True(
@@ -81,6 +83,12 @@ public sealed class CpErpChromeDashboardParityTests
         Assert.Contains("ShellClass", src);
         Assert.Contains("epc-cp-topbar-cta__host", src);
         Assert.Contains("_storefrontHost", src);
+        Assert.Contains("id=\"epc-cp-header-breadcrumb\"", src);
+        Assert.Contains("id=\"mobile-collapse\"", src);
+        Assert.Contains("epc-cp-industry-toggle", src);
+        Assert.Contains("epc-cp-topnav-item--advanced", src);
+        Assert.Contains("epc-cp-topnav-panel-sub", src);
+        Assert.Contains("GroupIsActive", src);
     }
 
     [Fact]
