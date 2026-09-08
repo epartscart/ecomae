@@ -4407,6 +4407,28 @@ public sealed record CpPlatformCommunicationDigestResult(
     string Source,
     string Message);
 
+public sealed record CpPlatformCommunicationTaskDetail(
+    long Id,
+    string Title,
+    long AssignedTo,
+    string AssignedEmail,
+    string SiteKey,
+    string Category,
+    string Status,
+    string Priority,
+    long DueAt,
+    long CreatedBy,
+    long CreatedAt,
+    long UpdatedAt,
+    int DescriptionLen,
+    string DescriptionExcerpt);
+
+public sealed record CpPlatformCommunicationTaskDetailResult(
+    CpPlatformCommunicationTaskDetail? Task,
+    IReadOnlyList<CpPlatformCommunicationRowDigest> Siblings,
+    string Source,
+    string Message);
+
 public sealed record CpInfoBlocksSummary(
     int BlockCount,
     int ActiveCount,
