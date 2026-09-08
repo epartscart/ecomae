@@ -21,11 +21,131 @@
             </div>
             <div class="panel-body">
                 <p>@CpPhpModuleCopy.PurposeFor("/cp/landed-cost-app")</p>
+                <p>Open a sheet to see notes, expenses, and allocation lines. Calculate and post stay on the Classic twin.</p>
             </div>
         </div>
     </div>
-    <PhpParityModuleBody AppPath="/cp/landed-cost-app" IsAdmin="_isAdmin" />
+    <PhpParityModuleBody AppPath="/cp/landed-cost-app" IsAdmin="_isAdmin" ShowGhostScaffold="false" />
 
+    <ErpOpenedRecordBanner Id="_openedId" Found="@(_openedSheet is not null)" Caption="@OpenedCaption" ListHref="@_listHref" />
+
+    <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Landed cost KPIs">
+        <div class="kpi"><div class="lbl">Sheets</div><div class="val">@_summary.SheetCount.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Posted/calc</div><div class="val">@_summary.PostedCount.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Expenses</div><div class="val">@_summary.ExpenseCount.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Lines</div><div class="val">@_summary.LineCount.ToString(CultureInfo.InvariantCulture)</div></div>
+    </div>
+
+    @if (_openedSheet is not null)
+    {
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">
+                    @(!string.IsNullOrWhiteSpace(_openedSheet.SheetNo) ? _openedSheet.SheetNo : ("Sheet #" + _openedSheet.Id.ToString(CultureInfo.InvariantCulture)))
+                    <span class="label label-default pull-right">@(!string.IsNullOrWhiteSpace(_openedSheet.Status) ? _openedSheet.Status : "—")</span>
+                </div>
+                <div class="panel-body">
+                    <p>PO: <strong>@(!string.IsNullOrWhiteSpace(_openedSheet.PoReference) ? _openedSheet.PoReference : "—")</strong>
+                        · GRN: @(!string.IsNullOrWhiteSpace(_openedSheet.GrnReference) ? _openedSheet.GrnReference : "—")</p>
+                    <p>Supplier: @(!string.IsNullOrWhiteSpace(_openedSheet.SupplierName) ? _openedSheet.SupplierName : "—")
+                        · Method: @(!string.IsNullOrWhiteSpace(_openedSheet.DistributionMethod) ? _openedSheet.DistributionMethod : "—")</p>
+                    <p>Goods: <strong>@_openedSheet.GoodsValue.ToString("0.00", CultureInfo.InvariantCulture)</strong>
+                        · Expenses: <strong>@_openedSheet.TotalExpenses.ToString("0.00", CultureInfo.InvariantCulture)</strong>
+                        @(!string.IsNullOrWhiteSpace(_openedSheet.Currency) ? _openedSheet.Currency : "")</p>
+                    @if (!string.IsNullOrWhiteSpace(_openedSheet.PostedAt))
+                    {
+                        <p>Posted: @_openedSheet.PostedAt</p>
+                    }
+                    @if (!string.IsNullOrWhiteSpace(_openedSheet.Notes))
+                    {
+                        <p class="text-muted">@_openedSheet.Notes</p>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">Expenses</div>
+                <div class="panel-body">
+                    <div class="table-responsive">
+                        <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped table-bordered table-epc epc-erp-table">
+                            <thead>
+                                <tr>
+                                    <th>Type</th>
+                                    <th>Vendor</th>
+                                    <th>Reference</th>
+                                    <th class="text-right">Amount</th>
+                                    <th class="text-right">Local</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (_openedExpenses.Count == 0)
+                                {
+                                    <tr><td colspan="5">No expenses yet.</td></tr>
+                                }
+                                else
+                                {
+                                    @foreach (var exp in _openedExpenses)
+                                    {
+                                        <tr>
+                                            <td>@(!string.IsNullOrWhiteSpace(exp.ExpenseType) ? exp.ExpenseType : "—")</td>
+                                            <td>@(!string.IsNullOrWhiteSpace(exp.VendorName) ? exp.VendorName : "—")</td>
+                                            <td>@(!string.IsNullOrWhiteSpace(exp.Reference) ? exp.Reference : "—")</td>
+                                            <td class="text-right">@exp.Amount.ToString("0.00", CultureInfo.InvariantCulture) @(!string.IsNullOrWhiteSpace(exp.Currency) ? exp.Currency : "")</td>
+                                            <td class="text-right"><strong>@exp.AmountLocal.ToString("0.00", CultureInfo.InvariantCulture)</strong></td>
+                                        </tr>
+                                    }
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">Allocation lines</div>
+                <div class="panel-body">
+                    <div class="table-responsive">
+                        <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped table-bordered table-epc epc-erp-table">
+                            <thead>
+                                <tr>
+                                    <th>SKU</th>
+                                    <th>Description</th>
+                                    <th class="text-right">Qty</th>
+                                    <th class="text-right">Unit cost</th>
+                                    <th class="text-right">Allocated</th>
+                                    <th class="text-right">New cost</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (_openedLines.Count == 0)
+                                {
+                                    <tr><td colspan="6">No lines yet.</td></tr>
+                                }
+                                else
+                                {
+                                    @foreach (var line in _openedLines)
+                                    {
+                                        <tr>
+                                            <td>@(!string.IsNullOrWhiteSpace(line.Sku) ? line.Sku : "—")</td>
+                                            <td>@(!string.IsNullOrWhiteSpace(line.Description) ? line.Description : "—")</td>
+                                            <td class="text-right">@line.Qty.ToString("0.###", CultureInfo.InvariantCulture)</td>
+                                            <td class="text-right">@line.UnitCost.ToString("0.0000", CultureInfo.InvariantCulture)</td>
+                                            <td class="text-right">@line.AllocatedCost.ToString("0.0000", CultureInfo.InvariantCulture)</td>
+                                            <td class="text-right"><strong>@line.NewUnitCost.ToString("0.0000", CultureInfo.InvariantCulture)</strong></td>
+                                        </tr>
+                                    }
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
 
     <p class="help-block">@_summary.SheetCount.ToString(CultureInfo.InvariantCulture) Sheets · @_summary.PostedCount.ToString(CultureInfo.InvariantCulture) Posted/calc · @_summary.ExpenseCount.ToString(CultureInfo.InvariantCulture) Expenses · @_summary.LineCount.ToString(CultureInfo.InvariantCulture) Lines.</p>
 
@@ -34,7 +154,7 @@
             <div class="panel-heading hbuilt">Records</div>
             <div class="panel-body">
                 <div class="table-responsive">
-                    <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped">
+                    <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped table-bordered table-epc epc-erp-table">
             <thead>
                 <tr>
                     <th>Id</th>
@@ -50,13 +170,13 @@
             <tbody>
                 @if (_rows.Count == 0)
                 {
-                    <tr><td colspan="8">No records yet.</td></tr>
+                    <tr><td colspan="8">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? "No records yet." : _message) : "Sign in with a staff session for live rows.")</td></tr>
                 }
                 else
                 {
                     @foreach (var row in _rows)
                     {
-                        <tr>
+                        <tr id="erp-row-@row.Id.ToString(CultureInfo.InvariantCulture)" class="@ErpRecordOpen.RowClass(row.Id, _openedId)">
                             <td>@row.Id.ToString(CultureInfo.InvariantCulture)</td>
                             <td>@(!string.IsNullOrWhiteSpace(row.SheetNo) ? row.SheetNo : "—")</td>
                             <td>@(!string.IsNullOrWhiteSpace(row.PoReference) ? row.PoReference : "—")</td>
@@ -64,7 +184,7 @@
                             <td>@row.GoodsValue.ToString(CultureInfo.InvariantCulture)</td>
                             <td>@row.TotalExpenses.ToString(CultureInfo.InvariantCulture)</td>
                             <td>@(!string.IsNullOrWhiteSpace(row.Status) ? row.Status : "—")</td>
-                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
+                            <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href(_listHref, "sheet_id", row.Id)">Open</a></td>
                         </tr>
                     }
                 }
@@ -84,11 +204,26 @@
     private IReadOnlyList<CpLandedCostSheetDigest> _rows = [];
     private string _source = "n/a";
     private string _message = "";
+    private long _openedId;
+    private CpLandedCostSheetDetail? _openedSheet;
+    private IReadOnlyList<CpLandedCostExpenseDigest> _openedExpenses = [];
+    private IReadOnlyList<CpLandedCostLineDigest> _openedLines = [];
+    private string _listHref = "/cp/landed-cost-app";
+
+    private string OpenedCaption => _openedSheet is null
+        ? ""
+        : (string.IsNullOrWhiteSpace(_openedSheet.SheetNo) ? ("Sheet #" + _openedSheet.Id.ToString(CultureInfo.InvariantCulture)) : _openedSheet.SheetNo)
+            + " · " + (string.IsNullOrWhiteSpace(_openedSheet.Status) ? "open" : _openedSheet.Status);
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
+        var path = ctx.Request.Path.Value;
+        _listHref = string.Equals(path, "/erp/landed-cost-app", StringComparison.OrdinalIgnoreCase)
+            ? "/erp/landed-cost-app"
+            : "/cp/landed-cost-app";
+        _openedId = ErpRecordOpen.ReadId(ctx.Request, "sheet_id");
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
@@ -102,5 +237,25 @@
         _rows = result.Sheets;
         _source = result.Source;
         _message = result.Message;
+
+        if (_openedId > 0)
+        {
+            var detail = await Dashboards.BuildCpLandedCostSheetDetailAsync(_openedId, ctx.RequestAborted);
+            _openedSheet = detail.Sheet;
+            _openedExpenses = detail.Expenses;
+            _openedLines = detail.Lines;
+            if (_openedSheet is not null)
+            {
+                var openedList = _rows.FirstOrDefault(r => r.Id == _openedId);
+                if (openedList is not null)
+                {
+                    _rows = new[] { openedList }.Concat(_rows.Where(r => r.Id != _openedId)).ToList();
+                }
+            }
+            else if (!string.IsNullOrWhiteSpace(detail.Message))
+            {
+                _message = detail.Message;
+            }
+        }
     }
 }

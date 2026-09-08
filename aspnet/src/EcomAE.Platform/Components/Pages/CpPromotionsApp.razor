@@ -20,11 +20,44 @@
             </div>
             <div class="panel-body">
                 <p>@CpPhpModuleCopy.PurposeFor("/cp/promotions-app")</p>
+                <p>Open a code to see the validity window. Engine create and apply stay on the Classic twin.</p>
             </div>
         </div>
     </div>
-    <PhpParityModuleBody AppPath="/cp/promotions-app" IsAdmin="_isAdmin" />
+    <PhpParityModuleBody AppPath="/cp/promotions-app" IsAdmin="_isAdmin" ShowGhostScaffold="false" />
 
+    <ErpOpenedRecordBanner Id="_openedId" Found="@(_openedPromo is not null)" Caption="@OpenedCaption" ListHref="@_listHref" />
+
+    <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Promotion KPIs">
+        <div class="kpi"><div class="lbl">Promotions</div><div class="val">@_summary.PromotionCount.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Active</div><div class="val">@_summary.ActivePromotions.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Percent type</div><div class="val">@_summary.PercentPromotions.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Loyalty accounts</div><div class="val">@_summary.LoyaltyAccounts.ToString(CultureInfo.InvariantCulture)</div></div>
+    </div>
+
+    @if (_openedPromo is not null)
+    {
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">
+                    @(!string.IsNullOrWhiteSpace(_openedPromo.Code) ? _openedPromo.Code : ("Promo #" + _openedPromo.Id.ToString(CultureInfo.InvariantCulture)))
+                    <span class="label label-default pull-right">@(_openedPromo.Active ? "active" : "inactive")</span>
+                </div>
+                <div class="panel-body">
+                    <p><strong>@(!string.IsNullOrWhiteSpace(_openedPromo.Name) ? _openedPromo.Name : "—")</strong>
+                        · @(!string.IsNullOrWhiteSpace(_openedPromo.Type) ? _openedPromo.Type : "—")
+                        · @_openedPromo.Value.ToString(CultureInfo.InvariantCulture)
+                        · min spend @_openedPromo.MinSpend.ToString("0.00", CultureInfo.InvariantCulture)</p>
+                    <p>Valid from <strong>@_openedPromo.ValidFrom.ToString(CultureInfo.InvariantCulture)</strong>
+                        · Valid to <strong>@_openedPromo.ValidTo.ToString(CultureInfo.InvariantCulture)</strong></p>
+                    @if (_openedPromo.ValidFrom == 0 && _openedPromo.ValidTo == 0)
+                    {
+                        <p class="text-muted">No validity window yet.</p>
+                    }
+                </div>
+            </div>
+        </div>
+    }
 
     <p class="help-block">@_summary.PromotionCount.ToString(CultureInfo.InvariantCulture) Promotions · @_summary.ActivePromotions.ToString(CultureInfo.InvariantCulture) Active · @_summary.PercentPromotions.ToString(CultureInfo.InvariantCulture) Percent type · @_summary.LoyaltyAccounts.ToString(CultureInfo.InvariantCulture) Loyalty accounts.</p>
 
@@ -33,7 +66,7 @@
             <div class="panel-heading hbuilt">Records</div>
             <div class="panel-body">
                 <div class="table-responsive">
-                    <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped">
+                    <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped table-bordered table-epc epc-erp-table">
             <thead>
                 <tr>
                     <th>Id</th>
@@ -49,13 +82,13 @@
             <tbody>
                 @if (_promotions.Count == 0)
                 {
-                    <tr><td colspan="8">No records yet.</td></tr>
+                    <tr><td colspan="8">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? "No records yet." : _message) : "Sign in with a staff session for live rows.")</td></tr>
                 }
                 else
                 {
                     @foreach (var row in _promotions)
                     {
-                        <tr>
+                        <tr id="erp-row-@row.Id.ToString(CultureInfo.InvariantCulture)" class="@ErpRecordOpen.RowClass(row.Id, _openedId)">
                             <td>@row.Id.ToString(CultureInfo.InvariantCulture)</td>
                             <td>@(!string.IsNullOrWhiteSpace(row.Code) ? row.Code : "—")</td>
                             <td>@(!string.IsNullOrWhiteSpace(row.Name) ? row.Name : "—")</td>
@@ -63,7 +96,7 @@
                             <td>@row.Value.ToString(CultureInfo.InvariantCulture)</td>
                             <td>@row.MinSpend.ToString("0.00", CultureInfo.InvariantCulture)</td>
                             <td>@(row.Active ? "yes" : "no")</td>
-                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
+                            <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href(_listHref, "promo_id", row.Id)">Open</a></td>
                         </tr>
                     }
                 }
@@ -78,16 +111,26 @@
 
 @code {
     private const string _phpTab = "/CP/control/portal/epc_promotions_engine";
+    private const string _listHref = "/cp/promotions-app";
     private bool _isAdmin;
     private CpPromotionsSummary _summary = new(0, 0, 0, 0, "n/a", "");
     private IReadOnlyList<CpPromotionDigest> _promotions = [];
     private string _source = "n/a";
     private string _message = "";
+    private long _openedId;
+    private CpPromotionDetail? _openedPromo;
+
+    private string OpenedCaption => _openedPromo is null
+        ? ""
+        : (string.IsNullOrWhiteSpace(_openedPromo.Code) ? ("Promo #" + _openedPromo.Id.ToString(CultureInfo.InvariantCulture)) : _openedPromo.Code)
+            + (string.IsNullOrWhiteSpace(_openedPromo.Type) ? "" : (" · " + _openedPromo.Type));
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
+
+        _openedId = ErpRecordOpen.ReadId(ctx.Request, "promo_id");
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
@@ -101,5 +144,23 @@
         _promotions = result.Promotions;
         _source = result.Source;
         _message = result.Message;
+
+        if (_openedId > 0)
+        {
+            var detail = await Dashboards.BuildCpPromotionDetailAsync(_openedId, ctx.RequestAborted);
+            _openedPromo = detail.Promotion;
+            if (_openedPromo is not null)
+            {
+                var openedList = _promotions.FirstOrDefault(r => r.Id == _openedId);
+                if (openedList is not null)
+                {
+                    _promotions = new[] { openedList }.Concat(_promotions.Where(r => r.Id != _openedId)).ToList();
+                }
+            }
+            else if (!string.IsNullOrWhiteSpace(detail.Message))
+            {
+                _message = detail.Message;
+            }
+        }
     }
 }
