@@ -3528,6 +3528,26 @@ public sealed record CpCrmActivitiesDigestResult(
     string Source,
     string Message);
 
+public sealed record CpCrmActivitiesDetail(
+    long Id,
+    string ActivityType,
+    string RelatedType,
+    long RelatedId,
+    long DueDate,
+    int Done,
+    long OwnerUserId,
+    long TimeCreated,
+    long TimeUpdated,
+    int Active,
+    int NotesLen,
+    string NotesExcerpt);
+
+public sealed record CpCrmActivitiesDetailResult(
+    CpCrmActivitiesDetail? Activity,
+    IReadOnlyList<CpCrmActivitiesActivityDigest> Siblings,
+    string Source,
+    string Message);
+
 public sealed record CpAuthMfaSummary(
     int SecretCount,
     int ConfirmedCount,

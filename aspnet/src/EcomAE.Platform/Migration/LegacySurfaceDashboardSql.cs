@@ -3906,6 +3906,34 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>Opened CRM activity. Notes are a short excerpt.</summary>
+    public const string SelectCpCrmActivitiesDetail = """
+        SELECT `id`, IFNULL(`activity_type`,'') AS activity_type,
+               IFNULL(`related_type`,'') AS related_type, IFNULL(`related_id`,0) AS related_id,
+               IFNULL(`due_date`,0) AS due_date, IFNULL(`done`,0) AS done,
+               IFNULL(`owner_user_id`,0) AS owner_user_id,
+               IFNULL(`time_created`,0) AS time_created, IFNULL(`time_updated`,0) AS time_updated,
+               IFNULL(`active`,1) AS active,
+               CHAR_LENGTH(IFNULL(`notes`,'')) AS notes_len,
+               LEFT(IFNULL(`notes`,''), 280) AS notes_excerpt
+        FROM `epc_crm_activities`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Other activities on the same related record. Notes omitted.</summary>
+    public const string SelectCpCrmActivitiesRelatedSiblings = """
+        SELECT `id`, IFNULL(`activity_type`,'') AS activity_type,
+               IFNULL(`related_type`,'') AS related_type, IFNULL(`related_id`,0) AS related_id,
+               IFNULL(`due_date`,0) AS due_date, IFNULL(`done`,0) AS done,
+               IFNULL(`owner_user_id`,0) AS owner_user_id,
+               IFNULL(`time_created`,0) AS time_created, IFNULL(`active`,1) AS active
+        FROM `epc_crm_activities`
+        WHERE `related_type` = @related_type AND `related_id` = @related_id AND `id` <> @id
+        ORDER BY `id` DESC
+        LIMIT 50
+        """;
+
     /// <summary>Auth MFA KPIs from epc_mfa_* (CREATE TABLE in epc_auth_mfa.php).</summary>
     public const string SelectCpAuthMfaStats = """
         SELECT
