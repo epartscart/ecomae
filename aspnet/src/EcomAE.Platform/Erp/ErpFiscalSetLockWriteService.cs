@@ -97,7 +97,12 @@ public sealed class ErpFiscalSetLockWriteService : IErpFiscalSetLockWriteService
     public static long ResolveLockDateUnix(string? lockDate, long lockDateUnix)
     {
         var raw = lockDate ?? "";
-        if (raw.Length > 0 && raw != "0")
+        if (raw == "0")
+        {
+            return 0;
+        }
+
+        if (raw.Length > 0)
         {
             var trimmed = raw.Trim();
             if (trimmed.Length == 0 || trimmed == "0")
