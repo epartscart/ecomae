@@ -4,17 +4,18 @@
 @using EcomAE.Platform.Auth
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Routing
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
-@inject IErpOplParamsSaveDryRun OplSave
 @inject IHttpContextAccessor Http
 @inject NavigationManager Nav
 
 <PageTitle>@_title · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="@_title" BreadcrumbArea="Planning" BreadcrumbTab="@_title">
-    <PhpErpModulePageHeader Title="@_title" Subtitle="Replenishment recommendations and item/warehouse planning parameters. Writes stay dry-run." PhpTabHref="@_phpTab" />
+    <PhpErpModulePageHeader Title="@_title" Subtitle="Replenishment recommendations and item/warehouse planning parameters. Param save is live-gated; confirm and draft POs stay Classic." PhpTabHref="@_phpTab" />
     <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
+    <ErpPhpFlash Ok="@_ok" Err="@_err" />
 
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Order planning KPIs">
         <div class="kpi"><div class="lbl">Recommendations</div><div class="val">@_count.ToString(CultureInfo.InvariantCulture)</div></div>
@@ -25,14 +26,28 @@
 
     @if (_isAdmin)
     {
-        <form @onsubmit="OnSave" @onsubmit:preventDefault="true" style="margin:12px 0;padding:10px;border:1px solid #c5d4de;background:#fff;">
-            <strong>Planning param (dry-run)</strong>
-            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;align-items:end;">
-                <label>Item / code <input class="form-control" @bind="_formCode" /></label>
-                <button type="submit" class="btn btn-primary">Validate save</button>
-            </div>
-            @if (!string.IsNullOrWhiteSpace(_formResult)) { <p style="margin:8px 0 0;font-size:12px;">@_formResult</p> }
-        </form>
+        <ErpPhpCreateWell Title="Planning parameters">
+            <form method="post" action="@EcomAeRoutes.ErpOrderPlanningParamsSave" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+                <input type="hidden" name="returnUrl" value="/erp/order-planning-app" />
+                <input type="hidden" name="confirmWrites" value="true" />
+                <label>Item <input class="form-control input-sm" name="item_id" placeholder="Item id" style="width:80px;" required /></label>
+                <label>Warehouse <input class="form-control input-sm" name="warehouse_id" placeholder="WH id" style="width:80px;" required /></label>
+                <label>Lead time <input class="form-control input-sm" name="lead_time_days" value="30" style="width:70px;" /></label>
+                <label>Service % <input class="form-control input-sm" name="target_service_level" value="90" style="width:70px;" /></label>
+                <label>Review days <input class="form-control input-sm" name="review_period_days" value="30" style="width:70px;" /></label>
+                <label>Min qty <input class="form-control input-sm" name="min_order_qty" placeholder="0" style="width:80px;" /></label>
+                <label>Multiple <input class="form-control input-sm" name="order_multiple" placeholder="0" style="width:80px;" /></label>
+                <label>Buffer <input class="form-control input-sm" name="manual_buffer" placeholder="0" style="width:80px;" /></label>
+                <label>Supplier <input class="form-control input-sm" name="supplier" placeholder="Supplier" style="width:140px;" /></label>
+                <label>Stocked
+                    <select class="form-control input-sm" name="stocked">
+                        <option value="0">no</option>
+                        <option value="1">yes</option>
+                    </select>
+                </label>
+                <button type="submit" class="btn btn-primary btn-sm">Save</button>
+            </form>
+        </ErpPhpCreateWell>
     }
 
     <h2 style="font-size:16px;">Recommendations</h2>
@@ -65,7 +80,7 @@
     </div>
 
     <div class="epc-erp-empty" style="display:block;margin-top:12px;padding:8px 10px;border:1px solid #c5d4de;background:#f8fafc;color:#475569;font-size:12px;">
-        Source: @_source. Dry-run: <code>opl_params_save</code> — writes=0.
+        Source: @_source. Live: <code>opl_params_save</code>. Confirm, draft POs, and autoplan stay Classic.
         @if (!string.IsNullOrWhiteSpace(_message)) { <span> @_message</span> }
     </div>
 </PhpErpDesktopChrome>
@@ -80,13 +95,15 @@
     private decimal _pendingValue;
     private string _source = "n/a";
     private string _message = "";
-    private string _formCode = "";
-    private string _formResult = "";
+    private string _ok = "";
+    private string _err = "";
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
+        _ok = ctx.Request.Query["ok"].ToString();
+        _err = ctx.Request.Query["err"].ToString();
         var tab = (ctx.Request.Query["tab"].ToString() ?? "").Trim().ToLowerInvariant();
         if (tab == "master_planning")
         {
@@ -106,11 +123,5 @@
         _pendingValue = result.PendingValue;
         _source = result.Source;
         _message = result.Message;
-    }
-
-    private void OnSave()
-    {
-        var result = OplSave.Evaluate(new ErpOplParamsSaveRequest(0, _formCode, false));
-        _formResult = $"{result.Status}: {result.Detail} (writes={result.Writes.ToString(CultureInfo.InvariantCulture)})";
     }
 }

@@ -4092,8 +4092,8 @@ public sealed class ErpModule : ISurfaceModule
                 written.Message,
                 new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxOplParamsSave, async (HttpContext context, ErpOplParamsSaveBody? body, ILegacySessionValidator validator, IErpOplParamsSaveDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpOplParamsSaveRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxOplParamsSave, HandleOplParamsSaveAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpOrderPlanningParamsSave, HandleOplParamsSaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxOplSetStatus, async (HttpContext context, ErpOplSetStatusBody? body, ILegacySessionValidator validator, IErpOplSetStatusDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpOplSetStatusRequest(body.Id, body.TargetStatus, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxOplConfirmAll, async (HttpContext context, ErpOplConfirmAllBody? body, ILegacySessionValidator validator, IErpOplConfirmAllDryRun dryRun, CancellationToken cancellationToken) =>
@@ -11774,6 +11774,84 @@ public sealed class ErpModule : ISurfaceModule
         }
     }
 
+    private static async Task<IResult> HandleOplParamsSaveAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpOplParamsSaveDryRun dryRun,
+        IErpOplParamsSaveWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/order-planning-app", "Admin ERP capability required for order planning params save.");
+        }
+
+        var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpOplParamsSaveBody>(context, cancellationToken) ?? new();
+        var itemId = body.ItemId;
+        var warehouseId = body.WarehouseId;
+        var leadTimeDays = body.LeadTimeDays;
+        var targetServiceLevel = body.TargetServiceLevel;
+        var reviewPeriodDays = body.ReviewPeriodDays;
+        var minOrderQty = body.MinOrderQty;
+        var orderMultiple = body.OrderMultiple;
+        var manualBuffer = body.ManualBuffer;
+        var supplier = body.Supplier;
+        var stocked = body.Stocked;
+        var confirm = body.ConfirmWrites;
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            itemId = LiveWriteFormBinder.Long(form, "itemId", "item_id");
+            warehouseId = LiveWriteFormBinder.Long(form, "warehouseId", "warehouse_id");
+            if (form.ContainsKey("lead_time_days") || form.ContainsKey("leadTimeDays"))
+            {
+                leadTimeDays = LiveWriteFormBinder.Int(form, "lead_time_days", "leadTimeDays");
+            }
+            if (form.ContainsKey("target_service_level") || form.ContainsKey("targetServiceLevel"))
+            {
+                targetServiceLevel = LiveWriteFormBinder.Dec(form, "target_service_level", "targetServiceLevel");
+            }
+            if (form.ContainsKey("review_period_days") || form.ContainsKey("reviewPeriodDays"))
+            {
+                reviewPeriodDays = LiveWriteFormBinder.Int(form, "review_period_days", "reviewPeriodDays");
+            }
+            if (form.ContainsKey("min_order_qty") || form.ContainsKey("minOrderQty"))
+            {
+                minOrderQty = LiveWriteFormBinder.Dec(form, "min_order_qty", "minOrderQty");
+            }
+            if (form.ContainsKey("order_multiple") || form.ContainsKey("orderMultiple"))
+            {
+                orderMultiple = LiveWriteFormBinder.Dec(form, "order_multiple", "orderMultiple");
+            }
+            if (form.ContainsKey("manual_buffer") || form.ContainsKey("manualBuffer"))
+            {
+                manualBuffer = LiveWriteFormBinder.Dec(form, "manual_buffer", "manualBuffer");
+            }
+            supplier = LiveWriteFormBinder.Text(form, "supplier");
+            if (form.ContainsKey("stocked"))
+            {
+                stocked = LiveWriteFormBinder.Int(form, "stocked");
+            }
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+        }
+
+        if (!confirm)
+        {
+            return Results.Ok(dryRun.Evaluate(new ErpOplParamsSaveRequest(itemId, warehouseId, leadTimeDays, targetServiceLevel, reviewPeriodDays, minOrderQty, orderMultiple, manualBuffer, supplier, stocked, false)).ToPayload(SessionPayload(session)));
+        }
+
+        var written = await writes.SaveAsync(
+            new ErpOplParamsSaveWriteRequest(itemId, warehouseId, leadTimeDays, targetServiceLevel, reviewPeriodDays, minOrderQty, orderMultiple, manualBuffer, supplier, stocked),
+            cancellationToken);
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/erp/order-planning-app",
+            written.Succeeded,
+            written.Message,
+            new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+    }
+
     private static async Task<IResult> HandleWhtCodeSaveAsync(
         HttpContext context,
         ILegacySessionValidator validator,
@@ -13512,7 +13590,18 @@ public sealed class ErpModule : ISurfaceModule
         string? Notes = null,
         bool ConfirmWrites = false);
     private sealed record ErpBosVatRefundStatusBody(long Id, string? TargetStatus = null, bool ConfirmWrites = false);
-    private sealed record ErpOplParamsSaveBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
+    private sealed record ErpOplParamsSaveBody(
+        long ItemId = 0,
+        long WarehouseId = 0,
+        int? LeadTimeDays = null,
+        decimal? TargetServiceLevel = null,
+        int? ReviewPeriodDays = null,
+        decimal? MinOrderQty = null,
+        decimal? OrderMultiple = null,
+        decimal? ManualBuffer = null,
+        string? Supplier = null,
+        int? Stocked = null,
+        bool ConfirmWrites = false);
     private sealed record ErpOplSetStatusBody(long Id, string? TargetStatus = null, bool ConfirmWrites = false);
     private sealed record ErpOplConfirmAllBody(bool ConfirmWrites = false);
     private sealed record ErpOplCreatePosBody(bool ConfirmWrites = false);

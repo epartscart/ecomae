@@ -1656,7 +1656,9 @@ public static class EcomAeRoutes
     public const string ErpAjaxBosVatRefundSave = "/erp/ajax/bos-vat-refund-save";
     /// <summary>Wave B dry-run for PHP bos_vat_refund_status (writes=0).</summary>
     public const string ErpAjaxBosVatRefundStatus = "/erp/ajax/bos-vat-refund-status";
-    /// <summary>Wave B dry-run for PHP opl_params_save (writes=0).</summary>
+    /// <summary>HTML form POST for PHP <c>opl_params_save</c>. <c>confirmWrites=true</c> writes via <c>IErpOplParamsSaveWriteService</c>.</summary>
+    public const string ErpOrderPlanningParamsSave = "/erp/order-planning/params/save";
+    /// <summary>Live PHP epc_opl_params_save ajax alias of <see cref="ErpOrderPlanningParamsSave"/>.</summary>
     public const string ErpAjaxOplParamsSave = "/erp/ajax/opl-params-save";
     /// <summary>Wave B dry-run for PHP opl_set_status (writes=0).</summary>
     public const string ErpAjaxOplSetStatus = "/erp/ajax/opl-set-status";
