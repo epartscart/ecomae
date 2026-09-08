@@ -17,6 +17,7 @@ public sealed class ErpRecordOpenPhpParityTests
     [InlineData("/ERP/?epc_erp_shell=1&area=purchasing&tab=purchase_requisitions&req_id=4", "/erp/purchase-requests-app?req_id=4")]
     [InlineData("/CP/shop/finance/epc_collections_dunning?queue_id=12", "/cp/collections-dunning-app?queue_id=12")]
     [InlineData("/ERP/?epc_erp_shell=1&area=credit_coll&queue_id=12", "/erp/collections-dunning-app?queue_id=12")]
+    [InlineData("/ERP/?epc_erp_shell=1&area=tax&tab=withholding&txn_id=5", "/erp/withholding-app?txn_id=5")]
     [InlineData("/ERP/?epc_erp_shell=1&area=risk&tab=insurance&pol=7", "/erp/insurance-compliance-app?pol=7")]
     [InlineData("/ERP/?epc_erp_shell=1&area=risk&tab=insurance&policy_id=7", "/erp/insurance-compliance-app?policy_id=7")]
     [InlineData("/CP/shop/returns-manager?page=detail&return_id=8", "/cp/returns-rma-app?return_id=8")]
@@ -106,6 +107,7 @@ public sealed class ErpRecordOpenPhpParityTests
     [InlineData("ErpPayablesApp.razor", "supplier_id")]
     [InlineData("CpPurchaseRequestsApp.razor", "req_id")]
     [InlineData("CpCollectionsDunningApp.razor", "queue_id")]
+    [InlineData("ErpWithholdingApp.razor", "txn_id")]
     [InlineData("CpInsuranceComplianceApp.razor", "pol")]
     [InlineData("CpReturnsRmaApp.razor", "rma_id")]
     [InlineData("CpQuoteRequestsApp.razor", "quote_id")]
@@ -168,6 +170,21 @@ public sealed class ErpRecordOpenPhpParityTests
     }
 
     [Fact]
+    public void WithholdingApp_OpenLoadsDetailAndAcceptsPhpTxnId()
+    {
+        var root = FindRepoRoot();
+        var text = File.ReadAllText(Path.Combine(root,
+            "aspnet/src/EcomAE.Platform/Components/Pages/ErpWithholdingApp.razor"));
+        Assert.Contains("ErpRecordOpen.Href(_listHref, \"txn_id\"", text, StringComparison.Ordinal);
+        Assert.Contains("ErpOpenedRecordBanner", text, StringComparison.Ordinal);
+        Assert.Contains("ReadId(ctx.Request, \"txn_id\")", text, StringComparison.Ordinal);
+        Assert.Contains("BuildErpWithholdingTxnDetailAsync", text, StringComparison.Ordinal);
+        Assert.Contains("none yet.", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)\">Open", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("/php-reference/", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("ASP.NET", text, StringComparison.Ordinal);
+    }
+
     public void InsuranceComplianceApp_OpenLoadsDetailAndAcceptsPhpPol()
     {
         var root = FindRepoRoot();
@@ -232,6 +249,13 @@ public sealed class ErpRecordOpenPhpParityTests
             ErpRecordOpen.PreserveRecordQuery(
                 "/cp/collections-dunning-app",
                 "/CP/shop/finance/epc_collections_dunning?queue_id=12"));
+        Assert.Equal("/erp/withholding-app?txn_id=5#erp-row-5",
+            ErpRecordOpen.Href("/erp/withholding-app", "txn_id", 5));
+        Assert.Equal(
+            "/erp/withholding-app?txn_id=5",
+            ErpRecordOpen.PreserveRecordQuery(
+                "/erp/withholding-app",
+                "/ERP/?epc_erp_shell=1&area=tax&tab=withholding&txn_id=5"));
         Assert.Equal("/erp/insurance-compliance-app?pol=7#erp-row-7",
             ErpRecordOpen.Href("/erp/insurance-compliance-app", "pol", 7));
         Assert.Equal(

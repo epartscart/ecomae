@@ -520,6 +520,9 @@ public interface ISurfaceDashboardSummaryReporter
     /// <summary>Read-only withholding codes + transactions (PHP <c>epc_wht_*</c>). Settle, code save, record, and certificate writes are live.</summary>
     Task<ErpWithholdingDigestResult> BuildErpWithholdingDigestAsync(int limit, CancellationToken cancellationToken = default);
 
+    /// <summary>Opened withholding transaction (PHP <c>txn_id</c>).</summary>
+    Task<ErpWithholdingTxnDetailResult> BuildErpWithholdingTxnDetailAsync(long id, CancellationToken cancellationToken = default);
+
     /// <summary>Read-only petty cash floats (PHP <c>epc_erp_petty_cash</c>).</summary>
     Task<ErpPettyCashListResult> ListErpPettyCashAsync(int limit, CancellationToken cancellationToken = default);
 

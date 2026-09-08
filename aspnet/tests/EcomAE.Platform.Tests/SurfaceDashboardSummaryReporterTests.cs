@@ -94,6 +94,7 @@ public sealed class SurfaceDashboardSummaryReporterTests
         var workflowTasks = await reporter.BuildErpWorkflowTasksDigestAsync(10);
         var vatReturn = await reporter.BuildErpVatReturnDigestAsync();
         var withholding = await reporter.BuildErpWithholdingDigestAsync(10);
+        var withholdingDetail = await reporter.BuildErpWithholdingTxnDetailAsync(5);
         var pettyCash = await reporter.ListErpPettyCashAsync(10);
         var cashForecast = await reporter.BuildErpCashForecastDigestAsync(10);
         var bankInstruments = await reporter.BuildErpBankInstrumentsDigestAsync(10);
@@ -294,6 +295,7 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.Equal("migration", workflowTasks.Source);
         Assert.Equal("migration", vatReturn.Source);
         Assert.Equal("migration", withholding.Source);
+        Assert.Equal("migration", withholdingDetail.Source);
         Assert.Equal("migration", pettyCash.Source);
         Assert.Equal("migration", cashForecast.Source);
         Assert.Equal("migration", bankInstruments.Source);
@@ -531,6 +533,10 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.Contains("`notes`", LegacySurfaceDashboardSql.SelectCpCollectionsDunningQueueDetail, StringComparison.Ordinal);
         Assert.Contains("epc_dunning_log", LegacySurfaceDashboardSql.SelectCpCollectionsDunningLog, StringComparison.Ordinal);
         Assert.Contains("`queue_id` = @id", LegacySurfaceDashboardSql.SelectCpCollectionsDunningLog, StringComparison.Ordinal);
+        Assert.DoesNotContain("company_id", LegacySurfaceDashboardSql.SelectErpWithholdingTxns, StringComparison.Ordinal);
+        Assert.Contains("company_id", LegacySurfaceDashboardSql.SelectErpWithholdingTxnDetail, StringComparison.Ordinal);
+        Assert.Contains("epc_wht_txn", LegacySurfaceDashboardSql.SelectErpWithholdingTxnDetail, StringComparison.Ordinal);
+        Assert.Contains("t.`id` = @id", LegacySurfaceDashboardSql.SelectErpWithholdingTxnDetail, StringComparison.Ordinal);
         Assert.DoesNotContain("`note`", LegacySurfaceDashboardSql.SelectCpInsuranceCompliancePolicies, StringComparison.Ordinal);
         Assert.DoesNotContain("contact_email", LegacySurfaceDashboardSql.SelectCpInsuranceCompliancePolicies, StringComparison.Ordinal);
         Assert.Contains("`note`", LegacySurfaceDashboardSql.SelectCpInsuranceCompliancePolicyDetail, StringComparison.Ordinal);

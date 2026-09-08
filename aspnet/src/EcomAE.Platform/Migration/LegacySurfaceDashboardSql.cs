@@ -4541,6 +4541,26 @@ public const string SelectCpOpsGuidesStats = """
         LIMIT @limit
         """;
 
+    /// <summary>Opened withholding txn — includes company_id (list omits it).</summary>
+    public const string SelectErpWithholdingTxnDetail = """
+        SELECT t.`id`, IFNULL(t.`company_id`,0) AS company_id,
+               IFNULL(t.`code_id`,0) AS code_id,
+               IFNULL(c.`code`,'') AS code,
+               IFNULL(t.`vendor`,'') AS vendor,
+               IFNULL(t.`doc_ref`,'') AS doc_ref,
+               IFNULL(t.`txn_date`,'') AS txn_date,
+               IFNULL(t.`base_amount`,0) AS base_amount,
+               IFNULL(t.`wht_amount`,0) AS wht_amount,
+               IFNULL(t.`rate`,0) AS rate,
+               IFNULL(t.`certificate_no`,'') AS certificate_no,
+               IFNULL(t.`status`,'accrued') AS status,
+               IFNULL(t.`time_created`,0) AS time_created
+        FROM `epc_wht_txn` t
+        LEFT JOIN `epc_wht_code` c ON c.`id` = t.`code_id`
+        WHERE t.`id` = @id
+        LIMIT 1
+        """;
+
     /// <summary>PHP <c>epc_erp_petty_cash_list</c>.</summary>
     public const string SelectErpPettyCash = """
         SELECT pc.`id`, IFNULL(pc.`name`,'') AS name,
