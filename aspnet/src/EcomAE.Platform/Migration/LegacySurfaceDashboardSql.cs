@@ -3184,6 +3184,47 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>Opened insurance policy — includes note/contact_email (PHP pol= detail).</summary>
+    public const string SelectCpInsuranceCompliancePolicyDetail = """
+        SELECT `id`, IFNULL(`company_id`,0) AS company_id, IFNULL(`policy_no`,'') AS policy_no,
+               IFNULL(`class`,'') AS policy_class, IFNULL(`title`,'') AS title,
+               IFNULL(`insurer`,'') AS insurer, IFNULL(`broker`,'') AS broker,
+               IFNULL(`insured_name`,'') AS insured_name,
+               IFNULL(`sum_insured`,0) AS sum_insured, IFNULL(`premium`,0) AS premium,
+               IFNULL(`deductible`,0) AS deductible, IFNULL(`currency`,'') AS currency,
+               IFNULL(`start_date`,0) AS start_date, IFNULL(`expiry_date`,0) AS expiry_date,
+               IFNULL(`reminder_days`,'') AS reminder_days,
+               IFNULL(`contact_email`,'') AS contact_email,
+               IFNULL(`status`,'') AS status, IFNULL(`note`,'') AS note,
+               IFNULL(`time_created`,0) AS time_created
+        FROM `epc_erp_ins_policies`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Opened policy documents (PHP epc_ins_docs).</summary>
+    public const string SelectCpInsuranceComplianceDocuments = """
+        SELECT `id`, IFNULL(`policy_id`,0) AS policy_id,
+               IFNULL(`doc_type`,'') AS doc_type, IFNULL(`title`,'') AS title,
+               IFNULL(`file_path`,'') AS file_path, IFNULL(`time_created`,0) AS time_created
+        FROM `epc_erp_ins_documents`
+        WHERE `policy_id` = @id
+        ORDER BY `id` ASC
+        """;
+
+    /// <summary>Opened policy claims (PHP epc_ins_claims).</summary>
+    public const string SelectCpInsuranceComplianceClaims = """
+        SELECT `id`, IFNULL(`policy_id`,0) AS policy_id,
+               IFNULL(`claim_no`,'') AS claim_no,
+               IFNULL(`description`,'') AS description,
+               IFNULL(`claim_amount`,0) AS claim_amount,
+               IFNULL(`settled_amount`,0) AS settled_amount,
+               IFNULL(`status`,'') AS status, IFNULL(`time_created`,0) AS time_created
+        FROM `epc_erp_ins_claims`
+        WHERE `policy_id` = @id
+        ORDER BY `id` DESC
+        """;
+
     /// <summary>ERP audit trail KPIs from epc_erp_audit_log (CREATE TABLE in epc_erp_audit.php).</summary>
     public const string SelectCpAuditTrailStats = """
         SELECT

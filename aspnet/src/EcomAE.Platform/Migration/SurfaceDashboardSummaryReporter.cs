@@ -10485,6 +10485,98 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    public async Task<CpInsuranceComplianceDetailResult> BuildCpInsuranceComplianceDetailAsync(long id, CancellationToken cancellationToken = default)
+    {
+        if (id <= 0)
+        {
+            return new(null, [], [], "n/a", "");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return new(null, [], [], "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            CpInsuranceCompliancePolicyDetail? header = null;
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectCpInsuranceCompliancePolicyDetail;
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    header = new CpInsuranceCompliancePolicyDetail(
+                        Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["company_id"] is DBNull ? 0 : reader["company_id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["policy_no"] is DBNull ? string.Empty : reader["policy_no"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["policy_class"] is DBNull ? string.Empty : reader["policy_class"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["title"] is DBNull ? string.Empty : reader["title"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["insurer"] is DBNull ? string.Empty : reader["insurer"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["broker"] is DBNull ? string.Empty : reader["broker"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["insured_name"] is DBNull ? string.Empty : reader["insured_name"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToDecimal(reader["sum_insured"] is DBNull ? 0 : reader["sum_insured"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(reader["premium"] is DBNull ? 0 : reader["premium"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(reader["deductible"] is DBNull ? 0 : reader["deductible"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["currency"] is DBNull ? string.Empty : reader["currency"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt64(reader["start_date"] is DBNull ? 0 : reader["start_date"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["expiry_date"] is DBNull ? 0 : reader["expiry_date"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["reminder_days"] is DBNull ? string.Empty : reader["reminder_days"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["contact_email"] is DBNull ? string.Empty : reader["contact_email"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["status"] is DBNull ? string.Empty : reader["status"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["note"] is DBNull ? string.Empty : reader["note"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt64(reader["time_created"] is DBNull ? 0 : reader["time_created"], CultureInfo.InvariantCulture));
+                }
+            }
+
+            var docs = new List<CpInsuranceComplianceDocumentDigest>();
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectCpInsuranceComplianceDocuments;
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    docs.Add(new CpInsuranceComplianceDocumentDigest(
+                        Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["policy_id"] is DBNull ? 0 : reader["policy_id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["doc_type"] is DBNull ? string.Empty : reader["doc_type"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["title"] is DBNull ? string.Empty : reader["title"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["file_path"] is DBNull ? string.Empty : reader["file_path"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt64(reader["time_created"] is DBNull ? 0 : reader["time_created"], CultureInfo.InvariantCulture)));
+                }
+            }
+
+            var claims = new List<CpInsuranceComplianceClaimDigest>();
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectCpInsuranceComplianceClaims;
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    claims.Add(new CpInsuranceComplianceClaimDigest(
+                        Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["policy_id"] is DBNull ? 0 : reader["policy_id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["claim_no"] is DBNull ? string.Empty : reader["claim_no"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["description"] is DBNull ? string.Empty : reader["description"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToDecimal(reader["claim_amount"] is DBNull ? 0 : reader["claim_amount"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(reader["settled_amount"] is DBNull ? 0 : reader["settled_amount"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["status"] is DBNull ? string.Empty : reader["status"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt64(reader["time_created"] is DBNull ? 0 : reader["time_created"], CultureInfo.InvariantCulture)));
+                }
+            }
+
+            return new(header, docs, claims, "database", header is null ? "Policy not found." : string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(null, [], [], "database-error", ex.Message);
+        }
+    }
+
 
     public async Task<CpAuditTrailDigestResult> BuildCpAuditTrailDigestAsync(int limit, CancellationToken cancellationToken = default)
     {

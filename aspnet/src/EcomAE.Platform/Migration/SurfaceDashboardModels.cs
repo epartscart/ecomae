@@ -3004,6 +3004,52 @@ public sealed record CpInsuranceComplianceDigestResult(
     string Source,
     string Message);
 
+public sealed record CpInsuranceCompliancePolicyDetail(
+    long Id,
+    long CompanyId,
+    string PolicyNo,
+    string Class,
+    string Title,
+    string Insurer,
+    string Broker,
+    string InsuredName,
+    decimal SumInsured,
+    decimal Premium,
+    decimal Deductible,
+    string Currency,
+    long StartDate,
+    long ExpiryDate,
+    string ReminderDays,
+    string ContactEmail,
+    string Status,
+    string Note,
+    long TimeCreated);
+
+public sealed record CpInsuranceComplianceDocumentDigest(
+    long Id,
+    long PolicyId,
+    string DocType,
+    string Title,
+    string FilePath,
+    long TimeCreated);
+
+public sealed record CpInsuranceComplianceClaimDigest(
+    long Id,
+    long PolicyId,
+    string ClaimNo,
+    string Description,
+    decimal ClaimAmount,
+    decimal SettledAmount,
+    string Status,
+    long TimeCreated);
+
+public sealed record CpInsuranceComplianceDetailResult(
+    CpInsuranceCompliancePolicyDetail? Policy,
+    IReadOnlyList<CpInsuranceComplianceDocumentDigest> Documents,
+    IReadOnlyList<CpInsuranceComplianceClaimDigest> Claims,
+    string Source,
+    string Message);
+
 public sealed record CpAuditTrailSummary(
     int EntryCount,
     int ActionCount,
