@@ -4476,6 +4476,27 @@ public sealed record CpInfoBlocksDigestResult(
     string Source,
     string Message);
 
+public sealed record CpInfoBlocksBlockDetail(
+    long Id,
+    string BlockKey,
+    string Title,
+    string Scope,
+    string SiteKey,
+    string Placement,
+    string Locale,
+    int Active,
+    int SortOrder,
+    long CreatedAt,
+    long UpdatedAt,
+    int ContentLen,
+    string ContentExcerpt);
+
+public sealed record CpInfoBlocksBlockDetailResult(
+    CpInfoBlocksBlockDetail? Block,
+    IReadOnlyList<CpInfoBlocksRowDigest> Siblings,
+    string Source,
+    string Message);
+
 public sealed record CpFreeToolsSummary(
     int AccountCount,
     int SaveCount,

@@ -4869,6 +4869,33 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>Opened info block. Content is a short excerpt.</summary>
+    public const string SelectCpInfoBlocksBlockDetail = """
+        SELECT `id`, IFNULL(`block_key`,'') AS block_key, IFNULL(`title`,'') AS title,
+               IFNULL(`scope`,'') AS scope, IFNULL(`site_key`,'') AS site_key,
+               IFNULL(`placement`,'') AS placement, IFNULL(`locale`,'') AS locale,
+               IFNULL(`active`,0) AS active, IFNULL(`sort_order`,0) AS sort_order,
+               IFNULL(`created_at`,0) AS created_at, IFNULL(`updated_at`,0) AS updated_at,
+               CHAR_LENGTH(IFNULL(`content_html`,'')) AS content_len,
+               LEFT(IFNULL(`content_html`,''), 280) AS content_excerpt
+        FROM `epc_platform_info_blocks`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Other blocks in the same placement as the opened row. content_html omitted.</summary>
+    public const string SelectCpInfoBlocksPlacementSiblings = """
+        SELECT `id`, IFNULL(`block_key`,'') AS block_key, IFNULL(`title`,'') AS title,
+               IFNULL(`scope`,'') AS scope, IFNULL(`site_key`,'') AS site_key,
+               IFNULL(`placement`,'') AS placement, IFNULL(`locale`,'') AS locale,
+               IFNULL(`active`,0) AS active, IFNULL(`sort_order`,0) AS sort_order,
+               IFNULL(`updated_at`,0) AS updated_at
+        FROM `epc_platform_info_blocks`
+        WHERE `placement` = @placement AND `id` <> @id
+        ORDER BY `id` DESC
+        LIMIT 50
+        """;
+
     /// <summary>Free tools KPIs — active = seen in last 30 days (matches PHP epc_ecomae_free_tools.php admin KPI).</summary>
     public const string SelectCpFreeToolsStats = """
         SELECT

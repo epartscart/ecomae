@@ -14251,6 +14251,82 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    public async Task<CpInfoBlocksBlockDetailResult> BuildCpInfoBlocksBlockDetailAsync(long id, CancellationToken cancellationToken = default)
+    {
+        if (id <= 0)
+        {
+            return new(null, [], "n/a", "");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return new(null, [], "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await _connections.OpenRegistryAsync(cancellationToken).ConfigureAwait(false);
+            CpInfoBlocksBlockDetail? header = null;
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectCpInfoBlocksBlockDetail;
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    header = new CpInfoBlocksBlockDetail(
+                        Convert.ToInt64(reader["id"] is DBNull ? 0 : reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["block_key"] is DBNull ? string.Empty : reader["block_key"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["title"] is DBNull ? string.Empty : reader["title"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["scope"] is DBNull ? string.Empty : reader["scope"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["site_key"] is DBNull ? string.Empty : reader["site_key"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["placement"] is DBNull ? string.Empty : reader["placement"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["locale"] is DBNull ? string.Empty : reader["locale"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt32(reader["active"] is DBNull ? 0 : reader["active"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["sort_order"] is DBNull ? 0 : reader["sort_order"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["created_at"] is DBNull ? 0 : reader["created_at"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["updated_at"] is DBNull ? 0 : reader["updated_at"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["content_len"] is DBNull ? 0 : reader["content_len"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["content_excerpt"] is DBNull ? string.Empty : reader["content_excerpt"], CultureInfo.InvariantCulture) ?? string.Empty);
+                }
+            }
+
+            if (header is null)
+            {
+                return new(null, [], "database", "Block not found.");
+            }
+
+            var siblings = new List<CpInfoBlocksRowDigest>();
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectCpInfoBlocksPlacementSiblings;
+                AddParameter(cmd, "@placement", header.Placement);
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    siblings.Add(new CpInfoBlocksRowDigest(
+                        Convert.ToInt64(reader["id"] is DBNull ? 0 : reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["block_key"] is DBNull ? string.Empty : reader["block_key"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["title"] is DBNull ? string.Empty : reader["title"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["scope"] is DBNull ? string.Empty : reader["scope"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["site_key"] is DBNull ? string.Empty : reader["site_key"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["placement"] is DBNull ? string.Empty : reader["placement"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["locale"] is DBNull ? string.Empty : reader["locale"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt32(reader["active"] is DBNull ? 0 : reader["active"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["sort_order"] is DBNull ? 0 : reader["sort_order"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["updated_at"] is DBNull ? 0 : reader["updated_at"], CultureInfo.InvariantCulture)));
+                }
+            }
+
+            return new(header, siblings, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(null, [], "database-error", ex.Message);
+        }
+    }
+
     public async Task<CpFreeToolsDigestResult> BuildCpFreeToolsDigestAsync(int limit, CancellationToken cancellationToken = default)
     {
         var safeLimit = Math.Clamp(limit, 1, 500);

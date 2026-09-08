@@ -8188,7 +8188,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only epc_platform_info_blocks KPIs + blocks (content_html omitted). PHP info blocks CMS remains authoritative."
+                note = "Read-only epc_platform_info_blocks KPIs + blocks. Open ?block_id= loads a 280-char content excerpt plus placement siblings. PHP info blocks CMS remains authoritative."
             });
         });
 
