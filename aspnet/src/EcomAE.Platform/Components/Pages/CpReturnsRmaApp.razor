@@ -22,12 +22,11 @@
             </div>
             <div class="panel-body">
                 <p>@CpPhpModuleCopy.PurposeFor("/cp/returns-rma-app")</p>
-                <p>Set return status, decide a line, close a return, and run aftersales RMA / warranty / job writes here. Status seeding stays on the Classic twin.</p>
+                <p>Set return status, decide a line, close a return, and run aftersales RMA / warranty / job writes here. Status seeding stays on the Classic twin. Open a row for aftersales items, or a Classic <code>return_id</code> for shop-return lines.</p>
             </div>
         </div>
     </div>
-    <PhpParityModuleBody AppPath="/cp/returns-rma-app" IsAdmin="_isAdmin" />
-
+    <PhpParityModuleBody AppPath="/cp/returns-rma-app" IsAdmin="_isAdmin" ShowGhostScaffold="false" />
 
     @if (!string.IsNullOrWhiteSpace(_flashOk))
     {
@@ -37,21 +36,31 @@
     {
         <div class="alert alert-danger" role="status">@_flashErr</div>
     }
+
+    <ErpOpenedRecordBanner Id="_bannerId" Found="@(_openedRma is not null || _openedShop is not null)" Caption="@OpenedCaption" ListHref="@_listHref" />
+
+    <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Returns RMA KPIs">
+        <div class="kpi"><div class="lbl">RMAs</div><div class="val">@_summary.RmaCount.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Open</div><div class="val">@_summary.OpenCount.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Active warranties</div><div class="val">@_summary.ActiveWarrantyCount.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Items</div><div class="val">@_summary.ItemCount.ToString(CultureInfo.InvariantCulture)</div></div>
+    </div>
+
     @if (_isAdmin)
     {
         <form method="post" action="/cp/returns/action" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 .75rem">
             <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="@(Http.HttpContext?.Request.Path.Value ?? "/cp/returns-rma-app")" />
+            <input type="hidden" name="returnUrl" value="@_returnHref" />
             <input type="hidden" name="action" value="set_return_status" />
-            <label>Return id <input type="number" name="returnId" min="1" required style="width:5rem" /></label>
+            <label>Return id <input type="number" name="returnId" min="1" required style="width:5rem" value="@ShopIdValue" /></label>
             <label>Status id <input type="number" name="statusId" min="1" required style="width:5rem" /></label>
             <button type="submit" class="btn btn-xs btn-primary">Set status</button>
         </form>
         <form method="post" action="/cp/returns/action" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 .75rem">
             <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="@(Http.HttpContext?.Request.Path.Value ?? "/cp/returns-rma-app")" />
+            <input type="hidden" name="returnUrl" value="@_returnHref" />
             <input type="hidden" name="action" value="decide_line" />
-            <label>Return id <input type="number" name="returnId" min="1" required style="width:5rem" /></label>
+            <label>Return id <input type="number" name="returnId" min="1" required style="width:5rem" value="@ShopIdValue" /></label>
             <label>Line id <input type="number" name="lineId" min="1" required style="width:5rem" /></label>
             <label>Decide
                 <select name="decide">
@@ -63,14 +72,14 @@
         </form>
         <form method="post" action="/cp/returns/action" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="@(Http.HttpContext?.Request.Path.Value ?? "/cp/returns-rma-app")" />
+            <input type="hidden" name="returnUrl" value="@_returnHref" />
             <input type="hidden" name="action" value="finalize_return" />
-            <label>Return id <input type="number" name="returnId" min="1" required style="width:5rem" /></label>
+            <label>Return id <input type="number" name="returnId" min="1" required style="width:5rem" value="@ShopIdValue" /></label>
             <button type="submit" class="btn btn-xs btn-primary">Close return</button>
         </form>
-        <form method="post" action="/erp/aftersales/rma-create" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+        <form id="erp-module-new" method="post" action="/erp/aftersales/rma-create" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="/cp/returns-rma-app" />
+            <input type="hidden" name="returnUrl" value="@_listHref" />
             <label>Customer id <input type="number" name="customer_id" min="0" style="width:5rem" /></label>
             <label>Source order <input type="number" name="source_id" min="0" style="width:5rem" /></label>
             <label>RMA no <input type="text" name="rma_no" placeholder="RMA-…" /></label>
@@ -84,8 +93,8 @@
         </form>
         <form method="post" action="@EcomAeRoutes.ErpAftersalesRmaResolve" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="/cp/returns-rma-app" />
-            <label>RMA id <input type="number" name="rma_id" min="1" required style="width:5rem" /></label>
+            <input type="hidden" name="returnUrl" value="@_returnHref" />
+            <label>RMA id <input type="number" name="rma_id" min="1" required style="width:5rem" value="@RmaIdValue" /></label>
             <label>Disposition
                 <select name="disposition">
                     <option value="refund">Refund</option>
@@ -98,7 +107,7 @@
         </form>
         <form method="post" action="@EcomAeRoutes.ErpAftersalesWarrantyRegister" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="/cp/returns-rma-app" />
+            <input type="hidden" name="returnUrl" value="@_listHref" />
             <label>Item id <input type="number" name="item_id" min="0" style="width:5rem" /></label>
             <label>Serial <input type="text" name="serial_no" /></label>
             <label>Customer id <input type="number" name="customer_id" min="0" style="width:5rem" /></label>
@@ -107,7 +116,7 @@
         </form>
         <form method="post" action="@EcomAeRoutes.ErpAftersalesJobCreate" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="/cp/returns-rma-app" />
+            <input type="hidden" name="returnUrl" value="@_listHref" />
             <label>Customer id <input type="number" name="customer_id" min="0" style="width:5rem" /></label>
             <label>Asset <input type="text" name="asset_ref" /></label>
             <label>Complaint <input type="text" name="complaint" required /></label>
@@ -116,7 +125,7 @@
         </form>
         <form method="post" action="@EcomAeRoutes.ErpAftersalesJobAddLine" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="/cp/returns-rma-app" />
+            <input type="hidden" name="returnUrl" value="@_listHref" />
             <label>Job id <input type="number" name="job_id" min="1" required style="width:5rem" /></label>
             <label>Type
                 <select name="line_type">
@@ -134,11 +143,153 @@
         </form>
         <form method="post" action="@EcomAeRoutes.ErpAftersalesJobClose" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="/cp/returns-rma-app" />
+            <input type="hidden" name="returnUrl" value="@_listHref" />
             <label>Job id <input type="number" name="job_id" min="1" required style="width:5rem" /></label>
             <button type="submit" class="btn btn-xs btn-primary">Close job</button>
         </form>
     }
+
+    @if (_openedRma is not null)
+    {
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">
+                    @(!string.IsNullOrWhiteSpace(_openedRma.RmaNumber) ? _openedRma.RmaNumber : ("RMA #" + _openedRma.Id.ToString(CultureInfo.InvariantCulture)))
+                    <span class="label label-default pull-right">@(!string.IsNullOrWhiteSpace(_openedRma.Status) ? _openedRma.Status : "—")</span>
+                </div>
+                <div class="panel-body">
+                    <p>Customer: <strong>@(!string.IsNullOrWhiteSpace(_openedRma.CustomerName) ? _openedRma.CustomerName : "—")</strong>
+                        (#@_openedRma.CustomerId.ToString(CultureInfo.InvariantCulture))</p>
+                    <p>Reason: <strong>@(!string.IsNullOrWhiteSpace(_openedRma.Reason) ? _openedRma.Reason : "—")</strong>
+                        · Resolution @(!string.IsNullOrWhiteSpace(_openedRma.ResolutionType) ? _openedRma.ResolutionType : "—")</p>
+                    @if (!string.IsNullOrWhiteSpace(_openedRma.Description))
+                    {
+                        <p class="text-muted">@_openedRma.Description</p>
+                    }
+                    @if (!string.IsNullOrWhiteSpace(_openedRma.ResolutionNotes))
+                    {
+                        <p>@_openedRma.ResolutionNotes</p>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">RMA items</div>
+                <div class="panel-body">
+                    <div class="table-responsive">
+                        <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped table-bordered table-epc epc-erp-table">
+                            <thead>
+                                <tr>
+                                    <th>SKU</th>
+                                    <th>Name</th>
+                                    <th class="text-right">Qty</th>
+                                    <th class="text-right">Price</th>
+                                    <th>Condition</th>
+                                    <th>Notes</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (_openedRmaItems.Count == 0)
+                                {
+                                    <tr><td colspan="6">No items yet.</td></tr>
+                                }
+                                else
+                                {
+                                    @foreach (var item in _openedRmaItems)
+                                    {
+                                        <tr>
+                                            <td>@(!string.IsNullOrWhiteSpace(item.ProductSku) ? item.ProductSku : "—")</td>
+                                            <td>@(!string.IsNullOrWhiteSpace(item.ProductName) ? item.ProductName : "—")</td>
+                                            <td class="text-right">@item.Qty.ToString(CultureInfo.InvariantCulture)</td>
+                                            <td class="text-right">@item.UnitPrice.ToString("0.00", CultureInfo.InvariantCulture)</td>
+                                            <td>@(!string.IsNullOrWhiteSpace(item.ConditionReceived) ? item.ConditionReceived : "—")</td>
+                                            <td>@(!string.IsNullOrWhiteSpace(item.InspectionNotes) ? item.InspectionNotes : "—")</td>
+                                        </tr>
+                                    }
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    @if (_openedShop is not null)
+    {
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">
+                    Return #@_openedShop.Id.ToString(CultureInfo.InvariantCulture)
+                    <span class="label label-default pull-right">@(!string.IsNullOrWhiteSpace(_openedShop.StatusCaption) ? _openedShop.StatusCaption : "—")</span>
+                </div>
+                <div class="panel-body">
+                    <p>Customer id <strong>@_openedShop.UserId.ToString(CultureInfo.InvariantCulture)</strong>
+                        · Declared <strong>@_openedShop.DeclaredSum.ToString("0.00", CultureInfo.InvariantCulture)</strong>
+                        @if (_openedShop.ReturnComplete == 1)
+                        {
+                            <span class="label label-success">Complete</span>
+                        }
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">Return lines</div>
+                <div class="panel-body">
+                    <div class="table-responsive">
+                        <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped table-bordered table-epc epc-erp-table">
+                            <thead>
+                                <tr>
+                                    <th>Line</th>
+                                    <th>Order</th>
+                                    <th>Part</th>
+                                    <th class="text-right">Qty</th>
+                                    <th class="text-right">Price</th>
+                                    <th>Reason</th>
+                                    <th>Decision</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (_openedShopLines.Count == 0)
+                                {
+                                    <tr><td colspan="7">No lines yet.</td></tr>
+                                }
+                                else
+                                {
+                                    @foreach (var line in _openedShopLines)
+                                    {
+                                        var part = (line.Brand + " " + line.Article + " — " + line.Name).Trim();
+                                        var decision = line.ReturnSuccess == "1" ? "Approved" : line.ReturnSuccess == "0" ? "Denied" : "Pending";
+                                        <tr>
+                                            <td>#@line.Id.ToString(CultureInfo.InvariantCulture)</td>
+                                            <td>@(line.OrderId > 0 ? ("#" + line.OrderId.ToString(CultureInfo.InvariantCulture)) : "—")</td>
+                                            <td>@(string.IsNullOrWhiteSpace(part) || part == "—" ? ("Item #" + line.ItemId.ToString(CultureInfo.InvariantCulture)) : part)</td>
+                                            <td class="text-right">@line.ReturnQty.ToString("0.####", CultureInfo.InvariantCulture)</td>
+                                            <td class="text-right">@line.Price.ToString("0.00", CultureInfo.InvariantCulture)</td>
+                                            <td>
+                                                @(!string.IsNullOrWhiteSpace(line.ReasonCaption) ? line.ReasonCaption : "—")
+                                                @if (!string.IsNullOrWhiteSpace(line.Comment))
+                                                {
+                                                    <div class="text-muted">@line.Comment</div>
+                                                }
+                                            </td>
+                                            <td><strong>@decision</strong></td>
+                                        </tr>
+                                    }
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
     <p class="help-block">@_summary.RmaCount.ToString(CultureInfo.InvariantCulture) RMAs · @_summary.OpenCount.ToString(CultureInfo.InvariantCulture) Open · @_summary.ActiveWarrantyCount.ToString(CultureInfo.InvariantCulture) Active warranties · @_summary.ItemCount.ToString(CultureInfo.InvariantCulture) Items.</p>
 
     <div class="col-lg-12">
@@ -146,42 +297,42 @@
             <div class="panel-heading hbuilt">Records</div>
             <div class="panel-body">
                 <div class="table-responsive">
-                    <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped">
-            <thead>
-                <tr>
-                    <th>Id</th>
-                    <th>RMA</th>
-                    <th>Customer</th>
-                    <th>Reason</th>
-                    <th>Status</th>
-                    <th>Resolution</th>
-                    <th>Created</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody>
-                @if (_rows.Count == 0)
-                {
-                    <tr><td colspan="8">No records yet.</td></tr>
-                }
-                else
-                {
-                    @foreach (var row in _rows)
-                    {
-                        <tr>
-                            <td>@row.Id.ToString(CultureInfo.InvariantCulture)</td>
-                            <td>@(!string.IsNullOrWhiteSpace(row.RmaNumber) ? row.RmaNumber : "—")</td>
-                            <td>@(!string.IsNullOrWhiteSpace(row.CustomerName) ? row.CustomerName : "—")</td>
-                            <td>@(!string.IsNullOrWhiteSpace(row.Reason) ? row.Reason : "—")</td>
-                            <td>@(!string.IsNullOrWhiteSpace(row.Status) ? row.Status : "—")</td>
-                            <td>@(!string.IsNullOrWhiteSpace(row.ResolutionType) ? row.ResolutionType : "—")</td>
-                            <td>@(!string.IsNullOrWhiteSpace(row.CreatedAt) ? row.CreatedAt : "—")</td>
-                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
-                        </tr>
-                    }
-                }
-            </tbody>
-                        </table>
+                    <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped table-bordered table-epc epc-erp-table">
+                        <thead>
+                            <tr>
+                                <th>Id</th>
+                                <th>RMA</th>
+                                <th>Customer</th>
+                                <th>Reason</th>
+                                <th>Status</th>
+                                <th>Resolution</th>
+                                <th>Created</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (_rows.Count == 0)
+                            {
+                                <tr><td colspan="8">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? "No records yet." : _message) : "Sign in with a staff session for live rows.")</td></tr>
+                            }
+                            else
+                            {
+                                @foreach (var row in _rows)
+                                {
+                                    <tr id="erp-row-@row.Id.ToString(CultureInfo.InvariantCulture)" class="@ErpRecordOpen.RowClass(row.Id, _rmaId)">
+                                        <td>@row.Id.ToString(CultureInfo.InvariantCulture)</td>
+                                        <td>@(!string.IsNullOrWhiteSpace(row.RmaNumber) ? row.RmaNumber : "—")</td>
+                                        <td>@(!string.IsNullOrWhiteSpace(row.CustomerName) ? row.CustomerName : "—")</td>
+                                        <td>@(!string.IsNullOrWhiteSpace(row.Reason) ? row.Reason : "—")</td>
+                                        <td>@(!string.IsNullOrWhiteSpace(row.Status) ? row.Status : "—")</td>
+                                        <td>@(!string.IsNullOrWhiteSpace(row.ResolutionType) ? row.ResolutionType : "—")</td>
+                                        <td>@(!string.IsNullOrWhiteSpace(row.CreatedAt) ? row.CreatedAt : "—")</td>
+                                        <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href(_listHref, "rma_id", row.Id)">Open</a></td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
@@ -198,6 +349,28 @@
     private string _message = "";
     private string _flashOk = "";
     private string _flashErr = "";
+    private long _rmaId;
+    private long _shopReturnId;
+    private CpReturnsRmaRequestDetail? _openedRma;
+    private IReadOnlyList<CpReturnsRmaItemDigest> _openedRmaItems = [];
+    private CpShopReturnDetail? _openedShop;
+    private IReadOnlyList<CpShopReturnLineDigest> _openedShopLines = [];
+    private string _listHref = "/cp/returns-rma-app";
+    private string _returnHref = "/cp/returns-rma-app";
+
+    private long _bannerId => _rmaId > 0 ? _rmaId : _shopReturnId;
+
+    private string OpenedCaption =>
+        _openedRma is not null
+            ? (string.IsNullOrWhiteSpace(_openedRma.RmaNumber) ? ("RMA #" + _openedRma.Id.ToString(CultureInfo.InvariantCulture)) : _openedRma.RmaNumber)
+                + " · " + (string.IsNullOrWhiteSpace(_openedRma.Status) ? "open" : _openedRma.Status)
+            : _openedShop is not null
+                ? ("Return #" + _openedShop.Id.ToString(CultureInfo.InvariantCulture)
+                    + " · " + (string.IsNullOrWhiteSpace(_openedShop.StatusCaption) ? "open" : _openedShop.StatusCaption))
+                : "";
+
+    private string RmaIdValue => _rmaId > 0 ? _rmaId.ToString(CultureInfo.InvariantCulture) : "";
+    private string ShopIdValue => _shopReturnId > 0 ? _shopReturnId.ToString(CultureInfo.InvariantCulture) : "";
 
     protected override async Task OnInitializedAsync()
     {
@@ -206,6 +379,18 @@
 
         _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
         _flashErr = ctx.Request.Query["err"].ToString() ?? "";
+        var path = ctx.Request.Path.Value;
+        _listHref = string.Equals(path, "/erp/returns-rma-app", StringComparison.OrdinalIgnoreCase)
+            ? "/erp/returns-rma-app"
+            : "/cp/returns-rma-app";
+        _rmaId = ErpRecordOpen.ReadId(ctx.Request, "rma_id");
+        _shopReturnId = ErpRecordOpen.ReadId(ctx.Request, "return_id");
+        _returnHref = _rmaId > 0
+            ? ErpRecordOpen.Href(_listHref, "rma_id", _rmaId).Split('#')[0]
+            : _shopReturnId > 0
+                ? ErpRecordOpen.Href(_listHref, "return_id", _shopReturnId).Split('#')[0]
+                : _listHref;
+
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
         if (!_isAdmin)
@@ -218,5 +403,35 @@
         _rows = result.Requests;
         _source = result.Source;
         _message = result.Message;
+
+        if (_rmaId > 0)
+        {
+            var detail = await Dashboards.BuildCpReturnsRmaDetailAsync(_rmaId, ctx.RequestAborted);
+            _openedRma = detail.Request;
+            _openedRmaItems = detail.Items;
+            if (_openedRma is not null)
+            {
+                var openedList = _rows.FirstOrDefault(r => r.Id == _rmaId);
+                if (openedList is not null)
+                {
+                    _rows = new[] { openedList }.Concat(_rows.Where(r => r.Id != _rmaId)).ToList();
+                }
+            }
+            else if (!string.IsNullOrWhiteSpace(detail.Message))
+            {
+                _message = detail.Message;
+            }
+        }
+
+        if (_shopReturnId > 0)
+        {
+            var shop = await Dashboards.BuildCpShopReturnDetailAsync(_shopReturnId, ctx.RequestAborted);
+            _openedShop = shop.Return;
+            _openedShopLines = shop.Lines;
+            if (_openedShop is null && !string.IsNullOrWhiteSpace(shop.Message) && _openedRma is null)
+            {
+                _message = shop.Message;
+            }
+        }
     }
 }
