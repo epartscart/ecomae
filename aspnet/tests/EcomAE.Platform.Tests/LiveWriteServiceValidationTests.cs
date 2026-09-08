@@ -3111,6 +3111,23 @@ public sealed class LiveWriteServiceValidationTests
             .LogAsync(new ErpHrAttendanceWriteRequest(EmployeeId: 1, Hours: 8));
         Assert.False(hrAttDb.Succeeded);
         Assert.Equal("db", hrAttDb.Code);
+
+        var qmNcrInvalid = await new ErpQmNcrUpdateWriteService(new ConfiguredNeverOpened())
+            .UpdateAsync(new ErpQmNcrUpdateWriteRequest(Id: 1, Status: "nope"));
+        Assert.False(qmNcrInvalid.Succeeded);
+        Assert.Equal("invalid", qmNcrInvalid.Code);
+        Assert.Equal("Invalid status", qmNcrInvalid.Message);
+
+        var qmNcrDisp = await new ErpQmNcrUpdateWriteService(new ConfiguredNeverOpened())
+            .UpdateAsync(new ErpQmNcrUpdateWriteRequest(Id: 1, Status: "open", Disposition: "toss"));
+        Assert.False(qmNcrDisp.Succeeded);
+        Assert.Equal("invalid", qmNcrDisp.Code);
+        Assert.Equal("Invalid disposition", qmNcrDisp.Message);
+
+        var qmNcrDb = await new ErpQmNcrUpdateWriteService(new UnconfiguredConnections())
+            .UpdateAsync(new ErpQmNcrUpdateWriteRequest(Id: 1, Status: "closed"));
+        Assert.False(qmNcrDb.Succeeded);
+        Assert.Equal("db", qmNcrDb.Code);
     }
 
     [Fact]

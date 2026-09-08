@@ -1079,7 +1079,9 @@ public static class EcomAeRoutes
     public const string ErpAjaxQmOrderRecord = "/erp/ajax/qm-order-record";
     /// <summary>Wave B dry-run for PHP qm_ncr_create (writes=0).</summary>
     public const string ErpAjaxQmNcrCreate = "/erp/ajax/qm-ncr-create";
-    /// <summary>Wave B dry-run for PHP qm_ncr_update (writes=0).</summary>
+    /// <summary>HTML form POST for PHP qm_ncr_update. confirmWrites=true writes via IErpQmNcrUpdateWriteService.</summary>
+    public const string ErpQmNcrUpdate = "/erp/quality/ncr-update";
+    /// <summary>Live PHP qm_ncr_update ajax alias of <see cref="ErpQmNcrUpdate"/>.</summary>
     public const string ErpAjaxQmNcrUpdate = "/erp/ajax/qm-ncr-update";
     /// <summary>Wave B dry-run for PHP rbac_priv_save (writes=0).</summary>
     public const string ErpAjaxRbacPrivSave = "/erp/ajax/rbac-priv-save";
