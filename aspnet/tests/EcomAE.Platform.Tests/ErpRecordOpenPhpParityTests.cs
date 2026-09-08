@@ -69,6 +69,8 @@ public sealed class ErpRecordOpenPhpParityTests
     [InlineData("/CP/shop/logistics/storages?storage_id=5", "/cp/storages-app?storage_id=5")]
     [InlineData("/CP/shop/filter?filter_id=4", "/cp/product-filters-app?filter_id=4")]
     [InlineData("/CP/shop/filter/setting?id=4", "/cp/product-filters-app?filter_id=4")]
+    [InlineData("/CP/shop/geo/nodes?geo_id=4", "/cp/geo-regions-app?geo_id=4")]
+    [InlineData("/CP/shop/geo?geo_id=4", "/cp/geo-regions-app?geo_id=4")]
     [InlineData("/ERP/?epc_erp_shell=1&area=landed_cost_area&tab=landed_cost&sheet_id=6", "/erp/landed-cost-app?sheet_id=6")]
     [InlineData("/CP/control/portal/epc_soc2_compliance?soc2_id=8", "/cp/soc2-compliance-app?soc2_id=8")]
     [InlineData("/ERP/?epc_erp_shell=1&area=tax&tab=compliance&soc2_id=8", "/erp/soc2-compliance-app?soc2_id=8")]
@@ -1273,6 +1275,39 @@ public sealed class ErpRecordOpenPhpParityTests
             ErpRecordOpen.PreserveRecordQuery(
                 "/cp/product-filters-app",
                 "/CP/shop/filter?filter_id=4"));
+    }
+
+    [Fact]
+    public void GeoRegionsApp_OpenLoadsCaptionExcerptAndKeepsTreeSave()
+    {
+        var root = FindRepoRoot();
+        var text = File.ReadAllText(Path.Combine(root,
+            "aspnet/src/EcomAE.Platform/Components/Pages/CpGeoRegionsApp.razor"));
+        Assert.Contains("ErpRecordOpen.Href(_listHref, \"geo_id\"", text, StringComparison.Ordinal);
+        Assert.Contains("ErpOpenedRecordBanner", text, StringComparison.Ordinal);
+        Assert.Contains("ReadId(ctx.Request, \"geo_id\")", text, StringComparison.Ordinal);
+        Assert.Contains("BuildCpGeoRegionsDetailAsync", text, StringComparison.Ordinal);
+        Assert.Contains("No caption excerpt yet.", text, StringComparison.Ordinal);
+        Assert.Contains("No same-parent siblings yet.", text, StringComparison.Ordinal);
+        Assert.Contains("ShowGhostScaffold=\"false\"", text, StringComparison.Ordinal);
+        Assert.Contains("table-epc", text, StringComparison.Ordinal);
+        Assert.Contains("/cp/geo-regions/write", text, StringComparison.Ordinal);
+        Assert.Contains("Save tree", text, StringComparison.Ordinal);
+        Assert.Contains("PhpParityModuleBody", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)\">Open", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("/php-reference/", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("ASP.NET", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("epc-w22-hero", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("@bind", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("@onclick", text, StringComparison.Ordinal);
+
+        Assert.Equal("/cp/geo-regions-app?geo_id=4#erp-row-4",
+            ErpRecordOpen.Href("/cp/geo-regions-app", "geo_id", 4));
+        Assert.Equal(
+            "/cp/geo-regions-app?geo_id=4",
+            ErpRecordOpen.PreserveRecordQuery(
+                "/cp/geo-regions-app",
+                "/CP/shop/geo/nodes?geo_id=4"));
     }
 
     [Fact]

@@ -5426,7 +5426,7 @@ public static class LegacySurfaceDashboardSql
     public const string CountCpGeoRegionsLevel2Count = "SELECT COUNT(*) FROM `shop_geo` WHERE IFNULL(`level`,0)=2";
     public const string CountCpGeoRegionsMappedOfficeCount = "SELECT COUNT(DISTINCT `office_id`) FROM `shop_offices_geo_map`";
 
-    /// <summary>Wave 22 geo-regions rows — raw lang string bodies; value stored as lang id.</summary>
+    /// <summary>Wave 22 geo-regions rows — lang caption bodies omitted; value stored as lang id.</summary>
     public const string SelectCpGeoRegionsRows = """
         SELECT `id`, IFNULL(`level`,0) AS level, IFNULL(`parent`,0) AS parent,
         IFNULL(`order`,0) AS sort_order, IFNULL(`count`,0) AS child_count,
@@ -5434,6 +5434,41 @@ public static class LegacySurfaceDashboardSql
         FROM `shop_geo`
         ORDER BY `level` ASC, `order` ASC, `id` ASC
         LIMIT @limit
+        """;
+
+    /// <summary>Opened geo node. Caption is a short lang excerpt; full translation omitted.</summary>
+    public const string SelectCpGeoRegionsDetail = """
+        SELECT g.`id`, IFNULL(g.`level`,0) AS level, IFNULL(g.`parent`,0) AS parent,
+               IFNULL(g.`order`,0) AS sort_order, IFNULL(g.`count`,0) AS child_count,
+               IFNULL(g.`value`,0) AS value_lang_id,
+               IFNULL((
+                   SELECT CHAR_LENGTH(IFNULL(t.`value`,''))
+                   FROM `lang_text_strings_translation` t
+                   WHERE t.`str_key` = CAST(g.`value` AS CHAR)
+                   ORDER BY CASE WHEN t.`lang_code` = 'en' THEN 0 ELSE 1 END, t.`lang_code`
+                   LIMIT 1
+               ), 0) AS caption_len,
+               IFNULL((
+                   SELECT LEFT(IFNULL(t.`value`,''), 280)
+                   FROM `lang_text_strings_translation` t
+                   WHERE t.`str_key` = CAST(g.`value` AS CHAR)
+                   ORDER BY CASE WHEN t.`lang_code` = 'en' THEN 0 ELSE 1 END, t.`lang_code`
+                   LIMIT 1
+               ), '') AS caption_excerpt
+        FROM `shop_geo` g
+        WHERE g.`id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Other nodes with the same parent. Lang caption bodies omitted.</summary>
+    public const string SelectCpGeoRegionsParentSiblings = """
+        SELECT `id`, IFNULL(`level`,0) AS level, IFNULL(`parent`,0) AS parent,
+               IFNULL(`order`,0) AS sort_order, IFNULL(`count`,0) AS child_count,
+               IFNULL(`value`,0) AS value_lang_id
+        FROM `shop_geo`
+        WHERE `parent` = @parent AND `id` <> @id
+        ORDER BY `order` ASC, `id` ASC
+        LIMIT 50
         """;
 
     /// <summary>Wave 22 product-filters KPIs (shop_docpart_filter).</summary>

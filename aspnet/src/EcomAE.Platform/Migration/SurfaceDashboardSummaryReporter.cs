@@ -15678,6 +15678,73 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    public async Task<CpGeoRegionsDetailResult> BuildCpGeoRegionsDetailAsync(long id, CancellationToken cancellationToken = default)
+    {
+        if (id <= 0)
+        {
+            return new(null, [], "n/a", "");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return new(null, [], "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            CpGeoRegionsDetail? header = null;
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectCpGeoRegionsDetail;
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    header = new CpGeoRegionsDetail(
+                        Convert.ToInt64(reader["id"] is DBNull ? 0 : reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["level"] is DBNull ? 0 : reader["level"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["parent"] is DBNull ? 0 : reader["parent"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["sort_order"] is DBNull ? 0 : reader["sort_order"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["child_count"] is DBNull ? 0 : reader["child_count"], CultureInfo.InvariantCulture),
+                        ParseGeoLangId(reader["value_lang_id"]),
+                        Convert.ToInt32(reader["caption_len"] is DBNull ? 0 : reader["caption_len"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["caption_excerpt"] is DBNull ? string.Empty : reader["caption_excerpt"], CultureInfo.InvariantCulture) ?? string.Empty);
+                }
+            }
+
+            if (header is null)
+            {
+                return new(null, [], "database", "Geo node not found.");
+            }
+
+            var siblings = new List<CpGeoRegionsRowDigest>();
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectCpGeoRegionsParentSiblings;
+                AddParameter(cmd, "@parent", header.Parent);
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    siblings.Add(new CpGeoRegionsRowDigest(
+                        Convert.ToInt64(reader["id"] is DBNull ? 0 : reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["level"] is DBNull ? 0 : reader["level"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["parent"] is DBNull ? 0 : reader["parent"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["sort_order"] is DBNull ? 0 : reader["sort_order"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["child_count"] is DBNull ? 0 : reader["child_count"], CultureInfo.InvariantCulture),
+                        ParseGeoLangId(reader["value_lang_id"])));
+                }
+            }
+
+            return new(header, siblings, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(null, [], "database-error", ex.Message);
+        }
+    }
+
     private static long ParseGeoLangId(object? raw)
     {
         if (raw is null or DBNull)

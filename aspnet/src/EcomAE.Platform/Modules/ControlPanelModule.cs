@@ -8406,7 +8406,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "shop_geo + shop_offices_geo_map KPIs + nodes (raw lang string bodies; value stored as lang id). Tree save is POST /cp/geo-regions/write."
+                note = "shop_geo + shop_offices_geo_map KPIs + nodes. Open ?geo_id= loads 280-char lang caption excerpt. Full translation omitted. Tree save is POST /cp/geo-regions/write."
             });
         });
 

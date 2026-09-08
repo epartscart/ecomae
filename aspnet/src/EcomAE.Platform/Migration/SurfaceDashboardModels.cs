@@ -5015,6 +5015,22 @@ public sealed record CpGeoRegionsDigestResult(
     string Source,
     string Message);
 
+public sealed record CpGeoRegionsDetail(
+    long Id,
+    int Level,
+    long Parent,
+    int SortOrder,
+    int ChildCount,
+    long ValueLangId,
+    int CaptionLen,
+    string CaptionExcerpt);
+
+public sealed record CpGeoRegionsDetailResult(
+    CpGeoRegionsDetail? Node,
+    IReadOnlyList<CpGeoRegionsRowDigest> Siblings,
+    string Source,
+    string Message);
+
 public sealed record CpProductFiltersSummary(
     int FilterCount,
     int WithStorageScope,

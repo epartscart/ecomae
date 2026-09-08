@@ -574,6 +574,9 @@ public interface ISurfaceDashboardSummaryReporter
     /// <summary>Opened data migration plus row statuses (PHP <c>migration_id</c>). Raw/mapped JSON stay omitted from lines.</summary>
     Task<CpDataMigrationsDetailResult> BuildCpDataMigrationsDetailAsync(long id, CancellationToken cancellationToken = default);
     Task<CpGeoRegionsDigestResult> BuildCpGeoRegionsDigestAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Opened geo node (PHP <c>geo_id</c>) plus same-parent siblings. Caption is a short lang excerpt.</summary>
+    Task<CpGeoRegionsDetailResult> BuildCpGeoRegionsDetailAsync(long id, CancellationToken cancellationToken = default);
     Task<CpProductFiltersDigestResult> BuildCpProductFiltersDigestAsync(int limit, CancellationToken cancellationToken = default);
 
     /// <summary>Opened product filter (PHP <c>filter_id</c>) plus same-manufacturer siblings. list_storages is a short excerpt.</summary>
