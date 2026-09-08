@@ -246,6 +246,34 @@ public sealed class StorefrontCatalogDedicatedAppsTests : IDisposable
         Assert.DoesNotContain("epc-w22-kpis", slider, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void ContentSearchFilterApps_UseClassicHpanelNotInventHero()
+    {
+        var texts = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/CpAdditionalTextsApp.razor"));
+        Assert.Contains("class=\"hpanel\"", texts, StringComparison.Ordinal);
+        Assert.Contains("/cp/additional-texts/write", texts, StringComparison.Ordinal);
+        Assert.Contains("/cp/additional-texts/delete", texts, StringComparison.Ordinal);
+        Assert.DoesNotContain("epc-w22-hero", texts, StringComparison.Ordinal);
+
+        var sitemap = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/CpSitemapApp.razor"));
+        Assert.Contains("class=\"hpanel\"", sitemap, StringComparison.Ordinal);
+        Assert.Contains("PhpParityModuleBody", sitemap, StringComparison.Ordinal);
+        Assert.Contains("PhpReferenceOnlyHref", sitemap, StringComparison.Ordinal);
+        Assert.DoesNotContain("epc-w22-hero", sitemap, StringComparison.Ordinal);
+
+        var tabs = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/CpSearchTabsApp.razor"));
+        Assert.Contains("class=\"hpanel\"", tabs, StringComparison.Ordinal);
+        Assert.Contains("/cp/search-tabs/write", tabs, StringComparison.Ordinal);
+        Assert.Contains("name=\"action\" value=\"activation\"", tabs, StringComparison.Ordinal);
+        Assert.DoesNotContain("epc-w22-hero", tabs, StringComparison.Ordinal);
+
+        var filters = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/CpProductFiltersApp.razor"));
+        Assert.Contains("class=\"hpanel\"", filters, StringComparison.Ordinal);
+        Assert.Contains("/cp/product-filters/write", filters, StringComparison.Ordinal);
+        Assert.Contains("name=\"action\" value=\"save_storages\"", filters, StringComparison.Ordinal);
+        Assert.DoesNotContain("epc-w22-hero", filters, StringComparison.Ordinal);
+    }
+
     private static void AssertPage(string fileName, string phpAlias, string aspNetApp)
     {
         var path = Find("aspnet/src/EcomAE.Platform/Components/Pages/" + fileName);
