@@ -2934,7 +2934,7 @@ public static class LegacySurfaceDashboardSql
             (SELECT COUNT(*) FROM `epc_aml_rules` WHERE IFNULL(`is_active`,0)=1) AS active_rule_count
         """;
 
-    /// <summary>AML KYC rows — omits notes/id_document_path.</summary>
+    /// <summary>AML KYC rows — omits notes/id_number/id_document_path.</summary>
     public const string SelectCpAmlComplianceKyc = """
         SELECT `id`, IFNULL(`company_id`,0) AS company_id, IFNULL(`customer_id`,0) AS customer_id,
                IFNULL(`customer_name`,'') AS customer_name, IFNULL(`id_type`,'') AS id_type,
@@ -2944,6 +2944,41 @@ public static class LegacySurfaceDashboardSql
         FROM `epc_aml_kyc`
         ORDER BY `id` DESC
         LIMIT @limit
+        """;
+
+    /// <summary>Opened AML KYC — includes notes, id_number, document path, nationality, dates.</summary>
+    public const string SelectCpAmlComplianceKycDetail = """
+        SELECT `id`, IFNULL(`company_id`,0) AS company_id, IFNULL(`customer_id`,0) AS customer_id,
+               IFNULL(`customer_name`,'') AS customer_name, IFNULL(`id_type`,'') AS id_type,
+               IFNULL(`id_number`,'') AS id_number, IFNULL(`id_expiry`,'') AS id_expiry,
+               IFNULL(`id_document_path`,'') AS id_document_path,
+               IFNULL(`nationality`,'') AS nationality, IFNULL(`dob`,'') AS dob,
+               IFNULL(`risk_level`,'') AS risk_level, IFNULL(`pep_status`,0) AS pep_status,
+               IFNULL(`sanctions_checked`,0) AS sanctions_checked,
+               IFNULL(`sanctions_match`,0) AS sanctions_match,
+               IFNULL(`verification_status`,'') AS verification_status,
+               IFNULL(`verified_by`,0) AS verified_by, IFNULL(`verified_at`,'') AS verified_at,
+               IFNULL(`next_review`,'') AS next_review, IFNULL(`notes`,'') AS notes,
+               IFNULL(`time_created`,0) AS time_created, IFNULL(`time_updated`,0) AS time_updated
+        FROM `epc_aml_kyc`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Opened AML KYC child transactions (PHP monitoring by customer_id).</summary>
+    public const string SelectCpAmlComplianceKycTransactions = """
+        SELECT `id`, IFNULL(`customer_id`,0) AS customer_id,
+               IFNULL(`transaction_type`,'') AS transaction_type,
+               IFNULL(`amount`,0) AS amount, IFNULL(`currency`,'') AS currency,
+               IFNULL(`reference`,'') AS reference, IFNULL(`risk_score`,0) AS risk_score,
+               IFNULL(`flagged`,0) AS flagged, IFNULL(`flag_reason`,'') AS flag_reason,
+               IFNULL(`review_status`,'') AS review_status,
+               IFNULL(`sar_filed`,0) AS sar_filed, IFNULL(`sar_reference`,'') AS sar_reference,
+               IFNULL(`time_created`,0) AS time_created
+        FROM `epc_aml_transactions`
+        WHERE `customer_id` = @customer_id AND @customer_id > 0
+        ORDER BY `id` DESC
+        LIMIT 50
         """;
 
     /// <summary>Jewellery master KPIs from epc_jewel_* masters (CREATE TABLE in epc_erp_jewellery.php).</summary>

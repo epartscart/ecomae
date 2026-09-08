@@ -2710,6 +2710,50 @@ public sealed record CpAmlComplianceDigestResult(
     string Source,
     string Message);
 
+public sealed record CpAmlComplianceKycDetail(
+    long Id,
+    long CompanyId,
+    long CustomerId,
+    string CustomerName,
+    string IdType,
+    string IdNumber,
+    string IdExpiry,
+    string IdDocumentPath,
+    string Nationality,
+    string Dob,
+    string RiskLevel,
+    int PepStatus,
+    int SanctionsChecked,
+    int SanctionsMatch,
+    string VerificationStatus,
+    long VerifiedBy,
+    string VerifiedAt,
+    string NextReview,
+    string Notes,
+    long TimeCreated,
+    long TimeUpdated);
+
+public sealed record CpAmlComplianceKycTxnDigest(
+    long Id,
+    long CustomerId,
+    string TransactionType,
+    decimal Amount,
+    string Currency,
+    string Reference,
+    int RiskScore,
+    int Flagged,
+    string FlagReason,
+    string ReviewStatus,
+    int SarFiled,
+    string SarReference,
+    long TimeCreated);
+
+public sealed record CpAmlComplianceKycDetailResult(
+    CpAmlComplianceKycDetail? Kyc,
+    IReadOnlyList<CpAmlComplianceKycTxnDigest> Transactions,
+    string Source,
+    string Message);
+
 public sealed record CpJewelleryMastersSummary(
     int KaratCount,
     int RateTypeCount,

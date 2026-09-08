@@ -140,6 +140,7 @@ public sealed class SurfaceDashboardSummaryReporterTests
         var returnsRma = await reporter.BuildCpReturnsRmaDigestAsync(10);
         var isolationAudit = await reporter.BuildCpIsolationAuditDigestAsync(10);
         var amlCompliance = await reporter.BuildCpAmlComplianceDigestAsync(10);
+        var amlKycDetail = await reporter.BuildCpAmlComplianceKycDetailAsync(7);
         var jewelleryMasters = await reporter.BuildCpJewelleryMastersDigestAsync(10);
         var consolidations = await reporter.BuildCpConsolidationsDigestAsync(10);
         var crmActivities = await reporter.BuildCpCrmActivitiesDigestAsync(10);
@@ -362,6 +363,7 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.Equal("migration", landedCost.Source);
         Assert.Equal("migration", isolationAudit.Source);
         Assert.Equal("migration", amlCompliance.Source);
+        Assert.Equal("migration", amlKycDetail.Source);
         Assert.Equal("migration", jewelleryMasters.Source);
         Assert.Equal("migration", consolidations.Source);
         Assert.Equal("migration", crmActivities.Source);
@@ -624,6 +626,12 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.Contains("epc_aml_kyc", LegacySurfaceDashboardSql.SelectCpAmlComplianceKyc, StringComparison.Ordinal);
         Assert.DoesNotContain("`notes`", LegacySurfaceDashboardSql.SelectCpAmlComplianceKyc, StringComparison.Ordinal);
         Assert.DoesNotContain("id_document_path", LegacySurfaceDashboardSql.SelectCpAmlComplianceKyc, StringComparison.Ordinal);
+        Assert.DoesNotContain("`id_number`", LegacySurfaceDashboardSql.SelectCpAmlComplianceKyc, StringComparison.Ordinal);
+        Assert.Contains("`notes`", LegacySurfaceDashboardSql.SelectCpAmlComplianceKycDetail, StringComparison.Ordinal);
+        Assert.Contains("id_document_path", LegacySurfaceDashboardSql.SelectCpAmlComplianceKycDetail, StringComparison.Ordinal);
+        Assert.Contains("`id_number`", LegacySurfaceDashboardSql.SelectCpAmlComplianceKycDetail, StringComparison.Ordinal);
+        Assert.Contains("epc_aml_transactions", LegacySurfaceDashboardSql.SelectCpAmlComplianceKycTransactions, StringComparison.Ordinal);
+        Assert.Contains("`customer_id` = @customer_id", LegacySurfaceDashboardSql.SelectCpAmlComplianceKycTransactions, StringComparison.Ordinal);
         Assert.Contains("epc_jewel_karat_master", LegacySurfaceDashboardSql.SelectCpJewelleryMastersKarats, StringComparison.Ordinal);
         Assert.DoesNotContain("`description`", LegacySurfaceDashboardSql.SelectCpJewelleryMastersKarats, StringComparison.Ordinal);
         Assert.Contains("epc_cons_entities", LegacySurfaceDashboardSql.SelectCpConsolidationsEntities, StringComparison.Ordinal);

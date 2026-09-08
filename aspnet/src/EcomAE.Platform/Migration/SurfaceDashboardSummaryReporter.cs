@@ -9825,6 +9825,88 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    public async Task<CpAmlComplianceKycDetailResult> BuildCpAmlComplianceKycDetailAsync(long id, CancellationToken cancellationToken = default)
+    {
+        if (id <= 0)
+        {
+            return new(null, [], "n/a", "");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return new(null, [], "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            CpAmlComplianceKycDetail? header = null;
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectCpAmlComplianceKycDetail;
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    header = new CpAmlComplianceKycDetail(
+                        Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["company_id"] is DBNull ? 0 : reader["company_id"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["customer_id"] is DBNull ? 0 : reader["customer_id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["customer_name"] is DBNull ? string.Empty : reader["customer_name"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["id_type"] is DBNull ? string.Empty : reader["id_type"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["id_number"] is DBNull ? string.Empty : reader["id_number"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["id_expiry"] is DBNull ? string.Empty : reader["id_expiry"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["id_document_path"] is DBNull ? string.Empty : reader["id_document_path"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["nationality"] is DBNull ? string.Empty : reader["nationality"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["dob"] is DBNull ? string.Empty : reader["dob"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["risk_level"] is DBNull ? string.Empty : reader["risk_level"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt32(reader["pep_status"] is DBNull ? 0 : reader["pep_status"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["sanctions_checked"] is DBNull ? 0 : reader["sanctions_checked"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["sanctions_match"] is DBNull ? 0 : reader["sanctions_match"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["verification_status"] is DBNull ? string.Empty : reader["verification_status"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt64(reader["verified_by"] is DBNull ? 0 : reader["verified_by"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["verified_at"] is DBNull ? string.Empty : reader["verified_at"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["next_review"] is DBNull ? string.Empty : reader["next_review"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["notes"] is DBNull ? string.Empty : reader["notes"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt64(reader["time_created"] is DBNull ? 0 : reader["time_created"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["time_updated"] is DBNull ? 0 : reader["time_updated"], CultureInfo.InvariantCulture));
+                }
+            }
+
+            var txns = new List<CpAmlComplianceKycTxnDigest>();
+            if (header is not null && header.CustomerId > 0)
+            {
+                await using var cmd = connection.CreateCommand();
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectCpAmlComplianceKycTransactions;
+                AddParameter(cmd, "@customer_id", header.CustomerId);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    txns.Add(new CpAmlComplianceKycTxnDigest(
+                        Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["customer_id"] is DBNull ? 0 : reader["customer_id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["transaction_type"] is DBNull ? string.Empty : reader["transaction_type"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToDecimal(reader["amount"] is DBNull ? 0 : reader["amount"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["currency"] is DBNull ? string.Empty : reader["currency"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["reference"] is DBNull ? string.Empty : reader["reference"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt32(reader["risk_score"] is DBNull ? 0 : reader["risk_score"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["flagged"] is DBNull ? 0 : reader["flagged"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["flag_reason"] is DBNull ? string.Empty : reader["flag_reason"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["review_status"] is DBNull ? string.Empty : reader["review_status"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt32(reader["sar_filed"] is DBNull ? 0 : reader["sar_filed"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["sar_reference"] is DBNull ? string.Empty : reader["sar_reference"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt64(reader["time_created"] is DBNull ? 0 : reader["time_created"], CultureInfo.InvariantCulture)));
+                }
+            }
+
+            return new(header, txns, "database", header is null ? "KYC record not found." : string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(null, [], "database-error", ex.Message);
+        }
+    }
+
     public async Task<CpJewelleryMastersDigestResult> BuildCpJewelleryMastersDigestAsync(int limit, CancellationToken cancellationToken = default)
     {
         var safeLimit = Math.Clamp(limit, 1, 500);

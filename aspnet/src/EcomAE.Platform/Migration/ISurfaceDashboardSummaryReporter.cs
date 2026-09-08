@@ -257,6 +257,9 @@ public interface ISurfaceDashboardSummaryReporter
     /// <summary>Read-only AML KYC rows (notes/document paths omitted).</summary>
     Task<CpAmlComplianceDigestResult> BuildCpAmlComplianceDigestAsync(int limit, CancellationToken cancellationToken = default);
 
+    /// <summary>Opened AML KYC + customer transactions (PHP <c>kyc_id=</c> detail).</summary>
+    Task<CpAmlComplianceKycDetailResult> BuildCpAmlComplianceKycDetailAsync(long id, CancellationToken cancellationToken = default);
+
     /// <summary>Read-only jewellery karat/rate/barcode masters.</summary>
     Task<CpJewelleryMastersDigestResult> BuildCpJewelleryMastersDigestAsync(int limit, CancellationToken cancellationToken = default);
 
