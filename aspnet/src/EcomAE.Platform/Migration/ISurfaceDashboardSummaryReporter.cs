@@ -293,6 +293,9 @@ public interface ISurfaceDashboardSummaryReporter
     /// <summary>Read-only ERP audit trail (detail/old/new JSON omitted).</summary>
     Task<CpAuditTrailDigestResult> BuildCpAuditTrailDigestAsync(int limit, CancellationToken cancellationToken = default);
 
+    /// <summary>Opened audit event (PHP <c>event_id</c>).</summary>
+    Task<CpAuditTrailDetailResult> BuildCpAuditTrailDetailAsync(long id, CancellationToken cancellationToken = default);
+
     /// <summary>Read-only document expiry register (notes/emails/paths omitted).</summary>
     Task<CpDocExpiryDigestResult> BuildCpDocExpiryDigestAsync(int limit, CancellationToken cancellationToken = default);
 

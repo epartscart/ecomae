@@ -3203,6 +3203,19 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>Opened audit event — includes detail/old/new JSON and IP/UA (PHP list shows them).</summary>
+    public const string SelectCpAuditTrailEntryDetail = """
+        SELECT `id`, IFNULL(`time`,0) AS time_unix, IFNULL(`admin_id`,0) AS admin_id,
+               IFNULL(`action`,'') AS action, IFNULL(`entity_type`,'') AS entity_type,
+               IFNULL(`entity_id`,0) AS entity_id, IFNULL(`summary`,'') AS summary,
+               IFNULL(`detail_json`,'') AS detail_json, IFNULL(`old_json`,'') AS old_json,
+               IFNULL(`new_json`,'') AS new_json, IFNULL(`ip_address`,'') AS ip_address,
+               IFNULL(`user_agent`,'') AS user_agent
+        FROM `epc_erp_audit_log`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
     /// <summary>Document expiry KPIs from epc_erp_doc_expiry* (CREATE TABLE in epc_erp_doc_expiry.php).</summary>
     public const string SelectCpDocExpiryStats = """
         SELECT
