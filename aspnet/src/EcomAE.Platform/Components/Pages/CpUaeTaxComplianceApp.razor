@@ -24,7 +24,7 @@
             </div>
             <div class="panel-body">
                 <p>@CpPhpModuleCopy.PurposeFor("/cp/uae-tax-compliance-app")</p>
-                <p>Save tourist VAT, CT adjustments, and checklist status here. Fetch FTA legislation to ingest VAT, Corporate Tax, e-invoicing, and excise instruments into this library.</p>
+                <p>Save tourist VAT, CT adjustments, and checklist status here. Fetch FTA legislation to ingest VAT, Corporate Tax, e-invoicing, and excise instruments into this library. Ask the stored library or regen summaries without leaving this page.</p>
             </div>
         </div>
     </div>
@@ -64,6 +64,19 @@
             <button type="submit" class="btn btn-primary btn-sm">Fetch FTA legislation</button>
         </form>
         <p class="text-muted" style="margin:0 0 1rem;">Pulls tax.gov.ae legislation.aspx (VAT, CT, e-invoicing, excise, procedures) into <code>epc_uae_tax_legislation_items</code>. Cached 24 hours unless Force is ticked.</p>
+        <form method="post" action="/erp/uae-tax/legislation/ask" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin:0 0 1rem;">
+            <input type="hidden" name="returnUrl" value="/erp/uae-tax-compliance-app" />
+            <input type="hidden" name="confirmWrites" value="true" />
+            <label>Question <input class="form-control input-sm" type="text" name="question" required maxlength="500" style="width:28rem;" /></label>
+            <button type="submit" class="btn btn-primary btn-sm">Ask legislation</button>
+        </form>
+        <p class="text-muted" style="margin:0 0 1rem;">Search + extract from the stored FTA library. Indicative only; confirm with a tax advisor and FTA EmaraTax.</p>
+        <form method="post" action="/erp/uae-tax/legislation/regen" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin:0 0 1rem;">
+            <input type="hidden" name="returnUrl" value="/erp/uae-tax-compliance-app" />
+            <input type="hidden" name="confirmWrites" value="true" />
+            <button type="submit" class="btn btn-default btn-sm">Regen summaries</button>
+        </form>
+        <p class="text-muted" style="margin:0 0 1rem;">Rebuilds ERP summaries and checklists from stored FTA titles. PDF excerpts stay on the Classic twin.</p>
     }
 
     <p class="help-block">@_summary.LegislationCount.ToString(CultureInfo.InvariantCulture) legislation items · @_summary.VatAdvanceRows.ToString(CultureInfo.InvariantCulture) VAT advance rows · @_summary.VatRefundRows.ToString(CultureInfo.InvariantCulture) VAT refund rows.</p>

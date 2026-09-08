@@ -8,8 +8,8 @@ namespace EcomAE.Platform.Erp;
 /// <summary>
 /// Live PHP <c>epc_uae_tax_legislation_checklist_set_status</c> /
 /// ajax <c>uae_tax_legislation_checklist_set</c> twin.
-/// UPSERT <c>epc_uae_tax_legislation_checklist</c>. FTA fetch, ask, regen,
-/// CT adjustments, and schema ensure stay PHP. Does not CREATE tables.
+/// UPSERT <c>epc_uae_tax_legislation_checklist</c>. PDF excerpt, KB seed,
+/// and schema ensure stay PHP. Does not CREATE tables.
 /// </summary>
 public interface IErpUaeTaxLegislationChecklistSetWriteService
 {
