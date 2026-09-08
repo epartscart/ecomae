@@ -10302,6 +10302,76 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    public async Task<CpCollectionsDunningDetailResult> BuildCpCollectionsDunningDetailAsync(long id, CancellationToken cancellationToken = default)
+    {
+        if (id <= 0)
+        {
+            return new(null, [], "n/a", "");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return new(null, [], "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            CpCollectionsDunningQueueDetail? header = null;
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectCpCollectionsDunningQueueDetail;
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    header = new CpCollectionsDunningQueueDetail(
+                        Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["site_key"] is DBNull ? string.Empty : reader["site_key"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt64(reader["customer_id"] is DBNull ? 0 : reader["customer_id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["customer_name"] is DBNull ? string.Empty : reader["customer_name"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["invoice_ref"] is DBNull ? string.Empty : reader["invoice_ref"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToDecimal(reader["invoice_amount"] is DBNull ? 0 : reader["invoice_amount"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(reader["amount_due"] is DBNull ? 0 : reader["amount_due"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["due_date"] is DBNull ? string.Empty : reader["due_date"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt32(reader["days_overdue"] is DBNull ? 0 : reader["days_overdue"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["dunning_step"] is DBNull ? 0 : reader["dunning_step"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["profile_id"] is DBNull ? 0 : reader["profile_id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["profile_name"] is DBNull ? string.Empty : reader["profile_name"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["status"] is DBNull ? string.Empty : reader["status"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["next_action_date"] is DBNull ? string.Empty : reader["next_action_date"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt64(reader["assigned_to"] is DBNull ? 0 : reader["assigned_to"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["notes"] is DBNull ? string.Empty : reader["notes"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["updated_at"] is DBNull ? string.Empty : reader["updated_at"], CultureInfo.InvariantCulture) ?? string.Empty);
+                }
+            }
+
+            var log = new List<CpCollectionsDunningLogDigest>();
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectCpCollectionsDunningLog;
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    log.Add(new CpCollectionsDunningLogDigest(
+                        Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["queue_id"] is DBNull ? 0 : reader["queue_id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["action_type"] is DBNull ? string.Empty : reader["action_type"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["details"] is DBNull ? string.Empty : reader["details"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt64(reader["performed_by"] is DBNull ? 0 : reader["performed_by"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["performed_at"] is DBNull ? string.Empty : reader["performed_at"], CultureInfo.InvariantCulture) ?? string.Empty));
+                }
+            }
+
+            return new(header, log, "database", header is null ? "Queue item not found." : string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(null, [], "database-error", ex.Message);
+        }
+    }
+
 
     public async Task<CpMarketplaceChannelsDigestResult> BuildCpMarketplaceChannelsDigestAsync(int limit, CancellationToken cancellationToken = default)
     {

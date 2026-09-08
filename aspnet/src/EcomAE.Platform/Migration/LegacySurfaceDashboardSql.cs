@@ -3132,6 +3132,38 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>Opened dunning queue row — includes notes/customer_name (PHP queue_id detail).</summary>
+    public const string SelectCpCollectionsDunningQueueDetail = """
+        SELECT q.`id`, IFNULL(q.`site_key`,'') AS site_key, IFNULL(q.`customer_id`,0) AS customer_id,
+               IFNULL(q.`customer_name`,'') AS customer_name,
+               IFNULL(q.`invoice_ref`,'') AS invoice_ref,
+               IFNULL(q.`invoice_amount`,0) AS invoice_amount, IFNULL(q.`amount_due`,0) AS amount_due,
+               IFNULL(q.`due_date`,'') AS due_date, IFNULL(q.`days_overdue`,0) AS days_overdue,
+               IFNULL(q.`dunning_step`,0) AS dunning_step, IFNULL(q.`profile_id`,0) AS profile_id,
+               IFNULL(p.`name`,'') AS profile_name,
+               IFNULL(q.`status`,'') AS status,
+               IFNULL(q.`next_action_date`,'') AS next_action_date,
+               IFNULL(q.`assigned_to`,0) AS assigned_to,
+               IFNULL(q.`notes`,'') AS notes,
+               IFNULL(q.`updated_at`,'') AS updated_at
+        FROM `epc_dunning_queue` q
+        LEFT JOIN `epc_dunning_profiles` p ON p.`id` = q.`profile_id`
+        WHERE q.`id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Opened dunning queue log (PHP epc_dunning_log by queue_id).</summary>
+    public const string SelectCpCollectionsDunningLog = """
+        SELECT `id`, IFNULL(`queue_id`,0) AS queue_id,
+               IFNULL(`action_type`,'') AS action_type,
+               IFNULL(`details`,'') AS details,
+               IFNULL(`performed_by`,0) AS performed_by,
+               IFNULL(`performed_at`,'') AS performed_at
+        FROM `epc_dunning_log`
+        WHERE `queue_id` = @id
+        ORDER BY `id` DESC
+        """;
+
 
     /// <summary>Marketplace channel KPIs from epc_marketplace_* (CREATE TABLE in epc_channel_schema.php).</summary>
     public const string SelectCpMarketplaceChannelsStats = """

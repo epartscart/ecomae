@@ -281,6 +281,9 @@ public interface ISurfaceDashboardSummaryReporter
     /// <summary>Read-only collections/dunning queue (notes omitted).</summary>
     Task<CpCollectionsDunningDigestResult> BuildCpCollectionsDunningDigestAsync(int limit, CancellationToken cancellationToken = default);
 
+    /// <summary>Opened dunning queue row + log (PHP <c>queue_id=</c> detail).</summary>
+    Task<CpCollectionsDunningDetailResult> BuildCpCollectionsDunningDetailAsync(long id, CancellationToken cancellationToken = default);
+
     /// <summary>Read-only marketplace channels (config_json omitted).</summary>
     Task<CpMarketplaceChannelsDigestResult> BuildCpMarketplaceChannelsDigestAsync(int limit, CancellationToken cancellationToken = default);
 
