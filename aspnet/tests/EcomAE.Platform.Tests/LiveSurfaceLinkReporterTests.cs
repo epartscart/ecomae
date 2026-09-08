@@ -302,6 +302,12 @@ public sealed class LiveSurfaceLinkReporterTests
             && link.AspNetRouteHint == "/erp/ajax/prj-task-save");
         Assert.Contains(report.Links, link =>
             link.HostClass == "aspnet-diagnostics"
+            && link.AspNetRouteHint == "/erp/projects/timesheets/log");
+        Assert.Contains(report.Links, link =>
+            link.HostClass == "aspnet-diagnostics"
+            && link.AspNetRouteHint == "/erp/ajax/prj-log-time");
+        Assert.Contains(report.Links, link =>
+            link.HostClass == "aspnet-diagnostics"
             && link.AspNetRouteHint == "/erp/consolidations/ic/save");
         Assert.Contains(report.Links, link =>
             link.HostClass == "aspnet-diagnostics"

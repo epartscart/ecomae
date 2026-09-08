@@ -47,7 +47,7 @@
         <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
         <h1>Projects Overview</h1>
         <p>@CpPhpModuleCopy.PurposeFor(Nav.Uri)</p>
-        <p>Save a project and a project task here. Time log stays on the Classic twin.</p>
+        <p>Save a project, a project task, and a time log here.</p>
         <div class="epc-prj-cta">
             <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
             <a class="ghost" href="/cp/production-overview-app">Production overview</a>
@@ -103,6 +103,18 @@
                 </select>
             </label>
             <button type="submit">Save task</button>
+        </form>
+        <form method="post" action="/erp/projects/timesheets/log" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/projects-overview-app" />
+            <label>Project id <input type="number" name="project_id" min="1" required style="width:6rem" /></label>
+            <label>Task id <input type="number" name="task_id" min="0" style="width:5rem" /></label>
+            <label>Employee id <input type="number" name="employee_id" min="0" style="width:6rem" /></label>
+            <label>Hours <input type="number" name="hours" step="0.25" required style="width:5rem" /></label>
+            <label>Cost/hr <input type="number" name="cost_rate" step="0.01" style="width:6rem" /></label>
+            <label>Bill/hr <input type="number" name="bill_rate" step="0.01" style="width:6rem" /></label>
+            <label style="font-weight:normal"><input type="checkbox" name="billable" value="1" checked /> Billable</label>
+            <button type="submit">Log time</button>
         </form>
     }
 
