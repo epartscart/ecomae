@@ -1260,7 +1260,9 @@ public static class EcomAeRoutes
     public const string ErpAjaxHrtApplicantStage = "/erp/ajax/hrt-applicant-stage";
     /// <summary>Wave B dry-run for PHP hrt_review_save (writes=0).</summary>
     public const string ErpAjaxHrtReviewSave = "/erp/ajax/hrt-review-save";
-    /// <summary>Wave B dry-run for PHP hrt_goal_add (writes=0).</summary>
+    /// <summary>HTML form POST for PHP <c>hrt_goal_add</c>. <c>confirmWrites=true</c> writes via <c>IErpHrtGoalAddWriteService</c>.</summary>
+    public const string ErpPerformanceGoalAdd = "/erp/performance/goals/add";
+    /// <summary>Live PHP epc_hrt_goal_add ajax alias of <see cref="ErpPerformanceGoalAdd"/>.</summary>
     public const string ErpAjaxHrtGoalAdd = "/erp/ajax/hrt-goal-add";
     /// <summary>Wave B dry-run for PHP hrt_review_finalize (writes=0).</summary>
     public const string ErpAjaxHrtReviewFinalize = "/erp/ajax/hrt-review-finalize";

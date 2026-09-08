@@ -3111,6 +3111,29 @@ public sealed class LiveWriteServiceValidationTests
             .LogAsync(new ErpHrAttendanceWriteRequest(EmployeeId: 1, Hours: 8));
         Assert.False(hrAttDb.Succeeded);
         Assert.Equal("db", hrAttDb.Code);
+
+        var hrtGoalInvalid = await new ErpHrtGoalAddWriteService(new ConfiguredNeverOpened())
+            .AddAsync(new ErpHrtGoalAddWriteRequest());
+        Assert.False(hrtGoalInvalid.Succeeded);
+        Assert.Equal("invalid", hrtGoalInvalid.Code);
+        Assert.Equal("Review not found", hrtGoalInvalid.Message);
+
+        var hrtGoalTitle = await new ErpHrtGoalAddWriteService(new ConfiguredNeverOpened())
+            .AddAsync(new ErpHrtGoalAddWriteRequest(ReviewId: 1));
+        Assert.False(hrtGoalTitle.Succeeded);
+        Assert.Equal("invalid", hrtGoalTitle.Code);
+        Assert.Equal("Goal title is required", hrtGoalTitle.Message);
+
+        var hrtGoalRating = await new ErpHrtGoalAddWriteService(new ConfiguredNeverOpened())
+            .AddAsync(new ErpHrtGoalAddWriteRequest(ReviewId: 1, Title: "Close Q1", Rating: 9));
+        Assert.False(hrtGoalRating.Succeeded);
+        Assert.Equal("invalid", hrtGoalRating.Code);
+        Assert.Equal("Rating must be 0-5", hrtGoalRating.Message);
+
+        var hrtGoalDb = await new ErpHrtGoalAddWriteService(new UnconfiguredConnections())
+            .AddAsync(new ErpHrtGoalAddWriteRequest(ReviewId: 1, Title: "Close Q1"));
+        Assert.False(hrtGoalDb.Succeeded);
+        Assert.Equal("db", hrtGoalDb.Code);
     }
 
     [Fact]

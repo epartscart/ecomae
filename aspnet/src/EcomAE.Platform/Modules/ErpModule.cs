@@ -9648,8 +9648,8 @@ public sealed class ErpModule : ISurfaceModule
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpHrtApplicantStageRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxHrtReviewSave, async (HttpContext context, ErpHrtReviewSaveBody? body, ILegacySessionValidator validator, IErpHrtReviewSaveDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpHrtReviewSaveRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxHrtGoalAdd, async (HttpContext context, ErpHrtGoalAddBody? body, ILegacySessionValidator validator, IErpHrtGoalAddDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpHrtGoalAddRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxHrtGoalAdd, HandleHrtGoalAddAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpPerformanceGoalAdd, HandleHrtGoalAddAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxHrtReviewFinalize, async (HttpContext context, ErpHrtReviewFinalizeBody? body, ILegacySessionValidator validator, IErpHrtReviewFinalizeDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpHrtReviewFinalizeRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxCftForecastSave, async (HttpContext context, ErpCftForecastSaveBody? body, ILegacySessionValidator validator, IErpCftForecastSaveDryRun dryRun, CancellationToken cancellationToken) =>
@@ -11774,6 +11774,59 @@ public sealed class ErpModule : ISurfaceModule
         }
     }
 
+    private static async Task<IResult> HandleHrtGoalAddAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpHrtGoalAddDryRun dryRun,
+        IErpHrtGoalAddWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/performance-app", "Admin ERP capability required for performance goal add.");
+        }
+
+        var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpHrtGoalAddBody>(context, cancellationToken) ?? new();
+        var reviewId = body.ReviewId;
+        var title = body.Title;
+        var weight = body.Weight;
+        var target = body.Target;
+        var rating = body.Rating;
+        var confirm = body.ConfirmWrites;
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            reviewId = LiveWriteFormBinder.Long(form, "reviewId", "review_id");
+            title = LiveWriteFormBinder.Text(form, "title");
+            if (form.ContainsKey("weight"))
+            {
+                weight = LiveWriteFormBinder.Dec(form, "weight");
+            }
+            target = LiveWriteFormBinder.Text(form, "target");
+            if (form.ContainsKey("rating"))
+            {
+                rating = LiveWriteFormBinder.Int(form, "rating");
+            }
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+        }
+
+        if (!confirm)
+        {
+            return Results.Ok(dryRun.Evaluate(new ErpHrtGoalAddRequest(reviewId, title, weight, target, rating, false)).ToPayload(SessionPayload(session)));
+        }
+
+        var written = await writes.AddAsync(
+            new ErpHrtGoalAddWriteRequest(reviewId, title, weight, target, rating),
+            cancellationToken);
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/erp/performance-app",
+            written.Succeeded,
+            written.Message,
+            new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+    }
+
     private static async Task<IResult> HandleWhtCodeSaveAsync(
         HttpContext context,
         ILegacySessionValidator validator,
@@ -12633,7 +12686,13 @@ public sealed class ErpModule : ISurfaceModule
     private sealed record ErpHrtApplicantAddBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpHrtApplicantStageBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpHrtReviewSaveBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
-    private sealed record ErpHrtGoalAddBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
+    private sealed record ErpHrtGoalAddBody(
+        long ReviewId = 0,
+        string? Title = null,
+        decimal? Weight = null,
+        string? Target = null,
+        int Rating = 0,
+        bool ConfirmWrites = false);
     private sealed record ErpHrtReviewFinalizeBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpCftForecastSaveBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpCftLineAddBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
