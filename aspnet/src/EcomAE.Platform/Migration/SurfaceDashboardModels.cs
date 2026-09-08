@@ -2866,6 +2866,39 @@ public sealed record CpCollectionsDunningDigestResult(
     string Source,
     string Message);
 
+public sealed record CpCollectionsDunningQueueDetail(
+    long Id,
+    string SiteKey,
+    long CustomerId,
+    string CustomerName,
+    string InvoiceRef,
+    decimal InvoiceAmount,
+    decimal AmountDue,
+    string DueDate,
+    int DaysOverdue,
+    int DunningStep,
+    long ProfileId,
+    string ProfileName,
+    string Status,
+    string NextActionDate,
+    long AssignedTo,
+    string Notes,
+    string UpdatedAt);
+
+public sealed record CpCollectionsDunningLogDigest(
+    long Id,
+    long QueueId,
+    string ActionType,
+    string Details,
+    long PerformedBy,
+    string PerformedAt);
+
+public sealed record CpCollectionsDunningDetailResult(
+    CpCollectionsDunningQueueDetail? Queue,
+    IReadOnlyList<CpCollectionsDunningLogDigest> Log,
+    string Source,
+    string Message);
+
 public sealed record CpMarketplaceChannelsSummary(
     int ChannelCount,
     int ActiveCount,

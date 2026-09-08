@@ -146,6 +146,7 @@ public sealed class SurfaceDashboardSummaryReporterTests
         var authMfa = await reporter.BuildCpAuthMfaDigestAsync(10);
         var electronicReporting = await reporter.BuildCpElectronicReportingDigestAsync(10);
         var collectionsDunning = await reporter.BuildCpCollectionsDunningDigestAsync(10);
+        var collectionsDunningDetail = await reporter.BuildCpCollectionsDunningDetailAsync(12);
         var marketplaceChannels = await reporter.BuildCpMarketplaceChannelsDigestAsync(10);
         var demandIntelligence = await reporter.BuildCpDemandIntelligenceDigestAsync(10);
         var creditLimits = await reporter.BuildCpCreditLimitsDigestAsync(10);
@@ -367,6 +368,7 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.Equal("migration", authMfa.Source);
         Assert.Equal("migration", electronicReporting.Source);
         Assert.Equal("migration", collectionsDunning.Source);
+        Assert.Equal("migration", collectionsDunningDetail.Source);
         Assert.Equal("migration", marketplaceChannels.Source);
         Assert.Equal("migration", demandIntelligence.Source);
         Assert.Equal("migration", creditLimits.Source);
@@ -514,6 +516,13 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.Contains("decision_note", LegacySurfaceDashboardSql.SelectCpPurchaseRequestDetail, StringComparison.Ordinal);
         Assert.Contains("epc_proc_req_line", LegacySurfaceDashboardSql.SelectCpPurchaseRequestLines, StringComparison.Ordinal);
         Assert.Contains("`req_id` = @id", LegacySurfaceDashboardSql.SelectCpPurchaseRequestLines, StringComparison.Ordinal);
+        Assert.Contains("epc_dunning_queue", LegacySurfaceDashboardSql.SelectCpCollectionsDunningQueue, StringComparison.Ordinal);
+        Assert.DoesNotContain("customer_name", LegacySurfaceDashboardSql.SelectCpCollectionsDunningQueue, StringComparison.Ordinal);
+        Assert.DoesNotContain("`notes`", LegacySurfaceDashboardSql.SelectCpCollectionsDunningQueue, StringComparison.Ordinal);
+        Assert.Contains("customer_name", LegacySurfaceDashboardSql.SelectCpCollectionsDunningQueueDetail, StringComparison.Ordinal);
+        Assert.Contains("`notes`", LegacySurfaceDashboardSql.SelectCpCollectionsDunningQueueDetail, StringComparison.Ordinal);
+        Assert.Contains("epc_dunning_log", LegacySurfaceDashboardSql.SelectCpCollectionsDunningLog, StringComparison.Ordinal);
+        Assert.Contains("`queue_id` = @id", LegacySurfaceDashboardSql.SelectCpCollectionsDunningLog, StringComparison.Ordinal);
         Assert.Contains("epc_promo_promotions", LegacySurfaceDashboardSql.SelectCpPromotions, StringComparison.Ordinal);
         Assert.Contains("epc_crm_opportunities", LegacySurfaceDashboardSql.SelectCpCrmOpportunities, StringComparison.Ordinal);
         Assert.DoesNotContain("`notes`", LegacySurfaceDashboardSql.SelectCpCrmOpportunities, StringComparison.Ordinal);
