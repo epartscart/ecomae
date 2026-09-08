@@ -6254,7 +6254,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only shop_obtaining_modes (parameters_values omitted). Configure remains PHP sposoby-polucheniya."
+                note = "shop_obtaining_modes KPIs + modes. Open ?obtaining_mode_id= loads 280-char parameters_values excerpt. Full JSON omitted. Activate/save is POST /cp/delivery-methods/write."
             });
         });
 

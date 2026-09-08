@@ -1423,6 +1423,22 @@ public sealed record CpDeliveryMethodsDigestResult(
     string Source,
     string Message);
 
+public sealed record CpDeliveryModeDetail(
+    long Id,
+    string Caption,
+    string Handler,
+    bool Available,
+    bool ControlAvailable,
+    int SortOrder,
+    int ParametersLen,
+    string ParametersExcerpt);
+
+public sealed record CpDeliveryModeDetailResult(
+    CpDeliveryModeDetail? Mode,
+    IReadOnlyList<CpDeliveryMethodDigest> Siblings,
+    string Source,
+    string Message);
+
 public sealed record CpCrossesSummary(
     int TotalPairs,
     int Brands,

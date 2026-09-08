@@ -1797,6 +1797,35 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>Opened delivery mode. parameters_values is a short excerpt; full JSON omitted.</summary>
+    public const string SelectCpDeliveryModeDetail = """
+        SELECT `id`, IFNULL(`caption`, '') AS caption,
+               IFNULL(`handler`, '') AS handler,
+               IFNULL(`available`, 0) AS available,
+               IFNULL(`control_available`, 0) AS control_available,
+               IFNULL(`order`, 0) AS sort_order,
+               CHAR_LENGTH(IFNULL(`parameters_values`,'')) AS parameters_len,
+               LEFT(IFNULL(`parameters_values`,''), 280) AS parameters_excerpt
+        FROM `shop_obtaining_modes`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Other modes with the same available flag. parameters_values omitted.</summary>
+    public const string SelectCpDeliveryModeAvailableSiblings = """
+        SELECT `id`, IFNULL(`caption`, '') AS caption,
+               IFNULL(`handler`, '') AS handler,
+               IFNULL(`available`, 0) AS available,
+               IFNULL(`control_available`, 0) AS control_available,
+               IFNULL(`order`, 0) AS sort_order
+        FROM `shop_obtaining_modes`
+        WHERE IFNULL(`control_available`, 0) = 1
+          AND `available` = @available
+          AND `id` <> @id
+        ORDER BY `order` ASC, `id` ASC
+        LIMIT 50
+        """;
+
     public const string SelectCpCrossesStats = """
         SELECT
             (SELECT COUNT(*) FROM `shop_docpart_articles_analogs_list`) AS total_pairs,
