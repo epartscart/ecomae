@@ -10,47 +10,46 @@
 <PhpChromeBodyClass Surface="storefront" />
 
 <StorefrontTenantChrome>
-    <section style="padding:2rem 0 3rem">
-        <div class="container" style="max-width:48rem">
-            <p style="margin:0 0 .35rem;color:#64748b;font-size:.85rem">
-                <a href="@StorefrontSurfaceLinks.CustomerRequests">My requests</a>
-                · Request to seller
-                ·
-                <a href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(StorefrontPhpCanonical.SellerRequest)" target="_blank" rel="noopener">Classic twin</a>
-            </p>
-            <h1 style="margin:.1rem 0 .4rem">Send a request to seller</h1>
-            <p style="color:#475569">Describe the VIN or frame and the parts you need. The store replies on My requests. Photos and manager email stay on the Classic twin.</p>
-            @if (!string.IsNullOrWhiteSpace(_flashOk))
+    <PhpStorefrontPageHeader Title="Request to seller"
+                            Subtitle="Describe the VIN or frame and the parts you need. The store replies on My requests.">
+        <a class="btn btn-sm btn-default" href="@StorefrontSurfaceLinks.CustomerRequests">My requests</a>
+        <a class="btn btn-sm btn-default" href="@StorefrontSurfaceLinks.GarageLogin">Garage</a>
+        <a class="btn btn-sm btn-default" href="@StorefrontSurfaceLinks.LaximoVin">VIN / Frame</a>
+    </PhpStorefrontPageHeader>
+
+    @if (!string.IsNullOrWhiteSpace(_flashOk))
+    {
+        <p style="margin:0 0 .75rem;padding:.65rem .8rem;background:#ecfdf3;border:1px solid #86efac;color:#166534">@_flashOk</p>
+    }
+    @if (!string.IsNullOrWhiteSpace(_flashErr))
+    {
+        <p style="margin:0 0 .75rem;padding:.65rem .8rem;background:#fef2f2;border:1px solid #fecaca;color:#991b1b">@_flashErr</p>
+    }
+    <form method="post" action="@PhpSellerRequest.SellerWriteHref" style="background:#fff;border:1px solid #e2e8f0;border-radius:.55rem;padding:1.1rem 1.2rem">
+        <input type="hidden" name="confirmWrites" value="true" />
+        @foreach (var field in PhpSellerRequest.Fields)
+        {
+            <label for="@field.Name">@field.Label@(field.Required ? " *" : "")</label>
+            @if (field.Required)
             {
-                <p style="margin:0 0 .75rem;padding:.65rem .8rem;background:#ecfdf3;border:1px solid #86efac;color:#166534">@_flashOk</p>
+                <input id="@field.Name" type="text" name="@field.Name" placeholder="@field.Placeholder" required
+                       style="width:100%;margin:.25rem 0 .75rem;padding:.5rem" />
             }
-            @if (!string.IsNullOrWhiteSpace(_flashErr))
+            else
             {
-                <p style="margin:0 0 .75rem;padding:.65rem .8rem;background:#fef2f2;border:1px solid #fecaca;color:#991b1b">@_flashErr</p>
+                <input id="@field.Name" type="text" name="@field.Name" placeholder="@field.Placeholder"
+                       style="width:100%;margin:.25rem 0 .75rem;padding:.5rem" />
             }
-            <form method="post" action="@PhpSellerRequest.SellerWriteHref" style="background:#fff;border:1px solid #e2e8f0;border-radius:.55rem;padding:1.1rem 1.2rem">
-                <input type="hidden" name="confirmWrites" value="true" />
-                @foreach (var field in PhpSellerRequest.Fields)
-                {
-                    <label for="@field.Name">@field.Label@(field.Required ? " *" : "")</label>
-                    @if (field.Required)
-                    {
-                        <input id="@field.Name" type="text" name="@field.Name" placeholder="@field.Placeholder" required
-                               style="width:100%;margin:.25rem 0 .75rem;padding:.5rem" />
-                    }
-                    else
-                    {
-                        <input id="@field.Name" type="text" name="@field.Name" placeholder="@field.Placeholder"
-                               style="width:100%;margin:.25rem 0 .75rem;padding:.5rem" />
-                    }
-                }
-                <label for="client_parts">Parts needed *</label>
-                <textarea id="client_parts" name="client_parts" rows="4" required placeholder="Articles, names, quantities"
-                          style="width:100%;margin:.25rem 0 1rem;padding:.5rem"></textarea>
-                <button type="submit" style="padding:.65rem 1.1rem;border:0;border-radius:.45rem;background:#dc2626;color:#fff;font-weight:800;cursor:pointer">Send request</button>
-            </form>
-        </div>
-    </section>
+        }
+        <label for="client_parts">Parts needed *</label>
+        <textarea id="client_parts" name="client_parts" rows="4" required placeholder="Articles, names, quantities"
+                  style="width:100%;margin:.25rem 0 1rem;padding:.5rem"></textarea>
+        <label style="display:flex;gap:.5rem;align-items:flex-start;font-weight:500;margin:0 0 1rem">
+            <input type="checkbox" name="users_agreement" value="yes" required style="margin-top:.2rem" />
+            <span>I accept the <a href="/polzovatelskoe-soglashenie" target="_blank">user agreement</a>.</span>
+        </label>
+        <button type="submit" class="btn btn-ar btn-primary">Send request</button>
+    </form>
 </StorefrontTenantChrome>
 
 @code {

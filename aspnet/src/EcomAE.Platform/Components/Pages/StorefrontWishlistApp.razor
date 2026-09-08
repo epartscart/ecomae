@@ -39,7 +39,7 @@
 <StorefrontTenantChrome>
 
     <PhpStorefrontPageHeader Title="Bookmarks"
-                            Subtitle="Saved catalogue products from the classic wishlist cookie.">
+                            Subtitle="Products you saved from the catalogue.">
         <a class="btn btn-sm btn-primary" href="@StorefrontSurfaceLinks.OwnCatalog">Own catalog</a>
             <a class="btn btn-sm btn-default" href="@StorefrontSurfaceLinks.Compare">Compare</a>
             <a class="btn btn-sm btn-default" href="@StorefrontSurfaceLinks.Cart">Cart</a>
@@ -57,7 +57,7 @@
     @if (_ids.Count == 0)
     {
         <div class="epc-sf-wl-empty">
-            No bookmarks yet. Add products from the classic catalogue, then return here.
+            No bookmarks yet. Add products from the catalogue, then return here.
         </div>
     }
     else if (_products.Count == 0)
