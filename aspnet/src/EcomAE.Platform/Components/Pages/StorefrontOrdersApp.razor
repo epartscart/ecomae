@@ -50,10 +50,10 @@
 <StorefrontTenantChrome>
 
     <PhpStorefrontPageHeader Title="My Orders"
-                            Subtitle="Browse parts, manage your garage, and track recent orders.">
-        <a class="btn btn-sm btn-primary" href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpOrders)">Open orders</a>
-            <a class="btn btn-sm btn-default" href="/storefront/cart-app">Cart</a>
+                            Subtitle="Your orders, receipts, and messages to the store.">
+            <a class="btn btn-sm btn-primary" href="/storefront/cart-app">Cart</a>
             <a class="btn btn-sm btn-default" href="@StorefrontSurfaceLinks.PartSearch">Search parts</a>
+            <a class="btn btn-sm btn-default" href="@StorefrontAspNetCanonical.GuestOrder">Guest order</a>
             <a class="btn btn-sm btn-default" href="@StorefrontSurfaceLinks.Login">Customer login</a>
     </PhpStorefrontPageHeader>
 
@@ -186,7 +186,7 @@
                 <tbody>
                     @if (_shownOrders.Count == 0)
                     {
-                        <tr><td colspan="10">Nothing to show yet.</td></tr>
+                        <tr><td colspan="10">You have no orders yet.</td></tr>
                     }
                     else
                     {
@@ -328,7 +328,6 @@
 </StorefrontTenantChrome>
 
 @code {
-    private const string _phpOrders = "https://epartscart.com/shop/orders";
     private string _brand = "eParts Cart";
     private bool _isCustomer;
     private IReadOnlyList<StorefrontOrderDigest> _orders = [];

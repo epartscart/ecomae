@@ -100,6 +100,41 @@
 
 </PhpCpDesktopChrome>
 
+<form method="post" action="/erp/cost-models/txns/add" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/cost-models-app" />
+            <strong style="width:100%;font-size:.85rem">Add transaction</strong>
+            <label>Item id <input type="number" name="item_id" min="0" required style="width:7rem" /></label>
+            <label>Type
+                <select name="txn_type">
+                    <option value="receipt">receipt</option>
+                    <option value="issue">issue</option>
+                </select>
+            </label>
+            <label>Qty <input type="text" name="qty" placeholder="0.0000" style="width:7rem" /></label>
+            <label>Unit cost <input type="text" name="unit_cost" placeholder="0.0000" style="width:7rem" /></label>
+            <label>Company id <input type="number" name="company_id" min="0" value="0" style="width:5rem" /></label>
+            <button type="submit" class="btn btn-sm btn-primary">Add</button>
+        </form>
+
+<form method="post" action="/erp/cost-models/items/set" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/cost-models-app" />
+            <strong style="width:100%;font-size:.85rem">Assign costing model</strong>
+            <label>Item id <input type="number" name="item_id" min="0" required style="width:7rem" /></label>
+            <label>Model
+                <select name="model">
+                    <option value="moving_avg">moving_avg</option>
+                    <option value="standard">standard</option>
+                    <option value="fifo">fifo</option>
+                    <option value="lifo">lifo</option>
+                </select>
+            </label>
+            <label>Std cost <input type="text" name="std_cost" placeholder="0.0000" style="width:7rem" /></label>
+            <label>Company id <input type="number" name="company_id" min="0" value="0" style="width:5rem" /></label>
+            <button type="submit" class="btn btn-sm btn-primary">Save</button>
+        </form>
+
 @code {
     private const string _phpTab = "/ERP/?epc_erp_shell=1&area=cost_mgmt&tab=cost_models";
     private bool _isAdmin;

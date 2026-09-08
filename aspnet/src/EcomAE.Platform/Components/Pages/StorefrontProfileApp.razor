@@ -47,10 +47,10 @@
 <StorefrontTenantChrome>
 
     <PhpStorefrontPageHeader Title="Profile"
-                            Subtitle="Browse parts, manage your garage, and track recent orders.">
-        <a class="btn btn-sm btn-primary" href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpProfile)">Open module</a>
+                            Subtitle="Your account details, contacts, and password.">
             <a class="btn btn-sm btn-default" href="/storefront/garage-app">Garage</a>
             <a class="btn btn-sm btn-default" href="/storefront/orders-app">My orders</a>
+            <a class="btn btn-sm btn-default" href="/storefront/account-summary-app">Account</a>
             <a class="btn btn-sm btn-default" href="/storefront/login">Customer login</a>
     </PhpStorefrontPageHeader>
 
@@ -158,15 +158,13 @@
             </div>
         </form>
         <p class="epc-sf-pf-note">
-            Email and phone confirmation stay on the classic account form.
-            <a href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref("/en/users/editform")">Classic contacts</a>
+            Save name, company, and address here. Email and phone confirmation stay on this profile after you verify the contact.
         </p>
     }
 
 </StorefrontTenantChrome>
 
 @code {
-    private const string _phpProfile = "https://epartscart.com/users/profile";
     private string _brand = "eParts Cart";
     private bool _isCustomer;
     private int _userId;

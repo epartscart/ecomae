@@ -102,6 +102,71 @@
     </div>
 </PhpCpDesktopChrome>
 
+<form method="post" action="/erp/integrations/events/raise" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/integrations-app" />
+            <strong style="width:100%;font-size:.85rem">Raise test event</strong>
+            <label>Event
+                <select name="event">
+                    <option value="SalesOrderConfirmed">SalesOrderConfirmed</option>
+                    <option value="SalesOrderInvoiced">SalesOrderInvoiced</option>
+                    <option value="PurchaseOrderConfirmed">PurchaseOrderConfirmed</option>
+                    <option value="PaymentPosted">PaymentPosted</option>
+                    <option value="InventoryLowStock">InventoryLowStock</option>
+                    <option value="CustomerCreditHold">CustomerCreditHold</option>
+                    <option value="DocumentExpiring">DocumentExpiring</option>
+                    <option value="InsuranceRenewalDue">InsuranceRenewalDue</option>
+                </select>
+            </label>
+            <label>Payload <input type="text" name="payload" placeholder='{"order_id":1}' style="width:14rem" /></label>
+            <label>Company id <input type="number" name="company_id" min="0" value="0" style="width:5rem" /></label>
+            <button type="submit" class="btn btn-sm btn-warning">Raise</button>
+        </form>
+
+<form method="post" action="/erp/integrations/subscriptions/save" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/integrations-app" />
+            <label>Event
+                <select name="event">
+                    <option value="SalesOrderConfirmed">SalesOrderConfirmed</option>
+                    <option value="SalesOrderInvoiced">SalesOrderInvoiced</option>
+                    <option value="PurchaseOrderConfirmed">PurchaseOrderConfirmed</option>
+                    <option value="PaymentPosted">PaymentPosted</option>
+                    <option value="InventoryLowStock">InventoryLowStock</option>
+                    <option value="CustomerCreditHold">CustomerCreditHold</option>
+                    <option value="DocumentExpiring">DocumentExpiring</option>
+                    <option value="InsuranceRenewalDue">InsuranceRenewalDue</option>
+                </select>
+            </label>
+            <label>Target type
+                <select name="target_type">
+                    <option value="webhook">webhook</option>
+                    <option value="internal">internal</option>
+                    <option value="email">email</option>
+                </select>
+            </label>
+            <label>Target <input type="text" name="target" maxlength="255" placeholder="URL / email" style="width:14rem" /></label>
+            <label>Company id <input type="number" name="company_id" min="0" value="0" style="width:5rem" /></label>
+            <button type="submit" class="btn btn-sm btn-primary">Subscribe</button>
+        </form>
+
+<form method="post" action="/erp/integrations/entities/save" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="@_returnUrl" />
+            <label>Name <input type="text" name="name" required maxlength="80" style="width:10rem" /></label>
+            <label>Source table <input type="text" name="source_table" maxlength="120" style="width:12rem" /></label>
+            <label>Key field <input type="text" name="key_field" maxlength="80" placeholder="id" style="width:7rem" /></label>
+            <label>Fields <input type="text" name="fields" placeholder="id,name" style="width:14rem" /></label>
+            <label>Enabled
+                <select name="enabled">
+                    <option value="1" selected>enabled</option>
+                    <option value="0">disabled</option>
+                </select>
+            </label>
+            <label>Company id <input type="number" name="company_id" min="0" value="0" style="width:5rem" /></label>
+            <button type="submit" class="btn btn-sm btn-primary">Save data entity</button>
+        </form>
+
 @code {
     private const string _hubHref = "/cp/integrations-app";
     private const string _guideHref = "/cp/ops-guides-app";
@@ -125,4 +190,5 @@
         _summary = result.Summary;
         _integrations = result.Integrations;
     }
+    private string _returnUrl => "/cp/integrations-app";
 }

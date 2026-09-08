@@ -63,15 +63,27 @@
 <StorefrontTenantChrome>
 
     <PhpStorefrontPageHeader Title="Garage"
-                            Subtitle="Browse parts, manage your garage, and track recent orders.">
+                            Subtitle="Keep your vehicles here, then book workshop service or track an open job.">
         @if (_showWorkshop)
             {
                 <a class="btn btn-sm btn-primary" href="@StorefrontAspNetCanonical.GarageManager">Garage manager</a>
                 <a class="btn btn-sm btn-default" href="@StorefrontAspNetCanonical.AutoWorkshop">Book / track service</a>
             }
             <a class="btn btn-sm btn-default" href="/storefront/orders-app">My orders</a>
+            <a class="btn btn-sm btn-default" href="@StorefrontSurfaceLinks.SellerRequest">Request to seller</a>
             <a class="btn btn-sm btn-default" href="/storefront/login">Customer login</a>
     </PhpStorefrontPageHeader>
+
+    @if (_showWorkshop)
+    {
+        <div class="epc-garazh-gms" style="margin:0 0 1.1rem;padding:1.1rem 1.2rem;border-radius:16px;color:#f8fafc;background:linear-gradient(125deg,#0b1220,#164e63 55%,#0e7490)">
+            <h2 style="margin:0 0 .35rem;color:#fff;font-size:1.25rem;font-weight:800">My Garage · Service ready</h2>
+            <p style="margin:0 0 .75rem;opacity:.92;max-width:60ch">Keep your vehicles here, then book workshop service or track an open job. Workshop staff use Garage Manager for the full repair workflow.</p>
+            <a href="@(StorefrontAspNetCanonical.AutoWorkshop + "#book")" style="display:inline-flex;margin:0 .5rem .35rem 0;padding:.45rem .75rem;border-radius:999px;background:rgba(255,255,255,.16);color:#fff;font-weight:700;text-decoration:none;border:1px solid rgba(255,255,255,.22);font-size:.78rem">Book service</a>
+            <a href="@(StorefrontAspNetCanonical.AutoWorkshop + "#track")" style="display:inline-flex;margin:0 .5rem .35rem 0;padding:.45rem .75rem;border-radius:999px;background:rgba(255,255,255,.16);color:#fff;font-weight:700;text-decoration:none;border:1px solid rgba(255,255,255,.22);font-size:.78rem">Track job</a>
+            <a href="@StorefrontAspNetCanonical.GarageManager" style="display:inline-flex;margin:0 .5rem .35rem 0;padding:.45rem .75rem;border-radius:999px;background:rgba(255,255,255,.16);color:#fff;font-weight:700;text-decoration:none;border:1px solid rgba(255,255,255,.22);font-size:.78rem">Garage Manager login</a>
+        </div>
+    }
 
     @if (!string.IsNullOrWhiteSpace(_flashOk))
     {
@@ -157,7 +169,7 @@
         <div class="col-md-12">
             @if (_vehicles.Count == 0)
             {
-                <p>Nothing to show yet.</p>
+                <p>No vehicles in the garage yet. Add a vehicle below.</p>
             }
             else
             {

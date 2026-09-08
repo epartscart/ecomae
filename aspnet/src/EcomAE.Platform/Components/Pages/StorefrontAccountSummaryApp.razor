@@ -50,8 +50,7 @@
 <StorefrontTenantChrome>
 
     <PhpStorefrontPageHeader Title="Account"
-                            Subtitle="Browse parts, manage your garage, and track recent orders.">
-        <a class="btn btn-sm btn-primary" href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpAccount)">Open module</a>
+                            Subtitle="Balance, recent orders, and account shortcuts.">
             <a class="btn btn-sm btn-default" href="/storefront/orders-app">My orders</a>
             <a class="btn btn-sm btn-default" href="/storefront/garage-app">Garage</a>
             <a class="btn btn-sm btn-default" href="/storefront/profile-app">Profile</a>
@@ -146,7 +145,6 @@
 </StorefrontTenantChrome>
 
 @code {
-    private const string _phpAccount = "https://epartscart.com/users/";
     private string _brand = "eParts Cart";
     private bool _isCustomer;
     private StorefrontAccountSummary _summary = new(0, 0, 0, 0, "n/a", string.Empty);

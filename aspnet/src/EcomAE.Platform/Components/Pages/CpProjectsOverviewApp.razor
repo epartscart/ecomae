@@ -47,6 +47,7 @@
         <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
         <h1>Projects Overview</h1>
         <p>@CpPhpModuleCopy.PurposeFor(Nav.Uri)</p>
+        <p>Save a project, a project task, and a time log here.</p>
         <div class="epc-prj-cta">
             <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
             <a class="ghost" href="/cp/production-overview-app">Production overview</a>
@@ -54,6 +55,68 @@
     </section>
     <PhpParityModuleBody AppPath="/cp/projects-overview-app" IsAdmin="_isAdmin" />
 
+    @if (!string.IsNullOrWhiteSpace(_flashOk))
+    {
+        <div class="alert alert-success" role="status" style="margin:0 0 1rem;padding:.7rem .9rem;border-radius:.4rem;background:#ecfdf5;color:#065f46">@_flashOk</div>
+    }
+    @if (!string.IsNullOrWhiteSpace(_flashErr))
+    {
+        <div class="alert alert-danger" role="status" style="margin:0 0 1rem;padding:.7rem .9rem;border-radius:.4rem;background:#fef2f2;color:#991b1b">@_flashErr</div>
+    }
+    @if (_isAdmin)
+    {
+        <form method="post" action="/erp/projects/save" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/projects-overview-app" />
+            <label>Id <input type="number" name="id" min="0" style="width:5rem" placeholder="new" /></label>
+            <label>Code <input type="text" name="code" required placeholder="PRJ-001" /></label>
+            <label>Name <input type="text" name="name" /></label>
+            <label>Customer id <input type="number" name="customer_id" min="0" style="width:6rem" /></label>
+            <label>Billing
+                <select name="billing_type">
+                    <option value="tm">tm</option>
+                    <option value="fixed">fixed</option>
+                </select>
+            </label>
+            <label>Budget <input type="number" name="budget_cost" step="0.01" style="width:7rem" /></label>
+            <label>Contract <input type="number" name="contract_value" step="0.01" style="width:7rem" /></label>
+            <label>Status
+                <select name="status">
+                    <option value="open">open</option>
+                    <option value="closed">closed</option>
+                </select>
+            </label>
+            <button type="submit">Save project</button>
+        </form>
+        <form method="post" action="/erp/projects/tasks/save" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/projects-overview-app" />
+            <label>Project id <input type="number" name="project_id" min="1" required style="width:6rem" /></label>
+            <label>Id <input type="number" name="id" min="0" style="width:5rem" placeholder="new" /></label>
+            <label>Name <input type="text" name="name" placeholder="Task / milestone" /></label>
+            <label>Planned hrs <input type="number" name="planned_hours" step="0.01" style="width:6rem" /></label>
+            <label>% done <input type="number" name="percent_complete" step="1" min="0" max="100" style="width:5rem" /></label>
+            <label>Status
+                <select name="status">
+                    <option value="open">open</option>
+                    <option value="closed">closed</option>
+                </select>
+            </label>
+            <button type="submit">Save task</button>
+        </form>
+        <form method="post" action="/erp/projects/timesheets/log" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/projects-overview-app" />
+            <label>Project id <input type="number" name="project_id" min="1" required style="width:6rem" /></label>
+            <label>Task id <input type="number" name="task_id" min="0" style="width:5rem" /></label>
+            <label>Employee id <input type="number" name="employee_id" min="0" style="width:6rem" /></label>
+            <label>Hours <input type="number" name="hours" step="0.25" required style="width:5rem" /></label>
+            <label>Cost/hr <input type="number" name="cost_rate" step="0.01" style="width:6rem" /></label>
+            <label>Bill/hr <input type="number" name="bill_rate" step="0.01" style="width:6rem" /></label>
+            <label style="font-weight:normal"><input type="checkbox" name="billable" value="1" checked /> Billable</label>
+            <button type="submit">Log time</button>
+        </form>
+    }
 
     <div class="epc-prj-kpis" aria-label="Projects stats">
         <div class="epc-prj-kpi"><strong>@_summary.OpenProjects.ToString(CultureInfo.InvariantCulture)</strong><span>Open projects</span></div>
@@ -107,11 +170,15 @@
     private IReadOnlyList<CpProjectDigest> _projects = [];
     private string _source = "n/a";
     private string _message = "";
+    private string _flashOk = "";
+    private string _flashErr = "";
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
+        _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
+        _flashErr = ctx.Request.Query["err"].ToString() ?? "";
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
