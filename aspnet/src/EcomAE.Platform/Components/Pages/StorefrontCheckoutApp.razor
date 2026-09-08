@@ -97,6 +97,17 @@
                     <button type="submit" style="margin-top:.75rem;padding:.5rem .85rem;border:0;border-radius:.4rem;background:#0f766e;color:#fff;font-weight:800;cursor:pointer">Save delivery option</button>
                 </form>
             }
+            else if (_step is "login_offer")
+            {
+                <div class="panel panel-primary">
+                    <div class="panel-body">
+                        <p style="margin:0 0 .75rem">Sign in to continue checkout with your cart, or continue as a guest.</p>
+                        <a class="btn btn-ar btn-primary" href="@StorefrontSurfaceLinks.Login">Log in</a>
+                        <a class="btn btn-ar btn-default" href="@StorefrontSurfaceLinks.Registration">Register</a>
+                        <a class="btn btn-ar btn-default" href="@StorefrontSurfaceLinks.CheckoutHowGet">Continue as guest</a>
+                    </div>
+                </div>
+            }
             else if (_step is "confirm")
             {
                 @if (_lines.Count > 0)
@@ -166,11 +177,16 @@
     {
         @if (_step is not "login_offer")
         {
-            <div class="epc-sf-co-gate">
-                <p style="margin:0 0 .75rem;color:#334155">Sign in to continue checkout with your cart, or continue as a guest.</p>
-                <a href="@StorefrontSurfaceLinks.Login" style="display:inline-flex;padding:.55rem .9rem;border-radius:.4rem;background:#dc2626;color:#fff;font-weight:700;text-decoration:none">Sign in</a>
-                <a href="@StorefrontSurfaceLinks.CheckoutLoginOffer" style="display:inline-flex;margin-left:.45rem;padding:.55rem .9rem;border-radius:.4rem;border:1px solid #d1d5db;color:#111;font-weight:700;text-decoration:none">Guest checkout</a>
-                <a href="@StorefrontSurfaceLinks.Registration" style="display:inline-flex;margin-left:.45rem;padding:.55rem .9rem;border-radius:.4rem;border:1px solid #d1d5db;color:#111;font-weight:700;text-decoration:none">Register</a>
+            <div class="panel panel-primary epc-cart-login-gate">
+                <div class="panel-body">
+                    <p style="margin:0 0 .75rem;color:#334155">Sign in to continue checkout with your cart, or continue as a guest.</p>
+                    <div class="epc-commerce-login-cta">
+                        <a class="btn btn-sm btn-primary" href="@StorefrontSurfaceLinks.Login">Log in</a>
+                        <span class="epc-commerce-login-cta__sep">or</span>
+                        <a class="btn btn-sm btn-default" href="@StorefrontSurfaceLinks.Registration">Register</a>
+                        <a class="btn btn-sm btn-default" href="@StorefrontSurfaceLinks.CheckoutLoginOffer">Guest checkout</a>
+                    </div>
+                </div>
             </div>
         }
     }
