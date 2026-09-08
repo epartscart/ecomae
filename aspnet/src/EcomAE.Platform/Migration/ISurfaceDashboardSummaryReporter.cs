@@ -444,6 +444,9 @@ public interface ISurfaceDashboardSummaryReporter
     Task<CpWebTrackerDashboardResult> BuildCpWebTrackerDashboardAsync(CpWebTrackerFilterQuery filters, CancellationToken cancellationToken = default);
     Task<CpWebTrackerSessionDetailResult> BuildCpWebTrackerSessionDetailAsync(long sessionId, string siteKey, bool isSuper, CancellationToken cancellationToken = default);
     Task<CpAbandonedCartsDigestResult> BuildCpAbandonedCartsDigestAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Opened abandoned cart line + sibling lines (PHP <c>cart_id=</c> detail).</summary>
+    Task<CpAbandonedCartsDetailResult> BuildCpAbandonedCartsDetailAsync(long id, CancellationToken cancellationToken = default);
     Task<CpQuoteRequestsDigestResult> BuildCpQuoteRequestsDigestAsync(int limit, CancellationToken cancellationToken = default);
 
     /// <summary>Opened quote request + lines (PHP <c>quote_id=</c> detail).</summary>

@@ -3659,6 +3659,30 @@ public sealed record CpAbandonedCartsDigestResult(
     string Source,
     string Message);
 
+public sealed record CpAbandonedCartsLineDetail(
+    long Id,
+    long UserId,
+    long SessionId,
+    decimal Price,
+    int CountNeed,
+    int CheckedForOrder,
+    int ProductType,
+    string Manufacturer,
+    string Article,
+    string Name,
+    long TimeUnix,
+    decimal PriceSum,
+    string TimeToExe,
+    string TimeToExeGuaranteed,
+    decimal MinOrder,
+    decimal Exist);
+
+public sealed record CpAbandonedCartsDetailResult(
+    CpAbandonedCartsLineDetail? Line,
+    IReadOnlyList<CpAbandonedCartsLineDetail> Siblings,
+    string Source,
+    string Message);
+
 public sealed record CpQuoteRequestsSummary(
     int QuoteCount,
     int DraftCount,
