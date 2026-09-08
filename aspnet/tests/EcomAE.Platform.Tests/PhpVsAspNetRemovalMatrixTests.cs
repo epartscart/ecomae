@@ -229,6 +229,7 @@ public sealed class PhpVsAspNetRemovalMatrixTests
             ("ErpSalesOrdersApp.razor", "/erp/subscriptions/generate"),
             ("ErpSalesOrdersApp.razor", "/erp/ajax/sub-invoice-paid"),
             ("ErpProcessFlowTasksApp.razor", "/erp/ajax/pf-case-cancel"),
+            ("ErpProcessFlowTasksApp.razor", "/erp/process-flow/processes/save"),
             ("ErpProcessFlowTasksApp.razor", "/erp/ajax/pf-step-delete"),
             ("ErpApprovalsApp.razor", "/erp/ajax/bos-wf-disable-rule"),
             ("CpSoc2ComplianceApp.razor", "/erp/ajax/bos-compliance-disable-obligation"),

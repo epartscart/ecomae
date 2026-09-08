@@ -3081,6 +3081,16 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(whtCodeDb.Succeeded);
         Assert.Equal("db", whtCodeDb.Code);
 
+        var pfProcessInvalid = await new ErpPfProcessSaveWriteService(new ConfiguredNeverOpened())
+            .SaveAsync(new ErpPfProcessSaveWriteRequest());
+        Assert.False(pfProcessInvalid.Succeeded);
+        Assert.Equal("invalid", pfProcessInvalid.Code);
+
+        var pfProcessDb = await new ErpPfProcessSaveWriteService(new UnconfiguredConnections())
+            .SaveAsync(new ErpPfProcessSaveWriteRequest(Name: "Onboard"));
+        Assert.False(pfProcessDb.Succeeded);
+        Assert.Equal("db", pfProcessDb.Code);
+
         var whtRecordInvalid = await new ErpWhtRecordWriteService(new ConfiguredNeverOpened())
             .RecordAsync(new ErpWhtRecordWriteRequest());
         Assert.False(whtRecordInvalid.Succeeded);
