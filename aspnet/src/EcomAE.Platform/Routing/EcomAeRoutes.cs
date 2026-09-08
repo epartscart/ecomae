@@ -1487,7 +1487,9 @@ public static class EcomAeRoutes
     public const string ErpAjaxFaCreateAsset = "/erp/ajax/fa-create-asset";
     /// <summary>Wave B dry-run for PHP fa_run_depreciation (writes=0).</summary>
     public const string ErpAjaxFaRunDepreciation = "/erp/ajax/fa-run-depreciation";
-    /// <summary>Wave B dry-run for PHP opening_create_batch (writes=0).</summary>
+    /// <summary>HTML form POST for PHP opening_create_batch. confirmWrites=true writes via IErpOpeningCreateBatchWriteService.</summary>
+    public const string ErpOpeningCreateBatch = "/erp/opening/create-batch";
+    /// <summary>Live PHP opening_create_batch ajax alias of <see cref="ErpOpeningCreateBatch"/>.</summary>
     public const string ErpAjaxOpeningCreateBatch = "/erp/ajax/opening-create-batch";
     /// <summary>Wave B dry-run for PHP opening_add_coa_line (writes=0).</summary>
     public const string ErpAjaxOpeningAddCoaLine = "/erp/ajax/opening-add-coa-line";
