@@ -1049,7 +1049,9 @@ public static class EcomAeRoutes
     public const string ErpAjaxOrderFulfillmentSwapSupplier = "/erp/ajax/order-fulfillment-swap-supplier";
     /// <summary>Wave B dry-run for PHP pm_save (writes=0).</summary>
     public const string ErpAjaxPmSave = "/erp/ajax/pm-save";
-    /// <summary>Wave B dry-run for PHP pm_toggle (writes=0).</summary>
+    /// <summary>HTML form POST for PHP pm_toggle. confirmWrites=true writes via IErpPmToggleWriteService.</summary>
+    public const string ErpPmToggle = "/erp/pm/toggle";
+    /// <summary>Live PHP pm_toggle ajax alias of <see cref="ErpPmToggle"/>.</summary>
     public const string ErpAjaxPmToggle = "/erp/ajax/pm-toggle";
     /// <summary>Wave B dry-run for PHP pm_budget_save (writes=0).</summary>
     public const string ErpAjaxPmBudgetSave = "/erp/ajax/pm-budget-save";

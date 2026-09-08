@@ -3111,6 +3111,17 @@ public sealed class LiveWriteServiceValidationTests
             .LogAsync(new ErpHrAttendanceWriteRequest(EmployeeId: 1, Hours: 8));
         Assert.False(hrAttDb.Succeeded);
         Assert.Equal("db", hrAttDb.Code);
+
+        var pmToggleUnknown = await new ErpPmToggleWriteService(new ConfiguredNeverOpened())
+            .ToggleAsync(new ErpPmToggleWriteRequest(PmTable: "not_a_table", Id: 1, Active: true));
+        Assert.False(pmToggleUnknown.Succeeded);
+        Assert.Equal("invalid", pmToggleUnknown.Code);
+        Assert.Equal("Unknown master table", pmToggleUnknown.Message);
+
+        var pmToggleDb = await new ErpPmToggleWriteService(new UnconfiguredConnections())
+            .ToggleAsync(new ErpPmToggleWriteRequest(PmTable: "epc_erp_pm_business_units", Id: 1, Active: false));
+        Assert.False(pmToggleDb.Succeeded);
+        Assert.Equal("db", pmToggleDb.Code);
     }
 
     [Fact]
