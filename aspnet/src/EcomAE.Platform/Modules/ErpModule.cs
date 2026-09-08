@@ -112,8 +112,8 @@ public sealed class ErpModule : ISurfaceModule
         }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpProjectsSave, HandlePrjSaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxPrjSave, HandlePrjSaveAsync).DisableAntiforgery();
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxPrjTaskSave, async (HttpContext context, ErpPrjTaskSaveBody? body, ILegacySessionValidator validator, IErpPrjTaskSaveDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpPrjTaskSaveRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.ErpProjectsTasksSave, HandlePrjTaskSaveAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxPrjTaskSave, HandlePrjTaskSaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxPrjLogTime, async (HttpContext context, ErpPrjLogTimeBody? body, ILegacySessionValidator validator, IErpPrjLogTimeDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpPrjLogTimeRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxConsEntitySave, async (
@@ -11879,16 +11879,60 @@ public sealed class ErpModule : ISurfaceModule
             new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
     }
 
+    private static async Task<IResult> HandlePrjTaskSaveAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpPrjTaskSaveDryRun dryRun,
+        IErpPrjTaskSaveWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/cp/projects-overview-app", "Admin ERP capability required for project task save.");
+        }
+
+        var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpPrjTaskSaveBody>(context, cancellationToken) ?? new();
+        var id = body.Id;
+        var projectId = body.ProjectId;
+        var name = body.Name;
+        var plannedHours = body.PlannedHours;
+        var percentComplete = body.PercentComplete;
+        var status = body.Status;
+        var confirm = body.ConfirmWrites;
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            id = LiveWriteFormBinder.Long(form, "id");
+            projectId = LiveWriteFormBinder.Long(form, "projectId", "project_id");
+            name = LiveWriteFormBinder.Text(form, "name");
+            plannedHours = LiveWriteFormBinder.Dec(form, "plannedHours", "planned_hours");
+            percentComplete = LiveWriteFormBinder.Dec(form, "percentComplete", "percent_complete");
+            status = LiveWriteFormBinder.Text(form, "status");
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+        }
+
+        if (!confirm)
+        {
+            return Results.Ok(dryRun.Evaluate(new ErpPrjTaskSaveRequest(id, projectId, name, false)).ToPayload(SessionPayload(session)));
+        }
+
+        var written = await writes.SaveAsync(
+            new ErpPrjTaskSaveWriteRequest(id, projectId, name, plannedHours, percentComplete, status),
+            cancellationToken);
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/cp/projects-overview-app",
+            written.Succeeded,
+            written.Message,
+            new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+    }
+
     private static async Task<IResult> HandlePrjSaveAsync(
         HttpContext context,
         ILegacySessionValidator validator,
         IErpPrjSaveDryRun dryRun,
         IErpPrjSaveWriteService writes,
-    private static async Task<IResult> HandleSubGenerateAsync(
-        HttpContext context,
-        ILegacySessionValidator validator,
-        IErpSubGenerateDryRun dryRun,
-        IErpSubGenerateWriteService writes,
         CancellationToken cancellationToken)
     {
         var session = await validator.ValidateAsync(context, cancellationToken);
@@ -11906,11 +11950,6 @@ public sealed class ErpModule : ISurfaceModule
         var budgetCost = body.BudgetCost;
         var contractValue = body.ContractValue;
         var status = body.Status;
-            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/sales-orders-app?tab=subscriptions", "Admin ERP capability required for subscription generate.");
-        }
-
-        var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpSubGenerateBody>(context, cancellationToken) ?? new();
-        var id = body.Id;
         var confirm = body.ConfirmWrites;
         if (context.Request.HasFormContentType)
         {
@@ -11923,7 +11962,6 @@ public sealed class ErpModule : ISurfaceModule
             budgetCost = LiveWriteFormBinder.Dec(form, "budgetCost", "budget_cost");
             contractValue = LiveWriteFormBinder.Dec(form, "contractValue", "contract_value");
             status = LiveWriteFormBinder.Text(form, "status");
-            id = LiveWriteFormBinder.Long(form, "id", "subscriptionId", "subscription_id");
             confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
         }
 
@@ -11938,6 +11976,36 @@ public sealed class ErpModule : ISurfaceModule
         return LiveWriteFormBinder.Complete(
             context,
             "/cp/projects-overview-app",
+            written.Succeeded,
+            written.Message,
+            new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+    }
+
+    private static async Task<IResult> HandleSubGenerateAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpSubGenerateDryRun dryRun,
+        IErpSubGenerateWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/sales-orders-app?tab=subscriptions", "Admin ERP capability required for subscription generate.");
+        }
+
+        var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpSubGenerateBody>(context, cancellationToken) ?? new();
+        var id = body.Id;
+        var confirm = body.ConfirmWrites;
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            id = LiveWriteFormBinder.Long(form, "id", "subscriptionId", "subscription_id");
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+        }
+
+        if (!confirm)
+        {
             return Results.Ok(dryRun.Evaluate(new ErpSubGenerateRequest(id, false)).ToPayload(SessionPayload(session)));
         }
 
@@ -12842,7 +12910,14 @@ public sealed class ErpModule : ISurfaceModule
         decimal ContractValue = 0,
         string? Status = null,
         bool ConfirmWrites = false);
-    private sealed record ErpPrjTaskSaveBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
+    private sealed record ErpPrjTaskSaveBody(
+        long Id = 0,
+        long ProjectId = 0,
+        string? Name = null,
+        decimal PlannedHours = 0,
+        decimal PercentComplete = 0,
+        string? Status = null,
+        bool ConfirmWrites = false);
     private sealed record ErpPrjLogTimeBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpConsEntitySaveBody(
         long Id = 0,
