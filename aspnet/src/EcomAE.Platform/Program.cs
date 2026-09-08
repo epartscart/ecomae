@@ -775,6 +775,7 @@ builder.Services.AddScoped<EcomAE.Platform.Erp.IErpInsDocDeleteWriteService, Eco
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpFyWriteService, EcomAE.Platform.Erp.ErpFyWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpFinPeriodStatusWriteService, EcomAE.Platform.Erp.ErpFinPeriodStatusWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpWhtSettleWriteService, EcomAE.Platform.Erp.ErpWhtSettleWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpPeriodSoftCloseWriteService, EcomAE.Platform.Erp.ErpPeriodSoftCloseWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpWhtCodeSaveWriteService, EcomAE.Platform.Erp.ErpWhtCodeSaveWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpWhtRecordWriteService, EcomAE.Platform.Erp.ErpWhtRecordWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpWhtCertificateWriteService, EcomAE.Platform.Erp.ErpWhtCertificateWriteService>();

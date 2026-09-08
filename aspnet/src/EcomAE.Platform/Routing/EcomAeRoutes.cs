@@ -626,7 +626,7 @@ public static class EcomAeRoutes
     public const string ErpPurchasesFromOrder = "/erp/purchases/from-order";
     /// <summary>Wave B dry-run for PHP ccy_set_rate (writes=0).</summary>
     public const string ErpCcySetRate = "/erp/currency/set-rate";
-    /// <summary>Wave B dry-run for PHP period_soft_close (writes=0).</summary>
+    /// <summary>HTML form POST for PHP period_soft_close. confirmWrites=true writes via IErpPeriodSoftCloseWriteService.</summary>
     public const string ErpPeriodSoftClose = "/erp/periods/soft-close";
     /// <summary>Wave B dry-run for PHP period_lock (writes=0).</summary>
     public const string ErpPeriodLock = "/erp/periods/lock";

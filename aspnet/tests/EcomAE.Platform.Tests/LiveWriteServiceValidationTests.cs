@@ -3060,6 +3060,17 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(whtSettleDb.Succeeded);
         Assert.Equal("db", whtSettleDb.Code);
 
+        var softCloseInvalid = await new ErpPeriodSoftCloseWriteService(new ConfiguredNeverOpened())
+            .SoftCloseAsync(new ErpPeriodSoftCloseWriteRequest());
+        Assert.False(softCloseInvalid.Succeeded);
+        Assert.Equal("invalid", softCloseInvalid.Code);
+        Assert.Equal("Invalid year_month format: ", softCloseInvalid.Message);
+
+        var softCloseDb = await new ErpPeriodSoftCloseWriteService(new UnconfiguredConnections())
+            .SoftCloseAsync(new ErpPeriodSoftCloseWriteRequest("2026-08", "note"));
+        Assert.False(softCloseDb.Succeeded);
+        Assert.Equal("db", softCloseDb.Code);
+
         var whtCodeInvalid = await new ErpWhtCodeSaveWriteService(new ConfiguredNeverOpened())
             .SaveAsync(new ErpWhtCodeSaveWriteRequest());
         Assert.False(whtCodeInvalid.Succeeded);

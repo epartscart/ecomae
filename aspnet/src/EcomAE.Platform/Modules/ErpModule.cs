@@ -2245,22 +2245,7 @@ public sealed class ErpModule : ISurfaceModule
             return Results.Ok(result.ToPayload(SessionPayload(session)));
         });
 
-        endpoints.MapPost(EcomAeRoutes.ErpPeriodSoftClose, async (
-            HttpContext context,
-            ErpPeriodSoftCloseBody? body,
-            ILegacySessionValidator validator,
-            IErpPeriodSoftCloseDryRun dryRun,
-            CancellationToken cancellationToken) =>
-        {
-            var session = await validator.ValidateAsync(context, cancellationToken);
-            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
-            {
-                return Unauthorized("Admin ERP capability required for period soft-close dry-run.");
-            }
-            body ??= new ErpPeriodSoftCloseBody(null, null, false);
-            var result = dryRun.Evaluate(new ErpPeriodSoftCloseRequest(body.YearMonth, body.Note, body.ConfirmWrites));
-            return Results.Ok(result.ToPayload(SessionPayload(session)));
-        });
+        endpoints.MapPost(EcomAeRoutes.ErpPeriodSoftClose, HandlePeriodSoftCloseAsync).DisableAntiforgery();
 
         endpoints.MapPost(EcomAeRoutes.ErpPeriodLock, async (
             HttpContext context,
@@ -11774,6 +11759,57 @@ public sealed class ErpModule : ISurfaceModule
         }
     }
 
+    private static async Task<IResult> HandlePeriodSoftCloseAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpPeriodSoftCloseDryRun dryRun,
+        IErpPeriodSoftCloseWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/period-close-app", "Admin ERP capability required for period soft-close.");
+        }
+
+        var yearMonth = "";
+        var note = "";
+        var confirm = false;
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            yearMonth = form["year_month"].ToString();
+            if (yearMonth.Length == 0)
+            {
+                yearMonth = form["yearMonth"].ToString();
+            }
+            note = form["note"].ToString();
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+        }
+        else
+        {
+            var root = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<JsonElement>(context, cancellationToken);
+            confirm = ErpPeriodSoftCloseWriteService.JsonFlag(root, "confirmWrites", "confirm_writes");
+            yearMonth = ErpPeriodSoftCloseWriteService.JsonText(root, "year_month", "yearMonth");
+            note = ErpPeriodSoftCloseWriteService.JsonText(root, "note");
+        }
+
+        if (!confirm)
+        {
+            return Results.Ok(dryRun.Evaluate(new ErpPeriodSoftCloseRequest(yearMonth, note)).ToPayload(SessionPayload(session)));
+        }
+
+        var written = await writes.SoftCloseAsync(
+            new ErpPeriodSoftCloseWriteRequest(yearMonth, note, session.UserId),
+            cancellationToken);
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/erp/period-close-app",
+            written.Succeeded,
+            written.Message,
+            new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, year_month = yearMonth, session = SessionPayload(session) });
+    }
+
     private static async Task<IResult> HandleWhtCodeSaveAsync(
         HttpContext context,
         ILegacySessionValidator validator,
@@ -12229,7 +12265,6 @@ public sealed class ErpModule : ISurfaceModule
         bool ConfirmWrites = false);
     private sealed record ErpPurchaseFromOrderBody(long OrderId, long SupplierId, bool ConfirmWrites = false);
     private sealed record ErpCcySetRateBody(string? From, string? To, decimal Rate, bool ConfirmWrites = false);
-    private sealed record ErpPeriodSoftCloseBody(string? YearMonth, string? Note = null, bool ConfirmWrites = false);
     private sealed record ErpPeriodLockBody(string? YearMonth, string? Note = null, bool ConfirmWrites = false);
     private sealed record ErpCustomerSettlementBody(
         long UserId = 0,

@@ -14,7 +14,7 @@
     <PhpParityModuleBody AppPath="/erp/period-close-app" IsAdmin="_isAdmin" />
 
 
-    <PhpErpModulePageHeader Title="Period Close" Subtitle="Reopen a closed year or set period status here. Year create and year-end close stay on the classic twin." />
+    <PhpErpModulePageHeader Title="Period Close" Subtitle="Reopen a closed year, set period status, or soft-close a month here. Year create, year-end close, and monthly lock stay on the classic twin." />
 
     @if (!string.IsNullOrWhiteSpace(_flashOk))
     {
@@ -45,6 +45,13 @@
                 </select>
             </label>
             <button type="submit">Set period status</button>
+        </form>
+        <form method="post" action="/erp/periods/soft-close" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/erp/period-close-app" />
+            <label>Year-month <input type="month" name="year_month" required /></label>
+            <label>Note <input name="note" maxlength="512" /></label>
+            <button type="submit">Soft-close month</button>
         </form>
     }
 
