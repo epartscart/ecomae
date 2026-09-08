@@ -20,22 +20,21 @@
             {
                 <h1 style="margin:.1rem 0 .4rem">Special searches</h1>
                 <p style="color:#475569">Guided warehouse searches for common parts.</p>
-                <ul style="margin:1rem 0 0;padding-left:1.15rem;line-height:1.7">
+                <div class="list-group">
                     @foreach (var item in PhpSpecialSearches.All)
                     {
-                        <li><a href="@(StorefrontAspNetCanonical.SpecialSearch + "?alias=" + Uri.EscapeDataString(item.Alias))">@item.Title</a></li>
+                        <a class="list-group-item" href="@(StorefrontAspNetCanonical.SpecialSearch + "?alias=" + Uri.EscapeDataString(item.Alias))">@item.Title</a>
                     }
-                </ul>
+                </div>
             }
             else
             {
                 <h1 style="margin:.1rem 0 .4rem">@_search.Title</h1>
                 <p style="color:#475569">@_search.Lead</p>
-                <div style="display:grid;gap:.65rem;margin-top:1rem">
+                <div class="list-group">
                     @foreach (var option in _search.Options)
                     {
-                        <a href="@(StorefrontSurfaceLinks.WarehouseSearch + (StorefrontSurfaceLinks.WarehouseSearch.Contains('?') ? "&" : "?") + "q=" + Uri.EscapeDataString(option.Query))"
-                           style="display:block;padding:.85rem 1rem;background:#fff;border:1px solid #e2e8f0;border-radius:.5rem;text-decoration:none;color:#0f172a;font-weight:700">
+                        <a class="list-group-item" href="@(StorefrontSurfaceLinks.WarehouseSearch + (StorefrontSurfaceLinks.WarehouseSearch.Contains('?') ? "&" : "?") + "q=" + Uri.EscapeDataString(option.Query))">
                             @option.Label
                         </a>
                     }

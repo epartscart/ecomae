@@ -49,6 +49,9 @@ public sealed class StorefrontFrontendParityWaveTests
         Assert.True(File.Exists(RepoPath("aspnet/src/EcomAE.Platform/Components/Pages/StorefrontVinApp.razor")));
         Assert.True(File.Exists(RepoPath("aspnet/src/EcomAE.Platform/Components/Pages/StorefrontVehicleCatalogApp.razor")));
         Assert.True(File.Exists(RepoPath("aspnet/src/EcomAE.Platform/Components/Pages/StorefrontQuotesApp.razor")));
+        var quotes = Read("aspnet/src/EcomAE.Platform/Components/Pages/StorefrontQuotesApp.razor");
+        Assert.Contains("epc-quotes-panel", quotes, StringComparison.Ordinal);
+        Assert.Contains("epc-quotes-panel--login", quotes, StringComparison.Ordinal);
         Assert.True(File.Exists(RepoPath("aspnet/src/EcomAE.Platform/Components/Pages/StorefrontWishlistApp.razor")));
         Assert.True(File.Exists(RepoPath("aspnet/src/EcomAE.Platform/Components/Pages/StorefrontCompareApp.razor")));
         Assert.True(File.Exists(RepoPath("aspnet/src/EcomAE.Platform/Components/Pages/StorefrontProductApp.razor")));
@@ -91,11 +94,18 @@ public sealed class StorefrontFrontendParityWaveTests
     public void ProductApp_RendersMediaAndSpecs()
     {
         var text = Read("aspnet/src/EcomAE.Platform/Components/Pages/StorefrontProductApp.razor");
-        Assert.Contains("epc-sf-pd-gallery", text, StringComparison.Ordinal);
-        Assert.Contains("Specifications", text, StringComparison.Ordinal);
+        Assert.Contains("product_info_wrap", text, StringComparison.Ordinal);
+        Assert.Contains("id=\"product_info_wrap_div\"", text, StringComparison.Ordinal);
+        Assert.Contains("id=\"product_galery_div\"", text, StringComparison.Ordinal);
+        Assert.Contains("id=\"main_image\"", text, StringComparison.Ordinal);
+        Assert.Contains("id=\"all_product_images_div\"", text, StringComparison.Ordinal);
+        Assert.Contains("product_div_manufacturer", text, StringComparison.Ordinal);
+        Assert.Contains("product_div_article", text, StringComparison.Ordinal);
+        Assert.Contains("product_div_count_need", text, StringComparison.Ordinal);
+        Assert.Contains("product_div_bookmark", text, StringComparison.Ordinal);
+        Assert.Contains("product_div_compare", text, StringComparison.Ordinal);
         Assert.Contains("_product.Images", text, StringComparison.Ordinal);
         Assert.Contains("_product.Specs", text, StringComparison.Ordinal);
-        Assert.Contains("epc_sku_media", text, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -163,30 +173,33 @@ public sealed class StorefrontFrontendParityWaveTests
         var text = Read("aspnet/src/EcomAE.Platform/Components/Pages/StorefrontVehicleCatalogApp.razor");
         Assert.Contains("PhpHomeWidgetHtml.VehicleCatalog()", text, StringComparison.Ordinal);
         Assert.Contains("@page \"/en/vehicle-catalog\"", text, StringComparison.Ordinal);
-        Assert.Contains("/php-reference", text, StringComparison.Ordinal);
-        Assert.Contains("Compare PHP reference", text, StringComparison.Ordinal);
+        Assert.Contains("StorefrontAspNetCanonical.PartSearch", text, StringComparison.Ordinal);
+        Assert.Contains("StorefrontAspNetCanonical.LaximoVin", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("/php-reference", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("Compare PHP reference", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("Classic twin", text, StringComparison.Ordinal);
     }
 
     [Fact]
-    public void VinApp_EmbedsPhpReferenceLaximoNotProductEn()
+    public void VinApp_DecodesOnStorefrontWithoutClassicTwin()
     {
         var text = Read("aspnet/src/EcomAE.Platform/Components/Pages/StorefrontVinApp.razor");
-        Assert.Contains("identString=", text, StringComparison.Ordinal);
-        Assert.Contains("StorefrontPhpCanonical.LaximoVin", text, StringComparison.Ordinal);
-        Assert.Contains("/php-reference", text, StringComparison.Ordinal);
+        Assert.Contains("IdentString", text, StringComparison.Ordinal);
+        Assert.Contains("action=\"/storefront/vin/decode\"", text, StringComparison.Ordinal);
         Assert.Contains("@page \"/en/katalog-laximo\"", text, StringComparison.Ordinal);
-        Assert.Contains("_showPhpCompare", text, StringComparison.Ordinal);
-        Assert.Contains("Compare PHP reference", text, StringComparison.Ordinal);
-        // Default product body is ASP.NET; Laximo iframe only with ?php=
-        Assert.Contains("@if (_showPhpCompare)", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("/php-reference", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("Classic twin", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("Compare PHP reference", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("_showPhpCompare", text, StringComparison.Ordinal);
     }
 
     [Fact]
-    public void VehicleCatalogApp_ClassicLinkIsPhpReferenceOnly()
+    public void VehicleCatalogApp_FallbackStaysOnStorefront()
     {
         var text = Read("aspnet/src/EcomAE.Platform/Components/Pages/StorefrontVehicleCatalogApp.razor");
-        Assert.Contains("/php-reference", text, StringComparison.Ordinal);
-        Assert.Contains("Compare PHP reference", text, StringComparison.Ordinal);
+        Assert.Contains("StorefrontAspNetCanonical.PartSearch", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("/php-reference", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("Compare PHP reference", text, StringComparison.Ordinal);
         Assert.DoesNotContain("href=\"@StorefrontPhpCanonical.VehicleCatalog\"", text, StringComparison.Ordinal);
     }
 

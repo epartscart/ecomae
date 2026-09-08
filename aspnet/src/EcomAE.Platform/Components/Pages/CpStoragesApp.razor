@@ -7,66 +7,34 @@
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
-@inject NavigationManager Nav
 
 <PageTitle>Storages · Control Panel · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="cp" />
-<HeadContent>
-<style>
-        .epc-st-hero {
-            margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
-            background:linear-gradient(135deg,#0c4a6e 0%,#2563eb 45%,#0ea5e9 100%);
-        }
-        .epc-st-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
-        .epc-st-hero p { margin:0; color:#d4d4d8; max-width:42rem; font-size:.92rem; line-height:1.45; }
-        .epc-st-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
-        .epc-st-cta a {
-            display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
-            text-decoration:none; color:#18181b; background:#fb923c;
-        }
-        .epc-st-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); color:#fff; }
-        .epc-st-kpis { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
-        .epc-st-kpi { background:#fff; border:1px solid #e4e4e7; border-radius:.55rem; padding:.85rem .9rem; }
-        .epc-st-kpi strong { display:block; font-size:1.45rem; font-variant-numeric:tabular-nums; }
-        .epc-st-kpi span { color:#71717a; font-size:.78rem; }
-        .epc-st-table-wrap { background:#fff; border:1px solid #e4e4e7; border-radius:.55rem; overflow:auto; }
-        .epc-st-table { width:100%; border-collapse:collapse; font-size:.86rem; }
-        .epc-st-table th, .epc-st-table td { padding:.55rem .7rem; border-bottom:1px solid #f4f4f5; text-align:left; white-space:nowrap; }
-        .epc-st-table th { background:#fafafa; color:#52525b; font-size:.75rem; text-transform:uppercase; letter-spacing:.03em; }
-        .epc-st-table a { color:#c2410c; font-weight:700; text-decoration:none; }
-        .epc-st-badge { display:inline-flex; padding:.15rem .45rem; border-radius:.3rem; font-size:.72rem; font-weight:700; }
-        .epc-st-badge--ok { background:#ffedd5; color:#9a3412; }
-        .epc-st-badge--off { background:#fee2e2; color:#991b1b; }
-        .epc-st-note { margin-top:1rem; padding:.75rem .9rem; background:#fafafa; border:1px solid #d4d4d8; border-radius:.45rem; color:#3f3f46; font-size:.86rem; }
-        @@media (max-width:900px){ .epc-st-kpis{grid-template-columns:1fr;} }
-    
-</style>
-</HeadContent>
-
 
 <PhpCpDesktopChrome IsAdmin="_isAdmin">
 
-    <section class="epc-st-hero">
-        <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
-        <h1>Storages</h1>
-        <p>@CpPhpModuleCopy.PurposeFor(Nav.Uri)</p>
-        <p>Add or delete a warehouse group, create or edit a warehouse, and save office membership here.</p>
-        <div class="epc-st-cta">
-            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
-            <a class="ghost" href="/cp/currencies-app">Currencies list</a>
-            <a class="ghost" href="/erp/warehouses-app">ERP warehouses</a>
+    <div class="col-lg-12">
+        <div class="hpanel">
+            <div class="panel-heading hbuilt">
+                Storages
+                <a class="btn btn-xs btn-default pull-right" href="/erp/warehouses-app">ERP warehouses</a>
+                <a class="btn btn-xs btn-default pull-right" href="/cp/currencies-app" style="margin-right:.4rem">Currencies</a>
+                <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)" style="margin-right:.4rem">Classic twin</a>
+            </div>
+            <div class="panel-body">
+                <p>Add or delete a warehouse group, create or edit a warehouse, and save office membership here.</p>
+            </div>
         </div>
-    </section>
+    </div>
     <PhpParityModuleBody AppPath="/cp/storages-app" IsAdmin="_isAdmin" />
-
 
     @if (!string.IsNullOrWhiteSpace(_flashOk))
     {
-        <div class="alert alert-success" role="status" style="margin:0 0 1rem;padding:.7rem .9rem;border-radius:.4rem;background:#ecfdf5;color:#065f46">@_flashOk</div>
+        <div class="alert alert-success" role="status">@_flashOk</div>
     }
     @if (!string.IsNullOrWhiteSpace(_flashErr))
     {
-        <div class="alert alert-danger" role="status" style="margin:0 0 1rem;padding:.7rem .9rem;border-radius:.4rem;background:#fef2f2;color:#991b1b">@_flashErr</div>
+        <div class="alert alert-danger" role="status">@_flashErr</div>
     }
     @if (_isAdmin)
     {
@@ -127,45 +95,44 @@
         </form>
     }
 
-    <div class="epc-st-kpis" aria-label="Storages KPIs">
-        <div class="epc-st-kpi"><strong>@_storages.Count</strong><span>Shown (limit @_limit)</span></div>
-        <div class="epc-st-kpi"><strong>@_visible</strong><span>Visible</span></div>
-        <div class="epc-st-kpi"><strong>@_hidden</strong><span>Hidden</span></div>
+    <div class="col-lg-12">
+        <div class="hpanel">
+            <div class="panel-heading hbuilt">Warehouses</div>
+            <div class="panel-body">
+                <p class="help-block">@_storages.Count shown (limit @_limit) · @_visible visible · @_hidden hidden.</p>
+                <div class="table-responsive">
+                    <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Short name</th>
+                                <th>Hidden</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        @if (_storages.Count == 0)
+                        {
+                            <tr><td colspan="4">No records yet.</td></tr>
+                        }
+                        else
+                        {
+                            @foreach (var s in _storages)
+                            {
+                                <tr>
+                                    <td>@s.Id.ToString(CultureInfo.InvariantCulture)</td>
+                                    <td>@(string.IsNullOrWhiteSpace(s.Name) ? "—" : s.Name)</td>
+                                    <td>@(string.IsNullOrWhiteSpace(s.ShortName) ? "—" : s.ShortName)</td>
+                                    <td>@(s.Hidden ? "yes" : "no")</td>
+                                </tr>
+                            }
+                        }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
     </div>
-
-    <div class="epc-st-table-wrap">
-        <table class="epc-st-table">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Name</th>
-                    <th>Short name</th>
-                    <th>Hidden</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody>
-                @if (_storages.Count == 0)
-                {
-                    <tr><td colspan="5">No records yet.</td></tr>
-                }
-                else
-                {
-                    @foreach (var s in _storages)
-                    {
-                        <tr>
-                            <td><strong>@s.Id.ToString(CultureInfo.InvariantCulture)</strong></td>
-                            <td>@(string.IsNullOrWhiteSpace(s.Name) ? "—" : s.Name)</td>
-                            <td>@(string.IsNullOrWhiteSpace(s.ShortName) ? "—" : s.ShortName)</td>
-                            <td><span class="epc-st-badge @(s.Hidden ? "epc-st-badge--off" : "epc-st-badge--ok")">@(s.Hidden ? "yes" : "no")</span></td>
-                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
-                        </tr>
-                    }
-                }
-            </tbody>
-        </table>
-    </div>
-
 </PhpCpDesktopChrome>
 
 @code {
@@ -175,8 +142,6 @@
     private int _visible;
     private int _hidden;
     private int _limit = 200;
-    private string _source = "n/a";
-    private string _message = "";
     private string _flashOk = "";
     private string _flashErr = "";
 
@@ -191,14 +156,12 @@
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
         if (!_isAdmin)
         {
-            return; // guest browse — Sign in for live data
+            return;
         }
 
         var result = await Dashboards.ListCpStoragesAsync(_limit, ctx.RequestAborted);
         _storages = result.Storages;
         _hidden = _storages.Count(s => s.Hidden);
         _visible = _storages.Count - _hidden;
-        _source = result.Source;
-        _message = result.Message;
     }
 }

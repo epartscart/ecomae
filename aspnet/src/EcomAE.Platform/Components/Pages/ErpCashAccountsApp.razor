@@ -123,6 +123,35 @@
                 </tbody>
             </table>
         </div>
+        <ErpPhpCreateWell Title="Add forecast line">
+<form method="post" action="/erp/cash-forecast/lines/add" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin-bottom:1rem;">
+                    <input type="hidden" name="returnUrl" value="/erp/cash-accounts-app?tab=cash_forecast" />
+                    <input type="hidden" name="confirmWrites" value="true" />
+                    <label>Forecast id <input class="form-control input-sm" type="number" name="forecast_id" min="1" required style="width:80px;" /></label>
+                    <label>Due date <input class="form-control input-sm" type="date" name="due_date" required /></label>
+                    <label>Direction
+                        <select class="form-control input-sm" name="direction">
+                            <option value="in">Inflow</option>
+                            <option value="out">Outflow</option>
+                        </select>
+                    </label>
+                    <label>Amount <input class="form-control input-sm" type="number" step="0.01" name="amount" required style="width:90px;" /></label>
+                    <label>Category <input class="form-control input-sm" name="category" placeholder="AR / AP / Payroll" style="width:140px;" /></label>
+                    <label>Source <input class="form-control input-sm" name="source" style="width:120px;" /></label>
+                    <button type="submit" class="btn btn-success btn-sm">Add line</button>
+                </form>
+</ErpPhpCreateWell>
+        <ErpPhpCreateWell Title="New forecast">
+<form method="post" action="@EcomAeRoutes.ErpCashForecastSave" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin-bottom:1rem;">
+                    <input type="hidden" name="returnUrl" value="/erp/cash-accounts-app?tab=cash_forecast" />
+                    <input type="hidden" name="confirmWrites" value="true" />
+                    <label>Name <input class="form-control input-sm" name="name" placeholder="Name" style="width:180px;" required /></label>
+                    <label>Opening <input class="form-control input-sm" name="opening_balance" value="0" style="width:90px;" /></label>
+                    <label>Currency <input class="form-control input-sm" name="currency" placeholder="AED" style="width:70px;" /></label>
+                    <label>Notes <input class="form-control input-sm" name="notes" placeholder="Notes" style="width:180px;" /></label>
+                    <button type="submit" class="btn btn-primary btn-sm">Save</button>
+                </form>
+</ErpPhpCreateWell>
     }
     else if (_view == "cash_forecast")
     {

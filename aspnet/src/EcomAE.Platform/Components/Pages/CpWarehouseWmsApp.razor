@@ -8,57 +8,33 @@
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
-@inject NavigationManager Nav
 
 <PageTitle>Warehouse WMS · Control Panel · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="cp" />
-<HeadContent>
-<style>
-        .epc-wms-hero {
-            margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
-            background:linear-gradient(135deg,#0c4a6e 0%,#2563eb 45%,#0ea5e9 100%);
-        }
-        .epc-wms-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
-        .epc-wms-hero p { margin:0; color:rgba(255,255,255,.88); max-width:44rem; font-size:.92rem; line-height:1.45; }
-        .epc-wms-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
-        .epc-wms-cta a {
-            display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
-            text-decoration:none; color:#0f172a; background:#fff;
-        }
-        .epc-wms-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); color:#fff; }
-        .epc-wms-kpis { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
-        .epc-wms-kpi { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; padding:.85rem .9rem; }
-        .epc-wms-kpi strong { display:block; font-size:1.2rem; word-break:break-word; }
-        .epc-wms-kpi span { color:#64748b; font-size:.78rem; }
-        .epc-wms-table-wrap { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; overflow:auto; }
-        .epc-wms-table { width:100%; border-collapse:collapse; font-size:.86rem; }
-        .epc-wms-table th, .epc-wms-table td { padding:.55rem .7rem; border-bottom:1px solid #f1f5f9; text-align:left; white-space:nowrap; }
-        .epc-wms-table th { background:#f8fafc; color:#475569; font-size:.75rem; text-transform:uppercase; letter-spacing:.03em; }
-        .epc-wms-note { margin-top:1rem; padding:.75rem .9rem; background:#f8fafc; border:1px solid #cbd5e1; border-radius:.45rem; color:#334155; font-size:.86rem; }
-        @@media (max-width:900px){ .epc-wms-kpis{grid-template-columns:1fr 1fr;} }
-    
-</style>
-</HeadContent>
-
 
 <PhpCpDesktopChrome IsAdmin="_isAdmin">
 
-    <section class="epc-wms-hero">
-        <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
-        <h1>Warehouse WMS</h1>
-        <p>@CpPhpModuleCopy.PurposeFor(Nav.Uri)</p>
-        <p>Save or delete a bin location, receive stock, complete work, and create or release a pick wave here.</p>
-        <div class="epc-wms-cta">
-            <a href="/erp">ERP overview</a>
+    <div class="col-lg-12">
+        <div class="hpanel">
+            <div class="panel-heading hbuilt">
+                Warehouse WMS
+                <a class="btn btn-xs btn-default pull-right" href="/erp">ERP overview</a>
+                <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)" style="margin-right:.4rem">Classic twin</a>
+            </div>
+            <div class="panel-body">
+                <p>Save or delete a bin location, receive stock, complete work, and create or release a pick wave here. Schema ensure stays on the Classic twin.</p>
+            </div>
         </div>
-    </section>
+    </div>
+    <PhpParityModuleBody AppPath="/cp/warehouse-wms-app" IsAdmin="_isAdmin" />
+
     @if (!string.IsNullOrWhiteSpace(_flashOk))
     {
-        <div class="alert alert-success" role="status" style="margin:0 0 1rem;padding:.7rem .9rem;border-radius:.4rem;background:#ecfdf5;color:#065f46">@_flashOk</div>
+        <div class="alert alert-success" role="status">@_flashOk</div>
     }
     @if (!string.IsNullOrWhiteSpace(_flashErr))
     {
-        <div class="alert alert-danger" role="status" style="margin:0 0 1rem;padding:.7rem .9rem;border-radius:.4rem;background:#fef2f2;color:#991b1b">@_flashErr</div>
+        <div class="alert alert-danger" role="status">@_flashErr</div>
     }
     @if (_isAdmin)
     {
@@ -113,69 +89,70 @@
         </form>
     }
 
-    <div class="epc-wms-kpis" aria-label="Warehouse WMS stats">
-        <div class="epc-wms-kpi"><strong>@_summary.LocationCount.ToString(CultureInfo.InvariantCulture)</strong><span>Locations</span></div>
-        <div class="epc-wms-kpi"><strong>@_summary.LpCount.ToString(CultureInfo.InvariantCulture)</strong><span>License plates</span></div>
-        <div class="epc-wms-kpi"><strong>@_summary.WaveCount.ToString(CultureInfo.InvariantCulture)</strong><span>Waves</span></div>
-        <div class="epc-wms-kpi"><strong>@_summary.OpenWorkCount.ToString(CultureInfo.InvariantCulture)</strong><span>Open work</span></div>
+    <div class="col-lg-12">
+        <div class="hpanel">
+            <div class="panel-heading hbuilt">Work</div>
+            <div class="panel-body">
+                <p class="help-block">@_summary.LocationCount.ToString(CultureInfo.InvariantCulture) locations · @_summary.LpCount.ToString(CultureInfo.InvariantCulture) license plates · @_summary.WaveCount.ToString(CultureInfo.InvariantCulture) waves · @_summary.OpenWorkCount.ToString(CultureInfo.InvariantCulture) open work.</p>
+                <div class="table-responsive">
+                    <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped">
+                        <thead>
+                            <tr>
+                                <th>Id</th>
+                                <th>Type</th>
+                                <th>Reference</th>
+                                <th>Item</th>
+                                <th>Qty</th>
+                                <th>Status</th>
+                                <th>Assigned</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        @if (_rows.Count == 0)
+                        {
+                            <tr><td colspan="8">No records yet.</td></tr>
+                        }
+                        else
+                        {
+                            @foreach (var row in _rows)
+                            {
+                                <tr>
+                                    <td>@row.Id.ToString(CultureInfo.InvariantCulture)</td>
+                                    <td>@(!string.IsNullOrWhiteSpace(row.WorkType) ? row.WorkType : "—")</td>
+                                    <td>@(!string.IsNullOrWhiteSpace(row.Reference) ? row.Reference : "—")</td>
+                                    <td>@(!string.IsNullOrWhiteSpace(row.Item) ? row.Item : "—")</td>
+                                    <td>@row.Qty.ToString(CultureInfo.InvariantCulture)</td>
+                                    <td>@(!string.IsNullOrWhiteSpace(row.Status) ? row.Status : "—")</td>
+                                    <td>@(!string.IsNullOrWhiteSpace(row.AssignedTo) ? row.AssignedTo : "—")</td>
+                                    <td>
+                                        @if (!string.Equals(row.Status, "closed", StringComparison.OrdinalIgnoreCase))
+                                        {
+                                            <form method="post" action="/erp/wms/work/complete" style="display:inline;margin:0">
+                                                <input type="hidden" name="confirmWrites" value="true" />
+                                                <input type="hidden" name="returnUrl" value="@(Http.HttpContext?.Request.Path.Value ?? "/erp/warehouse-wms-app")" />
+                                                <input type="hidden" name="id" value="@row.Id.ToString(CultureInfo.InvariantCulture)" />
+                                                <button type="submit">Complete</button>
+                                            </form>
+                                        }
+                                        else
+                                        {
+                                            <span>—</span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
     </div>
-
-    <div class="epc-wms-table-wrap">
-        <table class="epc-wms-table">
-            <thead>
-                <tr>
-                    <th>Id</th>
-                    <th>Type</th>
-                    <th>Reference</th>
-                    <th>Item</th>
-                    <th>Qty</th>
-                    <th>Status</th>
-                    <th>Assigned</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody>
-                @if (_rows.Count == 0)
-                {
-                    <tr><td colspan="8">No records yet.</td></tr>
-                }
-                else
-                {
-                    @foreach (var row in _rows)
-                    {
-                        <tr>
-                            <td>@row.Id.ToString(CultureInfo.InvariantCulture)</td>
-                            <td>@(!string.IsNullOrWhiteSpace(row.WorkType) ? row.WorkType : "—")</td>
-                            <td>@(!string.IsNullOrWhiteSpace(row.Reference) ? row.Reference : "—")</td>
-                            <td>@(!string.IsNullOrWhiteSpace(row.Item) ? row.Item : "—")</td>
-                            <td>@row.Qty.ToString(CultureInfo.InvariantCulture)</td>
-                            <td>@(!string.IsNullOrWhiteSpace(row.Status) ? row.Status : "—")</td>
-                            <td>@(!string.IsNullOrWhiteSpace(row.AssignedTo) ? row.AssignedTo : "—")</td>
-                            <td>
-                                @if (!string.Equals(row.Status, "closed", StringComparison.OrdinalIgnoreCase))
-                                {
-                                    <form method="post" action="/erp/wms/work/complete" style="display:inline;margin:0">
-                                        <input type="hidden" name="confirmWrites" value="true" />
-                                        <input type="hidden" name="returnUrl" value="@(Http.HttpContext?.Request.Path.Value ?? "/erp/warehouse-wms-app")" />
-                                        <input type="hidden" name="id" value="@row.Id.ToString(CultureInfo.InvariantCulture)" />
-                                        <button type="submit">Complete</button>
-                                    </form>
-                                }
-                                else
-                                {
-                                    <span>—</span>
-                                }
-                            </td>
-                        </tr>
-                    }
-                }
-            </tbody>
-        </table>
-    </div>
-
 </PhpCpDesktopChrome>
 
 @code {
+    private const string _phpTab = "/ERP/?epc_erp_shell=1&area=warehouse&tab=wms";
     private bool _isAdmin;
     private CpWarehouseWmsSummary _summary = new(0, 0, 0, 0, "n/a", "");
     private IReadOnlyList<CpWarehouseWmsWorkDigest> _rows = [];
@@ -196,7 +173,7 @@
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
         if (!_isAdmin)
         {
-            return; // guest browse — Sign in for live data
+            return;
         }
 
         var result = await Dashboards.BuildCpWarehouseWmsDigestAsync(200, ctx.RequestAborted);

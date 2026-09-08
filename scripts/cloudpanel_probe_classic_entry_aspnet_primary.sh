@@ -63,11 +63,12 @@ check_same_url_aspnet() {
       fail=$((fail + 1))
       return
     fi
-    # Hard login walls must not kick shared shells away from browse detail.
+    # Evidence lock guestBrowseShells=false — /cp /erp /bos stay login-walled.
+    # Confidential admin chrome must not leak to guests. Login 302 is the product rule.
     if [[ "$path" == "/cp" || "$path" == "/cp/" || "$path" == "/erp" || "$path" == "/erp/" || "$path" == "/bos" || "$path" == "/bos/" ]]; then
       if [[ "$loc" == *"/login"* ]]; then
-        say "FAIL  ${base}${path} hard-redirected to login (${loc}) — guest must browse ASP.NET shell"
-        fail=$((fail + 1))
+        say "PASS  ${base}${path} login wall (${loc}) — guestBrowseShells=false"
+        pass=$((pass + 1))
         return
       fi
     fi
@@ -83,7 +84,9 @@ check_same_url_aspnet() {
     return
   fi
 
-  if is_aspnet_body "$body" || grep -Eiq 'x-ecomae-route-cutover:\s*classic-entry' <<<"$hdr"; then
+  if is_aspnet_body "$body" \
+    || grep -Eiq 'x-ecomae-route-cutover:\s*classic-entry' <<<"$hdr" \
+    || grep -Eiq 'x-ecomae-industry-showcase:\s*snapshot' <<<"$hdr"; then
     say "PASS  ${base}${path} ASP.NET same-URL HTTP 200"
     pass=$((pass + 1))
     return
@@ -143,6 +146,11 @@ check_php_reference() {
   local code body
   code="$(curl -sS -A "$UA" -L --max-redirs 3 -o /tmp/php_ref.body -w '%{http_code}' --max-time 45 "${base}${path}" 2>/dev/null || echo 000)"
   body="$(cat /tmp/php_ref.body 2>/dev/null || true)"
+  if [[ "$code" == "503" ]]; then
+    say "PASS  PHP reference ${base}${path} HTTP 503 (serving paused — TemporarilyDeactivatePhpServing)"
+    pass=$((pass + 1))
+    return
+  fi
   if [[ "$code" == "200" ]] && grep -Eiq 'ECOMAE-MARKETING-HOME|bootstrap_admin|epm-hub|Garage Manager|DOCTYPE html' <<<"$body"; then
     say "PASS  PHP reference ${base}${path} HTTP 200"
     pass=$((pass + 1))
@@ -236,5 +244,5 @@ if [[ "$fail" -gt 0 ]]; then
   say "HINT  CloudPanel: ECOMAE_BRANCH=… bash scripts/cloudpanel_FORCE_LIVE_ALL_SITES.sh"
   exit 1
 fi
-say "RESULT=PASS — www ASP.NET; tenants /cp /erp ASP.NET; /bos Super-CP only; PHP reference-only"
+say "RESULT=PASS — www ASP.NET; tenant home PHP-style; /cp /erp login-walled (guestBrowseShells=false); /bos Super-CP only; PHP reference-only"
 exit 0

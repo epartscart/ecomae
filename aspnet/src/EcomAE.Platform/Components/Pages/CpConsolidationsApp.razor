@@ -8,59 +8,32 @@
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
-@inject NavigationManager Nav
 
 <PageTitle>Consolidations · Control Panel · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="cp" />
-<HeadContent>
-<style>
-        .epc-w14-hero {
-            margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
-            background:linear-gradient(135deg,#0c4a6e 0%,#2563eb 45%,#0ea5e9 100%);
-        }
-        .epc-w14-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
-        .epc-w14-hero p { margin:0; color:rgba(255,255,255,.88); max-width:44rem; font-size:.92rem; line-height:1.45; }
-        .epc-w14-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
-        .epc-w14-cta a {
-            display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
-            text-decoration:none; color:#0f172a; background:#fff;
-        }
-        .epc-w14-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); color:#fff; }
-        .epc-w14-kpis { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
-        .epc-w14-kpi { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; padding:.85rem .9rem; }
-        .epc-w14-kpi strong { display:block; font-size:1.2rem; word-break:break-word; }
-        .epc-w14-kpi span { color:#64748b; font-size:.78rem; }
-        .epc-w14-table-wrap { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; overflow:auto; }
-        .epc-w14-table { width:100%; border-collapse:collapse; font-size:.86rem; }
-        .epc-w14-table th, .epc-w14-table td { padding:.55rem .7rem; border-bottom:1px solid #f1f5f9; text-align:left; white-space:nowrap; }
-        .epc-w14-table th { background:#f8fafc; color:#475569; font-size:.75rem; text-transform:uppercase; letter-spacing:.03em; }
-        .epc-w14-note { margin-top:1rem; padding:.75rem .9rem; background:#f8fafc; border:1px solid #cbd5e1; border-radius:.45rem; color:#334155; font-size:.86rem; }
-        @@media (max-width:900px){ .epc-w14-kpis{grid-template-columns:1fr 1fr;} }
-    
-</style>
-</HeadContent>
-
 
 <PhpCpDesktopChrome IsAdmin="_isAdmin">
 
-    <section class="epc-w14-hero">
-        <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
-        <h1>Consolidations</h1>
-        <p>@CpPhpModuleCopy.PurposeFor(Nav.Uri)</p>
-        <div class="epc-w14-cta">
-            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
+    <div class="col-lg-12">
+        <div class="hpanel">
+            <div class="panel-heading hbuilt">
+                Consolidations
+                <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Classic twin</a>
+            </div>
+            <div class="panel-body">
+                <p>Save an entity, record financials, and post or remove an intercompany txn here. Consolidation run stays on the Classic twin.</p>
+            </div>
         </div>
-    </section>
+    </div>
     <PhpParityModuleBody AppPath="/cp/consolidations-app" IsAdmin="_isAdmin" />
-
 
     @if (!string.IsNullOrWhiteSpace(_flashOk))
     {
-        <div class="alert alert-success" role="status" style="margin:0 0 1rem;padding:.7rem .9rem;border-radius:.4rem;background:#ecfdf5;color:#065f46">@_flashOk</div>
+        <div class="alert alert-success" role="status">@_flashOk</div>
     }
     @if (!string.IsNullOrWhiteSpace(_flashErr))
     {
-        <div class="alert alert-danger" role="status" style="margin:0 0 1rem;padding:.7rem .9rem;border-radius:.4rem;background:#fef2f2;color:#991b1b">@_flashErr</div>
+        <div class="alert alert-danger" role="status">@_flashErr</div>
     }
     @if (_isAdmin)
     {
@@ -74,6 +47,17 @@
             <label><input type="checkbox" name="is_home" value="1" /> Home</label>
             <button type="submit">Save entity</button>
         </form>
+        <form method="post" action="/erp/consolidations/figures/save" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/consolidations-app" />
+            <label>Entity code <input type="text" name="entity_code" required placeholder="SUB1" /></label>
+            <label>Revenue <input type="number" name="revenue" step="0.01" style="width:7rem" /></label>
+            <label>Expenses <input type="number" name="expenses" step="0.01" style="width:7rem" /></label>
+            <label>Assets <input type="number" name="assets" step="0.01" style="width:7rem" /></label>
+            <label>Liabilities <input type="number" name="liabilities" step="0.01" style="width:7rem" /></label>
+            <label>Equity <input type="number" name="equity" step="0.01" style="width:7rem" /></label>
+            <button type="submit">Save financials</button>
+        </form>
         <form method="post" action="/erp/ajax/cons-entity-delete" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
             <input type="hidden" name="returnUrl" value="@(Http.HttpContext?.Request.Path.Value ?? "/cp/consolidations-app")" />
@@ -86,54 +70,64 @@
             <label>IC id <input type="number" name="id" min="1" required style="width:6rem" /></label>
             <button type="submit">Remove IC txn</button>
         </form>
+        <form method="post" action="/erp/consolidations/ic/save" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/consolidations-app" />
+            <label>From <input type="text" name="from_entity" required placeholder="HOME" /></label>
+            <label>To <input type="text" name="to_entity" required placeholder="SUB1" /></label>
+            <label>Type <input type="text" name="txn_type" value="sale" style="width:6rem" /></label>
+            <label>Amount <input type="number" name="amount" step="0.01" min="0.01" required style="width:7rem" /></label>
+            <label>Date <input type="date" name="txn_date" /></label>
+            <label>Ref <input type="text" name="ref" /></label>
+            <label>Memo <input type="text" name="memo" /></label>
+            <button type="submit">Record IC</button>
+        </form>
     }
 
-    <div class="epc-w14-kpis" aria-label="Consolidations stats">
-        <div class="epc-w14-kpi"><strong>@_summary.EntityCount.ToString(CultureInfo.InvariantCulture)</strong><span>Entities</span></div>
-        <div class="epc-w14-kpi"><strong>@_summary.FigureCount.ToString(CultureInfo.InvariantCulture)</strong><span>Figures</span></div>
-        <div class="epc-w14-kpi"><strong>@_summary.IcCount.ToString(CultureInfo.InvariantCulture)</strong><span>IC txns</span></div>
-        <div class="epc-w14-kpi"><strong>@_summary.OpenIcCount.ToString(CultureInfo.InvariantCulture)</strong><span>Open IC</span></div>
+    <div class="col-lg-12">
+        <div class="hpanel">
+            <div class="panel-heading hbuilt">Entities</div>
+            <div class="panel-body">
+                <p class="help-block">@_summary.EntityCount.ToString(CultureInfo.InvariantCulture) entities · @_summary.FigureCount.ToString(CultureInfo.InvariantCulture) figures · @_summary.IcCount.ToString(CultureInfo.InvariantCulture) IC txns · @_summary.OpenIcCount.ToString(CultureInfo.InvariantCulture) open IC.</p>
+                <div class="table-responsive">
+                    <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped">
+                        <thead>
+                            <tr>
+                                <th>Id</th>
+                                <th>Code</th>
+                                <th>Name</th>
+                                <th>CCY</th>
+                                <th>Own %</th>
+                                <th>Home</th>
+                                <th>Active</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        @if (_rows.Count == 0)
+                        {
+                            <tr><td colspan="7">No records yet.</td></tr>
+                        }
+                        else
+                        {
+                            @foreach (var row in _rows)
+                            {
+                                <tr>
+                                    <td>@row.Id.ToString(CultureInfo.InvariantCulture)</td>
+                                    <td>@(!string.IsNullOrWhiteSpace(row.Code) ? row.Code : "—")</td>
+                                    <td>@(!string.IsNullOrWhiteSpace(row.Name) ? row.Name : "—")</td>
+                                    <td>@(!string.IsNullOrWhiteSpace(row.CurrencyCode) ? row.CurrencyCode : "—")</td>
+                                    <td>@row.OwnershipPct.ToString(CultureInfo.InvariantCulture)</td>
+                                    <td>@row.IsHome.ToString(CultureInfo.InvariantCulture)</td>
+                                    <td>@row.Active.ToString(CultureInfo.InvariantCulture)</td>
+                                </tr>
+                            }
+                        }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
     </div>
-
-    <div class="epc-w14-table-wrap">
-    <table class="epc-w14-table">
-        <thead>
-            <tr>
-                    <th>Id</th>
-                    <th>Code</th>
-                    <th>Name</th>
-                    <th>CCY</th>
-                    <th>Own %</th>
-                    <th>Home</th>
-                    <th>Active</th>
-                    <th></th>
-            </tr>
-        </thead>
-        <tbody>
-            @if (_rows.Count == 0)
-            {
-                <tr><td colspan="8">No records yet.</td></tr>
-            }
-            else
-            {
-                @foreach (var row in _rows)
-                {
-                    <tr>
-                            <td>@row.Id.ToString(CultureInfo.InvariantCulture)</td>
-                            <td>@(!string.IsNullOrWhiteSpace(row.Code) ? row.Code : "—")</td>
-                            <td>@(!string.IsNullOrWhiteSpace(row.Name) ? row.Name : "—")</td>
-                            <td>@(!string.IsNullOrWhiteSpace(row.CurrencyCode) ? row.CurrencyCode : "—")</td>
-                            <td>@row.OwnershipPct.ToString(CultureInfo.InvariantCulture)</td>
-                            <td>@row.IsHome.ToString(CultureInfo.InvariantCulture)</td>
-                            <td>@row.Active.ToString(CultureInfo.InvariantCulture)</td>
-                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
-                    </tr>
-                }
-            }
-        </tbody>
-    </table>
-    </div>
-
 </PhpCpDesktopChrome>
 
 @code {
@@ -157,7 +151,7 @@
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
         if (!_isAdmin)
         {
-            return; // guest browse — Sign in for live data
+            return;
         }
 
         var result = await Dashboards.BuildCpConsolidationsDigestAsync(200, ctx.RequestAborted);

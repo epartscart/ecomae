@@ -50,8 +50,7 @@
 <StorefrontTenantChrome>
 
     <PhpStorefrontPageHeader Title="Account"
-                            Subtitle="Browse parts, manage your garage, and track recent orders.">
-        <a class="btn btn-sm btn-primary" href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpAccount)">Open module</a>
+                            Subtitle="Balance, recent orders, and account shortcuts.">
             <a class="btn btn-sm btn-default" href="/storefront/orders-app">My orders</a>
             <a class="btn btn-sm btn-default" href="/storefront/garage-app">Garage</a>
             <a class="btn btn-sm btn-default" href="/storefront/profile-app">Profile</a>
@@ -60,42 +59,118 @@
 
     @if (!_isCustomer)
     {
-        <div class="epc-sf-acc-gate">
-            <p style="margin:0 0 .75rem;color:#44403c">Sign in with your store account to load account summary.</p>
-            <a href="/storefront/login" style="display:inline-flex;padding:.55rem .9rem;border-radius:.4rem;background:#dc2626;color:#fff;font-weight:700;text-decoration:none">Sign in</a>
-            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpAccount)" style="display:inline-flex;margin-left:.45rem;padding:.55rem .9rem;border-radius:.4rem;border:1px solid #d6d3d1;color:#111;font-weight:700;text-decoration:none">Account</a>
+        <div class="panel panel-primary epc-sf-acc-gate">
+            <div class="panel-body">
+                <p style="margin:0 0 .75rem;color:#44403c">Sign in with your store account to load account summary.</p>
+                <a class="btn btn-ar btn-primary" href="@StorefrontSurfaceLinks.Login">Sign in</a>
+                <a class="btn btn-ar btn-default" href="@StorefrontSurfaceLinks.Registration">Register</a>
+            </div>
         </div>
     }
     else
     {
-        <div class="epc-sf-acc-kpis" aria-label="Account KPIs">
-            <div class="epc-sf-acc-kpi"><strong>@_summary.UserId.ToString(CultureInfo.InvariantCulture)</strong><span>User ID</span></div>
-            <div class="epc-sf-acc-kpi"><strong>@_summary.Orders.ToString(CultureInfo.InvariantCulture)</strong><span>Orders</span></div>
-            <div class="epc-sf-acc-kpi"><strong>@_summary.Sessions.ToString(CultureInfo.InvariantCulture)</strong><span>Sessions</span></div>
-            <div class="epc-sf-acc-kpi"><strong>@_summary.GarageVehicles.ToString(CultureInfo.InvariantCulture)</strong><span>Garage vehicles</span></div>
+        <div class="row">
+            <div class="col-md-2">
+                <div><label style="margin-bottom: 0;" for="time_from_show">From</label></div>
+                <input type="text" id="time_from" class="form-control" value="@_opsFilter.TimeFrom" />
+                <input type="hidden" id="time_from_show" />
+            </div>
+            <div class="col-md-2">
+                <div><label style="margin-bottom: 0;" for="time_to_show">To</label></div>
+                <input type="text" id="time_to" class="form-control" value="@_opsFilter.TimeTo" />
+                <input type="hidden" id="time_to_show" />
+            </div>
+            <div class="col-md-2">
+                <div><label style="margin-bottom: 0;" for="income">Direction</label></div>
+                <select id="income" class="form-control">
+                    <option value="-1">All</option>
+                    <option value="1">Income</option>
+                    <option value="0">Expense</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <div><label style="margin-bottom: 0;" for="operation_code">Operation</label></div>
+                <select id="operation_code" class="form-control">
+                    <option value="-1">All</option>
+                    @foreach (var opCode in _ops.Select(o => o.OperationCode).Where(c => c > 0).Distinct().OrderBy(c => c))
+                    {
+                        <option value="@opCode.ToString(CultureInfo.InvariantCulture)">@opCode.ToString(CultureInfo.InvariantCulture)</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-2">
+                <div><label style="margin-bottom: 0;" for="order_id">Order ID</label></div>
+                <input type="text" id="order_id" class="form-control" value="@_opsFilter.OrderId" />
+            </div>
         </div>
-
-        <h2 style="margin:0 0 .5rem;font-size:1rem;">Recent orders</h2>
-        <div class="epc-sf-acc-table-wrap">
-            <table class="epc-sf-acc-table">
+        <div style="margin:20px 0px 15px;">
+            <button style="margin-right: 2px; margin-bottom:5px;" class="btn btn-ar btn-primary" onclick="filterOperations();">Filter</button>
+            <button style="margin-right: 2px; margin-bottom:5px;" class="btn btn-ar btn-primary" onclick="unsetFilterOperations();">Clear</button>
+        </div>
+        <script>
+            document.getElementById("income").value = "@_opsFilter.Income";
+            document.getElementById("operation_code").value = "@_opsFilter.OperationCode";
+            function filterOperations() {
+                var account_operations_filter = {
+                    time_from: document.getElementById("time_from").value,
+                    time_to: document.getElementById("time_to").value,
+                    income: document.getElementById("income").value,
+                    operation_code: document.getElementById("operation_code").value,
+                    order_id: document.getElementById("order_id").value
+                };
+                var date = new Date(new Date().getTime() + 15552000 * 1000);
+                document.cookie = "my_account_operations_filter="+JSON.stringify(account_operations_filter)+"; path=/; expires=" + date.toUTCString();
+                location = "@StorefrontAspNetCanonical.Balance";
+            }
+            function unsetFilterOperations() {
+                var account_operations_filter = { time_from:"", time_to:"", income:"-1", operation_code:"-1", order_id:"" };
+                var date = new Date(new Date().getTime() + 15552000 * 1000);
+                document.cookie = "my_account_operations_filter="+JSON.stringify(account_operations_filter)+"; path=/; expires=" + date.toUTCString();
+                location = "@StorefrontAspNetCanonical.Balance";
+            }
+            function sortOperationsItems(field) {
+                var date = new Date(new Date().getTime() + 15552000 * 1000);
+                document.cookie = "my_account_operations_sort="+JSON.stringify({field:field,asc_desc:"desc"})+"; path=/; expires=" + date.toUTCString();
+                location = "@StorefrontAspNetCanonical.Balance";
+            }
+        </script>
+        <div style="overflow: hidden; overflow-x: auto;">
+            <table class="table" style="margin-bottom:0;">
                 <thead>
-                    <tr><th>Id</th><th>Time</th><th>Paid</th><th>Status</th><th>Created</th></tr>
+                    <tr>
+                        <th style="vertical-align: middle; white-space: nowrap;"><a href="javascript:void(0);" onclick="sortOperationsItems('id');" id="id_sorter">ID</a></th>
+                        <th style="vertical-align: middle; white-space: nowrap;"><a href="javascript:void(0);" onclick="sortOperationsItems('time');" id="time_sorter">When</a></th>
+                        <th style="vertical-align: middle; white-space: nowrap;"><a href="javascript:void(0);" onclick="sortOperationsItems('amount');" id="amount_sorter">Amount</a></th>
+                        <th style="vertical-align: middle; white-space: nowrap;"><a href="javascript:void(0);" onclick="sortOperationsItems('order_id');" id="order_id_sorter">Order</a></th>
+                        <th style="vertical-align: middle;"><a href="javascript:void(0);" onclick="sortOperationsItems('name');" id="name_sorter">Name</a></th>
+                    </tr>
                 </thead>
                 <tbody>
-                    @if (_recent.Count == 0)
+                    @if (_shownOps.Count == 0)
                     {
-                        <tr><td colspan="5">No recent orders.</td></tr>
+                        <tr><td colspan="5">No account operations yet.</td></tr>
                     }
                     else
                     {
-                        @foreach (var o in _recent)
+                        @foreach (var op in _shownOps)
                         {
-                            <tr>
-                                <td>@o.Id.ToString(CultureInfo.InvariantCulture)</td>
-                                <td>@o.TimeUnix.ToString(CultureInfo.InvariantCulture)</td>
-                                <td>@o.Paid.ToString(CultureInfo.InvariantCulture)</td>
-                                <td>@o.Status.ToString(CultureInfo.InvariantCulture)</td>
-                                <td>@o.SuccessfullyCreated.ToString(CultureInfo.InvariantCulture)</td>
+                            var plus = op.Income == 1 ? "+" : "-";
+                            var rowBg = op.Income == 1 ? "background-color:#b4fed4;" : "background-color:#ffe4e4;";
+                            <tr style="@rowBg">
+                                <td style="vertical-align: middle; white-space: nowrap;">@op.Id.ToString(CultureInfo.InvariantCulture)</td>
+                                <td style="vertical-align: middle; white-space: nowrap;">@FormatOpTime(op.TimeUnix)</td>
+                                <td style="vertical-align: middle; white-space: nowrap;">@plus@op.Amount.ToString("N2", CultureInfo.InvariantCulture)</td>
+                                <td style="vertical-align: middle; white-space: nowrap;">
+                                    @if (op.OrderId > 0)
+                                    {
+                                        <a href="@StorefrontSurfaceLinks.ForOrder(op.OrderId)" style="color:#000;font-weight:bold;text-decoration:underline;">@op.OrderId.ToString(CultureInfo.InvariantCulture)</a>
+                                    }
+                                    else
+                                    {
+                                        <text>-</text>
+                                    }
+                                </td>
+                                <td style="vertical-align: middle;">@(string.IsNullOrWhiteSpace(op.Name) ? "—" : op.Name)</td>
                             </tr>
                         }
                     }
@@ -103,11 +178,31 @@
             </table>
         </div>
 
-        <form method="post" action="@PhpCustomerWrites.BalanceTopUpHref" style="background:#fff;border:1px solid #e7e5e4;border-radius:.55rem;padding:1.1rem 1.2rem;margin-bottom:1rem">
-            <label for="money_value">Top up (AED)</label>
-            <input id="money_value" type="number" name="amount" min="1" step="0.01" required style="width:100%;margin:.25rem 0 1rem;padding:.5rem" />
-            <button type="submit" style="padding:.55rem .95rem;border:0;border-radius:.4rem;background:#0f766e;color:#fff;font-weight:800;cursor:pointer">Create top-up</button>
-        </form>
+        <div class="panel panel-primary">
+            <div class="panel-heading">Top up</div>
+            <div class="panel-body">
+                <form method="post" action="@PhpCustomerWrites.BalanceTopUpHref">
+                    <input type="hidden" name="confirmWrites" value="true" />
+                    <input type="hidden" name="returnUrl" value="/storefront/account-summary-app" />
+                    <div class="col-md-12">
+                        <label for="money_value">Amount</label>
+                        <input id="money_value" class="form-control" type="number" name="amount" min="1" step="0.01" required placeholder="Amount" />
+                    </div>
+                    <div class="col-md-12" style="margin-top:.75rem">
+                        <div class="epc-pay-method-picker">
+                            <label for="epc_pay_handler">Pay with</label>
+                            <select id="epc_pay_handler" name="pay_handler" class="form-control">
+                                @foreach (var gate in PhpCustomerWrites.PayGateways)
+                                {
+                                    <option value="@gate.Code">@gate.Label</option>
+                                }
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-ar btn-primary" style="margin-top:7px;">Create top-up</button>
+                    </div>
+                </form>
+            </div>
+        </div>
 
         <div class="epc-sf-acc-links" aria-label="Account shortcuts">
             <a href="@StorefrontSurfaceLinks.Orders">Orders list</a>
@@ -124,11 +219,13 @@
 </StorefrontTenantChrome>
 
 @code {
-    private const string _phpAccount = "https://epartscart.com/users/";
     private string _brand = "eParts Cart";
     private bool _isCustomer;
     private StorefrontAccountSummary _summary = new(0, 0, 0, 0, "n/a", string.Empty);
     private IReadOnlyList<StorefrontOrderDigest> _recent = [];
+    private IReadOnlyList<StorefrontAccountOperationDigest> _ops = [];
+    private IReadOnlyList<StorefrontAccountOperationDigest> _shownOps = [];
+    private AccountOpsFilter _opsFilter = AccountOpsFilter.Empty;
 
     protected override async Task OnInitializedAsync()
     {
@@ -144,8 +241,111 @@
         }
 
         _isCustomer = true;
+        ctx.Request.Cookies.TryGetValue("my_account_operations_filter", out var filterCookie);
+        _opsFilter = AccountOpsFilter.Parse(filterCookie);
         var result = await Dashboards.BuildStorefrontAccountAsync(session.UserId, 10, ctx.RequestAborted);
         _summary = result.Summary;
         _recent = result.RecentOrders;
+        var ledger = await Dashboards.ListStorefrontAccountOperationsAsync(session.UserId, 200, ctx.RequestAborted);
+        _ops = ledger.Operations;
+        _shownOps = _opsFilter.Apply(_ops);
+    }
+
+    private static string FormatOpTime(long ts)
+    {
+        if (ts <= 0) return "—";
+        try
+        {
+            return DateTimeOffset.FromUnixTimeSeconds(ts).UtcDateTime.ToString("dd.MM.yyyy HH:mm", CultureInfo.InvariantCulture);
+        }
+        catch (ArgumentOutOfRangeException)
+        {
+            return ts.ToString(CultureInfo.InvariantCulture);
+        }
+    }
+
+    private sealed record AccountOpsFilter(
+        string TimeFrom,
+        string TimeTo,
+        string Income,
+        string OperationCode,
+        string OrderId)
+    {
+        public static AccountOpsFilter Empty { get; } = new("", "", "-1", "-1", "");
+
+        public static AccountOpsFilter Parse(string? cookie)
+        {
+            if (string.IsNullOrWhiteSpace(cookie))
+            {
+                return Empty;
+            }
+
+            try
+            {
+                using var doc = System.Text.Json.JsonDocument.Parse(Uri.UnescapeDataString(cookie));
+                var r = doc.RootElement;
+                return new(
+                    Read(r, "time_from"),
+                    Read(r, "time_to"),
+                    Read(r, "income", "-1"),
+                    Read(r, "operation_code", "-1"),
+                    Read(r, "order_id"));
+            }
+            catch (Exception)
+            {
+                return Empty;
+            }
+        }
+
+        public IReadOnlyList<StorefrontAccountOperationDigest> Apply(IReadOnlyList<StorefrontAccountOperationDigest> source)
+        {
+            IEnumerable<StorefrontAccountOperationDigest> q = source;
+            var income = Uri.UnescapeDataString(Income ?? "-1");
+            if (income == "1")
+            {
+                q = q.Where(o => o.Income == 1);
+            }
+            else if (income == "0")
+            {
+                q = q.Where(o => o.Income == 0);
+            }
+
+            var code = Uri.UnescapeDataString(OperationCode ?? "-1");
+            if (code != "-1" && int.TryParse(code, out var opCode) && opCode > 0)
+            {
+                q = q.Where(o => o.OperationCode == opCode);
+            }
+
+            var order = Uri.UnescapeDataString(OrderId ?? "");
+            if (!string.IsNullOrWhiteSpace(order) && long.TryParse(order, out var orderId) && orderId > 0)
+            {
+                q = q.Where(o => o.OrderId == orderId);
+            }
+
+            var from = Uri.UnescapeDataString(TimeFrom ?? "");
+            if (long.TryParse(from, out var fromTs) && fromTs > 0)
+            {
+                q = q.Where(o => o.TimeUnix >= fromTs);
+            }
+
+            var to = Uri.UnescapeDataString(TimeTo ?? "");
+            if (long.TryParse(to, out var toTs) && toTs > 0)
+            {
+                q = q.Where(o => o.TimeUnix <= toTs);
+            }
+
+            return q.ToArray();
+        }
+
+        private static string Read(System.Text.Json.JsonElement root, string name, string fallback = "")
+        {
+            if (!root.TryGetProperty(name, out var el))
+            {
+                return fallback;
+            }
+
+            var raw = el.ValueKind == System.Text.Json.JsonValueKind.String ? el.GetString() ?? fallback : el.ToString();
+            return string.IsNullOrWhiteSpace(raw) ? fallback : raw;
+        }
     }
 }

@@ -53,34 +53,34 @@
 
     @if (_ids.Count == 0)
     {
-        <div class="epc-sf-cmp-empty">No products in compare yet.</div>
+        <div id="work_area" class="epc-sf-cmp-empty">No products in compare yet.</div>
     }
     else
     {
-        <div class="epc-sf-cmp-table-wrap">
-            <table class="epc-sf-cmp-table">
+        <div id="work_area" class="epc-sf-cmp-table-wrap">
+            <table class="table table-nonfluid epc-sf-cmp-table">
                 <thead>
                     <tr>
-                        <th>Product</th>
-                        <th>Brand</th>
-                        <th>Article</th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @if (_products.Count == 0)
-                    {
-                        <tr><td colspan="4">Compare cookie has @_ids.Count id(s); catalogue rows unavailable (<code>@_source</code>). <a href="@StorefrontSurfaceLinks.OwnCatalog">Own catalog</a></td></tr>
-                    }
-                    else
-                    {
-                        @foreach (var p in _products)
+                        <th>
+                            <div class="form-group">
+                                <label for="category_select" class="col-lg-12 control-label">Category</label>
+                                <div class="col-lg-12">
+                                    <select class="form-control" id="category_select" onchange="onCategoryChange();">
+                                        @foreach (var cat in _categories)
+                                        {
+                                            <option value="@cat.ToString(CultureInfo.InvariantCulture)" selected="@(cat == _selectedCategory)">Category @cat</option>
+                                        }
+                                    </select>
+                                </div>
+                            </div>
+                        </th>
+                        @foreach (var p in VisibleProducts)
                         {
-                            <tr>
-                                <td><strong>@(string.IsNullOrWhiteSpace(p.Caption) ? ("#" + p.Id) : p.Caption)</strong></td>
-                                <td>@(string.IsNullOrWhiteSpace(p.Manufacturer) ? "—" : p.Manufacturer)</td>
-                                <td>@(string.IsNullOrWhiteSpace(p.Article) ? "—" : p.Article)</td>
-                                <td>
+                            <th>
+                                <div class="product_div_compare">
+                                    <strong>@(string.IsNullOrWhiteSpace(p.Caption) ? ("#" + p.Id) : p.Caption)</strong>
+                                    <div>@(string.IsNullOrWhiteSpace(p.Manufacturer) ? "—" : p.Manufacturer)</div>
+                                    <div>@(string.IsNullOrWhiteSpace(p.Article) ? "—" : p.Article)</div>
                                     <a href="@StorefrontSurfaceLinks.ForProduct(p.Id)">View</a>
                                     ·
                                     <form method="post" action="@PhpCustomerWrites.CompareRemoveHref" style="display:inline">
@@ -89,13 +89,43 @@
                                         <input type="hidden" name="product_id" value="@p.Id.ToString(CultureInfo.InvariantCulture)" />
                                         <button type="submit" class="btn btn-sm btn-default" style="padding:.15rem .5rem;font-size:.78rem">Remove</button>
                                     </form>
-                                </td>
-                            </tr>
+                                </div>
+                            </th>
                         }
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (_products.Count == 0)
+                    {
+                        <tr><td>Compare cookie has @_ids.Count id(s); catalogue rows unavailable (<code>@_source</code>). <a href="@StorefrontSurfaceLinks.OwnCatalog">Own catalog</a></td></tr>
+                    }
+                    else
+                    {
+                        <tr>
+                            <td>Brand</td>
+                            @foreach (var p in VisibleProducts)
+                            {
+                                <td>@(string.IsNullOrWhiteSpace(p.Manufacturer) ? "—" : p.Manufacturer)</td>
+                            }
+                        </tr>
+                        <tr>
+                            <td>Article</td>
+                            @foreach (var p in VisibleProducts)
+                            {
+                                <td>@(string.IsNullOrWhiteSpace(p.Article) ? "—" : p.Article)</td>
+                            }
+                        </tr>
                     }
                 </tbody>
             </table>
         </div>
+        <script>
+        function onCategoryChange() {
+            var sel = document.getElementById("category_select");
+            if (!sel) { return; }
+            location = "/storefront/compare-app?category_id=" + encodeURIComponent(sel.value);
+        }
+        </script>
     }
 
     <p class="epc-sf-cmp-note">
@@ -107,9 +137,19 @@
     private string _brand = "eParts Cart";
     private List<int> _ids = [];
     private IReadOnlyList<StorefrontProductDigest> _products = [];
+    private IReadOnlyList<int> _categories = [];
+    private int _selectedCategory;
     private string _source = "n/a";
     private string _flashOk = "";
     private string _flashErr = "";
+
+    [SupplyParameterFromQuery(Name = "category_id")]
+    public int? CategoryId { get; set; }
+
+    private IEnumerable<StorefrontProductDigest> VisibleProducts =>
+        _selectedCategory <= 0
+            ? _products
+            : _products.Where(p => p.CategoryId == _selectedCategory);
 
     protected override async Task OnInitializedAsync()
     {
@@ -133,5 +173,9 @@
         var result = await Dashboards.ListStorefrontProductsByIdsAsync(_ids, ctx.RequestAborted);
         _products = result.Rows;
         _source = result.Source;
+        _categories = _products.Select(p => p.CategoryId).Where(id => id > 0).Distinct().OrderBy(id => id).ToList();
+        _selectedCategory = CategoryId is > 0 && _categories.Contains(CategoryId.Value)
+            ? CategoryId.Value
+            : (_categories.Count > 0 ? _categories[0] : 0);
     }
 }

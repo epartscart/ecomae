@@ -8,34 +8,55 @@
 <PageTitle>Upload price list · @_brand</PageTitle>
 <PhpSurfaceHead Surface="storefront" IncludeStorefrontAnalytics="true" ApplyStorefrontIndustryAttrs="true" />
 <PhpChromeBodyClass Surface="storefront" />
+<HeadContent>
+    <link rel="stylesheet" href="/platform-assets/epc_vendor_portal.css?v=20260908vp" />
+</HeadContent>
 
 <StorefrontTenantChrome>
-    <section class="epc-vp" style="padding:2rem 0 3rem">
-        <div class="container" style="max-width:46rem">
-            <p style="margin:0 0 .35rem;color:#64748b;font-size:.85rem"><a href="@StorefrontAspNetCanonical.VendorPortal">← Vendor portal</a></p>
-            <h1 style="margin:.1rem 0 .4rem">Upload price list</h1>
-            <p style="color:#475569">CSV or Excel. Required columns: Brand, Article, Price. Optional: Name, Qty, Data type, Delivery.</p>
-            <form method="post" action="@PhpVendorPortal.UploadWriteHref" enctype="multipart/form-data" style="background:#fff;border:1px solid #e2e8f0;border-radius:.55rem;padding:1.1rem 1.2rem">
-                <label>Default data type</label>
-                <select name="data_type" style="width:100%;margin:.25rem 0 .75rem;padding:.5rem">
-                    <option value="inventory">Inventory (stock)</option>
-                    <option value="sales">Sales</option>
-                    <option value="purchase">Purchase</option>
-                </select>
-                <label>Price file *</label>
-                <input type="file" name="price_file" accept=".csv,.xls,.xlsx,text/csv" required style="width:100%;margin:.25rem 0 1rem" />
-                <button type="submit" style="width:100%;padding:.75rem 1rem;border:0;border-radius:.45rem;background:#0f766e;color:#fff;font-weight:800;cursor:pointer">Upload &amp; publish</button>
-            </form>
-            <p style="margin-top:1rem;color:#64748b;font-size:.85rem">Sign in on the vendor portal first. Unpublished files stay with your warehouse account.</p>
+    <section class="epc-vp" id="epc-vendor-upload">
+        <div class="epc-vp__dash">
+            <header class="epc-vp__hero epc-vp__hero--compact">
+                <div>
+                    <a class="epc-vp__back" href="@StorefrontAspNetCanonical.VendorPortal">← Vendor portal</a>
+                    <h1>Upload price list</h1>
+                    <p>CSV or Excel. Required columns: Brand, Article, Price. Optional: Name, Qty, Data type, Delivery.</p>
+                </div>
+            </header>
+
+            @if (_welcome)
+            {
+                <div class="epc-vp__alert epc-vp__alert--ok">Welcome! Your vendor account is ready. Upload your first price file below.</div>
+            }
+
+            <div class="epc-vp__panel">
+                <h2>File format</h2>
+                <p class="epc-vp__muted">CSV or Excel. Required columns: <code>Brand</code>, <code>Article</code>, <code>Price</code>. Optional: Name, Qty, Data type (inventory/sales/purchase), Delivery. Vendor columns are optional — your account is used automatically.</p>
+
+                <form id="epc-vp-upload-form" class="epc-vp__form" method="post" action="@PhpVendorPortal.UploadWriteHref" enctype="multipart/form-data">
+                    <label>Default data type</label>
+                    <select name="data_type" id="epc-vp-data-type">
+                        <option value="inventory">Inventory (stock)</option>
+                        <option value="sales">Sales</option>
+                        <option value="purchase">Purchase</option>
+                    </select>
+                    <label>Price file *</label>
+                    <input type="file" name="price_file" id="epc-vp-file" accept=".csv,.xls,.xlsx,text/csv" required />
+                    <button type="submit" class="epc-vp__btn" id="epc-vp-submit"><i class="fa fa-cloud-upload"></i> Upload &amp; publish</button>
+                </form>
+                <p class="epc-vp__muted" style="margin-top:1rem">Sign in on the vendor portal first. Unpublished files stay with your warehouse account.</p>
+            </div>
         </div>
     </section>
 </StorefrontTenantChrome>
 
 @code {
     private string _brand = "eParts Cart";
+    private bool _welcome;
 
     protected override void OnInitialized()
     {
-        _brand = StorefrontIndustryHostResolver.ResolveBrandLabel(Http.HttpContext?.Request.Host.Host);
+        var ctx = Http.HttpContext;
+        _brand = StorefrontIndustryHostResolver.ResolveBrandLabel(ctx?.Request.Host.Host);
+        _welcome = ctx?.Request.Query.ContainsKey("welcome") == true;
     }
 }

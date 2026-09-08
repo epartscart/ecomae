@@ -1,6 +1,10 @@
 namespace EcomAE.Platform.Migration;
 
-/// <summary>Wave B dry-run for PHP <c>period_soft_close</c>. Never UPDATE. PHP authoritative.</summary>
+/// <summary>
+/// Dry-run envelope for PHP <c>period_soft_close</c> / <c>epc_erp_period_soft_close</c>
+/// when <c>confirmWrites</c> is omitted. Live UPDATE is
+/// <c>IErpPeriodSoftCloseWriteService</c>.
+/// </summary>
 public interface IErpPeriodSoftCloseDryRun
 {
     ErpPeriodSoftCloseDryRunResult Evaluate(ErpPeriodSoftCloseRequest request);
@@ -13,8 +17,10 @@ public sealed class ErpPeriodSoftCloseDryRun : IErpPeriodSoftCloseDryRun
         ArgumentNullException.ThrowIfNull(request);
         if (request.ConfirmWrites)
         {
-            return Refuse("dry-run-confirm-refused", "confirm_writes_refused",
-                "confirm_writes requested but live ASP.NET period_soft_close is not implemented; PHP ajax_erp.php remains authoritative.",
+            return Refuse(
+                "dry-run-confirm-refused",
+                "confirm_writes_refused",
+                "confirm_writes refused on the dry-run path; POST confirmWrites=true to write on ASP.NET.",
                 request);
         }
 
@@ -26,19 +32,19 @@ public sealed class ErpPeriodSoftCloseDryRun : IErpPeriodSoftCloseDryRun
         }
 
         return new ErpPeriodSoftCloseDryRunResult(
-            "dry-run-validated", 0, true, false, true, "ok", true, ym, request.Note,
+            "dry-run-validated", 0, true, false, false, "ok", true, ym, request.Note,
             [
-                "epc_erp_period_soft_close(@ym, @admin, @note) (NOT executed)",
-                "Checklist / open docs gate stays PHP until dual-sample"
+                "UPDATE `epc_erp_periods` SET status='soft_close' (NOT executed)",
+                "INSERT `epc_erp_period_close_log` (NOT executed)"
             ],
-            "Period soft-close payload validated; status UPDATE blocked.",
-            "/CP/content/shop/finance/erp/ajax_erp.php?action=period_soft_close");
+            "ErpPeriodSoftClose payload validated; write blocked until confirmWrites=true.",
+            "content/shop/finance/epc_erp_period_close.php");
     }
 
     private static ErpPeriodSoftCloseDryRunResult Refuse(
         string status, string code, string detail, ErpPeriodSoftCloseRequest request) =>
-        new(status, 0, true, false, true, code, false, request.YearMonth, request.Note, [], detail,
-            "/CP/content/shop/finance/erp/ajax_erp.php?action=period_soft_close");
+        new(status, 0, true, false, false, code, false, request.YearMonth, request.Note, [], detail,
+            "content/shop/finance/epc_erp_period_close.php");
 }
 
 public sealed record ErpPeriodSoftCloseRequest(string? YearMonth, string? Note = null, bool ConfirmWrites = false);

@@ -16,17 +16,19 @@
             display:flex; flex-wrap:wrap; gap:.45rem; align-items:center;
         }
         .epc-sf-vin-form input {
-            flex:1 1 14rem; min-width:10rem; padding:.4rem .65rem; border-radius:3px;
-            border:1px solid #cbd5e1; background:#fff; color:#111827;
+            flex:1 1 16rem; min-width:12rem; padding:.55rem .75rem; border-radius:3px;
+            border:1px solid #cbd5e1; background:#fff; color:#111827; letter-spacing:.04em;
+            text-transform:uppercase; font-weight:700;
         }
-        .epc-sf-vin-form input::placeholder { color:#94a3b8; }
+        .epc-sf-vin-form input::placeholder { color:#94a3b8; letter-spacing:0; text-transform:none; font-weight:400; }
         .epc-sf-vin-form button {
-            display:inline-flex; padding:5px 12px; border-radius:3px; border:1px solid #b91c1c;
-            background:#dc2626; color:#fff; font-weight:600; font-size:12px; cursor:pointer;
+            display:inline-flex; padding:7px 16px; border-radius:3px; border:1px solid #b91c1c;
+            background:#dc2626; color:#fff; font-weight:700; font-size:13px; cursor:pointer;
         }
         .epc-sf-vin-panel {
             background:#fff; border:1px solid #e2e8f0; border-radius:2px; overflow:hidden; min-height:12rem;
         }
+        .epc-sf-vin-example { margin:0 0 .75rem; color:#64748b; font-size:.84rem; }
         .epc-sf-vin-note {
             margin-top:.85rem; padding:.7rem .85rem; background:#eff6ff; border:1px solid #bfdbfe;
             border-radius:2px; color:#1e3a8a; font-size:.84rem;
@@ -39,15 +41,18 @@
 <StorefrontTenantChrome>
 
     <PhpStorefrontPageHeader Title="VIN / Frame search"
-                            Subtitle="Decode a VIN or frame number, then continue into part search.">
-        <form class="epc-sf-vin-form" method="post" action="/storefront/vin/decode">
-            <input type="hidden" name="confirmWrites" value="true" />
-            <input type="search" name="vin" value="@_vin" maxlength="32" placeholder="VIN or Frame" aria-label="VIN or Frame" required />
-            <button type="submit">Decode VIN</button>
-            <a class="btn btn-sm btn-default" href="@StorefrontSurfaceLinks.PartSearch">Part search</a>
-            <a class="btn btn-sm btn-default" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(StorefrontPhpCanonical.ForVinSearch(_vin.Length > 0 ? "?identString=" + Uri.EscapeDataString(_vin) : null))" target="_blank" rel="noopener">Classic twin</a>
-        </form>
+                            Subtitle="Search by VIN or frame number, then continue into part search.">
+        <a class="btn btn-sm btn-default" href="@StorefrontSurfaceLinks.PartSearch">Part search</a>
+        <a class="btn btn-sm btn-default" href="@StorefrontSurfaceLinks.SellerRequest">Request to seller</a>
+        <a class="btn btn-sm btn-default" href="@StorefrontSurfaceLinks.VehicleCatalog">Vehicle catalog</a>
     </PhpStorefrontPageHeader>
+
+    <p class="epc-sf-vin-example">Example: a 17-character VIN or a frame number from the vehicle plate.</p>
+    <form class="epc-sf-vin-form" method="post" action="/storefront/vin/decode" style="margin:0 0 1rem">
+        <input type="hidden" name="confirmWrites" value="true" />
+        <input type="search" name="vin" value="@_vin" maxlength="32" placeholder="VIN or Frame" aria-label="VIN or Frame" required />
+        <button type="submit">Decode VIN</button>
+    </form>
 
     @if (!string.IsNullOrWhiteSpace(_vin))
     {
@@ -62,7 +67,7 @@
             else
             {
                 <p style="margin:0 0 .65rem;color:#b45309;font-weight:700">
-                    @(_liveErr.Length > 0 ? _liveErr : (_cacheCode == "invalid_vin" ? "Enter a VIN of 11–17 characters." : "Not in cache. Submit Decode VIN for live Laximo."))
+                    @(_liveErr.Length > 0 ? _liveErr : (_cacheCode == "invalid_vin" ? "Enter a VIN of 11–17 characters." : "VIN is not in cache yet. Submit Decode VIN to look it up."))
                 </p>
                 <p style="margin:0 0 .85rem;color:#64748b;font-size:.9rem;line-height:1.45">
                     Continue to live stock, a seller request, or the vehicle catalog.
@@ -78,7 +83,7 @@
     else
     {
         <div class="epc-sf-vin-panel" style="padding:1.25rem;color:#475569">
-            Enter a VIN or frame number to start. Unknown articles can go to the seller request form.
+            Enter a VIN or frame number to start. If the article is unknown, send a request to seller.
         </div>
     }
 </StorefrontTenantChrome>

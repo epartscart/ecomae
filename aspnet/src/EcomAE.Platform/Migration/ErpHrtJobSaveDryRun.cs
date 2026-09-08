@@ -1,26 +1,61 @@
 namespace EcomAE.Platform.Migration;
 
-/// <summary>Wave B dry-run for PHP <c>hrt_job_save</c>. Never UPDATE. PHP authoritative.</summary>
-public interface IErpHrtJobSaveDryRun { ErpHrtJobSaveDryRunResult Evaluate(ErpHrtJobSaveRequest request); }
+/// <summary>
+/// Dry-run envelope for PHP <c>hrt_job_save</c> / <c>epc_hrt_job_save</c>
+/// when <c>confirmWrites</c> is omitted. Live UPDATE/INSERT is
+/// <c>IErpHrtJobSaveWriteService</c>.
+/// </summary>
+public interface IErpHrtJobSaveDryRun
+{
+    ErpHrtJobSaveDryRunResult Evaluate(ErpHrtJobSaveRequest request);
+}
+
 public sealed class ErpHrtJobSaveDryRun : IErpHrtJobSaveDryRun
 {
     public ErpHrtJobSaveDryRunResult Evaluate(ErpHrtJobSaveRequest request)
     {
         ArgumentNullException.ThrowIfNull(request);
         if (request.ConfirmWrites)
-            return Refuse("dry-run-confirm-refused","confirm_writes_refused","confirm_writes requested but live ASP.NET hrt_job_save is not implemented; PHP ajax_erp.php remains authoritative.", request);
-        if (request.Id < 0)
-            return Refuse("dry-run-invalid","invalid_request","id must be >= 0.", request);
-        return new("dry-run-validated",0,true,false,true,"ok",true,request.Id, request.Code,
-            ["ajax_erp.php?action=hrt_job_save (NOT executed)"],
-            "ERP hrt_job_save payload validated; UPDATE blocked.",
-            "/CP/content/shop/finance/erp/ajax_erp.php?action=hrt_job_save");
+        {
+            return Refuse(
+                "dry-run-confirm-refused",
+                "confirm_writes_refused",
+                "confirm_writes refused on the dry-run path; POST confirmWrites=true to write on ASP.NET.",
+                request);
+        }
+
+        return new ErpHrtJobSaveDryRunResult(
+            "dry-run-validated", 0, true, false, false, "ok", true, request.Id, request.Title,
+            ["UPDATE / INSERT `epc_hrt_job` (NOT executed)"],
+            "ErpHrtJobSave payload validated; write blocked until confirmWrites=true.",
+            "content/shop/finance/epc_erp_hr_talent.php");
     }
-    private static ErpHrtJobSaveDryRunResult Refuse(string s,string c,string d,ErpHrtJobSaveRequest r)=>
-        new(s,0,true,false,true,c,false,r.Id, r.Code,[],d,"/CP/content/shop/finance/erp/ajax_erp.php?action=hrt_job_save");
+
+    private static ErpHrtJobSaveDryRunResult Refuse(string s, string c, string d, ErpHrtJobSaveRequest r) =>
+        new(s, 0, true, false, false, c, false, r.Id, r.Title, [], d, "content/shop/finance/epc_erp_hr_talent.php");
 }
-public sealed record ErpHrtJobSaveRequest(long Id = 0, string? Code = null, bool ConfirmWrites = false);
-public sealed record ErpHrtJobSaveDryRunResult(string Status,int Writes,bool WritesBlocked,bool CutoverAllowed,bool PhpAuthoritative,string ValidationCode,bool WouldWrite,long Id, string? Code,IReadOnlyList<string> SimulatedSql,string Detail,string PhpAjax)
+
+public sealed record ErpHrtJobSaveRequest(
+    long Id = 0,
+    long CompanyId = 0,
+    string? Title = null,
+    string? Department = null,
+    int Headcount = 1,
+    string? HiringManager = null,
+    string? Notes = null,
+    bool ConfirmWrites = false);
+
+public sealed record ErpHrtJobSaveDryRunResult(
+    string Status, int Writes, bool WritesBlocked, bool CutoverAllowed, bool PhpAuthoritative,
+    string ValidationCode, bool WouldWrite, long Id, string? Title,
+    IReadOnlyList<string> SimulatedSql, string Detail, string PhpAjax)
 {
-    public object ToPayload(object session)=>new{ok=true,surface="erp",status=Status,writes=Writes,writesBlocked=WritesBlocked,cutoverAllowed=CutoverAllowed,phpAuthoritative=PhpAuthoritative,validation_code=ValidationCode,would_write=WouldWrite,intended=new{id=Id,code=Code},simulated=SimulatedSql,php_ajax=PhpAjax,session,note=Detail};
+    public object ToPayload(object session) => new
+    {
+        ok = true, surface = "erp", status = Status, writes = Writes, writesBlocked = WritesBlocked,
+        cutoverAllowed = CutoverAllowed, phpAuthoritative = PhpAuthoritative,
+        validation_code = ValidationCode, would_write = WouldWrite,
+        intended = new { action = "hrt_job_save", id = Id, title = Title },
+        simulated = SimulatedSql, php_ajax = PhpAjax, session, note = Detail
+    };
 }

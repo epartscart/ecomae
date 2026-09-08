@@ -7,7 +7,7 @@ namespace EcomAE.Platform.Erp;
 /// <summary>
 /// Live PHP <c>epc_entity_create_group</c> / <c>epc_entity_add_member</c> /
 /// <c>epc_entity_record_intercompany</c> / <c>epc_entity_eliminate</c> twins.
-/// Schema ensure and consolidated TB stay PHP. ajax_erp multi_entity_save stays dry-run.
+/// Schema ensure and consolidated TB stay PHP. ajax_erp multi_entity_save is a separate preference UPSERT.
 /// </summary>
 public interface IErpMultiEntityWriteService
 {

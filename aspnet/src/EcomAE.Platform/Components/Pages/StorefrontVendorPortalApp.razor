@@ -2,34 +2,179 @@
 @page "/en/vendor"
 @page "/vendor"
 @layout Layout.PhpChromeLayout
+@using System.Globalization
 @using EcomAE.Platform.Auth
 @using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Storefront
 @inject IHttpContextAccessor Http
+@inject ILegacySessionValidator Sessions
+@inject IStorefrontVendorPortalReader VendorPortal
 
 <PageTitle>Vendor portal · @_brand</PageTitle>
 <PhpSurfaceHead Surface="storefront" IncludeStorefrontAnalytics="true" ApplyStorefrontIndustryAttrs="true" />
 <PhpChromeBodyClass Surface="storefront" LoginChrome="true" />
+<HeadContent>
+    <link rel="stylesheet" href="/platform-assets/epc_vendor_portal.css?v=20260908vp" />
+</HeadContent>
 
 <StorefrontTenantChrome>
-    <section class="epc-vp" style="padding:2rem 0 3rem">
-        <div class="container" style="max-width:40rem">
-            <p style="margin:0 0 .35rem;color:#64748b;font-size:.85rem"><a href="/">Home</a> · Vendor</p>
-            <h1 style="margin:.1rem 0 .4rem">Vendor portal</h1>
-            <p style="color:#475569">Sign in to upload your price list and manage warehouse offers from the storefront. No control-panel login.</p>
-            <div style="background:#fff;border:1px solid #e2e8f0;border-radius:.55rem;padding:1.1rem 1.2rem;margin:1rem 0">
-                <LegacyAdminLoginForm Surface="LegacyLoginSurface.Storefront" SurfaceLabel="storefront" PhpLoginHref="/php-reference/en/vendor" SubmitLabel="Sign in as vendor" Accent="red" />
+    <section class="epc-vp" id="epc-vendor-portal">
+        @if (!_loggedIn)
+        {
+            <div class="epc-vp__wrap">
+                <div class="epc-vp__card">
+                    <div class="epc-vp__brand">@_brand <span>Vendor</span></div>
+                    <h1>Vendor portal</h1>
+                    <p class="epc-vp__lead">Sign in to upload your price list and manage your warehouse offers — all from the storefront.</p>
+                    @if (_registered)
+                    {
+                        <div class="epc-vp__alert epc-vp__alert--ok">Registration complete. Sign in with your vendor email and password to upload prices.</div>
+                    }
+                    <div class="epc-vp__login panel panel-primary">
+                        <LegacyAdminLoginForm Surface="LegacyLoginSurface.Storefront" SurfaceLabel="storefront" PhpLoginHref="/storefront/vendor-app" SubmitLabel="Sign in as vendor" Accent="red" />
+                    </div>
+                    <p class="epc-vp__foot">
+                        New seller? <a href="@StorefrontAspNetCanonical.VendorRegister">Register as a vendor</a>
+                    </p>
+                </div>
             </div>
-            <p>New seller? <a href="@StorefrontAspNetCanonical.VendorRegister">Register as a vendor</a></p>
-            <p style="color:#64748b;font-size:.85rem">Approved vendors continue to <a href="@StorefrontAspNetCanonical.VendorUpload">price upload</a>.</p>
-        </div>
+        }
+        else if (_account is null)
+        {
+            <div class="epc-vp__wrap">
+                <div class="epc-vp__card">
+                    <h1>Not a vendor yet</h1>
+                    <p class="epc-vp__lead">Your account is signed in, but it is not linked to a vendor warehouse.</p>
+                    <p><a class="epc-vp__btn" href="@StorefrontAspNetCanonical.VendorRegister">Register as a vendor</a></p>
+                </div>
+            </div>
+        }
+        else if (!_account.CanAccess)
+        {
+            <div class="epc-vp__wrap">
+                <div class="epc-vp__card">
+                    <h1>Account pending</h1>
+                    <p class="epc-vp__lead">Your vendor registration (<strong>@_account.VendorShort</strong>) is not active yet. Status: @_account.Status.</p>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="epc-vp__dash">
+                <header class="epc-vp__hero">
+                    <div>
+                        <div class="epc-vp__brand">@_brand <span>Vendor</span></div>
+                        <h1>@_account.VendorFull</h1>
+                        <p>Code <strong>@_account.VendorShort</strong>
+                            · Warehouse #@_account.StorageId.ToString(CultureInfo.InvariantCulture)</p>
+                    </div>
+                    <div class="epc-vp__hero-actions">
+                        <a class="epc-vp__btn" href="@StorefrontAspNetCanonical.VendorUpload"><i class="fa fa-upload"></i> Upload prices</a>
+                    </div>
+                </header>
+
+                <div class="epc-vp__kpi">
+                    <div class="epc-vp__kpi-card">
+                        <span>SKU rows</span>
+                        <strong>@_account.SkuCount.ToString("N0", CultureInfo.InvariantCulture)</strong>
+                    </div>
+                    <div class="epc-vp__kpi-card">
+                        <span>Price lists</span>
+                        <strong>@_account.PriceListCount.ToString(CultureInfo.InvariantCulture)</strong>
+                    </div>
+                    <div class="epc-vp__kpi-card">
+                        <span>Uploads</span>
+                        <strong>@_account.Uploads.Count.ToString(CultureInfo.InvariantCulture)</strong>
+                    </div>
+                    <div class="epc-vp__kpi-card">
+                        <span>Status</span>
+                        <strong class="ok">Approved</strong>
+                    </div>
+                </div>
+
+                <div class="epc-vp__panel" style="margin-bottom:16px;">
+                    <div class="epc-vp__panel-head">
+                        <h2>UAE e-invoice seller profile</h2>
+                    </div>
+                    @if (string.IsNullOrWhiteSpace(_account.LegalName) && string.IsNullOrWhiteSpace(_account.Trn))
+                    {
+                        <p class="epc-vp__muted">No legal/tax details on file yet. New vendors should re-register with TRN and address for FTA e-invoicing.</p>
+                    }
+                    else
+                    {
+                        <dl class="epc-vp__tax-grid">
+                            <div><dt>Legal name</dt><dd>@(string.IsNullOrWhiteSpace(_account.LegalName) ? "—" : _account.LegalName)</dd></div>
+                            <div><dt>TRN</dt><dd>@(string.IsNullOrWhiteSpace(_account.Trn) ? "—" : _account.Trn)</dd></div>
+                            <div><dt>Trade licence</dt><dd>@(string.IsNullOrWhiteSpace((_account.LegalRegType + " " + _account.LegalRegNo).Trim()) ? "—" : (_account.LegalRegType + " " + _account.LegalRegNo).Trim())</dd></div>
+                            <div><dt>Peppol</dt><dd>@(string.IsNullOrWhiteSpace(_account.PeppolEndpoint) ? "—" : _account.PeppolEndpoint)</dd></div>
+                            <div><dt>Address</dt><dd>@(string.IsNullOrWhiteSpace(_account.AddressLine1) ? "—" : _account.AddressLine1)</dd></div>
+                            <div><dt>City / Emirate</dt><dd>@(string.IsNullOrWhiteSpace((_account.City + (_account.Emirate.Length > 0 ? ", " + _account.Emirate : "")).Trim()) ? "—" : (_account.City + (_account.Emirate.Length > 0 ? ", " + _account.Emirate : "")).Trim())</dd></div>
+                        </dl>
+                    }
+                </div>
+
+                <div class="epc-vp__panel">
+                    <div class="epc-vp__panel-head">
+                        <h2>Recent uploads</h2>
+                        <a href="@StorefrontAspNetCanonical.VendorUpload">New upload →</a>
+                    </div>
+                    @if (_account.Uploads.Count == 0)
+                    {
+                        <p class="epc-vp__empty">No uploads yet. Upload a CSV/Excel price file to publish parts under your vendor code.</p>
+                    }
+                    else
+                    {
+                        <table class="epc-vp__table">
+                            <thead>
+                                <tr>
+                                    <th>When</th>
+                                    <th>File</th>
+                                    <th>List</th>
+                                    <th>Rows</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            @foreach (var row in _account.Uploads)
+                            {
+                                <tr>
+                                    <td>@(string.IsNullOrWhiteSpace(row.CreatedAt) ? "—" : row.CreatedAt)</td>
+                                    <td>@row.OriginalFilename</td>
+                                    <td>@row.PriceName</td>
+                                    <td>@row.RowsImported.ToString(CultureInfo.InvariantCulture)</td>
+                                    <td><span class="epc-vp__badge epc-vp__badge--@row.Status">@row.Status</span></td>
+                                </tr>
+                            }
+                            </tbody>
+                        </table>
+                    }
+                </div>
+            </div>
+        }
     </section>
 </StorefrontTenantChrome>
 
 @code {
     private string _brand = "eParts Cart";
+    private bool _registered;
+    private bool _loggedIn;
+    private StorefrontVendorPortalAccount? _account;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        _brand = StorefrontIndustryHostResolver.ResolveBrandLabel(Http.HttpContext?.Request.Host.Host);
+        var ctx = Http.HttpContext;
+        _brand = StorefrontIndustryHostResolver.ResolveBrandLabel(ctx?.Request.Host.Host);
+        _registered = ctx?.Request.Query.ContainsKey("registered") == true;
+        if (ctx is null)
+        {
+            return;
+        }
+
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        _loggedIn = session.Kind == LegacySessionKind.Customer && session.UserId > 0;
+        if (_loggedIn)
+        {
+            _account = await VendorPortal.LoadAsync(session.UserId, ctx.RequestAborted);
+        }
     }
 }

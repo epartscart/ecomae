@@ -1,26 +1,62 @@
 namespace EcomAE.Platform.Migration;
 
-/// <summary>Wave B dry-run for PHP <c>prja_budget_save</c>. Never UPDATE. PHP authoritative.</summary>
-public interface IErpPrjaBudgetSaveDryRun { ErpPrjaBudgetSaveDryRunResult Evaluate(ErpPrjaBudgetSaveRequest request); }
+/// <summary>
+/// Dry-run envelope for PHP <c>prja_budget_save</c> / <c>epc_prja_budget_save</c>
+/// when <c>confirmWrites</c> is omitted. Live INSERT/UPDATE is
+/// <c>IErpPrjaBudgetSaveWriteService</c>.
+/// </summary>
+public interface IErpPrjaBudgetSaveDryRun
+{
+    ErpPrjaBudgetSaveDryRunResult Evaluate(ErpPrjaBudgetSaveRequest request);
+}
+
 public sealed class ErpPrjaBudgetSaveDryRun : IErpPrjaBudgetSaveDryRun
 {
     public ErpPrjaBudgetSaveDryRunResult Evaluate(ErpPrjaBudgetSaveRequest request)
     {
         ArgumentNullException.ThrowIfNull(request);
         if (request.ConfirmWrites)
-            return Refuse("dry-run-confirm-refused","confirm_writes_refused","confirm_writes requested but live ASP.NET prja_budget_save is not implemented; PHP ajax_erp.php remains authoritative.", request);
-        if (request.Id < 0)
-            return Refuse("dry-run-invalid","invalid_request","id must be >= 0.", request);
-        return new("dry-run-validated",0,true,false,true,"ok",true,request.Id, request.Code,
-            ["ajax_erp.php?action=prja_budget_save (NOT executed)"],
-            "ERP prja_budget_save payload validated; UPDATE blocked.",
-            "/CP/content/shop/finance/erp/ajax_erp.php?action=prja_budget_save");
+        {
+            return Refuse(
+                "dry-run-confirm-refused",
+                "confirm_writes_refused",
+                "confirm_writes refused on the dry-run path; POST confirmWrites=true to write on ASP.NET.",
+                request);
+        }
+
+        var category = string.IsNullOrWhiteSpace(request.Category) ? (request.Code ?? "general") : request.Category;
+        return new ErpPrjaBudgetSaveDryRunResult(
+            "dry-run-validated", 0, true, false, false, "ok", true, request.Id, request.ProjectId, category,
+            ["INSERT/UPDATE `epc_prja_budget` (NOT executed)"],
+            "ErpPrjaBudgetSave payload validated; write blocked until confirmWrites=true.",
+            "content/shop/finance/epc_erp_project_accounting.php");
     }
-    private static ErpPrjaBudgetSaveDryRunResult Refuse(string s,string c,string d,ErpPrjaBudgetSaveRequest r)=>
-        new(s,0,true,false,true,c,false,r.Id, r.Code,[],d,"/CP/content/shop/finance/erp/ajax_erp.php?action=prja_budget_save");
+
+    private static ErpPrjaBudgetSaveDryRunResult Refuse(string s, string c, string d, ErpPrjaBudgetSaveRequest r) =>
+        new(s, 0, true, false, false, c, false, r.Id, r.ProjectId, r.Category ?? r.Code, [], d, "content/shop/finance/epc_erp_project_accounting.php");
 }
-public sealed record ErpPrjaBudgetSaveRequest(long Id = 0, string? Code = null, bool ConfirmWrites = false);
-public sealed record ErpPrjaBudgetSaveDryRunResult(string Status,int Writes,bool WritesBlocked,bool CutoverAllowed,bool PhpAuthoritative,string ValidationCode,bool WouldWrite,long Id, string? Code,IReadOnlyList<string> SimulatedSql,string Detail,string PhpAjax)
+
+public sealed record ErpPrjaBudgetSaveRequest(
+    long Id = 0,
+    long ProjectId = 0,
+    string? Category = null,
+    string? Code = null,
+    decimal CostBudget = 0,
+    decimal RevenueBudget = 0,
+    long CompanyId = 0,
+    bool ConfirmWrites = false);
+
+public sealed record ErpPrjaBudgetSaveDryRunResult(
+    string Status, int Writes, bool WritesBlocked, bool CutoverAllowed, bool PhpAuthoritative,
+    string ValidationCode, bool WouldWrite, long Id, long ProjectId, string? Category,
+    IReadOnlyList<string> SimulatedSql, string Detail, string PhpAjax)
 {
-    public object ToPayload(object session)=>new{ok=true,surface="erp",status=Status,writes=Writes,writesBlocked=WritesBlocked,cutoverAllowed=CutoverAllowed,phpAuthoritative=PhpAuthoritative,validation_code=ValidationCode,would_write=WouldWrite,intended=new{id=Id,code=Code},simulated=SimulatedSql,php_ajax=PhpAjax,session,note=Detail};
+    public object ToPayload(object session) => new
+    {
+        ok = true, surface = "erp", status = Status, writes = Writes, writesBlocked = WritesBlocked,
+        cutoverAllowed = CutoverAllowed, phpAuthoritative = PhpAuthoritative,
+        validation_code = ValidationCode, would_write = WouldWrite,
+        intended = new { action = "prja_budget_save", id = Id, project_id = ProjectId, category = Category },
+        simulated = SimulatedSql, php_ajax = PhpAjax, session, note = Detail
+    };
 }

@@ -15,32 +15,28 @@
 <PhpChromeStyles Surface="storefront" />
 <HeadContent>
 <style>
-        
-        .epc-sf-pd-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
-        .epc-sf-pd-cta a {
-            display:inline-flex; padding:.5rem .85rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
-            text-decoration:none; color:#fff; background:#dc2626;
+        .product_info_wrap { position:relative; padding:10px; margin:0 auto; min-height:280px; }
+        .product_galery { width:100%; max-width:450px; }
+        .product_genaral_info { margin-top:1rem; }
+        .main_image > IMG, #main_image { max-width:400px; max-height:400px; display:block; }
+        .product_image_select { padding:4px; border-radius:4px; max-width:45px; max-height:45px; }
+        .current_image { cursor:default; border:1px solid #C33; }
+        .other_image { cursor:pointer; border:1px solid #DDD; }
+        .other_image:hover { border:1px solid #BABABA; }
+        .product_div_manufacturer, .product_div_article { font-weight:700; margin:.2rem 0; }
+        .product_div_article_button { margin:.35rem 0 .75rem; }
+        .product_div_tile { margin:.75rem 0; }
+        .product_div_count_need { display:inline-flex; align-items:center; gap:.25rem; }
+        .count_need_minus, .count_need_plus { display:inline-block; min-width:1.4rem; text-align:center; border:1px solid #ddd; border-radius:3px; color:#334155; }
+        .count_need_input { width:3.5rem; padding:.3rem; text-align:center; }
+        .product_div_bookmark, .product_div_compare { display:inline-block; margin:.35rem .5rem .35rem 0; }
+        .product_div_bookmark button, .product_div_compare button, .btn_cart_div button {
+            padding:.5rem .85rem; border-radius:.4rem; font-weight:800; cursor:pointer;
         }
-        .epc-sf-pd-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); }
-        .epc-sf-pd-grid { display:grid; grid-template-columns:minmax(0,1.1fr) minmax(0,1fr); gap:1rem; }
-        .epc-sf-pd-card { background:#fff; border:1px solid #e5e7eb; border-radius:.55rem; padding:1rem; }
-        .epc-sf-pd-card h2 { margin:0 0 .55rem; font-size:1rem; }
-        .epc-sf-pd-meta { margin:0; padding:0; list-style:none; font-size:.9rem; color:#334155; }
-        .epc-sf-pd-meta li { margin:0 0 .35rem; }
-        .epc-sf-pd-gallery { display:grid; grid-template-columns:repeat(auto-fill,minmax(110px,1fr)); gap:.55rem; }
-        .epc-sf-pd-gallery a {
-            display:block; border:1px solid #e2e8f0; border-radius:.45rem; overflow:hidden; background:#f8fafc;
-            aspect-ratio:1; text-decoration:none;
+        @@media (min-width:900px){
+            .product_info_wrap { display:grid; grid-template-columns:minmax(0,450px) minmax(0,1fr); gap:1.25rem; align-items:start; }
+            .product_galery, .product_genaral_info { position:static; margin-top:0; }
         }
-        .epc-sf-pd-gallery img { width:100%; height:100%; object-fit:contain; display:block; }
-        .epc-sf-pd-specs { width:100%; border-collapse:collapse; font-size:.86rem; }
-        .epc-sf-pd-specs th, .epc-sf-pd-specs td { padding:.45rem .55rem; border-bottom:1px solid #f1f5f9; text-align:left; vertical-align:top; }
-        .epc-sf-pd-specs th { width:38%; color:#64748b; font-weight:700; }
-        .epc-sf-pd-group { margin:0 0 1rem; }
-        .epc-sf-pd-group h3 { margin:0 0 .45rem; font-size:.92rem; color:#0f172a; }
-        .epc-sf-pd-empty { padding:1.25rem; background:#fff; border:1px solid #e5e7eb; border-radius:.55rem; }
-        .epc-sf-pd-note { margin-top:1rem; padding:.75rem .9rem; background:#fff8e8; border:1px solid #f1d49a; border-radius:.45rem; color:#7a4e00; font-size:.86rem; }
-        @@media (max-width:900px){ .epc-sf-pd-grid{grid-template-columns:1fr;} }
 </style>
 </HeadContent>
 
@@ -63,7 +59,7 @@
             <a class="btn btn-sm btn-primary" href="@StorefrontSurfaceLinks.PartSearch">Part search</a>
             <a class="btn btn-sm btn-default" href="@StorefrontSurfaceLinks.Wishlist">Bookmarks</a>
         </PhpStorefrontPageHeader>
-        <div class="epc-sf-pd-empty">
+        <div class="product_info_wrap" id="product_info_wrap_div">
             @if (ProductId is null or <= 0)
             {
                 <span>Provide a product id, e.g. <code>/storefront/product-app?id=123</code>.</span>
@@ -82,160 +78,192 @@
             <a class="btn btn-sm btn-default" href="@StorefrontSurfaceLinks.Cart">Cart</a>
         </PhpStorefrontPageHeader>
 
-        <div class="epc-sf-pd-grid">
-            <div class="epc-sf-pd-card">
-                <h2>Media</h2>
-                @if ((_product.Images?.Count ?? 0) == 0)
-                {
-                    <p style="margin:0;color:#64748b;font-size:.88rem">No gallery images on this product yet.</p>
-                }
-                else
-                {
-                    <div class="epc-sf-pd-gallery" aria-label="Product gallery">
-                        @foreach (var img in _product.Images!)
+        <div class="product_info_wrap" id="product_info_wrap_div">
+            <div class="product_galery" id="product_galery_div">
+                <div class="main_image" id="main_image_div">
+                    <img id="main_image" src="@PrimaryImageUrl" alt="@_product.Caption" />
+                </div>
+                <div class="all_product_images" id="all_product_images_div" aria-label="Product gallery">
+                    @if (_product.Images is { Count: > 0 })
+                    {
+                        @for (var imageIndex = 0; imageIndex < _product.Images.Count; imageIndex++)
                         {
-                            <a href="@img.Url" target="_blank" rel="noopener">
-                                <img src="@img.Url" alt="@(string.IsNullOrWhiteSpace(img.Alt) ? _product.Caption : img.Alt)" loading="lazy" />
-                            </a>
+                            var img = _product.Images[imageIndex];
+                            var imageKey = img.Id > 0 ? img.Id : imageIndex;
+                            var thumbClass = imageIndex == 0 ? "product_image_select current_image" : "product_image_select other_image";
+                            <img id="@("product_image_select_" + imageKey.ToString(CultureInfo.InvariantCulture))"
+                                 class="@thumbClass"
+                                 src="@img.Url"
+                                 alt="@(string.IsNullOrWhiteSpace(img.Alt) ? _product.Caption : img.Alt)"
+                                 loading="lazy"
+                                 data-image-id="@imageKey.ToString(CultureInfo.InvariantCulture)"
+                                 data-image-url="@img.Url"
+                                 onclick="selectImage(this.getAttribute('data-image-id'), this.getAttribute('data-image-url'))" />
                         }
-                    </div>
-                }
+                    }
+                </div>
             </div>
-            <div class="epc-sf-pd-card">
-                <h2>Details</h2>
-                <ul class="epc-sf-pd-meta">
-                    <li><strong>Id:</strong> @_product.Id</li>
-                    <li><strong>Alias:</strong> @(string.IsNullOrWhiteSpace(_product.Alias) ? "—" : _product.Alias)</li>
-                    <li><strong>Category:</strong> @_product.CategoryId</li>
-                    <li><strong>Manufacturer:</strong> @(string.IsNullOrWhiteSpace(_product.Manufacturer) ? "—" : _product.Manufacturer)</li>
-                    <li><strong>Article:</strong> @(string.IsNullOrWhiteSpace(_product.Article) ? "—" : _product.Article)</li>
-                    <li><strong>Published:</strong> @(_product.Published ? "Yes" : "No")</li>
-                </ul>
+
+            <div class="product_genaral_info" id="product_genaral_info_div">
+                <div class="product_div_manufacturer">@(string.IsNullOrWhiteSpace(_product.Manufacturer) ? "—" : _product.Manufacturer)</div>
+                <div class="product_div_article">@(string.IsNullOrWhiteSpace(_product.Article) ? ("#" + _product.Id) : _product.Article)</div>
+                <div class="product_div_article_button">
+                    <a target="_blank" title="All prices" href="@BrandArticleSearchHref">All prices <i class="fa fa-search"></i></a>
+                </div>
+
+                @if ((_product.Specs?.Count ?? 0) > 0)
+                {
+                    <table>
+                        @foreach (var spec in _product.Specs!)
+                        {
+                            <tr>
+                                <td style="vertical-align:top;"><font style="font-weight:bold; margin-right:10px;">@spec.Label</font></td>
+                                <td style="vertical-align:top;">@spec.Value@(string.IsNullOrWhiteSpace(spec.Unit) ? "" : " " + spec.Unit)</td>
+                            </tr>
+                        }
+                    </table>
+                }
+
                 @if (!string.IsNullOrWhiteSpace(_product.Description))
                 {
                     <p style="margin:.75rem 0 0;color:#334155;font-size:.9rem;line-height:1.45">@_product.Description</p>
                 }
-            </div>
-        </div>
 
-        <div class="epc-sf-pd-card" style="margin-top:1rem">
-            <h2>Specifications</h2>
-            @if ((_product.Specs?.Count ?? 0) == 0)
-            {
-                <p style="margin:0;color:#64748b;font-size:.88rem">No SKU specification rows for this product.</p>
-            }
-            else
-            {
-                @foreach (var group in _product.Specs!.GroupBy(s => s.GroupName))
-                {
-                    <div class="epc-sf-pd-group">
-                        <h3>@group.Key</h3>
-                        <table class="epc-sf-pd-specs">
-                            <tbody>
-                            @foreach (var spec in group)
-                            {
-                                <tr>
-                                    <th scope="row">@spec.Label</th>
-                                    <td>@spec.Value@(string.IsNullOrWhiteSpace(spec.Unit) ? "" : " " + spec.Unit)</td>
-                                </tr>
-                            }
-                            </tbody>
-                        </table>
+                <div class="product_div_tile">
+                    <div class="btn_cart_div">
+                        <div class="btn_cart_div_text">
+                            <div class="btn-ar btn-primary cart_btn_purchase_action">
+                                <form method="get" action="@StorefrontSurfaceLinks.Cart" style="margin:0">
+                                    <input type="hidden" name="product_id" value="@_product.Id.ToString(CultureInfo.InvariantCulture)" />
+                                    <table>
+                                        <tr>
+                                            <td>
+                                                <div class="product_div_count_need">
+                                                    <a class="count_need_minus" href="javascript:void(0);" onclick="adjustCountNeed(-1);">-</a>
+                                                    <input class="count_need_input count_need_product" type="text" name="count_need" value="1" />
+                                                    <a class="count_need_plus" href="javascript:void(0);" onclick="adjustCountNeed(1);">+</a>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <button type="submit" style="border:0;background:transparent;color:#fff;font-weight:800;cursor:pointer">Add to cart</button>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </form>
+                            </div>
+                        </div>
                     </div>
-                }
-            }
-        </div>
+                </div>
 
-        <div class="epc-sf-pd-card" style="margin-top:1rem">
-            <h2>Actions</h2>
-            <form method="get" action="@StorefrontSurfaceLinks.Cart" style="margin:0 0 .85rem;display:flex;gap:.45rem;flex-wrap:wrap;align-items:end">
-                <input type="hidden" name="product_id" value="@_product.Id.ToString(CultureInfo.InvariantCulture)" />
-                <label>Qty <input type="number" name="count_need" value="1" min="1" style="width:5rem;margin-left:.35rem;padding:.35rem" /></label>
-                <button type="submit" style="padding:.5rem .85rem;border:0;border-radius:.4rem;background:#dc2626;color:#fff;font-weight:800;cursor:pointer">Add to cart</button>
-            </form>
-            <div class="epc-sf-pd-cta" style="margin:0;align-items:center">
-                <a class="btn btn-sm btn-primary" href="@StorefrontSurfaceLinks.Cart">Cart</a>
-                @if (_inWishlist)
-                {
-                    <form method="post" action="@PhpCustomerWrites.WishlistRemoveHref" style="margin:0">
-                        <input type="hidden" name="confirmWrites" value="true" />
-                        <input type="hidden" name="returnUrl" value="@("/storefront/product-app?id=" + _product.Id.ToString(CultureInfo.InvariantCulture))" />
-                        <input type="hidden" name="product_id" value="@_product.Id.ToString(CultureInfo.InvariantCulture)" />
-                        <button type="submit" style="padding:.5rem .85rem;border:1px solid #d1d5db;border-radius:.4rem;background:#fff;font-weight:700;cursor:pointer">Remove bookmark</button>
-                    </form>
-                }
-                else
-                {
-                    <form method="post" action="@PhpCustomerWrites.WishlistWriteHref" style="margin:0">
-                        <input type="hidden" name="confirmWrites" value="true" />
-                        <input type="hidden" name="returnUrl" value="@("/storefront/product-app?id=" + _product.Id.ToString(CultureInfo.InvariantCulture))" />
-                        <input type="hidden" name="product_id" value="@_product.Id.ToString(CultureInfo.InvariantCulture)" />
-                        <button type="submit" style="padding:.5rem .85rem;border:0;border-radius:.4rem;background:#0f766e;color:#fff;font-weight:800;cursor:pointer">Add bookmark</button>
-                    </form>
-                }
-                @if (_inCompare)
-                {
-                    <form method="post" action="@PhpCustomerWrites.CompareRemoveHref" style="margin:0">
-                        <input type="hidden" name="confirmWrites" value="true" />
-                        <input type="hidden" name="returnUrl" value="@("/storefront/product-app?id=" + _product.Id.ToString(CultureInfo.InvariantCulture))" />
-                        <input type="hidden" name="product_id" value="@_product.Id.ToString(CultureInfo.InvariantCulture)" />
-                        <button type="submit" style="padding:.5rem .85rem;border:1px solid #d1d5db;border-radius:.4rem;background:#fff;font-weight:700;cursor:pointer">Remove compare</button>
-                    </form>
-                }
-                else
-                {
-                    <form method="post" action="@PhpCustomerWrites.CompareWriteHref" style="margin:0">
-                        <input type="hidden" name="confirmWrites" value="true" />
-                        <input type="hidden" name="returnUrl" value="@("/storefront/product-app?id=" + _product.Id.ToString(CultureInfo.InvariantCulture))" />
-                        <input type="hidden" name="product_id" value="@_product.Id.ToString(CultureInfo.InvariantCulture)" />
-                        <button type="submit" style="padding:.5rem .85rem;border:0;border-radius:.4rem;background:#334155;color:#fff;font-weight:800;cursor:pointer">Add to compare</button>
-                    </form>
-                }
-                <a class="btn btn-sm btn-default" href="@StorefrontSurfaceLinks.Wishlist">Bookmarks</a>
-                <a class="btn btn-sm btn-default" href="@StorefrontSurfaceLinks.Compare">Compare</a>
+                <div class="product_div_bookmark">
+                    @if (_inWishlist)
+                    {
+                        <form method="post" action="@PhpCustomerWrites.WishlistRemoveHref" style="margin:0">
+                            <input type="hidden" name="confirmWrites" value="true" />
+                            <input type="hidden" name="returnUrl" value="@("/storefront/product-app?id=" + _product.Id.ToString(CultureInfo.InvariantCulture))" />
+                            <input type="hidden" name="product_id" value="@_product.Id.ToString(CultureInfo.InvariantCulture)" />
+                            <button type="submit" style="border:1px solid #d1d5db;background:#fff">Remove bookmark</button>
+                        </form>
+                    }
+                    else
+                    {
+                        <form method="post" action="@PhpCustomerWrites.WishlistWriteHref" style="margin:0">
+                            <input type="hidden" name="confirmWrites" value="true" />
+                            <input type="hidden" name="returnUrl" value="@("/storefront/product-app?id=" + _product.Id.ToString(CultureInfo.InvariantCulture))" />
+                            <input type="hidden" name="product_id" value="@_product.Id.ToString(CultureInfo.InvariantCulture)" />
+                            <button type="submit" style="border:0;background:#0f766e;color:#fff">Add bookmark</button>
+                        </form>
+                    }
+                </div>
+                <div class="product_div_compare">
+                    @if (_inCompare)
+                    {
+                        <form method="post" action="@PhpCustomerWrites.CompareRemoveHref" style="margin:0">
+                            <input type="hidden" name="confirmWrites" value="true" />
+                            <input type="hidden" name="returnUrl" value="@("/storefront/product-app?id=" + _product.Id.ToString(CultureInfo.InvariantCulture))" />
+                            <input type="hidden" name="product_id" value="@_product.Id.ToString(CultureInfo.InvariantCulture)" />
+                            <button type="submit" style="border:1px solid #d1d5db;background:#fff">Remove compare</button>
+                        </form>
+                    }
+                    else
+                    {
+                        <form method="post" action="@PhpCustomerWrites.CompareWriteHref" style="margin:0">
+                            <input type="hidden" name="confirmWrites" value="true" />
+                            <input type="hidden" name="returnUrl" value="@("/storefront/product-app?id=" + _product.Id.ToString(CultureInfo.InvariantCulture))" />
+                            <input type="hidden" name="product_id" value="@_product.Id.ToString(CultureInfo.InvariantCulture)" />
+                            <button type="submit" style="border:0;background:#334155;color:#fff">Add to compare</button>
+                        </form>
+                    }
+                </div>
+
+                <div id="evaluations_general_mark_home">
+                    @if (_reviews.Count > 0)
+                    {
+                        <div class="evaluations_mark">
+                            @{
+                                var avg = (int)Math.Round(_reviews.Average(r => r.Rating));
+                            }
+                            @for (var star = 1; star <= 5; star++)
+                            {
+                                <i class="fa @(star <= avg ? "fa-star" : "fa-star-o") em-primary"></i>
+                            }
+                        </div>
+                        <ul style="margin:.65rem 0 0;padding:0;list-style:none">
+                            @foreach (var review in _reviews)
+                            {
+                                <li style="margin:0 0 .75rem;padding:.7rem .8rem;background:#f8fafc;border:1px solid #e2e8f0;border-radius:.45rem">
+                                    <strong>@review.Rating / 5</strong>
+                                    <span style="color:#64748b;font-size:.82rem"> · @review.Author · @review.Date</span>
+                                    <p style="margin:.35rem 0 0;color:#334155">@review.Text</p>
+                                </li>
+                            }
+                        </ul>
+                    }
+                </div>
+                <form method="post" action="@PhpCustomerWrites.EvaluationWriteHref" style="margin:.85rem 0 0">
+                    <input type="hidden" name="confirmWrites" value="true" />
+                    <input type="hidden" name="returnUrl" value="@("/storefront/product-app?id=" + _product.Id.ToString(CultureInfo.InvariantCulture))" />
+                    <input type="hidden" name="product_id" value="@_product.Id.ToString(CultureInfo.InvariantCulture)" />
+                    <label style="display:block;margin:.25rem 0">Rating
+                        <select name="mark" style="margin-left:.35rem;padding:.35rem">
+                            <option value="5">5</option>
+                            <option value="4">4</option>
+                            <option value="3">3</option>
+                            <option value="2">2</option>
+                            <option value="1">1</option>
+                        </select>
+                    </label>
+                    <label style="display:block;margin:.65rem 0 .25rem">Review</label>
+                    <textarea name="text" rows="3" required style="width:100%;padding:.45rem"></textarea>
+                    <button type="submit" style="margin-top:.75rem;padding:.5rem .85rem;border:0;border-radius:.4rem;background:#0f766e;color:#fff;font-weight:800;cursor:pointer">Submit review</button>
+                </form>
             </div>
         </div>
-
-        <div class="epc-sf-pd-card" style="margin-top:1rem">
-            <h2>Reviews</h2>
-            @if (_reviews.Count > 0)
-            {
-                <ul style="margin:0 0 1rem;padding:0;list-style:none">
-                    @foreach (var review in _reviews)
-                    {
-                        <li style="margin:0 0 .75rem;padding:.7rem .8rem;background:#f8fafc;border:1px solid #e2e8f0;border-radius:.45rem">
-                            <strong>@review.Rating / 5</strong>
-                            <span style="color:#64748b;font-size:.82rem"> · @review.Author · @review.Date</span>
-                            <p style="margin:.35rem 0 0;color:#334155">@review.Text</p>
-                        </li>
-                    }
-                </ul>
-            }
-            else
-            {
-                <p style="margin:0 0 .85rem;color:#64748b;font-size:.88rem">No reviews on this product yet.</p>
-            }
-            <form method="post" action="@PhpCustomerWrites.EvaluationWriteHref" style="margin:0">
-                <input type="hidden" name="confirmWrites" value="true" />
-                <input type="hidden" name="returnUrl" value="@("/storefront/product-app?id=" + _product.Id.ToString(CultureInfo.InvariantCulture))" />
-                <input type="hidden" name="product_id" value="@_product.Id.ToString(CultureInfo.InvariantCulture)" />
-                <label style="display:block;margin:.25rem 0">Rating
-                    <select name="mark" style="margin-left:.35rem;padding:.35rem">
-                        <option value="5">5</option>
-                        <option value="4">4</option>
-                        <option value="3">3</option>
-                        <option value="2">2</option>
-                        <option value="1">1</option>
-                    </select>
-                </label>
-                <label style="display:block;margin:.65rem 0 .25rem">Review</label>
-                <textarea name="text" rows="3" required style="width:100%;padding:.45rem"></textarea>
-                <button type="submit" style="margin-top:.75rem;padding:.5rem .85rem;border:0;border-radius:.4rem;background:#0f766e;color:#fff;font-weight:800;cursor:pointer">Submit review</button>
-            </form>
-        </div>
-        <p class="epc-sf-pd-note">
+        <p class="lead" style="margin-top:1rem;padding:.75rem .9rem;background:#fff8e8;border:1px solid #f1d49a;border-radius:.45rem;color:#7a4e00;font-size:.86rem">
             Gallery and specs stay on this product card. Cart, bookmarks, and compare stay on this storefront.
         </p>
+        <script>
+        var current_image_id = "@PrimaryImageKey.ToString(CultureInfo.InvariantCulture)";
+        function selectImage(id, image_url) {
+            id = String(id || "");
+            if (String(current_image_id) === id) { return; }
+            var prev = document.getElementById("product_image_select_" + current_image_id);
+            if (prev) { prev.setAttribute("class", "product_image_select other_image"); }
+            var next = document.getElementById("product_image_select_" + id);
+            if (next) { next.setAttribute("class", "product_image_select current_image"); }
+            current_image_id = id;
+            var main = document.getElementById("main_image");
+            if (main) { main.setAttribute("src", image_url); }
+        }
+        function adjustCountNeed(delta) {
+            var input = document.querySelector(".count_need_input");
+            if (!input) { return; }
+            var n = parseInt(input.value || "1", 10);
+            if (isNaN(n)) { n = 1; }
+            n = Math.max(1, n + delta);
+            input.value = n;
+        }
+        </script>
     }
 </StorefrontTenantChrome>
 
@@ -260,6 +288,25 @@
             var mfr = string.IsNullOrWhiteSpace(_product.Manufacturer) ? "" : _product.Manufacturer + " · ";
             var art = string.IsNullOrWhiteSpace(_product.Article) ? ("#" + _product.Id) : _product.Article;
             return mfr + art;
+        }
+    }
+
+    private string PrimaryImageUrl =>
+        _product?.Images?.FirstOrDefault(i => i.IsPrimary)?.Url
+        ?? _product?.Images?.FirstOrDefault()?.Url
+        ?? "/content/files/images/no_image.png";
+
+    private int PrimaryImageKey
+    {
+        get
+        {
+            var first = _product?.Images?.FirstOrDefault(i => i.IsPrimary) ?? _product?.Images?.FirstOrDefault();
+            if (first is null)
+            {
+                return 0;
+            }
+
+            return first.Id > 0 ? first.Id : 0;
         }
     }
 

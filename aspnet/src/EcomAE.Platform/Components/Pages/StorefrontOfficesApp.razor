@@ -19,14 +19,15 @@
             <p style="margin:0 0 .35rem;color:#64748b;font-size:.85rem"><a href="/">Home</a> · Pickup points</p>
             <h1 style="margin:.1rem 0 .4rem">@_heading</h1>
             <p style="color:#475569">@_lead</p>
-            @foreach (var office in _offices)
-            {
-                <article style="margin:1rem 0;padding:1rem 1.1rem;background:#fff;border:1px solid #e2e8f0;border-radius:.55rem">
-                    <h2 style="margin:0 0 .35rem;font-size:1.1rem">@office.Name</h2>
-                    <p style="margin:0 0 .25rem;color:#334155">@office.City · @office.Address</p>
-                    <p style="margin:0;color:#64748b;font-size:.9rem">@office.Hours · @office.Phone</p>
-                </article>
-            }
+            <div class="list-group" id="office_list">
+                @foreach (var office in _offices)
+                {
+                    <div class="office_box list-group-item">
+                        <span>@office.Name, city: @office.City, @office.Address</span>
+                        <div class="office_info" style="margin-top:.35rem;color:#64748b;font-size:.9rem">@office.Hours · @office.Phone</div>
+                    </div>
+                }
+            </div>
             <p style="margin-top:1.25rem">
                 <a href="@StorefrontAspNetCanonical.IndustryCms?slug=kontakty">Contact</a>
                 ·

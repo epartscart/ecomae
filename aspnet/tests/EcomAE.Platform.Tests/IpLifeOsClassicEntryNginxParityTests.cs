@@ -72,6 +72,19 @@ public sealed class IpLifeOsClassicEntryNginxParityTests
         var text = Read("docs/migration/evidence/presentation/classic-entry-aspnet-primary.json");
         Assert.Contains("\"/en/\"", text, StringComparison.Ordinal);
         Assert.Contains("storefrontLangTreeAspNet", text, StringComparison.Ordinal);
+        Assert.Contains("\"guestBrowseShells\": false", text, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void ClassicEntryProbe_TreatsLoginWallAndPausedPhpReferenceAsPass()
+    {
+        var text = Read("scripts/cloudpanel_probe_classic_entry_aspnet_primary.sh");
+        Assert.Contains("guestBrowseShells=false", text, StringComparison.Ordinal);
+        Assert.Contains("login wall", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("guest must browse ASP.NET shell", text, StringComparison.Ordinal);
+        Assert.Contains("TemporarilyDeactivatePhpServing", text, StringComparison.Ordinal);
+        Assert.Contains("HTTP 503", text, StringComparison.Ordinal);
+        Assert.Contains("x-ecomae-industry-showcase", text, StringComparison.Ordinal);
     }
 
     private static string Read(string relative)

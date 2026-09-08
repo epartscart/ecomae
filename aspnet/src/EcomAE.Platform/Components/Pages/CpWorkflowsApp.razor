@@ -211,6 +211,38 @@
 
 </PhpCpDesktopChrome>
 
+<form method="post" action="/erp/automation/deactivate" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/erp/workflows-app" />
+            <label>Automation
+                <select name="id">
+                    <option value="order_to_erp">order_to_erp</option>
+                    <option value="period_close">period_close</option>
+                    <option value="year_end_close">year_end_close</option>
+                    <option value="bank_recon">bank_recon</option>
+                    <option value="collections_dunning">collections_dunning</option>
+                    <option value="report_scheduler">report_scheduler</option>
+                    <option value="vat_reminder">vat_reminder</option>
+                    <option value="gl_auto_post">gl_auto_post</option>
+                    <option value="payment_reminder">payment_reminder</option>
+                    <option value="depreciation_run">depreciation_run</option>
+                    <option value="po_approval">po_approval</option>
+                    <option value="invoice_autosend">invoice_autosend</option>
+                    <option value="low_stock_alert">low_stock_alert</option>
+                    <option value="employee_onboarding">employee_onboarding</option>
+                    <option value="daily_sales_summary">daily_sales_summary</option>
+                    <option value="aml_alert">aml_alert</option>
+                    <option value="process_flow_routing">process_flow_routing</option>
+                    <option value="three_way_match">three_way_match</option>
+                    <option value="subscription_billing">subscription_billing</option>
+                    <option value="rma_warranty">rma_warranty</option>
+                    <option value="credit_check">credit_check</option>
+                    <option value="goods_receipt_notify">goods_receipt_notify</option>
+                </select>
+            </label>
+            <button type="submit">Disable automation</button>
+        </form>
+
 @code {
     private bool _isAdmin;
     private bool _isErpHost;

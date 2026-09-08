@@ -334,11 +334,58 @@
                     <label>Case id <input type="number" name="id" min="1" required class="form-control input-sm" style="width:6rem" /></label>
                     <button type="submit" class="btn btn-sm btn-default">Cancel case</button>
                 </form>
-                <form method="post" action="/erp/ajax/pf-step-delete" class="form-inline" style="margin:0;">
+                <form method="post" action="/erp/ajax/pf-step-delete" class="form-inline" style="margin:0 0 .75rem;">
                     <input type="hidden" name="confirmWrites" value="true" />
                     <input type="hidden" name="returnUrl" value="/erp/process-flow-tasks-app" />
                     <label>Step id <input type="number" name="step_id" min="1" required class="form-control input-sm" style="width:6rem" /></label>
                     <button type="submit" class="btn btn-sm btn-default">Remove step</button>
+                </form>
+                <form method="post" action="/erp/process-flow/processes/save" class="form-inline" style="margin:0 0 .75rem;">
+                    <input type="hidden" name="confirmWrites" value="true" />
+                    <input type="hidden" name="returnUrl" value="/erp/process-flow-tasks-app" />
+                    <input type="hidden" name="id" value="0" />
+                    <label>Name <input type="text" name="name" required maxlength="160" class="form-control input-sm" style="width:12rem" /></label>
+                    <label>Category <input type="text" name="category" maxlength="64" placeholder="general" class="form-control input-sm" style="width:8rem" /></label>
+                    <label>Description <input type="text" name="description" class="form-control input-sm" style="width:14rem" /></label>
+                    <label>Active
+                        <select name="active" class="form-control input-sm">
+                            <option value="1" selected>active</option>
+                            <option value="0">inactive</option>
+                        </select>
+                    </label>
+                    <button type="submit" class="btn btn-sm btn-default">Save process</button>
+                </form>
+                <form method="post" action="/erp/process-flow/steps/save" class="form-inline" style="margin:0 0 .75rem;">
+                    <input type="hidden" name="confirmWrites" value="true" />
+                    <input type="hidden" name="returnUrl" value="/erp/process-flow-tasks-app" />
+                    <label>Process id <input type="number" name="process_id" min="1" required class="form-control input-sm" style="width:6rem" /></label>
+                    <label>Name <input type="text" name="name" required maxlength="160" class="form-control input-sm" style="width:10rem" /></label>
+                    <label>Assign
+                        <select name="assign_type" class="form-control input-sm">
+                            <option value="dept_head" selected>dept_head</option>
+                            <option value="user">user</option>
+                            <option value="department">department</option>
+                            <option value="initiator">initiator</option>
+                        </select>
+                    </label>
+                    <label>User id <input type="number" name="assign_user_id" min="0" value="0" class="form-control input-sm" style="width:5rem" /></label>
+                    <label>Department <input type="text" name="assign_department" maxlength="32" class="form-control input-sm" style="width:8rem" /></label>
+                    <label>SLA hours <input type="number" name="sla_hours" min="0" value="24" class="form-control input-sm" style="width:5rem" /></label>
+                    <button type="submit" class="btn btn-sm btn-default">Add step</button>
+                </form>
+                <form method="post" action="/erp/process-flow/dept-heads/save" class="form-inline" style="margin:0 0 .75rem;">
+                    <input type="hidden" name="confirmWrites" value="true" />
+                    <input type="hidden" name="returnUrl" value="/erp/process-flow-tasks-app" />
+                    <label>Department code <input type="text" name="department_code" required class="form-control input-sm" /></label>
+                    <label>Head user id <input type="number" name="head_user_id" min="1" required class="form-control input-sm" style="width:6rem" /></label>
+                    <button type="submit" class="btn btn-sm btn-default">Save department head</button>
+                </form>
+                <form method="post" action="/erp/process-flow/cases/reassign" class="form-inline" style="margin:0;">
+                    <input type="hidden" name="confirmWrites" value="true" />
+                    <input type="hidden" name="returnUrl" value="/erp/process-flow-tasks-app" />
+                    <label>Case id <input type="number" name="case_id" min="1" required class="form-control input-sm" style="width:6rem" /></label>
+                    <label>Assignee user id <input type="number" name="user_id" min="1" required class="form-control input-sm" style="width:6rem" /></label>
+                    <button type="submit" class="btn btn-sm btn-default">Reassign case</button>
                 </form>
             </div>
         </div>

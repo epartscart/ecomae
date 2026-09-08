@@ -3,32 +3,46 @@
 @using EcomAE.Platform.Presentation
 @inject IHttpContextAccessor Http
 
-<PageTitle>Parts expert · @_brand</PageTitle>
+<PageTitle>AI Parts Expert · @_brand</PageTitle>
 <PhpSurfaceHead Surface="storefront" IncludeStorefrontAnalytics="true" ApplyStorefrontIndustryAttrs="true" IncludePublicSeo="true" />
 <PhpChromeBodyClass Surface="storefront" />
 
 <StorefrontTenantChrome>
-    <section style="padding:2rem 0 3rem">
+    <section class="epc-ai-expert-page" style="padding:2rem 0 3rem">
         <div class="container" style="max-width:46rem">
             <p style="margin:0 0 .35rem;color:#64748b;font-size:.85rem"><a href="/">Home</a> · Parts expert</p>
-            <h1 style="margin:.1rem 0 .4rem">@_heading</h1>
-            <p style="color:#475569">@_lead</p>
+            <div class="epc-ai-expert-widget__head-main" style="display:flex;align-items:center;gap:10px;margin:0 0 .75rem">
+                <div class="epc-ai-expert-widget__avatar" style="width:2.2rem;height:2.2rem;border-radius:999px;background:#ff8c1a;color:#fff;display:flex;align-items:center;justify-content:center"><i class="fa fa-magic" aria-hidden="true"></i></div>
+                <div>
+                    <h1 class="epc-ai-expert-widget__title" id="epc-ai-expert-panel-title" style="margin:0;font-size:1.35rem">@_heading</h1>
+                    <p class="epc-ai-expert-widget__subtitle" style="margin:.2rem 0 0;color:#64748b">@_lead</p>
+                </div>
+            </div>
             @if (_autoParts)
             {
-            <form method="get" action="@StorefrontSurfaceLinks.PartSearch" style="margin:1rem 0;padding:1.1rem 1.2rem;background:#fff;border:1px solid #e2e8f0;border-radius:.55rem">
-                <label style="display:block;margin:0 0 .25rem">Part number</label>
-                <input type="text" name="article" required maxlength="64" placeholder="e.g. C110J, DT068" style="width:100%;max-width:22rem;padding:.5rem;margin-bottom:.75rem" />
-                <label style="display:block;margin:.25rem 0">Brand (optional)</label>
-                <input type="text" name="brand" maxlength="48" style="width:100%;max-width:22rem;padding:.5rem;margin-bottom:.85rem" />
-                <button type="submit" style="padding:.55rem .95rem;border:0;border-radius:.4rem;background:#dc2626;color:#fff;font-weight:800;cursor:pointer">Search</button>
-            </form>
-            <p>
-                <a href="@StorefrontSurfaceLinks.LaximoVin">VIN / Frame</a>
-                ·
-                <a href="@StorefrontSurfaceLinks.SellerRequest">Request to seller</a>
-                ·
-                <a href="@StorefrontSurfaceLinks.UcatsService">Service catalogs</a>
-            </p>
+                <form class="epc-ai-expert-widget__form panel panel-primary" id="epc-ai-expert-form" method="get" action="@StorefrontSurfaceLinks.PartSearch" autocomplete="off">
+                    <div class="panel-body">
+                        <label class="sr-only" for="epc-ai-expert-article">Part number</label>
+                        <input type="text" class="epc-ai-expert-widget__input form-control" id="epc-ai-expert-article" name="article"
+                               placeholder="Part number — e.g. C110J, DT068" maxlength="64" required style="margin:0 0 .75rem" />
+                        <label class="sr-only" for="epc-ai-expert-brand">Brand (optional)</label>
+                        <input type="text" class="epc-ai-expert-widget__input epc-ai-expert-widget__input--brand form-control" id="epc-ai-expert-brand" name="brand"
+                               placeholder="Brand (optional)" maxlength="48" style="margin:0 0 .85rem" />
+                        <button type="submit" class="epc-ai-expert-widget__submit btn btn-ar btn-primary" id="epc-ai-expert-submit">
+                            <i class="fa fa-search" aria-hidden="true"></i> Search
+                        </button>
+                        <p class="epc-ai-expert-widget__hint" id="epc-ai-expert-hint" style="margin:.85rem 0 0;color:#64748b;font-size:.85rem">
+                            Vehicle fitment · cross-references · UAE warehouse
+                        </p>
+                    </div>
+                </form>
+                <p style="margin:1rem 0 0">
+                    <a href="@StorefrontSurfaceLinks.LaximoVin">VIN / Frame</a>
+                    ·
+                    <a href="@StorefrontSurfaceLinks.SellerRequest">Request to seller</a>
+                    ·
+                    <a href="@StorefrontSurfaceLinks.UcatsService">Service catalogs</a>
+                </p>
             }
         </div>
     </section>
@@ -37,8 +51,8 @@
 @code {
     private string _brand = "eParts Cart";
     private bool _autoParts;
-    private string _heading = "Look up any part number";
-    private string _lead = "Article search, cross-references, and live warehouse stock.";
+    private string _heading = "AI Parts Expert";
+    private string _lead = "Part number · vehicle fitment · warehouse stock";
 
     protected override void OnInitialized()
     {

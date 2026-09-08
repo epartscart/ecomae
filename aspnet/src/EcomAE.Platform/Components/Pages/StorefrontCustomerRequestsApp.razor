@@ -27,89 +27,88 @@
             <p style="color:#475569">VIN and part requests you sent to the store. Replies stay on this inbox.</p>
             @if (!_isCustomer)
             {
-                <div style="padding:1.15rem 1.2rem;background:#fff;border:1px solid #e2e8f0;border-radius:.55rem">
-                    <p style="margin:0 0 .75rem">Sign in to see your seller requests.</p>
-                    <a class="btn btn-primary" href="@StorefrontSurfaceLinks.Login">Sign in</a>
+                <div class="panel panel-primary">
+                    <div class="panel-body">
+                        <p style="margin:0 0 .75rem">Sign in to see your seller requests.</p>
+                        <a class="btn btn-ar btn-primary" href="@StorefrontSurfaceLinks.Login">Sign in</a>
+                    </div>
                 </div>
             }
             else if (RequestId is > 0)
             {
-                <div style="background:#fff;border:1px solid #e2e8f0;border-radius:.55rem;padding:1.1rem 1.2rem">
-                    @if (_detail is null)
-                    {
-                        <p style="margin:0 0 .75rem;color:#475569">@(string.IsNullOrWhiteSpace(_detailMessage) ? "Request not found for this account." : _detailMessage)</p>
-                    }
-                    else
-                    {
-                        <p style="margin:0 0 .75rem;color:#475569">
-                            Request #@_detail.Id.ToString(CultureInfo.InvariantCulture)
-                            · @FormatTs(_detail.TimeUnix)
-                            · @(_detail.ViewedCustomer != 0 ? "Read" : "Unread")
-                        </p>
-                        @if (_messages.Count > 0)
+                <div class="hpanel">
+                    <div class="panel-body control-label">
+                        @if (_detail is null)
                         {
-                            <ul style="list-style:none;margin:0 0 1rem;padding:0">
-                                @foreach (var msg in _messages)
-                                {
-                                    <li style="margin:0 0 .45rem;padding:.55rem .7rem;background:#f8fafc;border:1px solid #e2e8f0;border-radius:.4rem">
-                                        <div style="font-size:.75rem;color:#64748b">@(msg.IsCustomer != 0 ? "You" : "Store") · @FormatTs(msg.TimeUnix)</div>
-                                        <div>@msg.Text</div>
-                                    </li>
-                                }
-                            </ul>
+                            <p style="margin:0 0 .75rem;color:#475569">@(string.IsNullOrWhiteSpace(_detailMessage) ? "Request not found for this account." : _detailMessage)</p>
                         }
-                    }
-                    @if (!string.IsNullOrWhiteSpace(_flashOk))
-                    {
-                        <p style="margin:0 0 .75rem;padding:.65rem .8rem;background:#ecfdf3;border:1px solid #86efac;color:#166534">@_flashOk</p>
-                    }
-                    @if (!string.IsNullOrWhiteSpace(_flashErr))
-                    {
-                        <p style="margin:0 0 .75rem;padding:.65rem .8rem;background:#fef2f2;border:1px solid #fecaca;color:#991b1b">@_flashErr</p>
-                    }
-                    <form method="post" action="@PhpSellerRequest.MessageWriteHref">
-                        <input type="hidden" name="confirmWrites" value="true" />
-                        <input type="hidden" name="vin_id" value="@RequestId" />
-                        <label for="new_message_area">Message</label>
-                        <textarea id="new_message_area" name="text" rows="4" required style="width:100%;margin:.25rem 0 1rem;padding:.5rem"></textarea>
-                        <button type="submit" style="padding:.65rem 1rem;border:0;border-radius:.45rem;background:#0f766e;color:#fff;font-weight:800;cursor:pointer">Send message</button>
-                    </form>
-                    <p style="margin:1rem 0 0"><a href="@StorefrontSurfaceLinks.CustomerRequests">Back to my requests</a></p>
+                        else
+                        {
+                            <p class="lead">Request #@_detail.Id.ToString(CultureInfo.InvariantCulture) · @FormatTs(_detail.TimeUnix) · @(_detail.ViewedCustomer != 0 ? "Read" : "Unread")</p>
+                            <div class="chat_block" id="chat_block" style="height: auto; max-height:600px;">
+                                @if (_messages.Count == 0)
+                                {
+                                    <div align="center">No messages yet.</div>
+                                }
+                                else
+                                {
+                                    @foreach (var msg in _messages)
+                                    {
+                                        <div class="@(msg.IsCustomer != 0 ? "bubble" : "bubble2")">
+                                            @(msg.IsCustomer != 0 ? "You" : "Store") @FormatTs(msg.TimeUnix)<br />@msg.Text
+                                        </div>
+                                    }
+                                }
+                            </div>
+                        }
+                        @if (!string.IsNullOrWhiteSpace(_flashOk))
+                        {
+                            <p style="margin:0 0 .75rem;padding:.65rem .8rem;background:#ecfdf3;border:1px solid #86efac;color:#166534">@_flashOk</p>
+                        }
+                        @if (!string.IsNullOrWhiteSpace(_flashErr))
+                        {
+                            <p style="margin:0 0 .75rem;padding:.65rem .8rem;background:#fef2f2;border:1px solid #fecaca;color:#991b1b">@_flashErr</p>
+                        }
+                        <form method="post" action="@PhpSellerRequest.MessageWriteHref">
+                            <input type="hidden" name="confirmWrites" value="true" />
+                            <input type="hidden" name="vin_id" value="@RequestId" />
+                            <label for="new_message_area">Message</label>
+                            <textarea class="form-control" id="new_message_area" name="text" rows="4" required></textarea>
+                            <button type="submit" class="btn btn-ar btn-primary" style="margin-top:10px;">Send message</button>
+                        </form>
+                        <p style="margin:1rem 0 0"><a href="@StorefrontSurfaceLinks.CustomerRequests">Back to my requests</a></p>
+                    </div>
                 </div>
             }
             else
             {
-                <div style="background:#fff;border:1px solid #e2e8f0;border-radius:.55rem;padding:1.1rem 1.2rem">
+                <div class="box_btn_filter" style="margin:20px 0px 15px;">
+                    <a class="btn btn-ar btn-primary" href="@StorefrontSurfaceLinks.SellerRequest">Send a request to seller</a>
+                </div>
+                <table cellpadding="1" cellspacing="1" class="table">
+                    <tr>
+                        <th>ID</th>
+                        <th>When</th>
+                        <th></th>
+                    </tr>
                     @if (_requests.Count == 0)
                     {
-                        <p style="margin:0 0 .85rem;color:#475569">@(string.IsNullOrWhiteSpace(_listMessage) ? "No seller requests yet." : _listMessage)</p>
+                        <tr>
+                            <td colspan="3">@(string.IsNullOrWhiteSpace(_listMessage) ? "No seller requests yet." : _listMessage)</td>
+                        </tr>
                     }
                     else
                     {
-                        <table style="width:100%;border-collapse:collapse;font-size:.86rem;margin-bottom:1rem">
-                            <thead>
-                                <tr>
-                                    <th style="text-align:left;padding:.4rem .45rem">ID</th>
-                                    <th style="text-align:left;padding:.4rem .45rem">When</th>
-                                    <th style="text-align:left;padding:.4rem .45rem"></th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach (var row in _requests)
-                                {
-                                    <tr>
-                                        <td style="padding:.4rem .45rem"><a href="@StorefrontSurfaceLinks.ForCustomerRequest((int)row.Id)">#@row.Id.ToString(CultureInfo.InvariantCulture)</a></td>
-                                        <td style="padding:.4rem .45rem">@FormatTs(row.TimeUnix)</td>
-                                        <td style="padding:.4rem .45rem">@(row.ViewedCustomer != 0 ? "Read" : "Unread")</td>
-                                    </tr>
-                                }
-                            </tbody>
-                        </table>
+                        @foreach (var row in _requests)
+                        {
+                            <tr>
+                                <td><a href="@StorefrontSurfaceLinks.ForCustomerRequest((int)row.Id)">#@row.Id.ToString(CultureInfo.InvariantCulture)</a></td>
+                                <td>@FormatTs(row.TimeUnix)</td>
+                                <td>@(row.ViewedCustomer != 0 ? "Read" : "Unread")</td>
+                            </tr>
+                        }
                     }
-                    <p style="margin:0">
-                        <a class="btn btn-primary" href="@StorefrontSurfaceLinks.SellerRequest">Send a request to seller</a>
-                    </p>
-                </div>
+                </table>
             }
         </div>
     </section>

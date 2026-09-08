@@ -8,59 +8,66 @@
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
-@inject NavigationManager Nav
 
 <PageTitle>Integrations · Control Panel · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="cp" />
 <HeadContent>
 <style>
-        .epc-int-hero {
-            margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
-            background:linear-gradient(135deg,#0c4a6e 0%,#2563eb 45%,#0ea5e9 100%);
-        }
-        .epc-int-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
-        .epc-int-hero p { margin:0; color:rgba(255,255,255,.85); max-width:44rem; font-size:.92rem; line-height:1.45; }
-        .epc-int-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
-        .epc-int-cta a {
-            display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
-            text-decoration:none; color:#0c4a6e; background:#e0f2fe;
-        }
-        .epc-int-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); color:#fff; }
-        .epc-int-kpis { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
-        .epc-int-kpi { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; padding:.85rem .9rem; }
-        .epc-int-kpi strong { display:block; font-size:1.2rem; word-break:break-word; }
-        .epc-int-kpi span { color:#64748b; font-size:.78rem; }
-        .epc-int-table-wrap { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; overflow:auto; }
-        .epc-int-table { width:100%; border-collapse:collapse; font-size:.86rem; }
-        .epc-int-table th, .epc-int-table td { padding:.55rem .7rem; border-bottom:1px solid #f1f5f9; text-align:left; white-space:nowrap; }
-        .epc-int-table th { background:#f8fafc; color:#475569; font-size:.75rem; text-transform:uppercase; letter-spacing:.03em; }
-        @@media (max-width:900px){ .epc-int-kpis{grid-template-columns:1fr 1fr;} }
-    
+    .epc-inthub-brand { display:flex; flex-wrap:wrap; justify-content:space-between; gap:16px; padding:20px 22px; margin:0 0 16px; border-radius:14px; color:#f8fafc; background:linear-gradient(135deg,#0f172a 0%,#134e4a 55%,#0f766e 100%); }
+    .epc-inthub-brand h2 { margin:0 0 6px; font-size:1.35rem; }
+    .epc-inthub-brand p { margin:0; max-width:46rem; font-size:13px; line-height:1.45; opacity:.92; }
+    .epc-inthub-brand__mark { font-size:12px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; opacity:.85; margin-bottom:4px; }
+    .epc-inthub-brand__actions { display:flex; flex-wrap:wrap; gap:8px; align-items:flex-start; }
+    .epc-inthub-stats { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; margin:0 0 16px; }
+    @@media (max-width:900px){ .epc-inthub-stats{grid-template-columns:1fr 1fr;} }
+    .epc-inthub-stat { background:#fff; border:1px solid #e2e8f0; border-radius:12px; padding:12px 14px; }
+    .epc-inthub-stat__val { font-size:1.25rem; font-weight:700; }
+    .epc-inthub-stat__lbl { font-size:12px; color:#64748b; }
 </style>
 </HeadContent>
 
-
 <PhpCpDesktopChrome IsAdmin="_isAdmin">
 
-    <section class="epc-int-hero">
-        <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
-        <h1>Integrations</h1>
-        <p>Payments, couriers, Amazon and marketplace channels, messaging, and data connectors — one hub for every partner rail.</p>
-        <div class="epc-int-cta">
-            <a href="@_hubHref">Open hub</a>
-            <a class="ghost" href="@_guideHref">Guides</a>
+    <div class="col-lg-12" id="epc-inthub-root">
+        <div class="epc-inthub-brand">
+            <div>
+                <div class="epc-inthub-brand__mark">EPartsCart · Tenant CP</div>
+                <h2>Integrations Hub</h2>
+                <p>Enable, configure, and test every connected module from one place. Each row links to settings. Raise / subscribe / data-entity writes stay here.</p>
+            </div>
+            <div class="epc-inthub-brand__actions">
+                <a class="btn btn-sm btn-primary" href="@_guideHref">Full guide</a>
+                <a class="btn btn-sm btn-default" href="/cp/tenant-email-app">Email / SMTP</a>
+                <a class="btn btn-sm btn-default" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpHub)">Classic twin</a>
+            </div>
         </div>
-    </section>
 
-    <div class="epc-int-kpis" aria-label="Integrations stats">
-        <div class="epc-int-kpi"><strong>@_summary.CatalogCount.ToString(CultureInfo.InvariantCulture)</strong><span>Integrations</span></div>
-        <div class="epc-int-kpi"><strong>@_summary.ActiveCount.ToString(CultureInfo.InvariantCulture)</strong><span>Active</span></div>
-        <div class="epc-int-kpi"><strong>@_summary.CategoryCount.ToString(CultureInfo.InvariantCulture)</strong><span>Categories</span></div>
-        <div class="epc-int-kpi"><strong>@_summary.GuideCount.ToString(CultureInfo.InvariantCulture)</strong><span>Guides</span></div>
+        <div class="epc-inthub-stats">
+            <div class="epc-inthub-stat">
+                <div class="epc-inthub-stat__val">@_summary.ActiveCount.ToString(CultureInfo.InvariantCulture)</div>
+                <div class="epc-inthub-stat__lbl">Active</div>
+            </div>
+            <div class="epc-inthub-stat">
+                <div class="epc-inthub-stat__val">@_summary.CatalogCount.ToString(CultureInfo.InvariantCulture)</div>
+                <div class="epc-inthub-stat__lbl">In catalog</div>
+            </div>
+            <div class="epc-inthub-stat">
+                <div class="epc-inthub-stat__val">@_summary.GuideCount.ToString(CultureInfo.InvariantCulture)</div>
+                <div class="epc-inthub-stat__lbl">Guides</div>
+            </div>
+            <div class="epc-inthub-stat">
+                <div class="epc-inthub-stat__val">@_summary.CategoryCount.ToString(CultureInfo.InvariantCulture)</div>
+                <div class="epc-inthub-stat__lbl">Categories</div>
+            </div>
+        </div>
     </div>
 
-    <div class="epc-int-table-wrap">
-        <table class="epc-int-table">
+    <div class="col-lg-12">
+        <div class="hpanel">
+            <div class="panel-heading hbuilt">Integration catalog</div>
+            <div class="panel-body">
+                <div class="table-responsive">
+                    <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped">
             <thead>
                 <tr>
                     <th>Integration</th>
@@ -99,12 +106,81 @@
                 }
             </tbody>
         </table>
+                </div>
+            </div>
+        </div>
     </div>
 </PhpCpDesktopChrome>
+
+<form method="post" action="/erp/integrations/events/raise" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/integrations-app" />
+            <strong style="width:100%;font-size:.85rem">Raise test event</strong>
+            <label>Event
+                <select name="event">
+                    <option value="SalesOrderConfirmed">SalesOrderConfirmed</option>
+                    <option value="SalesOrderInvoiced">SalesOrderInvoiced</option>
+                    <option value="PurchaseOrderConfirmed">PurchaseOrderConfirmed</option>
+                    <option value="PaymentPosted">PaymentPosted</option>
+                    <option value="InventoryLowStock">InventoryLowStock</option>
+                    <option value="CustomerCreditHold">CustomerCreditHold</option>
+                    <option value="DocumentExpiring">DocumentExpiring</option>
+                    <option value="InsuranceRenewalDue">InsuranceRenewalDue</option>
+                </select>
+            </label>
+            <label>Payload <input type="text" name="payload" placeholder='{"order_id":1}' style="width:14rem" /></label>
+            <label>Company id <input type="number" name="company_id" min="0" value="0" style="width:5rem" /></label>
+            <button type="submit" class="btn btn-sm btn-warning">Raise</button>
+        </form>
+
+<form method="post" action="/erp/integrations/subscriptions/save" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/integrations-app" />
+            <label>Event
+                <select name="event">
+                    <option value="SalesOrderConfirmed">SalesOrderConfirmed</option>
+                    <option value="SalesOrderInvoiced">SalesOrderInvoiced</option>
+                    <option value="PurchaseOrderConfirmed">PurchaseOrderConfirmed</option>
+                    <option value="PaymentPosted">PaymentPosted</option>
+                    <option value="InventoryLowStock">InventoryLowStock</option>
+                    <option value="CustomerCreditHold">CustomerCreditHold</option>
+                    <option value="DocumentExpiring">DocumentExpiring</option>
+                    <option value="InsuranceRenewalDue">InsuranceRenewalDue</option>
+                </select>
+            </label>
+            <label>Target type
+                <select name="target_type">
+                    <option value="webhook">webhook</option>
+                    <option value="internal">internal</option>
+                    <option value="email">email</option>
+                </select>
+            </label>
+            <label>Target <input type="text" name="target" maxlength="255" placeholder="URL / email" style="width:14rem" /></label>
+            <label>Company id <input type="number" name="company_id" min="0" value="0" style="width:5rem" /></label>
+            <button type="submit" class="btn btn-sm btn-primary">Subscribe</button>
+        </form>
+
+<form method="post" action="/erp/integrations/entities/save" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="@_returnUrl" />
+            <label>Name <input type="text" name="name" required maxlength="80" style="width:10rem" /></label>
+            <label>Source table <input type="text" name="source_table" maxlength="120" style="width:12rem" /></label>
+            <label>Key field <input type="text" name="key_field" maxlength="80" placeholder="id" style="width:7rem" /></label>
+            <label>Fields <input type="text" name="fields" placeholder="id,name" style="width:14rem" /></label>
+            <label>Enabled
+                <select name="enabled">
+                    <option value="1" selected>enabled</option>
+                    <option value="0">disabled</option>
+                </select>
+            </label>
+            <label>Company id <input type="number" name="company_id" min="0" value="0" style="width:5rem" /></label>
+            <button type="submit" class="btn btn-sm btn-primary">Save data entity</button>
+        </form>
 
 @code {
     private const string _hubHref = "/cp/integrations-app";
     private const string _guideHref = "/cp/ops-guides-app";
+    private const string _phpHub = "/CP/control/portal/epc_integrations_hub";
     private bool _isAdmin;
     private CpIntegrationsSummary _summary = new(0, 0, 0, 0, "n/a", "");
     private IReadOnlyList<CpIntegrationDigest> _integrations = [];
@@ -125,4 +201,5 @@
         _summary = result.Summary;
         _integrations = result.Integrations;
     }
+    private string _returnUrl => "/cp/integrations-app";
 }

@@ -2,6 +2,7 @@
 @page "/cp"
 @page "/cp/control"
 @layout Layout.PhpChromeLayout
+@using System.Globalization
 @using EcomAE.Platform.Auth
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
@@ -28,7 +29,7 @@ else
                 <div class="epc-cp-dash-brand" style="margin:0 0 10px">
                     <PhpEpartsCartAnimatedLogo Variant="dash" />
                 </div>
-                <div class="cp-dash-kicker"><i class="fa fa-cogs"></i> Control Command Centre</div>
+                <div class="cp-dash-kicker"><i class="fa @_industryIcon"></i> Control Command Centre</div>
                 <h2 class="cp-dash-title">@_brandLabel</h2>
                 <p class="cp-dash-sub">
                     Live commerce pulse — orders, catalogue, prices, warehouses, and finance in one red-black command view.
@@ -45,22 +46,22 @@ else
                 <a class="cp-dash-metric" href="/cp/orders">
                     <div class="cp-dash-metric__label">Orders today</div>
                     <div class="cp-dash-metric__val">@_ordersToday.ToString("N0")</div>
-                    <div class="cp-dash-metric__hint">@(_isAdmin ? "New successfully created orders" : "Sign in for live KPIs")</div>
+                    <div class="cp-dash-metric__hint">New successfully created orders</div>
                 </a>
                 <a class="cp-dash-metric" href="/cp/orders">
                     <div class="cp-dash-metric__label">Open orders</div>
                     <div class="cp-dash-metric__val cp-dash-metric__val--warn">@_openOrders.ToString("N0")</div>
                     <div class="cp-dash-metric__hint">Need fulfilment</div>
                 </a>
-                <a class="cp-dash-metric cp-dash-metric--accent" href="/cp/product-catalogue-app">
+                <a class="cp-dash-metric cp-dash-metric--accent" href="/cp/price-lists-app">
                     <div class="cp-dash-metric__label">Products</div>
                     <div class="cp-dash-metric__val">@_products.ToString("N0")</div>
-                    <div class="cp-dash-metric__hint">Catalogue / warehouse SKUs</div>
+                    <div class="cp-dash-metric__hint">All warehouse SKUs (S-UAE, R-UAE, …)</div>
                 </a>
                 <a class="cp-dash-metric cp-dash-metric--accent" href="/cp/price-lists-app">
                     <div class="cp-dash-metric__label">Warehouse qty</div>
                     <div class="cp-dash-metric__val">@_warehouseQty.ToString("N0")</div>
-                    <div class="cp-dash-metric__hint">Supplier price-list rows</div>
+                    <div class="cp-dash-metric__hint">Supplier warehouse stock (all price lists)</div>
                 </a>
                 <a class="cp-dash-metric" href="/cp/storages-app">
                     <div class="cp-dash-metric__label">Vendors</div>
@@ -78,14 +79,43 @@ else
         <div class="cp-dash-port">
             <div class="bd" style="padding-top:14px">
                 <h4 style="margin:0 0 12px;"><i class="fa fa-th-large"></i> Quick actions</h4>
-                <div class="cp-dash-tiles">
-                    @foreach (var tile in _tiles)
+                <div class="cp-dash-tiles" data-epc-shortcuts="cp">
+                    @foreach (var tile in ShortcutTiles)
                     {
-                        <a class="cp-dash-tile cp-dash-tile--@tile.Tone" href="@tile.Href">
+                        <a class="cp-dash-tile cp-dash-tile--@tile.Tone" href="@tile.Href" data-shortcut-key="@tile.Key">
                             <i class="fa @tile.Icon ic" aria-hidden="true"></i>
                             <span class="tl">@tile.Label</span>
                         </a>
                     }
+                </div>
+            </div>
+        </div>
+
+        <div class="cp-dash-port cp-dash-port--insights">
+            <div class="bd" style="padding:12px">
+                <div class="epc-insights epc-insights--cp">
+                    <div class="epc-insights__head">
+                        <strong>Control insights</strong>
+                        <span class="epc-insights__period">Last 7 days</span>
+                    </div>
+                    <div class="epc-insights__tiles">
+                        <article class="epc-insights__tile">
+                            <span class="epc-insights__label">Orders (7 days)</span>
+                            <div class="epc-insights__value">@_ordersWeek.ToString("N0")</div>
+                        </article>
+                        <article class="epc-insights__tile">
+                            <span class="epc-insights__label">VIN / parts requests</span>
+                            <div class="epc-insights__value">@_vinOpen.ToString("N0")</div>
+                        </article>
+                        <article class="epc-insights__tile">
+                            <span class="epc-insights__label">Open returns</span>
+                            <div class="epc-insights__value">@_returnsOpen.ToString("N0")</div>
+                        </article>
+                        <article class="epc-insights__tile">
+                            <span class="epc-insights__label">Published products</span>
+                            <div class="epc-insights__value">@_products.ToString("N0")</div>
+                        </article>
+                    </div>
                 </div>
             </div>
         </div>
@@ -97,9 +127,17 @@ else
                     <div class="bd">
                         <ul class="cp-dash-rem">
                             <li><span class="cnt@(_openOrders == 0 ? " zero" : "")">@_openOrders</span> <a href="/cp/orders">Open orders needing fulfilment</a></li>
-                            <li><span class="cnt@(_pendingShip == 0 ? " zero" : "")">@_pendingShip</span> <a href="/cp/orders">Pending ship</a></li>
-                            <li><span class="cnt@(_clients == 0 ? " zero" : "")">@_clients</span> <a href="/cp/users-app">Storefront clients</a></li>
+                            <li><span class="cnt@(_ordersToday == 0 ? " zero" : "")">@_ordersToday</span> <a href="/cp/orders">Orders created today</a></li>
+                            <li><span class="cnt@(_vinOpen == 0 ? " zero" : "")">@_vinOpen</span> <a href="/cp/quote-requests-app">Unread VIN / parts requests</a></li>
+                            <li><span class="cnt@(_returnsOpen == 0 ? " zero" : "")">@_returnsOpen</span> <a href="/cp/returns-rma-app">Open returns</a></li>
                         </ul>
+                    </div>
+                </div>
+                <div class="cp-dash-port">
+                    <h4><i class="fa fa-pencil"></i> Customize shortcuts</h4>
+                    <div class="bd" style="font-size:13px;color:#475569;line-height:1.5">
+                        Use <strong>Edit shortcuts</strong> on the Classic twin — same graphical builder as ERP.
+                        Default auto-parts tiles: orders, prices, multivendor, crosses, procurement, POS, ERP, stock.
                     </div>
                 </div>
             </div>
@@ -110,67 +148,195 @@ else
                         <table class="cp-dash-kpi-tbl">
                             <thead><tr><th>Indicator</th><th>Current</th><th>Previous</th><th>Change</th></tr></thead>
                             <tbody>
+                                <tr>
+                                    <td>Orders (7 days)</td>
+                                    <td>@_ordersWeek.ToString("N0")</td>
+                                    <td>@(_ordersPrevWeek > 0 ? _ordersPrevWeek.ToString("N0") : "—")</td>
+                                    <td>@((MarkupString)ChangeHtml(_ordersWeek, _ordersPrevWeek, true))</td>
+                                </tr>
                                 <tr><td>Orders today</td><td>@_ordersToday.ToString("N0")</td><td>—</td><td><span class="cp-dash-chg flat">—</span></td></tr>
                                 <tr><td>Open orders</td><td>@_openOrders.ToString("N0")</td><td>—</td><td><span class="cp-dash-chg flat">—</span></td></tr>
-                                <tr><td>Products (catalogue SKUs)</td><td>@_products.ToString("N0")</td><td>—</td><td><span class="cp-dash-chg flat">—</span></td></tr>
-                                <tr><td>Warehouse qty (price rows)</td><td>@_warehouseQty.ToString("N0")</td><td>—</td><td><span class="cp-dash-chg flat">—</span></td></tr>
+                                <tr><td>Products (all warehouse SKUs)</td><td>@_products.ToString("N0")</td><td>—</td><td><span class="cp-dash-chg flat">—</span></td></tr>
+                                <tr><td>Warehouse qty (suppliers)</td><td>@_warehouseQty.ToString("N0")</td><td>—</td><td><span class="cp-dash-chg flat">—</span></td></tr>
                                 <tr><td>Vendors</td><td>@_vendors.ToString("N0")</td><td>—</td><td><span class="cp-dash-chg flat">—</span></td></tr>
                                 <tr><td>Clients</td><td>@_clients.ToString("N0")</td><td>—</td><td><span class="cp-dash-chg flat">—</span></td></tr>
                             </tbody>
                         </table>
                     </div>
                 </div>
+                <div class="cp-dash-port">
+                    <h4><i class="fa fa-money"></i> Finance pulse (MTD)</h4>
+                    <div class="bd">
+                        <div class="cp-dash-fin">
+                            <div class="cell"><div class="l">Sales ex VAT</div><div class="v">@_salesExVat.ToString("N2", CultureInfo.InvariantCulture) AED</div></div>
+                            <div class="cell"><div class="l">Cash &amp; bank</div><div class="v">@_cashBank.ToString("N2", CultureInfo.InvariantCulture) AED</div></div>
+                            <div class="cell"><div class="l">Receivables</div><div class="v">@_receivables.ToString("N2", CultureInfo.InvariantCulture) AED</div></div>
+                            <div class="cell"><div class="l">Payables</div><div class="v">@_payables.ToString("N2", CultureInfo.InvariantCulture) AED</div></div>
+                        </div>
+                    </div>
+                </div>
             </div>
             <div class="cp-dash-col-right">
                 <div class="cp-dash-port">
+                    <h4><i class="fa fa-area-chart"></i> Orders — last 7 days</h4>
+                    <div class="bd">
+                        <div class="cp-dash-chart-wrap">
+                            <canvas id="cpDashOrdersChart" aria-label="Orders last 7 days"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="cp-dash-port">
                     <h4><i class="fa fa-rocket"></i> Today’s focus</h4>
-                    <div class="bd" style="font-size:13px;color:#475569;line-height:1.5">
-                        @if (!_isAdmin)
-                        {
-                            <p style="margin:0 0 .6rem;">Guest preview of the Command Centre layout.
-                            <a href="/cp/login">Sign in</a> for live KPIs.</p>
-                        }
-                        else
-                        {
-                            <p style="margin:0 0 .6rem;">Signed in — open Orders OMS or ERP for today’s fulfilment work.</p>
-                        }
-                        <a href="/cp/orders" style="font-weight:700;color:#b91c1c;">Open Orders / OMS →</a>
+                    <div class="bd">
+                        <div class="cp-dash-fin">
+                            <div class="cell"><div class="l">Week orders</div><div class="v">@_ordersWeek</div></div>
+                            <div class="cell"><div class="l">Open work</div><div class="v" style="color:#dc2626">@_openOrders</div></div>
+                            <div class="cell"><div class="l">VIN / requests</div><div class="v">@_vinOpen</div></div>
+                            <div class="cell"><div class="l">Returns</div><div class="v">@_returnsOpen</div></div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
+
+        <details class="cp-dash-more">
+            <summary>
+                <span><i class="fa fa-ellipsis-h"></i> More tools</span>
+                <span class="hint">POS, documents, pricing AI, accessories…</span>
+            </summary>
+            <div class="bd">
+                <div class="cp-dash-qa-grid">
+                    @foreach (var link in MoreTools)
+                    {
+                        <a class="cp-dash-qa" href="@link.Href">
+                            <span class="qa-ic qa-ic--@link.Tone"><i class="fa @link.Icon"></i></span>
+                            <span class="qa-lb">@link.Label</span>
+                        </a>
+                    }
+                </div>
+            </div>
+        </details>
+
+        <p class="cp-dash-help">
+            Tip: use the top menu to jump across modules. Open the full
+            <a href="/erp">ERP Command Centre</a>
+            for finance depth, or share the
+            <a href="/brochure/cp" target="_blank" rel="noopener">CP brochure</a>.
+        </p>
     </div>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" defer></script>
+    <script>
+    (function () {
+        function boot() {
+            var canvas = document.getElementById('cpDashOrdersChart');
+            if (!canvas || typeof Chart === 'undefined') { return; }
+            var labels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+            var data = [@_chartDays[0], @_chartDays[1], @_chartDays[2], @_chartDays[3], @_chartDays[4], @_chartDays[5], @_chartDays[6]];
+            new Chart(canvas, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Orders',
+                        data: data,
+                        backgroundColor: 'rgba(220, 38, 38, 0.75)',
+                        borderColor: '#0a0a0a',
+                        borderWidth: 1,
+                        borderRadius: 4,
+                        maxBarThickness: 28
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { grid: { display: false } },
+                        y: { beginAtZero: true, ticks: { precision: 0 } }
+                    }
+                }
+            });
+        }
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', function () { setTimeout(boot, 60); });
+        } else {
+            setTimeout(boot, 60);
+        }
+        window.addEventListener('load', boot);
+    })();
+    </script>
 }
 </PhpCpDesktopChrome>
 
 @code {
     private int _ordersToday;
     private int _openOrders;
-    private int _pendingShip;
+    private int _ordersWeek;
+    private int _ordersPrevWeek;
     private int _products;
     private int _warehouseQty;
     private int _vendors;
     private int _clients;
+    private int _vinOpen;
+    private int _returnsOpen;
+    private decimal _salesExVat;
+    private decimal _cashBank;
+    private decimal _receivables;
+    private decimal _payables;
+    private readonly int[] _chartDays = new int[7];
     private bool _isAdmin;
     private bool _isSuperHost;
     private string _pageTitle = "Control Command Centre";
     private string _brandLabel = "eParts Cart";
     private string _industryLabel = "Auto parts";
+    private string _industryCode = "auto_parts";
+    private string _industryIcon = "fa-car";
 
-    private static readonly DashTile[] _tiles =
+    // PHP epc_tenant_cp_dashboard.php auto_parts shortcut defaults.
+    private static readonly DashTile[] AutoPartsShortcuts =
     [
-        new("Orders (OMS)", "fa-shopping-cart", "/cp/orders", "red"),
-        new("Catalogue", "fa-th-large", "/cp/product-catalogue-app", "black"),
-        new("Prices", "fa-tags", "/cp/price-lists-app", "crimson"),
-        new("Clients", "fa-address-book", "/cp/users-app", "stone"),
-        new("Warehouses", "fa-building", "/cp/storages-app", "black"),
-        new("ERP finance", "fa-university", "/erp", "red"),
-        new("Documents", "fa-file-text-o", "/cp/document-control-app", "stone"),
-        // Tenant Command Centre must not deep-link Super CP portal fleet inventory.
-        new("Settings", "fa-cog", "/cp/config-items-app", "crimson"),
+        new("orders", "Orders (OMS)", "fa-shopping-cart", "/cp/orders", "red"),
+        new("prices", "Prices", "fa-tags", "/cp/price-lists-app", "crimson"),
+        new("multivendor", "Multivendor", "fa-handshake-o", "/cp/prices-upload-app", "black"),
+        new("crosses", "Crosses", "fa-exchange", "/cp/crosses-app", "stone"),
+        new("procurement", "Procurement", "fa-shopping-basket", "/cp/purchase-requests-app", "black"),
+        new("pos", "POS", "fa-desktop", "/cp/pos-overview-app", "crimson"),
+        new("erp", "ERP finance", "fa-university", "/erp", "red"),
+        new("stock", "Stock", "fa-cubes", "/cp/storages-app", "black"),
     ];
 
-    private sealed record DashTile(string Label, string Icon, string Href, string Tone);
+    private static readonly DashTile[] DefaultShortcuts =
+    [
+        new("orders", "Orders (OMS)", "fa-shopping-cart", "/cp/orders", "red"),
+        new("catalogue", "Catalogue", "fa-th-large", "/cp/product-catalogue-app", "black"),
+        new("sku_media", "SKU photos & specs", "fa-picture-o", "/cp/product-catalogue-app", "stone"),
+        new("prices", "Prices", "fa-tags", "/cp/price-lists-app", "crimson"),
+        new("clients", "Clients", "fa-address-book", "/cp/users-app", "stone"),
+        new("warehouses", "Warehouses", "fa-building", "/cp/storages-app", "black"),
+        new("erp", "ERP finance", "fa-university", "/erp", "red"),
+        new("documents", "Documents", "fa-file-text-o", "/cp/document-control-app", "stone"),
+        // Tenant Command Centre must not deep-link Super CP portal fleet inventory.
+        new("settings", "Settings", "fa-cog", "/cp/config-items-app", "crimson"),
+    ];
+
+    private static readonly DashTile[] MoreTools =
+    [
+        new("brochure", "CP brochure", "fa-book", "/brochure/cp", "black"),
+        new("auto_price", "Auto Price AI", "fa-line-chart", "/cp/auto-price-app", "red"),
+        new("accessories", "Accessories", "fa-puzzle-piece", "/cp/accessories-app", "stone"),
+        new("visual", "Visual editor", "fa-magic", "/cp/page-builder-app", "black"),
+        new("tax", "Tax Toolkit", "fa-balance-scale", "/cp/uae-tax-compliance-app", "red"),
+        new("social", "Social media", "fa-share-alt", "/cp/social-hub-app", "stone"),
+        new("sku_media", "SKU photos & specs", "fa-picture-o", "/cp/product-catalogue-app", "stone"),
+        new("settings", "Settings", "fa-cog", "/cp/config-items-app", "crimson"),
+    ];
+
+    private IReadOnlyList<DashTile> ShortcutTiles =>
+        string.Equals(_industryCode, "auto_parts", StringComparison.OrdinalIgnoreCase)
+            ? AutoPartsShortcuts
+            : DefaultShortcuts;
+
+    private sealed record DashTile(string Key, string Label, string Icon, string Href, string Tone);
 
     protected override async Task OnInitializedAsync()
     {
@@ -193,6 +359,10 @@ else
             var erpHost = ErpHostContext.Resolve(host);
             _brandLabel = erpHost.BrandLabel;
             _industryLabel = erpHost.IndustryLabel;
+            _industryCode = string.IsNullOrWhiteSpace(erpHost.IndustryCode) ? "auto_parts" : erpHost.IndustryCode;
+            _industryIcon = string.Equals(_industryCode, "auto_parts", StringComparison.OrdinalIgnoreCase)
+                ? "fa-car"
+                : "fa-cogs";
             _pageTitle = $"Control Command Centre · {_brandLabel}";
         }
 
@@ -211,7 +381,6 @@ else
         var orders = await Dashboards.ListCpOrdersAsync(1, ctx.RequestAborted);
         _ordersToday = orders.Summary.Today;
         _openOrders = orders.Summary.Open;
-        _pendingShip = orders.Summary.PendingShip;
 
         var catalogue = await Dashboards.BuildCpProductCatalogueDigestAsync(1, ctx.RequestAborted);
         _products = catalogue.Summary.ProductCount;
@@ -229,5 +398,49 @@ else
         // PHP clients ≈ storefront users table count (same source as CP dashboard summary Users).
         var cpSummary = await Dashboards.BuildControlPanelAsync(ctx.RequestAborted);
         _clients = cpSummary.Users;
+
+        // PHP epc_insights_suite_commerce_stats + epc_erp_dashboard finance pulse.
+        try
+        {
+            var home = await Dashboards.BuildErpWorkspaceHomeAsync(ctx.RequestAborted);
+            var commerce = home.Commerce;
+            if (commerce is not null)
+            {
+                if (commerce.OrdersToday > 0) _ordersToday = commerce.OrdersToday;
+                if (commerce.OpenOrders > 0) _openOrders = commerce.OpenOrders;
+                _ordersWeek = commerce.OrdersWeek;
+                _ordersPrevWeek = commerce.OrdersPrevWeek;
+                _vinOpen = commerce.VinOpen;
+                _returnsOpen = commerce.ReturnsOpen;
+                if (commerce.Products > 0) _products = commerce.Products;
+                if (commerce.Clients > 0) _clients = commerce.Clients;
+                if (commerce.Warehouses > 0) _vendors = commerce.Warehouses;
+            }
+
+            _salesExVat = home.Current.RevenueExVat;
+            _cashBank = home.Current.CashPosition;
+            _receivables = home.Current.Receivables != 0 ? home.Current.Receivables : home.Current.ArBalance;
+            _payables = home.Current.Payables != 0 ? home.Current.Payables : home.Current.ApBalance;
+            _chartDays[6] = _ordersWeek;
+        }
+        catch
+        {
+            // Dashboard chrome still renders with zeros — same as PHP first-visit.
+        }
+    }
+
+    private static string ChangeHtml(int current, int previous, bool goodWhenUp)
+    {
+        if (previous <= 0)
+        {
+            return "<span class=\"cp-dash-chg flat\">—</span>";
+        }
+
+        var delta = current - previous;
+        var pct = (delta / (double)previous) * 100.0;
+        var up = delta >= 0;
+        var css = up == goodWhenUp ? "up" : "down";
+        var sign = up ? "+" : "";
+        return $"<span class=\"cp-dash-chg {css}\">{sign}{pct.ToString("0", CultureInfo.InvariantCulture)}%</span>";
     }
 }

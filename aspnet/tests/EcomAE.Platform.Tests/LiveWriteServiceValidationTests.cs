@@ -68,6 +68,21 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(payDb.Ok);
         Assert.Equal("db", payDb.Code);
 
+        var payOnPlaceAuth = await new StorefrontPaymentWriteService(new UnconfiguredConnections())
+            .PayOnPlaceAsync(0, 9);
+        Assert.False(payOnPlaceAuth.Ok);
+        Assert.Equal("auth", payOnPlaceAuth.Code);
+
+        var payOnPlaceInvalid = await new StorefrontPaymentWriteService(new ConfiguredNeverOpened())
+            .PayOnPlaceAsync(1, 0);
+        Assert.False(payOnPlaceInvalid.Ok);
+        Assert.Equal("invalid", payOnPlaceInvalid.Code);
+
+        var payOnPlaceDb = await new StorefrontPaymentWriteService(new UnconfiguredConnections())
+            .PayOnPlaceAsync(1, 9);
+        Assert.False(payOnPlaceDb.Ok);
+        Assert.Equal("db", payOnPlaceDb.Code);
+
         var notifyForbidden = await new StorefrontPaymentWriteService(new ConfiguredNeverOpened())
             .NotifyAsync(1, 9, 10, "bad-token", "epc_demo");
         Assert.False(notifyForbidden.Ok);
@@ -101,6 +116,39 @@ public sealed class LiveWriteServiceValidationTests
             .ApproveRunAsync(0);
         Assert.False(invalid.Succeeded);
         Assert.Equal("invalid", invalid.Code);
+
+        var payDb = await new ErpPayrollPayWriteService(new UnconfiguredConnections())
+            .PayRunAsync(1);
+        Assert.False(payDb.Succeeded);
+        Assert.Equal("db", payDb.Code);
+
+        var payInvalid = await new ErpPayrollPayWriteService(new ConfiguredNeverOpened())
+            .PayRunAsync(0);
+        Assert.False(payInvalid.Succeeded);
+        Assert.Equal("invalid", payInvalid.Code);
+        Assert.Equal("Payroll run not found", payInvalid.Message);
+
+        var daysDb = await new ErpPayrollUpdateDaysWriteService(new UnconfiguredConnections())
+            .UpdateLineDaysAsync(1, 15);
+        Assert.False(daysDb.Succeeded);
+        Assert.Equal("db", daysDb.Code);
+
+        var daysInvalid = await new ErpPayrollUpdateDaysWriteService(new ConfiguredNeverOpened())
+            .UpdateLineDaysAsync(0, 15);
+        Assert.False(daysInvalid.Succeeded);
+        Assert.Equal("invalid", daysInvalid.Code);
+        Assert.Equal("Cannot edit paid payroll line", daysInvalid.Message);
+
+        var genInvalid = await new ErpPayrollGenerateWriteService(new ConfiguredNeverOpened())
+            .GenerateAsync("not-a-period");
+        Assert.False(genInvalid.Succeeded);
+        Assert.Equal("invalid", genInvalid.Code);
+        Assert.Equal("Invalid period (use YYYY-MM)", genInvalid.Message);
+
+        var genDb = await new ErpPayrollGenerateWriteService(new UnconfiguredConnections())
+            .GenerateAsync("2026-09");
+        Assert.False(genDb.Succeeded);
+        Assert.Equal("db", genDb.Code);
     }
 
     [Fact]
@@ -2995,6 +3043,17 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(consSaveDb.Succeeded);
         Assert.Equal("db", consSaveDb.Code);
 
+        var prjInvalid = await new ErpPrjSaveWriteService(new ConfiguredNeverOpened())
+            .SaveAsync(new ErpPrjSaveWriteRequest());
+        Assert.False(prjInvalid.Succeeded);
+        Assert.Equal("invalid", prjInvalid.Code);
+        Assert.Equal("Project code is required", prjInvalid.Message);
+
+        var prjDb = await new ErpPrjSaveWriteService(new UnconfiguredConnections())
+            .SaveAsync(new ErpPrjSaveWriteRequest(Code: "PRJ-001", Name: "Pilot"));
+        Assert.False(prjDb.Succeeded);
+        Assert.Equal("db", prjDb.Code);
+
         var consIcInvalid = await new ErpConsDeleteWriteService(new ConfiguredNeverOpened())
             .DeleteIcAsync(0);
         Assert.False(consIcInvalid.Succeeded);
@@ -3122,6 +3181,17 @@ public sealed class LiveWriteServiceValidationTests
             .LogAsync(new ErpHrAttendanceWriteRequest(EmployeeId: 1, Hours: 8));
         Assert.False(hrAttDb.Succeeded);
         Assert.Equal("db", hrAttDb.Code);
+
+        var hrPayInvalid = await new ErpHrPayrollRunWriteService(new ConfiguredNeverOpened())
+            .GenerateAsync(new ErpHrPayrollRunWriteRequest(Period: "not-a-period"));
+        Assert.False(hrPayInvalid.Succeeded);
+        Assert.Equal("invalid", hrPayInvalid.Code);
+        Assert.Equal("Invalid period (use YYYY-MM)", hrPayInvalid.Message);
+
+        var hrPayDb = await new ErpHrPayrollRunWriteService(new UnconfiguredConnections())
+            .GenerateAsync(new ErpHrPayrollRunWriteRequest(Period: "2026-01"));
+        Assert.False(hrPayDb.Succeeded);
+        Assert.Equal("db", hrPayDb.Code);
     }
 
     [Fact]
@@ -3156,6 +3226,9 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(StorefrontCustomerWriteService.IsAllowedProfileKey("epc_doc_trade_licence"));
         Assert.True(StorefrontCustomerWriteService.IsAllowedProfileKey("name"));
         Assert.True(StorefrontCustomerWriteService.IsAllowedProfileKey("company_name"));
+        Assert.True(StorefrontCustomerWriteService.IsAllowedProfileKey("epc_custom_trade_name"));
+        Assert.False(StorefrontCustomerWriteService.IsAllowedProfileKey("confirmWrites"));
+        Assert.False(StorefrontCustomerWriteService.IsAllowedProfileKey("reg_variant"));
 
         var clean = StorefrontCustomerWriteService.NormalizeProfileFields(new Dictionary<string, string>
         {
@@ -3361,6 +3434,21 @@ public sealed class LiveWriteServiceValidationTests
     }
 
     [Fact]
+    public async Task Prj_task_save_rejects_missing_project_and_unconfigured_db()
+    {
+        var invalid = await new ErpPrjTaskSaveWriteService(new ConfiguredNeverOpened())
+            .SaveAsync(new ErpPrjTaskSaveWriteRequest());
+        Assert.False(invalid.Succeeded);
+        Assert.Equal("invalid", invalid.Code);
+        Assert.Equal("Select a project", invalid.Message);
+
+        var missingDb = await new ErpPrjTaskSaveWriteService(new UnconfiguredConnections())
+            .SaveAsync(new ErpPrjTaskSaveWriteRequest(ProjectId: 4, Name: "Design"));
+        Assert.False(missingDb.Succeeded);
+        Assert.Equal("db", missingDb.Code);
+    }
+
+    [Fact]
     public async Task Wms_wave_create_rejects_invalid_item_qty_and_unconfigured_db()
     {
         var invalid = await new ErpWmsWaveCreateWriteService(new ConfiguredNeverOpened())
@@ -3373,4 +3461,104 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(missingDb.Succeeded);
         Assert.Equal("db", missingDb.Code);
     }
+
+    [Fact]
+    public async Task Cons_figures_save_rejects_missing_entity_and_unconfigured_db()
+    {
+        var invalid = await new ErpConsFiguresSaveWriteService(new ConfiguredNeverOpened())
+            .SaveAsync(new ErpConsFiguresSaveWriteRequest());
+        Assert.False(invalid.Succeeded);
+        Assert.Equal("invalid", invalid.Code);
+        Assert.Equal("Entity is required", invalid.Message);
+
+        var missingDb = await new ErpConsFiguresSaveWriteService(new UnconfiguredConnections())
+            .SaveAsync(new ErpConsFiguresSaveWriteRequest(EntityCode: "SUB1", Revenue: 100));
+        Assert.False(missingDb.Succeeded);
+        Assert.Equal("db", missingDb.Code);
+    }
+
+    [Fact]
+    public async Task Prj_log_time_rejects_missing_project_and_unconfigured_db()
+    {
+        var invalid = await new ErpPrjLogTimeWriteService(new ConfiguredNeverOpened())
+            .LogAsync(new ErpPrjLogTimeWriteRequest());
+        Assert.False(invalid.Succeeded);
+        Assert.Equal("invalid", invalid.Code);
+        Assert.Equal("Select a project", invalid.Message);
+
+        var missingDb = await new ErpPrjLogTimeWriteService(new UnconfiguredConnections())
+            .LogAsync(new ErpPrjLogTimeWriteRequest(ProjectId: 4, Hours: 2));
+        Assert.False(missingDb.Succeeded);
+        Assert.Equal("db", missingDb.Code);
+    }
+    [Fact]
+    public async Task Bos_wf_raise_rejects_unconfigured_db()
+    {
+        var missingDb = await new ErpBosWfRaiseWriteService(new UnconfiguredConnections())
+            .RaiseAsync(new ErpBosWfRaiseWriteRequest("purchase_order", 9, "PO-9", 12000));
+        Assert.False(missingDb.Succeeded);
+        Assert.Equal("db", missingDb.Code);
+    }
+
+    [Fact]
+    public async Task Fy_create_rejects_invalid_dates_and_unconfigured_db()
+    {
+        var invalid = await new ErpFyCreateWriteService(new ConfiguredNeverOpened())
+            .CreateAsync(new ErpFyCreateWriteRequest("FY26"));
+        Assert.False(invalid.Succeeded);
+        Assert.Equal("invalid", invalid.Code);
+        Assert.Equal("Valid start and end dates are required", invalid.Message);
+
+        var inverted = await new ErpFyCreateWriteService(new ConfiguredNeverOpened())
+            .CreateAsync(new ErpFyCreateWriteRequest("FY26", 1798761599, 1767225600));
+        Assert.False(inverted.Succeeded);
+        Assert.Equal("invalid", inverted.Code);
+        Assert.Equal("Valid start and end dates are required", inverted.Message);
+
+        var missingDb = await new ErpFyCreateWriteService(new UnconfiguredConnections())
+            .CreateAsync(new ErpFyCreateWriteRequest("FY26", 1767225600, 1798761599, true));
+        Assert.False(missingDb.Succeeded);
+        Assert.Equal("db", missingDb.Code);
+    }
+
+    [Fact]
+    public async Task Bos_wf_decide_rejects_missing_request_and_unconfigured_db()
+    {
+        var invalid = await new ErpBosWfDecideWriteService(new ConfiguredNeverOpened())
+            .DecideAsync(new ErpBosWfDecideWriteRequest());
+        Assert.False(invalid.Succeeded);
+        Assert.Equal("invalid", invalid.Code);
+        Assert.Equal("Request not pending", invalid.Message);
+
+        var missingDb = await new ErpBosWfDecideWriteService(new UnconfiguredConnections())
+            .DecideAsync(new ErpBosWfDecideWriteRequest(4, "approve"));
+        Assert.False(missingDb.Succeeded);
+        Assert.Equal("db", missingDb.Code);
+    }
+
+    [Fact]
+    public async Task Cons_ic_save_rejects_invalid_pair_amount_and_unconfigured_db()
+    {
+        var missing = await new ErpConsIcSaveWriteService(new ConfiguredNeverOpened())
+            .SaveAsync(new ErpConsIcSaveWriteRequest());
+        Assert.False(missing.Succeeded);
+        Assert.Equal("invalid", missing.Code);
+        Assert.Equal("From and to entities are required", missing.Message);
+
+        var same = await new ErpConsIcSaveWriteService(new ConfiguredNeverOpened())
+            .SaveAsync(new ErpConsIcSaveWriteRequest(FromEntity: "HOME", ToEntity: "home", Amount: 10));
+        Assert.False(same.Succeeded);
+        Assert.Equal("Intercompany needs two different entities", same.Message);
+
+        var zero = await new ErpConsIcSaveWriteService(new ConfiguredNeverOpened())
+            .SaveAsync(new ErpConsIcSaveWriteRequest(FromEntity: "HOME", ToEntity: "SUB1", Amount: 0));
+        Assert.False(zero.Succeeded);
+        Assert.Equal("Amount must be positive", zero.Message);
+
+        var missingDb = await new ErpConsIcSaveWriteService(new UnconfiguredConnections())
+            .SaveAsync(new ErpConsIcSaveWriteRequest(FromEntity: "HOME", ToEntity: "SUB1", Amount: 25));
+        Assert.False(missingDb.Succeeded);
+        Assert.Equal("db", missingDb.Code);
+    }
+
 }

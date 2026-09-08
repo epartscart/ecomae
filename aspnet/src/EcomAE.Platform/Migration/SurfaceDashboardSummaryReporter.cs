@@ -691,6 +691,48 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    public async Task<StorefrontAccountOperationsResult> ListStorefrontAccountOperationsAsync(int userId, int limit, CancellationToken cancellationToken = default)
+    {
+        var safeLimit = Math.Clamp(limit, 1, 200);
+        if (!_connections.IsConfigured)
+        {
+            return new(userId, [], 0, "migration", "TenantRegistry DB is not configured.");
+        }
+
+        if (userId <= 0)
+        {
+            return new(0, [], 0, "rejected", "Valid customer user id is required.");
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            await using var command = connection.CreateCommand();
+            command.CommandText = LegacySurfaceDashboardSql.SelectCustomerAccountOperations;
+            AddParameter(command, "@userId", userId);
+            AddParameter(command, "@limit", safeLimit);
+            var rows = new List<StorefrontAccountOperationDigest>();
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                rows.Add(new StorefrontAccountOperationDigest(
+                    Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                    Convert.ToInt64(reader["time"] is DBNull ? 0 : reader["time"], CultureInfo.InvariantCulture),
+                    Convert.ToDecimal(reader["amount"] is DBNull ? 0 : reader["amount"], CultureInfo.InvariantCulture),
+                    Convert.ToInt32(reader["income"] is DBNull ? 0 : reader["income"], CultureInfo.InvariantCulture),
+                    Convert.ToInt64(reader["order_id"] is DBNull ? 0 : reader["order_id"], CultureInfo.InvariantCulture),
+                    Convert.ToInt32(reader["operation_code"] is DBNull ? 0 : reader["operation_code"], CultureInfo.InvariantCulture),
+                    Convert.ToString(reader["name"] is DBNull ? string.Empty : reader["name"], CultureInfo.InvariantCulture) ?? string.Empty));
+            }
+
+            return new(userId, rows, rows.Count, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(userId, [], 0, "database-error", ex.Message);
+        }
+    }
+
     public async Task<PortalTenantListResult> ListPortalTenantsAsync(int limit, CancellationToken cancellationToken = default)
     {
         var safeLimit = Math.Clamp(limit, 1, 500);
@@ -1600,6 +1642,41 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    public async Task<StorefrontGarageOrderLinksResult> ListStorefrontGarageOrderLinksAsync(int userId, long orderId, CancellationToken cancellationToken = default)
+    {
+        var safeOrder = orderId < 0 ? 0 : orderId;
+        if (!_connections.IsConfigured)
+        {
+            return new(userId, safeOrder, [], 0, "migration", "TenantRegistry DB is not configured.");
+        }
+
+        if (userId <= 0 || safeOrder <= 0)
+        {
+            return new(userId, safeOrder, [], 0, "rejected", "Valid customer user id and order id are required.");
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            await using var command = connection.CreateCommand();
+            command.CommandText = LegacySurfaceDashboardSql.SelectCustomerGarageOrderLinks;
+            AddParameter(command, "@userId", userId);
+            AddParameter(command, "@orderId", safeOrder);
+            var ids = new List<long>();
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                ids.Add(Convert.ToInt64(reader["garage_id"], CultureInfo.InvariantCulture));
+            }
+
+            return new(userId, safeOrder, ids, ids.Count, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(userId, safeOrder, [], 0, "database-error", ex.Message);
+        }
+    }
+
     public async Task<StorefrontGarageNotepadResult> ListStorefrontGarageNotepadAsync(int userId, long garageId, int limit, CancellationToken cancellationToken = default)
     {
         var safeLimit = Math.Clamp(limit, 1, 200);
@@ -1980,6 +2057,81 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         catch (Exception ex)
         {
             return new(userId, string.Empty, 0, string.Empty, 0, 0, new Dictionary<string, string>(), "database-error", ex.Message);
+        }
+    }
+
+    public async Task<StorefrontRegCatalogResult> ListStorefrontRegCatalogAsync(CancellationToken cancellationToken = default)
+    {
+        if (!_connections.IsConfigured)
+        {
+            return new([], [], 0, "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            var variants = new List<StorefrontRegVariantDigest>();
+            try
+            {
+                await using var variantCommand = connection.CreateCommand();
+                variantCommand.CommandText = LegacySurfaceDashboardSql.SelectStorefrontRegVariants;
+                await using var variantReader = await variantCommand.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await variantReader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    var id = Convert.ToInt32(variantReader["id"], CultureInfo.InvariantCulture);
+                    var caption = Convert.ToString(variantReader["caption"] is DBNull ? string.Empty : variantReader["caption"], CultureInfo.InvariantCulture) ?? string.Empty;
+                    if (int.TryParse(caption, NumberStyles.Integer, CultureInfo.InvariantCulture, out _))
+                    {
+                        caption = "Variant " + id.ToString(CultureInfo.InvariantCulture);
+                    }
+
+                    variants.Add(new StorefrontRegVariantDigest(id, string.IsNullOrWhiteSpace(caption) ? id.ToString(CultureInfo.InvariantCulture) : caption));
+                }
+            }
+            catch
+            {
+                // reg_variants is optional on throwaway DBs.
+            }
+
+            var fields = new List<StorefrontRegFieldDigest>();
+            try
+            {
+                await using var fieldCommand = connection.CreateCommand();
+                fieldCommand.CommandText = LegacySurfaceDashboardSql.SelectStorefrontRegFields;
+                await using var fieldReader = await fieldCommand.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await fieldReader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    var name = Convert.ToString(fieldReader["name"] is DBNull ? string.Empty : fieldReader["name"], CultureInfo.InvariantCulture) ?? string.Empty;
+                    if (name.Length == 0)
+                    {
+                        continue;
+                    }
+
+                    var caption = Convert.ToString(fieldReader["caption"] is DBNull ? string.Empty : fieldReader["caption"], CultureInfo.InvariantCulture) ?? string.Empty;
+                    if (string.IsNullOrWhiteSpace(caption) || int.TryParse(caption, NumberStyles.Integer, CultureInfo.InvariantCulture, out _))
+                    {
+                        caption = name;
+                    }
+
+                    fields.Add(new StorefrontRegFieldDigest(
+                        name,
+                        caption,
+                        Convert.ToString(fieldReader["show_for"] is DBNull ? "[]" : fieldReader["show_for"], CultureInfo.InvariantCulture) ?? "[]",
+                        Convert.ToString(fieldReader["required_for"] is DBNull ? "[]" : fieldReader["required_for"], CultureInfo.InvariantCulture) ?? "[]",
+                        Convert.ToInt32(fieldReader["maxlen"] is DBNull ? 80 : fieldReader["maxlen"], CultureInfo.InvariantCulture),
+                        Convert.ToString(fieldReader["widget_type"] is DBNull ? "text" : fieldReader["widget_type"], CultureInfo.InvariantCulture) ?? "text"));
+                }
+            }
+            catch
+            {
+                // reg_fields is optional on throwaway DBs.
+            }
+
+            return new(variants, fields, fields.Count, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new([], [], 0, "database-error", ex.Message);
         }
     }
 

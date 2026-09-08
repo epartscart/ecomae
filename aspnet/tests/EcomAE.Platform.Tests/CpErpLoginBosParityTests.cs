@@ -37,6 +37,8 @@ public sealed class CpErpLoginBosParityTests
         Assert.Contains("bos-login__hero", text, StringComparison.Ordinal);
         Assert.Contains("bos-login__panel", text, StringComparison.Ordinal);
         Assert.Contains("bos-login__form", text, StringComparison.Ordinal);
+        Assert.Contains("epc-login-html-form", text, StringComparison.Ordinal);
+        Assert.Contains("name=\"contact_type\"", text, StringComparison.Ordinal);
         Assert.Contains("PhpBosLoginAtmosphere", text, StringComparison.Ordinal);
         Assert.Contains("PhpLoginHostBrand", text, StringComparison.Ordinal);
         Assert.Contains("LoginHostBrand.Resolve", text, StringComparison.Ordinal);

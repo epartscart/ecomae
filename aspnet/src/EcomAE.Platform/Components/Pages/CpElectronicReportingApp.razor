@@ -102,6 +102,41 @@
 
 </PhpCpDesktopChrome>
 
+<form method="post" action="/erp/electronic-reporting/fields/add" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="@_returnUrl" />
+            <label>Format id <input type="number" name="format_id" min="1" required style="width:6rem" /></label>
+            <label>Label <input type="text" name="label" required maxlength="80" style="width:10rem" /></label>
+            <label>Source key <input type="text" name="source_key" required maxlength="80" style="width:10rem" /></label>
+            <label>Ordinal <input type="number" name="ordinal" min="0" value="0" style="width:5rem" /></label>
+            <button type="submit">Add field</button>
+        </form>
+
+<form method="post" action="/erp/electronic-reporting/formats/save" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="@_returnUrl" />
+            <input type="hidden" name="id" value="0" />
+            <label>Code <input type="text" name="code" required maxlength="40" style="width:8rem" /></label>
+            <label>Name <input type="text" name="name" required maxlength="160" style="width:14rem" /></label>
+            <label>Output
+                <select name="output_type">
+                    <option value="csv" selected>csv</option>
+                    <option value="xml">xml</option>
+                    <option value="json">json</option>
+                </select>
+            </label>
+            <label>Root <input type="text" name="root_element" maxlength="60" value="rows" style="width:7rem" /></label>
+            <label>Row <input type="text" name="row_element" maxlength="60" value="row" style="width:7rem" /></label>
+            <label>Active
+                <select name="active">
+                    <option value="1" selected>active</option>
+                    <option value="0">inactive</option>
+                </select>
+            </label>
+            <label>Company id <input type="number" name="company_id" min="0" value="0" style="width:5rem" /></label>
+            <button type="submit">Save format</button>
+        </form>
+
 @code {
     private const string _phpTab = "/ERP/?epc_erp_shell=1&area=tax&tab=elec_reporting";
     private bool _isAdmin;
@@ -128,4 +163,5 @@
         _source = result.Source;
         _message = result.Message;
     }
+    private string _returnUrl => "/cp/electronic-reporting-app";
 }

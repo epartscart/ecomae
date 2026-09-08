@@ -46,6 +46,35 @@
             </label>
             <button type="submit">Set period status</button>
         </form>
+        <form method="post" action="/erp/periods/soft-close" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/erp/period-close-app" />
+            <label>Year-month <input type="month" name="year_month" required /></label>
+            <label>Note <input name="note" maxlength="512" /></label>
+            <button type="submit">Soft-close month</button>
+        </form>
+        <form method="post" action="/erp/fiscal/set-lock" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/erp/period-close-app" />
+            <label>Lock on/before <input type="date" name="lock_date" /></label>
+            <label>Note <input name="note" maxlength="255" /></label>
+            <button type="submit">Set fiscal lock</button>
+        </form>
+        <form method="post" action="/erp/fiscal/set-lock" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/erp/period-close-app" />
+            <input type="hidden" name="lock_date" value="" />
+            <button type="submit">Clear fiscal lock</button>
+        </form>
+        <form method="post" action="/erp/fiscal-years/create" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/erp/period-close-app" />
+            <label>Label <input type="text" name="label" required /></label>
+            <label>Start <input type="date" name="start_date" required /></label>
+            <label>End <input type="date" name="end_date" required /></label>
+            <label><input type="checkbox" name="monthly" value="1" checked /> Monthly periods</label>
+            <button type="submit">Create fiscal year</button>
+        </form>
     }
 
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Period Close KPIs">
