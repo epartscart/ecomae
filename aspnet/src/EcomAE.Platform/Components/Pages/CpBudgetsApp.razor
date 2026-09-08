@@ -22,19 +22,142 @@
                 <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Classic twin</a>
             </div>
             <div class="panel-body">
-                <p>Save a platform budget, add a line, advance a plan, and record a cheque here. FX import stays on the Classic twin.</p>
+                <p>Open a budget for a note excerpt and monthly lines. Save a platform budget, add a line, advance a plan, and record a cheque here. FX import stays on the Classic twin.</p>
             </div>
         </div>
     </div>
-    <PhpParityModuleBody AppPath="/cp/budgets-app" IsAdmin="_isAdmin" />
+    <PhpParityModuleBody ShowGhostScaffold="false" AppPath="/cp/budgets-app" IsAdmin="_isAdmin" />
+
+    <ErpOpenedRecordBanner Id="_openedId" Found="@(_openedBudget is not null)" Caption="@OpenedCaption" ListHref="@_listHref" />
+
+    <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Budget KPIs">
+        <div class="kpi"><div class="lbl">Budgets</div><div class="val">@_summary.BudgetCount.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Active</div><div class="val">@_summary.ActiveBudgets.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Lines</div><div class="val">@_summary.BudgetLineCount.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Opened lines</div><div class="val">@_openedLines.Count.ToString(CultureInfo.InvariantCulture)</div></div>
+    </div>
+
+    @if (_openedBudget is not null)
+    {
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">
+                    @OpenedCaption
+                    <span class="label label-default pull-right">@(_openedBudget.Active ? "active" : "inactive")</span>
+                </div>
+                <div class="panel-body">
+                    <p>@(!string.IsNullOrWhiteSpace(_openedBudget.Code) ? _openedBudget.Code : "—")
+                        · FY @(!string.IsNullOrWhiteSpace(_openedBudget.FiscalYear) ? _openedBudget.FiscalYear : "—")
+                        · BU @_openedBudget.BusinessUnitId.ToString(CultureInfo.InvariantCulture)
+                        · @(_openedBudget.IsMaster ? "master" : "member")
+                        · created @_openedBudget.TimeCreated.ToString(CultureInfo.InvariantCulture)
+                        · updated @_openedBudget.TimeUpdated.ToString(CultureInfo.InvariantCulture)</p>
+                    @if (!string.IsNullOrWhiteSpace(_openedBudget.NoteExcerpt))
+                    {
+                        <p>@_openedBudget.NoteExcerpt
+                            @if (_openedBudget.NoteLen > _openedBudget.NoteExcerpt.Length)
+                            {
+                                <span class="text-muted"> (excerpt)</span>
+                            }
+                        </p>
+                    }
+                    else
+                    {
+                        <p class="text-muted">No note excerpt yet.</p>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">Monthly lines</div>
+                <div class="panel-body">
+                    <div class="table-responsive">
+                        <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped table-bordered table-epc epc-erp-table">
+                            <thead>
+                                <tr>
+                                    <th>Id</th>
+                                    <th>Account</th>
+                                    <th>Name</th>
+                                    <th>Month</th>
+                                    <th>Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (_openedLines.Count == 0)
+                                {
+                                    <tr><td colspan="5">No budget lines yet.</td></tr>
+                                }
+                                else
+                                {
+                                    @foreach (var line in _openedLines)
+                                    {
+                                        <tr>
+                                            <td>@line.Id.ToString(CultureInfo.InvariantCulture)</td>
+                                            <td>@(!string.IsNullOrWhiteSpace(line.AccountCode) ? line.AccountCode : "—")</td>
+                                            <td>@(!string.IsNullOrWhiteSpace(line.AccountName) ? line.AccountName : "—")</td>
+                                            <td>@line.MonthNo.ToString(CultureInfo.InvariantCulture)</td>
+                                            <td>@line.Amount.ToString(CultureInfo.InvariantCulture)</td>
+                                        </tr>
+                                    }
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">Same-FY siblings</div>
+                <div class="panel-body">
+                    <div class="table-responsive">
+                        <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped table-bordered table-epc epc-erp-table">
+                            <thead>
+                                <tr>
+                                    <th>Id</th>
+                                    <th>Code</th>
+                                    <th>Name</th>
+                                    <th>Master</th>
+                                    <th>Active</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (_openedSiblings.Count == 0)
+                                {
+                                    <tr><td colspan="6">No same-FY siblings yet.</td></tr>
+                                }
+                                else
+                                {
+                                    @foreach (var sib in _openedSiblings)
+                                    {
+                                        <tr>
+                                            <td>@sib.Id.ToString(CultureInfo.InvariantCulture)</td>
+                                            <td>@(!string.IsNullOrWhiteSpace(sib.Code) ? sib.Code : "—")</td>
+                                            <td>@(!string.IsNullOrWhiteSpace(sib.Name) ? sib.Name : "—")</td>
+                                            <td>@(sib.IsMaster ? "yes" : "no")</td>
+                                            <td>@(sib.Active ? "yes" : "no")</td>
+                                            <td><a class="btn btn-xs btn-default" href="@ErpRecordOpen.Href(_listHref, "budget_id", sib.Id)">Open</a></td>
+                                        </tr>
+                                    }
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
 
     <div class="col-lg-12">
         <div class="hpanel">
             <div class="panel-heading hbuilt">Budgets</div>
             <div class="panel-body">
-                <p class="help-block">@_summary.BudgetCount.ToString(CultureInfo.InvariantCulture) budgets · @_summary.ActiveBudgets.ToString(CultureInfo.InvariantCulture) active · @_summary.BudgetLineCount.ToString(CultureInfo.InvariantCulture) budget lines · @_summary.DimensionCount.ToString(CultureInfo.InvariantCulture) dimensions.</p>
                 <div class="table-responsive">
-                    <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped">
+                    <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped table-bordered table-epc epc-erp-table">
                         <thead>
                             <tr>
                                 <th>Id</th>
@@ -44,18 +167,23 @@
                                 <th>BU</th>
                                 <th>Master</th>
                                 <th>Active</th>
+                                <th></th>
                             </tr>
                         </thead>
                         <tbody>
-                        @if (_budgets.Count == 0)
+                        @if (!_isAdmin)
                         {
-                            <tr><td colspan="7">No records yet.</td></tr>
+                            <tr><td colspan="8">Sign in for live data.</td></tr>
+                        }
+                        else if (_budgets.Count == 0)
+                        {
+                            <tr><td colspan="8">@(!string.IsNullOrWhiteSpace(_message) ? _message : "No records yet.")</td></tr>
                         }
                         else
                         {
                             @foreach (var row in _budgets)
                             {
-                                <tr>
+                                <tr id="erp-row-@row.Id.ToString(CultureInfo.InvariantCulture)" class="@ErpRecordOpen.RowClass(row.Id, _openedId)">
                                     <td>@row.Id.ToString(CultureInfo.InvariantCulture)</td>
                                     <td>@(!string.IsNullOrWhiteSpace(row.Code) ? row.Code : "—")</td>
                                     <td>@(!string.IsNullOrWhiteSpace(row.Name) ? row.Name : "—")</td>
@@ -63,6 +191,7 @@
                                     <td>@row.BusinessUnitId.ToString(CultureInfo.InvariantCulture)</td>
                                     <td>@(row.IsMaster ? "yes" : "no")</td>
                                     <td>@(row.Active ? "yes" : "no")</td>
+                                    <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href(_listHref, "budget_id", row.Id)">Open</a></td>
                                 </tr>
                             }
                         }
@@ -138,7 +267,7 @@
 <form method="post" action="/erp/pm/budget-lines/add" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin-bottom:1rem;">
                 <input type="hidden" name="returnUrl" value="/erp/budgets-app" />
                 <input type="hidden" name="confirmWrites" value="true" />
-                <label>Budget id <input class="form-control input-sm" name="budget_id" placeholder="Id" style="width:80px;" /></label>
+                <label>Budget id <input class="form-control input-sm" name="budget_id" placeholder="Id" style="width:80px;" value="@(_openedId > 0 ? _openedId.ToString(CultureInfo.InvariantCulture) : "")" /></label>
                 <label>Account <input class="form-control input-sm" name="account_code" placeholder="Code" style="width:120px;" /></label>
                 <label>Name <input class="form-control input-sm" name="account_name" placeholder="Name" style="width:180px;" /></label>
                 <label>Month <input class="form-control input-sm" name="month_no" placeholder="1-12" style="width:70px;" /></label>
@@ -151,11 +280,11 @@
 <form method="post" action="/erp/pm/budgets/save" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin-bottom:1rem;">
                 <input type="hidden" name="returnUrl" value="/erp/budgets-app" />
                 <input type="hidden" name="confirmWrites" value="true" />
-                <label>Id <input class="form-control input-sm" name="id" placeholder="0 = new" style="width:80px;" /></label>
-                <label>Code <input class="form-control input-sm" name="code" placeholder="Code" style="width:120px;" /></label>
-                <label>Name <input class="form-control input-sm" name="name" placeholder="Name" style="width:180px;" /></label>
-                <label>Fiscal year <input class="form-control input-sm" name="fiscal_year" placeholder="FY" style="width:90px;" /></label>
-                <label>BU id <input class="form-control input-sm" name="business_unit_id" placeholder="0" style="width:80px;" /></label>
+                <label>Id <input class="form-control input-sm" name="id" placeholder="0 = new" style="width:80px;" value="@(_openedId > 0 ? _openedId.ToString(CultureInfo.InvariantCulture) : "")" /></label>
+                <label>Code <input class="form-control input-sm" name="code" placeholder="Code" style="width:120px;" value="@(_openedBudget is not null ? _openedBudget.Code : "")" /></label>
+                <label>Name <input class="form-control input-sm" name="name" placeholder="Name" style="width:180px;" value="@(_openedBudget is not null ? _openedBudget.Name : "")" /></label>
+                <label>Fiscal year <input class="form-control input-sm" name="fiscal_year" placeholder="FY" style="width:90px;" value="@(_openedBudget is not null ? _openedBudget.FiscalYear : "")" /></label>
+                <label>BU id <input class="form-control input-sm" name="business_unit_id" placeholder="0" style="width:80px;" value="@(_openedBudget is not null ? _openedBudget.BusinessUnitId.ToString(CultureInfo.InvariantCulture) : "")" /></label>
                 <label>Master
                     <select class="form-control input-sm" name="is_master" style="width:80px;">
                         <option value="0">no</option>
@@ -243,11 +372,30 @@
     private IReadOnlyList<CpBudgetDigest> _budgets = [];
     private string _source = "n/a";
     private string _message = "";
+    private string _listHref = "/cp/budgets-app";
+    private long _openedId;
+    private CpBudgetDetail? _openedBudget;
+    private IReadOnlyList<CpBudgetLineDigest> _openedLines = [];
+    private IReadOnlyList<CpBudgetDigest> _openedSiblings = [];
+
+    private string OpenedCaption => _openedBudget is null
+        ? ""
+        : (string.IsNullOrWhiteSpace(_openedBudget.Name)
+            ? (string.IsNullOrWhiteSpace(_openedBudget.Code)
+                ? ("Budget #" + _openedBudget.Id.ToString(CultureInfo.InvariantCulture))
+                : _openedBudget.Code)
+            : _openedBudget.Name);
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
+
+        var path = ctx.Request.Path.Value;
+        _listHref = string.Equals(path, "/erp/budgets-app", StringComparison.OrdinalIgnoreCase)
+            ? "/erp/budgets-app"
+            : "/cp/budgets-app";
+        _openedId = ErpRecordOpen.ReadId(ctx.Request, "budget_id");
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
@@ -261,5 +409,25 @@
         _budgets = result.Budgets;
         _source = result.Source;
         _message = result.Message;
+
+        if (_openedId > 0)
+        {
+            var detail = await Dashboards.BuildCpBudgetsDetailAsync(_openedId, ctx.RequestAborted);
+            _openedBudget = detail.Budget;
+            _openedLines = detail.Lines;
+            _openedSiblings = detail.Siblings;
+            if (_openedBudget is not null)
+            {
+                var openedList = _budgets.FirstOrDefault(r => r.Id == _openedId);
+                if (openedList is not null)
+                {
+                    _budgets = new[] { openedList }.Concat(_budgets.Where(r => r.Id != _openedId)).ToList();
+                }
+            }
+            else if (!string.IsNullOrWhiteSpace(detail.Message))
+            {
+                _message = detail.Message;
+            }
+        }
     }
 }

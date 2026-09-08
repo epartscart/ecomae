@@ -2158,6 +2158,45 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>Opened budget. Note is a short excerpt.</summary>
+    public const string SelectCpBudgetsDetail = """
+        SELECT `id`, IFNULL(`code`,'') AS code, IFNULL(`name`,'') AS name,
+               IFNULL(`fiscal_year`,'') AS fiscal_year,
+               IFNULL(`business_unit_id`,0) AS business_unit_id,
+               IFNULL(`is_master`,0) AS is_master, IFNULL(`active`,0) AS active,
+               IFNULL(`time_created`,0) AS time_created, IFNULL(`time_updated`,0) AS time_updated,
+               CHAR_LENGTH(IFNULL(`note`,'')) AS note_len,
+               LEFT(IFNULL(`note`,''), 280) AS note_excerpt
+        FROM `epc_erp_pm_budgets`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Monthly lines for the opened budget.</summary>
+    public const string SelectCpBudgetLines = """
+        SELECT `id`, IFNULL(`budget_id`,0) AS budget_id,
+               IFNULL(`account_code`,'') AS account_code,
+               IFNULL(`account_name`,'') AS account_name,
+               IFNULL(`month_no`,0) AS month_no, IFNULL(`amount`,0) AS amount,
+               IFNULL(`time_updated`,0) AS time_updated
+        FROM `epc_erp_pm_budget_lines`
+        WHERE `budget_id` = @id
+        ORDER BY `account_code` ASC, `month_no` ASC, `id` ASC
+        LIMIT 200
+        """;
+
+    /// <summary>Other budgets in the same fiscal year. Note omitted.</summary>
+    public const string SelectCpBudgetsFiscalSiblings = """
+        SELECT `id`, IFNULL(`code`,'') AS code, IFNULL(`name`,'') AS name,
+               IFNULL(`fiscal_year`,'') AS fiscal_year,
+               IFNULL(`business_unit_id`,0) AS business_unit_id,
+               IFNULL(`is_master`,0) AS is_master, IFNULL(`active`,0) AS active
+        FROM `epc_erp_pm_budgets`
+        WHERE `fiscal_year` = @fiscal_year AND `id` <> @id
+        ORDER BY `id` DESC
+        LIMIT 50
+        """;
+
     /// <summary>Courier KPIs from logistics hub tables — not ERP TMS. Omits config_json.</summary>
     public const string SelectCpCarrierStats = """
         SELECT
