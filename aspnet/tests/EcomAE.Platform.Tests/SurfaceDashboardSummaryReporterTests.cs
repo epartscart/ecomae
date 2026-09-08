@@ -614,6 +614,12 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.DoesNotContain("merkle_proof_json", LegacySurfaceDashboardSql.SelectCpBlockchainProofs, StringComparison.Ordinal);
         Assert.Contains("epc_landed_cost_sheets", LegacySurfaceDashboardSql.SelectCpLandedCostSheets, StringComparison.Ordinal);
         Assert.DoesNotContain("`notes`", LegacySurfaceDashboardSql.SelectCpLandedCostSheets, StringComparison.Ordinal);
+        Assert.Contains("`notes`", LegacySurfaceDashboardSql.SelectCpLandedCostSheetDetail, StringComparison.Ordinal);
+        Assert.Contains("posted_at", LegacySurfaceDashboardSql.SelectCpLandedCostSheetDetail, StringComparison.Ordinal);
+        Assert.Contains("epc_landed_cost_expenses", LegacySurfaceDashboardSql.SelectCpLandedCostExpenses, StringComparison.Ordinal);
+        Assert.Contains("`sheet_id` = @id", LegacySurfaceDashboardSql.SelectCpLandedCostExpenses, StringComparison.Ordinal);
+        Assert.Contains("epc_landed_cost_lines", LegacySurfaceDashboardSql.SelectCpLandedCostLines, StringComparison.Ordinal);
+        Assert.Contains("`sheet_id` = @id", LegacySurfaceDashboardSql.SelectCpLandedCostLines, StringComparison.Ordinal);
         Assert.Contains("epc_erp_wms_work", LegacySurfaceDashboardSql.SelectCpWarehouseWmsWork, StringComparison.Ordinal);
         Assert.Contains("epc_ai_queries", LegacySurfaceDashboardSql.SelectCpAiServiceQueries, StringComparison.Ordinal);
         Assert.DoesNotContain("input_text", LegacySurfaceDashboardSql.SelectCpAiServiceQueries, StringComparison.Ordinal);
