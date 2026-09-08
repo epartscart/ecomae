@@ -3226,6 +3226,9 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(StorefrontCustomerWriteService.IsAllowedProfileKey("epc_doc_trade_licence"));
         Assert.True(StorefrontCustomerWriteService.IsAllowedProfileKey("name"));
         Assert.True(StorefrontCustomerWriteService.IsAllowedProfileKey("company_name"));
+        Assert.True(StorefrontCustomerWriteService.IsAllowedProfileKey("epc_custom_trade_name"));
+        Assert.False(StorefrontCustomerWriteService.IsAllowedProfileKey("confirmWrites"));
+        Assert.False(StorefrontCustomerWriteService.IsAllowedProfileKey("reg_variant"));
 
         var clean = StorefrontCustomerWriteService.NormalizeProfileFields(new Dictionary<string, string>
         {
