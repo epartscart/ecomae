@@ -149,6 +149,9 @@ public interface ISurfaceDashboardSummaryReporter
     /// <summary>Read-only article cross pairs.</summary>
     Task<CpCrossesDigestResult> BuildCpCrossesDigestAsync(int limit, CancellationToken cancellationToken = default);
 
+    /// <summary>Opened cross pair (PHP <c>cross_id=</c> detail) plus same-article siblings.</summary>
+    Task<CpCrossPairDetailResult> BuildCpCrossPairDetailAsync(long id, CancellationToken cancellationToken = default);
+
     /// <summary>Read-only HR KPIs + employees (salary/allowances/currency/payslip omitted).</summary>
     Task<CpHrOverviewDigestResult> BuildCpHrOverviewDigestAsync(int limit, CancellationToken cancellationToken = default);
 
