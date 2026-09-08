@@ -2,7 +2,7 @@ namespace EcomAE.Platform.Erp;
 
 /// <summary>
 /// Live PHP <c>epc_sub_invoice_set_status(..., 'paid')</c> twin for <c>sub_invoice_paid</c>.
-/// Schema ensure, generate, and subscription save stay PHP.
+/// Schema ensure stays PHP. Cycle generate is <c>IErpSubGenerateWriteService</c>.
 /// </summary>
 public interface IErpSubInvoicePaidWriteService
 {
