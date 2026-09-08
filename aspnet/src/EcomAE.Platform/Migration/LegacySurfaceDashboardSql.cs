@@ -2055,6 +2055,7 @@ public static class LegacySurfaceDashboardSql
             (SELECT COUNT(DISTINCT `manufacturer_id`) FROM `shop_docpart_manufacturers_synonyms`) AS mapped_count
         """;
 
+    /// <summary>Brand synonym dump — omits synonym id.</summary>
     public const string SelectCpSynonymsRows = """
         SELECT IFNULL(m.`name`,'') AS manufacturer,
                IFNULL(s.`synonym`,'') AS synonym,
@@ -2063,6 +2064,23 @@ public static class LegacySurfaceDashboardSql
         LEFT JOIN `shop_docpart_manufacturers` m ON m.`id` = s.`manufacturer_id`
         ORDER BY manufacturer ASC, synonym ASC
         LIMIT @limit
+        """;
+
+    /// <summary>Opened manufacturer header for brand synonyms.</summary>
+    public const string SelectCpSynonymManufacturerDetail = """
+        SELECT `id`, IFNULL(`name`,'') AS name
+        FROM `shop_docpart_manufacturers`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Opened manufacturer synonym children — includes synonym id omitted from the dump.</summary>
+    public const string SelectCpSynonymChildren = """
+        SELECT s.`id`, IFNULL(s.`manufacturer_id`,0) AS manufacturer_id,
+               IFNULL(s.`synonym`,'') AS synonym
+        FROM `shop_docpart_manufacturers_synonyms` s
+        WHERE s.`manufacturer_id` = @id
+        ORDER BY s.`synonym` ASC
         """;
 
     public const string SelectCpSeoStats = """

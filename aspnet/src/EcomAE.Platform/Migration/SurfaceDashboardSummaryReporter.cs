@@ -13244,6 +13244,58 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    public async Task<CpSynonymDetailResult> BuildCpSynonymDetailAsync(long manufacturerId, CancellationToken cancellationToken = default)
+    {
+        if (manufacturerId <= 0)
+        {
+            return new(null, [], "n/a", "");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return new(null, [], "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            CpSynonymManufacturerDetail? header = null;
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectCpSynonymManufacturerDetail;
+                AddParameter(cmd, "@id", manufacturerId);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    header = new CpSynonymManufacturerDetail(
+                        Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["name"] is DBNull ? string.Empty : reader["name"], CultureInfo.InvariantCulture) ?? string.Empty);
+                }
+            }
+
+            var children = new List<CpSynonymChildDigest>();
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectCpSynonymChildren;
+                AddParameter(cmd, "@id", manufacturerId);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    children.Add(new CpSynonymChildDigest(
+                        Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["manufacturer_id"] is DBNull ? 0 : reader["manufacturer_id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["synonym"] is DBNull ? string.Empty : reader["synonym"], CultureInfo.InvariantCulture) ?? string.Empty));
+                }
+            }
+
+            return new(header, children, "database", header is null ? "Manufacturer not found." : string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(null, [], "database-error", ex.Message);
+        }
+    }
+
 
     public async Task<CpSeoDigestResult> BuildCpSeoDigestAsync(int limit, CancellationToken cancellationToken = default)
     {
