@@ -799,6 +799,11 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.Contains("epc_erp_opening_batches", LegacySurfaceDashboardSql.SelectCpFinanceCloseStats, StringComparison.Ordinal);
         Assert.Contains("epc_erp_periods", LegacySurfaceDashboardSql.SelectCpFinanceCloseStats, StringComparison.Ordinal);
         Assert.DoesNotContain("`note`", LegacySurfaceDashboardSql.SelectCpFinanceCloseRows, StringComparison.Ordinal);
+        Assert.Contains("`note`", LegacySurfaceDashboardSql.SelectCpFinanceCloseBatchDetail, StringComparison.Ordinal);
+        Assert.Contains("`id` = @id", LegacySurfaceDashboardSql.SelectCpFinanceCloseBatchDetail, StringComparison.Ordinal);
+        Assert.Contains("epc_erp_opening_lines", LegacySurfaceDashboardSql.SelectCpFinanceCloseLines, StringComparison.Ordinal);
+        Assert.Contains("`batch_id` = @id", LegacySurfaceDashboardSql.SelectCpFinanceCloseLines, StringComparison.Ordinal);
+        Assert.Contains("meta_json", LegacySurfaceDashboardSql.SelectCpFinanceCloseLines, StringComparison.Ordinal);
         Assert.Contains("epc_jewel_fixing", LegacySurfaceDashboardSql.SelectCpJewelleryFixingStats, StringComparison.Ordinal);
         Assert.Contains("epc_fix_unfix_purchases", LegacySurfaceDashboardSql.SelectCpJewelleryFixingStats, StringComparison.Ordinal);
         Assert.DoesNotContain("`remarks`", LegacySurfaceDashboardSql.SelectCpJewelleryFixingRows, StringComparison.Ordinal);

@@ -3786,6 +3786,35 @@ public sealed record CpFinanceCloseDigestResult(
     string Source,
     string Message);
 
+public sealed record CpFinanceCloseBatchDetail(
+    long Id,
+    string Module,
+    string AsOfDate,
+    string Reference,
+    string Status,
+    string Note,
+    long AdminId,
+    long TimeCreated,
+    long TimePosted);
+
+public sealed record CpFinanceCloseLineDigest(
+    long Id,
+    long BatchId,
+    string LineType,
+    long EntityId,
+    string EntityRef,
+    decimal Debit,
+    decimal Credit,
+    decimal Qty,
+    decimal UnitCost,
+    string MetaJson);
+
+public sealed record CpFinanceCloseBatchDetailResult(
+    CpFinanceCloseBatchDetail? Batch,
+    IReadOnlyList<CpFinanceCloseLineDigest> Lines,
+    string Source,
+    string Message);
+
 public sealed record CpJewelleryFixingSummary(
     int FixingCount,
     int OpenFixingCount,

@@ -3933,6 +3933,29 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>Opened finance-close batch — includes note omitted from the dump.</summary>
+    public const string SelectCpFinanceCloseBatchDetail = """
+        SELECT `id`, IFNULL(`module`,'') AS module, IFNULL(`as_of_date`,'') AS as_of_date,
+               IFNULL(`reference`,'') AS reference, IFNULL(`status`,'') AS status,
+               IFNULL(`note`,'') AS note, IFNULL(`admin_id`,0) AS admin_id,
+               IFNULL(`time_created`,0) AS time_created, IFNULL(`time_posted`,0) AS time_posted
+        FROM `epc_erp_opening_batches`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Opened finance-close lines — includes meta_json omitted from the dump.</summary>
+    public const string SelectCpFinanceCloseLines = """
+        SELECT `id`, IFNULL(`batch_id`,0) AS batch_id, IFNULL(`line_type`,'') AS line_type,
+               IFNULL(`entity_id`,0) AS entity_id, IFNULL(`entity_ref`,'') AS entity_ref,
+               IFNULL(`debit`,0) AS debit, IFNULL(`credit`,0) AS credit,
+               IFNULL(`qty`,0) AS qty, IFNULL(`unit_cost`,0) AS unit_cost,
+               IFNULL(`meta_json`,'') AS meta_json
+        FROM `epc_erp_opening_lines`
+        WHERE `batch_id` = @id
+        ORDER BY `id` ASC
+        """;
+
     /// <summary>Jewellery fixing KPIs. Petty-cash count uses epc_jewel_voucher PCV (PHP save path); epc_jewel_petty_cash is a stale/empty helper table.</summary>
     public const string SelectCpJewelleryFixingStats = """
         SELECT
