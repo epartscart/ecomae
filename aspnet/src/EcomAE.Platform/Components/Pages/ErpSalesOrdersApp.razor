@@ -65,6 +65,12 @@
                 </label>
                 <button type="submit">Set status</button>
             </form>
+            <form method="post" action="/erp/subscriptions/generate" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 .65rem">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="/erp/sales-orders-app?tab=subscriptions" />
+                <label>Subscription id <input type="number" name="id" min="1" required style="width:6rem" /></label>
+                <button type="submit">Generate cycle invoice</button>
+            </form>
             <form method="post" action="/erp/ajax/sub-invoice-paid" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
                 <input type="hidden" name="confirmWrites" value="true" />
                 <input type="hidden" name="returnUrl" value="/erp/sales-orders-app?tab=subscriptions" />
@@ -354,7 +360,7 @@
             : "/ERP/?epc_erp_shell=1&area=sales&tab=sales_orders";
         _title = _view == "subscriptions" ? "Subscriptions" : "Sales Orders";
         _subtitle = _view == "subscriptions"
-            ? "Save a subscription or set status here. Cycle invoice generate stays on the Classic twin."
+            ? "Save a subscription, generate a cycle invoice, or set status here."
             : "Sales orders with line totals.";
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);

@@ -14,8 +14,10 @@ public sealed class ErpSubscriptionSavePhpParityTests
         var text = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/ErpSalesOrdersApp.razor"));
         Assert.Contains("/erp/subscriptions/save", text, StringComparison.Ordinal);
         Assert.Contains("/erp/subscriptions/status", text, StringComparison.Ordinal);
+        Assert.Contains("/erp/subscriptions/generate", text, StringComparison.Ordinal);
         Assert.Contains("confirmWrites", text, StringComparison.Ordinal);
         Assert.Contains("Save subscription", text, StringComparison.Ordinal);
+        Assert.Contains("Generate cycle invoice", text, StringComparison.Ordinal);
         Assert.DoesNotContain("@onclick", text, StringComparison.Ordinal);
         Assert.DoesNotContain("@bind", text, StringComparison.Ordinal);
         Assert.DoesNotContain("Open PHP reference", text, StringComparison.Ordinal);
