@@ -5044,6 +5044,21 @@ public sealed record CpSearchTabsDigestResult(
     string Source,
     string Message);
 
+public sealed record CpSearchTabsDetail(
+    long Id,
+    string Caption,
+    int SortOrder,
+    int Enabled,
+    string Name,
+    int ParametersLen,
+    string ParametersExcerpt);
+
+public sealed record CpSearchTabsDetailResult(
+    CpSearchTabsDetail? Tab,
+    IReadOnlyList<CpSearchTabsRowDigest> Siblings,
+    string Source,
+    string Message);
+
 public sealed record CpSystemRequestsSummary(
     int RequestCount,
     int UnviewedCount,

@@ -573,6 +573,9 @@ public interface ISurfaceDashboardSummaryReporter
     Task<CpGeoRegionsDigestResult> BuildCpGeoRegionsDigestAsync(int limit, CancellationToken cancellationToken = default);
     Task<CpProductFiltersDigestResult> BuildCpProductFiltersDigestAsync(int limit, CancellationToken cancellationToken = default);
     Task<CpSearchTabsDigestResult> BuildCpSearchTabsDigestAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Opened search tab (PHP <c>tab_id</c>) plus enabled siblings. parameters_values is a short excerpt.</summary>
+    Task<CpSearchTabsDetailResult> BuildCpSearchTabsDetailAsync(long id, CancellationToken cancellationToken = default);
     Task<CpSystemRequestsDigestResult> BuildCpSystemRequestsDigestAsync(int limit, CancellationToken cancellationToken = default);
 
     /// <summary>Opened VIN request (PHP <c>vin_id</c>) plus message excerpts and same-user siblings. Full HTML omitted.</summary>
