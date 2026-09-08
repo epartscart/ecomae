@@ -2892,6 +2892,46 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>Opened landed cost sheet — includes notes and posted_at.</summary>
+    public const string SelectCpLandedCostSheetDetail = """
+        SELECT `id`, IFNULL(`company_id`,0) AS company_id, IFNULL(`sheet_no`,'') AS sheet_no,
+               IFNULL(`po_reference`,'') AS po_reference, IFNULL(`grn_reference`,'') AS grn_reference,
+               IFNULL(`supplier_id`,0) AS supplier_id, IFNULL(`supplier_name`,'') AS supplier_name,
+               IFNULL(`goods_value`,0) AS goods_value, IFNULL(`total_expenses`,0) AS total_expenses,
+               IFNULL(`distribution_method`,'') AS distribution_method, IFNULL(`currency`,'') AS currency,
+               IFNULL(`status`,'') AS status, IFNULL(`posted_at`,'') AS posted_at,
+               IFNULL(`created_by`,0) AS created_by, IFNULL(`notes`,'') AS notes,
+               IFNULL(`time_created`,0) AS time_created
+        FROM `epc_landed_cost_sheets`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Opened landed cost expenses (PHP epc_landed_cost_expenses by sheet_id).</summary>
+    public const string SelectCpLandedCostExpenses = """
+        SELECT `id`, IFNULL(`sheet_id`,0) AS sheet_id,
+               IFNULL(`expense_type`,'') AS expense_type, IFNULL(`vendor_name`,'') AS vendor_name,
+               IFNULL(`reference`,'') AS reference, IFNULL(`amount`,0) AS amount,
+               IFNULL(`currency`,'') AS currency, IFNULL(`exchange_rate`,0) AS exchange_rate,
+               IFNULL(`amount_local`,0) AS amount_local
+        FROM `epc_landed_cost_expenses`
+        WHERE `sheet_id` = @id
+        ORDER BY `id` ASC
+        """;
+
+    /// <summary>Opened landed cost allocation lines (PHP epc_landed_cost_lines by sheet_id).</summary>
+    public const string SelectCpLandedCostLines = """
+        SELECT `id`, IFNULL(`sheet_id`,0) AS sheet_id, IFNULL(`product_id`,0) AS product_id,
+               IFNULL(`sku`,'') AS sku, IFNULL(`description`,'') AS description,
+               IFNULL(`qty`,0) AS qty, IFNULL(`unit_cost`,0) AS unit_cost,
+               IFNULL(`line_value`,0) AS line_value, IFNULL(`weight`,0) AS weight,
+               IFNULL(`volume`,0) AS volume, IFNULL(`allocated_cost`,0) AS allocated_cost,
+               IFNULL(`new_unit_cost`,0) AS new_unit_cost
+        FROM `epc_landed_cost_lines`
+        WHERE `sheet_id` = @id
+        ORDER BY `id` ASC
+        """;
+
     /// <summary>WMS KPIs from epc_erp_wms_* (CREATE TABLE in epc_erp_wms.php).</summary>
     public const string SelectCpWarehouseWmsStats = """
         SELECT

@@ -9672,6 +9672,102 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    public async Task<CpLandedCostSheetDetailResult> BuildCpLandedCostSheetDetailAsync(long id, CancellationToken cancellationToken = default)
+    {
+        if (id <= 0)
+        {
+            return new(null, [], [], "n/a", "");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return new(null, [], [], "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            CpLandedCostSheetDetail? header = null;
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectCpLandedCostSheetDetail;
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    header = new CpLandedCostSheetDetail(
+                        Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["company_id"] is DBNull ? 0 : reader["company_id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["sheet_no"] is DBNull ? string.Empty : reader["sheet_no"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["po_reference"] is DBNull ? string.Empty : reader["po_reference"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["grn_reference"] is DBNull ? string.Empty : reader["grn_reference"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt64(reader["supplier_id"] is DBNull ? 0 : reader["supplier_id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["supplier_name"] is DBNull ? string.Empty : reader["supplier_name"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToDecimal(reader["goods_value"] is DBNull ? 0 : reader["goods_value"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(reader["total_expenses"] is DBNull ? 0 : reader["total_expenses"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["distribution_method"] is DBNull ? string.Empty : reader["distribution_method"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["currency"] is DBNull ? string.Empty : reader["currency"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["status"] is DBNull ? string.Empty : reader["status"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["posted_at"] is DBNull ? string.Empty : reader["posted_at"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt64(reader["created_by"] is DBNull ? 0 : reader["created_by"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["notes"] is DBNull ? string.Empty : reader["notes"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt64(reader["time_created"] is DBNull ? 0 : reader["time_created"], CultureInfo.InvariantCulture));
+                }
+            }
+
+            var expenses = new List<CpLandedCostExpenseDigest>();
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectCpLandedCostExpenses;
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    expenses.Add(new CpLandedCostExpenseDigest(
+                        Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["sheet_id"] is DBNull ? 0 : reader["sheet_id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["expense_type"] is DBNull ? string.Empty : reader["expense_type"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["vendor_name"] is DBNull ? string.Empty : reader["vendor_name"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["reference"] is DBNull ? string.Empty : reader["reference"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToDecimal(reader["amount"] is DBNull ? 0 : reader["amount"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["currency"] is DBNull ? string.Empty : reader["currency"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToDecimal(reader["exchange_rate"] is DBNull ? 0 : reader["exchange_rate"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(reader["amount_local"] is DBNull ? 0 : reader["amount_local"], CultureInfo.InvariantCulture)));
+                }
+            }
+
+            var lines = new List<CpLandedCostLineDigest>();
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectCpLandedCostLines;
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    lines.Add(new CpLandedCostLineDigest(
+                        Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["sheet_id"] is DBNull ? 0 : reader["sheet_id"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["product_id"] is DBNull ? 0 : reader["product_id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["sku"] is DBNull ? string.Empty : reader["sku"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["description"] is DBNull ? string.Empty : reader["description"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToDecimal(reader["qty"] is DBNull ? 0 : reader["qty"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(reader["unit_cost"] is DBNull ? 0 : reader["unit_cost"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(reader["line_value"] is DBNull ? 0 : reader["line_value"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(reader["weight"] is DBNull ? 0 : reader["weight"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(reader["volume"] is DBNull ? 0 : reader["volume"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(reader["allocated_cost"] is DBNull ? 0 : reader["allocated_cost"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(reader["new_unit_cost"] is DBNull ? 0 : reader["new_unit_cost"], CultureInfo.InvariantCulture)));
+                }
+            }
+
+            return new(header, expenses, lines, "database", header is null ? "Sheet not found." : string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(null, [], [], "database-error", ex.Message);
+        }
+    }
+
     public async Task<CpWarehouseWmsDigestResult> BuildCpWarehouseWmsDigestAsync(int limit, CancellationToken cancellationToken = default)
     {
         var safeLimit = Math.Clamp(limit, 1, 500);

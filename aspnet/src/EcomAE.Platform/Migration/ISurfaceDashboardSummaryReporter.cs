@@ -248,6 +248,9 @@ public interface ISurfaceDashboardSummaryReporter
     /// <summary>Read-only landed cost sheets (notes omitted).</summary>
     Task<CpLandedCostDigestResult> BuildCpLandedCostDigestAsync(int limit, CancellationToken cancellationToken = default);
 
+    /// <summary>Opened landed cost sheet + expenses/lines (PHP <c>sheet_id=</c> detail).</summary>
+    Task<CpLandedCostSheetDetailResult> BuildCpLandedCostSheetDetailAsync(long id, CancellationToken cancellationToken = default);
+
     /// <summary>Read-only WMS work pool.</summary>
     Task<CpWarehouseWmsDigestResult> BuildCpWarehouseWmsDigestAsync(int limit, CancellationToken cancellationToken = default);
 
