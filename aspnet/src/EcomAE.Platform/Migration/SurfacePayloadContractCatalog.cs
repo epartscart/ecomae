@@ -512,7 +512,7 @@ public static class SurfacePayloadContractCatalog
         Contract("cp", "/cp/ops-guides", "control_groups + control_items", "admin-cp",
             ["ok", "surface", "summary", "items", "count", "source", "message", "session", "note"],
             ["groupCount", "itemCount", "showAnywayCount", "urlItemCount", "source", "message"],
-            ["Ops guides KPIs + items", "guide HTML bodies", "PHP Ops guides remains authoritative"],
+            ["Ops guides KPIs + items", "Open ?item_id= loads group siblings", "guide HTML omitted", "PHP Ops guides remains authoritative"],
             "cp/templates/bootstrap_admin/desktop.php"),
         Contract("cp", "/cp/file-manager", "filesystem /content/files", "admin-cp",
             ["ok", "surface", "summary", "entries", "count", "source", "message", "session", "note"],
@@ -1151,7 +1151,7 @@ public static class SurfacePayloadContractCatalog
         new("cp", "sitemap Blazor list", "/cp/sitemap-app", "presentation-shell-scaffolded", "Read UI over /cp/sitemap digest; sitemap.xml file artifact (generation remains PHP); content HTML omitted; PHP Sitemap remains authoritative; tenant chrome stays PHP."),
 
         new("cp", "failover-status Blazor list", "/cp/failover-status-app", "presentation-shell-scaffolded", "Read UI over /cp/failover-status digest; secrets inside failover config; PHP Failover status remains authoritative; tenant chrome stays PHP."),
-        new("cp", "ops-guides Blazor list", "/cp/ops-guides-app", "presentation-shell-scaffolded", "Read UI over /cp/ops-guides digest; guide HTML bodies; PHP Ops guides remains authoritative; tenant chrome stays PHP."),
+        new("cp", "ops-guides Blazor list", "/cp/ops-guides-app", "presentation-shell-scaffolded", "Read UI over /cp/ops-guides digest; Open ?item_id= loads the menu item plus group siblings; guide HTML omitted; PHP Ops guides remains authoritative; tenant chrome stays PHP."),
         new("cp", "operator guides hub", "/cp/guides-app", "digest-wired-awaiting-dual-sample", "PHP-parity operator guide hub (any CP/Super CP/ERP guide); GET-only reader; writes stay PHP."),
         new("cp", "LifeOS system guide Blazor", "/cp/lifeos-guide-app", "presentation-shell-scaffolded", "CP visual + chapter + frontend/backend link catalog over ILifeOsMasterSpec + LifeOsLinkCatalog; Super-CP/CP operators; no PHP twin."),
         new("cp", "file-manager Blazor list", "/cp/file-manager-app", "presentation-shell-scaffolded", "Read UI over /cp/file-manager digest; file contents; PHP File manager remains authoritative; tenant chrome stays PHP."),

@@ -4981,6 +4981,33 @@ public const string SelectCpOpsGuidesStats = """
         LIMIT @limit
         """;
 
+    /// <summary>Opened ops-guides menu item. Guide HTML omitted.</summary>
+    public const string SelectCpOpsGuideItemDetail = """
+        SELECT `id`, IFNULL(`items_group`,0) AS items_group, IFNULL(`caption`,'') AS caption,
+               IFNULL(`url`,'') AS url, IFNULL(`show_anyway`,0) AS show_anyway, IFNULL(`order`,0) AS sort_order
+        FROM `control_items`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Opened item's control_groups row. Caption may be a lang key.</summary>
+    public const string SelectCpOpsGuideGroup = """
+        SELECT `id`, IFNULL(`caption`,'') AS caption, IFNULL(`order`,0) AS sort_order
+        FROM `control_groups`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Sibling menu items in the same group. Guide HTML omitted.</summary>
+    public const string SelectCpOpsGuideSiblings = """
+        SELECT `id`, IFNULL(`caption`,'') AS caption, IFNULL(`url`,'') AS url,
+               IFNULL(`show_anyway`,0) AS show_anyway
+        FROM `control_items`
+        WHERE `items_group` = @group_id
+        ORDER BY `order` ASC, `id` ASC
+        LIMIT 50
+        """;
+
     /// <summary>
     /// On-premises license registry metadata — never selects notes, fingerprint, ip, or modules_json.
     /// License keys are masked in the reporter (not returned raw).

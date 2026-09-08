@@ -14870,6 +14870,84 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    public async Task<CpOpsGuideItemDetailResult> BuildCpOpsGuideItemDetailAsync(long id, CancellationToken cancellationToken = default)
+    {
+        if (id <= 0)
+        {
+            return new(null, null, [], "n/a", "");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return new(null, null, [], "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            CpOpsGuidesRowDigest? header = null;
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectCpOpsGuideItemDetail;
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    header = new CpOpsGuidesRowDigest(
+                        Convert.ToInt64(reader["id"] is DBNull ? 0 : reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["items_group"] is DBNull ? 0 : reader["items_group"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["caption"] is DBNull ? string.Empty : reader["caption"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["url"] is DBNull ? string.Empty : reader["url"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt32(reader["show_anyway"] is DBNull ? 0 : reader["show_anyway"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["sort_order"] is DBNull ? 0 : reader["sort_order"], CultureInfo.InvariantCulture));
+                }
+            }
+
+            if (header is null)
+            {
+                return new(null, null, [], "database", "Item not found.");
+            }
+
+            CpOpsGuideGroupDigest? group = null;
+            if (header.ItemsGroup > 0)
+            {
+                await using var cmd = connection.CreateCommand();
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectCpOpsGuideGroup;
+                AddParameter(cmd, "@id", header.ItemsGroup);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    group = new CpOpsGuideGroupDigest(
+                        Convert.ToInt64(reader["id"] is DBNull ? 0 : reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["caption"] is DBNull ? string.Empty : reader["caption"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt32(reader["sort_order"] is DBNull ? 0 : reader["sort_order"], CultureInfo.InvariantCulture));
+                }
+            }
+
+            var siblings = new List<CpOpsGuideSiblingDigest>();
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectCpOpsGuideSiblings;
+                AddParameter(cmd, "@group_id", header.ItemsGroup);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    siblings.Add(new CpOpsGuideSiblingDigest(
+                        Convert.ToInt64(reader["id"] is DBNull ? 0 : reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["caption"] is DBNull ? string.Empty : reader["caption"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["url"] is DBNull ? string.Empty : reader["url"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt32(reader["show_anyway"] is DBNull ? 0 : reader["show_anyway"], CultureInfo.InvariantCulture)));
+                }
+            }
+
+            return new(header, group, siblings, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(null, null, [], "database-error", ex.Message);
+        }
+    }
+
     public Task<CpFileManagerDigestResult> BuildCpFileManagerDigestAsync(int limit, CancellationToken cancellationToken = default)
     {
         var safeLimit = Math.Clamp(limit, 1, 500);

@@ -50,6 +50,7 @@ public static class ErpRecordOpen
         "policy_id", "rma_id",
         "return_id", "soc2_id",
         "migration_id", "proof_id",
+        "item_id",
     ];
 
     public static string Href(string appPath, string param, long id)

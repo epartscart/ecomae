@@ -525,6 +525,9 @@ public interface ISurfaceDashboardSummaryReporter
     Task<CpSitemapDigestResult> BuildCpSitemapDigestAsync(int limit, CancellationToken cancellationToken = default);
     Task<CpFailoverStatusDigestResult> BuildCpFailoverStatusDigestAsync(int limit, CancellationToken cancellationToken = default);
     Task<CpOpsGuidesDigestResult> BuildCpOpsGuidesDigestAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Opened ops-guides menu item (PHP <c>item_id</c>) plus group siblings. Guide HTML omitted.</summary>
+    Task<CpOpsGuideItemDetailResult> BuildCpOpsGuideItemDetailAsync(long id, CancellationToken cancellationToken = default);
     Task<CpFileManagerDigestResult> BuildCpFileManagerDigestAsync(int limit, CancellationToken cancellationToken = default);
     Task<CpServerIpDigestResult> BuildCpServerIpDigestAsync(int limit, CancellationToken cancellationToken = default);
     Task<CpDebugConsoleDigestResult> BuildCpDebugConsoleDigestAsync(int limit, CancellationToken cancellationToken = default);

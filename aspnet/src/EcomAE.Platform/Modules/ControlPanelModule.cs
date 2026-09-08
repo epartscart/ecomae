@@ -8809,7 +8809,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only control_groups + control_items KPIs + items (guide HTML bodies). PHP Ops guides remains authoritative."
+                note = "Read-only control_groups + control_items KPIs + items. Open ?item_id= loads group siblings. Guide HTML omitted. PHP Ops guides remains authoritative."
             });
         });
 
