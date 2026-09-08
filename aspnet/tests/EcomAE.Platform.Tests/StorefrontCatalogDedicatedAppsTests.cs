@@ -213,6 +213,39 @@ public sealed class StorefrontCatalogDedicatedAppsTests : IDisposable
         Assert.DoesNotContain("SuperCpHostGate", integrations, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void GeoCurrenciesConfigSliderApps_UseClassicHpanelNotInventHero()
+    {
+        var geo = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/CpGeoRegionsApp.razor"));
+        Assert.Contains("class=\"hpanel\"", geo, StringComparison.Ordinal);
+        Assert.Contains("/cp/geo-regions/write", geo, StringComparison.Ordinal);
+        Assert.Contains("name=\"treeJson\"", geo, StringComparison.Ordinal);
+        Assert.DoesNotContain("epc-w22-hero", geo, StringComparison.Ordinal);
+        Assert.DoesNotContain("epc-w22-kpis", geo, StringComparison.Ordinal);
+
+        var currencies = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/CpCurrenciesApp.razor"));
+        Assert.Contains("class=\"hpanel\"", currencies, StringComparison.Ordinal);
+        Assert.Contains("/cp/currencies/set-rate", currencies, StringComparison.Ordinal);
+        Assert.Contains("/cp/currencies/set-available", currencies, StringComparison.Ordinal);
+        Assert.Contains("Classic twin", currencies, StringComparison.Ordinal);
+        Assert.DoesNotContain("PHP twin", currencies, StringComparison.Ordinal);
+        Assert.DoesNotContain("epc-cu-hero", currencies, StringComparison.Ordinal);
+        Assert.DoesNotContain("epc-cu-kpis", currencies, StringComparison.Ordinal);
+
+        var config = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/CpConfigItemsApp.razor"));
+        Assert.Contains("class=\"hpanel\"", config, StringComparison.Ordinal);
+        Assert.Contains("PhpParityModuleBody", config, StringComparison.Ordinal);
+        Assert.DoesNotContain("epc-ci-hero", config, StringComparison.Ordinal);
+        Assert.DoesNotContain("epc-ci-kpis", config, StringComparison.Ordinal);
+
+        var slider = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/CpSliderBannersApp.razor"));
+        Assert.Contains("class=\"hpanel\"", slider, StringComparison.Ordinal);
+        Assert.Contains("/cp/slider-banners/write", slider, StringComparison.Ordinal);
+        Assert.Contains("name=\"action\" value=\"setings\"", slider, StringComparison.Ordinal);
+        Assert.DoesNotContain("epc-w22-hero", slider, StringComparison.Ordinal);
+        Assert.DoesNotContain("epc-w22-kpis", slider, StringComparison.Ordinal);
+    }
+
     private static void AssertPage(string fileName, string phpAlias, string aspNetApp)
     {
         var path = Find("aspnet/src/EcomAE.Platform/Components/Pages/" + fileName);
