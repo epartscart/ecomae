@@ -1595,6 +1595,7 @@ public static class PhpSurfaceLinkMap
                 }
 
                 if (aspNet.Equals("/cp/collections-dunning-app", StringComparison.OrdinalIgnoreCase)
+                    || aspNet.Equals("/cp/tax-toolkits-app", StringComparison.OrdinalIgnoreCase))
                     || aspNet.Equals("/cp/landed-cost-app", StringComparison.OrdinalIgnoreCase))
                     || aspNet.Equals("/cp/soc2-compliance-app", StringComparison.OrdinalIgnoreCase))
                     || aspNet.Equals("/cp/abandoned-carts-app", StringComparison.OrdinalIgnoreCase))

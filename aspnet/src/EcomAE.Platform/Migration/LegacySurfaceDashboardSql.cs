@@ -1443,7 +1443,7 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
-    /// <summary>Tax toolkit catalog — omits rules_json.</summary>
+    /// <summary>Tax toolkit catalog — omits rules_json / country_codes_json.</summary>
     public const string SelectCpTaxToolkits = """
         SELECT `id`, IFNULL(`kit_code`, '') AS kit_code,
                IFNULL(`name`, '') AS name,
@@ -1455,6 +1455,44 @@ public static class LegacySurfaceDashboardSql
         WHERE IFNULL(`active`, 0) = 1
         ORDER BY `kit_code` ASC, `id` ASC
         LIMIT @limit
+        """;
+
+    /// <summary>Opened tax toolkit — includes rules_json and country_codes_json.</summary>
+    public const string SelectCpTaxToolkitDetail = """
+        SELECT `id`, IFNULL(`kit_code`, '') AS kit_code,
+               IFNULL(`name`, '') AS name,
+               IFNULL(`jurisdiction`, '') AS jurisdiction,
+               IFNULL(`country_codes_json`, '') AS country_codes_json,
+               IFNULL(`tax_type`, '') AS tax_type,
+               IFNULL(`rules_json`, '') AS rules_json,
+               IFNULL(`is_system`, 0) AS is_system,
+               IFNULL(`active`, 0) AS active,
+               IFNULL(`time_created`, 0) AS time_created
+        FROM `epc_tax_toolkits`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Opened tax toolkit installs (PHP epc_tax_toolkit_installs by kit_id).</summary>
+    public const string SelectCpTaxToolkitInstalls = """
+        SELECT `id`, IFNULL(`kit_id`, 0) AS kit_id, IFNULL(`kit_code`, '') AS kit_code,
+               IFNULL(`is_default`, 0) AS is_default, IFNULL(`installed_by`, 0) AS installed_by,
+               IFNULL(`time_installed`, 0) AS time_installed
+        FROM `epc_tax_toolkit_installs`
+        WHERE `kit_id` = @id
+        ORDER BY `id` DESC
+        LIMIT 20
+        """;
+
+    /// <summary>Opened tax toolkit refresh history (changelog only; rules_hash is a fingerprint).</summary>
+    public const string SelectCpTaxToolkitUpdates = """
+        SELECT `id`, IFNULL(`kit_code`, '') AS kit_code, IFNULL(`source`, '') AS source,
+               IFNULL(`changelog`, '') AS changelog, IFNULL(`rules_hash`, '') AS rules_hash,
+               IFNULL(`admin_id`, 0) AS admin_id, IFNULL(`time_updated`, 0) AS time_updated
+        FROM `epc_tax_toolkit_updates`
+        WHERE `kit_code` = @kit_code
+        ORDER BY `id` DESC
+        LIMIT 20
         """;
 
     public const string SelectCpTaxToolkitStats = """
