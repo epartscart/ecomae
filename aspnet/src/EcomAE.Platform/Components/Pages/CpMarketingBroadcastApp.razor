@@ -21,11 +21,92 @@
             </div>
             <div class="panel-body">
                 <p>@CpPhpModuleCopy.PurposeFor("/cp/marketing-broadcast-app")</p>
+                <p>Open a campaign for the send body and recipient log. Send stays on Classic twin.</p>
             </div>
         </div>
     </div>
-    <PhpParityModuleBody AppPath="/cp/marketing-broadcast-app" IsAdmin="_isAdmin" />
+    <PhpParityModuleBody AppPath="/cp/marketing-broadcast-app" IsAdmin="_isAdmin" ShowGhostScaffold="false" />
 
+    <ErpOpenedRecordBanner Id="_openedId" Found="@(_openedCampaign is not null)" Caption="@OpenedCaption" ListHref="@_listHref" />
+
+    <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Marketing broadcast KPIs">
+        <div class="kpi"><div class="lbl">Campaigns</div><div class="val">@_summary.Campaigns.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Emails sent</div><div class="val">@_summary.EmailsSent.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">WhatsApp sent</div><div class="val">@_summary.WhatsappSent.ToString(CultureInfo.InvariantCulture)</div></div>
+    </div>
+
+    @if (_openedCampaign is not null)
+    {
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">
+                    @(!string.IsNullOrWhiteSpace(_openedCampaign.Subject) ? _openedCampaign.Subject : ("Campaign #" + _openedCampaign.Id.ToString(CultureInfo.InvariantCulture)))
+                    <span class="label label-default pull-right">@(!string.IsNullOrWhiteSpace(_openedCampaign.Status) ? _openedCampaign.Status : "—")</span>
+                </div>
+                <div class="panel-body">
+                    <p>@(!string.IsNullOrWhiteSpace(_openedCampaign.Channel) ? _openedCampaign.Channel : "—")
+                        · @(!string.IsNullOrWhiteSpace(_openedCampaign.TemplateKey) ? _openedCampaign.TemplateKey : "—")
+                        · @_openedCampaign.SentOk.ToString(CultureInfo.InvariantCulture) / @_openedCampaign.SentFail.ToString(CultureInfo.InvariantCulture)
+                        of @_openedCampaign.TotalTargets.ToString(CultureInfo.InvariantCulture)</p>
+                    <p>@(!string.IsNullOrWhiteSpace(_openedCampaign.AudienceMode) ? _openedCampaign.AudienceMode : "—")
+                        @if (!string.IsNullOrWhiteSpace(_openedCampaign.AudienceMeta))
+                        {
+                            <span> · @_openedCampaign.AudienceMeta</span>
+                        }
+                    </p>
+                    @if (!string.IsNullOrWhiteSpace(_openedCampaign.Preview))
+                    {
+                        <p>@_openedCampaign.Preview</p>
+                    }
+                    @if (string.IsNullOrWhiteSpace(_openedCampaign.BodyHtml) && string.IsNullOrWhiteSpace(_openedCampaign.BodyText))
+                    {
+                        <p>No body yet.</p>
+                    }
+                    else
+                    {
+                        @if (!string.IsNullOrWhiteSpace(_openedCampaign.BodyText))
+                        {
+                            <p class="text-muted">@_openedCampaign.BodyText</p>
+                        }
+                        @if (!string.IsNullOrWhiteSpace(_openedCampaign.BodyHtml))
+                        {
+                            <p class="text-muted">@_openedCampaign.BodyHtml</p>
+                        }
+                    }
+                    @if (_openedLog.Count == 0)
+                    {
+                        <p>No log yet.</p>
+                    }
+                    else
+                    {
+                        <div class="table-responsive">
+                            <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped table-epc">
+                                <thead>
+                                    <tr>
+                                        <th>Recipient</th>
+                                        <th>User</th>
+                                        <th>Status</th>
+                                        <th>Detail</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var row in _openedLog)
+                                    {
+                                        <tr>
+                                            <td>@(!string.IsNullOrWhiteSpace(row.Recipient) ? row.Recipient : "—")</td>
+                                            <td>@row.UserId.ToString(CultureInfo.InvariantCulture)</td>
+                                            <td>@row.Status.ToString(CultureInfo.InvariantCulture)</td>
+                                            <td>@(!string.IsNullOrWhiteSpace(row.Detail) ? row.Detail : "—")</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    }
 
     <p class="help-block">@_summary.Campaigns.ToString(CultureInfo.InvariantCulture) Campaigns · @_summary.EmailsSent.ToString(CultureInfo.InvariantCulture) Emails sent (ok) · @_summary.WhatsappSent.ToString(CultureInfo.InvariantCulture) WhatsApp sent (ok).</p>
 
@@ -34,52 +115,52 @@
             <div class="panel-heading hbuilt">Records</div>
             <div class="panel-body">
                 <div class="table-responsive">
-                    <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Created</th>
-                    <th>Channel</th>
-                    <th>Template</th>
-                    <th>Subject</th>
-                    <th>Preview</th>
-                    <th>Audience</th>
-                    <th>Audience meta</th>
-                    <th>Targets</th>
-                    <th>OK / Fail</th>
-                    <th>Status</th>
-                    <th>Operator</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody>
-                @if (_campaigns.Count == 0)
-                {
-                    <tr><td colspan="13">No records yet.</td></tr>
-                }
-                else
-                {
-                    @foreach (var c in _campaigns)
-                    {
-                        <tr>
-                            <td><strong>@c.Id.ToString(CultureInfo.InvariantCulture)</strong></td>
-                            <td>@c.CreatedAt.ToString(CultureInfo.InvariantCulture)</td>
-                            <td>@(string.IsNullOrWhiteSpace(c.Channel) ? "—" : c.Channel)</td>
-                            <td>@(string.IsNullOrWhiteSpace(c.TemplateKey) ? "—" : c.TemplateKey)</td>
-                            <td>@(string.IsNullOrWhiteSpace(c.Subject) ? "—" : c.Subject)</td>
-                            <td>@(string.IsNullOrWhiteSpace(c.Preview) ? "—" : c.Preview)</td>
-                            <td>@(string.IsNullOrWhiteSpace(c.AudienceMode) ? "—" : c.AudienceMode)</td>
-                            <td>@(string.IsNullOrWhiteSpace(c.AudienceMeta) ? "—" : c.AudienceMeta)</td>
-                            <td>@c.TotalTargets.ToString(CultureInfo.InvariantCulture)</td>
-                            <td>@c.SentOk.ToString(CultureInfo.InvariantCulture) / @c.SentFail.ToString(CultureInfo.InvariantCulture)</td>
-                            <td>@(string.IsNullOrWhiteSpace(c.Status) ? "—" : c.Status)</td>
-                            <td>@c.OperatorId.ToString(CultureInfo.InvariantCulture)</td>
-                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
-                        </tr>
-                    }
-                }
-            </tbody>
-                        </table>
+                    <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped table-bordered table-epc epc-erp-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Created</th>
+                                <th>Channel</th>
+                                <th>Template</th>
+                                <th>Subject</th>
+                                <th>Preview</th>
+                                <th>Audience</th>
+                                <th>Audience meta</th>
+                                <th>Targets</th>
+                                <th>OK / Fail</th>
+                                <th>Status</th>
+                                <th>Operator</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (_campaigns.Count == 0)
+                            {
+                                <tr><td colspan="13">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? "No records yet." : _message) : "Sign in with a staff session for live rows.")</td></tr>
+                            }
+                            else
+                            {
+                                @foreach (var c in _campaigns)
+                                {
+                                    <tr id="erp-row-@c.Id.ToString(CultureInfo.InvariantCulture)" class="@ErpRecordOpen.RowClass(c.Id, _openedId)">
+                                        <td><strong>@c.Id.ToString(CultureInfo.InvariantCulture)</strong></td>
+                                        <td>@c.CreatedAt.ToString(CultureInfo.InvariantCulture)</td>
+                                        <td>@(string.IsNullOrWhiteSpace(c.Channel) ? "—" : c.Channel)</td>
+                                        <td>@(string.IsNullOrWhiteSpace(c.TemplateKey) ? "—" : c.TemplateKey)</td>
+                                        <td>@(string.IsNullOrWhiteSpace(c.Subject) ? "—" : c.Subject)</td>
+                                        <td>@(string.IsNullOrWhiteSpace(c.Preview) ? "—" : c.Preview)</td>
+                                        <td>@(string.IsNullOrWhiteSpace(c.AudienceMode) ? "—" : c.AudienceMode)</td>
+                                        <td>@(string.IsNullOrWhiteSpace(c.AudienceMeta) ? "—" : c.AudienceMeta)</td>
+                                        <td>@c.TotalTargets.ToString(CultureInfo.InvariantCulture)</td>
+                                        <td>@c.SentOk.ToString(CultureInfo.InvariantCulture) / @c.SentFail.ToString(CultureInfo.InvariantCulture)</td>
+                                        <td>@(string.IsNullOrWhiteSpace(c.Status) ? "—" : c.Status)</td>
+                                        <td>@c.OperatorId.ToString(CultureInfo.InvariantCulture)</td>
+                                        <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href(_listHref, "campaign_id", c.Id)">Open</a></td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
@@ -94,11 +175,23 @@
     private IReadOnlyList<CpMarketingBroadcastCampaignDigest> _campaigns = [];
     private string _source = "n/a";
     private string _message = "";
+    private long _openedId;
+    private CpMarketingBroadcastCampaignDetail? _openedCampaign;
+    private IReadOnlyList<CpMarketingBroadcastLogDigest> _openedLog = [];
+    private string _listHref = "/cp/marketing-broadcast-app";
+
+    private string OpenedCaption => _openedCampaign is null
+        ? ""
+        : (string.IsNullOrWhiteSpace(_openedCampaign.Subject)
+            ? ("Campaign #" + _openedCampaign.Id.ToString(CultureInfo.InvariantCulture))
+            : _openedCampaign.Subject);
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
+        _listHref = "/cp/marketing-broadcast-app";
+        _openedId = ErpRecordOpen.ReadId(ctx.Request, "campaign_id");
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
@@ -112,5 +205,24 @@
         _campaigns = result.Campaigns;
         _source = result.Source;
         _message = result.Message;
+
+        if (_openedId > 0)
+        {
+            var detail = await Dashboards.BuildCpMarketingBroadcastDetailAsync(_openedId, ctx.RequestAborted);
+            _openedCampaign = detail.Campaign;
+            _openedLog = detail.Log;
+            if (_openedCampaign is not null)
+            {
+                var openedList = _campaigns.FirstOrDefault(r => r.Id == _openedId);
+                if (openedList is not null)
+                {
+                    _campaigns = new[] { openedList }.Concat(_campaigns.Where(r => r.Id != _openedId)).ToList();
+                }
+            }
+            else if (!string.IsNullOrWhiteSpace(detail.Message))
+            {
+                _message = detail.Message;
+            }
+        }
     }
 }

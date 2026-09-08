@@ -58,6 +58,7 @@ public sealed class SurfaceDashboardSummaryReporterTests
         var metabase = await reporter.BuildCpMetabaseDigestAsync(10);
         var nlReporting = await reporter.ListCpNlReportDefinitionsAsync(10);
         var marketing = await reporter.BuildCpMarketingBroadcastDigestAsync(10);
+        var marketingDetail = await reporter.BuildCpMarketingBroadcastDetailAsync(11);
         var demoTenants = await reporter.ListCpDemoTenantsAsync(10);
         var partsAgent = await reporter.BuildCpPartsAgentDigestAsync(10);
         var posOverview = await reporter.BuildCpPosOverviewDigestAsync(10);
@@ -268,6 +269,7 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.Equal("migration", metabase.Source);
         Assert.Equal("migration", nlReporting.Source);
         Assert.Equal("migration", marketing.Source);
+        Assert.Equal("migration", marketingDetail.Source);
         Assert.Equal("migration", demoTenants.Source);
         Assert.Equal("migration", partsAgent.Source);
         Assert.Equal("migration", posOverview.Source);
@@ -503,6 +505,11 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.DoesNotContain("query_template", LegacySurfaceDashboardSql.SelectCpNlReportDefinitions, StringComparison.Ordinal);
         Assert.Contains("epc_marketing_broadcast_campaigns", LegacySurfaceDashboardSql.SelectCpMarketingBroadcastCampaigns, StringComparison.Ordinal);
         Assert.DoesNotContain("body_html", LegacySurfaceDashboardSql.SelectCpMarketingBroadcastCampaigns, StringComparison.Ordinal);
+        Assert.DoesNotContain("body_text", LegacySurfaceDashboardSql.SelectCpMarketingBroadcastCampaigns, StringComparison.Ordinal);
+        Assert.Contains("body_html", LegacySurfaceDashboardSql.SelectCpMarketingBroadcastCampaignDetail, StringComparison.Ordinal);
+        Assert.Contains("body_text", LegacySurfaceDashboardSql.SelectCpMarketingBroadcastCampaignDetail, StringComparison.Ordinal);
+        Assert.Contains("epc_marketing_broadcast_log", LegacySurfaceDashboardSql.SelectCpMarketingBroadcastLog, StringComparison.Ordinal);
+        Assert.Contains("`campaign_id` = @id", LegacySurfaceDashboardSql.SelectCpMarketingBroadcastLog, StringComparison.Ordinal);
         Assert.Contains("is_demo", LegacySurfaceDashboardSql.SelectCpDemoTenants, StringComparison.Ordinal);
         Assert.DoesNotContain("password", LegacySurfaceDashboardSql.SelectCpDemoTenants, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("epc_parts_agent_session", LegacySurfaceDashboardSql.SelectCpPartsAgentSessions, StringComparison.Ordinal);

@@ -6028,6 +6028,80 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    public async Task<CpMarketingBroadcastDetailResult> BuildCpMarketingBroadcastDetailAsync(long id, CancellationToken cancellationToken = default)
+    {
+        if (id <= 0)
+        {
+            return new(null, [], "n/a", "");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return new(null, [], "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            CpMarketingBroadcastCampaignDetail? header = null;
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectCpMarketingBroadcastCampaignDetail;
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    header = new CpMarketingBroadcastCampaignDetail(
+                        Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["created_at"] is DBNull ? 0 : reader["created_at"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["channel"] is DBNull ? string.Empty : reader["channel"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["template_key"] is DBNull ? string.Empty : reader["template_key"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["subject"] is DBNull ? string.Empty : reader["subject"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["preview"] is DBNull ? string.Empty : reader["preview"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["body_html"] is DBNull ? string.Empty : reader["body_html"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["body_text"] is DBNull ? string.Empty : reader["body_text"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["audience_mode"] is DBNull ? string.Empty : reader["audience_mode"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["audience_meta"] is DBNull ? string.Empty : reader["audience_meta"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt32(reader["total_targets"] is DBNull ? 0 : reader["total_targets"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["sent_ok"] is DBNull ? 0 : reader["sent_ok"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["sent_fail"] is DBNull ? 0 : reader["sent_fail"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["status"] is DBNull ? string.Empty : reader["status"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt64(reader["operator_id"] is DBNull ? 0 : reader["operator_id"], CultureInfo.InvariantCulture));
+                }
+            }
+
+            if (header is null)
+            {
+                return new(null, [], "database", "Campaign not found.");
+            }
+
+            var log = new List<CpMarketingBroadcastLogDigest>();
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectCpMarketingBroadcastLog;
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    log.Add(new CpMarketingBroadcastLogDigest(
+                        Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["created_at"] is DBNull ? 0 : reader["created_at"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["recipient"] is DBNull ? string.Empty : reader["recipient"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt64(reader["user_id"] is DBNull ? 0 : reader["user_id"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["status"] is DBNull ? 0 : reader["status"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["detail"] is DBNull ? string.Empty : reader["detail"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["wa_link"] is DBNull ? string.Empty : reader["wa_link"], CultureInfo.InvariantCulture) ?? string.Empty));
+                }
+            }
+
+            return new(header, log, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(null, [], "database-error", ex.Message);
+        }
+    }
+
     public async Task<CpDemoTenantsDigestResult> ListCpDemoTenantsAsync(int limit, CancellationToken cancellationToken = default)
     {
         var safeLimit = Math.Clamp(limit, 1, 500);

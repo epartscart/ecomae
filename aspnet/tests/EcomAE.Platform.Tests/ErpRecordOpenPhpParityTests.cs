@@ -48,6 +48,7 @@ public sealed class ErpRecordOpenPhpParityTests
     [InlineData("/CP/shop/returns-manager?page=detail&return_id=8", "/cp/returns-rma-app?return_id=8")]
     [InlineData("/CP/shop/finance/epc_warranty_rma?rma_id=6", "/cp/returns-rma-app?rma_id=6")]
     [InlineData("/CP/shop/quote-requests?quote_id=15", "/cp/quote-requests-app?quote_id=15")]
+    [InlineData("/CP/control/portal/epc_marketing_broadcast?campaign_id=11", "/cp/marketing-broadcast-app?campaign_id=11")]
     public void AspNetPrimaryHref_KeepsErpRecordId(string php, string expected)
     {
         var href = PhpSurfaceLinkMap.AspNetPrimaryHref(php);
@@ -157,6 +158,7 @@ public sealed class ErpRecordOpenPhpParityTests
     [InlineData("CpInsuranceComplianceApp.razor", "pol")]
     [InlineData("CpReturnsRmaApp.razor", "rma_id")]
     [InlineData("CpQuoteRequestsApp.razor", "quote_id")]
+    [InlineData("CpMarketingBroadcastApp.razor", "campaign_id")]
     public void DumpListApps_RowOpenIsRecordUrl(string fileName, string param)
     {
         var root = FindRepoRoot();
@@ -333,6 +335,23 @@ public sealed class ErpRecordOpenPhpParityTests
     }
 
     [Fact]
+    public void MarketingBroadcastApp_OpenLoadsBodyAndSendLog()
+    {
+        var root = FindRepoRoot();
+        var text = File.ReadAllText(Path.Combine(root,
+            "aspnet/src/EcomAE.Platform/Components/Pages/CpMarketingBroadcastApp.razor"));
+        Assert.Contains("ErpRecordOpen.Href(_listHref, \"campaign_id\"", text, StringComparison.Ordinal);
+        Assert.Contains("ErpOpenedRecordBanner", text, StringComparison.Ordinal);
+        Assert.Contains("ReadId(ctx.Request, \"campaign_id\")", text, StringComparison.Ordinal);
+        Assert.Contains("BuildCpMarketingBroadcastDetailAsync", text, StringComparison.Ordinal);
+        Assert.Contains("No body yet.", text, StringComparison.Ordinal);
+        Assert.Contains("No log yet.", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)\">Open", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("/php-reference/", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("ASP.NET", text, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void ReadId_AcceptsReqIdAndPhpRqAlias()
     {
         Assert.Equal("/erp/purchase-requests-app?req_id=9#erp-row-9",
@@ -368,6 +387,13 @@ public sealed class ErpRecordOpenPhpParityTests
             ErpRecordOpen.PreserveRecordQuery(
                 "/cp/api-clients-app",
                 "/CP/control/portal/epc_api_clients_manage?api_client_id=7"));
+        Assert.Equal("/cp/marketing-broadcast-app?campaign_id=11#erp-row-11",
+            ErpRecordOpen.Href("/cp/marketing-broadcast-app", "campaign_id", 11));
+        Assert.Equal(
+            "/cp/marketing-broadcast-app?campaign_id=11",
+            ErpRecordOpen.PreserveRecordQuery(
+                "/cp/marketing-broadcast-app",
+                "/CP/control/portal/epc_marketing_broadcast?campaign_id=11"));
     }
 
     [Fact]

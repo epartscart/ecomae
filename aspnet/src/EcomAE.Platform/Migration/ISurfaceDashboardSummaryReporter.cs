@@ -125,6 +125,9 @@ public interface ISurfaceDashboardSummaryReporter
     /// <summary>Read-only marketing broadcast campaigns (bodies omitted; send remains PHP).</summary>
     Task<CpMarketingBroadcastDigestResult> BuildCpMarketingBroadcastDigestAsync(int limit, CancellationToken cancellationToken = default);
 
+    /// <summary>Opened broadcast campaign plus send log (PHP <c>campaign_id</c>).</summary>
+    Task<CpMarketingBroadcastDetailResult> BuildCpMarketingBroadcastDetailAsync(long id, CancellationToken cancellationToken = default);
+
     /// <summary>Read-only demo tenant registry (passwords never returned).</summary>
     Task<CpDemoTenantsDigestResult> ListCpDemoTenantsAsync(int limit, CancellationToken cancellationToken = default);
 
