@@ -3983,8 +3983,8 @@ public sealed class ErpModule : ISurfaceModule
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,true,null,false); return Results.Ok(dryRun.Evaluate(new ErpBosWfDecideRequest(body.Id, body.Approve, body.Note, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxBosWfRaiseTest, async (HttpContext context, ErpBosWfRaiseTestBody? body, ILegacySessionValidator validator, IErpBosWfRaiseTestDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(false); return Results.Ok(dryRun.Evaluate(new ErpBosWfRaiseTestRequest(body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxBosIntelToggleControl, async (HttpContext context, ErpBosIntelToggleControlBody? body, ILegacySessionValidator validator, IErpBosIntelToggleControlDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(null,true,false); return Results.Ok(dryRun.Evaluate(new ErpBosIntelToggleControlRequest(body.ControlKey, body.Enabled, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxBosIntelToggleControl, HandleBosIntelToggleAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpBosIntelToggle, HandleBosIntelToggleAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxBosVatRefundSave, async (
             HttpContext context,
             ILegacySessionValidator validator,
@@ -11772,6 +11772,56 @@ public sealed class ErpModule : ISurfaceModule
                 session = SessionPayload(session),
             });
         }
+    }
+
+    private static async Task<IResult> HandleBosIntelToggleAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpBosIntelToggleControlDryRun dryRun,
+        IErpBosIntelToggleWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/app", "Admin ERP capability required for industry-control toggle.");
+        }
+
+        var code = "";
+        var checkedOn = false;
+        var confirm = false;
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            code = form.ContainsKey("code")
+                ? form["code"].ToString()
+                : form["controlKey"].ToString();
+            checkedOn = ErpBosIntelToggleWriteService.PhpCheckedIsOne(
+                form.ContainsKey("checked") ? form["checked"].ToString() : form["enabled"].ToString());
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+        }
+        else
+        {
+            var root = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<System.Text.Json.JsonElement>(context, cancellationToken);
+            confirm = ErpBosIntelToggleWriteService.JsonFlag(root, "confirmWrites", "confirm_writes");
+            code = ErpBosIntelToggleWriteService.JsonText(root, "code", "controlKey");
+            checkedOn = ErpBosIntelToggleWriteService.JsonCheckedIsOne(root, "checked");
+        }
+
+        if (!confirm)
+        {
+            return Results.Ok(dryRun.Evaluate(new ErpBosIntelToggleControlRequest(code, checkedOn, false)).ToPayload(SessionPayload(session)));
+        }
+
+        var written = await writes.ToggleAsync(
+            new ErpBosIntelToggleWriteRequest(code, checkedOn),
+            cancellationToken);
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/erp/app",
+            written.Succeeded,
+            written.Message,
+            new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
     }
 
     private static async Task<IResult> HandleWhtCodeSaveAsync(

@@ -374,6 +374,7 @@ public sealed class PhpVsAspNetRemovalMatrixTests
             ("ErpGlJournalsApp.razor", "Save journal voucher"),
             ("CpFulfillmentQueueApp.razor", "/cp/fulfillment-queue/write"),
             ("CpCollectionsDunningApp.razor", "/cp/collections-dunning/write"),
+            ("ErpBosDashboardApp.razor", "/erp/bos-intel/toggle"),
         };
         foreach (var (name, needle) in cases)
         {

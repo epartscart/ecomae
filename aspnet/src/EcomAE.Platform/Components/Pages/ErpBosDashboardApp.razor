@@ -18,6 +18,7 @@
   NOT the fleet command page. Fleet lives at /erp/fleet-app (Super CP operator tool).
 *@
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Dashboard" BreadcrumbArea="Home" BreadcrumbTab="Dashboard">
+    <ErpPhpFlash Ok="@_ok" Err="@_err" />
     <div class="ns-dash" data-dashboard-profile="@_profile.Key" data-epc-industry="@_industryCode">
         <div class="ns-hero">
             <div class="ns-hero-panel">
@@ -508,7 +509,24 @@
             </h3>
             <div class="ns-port">
                 <div class="bd">
-                    <p class="text-muted" style="margin-top:0;">Best-practice operational controls for your industry. Tick-to-save remains on the PHP workspace; this list is the same recommended set so the section is never blank.</p>
+                    <p class="text-muted" style="margin-top:0;">Best-practice operational controls for your industry. Tick the ones you have in place; the checklist is saved per tenant.</p>
+                    @if (_isErp)
+                    {
+                        <ErpPhpCreateWell Title="Toggle industry control">
+                            <form method="post" action="/erp/bos-intel/toggle" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin-bottom:12px;">
+                                <input type="hidden" name="returnUrl" value="/erp/app" />
+                                <input type="hidden" name="confirmWrites" value="true" />
+                                <label>Code <input class="form-control input-sm" name="code" placeholder="monthly_close" style="width:180px;" /></label>
+                                <label>In place
+                                    <select class="form-control input-sm" name="checked" style="width:80px;">
+                                        <option value="1">yes</option>
+                                        <option value="0">no</option>
+                                    </select>
+                                </label>
+                                <button type="submit" class="btn btn-primary btn-sm">Save</button>
+                            </form>
+                        </ErpPhpCreateWell>
+                    }
                     <table class="table table-bordered table-condensed" style="margin-bottom:0;">
                         <thead><tr><th style="width:70px;">In place</th><th>Control</th><th>What to do</th></tr></thead>
                         <tbody>
@@ -657,6 +675,9 @@
     private ErpWorkspaceHomeDigest _home = EmptyHome();
     private ErpWorkspacePeriodKpis _cur = EmptyPeriod();
     private bool _isAdmin;
+    private bool _isErp;
+    private string _ok = "";
+    private string _err = "";
     private bool _isSuperHost;
     private bool _jewellery;
     private long _activeCompanyId;
@@ -756,6 +777,9 @@
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = session.Kind == LegacySessionKind.Admin;
+        _isErp = _isAdmin && session.Capabilities.Contains("erp");
+        _ok = ctx.Request.Query["ok"].ToString();
+        _err = ctx.Request.Query["err"].ToString();
         ApplyProfile(_isAdmin || _isSuperHost, ctx.Request.Query["dash_profile"].ToString());
 
         if (_isAdmin)
