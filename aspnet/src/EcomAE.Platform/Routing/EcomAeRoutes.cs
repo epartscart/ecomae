@@ -1053,7 +1053,9 @@ public static class EcomAeRoutes
     public const string ErpAjaxPmToggle = "/erp/ajax/pm-toggle";
     /// <summary>Wave B dry-run for PHP pm_budget_save (writes=0).</summary>
     public const string ErpAjaxPmBudgetSave = "/erp/ajax/pm-budget-save";
-    /// <summary>Wave B dry-run for PHP pm_budget_line_save (writes=0).</summary>
+    /// <summary>HTML form POST for PHP pm_budget_line_save. confirmWrites=true writes via IErpPmBudgetLineSaveWriteService.</summary>
+    public const string ErpPmBudgetLineSave = "/erp/pm/budget-lines/add";
+    /// <summary>Live PHP pm_budget_line_save ajax alias of <see cref="ErpPmBudgetLineSave"/>.</summary>
     public const string ErpAjaxPmBudgetLineSave = "/erp/ajax/pm-budget-line-save";
     /// <summary>Wave B dry-run for PHP pm_listing_save (writes=0).</summary>
     public const string ErpAjaxPmListingSave = "/erp/ajax/pm-listing-save";
