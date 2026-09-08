@@ -61,6 +61,7 @@ public sealed class ErpRecordOpenPhpParityTests
     [InlineData("/CP/requests?vin_id=6", "/cp/system-requests-app?vin_id=6")]
     [InlineData("/ERP/?epc_erp_shell=1&area=consolidations&tab=consolidation_bu&cons_id=3", "/erp/consolidations-app?cons_id=3")]
     [InlineData("/CP/shop/finance/epc_po_approval?po_req_id=4", "/cp/po-approvals-app?po_req_id=4")]
+    [InlineData("/ERP/?epc_erp_shell=1&area=budgeting&tab=budgeting&budget_id=5", "/erp/budgets-app?budget_id=5")]
     [InlineData("/ERP/?epc_erp_shell=1&area=landed_cost_area&tab=landed_cost&sheet_id=6", "/erp/landed-cost-app?sheet_id=6")]
     [InlineData("/CP/control/portal/epc_soc2_compliance?soc2_id=8", "/cp/soc2-compliance-app?soc2_id=8")]
     [InlineData("/ERP/?epc_erp_shell=1&area=tax&tab=compliance&soc2_id=8", "/erp/soc2-compliance-app?soc2_id=8")]
@@ -1089,6 +1090,41 @@ public sealed class ErpRecordOpenPhpParityTests
             ErpRecordOpen.PreserveRecordQuery(
                 "/cp/po-approvals-app",
                 "/CP/shop/finance/epc_po_approval?po_req_id=4"));
+    }
+
+    [Fact]
+    public void BudgetsApp_OpenLoadsNoteExcerptAndKeepsWrites()
+    {
+        var root = FindRepoRoot();
+        var text = File.ReadAllText(Path.Combine(root,
+            "aspnet/src/EcomAE.Platform/Components/Pages/CpBudgetsApp.razor"));
+        Assert.Contains("ErpRecordOpen.Href(_listHref, \"budget_id\"", text, StringComparison.Ordinal);
+        Assert.Contains("ErpOpenedRecordBanner", text, StringComparison.Ordinal);
+        Assert.Contains("ReadId(ctx.Request, \"budget_id\")", text, StringComparison.Ordinal);
+        Assert.Contains("BuildCpBudgetsDetailAsync", text, StringComparison.Ordinal);
+        Assert.Contains("No note excerpt yet.", text, StringComparison.Ordinal);
+        Assert.Contains("No budget lines yet.", text, StringComparison.Ordinal);
+        Assert.Contains("No same-FY siblings yet.", text, StringComparison.Ordinal);
+        Assert.Contains("ShowGhostScaffold=\"false\"", text, StringComparison.Ordinal);
+        Assert.Contains("table-epc", text, StringComparison.Ordinal);
+        Assert.Contains("/erp/pm/budgets/save", text, StringComparison.Ordinal);
+        Assert.Contains("/erp/pm/budget-lines/add", text, StringComparison.Ordinal);
+        Assert.Contains("/erp/budgets/advance", text, StringComparison.Ordinal);
+        Assert.Contains("PhpParityModuleBody", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)\">Open", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("/php-reference/", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("ASP.NET", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("epc-bud-hero", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("@bind", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("@onclick", text, StringComparison.Ordinal);
+
+        Assert.Equal("/cp/budgets-app?budget_id=5#erp-row-5",
+            ErpRecordOpen.Href("/cp/budgets-app", "budget_id", 5));
+        Assert.Equal(
+            "/erp/budgets-app?budget_id=5",
+            ErpRecordOpen.PreserveRecordQuery(
+                "/erp/budgets-app",
+                "/ERP/?epc_erp_shell=1&area=budgeting&tab=budgeting&budget_id=5"));
     }
 
     [Fact]

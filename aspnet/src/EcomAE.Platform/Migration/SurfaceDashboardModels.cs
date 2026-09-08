@@ -1791,6 +1791,35 @@ public sealed record CpBudgetsDigestResult(
     string Source,
     string Message);
 
+public sealed record CpBudgetDetail(
+    long Id,
+    string Code,
+    string Name,
+    string FiscalYear,
+    long BusinessUnitId,
+    bool IsMaster,
+    bool Active,
+    long TimeCreated,
+    long TimeUpdated,
+    int NoteLen,
+    string NoteExcerpt);
+
+public sealed record CpBudgetLineDigest(
+    long Id,
+    long BudgetId,
+    string AccountCode,
+    string AccountName,
+    int MonthNo,
+    decimal Amount,
+    long TimeUpdated);
+
+public sealed record CpBudgetsDetailResult(
+    CpBudgetDetail? Budget,
+    IReadOnlyList<CpBudgetLineDigest> Lines,
+    IReadOnlyList<CpBudgetDigest> Siblings,
+    string Source,
+    string Message);
+
 public sealed record CpCarriersSummary(
     int CarrierCount,
     int ActiveCarriers,

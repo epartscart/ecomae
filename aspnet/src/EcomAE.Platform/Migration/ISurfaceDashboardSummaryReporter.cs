@@ -212,6 +212,9 @@ public interface ISurfaceDashboardSummaryReporter
     /// <summary>Read-only budgets (note omitted).</summary>
     Task<CpBudgetsDigestResult> BuildCpBudgetsDigestAsync(int limit, CancellationToken cancellationToken = default);
 
+    /// <summary>Opened budget (PHP <c>budget_id</c>) plus monthly lines. Note is a short excerpt.</summary>
+    Task<CpBudgetsDetailResult> BuildCpBudgetsDetailAsync(long id, CancellationToken cancellationToken = default);
+
     /// <summary>Read-only carriers (contact PII omitted).</summary>
     Task<CpCarriersDigestResult> BuildCpCarriersDigestAsync(int limit, CancellationToken cancellationToken = default);
 

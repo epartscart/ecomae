@@ -6638,7 +6638,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only epc_erp_pm_budgets KPIs + budgets (note omitted). PHP budgeting shell remains authoritative."
+                note = "Read-only epc_erp_pm_budgets KPIs + budgets. Open ?budget_id= loads 280-char note excerpt plus monthly lines. note omitted from the list. Save/add-line/advance write here."
             });
         });
 

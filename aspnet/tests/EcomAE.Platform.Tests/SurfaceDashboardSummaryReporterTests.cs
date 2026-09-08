@@ -547,6 +547,12 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.DoesNotContain("pdf_url", LegacySurfaceDashboardSql.SelectCpUaeTaxItems, StringComparison.Ordinal);
         Assert.Contains("epc_erp_pm_budgets", LegacySurfaceDashboardSql.SelectCpBudgets, StringComparison.Ordinal);
         Assert.DoesNotContain("`note`", LegacySurfaceDashboardSql.SelectCpBudgets, StringComparison.Ordinal);
+        Assert.Contains("LEFT(IFNULL(`note`,''), 280)", LegacySurfaceDashboardSql.SelectCpBudgetsDetail, StringComparison.Ordinal);
+        Assert.Contains("`id` = @id", LegacySurfaceDashboardSql.SelectCpBudgetsDetail, StringComparison.Ordinal);
+        Assert.Contains("epc_erp_pm_budget_lines", LegacySurfaceDashboardSql.SelectCpBudgetLines, StringComparison.Ordinal);
+        Assert.Contains("`budget_id` = @id", LegacySurfaceDashboardSql.SelectCpBudgetLines, StringComparison.Ordinal);
+        Assert.DoesNotContain("`note`", LegacySurfaceDashboardSql.SelectCpBudgetsFiscalSiblings, StringComparison.Ordinal);
+        Assert.Contains("@fiscal_year", LegacySurfaceDashboardSql.SelectCpBudgetsFiscalSiblings, StringComparison.Ordinal);
         Assert.Contains("epc_carrier_accounts", LegacySurfaceDashboardSql.SelectCpCarriers, StringComparison.Ordinal);
         Assert.Contains("epc_carrier_shipments", LegacySurfaceDashboardSql.SelectCpCarrierStats, StringComparison.Ordinal);
         Assert.DoesNotContain("epc_erp_carriers", LegacySurfaceDashboardSql.SelectCpCarriers, StringComparison.Ordinal);
