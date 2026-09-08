@@ -720,6 +720,23 @@ public sealed record CpStorageListResult(
     string Source,
     string Message);
 
+public sealed record CpStorageDetail(
+    long Id,
+    string Name,
+    string ShortName,
+    bool Hidden,
+    long Currency,
+    long InterfaceType,
+    int BgLineColor,
+    int UsersLen,
+    string UsersExcerpt);
+
+public sealed record CpStorageDetailResult(
+    CpStorageDetail? Storage,
+    IReadOnlyList<CpStorageDigest> Siblings,
+    string Source,
+    string Message);
+
 public sealed record BosAuditLogDigest(
     long Id,
     long Ts,

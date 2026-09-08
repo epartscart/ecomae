@@ -3964,7 +3964,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only shop_storages digest. PHP shop storages UI remains authoritative."
+                note = "Read-only shop_storages digest. Open ?storage_id= loads currency/interface and a 280-char users excerpt. connection_options omitted. Groups/write/membership write here."
             });
         });
         endpoints.MapPost(EcomAeRoutes.CpStoragesGroups, async (

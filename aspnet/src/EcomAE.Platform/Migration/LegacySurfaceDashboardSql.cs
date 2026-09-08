@@ -957,12 +957,36 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>Storages list — connection_options/users/currency omitted.</summary>
     public const string SelectCpStorages = """
         SELECT `id`, IFNULL(`name`, '') AS name, IFNULL(`short_name`, '') AS short_name,
                IFNULL(`hidden`, 0) AS hidden
         FROM `shop_storages`
         ORDER BY `id` ASC
         LIMIT @limit
+        """;
+
+    /// <summary>Opened warehouse. users is a short excerpt. connection_options omitted.</summary>
+    public const string SelectCpStoragesDetail = """
+        SELECT `id`, IFNULL(`name`,'') AS name, IFNULL(`short_name`,'') AS short_name,
+               IFNULL(`hidden`,0) AS hidden, IFNULL(`currency`,0) AS currency,
+               IFNULL(`interface_type`,0) AS interface_type,
+               IFNULL(`bg_line_color`,0) AS bg_line_color,
+               CHAR_LENGTH(IFNULL(`users`,'')) AS users_len,
+               LEFT(IFNULL(`users`,''), 280) AS users_excerpt
+        FROM `shop_storages`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Other warehouses with the same interface. connection_options/users omitted.</summary>
+    public const string SelectCpStoragesInterfaceSiblings = """
+        SELECT `id`, IFNULL(`name`,'') AS name, IFNULL(`short_name`,'') AS short_name,
+               IFNULL(`hidden`,0) AS hidden
+        FROM `shop_storages`
+        WHERE `interface_type` = @interface_type AND `id` <> @id
+        ORDER BY `id` ASC
+        LIMIT 50
         """;
 
     public const string SelectBosAuditLog = """

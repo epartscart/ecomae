@@ -96,6 +96,9 @@ public interface ISurfaceDashboardSummaryReporter
 
     Task<CpStorageListResult> ListCpStoragesAsync(int limit, CancellationToken cancellationToken = default);
 
+    /// <summary>Opened warehouse (PHP <c>id</c> / <c>storage_id</c>). users excerpt only; connection_options omitted.</summary>
+    Task<CpStorageDetailResult> BuildCpStoragesDetailAsync(long id, CancellationToken cancellationToken = default);
+
     Task<BosAuditLogListResult> ListBosAuditLogAsync(string? area, int limit, CancellationToken cancellationToken = default);
 
     Task<ErpPurchaseOrderListResult> ListErpPurchaseOrdersAsync(int limit, CancellationToken cancellationToken = default);

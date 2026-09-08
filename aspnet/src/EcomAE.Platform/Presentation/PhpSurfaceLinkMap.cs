@@ -1486,6 +1486,15 @@ public static class PhpSurfaceLinkMap
             return "/cp/uae-tax-compliance-app";
         }
 
+        // PHP warehouse edit uses ?id=. Open key is storage_id — do not add generic id to RecordQueryKeys.
+        if (value.Contains("storages/storage", StringComparison.OrdinalIgnoreCase))
+        {
+            var rewritten = value
+                .Replace("?id=", "?storage_id=", StringComparison.OrdinalIgnoreCase)
+                .Replace("&id=", "&storage_id=", StringComparison.OrdinalIgnoreCase);
+            return ErpRecordOpen.PreserveRecordQuery("/cp/storages-app", rewritten);
+        }
+
         // CP embeds ERP tabs under /CP/shop/finance/erp — route those via ERP map.
         if (value.Contains("epc_erp_shell=", StringComparison.OrdinalIgnoreCase)
             || value.Contains("/finance/erp", StringComparison.OrdinalIgnoreCase))
@@ -1642,7 +1651,8 @@ public static class PhpSurfaceLinkMap
                     || aspNet.Equals("/cp/po-approvals-app", StringComparison.OrdinalIgnoreCase)
                     || aspNet.Equals("/cp/budgets-app", StringComparison.OrdinalIgnoreCase)
                     || aspNet.Equals("/cp/warehouse-wms-app", StringComparison.OrdinalIgnoreCase)
-                    || aspNet.Equals("/cp/search-tabs-app", StringComparison.OrdinalIgnoreCase))
+                    || aspNet.Equals("/cp/search-tabs-app", StringComparison.OrdinalIgnoreCase)
+                    || aspNet.Equals("/cp/storages-app", StringComparison.OrdinalIgnoreCase))
                 {
                     return ErpRecordOpen.PreserveRecordQuery(aspNet, value);
                 }

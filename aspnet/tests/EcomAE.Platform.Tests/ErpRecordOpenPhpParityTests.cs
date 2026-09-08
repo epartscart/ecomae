@@ -65,6 +65,8 @@ public sealed class ErpRecordOpenPhpParityTests
     [InlineData("/ERP/?epc_erp_shell=1&area=warehouse&tab=wms&work_id=7", "/erp/warehouse-wms-app?work_id=7")]
     [InlineData("/CP/shop/taby-poiska?tab_id=3", "/cp/search-tabs-app?tab_id=3")]
     [InlineData("/CP/shop/taby-poiska/tab-poiska?tab_id=3", "/cp/search-tabs-app?tab_id=3")]
+    [InlineData("/CP/shop/logistics/storages/storage?id=5", "/cp/storages-app?storage_id=5")]
+    [InlineData("/CP/shop/logistics/storages?storage_id=5", "/cp/storages-app?storage_id=5")]
     [InlineData("/ERP/?epc_erp_shell=1&area=landed_cost_area&tab=landed_cost&sheet_id=6", "/erp/landed-cost-app?sheet_id=6")]
     [InlineData("/CP/control/portal/epc_soc2_compliance?soc2_id=8", "/cp/soc2-compliance-app?soc2_id=8")]
     [InlineData("/ERP/?epc_erp_shell=1&area=tax&tab=compliance&soc2_id=8", "/erp/soc2-compliance-app?soc2_id=8")]
@@ -1198,6 +1200,42 @@ public sealed class ErpRecordOpenPhpParityTests
             ErpRecordOpen.PreserveRecordQuery(
                 "/cp/search-tabs-app",
                 "/CP/shop/taby-poiska?tab_id=3"));
+    }
+
+    [Fact]
+    public void StoragesApp_OpenLoadsCurrencyInterfaceAndKeepsWrites()
+    {
+        var root = FindRepoRoot();
+        var text = File.ReadAllText(Path.Combine(root,
+            "aspnet/src/EcomAE.Platform/Components/Pages/CpStoragesApp.razor"));
+        Assert.Contains("ErpRecordOpen.Href(_listHref, \"storage_id\"", text, StringComparison.Ordinal);
+        Assert.Contains("ErpOpenedRecordBanner", text, StringComparison.Ordinal);
+        Assert.Contains("ReadId(ctx.Request, \"storage_id\", \"id\")", text, StringComparison.Ordinal);
+        Assert.Contains("BuildCpStoragesDetailAsync", text, StringComparison.Ordinal);
+        Assert.Contains("No storekeeper excerpt yet.", text, StringComparison.Ordinal);
+        Assert.Contains("No same-interface siblings yet.", text, StringComparison.Ordinal);
+        Assert.Contains("ShowGhostScaffold=\"false\"", text, StringComparison.Ordinal);
+        Assert.Contains("table-epc", text, StringComparison.Ordinal);
+        Assert.Contains("/cp/storages/groups", text, StringComparison.Ordinal);
+        Assert.Contains("/cp/storages/write", text, StringComparison.Ordinal);
+        Assert.Contains("/cp/storages/membership", text, StringComparison.Ordinal);
+        Assert.Contains("PhpParityModuleBody", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)\">Open", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("/php-reference/", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("ASP.NET", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("epc-st-hero", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("epc-st-kpis", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("@bind", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("@onclick", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("connection_options", text, StringComparison.Ordinal);
+
+        Assert.Equal("/cp/storages-app?storage_id=5#erp-row-5",
+            ErpRecordOpen.Href("/cp/storages-app", "storage_id", 5));
+        Assert.Equal(
+            "/cp/storages-app?storage_id=5",
+            ErpRecordOpen.PreserveRecordQuery(
+                "/cp/storages-app",
+                "/CP/shop/logistics/storages?storage_id=5"));
     }
 
     [Fact]
