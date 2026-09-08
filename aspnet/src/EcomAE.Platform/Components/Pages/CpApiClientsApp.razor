@@ -20,12 +20,11 @@
             </div>
             <div class="panel-body">
                 <p>@CpPhpModuleCopy.PurposeFor("/cp/api-clients-app")</p>
-                <p>Toggle an API client here.</p>
+                <p>Open a client to see allowed actions. Toggle an API client here.</p>
             </div>
         </div>
     </div>
-    <PhpParityModuleBody AppPath="/cp/api-clients-app" IsAdmin="_isAdmin" />
-
+    <PhpParityModuleBody AppPath="/cp/api-clients-app" IsAdmin="_isAdmin" ShowGhostScaffold="false" />
 
     @if (!string.IsNullOrWhiteSpace(_flashOk))
     {
@@ -35,20 +34,57 @@
     {
         <div class="alert alert-danger" role="status" style="margin:0 0 1rem;padding:.7rem .9rem;border-radius:.4rem;background:#fef2f2;color:#991b1b">@_flashErr</div>
     }
+
+    <ErpOpenedRecordBanner Id="_openedId" Found="@(_openedClient is not null)" Caption="@OpenedCaption" ListHref="@_listHref" />
+
+    <div class="epc-erp-kpi epc-erp-stat-row" aria-label="API client KPIs">
+        <div class="kpi"><div class="lbl">Shown</div><div class="val">@_clients.Count.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Active</div><div class="val">@_active.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Calls today</div><div class="val">@_callsToday.ToString(CultureInfo.InvariantCulture)</div></div>
+    </div>
+
     @if (_isAdmin)
     {
         <form method="post" action="/cp/api-clients/toggle" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="/cp/api-clients-app" />
-            <label>Client id <input type="number" name="clientId" min="1" required style="width:6rem" /></label>
+            <input type="hidden" name="returnUrl" value="@_returnHref" />
+            <label>Client id <input type="number" name="clientId" min="1" required style="width:6rem" value="@OpenedIdValue" /></label>
             <label>Action
                 <select name="action">
-                    <option value="revoke">Revoke</option>
-                    <option value="activate">Activate</option>
+                    <option value="revoke" selected="@(_openedClient is null || _openedClient.Active)">Revoke</option>
+                    <option value="activate" selected="@(_openedClient is not null && !_openedClient.Active)">Activate</option>
                 </select>
             </label>
             <button type="submit">Apply</button>
         </form>
+    }
+
+    @if (_openedClient is not null)
+    {
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">
+                    @(!string.IsNullOrWhiteSpace(_openedClient.Label) ? _openedClient.Label : ("Client #" + _openedClient.Id.ToString(CultureInfo.InvariantCulture)))
+                    <span class="label label-default pull-right">@(_openedClient.Active ? "active" : "revoked")</span>
+                </div>
+                <div class="panel-body">
+                    <p>Prefix @(!string.IsNullOrWhiteSpace(_openedClient.ClientKeyPrefix) ? _openedClient.ClientKeyPrefix : "—")
+                        · @(!string.IsNullOrWhiteSpace(_openedClient.Product) ? _openedClient.Product : "—")
+                        · @(!string.IsNullOrWhiteSpace(_openedClient.ContactEmail) ? _openedClient.ContactEmail : "—")</p>
+                    <p>Daily limit @_openedClient.DailyLimit.ToString(CultureInfo.InvariantCulture)
+                        · Calls today @_openedClient.CallsToday.ToString(CultureInfo.InvariantCulture)
+                        · Reset @(!string.IsNullOrWhiteSpace(_openedClient.CallsResetDate) ? _openedClient.CallsResetDate : "—")</p>
+                    @if (string.IsNullOrWhiteSpace(_openedClient.AllowedActionsJson))
+                    {
+                        <p>No allowed actions yet.</p>
+                    }
+                    else
+                    {
+                        <p>Allowed actions @_openedClient.AllowedActionsJson</p>
+                    }
+                </div>
+            </div>
+        </div>
     }
 
     <p class="help-block">@_clients.Count Shown (limit @_limit) · @_active Active · @_callsToday Calls today (sum).</p>
@@ -58,7 +94,7 @@
             <div class="panel-heading hbuilt">Records</div>
             <div class="panel-body">
                 <div class="table-responsive">
-                    <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped">
+                    <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped table-bordered table-epc epc-erp-table">
             <thead>
                 <tr>
                     <th>ID</th>
@@ -76,13 +112,13 @@
             <tbody>
                 @if (_clients.Count == 0)
                 {
-                    <tr><td colspan="10">No records yet.</td></tr>
+                    <tr><td colspan="10">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? "No records yet." : _message) : "Sign in with a staff session for live rows.")</td></tr>
                 }
                 else
                 {
                     @foreach (var c in _clients)
                     {
-                        <tr>
+                        <tr id="erp-row-@c.Id.ToString(CultureInfo.InvariantCulture)" class="@ErpRecordOpen.RowClass(c.Id, _openedId)">
                             <td><strong>@c.Id.ToString(CultureInfo.InvariantCulture)</strong></td>
                             <td>@(string.IsNullOrWhiteSpace(c.ClientKeyPrefix) ? "—" : c.ClientKeyPrefix)</td>
                             <td>@(string.IsNullOrWhiteSpace(c.Product) ? "—" : c.Product)</td>
@@ -92,7 +128,7 @@
                             <td>@c.DailyLimit.ToString(CultureInfo.InvariantCulture)</td>
                             <td>@c.CallsToday.ToString(CultureInfo.InvariantCulture)</td>
                             <td>@FormatTs(c.TimeCreated)</td>
-                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
+                            <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href(_listHref, "api_client_id", c.Id)">Open</a></td>
                         </tr>
                     }
                 }
@@ -107,6 +143,7 @@
 
 @code {
     private const string _phpTab = "/CP/control/portal/epc_api_clients_manage";
+    private const string _listHref = "/cp/api-clients-app";
     private bool _isAdmin;
     private IReadOnlyList<CpApiClientMetaDigest> _clients = [];
     private int _active;
@@ -116,6 +153,18 @@
     private string _message = "";
     private string _flashOk = "";
     private string _flashErr = "";
+    private long _openedId;
+    private string _returnHref = "/cp/api-clients-app";
+    private CpApiClientDetail? _openedClient;
+
+    private string OpenedCaption => _openedClient is null
+        ? ""
+        : (string.IsNullOrWhiteSpace(_openedClient.Label)
+            ? ("Client #" + _openedClient.Id.ToString(CultureInfo.InvariantCulture))
+            : _openedClient.Label)
+            + (string.IsNullOrWhiteSpace(_openedClient.ClientKeyPrefix) ? "" : (" · " + _openedClient.ClientKeyPrefix));
+
+    private string OpenedIdValue => _openedId > 0 ? _openedId.ToString(CultureInfo.InvariantCulture) : "";
 
     protected override async Task OnInitializedAsync()
     {
@@ -124,6 +173,11 @@
 
         _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
         _flashErr = ctx.Request.Query["err"].ToString() ?? "";
+        _openedId = ErpRecordOpen.ReadId(ctx.Request, "api_client_id");
+        _returnHref = _openedId > 0
+            ? ErpRecordOpen.Href(_listHref, "api_client_id", _openedId).Split('#')[0]
+            : _listHref;
+
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
         if (!_isAdmin)
@@ -137,6 +191,26 @@
         _callsToday = _clients.Sum(c => c.CallsToday);
         _source = result.Source;
         _message = result.Message;
+
+        if (_openedId > 0)
+        {
+            var detail = await Dashboards.BuildCpApiClientDetailAsync(_openedId, ctx.RequestAborted);
+            _openedClient = detail.Client;
+            if (_openedClient is not null)
+            {
+                var openedList = _clients.FirstOrDefault(r => r.Id == _openedId);
+                if (openedList is not null)
+                {
+                    _clients = new[] { openedList }.Concat(_clients.Where(r => r.Id != _openedId)).ToList();
+                    _active = _clients.Count(c => c.Active);
+                    _callsToday = _clients.Sum(c => c.CallsToday);
+                }
+            }
+            else if (!string.IsNullOrWhiteSpace(detail.Message))
+            {
+                _message = detail.Message;
+            }
+        }
     }
 
     private static string FormatTs(long ts)

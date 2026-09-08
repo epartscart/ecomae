@@ -5731,6 +5731,51 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    public async Task<CpApiClientDetailResult> BuildCpApiClientDetailAsync(long id, CancellationToken cancellationToken = default)
+    {
+        if (id <= 0)
+        {
+            return new(null, "n/a", "");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return new(null, "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            await using var cmd = connection.CreateCommand();
+            cmd.CommandText = LegacySurfaceDashboardSql.SelectCpApiClientDetail;
+            AddParameter(cmd, "@id", id);
+            await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            if (!await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                return new(null, "database", "API client not found.");
+            }
+
+            var header = new CpApiClientDetail(
+                Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                Convert.ToString(reader["client_key_prefix"] is DBNull ? string.Empty : reader["client_key_prefix"], CultureInfo.InvariantCulture) ?? string.Empty,
+                Convert.ToString(reader["product"] is DBNull ? string.Empty : reader["product"], CultureInfo.InvariantCulture) ?? string.Empty,
+                Convert.ToString(reader["label"] is DBNull ? string.Empty : reader["label"], CultureInfo.InvariantCulture) ?? string.Empty,
+                Convert.ToString(reader["contact_email"] is DBNull ? string.Empty : reader["contact_email"], CultureInfo.InvariantCulture) ?? string.Empty,
+                Convert.ToInt32(reader["active"] is DBNull ? 0 : reader["active"], CultureInfo.InvariantCulture) != 0,
+                Convert.ToInt32(reader["daily_limit"] is DBNull ? 0 : reader["daily_limit"], CultureInfo.InvariantCulture),
+                Convert.ToInt32(reader["calls_today"] is DBNull ? 0 : reader["calls_today"], CultureInfo.InvariantCulture),
+                Convert.ToString(reader["calls_reset_date"] is DBNull ? string.Empty : reader["calls_reset_date"], CultureInfo.InvariantCulture) ?? string.Empty,
+                Convert.ToString(reader["allowed_actions_json"] is DBNull ? string.Empty : reader["allowed_actions_json"], CultureInfo.InvariantCulture) ?? string.Empty,
+                Convert.ToInt64(reader["time_created"] is DBNull ? 0 : reader["time_created"], CultureInfo.InvariantCulture),
+                Convert.ToInt64(reader["time_updated"] is DBNull ? 0 : reader["time_updated"], CultureInfo.InvariantCulture));
+            return new(header, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(null, "database-error", ex.Message);
+        }
+    }
+
     public async Task<CpPowerBiDigestResult> BuildCpPowerBiDigestAsync(int limit, CancellationToken cancellationToken = default)
     {
         var safeLimit = Math.Clamp(limit, 1, 500);

@@ -597,6 +597,10 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.DoesNotContain("DELETE", LegacySurfaceDashboardSql.SelectStorefrontCartLines, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("UPDATE", LegacySurfaceDashboardSql.SelectStorefrontCartLines, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("client_key_hash", LegacySurfaceDashboardSql.SelectCpApiClientsMeta, StringComparison.Ordinal);
+        Assert.DoesNotContain("allowed_actions_json", LegacySurfaceDashboardSql.SelectCpApiClientsMeta, StringComparison.Ordinal);
+        Assert.DoesNotContain("client_key_hash", LegacySurfaceDashboardSql.SelectCpApiClientDetail, StringComparison.Ordinal);
+        Assert.Contains("allowed_actions_json", LegacySurfaceDashboardSql.SelectCpApiClientDetail, StringComparison.Ordinal);
+        Assert.Contains("`id` = @id", LegacySurfaceDashboardSql.SelectCpApiClientDetail, StringComparison.Ordinal);
         Assert.DoesNotContain("`session`", LegacySurfaceDashboardSql.SelectCpAdminSessions, StringComparison.Ordinal);
         Assert.DoesNotContain("INSERT", LegacySurfaceDashboardSql.SumSupplierCredit, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("UPDATE", LegacySurfaceDashboardSql.SelectPortalTenants, StringComparison.OrdinalIgnoreCase);
