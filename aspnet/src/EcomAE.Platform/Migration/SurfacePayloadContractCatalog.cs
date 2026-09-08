@@ -577,7 +577,7 @@ public static class SurfacePayloadContractCatalog
         Contract("cp", "/cp/event-bus", "epc_events MySQL peek", "admin-cp",
             ["ok", "surface", "summary", "rows", "count", "source", "message", "session", "note"],
             ["eventCount", "typeCount", "tenantCount", "last24h", "source", "message"],
-            ["Event bus KPIs + recent events", "payload_json omitted; no Kafka/Rabbit", "Super-only Blazor app"],
+            ["Event bus KPIs + recent events", "Open ?event_id= loads a 280-char payload excerpt", "webhook dispatch stays PHP; no Kafka/Rabbit", "Super-only Blazor app"],
             "cp/templates/bootstrap_admin/desktop.php"),
         Contract("erp", "/erp/bank-reconciliation", "epc_erp_bank_statement_lines", "admin-erp",
             ["ok", "surface", "summary", "lines", "count", "source", "message", "session", "note"],
@@ -1167,7 +1167,7 @@ public static class SurfacePayloadContractCatalog
         new("cp", "fulfillment-queue Blazor list", "/cp/fulfillment-queue-app", "digest-wired-awaiting-dual-sample", "PHP-parity dual-pane fulfilment queue (epc_fulfillment_get) + KPI/detail digests. transition / assign / pick / pack / wave / queue write on /cp/fulfillment-queue/write. Printable packing slip at /cp/fulfillment-queue/packing-slip/{id}. Document-control branded PDF templates stay PHP."),
         new("cp", "fulfillment-queue write", "/cp/fulfillment-queue/write", "write-live-gated", "POST PHP epc_fulfillment_transition / assign / pick_item / pack_item / create_wave / epc_fulfillment_queue; confirmWrites=true writes ASP.NET. Printable packing slip at /cp/fulfillment-queue/packing-slip/{id}."),
         new("cp", "sso-saml Blazor list", "/cp/sso-saml-app", "presentation-shell-scaffolded", "Super-only read UI over /cp/sso-saml; certs/metadata omitted."),
-        new("cp", "event-bus Blazor list", "/cp/event-bus-app", "presentation-shell-scaffolded", "Super-only MySQL epc_events peek; no Kafka/Rabbit."),
+        new("cp", "event-bus Blazor list", "/cp/event-bus-app", "presentation-shell-scaffolded", "Super-only MySQL epc_events peek; Open ?event_id= loads type/tenant/actor plus a 280-char payload excerpt; webhook dispatch stays PHP; no Kafka/Rabbit."),
 
         new("cp", "config-items Blazor list", "/cp/config-items-app", "digest-wired-awaiting-dual-sample", "Read UI over /cp/config-items digest (secret values never returned); PHP config_edit remains authoritative; tenant chrome stays PHP."),
         new("cp", "user_manager / groups / menus / pages", "/cp/users|/cp/groups|/cp/menus|/cp/pages", "digest-wired-awaiting-dual-sample", "Read digests only; writes remain PHP."),

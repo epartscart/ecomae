@@ -9321,7 +9321,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only MySQL epc_events peek (no Kafka/Rabbit payloads). Super-only Blazor app."
+                note = "Read-only MySQL epc_events peek (no Kafka/Rabbit). Open ?event_id= loads a 280-char payload excerpt. Webhook dispatch stays PHP. Super-only Blazor app."
             });
         });
 

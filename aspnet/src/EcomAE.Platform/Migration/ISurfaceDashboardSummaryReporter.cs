@@ -552,6 +552,9 @@ public interface ISurfaceDashboardSummaryReporter
     /// <summary>Next-wave Super-only: MySQL epc_events bus peek (no Kafka/Rabbit).</summary>
     Task<CpEventBusDigestResult> BuildCpEventBusDigestAsync(int limit, CancellationToken cancellationToken = default);
 
+    /// <summary>Opened MySQL <c>epc_events</c> row (PHP <c>event_id</c>). Payload excerpt only.</summary>
+    Task<CpEventBusDetailResult> BuildCpEventBusDetailAsync(long id, CancellationToken cancellationToken = default);
+
     /// <summary>Read-only on-premises license registry (notes/fingerprint/ip omitted; license keys masked).</summary>
     Task<OnPremisesLicenseListResult> ListOnPremisesLicensesAsync(int limit, CancellationToken cancellationToken = default);
 

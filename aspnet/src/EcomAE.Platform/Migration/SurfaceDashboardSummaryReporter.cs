@@ -15660,6 +15660,48 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    public async Task<CpEventBusDetailResult> BuildCpEventBusDetailAsync(long id, CancellationToken cancellationToken = default)
+    {
+        if (id <= 0)
+        {
+            return new(null, "n/a", "");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return new(null, "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            await using var cmd = connection.CreateCommand();
+            cmd.CommandText = LegacySurfaceDashboardSql.SelectCpEventBusDetail;
+            AddParameter(cmd, "@id", id);
+            await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            if (!await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                return new(null, "database", "Event not found.");
+            }
+
+            var header = new CpEventBusEventDetail(
+                Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                Convert.ToString(reader["event_type"] is DBNull ? string.Empty : reader["event_type"], CultureInfo.InvariantCulture) ?? string.Empty,
+                Convert.ToString(reader["tenant_key"] is DBNull ? string.Empty : reader["tenant_key"], CultureInfo.InvariantCulture) ?? string.Empty,
+                Convert.ToString(reader["actor_type"] is DBNull ? string.Empty : reader["actor_type"], CultureInfo.InvariantCulture) ?? string.Empty,
+                Convert.ToInt64(reader["actor_id"] is DBNull ? 0 : reader["actor_id"], CultureInfo.InvariantCulture),
+                Convert.ToString(reader["idempotency_key"] is DBNull ? string.Empty : reader["idempotency_key"], CultureInfo.InvariantCulture) ?? string.Empty,
+                Convert.ToString(reader["created_at"] is DBNull ? string.Empty : reader["created_at"], CultureInfo.InvariantCulture) ?? string.Empty,
+                Convert.ToInt32(reader["payload_len"] is DBNull ? 0 : reader["payload_len"], CultureInfo.InvariantCulture),
+                Convert.ToString(reader["payload_excerpt"] is DBNull ? string.Empty : reader["payload_excerpt"], CultureInfo.InvariantCulture) ?? string.Empty);
+            return new(header, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(null, "database-error", ex.Message);
+        }
+    }
+
     public async Task<OnPremisesLicenseListResult> ListOnPremisesLicensesAsync(int limit, CancellationToken cancellationToken = default)
     {
         var safeLimit = Math.Clamp(limit, 1, 500);
