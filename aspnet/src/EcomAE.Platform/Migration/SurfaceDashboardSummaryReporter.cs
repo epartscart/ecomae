@@ -7718,6 +7718,70 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    public async Task<CpCrmOpportunityDetailResult> BuildCpCrmOpportunityDetailAsync(long id, CancellationToken cancellationToken = default)
+    {
+        if (id <= 0)
+        {
+            return new(null, [], "n/a", "");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return new(null, [], "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            CpCrmOpportunityDetail? header = null;
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectCpCrmOpportunityDetail;
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    header = new CpCrmOpportunityDetail(
+                        Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["lead_id"] is DBNull ? 0 : reader["lead_id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["title"] is DBNull ? string.Empty : reader["title"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["stage"] is DBNull ? string.Empty : reader["stage"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToDecimal(reader["amount"] is DBNull ? 0 : reader["amount"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["probability"] is DBNull ? 0 : reader["probability"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["close_date"] is DBNull ? 0 : reader["close_date"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["owner_user_id"] is DBNull ? 0 : reader["owner_user_id"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["linked_user_id"] is DBNull ? 0 : reader["linked_user_id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["notes"] is DBNull ? string.Empty : reader["notes"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt32(reader["active"] is DBNull ? 0 : reader["active"], CultureInfo.InvariantCulture) != 0,
+                        Convert.ToInt64(reader["time_created"] is DBNull ? 0 : reader["time_created"], CultureInfo.InvariantCulture));
+                }
+            }
+
+            var activities = new List<CpCrmOpportunityActivityDigest>();
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectCpCrmOpportunityActivities;
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    activities.Add(new CpCrmOpportunityActivityDigest(
+                        Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["activity_type"] is DBNull ? string.Empty : reader["activity_type"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt64(reader["due_date"] is DBNull ? 0 : reader["due_date"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["done"] is DBNull ? 0 : reader["done"], CultureInfo.InvariantCulture) != 0,
+                        Convert.ToString(reader["notes"] is DBNull ? string.Empty : reader["notes"], CultureInfo.InvariantCulture) ?? string.Empty));
+                }
+            }
+
+            return new(header, activities, "database", header is null ? "Opportunity not found." : string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(null, [], "database-error", ex.Message);
+        }
+    }
+
     public async Task<CpIntegrationsDigestResult> BuildCpIntegrationsDigestAsync(int limit, CancellationToken cancellationToken = default)
     {
         var safeLimit = Math.Clamp(limit, 1, 500);

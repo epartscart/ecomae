@@ -203,6 +203,9 @@ public interface ISurfaceDashboardSummaryReporter
     /// <summary>Read-only CRM opportunities (notes omitted).</summary>
     Task<CpCrmOpportunitiesDigestResult> BuildCpCrmOpportunitiesDigestAsync(int limit, CancellationToken cancellationToken = default);
 
+    /// <summary>Opened CRM opportunity plus activities (PHP <c>opp_id</c>).</summary>
+    Task<CpCrmOpportunityDetailResult> BuildCpCrmOpportunityDetailAsync(long id, CancellationToken cancellationToken = default);
+
     /// <summary>Read-only integrations/webhooks (secrets/events omitted).</summary>
     Task<CpIntegrationsDigestResult> BuildCpIntegrationsDigestAsync(int limit, CancellationToken cancellationToken = default);
 
