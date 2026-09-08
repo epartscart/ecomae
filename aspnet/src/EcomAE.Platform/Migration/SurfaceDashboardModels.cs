@@ -1327,6 +1327,43 @@ public sealed record CpProjectsOverviewDigestResult(
     string Source,
     string Message);
 
+public sealed record CpProjectDetail(
+    long Id,
+    string Code,
+    string Name,
+    long CustomerId,
+    string BillingType,
+    decimal BudgetCost,
+    decimal ContractValue,
+    string Status,
+    long TimeCreated);
+
+public sealed record CpProjectTaskDigest(
+    long Id,
+    long ProjectId,
+    string Name,
+    decimal PlannedHours,
+    decimal PercentComplete,
+    string Status);
+
+public sealed record CpProjectTimesheetDigest(
+    long Id,
+    long ProjectId,
+    long TaskId,
+    long EmployeeId,
+    long WorkDate,
+    decimal Hours,
+    decimal CostRate,
+    decimal BillRate,
+    bool Billable);
+
+public sealed record CpProjectDetailResult(
+    CpProjectDetail? Project,
+    IReadOnlyList<CpProjectTaskDigest> Tasks,
+    IReadOnlyList<CpProjectTimesheetDigest> Timesheets,
+    string Source,
+    string Message);
+
 public sealed record CpIndustryPacksSummary(
     int PackCount,
     int ActivePacks,

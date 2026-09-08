@@ -158,6 +158,9 @@ public interface ISurfaceDashboardSummaryReporter
     /// <summary>Read-only projects KPIs + projects (timesheet rates omitted).</summary>
     Task<CpProjectsOverviewDigestResult> BuildCpProjectsOverviewDigestAsync(int limit, CancellationToken cancellationToken = default);
 
+    /// <summary>Opened project (PHP <c>project_id=</c> detail) plus tasks and timesheets.</summary>
+    Task<CpProjectDetailResult> BuildCpProjectDetailAsync(long id, CancellationToken cancellationToken = default);
+
     /// <summary>Read-only industry packs (JSON blobs omitted).</summary>
     Task<CpIndustryPacksDigestResult> BuildCpIndustryPacksDigestAsync(int limit, CancellationToken cancellationToken = default);
 

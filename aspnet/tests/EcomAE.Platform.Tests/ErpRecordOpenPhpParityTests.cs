@@ -17,6 +17,7 @@ public sealed class ErpRecordOpenPhpParityTests
     [InlineData("/ERP/?epc_erp_shell=1&area=purchasing&tab=purchase_requisitions&req_id=4", "/erp/purchase-requests-app?req_id=4")]
     [InlineData("/CP/shop/finance/epc_collections_dunning?queue_id=12", "/cp/collections-dunning-app?queue_id=12")]
     [InlineData("/ERP/?epc_erp_shell=1&area=credit_coll&queue_id=12", "/erp/collections-dunning-app?queue_id=12")]
+    [InlineData("/ERP/?epc_erp_shell=1&area=projects&tab=projects&project_id=4", "/erp/projects-overview-app?project_id=4")]
     public void AspNetPrimaryHref_KeepsErpRecordId(string php, string expected)
     {
         var href = PhpSurfaceLinkMap.AspNetPrimaryHref(php);
@@ -101,6 +102,7 @@ public sealed class ErpRecordOpenPhpParityTests
     [InlineData("ErpPayablesApp.razor", "supplier_id")]
     [InlineData("CpPurchaseRequestsApp.razor", "req_id")]
     [InlineData("CpCollectionsDunningApp.razor", "queue_id")]
+    [InlineData("CpProjectsOverviewApp.razor", "project_id")]
     public void DumpListApps_RowOpenIsRecordUrl(string fileName, string param)
     {
         var root = FindRepoRoot();
@@ -165,6 +167,34 @@ public sealed class ErpRecordOpenPhpParityTests
             ErpRecordOpen.PreserveRecordQuery(
                 "/cp/collections-dunning-app",
                 "/CP/shop/finance/epc_collections_dunning?queue_id=12"));
+        Assert.Equal("/erp/projects-overview-app?project_id=4#erp-row-4",
+            ErpRecordOpen.Href("/erp/projects-overview-app", "project_id", 4));
+        Assert.Equal(
+            "/erp/projects-overview-app?project_id=4",
+            ErpRecordOpen.PreserveRecordQuery(
+                "/erp/projects-overview-app",
+                "/ERP/?epc_erp_shell=1&area=projects&tab=projects&project_id=4"));
+    }
+
+    [Fact]
+    public void ProjectsOverviewApp_OpenLoadsBudgetTasksAndTimesheets()
+    {
+        var root = FindRepoRoot();
+        var text = File.ReadAllText(Path.Combine(root,
+            "aspnet/src/EcomAE.Platform/Components/Pages/CpProjectsOverviewApp.razor"));
+        Assert.Contains("ErpRecordOpen.Href(_listHref, \"project_id\"", text, StringComparison.Ordinal);
+        Assert.Contains("ErpOpenedRecordBanner", text, StringComparison.Ordinal);
+        Assert.Contains("ReadId(ctx.Request, \"project_id\")", text, StringComparison.Ordinal);
+        Assert.Contains("BuildCpProjectDetailAsync", text, StringComparison.Ordinal);
+        Assert.Contains("No tasks yet.", text, StringComparison.Ordinal);
+        Assert.Contains("No timesheets yet.", text, StringComparison.Ordinal);
+        Assert.Contains("ShowGhostScaffold=\"false\"", text, StringComparison.Ordinal);
+        Assert.Contains("table-epc", text, StringComparison.Ordinal);
+        Assert.Contains("/erp/projects/save", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)\">Open", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("/php-reference/", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("ASP.NET", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("epc-prj-hero", text, StringComparison.Ordinal);
     }
 
     private static string FindRepoRoot()

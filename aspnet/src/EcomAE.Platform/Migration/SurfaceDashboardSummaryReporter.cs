@@ -6694,6 +6694,89 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    public async Task<CpProjectDetailResult> BuildCpProjectDetailAsync(long id, CancellationToken cancellationToken = default)
+    {
+        if (id <= 0)
+        {
+            return new(null, [], [], "n/a", "");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return new(null, [], [], "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            CpProjectDetail? header = null;
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectCpProjectDetail;
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    header = new CpProjectDetail(
+                        Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["code"] is DBNull ? string.Empty : reader["code"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["name"] is DBNull ? string.Empty : reader["name"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt64(reader["customer_id"] is DBNull ? 0 : reader["customer_id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["billing_type"] is DBNull ? string.Empty : reader["billing_type"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToDecimal(reader["budget_cost"] is DBNull ? 0 : reader["budget_cost"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(reader["contract_value"] is DBNull ? 0 : reader["contract_value"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["status"] is DBNull ? string.Empty : reader["status"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt64(reader["time_created"] is DBNull ? 0 : reader["time_created"], CultureInfo.InvariantCulture));
+                }
+            }
+
+            var tasks = new List<CpProjectTaskDigest>();
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectCpProjectTasks;
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    tasks.Add(new CpProjectTaskDigest(
+                        Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["project_id"] is DBNull ? 0 : reader["project_id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["name"] is DBNull ? string.Empty : reader["name"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToDecimal(reader["planned_hours"] is DBNull ? 0 : reader["planned_hours"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(reader["percent_complete"] is DBNull ? 0 : reader["percent_complete"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["status"] is DBNull ? string.Empty : reader["status"], CultureInfo.InvariantCulture) ?? string.Empty));
+                }
+            }
+
+            var sheets = new List<CpProjectTimesheetDigest>();
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectCpProjectTimesheets;
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    sheets.Add(new CpProjectTimesheetDigest(
+                        Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["project_id"] is DBNull ? 0 : reader["project_id"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["task_id"] is DBNull ? 0 : reader["task_id"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["employee_id"] is DBNull ? 0 : reader["employee_id"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["work_date"] is DBNull ? 0 : reader["work_date"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(reader["hours"] is DBNull ? 0 : reader["hours"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(reader["cost_rate"] is DBNull ? 0 : reader["cost_rate"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(reader["bill_rate"] is DBNull ? 0 : reader["bill_rate"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["billable"] is DBNull ? 0 : reader["billable"], CultureInfo.InvariantCulture) != 0));
+                }
+            }
+
+            return new(header, tasks, sheets, "database", header is null ? "Project not found." : string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(null, [], [], "database-error", ex.Message);
+        }
+    }
+
     public async Task<CpIndustryPacksDigestResult> BuildCpIndustryPacksDigestAsync(int limit, CancellationToken cancellationToken = default)
     {
         var safeLimit = Math.Clamp(limit, 1, 500);
