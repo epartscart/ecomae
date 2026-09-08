@@ -8462,7 +8462,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "shop_docpart_search_tabs KPIs + tabs (parameters_values JSON). Activate/save is POST /cp/search-tabs/write."
+                note = "shop_docpart_search_tabs KPIs + tabs. Open ?tab_id= loads 280-char parameters_values excerpt. Full JSON omitted. Activate/save is POST /cp/search-tabs/write."
             });
         });
 

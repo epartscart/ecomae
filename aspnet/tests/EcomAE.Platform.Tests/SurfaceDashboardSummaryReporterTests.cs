@@ -799,6 +799,12 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.DoesNotContain("to_location_id", LegacySurfaceDashboardSql.SelectCpWarehouseWmsWaveSiblings, StringComparison.Ordinal);
         Assert.DoesNotContain("lp_id", LegacySurfaceDashboardSql.SelectCpWarehouseWmsWaveSiblings, StringComparison.Ordinal);
         Assert.Contains("`wave_id` = @wave_id", LegacySurfaceDashboardSql.SelectCpWarehouseWmsWaveSiblings, StringComparison.Ordinal);
+        Assert.Contains("shop_docpart_search_tabs", LegacySurfaceDashboardSql.SelectCpSearchTabsRows, StringComparison.Ordinal);
+        Assert.DoesNotContain("parameters_values", LegacySurfaceDashboardSql.SelectCpSearchTabsRows, StringComparison.Ordinal);
+        Assert.Contains("LEFT(IFNULL(`parameters_values`,''), 280)", LegacySurfaceDashboardSql.SelectCpSearchTabsDetail, StringComparison.Ordinal);
+        Assert.Contains("`id` = @id", LegacySurfaceDashboardSql.SelectCpSearchTabsDetail, StringComparison.Ordinal);
+        Assert.DoesNotContain("parameters_values", LegacySurfaceDashboardSql.SelectCpSearchTabsEnabledSiblings, StringComparison.Ordinal);
+        Assert.Contains("@enabled", LegacySurfaceDashboardSql.SelectCpSearchTabsEnabledSiblings, StringComparison.Ordinal);
         Assert.Contains("epc_ai_queries", LegacySurfaceDashboardSql.SelectCpAiServiceQueries, StringComparison.Ordinal);
         Assert.DoesNotContain("input_text", LegacySurfaceDashboardSql.SelectCpAiServiceQueries, StringComparison.Ordinal);
         Assert.DoesNotContain("output_text", LegacySurfaceDashboardSql.SelectCpAiServiceQueries, StringComparison.Ordinal);

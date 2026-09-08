@@ -5443,13 +5443,34 @@ public static class LegacySurfaceDashboardSql
         FROM `shop_docpart_search_tabs`
         """;
 
-    /// <summary>Wave 22 search-tabs rows — parameters_values JSON.</summary>
+    /// <summary>Wave 22 search-tabs rows — parameters_values JSON omitted.</summary>
     public const string SelectCpSearchTabsRows = """
         SELECT `id`, IFNULL(`caption`,'') AS caption, IFNULL(`order`,0) AS sort_order,
         IFNULL(`enabled`,0) AS enabled
         FROM `shop_docpart_search_tabs`
         ORDER BY `order` ASC, `id` ASC
         LIMIT @limit
+        """;
+
+    /// <summary>Opened search tab. parameters_values is a short excerpt; full JSON omitted.</summary>
+    public const string SelectCpSearchTabsDetail = """
+        SELECT `id`, IFNULL(`caption`,'') AS caption, IFNULL(`order`,0) AS sort_order,
+               IFNULL(`enabled`,0) AS enabled, IFNULL(`name`,'') AS name,
+               CHAR_LENGTH(IFNULL(`parameters_values`,'')) AS parameters_len,
+               LEFT(IFNULL(`parameters_values`,''), 280) AS parameters_excerpt
+        FROM `shop_docpart_search_tabs`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Other tabs with the same enabled flag. parameters_values omitted.</summary>
+    public const string SelectCpSearchTabsEnabledSiblings = """
+        SELECT `id`, IFNULL(`caption`,'') AS caption, IFNULL(`order`,0) AS sort_order,
+               IFNULL(`enabled`,0) AS enabled
+        FROM `shop_docpart_search_tabs`
+        WHERE `enabled` = @enabled AND `id` <> @id
+        ORDER BY `order` ASC, `id` ASC
+        LIMIT 50
         """;
 
     /// <summary>Wave 22 system-requests KPIs (users_vin).</summary>

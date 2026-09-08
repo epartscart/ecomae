@@ -20,11 +20,13 @@
                 <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Classic twin</a>
             </div>
             <div class="panel-body">
-                <p>Storefront search tabs. Enable or save a tab here.</p>
+                <p>Open a tab for a parameters excerpt. Enable or save a tab here. Full parameters JSON stays on the Classic twin.</p>
             </div>
         </div>
     </div>
-    <PhpParityModuleBody AppPath="/cp/search-tabs-app" IsAdmin="_isAdmin" />
+    <PhpParityModuleBody ShowGhostScaffold="false" AppPath="/cp/search-tabs-app" IsAdmin="_isAdmin" />
+
+    <ErpOpenedRecordBanner Id="_openedId" Found="@(_openedTab is not null)" Caption="@OpenedCaption" ListHref="@_listHref" />
 
     @if (!string.IsNullOrWhiteSpace(_flashOk))
     {
@@ -40,7 +42,7 @@
             <input type="hidden" name="confirmWrites" value="true" />
             <input type="hidden" name="returnUrl" value="/cp/search-tabs-app" />
             <input type="hidden" name="action" value="activation" />
-            <label>Tab id <input type="number" name="tabId" min="1" required style="width:6rem" /></label>
+            <label>Tab id <input type="number" name="tabId" min="1" required style="width:6rem" value="@(_openedId > 0 ? _openedId.ToString(CultureInfo.InvariantCulture) : "")" /></label>
             <label>Enabled
                 <select name="enabled">
                     <option value="1">Yes</option>
@@ -53,9 +55,9 @@
             <input type="hidden" name="confirmWrites" value="true" />
             <input type="hidden" name="returnUrl" value="/cp/search-tabs-app" />
             <input type="hidden" name="action" value="save" />
-            <label>Tab id <input type="number" name="tabId" min="1" required style="width:6rem" /></label>
-            <label>Caption <input type="text" name="caption" required /></label>
-            <label>Sort <input type="number" name="sortOrder" value="0" style="width:5rem" /></label>
+            <label>Tab id <input type="number" name="tabId" min="1" required style="width:6rem" value="@(_openedId > 0 ? _openedId.ToString(CultureInfo.InvariantCulture) : "")" /></label>
+            <label>Caption <input type="text" name="caption" required value="@(_openedTab is not null ? _openedTab.Caption : "")" /></label>
+            <label>Sort <input type="number" name="sortOrder" value="@(_openedTab is not null ? _openedTab.SortOrder.ToString(CultureInfo.InvariantCulture) : "0")" style="width:5rem" /></label>
             <label>Enabled
                 <select name="enabled">
                     <option value="1">Yes</option>
@@ -67,35 +69,115 @@
         </form>
     }
 
+    <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Search tab KPIs">
+        <div class="kpi"><div class="lbl">Tabs</div><div class="val">@_summary.TabCount.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Enabled</div><div class="val">@_summary.EnabledCount.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Disabled</div><div class="val">@_summary.DisabledCount.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Max order</div><div class="val">@_summary.MaxOrder.ToString(CultureInfo.InvariantCulture)</div></div>
+    </div>
+
+    @if (_openedTab is not null)
+    {
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">
+                    @OpenedCaption
+                    <span class="label label-default pull-right">@(_openedTab.Enabled != 0 ? "enabled" : "disabled")</span>
+                </div>
+                <div class="panel-body">
+                    <p>@(!string.IsNullOrWhiteSpace(_openedTab.Name) ? _openedTab.Name : "—")
+                        · order @_openedTab.SortOrder.ToString(CultureInfo.InvariantCulture)</p>
+                    @if (!string.IsNullOrWhiteSpace(_openedTab.ParametersExcerpt))
+                    {
+                        <pre style="max-height:12rem;overflow:auto;white-space:pre-wrap;margin:0">@_openedTab.ParametersExcerpt</pre>
+                        @if (_openedTab.ParametersLen > _openedTab.ParametersExcerpt.Length)
+                        {
+                            <p class="text-muted">Excerpt only (@_openedTab.ParametersExcerpt.Length.ToString(CultureInfo.InvariantCulture) of @_openedTab.ParametersLen.ToString(CultureInfo.InvariantCulture) chars). Full parameters JSON stays on the Classic twin.</p>
+                        }
+                    }
+                    else
+                    {
+                        <p class="text-muted">No parameters excerpt yet.</p>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">Enabled siblings</div>
+                <div class="panel-body">
+                    <div class="table-responsive">
+                        <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped table-bordered table-epc epc-erp-table">
+                            <thead>
+                                <tr>
+                                    <th>Id</th>
+                                    <th>Caption</th>
+                                    <th>Order</th>
+                                    <th>Enabled</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (_openedSiblings.Count == 0)
+                                {
+                                    <tr><td colspan="5">No enabled siblings yet.</td></tr>
+                                }
+                                else
+                                {
+                                    @foreach (var sib in _openedSiblings)
+                                    {
+                                        <tr>
+                                            <td>@sib.Id.ToString(CultureInfo.InvariantCulture)</td>
+                                            <td>@(!string.IsNullOrWhiteSpace(sib.Caption) ? sib.Caption : "—")</td>
+                                            <td>@sib.SortOrder.ToString(CultureInfo.InvariantCulture)</td>
+                                            <td>@sib.Enabled.ToString(CultureInfo.InvariantCulture)</td>
+                                            <td><a class="btn btn-xs btn-default" href="@ErpRecordOpen.Href(_listHref, "tab_id", sib.Id)">Open</a></td>
+                                        </tr>
+                                    }
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
     <div class="col-lg-12">
         <div class="hpanel">
             <div class="panel-heading hbuilt">Tabs</div>
             <div class="panel-body">
-                <p class="help-block">@_summary.TabCount.ToString(CultureInfo.InvariantCulture) tabs · @_summary.EnabledCount.ToString(CultureInfo.InvariantCulture) enabled · @_summary.DisabledCount.ToString(CultureInfo.InvariantCulture) disabled · max order @_summary.MaxOrder.ToString(CultureInfo.InvariantCulture).</p>
                 <div class="table-responsive">
-                    <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped">
+                    <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped table-bordered table-epc epc-erp-table">
                         <thead>
                             <tr>
                                 <th>Id</th>
                                 <th>Caption</th>
                                 <th>Order</th>
                                 <th>Enabled</th>
+                                <th></th>
                             </tr>
                         </thead>
                         <tbody>
-                        @if (_rows.Count == 0)
+                        @if (!_isAdmin)
                         {
-                            <tr><td colspan="4">No records yet.</td></tr>
+                            <tr><td colspan="5">Sign in for live data.</td></tr>
+                        }
+                        else if (_rows.Count == 0)
+                        {
+                            <tr><td colspan="5">No records yet.</td></tr>
                         }
                         else
                         {
                             @foreach (var row in _rows)
                             {
-                                <tr>
+                                <tr id="erp-row-@row.Id.ToString(CultureInfo.InvariantCulture)" class="@ErpRecordOpen.RowClass(row.Id, _openedId)">
                                     <td>@row.Id.ToString(CultureInfo.InvariantCulture)</td>
                                     <td>@(!string.IsNullOrWhiteSpace(row.Caption) ? row.Caption : "—")</td>
                                     <td>@row.SortOrder.ToString(CultureInfo.InvariantCulture)</td>
                                     <td>@row.Enabled.ToString(CultureInfo.InvariantCulture)</td>
+                                    <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href(_listHref, "tab_id", row.Id)">Open</a></td>
                                 </tr>
                             }
                         }
@@ -114,12 +196,25 @@
     private IReadOnlyList<CpSearchTabsRowDigest> _rows = [];
     private string _flashOk = "";
     private string _flashErr = "";
+    private string _listHref = "/cp/search-tabs-app";
+    private long _openedId;
+    private CpSearchTabsDetail? _openedTab;
+    private IReadOnlyList<CpSearchTabsRowDigest> _openedSiblings = [];
+
+    private string OpenedCaption => _openedTab is null
+        ? ""
+        : (string.IsNullOrWhiteSpace(_openedTab.Caption)
+            ? (string.IsNullOrWhiteSpace(_openedTab.Name)
+                ? ("Tab #" + _openedTab.Id.ToString(CultureInfo.InvariantCulture))
+                : _openedTab.Name)
+            : _openedTab.Caption);
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
 
+        _openedId = ErpRecordOpen.ReadId(ctx.Request, "tab_id");
         _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
         _flashErr = ctx.Request.Query["err"].ToString() ?? "";
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
@@ -132,5 +227,20 @@
         var result = await Dashboards.BuildCpSearchTabsDigestAsync(200, ctx.RequestAborted);
         _summary = result.Summary;
         _rows = result.Tabs;
+
+        if (_openedId > 0)
+        {
+            var detail = await Dashboards.BuildCpSearchTabsDetailAsync(_openedId, ctx.RequestAborted);
+            _openedTab = detail.Tab;
+            _openedSiblings = detail.Siblings;
+            if (_openedTab is not null)
+            {
+                var openedList = _rows.FirstOrDefault(r => r.Id == _openedId);
+                if (openedList is not null)
+                {
+                    _rows = new[] { openedList }.Concat(_rows.Where(r => r.Id != _openedId)).ToList();
+                }
+            }
+        }
     }
 }
