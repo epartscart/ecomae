@@ -1473,7 +1473,9 @@ public static class EcomAeRoutes
     public const string ErpPayrollUpdateDays = "/erp/payroll/update-days";
     /// <summary>Live PHP epc_erp_payroll_update_line_days twin (ajax alias of <see cref="ErpPayrollUpdateDays"/>).</summary>
     public const string ErpAjaxPayrollUpdateDays = "/erp/ajax/payroll-update-days";
-    /// <summary>Wave B dry-run for PHP uae_tax_fta_fetch (writes=0).</summary>
+    /// <summary>HTML form POST for PHP <c>uae_tax_fta_fetch</c>. <c>confirmWrites=true</c> writes via <c>IErpUaeTaxFtaFetchWriteService</c>.</summary>
+    public const string ErpUaeTaxFtaFetch = "/erp/uae-tax/fta-fetch";
+    /// <summary>Live PHP <c>epc_uae_fta_fetch_legislation_updates</c> ajax alias of <see cref="ErpUaeTaxFtaFetch"/>.</summary>
     public const string ErpAjaxUaeTaxFtaFetch = "/erp/ajax/uae-tax-fta-fetch";
     /// <summary>Wave B dry-run for PHP aml_check (writes=0).</summary>
     public const string ErpAjaxAmlCheck = "/erp/ajax/aml-check";

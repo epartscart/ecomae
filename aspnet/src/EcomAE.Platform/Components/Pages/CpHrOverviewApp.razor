@@ -146,6 +146,45 @@
 
     @if (_view == "statutory")
     {
+        <h4>Labour law &amp; compliance <small class="text-muted">— built-in country pack</small></h4>
+        <p class="text-muted">Reload the statutory pack (same as Classic <code>law_fetch</code>) and open the official labour authority to verify figures. Employee gratuity / leave below still uses the UAE Federal Decree-Law 33/2021 engine.</p>
+        <form method="get" action="@_listHref" class="form-inline" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="hv" value="statutory" />
+            <input type="hidden" name="law_fetch" value="1" />
+            <label>Country
+                <select class="form-control input-sm" name="law_country">
+                    @foreach (var pack in ErpHrLabourLawPack.All)
+                    {
+                        <option value="@pack.Code" selected="@(pack.Code == _lawCountry)">@pack.Name (@pack.Code)</option>
+                    }
+                </select>
+            </label>
+            <button type="submit" class="btn btn-primary btn-sm">Fetch labour-law pack</button>
+            <a class="btn btn-default btn-sm" href="@_law.AuthorityUrl" target="_blank" rel="noopener">Official source</a>
+        </form>
+        @if (_lawFetched)
+        {
+            <div class="alert alert-success" role="status" style="margin:0 0 1rem;padding:.7rem .9rem;border-radius:.4rem;background:#ecfdf5;color:#065f46">Reloaded @_law.Name labour-law pack. Verify against the official source.</div>
+        }
+        <div class="table-responsive" style="margin:0 0 1.2rem">
+            <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped">
+                <tbody>
+                    <tr><th>Authority</th><td>@_law.Authority</td></tr>
+                    <tr><th>Region</th><td>@_law.Region</td></tr>
+                    <tr><th>Weekly hours</th><td>@_law.WeeklyHours.ToString(CultureInfo.InvariantCulture)</td></tr>
+                    <tr><th>Workweek</th><td>@_law.Workweek</td></tr>
+                    <tr><th>Overtime</th><td>@_law.Overtime</td></tr>
+                    <tr><th>Probation</th><td>@_law.ProbationMaxMonths.ToString(CultureInfo.InvariantCulture) months</td></tr>
+                    <tr><th>Notice</th><td>@_law.NoticeDays.ToString(CultureInfo.InvariantCulture) days</td></tr>
+                    <tr><th>Annual leave</th><td>@_law.AnnualLeaveDays.ToString(CultureInfo.InvariantCulture) days</td></tr>
+                    <tr><th>Sick leave</th><td>@_law.SickLeave</td></tr>
+                    <tr><th>Maternity / paternity</th><td>@_law.Maternity · @_law.Paternity</td></tr>
+                    <tr><th>End-of-service</th><td>@_law.Eos</td></tr>
+                    <tr><th>Wage protection</th><td>@_law.WageProtection</td></tr>
+                </tbody>
+            </table>
+        </div>
+
         <h4>End-of-service &amp; statutory leave <small class="text-muted">— country-aware (United Arab Emirates · AE)</small></h4>
         <p class="text-muted">Gratuity / end-of-service and annual-leave entitlement follow <strong>United Arab Emirates</strong> labour law. Amounts in <strong>AED</strong>.</p>
         <div class="table-responsive">
@@ -240,7 +279,11 @@
 @code {
     private const string _phpTab = "/CP/shop/finance/erp?area=people&tab=hr&epc_erp_shell=1";
     private static readonly IReadOnlyList<(string Key, string Label)> _views =
-        [("salaries", "Salaries"), ("statutory", "End-of-service & leave")];
+        [("salaries", "Salaries"), ("statutory", "Labour law & leave")];
+    private string _listHref = "/cp/hr-overview-app";
+    private string _lawCountry = "AE";
+    private bool _lawFetched;
+    private ErpHrLabourLawPack.Profile _law = ErpHrLabourLawPack.ByCode("AE");
     private bool _isAdmin;
     private string _view = "salaries";
     private CpHrOverviewSummary _summary = new(0, 0, 0, 0, "n/a", "");
@@ -260,8 +303,30 @@
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
+        var path = ctx.Request.Path.Value;
+        _listHref = string.Equals(path, "/erp/hr-overview-app", StringComparison.OrdinalIgnoreCase)
+            ? "/erp/hr-overview-app"
+            : "/cp/hr-overview-app";
         var hv = ctx.Request.Query["hv"].ToString();
-        _view = hv is "statutory" or "salaries" ? hv : "salaries";
+        var tab = ctx.Request.Query["tab"].ToString();
+        if (hv is "statutory" or "salaries")
+        {
+            _view = hv;
+        }
+        else if (tab is "hr_law" or "statutory")
+        {
+            _view = "statutory";
+        }
+        else
+        {
+            _view = "salaries";
+        }
+
+        _lawCountry = (ctx.Request.Query["law_country"].ToString() ?? "").Trim().ToUpperInvariant();
+        if (string.IsNullOrWhiteSpace(_lawCountry)) _lawCountry = "AE";
+        _law = ErpHrLabourLawPack.Resolve(_lawCountry);
+        _lawCountry = _law.Code;
+        _lawFetched = !string.IsNullOrWhiteSpace(ctx.Request.Query["law_fetch"].ToString());
 
         _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
         _flashErr = ctx.Request.Query["err"].ToString() ?? "";

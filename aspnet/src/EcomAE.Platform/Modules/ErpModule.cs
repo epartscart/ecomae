@@ -270,6 +270,7 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapPost(EcomAeRoutes.ErpDocExpiryDelete, HandleDocxDeleteAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpTenantConfigSave, HandleTenantConfigSaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpPrintDesignerSave, HandlePrintDesignerSaveAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpUaeTaxFtaFetch, HandleUaeTaxFtaFetchAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpUaeTaxLegislationChecklistSet, HandleUaeTaxLegislationChecklistSetAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpPmSave, HandlePmSaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpPmBudgetSave, HandlePmBudgetSaveAsync).DisableAntiforgery();
@@ -396,8 +397,7 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapPost(EcomAeRoutes.ErpAjaxPayrollPay, HandlePayrollPayAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpPayrollUpdateDays, HandlePayrollUpdateDaysAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxPayrollUpdateDays, HandlePayrollUpdateDaysAsync).DisableAntiforgery();
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxUaeTaxFtaFetch, async (HttpContext context, ErpUaeTaxFtaFetchBody? body, ILegacySessionValidator validator, IErpUaeTaxFtaFetchDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(false); return Results.Ok(dryRun.Evaluate(new ErpUaeTaxFtaFetchRequest(body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxUaeTaxFtaFetch, HandleUaeTaxFtaFetchAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxAmlCheck, async (HttpContext context, ErpAmlCheckBody? body, ILegacySessionValidator validator, IErpAmlCheckDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpAmlCheckRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxAmlReportGenerate, async (HttpContext context, ErpAmlReportGenerateBody? body, ILegacySessionValidator validator, IErpAmlReportGenerateDryRun dryRun, CancellationToken cancellationToken) =>
@@ -15902,6 +15902,64 @@ public sealed class ErpModule : ISurfaceModule
             written.Succeeded,
             written.Message,
             new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+    }
+
+    private static async Task<IResult> HandleUaeTaxFtaFetchAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpUaeTaxFtaFetchDryRun dryRun,
+        IErpUaeTaxFtaFetchWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/uae-tax-compliance-app", "Admin ERP capability required for FTA legislation fetch.");
+        }
+
+        var force = false;
+        var confirm = false;
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            force = LiveWriteFormBinder.Flag(form, "force");
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+        }
+        else
+        {
+            var root = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<System.Text.Json.JsonElement>(context, cancellationToken);
+            confirm = JsonBool(root, "confirmWrites", "confirm_writes");
+            force = JsonBool(root, "force");
+        }
+
+        if (!confirm)
+        {
+            return Results.Ok(dryRun.Evaluate(new ErpUaeTaxFtaFetchRequest(ConfirmWrites: false, Force: force)).ToPayload(SessionPayload(session)));
+        }
+
+        var written = await writes.FetchAsync(new ErpUaeTaxFtaFetchWriteRequest(force), cancellationToken);
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/erp/uae-tax-compliance-app",
+            written.Succeeded,
+            written.Message,
+            new
+            {
+                ok = written.Succeeded,
+                writes = written.Writes,
+                phpAuthoritative = false,
+                validation_code = written.Code,
+                message = written.Message,
+                status = written.Succeeded,
+                item_count = written.ItemCount,
+                synced = written.Synced,
+                new_count = written.NewCount,
+                changed_count = written.ChangedCount,
+                page_count = written.PageCount,
+                cache_hit = written.CacheHit,
+                errors = written.Errors,
+                session = SessionPayload(session),
+            });
     }
 
     private static async Task<IResult> HandleUaeTaxLegislationChecklistSetAsync(
