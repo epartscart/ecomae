@@ -3111,6 +3111,11 @@ public sealed class LiveWriteServiceValidationTests
             .LogAsync(new ErpHrAttendanceWriteRequest(EmployeeId: 1, Hours: 8));
         Assert.False(hrAttDb.Succeeded);
         Assert.Equal("db", hrAttDb.Code);
+
+        var pmBudgetDb = await new ErpPmBudgetSaveWriteService(new UnconfiguredConnections())
+            .SaveAsync(new ErpPmBudgetSaveWriteRequest(Code: "FY26", Name: "Master"));
+        Assert.False(pmBudgetDb.Succeeded);
+        Assert.Equal("db", pmBudgetDb.Code);
     }
 
     [Fact]

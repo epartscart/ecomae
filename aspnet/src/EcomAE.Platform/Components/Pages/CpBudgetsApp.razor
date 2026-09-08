@@ -52,7 +52,30 @@
         </div>
     </section>
     <PhpParityModuleBody AppPath="/cp/budgets-app" IsAdmin="_isAdmin" />
+    <ErpPhpFlash Ok="@_ok" Err="@_err" />
 
+    @if (_isErp)
+    {
+        <ErpPhpCreateWell Title="Save platform budget">
+            <form method="post" action="/erp/pm/budgets/save" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin-bottom:1rem;">
+                <input type="hidden" name="returnUrl" value="/erp/budgets-app" />
+                <input type="hidden" name="confirmWrites" value="true" />
+                <label>Id <input class="form-control input-sm" name="id" placeholder="0 = new" style="width:80px;" /></label>
+                <label>Code <input class="form-control input-sm" name="code" placeholder="Code" style="width:120px;" /></label>
+                <label>Name <input class="form-control input-sm" name="name" placeholder="Name" style="width:180px;" /></label>
+                <label>Fiscal year <input class="form-control input-sm" name="fiscal_year" placeholder="FY" style="width:90px;" /></label>
+                <label>BU id <input class="form-control input-sm" name="business_unit_id" placeholder="0" style="width:80px;" /></label>
+                <label>Master
+                    <select class="form-control input-sm" name="is_master" style="width:80px;">
+                        <option value="0">no</option>
+                        <option value="1">yes</option>
+                    </select>
+                </label>
+                <label>Note <input class="form-control input-sm" name="note" placeholder="Note" style="width:180px;" /></label>
+                <button type="submit" class="btn btn-primary btn-sm">Save</button>
+            </form>
+        </ErpPhpCreateWell>
+    }
 
     <div class="epc-bud-kpis" aria-label="Budgets stats">
         <div class="epc-bud-kpi"><strong>@_summary.BudgetCount.ToString(CultureInfo.InvariantCulture)</strong><span>Budgets</span></div>
@@ -105,18 +128,24 @@
 @code {
     private const string _phpTab = "/CP/shop/finance/erp?area=budgeting&tab=budgeting&epc_erp_shell=1";
     private bool _isAdmin;
+    private bool _isErp;
     private CpBudgetsSummary _summary = new(0, 0, 0, 0, "n/a", "");
     private IReadOnlyList<CpBudgetDigest> _budgets = [];
     private string _source = "n/a";
     private string _message = "";
+    private string _ok = "";
+    private string _err = "";
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
+        _ok = ctx.Request.Query["ok"].ToString();
+        _err = ctx.Request.Query["err"].ToString();
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
+        _isErp = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("erp");
         if (!_isAdmin)
         {
             return; // guest browse — Sign in for live data
