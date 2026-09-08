@@ -4635,6 +4635,44 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>Opened marketplace app. Description is a short excerpt; features/config JSON omitted.</summary>
+    public const string SelectCpMarketplaceAppDetail = """
+        SELECT `id`, IFNULL(`app_key`,'') AS app_key, IFNULL(`name`,'') AS name,
+               IFNULL(`short_desc`,'') AS short_desc, IFNULL(`category`,'') AS category,
+               IFNULL(`developer`,'') AS developer, IFNULL(`version`,'') AS version,
+               IFNULL(`pricing`,'') AS pricing, IFNULL(`price_monthly`,0) AS price_monthly,
+               IFNULL(`downloads`,0) AS downloads, IFNULL(`avg_rating`,0) AS avg_rating,
+               IFNULL(`review_count`,0) AS review_count, IFNULL(`status`,'') AS status,
+               IFNULL(CAST(`published_at` AS CHAR),'') AS published_at,
+               CHAR_LENGTH(IFNULL(`description`,'')) AS description_len,
+               LEFT(IFNULL(`description`,''), 280) AS description_excerpt
+        FROM `epc_marketplace_apps`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Opened app installs. <c>config</c> JSON omitted.</summary>
+    public const string SelectCpMarketplaceAppInstalls = """
+        SELECT `id`, IFNULL(`site_key`,'') AS site_key, IFNULL(`installed_version`,'') AS installed_version,
+               IFNULL(`status`,'') AS status, IFNULL(CAST(`installed_at` AS CHAR),'') AS installed_at
+        FROM `epc_marketplace_installs`
+        WHERE `app_id` = @id
+        ORDER BY `id` DESC
+        LIMIT 50
+        """;
+
+    /// <summary>Opened app reviews. <c>review_text</c> omitted.</summary>
+    public const string SelectCpMarketplaceAppReviews = """
+        SELECT `id`, IFNULL(`site_key`,'') AS site_key, IFNULL(`rating`,0) AS rating,
+               IFNULL(`title`,'') AS title, IFNULL(`reviewer_name`,'') AS reviewer_name,
+               IFNULL(`helpful_count`,0) AS helpful_count,
+               IFNULL(CAST(`created_at` AS CHAR),'') AS created_at
+        FROM `epc_marketplace_reviews`
+        WHERE `app_id` = @id
+        ORDER BY `id` DESC
+        LIMIT 50
+        """;
+
     /// <summary>Notifications KPIs from epc_notifications/prefs (CREATE TABLE in epc_notifications.php).</summary>
     public const string SelectCpNotificationsStats = """
         SELECT
