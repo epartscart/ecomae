@@ -2635,6 +2635,53 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>Opened e-invoice — includes seller/buyer JSON, tax breakdown, validation, and XML length omitted from the dump.</summary>
+    public const string SelectCpEinvoiceDocumentDetail = """
+        SELECT `id`, IFNULL(`uuid`,'') AS uuid, IFNULL(`invoice_number`,'') AS invoice_number,
+               IFNULL(`order_id`,0) AS order_id, IFNULL(`user_id`,0) AS user_id,
+               IFNULL(`doc_category`,'') AS doc_category, IFNULL(`issue_date`,0) AS issue_date,
+               IFNULL(`payment_due_date`,0) AS payment_due_date,
+               IFNULL(`currency_code`,'') AS currency_code, IFNULL(`status`,'') AS status,
+               IFNULL(`payment_terms`,'') AS payment_terms, IFNULL(`bank_account`,'') AS bank_account,
+               IFNULL(`subtotal_ex_vat`,0) AS subtotal_ex_vat, IFNULL(`total_vat`,0) AS total_vat,
+               IFNULL(`total_incl_vat`,0) AS total_incl_vat, IFNULL(`paid_amount`,0) AS paid_amount,
+               IFNULL(`amount_due`,0) AS amount_due, IFNULL(`validation_ok`,0) AS validation_ok,
+               IFNULL(`validation_errors_json`,'') AS validation_errors_json,
+               IFNULL(`tax_breakdown_json`,'') AS tax_breakdown_json,
+               IFNULL(`seller_json`,'') AS seller_json, IFNULL(`buyer_json`,'') AS buyer_json,
+               IFNULL(`asp_name`,'') AS asp_name, IFNULL(`asp_reference`,'') AS asp_reference,
+               IFNULL(`fta_report_status`,'') AS fta_report_status,
+               IFNULL(CHAR_LENGTH(`xml_content`),0) AS xml_bytes,
+               IFNULL(LEFT(`xml_content`,160),'') AS xml_preview,
+               IFNULL(`time_created`,0) AS time_created, IFNULL(`time_submitted`,0) AS time_submitted
+        FROM `epc_einvoice_documents`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Opened e-invoice lines (PHP epc_einvoice_lines by document_id).</summary>
+    public const string SelectCpEinvoiceDocumentLines = """
+        SELECT `id`, IFNULL(`document_id`,0) AS document_id, IFNULL(`line_no`,0) AS line_no,
+               IFNULL(`item_name`,'') AS item_name, IFNULL(`item_description`,'') AS item_description,
+               IFNULL(`quantity`,0) AS quantity, IFNULL(`unit_price`,0) AS unit_price,
+               IFNULL(`line_net`,0) AS line_net, IFNULL(`tax_rate`,0) AS tax_rate,
+               IFNULL(`tax_amount`,0) AS tax_amount, IFNULL(`gross_amount`,0) AS gross_amount
+        FROM `epc_einvoice_lines`
+        WHERE `document_id` = @id
+        ORDER BY `line_no` ASC, `id` ASC
+        """;
+
+    /// <summary>Opened e-invoice events (PHP epc_einvoice_events by document_id).</summary>
+    public const string SelectCpEinvoiceDocumentEvents = """
+        SELECT `id`, IFNULL(`document_id`,0) AS document_id, IFNULL(`event_type`,'') AS event_type,
+               IFNULL(`status`,'') AS status, IFNULL(`message`,'') AS message,
+               IFNULL(`time_created`,0) AS time_created
+        FROM `epc_einvoice_events`
+        WHERE `document_id` = @id
+        ORDER BY `id` DESC
+        LIMIT 20
+        """;
+
     /// <summary>Jewellery repair KPIs from epc_jewel_repair (CREATE TABLE in epc_erp_jewellery.php).</summary>
     public const string SelectCpJewelleryRepairStats = """
         SELECT

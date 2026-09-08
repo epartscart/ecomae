@@ -2362,6 +2362,65 @@ public sealed record CpEinvoiceDocumentsDigestResult(
     string Source,
     string Message);
 
+public sealed record CpEinvoiceDocumentDetail(
+    long Id,
+    string Uuid,
+    string InvoiceNumber,
+    long OrderId,
+    long UserId,
+    string DocCategory,
+    long IssueDate,
+    long PaymentDueDate,
+    string CurrencyCode,
+    string Status,
+    string PaymentTerms,
+    string BankAccount,
+    decimal SubtotalExVat,
+    decimal TotalVat,
+    decimal TotalInclVat,
+    decimal PaidAmount,
+    decimal AmountDue,
+    bool ValidationOk,
+    string ValidationErrorsJson,
+    string TaxBreakdownJson,
+    string SellerJson,
+    string BuyerJson,
+    string AspName,
+    string AspReference,
+    string FtaReportStatus,
+    long XmlBytes,
+    string XmlPreview,
+    long TimeCreated,
+    long TimeSubmitted);
+
+public sealed record CpEinvoiceLineDigest(
+    long Id,
+    long DocumentId,
+    int LineNo,
+    string ItemName,
+    string ItemDescription,
+    decimal Quantity,
+    decimal UnitPrice,
+    decimal LineNet,
+    decimal TaxRate,
+    decimal TaxAmount,
+    decimal GrossAmount);
+
+public sealed record CpEinvoiceEventDigest(
+    long Id,
+    long DocumentId,
+    string EventType,
+    string Status,
+    string Message,
+    long TimeCreated);
+
+public sealed record CpEinvoiceDocumentDetailResult(
+    CpEinvoiceDocumentDetail? Document,
+    IReadOnlyList<CpEinvoiceLineDigest> Lines,
+    IReadOnlyList<CpEinvoiceEventDigest> Events,
+    string Source,
+    string Message);
+
 public sealed record CpJewelleryRepairsSummary(
     int RepairCount,
     int OpenCount,
