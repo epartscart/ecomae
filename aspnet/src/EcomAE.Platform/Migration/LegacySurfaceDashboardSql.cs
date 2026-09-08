@@ -3183,6 +3183,48 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>Opened financial-depth period. Same columns as the list — no extra JSON.</summary>
+    public const string SelectCpFinPeriodDetail = """
+        SELECT `id`, IFNULL(`company_id`,0) AS company_id, IFNULL(`fy`,0) AS fy,
+               IFNULL(`period_no`,0) AS period_no, IFNULL(`start_date`,0) AS start_date,
+               IFNULL(`end_date`,0) AS end_date, IFNULL(`status`,'') AS status,
+               IFNULL(`time_created`,0) AS time_created
+        FROM `epc_fin_periods`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Company allocation rules for an opened period. <c>basis</c> JSON omitted.</summary>
+    public const string SelectCpFinAllocRulesForCompany = """
+        SELECT `id`, IFNULL(`code`,'') AS code, IFNULL(`name`,'') AS name,
+               IFNULL(`source_account`,'') AS source_account, IFNULL(`active`,0) AS active
+        FROM `epc_fin_alloc_rule`
+        WHERE `company_id` = @company_id
+        ORDER BY `id` DESC
+        LIMIT 50
+        """;
+
+    /// <summary>Company accruals starting in the opened FY. <c>schedule_json</c> omitted.</summary>
+    public const string SelectCpFinAccrualsForFy = """
+        SELECT `id`, IFNULL(`code`,'') AS code, IFNULL(`description`,'') AS description,
+               IFNULL(`total_amount`,0) AS total_amount, IFNULL(`periods`,0) AS periods,
+               IFNULL(`start_fy`,0) AS start_fy, IFNULL(`start_period`,0) AS start_period,
+               IFNULL(`status`,'') AS status
+        FROM `epc_fin_accrual`
+        WHERE `company_id` = @company_id AND IFNULL(`start_fy`,0) = @fy
+        ORDER BY `id` DESC
+        LIMIT 50
+        """;
+
+    /// <summary>Company FX revaluation runs. <c>lines_json</c> omitted.</summary>
+    public const string SelectCpFinFxRunsForCompany = """
+        SELECT `id`, IFNULL(`as_of`,0) AS as_of, IFNULL(`total_delta`,0) AS total_delta
+        FROM `epc_fin_fx_run`
+        WHERE `company_id` = @company_id
+        ORDER BY `id` DESC
+        LIMIT 20
+        """;
+
     /// <summary>Blockchain proof KPIs from epc_bc_* (CREATE TABLE in epc_blockchain_bos.php).</summary>
     public const string SelectCpBlockchainProofStats = """
         SELECT

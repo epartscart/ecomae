@@ -21,17 +21,26 @@
             </div>
             <div class="panel-body">
                 <p>@CpPhpModuleCopy.PurposeFor("/cp/fin-advanced-app")</p>
-                <p>Set period status, generate periods, and save an allocation rule here.</p>
+                <p>Open a period for company allocation rules, FY accruals, and FX runs. Alloc run, accrual save, and FX revalue stay on the Classic twin.</p>
             </div>
         </div>
     </div>
-    <PhpParityModuleBody AppPath="/cp/fin-advanced-app" IsAdmin="_isAdmin" />
+    <PhpParityModuleBody AppPath="/cp/fin-advanced-app" IsAdmin="_isAdmin" ShowGhostScaffold="false" />
+
+    <ErpOpenedRecordBanner Id="_openedId" Found="@(_openedPeriod is not null)" Caption="@OpenedCaption" ListHref="@_listHref" />
+
+    <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Financial depth KPIs">
+        <div class="kpi"><div class="lbl">Periods</div><div class="val">@_summary.PeriodCount.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Open</div><div class="val">@_summary.OpenPeriodCount.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Alloc rules</div><div class="val">@_summary.AllocRuleCount.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Accruals</div><div class="val">@_summary.AccrualCount.ToString(CultureInfo.InvariantCulture)</div></div>
+    </div>
 
     @if (_isAdmin)
     {
         <form method="post" action="/erp/fin/periods/status" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="/cp/fin-advanced-app" />
+            <input type="hidden" name="returnUrl" value="@_listHref" />
             <label>Company id <input type="number" name="company_id" min="0" style="width:6rem" /></label>
             <label>FY <input type="number" name="fy" min="1" required style="width:6rem" /></label>
             <label>Period no <input type="number" name="period_no" min="1" required style="width:5rem" /></label>
@@ -46,14 +55,14 @@
         </form>
         <form method="post" action="/erp/fin/periods/generate" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="/cp/fin-advanced-app" />
+            <input type="hidden" name="returnUrl" value="@_listHref" />
             <label>FY <input type="number" name="fy" style="width:6rem" /></label>
             <label>Start month <input type="number" name="start_month" min="1" max="12" value="1" style="width:5rem" /></label>
             <button type="submit">Generate periods</button>
         </form>
         <ErpPhpCreateWell Title="New allocation rule">
 <form method="post" action="/erp/fin/alloc/save" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin-bottom:1rem;">
-                <input type="hidden" name="returnUrl" value="/erp/fin-advanced-app" />
+                <input type="hidden" name="returnUrl" value="@_listHref" />
                 <input type="hidden" name="confirmWrites" value="true" />
                 <label>Code <input class="form-control input-sm" name="code" required style="width:100px;" /></label>
                 <label>Name <input class="form-control input-sm" name="name" style="width:160px;" /></label>
@@ -64,6 +73,142 @@
 </ErpPhpCreateWell>
     }
 
+    @if (_openedPeriod is not null)
+    {
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">
+                    @_openedPeriod.Fy.ToString(CultureInfo.InvariantCulture) / P@_openedPeriod.PeriodNo.ToString(CultureInfo.InvariantCulture)
+                    <span class="label label-default pull-right">@(!string.IsNullOrWhiteSpace(_openedPeriod.Status) ? _openedPeriod.Status : "—")</span>
+                </div>
+                <div class="panel-body">
+                    <p>Company @_openedPeriod.CompanyId.ToString(CultureInfo.InvariantCulture)
+                        · @FormatUnix(_openedPeriod.StartDate) – @FormatUnix(_openedPeriod.EndDate)</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">Allocation rules</div>
+                <div class="panel-body">
+                    <div class="table-responsive">
+                        <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped table-bordered table-epc epc-erp-table">
+                            <thead>
+                                <tr>
+                                    <th>Id</th>
+                                    <th>Code</th>
+                                    <th>Name</th>
+                                    <th>Source</th>
+                                    <th>Active</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (_openedRules.Count == 0)
+                                {
+                                    <tr><td colspan="5">No allocation rules yet.</td></tr>
+                                }
+                                else
+                                {
+                                    @foreach (var rule in _openedRules)
+                                    {
+                                        <tr>
+                                            <td>@rule.Id.ToString(CultureInfo.InvariantCulture)</td>
+                                            <td>@(!string.IsNullOrWhiteSpace(rule.Code) ? rule.Code : "—")</td>
+                                            <td>@(!string.IsNullOrWhiteSpace(rule.Name) ? rule.Name : "—")</td>
+                                            <td>@(!string.IsNullOrWhiteSpace(rule.SourceAccount) ? rule.SourceAccount : "—")</td>
+                                            <td>@(rule.Active ? "yes" : "no")</td>
+                                        </tr>
+                                    }
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">Accruals</div>
+                <div class="panel-body">
+                    <div class="table-responsive">
+                        <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped table-bordered table-epc epc-erp-table">
+                            <thead>
+                                <tr>
+                                    <th>Id</th>
+                                    <th>Code</th>
+                                    <th>Description</th>
+                                    <th>Total</th>
+                                    <th>Periods</th>
+                                    <th>Start</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (_openedAccruals.Count == 0)
+                                {
+                                    <tr><td colspan="7">No accruals yet.</td></tr>
+                                }
+                                else
+                                {
+                                    @foreach (var acc in _openedAccruals)
+                                    {
+                                        <tr>
+                                            <td>@acc.Id.ToString(CultureInfo.InvariantCulture)</td>
+                                            <td>@(!string.IsNullOrWhiteSpace(acc.Code) ? acc.Code : "—")</td>
+                                            <td>@(!string.IsNullOrWhiteSpace(acc.Description) ? acc.Description : "—")</td>
+                                            <td>@acc.TotalAmount.ToString("0.00", CultureInfo.InvariantCulture)</td>
+                                            <td>@acc.Periods.ToString(CultureInfo.InvariantCulture)</td>
+                                            <td>@acc.StartFy.ToString(CultureInfo.InvariantCulture) / P@acc.StartPeriod.ToString(CultureInfo.InvariantCulture)</td>
+                                            <td>@(!string.IsNullOrWhiteSpace(acc.Status) ? acc.Status : "—")</td>
+                                        </tr>
+                                    }
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">FX runs</div>
+                <div class="panel-body">
+                    <div class="table-responsive">
+                        <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped table-bordered table-epc epc-erp-table">
+                            <thead>
+                                <tr>
+                                    <th>Id</th>
+                                    <th>As of</th>
+                                    <th>Net delta</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (_openedFxRuns.Count == 0)
+                                {
+                                    <tr><td colspan="3">No FX runs yet.</td></tr>
+                                }
+                                else
+                                {
+                                    @foreach (var run in _openedFxRuns)
+                                    {
+                                        <tr>
+                                            <td>@run.Id.ToString(CultureInfo.InvariantCulture)</td>
+                                            <td>@FormatUnix(run.AsOf)</td>
+                                            <td>@run.TotalDelta.ToString("0.00", CultureInfo.InvariantCulture)</td>
+                                        </tr>
+                                    }
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
     <p class="help-block">@_summary.PeriodCount.ToString(CultureInfo.InvariantCulture) Periods · @_summary.OpenPeriodCount.ToString(CultureInfo.InvariantCulture) Open · @_summary.AllocRuleCount.ToString(CultureInfo.InvariantCulture) Alloc rules · @_summary.AccrualCount.ToString(CultureInfo.InvariantCulture) Accruals.</p>
 
     <div class="col-lg-12">
@@ -71,7 +216,7 @@
             <div class="panel-heading hbuilt">Records</div>
             <div class="panel-body">
                 <div class="table-responsive">
-                    <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped">
+                    <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped table-bordered table-epc epc-erp-table">
             <thead>
                 <tr>
                     <th>Id</th>
@@ -87,21 +232,21 @@
             <tbody>
                 @if (_rows.Count == 0)
                 {
-                    <tr><td colspan="8">No records yet.</td></tr>
+                    <tr><td colspan="8">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? "No records yet." : _message) : "Sign in with a staff session for live rows.")</td></tr>
                 }
                 else
                 {
                     @foreach (var row in _rows)
                     {
-                        <tr>
+                        <tr id="erp-row-@row.Id.ToString(CultureInfo.InvariantCulture)" class="@ErpRecordOpen.RowClass(row.Id, _openedId)">
                             <td>@row.Id.ToString(CultureInfo.InvariantCulture)</td>
                             <td>@row.CompanyId.ToString(CultureInfo.InvariantCulture)</td>
                             <td>@row.Fy.ToString(CultureInfo.InvariantCulture)</td>
                             <td>@row.PeriodNo.ToString(CultureInfo.InvariantCulture)</td>
                             <td>@(!string.IsNullOrWhiteSpace(row.Status) ? row.Status : "—")</td>
-                            <td>@row.StartDate.ToString(CultureInfo.InvariantCulture)</td>
-                            <td>@row.EndDate.ToString(CultureInfo.InvariantCulture)</td>
-                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
+                            <td>@FormatUnix(row.StartDate)</td>
+                            <td>@FormatUnix(row.EndDate)</td>
+                            <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href(_listHref, "period_id", row.Id)">Open</a></td>
                         </tr>
                     }
                 }
@@ -121,11 +266,29 @@
     private IReadOnlyList<CpFinPeriodDigest> _rows = [];
     private string _source = "n/a";
     private string _message = "";
+    private long _openedId;
+    private CpFinPeriodDigest? _openedPeriod;
+    private IReadOnlyList<CpFinAllocRuleDigest> _openedRules = [];
+    private IReadOnlyList<CpFinAccrualDigest> _openedAccruals = [];
+    private IReadOnlyList<CpFinFxRunDigest> _openedFxRuns = [];
+    private string _listHref = "/cp/fin-advanced-app";
+
+    private string OpenedCaption => _openedPeriod is null
+        ? ""
+        : _openedPeriod.Fy.ToString(CultureInfo.InvariantCulture)
+            + " / P" + _openedPeriod.PeriodNo.ToString(CultureInfo.InvariantCulture)
+            + (string.IsNullOrWhiteSpace(_openedPeriod.Status) ? "" : (" · " + _openedPeriod.Status));
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
+
+        var path = ctx.Request.Path.Value;
+        _listHref = string.Equals(path, "/erp/fin-advanced-app", StringComparison.OrdinalIgnoreCase)
+            ? "/erp/fin-advanced-app"
+            : "/cp/fin-advanced-app";
+        _openedId = ErpRecordOpen.ReadId(ctx.Request, "period_id");
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
@@ -139,6 +302,36 @@
         _rows = result.Periods;
         _source = result.Source;
         _message = result.Message;
+
+        if (_openedId > 0)
+        {
+            var detail = await Dashboards.BuildCpFinAdvancedPeriodDetailAsync(_openedId, ctx.RequestAborted);
+            _openedPeriod = detail.Period;
+            _openedRules = detail.Rules;
+            _openedAccruals = detail.Accruals;
+            _openedFxRuns = detail.FxRuns;
+            if (_openedPeriod is not null)
+            {
+                var openedList = _rows.FirstOrDefault(r => r.Id == _openedId);
+                if (openedList is not null)
+                {
+                    _rows = new[] { openedList }.Concat(_rows.Where(r => r.Id != _openedId)).ToList();
+                }
+            }
+            else if (!string.IsNullOrWhiteSpace(detail.Message))
+            {
+                _message = detail.Message;
+            }
+        }
+    }
+
+    private static string FormatUnix(long unix)
+    {
+        if (unix <= 0)
+        {
+            return "—";
+        }
+
+        return DateTimeOffset.FromUnixTimeSeconds(unix).UtcDateTime.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
     }
 }
-

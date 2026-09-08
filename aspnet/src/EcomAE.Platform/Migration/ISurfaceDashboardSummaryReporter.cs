@@ -272,6 +272,9 @@ public interface ISurfaceDashboardSummaryReporter
     /// <summary>Read-only financial periods (allocation/accrual JSON omitted).</summary>
     Task<CpFinAdvancedDigestResult> BuildCpFinAdvancedDigestAsync(int limit, CancellationToken cancellationToken = default);
 
+    /// <summary>Opened financial-depth period (PHP <c>period_id</c>) plus company alloc/accrual/FX rows. JSON payloads omitted.</summary>
+    Task<CpFinAdvancedPeriodDetailResult> BuildCpFinAdvancedPeriodDetailAsync(long id, CancellationToken cancellationToken = default);
+
     /// <summary>Read-only blockchain proofs (payload/merkle JSON omitted).</summary>
     Task<CpBlockchainProofsDigestResult> BuildCpBlockchainProofsDigestAsync(int limit, CancellationToken cancellationToken = default);
 

@@ -10234,6 +10234,107 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    public async Task<CpFinAdvancedPeriodDetailResult> BuildCpFinAdvancedPeriodDetailAsync(long id, CancellationToken cancellationToken = default)
+    {
+        if (id <= 0)
+        {
+            return new(null, [], [], [], "n/a", "");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return new(null, [], [], [], "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            CpFinPeriodDigest? header = null;
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectCpFinPeriodDetail;
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    header = new CpFinPeriodDigest(
+                        Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["company_id"] is DBNull ? 0 : reader["company_id"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["fy"] is DBNull ? 0 : reader["fy"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["period_no"] is DBNull ? 0 : reader["period_no"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["start_date"] is DBNull ? 0 : reader["start_date"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["end_date"] is DBNull ? 0 : reader["end_date"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["status"] is DBNull ? string.Empty : reader["status"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt64(reader["time_created"] is DBNull ? 0 : reader["time_created"], CultureInfo.InvariantCulture));
+                }
+            }
+
+            if (header is null)
+            {
+                return new(null, [], [], [], "database", "Period not found.");
+            }
+
+            var rules = new List<CpFinAllocRuleDigest>();
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectCpFinAllocRulesForCompany;
+                AddParameter(cmd, "@company_id", header.CompanyId);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    rules.Add(new CpFinAllocRuleDigest(
+                        Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["code"] is DBNull ? string.Empty : reader["code"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["name"] is DBNull ? string.Empty : reader["name"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["source_account"] is DBNull ? string.Empty : reader["source_account"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt32(reader["active"] is DBNull ? 0 : reader["active"], CultureInfo.InvariantCulture) != 0));
+                }
+            }
+
+            var accruals = new List<CpFinAccrualDigest>();
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectCpFinAccrualsForFy;
+                AddParameter(cmd, "@company_id", header.CompanyId);
+                AddParameter(cmd, "@fy", header.Fy);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    accruals.Add(new CpFinAccrualDigest(
+                        Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["code"] is DBNull ? string.Empty : reader["code"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["description"] is DBNull ? string.Empty : reader["description"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToDecimal(reader["total_amount"] is DBNull ? 0 : reader["total_amount"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["periods"] is DBNull ? 0 : reader["periods"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["start_fy"] is DBNull ? 0 : reader["start_fy"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["start_period"] is DBNull ? 0 : reader["start_period"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["status"] is DBNull ? string.Empty : reader["status"], CultureInfo.InvariantCulture) ?? string.Empty));
+                }
+            }
+
+            var fxRuns = new List<CpFinFxRunDigest>();
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectCpFinFxRunsForCompany;
+                AddParameter(cmd, "@company_id", header.CompanyId);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    fxRuns.Add(new CpFinFxRunDigest(
+                        Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["as_of"] is DBNull ? 0 : reader["as_of"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(reader["total_delta"] is DBNull ? 0 : reader["total_delta"], CultureInfo.InvariantCulture)));
+                }
+            }
+
+            return new(header, rules, accruals, fxRuns, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(null, [], [], [], "database-error", ex.Message);
+        }
+    }
+
     public async Task<CpBlockchainProofsDigestResult> BuildCpBlockchainProofsDigestAsync(int limit, CancellationToken cancellationToken = default)
     {
         var safeLimit = Math.Clamp(limit, 1, 500);
