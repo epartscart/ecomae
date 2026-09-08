@@ -7236,7 +7236,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only epc_ai_* KPIs + queries (input_text/output_text omitted). PHP epc_ai_service remains authoritative."
+                note = "Read-only epc_ai_* KPIs + queries. Open ?query_id= loads a 280-char input excerpt plus service siblings. Output omitted. PHP epc_ai_service remains authoritative."
             });
         });
 

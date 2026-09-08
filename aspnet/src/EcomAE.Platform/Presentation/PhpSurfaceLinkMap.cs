@@ -1623,7 +1623,8 @@ public static class PhpSurfaceLinkMap
                     || aspNet.Equals("/cp/industry-packs-app", StringComparison.OrdinalIgnoreCase)
                     || aspNet.Equals("/cp/config-sandbox-app", StringComparison.OrdinalIgnoreCase)
                     || aspNet.Equals("/cp/platform-governance-app", StringComparison.OrdinalIgnoreCase)
-                    || aspNet.Equals("/cp/platform-communication-app", StringComparison.OrdinalIgnoreCase))
+                    || aspNet.Equals("/cp/platform-communication-app", StringComparison.OrdinalIgnoreCase)
+                    || aspNet.Equals("/cp/ai-service-app", StringComparison.OrdinalIgnoreCase))
                 {
                     return ErpRecordOpen.PreserveRecordQuery(aspNet, value);
                 }

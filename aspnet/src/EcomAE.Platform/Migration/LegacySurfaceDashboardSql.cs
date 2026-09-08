@@ -3578,6 +3578,33 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>Opened AI query. Input is a short excerpt; output_text is omitted.</summary>
+    public const string SelectCpAiServiceQueryDetail = """
+        SELECT `id`, IFNULL(`site_key`,'') AS site_key, IFNULL(`user_id`,0) AS user_id,
+               IFNULL(`service`,'') AS service, IFNULL(`intent`,'') AS intent,
+               IFNULL(`tokens_used`,0) AS tokens_used, IFNULL(`execution_ms`,0) AS execution_ms,
+               IFNULL(`pii_stripped`,0) AS pii_stripped, IFNULL(`status`,'') AS status,
+               IFNULL(`created_at`,'') AS created_at,
+               CHAR_LENGTH(IFNULL(`input_text`,'')) AS input_len,
+               LEFT(IFNULL(`input_text`,''), 280) AS input_excerpt
+        FROM `epc_ai_queries`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Other queries on the same service as the opened row. Input/output omitted.</summary>
+    public const string SelectCpAiServiceServiceSiblings = """
+        SELECT `id`, IFNULL(`site_key`,'') AS site_key, IFNULL(`user_id`,0) AS user_id,
+               IFNULL(`service`,'') AS service, IFNULL(`intent`,'') AS intent,
+               IFNULL(`tokens_used`,0) AS tokens_used, IFNULL(`execution_ms`,0) AS execution_ms,
+               IFNULL(`pii_stripped`,0) AS pii_stripped, IFNULL(`status`,'') AS status,
+               IFNULL(`created_at`,'') AS created_at
+        FROM `epc_ai_queries`
+        WHERE `service` = @service AND `id` <> @id
+        ORDER BY `id` DESC
+        LIMIT 50
+        """;
+
     /// <summary>Returns/RMA KPIs from epc_warranties/epc_rma_* (CREATE TABLE in epc_warranty_rma.php).</summary>
     public const string SelectCpReturnsRmaStats = """
         SELECT

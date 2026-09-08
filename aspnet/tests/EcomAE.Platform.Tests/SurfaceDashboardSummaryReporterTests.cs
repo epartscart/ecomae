@@ -780,6 +780,12 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.Contains("epc_ai_queries", LegacySurfaceDashboardSql.SelectCpAiServiceQueries, StringComparison.Ordinal);
         Assert.DoesNotContain("input_text", LegacySurfaceDashboardSql.SelectCpAiServiceQueries, StringComparison.Ordinal);
         Assert.DoesNotContain("output_text", LegacySurfaceDashboardSql.SelectCpAiServiceQueries, StringComparison.Ordinal);
+        Assert.Contains("input_excerpt", LegacySurfaceDashboardSql.SelectCpAiServiceQueryDetail, StringComparison.Ordinal);
+        Assert.Contains("LEFT(IFNULL(`input_text`,''), 280)", LegacySurfaceDashboardSql.SelectCpAiServiceQueryDetail, StringComparison.Ordinal);
+        Assert.DoesNotContain("output_text", LegacySurfaceDashboardSql.SelectCpAiServiceQueryDetail, StringComparison.Ordinal);
+        Assert.DoesNotContain("api_key", LegacySurfaceDashboardSql.SelectCpAiServiceQueryDetail, StringComparison.Ordinal);
+        Assert.DoesNotContain("input_text", LegacySurfaceDashboardSql.SelectCpAiServiceServiceSiblings, StringComparison.Ordinal);
+        Assert.DoesNotContain("output_text", LegacySurfaceDashboardSql.SelectCpAiServiceServiceSiblings, StringComparison.Ordinal);
         Assert.Contains("epc_rma_requests", LegacySurfaceDashboardSql.SelectCpReturnsRmaRequests, StringComparison.Ordinal);
         Assert.DoesNotContain("`description`", LegacySurfaceDashboardSql.SelectCpReturnsRmaRequests, StringComparison.Ordinal);
         Assert.DoesNotContain("resolution_notes", LegacySurfaceDashboardSql.SelectCpReturnsRmaRequests, StringComparison.Ordinal);
