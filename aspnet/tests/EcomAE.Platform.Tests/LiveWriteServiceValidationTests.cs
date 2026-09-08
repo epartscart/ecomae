@@ -3111,6 +3111,11 @@ public sealed class LiveWriteServiceValidationTests
             .LogAsync(new ErpHrAttendanceWriteRequest(EmployeeId: 1, Hours: 8));
         Assert.False(hrAttDb.Succeeded);
         Assert.Equal("db", hrAttDb.Code);
+
+        var docxDeleteDb = await new ErpDocxDeleteWriteService(new UnconfiguredConnections())
+            .DeleteAsync(new ErpDocxDeleteWriteRequest(Id: 12));
+        Assert.False(docxDeleteDb.Succeeded);
+        Assert.Equal("db", docxDeleteDb.Code);
     }
 
     [Fact]

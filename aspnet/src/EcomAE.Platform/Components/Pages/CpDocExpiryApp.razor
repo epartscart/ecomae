@@ -53,6 +53,25 @@
     </section>
     <PhpParityModuleBody AppPath="/cp/doc-expiry-app" IsAdmin="_isAdmin" />
 
+    @if (!string.IsNullOrWhiteSpace(_flashOk))
+    {
+        <div class="alert alert-success" role="status" style="margin:0 0 1rem;padding:.7rem .9rem;border-radius:.4rem;background:#ecfdf5;color:#065f46">@_flashOk</div>
+    }
+    @if (!string.IsNullOrWhiteSpace(_flashErr))
+    {
+        <div class="alert alert-danger" role="status" style="margin:0 0 1rem;padding:.7rem .9rem;border-radius:.4rem;background:#fef2f2;color:#991b1b">@_flashErr</div>
+    }
+    @if (_isAdmin)
+    {
+        <ErpPhpCreateWell Title="Remove document">
+            <form method="post" action="/erp/doc-expiry/delete" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin-bottom:1rem;">
+                <input type="hidden" name="returnUrl" value="/erp/doc-expiry-app" />
+                <input type="hidden" name="confirmWrites" value="true" />
+                <label>Id <input class="form-control input-sm" type="number" name="id" min="1" required style="width:90px;" /></label>
+                <button type="submit" class="btn btn-danger btn-sm">Remove from register</button>
+            </form>
+        </ErpPhpCreateWell>
+    }
 
     <div class="epc-w17-kpis" aria-label="Doc expiry stats">
         <div class="epc-w17-kpi"><strong>@_summary.DocumentCount.ToString(CultureInfo.InvariantCulture)</strong><span>Documents</span></div>
@@ -119,11 +138,16 @@
     private IReadOnlyList<CpDocExpiryDocumentDigest> _rows = [];
     private string _source = "n/a";
     private string _message = "";
+    private string _flashOk = "";
+    private string _flashErr = "";
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
+
+        _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
+        _flashErr = ctx.Request.Query["err"].ToString() ?? "";
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
