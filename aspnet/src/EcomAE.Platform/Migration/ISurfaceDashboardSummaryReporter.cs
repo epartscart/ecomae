@@ -167,6 +167,9 @@ public interface ISurfaceDashboardSummaryReporter
     /// <summary>Read-only delivery/obtaining modes (parameters_values omitted).</summary>
     Task<CpDeliveryMethodsDigestResult> BuildCpDeliveryMethodsDigestAsync(int limit, CancellationToken cancellationToken = default);
 
+    /// <summary>Opened delivery mode (PHP <c>obtaining_mode_id</c>) plus same-available siblings. parameters_values is a short excerpt.</summary>
+    Task<CpDeliveryModeDetailResult> BuildCpDeliveryModeDetailAsync(long id, CancellationToken cancellationToken = default);
+
     /// <summary>Read-only article cross pairs.</summary>
     Task<CpCrossesDigestResult> BuildCpCrossesDigestAsync(int limit, CancellationToken cancellationToken = default);
 

@@ -20,10 +20,14 @@
                 <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)" style="margin-right:.4rem">Classic twin</a>
             </div>
             <div class="panel-body">
-                <p>Pickup, courier, and obtaining modes offered at checkout. Activate or save a method here.</p>
+                <p>Open a method for a parameters excerpt. Activate or save a method here. Full parameters JSON stays on the Classic twin.</p>
             </div>
         </div>
     </div>
+    <PhpParityModuleBody ShowGhostScaffold="false" AppPath="/cp/delivery-methods-app" IsAdmin="_isAdmin" />
+
+    <ErpOpenedRecordBanner Id="_openedId" Found="@(_openedMode is not null)" Caption="@OpenedCaption" ListHref="@_listHref" />
+
     @if (!string.IsNullOrWhiteSpace(_flashOk))
     {
         <div class="alert alert-success" role="status" style="margin:0 0 1rem;padding:.7rem .9rem;border-radius:.4rem;background:#ecfdf5;color:#065f46">@_flashOk</div>
@@ -38,7 +42,7 @@
             <input type="hidden" name="confirmWrites" value="true" />
             <input type="hidden" name="returnUrl" value="/cp/delivery-methods-app" />
             <input type="hidden" name="action" value="activation" />
-            <label>Method id <input type="number" name="modeId" min="1" required style="width:6rem" /></label>
+            <label>Method id <input type="number" name="modeId" min="1" required style="width:6rem" value="@(_openedId > 0 ? _openedId.ToString(CultureInfo.InvariantCulture) : "")" /></label>
             <label>Available
                 <select name="available">
                     <option value="1">Yes</option>
@@ -51,9 +55,9 @@
             <input type="hidden" name="confirmWrites" value="true" />
             <input type="hidden" name="returnUrl" value="/cp/delivery-methods-app" />
             <input type="hidden" name="action" value="save" />
-            <label>Method id <input type="number" name="modeId" min="1" required style="width:6rem" /></label>
-            <label>Caption <input type="text" name="caption" required /></label>
-            <label>Sort <input type="number" name="sortOrder" value="0" style="width:5rem" /></label>
+            <label>Method id <input type="number" name="modeId" min="1" required style="width:6rem" value="@(_openedId > 0 ? _openedId.ToString(CultureInfo.InvariantCulture) : "")" /></label>
+            <label>Caption <input type="text" name="caption" required value="@(_openedMode is not null ? _openedMode.Caption : "")" /></label>
+            <label>Sort <input type="number" name="sortOrder" value="@(_openedMode is not null ? _openedMode.SortOrder.ToString(CultureInfo.InvariantCulture) : "0")" style="width:5rem" /></label>
             <label>Available
                 <select name="available">
                     <option value="1">Yes</option>
@@ -65,13 +69,86 @@
         </form>
     }
 
+    <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Delivery method KPIs">
+        <div class="kpi"><div class="lbl">Methods</div><div class="val">@_summary.Methods.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Available</div><div class="val">@_summary.Available.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Listed</div><div class="val">@_modes.Count.ToString(CultureInfo.InvariantCulture)</div></div>
+    </div>
+
+    @if (_openedMode is not null)
+    {
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">
+                    @OpenedCaption
+                    <span class="label label-default pull-right">@(_openedMode.Available ? "available" : "off")</span>
+                </div>
+                <div class="panel-body">
+                    <p>@(!string.IsNullOrWhiteSpace(_openedMode.Handler) ? _openedMode.Handler : "—")
+                        · order @_openedMode.SortOrder.ToString(CultureInfo.InvariantCulture)</p>
+                    @if (!string.IsNullOrWhiteSpace(_openedMode.ParametersExcerpt))
+                    {
+                        <pre style="max-height:12rem;overflow:auto;white-space:pre-wrap;margin:0">@_openedMode.ParametersExcerpt</pre>
+                        @if (_openedMode.ParametersLen > _openedMode.ParametersExcerpt.Length)
+                        {
+                            <p class="text-muted">Excerpt only (@_openedMode.ParametersExcerpt.Length.ToString(CultureInfo.InvariantCulture) of @_openedMode.ParametersLen.ToString(CultureInfo.InvariantCulture) chars). Full parameters JSON stays on the Classic twin.</p>
+                        }
+                    }
+                    else
+                    {
+                        <p class="text-muted">No parameters excerpt yet.</p>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">Same-available siblings</div>
+                <div class="panel-body">
+                    <div class="table-responsive">
+                        <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped table-bordered table-epc epc-erp-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Caption</th>
+                                    <th>Sort</th>
+                                    <th>Available</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (_openedSiblings.Count == 0)
+                                {
+                                    <tr><td colspan="5">No same-available siblings yet.</td></tr>
+                                }
+                                else
+                                {
+                                    @foreach (var sib in _openedSiblings)
+                                    {
+                                        <tr>
+                                            <td>@sib.Id.ToString(CultureInfo.InvariantCulture)</td>
+                                            <td>@(string.IsNullOrWhiteSpace(sib.Caption) ? "—" : sib.Caption)</td>
+                                            <td>@sib.SortOrder.ToString(CultureInfo.InvariantCulture)</td>
+                                            <td>@(sib.Available ? "On" : "Off")</td>
+                                            <td><a class="btn btn-xs btn-default" href="@ErpRecordOpen.Href(_listHref, "obtaining_mode_id", sib.Id)">Open</a></td>
+                                        </tr>
+                                    }
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
     <div class="col-lg-12">
         <div class="hpanel">
             <div class="panel-heading hbuilt">Obtain modes</div>
             <div class="panel-body">
-                <p class="help-block">@(_isAdmin ? $"{_modes.Count} obtain modes from shop_obtaining_modes." : "Sign in to load obtain modes.")</p>
                 <div class="table-responsive">
-                    <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped">
+                    <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped table-bordered table-epc epc-erp-table">
                         <thead>
                             <tr>
                                 <th><input type="checkbox" id="check_uncheck_all" name="check_uncheck_all" onchange="on_check_uncheck_all();" /></th>
@@ -79,23 +156,24 @@
                                 <th>Caption</th>
                                 <th>Sort</th>
                                 <th class="text-center">Available</th>
+                                <th></th>
                             </tr>
                         </thead>
                         <tbody>
                         @if (!_isAdmin)
                         {
-                            <tr><td colspan="5">Sign in for live data.</td></tr>
+                            <tr><td colspan="6">Sign in for live data.</td></tr>
                         }
                         else if (_modes.Count == 0)
                         {
-                            <tr><td colspan="5">No delivery methods configured yet.</td></tr>
+                            <tr><td colspan="6">No delivery methods configured yet.</td></tr>
                         }
                         else
                         {
                             @foreach (var m in _modes)
                             {
                                 var idText = m.Id.ToString(CultureInfo.InvariantCulture);
-                                <tr>
+                                <tr id="erp-row-@idText" class="@ErpRecordOpen.RowClass(m.Id, _openedId)">
                                     <td><input type="checkbox" id="checked_@idText" name="checked_@idText" onchange="on_one_check_changed('checked_@idText');" /></td>
                                     <td>@idText</td>
                                     <td>@(string.IsNullOrWhiteSpace(m.Caption) ? "—" : m.Caption)</td>
@@ -110,6 +188,7 @@
                                             <button type="submit" class="btn btn-xs @(m.Available ? "btn-primary" : "btn-default")">@(m.Available ? "On" : "Off")</button>
                                         </form>
                                     </td>
+                                    <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href(_listHref, "obtaining_mode_id", m.Id)">Open</a></td>
                                 </tr>
                             }
                         }
@@ -142,15 +221,27 @@
     private const string _carriersHref = "/cp/carriers-app";
     private const string _phpTab = "/CP/shop/logistics/sposoby-polucheniya";
     private bool _isAdmin;
+    private CpDeliveryMethodsSummary _summary = new(0, 0, "n/a", "");
     private IReadOnlyList<CpDeliveryMethodDigest> _modes = [];
     private string _flashOk = "";
     private string _flashErr = "";
+    private string _listHref = "/cp/delivery-methods-app";
+    private long _openedId;
+    private CpDeliveryModeDetail? _openedMode;
+    private IReadOnlyList<CpDeliveryMethodDigest> _openedSiblings = [];
+
+    private string OpenedCaption => _openedMode is null
+        ? ""
+        : (string.IsNullOrWhiteSpace(_openedMode.Caption)
+            ? ("Method #" + _openedMode.Id.ToString(CultureInfo.InvariantCulture))
+            : _openedMode.Caption);
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
 
+        _openedId = ErpRecordOpen.ReadId(ctx.Request, "obtaining_mode_id");
         _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
         _flashErr = ctx.Request.Query["err"].ToString() ?? "";
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
@@ -161,6 +252,22 @@
         }
 
         var result = await Dashboards.BuildCpDeliveryMethodsDigestAsync(200, ctx.RequestAborted);
+        _summary = result.Summary;
         _modes = result.Modes;
+
+        if (_openedId > 0)
+        {
+            var detail = await Dashboards.BuildCpDeliveryModeDetailAsync(_openedId, ctx.RequestAborted);
+            _openedMode = detail.Mode;
+            _openedSiblings = detail.Siblings;
+            if (_openedMode is not null)
+            {
+                var openedList = _modes.FirstOrDefault(r => r.Id == _openedId);
+                if (openedList is not null)
+                {
+                    _modes = new[] { openedList }.Concat(_modes.Where(r => r.Id != _openedId)).ToList();
+                }
+            }
+        }
     }
 }

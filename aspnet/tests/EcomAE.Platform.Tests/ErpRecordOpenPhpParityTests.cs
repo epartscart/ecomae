@@ -71,6 +71,8 @@ public sealed class ErpRecordOpenPhpParityTests
     [InlineData("/CP/shop/filter/setting?id=4", "/cp/product-filters-app?filter_id=4")]
     [InlineData("/CP/shop/geo/nodes?geo_id=4", "/cp/geo-regions-app?geo_id=4")]
     [InlineData("/CP/shop/geo?geo_id=4", "/cp/geo-regions-app?geo_id=4")]
+    [InlineData("/CP/shop/logistics/sposoby-polucheniya?obtaining_mode_id=4", "/cp/delivery-methods-app?obtaining_mode_id=4")]
+    [InlineData("/CP/shop/logistics/sposoby-polucheniya/sposob-polucheniya?obtaining_mode_id=4", "/cp/delivery-methods-app?obtaining_mode_id=4")]
     [InlineData("/ERP/?epc_erp_shell=1&area=landed_cost_area&tab=landed_cost&sheet_id=6", "/erp/landed-cost-app?sheet_id=6")]
     [InlineData("/CP/control/portal/epc_soc2_compliance?soc2_id=8", "/cp/soc2-compliance-app?soc2_id=8")]
     [InlineData("/ERP/?epc_erp_shell=1&area=tax&tab=compliance&soc2_id=8", "/erp/soc2-compliance-app?soc2_id=8")]
@@ -1308,6 +1310,42 @@ public sealed class ErpRecordOpenPhpParityTests
             ErpRecordOpen.PreserveRecordQuery(
                 "/cp/geo-regions-app",
                 "/CP/shop/geo/nodes?geo_id=4"));
+    }
+
+    [Fact]
+    public void DeliveryMethodsApp_OpenLoadsParametersExcerptAndKeepsWrites()
+    {
+        var root = FindRepoRoot();
+        var text = File.ReadAllText(Path.Combine(root,
+            "aspnet/src/EcomAE.Platform/Components/Pages/CpDeliveryMethodsApp.razor"));
+        Assert.Contains("ErpRecordOpen.Href(_listHref, \"obtaining_mode_id\"", text, StringComparison.Ordinal);
+        Assert.Contains("ErpOpenedRecordBanner", text, StringComparison.Ordinal);
+        Assert.Contains("ReadId(ctx.Request, \"obtaining_mode_id\")", text, StringComparison.Ordinal);
+        Assert.Contains("BuildCpDeliveryModeDetailAsync", text, StringComparison.Ordinal);
+        Assert.Contains("No parameters excerpt yet.", text, StringComparison.Ordinal);
+        Assert.Contains("No same-available siblings yet.", text, StringComparison.Ordinal);
+        Assert.Contains("ShowGhostScaffold=\"false\"", text, StringComparison.Ordinal);
+        Assert.Contains("table-epc", text, StringComparison.Ordinal);
+        Assert.Contains("/cp/delivery-methods/write", text, StringComparison.Ordinal);
+        Assert.Contains("name=\"action\" value=\"activation\"", text, StringComparison.Ordinal);
+        Assert.Contains("name=\"obtain_mode_id\"", text, StringComparison.Ordinal);
+        Assert.Contains("Save method", text, StringComparison.Ordinal);
+        Assert.Contains("PhpParityModuleBody", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)\">Open", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("/php-reference/", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("ASP.NET", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("epc-del-hero", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("epc-del-kpis", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("@bind", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("@onclick", text, StringComparison.Ordinal);
+
+        Assert.Equal("/cp/delivery-methods-app?obtaining_mode_id=4#erp-row-4",
+            ErpRecordOpen.Href("/cp/delivery-methods-app", "obtaining_mode_id", 4));
+        Assert.Equal(
+            "/cp/delivery-methods-app?obtaining_mode_id=4",
+            ErpRecordOpen.PreserveRecordQuery(
+                "/cp/delivery-methods-app",
+                "/CP/shop/logistics/sposoby-polucheniya?obtaining_mode_id=4"));
     }
 
     [Fact]
