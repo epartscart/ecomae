@@ -259,6 +259,7 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.Equal("migration", partsAgent.Source);
         Assert.Equal("migration", posOverview.Source);
         Assert.Equal("migration", taxToolkits.Source);
+        Assert.Equal("migration", taxToolkitDetail.Source);
         Assert.Equal("migration", smsWhatsapp.Source);
         Assert.Equal("migration", crmBoard.Source);
         Assert.Equal("migration", documentControl.Source);
@@ -481,6 +482,13 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.Contains("epc_pos_sales", LegacySurfaceDashboardSql.SelectCpPosSales, StringComparison.Ordinal);
         Assert.Contains("epc_tax_toolkits", LegacySurfaceDashboardSql.SelectCpTaxToolkits, StringComparison.Ordinal);
         Assert.DoesNotContain("rules_json", LegacySurfaceDashboardSql.SelectCpTaxToolkits, StringComparison.Ordinal);
+        Assert.DoesNotContain("country_codes_json", LegacySurfaceDashboardSql.SelectCpTaxToolkits, StringComparison.Ordinal);
+        Assert.Contains("rules_json", LegacySurfaceDashboardSql.SelectCpTaxToolkitDetail, StringComparison.Ordinal);
+        Assert.Contains("country_codes_json", LegacySurfaceDashboardSql.SelectCpTaxToolkitDetail, StringComparison.Ordinal);
+        Assert.Contains("epc_tax_toolkit_installs", LegacySurfaceDashboardSql.SelectCpTaxToolkitInstalls, StringComparison.Ordinal);
+        Assert.Contains("`kit_id` = @id", LegacySurfaceDashboardSql.SelectCpTaxToolkitInstalls, StringComparison.Ordinal);
+        Assert.Contains("epc_tax_toolkit_updates", LegacySurfaceDashboardSql.SelectCpTaxToolkitUpdates, StringComparison.Ordinal);
+        Assert.Contains("`kit_code` = @kit_code", LegacySurfaceDashboardSql.SelectCpTaxToolkitUpdates, StringComparison.Ordinal);
         Assert.DoesNotContain("reg_number", LegacySurfaceDashboardSql.SelectCpTaxTenantProfile, StringComparison.Ordinal);
         Assert.Contains("sms_api", LegacySurfaceDashboardSql.SelectCpSmsOperators, StringComparison.Ordinal);
         Assert.DoesNotContain("parameters_values", LegacySurfaceDashboardSql.SelectCpSmsOperators, StringComparison.Ordinal);
