@@ -3661,7 +3661,7 @@ public static class LegacySurfaceDashboardSql
             (SELECT COUNT(*) FROM `epc_erp_wms_work` WHERE IFNULL(`status`,'') IN ('open','assigned')) AS open_work_count
         """;
 
-    /// <summary>WMS work pool — status/type overview.</summary>
+    /// <summary>WMS work pool — status/type overview. from/to location and LP omitted.</summary>
     public const string SelectCpWarehouseWmsWork = """
         SELECT `id`, IFNULL(`company_id`,0) AS company_id, IFNULL(`work_type`,'') AS work_type,
                IFNULL(`reference`,'') AS reference, IFNULL(`wave_id`,0) AS wave_id,
@@ -3671,6 +3671,34 @@ public static class LegacySurfaceDashboardSql
         FROM `epc_erp_wms_work`
         ORDER BY `id` DESC
         LIMIT @limit
+        """;
+
+    /// <summary>Opened WMS work. Includes from/to location and LP omitted from the list.</summary>
+    public const string SelectCpWarehouseWmsWorkDetail = """
+        SELECT `id`, IFNULL(`company_id`,0) AS company_id, IFNULL(`work_type`,'') AS work_type,
+               IFNULL(`reference`,'') AS reference, IFNULL(`wave_id`,0) AS wave_id,
+               IFNULL(`item`,'') AS item, IFNULL(`qty`,0) AS qty,
+               IFNULL(`from_location_id`,0) AS from_location_id,
+               IFNULL(`to_location_id`,0) AS to_location_id,
+               IFNULL(`lp_id`,0) AS lp_id,
+               IFNULL(`status`,'') AS status, IFNULL(`assigned_to`,'') AS assigned_to,
+               IFNULL(`time_created`,0) AS time_created, IFNULL(`time_updated`,0) AS time_updated
+        FROM `epc_erp_wms_work`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Other work on the same wave. from/to location and LP omitted.</summary>
+    public const string SelectCpWarehouseWmsWaveSiblings = """
+        SELECT `id`, IFNULL(`company_id`,0) AS company_id, IFNULL(`work_type`,'') AS work_type,
+               IFNULL(`reference`,'') AS reference, IFNULL(`wave_id`,0) AS wave_id,
+               IFNULL(`item`,'') AS item, IFNULL(`qty`,0) AS qty,
+               IFNULL(`status`,'') AS status, IFNULL(`assigned_to`,'') AS assigned_to,
+               IFNULL(`time_created`,0) AS time_created
+        FROM `epc_erp_wms_work`
+        WHERE `wave_id` = @wave_id AND `id` <> @id
+        ORDER BY `id` DESC
+        LIMIT 50
         """;
 
     /// <summary>AI service KPIs from epc_ai_* (CREATE TABLE in epc_ai_service.php).</summary>

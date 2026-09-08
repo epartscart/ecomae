@@ -788,6 +788,17 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.Contains("epc_landed_cost_lines", LegacySurfaceDashboardSql.SelectCpLandedCostLines, StringComparison.Ordinal);
         Assert.Contains("`sheet_id` = @id", LegacySurfaceDashboardSql.SelectCpLandedCostLines, StringComparison.Ordinal);
         Assert.Contains("epc_erp_wms_work", LegacySurfaceDashboardSql.SelectCpWarehouseWmsWork, StringComparison.Ordinal);
+        Assert.DoesNotContain("from_location_id", LegacySurfaceDashboardSql.SelectCpWarehouseWmsWork, StringComparison.Ordinal);
+        Assert.DoesNotContain("to_location_id", LegacySurfaceDashboardSql.SelectCpWarehouseWmsWork, StringComparison.Ordinal);
+        Assert.DoesNotContain("lp_id", LegacySurfaceDashboardSql.SelectCpWarehouseWmsWork, StringComparison.Ordinal);
+        Assert.Contains("from_location_id", LegacySurfaceDashboardSql.SelectCpWarehouseWmsWorkDetail, StringComparison.Ordinal);
+        Assert.Contains("to_location_id", LegacySurfaceDashboardSql.SelectCpWarehouseWmsWorkDetail, StringComparison.Ordinal);
+        Assert.Contains("lp_id", LegacySurfaceDashboardSql.SelectCpWarehouseWmsWorkDetail, StringComparison.Ordinal);
+        Assert.Contains("`id` = @id", LegacySurfaceDashboardSql.SelectCpWarehouseWmsWorkDetail, StringComparison.Ordinal);
+        Assert.DoesNotContain("from_location_id", LegacySurfaceDashboardSql.SelectCpWarehouseWmsWaveSiblings, StringComparison.Ordinal);
+        Assert.DoesNotContain("to_location_id", LegacySurfaceDashboardSql.SelectCpWarehouseWmsWaveSiblings, StringComparison.Ordinal);
+        Assert.DoesNotContain("lp_id", LegacySurfaceDashboardSql.SelectCpWarehouseWmsWaveSiblings, StringComparison.Ordinal);
+        Assert.Contains("`wave_id` = @wave_id", LegacySurfaceDashboardSql.SelectCpWarehouseWmsWaveSiblings, StringComparison.Ordinal);
         Assert.Contains("epc_ai_queries", LegacySurfaceDashboardSql.SelectCpAiServiceQueries, StringComparison.Ordinal);
         Assert.DoesNotContain("input_text", LegacySurfaceDashboardSql.SelectCpAiServiceQueries, StringComparison.Ordinal);
         Assert.DoesNotContain("output_text", LegacySurfaceDashboardSql.SelectCpAiServiceQueries, StringComparison.Ordinal);
