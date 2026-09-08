@@ -3452,7 +3452,7 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(missingDb.Succeeded);
         Assert.Equal("db", missingDb.Code);
     }
-}
+
     [Fact]
     public async Task Prj_log_time_rejects_missing_project_and_unconfigured_db()
     {
