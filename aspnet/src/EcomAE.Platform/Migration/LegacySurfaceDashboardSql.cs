@@ -5320,6 +5320,40 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>Opened VIN request. Request HTML is a short excerpt.</summary>
+    public const string SelectCpSystemRequestsDetail = """
+        SELECT `id`, IFNULL(`time`,0) AS time_unix, IFNULL(`user_id`,0) AS user_id,
+               IFNULL(`viewed`,0) AS viewed,
+               CHAR_LENGTH(IFNULL(`text`,'')) AS text_len,
+               LEFT(IFNULL(`text`,''), 280) AS text_excerpt
+        FROM `users_vin`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Opened VIN request messages. Bodies are a short excerpt.</summary>
+    public const string SelectCpSystemRequestMessages = """
+        SELECT `id`, IFNULL(`vin_id`,0) AS vin_id,
+               IFNULL(`is_customer`,0) AS is_customer,
+               IFNULL(`time`,0) AS time_unix,
+               CHAR_LENGTH(IFNULL(`text`,'')) AS text_len,
+               LEFT(IFNULL(`text`,''), 280) AS text_excerpt
+        FROM `users_vin_messages`
+        WHERE `vin_id` = @id
+        ORDER BY `id` DESC
+        LIMIT 50
+        """;
+
+    /// <summary>Other VIN requests from the same user. Request HTML omitted.</summary>
+    public const string SelectCpSystemRequestUserSiblings = """
+        SELECT `id`, IFNULL(`time`,0) AS time_unix, IFNULL(`user_id`,0) AS user_id,
+               IFNULL(`viewed`,0) AS viewed
+        FROM `users_vin`
+        WHERE `user_id` = @user_id AND `id` <> @id
+        ORDER BY `id` DESC
+        LIMIT 50
+        """;
+
     /// <summary>Wave 22 additional-texts KPIs (text_for_url).</summary>
     public const string SelectCpAdditionalTextsStats = """
         SELECT

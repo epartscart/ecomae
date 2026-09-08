@@ -58,6 +58,7 @@ public sealed class ErpRecordOpenPhpParityTests
     [InlineData("/CP/control/portal/epc_social_media_hub?social_id=5", "/cp/social-hub-app?social_id=5")]
     [InlineData("/ERP/?epc_erp_shell=1&area=sales&tab=crm&ticket_id=8", "/erp/crm-tickets-app?ticket_id=8")]
     [InlineData("/CP/content/dopolnitelnye-teksty?text_id=4", "/cp/additional-texts-app?text_id=4")]
+    [InlineData("/CP/requests?vin_id=6", "/cp/system-requests-app?vin_id=6")]
     [InlineData("/ERP/?epc_erp_shell=1&area=landed_cost_area&tab=landed_cost&sheet_id=6", "/erp/landed-cost-app?sheet_id=6")]
     [InlineData("/CP/control/portal/epc_soc2_compliance?soc2_id=8", "/cp/soc2-compliance-app?soc2_id=8")]
     [InlineData("/ERP/?epc_erp_shell=1&area=tax&tab=compliance&soc2_id=8", "/erp/soc2-compliance-app?soc2_id=8")]
@@ -982,6 +983,37 @@ public sealed class ErpRecordOpenPhpParityTests
             ErpRecordOpen.PreserveRecordQuery(
                 "/cp/additional-texts-app",
                 "/CP/content/dopolnitelnye-teksty?text_id=4"));
+    }
+
+    [Fact]
+    public void SystemRequestsApp_OpenLoadsVinExcerptAndKeepsViewedWrite()
+    {
+        var root = FindRepoRoot();
+        var text = File.ReadAllText(Path.Combine(root,
+            "aspnet/src/EcomAE.Platform/Components/Pages/CpSystemRequestsApp.razor"));
+        Assert.Contains("ErpRecordOpen.Href(_listHref, \"vin_id\"", text, StringComparison.Ordinal);
+        Assert.Contains("ErpOpenedRecordBanner", text, StringComparison.Ordinal);
+        Assert.Contains("ReadId(ctx.Request, \"vin_id\")", text, StringComparison.Ordinal);
+        Assert.Contains("BuildCpSystemRequestsDetailAsync", text, StringComparison.Ordinal);
+        Assert.Contains("No request excerpt yet.", text, StringComparison.Ordinal);
+        Assert.Contains("No messages yet.", text, StringComparison.Ordinal);
+        Assert.Contains("No same-user siblings yet.", text, StringComparison.Ordinal);
+        Assert.Contains("ShowGhostScaffold=\"false\"", text, StringComparison.Ordinal);
+        Assert.Contains("table-epc", text, StringComparison.Ordinal);
+        Assert.Contains("/cp/requests/set-vin-viewed", text, StringComparison.Ordinal);
+        Assert.Contains("PhpParityModuleBody", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)\">Open", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("/php-reference/", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("ASP.NET", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("epc-w22-hero", text, StringComparison.Ordinal);
+
+        Assert.Equal("/cp/system-requests-app?vin_id=6#erp-row-6",
+            ErpRecordOpen.Href("/cp/system-requests-app", "vin_id", 6));
+        Assert.Equal(
+            "/cp/system-requests-app?vin_id=6",
+            ErpRecordOpen.PreserveRecordQuery(
+                "/cp/system-requests-app",
+                "/CP/requests?vin_id=6"));
     }
 
     [Fact]

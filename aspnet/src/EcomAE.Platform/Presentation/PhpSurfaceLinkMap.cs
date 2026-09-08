@@ -1516,7 +1516,7 @@ public static class PhpSurfaceLinkMap
 
         if (topLevel.Equals("requests", StringComparison.OrdinalIgnoreCase))
         {
-            return "/cp/system-requests-app";
+            return ErpRecordOpen.PreserveRecordQuery("/cp/system-requests-app", value);
         }
 
         if (topLevel.Equals("content", StringComparison.OrdinalIgnoreCase))
@@ -1636,7 +1636,8 @@ public static class PhpSurfaceLinkMap
                     || aspNet.Equals("/cp/social-hub-app", StringComparison.OrdinalIgnoreCase)
                     || aspNet.Equals("/cp/crm-activities-app", StringComparison.OrdinalIgnoreCase)
                     || aspNet.Equals("/cp/crm-tickets-app", StringComparison.OrdinalIgnoreCase)
-                    || aspNet.Equals("/cp/additional-texts-app", StringComparison.OrdinalIgnoreCase))
+                    || aspNet.Equals("/cp/additional-texts-app", StringComparison.OrdinalIgnoreCase)
+                    || aspNet.Equals("/cp/system-requests-app", StringComparison.OrdinalIgnoreCase))
                 {
                     return ErpRecordOpen.PreserveRecordQuery(aspNet, value);
                 }
