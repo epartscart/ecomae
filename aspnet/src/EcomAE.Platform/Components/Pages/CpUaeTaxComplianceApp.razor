@@ -80,6 +80,22 @@
         <p class="text-muted" style="margin:0 0 1rem;">Jewellery tourist VAT save is live when confirmed. Writes <code>epc_jewel_tourist_vat_refund</code>.</p>
     }
 
+    @if (_isAdmin)
+    {
+        <ErpPhpCreateWell Title="Save CT adjustments">
+            <form method="post" action="/erp/uae-tax/ct-adjustments/save" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin-bottom:1rem;">
+                <input type="hidden" name="returnUrl" value="/cp/uae-tax-compliance-app" />
+                <input type="hidden" name="confirmWrites" value="true" />
+                <label>From <input class="form-control input-sm" type="date" name="date_from" /></label>
+                <label>To <input class="form-control input-sm" type="date" name="date_to" /></label>
+                <label>Entertainment <input class="form-control input-sm" name="ct_non_deductible_entertainment" placeholder="0" style="width:90px;" /></label>
+                <label>Fines <input class="form-control input-sm" name="ct_fines_penalties" placeholder="0" style="width:90px;" /></label>
+                <label>Exempt income <input class="form-control input-sm" name="ct_exempt_income" placeholder="0" style="width:90px;" /></label>
+                <button type="submit" class="btn btn-primary btn-sm">Save CT adjustments</button>
+            </form>
+        </ErpPhpCreateWell>
+    }
+
     <div class="epc-uae-kpis" aria-label="UAE tax stats">
         <div class="epc-uae-kpi"><strong>@_summary.LegislationCount.ToString(CultureInfo.InvariantCulture)</strong><span>Legislation items</span></div>
         <div class="epc-uae-kpi"><strong>@_summary.VatAdvanceRows.ToString(CultureInfo.InvariantCulture)</strong><span>VAT advance rows</span></div>

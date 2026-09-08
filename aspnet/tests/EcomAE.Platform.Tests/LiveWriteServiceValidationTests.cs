@@ -3111,6 +3111,17 @@ public sealed class LiveWriteServiceValidationTests
             .LogAsync(new ErpHrAttendanceWriteRequest(EmployeeId: 1, Hours: 8));
         Assert.False(hrAttDb.Succeeded);
         Assert.Equal("db", hrAttDb.Code);
+
+        var ctAdjInvalid = await new ErpUaeTaxSaveCtAdjustmentsWriteService(new ConfiguredNeverOpened())
+            .SaveAsync(new ErpUaeTaxSaveCtAdjustmentsWriteRequest());
+        Assert.False(ctAdjInvalid.Succeeded);
+        Assert.Equal("invalid", ctAdjInvalid.Code);
+        Assert.Equal("Invalid period dates", ctAdjInvalid.Message);
+
+        var ctAdjDb = await new ErpUaeTaxSaveCtAdjustmentsWriteService(new UnconfiguredConnections())
+            .SaveAsync(new ErpUaeTaxSaveCtAdjustmentsWriteRequest(DateFrom: "2026-09-01", DateTo: "2026-09-30"));
+        Assert.False(ctAdjDb.Succeeded);
+        Assert.Equal("db", ctAdjDb.Code);
     }
 
     [Fact]

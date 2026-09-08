@@ -344,6 +344,7 @@ public sealed class PhpVsAspNetRemovalMatrixTests
             ("ErpCashAccountsApp.razor", "Save petty cash"),
             ("CpUaeTaxComplianceApp.razor", "ErpJewelleryTouristVatSaveForm"),
             ("CpUaeTaxComplianceApp.razor", "Save tourist VAT"),
+            ("CpUaeTaxComplianceApp.razor", "/erp/uae-tax/ct-adjustments/save"),
             ("CpJewelleryRepairsApp.razor", "ErpJewelleryRepairReceiptSaveForm"),
             ("CpJewelleryRepairsApp.razor", "Save repair receipt"),
             ("CpJewelleryRepairsApp.razor", "ErpJewelleryRepairTransferSaveForm"),

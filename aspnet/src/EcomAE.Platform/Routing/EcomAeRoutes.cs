@@ -1465,7 +1465,9 @@ public static class EcomAeRoutes
     public const string ErpAjaxUaeTaxLegislationRegenSummaries = "/erp/ajax/uae-tax-legislation-regen-summaries";
     /// <summary>Wave B dry-run for PHP uae_tax_legislation_ask (writes=0).</summary>
     public const string ErpAjaxUaeTaxLegislationAsk = "/erp/ajax/uae-tax-legislation-ask";
-    /// <summary>Wave B dry-run for PHP uae_tax_save_ct_adjustments (writes=0).</summary>
+    /// <summary>HTML form POST for PHP uae_tax_save_ct_adjustments. confirmWrites=true writes via IErpUaeTaxSaveCtAdjustmentsWriteService.</summary>
+    public const string ErpUaeTaxSaveCtAdjustments = "/erp/uae-tax/ct-adjustments/save";
+    /// <summary>Live PHP uae_tax_save_ct_adjustments ajax alias of <see cref="ErpUaeTaxSaveCtAdjustments"/>.</summary>
     public const string ErpAjaxUaeTaxSaveCtAdjustments = "/erp/ajax/uae-tax-save-ct-adjustments";
     /// <summary>Wave B dry-run for PHP uae_tax_legislation_checklist_set (writes=0).</summary>
     public const string ErpAjaxUaeTaxLegislationChecklistSet = "/erp/ajax/uae-tax-legislation-checklist-set";
