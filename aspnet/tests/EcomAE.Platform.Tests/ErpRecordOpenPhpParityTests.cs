@@ -42,6 +42,8 @@ public sealed class ErpRecordOpenPhpParityTests
     [InlineData("/CP/control/portal/epc_bi_metrics?mb_id=6", "/cp/metabase-app?mb_id=6")]
     [InlineData("/CP/shop/marketing/marketing?review_id=9", "/cp/marketing-growth-app?review_id=9")]
     [InlineData("/CP/control/portal/epc_commerce_isolation_audit?run_id=3", "/cp/isolation-audit-app?run_id=3")]
+    [InlineData("/CP/control/portal/industry_settings?pack_id=2", "/cp/industry-packs-app?pack_id=2")]
+    [InlineData("/CP/control/portal/epc_industry_packs?pack_id=2", "/cp/industry-packs-app?pack_id=2")]
     [InlineData("/ERP/?epc_erp_shell=1&area=landed_cost_area&tab=landed_cost&sheet_id=6", "/erp/landed-cost-app?sheet_id=6")]
     [InlineData("/CP/control/portal/epc_soc2_compliance?soc2_id=8", "/cp/soc2-compliance-app?soc2_id=8")]
     [InlineData("/ERP/?epc_erp_shell=1&area=tax&tab=compliance&soc2_id=8", "/erp/soc2-compliance-app?soc2_id=8")]
@@ -577,6 +579,36 @@ public sealed class ErpRecordOpenPhpParityTests
             ErpRecordOpen.PreserveRecordQuery(
                 "/cp/isolation-audit-app",
                 "/CP/control/portal/epc_commerce_isolation_audit?run_id=3"));
+    }
+
+    [Fact]
+    public void IndustryPacksApp_OpenLoadsModulesExcerptAndAssignments()
+    {
+        var root = FindRepoRoot();
+        var text = File.ReadAllText(Path.Combine(root,
+            "aspnet/src/EcomAE.Platform/Components/Pages/CpIndustryPacksApp.razor"));
+        Assert.Contains("ErpRecordOpen.Href(_listHref, \"pack_id\"", text, StringComparison.Ordinal);
+        Assert.Contains("ErpOpenedRecordBanner", text, StringComparison.Ordinal);
+        Assert.Contains("ReadId(ctx.Request, \"pack_id\")", text, StringComparison.Ordinal);
+        Assert.Contains("BuildCpIndustryPackDetailAsync", text, StringComparison.Ordinal);
+        Assert.Contains("No modules excerpt yet.", text, StringComparison.Ordinal);
+        Assert.Contains("No assignments yet.", text, StringComparison.Ordinal);
+        Assert.Contains("ShowGhostScaffold=\"false\"", text, StringComparison.Ordinal);
+        Assert.Contains("table-epc", text, StringComparison.Ordinal);
+        Assert.Contains("PhpParityModuleBody", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)\">Open", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("/php-reference/", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("ASP.NET", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("gl_template", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("tax_rules", text, StringComparison.Ordinal);
+
+        Assert.Equal("/cp/industry-packs-app?pack_id=2#erp-row-2",
+            ErpRecordOpen.Href("/cp/industry-packs-app", "pack_id", 2));
+        Assert.Equal(
+            "/cp/industry-packs-app?pack_id=2",
+            ErpRecordOpen.PreserveRecordQuery(
+                "/cp/industry-packs-app",
+                "/CP/control/portal/industry_settings?pack_id=2"));
     }
 
     [Fact]

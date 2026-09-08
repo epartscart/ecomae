@@ -7405,6 +7405,73 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    public async Task<CpIndustryPackDetailResult> BuildCpIndustryPackDetailAsync(long id, CancellationToken cancellationToken = default)
+    {
+        if (id <= 0)
+        {
+            return new(null, [], "n/a", "");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return new(null, [], "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            CpIndustryPackDetail? header = null;
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectCpIndustryPackDetail;
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    header = new CpIndustryPackDetail(
+                        Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["pack_key"] is DBNull ? string.Empty : reader["pack_key"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["name"] is DBNull ? string.Empty : reader["name"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["description"] is DBNull ? string.Empty : reader["description"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["icon"] is DBNull ? string.Empty : reader["icon"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt32(reader["active"] is DBNull ? 0 : reader["active"], CultureInfo.InvariantCulture) != 0,
+                        Convert.ToString(reader["created_at"] is DBNull ? string.Empty : reader["created_at"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt32(reader["modules_len"] is DBNull ? 0 : reader["modules_len"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["modules_excerpt"] is DBNull ? string.Empty : reader["modules_excerpt"], CultureInfo.InvariantCulture) ?? string.Empty);
+                }
+            }
+
+            if (header is null)
+            {
+                return new(null, [], "database", "Pack not found.");
+            }
+
+            var assigned = new List<CpIndustryPackAssignmentDigest>();
+            if (!string.IsNullOrWhiteSpace(header.PackKey))
+            {
+                await using var cmd = connection.CreateCommand();
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectCpIndustryPackAssignments;
+                AddParameter(cmd, "@pack_key", header.PackKey);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    assigned.Add(new CpIndustryPackAssignmentDigest(
+                        Convert.ToInt64(reader["id"] is DBNull ? 0 : reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["site_key"] is DBNull ? string.Empty : reader["site_key"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["pack_key"] is DBNull ? string.Empty : reader["pack_key"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["applied_at"] is DBNull ? string.Empty : reader["applied_at"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt64(reader["applied_by"] is DBNull ? 0 : reader["applied_by"], CultureInfo.InvariantCulture)));
+                }
+            }
+
+            return new(header, assigned, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(null, [], "database-error", ex.Message);
+        }
+    }
+
     public async Task<ErpCompaniesDigestResult> BuildErpCompaniesDigestAsync(int limit, CancellationToken cancellationToken = default)
     {
         var safeLimit = Math.Clamp(limit, 1, 200);

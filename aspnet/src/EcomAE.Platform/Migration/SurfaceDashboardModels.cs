@@ -1593,6 +1593,30 @@ public sealed record CpIndustryPacksDigestResult(
     string Source,
     string Message);
 
+public sealed record CpIndustryPackDetail(
+    long Id,
+    string PackKey,
+    string Name,
+    string Description,
+    string Icon,
+    bool Active,
+    string CreatedAt,
+    int ModulesLen,
+    string ModulesExcerpt);
+
+public sealed record CpIndustryPackAssignmentDigest(
+    long Id,
+    string SiteKey,
+    string PackKey,
+    string AppliedAt,
+    long AppliedBy);
+
+public sealed record CpIndustryPackDetailResult(
+    CpIndustryPackDetail? Pack,
+    IReadOnlyList<CpIndustryPackAssignmentDigest> Assignments,
+    string Source,
+    string Message);
+
 /// <summary>PHP <c>epc_erp_companies_list</c> row for ASP.NET company picker.</summary>
 public sealed record ErpCompanyDigest(
     long Id,

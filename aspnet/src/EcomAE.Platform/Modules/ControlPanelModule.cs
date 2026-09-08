@@ -6469,7 +6469,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only epc_industry_packs metadata (modules/gl_template/tax_rules/theme/product_attrs JSON omitted). PHP industry_settings remains authoritative."
+                note = "Read-only epc_industry_packs metadata. Open ?pack_id= loads a 280-char modules excerpt plus tenant assignments. GL/tax/theme JSON omitted. PHP industry_settings remains authoritative."
             });
         });
 

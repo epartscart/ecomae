@@ -188,6 +188,9 @@ public interface ISurfaceDashboardSummaryReporter
     /// <summary>Read-only industry packs (JSON blobs omitted).</summary>
     Task<CpIndustryPacksDigestResult> BuildCpIndustryPacksDigestAsync(int limit, CancellationToken cancellationToken = default);
 
+    /// <summary>Opened industry pack (PHP <c>pack_id</c>) plus tenant assignments. Modules excerpt only.</summary>
+    Task<CpIndustryPackDetailResult> BuildCpIndustryPackDetailAsync(long id, CancellationToken cancellationToken = default);
+
     /// <summary>Read-only ERP legal entities + per-company industry_pack (PHP multi-company picker).</summary>
     Task<ErpCompaniesDigestResult> BuildErpCompaniesDigestAsync(int limit, CancellationToken cancellationToken = default);
 

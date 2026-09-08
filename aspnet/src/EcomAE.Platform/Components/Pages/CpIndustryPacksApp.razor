@@ -21,20 +21,101 @@
             </div>
             <div class="panel-body">
                 <p>@CpPhpModuleCopy.PurposeFor("/cp/industry-packs-app")</p>
+                <p>Open a pack for a short modules excerpt and tenant assignments. GL, tax, theme JSON, and apply writes stay on the Classic twin.</p>
             </div>
         </div>
     </div>
-    <PhpParityModuleBody AppPath="/cp/industry-packs-app" IsAdmin="_isAdmin" />
+    <PhpParityModuleBody AppPath="/cp/industry-packs-app" IsAdmin="_isAdmin" ShowGhostScaffold="false" />
 
+    <ErpOpenedRecordBanner Id="_openedId" Found="@(_openedPack is not null)" Caption="@OpenedCaption" ListHref="@_listHref" />
 
-    <p class="help-block">@_summary.PackCount.ToString(CultureInfo.InvariantCulture) Packs · @_summary.ActivePacks.ToString(CultureInfo.InvariantCulture) Active packs · @_summary.Assignments.ToString(CultureInfo.InvariantCulture) Assignments.</p>
+    <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Industry pack KPIs">
+        <div class="kpi"><div class="lbl">Packs</div><div class="val">@_summary.PackCount.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Active</div><div class="val">@_summary.ActivePacks.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Assignments</div><div class="val">@_summary.Assignments.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Opened assigns</div><div class="val">@_openedAssigns.Count.ToString(CultureInfo.InvariantCulture)</div></div>
+    </div>
+
+    @if (_openedPack is not null)
+    {
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">
+                    @(!string.IsNullOrWhiteSpace(_openedPack.Name) ? _openedPack.Name : ("Pack #" + _openedPack.Id.ToString(CultureInfo.InvariantCulture)))
+                    <span class="label label-default pull-right">@(_openedPack.Active ? "active" : "off")</span>
+                </div>
+                <div class="panel-body">
+                    <p>@(!string.IsNullOrWhiteSpace(_openedPack.PackKey) ? _openedPack.PackKey : "—")
+                        · @(!string.IsNullOrWhiteSpace(_openedPack.Icon) ? _openedPack.Icon : "—")</p>
+                    @if (!string.IsNullOrWhiteSpace(_openedPack.Description))
+                    {
+                        <p>@_openedPack.Description</p>
+                    }
+                    @if (!string.IsNullOrWhiteSpace(_openedPack.CreatedAt))
+                    {
+                        <p class="text-muted">@_openedPack.CreatedAt</p>
+                    }
+                    @if (!string.IsNullOrWhiteSpace(_openedPack.ModulesExcerpt))
+                    {
+                        <pre style="max-height:12rem;overflow:auto;white-space:pre-wrap;margin:0">@_openedPack.ModulesExcerpt</pre>
+                        @if (_openedPack.ModulesLen > _openedPack.ModulesExcerpt.Length)
+                        {
+                            <p class="text-muted">Excerpt only (@_openedPack.ModulesExcerpt.Length.ToString(CultureInfo.InvariantCulture) of @_openedPack.ModulesLen.ToString(CultureInfo.InvariantCulture) chars). Full modules, GL, tax, and theme stay on the Classic twin.</p>
+                        }
+                    }
+                    else
+                    {
+                        <p class="text-muted">No modules excerpt yet.</p>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">Assignments</div>
+                <div class="panel-body">
+                    <div class="table-responsive">
+                        <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped table-bordered table-epc epc-erp-table">
+                            <thead>
+                                <tr>
+                                    <th>Id</th>
+                                    <th>Site</th>
+                                    <th>Applied</th>
+                                    <th>By</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (_openedAssigns.Count == 0)
+                                {
+                                    <tr><td colspan="4">No assignments yet.</td></tr>
+                                }
+                                else
+                                {
+                                    @foreach (var a in _openedAssigns)
+                                    {
+                                        <tr>
+                                            <td>@a.Id.ToString(CultureInfo.InvariantCulture)</td>
+                                            <td>@(!string.IsNullOrWhiteSpace(a.SiteKey) ? a.SiteKey : "—")</td>
+                                            <td>@(!string.IsNullOrWhiteSpace(a.AppliedAt) ? a.AppliedAt : "—")</td>
+                                            <td>@a.AppliedBy.ToString(CultureInfo.InvariantCulture)</td>
+                                        </tr>
+                                    }
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
 
     <div class="col-lg-12">
         <div class="hpanel">
             <div class="panel-heading hbuilt">Records</div>
             <div class="panel-body">
                 <div class="table-responsive">
-                    <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped">
+                    <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped table-bordered table-epc epc-erp-table">
             <thead>
                 <tr>
                     <th>ID</th>
@@ -49,20 +130,20 @@
             <tbody>
                 @if (_packs.Count == 0)
                 {
-                    <tr><td colspan="7">No records yet.</td></tr>
+                    <tr><td colspan="7">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? "No records yet." : _message) : "Sign in with a staff session for live rows.")</td></tr>
                 }
                 else
                 {
                     @foreach (var p in _packs)
                     {
-                        <tr>
+                        <tr id="erp-row-@p.Id.ToString(CultureInfo.InvariantCulture)" class="@ErpRecordOpen.RowClass(p.Id, _openedId)">
                             <td><strong>@p.Id.ToString(CultureInfo.InvariantCulture)</strong></td>
                             <td>@(string.IsNullOrWhiteSpace(p.PackKey) ? "—" : p.PackKey)</td>
                             <td>@(string.IsNullOrWhiteSpace(p.Name) ? "—" : p.Name)</td>
                             <td>@(string.IsNullOrWhiteSpace(p.Description) ? "—" : p.Description)</td>
                             <td>@(string.IsNullOrWhiteSpace(p.Icon) ? "—" : p.Icon)</td>
                             <td>@(p.Active ? "yes" : "no")</td>
-                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
+                            <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href(_listHref, "pack_id", p.Id)">Open</a></td>
                         </tr>
                     }
                 }
@@ -77,16 +158,33 @@
 
 @code {
     private const string _phpTab = "/CP/control/portal/industry_settings";
+    private string _listHref = "/cp/industry-packs-app";
     private bool _isAdmin;
     private CpIndustryPacksSummary _summary = new(0, 0, 0, "n/a", "");
     private IReadOnlyList<CpIndustryPackDigest> _packs = [];
     private string _source = "n/a";
     private string _message = "";
+    private long _openedId;
+    private CpIndustryPackDetail? _openedPack;
+    private IReadOnlyList<CpIndustryPackAssignmentDigest> _openedAssigns = [];
+
+    private string OpenedCaption => _openedPack is null
+        ? ""
+        : (string.IsNullOrWhiteSpace(_openedPack.Name)
+            ? ("Pack #" + _openedPack.Id.ToString(CultureInfo.InvariantCulture))
+            : _openedPack.Name)
+            + (_openedPack.Active ? " · active" : " · off");
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
+
+        var path = ctx.Request.Path.Value ?? "";
+        _listHref = path.StartsWith("/erp/", StringComparison.OrdinalIgnoreCase)
+            ? "/erp/industry-packs-app"
+            : "/cp/industry-packs-app";
+        _openedId = ErpRecordOpen.ReadId(ctx.Request, "pack_id");
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
@@ -100,5 +198,24 @@
         _packs = result.Packs;
         _source = result.Source;
         _message = result.Message;
+
+        if (_openedId > 0)
+        {
+            var detail = await Dashboards.BuildCpIndustryPackDetailAsync(_openedId, ctx.RequestAborted);
+            _openedPack = detail.Pack;
+            _openedAssigns = detail.Assignments;
+            if (_openedPack is not null)
+            {
+                var openedList = _packs.FirstOrDefault(r => r.Id == _openedId);
+                if (openedList is not null)
+                {
+                    _packs = new[] { openedList }.Concat(_packs.Where(r => r.Id != _openedId)).ToList();
+                }
+            }
+            else if (!string.IsNullOrWhiteSpace(detail.Message))
+            {
+                _message = detail.Message;
+            }
+        }
     }
 }

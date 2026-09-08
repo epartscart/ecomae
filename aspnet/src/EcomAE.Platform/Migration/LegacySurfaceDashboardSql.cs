@@ -1947,6 +1947,31 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>Opened industry pack. JSON blobs are short excerpts.</summary>
+    public const string SelectCpIndustryPackDetail = """
+        SELECT `id`, IFNULL(`pack_key`,'') AS pack_key, IFNULL(`name`,'') AS name,
+               IFNULL(`description`,'') AS description, IFNULL(`icon`,'') AS icon,
+               IFNULL(`active`,0) AS active,
+               IFNULL(CAST(`created_at` AS CHAR),'') AS created_at,
+               CHAR_LENGTH(IFNULL(CAST(`modules` AS CHAR),'')) AS modules_len,
+               LEFT(IFNULL(CAST(`modules` AS CHAR),''), 280) AS modules_excerpt
+        FROM `epc_industry_packs`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Tenant assignments for the opened pack. No extra JSON.</summary>
+    public const string SelectCpIndustryPackAssignments = """
+        SELECT `id`, IFNULL(`site_key`,'') AS site_key,
+               IFNULL(`pack_key`,'') AS pack_key,
+               IFNULL(CAST(`applied_at` AS CHAR),'') AS applied_at,
+               IFNULL(`applied_by`,0) AS applied_by
+        FROM `epc_tenant_pack_assignments`
+        WHERE `pack_key` = @pack_key
+        ORDER BY `id` DESC
+        LIMIT 50
+        """;
+
     /// <summary>ERP multi-company legal entities (PHP <c>epc_erp_companies_list</c>).</summary>
     public const string SelectErpCompanies = """
         SELECT `id`,
