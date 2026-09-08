@@ -145,7 +145,7 @@
                             <td>@(string.IsNullOrWhiteSpace(row.Phone) ? "—" : row.Phone)</td>
                             <td>@(string.IsNullOrWhiteSpace(row.City) ? "—" : row.City)</td>
                             <td>@(string.IsNullOrWhiteSpace(row.CountryCode) ? "—" : row.CountryCode)</td>
-                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
+                            <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href("/erp/contacts-app", "contact_id", row.Id)">Open</a></td>
                         </tr>
                     }
                 }

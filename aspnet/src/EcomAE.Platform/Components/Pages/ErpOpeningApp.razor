@@ -54,7 +54,7 @@
                             <td class="text-right">@row.LineCount.ToString(CultureInfo.InvariantCulture)</td>
                             <td class="text-right">@row.DebitTotal.ToString("N2", CultureInfo.InvariantCulture)</td>
                             <td class="text-right">@row.CreditTotal.ToString("N2", CultureInfo.InvariantCulture)</td>
-                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
+                            <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href("/erp/opening-app", "batch_id", row.Id)">Open</a></td>
                         </tr>
                     }
                 }

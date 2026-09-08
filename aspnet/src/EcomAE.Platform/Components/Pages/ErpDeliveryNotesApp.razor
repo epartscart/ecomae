@@ -55,7 +55,7 @@
                             <td>@(string.IsNullOrWhiteSpace(row.TrackingNo) ? "—" : row.TrackingNo)</td>
                             <td><span class="label label-default">@row.Status</span></td>
                             <td>@FormatTime(row.ShippedAt)</td>
-                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
+                            <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href("/erp/delivery-notes-app", "delivery_note_id", row.Id)">Open</a></td>
                         </tr>
                     }
                 }

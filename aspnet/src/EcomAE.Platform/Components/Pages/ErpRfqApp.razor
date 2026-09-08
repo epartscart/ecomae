@@ -57,7 +57,7 @@
                             <td>@(string.IsNullOrWhiteSpace(row.CurrencyCode) ? "—" : row.CurrencyCode)</td>
                             <td><span class="label label-default">@row.Status</span></td>
                             <td>@FormatTime(row.DueDate)</td>
-                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
+                            <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href("/erp/rfq-app", "rfq_id", row.Id)">Open</a></td>
                         </tr>
                     }
                 }
