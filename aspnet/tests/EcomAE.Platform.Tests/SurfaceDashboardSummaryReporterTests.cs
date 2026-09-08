@@ -856,6 +856,9 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.DoesNotContain("`description`", LegacySurfaceDashboardSql.SelectCpPlatformCommunicationRows, StringComparison.Ordinal);
         Assert.Contains("epc_platform_info_blocks", LegacySurfaceDashboardSql.SelectCpInfoBlocksStats, StringComparison.Ordinal);
         Assert.DoesNotContain("content_html", LegacySurfaceDashboardSql.SelectCpInfoBlocksRows, StringComparison.Ordinal);
+        Assert.Contains("content_excerpt", LegacySurfaceDashboardSql.SelectCpInfoBlocksBlockDetail, StringComparison.Ordinal);
+        Assert.Contains("LEFT(IFNULL(`content_html`,''), 280)", LegacySurfaceDashboardSql.SelectCpInfoBlocksBlockDetail, StringComparison.Ordinal);
+        Assert.DoesNotContain("content_html", LegacySurfaceDashboardSql.SelectCpInfoBlocksPlacementSiblings, StringComparison.Ordinal);
         Assert.Contains("epc_free_tool_accounts", LegacySurfaceDashboardSql.SelectCpFreeToolsStats, StringComparison.Ordinal);
         Assert.DoesNotContain("`token`", LegacySurfaceDashboardSql.SelectCpFreeToolsRows, StringComparison.Ordinal);
         Assert.DoesNotContain("pass_hash", LegacySurfaceDashboardSql.SelectCpFreeToolsRows, StringComparison.Ordinal);

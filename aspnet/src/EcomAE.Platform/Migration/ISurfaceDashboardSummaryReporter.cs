@@ -528,6 +528,9 @@ public interface ISurfaceDashboardSummaryReporter
     /// <summary>Opened platform communication task (PHP <c>task_id</c>) plus category siblings. Description excerpt only.</summary>
     Task<CpPlatformCommunicationTaskDetailResult> BuildCpPlatformCommunicationTaskDetailAsync(long id, CancellationToken cancellationToken = default);
     Task<CpInfoBlocksDigestResult> BuildCpInfoBlocksDigestAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Opened info block (PHP <c>block_id</c>) plus placement siblings. Content excerpt only.</summary>
+    Task<CpInfoBlocksBlockDetailResult> BuildCpInfoBlocksBlockDetailAsync(long id, CancellationToken cancellationToken = default);
     Task<CpFreeToolsDigestResult> BuildCpFreeToolsDigestAsync(int limit, CancellationToken cancellationToken = default);
 
     /// <summary>Opened free-tools account (PHP <c>account_id</c>) plus saved tools. token/pass_hash/del_code_hash/payload omitted.</summary>
