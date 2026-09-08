@@ -54,6 +54,27 @@
             <label><input type="checkbox" name="tax_exempt" value="1" /> Tax exempt</label>
             <button type="submit" class="btn btn-sm btn-primary">Save customer master</button>
         </form>
+        <form method="post" action="/erp/contacts/addresses/save" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="@_returnUrl" />
+            <label>Party id <input type="number" name="party_id" min="1" required style="width:6rem" /></label>
+            <label>Purpose
+                <select name="purpose">
+                    <option value="business" selected>business</option>
+                    <option value="invoice">invoice</option>
+                    <option value="delivery">delivery</option>
+                    <option value="home">home</option>
+                    <option value="other">other</option>
+                </select>
+            </label>
+            <label>Line 1 <input type="text" name="line1" maxlength="255" style="width:14rem" /></label>
+            <label>City <input type="text" name="city" maxlength="120" /></label>
+            <label>State <input type="text" name="state" maxlength="120" /></label>
+            <label>Postcode <input type="text" name="postcode" maxlength="40" style="width:7rem" /></label>
+            <label>Country <input type="text" name="country" maxlength="60" /></label>
+            <label><input type="checkbox" name="is_primary" value="1" /> Primary</label>
+            <button type="submit" class="btn btn-sm btn-primary">Save address</button>
+        </form>
     }
 
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Contacts KPIs">
