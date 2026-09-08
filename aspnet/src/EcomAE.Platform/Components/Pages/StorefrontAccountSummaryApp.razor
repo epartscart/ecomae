@@ -69,37 +69,80 @@
     }
     else
     {
-        <div class="epc-sf-acc-kpis" aria-label="Account KPIs">
-            <div class="epc-sf-acc-kpi"><strong>@_summary.UserId.ToString(CultureInfo.InvariantCulture)</strong><span>User ID</span></div>
-            <div class="epc-sf-acc-kpi"><strong>@_summary.Orders.ToString(CultureInfo.InvariantCulture)</strong><span>Orders</span></div>
-            <div class="epc-sf-acc-kpi"><strong>@_summary.Sessions.ToString(CultureInfo.InvariantCulture)</strong><span>Sessions</span></div>
-            <div class="epc-sf-acc-kpi"><strong>@_summary.GarageVehicles.ToString(CultureInfo.InvariantCulture)</strong><span>Garage vehicles</span></div>
+        <div class="row">
+            <div class="col-md-2">
+                <div><label style="margin-bottom: 0;" for="time_from_show">From</label></div>
+                <input type="text" id="time_from" class="form-control" value="@_opsFilter.TimeFrom" />
+                <input type="hidden" id="time_from_show" />
+            </div>
+            <div class="col-md-2">
+                <div><label style="margin-bottom: 0;" for="time_to_show">To</label></div>
+                <input type="text" id="time_to" class="form-control" value="@_opsFilter.TimeTo" />
+                <input type="hidden" id="time_to_show" />
+            </div>
+            <div class="col-md-2">
+                <div><label style="margin-bottom: 0;" for="income">Direction</label></div>
+                <select id="income" class="form-control">
+                    <option value="-1">All</option>
+                    <option value="1">Income</option>
+                    <option value="0">Expense</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <div><label style="margin-bottom: 0;" for="operation_code">Operation</label></div>
+                <select id="operation_code" class="form-control">
+                    <option value="-1">All</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <div><label style="margin-bottom: 0;" for="order_id">Order ID</label></div>
+                <input type="text" id="order_id" class="form-control" value="@_opsFilter.OrderId" />
+            </div>
         </div>
-
-        <p class="lead">Recent orders</p>
-        <div class="epc-sf-acc-table-wrap" style="overflow: hidden; overflow-x: auto;">
-            <table class="table epc-sf-acc-table" style="margin-bottom:0;">
+        <div style="margin:20px 0px 15px;">
+            <button style="margin-right: 2px; margin-bottom:5px;" class="btn btn-ar btn-primary" onclick="filterOperations();">Filter</button>
+            <button style="margin-right: 2px; margin-bottom:5px;" class="btn btn-ar btn-primary" onclick="unsetFilterOperations();">Clear</button>
+        </div>
+        <script>
+            document.getElementById("income").value = "@_opsFilter.Income";
+            document.getElementById("operation_code").value = "@_opsFilter.OperationCode";
+            function filterOperations() {
+                var account_operations_filter = {
+                    time_from: document.getElementById("time_from").value,
+                    time_to: document.getElementById("time_to").value,
+                    income: document.getElementById("income").value,
+                    operation_code: document.getElementById("operation_code").value,
+                    order_id: document.getElementById("order_id").value
+                };
+                var date = new Date(new Date().getTime() + 15552000 * 1000);
+                document.cookie = "my_account_operations_filter="+JSON.stringify(account_operations_filter)+"; path=/; expires=" + date.toUTCString();
+                location = "@StorefrontAspNetCanonical.Balance";
+            }
+            function unsetFilterOperations() {
+                var account_operations_filter = { time_from:"", time_to:"", income:"-1", operation_code:"-1", order_id:"" };
+                var date = new Date(new Date().getTime() + 15552000 * 1000);
+                document.cookie = "my_account_operations_filter="+JSON.stringify(account_operations_filter)+"; path=/; expires=" + date.toUTCString();
+                location = "@StorefrontAspNetCanonical.Balance";
+            }
+            function sortOperationsItems(field) {
+                var date = new Date(new Date().getTime() + 15552000 * 1000);
+                document.cookie = "my_account_operations_sort="+JSON.stringify({field:field,asc_desc:"desc"})+"; path=/; expires=" + date.toUTCString();
+                location = "@StorefrontAspNetCanonical.Balance";
+            }
+        </script>
+        <div style="overflow: hidden; overflow-x: auto;">
+            <table class="table" style="margin-bottom:0;">
                 <thead>
-                    <tr><th>Id</th><th>Time</th><th>Paid</th><th>Status</th><th>Created</th></tr>
+                    <tr>
+                        <th style="vertical-align: middle; white-space: nowrap;"><a href="javascript:void(0);" onclick="sortOperationsItems('id');" id="id_sorter">ID</a></th>
+                        <th style="vertical-align: middle; white-space: nowrap;"><a href="javascript:void(0);" onclick="sortOperationsItems('time');" id="time_sorter">When</a></th>
+                        <th style="vertical-align: middle; white-space: nowrap;"><a href="javascript:void(0);" onclick="sortOperationsItems('amount');" id="amount_sorter">Amount</a></th>
+                        <th style="vertical-align: middle; white-space: nowrap;"><a href="javascript:void(0);" onclick="sortOperationsItems('order_id');" id="order_id_sorter">Order</a></th>
+                        <th style="vertical-align: middle;"><a href="javascript:void(0);" onclick="sortOperationsItems('name');" id="name_sorter">Name</a></th>
+                    </tr>
                 </thead>
                 <tbody>
-                    @if (_recent.Count == 0)
-                    {
-                        <tr><td colspan="5">No recent orders.</td></tr>
-                    }
-                    else
-                    {
-                        @foreach (var o in _recent)
-                        {
-                            <tr>
-                                <td>@o.Id.ToString(CultureInfo.InvariantCulture)</td>
-                                <td>@o.TimeUnix.ToString(CultureInfo.InvariantCulture)</td>
-                                <td>@o.Paid.ToString(CultureInfo.InvariantCulture)</td>
-                                <td>@o.Status.ToString(CultureInfo.InvariantCulture)</td>
-                                <td>@o.SuccessfullyCreated.ToString(CultureInfo.InvariantCulture)</td>
-                            </tr>
-                        }
-                    }
+                    <tr><td colspan="5">No account operations yet.</td></tr>
                 </tbody>
             </table>
         </div>
@@ -149,6 +192,7 @@
     private bool _isCustomer;
     private StorefrontAccountSummary _summary = new(0, 0, 0, 0, "n/a", string.Empty);
     private IReadOnlyList<StorefrontOrderDigest> _recent = [];
+    private AccountOpsFilter _opsFilter = AccountOpsFilter.Empty;
 
     protected override async Task OnInitializedAsync()
     {
@@ -164,8 +208,55 @@
         }
 
         _isCustomer = true;
+        ctx.Request.Cookies.TryGetValue("my_account_operations_filter", out var filterCookie);
+        _opsFilter = AccountOpsFilter.Parse(filterCookie);
         var result = await Dashboards.BuildStorefrontAccountAsync(session.UserId, 10, ctx.RequestAborted);
         _summary = result.Summary;
         _recent = result.RecentOrders;
+    }
+
+    private sealed record AccountOpsFilter(
+        string TimeFrom,
+        string TimeTo,
+        string Income,
+        string OperationCode,
+        string OrderId)
+    {
+        public static AccountOpsFilter Empty { get; } = new("", "", "-1", "-1", "");
+
+        public static AccountOpsFilter Parse(string? cookie)
+        {
+            if (string.IsNullOrWhiteSpace(cookie))
+            {
+                return Empty;
+            }
+
+            try
+            {
+                using var doc = System.Text.Json.JsonDocument.Parse(Uri.UnescapeDataString(cookie));
+                var r = doc.RootElement;
+                return new(
+                    Read(r, "time_from"),
+                    Read(r, "time_to"),
+                    Read(r, "income", "-1"),
+                    Read(r, "operation_code", "-1"),
+                    Read(r, "order_id"));
+            }
+            catch (Exception)
+            {
+                return Empty;
+            }
+        }
+
+        private static string Read(System.Text.Json.JsonElement root, string name, string fallback = "")
+        {
+            if (!root.TryGetProperty(name, out var el))
+            {
+                return fallback;
+            }
+
+            var raw = el.ValueKind == System.Text.Json.JsonValueKind.String ? el.GetString() ?? fallback : el.ToString();
+            return string.IsNullOrWhiteSpace(raw) ? fallback : raw;
+        }
     }
 }

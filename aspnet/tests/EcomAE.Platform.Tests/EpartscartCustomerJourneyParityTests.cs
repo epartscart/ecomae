@@ -196,6 +196,11 @@ public sealed class EpartscartCustomerJourneyParityTests
         Assert.Contains("name=\"amount\"", account, StringComparison.Ordinal);
         Assert.Contains("name=\"confirmWrites\"", account, StringComparison.Ordinal);
         Assert.Contains("class=\"table", account, StringComparison.Ordinal);
+        Assert.Contains("my_account_operations_filter", account, StringComparison.Ordinal);
+        Assert.Contains("filterOperations", account, StringComparison.Ordinal);
+        Assert.Contains("id=\"time_from\"", account, StringComparison.Ordinal);
+        Assert.Contains("id=\"operation_code\"", account, StringComparison.Ordinal);
+        Assert.Contains("id=\"id_sorter\"", account, StringComparison.Ordinal);
 
         var payment = File.ReadAllText(Find(
             "aspnet/src/EcomAE.Platform/Components/Pages/StorefrontPaymentApp.razor"));
