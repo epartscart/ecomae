@@ -318,8 +318,8 @@ public sealed class ErpModule : ISurfaceModule
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpUaeTaxLegislationAskRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxUaeTaxSaveCtAdjustments, async (HttpContext context, ErpUaeTaxSaveCtAdjustmentsBody? body, ILegacySessionValidator validator, IErpUaeTaxSaveCtAdjustmentsDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpUaeTaxSaveCtAdjustmentsRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxUaeTaxLegislationChecklistSet, async (HttpContext context, ErpUaeTaxLegislationChecklistSetBody? body, ILegacySessionValidator validator, IErpUaeTaxLegislationChecklistSetDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpUaeTaxLegislationChecklistSetRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxUaeTaxLegislationChecklistSet, HandleUaeTaxLegislationChecklistSetAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpUaeTaxLegislationChecklistSet, HandleUaeTaxLegislationChecklistSetAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxInvoiceSave, async (HttpContext context, ErpInvoiceSaveBody? body, ILegacySessionValidator validator, IErpInvoiceSaveDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpInvoiceSaveRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxInvoiceList, async (HttpContext context, ErpInvoiceListBody? body, ILegacySessionValidator validator, IErpInvoiceListDryRun dryRun, CancellationToken cancellationToken) =>
@@ -11774,6 +11774,147 @@ public sealed class ErpModule : ISurfaceModule
         }
     }
 
+    private static async Task<IResult> HandleUaeTaxLegislationChecklistSetAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpUaeTaxLegislationChecklistSetDryRun dryRun,
+        IErpUaeTaxLegislationChecklistSetWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/uae-tax-compliance-app", "Admin ERP capability required for legislation checklist set.");
+        }
+
+        var itemKey = "";
+        var actionKey = "";
+        var actionText = "";
+        var status = "";
+        var done = false;
+        var allActions = new List<string>();
+        var confirm = false;
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            itemKey = LiveWriteFormBinder.Text(form, "item_key", "itemKey");
+            actionKey = LiveWriteFormBinder.Text(form, "action_key", "actionKey");
+            actionText = LiveWriteFormBinder.Text(form, "action_text", "actionText");
+            if (form.ContainsKey("status") || form.ContainsKey("Status"))
+            {
+                status = LiveWriteFormBinder.Text(form, "status", "Status");
+            }
+
+            done = LiveWriteFormBinder.Flag(form, "done");
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            if (form.ContainsKey("all_actions_json") || form.ContainsKey("allActionsJson"))
+            {
+                allActions = ErpUaeTaxLegislationChecklistSetWriteService.ParseAllActionsJson(
+                    LiveWriteFormBinder.Text(form, "all_actions_json", "allActionsJson"));
+            }
+        }
+        else
+        {
+            var root = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<System.Text.Json.JsonElement>(context, cancellationToken);
+            confirm = JsonBool(root, "confirmWrites", "confirm_writes");
+            done = JsonBool(root, "done");
+            itemKey = JsonText(root, "item_key", "itemKey");
+            actionKey = JsonText(root, "action_key", "actionKey");
+            actionText = JsonText(root, "action_text", "actionText");
+            status = JsonText(root, "status", "Status");
+            allActions = ErpUaeTaxLegislationChecklistSetWriteService.CollectAllActionsFromJson(root);
+        }
+
+        if (!confirm)
+        {
+            return Results.Ok(dryRun.Evaluate(new ErpUaeTaxLegislationChecklistSetRequest(ConfirmWrites: false)).ToPayload(SessionPayload(session)));
+        }
+
+        var written = await writes.SetAsync(
+            new ErpUaeTaxLegislationChecklistSetWriteRequest(itemKey, actionKey, actionText, status, done, allActions),
+            cancellationToken);
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/erp/uae-tax-compliance-app",
+            written.Succeeded,
+            written.Message,
+            new
+            {
+                ok = written.Succeeded,
+                writes = written.Writes,
+                phpAuthoritative = false,
+                validation_code = written.Code,
+                message = written.Message,
+                status = written.Succeeded,
+                item_key = written.ItemKey,
+                action_key = written.ActionKey,
+                action_status = written.ActionStatus,
+                impl_status = written.ImplStatus,
+                impl_pending = written.ImplPending,
+                impl_done = written.ImplDone,
+                session = SessionPayload(session),
+            });
+    }
+
+    private static string JsonText(System.Text.Json.JsonElement root, params string[] names)
+    {
+        if (root.ValueKind != System.Text.Json.JsonValueKind.Object)
+        {
+            return "";
+        }
+
+        foreach (var name in names)
+        {
+            if (!root.TryGetProperty(name, out var prop))
+            {
+                continue;
+            }
+
+            return prop.ValueKind == System.Text.Json.JsonValueKind.String
+                ? prop.GetString() ?? ""
+                : prop.GetRawText();
+        }
+
+        return "";
+    }
+
+    private static bool JsonBool(System.Text.Json.JsonElement root, params string[] names)
+    {
+        if (root.ValueKind != System.Text.Json.JsonValueKind.Object)
+        {
+            return false;
+        }
+
+        foreach (var name in names)
+        {
+            if (!root.TryGetProperty(name, out var prop))
+            {
+                continue;
+            }
+
+            if (prop.ValueKind == System.Text.Json.JsonValueKind.True)
+            {
+                return true;
+            }
+
+            if (prop.ValueKind == System.Text.Json.JsonValueKind.Number && prop.TryGetInt64(out var n) && n != 0)
+            {
+                return true;
+            }
+
+            if (prop.ValueKind == System.Text.Json.JsonValueKind.String)
+            {
+                var raw = prop.GetString()?.Trim();
+                if (raw is "1" or "true" or "True" or "on" or "yes")
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
     private static async Task<IResult> HandleWhtCodeSaveAsync(
         HttpContext context,
         ILegacySessionValidator validator,
@@ -12770,7 +12911,6 @@ public sealed class ErpModule : ISurfaceModule
     private sealed record ErpUaeTaxLegislationRegenSummariesBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpUaeTaxLegislationAskBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpUaeTaxSaveCtAdjustmentsBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
-    private sealed record ErpUaeTaxLegislationChecklistSetBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpInvoiceSaveBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpInvoiceListBody(bool ConfirmWrites = false);
     private sealed record ErpInvoiceFromOrderBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);

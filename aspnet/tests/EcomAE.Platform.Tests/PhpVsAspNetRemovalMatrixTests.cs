@@ -238,6 +238,7 @@ public sealed class PhpVsAspNetRemovalMatrixTests
             ("ErpWithholdingApp.razor", "/erp/withholding/codes/save"),
             ("ErpWithholdingApp.razor", "/erp/withholding/txns/record"),
             ("ErpWithholdingApp.razor", "/erp/withholding/txns/certificate"),
+            ("CpUaeTaxComplianceApp.razor", "/erp/uae-tax/legislation/checklist/set"),
             ("CpLanguagesApp.razor", "/cp/lang/set-is-custom"),
             ("CpLanguagesApp.razor", "/cp/lang/set-is-error"),
             ("CpLanguagesApp.razor", "/cp/lang/set-same"),

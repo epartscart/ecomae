@@ -3111,6 +3111,17 @@ public sealed class LiveWriteServiceValidationTests
             .LogAsync(new ErpHrAttendanceWriteRequest(EmployeeId: 1, Hours: 8));
         Assert.False(hrAttDb.Succeeded);
         Assert.Equal("db", hrAttDb.Code);
+
+        var uaeChkInvalid = await new ErpUaeTaxLegislationChecklistSetWriteService(new ConfiguredNeverOpened())
+            .SetAsync(new ErpUaeTaxLegislationChecklistSetWriteRequest());
+        Assert.False(uaeChkInvalid.Succeeded);
+        Assert.Equal("invalid", uaeChkInvalid.Code);
+        Assert.Equal("Missing item or action key.", uaeChkInvalid.Message);
+
+        var uaeChkDb = await new ErpUaeTaxLegislationChecklistSetWriteService(new UnconfiguredConnections())
+            .SetAsync(new ErpUaeTaxLegislationChecklistSetWriteRequest(ItemKey: "vat-1", ActionKey: "a1"));
+        Assert.False(uaeChkDb.Succeeded);
+        Assert.Equal("db", uaeChkDb.Code);
     }
 
     [Fact]
