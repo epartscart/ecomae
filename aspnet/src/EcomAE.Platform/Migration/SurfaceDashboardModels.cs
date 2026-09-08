@@ -1041,6 +1041,27 @@ public sealed record CpMetabaseDigestResult(
     string Source,
     string Message);
 
+public sealed record CpMetabaseDashboardDetail(
+    long Id,
+    string SiteKey,
+    int DashboardId,
+    string DashboardName,
+    string Category,
+    bool Active,
+    string CreatedAt);
+
+public sealed record CpMetabaseSiteConfigExcerpt(
+    string SiteKey,
+    string MetabaseUrl,
+    bool Active);
+
+public sealed record CpMetabaseDashboardDetailResult(
+    CpMetabaseDashboardDetail? Dashboard,
+    CpMetabaseSiteConfigExcerpt? SiteConfig,
+    IReadOnlyList<CpMetabaseDashboardDigest> Siblings,
+    string Source,
+    string Message);
+
 public sealed record CpNlReportDefinitionDigest(
     long Id,
     string SiteKey,

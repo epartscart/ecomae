@@ -20,20 +20,94 @@
             </div>
             <div class="panel-body">
                 <p>@CpPhpModuleCopy.PurposeFor("/cp/metabase-app")</p>
+                <p>Open a dashboard for its site URL and category siblings. Configure and embed stay on the Classic twin.</p>
             </div>
         </div>
     </div>
-    <PhpParityModuleBody AppPath="/cp/metabase-app" IsAdmin="_isAdmin" />
+    <PhpParityModuleBody AppPath="/cp/metabase-app" IsAdmin="_isAdmin" ShowGhostScaffold="false" />
 
+    <ErpOpenedRecordBanner Id="_openedId" Found="@(_openedDash is not null)" Caption="@OpenedCaption" ListHref="@_listHref" />
 
-    <p class="help-block">@(_summary.Active ? "active" : "off") Config (@(string.IsNullOrWhiteSpace(_summary.SiteKey) ? "—" : _summary.SiteKey)) · @(string.IsNullOrWhiteSpace(_summary.MetabaseUrl) ? "—" : _summary.MetabaseUrl) Metabase URL · @_dashboards.Count.ToString(CultureInfo.InvariantCulture) Dashboards shown.</p>
+    <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Metabase KPIs">
+        <div class="kpi"><div class="lbl">Dashboards</div><div class="val">@_dashboards.Count.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Active</div><div class="val">@_dashboards.Count(d => d.Active).ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Config</div><div class="val">@(_summary.Active ? "on" : "off")</div></div>
+        <div class="kpi"><div class="lbl">Opened siblings</div><div class="val">@_openedSiblings.Count.ToString(CultureInfo.InvariantCulture)</div></div>
+    </div>
+
+    @if (_openedDash is not null)
+    {
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">
+                    @(!string.IsNullOrWhiteSpace(_openedDash.DashboardName) ? _openedDash.DashboardName : ("Dashboard #" + _openedDash.Id.ToString(CultureInfo.InvariantCulture)))
+                    <span class="label label-default pull-right">@(_openedDash.Active ? "active" : "off")</span>
+                </div>
+                <div class="panel-body">
+                    <p>@(!string.IsNullOrWhiteSpace(_openedDash.SiteKey) ? _openedDash.SiteKey : "—")
+                        · @(!string.IsNullOrWhiteSpace(_openedDash.Category) ? _openedDash.Category : "—")
+                        · @_openedDash.DashboardId.ToString(CultureInfo.InvariantCulture)</p>
+                    @if (!string.IsNullOrWhiteSpace(_openedDash.CreatedAt))
+                    {
+                        <p class="text-muted">@_openedDash.CreatedAt</p>
+                    }
+                    @if (_openedConfig is not null && !string.IsNullOrWhiteSpace(_openedConfig.MetabaseUrl))
+                    {
+                        <p>@(_openedConfig.Active ? "config on" : "config off") · @_openedConfig.MetabaseUrl</p>
+                    }
+                    else
+                    {
+                        <p class="text-muted">No site URL yet.</p>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">Category siblings</div>
+                <div class="panel-body">
+                    <div class="table-responsive">
+                        <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped table-bordered table-epc epc-erp-table">
+                            <thead>
+                                <tr>
+                                    <th>Id</th>
+                                    <th>Name</th>
+                                    <th>Dashboard</th>
+                                    <th>Active</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (_openedSiblings.Count == 0)
+                                {
+                                    <tr><td colspan="4">No category siblings yet.</td></tr>
+                                }
+                                else
+                                {
+                                    @foreach (var sib in _openedSiblings)
+                                    {
+                                        <tr>
+                                            <td>@sib.Id.ToString(CultureInfo.InvariantCulture)</td>
+                                            <td>@(!string.IsNullOrWhiteSpace(sib.DashboardName) ? sib.DashboardName : "—")</td>
+                                            <td>@sib.DashboardId.ToString(CultureInfo.InvariantCulture)</td>
+                                            <td>@(sib.Active ? "yes" : "no")</td>
+                                        </tr>
+                                    }
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
 
     <div class="col-lg-12">
         <div class="hpanel">
             <div class="panel-heading hbuilt">Records</div>
             <div class="panel-body">
                 <div class="table-responsive">
-                    <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped">
+                    <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped table-bordered table-epc epc-erp-table">
             <thead>
                 <tr>
                     <th>ID</th>
@@ -48,20 +122,20 @@
             <tbody>
                 @if (_dashboards.Count == 0)
                 {
-                    <tr><td colspan="7">No records yet.</td></tr>
+                    <tr><td colspan="7">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? "No records yet." : _message) : "Sign in with a staff session for live rows.")</td></tr>
                 }
                 else
                 {
                     @foreach (var d in _dashboards)
                     {
-                        <tr>
+                        <tr id="erp-row-@d.Id.ToString(CultureInfo.InvariantCulture)" class="@ErpRecordOpen.RowClass(d.Id, _openedId)">
                             <td><strong>@d.Id.ToString(CultureInfo.InvariantCulture)</strong></td>
                             <td>@(string.IsNullOrWhiteSpace(d.SiteKey) ? "—" : d.SiteKey)</td>
                             <td>@d.DashboardId.ToString(CultureInfo.InvariantCulture)</td>
                             <td>@(string.IsNullOrWhiteSpace(d.DashboardName) ? "—" : d.DashboardName)</td>
                             <td>@(string.IsNullOrWhiteSpace(d.Category) ? "—" : d.Category)</td>
                             <td>@(d.Active ? "yes" : "no")</td>
-                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
+                            <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href(_listHref, "mb_id", d.Id)">Open</a></td>
                         </tr>
                     }
                 }
@@ -76,16 +150,30 @@
 
 @code {
     private const string _phpTab = "/CP/general_pages/epc_metabase_embed";
+    private const string _listHref = "/cp/metabase-app";
     private bool _isAdmin;
     private CpMetabaseConfigSummary _summary = new("", "", false, 0, "n/a", "");
     private IReadOnlyList<CpMetabaseDashboardDigest> _dashboards = [];
     private string _source = "n/a";
     private string _message = "";
+    private long _openedId;
+    private CpMetabaseDashboardDetail? _openedDash;
+    private CpMetabaseSiteConfigExcerpt? _openedConfig;
+    private IReadOnlyList<CpMetabaseDashboardDigest> _openedSiblings = [];
+
+    private string OpenedCaption => _openedDash is null
+        ? ""
+        : (string.IsNullOrWhiteSpace(_openedDash.DashboardName)
+            ? ("Dashboard #" + _openedDash.Id.ToString(CultureInfo.InvariantCulture))
+            : _openedDash.DashboardName)
+            + (_openedDash.Active ? " · active" : " · off");
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
+
+        _openedId = ErpRecordOpen.ReadId(ctx.Request, "mb_id");
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
@@ -99,5 +187,25 @@
         _dashboards = result.Dashboards;
         _source = result.Source;
         _message = result.Message;
+
+        if (_openedId > 0)
+        {
+            var detail = await Dashboards.BuildCpMetabaseDashboardDetailAsync(_openedId, ctx.RequestAborted);
+            _openedDash = detail.Dashboard;
+            _openedConfig = detail.SiteConfig;
+            _openedSiblings = detail.Siblings;
+            if (_openedDash is not null)
+            {
+                var openedList = _dashboards.FirstOrDefault(r => r.Id == _openedId);
+                if (openedList is not null)
+                {
+                    _dashboards = new[] { openedList }.Concat(_dashboards.Where(r => r.Id != _openedId)).ToList();
+                }
+            }
+            else if (!string.IsNullOrWhiteSpace(detail.Message))
+            {
+                _message = detail.Message;
+            }
+        }
     }
 }
