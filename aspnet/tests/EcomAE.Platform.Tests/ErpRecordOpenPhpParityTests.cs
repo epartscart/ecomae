@@ -53,6 +53,8 @@ public sealed class ErpRecordOpenPhpParityTests
     [InlineData("/CP/control/portal/epc_free_tools_admin?account_id=4", "/cp/free-tools-app?account_id=4")]
     [InlineData("/CP/control/portal/epc_super_cp_customer_board?user_id=9", "/cp/customer-board-app?user_id=9")]
     [InlineData("/CP/control/portal/epc_super_cp_info_blocks?block_id=3", "/cp/info-blocks-app?block_id=3")]
+    [InlineData("/CP/control/notifications_settings?notif_id=7", "/cp/notifications-app?notif_id=7")]
+    [InlineData("/CP/control/portal/epc_notifications?notif_id=7", "/cp/notifications-app?notif_id=7")]
     [InlineData("/ERP/?epc_erp_shell=1&area=landed_cost_area&tab=landed_cost&sheet_id=6", "/erp/landed-cost-app?sheet_id=6")]
     [InlineData("/CP/control/portal/epc_soc2_compliance?soc2_id=8", "/cp/soc2-compliance-app?soc2_id=8")]
     [InlineData("/ERP/?epc_erp_shell=1&area=tax&tab=compliance&soc2_id=8", "/erp/soc2-compliance-app?soc2_id=8")]
@@ -824,6 +826,37 @@ public sealed class ErpRecordOpenPhpParityTests
             ErpRecordOpen.PreserveRecordQuery(
                 "/cp/info-blocks-app",
                 "/CP/control/portal/epc_super_cp_info_blocks?block_id=3"));
+    }
+
+    [Fact]
+    public void NotificationsApp_OpenLoadsBodyExcerptAndKeepsHero()
+    {
+        var root = FindRepoRoot();
+        var text = File.ReadAllText(Path.Combine(root,
+            "aspnet/src/EcomAE.Platform/Components/Pages/CpNotificationsApp.razor"));
+        Assert.Contains("ErpRecordOpen.Href(_listHref, \"notif_id\"", text, StringComparison.Ordinal);
+        Assert.Contains("ErpOpenedRecordBanner", text, StringComparison.Ordinal);
+        Assert.Contains("ReadId(ctx.Request, \"notif_id\")", text, StringComparison.Ordinal);
+        Assert.Contains("BuildCpNotificationsDetailAsync", text, StringComparison.Ordinal);
+        Assert.Contains("No body excerpt yet.", text, StringComparison.Ordinal);
+        Assert.Contains("No category siblings yet.", text, StringComparison.Ordinal);
+        Assert.Contains("ShowGhostScaffold=\"false\"", text, StringComparison.Ordinal);
+        Assert.Contains("table-epc", text, StringComparison.Ordinal);
+        Assert.Contains("epc-cn-hero", text, StringComparison.Ordinal);
+        Assert.Contains("PhpParityModuleBody", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)\">Open", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("/php-reference/", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("ASP.NET", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("metadata", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("action_url", text, StringComparison.Ordinal);
+
+        Assert.Equal("/cp/notifications-app?notif_id=7#erp-row-7",
+            ErpRecordOpen.Href("/cp/notifications-app", "notif_id", 7));
+        Assert.Equal(
+            "/cp/notifications-app?notif_id=7",
+            ErpRecordOpen.PreserveRecordQuery(
+                "/cp/notifications-app",
+                "/CP/control/notifications_settings?notif_id=7"));
     }
 
     [Fact]

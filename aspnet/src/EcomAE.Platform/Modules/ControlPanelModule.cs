@@ -8310,7 +8310,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only epc_notifications + epc_notification_prefs KPIs + notifications (body/metadata omitted). PHP notification settings remain authoritative."
+                note = "Read-only epc_notifications + epc_notification_prefs KPIs + notifications. Open ?notif_id= loads a 280-char body excerpt plus category siblings. metadata omitted. PHP notification settings remain authoritative."
             });
         });
 
