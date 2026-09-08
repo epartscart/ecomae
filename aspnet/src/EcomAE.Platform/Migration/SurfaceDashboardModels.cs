@@ -4692,6 +4692,27 @@ public sealed record CpNotificationsDigestResult(
     string Source,
     string Message);
 
+public sealed record CpNotificationsDetail(
+    long Id,
+    string TenantKey,
+    long UserId,
+    string Channel,
+    string Category,
+    string Severity,
+    string Title,
+    int IsRead,
+    int Dismissed,
+    string ReadAt,
+    string CreatedAt,
+    int BodyLen,
+    string BodyExcerpt);
+
+public sealed record CpNotificationsDetailResult(
+    CpNotificationsDetail? Notification,
+    IReadOnlyList<CpNotificationsRowDigest> Siblings,
+    string Source,
+    string Message);
+
 public sealed record CpPortalSettingsSummary(
     int SiteCount,
     int IndustryCount,

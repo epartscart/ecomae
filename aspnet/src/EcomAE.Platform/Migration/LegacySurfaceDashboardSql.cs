@@ -5064,6 +5064,33 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>Opened notification. Body is a short excerpt; metadata/action_url omitted.</summary>
+    public const string SelectCpNotificationsDetail = """
+        SELECT `id`, IFNULL(`tenant_key`,'') AS tenant_key, IFNULL(`user_id`,0) AS user_id,
+               IFNULL(`channel`,'') AS channel, IFNULL(`category`,'') AS category,
+               IFNULL(`severity`,'') AS severity, IFNULL(`title`,'') AS title,
+               IFNULL(`is_read`,0) AS is_read, IFNULL(`dismissed`,0) AS dismissed,
+               IFNULL(CAST(`read_at` AS CHAR),'') AS read_at,
+               IFNULL(CAST(`created_at` AS CHAR),'') AS created_at,
+               CHAR_LENGTH(IFNULL(`body`,'')) AS body_len,
+               LEFT(IFNULL(`body`,''), 280) AS body_excerpt
+        FROM `epc_notifications`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Other notifications in the same category. body/metadata omitted.</summary>
+    public const string SelectCpNotificationsCategorySiblings = """
+        SELECT `id`, IFNULL(`tenant_key`,'') AS tenant_key, IFNULL(`user_id`,0) AS user_id,
+               IFNULL(`channel`,'') AS channel, IFNULL(`category`,'') AS category,
+               IFNULL(`severity`,'') AS severity, IFNULL(`title`,'') AS title,
+               IFNULL(`is_read`,0) AS is_read, IFNULL(CAST(`created_at` AS CHAR),'') AS created_at
+        FROM `epc_notifications`
+        WHERE `category` = @category AND `id` <> @id
+        ORDER BY `id` DESC
+        LIMIT 50
+        """;
+
     /// <summary>Portal site settings KPIs (CREATE in content/general_pages/epc_portal_db.php).</summary>
     public const string SelectCpPortalSettingsStats = """
         SELECT

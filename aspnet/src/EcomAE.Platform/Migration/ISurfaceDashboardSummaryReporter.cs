@@ -544,6 +544,9 @@ public interface ISurfaceDashboardSummaryReporter
     /// <summary>Opened marketplace app (PHP <c>app_id</c>) plus installs/reviews. Config JSON and review_text omitted.</summary>
     Task<CpMarketplaceAppDetailResult> BuildCpMarketplaceAppDetailAsync(long id, CancellationToken cancellationToken = default);
     Task<CpNotificationsDigestResult> BuildCpNotificationsDigestAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Opened notification (PHP <c>notif_id</c>) plus category siblings. Body excerpt only; metadata omitted.</summary>
+    Task<CpNotificationsDetailResult> BuildCpNotificationsDetailAsync(long id, CancellationToken cancellationToken = default);
     Task<CpPortalSettingsDigestResult> BuildCpPortalSettingsDigestAsync(int limit, CancellationToken cancellationToken = default);
     Task<CpDataMigrationsDigestResult> BuildCpDataMigrationsDigestAsync(int limit, CancellationToken cancellationToken = default);
 
