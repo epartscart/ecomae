@@ -1599,7 +1599,9 @@ public static class EcomAeRoutes
     public const string ErpAjaxAutomationEnableCategory = "/erp/ajax/automation-enable-category";
     /// <summary>Wave B dry-run for PHP automation_tick (writes=0).</summary>
     public const string ErpAjaxAutomationTick = "/erp/ajax/automation-tick";
-    /// <summary>Wave B dry-run for PHP tenant_config_save (writes=0).</summary>
+    /// <summary>HTML form POST for PHP <c>tenant_config_save</c>. <c>confirmWrites=true</c> writes via <c>IErpTenantConfigSaveWriteService</c>.</summary>
+    public const string ErpTenantConfigSave = "/erp/tenant-config/save";
+    /// <summary>Live PHP tenant_config_save ajax alias of <see cref="ErpTenantConfigSave"/>.</summary>
     public const string ErpAjaxTenantConfigSave = "/erp/ajax/tenant-config-save";
     /// <summary>Lang is_custom. <c>confirmWrites=true</c> is the live twin of PHP ajax_set_is_custom.php.</summary>
     public const string CpLangSetIsCustom = "/cp/lang/set-is-custom";

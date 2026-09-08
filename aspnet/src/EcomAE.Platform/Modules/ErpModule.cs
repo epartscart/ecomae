@@ -1050,8 +1050,8 @@ public sealed class ErpModule : ISurfaceModule
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpAutomationEnableCategoryRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxAutomationTick, async (HttpContext context, ErpAutomationTickBody? body, ILegacySessionValidator validator, IErpAutomationTickDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(false); return Results.Ok(dryRun.Evaluate(new ErpAutomationTickRequest(body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxTenantConfigSave, async (HttpContext context, ErpTenantConfigSaveBody? body, ILegacySessionValidator validator, IErpTenantConfigSaveDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpTenantConfigSaveRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxTenantConfigSave, HandleTenantConfigSaveAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpTenantConfigSave, HandleTenantConfigSaveAsync).DisableAntiforgery();
 
         endpoints.MapPost(EcomAeRoutes.ErpOnPremisesSetupWizardDryRun, (
             OnPremisesSetupWizardBody? body,
@@ -11774,6 +11774,56 @@ public sealed class ErpModule : ISurfaceModule
         }
     }
 
+    private static async Task<IResult> HandleTenantConfigSaveAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpTenantConfigSaveDryRun dryRun,
+        IErpTenantConfigSaveWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/tenant-config-app", "Admin ERP capability required for tenant config save.");
+        }
+
+        var values = new Dictionary<string, string>(StringComparer.Ordinal);
+        var confirm = false;
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            foreach (var key in ErpTenantConfigSaveWriteService.AllowedKeys)
+            {
+                if (form.ContainsKey(key))
+                {
+                    values[key] = LiveWriteFormBinder.Text(form, key);
+                }
+            }
+        }
+        else
+        {
+            var root = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<System.Text.Json.JsonElement>(context, cancellationToken);
+            confirm = ErpTenantConfigSaveWriteService.JsonFlag(root, "confirmWrites", "confirm_writes");
+            values = ErpTenantConfigSaveWriteService.CollectFromJson(root);
+        }
+
+        if (!confirm)
+        {
+            return Results.Ok(dryRun.Evaluate(new ErpTenantConfigSaveRequest(ConfirmWrites: false)).ToPayload(SessionPayload(session)));
+        }
+
+        var written = await writes.SaveAsync(
+            new ErpTenantConfigSaveWriteRequest(values),
+            cancellationToken);
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/erp/tenant-config-app",
+            written.Succeeded,
+            written.Message,
+            new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+    }
+
     private static async Task<IResult> HandleWhtCodeSaveAsync(
         HttpContext context,
         ILegacySessionValidator validator,
@@ -13479,7 +13529,6 @@ public sealed class ErpModule : ISurfaceModule
     private sealed record ErpAutomationInstallTemplateBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpAutomationEnableCategoryBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpAutomationTickBody(bool ConfirmWrites = false);
-    private sealed record ErpTenantConfigSaveBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpAjaxWriteRegistryBody(bool ConfirmWrites = false);
     private sealed record OnPremisesSetupWizardBody(string? TenantCode = null, bool ConfirmWrites = false);
     private sealed record OnPremisesBackupBody(string? Label = null, bool ConfirmWrites = false);

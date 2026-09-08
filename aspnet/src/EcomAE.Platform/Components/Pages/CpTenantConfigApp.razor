@@ -53,6 +53,32 @@
     </section>
     <PhpParityModuleBody AppPath="/cp/tenant-config-app" IsAdmin="_isAdmin" />
 
+    @if (!string.IsNullOrWhiteSpace(_flashOk))
+    {
+        <div class="alert alert-success" role="status" style="margin:0 0 1rem;padding:.7rem .9rem;border-radius:.4rem;background:#ecfdf5;color:#065f46">@_flashOk</div>
+    }
+    @if (!string.IsNullOrWhiteSpace(_flashErr))
+    {
+        <div class="alert alert-danger" role="status" style="margin:0 0 1rem;padding:.7rem .9rem;border-radius:.4rem;background:#fef2f2;color:#991b1b">@_flashErr</div>
+    }
+    @if (_isAdmin)
+    {
+        <ErpPhpCreateWell Title="ERP settings">
+            <form method="post" action="/erp/tenant-config/save" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin-bottom:1rem;">
+                <input type="hidden" name="returnUrl" value="/erp/tenant-config-app" />
+                <input type="hidden" name="confirmWrites" value="true" />
+                <label>Company <input class="form-control input-sm" name="company_name" style="width:160px;" /></label>
+                <label>TRN <input class="form-control input-sm" name="company_trn" style="width:120px;" /></label>
+                <label>Currency <input class="form-control input-sm" name="default_currency" style="width:80px;" /></label>
+                <label>VAT % <input class="form-control input-sm" name="vat_rate" style="width:70px;" /></label>
+                <label>FY start <input class="form-control input-sm" name="fiscal_year_start" style="width:80px;" /></label>
+                <label>PO prefix <input class="form-control input-sm" name="po_prefix" style="width:70px;" /></label>
+                <label>SO prefix <input class="form-control input-sm" name="so_prefix" style="width:70px;" /></label>
+                <label>INV prefix <input class="form-control input-sm" name="inv_prefix" style="width:70px;" /></label>
+                <button type="submit" class="btn btn-primary btn-sm">Save settings</button>
+            </form>
+        </ErpPhpCreateWell>
+    }
 
     <div class="epc-w17-kpis" aria-label="Tenant config stats">
         <div class="epc-w17-kpi"><strong>@_summary.ConfigCount.ToString(CultureInfo.InvariantCulture)</strong><span>Configs</span></div>
@@ -111,11 +137,16 @@
     private IReadOnlyList<CpTenantConfigEntryDigest> _rows = [];
     private string _source = "n/a";
     private string _message = "";
+    private string _flashOk = "";
+    private string _flashErr = "";
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
+
+        _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
+        _flashErr = ctx.Request.Query["err"].ToString() ?? "";
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
