@@ -3081,6 +3081,16 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(whtCodeDb.Succeeded);
         Assert.Equal("db", whtCodeDb.Code);
 
+        var pltJobInvalid = await new ErpPltJobSaveWriteService(new ConfiguredNeverOpened())
+            .SaveAsync(new ErpPltJobSaveWriteRequest());
+        Assert.False(pltJobInvalid.Succeeded);
+        Assert.Equal("invalid", pltJobInvalid.Code);
+
+        var pltJobDb = await new ErpPltJobSaveWriteService(new UnconfiguredConnections())
+            .SaveAsync(new ErpPltJobSaveWriteRequest(Code: "NIGHTLY", Active: 1));
+        Assert.False(pltJobDb.Succeeded);
+        Assert.Equal("db", pltJobDb.Code);
+
         var whtRecordInvalid = await new ErpWhtRecordWriteService(new ConfiguredNeverOpened())
             .RecordAsync(new ErpWhtRecordWriteRequest());
         Assert.False(whtRecordInvalid.Succeeded);
