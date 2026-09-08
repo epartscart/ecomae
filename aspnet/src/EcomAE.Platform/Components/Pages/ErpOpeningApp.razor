@@ -13,8 +13,32 @@
 <PhpChromeStyles Surface="erp" />
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Opening balances" BreadcrumbArea="Finance" BreadcrumbTab="Opening">
 
-    <PhpErpModulePageHeader Title="Opening balance batches" Subtitle="COA, cash, inventory and fixed-asset opening batches. Posting stays on ERP ajax." PhpTabHref="@_phpTab" />
+    <PhpErpModulePageHeader Title="Opening balance batches" Subtitle="Add an inventory opening line here. Batch create, COA line, and posting stay on the Classic twin." PhpTabHref="@_phpTab" />
     <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
+
+    @if (!string.IsNullOrWhiteSpace(_flashOk))
+    {
+        <div class="alert alert-success" role="status" style="margin:0 0 1rem;padding:.7rem .9rem;border-radius:.4rem;background:#ecfdf5;color:#065f46">@_flashOk</div>
+    }
+    @if (!string.IsNullOrWhiteSpace(_flashErr))
+    {
+        <div class="alert alert-danger" role="status" style="margin:0 0 1rem;padding:.7rem .9rem;border-radius:.4rem;background:#fef2f2;color:#991b1b">@_flashErr</div>
+    }
+    @if (_isAdmin)
+    {
+        <form method="post" action="/erp/opening/add-inv-line" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/erp/opening-app" />
+            <label>Batch id <input type="number" name="batch_id" style="width:6rem" /></label>
+            <label>Item id <input type="number" name="item_id" style="width:6rem" /></label>
+            <label>Qty <input type="number" name="qty" step="0.001" style="width:6rem" /></label>
+            <label>Unit cost <input type="number" name="unit_cost" step="0.0001" style="width:7rem" /></label>
+            <label>Warehouse id <input type="number" name="warehouse_id" style="width:6rem" /></label>
+            <label>Batch no <input name="batch_no" /></label>
+            <label>Expiry <input type="date" name="expiry_date" /></label>
+            <button type="submit">Add inventory line</button>
+        </form>
+    }
 
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Opening KPIs">
         <div class="kpi"><div class="lbl">Batches</div><div class="val">@_count.ToString(CultureInfo.InvariantCulture)</div></div>
@@ -78,11 +102,15 @@
     private decimal _credit;
     private string _source = "n/a";
     private string _message = "";
+    private string _flashOk = "";
+    private string _flashErr = "";
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
+        _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
+        _flashErr = ctx.Request.Query["err"].ToString() ?? "";
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("erp");
         if (!_isAdmin)

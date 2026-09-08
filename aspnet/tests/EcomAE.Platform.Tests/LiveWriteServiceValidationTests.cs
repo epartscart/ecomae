@@ -3111,6 +3111,11 @@ public sealed class LiveWriteServiceValidationTests
             .LogAsync(new ErpHrAttendanceWriteRequest(EmployeeId: 1, Hours: 8));
         Assert.False(hrAttDb.Succeeded);
         Assert.Equal("db", hrAttDb.Code);
+
+        var openingInvDb = await new ErpOpeningAddInvLineWriteService(new UnconfiguredConnections())
+            .AddAsync(new ErpOpeningAddInvLineWriteRequest(BatchId: 1, ItemId: 4, Qty: 2, WarehouseId: 3));
+        Assert.False(openingInvDb.Succeeded);
+        Assert.Equal("db", openingInvDb.Code);
     }
 
     [Fact]

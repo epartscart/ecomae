@@ -1489,7 +1489,9 @@ public static class EcomAeRoutes
     public const string ErpAjaxOpeningCreateBatch = "/erp/ajax/opening-create-batch";
     /// <summary>Wave B dry-run for PHP opening_add_coa_line (writes=0).</summary>
     public const string ErpAjaxOpeningAddCoaLine = "/erp/ajax/opening-add-coa-line";
-    /// <summary>Wave B dry-run for PHP opening_add_inv_line (writes=0).</summary>
+    /// <summary>HTML form POST for PHP opening_add_inv_line. confirmWrites=true writes via IErpOpeningAddInvLineWriteService.</summary>
+    public const string ErpOpeningAddInvLine = "/erp/opening/add-inv-line";
+    /// <summary>Live PHP opening_add_inv_line ajax alias of <see cref="ErpOpeningAddInvLine"/>.</summary>
     public const string ErpAjaxOpeningAddInvLine = "/erp/ajax/opening-add-inv-line";
     /// <summary>Wave B dry-run for PHP opening_post_batch (writes=0).</summary>
     public const string ErpAjaxOpeningPostBatch = "/erp/ajax/opening-post-batch";
