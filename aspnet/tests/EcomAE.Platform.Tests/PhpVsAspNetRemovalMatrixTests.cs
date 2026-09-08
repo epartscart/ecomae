@@ -78,6 +78,7 @@ public sealed class PhpVsAspNetRemovalMatrixTests
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "erp-bos-wf-disable-rule" && r.WritesOwner == "aspnet");
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "erp-bos-compliance-disable" && r.WritesOwner == "aspnet");
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "erp-hr-leave-expense" && r.WritesOwner == "aspnet");
+        Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "erp-projects" && r.WritesOwner == "aspnet");
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "erp-cons-deletes" && r.WritesOwner == "aspnet");
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "erp-fy-reopen-period" && r.WritesOwner == "aspnet");
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "erp-fin-period-status" && r.WritesOwner == "aspnet");
@@ -92,6 +93,7 @@ public sealed class PhpVsAspNetRemovalMatrixTests
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "write-laximo" && r.WritesOwner == "aspnet");
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "write-payments" && r.WritesOwner == "aspnet");
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "erp-marketing" && r.WritesOwner == "aspnet");
+        Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "erp-projects" && r.WritesOwner == "aspnet");
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "erp-multi-entity" && r.WritesOwner == "aspnet");
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "erp-multi-currency-gl" && r.WritesOwner == "aspnet");
         Assert.Contains(PhpVsAspNetRemovalMatrix.Rows, r => r.Id == "write-storefront-cart" && r.WritesOwner == "php");
@@ -145,7 +147,10 @@ public sealed class PhpVsAspNetRemovalMatrixTests
             ("StorefrontSellerRequestApp.razor", "SellerWriteHref"),
             ("StorefrontCustomerRequestsApp.razor", "MessageWriteHref"),
             ("StorefrontOrdersApp.razor", "/storefront/payment/create-operation"),
+            ("ErpPayrollApp.razor", "/erp/payroll/generate"),
             ("ErpPayrollApp.razor", "/erp/ajax/payroll-approve"),
+            ("ErpPayrollApp.razor", "/erp/payroll/pay"),
+            ("ErpPayrollApp.razor", "/erp/payroll/update-days"),
             ("ErpInventoryForecastApp.razor", "/erp/inventory-forecast/recompute"),
             ("ErpMultiEntityApp.razor", "/erp/multi-entity/write"),
             ("ErpMultiCurrencyGlApp.razor", "/erp/multi-currency-gl/set-rate"),
@@ -208,10 +213,14 @@ public sealed class PhpVsAspNetRemovalMatrixTests
             ("CpInsuranceComplianceApp.razor", "/erp/ajax/ins-doc-delete"),
             ("CpHrOverviewApp.razor", "/erp/hr/employees/save"),
             ("CpHrOverviewApp.razor", "/erp/hr/attendance/log"),
+            ("CpHrOverviewApp.razor", "/erp/hr/payroll/generate"),
             ("CpHrOverviewApp.razor", "/erp/ajax/hr-leave-request"),
             ("CpHrOverviewApp.razor", "/erp/ajax/hr-leave-status"),
             ("CpHrOverviewApp.razor", "/erp/ajax/hr-expense-save"),
             ("CpHrOverviewApp.razor", "/erp/ajax/hr-expense-status"),
+            ("CpProjectsOverviewApp.razor", "/erp/projects/save"),
+            ("CpProjectsOverviewApp.razor", "/erp/projects/tasks/save"),
+            ("CpProjectsOverviewApp.razor", "/erp/projects/timesheets/log"),
             ("CpConsolidationsApp.razor", "/erp/ajax/cons-entity-save"),
             ("CpConsolidationsApp.razor", "/erp/ajax/cons-entity-delete"),
             ("CpConsolidationsApp.razor", "/erp/ajax/cons-ic-delete"),
