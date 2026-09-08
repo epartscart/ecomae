@@ -69,6 +69,7 @@ public static class ErpExternalReportingCatalog
         new("tax__corporate_tax_registration", "Corporate Tax Registration", "tax", "", ""),
         new("tax__corporate_tax_deregistration", "Corporate Tax Deregistration", "tax", "", ""),
         new("tax__vat_return", "VAT Return", "tax", "vat_return", ""),
+        new("tax__electronic_invoicing_pint_ae", "Electronic Invoicing (PINT-AE)", "tax", "einvoice", "PINTAE"),
         new("tax__vat_registration", "VAT Registration", "tax", "", ""),
         new("tax__vat_deregistration", "VAT Deregistration", "tax", "", ""),
         new("tax__vat_refund_claim", "VAT Refund Claim", "tax", "vat_refund", ""),
@@ -371,6 +372,7 @@ public static class ErpExternalReportingCatalog
         "IAS34" => new("IAS 34 — Interim Financial Reporting", "https://www.ifrs.org/issued-standards/list-of-standards/ias-34-interim-financial-reporting/"),
         "IFRS10" => new("IFRS 10 — Consolidated Financial Statements", "https://www.ifrs.org/issued-standards/list-of-standards/ifrs-10-consolidated-financial-statements/"),
         "IFRS7" => new("IFRS 7 — Financial Instruments: Disclosures", "https://www.ifrs.org/issued-standards/list-of-standards/ifrs-7-financial-instruments-disclosures/"),
+        "PINTAE" => new("PINT-AE — UAE e-invoicing data dictionary (MoF)", "https://mof.gov.ae"),
         "ISA700" => new("ISA 700 — Forming an Opinion & Reporting on Financial Statements", "https://www.iaasb.org/publications/international-standard-auditing-isa-700-revised-forming-opinion-and-reporting-financial"),
         "ISA705" => new("ISA 705 — Modifications to the Opinion in the Auditor's Report", "https://www.iaasb.org/publications/international-standard-auditing-isa-705-revised"),
         "ISSB" => new("ISSB — IFRS S1 General Sustainability Disclosures", "https://www.ifrs.org/issued-standards/ifrs-sustainability-standards-navigator/ifrs-s1-general-requirements/"),
@@ -447,6 +449,7 @@ public static class ErpExternalReportingCatalog
         var k = key.ToLowerInvariant();
         if (k.Contains("vat_return", StringComparison.Ordinal) || k.Contains("gst_return", StringComparison.Ordinal)
             || k.Contains("sales_tax", StringComparison.Ordinal) || k.Contains("use_tax", StringComparison.Ordinal)
+            || k.Contains("einvoice", StringComparison.Ordinal) || k.Contains("electronic_invoic", StringComparison.Ordinal)
             || k.Contains("interim", StringComparison.Ordinal)) return "quarter";
         if (k.Contains("corporate_income_tax", StringComparison.Ordinal) || k.Contains("corporate_tax", StringComparison.Ordinal)
             || k.Contains("transfer_pricing", StringComparison.Ordinal) || k.Contains("country_by_country", StringComparison.Ordinal)
