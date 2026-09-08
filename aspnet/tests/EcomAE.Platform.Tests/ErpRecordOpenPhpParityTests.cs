@@ -17,6 +17,8 @@ public sealed class ErpRecordOpenPhpParityTests
     [InlineData("/ERP/?epc_erp_shell=1&area=purchasing&tab=purchase_requisitions&req_id=4", "/erp/purchase-requests-app?req_id=4")]
     [InlineData("/CP/shop/finance/epc_collections_dunning?queue_id=12", "/cp/collections-dunning-app?queue_id=12")]
     [InlineData("/ERP/?epc_erp_shell=1&area=credit_coll&queue_id=12", "/erp/collections-dunning-app?queue_id=12")]
+    [InlineData("/CP/control/portal/epc_soc2_compliance?soc2_id=8", "/cp/soc2-compliance-app?soc2_id=8")]
+    [InlineData("/ERP/?epc_erp_shell=1&area=tax&tab=compliance&soc2_id=8", "/erp/soc2-compliance-app?soc2_id=8")]
     [InlineData("/CP/shop/orders/carts?cart_id=15", "/cp/abandoned-carts-app?cart_id=15")]
     [InlineData("/ERP/?epc_erp_shell=1&area=tax&tab=aml_compliance&kyc_id=7", "/erp/aml-compliance-app?kyc_id=7")]
     [InlineData("/ERP/?epc_erp_shell=1&area=tax&tab=aml_compliance&kyc=7", "/erp/aml-compliance-app?kyc=7")]
@@ -116,6 +118,7 @@ public sealed class ErpRecordOpenPhpParityTests
     [InlineData("ErpPayablesApp.razor", "supplier_id")]
     [InlineData("CpPurchaseRequestsApp.razor", "req_id")]
     [InlineData("CpCollectionsDunningApp.razor", "queue_id")]
+    [InlineData("CpSoc2ComplianceApp.razor", "soc2_id")]
     [InlineData("CpAbandonedCartsApp.razor", "cart_id")]
     [InlineData("CpAmlComplianceApp.razor", "kyc_id")]
     [InlineData("CpCrmOpportunitiesApp.razor", "opp_id")]
@@ -330,6 +333,39 @@ public sealed class ErpRecordOpenPhpParityTests
             ErpRecordOpen.PreserveRecordQuery(
                 "/cp/collections-dunning-app",
                 "/CP/shop/finance/epc_collections_dunning?queue_id=12"));
+        Assert.Equal("/cp/soc2-compliance-app?soc2_id=8#erp-row-8",
+            ErpRecordOpen.Href("/cp/soc2-compliance-app", "soc2_id", 8));
+        Assert.Equal(
+            "/cp/soc2-compliance-app?soc2_id=8",
+            ErpRecordOpen.PreserveRecordQuery(
+                "/cp/soc2-compliance-app",
+                "/CP/control/portal/epc_soc2_compliance?soc2_id=8"));
+        Assert.Equal(
+            "/erp/soc2-compliance-app?soc2_id=8",
+            ErpRecordOpen.PreserveRecordQuery(
+                "/erp/soc2-compliance-app",
+                "/ERP/?epc_erp_shell=1&area=tax&tab=compliance&soc2_id=8"));
+    }
+
+    [Fact]
+    public void Soc2ComplianceApp_OpenLoadsControlDetailAndEvidence()
+    {
+        var root = FindRepoRoot();
+        var text = File.ReadAllText(Path.Combine(root,
+            "aspnet/src/EcomAE.Platform/Components/Pages/CpSoc2ComplianceApp.razor"));
+        Assert.Contains("ErpRecordOpen.Href(_listHref, \"soc2_id\"", text, StringComparison.Ordinal);
+        Assert.Contains("ErpOpenedRecordBanner", text, StringComparison.Ordinal);
+        Assert.Contains("ReadId(ctx.Request, \"soc2_id\")", text, StringComparison.Ordinal);
+        Assert.Contains("BuildCpSoc2ControlDetailAsync", text, StringComparison.Ordinal);
+        Assert.Contains("No evidence yet.", text, StringComparison.Ordinal);
+        Assert.Contains("ShowGhostScaffold=\"false\"", text, StringComparison.Ordinal);
+        Assert.Contains("table-epc", text, StringComparison.Ordinal);
+        Assert.Contains("/erp/compliance/obligations/add", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)\">Open", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("/php-reference/", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("ASP.NET", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("epc-soc2-hero", text, StringComparison.Ordinal);
+
         Assert.Equal("/cp/abandoned-carts-app?cart_id=15#erp-row-15",
             ErpRecordOpen.Href("/cp/abandoned-carts-app", "cart_id", 15));
         Assert.Equal(

@@ -133,6 +133,7 @@ public sealed class SurfaceDashboardSummaryReporterTests
         var crmTickets = await reporter.BuildCpCrmTicketsDigestAsync(10);
         var marketingGrowth = await reporter.BuildCpMarketingGrowthDigestAsync(10);
         var soc2Compliance = await reporter.BuildCpSoc2ComplianceDigestAsync(10);
+        var soc2ControlDetail = await reporter.BuildCpSoc2ControlDetailAsync(8);
         var costModels = await reporter.BuildCpCostModelsDigestAsync(10);
         var finAdvanced = await reporter.BuildCpFinAdvancedDigestAsync(10);
         var blockchainProofs = await reporter.BuildCpBlockchainProofsDigestAsync(10);
@@ -369,6 +370,7 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.Equal("migration", crmTickets.Source);
         Assert.Equal("migration", marketingGrowth.Source);
         Assert.Equal("migration", soc2Compliance.Source);
+        Assert.Equal("migration", soc2ControlDetail.Source);
         Assert.Equal("migration", costModels.Source);
         Assert.Equal("migration", finAdvanced.Source);
         Assert.Equal("migration", blockchainProofs.Source);
@@ -666,6 +668,11 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.Contains("epc_soc2_controls", LegacySurfaceDashboardSql.SelectCpSoc2Controls, StringComparison.Ordinal);
         Assert.DoesNotContain("`description`", LegacySurfaceDashboardSql.SelectCpSoc2Controls, StringComparison.Ordinal);
         Assert.DoesNotContain("`implementation`", LegacySurfaceDashboardSql.SelectCpSoc2Controls, StringComparison.Ordinal);
+        Assert.Contains("`description`", LegacySurfaceDashboardSql.SelectCpSoc2ControlDetail, StringComparison.Ordinal);
+        Assert.Contains("`implementation`", LegacySurfaceDashboardSql.SelectCpSoc2ControlDetail, StringComparison.Ordinal);
+        Assert.Contains("epc_soc2_evidence", LegacySurfaceDashboardSql.SelectCpSoc2ControlEvidence, StringComparison.Ordinal);
+        Assert.Contains("`control_id` = @control_id", LegacySurfaceDashboardSql.SelectCpSoc2ControlEvidence, StringComparison.Ordinal);
+        Assert.Contains("`notes`", LegacySurfaceDashboardSql.SelectCpSoc2ControlEvidence, StringComparison.Ordinal);
         Assert.Contains("epc_costm_item", LegacySurfaceDashboardSql.SelectCpCostModelItems, StringComparison.Ordinal);
         Assert.Contains("epc_fin_periods", LegacySurfaceDashboardSql.SelectCpFinPeriods, StringComparison.Ordinal);
         Assert.Contains("epc_bc_proofs", LegacySurfaceDashboardSql.SelectCpBlockchainProofs, StringComparison.Ordinal);

@@ -233,6 +233,9 @@ public interface ISurfaceDashboardSummaryReporter
     /// <summary>Read-only SOC 2 controls (description/implementation omitted).</summary>
     Task<CpSoc2ComplianceDigestResult> BuildCpSoc2ComplianceDigestAsync(int limit, CancellationToken cancellationToken = default);
 
+    /// <summary>Opened SOC 2 control + evidence (PHP <c>soc2_id=</c> detail).</summary>
+    Task<CpSoc2ControlDetailResult> BuildCpSoc2ControlDetailAsync(long id, CancellationToken cancellationToken = default);
+
     /// <summary>Read-only cost model item assignments.</summary>
     Task<CpCostModelsDigestResult> BuildCpCostModelsDigestAsync(int limit, CancellationToken cancellationToken = default);
 
