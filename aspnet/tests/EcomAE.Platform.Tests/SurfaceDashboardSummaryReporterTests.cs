@@ -84,6 +84,7 @@ public sealed class SurfaceDashboardSummaryReporterTests
         var purchaseRequests = await reporter.BuildCpPurchaseRequestsDigestAsync(10);
         var promotions = await reporter.BuildCpPromotionsDigestAsync(10);
         var crmOpportunities = await reporter.BuildCpCrmOpportunitiesDigestAsync(10);
+        var crmOpportunityDetail = await reporter.BuildCpCrmOpportunityDetailAsync(6);
         var integrations = await reporter.BuildCpIntegrationsDigestAsync(10);
         var bankRecon = await reporter.BuildErpBankReconciliationDigestAsync(10);
         var stockTransfers = await reporter.BuildErpStockTransfersDigestAsync(10);
@@ -280,6 +281,7 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.Equal("migration", purchaseRequests.Source);
         Assert.Equal("migration", promotions.Source);
         Assert.Equal("migration", crmOpportunities.Source);
+        Assert.Equal("migration", crmOpportunityDetail.Source);
         Assert.Equal("migration", integrations.Source);
         Assert.Equal("migration", bankRecon.Source);
         Assert.Equal("migration", stockTransfers.Source);
@@ -526,6 +528,9 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.Contains("epc_promo_promotions", LegacySurfaceDashboardSql.SelectCpPromotions, StringComparison.Ordinal);
         Assert.Contains("epc_crm_opportunities", LegacySurfaceDashboardSql.SelectCpCrmOpportunities, StringComparison.Ordinal);
         Assert.DoesNotContain("`notes`", LegacySurfaceDashboardSql.SelectCpCrmOpportunities, StringComparison.Ordinal);
+        Assert.Contains("`notes`", LegacySurfaceDashboardSql.SelectCpCrmOpportunityDetail, StringComparison.Ordinal);
+        Assert.Contains("epc_crm_activities", LegacySurfaceDashboardSql.SelectCpCrmOpportunityActivities, StringComparison.Ordinal);
+        Assert.Contains("`related_id` = @id", LegacySurfaceDashboardSql.SelectCpCrmOpportunityActivities, StringComparison.Ordinal);
         Assert.Contains("epc_tenant_feature_flags", LegacySurfaceDashboardSql.SelectCpIntegrationFeatureFlags, StringComparison.Ordinal);
         Assert.DoesNotContain("config_json", LegacySurfaceDashboardSql.SelectCpIntegrationFeatureFlags, StringComparison.Ordinal);
         Assert.Contains("payment_gateways", string.Join(",", CpIntegrationsHubCatalog.All.Select(x => x.Key)), StringComparison.Ordinal);

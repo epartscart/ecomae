@@ -1712,6 +1712,33 @@ public sealed record CpCrmOpportunitiesDigestResult(
     string Source,
     string Message);
 
+public sealed record CpCrmOpportunityDetail(
+    long Id,
+    long LeadId,
+    string Title,
+    string Stage,
+    decimal Amount,
+    int Probability,
+    long CloseDate,
+    long OwnerUserId,
+    long LinkedUserId,
+    string Notes,
+    bool Active,
+    long TimeCreated);
+
+public sealed record CpCrmOpportunityActivityDigest(
+    long Id,
+    string ActivityType,
+    long DueDate,
+    bool Done,
+    string Notes);
+
+public sealed record CpCrmOpportunityDetailResult(
+    CpCrmOpportunityDetail? Opportunity,
+    IReadOnlyList<CpCrmOpportunityActivityDigest> Activities,
+    string Source,
+    string Message);
+
 /// <summary>CP Integrations Hub KPIs (catalog rows) — not webhook delivery counters.</summary>
 public sealed record CpIntegrationsSummary(
     int CatalogCount,

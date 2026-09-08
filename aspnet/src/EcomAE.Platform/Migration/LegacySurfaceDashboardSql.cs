@@ -2000,6 +2000,31 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>Opened CRM opportunity — includes notes.</summary>
+    public const string SelectCpCrmOpportunityDetail = """
+        SELECT `id`, IFNULL(`lead_id`,0) AS lead_id, IFNULL(`title`,'') AS title,
+               IFNULL(`stage`,'') AS stage, IFNULL(`amount`,0) AS amount,
+               IFNULL(`probability`,0) AS probability, IFNULL(`close_date`,0) AS close_date,
+               IFNULL(`owner_user_id`,0) AS owner_user_id,
+               IFNULL(`linked_user_id`,0) AS linked_user_id,
+               IFNULL(`notes`,'') AS notes, IFNULL(`active`,0) AS active,
+               IFNULL(`time_created`,0) AS time_created
+        FROM `epc_crm_opportunities`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Opened opportunity activities (PHP epc_crm_activities).</summary>
+    public const string SelectCpCrmOpportunityActivities = """
+        SELECT `id`, IFNULL(`activity_type`,'') AS activity_type,
+               IFNULL(`due_date`,0) AS due_date, IFNULL(`done`,0) AS done,
+               IFNULL(`notes`,'') AS notes
+        FROM `epc_crm_activities`
+        WHERE `related_type` = 'opportunity'
+          AND `related_id` = @id
+        ORDER BY `id` DESC
+        """;
+
     /// <summary>Optional tenant feature flags overlay for Integrations Hub (secrets/config_json omitted).</summary>
     public const string SelectCpIntegrationFeatureFlags = """
         SELECT IFNULL(`feature_key`,'') AS feature_key, IFNULL(`enabled`,0) AS enabled
