@@ -1708,7 +1708,9 @@ public static class EcomAeRoutes
     public const string ErpAjaxAmlSettingsSave = "/erp/ajax/aml-settings-save";
     /// <summary>Wave B dry-run for PHP bank_import (writes=0).</summary>
     public const string ErpAjaxBankImport = "/erp/ajax/bank-import";
-    /// <summary>Wave B dry-run for PHP bank_reconcile (writes=0).</summary>
+    /// <summary>HTML form POST for PHP bank_reconcile. confirmWrites=true writes via IErpBankReconcileWriteService.</summary>
+    public const string ErpBankReconcile = "/erp/bank-reconciliation/match";
+    /// <summary>Live PHP bank_reconcile ajax alias of <see cref="ErpBankReconcile"/>.</summary>
     public const string ErpAjaxBankReconcile = "/erp/ajax/bank-reconcile";
     /// <summary>Wave B dry-run for PHP fx_post_revaluation (writes=0).</summary>
     public const string ErpAjaxFxPostRevaluation = "/erp/ajax/fx-post-revaluation";

@@ -3111,6 +3111,17 @@ public sealed class LiveWriteServiceValidationTests
             .LogAsync(new ErpHrAttendanceWriteRequest(EmployeeId: 1, Hours: 8));
         Assert.False(hrAttDb.Succeeded);
         Assert.Equal("db", hrAttDb.Code);
+
+        var bankRecInvalid = await new ErpBankReconcileWriteService(new ConfiguredNeverOpened(), new ErpAuditLogWriter())
+            .MatchAsync(new ErpBankReconcileWriteRequest());
+        Assert.False(bankRecInvalid.Succeeded);
+        Assert.Equal("invalid", bankRecInvalid.Code);
+        Assert.Equal("Invalid match", bankRecInvalid.Message);
+
+        var bankRecDb = await new ErpBankReconcileWriteService(new UnconfiguredConnections(), new ErpAuditLogWriter())
+            .MatchAsync(new ErpBankReconcileWriteRequest(LineId: 4, EntryId: 9));
+        Assert.False(bankRecDb.Succeeded);
+        Assert.Equal("db", bankRecDb.Code);
     }
 
     [Fact]

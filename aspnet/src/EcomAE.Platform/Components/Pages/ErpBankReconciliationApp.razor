@@ -18,6 +18,7 @@
     
     <PhpErpModulePageHeader Title="@_title" Subtitle="@_subtitle" PhpTabHref="@_phpTab" />
     <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
+    <ErpPhpFlash Ok="@_ok" Err="@_err" />
 
     <p class="text-muted" style="margin:8px 0 12px;">
         <a href="/erp/bank-reconciliation-app">Bank recon</a>
@@ -72,6 +73,26 @@
     }
     else
     {
+    @if (_isAdmin)
+    {
+        <ErpPhpCreateWell Title="Match statement line">
+            <form method="post" action="/erp/bank-reconciliation/match" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin-bottom:1rem;">
+                <input type="hidden" name="returnUrl" value="/erp/bank-reconciliation-app" />
+                <input type="hidden" name="confirmWrites" value="true" />
+                <label>Line
+                    <select class="form-control input-sm" name="line_id">
+                        <option value="0">(select)</option>
+                        @foreach (var line in _lines)
+                        {
+                            <option value="@line.Id.ToString(CultureInfo.InvariantCulture)">#@line.Id.ToString(CultureInfo.InvariantCulture) @(string.IsNullOrWhiteSpace(line.Description) ? "" : line.Description)</option>
+                        }
+                    </select>
+                </label>
+                <label>Cash entry <input class="form-control input-sm" name="entry_id" type="number" min="1" style="width:8rem;" /></label>
+                <button type="submit" class="btn btn-primary btn-sm">Match</button>
+            </form>
+        </ErpPhpCreateWell>
+    }
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Bank reconciliation stats">
         <div class="kpi"><div class="lbl">Lines</div><div class="val">@_summary.LineCount.ToString(CultureInfo.InvariantCulture)</div></div>
         <div class="kpi"><div class="lbl">Unmatched</div><div class="val">@_summary.UnmatchedCount.ToString(CultureInfo.InvariantCulture)</div></div>
@@ -136,11 +157,15 @@
     private IReadOnlyList<ErpBankInstrumentDigest> _instruments = [];
     private string _source = "n/a";
     private string _message = "";
+    private string _ok = "";
+    private string _err = "";
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
+        _ok = ctx.Request.Query["ok"].ToString();
+        _err = ctx.Request.Query["err"].ToString();
 
         var tab = (ctx.Request.Query["tab"].ToString() ?? "").Trim().ToLowerInvariant();
         _view = tab == "bank_instruments" ? "bank_instruments" : "bank_recon";
