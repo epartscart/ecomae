@@ -56,58 +56,58 @@
 
     @if (!_isCustomer)
     {
-        <div class="epc-sf-pf-gate">
-            <p style="margin:0 0 .75rem;color:#334155">Sign in with your store account to load your profile.</p>
-            <a href="/storefront/login" style="display:inline-flex;padding:.55rem .9rem;border-radius:.4rem;background:#dc2626;color:#fff;font-weight:700;text-decoration:none">Sign in</a>
-            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpProfile)" style="display:inline-flex;margin-left:.45rem;padding:.55rem .9rem;border-radius:.4rem;border:1px solid #d1d5db;color:#111;font-weight:700;text-decoration:none">Profile</a>
+        <div class="panel panel-primary epc-sf-pf-gate">
+            <div class="panel-body">
+                <p style="margin:0 0 .75rem;color:#334155">Sign in with your store account to load your profile.</p>
+                <a class="btn btn-ar btn-primary" href="@StorefrontSurfaceLinks.Login">Sign in</a>
+                <a class="btn btn-ar btn-default" href="@StorefrontSurfaceLinks.Registration">Register</a>
+            </div>
         </div>
     }
     else
     {
-        <div class="epc-sf-pf-kpis" aria-label="Profile KPIs">
-            <div class="epc-sf-pf-kpi"><strong>@_userId.ToString(CultureInfo.InvariantCulture)</strong><span>User ID</span></div>
-            <div class="epc-sf-pf-kpi"><strong>@(string.IsNullOrWhiteSpace(_email) ? "—" : _email)</strong><span>Email</span></div>
-            <div class="epc-sf-pf-kpi"><strong>@_fields.Count.ToString(CultureInfo.InvariantCulture)</strong><span>Profile fields</span></div>
+        <div id="phone_code_store" style="display:none;" class="hidden">
+            <form method="get" action="@StorefrontAspNetCanonical.ConfirmContact">
+                <input type="hidden" name="u_id" value="@_userId.ToString(CultureInfo.InvariantCulture)" />
+                <input type="hidden" name="type" value="phone" />
+                <div class="input-group">
+                    <input value="" type="text" class="form-control" placeholder="Confirmation code" name="code" id="code" />
+                    <span class="input-group-btn">
+                        <button class="btn btn-ar btn-primary" type="submit">Confirm</button>
+                    </span>
+                </div>
+            </form>
         </div>
 
-        <div class="epc-sf-pf-panel">
-            <table class="epc-sf-pf-table">
-                <tbody>
-                    <tr><th>Email</th><td>@(string.IsNullOrWhiteSpace(_email) ? "—" : _email)</td></tr>
-                    <tr><th>Email confirmed</th><td><span class="epc-sf-pf-badge @(_emailConfirmed != 0 ? "epc-sf-pf-badge--ok" : "epc-sf-pf-badge--off")">@(_emailConfirmed != 0 ? "yes" : "no")</span></td></tr>
-                    <tr><th>Phone</th><td>@(string.IsNullOrWhiteSpace(_phone) ? "—" : _phone)</td></tr>
-                    <tr><th>Phone confirmed</th><td><span class="epc-sf-pf-badge @(_phoneConfirmed != 0 ? "epc-sf-pf-badge--ok" : "epc-sf-pf-badge--off")">@(_phoneConfirmed != 0 ? "yes" : "no")</span></td></tr>
-                    <tr><th>Reg variant</th><td>@_regVariant.ToString(CultureInfo.InvariantCulture)</td></tr>
-                </tbody>
-            </table>
-        </div>
-
-        <div class="epc-sf-pf-panel">
-            <table class="epc-sf-pf-table">
-                <thead>
-                    <tr>
-                        <th>Field</th>
-                        <th>Value</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @if (_fields.Count == 0)
-                    {
-                        <tr><td colspan="2">Nothing to show yet.</td></tr>
-                    }
-                    else
-                    {
-                        @foreach (var kv in _fields.OrderBy(x => x.Key, StringComparer.OrdinalIgnoreCase))
-                        {
-                            <tr>
-                                <th>@kv.Key</th>
-                                <td>@(string.IsNullOrWhiteSpace(kv.Value) ? "—" : kv.Value)</td>
-                            </tr>
-                        }
-                    }
-                </tbody>
-            </table>
-        </div>
+        <table class="table">
+            <tr>
+                <td><b>E-mail</b></td>
+                <td id="email_work">@(string.IsNullOrWhiteSpace(_email) ? "—" : _email)
+                    <span class="label @(_emailConfirmed != 0 ? "label-success" : "label-danger")">@(_emailConfirmed != 0 ? "confirmed" : "not confirmed")</span>
+                </td>
+            </tr>
+            <tr>
+                <td><b>Phone</b></td>
+                <td id="phone_work">@(string.IsNullOrWhiteSpace(_phone) ? "—" : _phone)
+                    <span class="label @(_phoneConfirmed != 0 ? "label-success" : "label-danger")">@(_phoneConfirmed != 0 ? "confirmed" : "not confirmed")</span>
+                </td>
+            </tr>
+            <tr>
+                <td><b>User ID</b></td>
+                <td>@_userId.ToString(CultureInfo.InvariantCulture)</td>
+            </tr>
+            <tr>
+                <td><b>Reg variant</b></td>
+                <td>@_regVariant.ToString(CultureInfo.InvariantCulture)</td>
+            </tr>
+            @foreach (var kv in _fields.OrderBy(x => x.Key, StringComparer.OrdinalIgnoreCase))
+            {
+                <tr>
+                    <td><b>@kv.Key</b></td>
+                    <td>@(string.IsNullOrWhiteSpace(kv.Value) ? "—" : kv.Value)</td>
+                </tr>
+            }
+        </table>
 
         @if (!string.IsNullOrWhiteSpace(_flashOk))
         {
@@ -118,28 +118,44 @@
             <p style="margin:0 0 .75rem;padding:.65rem .8rem;background:#fef2f2;border:1px solid #fecaca;color:#991b1b">@_flashErr</p>
         }
 
-        <form method="post" action="@PhpCustomerWrites.ProfileWriteHref" style="background:#fff;border:1px solid #e2e8f0;border-radius:.55rem;padding:1.1rem 1.2rem;margin-bottom:1rem">
+        <form method="post" action="@PhpCustomerWrites.ProfileWriteHref" id="regform">
             <input type="hidden" name="confirmWrites" value="true" />
             <input type="hidden" name="returnUrl" value="/storefront/profile-app" />
-            <label>First name</label>
-            <input type="text" name="name" value="@Field("name")" maxlength="80" style="width:100%;margin:.25rem 0 .75rem;padding:.5rem" />
-            <label>Last name</label>
-            <input type="text" name="surname" value="@Field("surname")" maxlength="80" style="width:100%;margin:.25rem 0 .75rem;padding:.5rem" />
-            <label>Company / trade name</label>
-            <input type="text" name="company_name" value="@Field("company_name")" maxlength="160" style="width:100%;margin:.25rem 0 .75rem;padding:.5rem" />
-            <label>City</label>
-            <input type="text" name="epc_reg_city" value="@Field("epc_reg_city")" maxlength="80" style="width:100%;margin:.25rem 0 .75rem;padding:.5rem" />
-            <label>Address</label>
-            <input type="text" name="epc_reg_address" value="@Field("epc_reg_address")" maxlength="255" style="width:100%;margin:.25rem 0 1rem;padding:.5rem" />
-            <button type="submit" style="padding:.55rem .95rem;border:0;border-radius:.4rem;background:#dc2626;color:#fff;font-weight:800;cursor:pointer">Save profile</button>
+            <input type="hidden" name="edit_user" value="edit_user" />
+            <div id="additional_fields_div">
+                <div class="panel panel-primary">
+                    <div class="panel-body">
+                        <label>First name</label>
+                        <input type="text" class="form-control" name="name" value="@Field("name")" maxlength="80" />
+                        <label>Last name</label>
+                        <input type="text" class="form-control" name="surname" value="@Field("surname")" maxlength="80" />
+                        <label>Company / trade name</label>
+                        <input type="text" class="form-control" name="company_name" value="@Field("company_name")" maxlength="160" />
+                        <label>City</label>
+                        <input type="text" class="form-control" name="epc_reg_city" value="@Field("epc_reg_city")" maxlength="80" />
+                        <label>Address</label>
+                        <input type="text" class="form-control" name="epc_reg_address" value="@Field("epc_reg_address")" maxlength="255" />
+                        <button type="submit" class="btn btn-ar btn-primary">Save profile</button>
+                    </div>
+                </div>
+            </div>
         </form>
-        <form method="post" action="@PhpCustomerWrites.ProfilePasswordHref" style="background:#fff;border:1px solid #e2e8f0;border-radius:.55rem;padding:1.1rem 1.2rem;margin-bottom:1rem">
+        <form method="post" action="@PhpCustomerWrites.ProfilePasswordHref">
             <input type="hidden" name="confirmWrites" value="true" />
             <input type="hidden" name="returnUrl" value="/storefront/profile-app" />
-            <p style="margin:0 0 .75rem;font-weight:700">Change password</p>
-            <label>New password</label>
-            <input type="password" name="password" required autocomplete="new-password" style="width:100%;margin:.25rem 0 1rem;padding:.5rem" />
-            <button type="submit" style="padding:.55rem .95rem;border:0;border-radius:.4rem;background:#0f766e;color:#fff;font-weight:800;cursor:pointer">Update password</button>
+            <div class="panel panel-primary">
+                <div class="panel-body">
+                    <div class="form-group col-md-6">
+                        <label for="password" class="control-label">New password</label>
+                        <input type="password" name="password" class="form-control" id="password" required autocomplete="new-password" />
+                    </div>
+                    <div class="form-group col-md-6">
+                        <label for="password_repeat" class="control-label">Repeat password</label>
+                        <input type="password" class="form-control" name="password_repeat" id="password_repeat" autocomplete="new-password" />
+                    </div>
+                    <button type="submit" class="btn btn-ar btn-primary">Update password</button>
+                </div>
+            </div>
         </form>
         <p class="epc-sf-pf-note">
             Email and phone confirmation stay on the classic account form.

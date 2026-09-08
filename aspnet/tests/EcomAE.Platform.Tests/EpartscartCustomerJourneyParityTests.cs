@@ -78,6 +78,20 @@ public sealed class EpartscartCustomerJourneyParityTests
         Assert.Contains("@page \"/en/shop/orders/order\"", orders, StringComparison.Ordinal);
         Assert.Contains("panel panel-primary", orders, StringComparison.Ordinal);
 
+        var profile = File.ReadAllText(Find(
+            "aspnet/src/EcomAE.Platform/Components/Pages/StorefrontProfileApp.razor"));
+        Assert.Contains("panel panel-primary", profile, StringComparison.Ordinal);
+        Assert.Contains("id=\"phone_code_store\"", profile, StringComparison.Ordinal);
+        Assert.Contains("id=\"email_work\"", profile, StringComparison.Ordinal);
+        Assert.Contains("id=\"phone_work\"", profile, StringComparison.Ordinal);
+        Assert.Contains("id=\"regform\"", profile, StringComparison.Ordinal);
+        Assert.Contains("id=\"additional_fields_div\"", profile, StringComparison.Ordinal);
+        Assert.Contains("id=\"password\"", profile, StringComparison.Ordinal);
+        Assert.Contains("id=\"password_repeat\"", profile, StringComparison.Ordinal);
+        Assert.Contains("name=\"name\"", profile, StringComparison.Ordinal);
+        Assert.Contains("name=\"epc_reg_city\"", profile, StringComparison.Ordinal);
+        Assert.Contains("class=\"table\"", profile, StringComparison.Ordinal);
+
         var offices = File.ReadAllText(Find(
             "aspnet/src/EcomAE.Platform/Components/Pages/StorefrontOfficesApp.razor"));
         Assert.Contains("class=\"office_box list-group-item\"", offices, StringComparison.Ordinal);
