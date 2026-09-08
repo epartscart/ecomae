@@ -13,7 +13,7 @@
 <PhpChromeStyles Surface="erp" />
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Contracts" BreadcrumbArea="Sales" BreadcrumbTab="Contracts">
 
-    <PhpErpModulePageHeader Title="Contracts register" Subtitle="Save a contract or set status here. Sign and OCR stay on the Classic twin." />
+    <PhpErpModulePageHeader Title="Contracts register" Subtitle="Save a contract or set status here." />
     <PhpErpD365ActionPane RefreshHref="@Nav.Uri" />
 
     @if (!string.IsNullOrWhiteSpace(_flashOk))
@@ -102,7 +102,7 @@
     </div>
 
     <div class="epc-erp-empty" style="display:block;margin-top:12px;padding:8px 10px;border:1px solid #c5d4de;background:#f8fafc;color:#475569;font-size:12px;">
-        Source: @_source. Sign and OCR stay on the Classic twin.
+        Source: @_source.
         @if (!string.IsNullOrWhiteSpace(_message)) { <span> @_message</span> }
     </div>
 </PhpErpDesktopChrome>

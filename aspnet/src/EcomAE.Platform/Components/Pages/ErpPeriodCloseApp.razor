@@ -11,10 +11,10 @@
 <PageTitle>Period Close · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Period Close" BreadcrumbArea="Finance" BreadcrumbTab="Year end">
-    <PhpParityModuleBody AppPath="/erp/period-close-app" IsAdmin="_isAdmin" />
+    <PhpParityModuleBody ShowGhostScaffold="false" AppPath="/erp/period-close-app" IsAdmin="_isAdmin" />
 
 
-    <PhpErpModulePageHeader Title="Period Close" Subtitle="Reopen a closed year or set period status here. Year create and year-end close stay on the classic twin." />
+    <PhpErpModulePageHeader Title="Period Close" Subtitle="Reopen a closed year or set period status here." />
 
     @if (!string.IsNullOrWhiteSpace(_flashOk))
     {

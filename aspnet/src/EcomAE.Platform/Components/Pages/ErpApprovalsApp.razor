@@ -15,7 +15,13 @@
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Approvals" BreadcrumbArea="Home" BreadcrumbTab="Approvals">
 
     
-    <PhpErpModulePageHeader Title="Approval queue" Subtitle="Disable a BOS approval rule here. Save, decide, and raise stay on the classic twin." />
+    <PhpErpModulePageHeader Title="Approval queue" Subtitle="Pending sales orders, purchase orders, journals, invoices, and stock." />
+    <ul class="nav nav-pills" style="margin-bottom:14px;">
+        <li class="active"><a href="/erp/approvals-app">Queue</a></li>
+        <li><a href="/erp/sales-orders-app">Sales orders</a></li>
+        <li><a href="/erp/purchase-orders-app">Purchase orders</a></li>
+        <li><a href="/erp/gl-journals-app">Journals</a></li>
+    </ul>
 
     @if (!string.IsNullOrWhiteSpace(_flashOk))
     {
@@ -38,7 +44,8 @@
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Approval queue stats">
         <div class="kpi"><div class="lbl">Queue rows</div><div class="val">@_queue.Count.ToString(CultureInfo.InvariantCulture)</div></div>
         <div class="kpi"><div class="lbl">Total items</div><div class="val">@_queue.Sum(i => i.Count).ToString(CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">Source</div><div class="val">@_source</div></div>
+        <div class="kpi"><div class="lbl">Draft sales orders</div><div class="val">@_queue.Where(i => i.Id == "draft_so").Sum(i => i.Count).ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Pending POs</div><div class="val">@_queue.Where(i => i.Id == "pending_po").Sum(i => i.Count).ToString(CultureInfo.InvariantCulture)</div></div>
     </div>
 
     <div class="epc-erp-table-wrap">
@@ -77,9 +84,6 @@
         </table>
     </div>
 
-    <div class="epc-erp-empty" style="display:block;margin-top:12px;padding:8px 10px;border:1px solid #c5d4de;background:#f8fafc;color:#475569;font-size:12px;">
-        Source: @_source. @_message PHP command-center approval queue remains authoritative for live counts; this surface is read-only.
-    </div>
 </PhpErpDesktopChrome>
 
 @code {

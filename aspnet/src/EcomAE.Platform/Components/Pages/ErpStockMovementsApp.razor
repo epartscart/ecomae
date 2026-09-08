@@ -12,11 +12,11 @@
 <PageTitle>Stock movements · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Stock movements" BreadcrumbArea="Inventory & Fulfilment" BreadcrumbTab="Movements">
-    <PhpParityModuleBody AppPath="/erp/stock-movements-app" IsAdmin="_isAdmin" />
+    <PhpParityModuleBody ShowGhostScaffold="false" AppPath="/erp/stock-movements-app" IsAdmin="_isAdmin" />
 
 
     
-    <PhpErpModulePageHeader Title="Stock movement ledger" Subtitle="Live shop digest. Writes stay on ERP ajax." PhpTabHref="@_phpTab" />
+    <PhpErpModulePageHeader Title="Stock movement ledger" Subtitle="Stock movement ledger by warehouse and item." PhpTabHref="@_phpTab" />
     <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
 
 

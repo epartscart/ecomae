@@ -72,6 +72,45 @@ public sealed class ErpWorkflowProcessFlowPhpParityTests
         Assert.True(ErpAutomationCatalogue.Templates.Count >= 7);
     }
 
+    [Fact]
+    public void Dashboard_UsesExecutiveTilesWithoutStackDisclosure()
+    {
+        var text = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/ErpDashboardSummaryApp.razor"));
+        Assert.Contains("epc-exec-kpis", text, StringComparison.Ordinal);
+        Assert.Contains("Executive dashboard", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("ASP.NET", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("PHP reference", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("classic twin", text, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void InvoicesAndOrders_DropGhostScaffoldAndShameCopy()
+    {
+        foreach (var rel in new[]
+                 {
+                     "aspnet/src/EcomAE.Platform/Components/Pages/ErpInvoicesApp.razor",
+                     "aspnet/src/EcomAE.Platform/Components/Pages/ErpSalesOrdersApp.razor",
+                     "aspnet/src/EcomAE.Platform/Components/Pages/ErpPurchaseOrdersApp.razor",
+                 })
+        {
+            var text = File.ReadAllText(FindRepoFile(rel));
+            Assert.Contains("ShowGhostScaffold=\"false\"", text, StringComparison.Ordinal);
+            Assert.Contains("ErpPhpStatusLabel", text, StringComparison.Ordinal);
+            Assert.DoesNotContain("Live shop digest", text, StringComparison.Ordinal);
+            Assert.DoesNotContain("classic twin", text, StringComparison.OrdinalIgnoreCase);
+            Assert.DoesNotContain("ASP.NET", text, StringComparison.Ordinal);
+        }
+    }
+
+    [Fact]
+    public void StatusLabel_MapsPhpBadgeClasses()
+    {
+        Assert.Equal("success", ErpPhpStatusLabel.Class("paid"));
+        Assert.Equal("info", ErpPhpStatusLabel.Class("draft"));
+        Assert.Equal("danger", ErpPhpStatusLabel.Class("cancelled"));
+        Assert.Equal("default", ErpPhpStatusLabel.Class(""));
+    }
+
     private static string FindRepoFile(string relative)
     {
         var dir = new DirectoryInfo(AppContext.BaseDirectory);

@@ -12,11 +12,11 @@
 <PageTitle>Purchases · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Purchases" BreadcrumbArea="Procure to Pay" BreadcrumbTab="Purchases">
-    <PhpParityModuleBody AppPath="/erp/purchases-app" IsAdmin="_isAdmin" />
+    <PhpParityModuleBody ShowGhostScaffold="false" AppPath="/erp/purchases-app" IsAdmin="_isAdmin" />
 
 
     
-    <PhpErpModulePageHeader Title="Purchases" Subtitle="Live shop digest. Writes stay on ERP ajax." PhpTabHref="@_phpTab" />
+    <PhpErpModulePageHeader Title="Purchases" Subtitle="Posted purchases and supplier bills." PhpTabHref="@_phpTab" />
     <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
 
 

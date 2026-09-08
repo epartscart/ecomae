@@ -15,7 +15,7 @@
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Warehouses" BreadcrumbArea="Inventory & Fulfilment" BreadcrumbTab="Inventory">
     @if (_view != "virtual_warehouse")
     {
-        <PhpParityModuleBody AppPath="/erp/warehouses-app" IsAdmin="_isAdmin" />
+        <PhpParityModuleBody ShowGhostScaffold="false" AppPath="/erp/warehouses-app" IsAdmin="_isAdmin" />
     }
     <ErpPhpFlash Ok="@_ok" Err="@_err" />
     <PhpErpModulePageHeader Title="@_title" Subtitle="@_subtitle" PhpTabHref="@_phpTab" />

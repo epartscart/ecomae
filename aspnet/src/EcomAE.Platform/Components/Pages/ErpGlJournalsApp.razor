@@ -13,11 +13,11 @@
 <PageTitle>General Ledger · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="General Ledger" BreadcrumbArea="Record to Report" BreadcrumbTab="General ledger">
-    <PhpParityModuleBody AppPath="/erp/gl-journals-app" IsAdmin="_isAdmin" />
+    <PhpParityModuleBody ShowGhostScaffold="false" AppPath="/erp/gl-journals-app" IsAdmin="_isAdmin" />
 
 
     
-    <PhpErpModulePageHeader Title="General Ledger Journals" Subtitle="Live shop digest. Jewellery journal voucher save is live when confirmed." PhpTabHref="@_phpTab" />
+    <PhpErpModulePageHeader Title="General Ledger Journals" Subtitle="General ledger journals — jewellery voucher save is live when confirmed." PhpTabHref="@_phpTab" />
     <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
     <ErpPhpFlash Ok="@_flashOk" Err="@_flashErr" />
     @if (_isAdmin)

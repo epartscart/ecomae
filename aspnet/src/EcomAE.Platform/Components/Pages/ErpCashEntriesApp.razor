@@ -12,11 +12,11 @@
 <PageTitle>Cash Entries · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Cash Entries" BreadcrumbArea="Cash & Treasury" BreadcrumbTab="Cash ledger">
-    <PhpParityModuleBody AppPath="/erp/cash-entries-app" IsAdmin="_isAdmin" />
+    <PhpParityModuleBody ShowGhostScaffold="false" AppPath="/erp/cash-entries-app" IsAdmin="_isAdmin" />
 
 
     
-    <PhpErpModulePageHeader Title="Cash Ledger Entries" Subtitle="Live shop digest. Writes stay on ERP ajax." PhpTabHref="@_phpTab" />
+    <PhpErpModulePageHeader Title="Cash Ledger Entries" Subtitle="Cash and bank ledger entries." PhpTabHref="@_phpTab" />
     <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
 
 

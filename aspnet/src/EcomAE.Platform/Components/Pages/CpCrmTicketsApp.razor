@@ -54,7 +54,7 @@
     </section>
     @if (!_leftoverWrite)
     {
-        <PhpParityModuleBody AppPath="/cp/crm-tickets-app" IsAdmin="_isAdmin" />
+        <PhpParityModuleBody ShowGhostScaffold="false" AppPath="/cp/crm-tickets-app" IsAdmin="_isAdmin" />
     }
     <ErpPhpFlash Ok="@_ok" Err="@_err" />
     @if (_isAdmin && _tab == "sla")
