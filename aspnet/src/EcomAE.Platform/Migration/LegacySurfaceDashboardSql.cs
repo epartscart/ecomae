@@ -946,6 +946,49 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>Opened content page. Body is a short excerpt; full HTML omitted.</summary>
+    public const string SelectCpPagesDetail = """
+        SELECT c.`id`, IFNULL(c.`value`, '') AS caption, IFNULL(c.`url`, '') AS url,
+               IFNULL(c.`alias`, '') AS alias, c.`is_frontend`, IFNULL(c.`published_flag`, 0) AS published_flag,
+               IFNULL(c.`level`, 0) AS level, IFNULL(c.`order`, 0) AS sort_order,
+               IFNULL(c.`parent`, 0) AS parent,
+               IFNULL(c.`content_type`, '') AS content_type,
+               CASE
+                 WHEN IFNULL(c.`content_type`, '') = 'php' THEN CHAR_LENGTH(IFNULL(c.`content`, ''))
+                 ELSE IFNULL((
+                     SELECT CHAR_LENGTH(IFNULL(t.`value`, ''))
+                     FROM `lang_text_strings_translation` t
+                     WHERE t.`str_key` = CAST(c.`content` AS CHAR)
+                     ORDER BY CASE WHEN t.`lang_code` = 'en' THEN 0 ELSE 1 END, t.`lang_code`
+                     LIMIT 1
+                 ), CHAR_LENGTH(IFNULL(c.`content`, '')))
+               END AS body_len,
+               CASE
+                 WHEN IFNULL(c.`content_type`, '') = 'php' THEN LEFT(IFNULL(c.`content`, ''), 280)
+                 ELSE IFNULL((
+                     SELECT LEFT(IFNULL(t.`value`, ''), 280)
+                     FROM `lang_text_strings_translation` t
+                     WHERE t.`str_key` = CAST(c.`content` AS CHAR)
+                     ORDER BY CASE WHEN t.`lang_code` = 'en' THEN 0 ELSE 1 END, t.`lang_code`
+                     LIMIT 1
+                 ), LEFT(IFNULL(c.`content`, ''), 280))
+               END AS body_excerpt
+        FROM `content` c
+        WHERE c.`id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Other pages with the same parent. Body omitted.</summary>
+    public const string SelectCpPagesParentSiblings = """
+        SELECT `id`, IFNULL(`value`, '') AS caption, IFNULL(`url`, '') AS url,
+               IFNULL(`alias`, '') AS alias, `is_frontend`, IFNULL(`published_flag`, 0) AS published_flag,
+               IFNULL(`level`, 0) AS level, IFNULL(`order`, 0) AS sort_order
+        FROM `content`
+        WHERE `parent` = @parent AND `id` <> @id
+        ORDER BY `level` ASC, `order` ASC, `id` ASC
+        LIMIT 50
+        """;
+
     /// <summary>Admin session metadata only — never selects the raw session token column.</summary>
     public const string SelectCpAdminSessions = """
         SELECT s.`user_id`, IFNULL(u.`email`, '') AS email, s.`type`, COUNT(*) AS session_count

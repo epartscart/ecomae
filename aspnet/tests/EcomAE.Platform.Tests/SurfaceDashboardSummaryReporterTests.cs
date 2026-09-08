@@ -728,6 +728,12 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.Contains("`id` = @id", LegacySurfaceDashboardSql.SelectCpDeliveryModeDetail, StringComparison.Ordinal);
         Assert.DoesNotContain("parameters_values", LegacySurfaceDashboardSql.SelectCpDeliveryModeAvailableSiblings, StringComparison.Ordinal);
         Assert.Contains("@available", LegacySurfaceDashboardSql.SelectCpDeliveryModeAvailableSiblings, StringComparison.Ordinal);
+        Assert.Contains("FROM `content`", LegacySurfaceDashboardSql.SelectCpPages, StringComparison.Ordinal);
+        Assert.DoesNotContain("content_type", LegacySurfaceDashboardSql.SelectCpPages, StringComparison.Ordinal);
+        Assert.Contains("LEFT(IFNULL(t.`value`, ''), 280)", LegacySurfaceDashboardSql.SelectCpPagesDetail, StringComparison.Ordinal);
+        Assert.Contains("c.`id` = @id", LegacySurfaceDashboardSql.SelectCpPagesDetail, StringComparison.Ordinal);
+        Assert.DoesNotContain("content_type", LegacySurfaceDashboardSql.SelectCpPagesParentSiblings, StringComparison.Ordinal);
+        Assert.Contains("`parent` = @parent", LegacySurfaceDashboardSql.SelectCpPagesParentSiblings, StringComparison.Ordinal);
         Assert.Contains("shop_docpart_articles_analogs_list", LegacySurfaceDashboardSql.SelectCpCrossPairs, StringComparison.Ordinal);
         Assert.Contains("epc_mfg_work_orders", LegacySurfaceDashboardSql.SelectCpProductionWorkOrders, StringComparison.Ordinal);
         Assert.DoesNotContain("material_cost", LegacySurfaceDashboardSql.SelectCpProductionWorkOrders, StringComparison.Ordinal);

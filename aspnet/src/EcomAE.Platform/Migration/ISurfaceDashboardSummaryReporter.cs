@@ -92,6 +92,9 @@ public interface ISurfaceDashboardSummaryReporter
 
     Task<CpPageListResult> ListCpPagesAsync(int limit, CancellationToken cancellationToken = default);
 
+    /// <summary>Opened content page (PHP <c>content_id</c>) plus same-parent siblings. Body is a short excerpt.</summary>
+    Task<CpPageDetailResult> BuildCpPagesDetailAsync(long id, CancellationToken cancellationToken = default);
+
     Task<CpAdminSessionListResult> ListCpAdminSessionsAsync(int limit, CancellationToken cancellationToken = default);
 
     Task<CpStorageListResult> ListCpStoragesAsync(int limit, CancellationToken cancellationToken = default);
