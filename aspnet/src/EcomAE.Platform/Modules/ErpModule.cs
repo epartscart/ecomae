@@ -9656,8 +9656,8 @@ public sealed class ErpModule : ISurfaceModule
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpCftForecastSaveRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxCftLineAdd, async (HttpContext context, ErpCftLineAddBody? body, ILegacySessionValidator validator, IErpCftLineAddDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpCftLineAddRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxCftInstrumentSave, async (HttpContext context, ErpCftInstrumentSaveBody? body, ILegacySessionValidator validator, IErpCftInstrumentSaveDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpCftInstrumentSaveRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxCftInstrumentSave, HandleCftInstrumentSaveAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpBankInstrumentSave, HandleCftInstrumentSaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxCftInstrumentStatus, async (HttpContext context, ErpCftInstrumentStatusBody? body, ILegacySessionValidator validator, IErpCftInstrumentStatusDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpCftInstrumentStatusRequest(body.Id, body.TargetStatus, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.ErpWithholdingCodesSave, HandleWhtCodeSaveAsync).DisableAntiforgery();
@@ -11774,6 +11774,70 @@ public sealed class ErpModule : ISurfaceModule
         }
     }
 
+    private static async Task<IResult> HandleCftInstrumentSaveAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpCftInstrumentSaveDryRun dryRun,
+        IErpCftInstrumentSaveWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/bank-reconciliation-app", "Admin ERP capability required for bank instrument save.");
+        }
+
+        var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpCftInstrumentSaveBody>(context, cancellationToken) ?? new();
+        var id = body.Id;
+        var companyId = body.CompanyId;
+        var instrumentRef = body.Ref;
+        var type = body.Type;
+        var beneficiary = body.Beneficiary;
+        var applicant = body.Applicant;
+        var bank = body.Bank;
+        var amount = body.Amount;
+        var currency = body.Currency;
+        var issueDate = body.IssueDate;
+        var expiryDate = body.ExpiryDate;
+        var notes = body.Notes;
+        var confirm = body.ConfirmWrites;
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            id = LiveWriteFormBinder.Long(form, "id");
+            companyId = LiveWriteFormBinder.Long(form, "companyId", "company_id", "company");
+            instrumentRef = LiveWriteFormBinder.Text(form, "ref");
+            if (form.ContainsKey("type"))
+            {
+                type = LiveWriteFormBinder.Text(form, "type");
+            }
+            beneficiary = LiveWriteFormBinder.Text(form, "beneficiary");
+            applicant = LiveWriteFormBinder.Text(form, "applicant");
+            bank = LiveWriteFormBinder.Text(form, "bank");
+            amount = LiveWriteFormBinder.Dec(form, "amount");
+            currency = LiveWriteFormBinder.Text(form, "currency");
+            issueDate = LiveWriteFormBinder.Text(form, "issueDate", "issue_date");
+            expiryDate = LiveWriteFormBinder.Text(form, "expiryDate", "expiry_date");
+            notes = LiveWriteFormBinder.Text(form, "notes");
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+        }
+
+        if (!confirm)
+        {
+            return Results.Ok(dryRun.Evaluate(new ErpCftInstrumentSaveRequest(id, companyId, instrumentRef, type, beneficiary, applicant, bank, amount, currency, issueDate, expiryDate, notes, false)).ToPayload(SessionPayload(session)));
+        }
+
+        var written = await writes.SaveAsync(
+            new ErpCftInstrumentSaveWriteRequest(id, companyId, instrumentRef, type, beneficiary, applicant, bank, amount, currency, issueDate, expiryDate, notes),
+            cancellationToken);
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/erp/bank-reconciliation-app?tab=bank_instruments",
+            written.Succeeded,
+            written.Message,
+            new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+    }
+
     private static async Task<IResult> HandleWhtCodeSaveAsync(
         HttpContext context,
         ILegacySessionValidator validator,
@@ -12637,7 +12701,20 @@ public sealed class ErpModule : ISurfaceModule
     private sealed record ErpHrtReviewFinalizeBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpCftForecastSaveBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpCftLineAddBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
-    private sealed record ErpCftInstrumentSaveBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
+    private sealed record ErpCftInstrumentSaveBody(
+        long Id = 0,
+        long CompanyId = 0,
+        string? Ref = null,
+        string? Type = null,
+        string? Beneficiary = null,
+        string? Applicant = null,
+        string? Bank = null,
+        decimal Amount = 0,
+        string? Currency = null,
+        string? IssueDate = null,
+        string? ExpiryDate = null,
+        string? Notes = null,
+        bool ConfirmWrites = false);
     private sealed record ErpCftInstrumentStatusBody(long Id, string? TargetStatus = null, bool ConfirmWrites = false);
     private sealed record ErpWhtCodeSaveBody(
         long Id = 0,

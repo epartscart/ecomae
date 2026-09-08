@@ -3111,6 +3111,17 @@ public sealed class LiveWriteServiceValidationTests
             .LogAsync(new ErpHrAttendanceWriteRequest(EmployeeId: 1, Hours: 8));
         Assert.False(hrAttDb.Succeeded);
         Assert.Equal("db", hrAttDb.Code);
+
+        var cftInstType = await new ErpCftInstrumentSaveWriteService(new ConfiguredNeverOpened())
+            .SaveAsync(new ErpCftInstrumentSaveWriteRequest(Type: "sideways"));
+        Assert.False(cftInstType.Succeeded);
+        Assert.Equal("invalid", cftInstType.Code);
+        Assert.Equal("Type must be lc, bg or sblc", cftInstType.Message);
+
+        var cftInstDb = await new ErpCftInstrumentSaveWriteService(new UnconfiguredConnections())
+            .SaveAsync(new ErpCftInstrumentSaveWriteRequest());
+        Assert.False(cftInstDb.Succeeded);
+        Assert.Equal("db", cftInstDb.Code);
     }
 
     [Fact]

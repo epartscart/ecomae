@@ -1268,7 +1268,9 @@ public static class EcomAeRoutes
     public const string ErpAjaxCftForecastSave = "/erp/ajax/cft-forecast-save";
     /// <summary>Wave B dry-run for PHP cft_line_add (writes=0).</summary>
     public const string ErpAjaxCftLineAdd = "/erp/ajax/cft-line-add";
-    /// <summary>Wave B dry-run for PHP cft_instrument_save (writes=0).</summary>
+    /// <summary>HTML form POST for PHP <c>cft_instrument_save</c>. <c>confirmWrites=true</c> writes via <c>IErpCftInstrumentSaveWriteService</c>.</summary>
+    public const string ErpBankInstrumentSave = "/erp/bank-instruments/save";
+    /// <summary>Live PHP epc_cft_instrument_save ajax alias of <see cref="ErpBankInstrumentSave"/>.</summary>
     public const string ErpAjaxCftInstrumentSave = "/erp/ajax/cft-instrument-save";
     /// <summary>Wave B dry-run for PHP cft_instrument_status (writes=0).</summary>
     public const string ErpAjaxCftInstrumentStatus = "/erp/ajax/cft-instrument-status";
