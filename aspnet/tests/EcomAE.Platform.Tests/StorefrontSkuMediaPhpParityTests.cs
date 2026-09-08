@@ -28,7 +28,7 @@ public sealed class StorefrontSkuMediaPhpParityTests
         Assert.Contains("epc-spec-panel", text, StringComparison.Ordinal);
         Assert.Contains("epc-sku-media-part-page", text, StringComparison.Ordinal);
         Assert.Contains("epc_sku_media.css?v=20260812-fitment-sku", text, StringComparison.Ordinal);
-        Assert.Contains("epc_warehouse_search_parity.js?v=20260812-fitment-sku", text, StringComparison.Ordinal);
+        Assert.Contains("epc_warehouse_search_parity.js?v=20260908-warehouse2", text, StringComparison.Ordinal);
         Assert.Contains("IStorefrontSkuMediaService", text, StringComparison.Ordinal);
         Assert.Contains("ApplySkuMedia", text, StringComparison.Ordinal);
     }
@@ -43,6 +43,7 @@ public sealed class StorefrontSkuMediaPhpParityTests
         Assert.Contains("window.epcOpenImageLightbox", text, StringComparison.Ordinal);
         Assert.Contains("window.epcFetchSkuMediaLookup", text, StringComparison.Ordinal);
         Assert.Contains("epc-spec-check-btn", text, StringComparison.Ordinal);
+        Assert.Contains("autoLoadVisibleRowPhotos", text, StringComparison.Ordinal);
     }
 
     [Fact]

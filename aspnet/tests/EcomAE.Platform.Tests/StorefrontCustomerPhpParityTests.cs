@@ -78,6 +78,27 @@ public sealed class StorefrontCustomerPhpParityTests
         Assert.Contains("StorefrontSurfaceLinks.Cart", text, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void SearchApp_WarehouseMatchesClassicPresentation()
+    {
+        var text = Read("StorefrontSearchApp.razor");
+        Assert.Contains("UAE warehouse stock", text, StringComparison.Ordinal);
+        Assert.Contains("ListStorefrontGenuineBrandsAsync", text, StringComparison.Ordinal);
+        Assert.Contains("reclassifyExistingRows", text, StringComparison.Ordinal);
+        Assert.Contains("epc-btn-cart", text, StringComparison.Ordinal);
+        Assert.Contains("epc-btn-quote", text, StringComparison.Ordinal);
+        Assert.Contains("epc-wa-share-btn", text, StringComparison.Ordinal);
+        Assert.Contains("filter_div", text, StringComparison.Ordinal);
+        Assert.Contains("Genuine (OE)", text, StringComparison.Ordinal);
+        Assert.Contains("Aftermarket", text, StringComparison.Ordinal);
+        Assert.Contains("epc-fitment-check-btn", text, StringComparison.Ordinal);
+        Assert.Contains("epc-cross-search-btn", text, StringComparison.Ordinal);
+        Assert.Contains("th_photo", text, StringComparison.Ordinal);
+        Assert.Contains("include_crossbase=1", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("Classic twin", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("/php-reference", text, StringComparison.Ordinal);
+    }
+
     private static string Read(string fileName)
     {
         var path = Path.Combine(FindRepoRoot(), "aspnet", "src", "EcomAE.Platform", "Components", "Pages", fileName);

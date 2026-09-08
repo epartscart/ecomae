@@ -916,6 +916,21 @@
 				);
 			});
 		});
+		autoLoadVisibleRowPhotos(scope);
+	}
+
+	var photoAutoQueued = Object.create(null);
+	function autoLoadVisibleRowPhotos(root) {
+		var scope = root || document;
+		scope.querySelectorAll(".epc-search-row-photo__btn--load").forEach(function (btn) {
+			var brand = btn.getAttribute("data-epc-photo-brand") || "";
+			var article = btn.getAttribute("data-epc-photo-article") || "";
+			if (!brand || !article) return;
+			var key = photoKey(brand, article);
+			if (photoAutoQueued[key]) return;
+			photoAutoQueued[key] = 1;
+			loadSearchRowPhotoOnClick(brand, article, btn);
+		});
 	}
 
 	window.epcBindSearchRowPhotoLoaders = bindSearchRowPhotoLoaders;
