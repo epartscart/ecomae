@@ -16,6 +16,7 @@ public sealed class ErpModulePhpLookParityTests
         Assert.Contains("epc-erp-page-hd", css, StringComparison.Ordinal);
         Assert.Contains("epc-erp-kpi", css, StringComparison.Ordinal);
         Assert.Contains("table-epc", css, StringComparison.Ordinal);
+        Assert.Contains(".epc-erp-cp-shell .hpanel", css, StringComparison.Ordinal);
         Assert.Contains(".epc-erp-cp-shell .epc-erp-content-body", css, StringComparison.Ordinal);
         Assert.Contains("background-image: none", css, StringComparison.Ordinal);
     }

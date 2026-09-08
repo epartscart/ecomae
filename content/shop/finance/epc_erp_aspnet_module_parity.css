@@ -280,6 +280,41 @@ body.epc-erp-cp-shell .epc-erp-open-flash {
 	100% { box-shadow: 0 0 0 12px rgba(51, 122, 183, 0); }
 }
 
+/* Homer / PHP bootstrap_admin hpanel — enterprise box, not marketing card */
+.epc-erp-cp-shell .hpanel,
+.epc-cp-shell .hpanel {
+	background: #fff !important;
+	border: 1px solid #c5d4de !important;
+	border-radius: 3px !important;
+	box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04) !important;
+	margin: 0 0 14px !important;
+	overflow: hidden;
+}
+.epc-erp-cp-shell .hpanel .panel-heading,
+.epc-erp-cp-shell .hpanel .panel-heading.hbuilt,
+.epc-cp-shell .hpanel .panel-heading,
+.epc-cp-shell .hpanel .panel-heading.hbuilt {
+	background: #f8fafc !important;
+	border-bottom: 1px solid #dbe3ea !important;
+	padding: 9px 12px !important;
+	font-size: 13px !important;
+	font-weight: 700 !important;
+	color: #243746 !important;
+}
+.epc-erp-cp-shell .hpanel .panel-body,
+.epc-cp-shell .hpanel .panel-body {
+	padding: 12px !important;
+	background: #fff !important;
+}
+
+.epc-erp-cp-shell .epc-erp-kpi .kpi {
+	animation: epc-erp-kpi-in .35s ease-out;
+}
+@keyframes epc-erp-kpi-in {
+	from { opacity: 0; transform: translateY(4px); }
+	to { opacity: 1; transform: none; }
+}
+
 @media (max-width: 900px) {
 	.epc-erp-cp-shell .epc-erp-kpi,
 	.epc-erp-cp-shell .epc-erp-content-body [class$="-kpis"] {

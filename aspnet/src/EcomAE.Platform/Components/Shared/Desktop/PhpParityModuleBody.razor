@@ -77,8 +77,8 @@
 @code {
     [Parameter] public string AppPath { get; set; } = "";
     [Parameter] public bool IsAdmin { get; set; }
-    /// <summary>False on wired digest pages — keep tabs/flash only, skip hard-coded zero KPIs and empty scaffold tables.</summary>
-    [Parameter] public bool ShowGhostScaffold { get; set; } = true;
+    /// <summary>False by default — fake zero KPIs and empty scaffold tables look unfinished. Opt in only on leftover dumps that have no live table yet.</summary>
+    [Parameter] public bool ShowGhostScaffold { get; set; }
 
     private string _tab = "list";
     private string _tabBase = "";

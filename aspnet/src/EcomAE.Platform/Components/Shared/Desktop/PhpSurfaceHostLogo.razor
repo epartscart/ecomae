@@ -1,0 +1,46 @@
+@namespace EcomAE.Platform.Components.Shared
+@using EcomAE.Platform.Presentation
+@inject IHttpContextAccessor Http
+@*
+  Host-only chrome brand. Super CP / Super ERP / Super BOS → ECOM AE.
+  epartscart.com → animated cart. Other locked tenants → their catalog mark.
+  Never reads ?company= — that is an intra-tenant legal entity, not a tenant switch.
+*@
+
+<span class="epc-surface-host-logo epc-surface-host-logo--@Brand.SiteKey" data-epc-host-brand="@Brand.SiteKey" data-epc-host-kind="@Brand.LogoKind">
+    @if (Brand.LogoKind == LoginHostBrand.Kind.AnimatedEparts)
+    {
+        <PhpEpartsCartAnimatedLogo Variant="@Variant" />
+    }
+    else if (Brand.LogoKind == LoginHostBrand.Kind.TenantImage && !string.IsNullOrWhiteSpace(Brand.LogoUrl))
+    {
+        <img class="epc-surface-host-logo__img" src="@Brand.LogoUrl" alt="@Brand.Label" />
+        @if (ShowLabel)
+        {
+            <span class="epc-surface-host-logo__name">@Brand.Label</span>
+        }
+    }
+    else
+    {
+        <PhpEcomaeAnimatedLogo Variant="@Variant" ShowWordmark="ShowLabel" />
+    }
+</span>
+
+<style>
+    .epc-surface-host-logo { display:inline-flex; align-items:center; gap:.45rem; min-height:30px; }
+    .epc-surface-host-logo__img { height:30px; max-width:148px; width:auto; object-fit:contain; display:block; }
+    .epc-surface-host-logo__name { font-weight:800; font-size:14px; color:#0f172a; letter-spacing:.01em; }
+</style>
+
+@code {
+    [Parameter] public string Surface { get; set; } = "cp";
+    [Parameter] public string Variant { get; set; } = "header";
+    [Parameter] public bool ShowLabel { get; set; } = true;
+
+    private LoginHostBrand.Brand Brand { get; set; } = LoginHostBrand.Resolve(null, "cp");
+
+    protected override void OnParametersSet()
+    {
+        Brand = LoginHostBrand.Resolve(Http.HttpContext?.Request.Host.Host, Surface);
+    }
+}

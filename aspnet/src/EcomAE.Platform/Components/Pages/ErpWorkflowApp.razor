@@ -11,6 +11,9 @@
 <PhpChromeStyles Surface="erp" />
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Workflow" BreadcrumbArea="Overview" BreadcrumbTab="Workflow">
 
+    <PhpErpModulePageHeader Title="Department workflow board" Subtitle="Cross-department order flow: Sales → Purchase → Logistics → Finance → Accounts. Marketing and HR support parallel tracks." />
+    <PhpErpD365ActionPane RefreshHref="?" />
+
     @if (!string.IsNullOrWhiteSpace(_flashOk))
     {
         <div class="alert alert-success" role="status" style="margin:0 0 1rem;padding:.7rem .9rem;border-radius:.4rem;background:#ecfdf5;color:#065f46">@_flashOk</div>
@@ -20,8 +23,9 @@
         <div class="alert alert-danger" role="status" style="margin:0 0 1rem;padding:.7rem .9rem;border-radius:.4rem;background:#fef2f2;color:#991b1b">@_flashErr</div>
     }
 
-    <div class="epc-erp-section">
-        <h4><i class="fa fa-random"></i> Department workflow board</h4>
+    <div class="hpanel epc-erp-section">
+        <div class="panel-heading hbuilt"><i class="fa fa-random"></i> Department workflow board</div>
+        <div class="panel-body">
         <p class="text-muted">Cross-department order flow: <strong>Sales</strong> → <strong>Purchase</strong> → <strong>Logistics</strong> → <strong>Finance</strong> → <strong>Accounts</strong>. Marketing &amp; HR support parallel tracks.</p>
 
         <form method="get" action="/erp/workflow-app" class="form-inline" style="margin-bottom:12px;">
@@ -58,7 +62,7 @@
             </form>
         }
 
-        <table class="table table-bordered table-condensed">
+        <table class="table table-bordered table-condensed table-epc epc-erp-table">
             <thead>
                 <tr>
                     <th>Dept</th>
@@ -121,6 +125,7 @@
                 }
             </tbody>
         </table>
+        </div>
     </div>
 </PhpErpDesktopChrome>
 

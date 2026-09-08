@@ -20,17 +20,14 @@
 
     @if (_hasDedicatedApp)
     {
-        <div class="alert alert-info" style="margin:0 0 12px;">
-            Dedicated digest app: <a href="@_mappedApp"><strong>@_mappedApp</strong></a>
+        <div class="hpanel">
+            <div class="panel-heading hbuilt">Dedicated board</div>
+            <div class="panel-body">
+                <p class="text-muted" style="margin:0 0 8px;">This tab has a live board. Open it instead of an empty scaffold.</p>
+                <a class="btn btn-sm btn-primary" href="@_mappedApp">Open @_chrome.Title</a>
+            </div>
         </div>
     }
-
-    <div class="epc-erp-kpi epc-erp-stat-row" aria-label="@_chrome.Title KPIs">
-        @foreach (var kpi in _chrome.KpiLabels)
-        {
-            <div class="kpi"><div class="lbl">@kpi</div><div class="val">0</div></div>
-        }
-    </div>
 
     @if (_chrome.ViewTabs.Count > 0)
     {
@@ -108,7 +105,7 @@
                     <tr>
                         <td><code>@row.Tab</code></td>
                         <td>@row.Href</td>
-                        <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(row.Href)">Open</a></td>
+                        <td><a class="btn btn-xs btn-primary" href="@row.Href">Open</a></td>
                     </tr>
                 }
             </tbody>

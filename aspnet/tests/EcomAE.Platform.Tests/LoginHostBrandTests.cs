@@ -1,5 +1,6 @@
 using EcomAE.Platform.Presentation;
 using Xunit;
+using System.IO;
 
 namespace EcomAE.Platform.Tests;
 
@@ -35,10 +36,49 @@ public sealed class LoginHostBrandTests
     [Theory]
     [InlineData("www.ecomae.com", "cp", "crimson-stars")]
     [InlineData("ecomae.com", "erp", "teal-moon")]
+    [InlineData("cp.ecomae.com", "bos", "cyan-stars")]
     public void SuperHost_UsesPlatformAtmosphere(string host, string surface, string theme)
     {
         var brand = LoginHostBrand.Resolve(host, surface);
         Assert.Equal(LoginHostBrand.Kind.Platform, brand.LogoKind);
+        Assert.Equal("platform", brand.SiteKey);
         Assert.Equal(theme, brand.AtmosphereTheme);
+        Assert.NotEqual(LoginHostBrand.Kind.AnimatedEparts, brand.LogoKind);
+    }
+
+    [Fact]
+    public void SuperHost_NeverBorrowsTenantLogoUrl()
+    {
+        var brand = LoginHostBrand.Resolve("www.ecomae.com", "erp");
+        Assert.Equal(LoginHostBrand.Kind.Platform, brand.LogoKind);
+        Assert.True(string.IsNullOrWhiteSpace(brand.LogoUrl));
+        Assert.Contains("ERP", brand.Label, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void SurfaceHostLogo_ResolvesFromHostNotCompanyQuery()
+    {
+        var logo = File.ReadAllText(Path.Combine(FindRepoRoot(),
+            "aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpSurfaceHostLogo.razor"));
+        Assert.Contains("LoginHostBrand.Resolve", logo, StringComparison.Ordinal);
+        Assert.Contains("Request.Host.Host", logo, StringComparison.Ordinal);
+        Assert.DoesNotContain("company", logo, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("Never reads ?company=", logo, StringComparison.Ordinal);
+    }
+
+    private static string FindRepoRoot()
+    {
+        var dir = new DirectoryInfo(AppContext.BaseDirectory);
+        while (dir is not null)
+        {
+            if (File.Exists(Path.Combine(dir.FullName, "cp", "content", "shop", "finance", "erp", "ajax_erp.php")))
+            {
+                return dir.FullName;
+            }
+
+            dir = dir.Parent;
+        }
+
+        throw new InvalidOperationException("Could not locate repo root.");
     }
 }
