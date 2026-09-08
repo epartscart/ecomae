@@ -778,6 +778,7 @@ builder.Services.AddScoped<EcomAE.Platform.Erp.IErpPrjTaskSaveWriteService, Ecom
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpHrPayrollRunWriteService, EcomAE.Platform.Erp.ErpHrPayrollRunWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpConsDeleteWriteService, EcomAE.Platform.Erp.ErpConsDeleteWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpConsEntitySaveWriteService, EcomAE.Platform.Erp.ErpConsEntitySaveWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpPrjSaveWriteService, EcomAE.Platform.Erp.ErpPrjSaveWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpInsDocDeleteWriteService, EcomAE.Platform.Erp.ErpInsDocDeleteWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpFyWriteService, EcomAE.Platform.Erp.ErpFyWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpFinPeriodStatusWriteService, EcomAE.Platform.Erp.ErpFinPeriodStatusWriteService>();
