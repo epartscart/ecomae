@@ -1594,7 +1594,8 @@ public static class PhpSurfaceLinkMap
                     return MapCpDocpartPricesHref(value, aspNet);
                 }
 
-                if (aspNet.Equals("/cp/collections-dunning-app", StringComparison.OrdinalIgnoreCase))
+                if (aspNet.Equals("/cp/collections-dunning-app", StringComparison.OrdinalIgnoreCase)
+                    || aspNet.Equals("/cp/soc2-compliance-app", StringComparison.OrdinalIgnoreCase))
                 {
                     return ErpRecordOpen.PreserveRecordQuery(aspNet, value);
                 }

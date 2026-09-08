@@ -2474,6 +2474,38 @@ public sealed record CpSoc2ComplianceDigestResult(
     string Source,
     string Message);
 
+public sealed record CpSoc2ControlDetail(
+    long Id,
+    string ControlId,
+    string Category,
+    string Title,
+    string Description,
+    string Implementation,
+    string Status,
+    string Owner,
+    string Frequency,
+    string LastTested,
+    string NextReview,
+    string RiskLevel);
+
+public sealed record CpSoc2EvidenceDigest(
+    long Id,
+    string ControlId,
+    string EvidenceType,
+    string Title,
+    string FilePath,
+    string CollectedAt,
+    string CollectedBy,
+    string ValidFrom,
+    string ValidTo,
+    string Notes);
+
+public sealed record CpSoc2ControlDetailResult(
+    CpSoc2ControlDetail? Control,
+    IReadOnlyList<CpSoc2EvidenceDigest> Evidence,
+    string Source,
+    string Message);
+
 public sealed record CpCostModelsSummary(
     int ItemCount,
     int TxnCount,

@@ -2758,6 +2758,32 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>Opened SOC 2 control — includes description/implementation and review dates.</summary>
+    public const string SelectCpSoc2ControlDetail = """
+        SELECT `id`, IFNULL(`control_id`,'') AS control_id, IFNULL(`category`,'') AS category,
+               IFNULL(`title`,'') AS title, IFNULL(`description`,'') AS description,
+               IFNULL(`implementation`,'') AS implementation, IFNULL(`status`,'') AS status,
+               IFNULL(`owner`,'') AS owner, IFNULL(`frequency`,'') AS frequency,
+               IFNULL(`last_tested`,'') AS last_tested, IFNULL(`next_review`,'') AS next_review,
+               IFNULL(`risk_level`,'') AS risk_level
+        FROM `epc_soc2_controls`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Opened SOC 2 control evidence (PHP epc_soc2_evidence by string control_id).</summary>
+    public const string SelectCpSoc2ControlEvidence = """
+        SELECT `id`, IFNULL(`control_id`,'') AS control_id,
+               IFNULL(`evidence_type`,'') AS evidence_type, IFNULL(`title`,'') AS title,
+               IFNULL(`file_path`,'') AS file_path, IFNULL(`collected_at`,'') AS collected_at,
+               IFNULL(`collected_by`,'') AS collected_by, IFNULL(`valid_from`,'') AS valid_from,
+               IFNULL(`valid_to`,'') AS valid_to, IFNULL(`notes`,'') AS notes
+        FROM `epc_soc2_evidence`
+        WHERE `control_id` = @control_id
+        ORDER BY `id` DESC
+        LIMIT 50
+        """;
+
     /// <summary>Cost model KPIs from epc_costm_* (CREATE TABLE in epc_erp_cost_models.php).</summary>
     public const string SelectCpCostModelsStats = """
         SELECT
