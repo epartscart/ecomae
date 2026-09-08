@@ -7124,7 +7124,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only epc_fin_* KPIs + periods (basis/schedule/lines JSON omitted). PHP cost_acct/finance fin_advanced remains authoritative."
+                note = "Read-only epc_fin_* KPIs + periods. Open ?period_id= loads company alloc/accrual/FX rows (basis/schedule/lines JSON omitted). Alloc run, accrual save, and FX revalue stay PHP."
             });
         });
 

@@ -2866,6 +2866,25 @@ public sealed record CpFinAdvancedDigestResult(
     string Source,
     string Message);
 
+public sealed record CpFinAllocRuleDigest(long Id, string Code, string Name, string SourceAccount, bool Active);
+public sealed record CpFinAccrualDigest(
+    long Id,
+    string Code,
+    string Description,
+    decimal TotalAmount,
+    int Periods,
+    int StartFy,
+    int StartPeriod,
+    string Status);
+public sealed record CpFinFxRunDigest(long Id, long AsOf, decimal TotalDelta);
+public sealed record CpFinAdvancedPeriodDetailResult(
+    CpFinPeriodDigest? Period,
+    IReadOnlyList<CpFinAllocRuleDigest> Rules,
+    IReadOnlyList<CpFinAccrualDigest> Accruals,
+    IReadOnlyList<CpFinFxRunDigest> FxRuns,
+    string Source,
+    string Message);
+
 public sealed record CpBlockchainProofsSummary(
     int ProofCount,
     int PendingCount,

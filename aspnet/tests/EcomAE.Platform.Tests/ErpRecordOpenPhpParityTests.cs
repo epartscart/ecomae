@@ -31,6 +31,7 @@ public sealed class ErpRecordOpenPhpParityTests
     [InlineData("/CP/control/portal/epc_visual_page_editor?layout_id=8", "/cp/page-builder-app?layout_id=8")]
     [InlineData("/CP/control/portal/epc_tax_toolkit_manage?toolkit_id=3", "/cp/tax-toolkits-app?toolkit_id=3")]
     [InlineData("/CP/control/portal/epc_event_bus?event_id=3", "/cp/event-bus-app?event_id=3")]
+    [InlineData("/ERP/?epc_erp_shell=1&area=cost_acct&tab=fin_advanced&period_id=5", "/erp/fin-advanced-app?period_id=5")]
     [InlineData("/ERP/?epc_erp_shell=1&area=landed_cost_area&tab=landed_cost&sheet_id=6", "/erp/landed-cost-app?sheet_id=6")]
     [InlineData("/CP/control/portal/epc_soc2_compliance?soc2_id=8", "/cp/soc2-compliance-app?soc2_id=8")]
     [InlineData("/ERP/?epc_erp_shell=1&area=tax&tab=compliance&soc2_id=8", "/erp/soc2-compliance-app?soc2_id=8")]
@@ -295,6 +296,40 @@ public sealed class ErpRecordOpenPhpParityTests
             ErpRecordOpen.PreserveRecordQuery(
                 "/cp/event-bus-app",
                 "/CP/control/portal/epc_event_bus?event_id=3"));
+    }
+
+    [Fact]
+    public void FinAdvancedApp_OpenLoadsAllocAccrualAndFx()
+    {
+        var root = FindRepoRoot();
+        var text = File.ReadAllText(Path.Combine(root,
+            "aspnet/src/EcomAE.Platform/Components/Pages/CpFinAdvancedApp.razor"));
+        Assert.Contains("ErpRecordOpen.Href(_listHref, \"period_id\"", text, StringComparison.Ordinal);
+        Assert.Contains("ErpOpenedRecordBanner", text, StringComparison.Ordinal);
+        Assert.Contains("ReadId(ctx.Request, \"period_id\")", text, StringComparison.Ordinal);
+        Assert.Contains("BuildCpFinAdvancedPeriodDetailAsync", text, StringComparison.Ordinal);
+        Assert.Contains("No allocation rules yet.", text, StringComparison.Ordinal);
+        Assert.Contains("No accruals yet.", text, StringComparison.Ordinal);
+        Assert.Contains("No FX runs yet.", text, StringComparison.Ordinal);
+        Assert.Contains("ShowGhostScaffold=\"false\"", text, StringComparison.Ordinal);
+        Assert.Contains("table-epc", text, StringComparison.Ordinal);
+        Assert.Contains("PhpParityModuleBody", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)\">Open", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("/php-reference/", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("ASP.NET", text, StringComparison.Ordinal);
+
+        Assert.Equal("/erp/fin-advanced-app?period_id=5#erp-row-5",
+            ErpRecordOpen.Href("/erp/fin-advanced-app", "period_id", 5));
+        Assert.Equal(
+            "/erp/fin-advanced-app?period_id=5",
+            ErpRecordOpen.PreserveRecordQuery(
+                "/erp/fin-advanced-app",
+                "/ERP/?epc_erp_shell=1&area=cost_acct&tab=fin_advanced&period_id=5"));
+        Assert.Equal(
+            "/cp/fin-advanced-app?period_id=5",
+            ErpRecordOpen.PreserveRecordQuery(
+                "/cp/fin-advanced-app",
+                "/ERP/?epc_erp_shell=1&area=cost_acct&tab=fin_advanced&period_id=5"));
     }
 
     [Fact]
