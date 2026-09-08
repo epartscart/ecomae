@@ -2522,6 +2522,33 @@ public static class LegacySurfaceDashboardSql
         ORDER BY u.`user_id` DESC
         LIMIT @limit
         """;
+
+    /// <summary>Opened customer-board user. Password/secret columns omitted.</summary>
+    public const string SelectCpCustomerBoardUserDetail = """
+        SELECT u.`user_id` AS id, IFNULL(u.`email`,'') AS email, IFNULL(u.`phone`,'') AS phone,
+               IFNULL((SELECT `data_value` FROM `users_profiles` p WHERE p.`user_id` = u.`user_id` AND p.`data_key` IN ('name','fio','full_name') LIMIT 1), '') AS name,
+               IFNULL(u.`email_confirmed`,0) AS email_confirmed,
+               IFNULL(u.`phone_confirmed`,0) AS phone_confirmed,
+               IFNULL(u.`unlocked`,0) AS unlocked,
+               IFNULL(u.`reg_variant`,'') AS reg_variant,
+               IFNULL(u.`time_registered`,0) AS time_registered,
+               IFNULL(u.`time_last_visit`,0) AS time_last_visit
+        FROM `users` u
+        WHERE u.`user_id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Groups bound to the opened customer-board user.</summary>
+    public const string SelectCpCustomerBoardUserGroups = """
+        SELECT g.`id`, IFNULL(g.`value`,'') AS value, IFNULL(g.`for_backend`,0) AS for_backend,
+               IFNULL(g.`unblocked`,0) AS unblocked
+        FROM `users_groups_bind` b
+        INNER JOIN `groups` g ON g.`id` = b.`group_id`
+        WHERE b.`user_id` = @id
+        ORDER BY g.`id` ASC
+        LIMIT 50
+        """;
+
     public const string SelectCpFulfillmentQueueStats = """
         SELECT
             (SELECT COUNT(*) FROM `epc_fulfillment_orders` WHERE IFNULL(`status`,'')='queued') AS queued,

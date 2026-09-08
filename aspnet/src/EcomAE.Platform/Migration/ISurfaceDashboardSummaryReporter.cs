@@ -588,6 +588,9 @@ public interface ISurfaceDashboardSummaryReporter
     Task<CpTenantFeaturesDigestResult> BuildCpTenantFeaturesDigestAsync(int limit, CancellationToken cancellationToken = default);
     /// <summary>Next-wave Super-only: customer board user peek (writes remain PHP).</summary>
     Task<CpCustomerBoardDigestResult> BuildCpCustomerBoardDigestAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Opened customer-board user (PHP <c>user_id</c>) plus group binds. Password omitted.</summary>
+    Task<CpCustomerBoardUserDetailResult> BuildCpCustomerBoardUserDetailAsync(long id, CancellationToken cancellationToken = default);
     /// <summary>Next-wave: fulfillment queue digest (OMS stage writes remain dry-run).</summary>
     Task<CpFulfillmentQueueDigestResult> BuildCpFulfillmentQueueDigestAsync(int limit, CancellationToken cancellationToken = default, string? status = null);
     /// <summary>PHP <c>epc_fulfillment_get</c> read-only detail. Writes remain PHP / OMS dry-run.</summary>
