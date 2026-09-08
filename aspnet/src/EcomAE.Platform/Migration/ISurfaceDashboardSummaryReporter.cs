@@ -155,6 +155,9 @@ public interface ISurfaceDashboardSummaryReporter
     /// <summary>Read-only production KPIs + work orders (cost columns omitted).</summary>
     Task<CpProductionOverviewDigestResult> BuildCpProductionOverviewDigestAsync(int limit, CancellationToken cancellationToken = default);
 
+    /// <summary>Opened work order (PHP <c>wo_id=</c> detail) plus BOM lines.</summary>
+    Task<CpProductionWorkOrderDetailResult> BuildCpProductionWorkOrderDetailAsync(long id, CancellationToken cancellationToken = default);
+
     /// <summary>Read-only projects KPIs + projects (timesheet rates omitted).</summary>
     Task<CpProjectsOverviewDigestResult> BuildCpProjectsOverviewDigestAsync(int limit, CancellationToken cancellationToken = default);
 
