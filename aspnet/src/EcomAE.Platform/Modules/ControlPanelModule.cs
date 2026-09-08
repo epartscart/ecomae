@@ -5951,7 +5951,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only epc_metabase_config + epc_metabase_dashboards (secret_key never returned). Writes remain PHP epc_metabase_embed."
+                note = "Read-only epc_metabase_config + epc_metabase_dashboards. Open ?mb_id= loads site URL plus category siblings. secret_key never returned. Writes remain PHP epc_metabase_embed."
             });
         });
 

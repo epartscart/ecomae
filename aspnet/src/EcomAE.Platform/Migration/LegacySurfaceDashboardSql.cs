@@ -1371,6 +1371,42 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>Opened Metabase dashboard. Embed JWT / secret_key never selected.</summary>
+    public const string SelectCpMetabaseDashboardDetail = """
+        SELECT `id`, IFNULL(`site_key`, '') AS site_key,
+               IFNULL(`dashboard_id`, 0) AS dashboard_id,
+               IFNULL(`dashboard_name`, '') AS dashboard_name,
+               IFNULL(`category`, '') AS category,
+               `active`,
+               IFNULL(CAST(`created_at` AS CHAR),'') AS created_at
+        FROM `epc_metabase_dashboards`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Site config for an opened dashboard. secret_key omitted.</summary>
+    public const string SelectCpMetabaseSiteConfig = """
+        SELECT IFNULL(`site_key`, '') AS site_key,
+               IFNULL(`metabase_url`, '') AS metabase_url,
+               `active`
+        FROM `epc_metabase_config`
+        WHERE `site_key` = @site_key
+        LIMIT 1
+        """;
+
+    /// <summary>Other dashboards in the same site + category as the opened row.</summary>
+    public const string SelectCpMetabaseCategorySiblings = """
+        SELECT `id`, IFNULL(`site_key`, '') AS site_key,
+               IFNULL(`dashboard_id`, 0) AS dashboard_id,
+               IFNULL(`dashboard_name`, '') AS dashboard_name,
+               IFNULL(`category`, '') AS category,
+               `active`
+        FROM `epc_metabase_dashboards`
+        WHERE `site_key` = @site_key AND `category` = @category AND `id` <> @id
+        ORDER BY `dashboard_name` ASC, `id` ASC
+        LIMIT 50
+        """;
+
     /// <summary>NL report definitions metadata — omits query_template / recipients JSON.</summary>
     public const string SelectCpNlReportDefinitions = """
         SELECT `id`, IFNULL(`site_key`, '') AS site_key,

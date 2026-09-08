@@ -122,6 +122,9 @@ public interface ISurfaceDashboardSummaryReporter
     /// <summary>Read-only Metabase config + dashboards (secret_key never returned).</summary>
     Task<CpMetabaseDigestResult> BuildCpMetabaseDigestAsync(int limit, CancellationToken cancellationToken = default);
 
+    /// <summary>Opened Metabase dashboard (PHP <c>mb_id</c>) plus site URL and category siblings. secret_key omitted.</summary>
+    Task<CpMetabaseDashboardDetailResult> BuildCpMetabaseDashboardDetailAsync(long id, CancellationToken cancellationToken = default);
+
     /// <summary>Read-only NL report definitions metadata (query/recipients omitted).</summary>
     Task<CpNlReportingDigestResult> ListCpNlReportDefinitionsAsync(int limit, CancellationToken cancellationToken = default);
 
