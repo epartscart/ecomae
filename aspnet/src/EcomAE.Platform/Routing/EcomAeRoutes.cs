@@ -1286,7 +1286,9 @@ public static class EcomAeRoutes
     public const string ErpAjaxErFormatSave = "/erp/ajax/er-format-save";
     /// <summary>Wave B dry-run for PHP er_field_add (writes=0).</summary>
     public const string ErpAjaxErFieldAdd = "/erp/ajax/er-field-add";
-    /// <summary>Wave B dry-run for PHP prja_budget_save (writes=0).</summary>
+    /// <summary>Live PHP epc_prja_budget_save twin (ajax alias of <see cref="ErpProjectAccountingBudgetsSave"/>).</summary>
+    public const string ErpProjectAccountingBudgetsSave = "/erp/project-accounting/budgets/save";
+    /// <summary>Live PHP epc_prja_budget_save ajax alias of <see cref="ErpProjectAccountingBudgetsSave"/>.</summary>
     public const string ErpAjaxPrjaBudgetSave = "/erp/ajax/prja-budget-save";
     /// <summary>Wave B dry-run for PHP prja_txn_add (writes=0).</summary>
     public const string ErpAjaxPrjaTxnAdd = "/erp/ajax/prja-txn-add";
