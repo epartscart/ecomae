@@ -22,7 +22,7 @@
                 <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Classic twin</a>
             </div>
             <div class="panel-body">
-                <p>Tickets from tenant CRM tables. Create SLA, create a ticket, and save a text reply here. Schema-ensure and file attachments stay on the Classic twin.</p>
+                <p>Tickets from tenant CRM tables. Open a ticket for message excerpts. Create SLA, create a ticket, and save a text reply here. Schema-ensure and file attachments stay on the Classic twin.</p>
             </div>
         </div>
     </div>
@@ -30,6 +30,7 @@
     {
         <PhpParityModuleBody ShowGhostScaffold="false" AppPath="/cp/crm-tickets-app" IsAdmin="_isAdmin" />
     }
+    <ErpOpenedRecordBanner Id="_openedId" Found="@(_openedTicket is not null)" Caption="@OpenedCaption" ListHref="@_listHref" />
     <ErpPhpFlash Ok="@_ok" Err="@_err" />
     @if (_isAdmin && _tab == "sla")
     {
@@ -71,7 +72,7 @@
             <form method="post" action="/erp/tickets/reply" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
                 <input type="hidden" name="confirmWrites" value="true" />
                 <input type="hidden" name="returnUrl" value="/cp/crm-tickets-app?tab=tickets" />
-                <label>Ticket id <input class="form-control input-sm" name="ticket_id" type="number" min="1" required /></label>
+                <label>Ticket id <input class="form-control input-sm" name="ticket_id" type="number" min="1" required value="@(_openedId > 0 ? _openedId.ToString(CultureInfo.InvariantCulture) : "")" /></label>
                 <label>Message <input class="form-control input-sm" name="message" required /></label>
                 <label>Author <input class="form-control input-sm" name="author_name" /></label>
                 <button type="submit" class="btn btn-primary btn-sm">Save reply</button>
@@ -79,13 +80,93 @@
         </ErpPhpCreateWell>
     }
 
+    <div class="epc-erp-kpi epc-erp-stat-row" aria-label="CRM ticket KPIs">
+        <div class="kpi"><div class="lbl">Tickets</div><div class="val">@_summary.TicketCount.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Open</div><div class="val">@_summary.OpenCount.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">High priority</div><div class="val">@_summary.HighPriorityCount.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Opened messages</div><div class="val">@_openedMessages.Count.ToString(CultureInfo.InvariantCulture)</div></div>
+    </div>
+
+    @if (_openedTicket is not null)
+    {
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">
+                    @(!string.IsNullOrWhiteSpace(_openedTicket.Subject) ? _openedTicket.Subject : ("Ticket #" + _openedTicket.Id.ToString(CultureInfo.InvariantCulture)))
+                    <span class="label label-default pull-right">@(!string.IsNullOrWhiteSpace(_openedTicket.Status) ? _openedTicket.Status : "—")</span>
+                </div>
+                <div class="panel-body">
+                    <p>@(!string.IsNullOrWhiteSpace(_openedTicket.Priority) ? _openedTicket.Priority : "—")
+                        · customer @_openedTicket.CustomerUserId.ToString(CultureInfo.InvariantCulture)
+                        · assignee @_openedTicket.AssignedUserId.ToString(CultureInfo.InvariantCulture)
+                        · order @_openedTicket.OrderId.ToString(CultureInfo.InvariantCulture)
+                        · @(_openedTicket.Active ? "active" : "inactive")</p>
+                    <p>Created @_openedTicket.TimeCreated.ToString(CultureInfo.InvariantCulture)
+                        · updated @_openedTicket.TimeUpdated.ToString(CultureInfo.InvariantCulture)</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">Messages</div>
+                <div class="panel-body">
+                    <div class="table-responsive">
+                        <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped table-bordered table-epc epc-erp-table">
+                            <thead>
+                                <tr>
+                                    <th>Id</th>
+                                    <th>Author</th>
+                                    <th>Staff</th>
+                                    <th>Created</th>
+                                    <th>Excerpt</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (_openedMessages.Count == 0)
+                                {
+                                    <tr><td colspan="5">No messages yet.</td></tr>
+                                }
+                                else
+                                {
+                                    @foreach (var msg in _openedMessages)
+                                    {
+                                        <tr>
+                                            <td>@msg.Id.ToString(CultureInfo.InvariantCulture)</td>
+                                            <td>@msg.AuthorUserId.ToString(CultureInfo.InvariantCulture)</td>
+                                            <td>@(msg.IsStaff != 0 ? "staff" : "customer")</td>
+                                            <td>@msg.TimeCreated.ToString(CultureInfo.InvariantCulture)</td>
+                                            <td>
+                                                @if (!string.IsNullOrWhiteSpace(msg.BodyExcerpt))
+                                                {
+                                                    @msg.BodyExcerpt
+                                                    @if (msg.BodyLen > msg.BodyExcerpt.Length)
+                                                    {
+                                                        <span class="text-muted"> (excerpt)</span>
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    <text>—</text>
+                                                }
+                                            </td>
+                                        </tr>
+                                    }
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
     <div class="col-lg-12">
         <div class="hpanel">
             <div class="panel-heading hbuilt">Tickets</div>
             <div class="panel-body">
-                <p class="help-block">@_summary.TicketCount.ToString(CultureInfo.InvariantCulture) tickets · @_summary.OpenCount.ToString(CultureInfo.InvariantCulture) open · @_summary.HighPriorityCount.ToString(CultureInfo.InvariantCulture) high priority · @_summary.MessageCount.ToString(CultureInfo.InvariantCulture) messages.</p>
                 <div class="table-responsive">
-                    <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped">
+                    <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped table-bordered table-epc epc-erp-table">
                         <thead>
                             <tr>
                                 <th>Id</th>
@@ -95,18 +176,23 @@
                                 <th>Customer</th>
                                 <th>Assignee</th>
                                 <th>Order</th>
+                                <th></th>
                             </tr>
                         </thead>
                         <tbody>
-                        @if (_rows.Count == 0)
+                        @if (!_isAdmin)
                         {
-                            <tr><td colspan="7">No records yet.</td></tr>
+                            <tr><td colspan="8">Sign in for live data.</td></tr>
+                        }
+                        else if (_rows.Count == 0)
+                        {
+                            <tr><td colspan="8">@(!string.IsNullOrWhiteSpace(_message) ? _message : "No records yet.")</td></tr>
                         }
                         else
                         {
                             @foreach (var row in _rows)
                             {
-                                <tr>
+                                <tr id="erp-row-@row.Id.ToString(CultureInfo.InvariantCulture)" class="@ErpRecordOpen.RowClass(row.Id, _openedId)">
                                     <td>@row.Id.ToString(CultureInfo.InvariantCulture)</td>
                                     <td>@(!string.IsNullOrWhiteSpace(row.Subject) ? row.Subject : "—")</td>
                                     <td>@(!string.IsNullOrWhiteSpace(row.Status) ? row.Status : "—")</td>
@@ -114,6 +200,7 @@
                                     <td>@row.CustomerUserId.ToString(CultureInfo.InvariantCulture)</td>
                                     <td>@row.AssignedUserId.ToString(CultureInfo.InvariantCulture)</td>
                                     <td>@row.OrderId.ToString(CultureInfo.InvariantCulture)</td>
+                                    <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href(_listHref, "ticket_id", row.Id)">Open</a></td>
                                 </tr>
                             }
                         }
@@ -144,14 +231,33 @@
     private IReadOnlyList<CpCrmTicketDigest> _rows = [];
     private string _source = "n/a";
     private string _message = "";
+    private string _listHref = "/cp/crm-tickets-app";
+    private long _openedId;
+    private CpCrmTicketDetail? _openedTicket;
+    private IReadOnlyList<CpCrmTicketMessageDigest> _openedMessages = [];
+
+    private string OpenedCaption => _openedTicket is null
+        ? ""
+        : (string.IsNullOrWhiteSpace(_openedTicket.Subject)
+            ? ("Ticket #" + _openedTicket.Id.ToString(CultureInfo.InvariantCulture))
+            : _openedTicket.Subject)
+            + (string.IsNullOrWhiteSpace(_openedTicket.Status) ? "" : (" · " + _openedTicket.Status));
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
 
+        var path = ctx.Request.Path.Value;
+        var basePath = string.Equals(path, "/erp/crm-tickets-app", StringComparison.OrdinalIgnoreCase)
+            ? "/erp/crm-tickets-app"
+            : "/cp/crm-tickets-app";
         _tab = (ctx.Request.Query["tab"].ToString() ?? string.Empty).Trim();
         _leftoverWrite = _tab is "sla" or "tickets";
+        _listHref = _leftoverWrite && !string.IsNullOrWhiteSpace(_tab)
+            ? basePath + "?tab=" + _tab
+            : basePath;
+        _openedId = ErpRecordOpen.ReadId(ctx.Request, "ticket_id");
         _ok = ctx.Request.Query["ok"].ToString();
         _err = ctx.Request.Query["err"].ToString();
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
@@ -166,5 +272,24 @@
         _rows = result.Tickets;
         _source = result.Source;
         _message = result.Message;
+
+        if (_openedId > 0)
+        {
+            var detail = await Dashboards.BuildCpCrmTicketsDetailAsync(_openedId, ctx.RequestAborted);
+            _openedTicket = detail.Ticket;
+            _openedMessages = detail.Messages;
+            if (_openedTicket is not null)
+            {
+                var openedList = _rows.FirstOrDefault(r => r.Id == _openedId);
+                if (openedList is not null)
+                {
+                    _rows = new[] { openedList }.Concat(_rows.Where(r => r.Id != _openedId)).ToList();
+                }
+            }
+            else if (!string.IsNullOrWhiteSpace(detail.Message))
+            {
+                _message = detail.Message;
+            }
+        }
     }
 }

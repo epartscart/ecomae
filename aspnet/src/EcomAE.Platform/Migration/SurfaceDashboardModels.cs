@@ -2830,6 +2830,33 @@ public sealed record CpCrmTicketsDigestResult(
     string Source,
     string Message);
 
+public sealed record CpCrmTicketDetail(
+    long Id,
+    long CustomerUserId,
+    long OrderId,
+    string Subject,
+    string Status,
+    string Priority,
+    long AssignedUserId,
+    long TimeCreated,
+    long TimeUpdated,
+    bool Active);
+
+public sealed record CpCrmTicketMessageDigest(
+    long Id,
+    long TicketId,
+    long AuthorUserId,
+    int IsStaff,
+    long TimeCreated,
+    int BodyLen,
+    string BodyExcerpt);
+
+public sealed record CpCrmTicketsDetailResult(
+    CpCrmTicketDetail? Ticket,
+    IReadOnlyList<CpCrmTicketMessageDigest> Messages,
+    string Source,
+    string Message);
+
 public sealed record CpMarketingGrowthSummary(
     int TaskCount,
     int TasksDone,
