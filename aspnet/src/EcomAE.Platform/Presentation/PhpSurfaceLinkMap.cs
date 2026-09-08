@@ -1663,17 +1663,17 @@ public static class PhpSurfaceLinkMap
 
         if (ErpPhpTabRouteMap.TryMapTab(key, out var fromTab))
         {
-            return fromTab;
+            return ErpRecordOpen.PreserveRecordQuery(fromTab, value);
         }
 
         if (!string.IsNullOrWhiteSpace(key))
         {
-            return ErpPhpTabRouteMap.MapTabOrModuleApp(key);
+            return ErpRecordOpen.PreserveRecordQuery(ErpPhpTabRouteMap.MapTabOrModuleApp(key), value);
         }
 
         // Area-only hubs must land on the module named by that area (not a sibling process).
         // AP ≠ purchasing; AR ≠ sales; credit_coll ≠ treasury.
-        return areaKey switch
+        var areaHref = areaKey switch
         {
             "overview" or "common" or "setup" or "enterprise" => "/erp",
             "finance" or "gl" or "general_ledger" => "/erp/gl-journals-app",
@@ -1700,6 +1700,7 @@ public static class PhpSurfaceLinkMap
             "expense" => "/erp/expense-reports-app",
             _ => "/erp",
         };
+        return ErpRecordOpen.PreserveRecordQuery(areaHref, value);
     }
 
     private static string MapBosPhpPath(string value)

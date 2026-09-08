@@ -96,7 +96,7 @@ public static class LegacyPresentationAssets
         "/content/general_pages/epc_cp_professional_css.php",
         // After professional: neutralize ASP.NET digest heroes → PHP page-hd / kpi / table-epc look.
         // /platform-assets survives PHP pause on Super / Tenant / ERP-only hosts.
-        "/platform-assets/epc_erp_aspnet_module_parity.css?v=20260811erp",
+        "/platform-assets/epc_erp_aspnet_module_parity.css?v=20260908open",
         "/content/shop/finance/epc_erp_aspnet_module_parity_css.php"
     ];
 

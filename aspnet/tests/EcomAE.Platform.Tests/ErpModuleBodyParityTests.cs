@@ -54,7 +54,7 @@ public sealed class ErpModuleBodyParityTests
         Assert.Contains("table-epc", text, StringComparison.Ordinal);
         Assert.Contains("PhpErpModulePageHeader", text, StringComparison.Ordinal);
         Assert.Contains("PhpErpD365ActionPane", text, StringComparison.Ordinal);
-        Assert.Contains("AspNetPrimaryHref", text, StringComparison.Ordinal);
+        Assert.Contains("ErpRecordOpen.Href", text, StringComparison.Ordinal);
         // Row Open must not send production users into PHP reference as primary.
         Assert.DoesNotContain("PhpReferenceOnlyHref(phpHref)", text, StringComparison.Ordinal);
         Assert.DoesNotContain("PhpReferenceOnlyHref(_phpTab)", text, StringComparison.Ordinal);
@@ -110,19 +110,19 @@ public sealed class ErpModuleBodyParityTests
         var header = File.ReadAllText(Path.Combine(root,
             "aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpErpModulePageHeader.razor"));
         Assert.Contains("btn-primary", header, StringComparison.Ordinal);
-        Assert.Contains("AspNetPrimaryHref", header, StringComparison.Ordinal);
+        Assert.Contains("ErpRecordOpen.OpenModuleHref", header, StringComparison.Ordinal);
         Assert.Contains("Classic twin", header, StringComparison.Ordinal);
         Assert.Contains("PhpReferenceOnlyHref", header, StringComparison.Ordinal);
         // Primary button must not use PhpReferenceOnlyHref
         var primaryIdx = header.IndexOf("btn-primary", StringComparison.Ordinal);
-        var primaryBlock = header.Substring(primaryIdx, Math.Min(220, header.Length - primaryIdx));
-        Assert.Contains("AspNetPrimaryHref", primaryBlock, StringComparison.Ordinal);
+        var primaryBlock = header.Substring(primaryIdx, Math.Min(280, header.Length - primaryIdx));
+        Assert.Contains("ErpRecordOpen.OpenModuleHref", primaryBlock, StringComparison.Ordinal);
         Assert.DoesNotContain("PhpReferenceOnlyHref", primaryBlock, StringComparison.Ordinal);
 
         var pane = File.ReadAllText(Path.Combine(root,
             "aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpErpD365ActionPane.razor"));
         Assert.Contains("is-primary", pane, StringComparison.Ordinal);
-        Assert.Contains("AspNetPrimaryHref", pane, StringComparison.Ordinal);
+        Assert.Contains("ErpRecordOpen.NewHref", pane, StringComparison.Ordinal);
         Assert.Contains("Classic twin", pane, StringComparison.Ordinal);
     }
 

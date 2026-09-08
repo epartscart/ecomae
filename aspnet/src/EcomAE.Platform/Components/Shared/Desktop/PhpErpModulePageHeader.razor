@@ -16,7 +16,8 @@
     <div class="epc-erp-page-actions">
         @if (!string.IsNullOrWhiteSpace(PhpTabHref))
         {
-            <a class="btn btn-sm btn-primary" href="@PhpSurfaceLinkMap.AspNetPrimaryHref(PhpTabHref)">
+            <a class="btn btn-sm btn-primary" href="@ErpRecordOpen.OpenModuleHref(PhpTabHref)" data-epc-open-module="1"
+               onclick="if(this.pathname&&location.pathname.toLowerCase()===this.pathname.toLowerCase()){var n=document.getElementById('erp-module-body');if(n){n.scrollIntoView({block:'start'});n.classList.add('epc-erp-open-flash');}else{location.reload();}return false;}">
                 <i class="fa fa-refresh" aria-hidden="true"></i> Open module
             </a>
             <a class="btn btn-sm btn-default" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(PhpTabHref)" target="_blank" rel="noopener" title="Open the classic module in a new tab">

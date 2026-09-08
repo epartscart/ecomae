@@ -19,6 +19,7 @@
     }
 
     <PhpErpModulePageHeader Title="@(_barcodePurchase ? "Barcode / Purchase Margin" : "Purchase Orders")" Subtitle="@(_barcodePurchase ? "In jewellery, the barcode is the purchase — cost, margin, and salesman at barcode level." : "Purchase orders from draft through receive.")" PhpTabHref="@_phpTab" />
+    <ErpOpenedRecordBanner Id="_openedId" Found="@(_openedOrder is not null)" Caption="@OpenedCaption" ListHref="/erp/purchase-orders-app" />
     <ErpPhpFlash Ok="@_ok" Err="@_err" />
     @if (!_barcodePurchase)
     {
@@ -65,7 +66,7 @@
 
     @if (_isAdmin)
     {
-        <div class="panel panel-default" id="epc-po-new">
+        <div class="panel panel-default" id="erp-module-new">
             <div class="panel-heading"><strong>New purchase order</strong> <span class="text-muted">PO number, VAT and totals follow the tenant jurisdiction kit.</span></div>
             <div class="panel-body">
                 <div class="row">
@@ -145,8 +146,7 @@
                 {
                     @foreach (var o in _orders)
                     {
-                        var phpHref = $"{_phpTab}&order_id={o.Id.ToString(CultureInfo.InvariantCulture)}";
-                        <tr>
+                        <tr id="erp-row-@o.Id.ToString(CultureInfo.InvariantCulture)" class="@ErpRecordOpen.RowClass(o.Id, _openedId)">
                             <td><strong>@(string.IsNullOrWhiteSpace(o.PoNo) ? $"#{o.Id}" : o.PoNo)</strong></td>
                             <td>@FormatTime(o.TimeCreated)</td>
                             <td>@o.SupplierId</td>
@@ -154,7 +154,7 @@
                             <td><span class="label label-@ErpPhpStatusLabel.Class(o.Status)">@o.Status</span></td>
                             <td>@o.TotalAmount.ToString("N2", CultureInfo.InvariantCulture)</td>
                             <td>
-                                <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(phpHref)">Open</a>
+                                <a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href("/erp/purchase-orders-app", "po_id", o.Id)">Open</a>
                                 @if (_isAdmin)
                                 {
                                     <span class="epc-po-actions" data-po-id="@o.Id.ToString(CultureInfo.InvariantCulture)">
@@ -250,6 +250,11 @@
     private int _limit = 100;
     private string _source = "n/a";
     private string _message = "";
+    private long _openedId;
+    private ErpPurchaseOrderDigest? _openedOrder;
+    private string OpenedCaption => _openedOrder is null
+        ? ""
+        : (string.IsNullOrWhiteSpace(_openedOrder.PoNo) ? $"Purchase order #{_openedOrder.Id}" : _openedOrder.PoNo) + " · " + _openedOrder.Status;
 
     protected override async Task OnInitializedAsync()
     {
@@ -259,6 +264,7 @@
         _barcodePurchase = string.Equals(ctx.Request.Query["tab"].ToString(), "barcode_purchase", StringComparison.OrdinalIgnoreCase);
         _ok = ctx.Request.Query["ok"].ToString();
         _err = ctx.Request.Query["err"].ToString();
+        _openedId = ErpRecordOpen.ReadId(ctx.Request, "po_id", "order_id");
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
         if (!_isAdmin)
@@ -268,6 +274,11 @@
 
         var result = await Dashboards.ListErpPurchaseOrdersAsync(_limit, ctx.RequestAborted);
         _orders = result.Orders;
+        _openedOrder = _openedId > 0 ? _orders.FirstOrDefault(o => o.Id == _openedId) : null;
+        if (_openedOrder is not null)
+        {
+            _orders = new[] { _openedOrder }.Concat(_orders.Where(o => o.Id != _openedId)).ToList();
+        }
         _items = (await Dashboards.ListErpInventoryItemsForPickerAsync(1000, ctx.RequestAborted)).Items;
         _open = _orders.Count(o => !string.Equals(o.Status, "closed", StringComparison.OrdinalIgnoreCase)
             && !string.Equals(o.Status, "cancelled", StringComparison.OrdinalIgnoreCase)

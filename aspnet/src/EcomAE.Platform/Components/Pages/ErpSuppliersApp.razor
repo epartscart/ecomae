@@ -17,6 +17,7 @@
 
     <PhpErpModulePageHeader Title="@_title" Subtitle="@_subtitle" PhpTabHref="@_phpTab" />
     <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
+    <ErpOpenedRecordBanner Id="_openedId" Found="@(_openedSupplier is not null)" Caption="@OpenedCaption" ListHref="/erp/suppliers-app" />
 
     <p class="text-muted" style="margin:8px 0 12px;">
         <a href="/erp/suppliers-app">Suppliers</a>
@@ -98,12 +99,11 @@
                 {
                     @foreach (var s in _suppliers)
                     {
-                        var phpHref = $"{_phpTab}&supplier_id={s.Id.ToString(CultureInfo.InvariantCulture)}";
-                        <tr>
+                        <tr id="erp-row-@s.Id.ToString(CultureInfo.InvariantCulture)" class="@ErpRecordOpen.RowClass(s.Id, _openedId)">
                             <td><strong>@(string.IsNullOrWhiteSpace(s.Name) ? $"#{s.Id}" : s.Name)</strong></td>
                             <td>@(s.StorageId > 0 ? s.StorageId.ToString(CultureInfo.InvariantCulture) : "—")</td>
                             <td><span class="label label-default">@s.Balance.ToString("N2", CultureInfo.InvariantCulture)</span></td>
-                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(phpHref)">Open</a></td>
+                            <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href("/erp/suppliers-app", "supplier_id", s.Id)">Open</a></td>
                         </tr>
                     }
                 }
@@ -128,12 +128,18 @@
     private int _limit = 100;
     private string _source = "n/a";
     private string _message = "";
+    private long _openedId;
+    private ErpSupplierDigest? _openedSupplier;
+    private string OpenedCaption => _openedSupplier is null
+        ? ""
+        : (string.IsNullOrWhiteSpace(_openedSupplier.Name) ? $"Supplier #{_openedSupplier.Id}" : _openedSupplier.Name);
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
 
+        _openedId = ErpRecordOpen.ReadId(ctx.Request, "supplier_id");
         var tab = (ctx.Request.Query["tab"].ToString() ?? "").Trim().ToLowerInvariant();
         _view = tab == "supplier_portal" ? "supplier_portal" : tab == "ap_setup" ? "ap_setup" : "suppliers";
         _phpTab = _view switch
@@ -174,6 +180,11 @@
 
         var result = await Dashboards.ListErpSuppliersAsync(_limit, ctx.RequestAborted);
         _suppliers = result.Suppliers;
+        _openedSupplier = _openedId > 0 ? _suppliers.FirstOrDefault(s => s.Id == _openedId) : null;
+        if (_openedSupplier is not null)
+        {
+            _suppliers = new[] { _openedSupplier }.Concat(_suppliers.Where(s => s.Id != _openedId)).ToList();
+        }
         _openBalance = _suppliers.Count(s => s.Balance != 0m);
         _totalBalance = _suppliers.Sum(s => s.Balance);
         _source = result.Source;
