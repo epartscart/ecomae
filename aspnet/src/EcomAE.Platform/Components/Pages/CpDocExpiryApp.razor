@@ -53,6 +53,44 @@
     </section>
     <PhpParityModuleBody AppPath="/cp/doc-expiry-app" IsAdmin="_isAdmin" />
 
+    @if (!string.IsNullOrWhiteSpace(_flashOk))
+    {
+        <div class="alert alert-success" role="status" style="margin:0 0 1rem;padding:.7rem .9rem;border-radius:.4rem;background:#ecfdf5;color:#065f46">@_flashOk</div>
+    }
+    @if (!string.IsNullOrWhiteSpace(_flashErr))
+    {
+        <div class="alert alert-danger" role="status" style="margin:0 0 1rem;padding:.7rem .9rem;border-radius:.4rem;background:#fef2f2;color:#991b1b">@_flashErr</div>
+    }
+    @if (_isAdmin)
+    {
+        <ErpPhpCreateWell Title="Add document">
+            <form method="post" action="/erp/doc-expiry/save" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin-bottom:1rem;">
+                <input type="hidden" name="returnUrl" value="/erp/doc-expiry-app" />
+                <input type="hidden" name="confirmWrites" value="true" />
+                <label>Category
+                    <select class="form-control input-sm" name="category">
+                        <option value="legal">Legal</option>
+                        <option value="customer">Customer</option>
+                        <option value="insurance">Insurance</option>
+                        <option value="banking">Banking</option>
+                        <option value="other">Other</option>
+                    </select>
+                </label>
+                <label>Document type <input class="form-control input-sm" name="doc_type" placeholder="e.g. Trade Licence" required style="width:180px;" /></label>
+                <label>Title <input class="form-control input-sm" name="title" style="width:160px;" /></label>
+                <label>Reference <input class="form-control input-sm" name="ref_no" style="width:120px;" /></label>
+                <label>Issuer <input class="form-control input-sm" name="issuer" style="width:140px;" /></label>
+                <label>Owner <input class="form-control input-sm" name="owner" style="width:140px;" /></label>
+                <label>Reminder email <input class="form-control input-sm" type="email" name="owner_email" style="width:180px;" /></label>
+                <label>Issue <input class="form-control input-sm" type="date" name="issue_date_str" /></label>
+                <label>Expiry <input class="form-control input-sm" type="date" name="expiry_date_str" required /></label>
+                <label>Lead days <input class="form-control input-sm" name="reminder_days" value="90,60,30,7" style="width:120px;" /></label>
+                <label>Attachment path <input class="form-control input-sm" name="attachment_path" style="width:180px;" /></label>
+                <label>Note <input class="form-control input-sm" name="note" style="width:180px;" /></label>
+                <button type="submit" class="btn btn-primary btn-sm">Add to register</button>
+            </form>
+        </ErpPhpCreateWell>
+    }
 
     <div class="epc-w17-kpis" aria-label="Doc expiry stats">
         <div class="epc-w17-kpi"><strong>@_summary.DocumentCount.ToString(CultureInfo.InvariantCulture)</strong><span>Documents</span></div>
@@ -119,11 +157,16 @@
     private IReadOnlyList<CpDocExpiryDocumentDigest> _rows = [];
     private string _source = "n/a";
     private string _message = "";
+    private string _flashOk = "";
+    private string _flashErr = "";
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
+
+        _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
+        _flashErr = ctx.Request.Query["err"].ToString() ?? "";
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);

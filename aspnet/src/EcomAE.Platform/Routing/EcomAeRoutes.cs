@@ -1220,7 +1220,9 @@ public static class EcomAeRoutes
     public const string ErpAjaxDemoClearSales = "/erp/ajax/demo-clear-sales";
     /// <summary>Wave B dry-run for PHP ctr_ocr (writes=0).</summary>
     public const string ErpAjaxCtrOcr = "/erp/ajax/ctr-ocr";
-    /// <summary>Wave B dry-run for PHP docx_save (writes=0).</summary>
+    /// <summary>HTML form POST for PHP <c>docx_save</c>. <c>confirmWrites=true</c> writes via <c>IErpDocxSaveWriteService</c>.</summary>
+    public const string ErpDocExpirySave = "/erp/doc-expiry/save";
+    /// <summary>Live PHP epc_docx_save ajax alias of <see cref="ErpDocExpirySave"/>.</summary>
     public const string ErpAjaxDocxSave = "/erp/ajax/docx-save";
     /// <summary>Wave B dry-run for PHP docx_delete (writes=0).</summary>
     public const string ErpAjaxDocxDelete = "/erp/ajax/docx-delete";

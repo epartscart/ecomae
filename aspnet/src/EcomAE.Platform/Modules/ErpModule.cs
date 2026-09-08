@@ -9464,8 +9464,8 @@ public sealed class ErpModule : ISurfaceModule
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(false); return Results.Ok(dryRun.Evaluate(new ErpDemoClearSalesRequest(body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxCtrOcr, async (HttpContext context, ErpCtrOcrBody? body, ILegacySessionValidator validator, IErpCtrOcrDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpCtrOcrRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxDocxSave, async (HttpContext context, ErpDocxSaveBody? body, ILegacySessionValidator validator, IErpDocxSaveDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpDocxSaveRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxDocxSave, HandleDocxSaveAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpDocExpirySave, HandleDocxSaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxDocxDelete, async (HttpContext context, ErpDocxDeleteBody? body, ILegacySessionValidator validator, IErpDocxDeleteDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,false); return Results.Ok(dryRun.Evaluate(new ErpDocxDeleteRequest(body.Id, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxDocxRunReminders, async (HttpContext context, ErpDocxRunRemindersBody? body, ILegacySessionValidator validator, IErpDocxRunRemindersDryRun dryRun, CancellationToken cancellationToken) =>
@@ -11774,6 +11774,89 @@ public sealed class ErpModule : ISurfaceModule
         }
     }
 
+    private static async Task<IResult> HandleDocxSaveAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpDocxSaveDryRun dryRun,
+        IErpDocxSaveWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/doc-expiry-app", "Admin ERP capability required for document expiry save.");
+        }
+
+        var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpDocxSaveBody>(context, cancellationToken) ?? new();
+        var id = body.Id;
+        var companyId = body.CompanyId;
+        var category = body.Category;
+        var docType = body.DocType;
+        var title = body.Title;
+        var refNo = body.RefNo;
+        var owner = body.Owner;
+        var ownerEmail = body.OwnerEmail;
+        var issuer = body.Issuer;
+        var issueDateStr = body.IssueDateStr;
+        var expiryDateStr = body.ExpiryDateStr;
+        var issueDate = body.IssueDate;
+        var expiryDate = body.ExpiryDate;
+        var reminderDays = body.ReminderDays;
+        var attachmentPath = body.AttachmentPath;
+        var note = body.Note;
+        var sourceModule = body.SourceModule;
+        var sourceRefId = body.SourceRefId;
+        var active = body.Active;
+        var confirm = body.ConfirmWrites;
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            id = LiveWriteFormBinder.Long(form, "id");
+            companyId = LiveWriteFormBinder.Long(form, "companyId", "company_id", "company");
+            if (form.ContainsKey("category"))
+            {
+                category = LiveWriteFormBinder.Text(form, "category");
+            }
+            docType = LiveWriteFormBinder.Text(form, "doc_type", "docType");
+            title = LiveWriteFormBinder.Text(form, "title");
+            refNo = LiveWriteFormBinder.Text(form, "ref_no", "refNo");
+            owner = LiveWriteFormBinder.Text(form, "owner");
+            ownerEmail = LiveWriteFormBinder.Text(form, "owner_email", "ownerEmail");
+            issuer = LiveWriteFormBinder.Text(form, "issuer");
+            issueDateStr = LiveWriteFormBinder.Text(form, "issue_date_str", "issueDateStr");
+            expiryDateStr = LiveWriteFormBinder.Text(form, "expiry_date_str", "expiryDateStr");
+            if (form.ContainsKey("reminder_days") || form.ContainsKey("reminderDays"))
+            {
+                reminderDays = LiveWriteFormBinder.Text(form, "reminder_days", "reminderDays");
+            }
+            attachmentPath = LiveWriteFormBinder.Text(form, "attachment_path", "attachmentPath");
+            note = LiveWriteFormBinder.Text(form, "note");
+            sourceModule = LiveWriteFormBinder.Text(form, "source_module", "sourceModule");
+            sourceRefId = LiveWriteFormBinder.Long(form, "source_ref_id", "sourceRefId");
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+        }
+
+        if (confirm)
+        {
+            active = 1;
+        }
+
+        if (!confirm)
+        {
+            return Results.Ok(dryRun.Evaluate(new ErpDocxSaveRequest(id, companyId, category, docType, title, refNo, owner, ownerEmail, issuer, issueDateStr, expiryDateStr, issueDate, expiryDate, reminderDays, attachmentPath, note, sourceModule, sourceRefId, active, false)).ToPayload(SessionPayload(session)));
+        }
+
+        var written = await writes.SaveAsync(
+            new ErpDocxSaveWriteRequest(id, companyId, category, docType, title, refNo, owner, ownerEmail, issuer, issueDateStr, expiryDateStr, issueDate, expiryDate, reminderDays, attachmentPath, note, sourceModule, sourceRefId, active),
+            cancellationToken);
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/erp/doc-expiry-app",
+            written.Succeeded,
+            written.Message,
+            new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+    }
+
     private static async Task<IResult> HandleWhtCodeSaveAsync(
         HttpContext context,
         ILegacySessionValidator validator,
@@ -12594,7 +12677,27 @@ public sealed class ErpModule : ISurfaceModule
     private sealed record ErpDemoSeedSalesBody(bool ConfirmWrites = false);
     private sealed record ErpDemoClearSalesBody(bool ConfirmWrites = false);
     private sealed record ErpCtrOcrBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
-    private sealed record ErpDocxSaveBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
+    private sealed record ErpDocxSaveBody(
+        long Id = 0,
+        long CompanyId = 0,
+        string? Category = null,
+        string? DocType = null,
+        string? Title = null,
+        string? RefNo = null,
+        string? Owner = null,
+        string? OwnerEmail = null,
+        string? Issuer = null,
+        string? IssueDateStr = null,
+        string? ExpiryDateStr = null,
+        long IssueDate = 0,
+        long ExpiryDate = 0,
+        string? ReminderDays = null,
+        string? AttachmentPath = null,
+        string? Note = null,
+        string? SourceModule = null,
+        long SourceRefId = 0,
+        int? Active = null,
+        bool ConfirmWrites = false);
     private sealed record ErpDocxDeleteBody(long Id, bool ConfirmWrites = false);
     private sealed record ErpDocxRunRemindersBody(bool ConfirmWrites = false);
     private sealed record ErpInsSaveBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);

@@ -3111,6 +3111,23 @@ public sealed class LiveWriteServiceValidationTests
             .LogAsync(new ErpHrAttendanceWriteRequest(EmployeeId: 1, Hours: 8));
         Assert.False(hrAttDb.Succeeded);
         Assert.Equal("db", hrAttDb.Code);
+
+        var docxType = await new ErpDocxSaveWriteService(new ConfiguredNeverOpened())
+            .SaveAsync(new ErpDocxSaveWriteRequest(ExpiryDateStr: "2026-12-31"));
+        Assert.False(docxType.Succeeded);
+        Assert.Equal("invalid", docxType.Code);
+        Assert.Equal("Document type is required", docxType.Message);
+
+        var docxExpiry = await new ErpDocxSaveWriteService(new ConfiguredNeverOpened())
+            .SaveAsync(new ErpDocxSaveWriteRequest(DocType: "Trade Licence"));
+        Assert.False(docxExpiry.Succeeded);
+        Assert.Equal("invalid", docxExpiry.Code);
+        Assert.Equal("Expiry date is required", docxExpiry.Message);
+
+        var docxDb = await new ErpDocxSaveWriteService(new UnconfiguredConnections())
+            .SaveAsync(new ErpDocxSaveWriteRequest(DocType: "Trade Licence", ExpiryDateStr: "2026-12-31"));
+        Assert.False(docxDb.Succeeded);
+        Assert.Equal("db", docxDb.Code);
     }
 
     [Fact]
