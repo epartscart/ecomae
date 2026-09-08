@@ -4144,8 +4144,8 @@ public sealed class ErpModule : ISurfaceModule
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,false); return Results.Ok(dryRun.Evaluate(new ErpPfCaseStartRequest(body.Id, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxPfCaseAct, async (HttpContext context, ErpPfCaseActBody? body, ILegacySessionValidator validator, IErpPfCaseActDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,false); return Results.Ok(dryRun.Evaluate(new ErpPfCaseActRequest(body.Id, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxSubGenerate, async (HttpContext context, ErpSubGenerateBody? body, ILegacySessionValidator validator, IErpSubGenerateDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(false); return Results.Ok(dryRun.Evaluate(new ErpSubGenerateRequest(body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.ErpSubscriptionsGenerate, HandleSubGenerateAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxSubGenerate, HandleSubGenerateAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxSubInvoicePaid, async (
             HttpContext context,
             ILegacySessionValidator validator,
@@ -11882,6 +11882,11 @@ public sealed class ErpModule : ISurfaceModule
         ILegacySessionValidator validator,
         IErpConsIcSaveDryRun dryRun,
         IErpConsIcSaveWriteService writes,
+    private static async Task<IResult> HandleSubGenerateAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpSubGenerateDryRun dryRun,
+        IErpSubGenerateWriteService writes,
         CancellationToken cancellationToken)
     {
         var session = await validator.ValidateAsync(context, cancellationToken);
@@ -11898,6 +11903,11 @@ public sealed class ErpModule : ISurfaceModule
         var txnDate = body.TxnDate;
         var pref = body.Ref;
         var memo = body.Memo;
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/sales-orders-app?tab=subscriptions", "Admin ERP capability required for subscription generate.");
+        }
+
+        var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpSubGenerateBody>(context, cancellationToken) ?? new();
+        var id = body.Id;
         var confirm = body.ConfirmWrites;
         if (context.Request.HasFormContentType)
         {
@@ -11909,6 +11919,7 @@ public sealed class ErpModule : ISurfaceModule
             txnDate = LiveWriteFormBinder.Text(form, "txnDate", "txn_date");
             pref = LiveWriteFormBinder.Text(form, "ref");
             memo = LiveWriteFormBinder.Text(form, "memo");
+            id = LiveWriteFormBinder.Long(form, "id", "subscriptionId", "subscription_id");
             confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
         }
 
@@ -11923,6 +11934,13 @@ public sealed class ErpModule : ISurfaceModule
         return LiveWriteFormBinder.Complete(
             context,
             "/cp/consolidations-app",
+            return Results.Ok(dryRun.Evaluate(new ErpSubGenerateRequest(id, false)).ToPayload(SessionPayload(session)));
+        }
+
+        var written = await writes.GenerateAsync(id, cancellationToken);
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/erp/sales-orders-app?tab=subscriptions",
             written.Succeeded,
             written.Message,
             new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
@@ -13580,7 +13598,7 @@ public sealed class ErpModule : ISurfaceModule
     private sealed record ErpPfStepDeleteBody(long Id, bool ConfirmWrites = false);
     private sealed record ErpPfCaseStartBody(long Id, bool ConfirmWrites = false);
     private sealed record ErpPfCaseActBody(long Id, bool ConfirmWrites = false);
-    private sealed record ErpSubGenerateBody(bool ConfirmWrites = false);
+    private sealed record ErpSubGenerateBody(long Id = 0, bool ConfirmWrites = false);
     private sealed record ErpSubInvoicePaidBody(long Id, bool ConfirmWrites = false);
     private sealed record ErpCtrStatusBody(long Id, string? TargetStatus = null, bool ConfirmWrites = false);
     private sealed record ErpCtrSignBody(long Id, bool ConfirmWrites = false);
