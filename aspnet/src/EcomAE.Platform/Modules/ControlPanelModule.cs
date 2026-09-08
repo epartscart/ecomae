@@ -8160,7 +8160,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only epc_platform_comm_settings + epc_platform_internal_tasks KPIs + tasks (description omitted). PHP super CP communication remains authoritative."
+                note = "Read-only epc_platform_comm_settings + epc_platform_internal_tasks. Open ?task_id= loads a 280-char description excerpt plus category siblings. PHP super CP communication remains authoritative."
             });
         });
 

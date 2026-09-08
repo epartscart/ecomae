@@ -4767,6 +4767,33 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>Opened platform communication task. Description is a short excerpt.</summary>
+    public const string SelectCpPlatformCommunicationTaskDetail = """
+        SELECT `id`, IFNULL(`title`,'') AS title, IFNULL(`assigned_to`,0) AS assigned_to,
+               IFNULL(`assigned_email`,'') AS assigned_email,
+               IFNULL(`site_key`,'') AS site_key, IFNULL(`category`,'') AS category,
+               IFNULL(`status`,'') AS status, IFNULL(`priority`,'') AS priority,
+               IFNULL(`due_at`,0) AS due_at, IFNULL(`created_by`,0) AS created_by,
+               IFNULL(`created_at`,0) AS created_at, IFNULL(`updated_at`,0) AS updated_at,
+               CHAR_LENGTH(IFNULL(`description`,'')) AS description_len,
+               LEFT(IFNULL(`description`,''), 280) AS description_excerpt
+        FROM `epc_platform_internal_tasks`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Other tasks in the same category as the opened row.</summary>
+    public const string SelectCpPlatformCommunicationCategorySiblings = """
+        SELECT `id`, IFNULL(`title`,'') AS title, IFNULL(`assigned_to`,0) AS assigned_to,
+               IFNULL(`site_key`,'') AS site_key, IFNULL(`category`,'') AS category,
+               IFNULL(`status`,'') AS status, IFNULL(`priority`,'') AS priority,
+               IFNULL(`due_at`,0) AS due_at, IFNULL(`created_at`,0) AS created_at
+        FROM `epc_platform_internal_tasks`
+        WHERE `category` = @category AND `id` <> @id
+        ORDER BY `id` DESC
+        LIMIT 50
+        """;
+
     /// <summary>Info blocks KPIs from epc_platform_info_blocks (CREATE TABLE in epc_super_cp_platform.php).</summary>
     public const string SelectCpInfoBlocksStats = """
         SELECT

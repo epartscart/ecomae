@@ -521,6 +521,9 @@ public interface ISurfaceDashboardSummaryReporter
     /// <summary>Opened quote request + lines (PHP <c>quote_id=</c> detail).</summary>
     Task<CpQuoteRequestDetailResult> BuildCpQuoteRequestDetailAsync(long id, CancellationToken cancellationToken = default);
     Task<CpPlatformCommunicationDigestResult> BuildCpPlatformCommunicationDigestAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Opened platform communication task (PHP <c>task_id</c>) plus category siblings. Description excerpt only.</summary>
+    Task<CpPlatformCommunicationTaskDetailResult> BuildCpPlatformCommunicationTaskDetailAsync(long id, CancellationToken cancellationToken = default);
     Task<CpInfoBlocksDigestResult> BuildCpInfoBlocksDigestAsync(int limit, CancellationToken cancellationToken = default);
     Task<CpFreeToolsDigestResult> BuildCpFreeToolsDigestAsync(int limit, CancellationToken cancellationToken = default);
     Task<CpConfigSandboxDigestResult> BuildCpConfigSandboxDigestAsync(int limit, CancellationToken cancellationToken = default);
