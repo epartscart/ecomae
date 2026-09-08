@@ -17,6 +17,8 @@ public sealed class ErpRecordOpenPhpParityTests
     [InlineData("/ERP/?epc_erp_shell=1&area=purchasing&tab=purchase_requisitions&req_id=4", "/erp/purchase-requests-app?req_id=4")]
     [InlineData("/CP/shop/finance/epc_collections_dunning?queue_id=12", "/cp/collections-dunning-app?queue_id=12")]
     [InlineData("/ERP/?epc_erp_shell=1&area=credit_coll&queue_id=12", "/erp/collections-dunning-app?queue_id=12")]
+    [InlineData("/CP/shop/finance/epc_einvoice?ei_id=8", "/cp/einvoice-documents-app?ei_id=8")]
+    [InlineData("/ERP/?epc_erp_shell=1&area=tax&tab=einvoice&ei_id=8", "/erp/einvoice-documents-app?ei_id=8")]
     [InlineData("/ERP/?epc_erp_shell=1&area=projects&tab=projects&project_id=4", "/erp/projects-overview-app?project_id=4")]
     [InlineData("/ERP/?epc_erp_shell=1&area=production&tab=manufacturing&wo_id=7", "/erp/production-overview-app?wo_id=7")]
     [InlineData("/CP/shop/accessories?listing_id=9", "/cp/accessories-app?listing_id=9")]
@@ -127,6 +129,7 @@ public sealed class ErpRecordOpenPhpParityTests
     [InlineData("ErpPayablesApp.razor", "supplier_id")]
     [InlineData("CpPurchaseRequestsApp.razor", "req_id")]
     [InlineData("CpCollectionsDunningApp.razor", "queue_id")]
+    [InlineData("CpEinvoiceDocumentsApp.razor", "ei_id")]
     [InlineData("CpProjectsOverviewApp.razor", "project_id")]
     [InlineData("CpProductionOverviewApp.razor", "wo_id")]
     [InlineData("CpAccessoriesApp.razor", "listing_id")]
@@ -351,6 +354,40 @@ public sealed class ErpRecordOpenPhpParityTests
             ErpRecordOpen.PreserveRecordQuery(
                 "/cp/collections-dunning-app",
                 "/CP/shop/finance/epc_collections_dunning?queue_id=12"));
+        Assert.Equal("/cp/einvoice-documents-app?ei_id=8#erp-row-8",
+            ErpRecordOpen.Href("/cp/einvoice-documents-app", "ei_id", 8));
+        Assert.Equal(
+            "/cp/einvoice-documents-app?ei_id=8",
+            ErpRecordOpen.PreserveRecordQuery(
+                "/cp/einvoice-documents-app",
+                "/CP/shop/finance/epc_einvoice?ei_id=8"));
+        Assert.Equal(
+            "/erp/einvoice-documents-app?ei_id=8",
+            ErpRecordOpen.PreserveRecordQuery(
+                "/erp/einvoice-documents-app",
+                "/ERP/?epc_erp_shell=1&area=tax&tab=einvoice&ei_id=8"));
+    }
+
+    [Fact]
+    public void EinvoiceDocumentsApp_OpenLoadsPayloadsLinesAndEvents()
+    {
+        var root = FindRepoRoot();
+        var text = File.ReadAllText(Path.Combine(root,
+            "aspnet/src/EcomAE.Platform/Components/Pages/CpEinvoiceDocumentsApp.razor"));
+        Assert.Contains("ErpRecordOpen.Href(_listHref, \"ei_id\"", text, StringComparison.Ordinal);
+        Assert.Contains("ErpOpenedRecordBanner", text, StringComparison.Ordinal);
+        Assert.Contains("ReadId(ctx.Request, \"ei_id\")", text, StringComparison.Ordinal);
+        Assert.Contains("BuildCpEinvoiceDocumentDetailAsync", text, StringComparison.Ordinal);
+        Assert.Contains("No lines yet.", text, StringComparison.Ordinal);
+        Assert.Contains("No events yet.", text, StringComparison.Ordinal);
+        Assert.Contains("ShowGhostScaffold=\"false\"", text, StringComparison.Ordinal);
+        Assert.Contains("table-epc", text, StringComparison.Ordinal);
+        Assert.Contains("/erp/ajax/einvoice-save-seller", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)\">Open", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("/php-reference/", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("ASP.NET", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("epc-ei-hero", text, StringComparison.Ordinal);
+
         Assert.Equal("/erp/projects-overview-app?project_id=4#erp-row-4",
             ErpRecordOpen.Href("/erp/projects-overview-app", "project_id", 4));
         Assert.Equal(

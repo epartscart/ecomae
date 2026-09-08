@@ -9424,6 +9424,111 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    public async Task<CpEinvoiceDocumentDetailResult> BuildCpEinvoiceDocumentDetailAsync(long id, CancellationToken cancellationToken = default)
+    {
+        if (id <= 0)
+        {
+            return new(null, [], [], "n/a", "");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return new(null, [], [], "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            CpEinvoiceDocumentDetail? header = null;
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectCpEinvoiceDocumentDetail;
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    header = new CpEinvoiceDocumentDetail(
+                        Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["uuid"] is DBNull ? string.Empty : reader["uuid"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["invoice_number"] is DBNull ? string.Empty : reader["invoice_number"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt64(reader["order_id"] is DBNull ? 0 : reader["order_id"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["user_id"] is DBNull ? 0 : reader["user_id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["doc_category"] is DBNull ? string.Empty : reader["doc_category"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt64(reader["issue_date"] is DBNull ? 0 : reader["issue_date"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["payment_due_date"] is DBNull ? 0 : reader["payment_due_date"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["currency_code"] is DBNull ? string.Empty : reader["currency_code"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["status"] is DBNull ? string.Empty : reader["status"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["payment_terms"] is DBNull ? string.Empty : reader["payment_terms"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["bank_account"] is DBNull ? string.Empty : reader["bank_account"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToDecimal(reader["subtotal_ex_vat"] is DBNull ? 0 : reader["subtotal_ex_vat"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(reader["total_vat"] is DBNull ? 0 : reader["total_vat"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(reader["total_incl_vat"] is DBNull ? 0 : reader["total_incl_vat"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(reader["paid_amount"] is DBNull ? 0 : reader["paid_amount"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(reader["amount_due"] is DBNull ? 0 : reader["amount_due"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["validation_ok"] is DBNull ? 0 : reader["validation_ok"], CultureInfo.InvariantCulture) != 0,
+                        Convert.ToString(reader["validation_errors_json"] is DBNull ? string.Empty : reader["validation_errors_json"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["tax_breakdown_json"] is DBNull ? string.Empty : reader["tax_breakdown_json"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["seller_json"] is DBNull ? string.Empty : reader["seller_json"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["buyer_json"] is DBNull ? string.Empty : reader["buyer_json"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["asp_name"] is DBNull ? string.Empty : reader["asp_name"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["asp_reference"] is DBNull ? string.Empty : reader["asp_reference"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["fta_report_status"] is DBNull ? string.Empty : reader["fta_report_status"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt64(reader["xml_bytes"] is DBNull ? 0 : reader["xml_bytes"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["xml_preview"] is DBNull ? string.Empty : reader["xml_preview"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt64(reader["time_created"] is DBNull ? 0 : reader["time_created"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["time_submitted"] is DBNull ? 0 : reader["time_submitted"], CultureInfo.InvariantCulture));
+                }
+            }
+
+            var lines = new List<CpEinvoiceLineDigest>();
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectCpEinvoiceDocumentLines;
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    lines.Add(new CpEinvoiceLineDigest(
+                        Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["document_id"] is DBNull ? 0 : reader["document_id"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["line_no"] is DBNull ? 0 : reader["line_no"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["item_name"] is DBNull ? string.Empty : reader["item_name"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["item_description"] is DBNull ? string.Empty : reader["item_description"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToDecimal(reader["quantity"] is DBNull ? 0 : reader["quantity"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(reader["unit_price"] is DBNull ? 0 : reader["unit_price"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(reader["line_net"] is DBNull ? 0 : reader["line_net"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(reader["tax_rate"] is DBNull ? 0 : reader["tax_rate"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(reader["tax_amount"] is DBNull ? 0 : reader["tax_amount"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(reader["gross_amount"] is DBNull ? 0 : reader["gross_amount"], CultureInfo.InvariantCulture)));
+                }
+            }
+
+            var events = new List<CpEinvoiceEventDigest>();
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectCpEinvoiceDocumentEvents;
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    events.Add(new CpEinvoiceEventDigest(
+                        Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["document_id"] is DBNull ? 0 : reader["document_id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["event_type"] is DBNull ? string.Empty : reader["event_type"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["status"] is DBNull ? string.Empty : reader["status"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["message"] is DBNull ? string.Empty : reader["message"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt64(reader["time_created"] is DBNull ? 0 : reader["time_created"], CultureInfo.InvariantCulture)));
+                }
+            }
+
+            return new(header, lines, events, "database", header is null ? "E-invoice not found." : string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(null, [], [], "database-error", ex.Message);
+        }
+    }
+
     public async Task<CpJewelleryRepairsDigestResult> BuildCpJewelleryRepairsDigestAsync(int limit, CancellationToken cancellationToken = default)
     {
         var safeLimit = Math.Clamp(limit, 1, 500);
