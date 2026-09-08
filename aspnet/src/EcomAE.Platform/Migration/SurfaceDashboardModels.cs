@@ -2497,6 +2497,36 @@ public sealed record CpCostModelsDigestResult(
     string Source,
     string Message);
 
+public sealed record CpCostModelTxnDigest(
+    long Id,
+    long CompanyId,
+    long ItemId,
+    string TxnType,
+    decimal Qty,
+    decimal UnitCost,
+    long TxnDate,
+    long TimeCreated);
+
+public sealed record CpCostModelCloseDigest(
+    long Id,
+    long CompanyId,
+    long ItemId,
+    string Model,
+    string Label,
+    decimal Cogs,
+    decimal ClosingQty,
+    decimal ClosingValue,
+    decimal Variance,
+    string DetailJson,
+    long TimeCreated);
+
+public sealed record CpCostModelItemDetailResult(
+    CpCostModelItemDigest? Item,
+    IReadOnlyList<CpCostModelTxnDigest> Txns,
+    IReadOnlyList<CpCostModelCloseDigest> Closes,
+    string Source,
+    string Message);
+
 public sealed record CpFinAdvancedSummary(
     int PeriodCount,
     int OpenPeriodCount,

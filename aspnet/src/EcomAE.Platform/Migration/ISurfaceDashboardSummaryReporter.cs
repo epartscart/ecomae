@@ -233,6 +233,9 @@ public interface ISurfaceDashboardSummaryReporter
     /// <summary>Read-only cost model item assignments.</summary>
     Task<CpCostModelsDigestResult> BuildCpCostModelsDigestAsync(int limit, CancellationToken cancellationToken = default);
 
+    /// <summary>Opened cost model assignment (PHP <c>costm_id=</c> detail) plus txns and closes.</summary>
+    Task<CpCostModelItemDetailResult> BuildCpCostModelItemDetailAsync(long id, CancellationToken cancellationToken = default);
+
     /// <summary>Read-only financial periods (allocation/accrual JSON omitted).</summary>
     Task<CpFinAdvancedDigestResult> BuildCpFinAdvancedDigestAsync(int limit, CancellationToken cancellationToken = default);
 
