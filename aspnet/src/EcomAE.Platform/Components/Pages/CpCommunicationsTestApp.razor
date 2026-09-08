@@ -7,92 +7,185 @@
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
-@inject NavigationManager Nav
 
 <PageTitle>Communications test · Control Panel · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="cp" />
 <HeadContent>
 <style>
-        .epc-w22-hero {
-            margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
-            background:linear-gradient(135deg,#0c4a6e 0%,#2563eb 45%,#0ea5e9 100%);
-        }
-        .epc-w22-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
-        .epc-w22-hero p { margin:0; color:rgba(255,255,255,.88); max-width:44rem; font-size:.92rem; line-height:1.45; }
-        .epc-w22-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
-        .epc-w22-cta a {
-            display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
-            text-decoration:none; color:#0f172a; background:#fff;
-        }
-        .epc-w22-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); color:#fff; }
-        .epc-w22-kpis { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
-        .epc-w22-kpi { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; padding:.85rem .9rem; }
-        .epc-w22-kpi strong { display:block; font-size:1.2rem; word-break:break-word; }
-        .epc-w22-kpi span { color:#64748b; font-size:.78rem; }
-        .epc-w22-table-wrap { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; overflow:auto; }
-        .epc-w22-table { width:100%; border-collapse:collapse; font-size:.86rem; }
-        .epc-w22-table th, .epc-w22-table td { padding:.55rem .7rem; border-bottom:1px solid #f1f5f9; text-align:left; white-space:nowrap; }
-        .epc-w22-table th { background:#f8fafc; color:#475569; font-size:.75rem; text-transform:uppercase; letter-spacing:.03em; }
-        .epc-w22-note { margin-top:1rem; padding:.75rem .9rem; background:#f8fafc; border:1px solid #cbd5e1; border-radius:.45rem; color:#334155; font-size:.86rem; }
-        @@media (max-width:900px){ .epc-w22-kpis{grid-template-columns:1fr 1fr;} }
-    
+    .epc-cn { --cn-ink:#0f172a; --cn-muted:#64748b; --cn-line:#e2e8f0; --cn-soft:#f8fafc; --cn-accent:#0f766e; --cn-email:#0369a1; --cn-sms:#0f766e; color:var(--cn-ink); }
+    .epc-cn-hero { background:linear-gradient(125deg,#0f172a 0%,#134e4a 52%,#0f766e 100%); color:#fff; border-radius:14px; padding:20px 22px; margin:0 0 16px; }
+    .epc-cn-hero h3 { margin:0 0 6px; color:#fff; font-size:20px; }
+    .epc-cn-hero p { margin:0; opacity:.92; max-width:52rem; line-height:1.45; font-size:13px; }
+    .epc-cn-hero__actions { display:flex; flex-wrap:wrap; gap:8px; margin-top:14px; }
+    .epc-cn-hero__actions .btn { border:1px solid rgba(255,255,255,.28); background:rgba(255,255,255,.12); color:#fff; font-weight:600; }
+    .epc-cn-hero__actions .btn-primary { background:#fff; color:#0f172a; border-color:#fff; }
+    .epc-cn-quick { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:12px; margin:0 0 16px; }
+    .epc-cn-quick a { display:block; background:#fff; border:1px solid #e2e8f0; border-radius:12px; padding:14px 15px; color:#0f172a; text-decoration:none !important; }
+    .epc-cn-quick strong { display:block; font-size:14px; margin-bottom:3px; }
+    .epc-cn-quick span { display:block; font-size:12px; color:#64748b; line-height:1.4; }
+    .epc-cn-guide { background:linear-gradient(135deg,#f0fdfa 0%,#f0f9ff 100%); border:1px solid #cce7e2; border-radius:12px; padding:16px 18px; margin:0 0 16px; }
+    .epc-cn-guide h4 { margin:0 0 10px; font-size:14px; font-weight:700; color:#134e4a; }
+    .epc-cn-steps { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:10px; margin:0; padding:0; list-style:none; }
+    .epc-cn-steps li { background:rgba(255,255,255,.75); border:1px solid #d9ebe7; border-radius:10px; padding:12px; font-size:12px; line-height:1.45; color:#334155; }
+    .epc-cn-steps strong { display:block; color:#0f172a; font-size:13px; margin-bottom:2px; }
+    .epc-cn-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; margin-bottom:8px; }
+    @@media (max-width:991px){ .epc-cn-grid{grid-template-columns:1fr;} }
+    .epc-cn-card { background:#fff; border:1px solid #e2e8f0; border-radius:14px; overflow:hidden; }
+    .epc-cn-card__head { display:flex; align-items:flex-start; justify-content:space-between; gap:10px; padding:14px 16px; border-bottom:1px solid #e2e8f0; background:#f8fafc; }
+    .epc-cn-card__head h4 { margin:0 0 2px; font-size:15px; font-weight:700; }
+    .epc-cn-card__head p { margin:0; font-size:12px; color:#64748b; }
+    .epc-cn-card__body { padding:16px; }
+    .epc-cn-card.is-email .epc-cn-card__head { border-top:3px solid #0369a1; }
+    .epc-cn-card.is-sms .epc-cn-card__head { border-top:3px solid #0f766e; }
+    .epc-cn-status { display:flex; flex-wrap:wrap; gap:8px; margin:0 0 14px; }
+    .epc-cn-pill { display:inline-flex; align-items:center; gap:6px; border-radius:999px; padding:4px 10px; font-size:12px; font-weight:600; background:#f1f5f9; color:#334155; }
+    .epc-cn-pill.is-ok { background:#dcfce7; color:#15803d; }
+    .epc-cn-pill.is-bad { background:#fee2e2; color:#b91c1c; }
+    .epc-cn-pill.is-idle { background:#e2e8f0; color:#64748b; }
+    .epc-cn-meta { font-size:13px; color:#334155; line-height:1.5; }
 </style>
 </HeadContent>
 
-
 <PhpCpDesktopChrome IsAdmin="_isAdmin">
 
-    <section class="epc-w22-hero">
-        <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
-        <h1>Communications test</h1>
-        <p>@CpPhpModuleCopy.PurposeFor(Nav.Uri)</p>
-        <div class="epc-w22-cta">
-            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
+    <div class="col-lg-12 epc-cn" id="epc-cn-comms-root">
+        <div class="epc-cn-hero">
+            <h3>Communications</h3>
+            <p>Check e-mail (SMTP) and SMS delivery status from tenant tables. Send a test stays on the Classic twin — this page does not invent a send.</p>
+            <div class="epc-cn-hero__actions">
+                <a class="btn btn-sm btn-primary" href="/cp/tenant-email-app">E-mail settings</a>
+                <a class="btn btn-sm" href="/cp/sms-whatsapp-app">SMS operators</a>
+                <a class="btn btn-sm" href="/cp/notifications-app">Templates</a>
+                <a class="btn btn-sm" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Classic twin</a>
+            </div>
         </div>
-    </section>
-    <PhpParityModuleBody AppPath="/cp/communications-test-app" IsAdmin="_isAdmin" />
 
+        <div class="epc-cn-quick">
+            <a class="is-email" href="/cp/tenant-email-app">
+                <strong>SMTP / From address</strong>
+                <span>Host, port, encryption, username, From name &amp; e-mail.</span>
+            </a>
+            <a class="is-sms" href="/cp/sms-whatsapp-app">
+                <strong>SMS operator</strong>
+                <span>Activate Etisalat, du, Unifonic, or Pakistan — set sender number.</span>
+            </a>
+            <a class="is-templates" href="/cp/notifications-app">
+                <strong>Notification templates</strong>
+                <span>Turn e-mail / SMS on per event and edit message bodies.</span>
+            </a>
+            <a href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">
+                <strong>Send a test</strong>
+                <span>Classic twin posts to the live SMTP / SMS gateway. This page does not invent a send.</span>
+            </a>
+        </div>
 
-    <div class="epc-w22-kpis" aria-label="Communications test stats">
-        <div class="epc-w22-kpi"><strong>@_summary.SmsActiveCount.ToString(CultureInfo.InvariantCulture)</strong><span>SMS active</span></div>
-        <div class="epc-w22-kpi"><strong>@_summary.SmsTotalCount.ToString(CultureInfo.InvariantCulture)</strong><span>SMS total</span></div>
-        <div class="epc-w22-kpi"><strong>@(!string.IsNullOrWhiteSpace(_summary.EmailLastStatus) ? _summary.EmailLastStatus : "—")</strong><span>Email last</span></div>
-        <div class="epc-w22-kpi"><strong>@(!string.IsNullOrWhiteSpace(_summary.SmsLastStatus) ? _summary.SmsLastStatus : "—")</strong><span>SMS last</span></div>
+        <div class="epc-cn-guide">
+            <h4>How to get messaging working</h4>
+            <ol class="epc-cn-steps">
+                <li><strong>Configure e-mail</strong>Fill SMTP fields, then return here to review last-test status.</li>
+                <li><strong>Activate SMS</strong>Pick one operator and paste API credentials on the SMS page.</li>
+                <li><strong>Edit templates</strong>Enable e-mail/SMS per event under Notification settings.</li>
+                <li><strong>Test on Classic</strong>Send a test to your inbox / mobile. Green status means the last test succeeded.</li>
+            </ol>
+        </div>
+
+        <PhpParityModuleBody AppPath="/cp/communications-test-app" IsAdmin="_isAdmin" />
+
+        <div class="epc-cn-grid">
+            <div class="epc-cn-card is-email">
+                <div class="epc-cn-card__head">
+                    <div>
+                        <h4>E-mail</h4>
+                        <p>Last SMTP test from <code>debug_results</code>.</p>
+                    </div>
+                    <a class="btn btn-sm btn-success" href="/cp/tenant-email-app">Settings</a>
+                </div>
+                <div class="epc-cn-card__body">
+                    <div class="epc-cn-status">
+                        <span class="epc-cn-pill @EmailPillClass()">@_emailPill</span>
+                    </div>
+                    <div class="epc-cn-meta">
+                        @if (!_isAdmin)
+                        {
+                            <text>Sign in with a Control Panel admin session to load live tenant data.</text>
+                        }
+                        else
+                        {
+                            <text>Last test status: <code>@_emailStatus</code>. Send-test stays on the Classic twin.</text>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <div class="epc-cn-card is-sms">
+                <div class="epc-cn-card__head">
+                    <div>
+                        <h4>SMS</h4>
+                        <p>Active operator and last SMS test.</p>
+                    </div>
+                    <a class="btn btn-sm btn-success" href="/cp/sms-whatsapp-app">Operators</a>
+                </div>
+                <div class="epc-cn-card__body">
+                    <div class="epc-cn-status">
+                        <span class="epc-cn-pill @(_summary.SmsActiveCount > 0 ? "is-ok" : "is-bad")">@(_summary.SmsActiveCount > 0 ? "Configured" : "Not configured")</span>
+                        <span class="epc-cn-pill @SmsPillClass()">@_smsPill</span>
+                    </div>
+                    <div class="epc-cn-meta">
+                        @if (!_isAdmin)
+                        {
+                            <text>Sign in to load operators.</text>
+                        }
+                        else
+                        {
+                            <text>@_summary.SmsActiveCount.ToString(CultureInfo.InvariantCulture) active of @_summary.SmsTotalCount.ToString(CultureInfo.InvariantCulture). Last test: <code>@_smsStatus</code>.</text>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <div class="epc-w22-table-wrap">
-    <table class="epc-w22-table">
-        <thead>
-            <tr>
-                    <th>Name</th>
-                    <th>Active</th>
-                    <th>Selectable</th>
-                    <th>Handler</th>
-                    <th></th>
-            </tr>
-        </thead>
-        <tbody>
-            @if (_rows.Count == 0)
-            {
-                <tr><td colspan="5">No records yet.</td></tr>
-            }
-            else
-            {
-                @foreach (var row in _rows)
-                {
-                    <tr>
-                                                        <td>@(!string.IsNullOrWhiteSpace(row.Name) ? row.Name : "—")</td>
-                            <td>@row.Active.ToString(CultureInfo.InvariantCulture)</td>
-                            <td>@row.IsSelectable.ToString(CultureInfo.InvariantCulture)</td>
-                            <td>@(!string.IsNullOrWhiteSpace(row.Handler) ? row.Handler : "—")</td>
-                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
-                    </tr>
-                }
-            }
-        </tbody>
-    </table>
+    <div class="col-lg-12">
+        <div class="hpanel">
+            <div class="panel-heading hbuilt">SMS operators</div>
+            <div class="panel-body">
+                <div class="table-responsive">
+                    <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Active</th>
+                                <th>Selectable</th>
+                                <th>Handler</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        @if (!_isAdmin)
+                        {
+                            <tr><td colspan="4">Sign in for live data.</td></tr>
+                        }
+                        else if (_rows.Count == 0)
+                        {
+                            <tr><td colspan="4">No records yet.</td></tr>
+                        }
+                        else
+                        {
+                            @foreach (var row in _rows)
+                            {
+                                <tr>
+                                    <td>@(string.IsNullOrWhiteSpace(row.Name) ? "—" : row.Name)</td>
+                                    <td>@row.Active.ToString(CultureInfo.InvariantCulture)</td>
+                                    <td>@row.IsSelectable.ToString(CultureInfo.InvariantCulture)</td>
+                                    <td>@(string.IsNullOrWhiteSpace(row.Handler) ? "—" : row.Handler)</td>
+                                </tr>
+                            }
+                        }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
     </div>
-
 </PhpCpDesktopChrome>
 
 @code {
@@ -100,8 +193,10 @@
     private bool _isAdmin;
     private CpCommunicationsTestSummary _summary = new(0, 0, "", "", "n/a", "");
     private IReadOnlyList<CpCommunicationsTestRowDigest> _rows = [];
-    private string _source = "n/a";
-    private string _message = "";
+    private string _emailStatus = "—";
+    private string _smsStatus = "—";
+    private string _emailPill = "idle";
+    private string _smsPill = "idle";
 
     protected override async Task OnInitializedAsync()
     {
@@ -112,13 +207,37 @@
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
         if (!_isAdmin)
         {
-            return; // guest browse — Sign in for live data
+            return;
         }
 
         var result = await Dashboards.BuildCpCommunicationsTestDigestAsync(200, ctx.RequestAborted);
         _summary = result.Summary;
         _rows = result.Channels;
-        _source = result.Source;
-        _message = result.Message;
+        _emailStatus = string.IsNullOrWhiteSpace(_summary.EmailLastStatus) ? "—" : _summary.EmailLastStatus;
+        _smsStatus = string.IsNullOrWhiteSpace(_summary.SmsLastStatus) ? "—" : _summary.SmsLastStatus;
+        _emailPill = PillLabel(_summary.EmailLastStatus);
+        _smsPill = PillLabel(_summary.SmsLastStatus);
+    }
+
+    private static string PillLabel(string status)
+    {
+        if (string.IsNullOrWhiteSpace(status)) return "No test yet";
+        if (status == "1") return "Last test ok";
+        if (status == "0") return "Last test failed";
+        return status;
+    }
+
+    private string EmailPillClass()
+        => PillClass(_summary.EmailLastStatus);
+
+    private string SmsPillClass()
+        => PillClass(_summary.SmsLastStatus);
+
+    private static string PillClass(string status)
+    {
+        if (string.IsNullOrWhiteSpace(status)) return "is-idle";
+        if (status == "1") return "is-ok";
+        if (status == "0") return "is-bad";
+        return "is-idle";
     }
 }
