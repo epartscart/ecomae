@@ -2659,6 +2659,25 @@ public sealed record CpPlatformGovernanceDigestResult(
     string Source,
     string Message);
 
+public sealed record CpPlatformGovernanceRuleDetail(
+    long Id,
+    string RuleKey,
+    string Category,
+    string Title,
+    string Enforcement,
+    string Scope,
+    string ModuleLink,
+    bool Active,
+    long TimeUpdated,
+    int DescriptionLen,
+    string DescriptionExcerpt);
+
+public sealed record CpPlatformGovernanceRuleDetailResult(
+    CpPlatformGovernanceRuleDetail? Rule,
+    IReadOnlyList<CpPlatformGovernanceRuleDigest> Siblings,
+    string Source,
+    string Message);
+
 public sealed record CpEinvoiceDocumentsSummary(
     int DocumentCount,
     int OpenCount,
