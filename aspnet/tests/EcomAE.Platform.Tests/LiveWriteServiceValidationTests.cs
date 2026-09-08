@@ -102,7 +102,7 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(invalid.Succeeded);
         Assert.Equal("invalid", invalid.Code);
 
-        var daysDb = await new ErpPayrollUpdateDaysWriteService(new UnconfiguredConnections())
+var daysDb = await new ErpPayrollUpdateDaysWriteService(new UnconfiguredConnections())
             .UpdateLineDaysAsync(1, 15);
         Assert.False(daysDb.Succeeded);
         Assert.Equal("db", daysDb.Code);
@@ -112,6 +112,17 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(daysInvalid.Succeeded);
         Assert.Equal("invalid", daysInvalid.Code);
         Assert.Equal("Cannot edit paid payroll line", daysInvalid.Message);
+
+        var genInvalid = await new ErpPayrollGenerateWriteService(new ConfiguredNeverOpened())
+            .GenerateAsync("not-a-period");
+        Assert.False(genInvalid.Succeeded);
+        Assert.Equal("invalid", genInvalid.Code);
+        Assert.Equal("Invalid period (use YYYY-MM)", genInvalid.Message);
+
+        var genDb = await new ErpPayrollGenerateWriteService(new UnconfiguredConnections())
+            .GenerateAsync("2026-09");
+        Assert.False(genDb.Succeeded);
+        Assert.Equal("db", genDb.Code);
     }
 
     [Fact]
