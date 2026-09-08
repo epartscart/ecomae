@@ -606,6 +606,12 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.DoesNotContain("`description`", LegacySurfaceDashboardSql.SelectCpSoc2Controls, StringComparison.Ordinal);
         Assert.DoesNotContain("`implementation`", LegacySurfaceDashboardSql.SelectCpSoc2Controls, StringComparison.Ordinal);
         Assert.Contains("epc_costm_item", LegacySurfaceDashboardSql.SelectCpCostModelItems, StringComparison.Ordinal);
+        Assert.DoesNotContain("detail_json", LegacySurfaceDashboardSql.SelectCpCostModelItems, StringComparison.Ordinal);
+        Assert.Contains("`id` = @id", LegacySurfaceDashboardSql.SelectCpCostModelItemDetail, StringComparison.Ordinal);
+        Assert.Contains("epc_costm_txn", LegacySurfaceDashboardSql.SelectCpCostModelTxns, StringComparison.Ordinal);
+        Assert.Contains("`item_id` = (SELECT `item_id` FROM `epc_costm_item` WHERE `id` = @id)", LegacySurfaceDashboardSql.SelectCpCostModelTxns, StringComparison.Ordinal);
+        Assert.Contains("detail_json", LegacySurfaceDashboardSql.SelectCpCostModelCloses, StringComparison.Ordinal);
+        Assert.Contains("epc_costm_close", LegacySurfaceDashboardSql.SelectCpCostModelCloses, StringComparison.Ordinal);
         Assert.Contains("epc_fin_periods", LegacySurfaceDashboardSql.SelectCpFinPeriods, StringComparison.Ordinal);
         Assert.Contains("epc_bc_proofs", LegacySurfaceDashboardSql.SelectCpBlockchainProofs, StringComparison.Ordinal);
         Assert.DoesNotContain("payload_json", LegacySurfaceDashboardSql.SelectCpBlockchainProofs, StringComparison.Ordinal);
