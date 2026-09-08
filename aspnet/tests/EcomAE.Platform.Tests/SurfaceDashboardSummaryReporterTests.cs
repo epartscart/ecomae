@@ -62,6 +62,7 @@ public sealed class SurfaceDashboardSummaryReporterTests
         var partsAgent = await reporter.BuildCpPartsAgentDigestAsync(10);
         var posOverview = await reporter.BuildCpPosOverviewDigestAsync(10);
         var taxToolkits = await reporter.BuildCpTaxToolkitsDigestAsync(10);
+        var taxToolkitDetail = await reporter.BuildCpTaxToolkitDetailAsync(3);
         var smsWhatsapp = await reporter.BuildCpSmsWhatsappDigestAsync(10);
         var crmBoard = await reporter.BuildCpCrmBoardDigestAsync(10);
         var documentControl = await reporter.BuildCpDocumentControlDigestAsync(10);

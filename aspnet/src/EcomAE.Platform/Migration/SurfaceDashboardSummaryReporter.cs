@@ -6238,6 +6238,89 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    public async Task<CpTaxToolkitDetailResult> BuildCpTaxToolkitDetailAsync(long id, CancellationToken cancellationToken = default)
+    {
+        if (id <= 0)
+        {
+            return new(null, [], [], "n/a", "");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return new(null, [], [], "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            CpTaxToolkitDetail? header = null;
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectCpTaxToolkitDetail;
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    header = new CpTaxToolkitDetail(
+                        Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["kit_code"] is DBNull ? string.Empty : reader["kit_code"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["name"] is DBNull ? string.Empty : reader["name"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["jurisdiction"] is DBNull ? string.Empty : reader["jurisdiction"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["country_codes_json"] is DBNull ? string.Empty : reader["country_codes_json"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["tax_type"] is DBNull ? string.Empty : reader["tax_type"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["rules_json"] is DBNull ? string.Empty : reader["rules_json"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt32(reader["is_system"] is DBNull ? 0 : reader["is_system"], CultureInfo.InvariantCulture) != 0,
+                        Convert.ToInt32(reader["active"] is DBNull ? 0 : reader["active"], CultureInfo.InvariantCulture) != 0,
+                        Convert.ToInt64(reader["time_created"] is DBNull ? 0 : reader["time_created"], CultureInfo.InvariantCulture));
+                }
+            }
+
+            var installs = new List<CpTaxToolkitInstallDigest>();
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectCpTaxToolkitInstalls;
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    installs.Add(new CpTaxToolkitInstallDigest(
+                        Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["kit_id"] is DBNull ? 0 : reader["kit_id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["kit_code"] is DBNull ? string.Empty : reader["kit_code"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt32(reader["is_default"] is DBNull ? 0 : reader["is_default"], CultureInfo.InvariantCulture) != 0,
+                        Convert.ToInt64(reader["installed_by"] is DBNull ? 0 : reader["installed_by"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["time_installed"] is DBNull ? 0 : reader["time_installed"], CultureInfo.InvariantCulture)));
+                }
+            }
+
+            var updates = new List<CpTaxToolkitUpdateDigest>();
+            if (header is not null && !string.IsNullOrWhiteSpace(header.KitCode))
+            {
+                await using var cmd = connection.CreateCommand();
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectCpTaxToolkitUpdates;
+                AddParameter(cmd, "@kit_code", header.KitCode);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    updates.Add(new CpTaxToolkitUpdateDigest(
+                        Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["kit_code"] is DBNull ? string.Empty : reader["kit_code"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["source"] is DBNull ? string.Empty : reader["source"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["changelog"] is DBNull ? string.Empty : reader["changelog"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["rules_hash"] is DBNull ? string.Empty : reader["rules_hash"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt64(reader["admin_id"] is DBNull ? 0 : reader["admin_id"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["time_updated"] is DBNull ? 0 : reader["time_updated"], CultureInfo.InvariantCulture)));
+                }
+            }
+
+            return new(header, installs, updates, "database", header is null ? "Toolkit not found." : string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(null, [], [], "database-error", ex.Message);
+        }
+    }
+
     public async Task<CpSmsWhatsappDigestResult> BuildCpSmsWhatsappDigestAsync(int limit, CancellationToken cancellationToken = default)
     {
         var safeLimit = Math.Clamp(limit, 1, 500);

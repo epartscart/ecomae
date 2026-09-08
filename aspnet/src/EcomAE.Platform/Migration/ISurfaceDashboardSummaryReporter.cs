@@ -134,6 +134,9 @@ public interface ISurfaceDashboardSummaryReporter
     /// <summary>Read-only tax toolkit catalog + tenant profile (rules_json / reg_number omitted).</summary>
     Task<CpTaxToolkitsDigestResult> BuildCpTaxToolkitsDigestAsync(int limit, CancellationToken cancellationToken = default);
 
+    /// <summary>Opened tax toolkit + installs/updates (PHP <c>toolkit_id=</c> detail).</summary>
+    Task<CpTaxToolkitDetailResult> BuildCpTaxToolkitDetailAsync(long id, CancellationToken cancellationToken = default);
+
     /// <summary>Read-only SMS operators + WhatsApp log (parameters_values / tokens / raw phone omitted).</summary>
     Task<CpSmsWhatsappDigestResult> BuildCpSmsWhatsappDigestAsync(int limit, CancellationToken cancellationToken = default);
 

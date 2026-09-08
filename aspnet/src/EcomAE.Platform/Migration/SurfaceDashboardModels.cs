@@ -1140,6 +1140,42 @@ public sealed record CpTaxToolkitsDigestResult(
     string Source,
     string Message);
 
+public sealed record CpTaxToolkitDetail(
+    long Id,
+    string KitCode,
+    string Name,
+    string Jurisdiction,
+    string CountryCodesJson,
+    string TaxType,
+    string RulesJson,
+    bool IsSystem,
+    bool Active,
+    long TimeCreated);
+
+public sealed record CpTaxToolkitInstallDigest(
+    long Id,
+    long KitId,
+    string KitCode,
+    bool IsDefault,
+    long InstalledBy,
+    long TimeInstalled);
+
+public sealed record CpTaxToolkitUpdateDigest(
+    long Id,
+    string KitCode,
+    string Source,
+    string Changelog,
+    string RulesHash,
+    long AdminId,
+    long TimeUpdated);
+
+public sealed record CpTaxToolkitDetailResult(
+    CpTaxToolkitDetail? Toolkit,
+    IReadOnlyList<CpTaxToolkitInstallDigest> Installs,
+    IReadOnlyList<CpTaxToolkitUpdateDigest> Updates,
+    string Source,
+    string Message);
+
 public sealed record CpSmsWhatsappSummary(
     int SmsOperators,
     string ActiveOperator,
