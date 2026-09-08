@@ -3416,6 +3416,21 @@ public sealed class LiveWriteServiceValidationTests
     }
 
     [Fact]
+    public async Task Prj_task_save_rejects_missing_project_and_unconfigured_db()
+    {
+        var invalid = await new ErpPrjTaskSaveWriteService(new ConfiguredNeverOpened())
+            .SaveAsync(new ErpPrjTaskSaveWriteRequest());
+        Assert.False(invalid.Succeeded);
+        Assert.Equal("invalid", invalid.Code);
+        Assert.Equal("Select a project", invalid.Message);
+
+        var missingDb = await new ErpPrjTaskSaveWriteService(new UnconfiguredConnections())
+            .SaveAsync(new ErpPrjTaskSaveWriteRequest(ProjectId: 4, Name: "Design"));
+        Assert.False(missingDb.Succeeded);
+        Assert.Equal("db", missingDb.Code);
+    }
+
+    [Fact]
     public async Task Wms_wave_create_rejects_invalid_item_qty_and_unconfigured_db()
     {
         var invalid = await new ErpWmsWaveCreateWriteService(new ConfiguredNeverOpened())

@@ -47,7 +47,7 @@
         <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
         <h1>Projects Overview</h1>
         <p>@CpPhpModuleCopy.PurposeFor(Nav.Uri)</p>
-        <p>Save a project and log time here. Task save stays on the Classic twin.</p>
+        <p>Save a project, a project task, and a time log here.</p>
         <div class="epc-prj-cta">
             <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
             <a class="ghost" href="/cp/production-overview-app">Production overview</a>
@@ -87,6 +87,22 @@
                 </select>
             </label>
             <button type="submit">Save project</button>
+        </form>
+        <form method="post" action="/erp/projects/tasks/save" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/projects-overview-app" />
+            <label>Project id <input type="number" name="project_id" min="1" required style="width:6rem" /></label>
+            <label>Id <input type="number" name="id" min="0" style="width:5rem" placeholder="new" /></label>
+            <label>Name <input type="text" name="name" placeholder="Task / milestone" /></label>
+            <label>Planned hrs <input type="number" name="planned_hours" step="0.01" style="width:6rem" /></label>
+            <label>% done <input type="number" name="percent_complete" step="1" min="0" max="100" style="width:5rem" /></label>
+            <label>Status
+                <select name="status">
+                    <option value="open">open</option>
+                    <option value="closed">closed</option>
+                </select>
+            </label>
+            <button type="submit">Save task</button>
         </form>
         <form method="post" action="/erp/projects/timesheets/log" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />

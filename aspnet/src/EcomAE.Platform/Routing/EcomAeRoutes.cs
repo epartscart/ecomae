@@ -1431,7 +1431,9 @@ public static class EcomAeRoutes
     public const string ErpProjectsSave = "/erp/projects/save";
     /// <summary>Live PHP prj_save twin (ajax alias of <see cref="ErpProjectsSave"/>).</summary>
     public const string ErpAjaxPrjSave = "/erp/ajax/prj-save";
-    /// <summary>Wave B dry-run for PHP prj_task_save (writes=0).</summary>
+    /// <summary>PHP epc_prj_task_save. <c>confirmWrites=true</c> writes via <c>IErpPrjTaskSaveWriteService</c>.</summary>
+    public const string ErpProjectsTasksSave = "/erp/projects/tasks/save";
+    /// <summary>PHP epc_prj_task_save ajax alias.</summary>
     public const string ErpAjaxPrjTaskSave = "/erp/ajax/prj-task-save";
     /// <summary>PHP epc_prj_log_time. <c>confirmWrites=true</c> writes via <c>IErpPrjLogTimeWriteService</c>.</summary>
     public const string ErpProjectsTimesheetsLog = "/erp/projects/timesheets/log";
