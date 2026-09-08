@@ -8226,7 +8226,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only epc_free_tool_accounts/saves/settings KPIs + accounts (token/pass_hash/del_code_hash/payload omitted). PHP free tools admin remains authoritative."
+                note = "Read-only epc_free_tool_accounts/saves/settings KPIs + accounts. Open ?account_id= loads last-login plus saved-tool titles. token/pass_hash/del_code_hash/payload omitted. PHP free tools admin remains authoritative."
             });
         });
 

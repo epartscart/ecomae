@@ -854,6 +854,12 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.Contains("epc_free_tool_accounts", LegacySurfaceDashboardSql.SelectCpFreeToolsStats, StringComparison.Ordinal);
         Assert.DoesNotContain("`token`", LegacySurfaceDashboardSql.SelectCpFreeToolsRows, StringComparison.Ordinal);
         Assert.DoesNotContain("pass_hash", LegacySurfaceDashboardSql.SelectCpFreeToolsRows, StringComparison.Ordinal);
+        Assert.Contains("time_last_login", LegacySurfaceDashboardSql.SelectCpFreeToolsAccountDetail, StringComparison.Ordinal);
+        Assert.DoesNotContain("`token`", LegacySurfaceDashboardSql.SelectCpFreeToolsAccountDetail, StringComparison.Ordinal);
+        Assert.DoesNotContain("pass_hash", LegacySurfaceDashboardSql.SelectCpFreeToolsAccountDetail, StringComparison.Ordinal);
+        Assert.DoesNotContain("del_code_hash", LegacySurfaceDashboardSql.SelectCpFreeToolsAccountDetail, StringComparison.Ordinal);
+        Assert.DoesNotContain("payload", LegacySurfaceDashboardSql.SelectCpFreeToolsAccountSaves, StringComparison.Ordinal);
+        Assert.Contains("`account_id` = @id", LegacySurfaceDashboardSql.SelectCpFreeToolsAccountSaves, StringComparison.Ordinal);
         Assert.Contains("epc_config_snapshots", LegacySurfaceDashboardSql.SelectCpConfigSandboxStats, StringComparison.Ordinal);
         Assert.DoesNotContain("config_data", LegacySurfaceDashboardSql.SelectCpConfigSandboxRows, StringComparison.Ordinal);
         Assert.Contains("epc_marketplace_apps", LegacySurfaceDashboardSql.SelectCpMarketplaceAppsStats, StringComparison.Ordinal);
