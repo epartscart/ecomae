@@ -10394,6 +10394,100 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    public async Task<CpBlockchainProofDetailResult> BuildCpBlockchainProofDetailAsync(long id, CancellationToken cancellationToken = default)
+    {
+        if (id <= 0)
+        {
+            return new(null, null, [], "n/a", "");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return new(null, null, [], "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            CpBlockchainProofDetail? header = null;
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectCpBlockchainProofDetail;
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    long? batchId = reader["batch_id"] is DBNull ? null : Convert.ToInt64(reader["batch_id"], CultureInfo.InvariantCulture);
+                    header = new CpBlockchainProofDetail(
+                        Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["proof_uid"] is DBNull ? string.Empty : reader["proof_uid"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["tenant_key"] is DBNull ? string.Empty : reader["tenant_key"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["record_type"] is DBNull ? string.Empty : reader["record_type"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["record_id"] is DBNull ? string.Empty : reader["record_id"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["payload_hash"] is DBNull ? string.Empty : reader["payload_hash"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["status"] is DBNull ? string.Empty : reader["status"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        batchId,
+                        Convert.ToString(reader["anchor_ref"] is DBNull ? string.Empty : reader["anchor_ref"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["created_at"] is DBNull ? string.Empty : reader["created_at"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt32(reader["merkle_index"] is DBNull ? 0 : reader["merkle_index"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["anchored_at"] is DBNull ? string.Empty : reader["anchored_at"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt32(reader["payload_len"] is DBNull ? 0 : reader["payload_len"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["payload_excerpt"] is DBNull ? string.Empty : reader["payload_excerpt"], CultureInfo.InvariantCulture) ?? string.Empty);
+                }
+            }
+
+            if (header is null)
+            {
+                return new(null, null, [], "database", "Proof not found.");
+            }
+
+            CpBlockchainBatchDetail? batch = null;
+            var siblings = new List<CpBlockchainBatchSiblingDigest>();
+            if (header.BatchId is > 0)
+            {
+                await using (var cmd = connection.CreateCommand())
+                {
+                    cmd.CommandText = LegacySurfaceDashboardSql.SelectCpBlockchainBatchDetail;
+                    AddParameter(cmd, "@id", header.BatchId.Value);
+                    await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                    if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                    {
+                        batch = new CpBlockchainBatchDetail(
+                            Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                            Convert.ToString(reader["batch_uid"] is DBNull ? string.Empty : reader["batch_uid"], CultureInfo.InvariantCulture) ?? string.Empty,
+                            Convert.ToString(reader["merkle_root"] is DBNull ? string.Empty : reader["merkle_root"], CultureInfo.InvariantCulture) ?? string.Empty,
+                            Convert.ToInt32(reader["proof_count"] is DBNull ? 0 : reader["proof_count"], CultureInfo.InvariantCulture),
+                            Convert.ToString(reader["status"] is DBNull ? string.Empty : reader["status"], CultureInfo.InvariantCulture) ?? string.Empty,
+                            Convert.ToString(reader["anchor_network"] is DBNull ? string.Empty : reader["anchor_network"], CultureInfo.InvariantCulture) ?? string.Empty,
+                            Convert.ToString(reader["anchor_ref"] is DBNull ? string.Empty : reader["anchor_ref"], CultureInfo.InvariantCulture) ?? string.Empty,
+                            Convert.ToString(reader["anchored_at"] is DBNull ? string.Empty : reader["anchored_at"], CultureInfo.InvariantCulture) ?? string.Empty);
+                    }
+                }
+
+                await using (var cmd = connection.CreateCommand())
+                {
+                    cmd.CommandText = LegacySurfaceDashboardSql.SelectCpBlockchainBatchSiblings;
+                    AddParameter(cmd, "@batch_id", header.BatchId.Value);
+                    await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                    while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                    {
+                        siblings.Add(new CpBlockchainBatchSiblingDigest(
+                            Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                            Convert.ToString(reader["proof_uid"] is DBNull ? string.Empty : reader["proof_uid"], CultureInfo.InvariantCulture) ?? string.Empty,
+                            Convert.ToString(reader["record_type"] is DBNull ? string.Empty : reader["record_type"], CultureInfo.InvariantCulture) ?? string.Empty,
+                            Convert.ToString(reader["record_id"] is DBNull ? string.Empty : reader["record_id"], CultureInfo.InvariantCulture) ?? string.Empty,
+                            Convert.ToString(reader["status"] is DBNull ? string.Empty : reader["status"], CultureInfo.InvariantCulture) ?? string.Empty));
+                    }
+                }
+            }
+
+            return new(header, batch, siblings, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(null, null, [], "database-error", ex.Message);
+        }
+    }
 
     public async Task<CpLandedCostDigestResult> BuildCpLandedCostDigestAsync(int limit, CancellationToken cancellationToken = default)
     {

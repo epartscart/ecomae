@@ -7152,7 +7152,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only epc_bc_* KPIs + proofs (payload_json/merkle_proof_json omitted). PHP tax/audit_wb blockchain_proofs remains authoritative."
+                note = "Read-only epc_bc_* KPIs + proofs. Open ?proof_id= loads a 280-char payload excerpt and batch siblings. merkle_proof_json and batch meta_json omitted. Verify/anchor writes stay PHP."
             });
         });
 

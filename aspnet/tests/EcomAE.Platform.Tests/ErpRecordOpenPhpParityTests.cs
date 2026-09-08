@@ -32,6 +32,8 @@ public sealed class ErpRecordOpenPhpParityTests
     [InlineData("/CP/control/portal/epc_tax_toolkit_manage?toolkit_id=3", "/cp/tax-toolkits-app?toolkit_id=3")]
     [InlineData("/CP/control/portal/epc_event_bus?event_id=3", "/cp/event-bus-app?event_id=3")]
     [InlineData("/ERP/?epc_erp_shell=1&area=cost_acct&tab=fin_advanced&period_id=5", "/erp/fin-advanced-app?period_id=5")]
+    [InlineData("/ERP/?epc_erp_shell=1&area=tax&tab=blockchain_proofs&proof_id=4", "/erp/blockchain-proofs-app?proof_id=4")]
+    [InlineData("/ERP/?epc_erp_shell=1&area=audit_wb&tab=blockchain_proofs&proof_id=4", "/erp/blockchain-proofs-app?proof_id=4")]
     [InlineData("/ERP/?epc_erp_shell=1&area=landed_cost_area&tab=landed_cost&sheet_id=6", "/erp/landed-cost-app?sheet_id=6")]
     [InlineData("/CP/control/portal/epc_soc2_compliance?soc2_id=8", "/cp/soc2-compliance-app?soc2_id=8")]
     [InlineData("/ERP/?epc_erp_shell=1&area=tax&tab=compliance&soc2_id=8", "/erp/soc2-compliance-app?soc2_id=8")]
@@ -330,6 +332,40 @@ public sealed class ErpRecordOpenPhpParityTests
             ErpRecordOpen.PreserveRecordQuery(
                 "/cp/fin-advanced-app",
                 "/ERP/?epc_erp_shell=1&area=cost_acct&tab=fin_advanced&period_id=5"));
+    }
+
+    [Fact]
+    public void BlockchainProofsApp_OpenLoadsExcerptAndBatchSiblings()
+    {
+        var root = FindRepoRoot();
+        var text = File.ReadAllText(Path.Combine(root,
+            "aspnet/src/EcomAE.Platform/Components/Pages/CpBlockchainProofsApp.razor"));
+        Assert.Contains("ErpRecordOpen.Href(_listHref, \"proof_id\"", text, StringComparison.Ordinal);
+        Assert.Contains("ErpOpenedRecordBanner", text, StringComparison.Ordinal);
+        Assert.Contains("ReadId(ctx.Request, \"proof_id\")", text, StringComparison.Ordinal);
+        Assert.Contains("BuildCpBlockchainProofDetailAsync", text, StringComparison.Ordinal);
+        Assert.Contains("No payload excerpt yet.", text, StringComparison.Ordinal);
+        Assert.Contains("No batch siblings yet.", text, StringComparison.Ordinal);
+        Assert.Contains("ShowGhostScaffold=\"false\"", text, StringComparison.Ordinal);
+        Assert.Contains("table-epc", text, StringComparison.Ordinal);
+        Assert.Contains("PhpParityModuleBody", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)\">Open", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("/php-reference/", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("ASP.NET", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("merkle_proof_json", text, StringComparison.Ordinal);
+
+        Assert.Equal("/erp/blockchain-proofs-app?proof_id=4#erp-row-4",
+            ErpRecordOpen.Href("/erp/blockchain-proofs-app", "proof_id", 4));
+        Assert.Equal(
+            "/erp/blockchain-proofs-app?proof_id=4",
+            ErpRecordOpen.PreserveRecordQuery(
+                "/erp/blockchain-proofs-app",
+                "/ERP/?epc_erp_shell=1&area=tax&tab=blockchain_proofs&proof_id=4"));
+        Assert.Equal(
+            "/cp/blockchain-proofs-app?proof_id=4",
+            ErpRecordOpen.PreserveRecordQuery(
+                "/cp/blockchain-proofs-app",
+                "/ERP/?epc_erp_shell=1&area=audit_wb&tab=blockchain_proofs&proof_id=4"));
     }
 
     [Fact]

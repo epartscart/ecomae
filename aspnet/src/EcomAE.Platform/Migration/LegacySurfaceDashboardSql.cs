@@ -3246,6 +3246,43 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>Opened blockchain proof. Payload is a short excerpt; merkle_proof_json is never selected.</summary>
+    public const string SelectCpBlockchainProofDetail = """
+        SELECT `id`, IFNULL(`proof_uid`,'') AS proof_uid, IFNULL(`tenant_key`,'') AS tenant_key,
+               IFNULL(`record_type`,'') AS record_type, IFNULL(`record_id`,'') AS record_id,
+               IFNULL(`payload_hash`,'') AS payload_hash, IFNULL(`status`,'') AS status,
+               `batch_id`, IFNULL(`anchor_ref`,'') AS anchor_ref,
+               IFNULL(`created_at`,'') AS created_at,
+               IFNULL(`merkle_index`,0) AS merkle_index,
+               IFNULL(CAST(`anchored_at` AS CHAR),'') AS anchored_at,
+               CHAR_LENGTH(IFNULL(`payload_json`,'')) AS payload_len,
+               LEFT(IFNULL(`payload_json`,''), 280) AS payload_excerpt
+        FROM `epc_bc_proofs`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Opened proof's anchor batch. <c>meta_json</c> omitted.</summary>
+    public const string SelectCpBlockchainBatchDetail = """
+        SELECT `id`, IFNULL(`batch_uid`,'') AS batch_uid, IFNULL(`merkle_root`,'') AS merkle_root,
+               IFNULL(`proof_count`,0) AS proof_count, IFNULL(`status`,'') AS status,
+               IFNULL(`anchor_network`,'') AS anchor_network, IFNULL(`anchor_ref`,'') AS anchor_ref,
+               IFNULL(CAST(`anchored_at` AS CHAR),'') AS anchored_at
+        FROM `epc_bc_anchor_batches`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Sibling proofs in the same batch. JSON payloads omitted.</summary>
+    public const string SelectCpBlockchainBatchSiblings = """
+        SELECT `id`, IFNULL(`proof_uid`,'') AS proof_uid, IFNULL(`record_type`,'') AS record_type,
+               IFNULL(`record_id`,'') AS record_id, IFNULL(`status`,'') AS status
+        FROM `epc_bc_proofs`
+        WHERE `batch_id` = @batch_id
+        ORDER BY `id` ASC
+        LIMIT 50
+        """;
+
 
     /// <summary>Landed-cost KPIs from epc_landed_cost_* (CREATE TABLE in epc_erp_landed_cost_v2.php).</summary>
     public const string SelectCpLandedCostStats = """

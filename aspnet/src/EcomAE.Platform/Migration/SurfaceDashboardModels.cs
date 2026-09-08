@@ -2912,6 +2912,46 @@ public sealed record CpBlockchainProofsDigestResult(
     string Source,
     string Message);
 
+public sealed record CpBlockchainProofDetail(
+    long Id,
+    string ProofUid,
+    string TenantKey,
+    string RecordType,
+    string RecordId,
+    string PayloadHash,
+    string Status,
+    long? BatchId,
+    string AnchorRef,
+    string CreatedAt,
+    int MerkleIndex,
+    string AnchoredAt,
+    int PayloadLen,
+    string PayloadExcerpt);
+
+public sealed record CpBlockchainBatchDetail(
+    long Id,
+    string BatchUid,
+    string MerkleRoot,
+    int ProofCount,
+    string Status,
+    string AnchorNetwork,
+    string AnchorRef,
+    string AnchoredAt);
+
+public sealed record CpBlockchainBatchSiblingDigest(
+    long Id,
+    string ProofUid,
+    string RecordType,
+    string RecordId,
+    string Status);
+
+public sealed record CpBlockchainProofDetailResult(
+    CpBlockchainProofDetail? Proof,
+    CpBlockchainBatchDetail? Batch,
+    IReadOnlyList<CpBlockchainBatchSiblingDigest> Siblings,
+    string Source,
+    string Message);
+
 public sealed record CpLandedCostSummary(
     int SheetCount,
     int PostedCount,
