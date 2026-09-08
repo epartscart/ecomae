@@ -134,11 +134,33 @@
             <div class="kpi"><div class="lbl">Closing</div><div class="val">@_forecast.Closing.ToString("N2", CultureInfo.InvariantCulture)</div></div>
             <div class="kpi"><div class="lbl">Min balance</div><div class="val">@_forecast.MinBalance.ToString("N2", CultureInfo.InvariantCulture)</div></div>
         </div>
+        @if (_isAdmin)
+        {
+            <ErpPhpCreateWell Title="Add forecast line">
+                <form method="post" action="@EcomAeRoutes.ErpCashForecastLineAdd" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin-bottom:1rem;">
+                    <input type="hidden" name="returnUrl" value="/erp/cash-accounts-app?tab=cash_forecast" />
+                    <input type="hidden" name="confirmWrites" value="true" />
+                    <label>Forecast id <input class="form-control input-sm" type="number" name="forecast_id" min="1" required style="width:80px;" /></label>
+                    <label>Due date <input class="form-control input-sm" type="date" name="due_date" required /></label>
+                    <label>Direction
+                        <select class="form-control input-sm" name="direction">
+                            <option value="in">Inflow</option>
+                            <option value="out">Outflow</option>
+                        </select>
+                    </label>
+                    <label>Amount <input class="form-control input-sm" type="number" step="0.01" name="amount" required style="width:90px;" /></label>
+                    <label>Category <input class="form-control input-sm" name="category" placeholder="AR / AP / Payroll" style="width:140px;" /></label>
+                    <label>Source <input class="form-control input-sm" name="source" style="width:120px;" /></label>
+                    <button type="submit" class="btn btn-success btn-sm">Add line</button>
+                </form>
+            </ErpPhpCreateWell>
+        }
         <h2 style="font-size:16px;">Forecasts</h2>
         <div class="epc-erp-table-wrap">
             <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
                 <thead>
                     <tr>
+                        <th>Id</th>
                         <th>Name</th>
                         <th class="text-right">Opening</th>
                         <th>Currency</th>
@@ -147,13 +169,14 @@
                 <tbody>
                     @if (_forecasts.Count == 0)
                     {
-                        <tr><td colspan="3">@(_isAdmin ? (string.IsNullOrWhiteSpace(_accountsMessage) ? "No cash-flow forecasts yet." : _accountsMessage) : "Sign in with ERP capability for live rows.")</td></tr>
+                        <tr><td colspan="4">@(_isAdmin ? (string.IsNullOrWhiteSpace(_accountsMessage) ? "No cash-flow forecasts yet." : _accountsMessage) : "Sign in with ERP capability for live rows.")</td></tr>
                     }
                     else
                     {
                         @foreach (var f in _forecasts)
                         {
                             <tr>
+                                <td>@f.Id.ToString(CultureInfo.InvariantCulture)</td>
                                 <td><strong>@f.Name</strong></td>
                                 <td class="text-right">@f.OpeningBalance.ToString("N2", CultureInfo.InvariantCulture)</td>
                                 <td>@(string.IsNullOrWhiteSpace(f.Currency) ? "—" : f.Currency)</td>

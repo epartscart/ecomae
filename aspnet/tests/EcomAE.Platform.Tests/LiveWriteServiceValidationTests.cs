@@ -3111,6 +3111,23 @@ public sealed class LiveWriteServiceValidationTests
             .LogAsync(new ErpHrAttendanceWriteRequest(EmployeeId: 1, Hours: 8));
         Assert.False(hrAttDb.Succeeded);
         Assert.Equal("db", hrAttDb.Code);
+
+        var cftLineMissing = await new ErpCftLineAddWriteService(new ConfiguredNeverOpened())
+            .AddAsync(new ErpCftLineAddWriteRequest());
+        Assert.False(cftLineMissing.Succeeded);
+        Assert.Equal("invalid", cftLineMissing.Code);
+        Assert.Equal("Forecast not found", cftLineMissing.Message);
+
+        var cftLineDir = await new ErpCftLineAddWriteService(new ConfiguredNeverOpened())
+            .AddAsync(new ErpCftLineAddWriteRequest(ForecastId: 1, Direction: "sideways"));
+        Assert.False(cftLineDir.Succeeded);
+        Assert.Equal("invalid", cftLineDir.Code);
+        Assert.Equal("Direction must be in or out", cftLineDir.Message);
+
+        var cftLineDb = await new ErpCftLineAddWriteService(new UnconfiguredConnections())
+            .AddAsync(new ErpCftLineAddWriteRequest(ForecastId: 1));
+        Assert.False(cftLineDb.Succeeded);
+        Assert.Equal("db", cftLineDb.Code);
     }
 
     [Fact]
