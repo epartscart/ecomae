@@ -5255,6 +5255,30 @@ public sealed record CpCustomerBoardSummary(int UserCount, int WithEmail, int Wi
 public sealed record CpCustomerBoardRowDigest(int Id, string Email, string Name, string Phone, long RegTime);
 public sealed record CpCustomerBoardDigestResult(CpCustomerBoardSummary Summary, IReadOnlyList<CpCustomerBoardRowDigest> Rows, int Count, string Source, string Message);
 
+public sealed record CpCustomerBoardUserDetail(
+    long Id,
+    string Email,
+    string Phone,
+    string Name,
+    int EmailConfirmed,
+    int PhoneConfirmed,
+    int Unlocked,
+    string RegVariant,
+    long TimeRegistered,
+    long TimeLastVisit);
+
+public sealed record CpCustomerBoardGroupDigest(
+    long Id,
+    string Value,
+    int ForBackend,
+    int Unblocked);
+
+public sealed record CpCustomerBoardUserDetailResult(
+    CpCustomerBoardUserDetail? User,
+    IReadOnlyList<CpCustomerBoardGroupDigest> Groups,
+    string Source,
+    string Message);
+
 public sealed record CpFulfillmentQueueSummary(int Queued, int Picking, int Shipping, int Delivered, string Source, string Message);
 public sealed record CpFulfillmentQueueRowDigest(
     long Id,

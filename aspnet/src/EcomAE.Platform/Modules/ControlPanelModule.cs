@@ -9181,7 +9181,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only users peek for Super customer board (writes remain PHP). Super-only Blazor app."
+                note = "Read-only users peek for Super customer board. Open ?user_id= loads last visit, confirm flags, and group binds. Password omitted. Super-only Blazor app."
             });
         });
 

@@ -23,20 +23,86 @@
             </div>
             <div class="panel-body">
                 <p>@CpPhpModuleCopy.PurposeFor("/cp/customer-board-app")</p>
+                <p>Open a customer for last visit, confirm flags, and group binds. Credentials stay on the Classic twin.</p>
             </div>
         </div>
     </div>
-    <PhpParityModuleBody AppPath="/cp/customer-board-app" IsAdmin="_isAdmin" />
+    <PhpParityModuleBody AppPath="/cp/customer-board-app" IsAdmin="_isAdmin" ShowGhostScaffold="false" />
 
+    <ErpOpenedRecordBanner Id="_openedId" Found="@(_openedUser is not null)" Caption="@OpenedCaption" ListHref="@_listHref" />
 
-    <p class="help-block">@_userCount.ToString(CultureInfo.InvariantCulture) Users · @_withEmail.ToString(CultureInfo.InvariantCulture) With email · @_withPhone.ToString(CultureInfo.InvariantCulture) With phone · @_recentLogins.ToString(CultureInfo.InvariantCulture) Recent (30d).</p>
+    <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Customer board KPIs">
+        <div class="kpi"><div class="lbl">Users</div><div class="val">@_userCount.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">With email</div><div class="val">@_withEmail.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Recent (30d)</div><div class="val">@_recentLogins.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Opened groups</div><div class="val">@_openedGroups.Count.ToString(CultureInfo.InvariantCulture)</div></div>
+    </div>
+
+    @if (_openedUser is not null)
+    {
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">
+                    @(!string.IsNullOrWhiteSpace(_openedUser.Name) ? _openedUser.Name : (!string.IsNullOrWhiteSpace(_openedUser.Email) ? _openedUser.Email : ("User #" + _openedUser.Id.ToString(CultureInfo.InvariantCulture))))
+                    <span class="label label-default pull-right">@(_openedUser.Unlocked != 0 ? "unlocked" : "locked")</span>
+                </div>
+                <div class="panel-body">
+                    <p>@(!string.IsNullOrWhiteSpace(_openedUser.Email) ? _openedUser.Email : "—")
+                        · @(!string.IsNullOrWhiteSpace(_openedUser.Phone) ? _openedUser.Phone : "—")
+                        · @(!string.IsNullOrWhiteSpace(_openedUser.RegVariant) ? _openedUser.RegVariant : "—")</p>
+                    <p>Registered @_openedUser.TimeRegistered.ToString(CultureInfo.InvariantCulture)
+                        · last visit @_openedUser.TimeLastVisit.ToString(CultureInfo.InvariantCulture)
+                        · email @(_openedUser.EmailConfirmed != 0 ? "confirmed" : "unconfirmed")
+                        · phone @(_openedUser.PhoneConfirmed != 0 ? "confirmed" : "unconfirmed")</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">Groups</div>
+                <div class="panel-body">
+                    <div class="table-responsive">
+                        <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped table-bordered table-epc epc-erp-table">
+                            <thead>
+                                <tr>
+                                    <th>Id</th>
+                                    <th>Group</th>
+                                    <th>Backend</th>
+                                    <th>Unblocked</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (_openedGroups.Count == 0)
+                                {
+                                    <tr><td colspan="4">No groups yet.</td></tr>
+                                }
+                                else
+                                {
+                                    @foreach (var group in _openedGroups)
+                                    {
+                                        <tr>
+                                            <td>@group.Id.ToString(CultureInfo.InvariantCulture)</td>
+                                            <td>@(!string.IsNullOrWhiteSpace(group.Value) ? group.Value : "—")</td>
+                                            <td>@(group.ForBackend != 0 ? "yes" : "no")</td>
+                                            <td>@(group.Unblocked != 0 ? "yes" : "no")</td>
+                                        </tr>
+                                    }
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
 
     <div class="col-lg-12">
         <div class="hpanel">
             <div class="panel-heading hbuilt">Records</div>
             <div class="panel-body">
                 <div class="table-responsive">
-                    <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped">
+                    <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped table-bordered table-epc epc-erp-table">
         <thead>
             <tr>
                     <th>Id</th>
@@ -50,19 +116,19 @@
         <tbody>
             @if (_rows.Count == 0)
             {
-                <tr><td colspan="6">No records yet.</td></tr>
+                <tr><td colspan="6">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? "No records yet." : _message) : "Sign in with a staff session for live rows.")</td></tr>
             }
             else
             {
                 @foreach (var row in _rows)
                 {
-                    <tr>
+                    <tr id="erp-row-@row.Id.ToString(CultureInfo.InvariantCulture)" class="@ErpRecordOpen.RowClass(row.Id, _openedId)">
                             <td>@row.Id.ToString(CultureInfo.InvariantCulture)</td>
                             <td>@(!string.IsNullOrWhiteSpace(row.Email) ? row.Email : "—")</td>
                             <td>@(!string.IsNullOrWhiteSpace(row.Name) ? row.Name : "—")</td>
                             <td>@(!string.IsNullOrWhiteSpace(row.Phone) ? row.Phone : "—")</td>
                             <td>@row.RegTime.ToString(CultureInfo.InvariantCulture)</td>
-                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
+                            <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href(_listHref, "user_id", row.Id)">Open</a></td>
                     </tr>
                 }
             }
@@ -89,6 +155,7 @@ else
 @code {
     private bool _allowed;
     private const string _phpTab = "/CP/control/portal/epc_super_cp_customer_board";
+    private const string _listHref = "/cp/customer-board-app";
     private bool _isAdmin;
     private int _userCount = 0;
     private int _withEmail = 0;
@@ -97,6 +164,18 @@ else
     private IReadOnlyList<CpCustomerBoardRowDigest> _rows = [];
     private string _source = "n/a";
     private string _message = "";
+    private long _openedId;
+    private CpCustomerBoardUserDetail? _openedUser;
+    private IReadOnlyList<CpCustomerBoardGroupDigest> _openedGroups = [];
+
+    private string OpenedCaption => _openedUser is null
+        ? ""
+        : (string.IsNullOrWhiteSpace(_openedUser.Name)
+            ? (string.IsNullOrWhiteSpace(_openedUser.Email)
+                ? ("User #" + _openedUser.Id.ToString(CultureInfo.InvariantCulture))
+                : _openedUser.Email)
+            : _openedUser.Name)
+            + (_openedUser.Unlocked != 0 ? " · unlocked" : " · locked");
 
     protected override async Task OnInitializedAsync()
     {
@@ -106,6 +185,8 @@ else
         {
             return;
         }
+
+        _openedId = ErpRecordOpen.ReadId(ctx.Request, "user_id");
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
@@ -122,5 +203,24 @@ else
         _rows = result.Rows;
         _source = result.Source;
         _message = result.Message;
+
+        if (_openedId > 0)
+        {
+            var detail = await Dashboards.BuildCpCustomerBoardUserDetailAsync(_openedId, ctx.RequestAborted);
+            _openedUser = detail.User;
+            _openedGroups = detail.Groups;
+            if (_openedUser is not null)
+            {
+                var openedList = _rows.FirstOrDefault(r => r.Id == _openedId);
+                if (openedList is not null)
+                {
+                    _rows = new[] { openedList }.Concat(_rows.Where(r => r.Id != _openedId)).ToList();
+                }
+            }
+            else if (!string.IsNullOrWhiteSpace(detail.Message))
+            {
+                _message = detail.Message;
+            }
+        }
     }
 }

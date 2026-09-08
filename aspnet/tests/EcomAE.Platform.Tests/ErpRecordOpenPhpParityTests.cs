@@ -51,6 +51,7 @@ public sealed class ErpRecordOpenPhpParityTests
     [InlineData("/CP/control/portal/epc_ai_copilot?query_id=8", "/cp/ai-service-app?query_id=8")]
     [InlineData("/CP/control/portal/epc_free_tools?account_id=4", "/cp/free-tools-app?account_id=4")]
     [InlineData("/CP/control/portal/epc_free_tools_admin?account_id=4", "/cp/free-tools-app?account_id=4")]
+    [InlineData("/CP/control/portal/epc_super_cp_customer_board?user_id=9", "/cp/customer-board-app?user_id=9")]
     [InlineData("/ERP/?epc_erp_shell=1&area=landed_cost_area&tab=landed_cost&sheet_id=6", "/erp/landed-cost-app?sheet_id=6")]
     [InlineData("/CP/control/portal/epc_soc2_compliance?soc2_id=8", "/cp/soc2-compliance-app?soc2_id=8")]
     [InlineData("/ERP/?epc_erp_shell=1&area=tax&tab=compliance&soc2_id=8", "/erp/soc2-compliance-app?soc2_id=8")]
@@ -765,6 +766,35 @@ public sealed class ErpRecordOpenPhpParityTests
             ErpRecordOpen.PreserveRecordQuery(
                 "/cp/free-tools-app",
                 "/CP/control/portal/epc_free_tools?account_id=4"));
+    }
+
+    [Fact]
+    public void CustomerBoardApp_OpenLoadsLastVisitAndGroups()
+    {
+        var root = FindRepoRoot();
+        var text = File.ReadAllText(Path.Combine(root,
+            "aspnet/src/EcomAE.Platform/Components/Pages/CpCustomerBoardApp.razor"));
+        Assert.Contains("ErpRecordOpen.Href(_listHref, \"user_id\"", text, StringComparison.Ordinal);
+        Assert.Contains("ErpOpenedRecordBanner", text, StringComparison.Ordinal);
+        Assert.Contains("ReadId(ctx.Request, \"user_id\")", text, StringComparison.Ordinal);
+        Assert.Contains("BuildCpCustomerBoardUserDetailAsync", text, StringComparison.Ordinal);
+        Assert.Contains("No groups yet.", text, StringComparison.Ordinal);
+        Assert.Contains("ShowGhostScaffold=\"false\"", text, StringComparison.Ordinal);
+        Assert.Contains("table-epc", text, StringComparison.Ordinal);
+        Assert.Contains("PhpParityModuleBody", text, StringComparison.Ordinal);
+        Assert.Contains("SuperCpHostGate", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)\">Open", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("/php-reference/", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("ASP.NET", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("password", text, StringComparison.OrdinalIgnoreCase);
+
+        Assert.Equal("/cp/customer-board-app?user_id=9#erp-row-9",
+            ErpRecordOpen.Href("/cp/customer-board-app", "user_id", 9));
+        Assert.Equal(
+            "/cp/customer-board-app?user_id=9",
+            ErpRecordOpen.PreserveRecordQuery(
+                "/cp/customer-board-app",
+                "/CP/control/portal/epc_super_cp_customer_board?user_id=9"));
     }
 
     [Fact]

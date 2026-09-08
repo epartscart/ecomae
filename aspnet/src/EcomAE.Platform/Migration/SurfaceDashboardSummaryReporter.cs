@@ -16525,6 +16525,72 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    public async Task<CpCustomerBoardUserDetailResult> BuildCpCustomerBoardUserDetailAsync(long id, CancellationToken cancellationToken = default)
+    {
+        if (id <= 0)
+        {
+            return new(null, [], "n/a", "");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return new(null, [], "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            CpCustomerBoardUserDetail? header = null;
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectCpCustomerBoardUserDetail;
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    header = new CpCustomerBoardUserDetail(
+                        Convert.ToInt64(reader["id"] is DBNull ? 0 : reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["email"] is DBNull ? string.Empty : reader["email"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["phone"] is DBNull ? string.Empty : reader["phone"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["name"] is DBNull ? string.Empty : reader["name"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt32(reader["email_confirmed"] is DBNull ? 0 : reader["email_confirmed"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["phone_confirmed"] is DBNull ? 0 : reader["phone_confirmed"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["unlocked"] is DBNull ? 0 : reader["unlocked"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["reg_variant"] is DBNull ? string.Empty : reader["reg_variant"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt64(reader["time_registered"] is DBNull ? 0 : reader["time_registered"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["time_last_visit"] is DBNull ? 0 : reader["time_last_visit"], CultureInfo.InvariantCulture));
+                }
+            }
+
+            if (header is null)
+            {
+                return new(null, [], "database", "User not found.");
+            }
+
+            var groups = new List<CpCustomerBoardGroupDigest>();
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectCpCustomerBoardUserGroups;
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    groups.Add(new CpCustomerBoardGroupDigest(
+                        Convert.ToInt64(reader["id"] is DBNull ? 0 : reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["value"] is DBNull ? string.Empty : reader["value"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt32(reader["for_backend"] is DBNull ? 0 : reader["for_backend"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["unblocked"] is DBNull ? 0 : reader["unblocked"], CultureInfo.InvariantCulture)));
+                }
+            }
+
+            return new(header, groups, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(null, [], "database-error", ex.Message);
+        }
+    }
+
 
     public async Task<CpFulfillmentQueueDigestResult> BuildCpFulfillmentQueueDigestAsync(int limit, CancellationToken cancellationToken = default, string? status = null)
     {

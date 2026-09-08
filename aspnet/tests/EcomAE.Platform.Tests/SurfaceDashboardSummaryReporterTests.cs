@@ -749,6 +749,11 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.DoesNotContain("UPDATE", LegacySurfaceDashboardSql.SelectPortalTenants, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("DELETE", LegacySurfaceDashboardSql.SelectCustomerOrders, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("DELETE", LegacySurfaceDashboardSql.SelectCpUsers, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("time_last_visit", LegacySurfaceDashboardSql.SelectCpCustomerBoardUserDetail, StringComparison.Ordinal);
+        Assert.DoesNotContain("password", LegacySurfaceDashboardSql.SelectCpCustomerBoardUserDetail, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("secret", LegacySurfaceDashboardSql.SelectCpCustomerBoardUserDetail, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("`user_id` = @id", LegacySurfaceDashboardSql.SelectCpCustomerBoardUserGroups, StringComparison.Ordinal);
+        Assert.DoesNotContain("password", LegacySurfaceDashboardSql.SelectCpCustomerBoardUserGroups, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("epc_soc2_controls", LegacySurfaceDashboardSql.SelectCpSoc2Controls, StringComparison.Ordinal);
         Assert.DoesNotContain("`description`", LegacySurfaceDashboardSql.SelectCpSoc2Controls, StringComparison.Ordinal);
         Assert.DoesNotContain("`implementation`", LegacySurfaceDashboardSql.SelectCpSoc2Controls, StringComparison.Ordinal);

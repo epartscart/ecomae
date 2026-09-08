@@ -152,6 +152,7 @@ public static class PhpSurfaceLinkMap
         ("control/portal/epc_super_erp_fleet_dashboard", "/erp/fleet-app"),
         ("control/portal/epc_super_cp_info_blocks", "/cp/info-blocks-app"),
         ("control/portal/epc_super_cp_communication", "/cp/platform-communication-app"),
+        ("control/portal/epc_super_cp_customer_board", "/cp/customer-board-app"),
         ("control/portal/epc_tenant_control_center", "/cp/tenants-app"),
         ("control/portal/epc_industry_packs", "/cp/industry-packs-app"),
         ("control/portal/epc_notifications", "/cp/notifications-app"),
@@ -1626,7 +1627,8 @@ public static class PhpSurfaceLinkMap
                     || aspNet.Equals("/cp/platform-governance-app", StringComparison.OrdinalIgnoreCase)
                     || aspNet.Equals("/cp/platform-communication-app", StringComparison.OrdinalIgnoreCase)
                     || aspNet.Equals("/cp/ai-service-app", StringComparison.OrdinalIgnoreCase)
-                    || aspNet.Equals("/cp/free-tools-app", StringComparison.OrdinalIgnoreCase))
+                    || aspNet.Equals("/cp/free-tools-app", StringComparison.OrdinalIgnoreCase)
+                    || aspNet.Equals("/cp/customer-board-app", StringComparison.OrdinalIgnoreCase))
                 {
                     return ErpRecordOpen.PreserveRecordQuery(aspNet, value);
                 }
