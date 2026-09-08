@@ -1021,6 +1021,10 @@ public static class EcomAeRoutes
     public const string ErpAjaxHrExpenseStatus = "/erp/ajax/hr-expense-status";
     /// <summary>PHP hr_update_days. <c>confirmWrites=true</c> writes via <c>IErpHrDaysWriteService</c>.</summary>
     public const string ErpAjaxHrUpdateDays = "/erp/ajax/hr-update-days";
+    /// <summary>PHP epc_hr_payroll_run. <c>confirmWrites=true</c> writes via <c>IErpHrPayrollRunWriteService</c>.</summary>
+    public const string ErpHrPayrollGenerate = "/erp/hr/payroll/generate";
+    /// <summary>Live PHP epc_hr_payroll_run twin (ajax alias of <see cref="ErpHrPayrollGenerate"/>).</summary>
+    public const string ErpAjaxHrPayrollGenerate = "/erp/ajax/hr-payroll-generate";
     /// <summary>Wave B dry-run for PHP einvoice_create (writes=0).</summary>
     public const string ErpAjaxEinvoiceCreate = "/erp/ajax/einvoice-create";
     /// <summary>PHP einvoice_save_seller. <c>confirmWrites=true</c> writes via <c>IErpEinvoiceProfileWriteService</c>.</summary>
@@ -1426,11 +1430,17 @@ public static class EcomAeRoutes
     public const string ErpAjaxRtlPosSale = "/erp/ajax/rtl-pos-sale";
     /// <summary>Wave B dry-run for PHP ins_claim_status (writes=0).</summary>
     public const string ErpAjaxInsClaimStatus = "/erp/ajax/ins-claim-status";
-    /// <summary>Wave B dry-run for PHP prj_save (writes=0).</summary>
+    /// <summary>PHP epc_prj_save. <c>confirmWrites=true</c> writes via <c>IErpPrjSaveWriteService</c>.</summary>
+    public const string ErpProjectsSave = "/erp/projects/save";
+    /// <summary>Live PHP prj_save twin (ajax alias of <see cref="ErpProjectsSave"/>).</summary>
     public const string ErpAjaxPrjSave = "/erp/ajax/prj-save";
-    /// <summary>Wave B dry-run for PHP prj_task_save (writes=0).</summary>
+    /// <summary>PHP epc_prj_task_save. <c>confirmWrites=true</c> writes via <c>IErpPrjTaskSaveWriteService</c>.</summary>
+    public const string ErpProjectsTasksSave = "/erp/projects/tasks/save";
+    /// <summary>PHP epc_prj_task_save ajax alias.</summary>
     public const string ErpAjaxPrjTaskSave = "/erp/ajax/prj-task-save";
-    /// <summary>Wave B dry-run for PHP prj_log_time (writes=0).</summary>
+    /// <summary>PHP epc_prj_log_time. <c>confirmWrites=true</c> writes via <c>IErpPrjLogTimeWriteService</c>.</summary>
+    public const string ErpProjectsTimesheetsLog = "/erp/projects/timesheets/log";
+    /// <summary>PHP epc_prj_log_time ajax alias.</summary>
     public const string ErpAjaxPrjLogTime = "/erp/ajax/prj-log-time";
     /// <summary>PHP epc_cons_entity_save. <c>confirmWrites=true</c> writes via <c>IErpConsEntitySaveWriteService</c>.</summary>
     public const string ErpAjaxConsEntitySave = "/erp/ajax/cons-entity-save";
@@ -1450,13 +1460,19 @@ public static class EcomAeRoutes
     public const string ErpAjaxMfgWoIssue = "/erp/ajax/mfg-wo-issue";
     /// <summary>Wave B dry-run for PHP mfg_wo_complete (writes=0).</summary>
     public const string ErpAjaxMfgWoComplete = "/erp/ajax/mfg-wo-complete";
-    /// <summary>Wave B dry-run for PHP payroll_generate (writes=0).</summary>
+    /// <summary>PHP epc_erp_payroll_generate_run. <c>confirmWrites=true</c> writes via <c>IErpPayrollGenerateWriteService</c>.</summary>
+    public const string ErpPayrollGenerate = "/erp/payroll/generate";
+    /// <summary>Live PHP epc_erp_payroll_generate_run twin (ajax alias of <see cref="ErpPayrollGenerate"/>).</summary>
     public const string ErpAjaxPayrollGenerate = "/erp/ajax/payroll-generate";
     /// <summary>PHP payroll_approve. <c>confirmWrites=true</c> writes via <c>IErpPayrollWriteService</c>.</summary>
     public const string ErpAjaxPayrollApprove = "/erp/ajax/payroll-approve";
-    /// <summary>Wave B dry-run for PHP payroll_pay (writes=0).</summary>
+    /// <summary>PHP epc_erp_payroll_pay_run. <c>confirmWrites=true</c> writes via <c>IErpPayrollPayWriteService</c>.</summary>
+    public const string ErpPayrollPay = "/erp/payroll/pay";
+    /// <summary>Live PHP epc_erp_payroll_pay_run twin (ajax alias of <see cref="ErpPayrollPay"/>).</summary>
     public const string ErpAjaxPayrollPay = "/erp/ajax/payroll-pay";
-    /// <summary>Wave B dry-run for PHP payroll_update_days (writes=0).</summary>
+    /// <summary>PHP epc_erp_payroll_update_line_days. <c>confirmWrites=true</c> writes via <c>IErpPayrollUpdateDaysWriteService</c>.</summary>
+    public const string ErpPayrollUpdateDays = "/erp/payroll/update-days";
+    /// <summary>Live PHP epc_erp_payroll_update_line_days twin (ajax alias of <see cref="ErpPayrollUpdateDays"/>).</summary>
     public const string ErpAjaxPayrollUpdateDays = "/erp/ajax/payroll-update-days";
     /// <summary>Wave B dry-run for PHP uae_tax_fta_fetch (writes=0).</summary>
     public const string ErpAjaxUaeTaxFtaFetch = "/erp/ajax/uae-tax-fta-fetch";
