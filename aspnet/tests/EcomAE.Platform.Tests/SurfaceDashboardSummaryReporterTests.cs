@@ -881,6 +881,13 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.DoesNotContain("metadata", LegacySurfaceDashboardSql.SelectCpNotificationsDetail, StringComparison.Ordinal);
         Assert.DoesNotContain("action_url", LegacySurfaceDashboardSql.SelectCpNotificationsDetail, StringComparison.Ordinal);
         Assert.DoesNotContain("`body`", LegacySurfaceDashboardSql.SelectCpNotificationsCategorySiblings, StringComparison.Ordinal);
+        Assert.Contains("epc_social_accounts", LegacySurfaceDashboardSql.SelectCpSocialHubRows, StringComparison.Ordinal);
+        Assert.DoesNotContain("encrypted_credentials", LegacySurfaceDashboardSql.SelectCpSocialHubRows, StringComparison.Ordinal);
+        Assert.DoesNotContain("encrypted_credentials", LegacySurfaceDashboardSql.SelectCpSocialHubAccountDetail, StringComparison.Ordinal);
+        Assert.DoesNotContain("meta_json", LegacySurfaceDashboardSql.SelectCpSocialHubAccountDetail, StringComparison.Ordinal);
+        Assert.Contains("caption_excerpt", LegacySurfaceDashboardSql.SelectCpSocialHubAccountDrafts, StringComparison.Ordinal);
+        Assert.DoesNotContain("last_error", LegacySurfaceDashboardSql.SelectCpSocialHubAccountDrafts, StringComparison.Ordinal);
+        Assert.DoesNotContain("encrypted_credentials", LegacySurfaceDashboardSql.SelectCpSocialHubAccountDrafts, StringComparison.Ordinal);
         Assert.Contains("epc_portal_site_settings", LegacySurfaceDashboardSql.SelectCpPortalSettingsStats, StringComparison.Ordinal);
         Assert.Contains("epc_portal_deploy_targets", LegacySurfaceDashboardSql.SelectCpPortalSettingsStats, StringComparison.Ordinal);
         Assert.DoesNotContain("contact_json", LegacySurfaceDashboardSql.SelectCpPortalSettingsRows, StringComparison.Ordinal);

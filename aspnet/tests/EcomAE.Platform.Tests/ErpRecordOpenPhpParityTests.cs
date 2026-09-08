@@ -55,6 +55,7 @@ public sealed class ErpRecordOpenPhpParityTests
     [InlineData("/CP/control/portal/epc_super_cp_info_blocks?block_id=3", "/cp/info-blocks-app?block_id=3")]
     [InlineData("/CP/control/notifications_settings?notif_id=7", "/cp/notifications-app?notif_id=7")]
     [InlineData("/CP/control/portal/epc_notifications?notif_id=7", "/cp/notifications-app?notif_id=7")]
+    [InlineData("/CP/control/portal/epc_social_media_hub?social_id=5", "/cp/social-hub-app?social_id=5")]
     [InlineData("/ERP/?epc_erp_shell=1&area=landed_cost_area&tab=landed_cost&sheet_id=6", "/erp/landed-cost-app?sheet_id=6")]
     [InlineData("/CP/control/portal/epc_soc2_compliance?soc2_id=8", "/cp/soc2-compliance-app?soc2_id=8")]
     [InlineData("/ERP/?epc_erp_shell=1&area=tax&tab=compliance&soc2_id=8", "/erp/soc2-compliance-app?soc2_id=8")]
@@ -857,6 +858,35 @@ public sealed class ErpRecordOpenPhpParityTests
             ErpRecordOpen.PreserveRecordQuery(
                 "/cp/notifications-app",
                 "/CP/control/notifications_settings?notif_id=7"));
+    }
+
+    [Fact]
+    public void SocialHubApp_OpenLoadsLastTestAndDraftCaptions()
+    {
+        var root = FindRepoRoot();
+        var text = File.ReadAllText(Path.Combine(root,
+            "aspnet/src/EcomAE.Platform/Components/Pages/CpSocialHubApp.razor"));
+        Assert.Contains("ErpRecordOpen.Href(_listHref, \"social_id\"", text, StringComparison.Ordinal);
+        Assert.Contains("ErpOpenedRecordBanner", text, StringComparison.Ordinal);
+        Assert.Contains("ReadId(ctx.Request, \"social_id\")", text, StringComparison.Ordinal);
+        Assert.Contains("BuildCpSocialHubAccountDetailAsync", text, StringComparison.Ordinal);
+        Assert.Contains("No drafts yet.", text, StringComparison.Ordinal);
+        Assert.Contains("ShowGhostScaffold=\"false\"", text, StringComparison.Ordinal);
+        Assert.Contains("table-epc", text, StringComparison.Ordinal);
+        Assert.Contains("PhpParityModuleBody", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)\">Open", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("/php-reference/", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("ASP.NET", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("encrypted_credentials", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("last_error", text, StringComparison.Ordinal);
+
+        Assert.Equal("/cp/social-hub-app?social_id=5#erp-row-5",
+            ErpRecordOpen.Href("/cp/social-hub-app", "social_id", 5));
+        Assert.Equal(
+            "/cp/social-hub-app?social_id=5",
+            ErpRecordOpen.PreserveRecordQuery(
+                "/cp/social-hub-app",
+                "/CP/control/portal/epc_social_media_hub?social_id=5"));
     }
 
     [Fact]

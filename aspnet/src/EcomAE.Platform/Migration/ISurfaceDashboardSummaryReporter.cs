@@ -590,6 +590,9 @@ public interface ISurfaceDashboardSummaryReporter
     Task<CpSeoDigestResult> BuildCpSeoDigestAsync(int limit, CancellationToken cancellationToken = default);
     /// <summary>Next-wave: social hub accounts/drafts (credentials omitted; publish dry-run).</summary>
     Task<CpSocialHubDigestResult> BuildCpSocialHubDigestAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Opened social account (PHP <c>social_id</c>) plus drafts. Credentials and last_error omitted; caption excerpt only.</summary>
+    Task<CpSocialHubAccountDetailResult> BuildCpSocialHubAccountDetailAsync(long id, CancellationToken cancellationToken = default);
     /// <summary>Next-wave Super-only: tenant feature flags matrix (save dry-run).</summary>
     Task<CpTenantFeaturesDigestResult> BuildCpTenantFeaturesDigestAsync(int limit, CancellationToken cancellationToken = default);
     /// <summary>Next-wave Super-only: customer board user peek (writes remain PHP).</summary>
