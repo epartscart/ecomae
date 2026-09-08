@@ -8434,7 +8434,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "shop_docpart_filter KPIs + filters (list_storages JSON). Add/save/delete/activate/scope is POST /cp/product-filters/write."
+                note = "shop_docpart_filter KPIs + filters. Open ?filter_id= loads 280-char list_storages excerpt. Full JSON omitted. Add/save/delete/activate/scope is POST /cp/product-filters/write."
             });
         });
 

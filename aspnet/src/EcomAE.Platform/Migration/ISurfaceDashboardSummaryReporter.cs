@@ -575,6 +575,9 @@ public interface ISurfaceDashboardSummaryReporter
     Task<CpDataMigrationsDetailResult> BuildCpDataMigrationsDetailAsync(long id, CancellationToken cancellationToken = default);
     Task<CpGeoRegionsDigestResult> BuildCpGeoRegionsDigestAsync(int limit, CancellationToken cancellationToken = default);
     Task<CpProductFiltersDigestResult> BuildCpProductFiltersDigestAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Opened product filter (PHP <c>filter_id</c>) plus same-manufacturer siblings. list_storages is a short excerpt.</summary>
+    Task<CpProductFiltersDetailResult> BuildCpProductFiltersDetailAsync(long id, CancellationToken cancellationToken = default);
     Task<CpSearchTabsDigestResult> BuildCpSearchTabsDigestAsync(int limit, CancellationToken cancellationToken = default);
 
     /// <summary>Opened search tab (PHP <c>tab_id</c>) plus enabled siblings. parameters_values is a short excerpt.</summary>

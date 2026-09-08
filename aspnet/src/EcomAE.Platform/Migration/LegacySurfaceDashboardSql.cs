@@ -5446,7 +5446,7 @@ public static class LegacySurfaceDashboardSql
         FROM `shop_docpart_filter`
         """;
 
-    /// <summary>Wave 22 product-filters rows — list_storages JSON.</summary>
+    /// <summary>Wave 22 product-filters rows — list_storages JSON omitted.</summary>
     public const string SelectCpProductFiltersRows = """
         SELECT `id`, IFNULL(`manufacturer`,'') AS manufacturer, IFNULL(`article`,'') AS article,
         IFNULL(`name`,'') AS name,
@@ -5455,6 +5455,44 @@ public static class LegacySurfaceDashboardSql
         FROM `shop_docpart_filter`
         ORDER BY `id` DESC
         LIMIT @limit
+        """;
+
+    /// <summary>Opened product filter. list_storages is a short excerpt; full JSON omitted.</summary>
+    public const string SelectCpProductFiltersDetail = """
+        SELECT `id`, IFNULL(`manufacturer`,'') AS manufacturer, IFNULL(`article`,'') AS article,
+               IFNULL(`name`,'') AS name,
+               IFNULL(`min_price`,0) AS min_price, IFNULL(`max_price`,0) AS max_price,
+               IFNULL(`min_time`,0) AS min_time, IFNULL(`max_time`,0) AS max_time,
+               IFNULL(`active`,0) AS active,
+               CHAR_LENGTH(IFNULL(`list_storages`,'')) AS storages_len,
+               LEFT(IFNULL(`list_storages`,''), 280) AS storages_excerpt
+        FROM `shop_docpart_filter`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Other filters with the same manufacturer. list_storages omitted.</summary>
+    public const string SelectCpProductFiltersManufacturerSiblings = """
+        SELECT `id`, IFNULL(`manufacturer`,'') AS manufacturer, IFNULL(`article`,'') AS article,
+               IFNULL(`name`,'') AS name,
+               IFNULL(`min_price`,0) AS min_price, IFNULL(`max_price`,0) AS max_price,
+               IFNULL(`min_time`,0) AS min_time, IFNULL(`max_time`,0) AS max_time
+        FROM `shop_docpart_filter`
+        WHERE `manufacturer` = @manufacturer AND `id` <> @id
+        ORDER BY `id` DESC
+        LIMIT 50
+        """;
+
+    /// <summary>Other filters with the same article when manufacturer is empty. list_storages omitted.</summary>
+    public const string SelectCpProductFiltersArticleSiblings = """
+        SELECT `id`, IFNULL(`manufacturer`,'') AS manufacturer, IFNULL(`article`,'') AS article,
+               IFNULL(`name`,'') AS name,
+               IFNULL(`min_price`,0) AS min_price, IFNULL(`max_price`,0) AS max_price,
+               IFNULL(`min_time`,0) AS min_time, IFNULL(`max_time`,0) AS max_time
+        FROM `shop_docpart_filter`
+        WHERE `article` = @article AND `id` <> @id
+        ORDER BY `id` DESC
+        LIMIT 50
         """;
 
     /// <summary>Wave 22 search-tabs KPIs (shop_docpart_search_tabs).</summary>

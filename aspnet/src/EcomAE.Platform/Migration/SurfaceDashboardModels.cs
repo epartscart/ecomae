@@ -5040,6 +5040,25 @@ public sealed record CpProductFiltersDigestResult(
     string Source,
     string Message);
 
+public sealed record CpProductFiltersDetail(
+    long Id,
+    string Manufacturer,
+    string Article,
+    string Name,
+    decimal MinPrice,
+    decimal MaxPrice,
+    int MinTime,
+    int MaxTime,
+    int Active,
+    int StoragesLen,
+    string StoragesExcerpt);
+
+public sealed record CpProductFiltersDetailResult(
+    CpProductFiltersDetail? Filter,
+    IReadOnlyList<CpProductFiltersRowDigest> Siblings,
+    string Source,
+    string Message);
+
 public sealed record CpSearchTabsSummary(
     int TabCount,
     int EnabledCount,
