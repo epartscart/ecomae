@@ -86,7 +86,7 @@ public static class ErpPhpTabRouteMap
         ["gold_scheme"] = "/erp/jewellery-masters-app?tab=gold_scheme",
         ["guide"] = "/erp/guide-app",
         ["hr"] = "/erp/hr-overview-app",
-        ["hr_law"] = "/erp/hr-overview-app?tab=hr_law",
+        ["hr_law"] = "/erp/hr-overview-app?hv=statutory",
         ["hr_ops"] = "/erp/hr-overview-app?tab=hr_ops",
         ["industry_intel"] = "/erp/industry-packs-app",
         ["insurance"] = "/erp/insurance-compliance-app",

@@ -116,6 +116,15 @@
     @if (_showLegislation)
     {
         <h2 style="font-size:16px;margin-top:18px;">Tax legislation</h2>
+        @if (_isAdmin)
+        {
+            <form method="post" action="/erp/uae-tax/fta-fetch" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin:0 0 1rem;">
+                <input type="hidden" name="returnUrl" value="/erp/vat-app" />
+                <input type="hidden" name="confirmWrites" value="true" />
+                <label><input type="checkbox" name="force" value="1" /> Force refetch</label>
+                <button type="submit" class="btn btn-primary btn-sm">Fetch FTA legislation</button>
+            </form>
+        }
         <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Legislation KPIs">
             <div class="kpi"><div class="lbl">Legislation</div><div class="val">@_tax.LegislationCount.ToString(CultureInfo.InvariantCulture)</div></div>
             <div class="kpi"><div class="lbl">VAT advance</div><div class="val">@_tax.VatAdvanceRows.ToString(CultureInfo.InvariantCulture)</div></div>

@@ -850,6 +850,12 @@ builder.Services.AddScoped<EcomAE.Platform.Erp.IErpFinAllocSaveWriteService, Eco
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpDocxDeleteWriteService, EcomAE.Platform.Erp.ErpDocxDeleteWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpTenantConfigSaveWriteService, EcomAE.Platform.Erp.ErpTenantConfigSaveWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpPrintDesignerSaveWriteService, EcomAE.Platform.Erp.ErpPrintDesignerSaveWriteService>();
+builder.Services.AddHttpClient<EcomAE.Platform.Erp.IErpUaeFtaHttpClient, EcomAE.Platform.Erp.ErpUaeFtaHttpClient>(client =>
+{
+    client.Timeout = TimeSpan.FromSeconds(45);
+    client.DefaultRequestHeaders.UserAgent.ParseAdd(EcomAE.Platform.Erp.ErpUaeTaxFtaLegislation.UserAgent);
+});
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpUaeTaxFtaFetchWriteService, EcomAE.Platform.Erp.ErpUaeTaxFtaFetchWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpUaeTaxLegislationChecklistSetWriteService, EcomAE.Platform.Erp.ErpUaeTaxLegislationChecklistSetWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpPmSaveWriteService, EcomAE.Platform.Erp.ErpPmSaveWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpPmBudgetSaveWriteService, EcomAE.Platform.Erp.ErpPmBudgetSaveWriteService>();

@@ -21,11 +21,20 @@
             </div>
             <div class="panel-body">
                 <p>@CpPhpModuleCopy.PurposeFor("/cp/einvoice-documents-app")</p>
-                <p>Open a document to see seller/buyer JSON, tax breakdown, validation, lines, and events. Save seller, buyer, and ASP e-invoice settings here.</p>
+                <p>Open a document to see seller/buyer JSON, tax breakdown, validation, lines, and events. Save seller, buyer, and ASP e-invoice settings here. Fetch FTA legislation to ingest PINT-AE / Peppol instruments.</p>
             </div>
         </div>
     </div>
     <PhpParityModuleBody AppPath="/cp/einvoice-documents-app" IsAdmin="_isAdmin" ShowGhostScaffold="false" />
+
+    @if (!string.IsNullOrWhiteSpace(_flashOk))
+    {
+        <div class="alert alert-success" role="status" style="margin:0 0 1rem;padding:.7rem .9rem;border-radius:.4rem;background:#ecfdf5;color:#065f46">@_flashOk</div>
+    }
+    @if (!string.IsNullOrWhiteSpace(_flashErr))
+    {
+        <div class="alert alert-danger" role="status" style="margin:0 0 1rem;padding:.7rem .9rem;border-radius:.4rem;background:#fef2f2;color:#991b1b">@_flashErr</div>
+    }
 
     <ErpOpenedRecordBanner Id="_openedId" Found="@(_openedDocument is not null)" Caption="@OpenedCaption" ListHref="@_listHref" />
 
@@ -63,7 +72,13 @@
             <label>Mode <input type="text" name="aspApiMode" value="manual" style="width:7rem" /></label>
             <button type="submit">Save ASP</button>
         </form>
-        <div class="epc-ei-note">Seller / buyer / ASP profile save writes here. Create, submit, credit-note, and ASP poll stay Classic.</div>
+        <form method="post" action="/erp/uae-tax/fta-fetch" style="display:flex;flex-wrap:wrap;gap:.45rem;align-items:end;margin:0 0 1rem;max-width:52rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="@_returnHref" />
+            <label><input type="checkbox" name="force" value="1" /> Force refetch</label>
+            <button type="submit">Fetch FTA e-invoicing legislation</button>
+        </form>
+        <div class="epc-ei-note">Seller / buyer / ASP profile save writes here. Create, submit, credit-note, and ASP poll stay Classic. FTA fetch writes PINT-AE / Peppol instruments into the UAE tax legislation library.</div>
     }
 
     @if (_openedDocument is not null)
@@ -255,6 +270,8 @@
     private string _source = "n/a";
     private string _message = "";
     private long _openedId;
+    private string _flashOk = "";
+    private string _flashErr = "";
     private string _returnHref = "/cp/einvoice-documents-app";
     private CpEinvoiceDocumentDetail? _openedDocument;
     private IReadOnlyList<CpEinvoiceLineDigest> _openedLines = [];
@@ -272,6 +289,8 @@
         var ctx = Http.HttpContext;
         if (ctx is null) return;
 
+        _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
+        _flashErr = ctx.Request.Query["err"].ToString() ?? "";
         var path = ctx.Request.Path.Value;
         _listHref = string.Equals(path, "/erp/einvoice-documents-app", StringComparison.OrdinalIgnoreCase)
             ? "/erp/einvoice-documents-app"

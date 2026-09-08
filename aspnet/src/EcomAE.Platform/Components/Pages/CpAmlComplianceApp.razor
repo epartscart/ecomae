@@ -21,7 +21,7 @@
             </div>
             <div class="panel-body">
                 <p>@CpPhpModuleCopy.PurposeFor("/cp/aml-compliance-app")</p>
-                <p>Save a KYC record or set an AML alert status here. Open a row to see notes, ID details, and customer transactions.</p>
+                <p>Save a KYC record or set an AML alert status here. Open a row to see notes, ID details, and customer transactions. Fetch FTA legislation for goAML / sanctions-adjacent tax instruments.</p>
             </div>
         </div>
     </div>
@@ -92,6 +92,12 @@
             <label>SAR ref <input name="sar_reference" /></label>
             <label><input type="checkbox" name="file_sar" value="1" /> File SAR</label>
             <button type="submit">Set alert status</button>
+        </form>
+        <form method="post" action="/erp/uae-tax/fta-fetch" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="@_returnHref" />
+            <label><input type="checkbox" name="force" value="1" /> Force refetch</label>
+            <button type="submit">Fetch FTA legislation</button>
         </form>
     }
 

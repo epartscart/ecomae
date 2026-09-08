@@ -24,7 +24,7 @@
             </div>
             <div class="panel-body">
                 <p>@CpPhpModuleCopy.PurposeFor("/cp/uae-tax-compliance-app")</p>
-                <p>Save tourist VAT, CT adjustments, and checklist status here. Legislation ingest stays on the Classic twin.</p>
+                <p>Save tourist VAT, CT adjustments, and checklist status here. Fetch FTA legislation to ingest VAT, Corporate Tax, e-invoicing, and excise instruments into this library.</p>
             </div>
         </div>
     </div>
@@ -53,6 +53,17 @@
             <button type="submit">Save tourist VAT</button>
         </form>
         <p class="text-muted" style="margin:0 0 1rem;">Jewellery tourist VAT save is live when confirmed. Writes <code>epc_jewel_tourist_vat_refund</code>.</p>
+    }
+
+    @if (_isAdmin)
+    {
+        <form method="post" action="/erp/uae-tax/fta-fetch" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin:0 0 1rem;">
+            <input type="hidden" name="returnUrl" value="/erp/uae-tax-compliance-app" />
+            <input type="hidden" name="confirmWrites" value="true" />
+            <label><input type="checkbox" name="force" value="1" /> Force refetch (ignore 24h cache)</label>
+            <button type="submit" class="btn btn-primary btn-sm">Fetch FTA legislation</button>
+        </form>
+        <p class="text-muted" style="margin:0 0 1rem;">Pulls tax.gov.ae legislation.aspx (VAT, CT, e-invoicing, excise, procedures) into <code>epc_uae_tax_legislation_items</code>. Cached 24 hours unless Force is ticked.</p>
     }
 
     <p class="help-block">@_summary.LegislationCount.ToString(CultureInfo.InvariantCulture) legislation items · @_summary.VatAdvanceRows.ToString(CultureInfo.InvariantCulture) VAT advance rows · @_summary.VatRefundRows.ToString(CultureInfo.InvariantCulture) VAT refund rows.</p>
