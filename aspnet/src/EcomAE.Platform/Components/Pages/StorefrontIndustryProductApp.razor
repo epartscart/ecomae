@@ -1,5 +1,9 @@
 @page "/storefront/industry-product-app"
 @page "/en/storefront/industry-product-app"
+@page "/p/{Sku}"
+@page "/en/p/{Sku}"
+@page "/product/{Sku}"
+@page "/en/product/{Sku}"
 @layout Layout.PhpChromeLayout
 @using EcomAE.Platform.Presentation
 @inject IHttpContextAccessor Http
@@ -50,6 +54,8 @@
 </StorefrontTenantChrome>
 
 @code {
+    [Parameter] public string? Sku { get; set; }
+
     private PhpIndustryStorefrontCatalog.Product? _product;
     private PhpIndustryStorefrontCatalog.Category? _category;
 
@@ -59,6 +65,10 @@
         var host = ctx?.Request.Host.Host ?? string.Empty;
         var industry = StorefrontIndustryHostResolver.ResolveIndustryCode(host);
         var sku = ctx?.Request.Query["sku"].ToString();
+        if (string.IsNullOrWhiteSpace(sku) && !string.IsNullOrWhiteSpace(Sku))
+        {
+            sku = Sku;
+        }
         if (string.IsNullOrWhiteSpace(sku)
             && ctx?.Items.TryGetValue(EcomAE.Platform.Middleware.IndustryStorefrontSlugMiddleware.OriginalPathItem, out var original) == true)
         {

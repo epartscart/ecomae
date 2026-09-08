@@ -25,6 +25,9 @@ def main() -> int:
     prefixes = [m for (k, m), _ in blocks if k == "prefix"]
     assert "/storefront/" in prefixes, prefixes
     assert "/_framework/" in prefixes, prefixes
+    assert "/en/" in prefixes, prefixes
+    assert "/p/" in prefixes, prefixes
+    assert "/product/" in prefixes, prefixes
 
     fake = """
 server {
@@ -39,10 +42,13 @@ server {
 """
     out, summary = mod.install_into_host_servers(fake, tenant, "www.epartscart.com")
     assert "location ^~ /storefront/" in out
+    assert "location ^~ /p/" in out
+    assert "location ^~ /product/" in out
     assert "proxy_pass http://127.0.0.1:5100;" in out
     assert "return 302 /en/shop/part_search" not in out
     assert summary["prefixStorefront"] is True
-    print("PASS classic-entry installs ^~ /storefront/ and strips stub→/en")
+    assert summary["prefixIndustryPdp"] is True
+    print("PASS classic-entry installs ^~ /storefront/ + ^~ /p/ and strips stub→/en")
     return 0
 
 

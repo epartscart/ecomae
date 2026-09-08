@@ -494,6 +494,36 @@ public sealed class LiveTenantIndustryParityTests
     }
 
     [Fact]
+    public void JewelleryBarePdpSlug_RewritesAndHasFirstClassRoute()
+    {
+        Assert.True(IndustryStorefrontSlugMiddleware.TryMatch(
+            "www.thejewellerytrend.com",
+            "/p/JWL-EV-ROPE-5G",
+            out var rewrite,
+            out var kind));
+        Assert.Equal("product:JWL-EV-ROPE-5G", kind);
+        Assert.Contains("sku=JWL-EV-ROPE-5G", rewrite, StringComparison.Ordinal);
+        Assert.True(IndustryStorefrontSlugMiddleware.TryMatch(
+            "www.thejewellerytrend.com",
+            "/en/p/JWL-EV-ROPE-5G",
+            out _,
+            out var enKind));
+        Assert.Equal("product:JWL-EV-ROPE-5G", enKind);
+
+        var pdp = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/StorefrontIndustryProductApp.razor"));
+        Assert.Contains("@page \"/p/{Sku}\"", pdp, StringComparison.Ordinal);
+        Assert.Contains("@page \"/en/p/{Sku}\"", pdp, StringComparison.Ordinal);
+
+        var splash = File.ReadAllText(Find("epc-platform-splash.html"));
+        Assert.Contains("keptShopperPath", splash, StringComparison.Ordinal);
+        Assert.DoesNotContain("probe then replace with /", splash, StringComparison.Ordinal);
+
+        var tenantNginx = File.ReadAllText(Find("deploy/aspnet/nginx-classic-entry-tenant-aspnet-primary-shadow-example.conf"));
+        Assert.Contains("location ^~ /p/", tenantNginx, StringComparison.Ordinal);
+        Assert.Contains("classic-entry-industry-pdp", tenantNginx, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void DedicatedIndustryAppsExist()
     {
         var catalog = Find("aspnet/src/EcomAE.Platform/Components/Pages/StorefrontIndustryCatalogApp.razor");
