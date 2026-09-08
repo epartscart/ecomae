@@ -4798,6 +4798,15 @@ public sealed record CpOpsGuidesDigestResult(
     string Source,
     string Message);
 
+public sealed record CpOpsGuideGroupDigest(long Id, string Caption, int SortOrder);
+public sealed record CpOpsGuideSiblingDigest(long Id, string Caption, string Url, int ShowAnyway);
+public sealed record CpOpsGuideItemDetailResult(
+    CpOpsGuidesRowDigest? Item,
+    CpOpsGuideGroupDigest? Group,
+    IReadOnlyList<CpOpsGuideSiblingDigest> Siblings,
+    string Source,
+    string Message);
+
 public sealed record CpFileManagerSummary(
     int RootPresent,
     int FileCount,

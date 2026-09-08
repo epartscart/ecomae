@@ -20,10 +20,74 @@
             </div>
             <div class="panel-body">
                 <p>@CpPhpModuleCopy.PurposeFor("/cp/ops-guides-app")</p>
+                <p>Open a menu item for its group and sibling URLs. Guide HTML stays on the Classic twin.</p>
             </div>
         </div>
     </div>
-    <PhpParityModuleBody AppPath="/cp/ops-guides-app" IsAdmin="_isAdmin" />
+    <PhpParityModuleBody AppPath="/cp/ops-guides-app" IsAdmin="_isAdmin" ShowGhostScaffold="false" />
+
+    <ErpOpenedRecordBanner Id="_openedId" Found="@(_openedItem is not null)" Caption="@OpenedCaption" ListHref="@_listHref" />
+
+    <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Ops guides KPIs">
+        <div class="kpi"><div class="lbl">Groups</div><div class="val">@_summary.GroupCount.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Items</div><div class="val">@_summary.ItemCount.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Show anyway</div><div class="val">@_summary.ShowAnywayCount.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">With URL</div><div class="val">@_summary.UrlItemCount.ToString(CultureInfo.InvariantCulture)</div></div>
+    </div>
+
+    @if (_openedItem is not null)
+    {
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">
+                    @(!string.IsNullOrWhiteSpace(_openedItem.Caption) ? _openedItem.Caption : ("Item #" + _openedItem.Id.ToString(CultureInfo.InvariantCulture)))
+                    <span class="label label-default pull-right">@(_openedItem.ShowAnyway == 1 ? "show anyway" : "menu")</span>
+                </div>
+                <div class="panel-body">
+                    <p>@(!string.IsNullOrWhiteSpace(_openedGroup?.Caption) ? _openedGroup.Caption : ("Group #" + _openedItem.ItemsGroup.ToString(CultureInfo.InvariantCulture)))</p>
+                    <p>@(!string.IsNullOrWhiteSpace(_openedItem.Url) ? _openedItem.Url : "No URL yet.")</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">Group siblings</div>
+                <div class="panel-body">
+                    <div class="table-responsive">
+                        <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped table-bordered table-epc epc-erp-table">
+                            <thead>
+                                <tr>
+                                    <th>Id</th>
+                                    <th>Caption</th>
+                                    <th>URL</th>
+                                    <th>Show anyway</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (_openedSiblings.Count == 0)
+                                {
+                                    <tr><td colspan="4">No group siblings yet.</td></tr>
+                                }
+                                else
+                                {
+                                    @foreach (var sib in _openedSiblings)
+                                    {
+                                        <tr>
+                                            <td>@sib.Id.ToString(CultureInfo.InvariantCulture)</td>
+                                            <td>@(!string.IsNullOrWhiteSpace(sib.Caption) ? sib.Caption : "—")</td>
+                                            <td>@(!string.IsNullOrWhiteSpace(sib.Url) ? sib.Url : "—")</td>
+                                            <td>@(sib.ShowAnyway == 1 ? "yes" : "no")</td>
+                                        </tr>
+                                    }
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
 
     <p class="help-block">@_summary.GroupCount.ToString(CultureInfo.InvariantCulture) Groups · @_summary.ItemCount.ToString(CultureInfo.InvariantCulture) Items · @_summary.ShowAnywayCount.ToString(CultureInfo.InvariantCulture) Show anyway · @_summary.UrlItemCount.ToString(CultureInfo.InvariantCulture) With URL.</p>
     <div class="col-lg-12">
@@ -31,11 +95,27 @@
             <div class="panel-heading hbuilt">Records</div>
             <div class="panel-body">
                 <div class="table-responsive">
-                    <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped">
+                    <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped table-bordered table-epc epc-erp-table">
         <thead><tr><th>Id</th><th>Group</th><th>Caption</th><th>URL</th><th>Show anyway</th><th></th></tr></thead>
         <tbody>
-        @if (_rows.Count==0) { <tr><td colspan="6">No records yet.</td></tr> }
-        else { @foreach (var row in _rows) { <tr><td>@row.Id</td><td>@row.ItemsGroup</td><td>@row.Caption</td><td>@row.Url</td><td>@row.ShowAnyway</td><td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td></tr> } }
+        @if (_rows.Count==0)
+        {
+            <tr><td colspan="6">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? "No records yet." : _message) : "Sign in with a staff session for live rows.")</td></tr>
+        }
+        else
+        {
+            @foreach (var row in _rows)
+            {
+                <tr id="erp-row-@row.Id.ToString(CultureInfo.InvariantCulture)" class="@ErpRecordOpen.RowClass(row.Id, _openedId)">
+                    <td>@row.Id</td>
+                    <td>@row.ItemsGroup</td>
+                    <td>@row.Caption</td>
+                    <td>@row.Url</td>
+                    <td>@row.ShowAnyway</td>
+                    <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href(_listHref, "item_id", row.Id)">Open</a></td>
+                </tr>
+            }
+        }
         </tbody>
                     </table>
                 </div>
@@ -46,15 +126,29 @@
 </PhpCpDesktopChrome>
 @code {
     private const string _phpTab = "/CP/control/cp-guideline";
+    private const string _listHref = "/cp/ops-guides-app";
     private bool _isAdmin;
     private CpOpsGuidesSummary _summary = new(0, 0, 0, 0, "n/a", "");
     private IReadOnlyList<CpOpsGuidesRowDigest> _rows = [];
     private string _source = "n/a";
     private string _message = "";
+    private long _openedId;
+    private CpOpsGuidesRowDigest? _openedItem;
+    private CpOpsGuideGroupDigest? _openedGroup;
+    private IReadOnlyList<CpOpsGuideSiblingDigest> _openedSiblings = [];
+
+    private string OpenedCaption => _openedItem is null
+        ? ""
+        : (string.IsNullOrWhiteSpace(_openedItem.Caption)
+            ? ("Item #" + _openedItem.Id.ToString(CultureInfo.InvariantCulture))
+            : _openedItem.Caption)
+            + (_openedGroup is null || string.IsNullOrWhiteSpace(_openedGroup.Caption) ? "" : (" · " + _openedGroup.Caption));
+
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
+        _openedId = ErpRecordOpen.ReadId(ctx.Request, "item_id");
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
         if (!_isAdmin)
@@ -67,5 +161,25 @@
         _rows = result.Items;
         _source = result.Source;
         _message = result.Message;
+
+        if (_openedId > 0)
+        {
+            var detail = await Dashboards.BuildCpOpsGuideItemDetailAsync(_openedId, ctx.RequestAborted);
+            _openedItem = detail.Item;
+            _openedGroup = detail.Group;
+            _openedSiblings = detail.Siblings;
+            if (_openedItem is not null)
+            {
+                var openedList = _rows.FirstOrDefault(r => r.Id == _openedId);
+                if (openedList is not null)
+                {
+                    _rows = new[] { openedList }.Concat(_rows.Where(r => r.Id != _openedId)).ToList();
+                }
+            }
+            else if (!string.IsNullOrWhiteSpace(detail.Message))
+            {
+                _message = detail.Message;
+            }
+        }
     }
 }
