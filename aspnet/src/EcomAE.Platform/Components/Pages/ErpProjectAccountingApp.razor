@@ -23,14 +23,33 @@
     </div>
 
     @if (_isAdmin)
-    {
-        <form @onsubmit="OnSave" @onsubmit:preventDefault="true" style="margin:12px 0;padding:10px;border:1px solid #c5d4de;background:#fff;">
-            <strong>New budget (dry-run)</strong>
-            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;align-items:end;">
-                <label>Category <input class="form-control" @bind="_formCode" /></label>
-                <button type="submit" class="btn btn-primary">Validate save</button>
-            </div>
-            @if (!string.IsNullOrWhiteSpace(_formResult)) { <p style="margin:8px 0 0;font-size:12px;">@_formResult</p> }
+    {        <form method="post" action="/erp/project-accounting/txns/add" style="margin:12px 0;padding:10px;border:1px solid #c5d4de;background:#fff;display:flex;flex-wrap:wrap;gap:.4rem;align-items:end">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/erp/project-accounting-app" />
+            <strong style="width:100%">Post transaction</strong>
+            <label>Project id <input type="number" name="project_id" min="0" required style="width:7rem" /></label>
+            <label>Type
+                <select name="txn_type">
+                    <option value="cost">cost</option>
+                    <option value="revenue">revenue</option>
+                    <option value="billing">billing</option>
+                </select>
+            </label>
+            <label>Description <input type="text" name="description" maxlength="200" /></label>
+            <label>Amount <input type="text" name="amount" placeholder="0.00" style="width:7rem" /></label>
+            <label>Company id <input type="number" name="company_id" min="0" value="0" style="width:5rem" /></label>
+            <button type="submit" class="btn btn-primary">Post</button>
+        </form>
+        <form method="post" action="/erp/project-accounting/budgets/save" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:12px 0;">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="@_returnUrl" />
+            <input type="hidden" name="id" value="0" />
+            <label>Project id <input type="number" name="project_id" min="0" value="0" style="width:6rem" /></label>
+            <label>Category <input type="text" name="category" maxlength="60" placeholder="general" style="width:10rem" /></label>
+            <label>Cost <input type="text" name="cost_budget" placeholder="0.00" style="width:7rem" /></label>
+            <label>Revenue <input type="text" name="revenue_budget" placeholder="0.00" style="width:7rem" /></label>
+            <label>Company id <input type="number" name="company_id" min="0" value="0" style="width:5rem" /></label>
+            <button type="submit" class="btn btn-sm btn-primary">Save budget line</button>
         </form>
     }
 
@@ -121,8 +140,6 @@
     private int _count, _txnCount, _recCount;
     private string _source = "n/a";
     private string _message = "";
-    private string _formCode = "";
-    private string _formResult = "";
 
     protected override async Task OnInitializedAsync()
     {
@@ -143,9 +160,5 @@
         _message = result.Message;
     }
 
-    private void OnSave()
-    {
-        var result = BudgetSave.Evaluate(new ErpPrjaBudgetSaveRequest(0, _formCode, false));
-        _formResult = $"{result.Status}: {result.Detail} (writes={result.Writes.ToString(CultureInfo.InvariantCulture)})";
-    }
+    private string _returnUrl => "/erp/project-accounting-app";
 }

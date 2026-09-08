@@ -4,6 +4,7 @@
 @using System.Globalization
 @using EcomAE.Platform.Auth
 @using EcomAE.Platform.Migration
+@using EcomAE.Platform.Routing
 @using EcomAE.Platform.Presentation
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
@@ -101,6 +102,167 @@
     </div>
 
 </PhpCpDesktopChrome>
+
+<form method="post" action="/erp/budgets/advance" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/erp/budgets-app" />
+            <label>Plan id <input type="number" name="id" min="1" required style="width:6rem" /></label>
+            <button type="submit">Advance plan</button>
+        </form>
+
+<ErpPhpCreateWell Title="Attach listing to voucher">
+<form method="post" action="/erp/pm/listings/attach" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin-bottom:1rem;">
+                <input type="hidden" name="returnUrl" value="/erp/budgets-app" />
+                <input type="hidden" name="confirmWrites" value="true" />
+                <label>Listing id <input class="form-control input-sm" name="id" placeholder="Id" style="width:80px;" /></label>
+                <label>Voucher <input class="form-control input-sm" name="voucher_ref" placeholder="Ref" style="width:180px;" /></label>
+                <button type="submit" class="btn btn-primary btn-sm">Attach</button>
+            </form>
+</ErpPhpCreateWell>
+
+<ErpPhpCreateWell Title="Record cheque">
+<form method="post" action="/erp/pm/cheques/save" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin-bottom:1rem;">
+                <input type="hidden" name="returnUrl" value="/erp/budgets-app" />
+                <input type="hidden" name="confirmWrites" value="true" />
+                <label>Bank account id <input class="form-control input-sm" name="bank_account_id" placeholder="0" style="width:80px;" /></label>
+                <label>Cheque no <input class="form-control input-sm" name="cheque_no" placeholder="No" style="width:120px;" /></label>
+                <label>Pay to <input class="form-control input-sm" name="pay_to" placeholder="Payee" style="width:180px;" /></label>
+                <label>Amount <input class="form-control input-sm" name="amount" placeholder="0.00" style="width:100px;" /></label>
+                <label>Date <input class="form-control input-sm" name="cheque_date" type="date" style="width:150px;" /></label>
+                <label>Memo <input class="form-control input-sm" name="memo" placeholder="Memo" style="width:180px;" /></label>
+                <button type="submit" class="btn btn-primary btn-sm">Record</button>
+            </form>
+</ErpPhpCreateWell>
+
+<ErpPhpCreateWell Title="Toggle platform master">
+<form method="post" action="/erp/pm/toggle" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin-bottom:1rem;">
+                <input type="hidden" name="returnUrl" value="/erp/budgets-app" />
+                <input type="hidden" name="confirmWrites" value="true" />
+                <label>Table
+                    <select class="form-control input-sm" name="pm_table" style="width:220px;">
+                        <option value="epc_erp_pm_business_units">Business units</option>
+                        <option value="epc_erp_pm_class_units">Class units</option>
+                        <option value="epc_erp_pm_legal_entities">Legal entities</option>
+                        <option value="epc_erp_pm_dimensions">Dimensions</option>
+                        <option value="epc_erp_pm_dimension_values">Dimension values</option>
+                        <option value="epc_erp_pm_vendor_groups">Vendor groups</option>
+                        <option value="epc_erp_pm_customer_groups">Customer groups</option>
+                        <option value="epc_erp_pm_pay_methods">Pay methods</option>
+                        <option value="epc_erp_pm_pay_terms">Pay terms</option>
+                        <option value="epc_erp_pm_inv_groups">Inventory groups</option>
+                        <option value="epc_erp_pm_barcode_formats">Barcode formats</option>
+                    </select>
+                </label>
+                <label>Id <input class="form-control input-sm" name="id" placeholder="Id" style="width:80px;" /></label>
+                <label>Active
+                    <select class="form-control input-sm" name="active" style="width:80px;">
+                        <option value="1">yes</option>
+                        <option value="0">no</option>
+                    </select>
+                </label>
+                <button type="submit" class="btn btn-primary btn-sm">Update</button>
+            </form>
+</ErpPhpCreateWell>
+
+<ErpPhpCreateWell Title="Add budget line">
+<form method="post" action="/erp/pm/budget-lines/add" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin-bottom:1rem;">
+                <input type="hidden" name="returnUrl" value="/erp/budgets-app" />
+                <input type="hidden" name="confirmWrites" value="true" />
+                <label>Budget id <input class="form-control input-sm" name="budget_id" placeholder="Id" style="width:80px;" /></label>
+                <label>Account <input class="form-control input-sm" name="account_code" placeholder="Code" style="width:120px;" /></label>
+                <label>Name <input class="form-control input-sm" name="account_name" placeholder="Name" style="width:180px;" /></label>
+                <label>Month <input class="form-control input-sm" name="month_no" placeholder="1-12" style="width:70px;" /></label>
+                <label>Amount <input class="form-control input-sm" name="amount" placeholder="0.00" style="width:100px;" /></label>
+                <button type="submit" class="btn btn-primary btn-sm">Add line</button>
+            </form>
+</ErpPhpCreateWell>
+
+<ErpPhpCreateWell Title="Save platform budget">
+<form method="post" action="/erp/pm/budgets/save" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin-bottom:1rem;">
+                <input type="hidden" name="returnUrl" value="/erp/budgets-app" />
+                <input type="hidden" name="confirmWrites" value="true" />
+                <label>Id <input class="form-control input-sm" name="id" placeholder="0 = new" style="width:80px;" /></label>
+                <label>Code <input class="form-control input-sm" name="code" placeholder="Code" style="width:120px;" /></label>
+                <label>Name <input class="form-control input-sm" name="name" placeholder="Name" style="width:180px;" /></label>
+                <label>Fiscal year <input class="form-control input-sm" name="fiscal_year" placeholder="FY" style="width:90px;" /></label>
+                <label>BU id <input class="form-control input-sm" name="business_unit_id" placeholder="0" style="width:80px;" /></label>
+                <label>Master
+                    <select class="form-control input-sm" name="is_master" style="width:80px;">
+                        <option value="0">no</option>
+                        <option value="1">yes</option>
+                    </select>
+                </label>
+                <label>Note <input class="form-control input-sm" name="note" placeholder="Note" style="width:180px;" /></label>
+                <button type="submit" class="btn btn-primary btn-sm">Save</button>
+            </form>
+</ErpPhpCreateWell>
+
+<ErpPhpCreateWell Title="Save platform master">
+<form method="post" action="/erp/pm/save" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin-bottom:1rem;">
+                <input type="hidden" name="returnUrl" value="/erp/budgets-app" />
+                <input type="hidden" name="confirmWrites" value="true" />
+                <label>Table
+                    <select class="form-control input-sm" name="pm_table" style="width:220px;">
+                        <option value="epc_erp_pm_business_units">Business units</option>
+                        <option value="epc_erp_pm_class_units">Class units</option>
+                        <option value="epc_erp_pm_legal_entities">Legal entities</option>
+                        <option value="epc_erp_pm_dimensions">Dimensions</option>
+                        <option value="epc_erp_pm_dimension_values">Dimension values</option>
+                        <option value="epc_erp_pm_vendor_groups">Vendor groups</option>
+                        <option value="epc_erp_pm_customer_groups">Customer groups</option>
+                        <option value="epc_erp_pm_pay_methods">Pay methods</option>
+                        <option value="epc_erp_pm_pay_terms">Pay terms</option>
+                        <option value="epc_erp_pm_inv_groups">Inventory groups</option>
+                        <option value="epc_erp_pm_barcode_formats">Barcode formats</option>
+                    </select>
+                </label>
+                <label>Id <input class="form-control input-sm" name="id" placeholder="0 = new" style="width:80px;" /></label>
+                <label>Code <input class="form-control input-sm" name="code" placeholder="Code" style="width:120px;" /></label>
+                <label>Name <input class="form-control input-sm" name="name" placeholder="Name" style="width:180px;" /></label>
+                <label>Note <input class="form-control input-sm" name="note" placeholder="Note" style="width:180px;" /></label>
+                <button type="submit" class="btn btn-primary btn-sm">Save</button>
+            </form>
+</ErpPhpCreateWell>
+
+<ErpPhpCreateWell Title="Add forecast position">
+<form method="post" action="@EcomAeRoutes.ErpBudgetPlanPositionAdd" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin-bottom:1rem;">
+                <input type="hidden" name="returnUrl" value="/erp/budgets-app" />
+                <input type="hidden" name="confirmWrites" value="true" />
+                <label>Plan <input class="form-control input-sm" name="plan_id" placeholder="Plan id" style="width:80px;" required /></label>
+                <label>Title <input class="form-control input-sm" name="title" placeholder="Title" style="width:160px;" required /></label>
+                <label>Department <input class="form-control input-sm" name="department" placeholder="Department" style="width:140px;" /></label>
+                <label>Headcount <input class="form-control input-sm" name="headcount" value="1" style="width:70px;" /></label>
+                <label>Annual cost <input class="form-control input-sm" name="annual_cost" placeholder="0" style="width:90px;" /></label>
+                <label>Start period <input class="form-control input-sm" name="start_period" placeholder="Period" style="width:90px;" /></label>
+                <button type="submit" class="btn btn-primary btn-sm">Add</button>
+            </form>
+</ErpPhpCreateWell>
+
+<ErpPhpCreateWell Title="Add worksheet line">
+<form method="post" action="@EcomAeRoutes.ErpBudgetPlanLineAdd" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin-bottom:1rem;">
+                <input type="hidden" name="returnUrl" value="/erp/budgets-app" />
+                <input type="hidden" name="confirmWrites" value="true" />
+                <label>Plan <input class="form-control input-sm" name="plan_id" placeholder="Plan id" style="width:80px;" required /></label>
+                <label>Account <input class="form-control input-sm" name="account" placeholder="Account" style="width:110px;" /></label>
+                <label>Dimension <input class="form-control input-sm" name="dimension" placeholder="Dimension" style="width:120px;" /></label>
+                <label>Scenario <input class="form-control input-sm" name="scenario" value="base" style="width:90px;" /></label>
+                <label>Period <input class="form-control input-sm" name="period" placeholder="Period" style="width:90px;" /></label>
+                <label>Amount <input class="form-control input-sm" name="amount" placeholder="0" style="width:90px;" /></label>
+                <button type="submit" class="btn btn-primary btn-sm">Add</button>
+            </form>
+</ErpPhpCreateWell>
+
+<ErpPhpCreateWell Title="New budget plan">
+<form method="post" action="@EcomAeRoutes.ErpBudgetPlanSave" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin-bottom:1rem;">
+                <input type="hidden" name="returnUrl" value="/erp/budgets-app" />
+                <input type="hidden" name="confirmWrites" value="true" />
+                <label>Name <input class="form-control input-sm" name="name" placeholder="Name" style="width:180px;" required /></label>
+                <label>Fiscal year <input class="form-control input-sm" name="fiscal_year" placeholder="FY" style="width:90px;" /></label>
+                <label>Owner <input class="form-control input-sm" name="owner" placeholder="Owner" style="width:140px;" /></label>
+                <label>Notes <input class="form-control input-sm" name="notes" placeholder="Notes" style="width:180px;" /></label>
+                <button type="submit" class="btn btn-primary btn-sm">Save</button>
+            </form>
+</ErpPhpCreateWell>
 
 @code {
     private const string _phpTab = "/CP/shop/finance/erp?area=budgeting&tab=budgeting&epc_erp_shell=1";

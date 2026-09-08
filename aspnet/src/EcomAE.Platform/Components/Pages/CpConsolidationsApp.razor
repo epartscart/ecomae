@@ -97,6 +97,18 @@
             <label>IC id <input type="number" name="id" min="1" required style="width:6rem" /></label>
             <button type="submit">Remove IC txn</button>
         </form>
+        <form method="post" action="/erp/consolidations/ic/save" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/consolidations-app" />
+            <label>From <input type="text" name="from_entity" required placeholder="HOME" /></label>
+            <label>To <input type="text" name="to_entity" required placeholder="SUB1" /></label>
+            <label>Type <input type="text" name="txn_type" value="sale" style="width:6rem" /></label>
+            <label>Amount <input type="number" name="amount" step="0.01" min="0.01" required style="width:7rem" /></label>
+            <label>Date <input type="date" name="txn_date" /></label>
+            <label>Ref <input type="text" name="ref" /></label>
+            <label>Memo <input type="text" name="memo" /></label>
+            <button type="submit">Record IC</button>
+        </form>
     }
 
     <div class="epc-w14-kpis" aria-label="Consolidations stats">

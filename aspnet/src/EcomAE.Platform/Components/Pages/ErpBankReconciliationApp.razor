@@ -124,6 +124,66 @@
 
 </PhpErpDesktopChrome>
 
+<ErpPhpCreateWell Title="Match statement line">
+<form method="post" action="/erp/bank-reconciliation/match" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin-bottom:1rem;">
+                <input type="hidden" name="returnUrl" value="/erp/bank-reconciliation-app" />
+                <input type="hidden" name="confirmWrites" value="true" />
+                <label>Line
+                    <select class="form-control input-sm" name="line_id">
+                        <option value="0">(select)</option>
+                        @foreach (var line in _lines)
+                        {
+                            <option value="@line.Id.ToString(CultureInfo.InvariantCulture)">#@line.Id.ToString(CultureInfo.InvariantCulture) @(string.IsNullOrWhiteSpace(line.Description) ? "" : line.Description)</option>
+                        }
+                    </select>
+                </label>
+                <label>Cash entry <input class="form-control input-sm" name="entry_id" type="number" min="1" style="width:8rem;" /></label>
+                <button type="submit" class="btn btn-primary btn-sm">Match</button>
+            </form>
+</ErpPhpCreateWell>
+
+<ErpPhpCreateWell Title="Advance status">
+<form method="post" action="/erp/bank-instruments/status" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin-bottom:1rem;">
+                    <input type="hidden" name="returnUrl" value="/erp/bank-reconciliation-app?tab=bank_instruments" />
+                    <input type="hidden" name="confirmWrites" value="true" />
+                    <label>Instrument id <input class="form-control input-sm" type="number" name="id" min="1" required style="width:80px;" /></label>
+                    <label>Status
+                        <select class="form-control input-sm" name="status">
+                            <option value="issued">issued</option>
+                            <option value="amended">amended</option>
+                            <option value="utilized">utilized</option>
+                            <option value="expired">expired</option>
+                            <option value="closed">closed</option>
+                            <option value="cancelled">cancelled</option>
+                        </select>
+                    </label>
+                    <label>Detail <input class="form-control input-sm" name="detail" placeholder="Event detail (optional)" style="width:180px;" /></label>
+                    <label>Amount <input class="form-control input-sm" type="number" step="0.01" name="amount" value="0" style="width:90px;" /></label>
+                    <button type="submit" class="btn btn-primary btn-sm">Move status</button>
+                </form>
+</ErpPhpCreateWell>
+
+<ErpPhpCreateWell Title="New instrument">
+<form method="post" action="/erp/bank-instruments/save" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin-bottom:1rem;">
+                    <input type="hidden" name="returnUrl" value="/erp/bank-reconciliation-app?tab=bank_instruments" />
+                    <input type="hidden" name="confirmWrites" value="true" />
+                    <label>Type
+                        <select class="form-control input-sm" name="type">
+                            <option value="lc">Letter of credit</option>
+                            <option value="bg">Bank guarantee</option>
+                            <option value="sblc">Standby LC</option>
+                        </select>
+                    </label>
+                    <label>Reference <input class="form-control input-sm" name="ref" placeholder="auto if blank" style="width:140px;" /></label>
+                    <label>Beneficiary <input class="form-control input-sm" name="beneficiary" style="width:160px;" /></label>
+                    <label>Bank <input class="form-control input-sm" name="bank" style="width:140px;" /></label>
+                    <label>Amount <input class="form-control input-sm" type="number" step="0.01" name="amount" required style="width:90px;" /></label>
+                    <label>Currency <input class="form-control input-sm" name="currency" placeholder="AED" style="width:70px;" /></label>
+                    <label>Expiry <input class="form-control input-sm" type="date" name="expiry_date" /></label>
+                    <button type="submit" class="btn btn-success btn-sm">Create instrument</button>
+                </form>
+</ErpPhpCreateWell>
+
 @code {
     private string _phpTab = "/ERP/?epc_erp_shell=1&area=banking&tab=bank_recon";
     private string _title = "Bank reconciliation";

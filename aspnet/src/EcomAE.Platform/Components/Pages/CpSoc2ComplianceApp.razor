@@ -70,6 +70,50 @@
             <label>Obligation id <input type="number" name="id" min="1" required style="width:6rem" /></label>
             <button type="submit">Disable obligation</button>
         </form>
+        <form method="post" action="/erp/compliance/filings/save" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="@(Http.HttpContext?.Request.Path.Value ?? "/cp/soc2-compliance-app")" />
+            <label>Obligation id <input type="number" name="obligation_id" min="1" required style="width:6rem" /></label>
+            <label>Period <input type="text" name="period_label" required placeholder="2026-09" /></label>
+            <label>Status
+                <select name="status">
+                    <option value="filed">Filed</option>
+                    <option value="open">Open</option>
+                    <option value="waived">Waived</option>
+                </select>
+            </label>
+            <label>Reference <input type="text" name="reference" /></label>
+            <button type="submit">Save filing</button>
+        </form>
+        <form method="post" action="/erp/compliance/retention/save" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="@(Http.HttpContext?.Request.Path.Value ?? "/cp/soc2-compliance-app")" />
+            <label>Label <input type="text" name="label" required /></label>
+            <label>Doc type <input type="text" name="doc_type" /></label>
+            <label>Years <input type="number" name="retention_years" value="5" min="0" style="width:5rem" /></label>
+            <label>Basis <input type="text" name="basis" /></label>
+            <label>Legal ref <input type="text" name="legal_ref" /></label>
+            <button type="submit">Save retention</button>
+        </form>
+        <form method="post" action="/erp/compliance/obligations/add" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="@(Http.HttpContext?.Request.Path.Value ?? "/cp/soc2-compliance-app")" />
+            <label>Title <input type="text" name="title" required /></label>
+            <label>Code <input type="text" name="code" /></label>
+            <label>Regime <input type="text" name="regime" placeholder="VAT/CT/..." /></label>
+            <label>Authority <input type="text" name="authority" /></label>
+            <label>Frequency
+                <select name="frequency">
+                    <option value="monthly">Monthly</option>
+                    <option value="quarterly">Quarterly</option>
+                    <option value="annual">Annual</option>
+                    <option value="one_off">One-off</option>
+                </select>
+            </label>
+            <label>Lead days <input type="number" name="lead_days" value="28" style="width:5rem" /></label>
+            <label>Documents <input type="text" name="doc_requirements" /></label>
+            <button type="submit">Add obligation</button>
+        </form>
     }
 
     <div class="epc-soc2-kpis" aria-label="SOC 2 compliance stats">

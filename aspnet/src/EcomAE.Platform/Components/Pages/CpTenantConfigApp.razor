@@ -104,6 +104,174 @@
 
 </PhpCpDesktopChrome>
 
+<ErpPhpCreateWell Title="ERP settings">
+<form method="post" action="/erp/tenant-config/save" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin-bottom:1rem;">
+                <input type="hidden" name="returnUrl" value="/erp/tenant-config-app" />
+                <input type="hidden" name="confirmWrites" value="true" />
+                <label>Company <input class="form-control input-sm" name="company_name" style="width:160px;" /></label>
+                <label>TRN <input class="form-control input-sm" name="company_trn" style="width:120px;" /></label>
+                <label>Currency <input class="form-control input-sm" name="default_currency" style="width:80px;" /></label>
+                <label>VAT % <input class="form-control input-sm" name="vat_rate" style="width:70px;" /></label>
+                <label>FY start <input class="form-control input-sm" name="fiscal_year_start" style="width:80px;" /></label>
+                <label>PO prefix <input class="form-control input-sm" name="po_prefix" style="width:70px;" /></label>
+                <label>SO prefix <input class="form-control input-sm" name="so_prefix" style="width:70px;" /></label>
+                <label>INV prefix <input class="form-control input-sm" name="inv_prefix" style="width:70px;" /></label>
+                <button type="submit" class="btn btn-primary btn-sm">Save settings</button>
+            </form>
+</ErpPhpCreateWell>
+
+<form method="post" action="/erp/security/users/assign-role" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/erp/tenant-config-app?tab=security_roles" />
+            <strong style="width:100%;font-size:.85rem">Assign role</strong>
+            <label>User id <input type="number" name="user_id" min="0" required style="width:6rem" /></label>
+            <label>Role id <input type="number" name="role_id" min="0" required style="width:6rem" /></label>
+            <label>Assign
+                <select name="assign">
+                    <option value="1" selected>assign</option>
+                    <option value="0">unassign</option>
+                </select>
+            </label>
+            <label>Company id <input type="number" name="company_id" min="0" value="0" style="width:5rem" /></label>
+            <button type="submit" class="btn btn-sm btn-primary">Save</button>
+        </form>
+
+<form method="post" action="/erp/security/roles/attach-duty" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/erp/tenant-config-app?tab=security_roles" />
+            <strong style="width:100%;font-size:.85rem">Attach duty</strong>
+            <label>Role id <input type="number" name="role_id" min="0" required style="width:6rem" /></label>
+            <label>Duty id <input type="number" name="duty_id" min="0" required style="width:6rem" /></label>
+            <label>Attach
+                <select name="attach">
+                    <option value="1" selected>attach</option>
+                    <option value="0">detach</option>
+                </select>
+            </label>
+            <button type="submit" class="btn btn-sm btn-primary">Save</button>
+        </form>
+
+<form method="post" action="/erp/security/duties/attach-priv" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/erp/tenant-config-app?tab=security_roles" />
+            <strong style="width:100%;font-size:.85rem">Attach privilege</strong>
+            <label>Duty id <input type="number" name="duty_id" min="0" required style="width:6rem" /></label>
+            <label>Privilege id <input type="number" name="privilege_id" min="0" required style="width:6rem" /></label>
+            <label>Attach
+                <select name="attach">
+                    <option value="1" selected>attach</option>
+                    <option value="0">detach</option>
+                </select>
+            </label>
+            <button type="submit" class="btn btn-sm btn-primary">Save</button>
+        </form>
+
+<form method="post" action="/erp/security/roles/save" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/erp/tenant-config-app?tab=security_roles" />
+            <strong style="width:100%;font-size:.85rem">Save role</strong>
+            <label>Code <input name="code" required maxlength="60" style="width:10rem" /></label>
+            <label>Name <input name="name" maxlength="160" style="width:12rem" /></label>
+            <label>Company id <input type="number" name="company_id" min="0" value="0" style="width:5rem" /></label>
+            <button type="submit" class="btn btn-sm btn-primary">Save</button>
+        </form>
+
+<form method="post" action="/erp/security/duties/save" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/erp/tenant-config-app?tab=security_roles" />
+            <strong style="width:100%;font-size:.85rem">Save duty</strong>
+            <label>Code <input name="code" required maxlength="60" style="width:10rem" /></label>
+            <label>Name <input name="name" maxlength="160" style="width:12rem" /></label>
+            <label>Company id <input type="number" name="company_id" min="0" value="0" style="width:5rem" /></label>
+            <button type="submit" class="btn btn-sm btn-primary">Save</button>
+        </form>
+
+<form method="post" action="/erp/security/privileges/save" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/erp/tenant-config-app?tab=security_roles" />
+            <strong style="width:100%;font-size:.85rem">Save privilege</strong>
+            <label>Code <input name="code" required maxlength="60" style="width:10rem" /></label>
+            <label>Name <input name="name" maxlength="160" style="width:12rem" /></label>
+            <label>Access
+                <select name="access_level">
+                    <option value="read" selected>read</option>
+                    <option value="update">update</option>
+                    <option value="create">create</option>
+                    <option value="delete">delete</option>
+                    <option value="full">full</option>
+                </select>
+            </label>
+            <label>Company id <input type="number" name="company_id" min="0" value="0" style="width:5rem" /></label>
+            <button type="submit" class="btn btn-sm btn-primary">Save</button>
+        </form>
+
+<form method="post" action="/erp/platform/jobs/run" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/erp/tenant-config-app" />
+            <strong style="width:100%;font-size:.85rem">Run batch job</strong>
+            <label>Job id <input type="number" name="job_id" min="0" required style="width:6rem" /></label>
+            <label>Status
+                <select name="status">
+                    <option value="ended" selected>ended</option>
+                    <option value="waiting">waiting</option>
+                    <option value="executing">executing</option>
+                    <option value="error">error</option>
+                    <option value="canceled">canceled</option>
+                </select>
+            </label>
+            <button type="submit" class="btn btn-sm btn-warning">Run</button>
+        </form>
+
+<form method="post" action="/erp/platform/features/save" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="@_returnUrl" />
+            <label>Code <input type="text" name="code" required maxlength="60" style="width:8rem" /></label>
+            <label>Name <input type="text" name="name" maxlength="160" style="width:12rem" /></label>
+            <label>Enabled
+                <select name="enabled">
+                    <option value="1">enabled</option>
+                    <option value="0" selected>disabled</option>
+                </select>
+            </label>
+            <label>Company id <input type="number" name="company_id" min="0" value="0" style="width:5rem" /></label>
+            <button type="submit" class="btn btn-sm btn-primary">Save feature</button>
+        </form>
+
+<form method="post" action="/erp/platform/jobs/save" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="@_returnUrl" />
+            <label>Code <input type="text" name="code" required maxlength="60" style="width:8rem" /></label>
+            <label>Name <input type="text" name="name" maxlength="160" style="width:12rem" /></label>
+            <label>Recurrence min <input type="number" name="recurrence_min" min="0" value="0" style="width:6rem" /></label>
+            <label>Active
+                <select name="active">
+                    <option value="1" selected>active</option>
+                    <option value="0">inactive</option>
+                </select>
+            </label>
+            <label>Company id <input type="number" name="company_id" min="0" value="0" style="width:5rem" /></label>
+            <button type="submit" class="btn btn-sm btn-primary">Save batch job</button>
+        </form>
+
+<form method="post" action="/erp/org/calendars/save" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="@_returnUrl" />
+            <label>Code <input type="text" name="code" required maxlength="40" style="width:8rem" /></label>
+            <label>Name <input type="text" name="name" maxlength="160" style="width:12rem" /></label>
+            <label>Working days <input type="text" name="working_days" maxlength="20" value="1,2,3,4,5" style="width:8rem" /></label>
+            <label>Company id <input type="number" name="company_id" min="0" value="0" style="width:5rem" /></label>
+            <button type="submit" class="btn btn-sm btn-primary">Save calendar</button>
+        </form>
+
+<form method="post" action="/erp/org/holidays/add" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="@_returnUrl" />
+            <label>Calendar id <input type="number" name="calendar_id" min="1" required style="width:6rem" /></label>
+            <label>Date <input type="text" name="holiday_date" required maxlength="10" placeholder="2026-12-02" style="width:8rem" /></label>
+            <label>Name <input type="text" name="name" maxlength="160" style="width:12rem" /></label>
+            <button type="submit" class="btn btn-sm btn-primary">Add holiday</button>
+        </form>
+
 @code {
     private const string _phpTab = "/ERP/?epc_erp_shell=1&area=setup&tab=tenant_config";
     private bool _isAdmin;
@@ -130,4 +298,5 @@
         _source = result.Source;
         _message = result.Message;
     }
+    private string _returnUrl => "/cp/tenant-config-app";
 }

@@ -76,6 +76,67 @@
                 <button type="submit" class="btn btn-primary btn-sm">Save</button>
             </form>
         </ErpPhpCreateWell>
+        <form method="post" action="/erp/retail/discounts/save" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="@_returnHere" />
+            <strong style="width:100%;font-size:.85rem">Save discount</strong>
+            <label>Code <input name="code" maxlength="40" style="width:8rem" /></label>
+            <label>Name <input name="name" maxlength="160" style="width:12rem" /></label>
+            <label>Type
+                <select name="disc_type">
+                    <option value="percent" selected>percent</option>
+                    <option value="amount">amount</option>
+                </select>
+            </label>
+            <label>Value <input type="number" name="value" step="0.0001" value="0" style="width:7rem" /></label>
+            <label>Channel id <input type="number" name="channel_id" min="0" value="0" style="width:6rem" /></label>
+            <label>Active
+                <select name="active">
+                    <option value="1" selected>active</option>
+                    <option value="0">inactive</option>
+                </select>
+            </label>
+            <label>Company id <input type="number" name="company_id" min="0" value="0" style="width:5rem" /></label>
+            <button type="submit" class="btn btn-sm btn-primary">Save</button>
+        </form>
+        <form method="post" action="/erp/retail/assortments/set" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="@_returnHere" />
+            <strong style="width:100%;font-size:.85rem">Set assortment</strong>
+            <label>Channel id <input type="number" name="channel_id" min="0" required style="width:6rem" /></label>
+            <label>Item id <input type="number" name="item_id" min="0" required style="width:6rem" /></label>
+            <label>Active
+                <select name="active">
+                    <option value="1" selected>active</option>
+                    <option value="0">inactive</option>
+                </select>
+            </label>
+            <label>Company id <input type="number" name="company_id" min="0" value="0" style="width:5rem" /></label>
+            <button type="submit" class="btn btn-sm btn-primary">Save</button>
+        </form>
+        <form method="post" action="/erp/retail/channels/save" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="@_returnHere" />
+            <input type="hidden" name="id" value="0" />
+            <label>Code <input type="text" name="code" required maxlength="40" style="width:8rem" /></label>
+            <label>Name <input type="text" name="name" maxlength="160" style="width:12rem" /></label>
+            <label>Type
+                <select name="channel_type">
+                    <option value="store" selected>store</option>
+                    <option value="online">online</option>
+                    <option value="callcenter">callcenter</option>
+                </select>
+            </label>
+            <label>Currency <input type="text" name="currency" maxlength="8" placeholder="AED" style="width:5rem" /></label>
+            <label>Active
+                <select name="active">
+                    <option value="1" selected>active</option>
+                    <option value="0">inactive</option>
+                </select>
+            </label>
+            <label>Company id <input type="number" name="company_id" min="0" value="0" style="width:5rem" /></label>
+            <button type="submit" class="btn btn-sm btn-primary">Save channel</button>
+        </form>
     }
 
     <div class="epc-erp-table-wrap">

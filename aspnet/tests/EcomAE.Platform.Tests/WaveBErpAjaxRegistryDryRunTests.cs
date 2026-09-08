@@ -89,7 +89,7 @@ public sealed class WaveBErpAjaxRegistryDryRunTests
     [Fact]
     public void BosWfDecideValidated()
     {
-        var r = new ErpBosWfDecideDryRun().Evaluate(new(3, true, "ok"));
+        var r = new ErpBosWfDecideDryRun().Evaluate(new(RequestId: 3, Decision: "ok"));
         Assert.Equal("dry-run-validated", r.Status);
         Assert.Equal(0, r.Writes);
     }

@@ -3473,4 +3473,74 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(missingDb.Succeeded);
         Assert.Equal("db", missingDb.Code);
     }
+    [Fact]
+    public async Task Bos_wf_raise_rejects_unconfigured_db()
+    {
+        var missingDb = await new ErpBosWfRaiseWriteService(new UnconfiguredConnections())
+            .RaiseAsync(new ErpBosWfRaiseWriteRequest("purchase_order", 9, "PO-9", 12000));
+        Assert.False(missingDb.Succeeded);
+        Assert.Equal("db", missingDb.Code);
+    }
+
+    [Fact]
+    public async Task Fy_create_rejects_invalid_dates_and_unconfigured_db()
+    {
+        var invalid = await new ErpFyCreateWriteService(new ConfiguredNeverOpened())
+            .CreateAsync(new ErpFyCreateWriteRequest("FY26"));
+        Assert.False(invalid.Succeeded);
+        Assert.Equal("invalid", invalid.Code);
+        Assert.Equal("Valid start and end dates are required", invalid.Message);
+
+        var inverted = await new ErpFyCreateWriteService(new ConfiguredNeverOpened())
+            .CreateAsync(new ErpFyCreateWriteRequest("FY26", 1798761599, 1767225600));
+        Assert.False(inverted.Succeeded);
+        Assert.Equal("invalid", inverted.Code);
+        Assert.Equal("Valid start and end dates are required", inverted.Message);
+
+        var missingDb = await new ErpFyCreateWriteService(new UnconfiguredConnections())
+            .CreateAsync(new ErpFyCreateWriteRequest("FY26", 1767225600, 1798761599, true));
+        Assert.False(missingDb.Succeeded);
+        Assert.Equal("db", missingDb.Code);
+    }
+
+    [Fact]
+    public async Task Bos_wf_decide_rejects_missing_request_and_unconfigured_db()
+    {
+        var invalid = await new ErpBosWfDecideWriteService(new ConfiguredNeverOpened())
+            .DecideAsync(new ErpBosWfDecideWriteRequest());
+        Assert.False(invalid.Succeeded);
+        Assert.Equal("invalid", invalid.Code);
+        Assert.Equal("Request not pending", invalid.Message);
+
+        var missingDb = await new ErpBosWfDecideWriteService(new UnconfiguredConnections())
+            .DecideAsync(new ErpBosWfDecideWriteRequest(4, "approve"));
+        Assert.False(missingDb.Succeeded);
+        Assert.Equal("db", missingDb.Code);
+    }
+
+    [Fact]
+    public async Task Cons_ic_save_rejects_invalid_pair_amount_and_unconfigured_db()
+    {
+        var missing = await new ErpConsIcSaveWriteService(new ConfiguredNeverOpened())
+            .SaveAsync(new ErpConsIcSaveWriteRequest());
+        Assert.False(missing.Succeeded);
+        Assert.Equal("invalid", missing.Code);
+        Assert.Equal("From and to entities are required", missing.Message);
+
+        var same = await new ErpConsIcSaveWriteService(new ConfiguredNeverOpened())
+            .SaveAsync(new ErpConsIcSaveWriteRequest(FromEntity: "HOME", ToEntity: "home", Amount: 10));
+        Assert.False(same.Succeeded);
+        Assert.Equal("Intercompany needs two different entities", same.Message);
+
+        var zero = await new ErpConsIcSaveWriteService(new ConfiguredNeverOpened())
+            .SaveAsync(new ErpConsIcSaveWriteRequest(FromEntity: "HOME", ToEntity: "SUB1", Amount: 0));
+        Assert.False(zero.Succeeded);
+        Assert.Equal("Amount must be positive", zero.Message);
+
+        var missingDb = await new ErpConsIcSaveWriteService(new UnconfiguredConnections())
+            .SaveAsync(new ErpConsIcSaveWriteRequest(FromEntity: "HOME", ToEntity: "SUB1", Amount: 25));
+        Assert.False(missingDb.Succeeded);
+        Assert.Equal("db", missingDb.Code);
+    }
+
 }

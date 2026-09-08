@@ -169,6 +169,23 @@
     }
 </PhpErpDesktopChrome>
 
+<form method="post" action="/erp/guide/articles/save" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/erp/guide-app" />
+            <label>Title <input type="text" name="title" required maxlength="255" style="width:14rem" /></label>
+            <label>Category
+                <select name="category">
+                    <option value="general">General</option>
+                    <option value="finance">Finance</option>
+                    <option value="sales">Sales</option>
+                    <option value="operations">Operations</option>
+                </select>
+            </label>
+            <label>Summary <input type="text" name="summary" style="width:16rem" /></label>
+            <label>Body <input type="text" name="body_html" style="width:16rem" /></label>
+            <button type="submit" class="btn btn-sm btn-primary">Publish article</button>
+        </form>
+
 @code {
     private bool _isAdmin;
     private string _q = "";
