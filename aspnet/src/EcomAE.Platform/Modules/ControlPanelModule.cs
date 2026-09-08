@@ -6928,7 +6928,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only epc_platform_governance_rules KPIs + rules (description/config_json omitted). PHP epc_platform_governance remains authoritative."
+                note = "Read-only epc_platform_governance_rules. Open ?rule_id= loads a 280-char description excerpt plus category siblings. config_json omitted. PHP epc_platform_governance remains authoritative."
             });
         });
 

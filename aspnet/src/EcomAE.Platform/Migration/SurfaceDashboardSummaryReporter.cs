@@ -9797,6 +9797,79 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    public async Task<CpPlatformGovernanceRuleDetailResult> BuildCpPlatformGovernanceRuleDetailAsync(long id, CancellationToken cancellationToken = default)
+    {
+        if (id <= 0)
+        {
+            return new(null, [], "n/a", "");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return new(null, [], "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            CpPlatformGovernanceRuleDetail? header = null;
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectCpPlatformGovernanceRuleDetail;
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    header = new CpPlatformGovernanceRuleDetail(
+                        Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["rule_key"] is DBNull ? string.Empty : reader["rule_key"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["category"] is DBNull ? string.Empty : reader["category"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["title"] is DBNull ? string.Empty : reader["title"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["enforcement"] is DBNull ? string.Empty : reader["enforcement"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["scope"] is DBNull ? string.Empty : reader["scope"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["module_link"] is DBNull ? string.Empty : reader["module_link"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt32(reader["active"] is DBNull ? 0 : reader["active"], CultureInfo.InvariantCulture) != 0,
+                        Convert.ToInt64(reader["time_updated"] is DBNull ? 0 : reader["time_updated"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["description_len"] is DBNull ? 0 : reader["description_len"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["description_excerpt"] is DBNull ? string.Empty : reader["description_excerpt"], CultureInfo.InvariantCulture) ?? string.Empty);
+                }
+            }
+
+            if (header is null)
+            {
+                return new(null, [], "database", "Rule not found.");
+            }
+
+            var siblings = new List<CpPlatformGovernanceRuleDigest>();
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectCpPlatformGovernanceCategorySiblings;
+                AddParameter(cmd, "@category", header.Category);
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    siblings.Add(new CpPlatformGovernanceRuleDigest(
+                        Convert.ToInt64(reader["id"] is DBNull ? 0 : reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["rule_key"] is DBNull ? string.Empty : reader["rule_key"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["category"] is DBNull ? string.Empty : reader["category"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["title"] is DBNull ? string.Empty : reader["title"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["enforcement"] is DBNull ? string.Empty : reader["enforcement"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["scope"] is DBNull ? string.Empty : reader["scope"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["module_link"] is DBNull ? string.Empty : reader["module_link"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt32(reader["active"] is DBNull ? 0 : reader["active"], CultureInfo.InvariantCulture) != 0,
+                        Convert.ToInt64(reader["time_updated"] is DBNull ? 0 : reader["time_updated"], CultureInfo.InvariantCulture)));
+                }
+            }
+
+            return new(header, siblings, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(null, [], "database-error", ex.Message);
+        }
+    }
+
     public async Task<CpEinvoiceDocumentsDigestResult> BuildCpEinvoiceDocumentsDigestAsync(int limit, CancellationToken cancellationToken = default)
     {
         var safeLimit = Math.Clamp(limit, 1, 500);

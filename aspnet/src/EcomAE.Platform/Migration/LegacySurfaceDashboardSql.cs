@@ -3026,6 +3026,31 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>Opened governance rule. Description is a short excerpt; config_json omitted.</summary>
+    public const string SelectCpPlatformGovernanceRuleDetail = """
+        SELECT `id`, IFNULL(`rule_key`,'') AS rule_key, IFNULL(`category`,'') AS category,
+               IFNULL(`title`,'') AS title, IFNULL(`enforcement`,'') AS enforcement,
+               IFNULL(`scope`,'') AS scope, IFNULL(`module_link`,'') AS module_link,
+               IFNULL(`active`,0) AS active, IFNULL(`time_updated`,0) AS time_updated,
+               CHAR_LENGTH(IFNULL(`description`,'')) AS description_len,
+               LEFT(IFNULL(`description`,''), 280) AS description_excerpt
+        FROM `epc_platform_governance_rules`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Other rules in the same category as the opened row.</summary>
+    public const string SelectCpPlatformGovernanceCategorySiblings = """
+        SELECT `id`, IFNULL(`rule_key`,'') AS rule_key, IFNULL(`category`,'') AS category,
+               IFNULL(`title`,'') AS title, IFNULL(`enforcement`,'') AS enforcement,
+               IFNULL(`scope`,'') AS scope, IFNULL(`module_link`,'') AS module_link,
+               IFNULL(`active`,0) AS active, IFNULL(`time_updated`,0) AS time_updated
+        FROM `epc_platform_governance_rules`
+        WHERE `category` = @category AND `id` <> @id
+        ORDER BY `id` DESC
+        LIMIT 50
+        """;
+
     /// <summary>E-invoice document KPIs from epc_einvoice_documents (CREATE TABLE in epc_einvoice_schema.php).</summary>
     public const string SelectCpEinvoiceDocumentStats = """
         SELECT

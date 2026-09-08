@@ -23,20 +23,101 @@
             </div>
             <div class="panel-body">
                 <p>@CpPhpModuleCopy.PurposeFor("/cp/platform-governance-app")</p>
+                <p>Open a rule for a short description excerpt and other rules in the same category. Config JSON and rule writes stay on the Classic twin.</p>
             </div>
         </div>
     </div>
-    <PhpParityModuleBody AppPath="/cp/platform-governance-app" IsAdmin="_isAdmin" />
+    <PhpParityModuleBody AppPath="/cp/platform-governance-app" IsAdmin="_isAdmin" ShowGhostScaffold="false" />
 
+    <ErpOpenedRecordBanner Id="_openedId" Found="@(_openedRule is not null)" Caption="@OpenedCaption" ListHref="@_listHref" />
 
-    <p class="help-block">@_summary.RuleCount.ToString(CultureInfo.InvariantCulture) Rules · @_summary.ActiveCount.ToString(CultureInfo.InvariantCulture) Active · @_summary.RequiredCount.ToString(CultureInfo.InvariantCulture) Required · @_summary.CategoryCount.ToString(CultureInfo.InvariantCulture) Categories.</p>
+    <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Platform governance KPIs">
+        <div class="kpi"><div class="lbl">Rules</div><div class="val">@_summary.RuleCount.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Active</div><div class="val">@_summary.ActiveCount.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Required</div><div class="val">@_summary.RequiredCount.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Opened siblings</div><div class="val">@_openedSiblings.Count.ToString(CultureInfo.InvariantCulture)</div></div>
+    </div>
+
+    @if (_openedRule is not null)
+    {
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">
+                    @(!string.IsNullOrWhiteSpace(_openedRule.Title) ? _openedRule.Title : ("Rule #" + _openedRule.Id.ToString(CultureInfo.InvariantCulture)))
+                    <span class="label label-default pull-right">@(_openedRule.Active ? "active" : "off")</span>
+                </div>
+                <div class="panel-body">
+                    <p>@(!string.IsNullOrWhiteSpace(_openedRule.RuleKey) ? _openedRule.RuleKey : "—")
+                        · @(!string.IsNullOrWhiteSpace(_openedRule.Category) ? _openedRule.Category : "—")
+                        · @(!string.IsNullOrWhiteSpace(_openedRule.Enforcement) ? _openedRule.Enforcement : "—")
+                        · @(!string.IsNullOrWhiteSpace(_openedRule.Scope) ? _openedRule.Scope : "—")</p>
+                    @if (!string.IsNullOrWhiteSpace(_openedRule.ModuleLink))
+                    {
+                        <p>@_openedRule.ModuleLink</p>
+                    }
+                    @if (!string.IsNullOrWhiteSpace(_openedRule.DescriptionExcerpt))
+                    {
+                        <pre style="max-height:12rem;overflow:auto;white-space:pre-wrap;margin:0">@_openedRule.DescriptionExcerpt</pre>
+                        @if (_openedRule.DescriptionLen > _openedRule.DescriptionExcerpt.Length)
+                        {
+                            <p class="text-muted">Excerpt only (@_openedRule.DescriptionExcerpt.Length.ToString(CultureInfo.InvariantCulture) of @_openedRule.DescriptionLen.ToString(CultureInfo.InvariantCulture) chars). Full description and config stay on the Classic twin.</p>
+                        }
+                    }
+                    else
+                    {
+                        <p class="text-muted">No description excerpt yet.</p>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">Category siblings</div>
+                <div class="panel-body">
+                    <div class="table-responsive">
+                        <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped table-bordered table-epc epc-erp-table">
+                            <thead>
+                                <tr>
+                                    <th>Id</th>
+                                    <th>Key</th>
+                                    <th>Title</th>
+                                    <th>Enforcement</th>
+                                    <th>Active</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (_openedSiblings.Count == 0)
+                                {
+                                    <tr><td colspan="5">No category siblings yet.</td></tr>
+                                }
+                                else
+                                {
+                                    @foreach (var sib in _openedSiblings)
+                                    {
+                                        <tr>
+                                            <td>@sib.Id.ToString(CultureInfo.InvariantCulture)</td>
+                                            <td>@(!string.IsNullOrWhiteSpace(sib.RuleKey) ? sib.RuleKey : "—")</td>
+                                            <td>@(!string.IsNullOrWhiteSpace(sib.Title) ? sib.Title : "—")</td>
+                                            <td>@(!string.IsNullOrWhiteSpace(sib.Enforcement) ? sib.Enforcement : "—")</td>
+                                            <td>@(sib.Active ? "yes" : "no")</td>
+                                        </tr>
+                                    }
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
 
     <div class="col-lg-12">
         <div class="hpanel">
             <div class="panel-heading hbuilt">Records</div>
             <div class="panel-body">
                 <div class="table-responsive">
-                    <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped">
+                    <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped table-bordered table-epc epc-erp-table">
             <thead>
                 <tr>
                     <th>Id</th>
@@ -52,13 +133,13 @@
             <tbody>
                 @if (_rules.Count == 0)
                 {
-                    <tr><td colspan="8">No records yet.</td></tr>
+                    <tr><td colspan="8">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? "No records yet." : _message) : "Sign in with a staff session for live rows.")</td></tr>
                 }
                 else
                 {
                     @foreach (var row in _rules)
                     {
-                        <tr>
+                        <tr id="erp-row-@row.Id.ToString(CultureInfo.InvariantCulture)" class="@ErpRecordOpen.RowClass(row.Id, _openedId)">
                             <td>@row.Id.ToString(CultureInfo.InvariantCulture)</td>
                             <td>@(!string.IsNullOrWhiteSpace(row.RuleKey) ? row.RuleKey : "—")</td>
                             <td>@(!string.IsNullOrWhiteSpace(row.Category) ? row.Category : "—")</td>
@@ -66,7 +147,7 @@
                             <td>@(!string.IsNullOrWhiteSpace(row.Enforcement) ? row.Enforcement : "—")</td>
                             <td>@(!string.IsNullOrWhiteSpace(row.Scope) ? row.Scope : "—")</td>
                             <td>@(row.Active ? "yes" : "no")</td>
-                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
+                            <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href(_listHref, "rule_id", row.Id)">Open</a></td>
                         </tr>
                     }
                 }
@@ -90,12 +171,23 @@ else
 
 @code {
     private const string _phpTab = "/CP/control/portal/epc_platform_governance";
+    private const string _listHref = "/cp/platform-governance-app";
     private bool _allowed;
     private bool _isAdmin;
     private CpPlatformGovernanceSummary _summary = new(0, 0, 0, 0, "n/a", "");
     private IReadOnlyList<CpPlatformGovernanceRuleDigest> _rules = [];
     private string _source = "n/a";
     private string _message = "";
+    private long _openedId;
+    private CpPlatformGovernanceRuleDetail? _openedRule;
+    private IReadOnlyList<CpPlatformGovernanceRuleDigest> _openedSiblings = [];
+
+    private string OpenedCaption => _openedRule is null
+        ? ""
+        : (string.IsNullOrWhiteSpace(_openedRule.Title)
+            ? ("Rule #" + _openedRule.Id.ToString(CultureInfo.InvariantCulture))
+            : _openedRule.Title)
+            + (_openedRule.Active ? " · active" : " · off");
 
     protected override async Task OnInitializedAsync()
     {
@@ -105,6 +197,8 @@ else
         {
             return;
         }
+
+        _openedId = ErpRecordOpen.ReadId(ctx.Request, "rule_id");
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
@@ -118,5 +212,24 @@ else
         _rules = result.Rules;
         _source = result.Source;
         _message = result.Message;
+
+        if (_openedId > 0)
+        {
+            var detail = await Dashboards.BuildCpPlatformGovernanceRuleDetailAsync(_openedId, ctx.RequestAborted);
+            _openedRule = detail.Rule;
+            _openedSiblings = detail.Siblings;
+            if (_openedRule is not null)
+            {
+                var openedList = _rules.FirstOrDefault(r => r.Id == _openedId);
+                if (openedList is not null)
+                {
+                    _rules = new[] { openedList }.Concat(_rules.Where(r => r.Id != _openedId)).ToList();
+                }
+            }
+            else if (!string.IsNullOrWhiteSpace(detail.Message))
+            {
+                _message = detail.Message;
+            }
+        }
     }
 }

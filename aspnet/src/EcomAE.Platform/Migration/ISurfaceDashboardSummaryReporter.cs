@@ -254,6 +254,9 @@ public interface ISurfaceDashboardSummaryReporter
     /// <summary>Read-only platform governance rules (description/config_json omitted).</summary>
     Task<CpPlatformGovernanceDigestResult> BuildCpPlatformGovernanceDigestAsync(int limit, CancellationToken cancellationToken = default);
 
+    /// <summary>Opened governance rule (PHP <c>rule_id</c>) plus category siblings. Description excerpt only; config_json omitted.</summary>
+    Task<CpPlatformGovernanceRuleDetailResult> BuildCpPlatformGovernanceRuleDetailAsync(long id, CancellationToken cancellationToken = default);
+
     /// <summary>Read-only e-invoice documents (payload JSON/XML omitted).</summary>
     Task<CpEinvoiceDocumentsDigestResult> BuildCpEinvoiceDocumentsDigestAsync(int limit, CancellationToken cancellationToken = default);
 
