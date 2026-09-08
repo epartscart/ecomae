@@ -918,6 +918,25 @@ public sealed record CpApiClientMetaListResult(
     string Source,
     string Message);
 
+public sealed record CpApiClientDetail(
+    long Id,
+    string ClientKeyPrefix,
+    string Product,
+    string Label,
+    string ContactEmail,
+    bool Active,
+    int DailyLimit,
+    int CallsToday,
+    string CallsResetDate,
+    string AllowedActionsJson,
+    long TimeCreated,
+    long TimeUpdated);
+
+public sealed record CpApiClientDetailResult(
+    CpApiClientDetail? Client,
+    string Source,
+    string Message);
+
 public sealed record CpPowerBiConfigSummary(
     string SiteKey,
     string WorkspaceId,

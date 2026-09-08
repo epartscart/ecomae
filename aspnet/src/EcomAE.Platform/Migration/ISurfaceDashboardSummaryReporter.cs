@@ -107,6 +107,9 @@ public interface ISurfaceDashboardSummaryReporter
 
     Task<CpApiClientMetaListResult> ListCpApiClientsMetaAsync(int limit, CancellationToken cancellationToken = default);
 
+    /// <summary>Opened API client (PHP <c>api_client_id=</c> detail). Never loads <c>client_key_hash</c>.</summary>
+    Task<CpApiClientDetailResult> BuildCpApiClientDetailAsync(long id, CancellationToken cancellationToken = default);
+
     /// <summary>Read-only Power BI config + reports (configure/embed writes remain PHP).</summary>
     Task<CpPowerBiDigestResult> BuildCpPowerBiDigestAsync(int limit, CancellationToken cancellationToken = default);
 

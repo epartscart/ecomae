@@ -17,6 +17,7 @@ public sealed class ErpRecordOpenPhpParityTests
     [InlineData("/ERP/?epc_erp_shell=1&area=purchasing&tab=purchase_requisitions&req_id=4", "/erp/purchase-requests-app?req_id=4")]
     [InlineData("/CP/shop/finance/epc_collections_dunning?queue_id=12", "/cp/collections-dunning-app?queue_id=12")]
     [InlineData("/ERP/?epc_erp_shell=1&area=credit_coll&queue_id=12", "/erp/collections-dunning-app?queue_id=12")]
+    [InlineData("/CP/control/portal/epc_api_clients_manage?api_client_id=7", "/cp/api-clients-app?api_client_id=7")]
     [InlineData("/ERP/?epc_erp_shell=1&area=cost_mgmt&tab=cost_models&costm_id=3", "/erp/cost-models-app?costm_id=3")]
     [InlineData("/ERP/?epc_erp_shell=1&area=tax&tab=elec_reporting&format_id=6", "/erp/electronic-reporting-app?format_id=6")]
     [InlineData("/CP/shop/finance/epc_einvoice?ei_id=8", "/cp/einvoice-documents-app?ei_id=8")]
@@ -131,6 +132,7 @@ public sealed class ErpRecordOpenPhpParityTests
     [InlineData("ErpPayablesApp.razor", "supplier_id")]
     [InlineData("CpPurchaseRequestsApp.razor", "req_id")]
     [InlineData("CpCollectionsDunningApp.razor", "queue_id")]
+    [InlineData("CpApiClientsApp.razor", "api_client_id")]
     [InlineData("CpFinanceCloseApp.razor", "batch_id")]
     [InlineData("CpCostModelsApp.razor", "costm_id")]
     [InlineData("CpElectronicReportingApp.razor", "format_id")]
@@ -359,6 +361,34 @@ public sealed class ErpRecordOpenPhpParityTests
             ErpRecordOpen.PreserveRecordQuery(
                 "/cp/collections-dunning-app",
                 "/CP/shop/finance/epc_collections_dunning?queue_id=12"));
+        Assert.Equal("/cp/api-clients-app?api_client_id=7#erp-row-7",
+            ErpRecordOpen.Href("/cp/api-clients-app", "api_client_id", 7));
+        Assert.Equal(
+            "/cp/api-clients-app?api_client_id=7",
+            ErpRecordOpen.PreserveRecordQuery(
+                "/cp/api-clients-app",
+                "/CP/control/portal/epc_api_clients_manage?api_client_id=7"));
+    }
+
+    [Fact]
+    public void ApiClientsApp_OpenLoadsAllowedActionsAndPrefillsToggle()
+    {
+        var root = FindRepoRoot();
+        var text = File.ReadAllText(Path.Combine(root,
+            "aspnet/src/EcomAE.Platform/Components/Pages/CpApiClientsApp.razor"));
+        Assert.Contains("ErpRecordOpen.Href(_listHref, \"api_client_id\"", text, StringComparison.Ordinal);
+        Assert.Contains("ErpOpenedRecordBanner", text, StringComparison.Ordinal);
+        Assert.Contains("ReadId(ctx.Request, \"api_client_id\")", text, StringComparison.Ordinal);
+        Assert.Contains("BuildCpApiClientDetailAsync", text, StringComparison.Ordinal);
+        Assert.Contains("No allowed actions yet.", text, StringComparison.Ordinal);
+        Assert.Contains("ShowGhostScaffold=\"false\"", text, StringComparison.Ordinal);
+        Assert.Contains("table-epc", text, StringComparison.Ordinal);
+        Assert.Contains("/cp/api-clients/toggle", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)\">Open", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("/php-reference/", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("ASP.NET", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("client_key_hash", text, StringComparison.Ordinal);
+
         Assert.Equal("/cp/finance-close-app?batch_id=5#erp-row-5",
             ErpRecordOpen.Href("/cp/finance-close-app", "batch_id", 5));
         Assert.Equal(

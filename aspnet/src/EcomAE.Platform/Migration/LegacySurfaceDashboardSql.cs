@@ -1259,6 +1259,20 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>Opened API client — includes allowed_actions_json omitted from the dump. Never selects client_key_hash.</summary>
+    public const string SelectCpApiClientDetail = """
+        SELECT `id`, IFNULL(`client_key_prefix`, '') AS client_key_prefix,
+               IFNULL(`product`, '') AS product, IFNULL(`label`, '') AS label,
+               IFNULL(`contact_email`, '') AS contact_email, `active`,
+               IFNULL(`daily_limit`, 0) AS daily_limit, IFNULL(`calls_today`, 0) AS calls_today,
+               IFNULL(`calls_reset_date`, '') AS calls_reset_date,
+               IFNULL(`allowed_actions_json`, '') AS allowed_actions_json,
+               IFNULL(`time_created`, 0) AS time_created, IFNULL(`time_updated`, 0) AS time_updated
+        FROM `epc_api_clients`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
     /// <summary>Power BI workspace/report metadata — no Azure client secrets.</summary>
     public const string SelectCpPowerBiConfig = """
         SELECT IFNULL(`site_key`, '') AS site_key,
