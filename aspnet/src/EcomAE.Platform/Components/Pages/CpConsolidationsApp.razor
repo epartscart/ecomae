@@ -74,6 +74,17 @@
             <label><input type="checkbox" name="is_home" value="1" /> Home</label>
             <button type="submit">Save entity</button>
         </form>
+        <form method="post" action="/erp/consolidations/figures/save" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/consolidations-app" />
+            <label>Entity code <input type="text" name="entity_code" required placeholder="SUB1" /></label>
+            <label>Revenue <input type="number" name="revenue" step="0.01" style="width:7rem" /></label>
+            <label>Expenses <input type="number" name="expenses" step="0.01" style="width:7rem" /></label>
+            <label>Assets <input type="number" name="assets" step="0.01" style="width:7rem" /></label>
+            <label>Liabilities <input type="number" name="liabilities" step="0.01" style="width:7rem" /></label>
+            <label>Equity <input type="number" name="equity" step="0.01" style="width:7rem" /></label>
+            <button type="submit">Save financials</button>
+        </form>
         <form method="post" action="/erp/ajax/cons-entity-delete" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
             <input type="hidden" name="returnUrl" value="@(Http.HttpContext?.Request.Path.Value ?? "/cp/consolidations-app")" />

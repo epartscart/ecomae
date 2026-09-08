@@ -1443,7 +1443,9 @@ public static class EcomAeRoutes
     public const string ErpAjaxConsEntitySave = "/erp/ajax/cons-entity-save";
     /// <summary>Live PHP cons_entity_delete twin (confirmWrites=true writes).</summary>
     public const string ErpAjaxConsEntityDelete = "/erp/ajax/cons-entity-delete";
-    /// <summary>Wave B dry-run for PHP cons_figures_save (writes=0).</summary>
+    /// <summary>PHP epc_cons_figures_save. <c>confirmWrites=true</c> writes via <c>IErpConsFiguresSaveWriteService</c>.</summary>
+    public const string ErpConsolidationsFiguresSave = "/erp/consolidations/figures/save";
+    /// <summary>PHP epc_cons_figures_save ajax alias.</summary>
     public const string ErpAjaxConsFiguresSave = "/erp/ajax/cons-figures-save";
     /// <summary>Wave B dry-run for PHP cons_ic_save (writes=0).</summary>
     public const string ErpAjaxConsIcSave = "/erp/ajax/cons-ic-save";

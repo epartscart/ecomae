@@ -3445,6 +3445,21 @@ public sealed class LiveWriteServiceValidationTests
     }
 
     [Fact]
+    public async Task Cons_figures_save_rejects_missing_entity_and_unconfigured_db()
+    {
+        var invalid = await new ErpConsFiguresSaveWriteService(new ConfiguredNeverOpened())
+            .SaveAsync(new ErpConsFiguresSaveWriteRequest());
+        Assert.False(invalid.Succeeded);
+        Assert.Equal("invalid", invalid.Code);
+        Assert.Equal("Entity is required", invalid.Message);
+
+        var missingDb = await new ErpConsFiguresSaveWriteService(new UnconfiguredConnections())
+            .SaveAsync(new ErpConsFiguresSaveWriteRequest(EntityCode: "SUB1", Revenue: 100));
+        Assert.False(missingDb.Succeeded);
+        Assert.Equal("db", missingDb.Code);
+    }
+
+    [Fact]
     public async Task Prj_log_time_rejects_missing_project_and_unconfigured_db()
     {
         var invalid = await new ErpPrjLogTimeWriteService(new ConfiguredNeverOpened())
