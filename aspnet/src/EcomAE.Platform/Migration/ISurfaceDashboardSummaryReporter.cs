@@ -501,6 +501,9 @@ public interface ISurfaceDashboardSummaryReporter
     Task<CpNotificationsDigestResult> BuildCpNotificationsDigestAsync(int limit, CancellationToken cancellationToken = default);
     Task<CpPortalSettingsDigestResult> BuildCpPortalSettingsDigestAsync(int limit, CancellationToken cancellationToken = default);
     Task<CpDataMigrationsDigestResult> BuildCpDataMigrationsDigestAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Opened data migration plus row statuses (PHP <c>migration_id</c>). Raw/mapped JSON stay omitted from lines.</summary>
+    Task<CpDataMigrationsDetailResult> BuildCpDataMigrationsDetailAsync(long id, CancellationToken cancellationToken = default);
     Task<CpGeoRegionsDigestResult> BuildCpGeoRegionsDigestAsync(int limit, CancellationToken cancellationToken = default);
     Task<CpProductFiltersDigestResult> BuildCpProductFiltersDigestAsync(int limit, CancellationToken cancellationToken = default);
     Task<CpSearchTabsDigestResult> BuildCpSearchTabsDigestAsync(int limit, CancellationToken cancellationToken = default);

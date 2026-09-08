@@ -49,6 +49,8 @@ public sealed class ErpRecordOpenPhpParityTests
     [InlineData("/CP/shop/finance/epc_warranty_rma?rma_id=6", "/cp/returns-rma-app?rma_id=6")]
     [InlineData("/CP/shop/quote-requests?quote_id=15", "/cp/quote-requests-app?quote_id=15")]
     [InlineData("/CP/control/portal/epc_marketing_broadcast?campaign_id=11", "/cp/marketing-broadcast-app?campaign_id=11")]
+    [InlineData("/ERP/?epc_erp_shell=1&area=setup&tab=data_import&migration_id=9", "/erp/data-migrations-app?migration_id=9")]
+    [InlineData("/CP/control/portal/epc_db_migrations?migration_id=9", "/cp/data-migrations-app?migration_id=9")]
     public void AspNetPrimaryHref_KeepsErpRecordId(string php, string expected)
     {
         var href = PhpSurfaceLinkMap.AspNetPrimaryHref(php);
@@ -159,6 +161,7 @@ public sealed class ErpRecordOpenPhpParityTests
     [InlineData("CpReturnsRmaApp.razor", "rma_id")]
     [InlineData("CpQuoteRequestsApp.razor", "quote_id")]
     [InlineData("CpMarketingBroadcastApp.razor", "campaign_id")]
+    [InlineData("CpDataMigrationsApp.razor", "migration_id")]
     public void DumpListApps_RowOpenIsRecordUrl(string fileName, string param)
     {
         var root = FindRepoRoot();
@@ -352,6 +355,23 @@ public sealed class ErpRecordOpenPhpParityTests
     }
 
     [Fact]
+    public void DataMigrationsApp_OpenLoadsMappingErrorsAndLines()
+    {
+        var root = FindRepoRoot();
+        var text = File.ReadAllText(Path.Combine(root,
+            "aspnet/src/EcomAE.Platform/Components/Pages/CpDataMigrationsApp.razor"));
+        Assert.Contains("ErpRecordOpen.Href(_listHref, \"migration_id\"", text, StringComparison.Ordinal);
+        Assert.Contains("ErpOpenedRecordBanner", text, StringComparison.Ordinal);
+        Assert.Contains("ReadId(ctx.Request, \"migration_id\")", text, StringComparison.Ordinal);
+        Assert.Contains("BuildCpDataMigrationsDetailAsync", text, StringComparison.Ordinal);
+        Assert.Contains("No mapping yet.", text, StringComparison.Ordinal);
+        Assert.Contains("No rows yet.", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)\">Open", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("/php-reference/", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("ASP.NET", text, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void ReadId_AcceptsReqIdAndPhpRqAlias()
     {
         Assert.Equal("/erp/purchase-requests-app?req_id=9#erp-row-9",
@@ -394,6 +414,18 @@ public sealed class ErpRecordOpenPhpParityTests
             ErpRecordOpen.PreserveRecordQuery(
                 "/cp/marketing-broadcast-app",
                 "/CP/control/portal/epc_marketing_broadcast?campaign_id=11"));
+        Assert.Equal("/erp/data-migrations-app?migration_id=9#erp-row-9",
+            ErpRecordOpen.Href("/erp/data-migrations-app", "migration_id", 9));
+        Assert.Equal(
+            "/erp/data-migrations-app?migration_id=9",
+            ErpRecordOpen.PreserveRecordQuery(
+                "/erp/data-migrations-app",
+                "/ERP/?epc_erp_shell=1&area=setup&tab=data_import&migration_id=9"));
+        Assert.Equal(
+            "/cp/data-migrations-app?migration_id=9",
+            ErpRecordOpen.PreserveRecordQuery(
+                "/cp/data-migrations-app",
+                "/CP/control/portal/epc_db_migrations?migration_id=9"));
     }
 
     [Fact]

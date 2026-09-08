@@ -4377,6 +4377,39 @@ public sealed record CpDataMigrationsDigestResult(
     string Source,
     string Message);
 
+public sealed record CpDataMigrationsDetail(
+    long Id,
+    long CompanyId,
+    string MigrationType,
+    string EntityType,
+    string FileName,
+    string FilePath,
+    long TotalRows,
+    long ValidRows,
+    long ErrorRows,
+    long ImportedRows,
+    string Status,
+    string ColumnMapping,
+    string ValidationErrors,
+    string Options,
+    long ImportedBy,
+    string ImportedByName,
+    long TimeCreated,
+    long TimeCompleted);
+
+public sealed record CpDataMigrationLineDigest(
+    long Id,
+    long RowNumber,
+    string Status,
+    string ErrorMessage,
+    long CreatedEntityId);
+
+public sealed record CpDataMigrationsDetailResult(
+    CpDataMigrationsDetail? Migration,
+    IReadOnlyList<CpDataMigrationLineDigest> Lines,
+    string Source,
+    string Message);
+
 // ---- Wave 22 CMS/platform leftover digests ----
 public sealed record CpGeoRegionsSummary(
     int NodeCount,

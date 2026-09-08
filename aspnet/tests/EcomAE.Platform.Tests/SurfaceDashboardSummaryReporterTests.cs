@@ -196,6 +196,7 @@ public sealed class SurfaceDashboardSummaryReporterTests
         var notifications = await reporter.BuildCpNotificationsDigestAsync(10);
         var portalSettings = await reporter.BuildCpPortalSettingsDigestAsync(10);
         var dataMigrations = await reporter.BuildCpDataMigrationsDigestAsync(10);
+        var dataMigrationDetail = await reporter.BuildCpDataMigrationsDetailAsync(9);
         var partSearchEmpty = await reporter.SearchStorefrontPartsAsync("", 10);
         var partSearch = await reporter.SearchStorefrontPartsAsync("0986424590", 10);
         var cartRejected = await reporter.ListStorefrontCartAsync(0, 10);
@@ -435,6 +436,7 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.Equal("migration", notifications.Source);
         Assert.Equal("migration", portalSettings.Source);
         Assert.Equal("migration", dataMigrations.Source);
+        Assert.Equal("migration", dataMigrationDetail.Source);
         Assert.Equal(0, cp.Users);
         Assert.Equal(0m, erp.CashPosition);
         Assert.Empty(erpDigest.ApprovalQueue);
@@ -865,6 +867,12 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.DoesNotContain("column_mapping", LegacySurfaceDashboardSql.SelectCpDataMigrationsRows, StringComparison.Ordinal);
         Assert.DoesNotContain("validation_errors", LegacySurfaceDashboardSql.SelectCpDataMigrationsRows, StringComparison.Ordinal);
         Assert.DoesNotContain("raw_data", LegacySurfaceDashboardSql.SelectCpDataMigrationsRows, StringComparison.Ordinal);
+        Assert.Contains("file_path", LegacySurfaceDashboardSql.SelectCpDataMigrationsDetail, StringComparison.Ordinal);
+        Assert.Contains("column_mapping", LegacySurfaceDashboardSql.SelectCpDataMigrationsDetail, StringComparison.Ordinal);
+        Assert.Contains("validation_errors", LegacySurfaceDashboardSql.SelectCpDataMigrationsDetail, StringComparison.Ordinal);
+        Assert.DoesNotContain("raw_data", LegacySurfaceDashboardSql.SelectCpDataMigrationLines, StringComparison.Ordinal);
+        Assert.DoesNotContain("mapped_data", LegacySurfaceDashboardSql.SelectCpDataMigrationLines, StringComparison.Ordinal);
+        Assert.Contains("`migration_id` = @id", LegacySurfaceDashboardSql.SelectCpDataMigrationLines, StringComparison.Ordinal);
     }
 
     [Fact]

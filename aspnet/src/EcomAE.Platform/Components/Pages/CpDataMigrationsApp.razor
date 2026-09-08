@@ -21,11 +21,91 @@
             </div>
             <div class="panel-body">
                 <p>@CpPhpModuleCopy.PurposeFor("/cp/data-migrations-app")</p>
+                <p>Open a job for mapping, validation errors, and row status. Import stays on Classic twin.</p>
             </div>
         </div>
     </div>
-    <PhpParityModuleBody AppPath="/cp/data-migrations-app" IsAdmin="_isAdmin" />
+    <PhpParityModuleBody AppPath="/cp/data-migrations-app" IsAdmin="_isAdmin" ShowGhostScaffold="false" />
 
+    <ErpOpenedRecordBanner Id="_openedId" Found="@(_openedMigration is not null)" Caption="@OpenedCaption" ListHref="@_listHref" />
+
+    <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Data migration KPIs">
+        <div class="kpi"><div class="lbl">Migrations</div><div class="val">@_summary.MigrationCount.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Completed</div><div class="val">@_summary.CompletedCount.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Failed</div><div class="val">@_summary.FailedCount.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Row records</div><div class="val">@_summary.RowCount.ToString(CultureInfo.InvariantCulture)</div></div>
+    </div>
+
+    @if (_openedMigration is not null)
+    {
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">
+                    @(!string.IsNullOrWhiteSpace(_openedMigration.FileName) ? _openedMigration.FileName : ("Migration #" + _openedMigration.Id.ToString(CultureInfo.InvariantCulture)))
+                    <span class="label label-default pull-right">@(!string.IsNullOrWhiteSpace(_openedMigration.Status) ? _openedMigration.Status : "—")</span>
+                </div>
+                <div class="panel-body">
+                    <p>@(!string.IsNullOrWhiteSpace(_openedMigration.MigrationType) ? _openedMigration.MigrationType : "—")
+                        · @(!string.IsNullOrWhiteSpace(_openedMigration.EntityType) ? _openedMigration.EntityType : "—")
+                        · Company @_openedMigration.CompanyId.ToString(CultureInfo.InvariantCulture)</p>
+                    <p>@_openedMigration.ImportedRows.ToString(CultureInfo.InvariantCulture) imported
+                        · @_openedMigration.ValidRows.ToString(CultureInfo.InvariantCulture) valid
+                        · @_openedMigration.ErrorRows.ToString(CultureInfo.InvariantCulture) errors
+                        · @_openedMigration.TotalRows.ToString(CultureInfo.InvariantCulture) total</p>
+                    @if (!string.IsNullOrWhiteSpace(_openedMigration.FilePath))
+                    {
+                        <p class="text-muted">@_openedMigration.FilePath</p>
+                    }
+                    @if (string.IsNullOrWhiteSpace(_openedMigration.ColumnMapping))
+                    {
+                        <p>No mapping yet.</p>
+                    }
+                    else
+                    {
+                        <p class="text-muted">@_openedMigration.ColumnMapping</p>
+                    }
+                    @if (!string.IsNullOrWhiteSpace(_openedMigration.Options))
+                    {
+                        <p class="text-muted">@_openedMigration.Options</p>
+                    }
+                    @if (!string.IsNullOrWhiteSpace(_openedMigration.ValidationErrors))
+                    {
+                        <p class="text-muted">@_openedMigration.ValidationErrors</p>
+                    }
+                    @if (_openedLines.Count == 0)
+                    {
+                        <p>No rows yet.</p>
+                    }
+                    else
+                    {
+                        <div class="table-responsive">
+                            <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped table-epc">
+                                <thead>
+                                    <tr>
+                                        <th>Row</th>
+                                        <th>Status</th>
+                                        <th>Error</th>
+                                        <th>Entity</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var line in _openedLines)
+                                    {
+                                        <tr>
+                                            <td>@line.RowNumber.ToString(CultureInfo.InvariantCulture)</td>
+                                            <td>@(!string.IsNullOrWhiteSpace(line.Status) ? line.Status : "—")</td>
+                                            <td>@(!string.IsNullOrWhiteSpace(line.ErrorMessage) ? line.ErrorMessage : "—")</td>
+                                            <td>@line.CreatedEntityId.ToString(CultureInfo.InvariantCulture)</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    }
 
     <p class="help-block">@_summary.MigrationCount.ToString(CultureInfo.InvariantCulture) Migrations · @_summary.CompletedCount.ToString(CultureInfo.InvariantCulture) Completed · @_summary.FailedCount.ToString(CultureInfo.InvariantCulture) Failed / rolled back · @_summary.RowCount.ToString(CultureInfo.InvariantCulture) Row records.</p>
 
@@ -34,53 +114,53 @@
             <div class="panel-heading hbuilt">Records</div>
             <div class="panel-body">
                 <div class="table-responsive">
-                    <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped">
-        <thead>
-            <tr>
-                    <th>Id</th>
-                    <th>Company</th>
-                    <th>Type</th>
-                    <th>Entity</th>
-                    <th>File</th>
-                    <th>Status</th>
-                    <th>Total</th>
-                    <th>Valid</th>
-                    <th>Errors</th>
-                    <th>Imported</th>
-                    <th>By</th>
-                    <th>Created</th>
-                    <th>Completed</th>
-                    <th></th>
-            </tr>
-        </thead>
-        <tbody>
-            @if (_rows.Count == 0)
-            {
-                <tr><td colspan="14">No records yet.</td></tr>
-            }
-            else
-            {
-                @foreach (var row in _rows)
-                {
-                    <tr>
-                            <td>@row.Id.ToString(CultureInfo.InvariantCulture)</td>
-                            <td>@row.CompanyId.ToString(CultureInfo.InvariantCulture)</td>
-                            <td>@(!string.IsNullOrWhiteSpace(row.MigrationType) ? row.MigrationType : "—")</td>
-                            <td>@(!string.IsNullOrWhiteSpace(row.EntityType) ? row.EntityType : "—")</td>
-                            <td>@(!string.IsNullOrWhiteSpace(row.FileName) ? row.FileName : "—")</td>
-                            <td>@(!string.IsNullOrWhiteSpace(row.Status) ? row.Status : "—")</td>
-                            <td>@row.TotalRows.ToString(CultureInfo.InvariantCulture)</td>
-                            <td>@row.ValidRows.ToString(CultureInfo.InvariantCulture)</td>
-                            <td>@row.ErrorRows.ToString(CultureInfo.InvariantCulture)</td>
-                            <td>@row.ImportedRows.ToString(CultureInfo.InvariantCulture)</td>
-                            <td>@(!string.IsNullOrWhiteSpace(row.ImportedByName) ? row.ImportedByName : "—")</td>
-                            <td>@row.TimeCreated.ToString(CultureInfo.InvariantCulture)</td>
-                            <td>@row.TimeCompleted.ToString(CultureInfo.InvariantCulture)</td>
-                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
-                    </tr>
-                }
-            }
-        </tbody>
+                    <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped table-bordered table-epc epc-erp-table">
+                        <thead>
+                            <tr>
+                                <th>Id</th>
+                                <th>Company</th>
+                                <th>Type</th>
+                                <th>Entity</th>
+                                <th>File</th>
+                                <th>Status</th>
+                                <th>Total</th>
+                                <th>Valid</th>
+                                <th>Errors</th>
+                                <th>Imported</th>
+                                <th>By</th>
+                                <th>Created</th>
+                                <th>Completed</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (_rows.Count == 0)
+                            {
+                                <tr><td colspan="14">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? "No records yet." : _message) : "Sign in with a staff session for live rows.")</td></tr>
+                            }
+                            else
+                            {
+                                @foreach (var row in _rows)
+                                {
+                                    <tr id="erp-row-@row.Id.ToString(CultureInfo.InvariantCulture)" class="@ErpRecordOpen.RowClass(row.Id, _openedId)">
+                                        <td>@row.Id.ToString(CultureInfo.InvariantCulture)</td>
+                                        <td>@row.CompanyId.ToString(CultureInfo.InvariantCulture)</td>
+                                        <td>@(!string.IsNullOrWhiteSpace(row.MigrationType) ? row.MigrationType : "—")</td>
+                                        <td>@(!string.IsNullOrWhiteSpace(row.EntityType) ? row.EntityType : "—")</td>
+                                        <td>@(!string.IsNullOrWhiteSpace(row.FileName) ? row.FileName : "—")</td>
+                                        <td>@(!string.IsNullOrWhiteSpace(row.Status) ? row.Status : "—")</td>
+                                        <td>@row.TotalRows.ToString(CultureInfo.InvariantCulture)</td>
+                                        <td>@row.ValidRows.ToString(CultureInfo.InvariantCulture)</td>
+                                        <td>@row.ErrorRows.ToString(CultureInfo.InvariantCulture)</td>
+                                        <td>@row.ImportedRows.ToString(CultureInfo.InvariantCulture)</td>
+                                        <td>@(!string.IsNullOrWhiteSpace(row.ImportedByName) ? row.ImportedByName : "—")</td>
+                                        <td>@row.TimeCreated.ToString(CultureInfo.InvariantCulture)</td>
+                                        <td>@row.TimeCompleted.ToString(CultureInfo.InvariantCulture)</td>
+                                        <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href(_listHref, "migration_id", row.Id)">Open</a></td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
                     </table>
                 </div>
             </div>
@@ -96,11 +176,26 @@
     private IReadOnlyList<CpDataMigrationsRowDigest> _rows = [];
     private string _source = "n/a";
     private string _message = "";
+    private long _openedId;
+    private CpDataMigrationsDetail? _openedMigration;
+    private IReadOnlyList<CpDataMigrationLineDigest> _openedLines = [];
+    private string _listHref = "/cp/data-migrations-app";
+
+    private string OpenedCaption => _openedMigration is null
+        ? ""
+        : (string.IsNullOrWhiteSpace(_openedMigration.FileName)
+            ? ("Migration #" + _openedMigration.Id.ToString(CultureInfo.InvariantCulture))
+            : _openedMigration.FileName);
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
+        var path = ctx.Request.Path.Value;
+        _listHref = string.Equals(path, "/erp/data-migrations-app", StringComparison.OrdinalIgnoreCase)
+            ? "/erp/data-migrations-app"
+            : "/cp/data-migrations-app";
+        _openedId = ErpRecordOpen.ReadId(ctx.Request, "migration_id");
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
@@ -114,5 +209,24 @@
         _rows = result.Migrations;
         _source = result.Source;
         _message = result.Message;
+
+        if (_openedId > 0)
+        {
+            var detail = await Dashboards.BuildCpDataMigrationsDetailAsync(_openedId, ctx.RequestAborted);
+            _openedMigration = detail.Migration;
+            _openedLines = detail.Lines;
+            if (_openedMigration is not null)
+            {
+                var openedList = _rows.FirstOrDefault(r => r.Id == _openedId);
+                if (openedList is not null)
+                {
+                    _rows = new[] { openedList }.Concat(_rows.Where(r => r.Id != _openedId)).ToList();
+                }
+            }
+            else if (!string.IsNullOrWhiteSpace(detail.Message))
+            {
+                _message = detail.Message;
+            }
+        }
     }
 }
