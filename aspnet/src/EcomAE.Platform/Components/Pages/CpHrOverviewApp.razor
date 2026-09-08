@@ -11,49 +11,23 @@
 
 <PageTitle>HR Overview · Control Panel · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="cp" />
-<HeadContent>
-<style>
-        .epc-hr-hero {
-            margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
-            background:linear-gradient(135deg,#0c4a6e 0%,#2563eb 45%,#0ea5e9 100%);
-        }
-        .epc-hr-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
-        .epc-hr-hero p { margin:0; color:#ccfbf1; max-width:52rem; font-size:.92rem; line-height:1.45; }
-        .epc-hr-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
-        .epc-hr-cta a {
-            display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
-            text-decoration:none; color:#0f766e; background:#e0f2fe;
-        }
-        .epc-hr-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); color:#fff; }
-        .epc-hr-kpis { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
-        .epc-hr-kpi { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; padding:.85rem .9rem; }
-        .epc-hr-kpi strong { display:block; font-size:1.2rem; word-break:break-word; }
-        .epc-hr-kpi span { color:#64748b; font-size:.78rem; }
-        .epc-hr-table-wrap { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; overflow:auto; }
-        .epc-hr-table { width:100%; border-collapse:collapse; font-size:.86rem; }
-        .epc-hr-table th, .epc-hr-table td { padding:.55rem .7rem; border-bottom:1px solid #f1f5f9; text-align:left; white-space:nowrap; }
-        .epc-hr-table th { background:#f8fafc; color:#475569; font-size:.75rem; text-transform:uppercase; letter-spacing:.03em; }
-        .epc-hr-note { margin-top:1rem; padding:.75rem .9rem; background:#f0fdfa; border:1px solid #99f6e4; border-radius:.45rem; color:#115e59; font-size:.86rem; }
-        @@media (max-width:900px){ .epc-hr-kpis{grid-template-columns:1fr 1fr;} }
-    
-</style>
-</HeadContent>
-
 
 <PhpCpDesktopChrome IsAdmin="_isAdmin">
 
-    <section class="epc-hr-hero">
-        <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
-        <h1>HR — employee records &amp; salaries</h1>
-        <p>@CpPhpModuleCopy.PurposeFor("/cp/hr-overview-app")</p>
-        <p>Add an employee, record attendance, generate HR payroll, save days worked, submit a leave request or expense claim, and set leave or expense status here.</p>
-        <div class="epc-hr-cta">
-            <a href="/cp/hr-overview-app?hv=salaries">Salaries</a>
-            <a class="ghost" href="/cp/hr-overview-app?hv=statutory">End-of-service &amp; leave</a>
-            <a class="ghost" href="/erp/staff-app">Staff directory</a>
-            <a class="ghost" href="/erp/payroll-app">Payroll</a>
+    <div class="col-lg-12">
+        <div class="hpanel">
+            <div class="panel-heading hbuilt">
+                HR — employee records &amp; salaries
+                <a class="btn btn-xs btn-default pull-right" href="/erp/payroll-app">Payroll</a>
+                <a class="btn btn-xs btn-default pull-right" href="/erp/staff-app" style="margin-right:.4rem">Staff directory</a>
+                <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)" style="margin-right:.4rem">Classic twin</a>
+            </div>
+            <div class="panel-body">
+                <p>@CpPhpModuleCopy.PurposeFor("/cp/hr-overview-app")</p>
+                <p>Add an employee, record attendance, generate HR payroll, save days worked, submit a leave request or expense claim, and set leave or expense status here.</p>
+            </div>
         </div>
-    </section>
+    </div>
 
     <ErpPhpViewTabs QueryName="hv" Active="@_view" BaseHref="/cp/hr-overview-app" Tabs="@_views" />
 
@@ -168,19 +142,14 @@
         </form>
     }
 
-    <div class="epc-hr-kpis" aria-label="HR stats">
-        <div class="epc-hr-kpi"><strong>@_summary.ActiveEmployees.ToString(CultureInfo.InvariantCulture)</strong><span>Active employees</span></div>
-        <div class="epc-hr-kpi"><strong>@_summary.PendingLeave.ToString(CultureInfo.InvariantCulture)</strong><span>Pending leave</span></div>
-        <div class="epc-hr-kpi"><strong>@_summary.PayrollRuns.ToString(CultureInfo.InvariantCulture)</strong><span>Payroll runs</span></div>
-        <div class="epc-hr-kpi"><strong>@_hr.Count.ToString(CultureInfo.InvariantCulture)</strong><span>HR salary records</span></div>
-    </div>
+    <p class="help-block">@_summary.ActiveEmployees.ToString(CultureInfo.InvariantCulture) active employees · @_summary.PendingLeave.ToString(CultureInfo.InvariantCulture) pending leave · @_summary.PayrollRuns.ToString(CultureInfo.InvariantCulture) payroll runs · @_hr.Count.ToString(CultureInfo.InvariantCulture) HR salary records.</p>
 
     @if (_view == "statutory")
     {
         <h4>End-of-service &amp; statutory leave <small class="text-muted">— country-aware (United Arab Emirates · AE)</small></h4>
         <p class="text-muted">Gratuity / end-of-service and annual-leave entitlement follow <strong>United Arab Emirates</strong> labour law. Amounts in <strong>AED</strong>.</p>
-        <div class="epc-hr-table-wrap">
-            <table class="epc-hr-table">
+        <div class="table-responsive">
+            <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped">
                 <thead>
                     <tr>
                         <th>Name</th>
@@ -221,8 +190,8 @@
     {
         <h4>HR — employee records &amp; salaries</h4>
         <p class="text-muted"><strong>Basic + allowances</strong> = fixed monthly salary for a @ErpHrStatutory.StandardDays.ToString(CultureInfo.InvariantCulture)-day month. Set <strong>days worked</strong> before generating payroll (pro-rata: salary ÷ @ErpHrStatutory.StandardDays.ToString(CultureInfo.InvariantCulture) × days). Salaries feed the <a href="/erp/payroll-app">Payroll</a> tab.</p>
-        <div class="epc-hr-table-wrap">
-            <table class="epc-hr-table">
+        <div class="table-responsive">
+            <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped">
                 <thead>
                     <tr>
                         <th>Name</th>
@@ -265,7 +234,7 @@
         </div>
     }
 
-    <p class="epc-hr-note">Source: @_source / @_hrSource. CP employee KPIs stay on <code>epc_hr_*</code>; salary/statutory rows bind <code>epc_erp_hr_records</code>.</p>
+    <p class="help-block">Source: @_source / @_hrSource. CP employee KPIs stay on <code>epc_hr_*</code>; salary/statutory rows bind <code>epc_erp_hr_records</code>.</p>
 </PhpCpDesktopChrome>
 
 @code {

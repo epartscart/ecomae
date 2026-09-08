@@ -7,75 +7,41 @@
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
-@inject NavigationManager Nav
 
 <PageTitle>SEO · Control Panel · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="cp" />
 
 <PhpCpDesktopChrome IsAdmin="_isAdmin">
-    <style>
-        .epc-nw-hero {
-            margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
-            background:linear-gradient(135deg,#0c4a6e 0%,#2563eb 45%,#0ea5e9 100%);
-        }
-        .epc-nw-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
-        .epc-nw-hero p { margin:0; color:rgba(255,255,255,.88); max-width:48rem; font-size:.92rem; line-height:1.45; }
-        .epc-nw-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
-        .epc-nw-cta a {
-            display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
-            text-decoration:none; color:#0f172a; background:#fff;
-        }
-        .epc-nw-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); color:#fff; }
-        .epc-nw-kpis { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
-        .epc-nw-kpi { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; padding:.85rem .9rem; }
-        .epc-nw-kpi strong { display:block; font-size:1.2rem; word-break:break-word; }
-        .epc-nw-kpi span { color:#64748b; font-size:.78rem; }
-        .epc-nw-table-wrap { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; overflow:auto; }
-        .epc-nw-table { width:100%; border-collapse:collapse; font-size:.86rem; }
-        .epc-nw-table th, .epc-nw-table td { padding:.55rem .7rem; border-bottom:1px solid #f1f5f9; text-align:left; }
-        .epc-nw-table th { background:#f8fafc; color:#475569; font-size:.75rem; text-transform:uppercase; letter-spacing:.03em; white-space:nowrap; }
-        .epc-nw-note { margin-top:1rem; padding:.75rem .9rem; background:#f8fafc; border:1px solid #cbd5e1; border-radius:.45rem; color:#334155; font-size:.86rem; }
-        .epc-nw-probe { margin:0 0 1rem; padding:.75rem .9rem; background:#ecfdf5; border:1px solid #a7f3d0; border-radius:.45rem; font-size:.86rem; color:#065f46; }
-        .epc-nw-probe a { color:#047857; font-weight:700; }
-        @@media (max-width:900px){ .epc-nw-kpis{grid-template-columns:1fr 1fr;} }
-    </style>
 
-    <section class="epc-nw-hero">
-        <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
-        <h1>SEO</h1>
-        <p>
-            ASP.NET-primary storefront SEO mirrors PHP <code>epc_seo_indexing</code>:
-            CHPU part pages emit Part-number titles, regional descriptions, Product JSON-LD, and stock-aware robots.
-            Content KPIs below come from the shop <code>content</code> table (same source as CP Content editor).
-        </p>
-        <div class="epc-nw-cta">
-            <a href="/sitemap.xml" target="_blank" rel="noopener">Sitemap.xml</a>
-            <a href="/cp/sitemap-app">Sitemap app</a>
-            <a class="ghost" href="/en/parts/JS%20ASAKASHI/C110J" target="_blank" rel="noopener">Probe CHPU SEO</a>
-            <a class="ghost" href="/" target="_blank" rel="noopener">Probe home SEO</a>
-            <a class="ghost" href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">PHP SEO ops</a>
+    <div class="col-lg-12">
+        <div class="hpanel">
+            <div class="panel-heading hbuilt">
+                SEO
+                <a class="btn btn-xs btn-default pull-right" href="/sitemap.xml" target="_blank" rel="noopener">Sitemap.xml</a>
+                <a class="btn btn-xs btn-default pull-right" href="/cp/sitemap-app" style="margin-right:.4rem">Sitemap app</a>
+                <a class="btn btn-xs btn-default pull-right" href="/en/parts/JS%20ASAKASHI/C110J" target="_blank" rel="noopener" style="margin-right:.4rem">Probe CHPU SEO</a>
+                <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)" style="margin-right:.4rem">Classic twin</a>
+            </div>
+            <div class="panel-body">
+                <p>
+                    ASP.NET-primary storefront SEO mirrors PHP <code>epc_seo_indexing</code>:
+                    CHPU part pages emit Part-number titles, regional descriptions, Product JSON-LD, and stock-aware robots.
+                    Content KPIs below come from the shop <code>content</code> table (same source as CP Content editor).
+                </p>
+                <p>Live ASP.NET SEO status: home uses body-stream canonical/OG/hreflang/JSON-LD; CHPU uses PHP-parity <em>Part number</em> title + description; no product <code>.php</code> URLs in canonicals. Source: <code>@_source</code>@if (!string.IsNullOrWhiteSpace(_message)) { <text> — @_message</text> }</p>
+            </div>
         </div>
-    </section>
+    </div>
     <PhpParityModuleBody AppPath="/cp/seo-app" IsAdmin="_isAdmin" />
 
+    <p class="help-block">@_urlCount.ToString(CultureInfo.InvariantCulture) Frontend URLs · @_indexedReady.ToString(CultureInfo.InvariantCulture) Published · @_pingJobs.ToString(CultureInfo.InvariantCulture) Ping jobs · @_warmJobs.ToString(CultureInfo.InvariantCulture) Warm jobs.</p>
 
-    <div class="epc-nw-probe" role="status">
-        <strong>Live ASP.NET SEO status:</strong>
-        home uses body-stream canonical/OG/hreflang/JSON-LD;
-        CHPU uses PHP-parity <em>Part number</em> title + description;
-        no product <code>.php</code> URLs in canonicals.
-        Source: <code>@_source</code>@if (!string.IsNullOrWhiteSpace(_message)) { <text> — @_message</text> }
-    </div>
-
-    <div class="epc-nw-kpis" aria-label="SEO stats">
-        <div class="epc-nw-kpi"><strong>@_urlCount.ToString(CultureInfo.InvariantCulture)</strong><span>Frontend URLs</span></div>
-        <div class="epc-nw-kpi"><strong>@_indexedReady.ToString(CultureInfo.InvariantCulture)</strong><span>Published</span></div>
-        <div class="epc-nw-kpi"><strong>@_pingJobs.ToString(CultureInfo.InvariantCulture)</strong><span>Ping jobs (PHP)</span></div>
-        <div class="epc-nw-kpi"><strong>@_warmJobs.ToString(CultureInfo.InvariantCulture)</strong><span>Warm jobs (PHP)</span></div>
-    </div>
-
-    <div class="epc-nw-table-wrap">
-    <table class="epc-nw-table">
+    <div class="col-lg-12">
+        <div class="hpanel">
+            <div class="panel-heading hbuilt">SEO rows</div>
+            <div class="panel-body">
+                <div class="table-responsive">
+                    <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped">
         <thead>
             <tr>
                     <th>Key</th>
@@ -121,13 +87,15 @@
                 }
             }
         </tbody>
-    </table>
-    </div>
-
-    <div class="epc-nw-note">
-        Edit per-page <code>title_tag</code> / <code>description_tag</code> / <code>robots_tag</code> in CP Content (PHP editor remains authoritative for CMS writes).
-        Warehouse CHPU SEO is generated by ASP.NET from stock + article data (same rules as PHP <code>epc_seo_indexing.php</code>).
-        Sitemap warm/ping stay on PHP cron until workers leave dry-run.
+                    </table>
+                </div>
+                <p class="help-block">
+                    Edit per-page <code>title_tag</code> / <code>description_tag</code> / <code>robots_tag</code> in CP Content. CMS writes stay on the Classic twin.
+                    Warehouse CHPU SEO is generated from stock + article data (same rules as <code>epc_seo_indexing.php</code>).
+                    Sitemap warm/ping stay on Classic cron until workers leave dry-run.
+                </p>
+            </div>
+        </div>
     </div>
 
 </PhpCpDesktopChrome>
