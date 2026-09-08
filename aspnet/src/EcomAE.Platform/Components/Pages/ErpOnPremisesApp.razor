@@ -17,6 +17,7 @@
                             Subtitle="Self-hosted license registry and installer pack."
                             PhpTabHref="@_phpTab" />
     <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
+    <ErpOpenedRecordBanner Id="_openedId" Found="@(_openedLicense is not null)" Caption="@OpenedCaption" ListHref="/erp/on-premises-app" />
 
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="On-premises KPIs">
         <div class="kpi"><div class="lbl">Licenses shown</div><div class="val">@_licenses.Count.ToString(CultureInfo.InvariantCulture)</div></div>
@@ -47,8 +48,7 @@
                 {
                     @foreach (var row in _licenses)
                     {
-                        var phpHref = $"{_phpTab}&license_id={row.Id.ToString(CultureInfo.InvariantCulture)}";
-                        <tr>
+                        <tr id="erp-row-@row.Id.ToString(CultureInfo.InvariantCulture)" class="@ErpRecordOpen.RowClass(row.Id, _openedId)">
                             <td><strong>@(string.IsNullOrWhiteSpace(row.CustomerName) ? $"#{row.Id}" : row.CustomerName)</strong></td>
                             <td>@(string.IsNullOrWhiteSpace(row.Tier) ? "—" : row.Tier)</td>
                             <td>@row.UsersMax.ToString(CultureInfo.InvariantCulture)</td>
@@ -56,7 +56,7 @@
                             <td>@(string.IsNullOrWhiteSpace(row.Hostname) ? "—" : row.Hostname)</td>
                             <td>@(string.IsNullOrWhiteSpace(row.LicenseKeyPreview) ? "—" : row.LicenseKeyPreview)</td>
                             <td>@FormatTime(row.ExpiresAt)</td>
-                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(phpHref)">Open</a></td>
+                            <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href("/erp/on-premises-app", "license_id", row.Id)">Open</a></td>
                         </tr>
                     }
                 }
@@ -78,6 +78,11 @@
     private int _activeCount;
     private string _source = "n/a";
     private string _message = "";
+    private long _openedId;
+    private OnPremisesLicenseDigest? _openedLicense;
+    private string OpenedCaption => _openedLicense is null
+        ? ""
+        : (string.IsNullOrWhiteSpace(_openedLicense.CustomerName) ? $"License #{_openedLicense.Id}" : _openedLicense.CustomerName);
 
     protected override async Task OnInitializedAsync()
     {
@@ -91,8 +96,14 @@
             return;
         }
 
+        _openedId = ErpRecordOpen.ReadId(ctx.Request, "license_id");
         var result = await Dashboards.ListOnPremisesLicensesAsync(100, ctx.RequestAborted);
         _licenses = result.Licenses;
+        _openedLicense = _openedId > 0 ? _licenses.FirstOrDefault(l => l.Id == _openedId) : null;
+        if (_openedLicense is not null)
+        {
+            _licenses = new[] { _openedLicense }.Concat(_licenses.Where(l => l.Id != _openedId)).ToList();
+        }
         _activeCount = _licenses.Count(l => string.Equals(l.Status, "active", StringComparison.OrdinalIgnoreCase));
         _source = result.Source;
         _message = result.Message;

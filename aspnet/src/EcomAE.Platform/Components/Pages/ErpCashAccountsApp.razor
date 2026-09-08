@@ -15,8 +15,9 @@
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Cash & Bank" BreadcrumbArea="Cash & Treasury" BreadcrumbTab="Cash & bank">
 
     
-    <PhpErpModulePageHeader Title="@_title" Subtitle="@_subtitle" />
-    <PhpErpD365ActionPane RefreshHref="@Nav.Uri" />
+    <PhpErpModulePageHeader Title="@_title" Subtitle="@_subtitle" PhpTabHref="@_phpTab" />
+    <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
+    <ErpOpenedRecordBanner Id="_openedId" Found="@(_openedAccount is not null)" Caption="@OpenedCaption" ListHref="/erp/cash-accounts-app" />
 
     @if (!string.IsNullOrWhiteSpace(_flashOk))
     {
@@ -261,14 +262,13 @@
                     {
                         @foreach (var a in _accounts)
                         {
-                            var phpHref = $"{_phpTab}&account_id={a.Id.ToString(CultureInfo.InvariantCulture)}";
-                            <tr>
+                            <tr id="erp-row-@a.Id.ToString(CultureInfo.InvariantCulture)" class="@ErpRecordOpen.RowClass(a.Id, _openedId)">
                                 <td><strong>@(string.IsNullOrWhiteSpace(a.Name) ? $"#{a.Id}" : a.Name)</strong></td>
                                 <td><span class="label label-default">@a.AccountType</span></td>
                                 <td>@(string.IsNullOrWhiteSpace(a.CurrencyCode) ? "—" : a.CurrencyCode)</td>
                                 <td>@a.OpeningBalance.ToString("N2", CultureInfo.InvariantCulture)</td>
                                 <td>@a.Balance.ToString("N2", CultureInfo.InvariantCulture)</td>
-                                <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(phpHref)">Open</a></td>
+                                <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href("/erp/cash-accounts-app", "account_id", a.Id)">Open</a></td>
                             </tr>
                         }
                     }
@@ -301,15 +301,14 @@
                     {
                         @foreach (var e in _entries)
                         {
-                            var phpHref = $"{_phpTab}&account_id={e.AccountId.ToString(CultureInfo.InvariantCulture)}";
-                            <tr>
+                            <tr id="erp-row-@e.Id.ToString(CultureInfo.InvariantCulture)">
                                 <td>@FormatTime(e.TimeUnix)</td>
                                 <td>@(string.IsNullOrWhiteSpace(e.AccountName) ? $"#{e.AccountId}" : e.AccountName)</td>
                                 <td><span class="label label-default">@FormatDirection(e.Direction)</span></td>
                                 <td>@e.Amount.ToString("N2", CultureInfo.InvariantCulture)</td>
                                 <td>@(string.IsNullOrWhiteSpace(e.Reference) ? "—" : e.Reference)</td>
                                 <td>@(string.IsNullOrWhiteSpace(e.Note) ? "—" : e.Note)</td>
-                                <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(phpHref)">Open</a></td>
+                                <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href("/erp/cash-entries-app", "entry_id", e.Id)">Open</a></td>
                             </tr>
                         }
                     }
@@ -341,6 +340,11 @@
     private string _entriesMessage = "";
     private string _flashOk = "";
     private string _flashErr = "";
+    private long _openedId;
+    private ErpCashAccountDigest? _openedAccount;
+    private string OpenedCaption => _openedAccount is null
+        ? ""
+        : (string.IsNullOrWhiteSpace(_openedAccount.Name) ? $"Account #{_openedAccount.Id}" : _openedAccount.Name);
 
     protected override async Task OnInitializedAsync()
     {
@@ -349,6 +353,7 @@
 
         _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
         _flashErr = ctx.Request.Query["err"].ToString() ?? "";
+        _openedId = ErpRecordOpen.ReadId(ctx.Request, "account_id");
 
         var tab = (ctx.Request.Query["tab"].ToString() ?? "").Trim().ToLowerInvariant();
         _view = tab is "petty_cash" or "jw_petty_cash" ? "petty_cash"
@@ -408,12 +413,17 @@
 
         var accounts = await Dashboards.ListErpCashAccountsAsync(_limit, ctx.RequestAborted);
         _accounts = accounts.Accounts;
+        _openedAccount = _openedId > 0 ? _accounts.FirstOrDefault(a => a.Id == _openedId) : null;
+        if (_openedAccount is not null)
+        {
+            _accounts = new[] { _openedAccount }.Concat(_accounts.Where(a => a.Id != _openedId)).ToList();
+        }
         _totalBalance = _accounts.Sum(a => a.Balance);
         _accountsSource = accounts.Source;
         _accountsMessage = accounts.Message;
 
-        var entries = await Dashboards.ListErpCashEntriesAsync(accountId: null, _limit, ctx.RequestAborted);
-        _entries = entries.Entries;
+        int? filterAccount = _openedId > 0 && _openedId <= int.MaxValue ? (int)_openedId : null;
+        var entries = await Dashboards.ListErpCashEntriesAsync(filterAccount, _limit, ctx.RequestAborted);
         _entriesSource = entries.Source;
         _entriesMessage = entries.Message;
     }
