@@ -7744,6 +7744,48 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    public async Task<CpPromotionDetailResult> BuildCpPromotionDetailAsync(long id, CancellationToken cancellationToken = default)
+    {
+        if (id <= 0)
+        {
+            return new(null, "n/a", "");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return new(null, "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            await using var cmd = connection.CreateCommand();
+            cmd.CommandText = LegacySurfaceDashboardSql.SelectCpPromotionDetail;
+            AddParameter(cmd, "@id", id);
+            await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            if (!await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                return new(null, "database", "Promotion not found.");
+            }
+
+            var header = new CpPromotionDetail(
+                Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                Convert.ToString(reader["code"] is DBNull ? string.Empty : reader["code"], CultureInfo.InvariantCulture) ?? string.Empty,
+                Convert.ToString(reader["name"] is DBNull ? string.Empty : reader["name"], CultureInfo.InvariantCulture) ?? string.Empty,
+                Convert.ToString(reader["type"] is DBNull ? string.Empty : reader["type"], CultureInfo.InvariantCulture) ?? string.Empty,
+                Convert.ToDecimal(reader["value"] is DBNull ? 0 : reader["value"], CultureInfo.InvariantCulture),
+                Convert.ToDecimal(reader["min_spend"] is DBNull ? 0 : reader["min_spend"], CultureInfo.InvariantCulture),
+                Convert.ToInt64(reader["valid_from"] is DBNull ? 0 : reader["valid_from"], CultureInfo.InvariantCulture),
+                Convert.ToInt64(reader["valid_to"] is DBNull ? 0 : reader["valid_to"], CultureInfo.InvariantCulture),
+                Convert.ToInt32(reader["active"] is DBNull ? 0 : reader["active"], CultureInfo.InvariantCulture) != 0);
+            return new(header, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(null, "database-error", ex.Message);
+        }
+    }
+
     public async Task<CpCrmOpportunitiesDigestResult> BuildCpCrmOpportunitiesDigestAsync(int limit, CancellationToken cancellationToken = default)
     {
         var safeLimit = Math.Clamp(limit, 1, 500);

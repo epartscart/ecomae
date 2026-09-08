@@ -203,6 +203,9 @@ public interface ISurfaceDashboardSummaryReporter
     /// <summary>Read-only promotions (epc_promo_promotions).</summary>
     Task<CpPromotionsDigestResult> BuildCpPromotionsDigestAsync(int limit, CancellationToken cancellationToken = default);
 
+    /// <summary>Opened promotion (PHP <c>promo_id=</c> detail, includes validity window).</summary>
+    Task<CpPromotionDetailResult> BuildCpPromotionDetailAsync(long id, CancellationToken cancellationToken = default);
+
     /// <summary>Read-only CRM opportunities (notes omitted).</summary>
     Task<CpCrmOpportunitiesDigestResult> BuildCpCrmOpportunitiesDigestAsync(int limit, CancellationToken cancellationToken = default);
 

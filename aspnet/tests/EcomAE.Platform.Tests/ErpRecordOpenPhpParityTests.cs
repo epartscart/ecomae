@@ -17,6 +17,7 @@ public sealed class ErpRecordOpenPhpParityTests
     [InlineData("/ERP/?epc_erp_shell=1&area=purchasing&tab=purchase_requisitions&req_id=4", "/erp/purchase-requests-app?req_id=4")]
     [InlineData("/CP/shop/finance/epc_collections_dunning?queue_id=12", "/cp/collections-dunning-app?queue_id=12")]
     [InlineData("/ERP/?epc_erp_shell=1&area=credit_coll&queue_id=12", "/erp/collections-dunning-app?queue_id=12")]
+    [InlineData("/CP/control/portal/epc_promotions_engine?promo_id=6", "/cp/promotions-app?promo_id=6")]
     [InlineData("/CP/control/portal/epc_visual_page_editor?layout_id=8", "/cp/page-builder-app?layout_id=8")]
     [InlineData("/CP/control/portal/epc_tax_toolkit_manage?toolkit_id=3", "/cp/tax-toolkits-app?toolkit_id=3")]
     [InlineData("/ERP/?epc_erp_shell=1&area=landed_cost_area&tab=landed_cost&sheet_id=6", "/erp/landed-cost-app?sheet_id=6")]
@@ -121,6 +122,7 @@ public sealed class ErpRecordOpenPhpParityTests
     [InlineData("ErpPayablesApp.razor", "supplier_id")]
     [InlineData("CpPurchaseRequestsApp.razor", "req_id")]
     [InlineData("CpCollectionsDunningApp.razor", "queue_id")]
+    [InlineData("CpPromotionsApp.razor", "promo_id")]
     [InlineData("CpPageBuilderApp.razor", "layout_id")]
     [InlineData("CpTaxToolkitsApp.razor", "toolkit_id")]
     [InlineData("CpLandedCostApp.razor", "sheet_id")]
@@ -339,6 +341,27 @@ public sealed class ErpRecordOpenPhpParityTests
             ErpRecordOpen.PreserveRecordQuery(
                 "/cp/collections-dunning-app",
                 "/CP/shop/finance/epc_collections_dunning?queue_id=12"));
+        Assert.Equal("/cp/promotions-app?promo_id=6#erp-row-6",
+            ErpRecordOpen.Href("/cp/promotions-app", "promo_id", 6));
+        Assert.Equal(
+            "/cp/promotions-app?promo_id=6",
+            ErpRecordOpen.PreserveRecordQuery(
+                "/cp/promotions-app",
+                "/CP/control/portal/epc_promotions_engine?promo_id=6"));
+    }
+
+    [Fact]
+    public void PromotionsApp_OpenLoadsValidityWindow()
+    {
+        var root = FindRepoRoot();
+        var text = File.ReadAllText(Path.Combine(root,
+            "aspnet/src/EcomAE.Platform/Components/Pages/CpPromotionsApp.razor"));
+        Assert.Contains("ErpRecordOpen.Href(_listHref, \"promo_id\"", text, StringComparison.Ordinal);
+        Assert.Contains("ErpOpenedRecordBanner", text, StringComparison.Ordinal);
+        Assert.Contains("ReadId(ctx.Request, \"promo_id\")", text, StringComparison.Ordinal);
+        Assert.Contains("BuildCpPromotionDetailAsync", text, StringComparison.Ordinal);
+        Assert.Contains("No validity window yet.", text, StringComparison.Ordinal);
+
         Assert.Equal("/cp/page-builder-app?layout_id=8#erp-row-8",
             ErpRecordOpen.Href("/cp/page-builder-app", "layout_id", 8));
         Assert.Equal(
@@ -507,6 +530,7 @@ public sealed class ErpRecordOpenPhpParityTests
         Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)\">Open", text, StringComparison.Ordinal);
         Assert.DoesNotContain("/php-reference/", text, StringComparison.Ordinal);
         Assert.DoesNotContain("ASP.NET", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("epc-prm-hero", text, StringComparison.Ordinal);
         Assert.DoesNotContain("epc-pb-hero", text, StringComparison.Ordinal);
 
         Assert.DoesNotContain("epc-aml-hero", text, StringComparison.Ordinal);

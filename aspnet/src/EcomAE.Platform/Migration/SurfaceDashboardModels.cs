@@ -1722,6 +1722,22 @@ public sealed record CpPromotionsDigestResult(
     string Source,
     string Message);
 
+public sealed record CpPromotionDetail(
+    long Id,
+    string Code,
+    string Name,
+    string Type,
+    decimal Value,
+    decimal MinSpend,
+    long ValidFrom,
+    long ValidTo,
+    bool Active);
+
+public sealed record CpPromotionDetailResult(
+    CpPromotionDetail? Promotion,
+    string Source,
+    string Message);
+
 public sealed record CpCrmOpportunitiesSummary(
     int OpportunityCount,
     int OpenOpportunities,
