@@ -561,6 +561,50 @@ public sealed class StorefrontCatalogDedicatedAppsTests : IDisposable
         Assert.DoesNotContain("/php-reference", prices, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void AmlCreditEinvoiceAccessoriesGuidesApps_UseClassicHpanelNotInventHero()
+    {
+        var aml = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/CpAmlComplianceApp.razor"));
+        Assert.Contains("class=\"hpanel\"", aml, StringComparison.Ordinal);
+        Assert.Contains("/erp/aml/kyc-save", aml, StringComparison.Ordinal);
+        Assert.Contains("/erp/aml/alert-status", aml, StringComparison.Ordinal);
+        Assert.DoesNotContain("epc-w14-hero", aml, StringComparison.Ordinal);
+        Assert.DoesNotContain("/php-reference", aml, StringComparison.Ordinal);
+
+        var credit = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/CpCreditLimitsApp.razor"));
+        Assert.Contains("/cp/credit-limits/set", credit, StringComparison.Ordinal);
+        Assert.DoesNotContain("epc-w16-hero", credit, StringComparison.Ordinal);
+
+        var einv = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/CpEinvoiceDocumentsApp.razor"));
+        Assert.Contains("/erp/ajax/einvoice-save-seller", einv, StringComparison.Ordinal);
+        Assert.DoesNotContain("epc-ei-hero", einv, StringComparison.Ordinal);
+
+        var acc = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/CpAccessoriesApp.razor"));
+        Assert.Contains("/cp/accessories/listings/write", acc, StringComparison.Ordinal);
+        Assert.Contains("/cp/accessories/taxonomy/write", acc, StringComparison.Ordinal);
+        Assert.DoesNotContain("epc-nw-hero", acc, StringComparison.Ordinal);
+
+        var crosses = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/CpCrossesApp.razor"));
+        Assert.Contains("/cp/crosses/write", crosses, StringComparison.Ordinal);
+        Assert.DoesNotContain("epc-x-hero", crosses, StringComparison.Ordinal);
+
+        var ch = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/CpMarketplaceChannelsApp.razor"));
+        Assert.Contains("/cp/channels/write", ch, StringComparison.Ordinal);
+        Assert.DoesNotContain("epc-w16-hero", ch, StringComparison.Ordinal);
+
+        var landed = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/CpLandedCostApp.razor"));
+        Assert.Contains("PhpParityModuleBody", landed, StringComparison.Ordinal);
+        Assert.DoesNotContain("epc-lc-hero", landed, StringComparison.Ordinal);
+
+        var guides = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/CpGuidesHubApp.razor"));
+        Assert.Contains("class=\"hpanel\"", guides, StringComparison.Ordinal);
+        Assert.Contains("OperatorGuidesCatalog", guides, StringComparison.Ordinal);
+        Assert.Contains("method=\"get\"", guides, StringComparison.Ordinal);
+        Assert.DoesNotContain("epc-gh-hero", guides, StringComparison.Ordinal);
+        Assert.DoesNotContain("ASP.NET", guides, StringComparison.Ordinal);
+        Assert.DoesNotContain("href=\"/php-reference/", guides, StringComparison.Ordinal);
+    }
+
     private static void AssertPage(string fileName, string phpAlias, string aspNetApp)
     {
         var path = Find("aspnet/src/EcomAE.Platform/Components/Pages/" + fileName);

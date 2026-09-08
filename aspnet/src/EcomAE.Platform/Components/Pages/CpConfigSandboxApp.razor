@@ -7,61 +7,33 @@
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
-@inject NavigationManager Nav
 
 <PageTitle>Config sandbox · Control Panel · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="cp" />
-<HeadContent>
-<style>
-        .epc-w20-hero {
-            margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
-            background:linear-gradient(135deg,#0c4a6e 0%,#2563eb 45%,#0ea5e9 100%);
-        }
-        .epc-w20-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
-        .epc-w20-hero p { margin:0; color:rgba(255,255,255,.88); max-width:44rem; font-size:.92rem; line-height:1.45; }
-        .epc-w20-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
-        .epc-w20-cta a {
-            display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
-            text-decoration:none; color:#0f172a; background:#fff;
-        }
-        .epc-w20-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); color:#fff; }
-        .epc-w20-kpis { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
-        .epc-w20-kpi { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; padding:.85rem .9rem; }
-        .epc-w20-kpi strong { display:block; font-size:1.2rem; word-break:break-word; }
-        .epc-w20-kpi span { color:#64748b; font-size:.78rem; }
-        .epc-w20-table-wrap { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; overflow:auto; }
-        .epc-w20-table { width:100%; border-collapse:collapse; font-size:.86rem; }
-        .epc-w20-table th, .epc-w20-table td { padding:.55rem .7rem; border-bottom:1px solid #f1f5f9; text-align:left; white-space:nowrap; }
-        .epc-w20-table th { background:#f8fafc; color:#475569; font-size:.75rem; text-transform:uppercase; letter-spacing:.03em; }
-        .epc-w20-note { margin-top:1rem; padding:.75rem .9rem; background:#f8fafc; border:1px solid #cbd5e1; border-radius:.45rem; color:#334155; font-size:.86rem; }
-        @@media (max-width:900px){ .epc-w20-kpis{grid-template-columns:1fr 1fr;} }
-    
-</style>
-</HeadContent>
-
-
 <PhpCpDesktopChrome IsAdmin="_isAdmin">
 
-    <section class="epc-w20-hero">
-        <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
-        <h1>Config sandbox</h1>
-        <p>@CpPhpModuleCopy.PurposeFor(Nav.Uri)</p>
-        <div class="epc-w20-cta">
-            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
+    <div class="col-lg-12">
+        <div class="hpanel">
+            <div class="panel-heading hbuilt">
+                Config sandbox
+                <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Classic twin</a>
+            </div>
+            <div class="panel-body">
+                <p>@CpPhpModuleCopy.PurposeFor("/cp/config-sandbox-app")</p>
+            </div>
         </div>
-    </section>
+    </div>
     <PhpParityModuleBody AppPath="/cp/config-sandbox-app" IsAdmin="_isAdmin" />
 
 
-    <div class="epc-w20-kpis" aria-label="Config sandbox stats">
-        <div class="epc-w20-kpi"><strong>@_summary.SnapshotCount.ToString(CultureInfo.InvariantCulture)</strong><span>Snapshots</span></div>
-        <div class="epc-w20-kpi"><strong>@_summary.ActiveSnapshotCount.ToString(CultureInfo.InvariantCulture)</strong><span>Active</span></div>
-        <div class="epc-w20-kpi"><strong>@_summary.PromotedSnapshotCount.ToString(CultureInfo.InvariantCulture)</strong><span>Promoted</span></div>
-        <div class="epc-w20-kpi"><strong>@_summary.ChangeCount.ToString(CultureInfo.InvariantCulture)</strong><span>Changes</span></div>
-    </div>
+    <p class="help-block">@_summary.SnapshotCount.ToString(CultureInfo.InvariantCulture) Snapshots · @_summary.ActiveSnapshotCount.ToString(CultureInfo.InvariantCulture) Active · @_summary.PromotedSnapshotCount.ToString(CultureInfo.InvariantCulture) Promoted · @_summary.ChangeCount.ToString(CultureInfo.InvariantCulture) Changes.</p>
 
-    <div class="epc-w20-table-wrap">
-    <table class="epc-w20-table">
+    <div class="col-lg-12">
+        <div class="hpanel">
+            <div class="panel-heading hbuilt">Records</div>
+            <div class="panel-body">
+                <div class="table-responsive">
+                    <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped">
         <thead>
             <tr>
                     <th>Id</th>
@@ -96,7 +68,10 @@
                 }
             }
         </tbody>
-    </table>
+                    </table>
+                </div>
+            </div>
+        </div>
     </div>
 
 </PhpCpDesktopChrome>
