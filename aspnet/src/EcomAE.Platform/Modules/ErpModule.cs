@@ -9462,8 +9462,8 @@ public sealed class ErpModule : ISurfaceModule
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(false); return Results.Ok(dryRun.Evaluate(new ErpDemoSeedSalesRequest(body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxDemoClearSales, async (HttpContext context, ErpDemoClearSalesBody? body, ILegacySessionValidator validator, IErpDemoClearSalesDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(false); return Results.Ok(dryRun.Evaluate(new ErpDemoClearSalesRequest(body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxCtrOcr, async (HttpContext context, ErpCtrOcrBody? body, ILegacySessionValidator validator, IErpCtrOcrDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpCtrOcrRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxCtrOcr, HandleCtrOcrAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpCtrOcr, HandleCtrOcrAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxDocxSave, async (HttpContext context, ErpDocxSaveBody? body, ILegacySessionValidator validator, IErpDocxSaveDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpDocxSaveRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxDocxDelete, async (HttpContext context, ErpDocxDeleteBody? body, ILegacySessionValidator validator, IErpDocxDeleteDryRun dryRun, CancellationToken cancellationToken) =>
@@ -11772,6 +11772,53 @@ public sealed class ErpModule : ISurfaceModule
                 session = SessionPayload(session),
             });
         }
+    }
+
+    private static async Task<IResult> HandleCtrOcrAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpCtrOcrDryRun dryRun,
+        IErpCtrOcrWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/contracts-app", "Admin ERP capability required for contract OCR.");
+        }
+
+        var contractId = 0L;
+        var text = "";
+        var confirm = false;
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            contractId = LiveWriteFormBinder.Long(form, "contract_id", "contractId", "id");
+            text = LiveWriteFormBinder.Text(form, "text", "ocr_text", "ocrText");
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+        }
+        else
+        {
+            var root = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<System.Text.Json.JsonElement>(context, cancellationToken);
+            confirm = ErpCtrOcrWriteService.JsonFlag(root, "confirmWrites", "confirm_writes");
+            contractId = ErpCtrOcrWriteService.JsonLong(root, "contract_id", "contractId", "id");
+            text = ErpCtrOcrWriteService.JsonText(root, "text", "ocr_text", "ocrText");
+        }
+
+        if (!confirm)
+        {
+            return Results.Ok(dryRun.Evaluate(new ErpCtrOcrRequest(contractId, text, false)).ToPayload(SessionPayload(session)));
+        }
+
+        var written = await writes.StoreAsync(
+            new ErpCtrOcrWriteRequest(contractId, text),
+            cancellationToken);
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/erp/contracts-app",
+            written.Succeeded,
+            written.Message,
+            new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
     }
 
     private static async Task<IResult> HandleWhtCodeSaveAsync(

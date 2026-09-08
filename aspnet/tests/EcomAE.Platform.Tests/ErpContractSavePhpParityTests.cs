@@ -5,7 +5,7 @@ using Xunit;
 
 namespace EcomAE.Platform.Tests;
 
-/// <summary>Guards /erp/contracts/save live writes without inventing sign or OCR.</summary>
+/// <summary>Guards /erp/contracts/save live writes without inventing sign.</summary>
 public sealed class ErpContractSavePhpParityTests
 {
     [Fact]
@@ -14,6 +14,7 @@ public sealed class ErpContractSavePhpParityTests
         var text = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/ErpContractsApp.razor"));
         Assert.Contains("/erp/contracts/save", text, StringComparison.Ordinal);
         Assert.Contains("/erp/ajax/ctr-status", text, StringComparison.Ordinal);
+        Assert.Contains("/erp/contracts/ocr", text, StringComparison.Ordinal);
         Assert.Contains("confirmWrites", text, StringComparison.Ordinal);
         Assert.Contains("Save contract", text, StringComparison.Ordinal);
         Assert.DoesNotContain("@onclick", text, StringComparison.Ordinal);

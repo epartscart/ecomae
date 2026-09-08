@@ -1218,7 +1218,9 @@ public static class EcomAeRoutes
     public const string ErpAjaxDemoSeedSales = "/erp/ajax/demo-seed-sales";
     /// <summary>Wave B dry-run for PHP demo_clear_sales (writes=0).</summary>
     public const string ErpAjaxDemoClearSales = "/erp/ajax/demo-clear-sales";
-    /// <summary>Wave B dry-run for PHP ctr_ocr (writes=0).</summary>
+    /// <summary>HTML form POST for PHP ctr_ocr. confirmWrites=true writes via IErpCtrOcrWriteService.</summary>
+    public const string ErpCtrOcr = "/erp/contracts/ocr";
+    /// <summary>Live PHP ctr_ocr ajax alias of <see cref="ErpCtrOcr"/>.</summary>
     public const string ErpAjaxCtrOcr = "/erp/ajax/ctr-ocr";
     /// <summary>Wave B dry-run for PHP docx_save (writes=0).</summary>
     public const string ErpAjaxDocxSave = "/erp/ajax/docx-save";
