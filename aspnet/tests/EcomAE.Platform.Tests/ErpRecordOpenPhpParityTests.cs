@@ -101,6 +101,7 @@ public sealed class ErpRecordOpenPhpParityTests
     [InlineData("ErpPayablesApp.razor", "supplier_id")]
     [InlineData("CpPurchaseRequestsApp.razor", "req_id")]
     [InlineData("CpCollectionsDunningApp.razor", "queue_id")]
+    [InlineData("CpFinanceCloseApp.razor", "batch_id")]
     public void DumpListApps_RowOpenIsRecordUrl(string fileName, string param)
     {
         var root = FindRepoRoot();
@@ -165,6 +166,31 @@ public sealed class ErpRecordOpenPhpParityTests
             ErpRecordOpen.PreserveRecordQuery(
                 "/cp/collections-dunning-app",
                 "/CP/shop/finance/epc_collections_dunning?queue_id=12"));
+        Assert.Equal("/cp/finance-close-app?batch_id=5#erp-row-5",
+            ErpRecordOpen.Href("/cp/finance-close-app", "batch_id", 5));
+        Assert.Equal(
+            "/cp/finance-close-app?batch_id=5",
+            ErpRecordOpen.PreserveRecordQuery(
+                "/cp/finance-close-app",
+                "/cp/finance-close-app?batch_id=5"));
+    }
+
+    [Fact]
+    public void FinanceCloseApp_OpenLoadsNoteAndOpeningLines()
+    {
+        var root = FindRepoRoot();
+        var text = File.ReadAllText(Path.Combine(root,
+            "aspnet/src/EcomAE.Platform/Components/Pages/CpFinanceCloseApp.razor"));
+        Assert.Contains("ErpRecordOpen.Href(_listHref, \"batch_id\"", text, StringComparison.Ordinal);
+        Assert.Contains("ErpOpenedRecordBanner", text, StringComparison.Ordinal);
+        Assert.Contains("ReadId(ctx.Request, \"batch_id\")", text, StringComparison.Ordinal);
+        Assert.Contains("BuildCpFinanceCloseBatchDetailAsync", text, StringComparison.Ordinal);
+        Assert.Contains("No lines yet.", text, StringComparison.Ordinal);
+        Assert.Contains("ShowGhostScaffold=\"false\"", text, StringComparison.Ordinal);
+        Assert.Contains("table-epc", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)\">Open", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("/php-reference/", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("ASP.NET", text, StringComparison.Ordinal);
     }
 
     private static string FindRepoRoot()

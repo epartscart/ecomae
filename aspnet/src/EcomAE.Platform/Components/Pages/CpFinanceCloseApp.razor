@@ -20,11 +20,85 @@
             </div>
             <div class="panel-body">
                 <p>@CpPhpModuleCopy.PurposeFor("/cp/finance-close-app")</p>
+                <p>Open a batch to see the note and opening lines.</p>
             </div>
         </div>
     </div>
-    <PhpParityModuleBody AppPath="/cp/finance-close-app" IsAdmin="_isAdmin" />
+    <PhpParityModuleBody AppPath="/cp/finance-close-app" IsAdmin="_isAdmin" ShowGhostScaffold="false" />
 
+    <ErpOpenedRecordBanner Id="_openedId" Found="@(_openedBatch is not null)" Caption="@OpenedCaption" ListHref="@_listHref" />
+
+    <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Finance close KPIs">
+        <div class="kpi"><div class="lbl">Batches</div><div class="val">@_summary.BatchCount.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Posted</div><div class="val">@_summary.PostedBatchCount.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Lines</div><div class="val">@_summary.OpeningLineCount.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Closed periods</div><div class="val">@_summary.ClosedPeriodCount.ToString(CultureInfo.InvariantCulture)</div></div>
+    </div>
+
+    @if (_openedBatch is not null)
+    {
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">
+                    @(!string.IsNullOrWhiteSpace(_openedBatch.Reference) ? _openedBatch.Reference : ("Batch #" + _openedBatch.Id.ToString(CultureInfo.InvariantCulture)))
+                    <span class="label label-default pull-right">@(!string.IsNullOrWhiteSpace(_openedBatch.Status) ? _openedBatch.Status : "—")</span>
+                </div>
+                <div class="panel-body">
+                    <p>@(!string.IsNullOrWhiteSpace(_openedBatch.Module) ? _openedBatch.Module : "—")
+                        · As of @(!string.IsNullOrWhiteSpace(_openedBatch.AsOfDate) ? _openedBatch.AsOfDate : "—")
+                        · Admin @_openedBatch.AdminId.ToString(CultureInfo.InvariantCulture)</p>
+                    @if (!string.IsNullOrWhiteSpace(_openedBatch.Note))
+                    {
+                        <p>@_openedBatch.Note</p>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">Opening lines</div>
+                <div class="panel-body">
+                    <div class="table-responsive">
+                        <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped table-bordered table-epc epc-erp-table">
+                            <thead>
+                                <tr>
+                                    <th>Id</th>
+                                    <th>Type</th>
+                                    <th>Entity</th>
+                                    <th>Debit</th>
+                                    <th>Credit</th>
+                                    <th>Qty</th>
+                                    <th>Meta</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (_openedLines.Count == 0)
+                                {
+                                    <tr><td colspan="7">No lines yet.</td></tr>
+                                }
+                                else
+                                {
+                                    @foreach (var row in _openedLines)
+                                    {
+                                        <tr>
+                                            <td>@row.Id.ToString(CultureInfo.InvariantCulture)</td>
+                                            <td>@(!string.IsNullOrWhiteSpace(row.LineType) ? row.LineType : "—")</td>
+                                            <td>@(!string.IsNullOrWhiteSpace(row.EntityRef) ? row.EntityRef : row.EntityId.ToString(CultureInfo.InvariantCulture))</td>
+                                            <td>@row.Debit.ToString("0.00", CultureInfo.InvariantCulture)</td>
+                                            <td>@row.Credit.ToString("0.00", CultureInfo.InvariantCulture)</td>
+                                            <td>@row.Qty.ToString("0.000", CultureInfo.InvariantCulture)</td>
+                                            <td>@(!string.IsNullOrWhiteSpace(row.MetaJson) ? row.MetaJson : "—")</td>
+                                        </tr>
+                                    }
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
 
     <p class="help-block">@_summary.BatchCount.ToString(CultureInfo.InvariantCulture) Batches · @_summary.PostedBatchCount.ToString(CultureInfo.InvariantCulture) Posted · @_summary.OpeningLineCount.ToString(CultureInfo.InvariantCulture) Lines · @_summary.PeriodCount.ToString(CultureInfo.InvariantCulture) Periods · @_summary.ClosedPeriodCount.ToString(CultureInfo.InvariantCulture) Closed · @_summary.CloseLogCount.ToString(CultureInfo.InvariantCulture) Close log.</p>
 
@@ -33,7 +107,7 @@
             <div class="panel-heading hbuilt">Records</div>
             <div class="panel-body">
                 <div class="table-responsive">
-                    <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped">
+                    <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped table-bordered table-epc epc-erp-table">
         <thead>
             <tr>
                     <th>Id</th>
@@ -50,13 +124,13 @@
         <tbody>
             @if (_rows.Count == 0)
             {
-                <tr><td colspan="9">No records yet.</td></tr>
+                <tr><td colspan="9">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? "No records yet." : _message) : "Sign in with a staff session for live rows.")</td></tr>
             }
             else
             {
                 @foreach (var row in _rows)
                 {
-                    <tr>
+                    <tr id="erp-row-@row.Id.ToString(CultureInfo.InvariantCulture)" class="@ErpRecordOpen.RowClass(row.Id, _openedId)">
                             <td>@row.Id.ToString(CultureInfo.InvariantCulture)</td>
                             <td>@(!string.IsNullOrWhiteSpace(row.Module) ? row.Module : "—")</td>
                             <td>@(!string.IsNullOrWhiteSpace(row.AsOfDate) ? row.AsOfDate : "—")</td>
@@ -65,7 +139,7 @@
                             <td>@row.AdminId.ToString(CultureInfo.InvariantCulture)</td>
                             <td>@row.TimeCreated.ToString(CultureInfo.InvariantCulture)</td>
                             <td>@row.TimePosted.ToString(CultureInfo.InvariantCulture)</td>
-                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
+                            <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href(_listHref, "batch_id", row.Id)">Open</a></td>
                     </tr>
                 }
             }
@@ -80,16 +154,29 @@
 
 @code {
     private const string _phpTab = "/ERP/?epc_erp_shell=1&area=finance&tab=opening_balances";
+    private const string _listHref = "/cp/finance-close-app";
     private bool _isAdmin;
     private CpFinanceCloseSummary _summary = new(0, 0, 0, 0, 0, 0, "n/a", "");
     private IReadOnlyList<CpFinanceCloseRowDigest> _rows = [];
     private string _source = "n/a";
     private string _message = "";
+    private long _openedId;
+    private CpFinanceCloseBatchDetail? _openedBatch;
+    private IReadOnlyList<CpFinanceCloseLineDigest> _openedLines = [];
+
+    private string OpenedCaption => _openedBatch is null
+        ? ""
+        : (string.IsNullOrWhiteSpace(_openedBatch.Reference)
+            ? ("Batch #" + _openedBatch.Id.ToString(CultureInfo.InvariantCulture))
+            : _openedBatch.Reference)
+            + (string.IsNullOrWhiteSpace(_openedBatch.Status) ? "" : (" · " + _openedBatch.Status));
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
+
+        _openedId = ErpRecordOpen.ReadId(ctx.Request, "batch_id");
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
@@ -103,5 +190,24 @@
         _rows = result.Batches;
         _source = result.Source;
         _message = result.Message;
+
+        if (_openedId > 0)
+        {
+            var detail = await Dashboards.BuildCpFinanceCloseBatchDetailAsync(_openedId, ctx.RequestAborted);
+            _openedBatch = detail.Batch;
+            _openedLines = detail.Lines;
+            if (_openedBatch is not null)
+            {
+                var openedList = _rows.FirstOrDefault(r => r.Id == _openedId);
+                if (openedList is not null)
+                {
+                    _rows = new[] { openedList }.Concat(_rows.Where(r => r.Id != _openedId)).ToList();
+                }
+            }
+            else if (!string.IsNullOrWhiteSpace(detail.Message))
+            {
+                _message = detail.Message;
+            }
+        }
     }
 }
