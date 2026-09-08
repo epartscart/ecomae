@@ -65,6 +65,9 @@ public interface ISurfaceDashboardSummaryReporter
 
     Task<StorefrontProfileResult> BuildStorefrontProfileAsync(int userId, CancellationToken cancellationToken = default);
 
+    /// <summary>PHP <c>editform.php</c> <c>reg_variants</c> + <c>reg_fields</c> (main_flag=0).</summary>
+    Task<StorefrontRegCatalogResult> ListStorefrontRegCatalogAsync(CancellationToken cancellationToken = default);
+
     Task<ErpCashEntryListResult> ListErpCashEntriesAsync(int? accountId, int limit, CancellationToken cancellationToken = default);
 
     Task<ErpInvoiceListResult> ListErpInvoicesAsync(int limit, CancellationToken cancellationToken = default);

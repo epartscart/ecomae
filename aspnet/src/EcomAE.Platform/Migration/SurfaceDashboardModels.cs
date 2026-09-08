@@ -485,6 +485,23 @@ public sealed record StorefrontProfileResult(
     string Source,
     string Message);
 
+public sealed record StorefrontRegVariantDigest(int Id, string Caption);
+
+public sealed record StorefrontRegFieldDigest(
+    string Name,
+    string Caption,
+    string ShowForJson,
+    string RequiredForJson,
+    int MaxLen,
+    string WidgetType);
+
+public sealed record StorefrontRegCatalogResult(
+    IReadOnlyList<StorefrontRegVariantDigest> Variants,
+    IReadOnlyList<StorefrontRegFieldDigest> Fields,
+    int Count,
+    string Source,
+    string Message);
+
 public sealed record ErpCashEntryDigest(
     long Id,
     long AccountId,

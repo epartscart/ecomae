@@ -2060,6 +2060,81 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    public async Task<StorefrontRegCatalogResult> ListStorefrontRegCatalogAsync(CancellationToken cancellationToken = default)
+    {
+        if (!_connections.IsConfigured)
+        {
+            return new([], [], 0, "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            var variants = new List<StorefrontRegVariantDigest>();
+            try
+            {
+                await using var variantCommand = connection.CreateCommand();
+                variantCommand.CommandText = LegacySurfaceDashboardSql.SelectStorefrontRegVariants;
+                await using var variantReader = await variantCommand.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await variantReader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    var id = Convert.ToInt32(variantReader["id"], CultureInfo.InvariantCulture);
+                    var caption = Convert.ToString(variantReader["caption"] is DBNull ? string.Empty : variantReader["caption"], CultureInfo.InvariantCulture) ?? string.Empty;
+                    if (int.TryParse(caption, NumberStyles.Integer, CultureInfo.InvariantCulture, out _))
+                    {
+                        caption = "Variant " + id.ToString(CultureInfo.InvariantCulture);
+                    }
+
+                    variants.Add(new StorefrontRegVariantDigest(id, string.IsNullOrWhiteSpace(caption) ? id.ToString(CultureInfo.InvariantCulture) : caption));
+                }
+            }
+            catch
+            {
+                // reg_variants is optional on throwaway DBs.
+            }
+
+            var fields = new List<StorefrontRegFieldDigest>();
+            try
+            {
+                await using var fieldCommand = connection.CreateCommand();
+                fieldCommand.CommandText = LegacySurfaceDashboardSql.SelectStorefrontRegFields;
+                await using var fieldReader = await fieldCommand.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await fieldReader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    var name = Convert.ToString(fieldReader["name"] is DBNull ? string.Empty : fieldReader["name"], CultureInfo.InvariantCulture) ?? string.Empty;
+                    if (name.Length == 0)
+                    {
+                        continue;
+                    }
+
+                    var caption = Convert.ToString(fieldReader["caption"] is DBNull ? string.Empty : fieldReader["caption"], CultureInfo.InvariantCulture) ?? string.Empty;
+                    if (string.IsNullOrWhiteSpace(caption) || int.TryParse(caption, NumberStyles.Integer, CultureInfo.InvariantCulture, out _))
+                    {
+                        caption = name;
+                    }
+
+                    fields.Add(new StorefrontRegFieldDigest(
+                        name,
+                        caption,
+                        Convert.ToString(fieldReader["show_for"] is DBNull ? "[]" : fieldReader["show_for"], CultureInfo.InvariantCulture) ?? "[]",
+                        Convert.ToString(fieldReader["required_for"] is DBNull ? "[]" : fieldReader["required_for"], CultureInfo.InvariantCulture) ?? "[]",
+                        Convert.ToInt32(fieldReader["maxlen"] is DBNull ? 80 : fieldReader["maxlen"], CultureInfo.InvariantCulture),
+                        Convert.ToString(fieldReader["widget_type"] is DBNull ? "text" : fieldReader["widget_type"], CultureInfo.InvariantCulture) ?? "text"));
+                }
+            }
+            catch
+            {
+                // reg_fields is optional on throwaway DBs.
+            }
+
+            return new(variants, fields, fields.Count, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new([], [], 0, "database-error", ex.Message);
+        }
+    }
+
 
     public async Task<ErpCashEntryListResult> ListErpCashEntriesAsync(int? accountId, int limit, CancellationToken cancellationToken = default)
     {

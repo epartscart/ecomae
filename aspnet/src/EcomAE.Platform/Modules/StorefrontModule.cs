@@ -2202,16 +2202,23 @@ public sealed class StorefrontModule : ISurfaceModule
                 ? new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
                 : new Dictionary<string, string>(body.Fields, StringComparer.OrdinalIgnoreCase);
             var confirm = body.ConfirmWrites;
+            var regVariant = 0;
             if (context.Request.HasFormContentType)
             {
                 var form = await context.Request.ReadFormAsync(cancellationToken);
                 confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
-                foreach (var key in StorefrontCustomerWriteService.AllowedProfileFieldNames)
+                regVariant = LiveWriteFormBinder.Int(form, "reg_variant", "regVariant");
+                foreach (var item in form)
                 {
-                    var value = LiveWriteFormBinder.Text(form, key);
+                    if (!StorefrontCustomerWriteService.IsAllowedProfileKey(item.Key))
+                    {
+                        continue;
+                    }
+
+                    var value = LiveWriteFormBinder.Text(form, item.Key);
                     if (value.Length > 0)
                     {
-                        fields[key] = value;
+                        fields[item.Key] = value;
                     }
                 }
             }
@@ -2229,7 +2236,11 @@ public sealed class StorefrontModule : ISurfaceModule
                 });
             }
 
-            var written = await writes.SaveProfileAsync(session.UserId, fields, cancellationToken);
+            var written = await writes.SaveProfileAsync(
+                session.UserId,
+                fields,
+                cancellationToken,
+                regVariant > 0 ? regVariant : null);
             return LiveWriteFormBinder.Complete(
                 context,
                 "/storefront/profile-app",

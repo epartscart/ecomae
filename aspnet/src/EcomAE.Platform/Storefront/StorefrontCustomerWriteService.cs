@@ -35,7 +35,8 @@ public interface IStorefrontCustomerWriteService
     Task<ErpSimpleWriteResult> SaveProfileAsync(
         int userId,
         IReadOnlyDictionary<string, string>? fields,
-        CancellationToken cancellationToken = default);
+        CancellationToken cancellationToken = default,
+        int? regVariant = null);
 
     Task<ErpSimpleWriteResult> SendReturnMessageAsync(
         int userId,
@@ -456,7 +457,8 @@ public sealed class StorefrontCustomerWriteService : IStorefrontCustomerWriteSer
     public async Task<ErpSimpleWriteResult> SaveProfileAsync(
         int userId,
         IReadOnlyDictionary<string, string>? fields,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default,
+        int? regVariant = null)
     {
         if (userId <= 0)
         {
@@ -502,6 +504,16 @@ public sealed class StorefrontCustomerWriteService : IStorefrontCustomerWriteSer
                     cancellationToken,
                     userId, key, value);
             }
+        }
+
+        if (regVariant is > 0)
+        {
+            writes += await ErpDb.ExecuteAsync(
+                connection,
+                null,
+                ErpDb.Positional("UPDATE `users` SET `reg_variant` = ? WHERE `user_id` = ?"),
+                cancellationToken,
+                regVariant.Value, userId);
         }
 
         return new ErpSimpleWriteResult(true, "ok", "Profile saved.", userId, writes);
@@ -593,12 +605,39 @@ public sealed class StorefrontCustomerWriteService : IStorefrontCustomerWriteSer
             || key.StartsWith("epc_doc_", StringComparison.OrdinalIgnoreCase)
             || key.Equals("email", StringComparison.OrdinalIgnoreCase)
             || key.Equals("phone", StringComparison.OrdinalIgnoreCase)
-            || key.Equals("epc_trade_approval_status", StringComparison.OrdinalIgnoreCase))
+            || key.Equals("epc_trade_approval_status", StringComparison.OrdinalIgnoreCase)
+            || key.Equals("confirmWrites", StringComparison.OrdinalIgnoreCase)
+            || key.Equals("confirm_writes", StringComparison.OrdinalIgnoreCase)
+            || key.Equals("returnUrl", StringComparison.OrdinalIgnoreCase)
+            || key.Equals("return_url", StringComparison.OrdinalIgnoreCase)
+            || key.Equals("edit_user", StringComparison.OrdinalIgnoreCase)
+            || key.Equals("reg_variant", StringComparison.OrdinalIgnoreCase))
         {
             return false;
         }
 
-        return AllowedProfileKeys.Contains(key);
+        if (AllowedProfileKeys.Contains(key))
+        {
+            return true;
+        }
+
+        for (var i = 0; i < key.Length; i++)
+        {
+            var ch = key[i];
+            if (i == 0)
+            {
+                if (!char.IsAsciiLetter(ch))
+                {
+                    return false;
+                }
+            }
+            else if (!char.IsAsciiLetterOrDigit(ch) && ch != '_')
+            {
+                return false;
+            }
+        }
+
+        return key.Length is > 0 and <= 64;
     }
 
     internal static IReadOnlyCollection<string> AllowedProfileFieldNames => AllowedProfileKeys;

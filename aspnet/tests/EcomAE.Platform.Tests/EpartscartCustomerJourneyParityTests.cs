@@ -125,6 +125,9 @@ public sealed class EpartscartCustomerJourneyParityTests
         Assert.Contains("id=\"RegVariantsSelector\"", profile, StringComparison.Ordinal);
         Assert.Contains("id=\"reg_variant_selector\"", profile, StringComparison.Ordinal);
         Assert.Contains("name=\"reg_variant\"", profile, StringComparison.Ordinal);
+        Assert.Contains("ListStorefrontRegCatalogAsync", profile, StringComparison.Ordinal);
+        Assert.Contains("function regenerateFields", profile, StringComparison.Ordinal);
+        Assert.Contains("data-reg-show-for", profile, StringComparison.Ordinal);
         Assert.Contains("id=\"password\"", profile, StringComparison.Ordinal);
         Assert.Contains("id=\"password_repeat\"", profile, StringComparison.Ordinal);
         Assert.Contains("name=\"name\"", profile, StringComparison.Ordinal);

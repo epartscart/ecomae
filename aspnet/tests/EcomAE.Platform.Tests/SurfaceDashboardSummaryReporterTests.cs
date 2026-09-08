@@ -429,6 +429,8 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.Contains("shop_orders", LegacySurfaceDashboardSql.SelectCustomerOrders, StringComparison.Ordinal);
         Assert.Contains("shop_docpart_garage", LegacySurfaceDashboardSql.SelectCustomerGarage, StringComparison.Ordinal);
         Assert.Contains("shop_users_accounting", LegacySurfaceDashboardSql.SelectCustomerAccountOperations, StringComparison.Ordinal);
+        Assert.Contains("reg_fields", LegacySurfaceDashboardSql.SelectStorefrontRegFields, StringComparison.Ordinal);
+        Assert.Contains("reg_variants", LegacySurfaceDashboardSql.SelectStorefrontRegVariants, StringComparison.Ordinal);
         Assert.Contains("shop_docpart_garage_orders", LegacySurfaceDashboardSql.SelectCustomerGarageOrderLinks, StringComparison.Ordinal);
         Assert.Contains("epc_erp_purchases", LegacySurfaceDashboardSql.SelectErpPurchases, StringComparison.Ordinal);
         Assert.Contains("epc_erp_cash_bank_accounts", LegacySurfaceDashboardSql.SelectErpCashAccounts, StringComparison.Ordinal);

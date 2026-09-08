@@ -766,6 +766,26 @@ public static class LegacySurfaceDashboardSql
         LIMIT 200
         """;
 
+    public const string SelectStorefrontRegVariants = """
+        SELECT `id`, IFNULL(`caption`, '') AS caption
+        FROM `reg_variants`
+        ORDER BY `order` ASC, `id` ASC
+        LIMIT 50
+        """;
+
+    public const string SelectStorefrontRegFields = """
+        SELECT `name`,
+               IFNULL(`caption`, '') AS caption,
+               IFNULL(`show_for`, '[]') AS show_for,
+               IFNULL(`required_for`, '[]') AS required_for,
+               IFNULL(`maxlen`, 80) AS maxlen,
+               IFNULL(`widget_type`, 'text') AS widget_type
+        FROM `reg_fields`
+        WHERE `main_flag` = 0
+        ORDER BY `order` ASC, `name` ASC
+        LIMIT 80
+        """;
+
     public const string SelectErpCashEntries = """
         SELECT e.`id`, e.`account_id`, a.`name` AS account_name, a.`account_type`,
                e.`time`, e.`direction`, e.`amount`,
