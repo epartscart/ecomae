@@ -929,6 +929,9 @@ builder.Services.AddScoped<EcomAE.Platform.Cp.ICpPricesEditWriteService, EcomAE.
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpCurrencyWriteService, EcomAE.Platform.Cp.CpCurrencyWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpReturnWriteService, EcomAE.Platform.Cp.CpReturnWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpCreditLimitWriteService, EcomAE.Platform.Cp.CpCreditLimitWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Cp.ICpTaxToolkitWriteService, EcomAE.Platform.Cp.CpTaxToolkitWriteService>();
+builder.Services.AddSingleton<ICpTaxToolkitInstallDryRun, CpTaxToolkitInstallDryRun>();
+builder.Services.AddSingleton<ICpTaxToolkitAssignDryRun, CpTaxToolkitAssignDryRun>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpPoApprovalWriteService, EcomAE.Platform.Cp.CpPoApprovalWriteService>();
 builder.Services.AddSingleton<IStorefrontGarageNotepadAddDryRun, StorefrontGarageNotepadAddDryRun>();
 builder.Services.AddSingleton<IStorefrontQuoteSubmitDryRun, StorefrontQuoteSubmitDryRun>();
