@@ -48,6 +48,9 @@ public sealed class StorefrontCartAddLoginParityTests
         Assert.Contains("ValidateCustomerAsync", text, StringComparison.Ordinal);
         Assert.Contains("Please log in or register to continue.", text, StringComparison.Ordinal);
         Assert.Contains("Add to cart is live on ASP.NET", text, StringComparison.Ordinal);
+        Assert.Contains("id=\"cart_area\"", text, StringComparison.Ordinal);
+        Assert.Contains("epc-cart-login-gate", text, StringComparison.Ordinal);
+        Assert.Contains("table cart_table", text, StringComparison.Ordinal);
     }
 
     [Fact]
