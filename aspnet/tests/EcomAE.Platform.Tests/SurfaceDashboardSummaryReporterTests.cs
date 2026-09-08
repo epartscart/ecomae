@@ -156,6 +156,7 @@ public sealed class SurfaceDashboardSummaryReporterTests
         var insuranceCompliance = await reporter.BuildCpInsuranceComplianceDigestAsync(10);
         var insuranceComplianceDetail = await reporter.BuildCpInsuranceComplianceDetailAsync(7);
         var auditTrail = await reporter.BuildCpAuditTrailDigestAsync(10);
+        var auditTrailDetail = await reporter.BuildCpAuditTrailDetailAsync(3);
         var docExpiry = await reporter.BuildCpDocExpiryDigestAsync(10);
         var docExpiryDetail = await reporter.BuildCpDocExpiryDetailAsync(4);
         var tenantConfig = await reporter.BuildCpTenantConfigDigestAsync(10);
@@ -380,6 +381,8 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.Equal("migration", demandIntelligence.Source);
         Assert.Equal("migration", creditLimits.Source);
         Assert.Equal("migration", insuranceCompliance.Source);
+        Assert.Equal("migration", auditTrail.Source);
+        Assert.Equal("migration", auditTrailDetail.Source);
         Assert.Equal("migration", docExpiry.Source);
         Assert.Equal("migration", docExpiryDetail.Source);
         Assert.Equal("migration", insuranceComplianceDetail.Source);
@@ -536,6 +539,13 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.Contains("`notes`", LegacySurfaceDashboardSql.SelectCpCollectionsDunningQueueDetail, StringComparison.Ordinal);
         Assert.Contains("epc_dunning_log", LegacySurfaceDashboardSql.SelectCpCollectionsDunningLog, StringComparison.Ordinal);
         Assert.Contains("`queue_id` = @id", LegacySurfaceDashboardSql.SelectCpCollectionsDunningLog, StringComparison.Ordinal);
+        Assert.DoesNotContain("detail_json", LegacySurfaceDashboardSql.SelectCpAuditTrailEntries, StringComparison.Ordinal);
+        Assert.DoesNotContain("old_json", LegacySurfaceDashboardSql.SelectCpAuditTrailEntries, StringComparison.Ordinal);
+        Assert.DoesNotContain("ip_address", LegacySurfaceDashboardSql.SelectCpAuditTrailEntries, StringComparison.Ordinal);
+        Assert.Contains("detail_json", LegacySurfaceDashboardSql.SelectCpAuditTrailEntryDetail, StringComparison.Ordinal);
+        Assert.Contains("old_json", LegacySurfaceDashboardSql.SelectCpAuditTrailEntryDetail, StringComparison.Ordinal);
+        Assert.Contains("ip_address", LegacySurfaceDashboardSql.SelectCpAuditTrailEntryDetail, StringComparison.Ordinal);
+        Assert.Contains("`id` = @id", LegacySurfaceDashboardSql.SelectCpAuditTrailEntryDetail, StringComparison.Ordinal);
         Assert.DoesNotContain("`note`", LegacySurfaceDashboardSql.SelectCpDocExpiryDocuments, StringComparison.Ordinal);
         Assert.DoesNotContain("owner_email", LegacySurfaceDashboardSql.SelectCpDocExpiryDocuments, StringComparison.Ordinal);
         Assert.DoesNotContain("attachment_path", LegacySurfaceDashboardSql.SelectCpDocExpiryDocuments, StringComparison.Ordinal);

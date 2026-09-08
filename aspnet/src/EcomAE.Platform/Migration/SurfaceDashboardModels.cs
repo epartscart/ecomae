@@ -3134,6 +3134,25 @@ public sealed record CpAuditTrailDigestResult(
     string Source,
     string Message);
 
+public sealed record CpAuditTrailEntryDetail(
+    long Id,
+    long TimeUnix,
+    long AdminId,
+    string Action,
+    string EntityType,
+    long EntityId,
+    string Summary,
+    string DetailJson,
+    string OldJson,
+    string NewJson,
+    string IpAddress,
+    string UserAgent);
+
+public sealed record CpAuditTrailDetailResult(
+    CpAuditTrailEntryDetail? Entry,
+    string Source,
+    string Message);
+
 public sealed record CpDocExpirySummary(
     int DocumentCount,
     int ActiveCount,

@@ -17,6 +17,7 @@ public sealed class ErpRecordOpenPhpParityTests
     [InlineData("/ERP/?epc_erp_shell=1&area=purchasing&tab=purchase_requisitions&req_id=4", "/erp/purchase-requests-app?req_id=4")]
     [InlineData("/CP/shop/finance/epc_collections_dunning?queue_id=12", "/cp/collections-dunning-app?queue_id=12")]
     [InlineData("/ERP/?epc_erp_shell=1&area=credit_coll&queue_id=12", "/erp/collections-dunning-app?queue_id=12")]
+    [InlineData("/ERP/?epc_erp_shell=1&area=audit_wb&tab=audit&event_id=3", "/erp/audit-trail-app?event_id=3")]
     [InlineData("/ERP/?epc_erp_shell=1&area=risk&tab=doc_expiry&doc=4", "/erp/doc-expiry-app?doc=4")]
     [InlineData("/ERP/?epc_erp_shell=1&area=risk&tab=doc_expiry&document_id=4", "/erp/doc-expiry-app?document_id=4")]
     [InlineData("/ERP/?epc_erp_shell=1&area=tax&tab=withholding&txn_id=5", "/erp/withholding-app?txn_id=5")]
@@ -109,6 +110,7 @@ public sealed class ErpRecordOpenPhpParityTests
     [InlineData("ErpPayablesApp.razor", "supplier_id")]
     [InlineData("CpPurchaseRequestsApp.razor", "req_id")]
     [InlineData("CpCollectionsDunningApp.razor", "queue_id")]
+    [InlineData("CpAuditTrailApp.razor", "event_id")]
     [InlineData("CpDocExpiryApp.razor", "doc")]
     [InlineData("ErpWithholdingApp.razor", "txn_id")]
     [InlineData("CpInsuranceComplianceApp.razor", "pol")]
@@ -173,6 +175,21 @@ public sealed class ErpRecordOpenPhpParityTests
     }
 
     [Fact]
+    public void AuditTrailApp_OpenLoadsDetailAndAcceptsPhpEventId()
+    {
+        var root = FindRepoRoot();
+        var text = File.ReadAllText(Path.Combine(root,
+            "aspnet/src/EcomAE.Platform/Components/Pages/CpAuditTrailApp.razor"));
+        Assert.Contains("ErpRecordOpen.Href(_listHref, \"event_id\"", text, StringComparison.Ordinal);
+        Assert.Contains("ErpOpenedRecordBanner", text, StringComparison.Ordinal);
+        Assert.Contains("ReadId(ctx.Request, \"event_id\")", text, StringComparison.Ordinal);
+        Assert.Contains("BuildCpAuditTrailDetailAsync", text, StringComparison.Ordinal);
+        Assert.Contains("No JSON yet.", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)\">Open", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("/php-reference/", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("ASP.NET", text, StringComparison.Ordinal);
+    }
+
     public void DocExpiryApp_OpenLoadsDetailAndAcceptsPhpDoc()
     {
         var root = FindRepoRoot();
@@ -267,6 +284,13 @@ public sealed class ErpRecordOpenPhpParityTests
             ErpRecordOpen.PreserveRecordQuery(
                 "/cp/collections-dunning-app",
                 "/CP/shop/finance/epc_collections_dunning?queue_id=12"));
+        Assert.Equal("/erp/audit-trail-app?event_id=3#erp-row-3",
+            ErpRecordOpen.Href("/erp/audit-trail-app", "event_id", 3));
+        Assert.Equal(
+            "/erp/audit-trail-app?event_id=3",
+            ErpRecordOpen.PreserveRecordQuery(
+                "/erp/audit-trail-app",
+                "/ERP/?epc_erp_shell=1&area=audit_wb&tab=audit&event_id=3"));
         Assert.Equal("/erp/doc-expiry-app?doc=4#erp-row-4",
             ErpRecordOpen.Href("/erp/doc-expiry-app", "doc", 4));
         Assert.Equal(
