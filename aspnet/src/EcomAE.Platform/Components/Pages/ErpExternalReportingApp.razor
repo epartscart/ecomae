@@ -216,6 +216,14 @@
                 <a class="btn btn-primary btn-sm" href="@ReportHref(fetch: true)" title="Re-fetch ERP data and rebuild this report"><i class="fa fa-refresh"></i> Fetch &amp; build</a>
                 <button type="button" class="btn btn-default btn-sm" onclick="epcExtPrint();"><i class="fa fa-file-pdf-o"></i> Download PDF</button>
                 <button type="button" class="btn btn-default btn-sm" onclick="epcExtWord('@_docName');" title="Download this report as an editable Microsoft Word document (same layout, theme and tables)"><i class="fa fa-file-word-o"></i> Download Word</button>
+                @if (_report.Key is "fin__financial_model_forecast" or "fin__business_valuation_report")
+                {
+                    <a class="btn btn-success btn-sm" href="@XlsxHref("finmodel")" title="Download a linked Excel workbook — Assumptions / Calculations / Results with live formulas"><i class="fa fa-file-excel-o"></i> Download Excel (linked model)</a>
+                }
+                @if (_report.Key == "audit__external_audit_report")
+                {
+                    <a class="btn btn-success btn-sm" href="@XlsxHref("audit")" title="Download a linked Excel workbook — one sheet per element (Trial Balance, SOFP, P&amp;L &amp; OCI, Cash Flows, Changes in Equity, Notes) where every figure links back to the Trial Balance"><i class="fa fa-file-excel-o"></i> Download Excel (linked audit pack)</a>
+                }
                 <a class="btn btn-default btn-sm" href="@auth.Url" target="_blank" rel="noopener noreferrer"><i class="fa fa-university"></i> Official source — @auth.Name</a>
                 <a class="btn btn-default btn-sm" href="@auth.Format" target="_blank" rel="noopener noreferrer"><i class="fa fa-file-o"></i> Official format / filing portal</a>
                 @if (ifrs is not null)
@@ -424,6 +432,8 @@
     private bool _fetched;
     private string _trn = "";
     private string _ccy = "AED";
+    private decimal _figSales;
+    private decimal _figPurch;
     private string _docName = "Report";
     private string _ifrsRefreshNote = "";
     private Dictionary<string, string> _printCtx = new();
@@ -566,6 +576,8 @@
         if (_report is not null)
         {
             _fetched = !string.IsNullOrWhiteSpace(ctx.Request.Query["fetch"].ToString());
+            _figSales = sales;
+            _figPurch = purch;
             _built = ErpExternalReportingBuild.Build(new ErpExternalReportingBuildInput(
                 _report,
                 _prevCountry,
@@ -653,6 +665,22 @@
 
         if (fetch) q.Add("fetch=1");
         return q.Count == 0 ? _self : _self + "?" + string.Join("&", q);
+    }
+
+    private string XlsxHref(string kind)
+    {
+        var q = new List<string>
+        {
+            "kind=" + Uri.EscapeDataString(kind),
+            "from=" + _period.From.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
+            "to=" + _period.To.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
+            "ccy=" + Uri.EscapeDataString(_ccy),
+            "entity=" + Uri.EscapeDataString(_companyLabel),
+            "country=" + Uri.EscapeDataString(_prevCountry),
+            "sales=" + _figSales.ToString(CultureInfo.InvariantCulture),
+            "purch=" + _figPurch.ToString(CultureInfo.InvariantCulture),
+        };
+        return EcomAeRoutes.ErpExternalReportingXlsx + "?" + string.Join("&", q);
     }
 
     private static string BasisLabel(string b) => b switch
