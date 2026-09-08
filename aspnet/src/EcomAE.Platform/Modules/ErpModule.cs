@@ -9704,8 +9704,8 @@ public sealed class ErpModule : ISurfaceModule
         }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxErFormatSave, async (HttpContext context, ErpErFormatSaveBody? body, ILegacySessionValidator validator, IErpErFormatSaveDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpErFormatSaveRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxErFieldAdd, async (HttpContext context, ErpErFieldAddBody? body, ILegacySessionValidator validator, IErpErFieldAddDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpErFieldAddRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.ErpElectronicReportingFieldsAdd, HandleErFieldAddAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxErFieldAdd, HandleErFieldAddAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxPrjaBudgetSave, async (HttpContext context, ErpPrjaBudgetSaveBody? body, ILegacySessionValidator validator, IErpPrjaBudgetSaveDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpPrjaBudgetSaveRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxPrjaTxnAdd, async (HttpContext context, ErpPrjaTxnAddBody? body, ILegacySessionValidator validator, IErpPrjaTxnAddDryRun dryRun, CancellationToken cancellationToken) =>
@@ -11774,6 +11774,51 @@ public sealed class ErpModule : ISurfaceModule
         }
     }
 
+    private static async Task<IResult> HandleErFieldAddAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpErFieldAddDryRun dryRun,
+        IErpErFieldAddWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/electronic-reporting-app", "Admin ERP capability required for electronic reporting field add.");
+        }
+
+        var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpErFieldAddBody>(context, cancellationToken) ?? new();
+        var formatId = body.FormatId > 0 ? body.FormatId : body.Id;
+        var label = body.Label;
+        var sourceKey = body.SourceKey ?? body.Code;
+        var ordinal = body.Ordinal;
+        var confirm = body.ConfirmWrites;
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            formatId = LiveWriteFormBinder.Long(form, "formatId", "format_id", "id");
+            label = LiveWriteFormBinder.Text(form, "label");
+            sourceKey = LiveWriteFormBinder.Text(form, "sourceKey", "source_key", "code");
+            ordinal = LiveWriteFormBinder.Int(form, "ordinal");
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+        }
+
+        if (!confirm)
+        {
+            return Results.Ok(dryRun.Evaluate(new ErpErFieldAddRequest(formatId, label, sourceKey, sourceKey, ordinal, false)).ToPayload(SessionPayload(session)));
+        }
+
+        var written = await writes.AddAsync(
+            new ErpErFieldAddWriteRequest(formatId, label, sourceKey, ordinal),
+            cancellationToken);
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/erp/electronic-reporting-app",
+            written.Succeeded,
+            written.Message,
+            new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+    }
+
     private static async Task<IResult> HandleWhtCodeSaveAsync(
         HttpContext context,
         ILegacySessionValidator validator,
@@ -12702,7 +12747,14 @@ public sealed class ErpModule : ISurfaceModule
         string? CertificateNo = null);
     private sealed record ErpWhtSettleBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpErFormatSaveBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
-    private sealed record ErpErFieldAddBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
+    private sealed record ErpErFieldAddBody(
+        long Id = 0,
+        long FormatId = 0,
+        string? Label = null,
+        string? SourceKey = null,
+        string? Code = null,
+        int Ordinal = 0,
+        bool ConfirmWrites = false);
     private sealed record ErpPrjaBudgetSaveBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpPrjaTxnAddBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpPrjaRecognizeBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
