@@ -131,6 +131,32 @@
 
 </PhpCpDesktopChrome>
 
+<form method="post" action="/erp/uae-tax/ct-adjustments/save" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin-bottom:1rem;">
+                <input type="hidden" name="returnUrl" value="/cp/uae-tax-compliance-app" />
+                <input type="hidden" name="confirmWrites" value="true" />
+                <label>From <input class="form-control input-sm" type="date" name="date_from" /></label>
+                <label>To <input class="form-control input-sm" type="date" name="date_to" /></label>
+                <label>Entertainment <input class="form-control input-sm" name="ct_non_deductible_entertainment" placeholder="0" style="width:90px;" /></label>
+                <label>Fines <input class="form-control input-sm" name="ct_fines_penalties" placeholder="0" style="width:90px;" /></label>
+                <label>Exempt income <input class="form-control input-sm" name="ct_exempt_income" placeholder="0" style="width:90px;" /></label>
+                <button type="submit" class="btn btn-primary btn-sm">Save CT adjustments</button>
+            </form>
+
+<form method="post" action="/erp/uae-tax/legislation/checklist/set" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin-bottom:1rem;">
+                <input type="hidden" name="returnUrl" value="/erp/uae-tax-compliance-app" />
+                <input type="hidden" name="confirmWrites" value="true" />
+                <label>Item key <input class="form-control input-sm" name="item_key" required style="width:180px;" /></label>
+                <label>Action key <input class="form-control input-sm" name="action_key" required style="width:160px;" /></label>
+                <label>Action text <input class="form-control input-sm" name="action_text" style="width:200px;" /></label>
+                <label>Status
+                    <select class="form-control input-sm" name="status">
+                        <option value="pending">pending</option>
+                        <option value="done">done</option>
+                    </select>
+                </label>
+                <button type="submit" class="btn btn-primary btn-sm">Set status</button>
+            </form>
+
 @code {
     private const string _phpTab = "/CP/shop/finance/erp/uae-tax-compliance?epc_erp_shell=1";
     private bool _isAdmin;

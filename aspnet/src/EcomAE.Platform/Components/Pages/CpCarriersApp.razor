@@ -122,6 +122,12 @@
             <label>Declaration id <input type="number" name="declarationId" min="1" required /></label>
             <button type="submit">Submit declaration</button>
         </form>
+        <form method="post" action="/erp/custom-shipping/delete" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/carriers-app" />
+            <label>Declaration id <input type="number" name="id" min="1" required /></label>
+            <button type="submit">Delete declaration</button>
+        </form>
     }
 
     <div class="epc-car-kpis" aria-label="Carriers stats">

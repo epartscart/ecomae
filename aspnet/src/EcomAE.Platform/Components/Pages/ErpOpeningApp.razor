@@ -68,6 +68,47 @@
     </div>
 </PhpErpDesktopChrome>
 
+<form method="post" action="/erp/opening/add-inv-line" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/erp/opening-app" />
+            <label>Batch id <input type="number" name="batch_id" style="width:6rem" /></label>
+            <label>Item id <input type="number" name="item_id" style="width:6rem" /></label>
+            <label>Qty <input type="number" name="qty" step="0.001" style="width:6rem" /></label>
+            <label>Unit cost <input type="number" name="unit_cost" step="0.0001" style="width:7rem" /></label>
+            <label>Warehouse id <input type="number" name="warehouse_id" style="width:6rem" /></label>
+            <label>Batch no <input name="batch_no" /></label>
+            <label>Expiry <input type="date" name="expiry_date" /></label>
+            <button type="submit">Add inventory line</button>
+        </form>
+
+<form method="post" action="/erp/opening/add-coa-line" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/erp/opening-app" />
+            <label>Batch id <input type="number" name="batch_id" style="width:6rem" /></label>
+            <label>Account id <input type="number" name="entity_id" style="width:6rem" /></label>
+            <label>Debit <input type="number" name="debit" step="0.01" style="width:7rem" /></label>
+            <label>Credit <input type="number" name="credit" step="0.01" style="width:7rem" /></label>
+            <button type="submit">Add COA line</button>
+        </form>
+
+<form method="post" action="/erp/opening/create-batch" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/erp/opening-app" />
+            <label>Module
+                <select name="module">
+                    <option value="combined">combined</option>
+                    <option value="coa">coa</option>
+                    <option value="cash_bank">cash_bank</option>
+                    <option value="inventory">inventory</option>
+                    <option value="fixed_assets">fixed_assets</option>
+                </select>
+            </label>
+            <label>As of <input type="date" name="as_of_date" /></label>
+            <label>Reference <input name="reference" maxlength="128" /></label>
+            <label>Note <input name="note" /></label>
+            <button type="submit">Create draft batch</button>
+        </form>
+
 @code {
     private const string _phpTab = "/ERP/?epc_erp_shell=1&area=finance&tab=opening";
     private bool _isAdmin;

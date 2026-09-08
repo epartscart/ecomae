@@ -67,6 +67,40 @@
     </div>
 </PhpErpDesktopChrome>
 
+<form method="post" action="/erp/print-designer/save" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin-bottom:1rem;">
+                <input type="hidden" name="returnUrl" value="/erp/print-designer-app" />
+                <input type="hidden" name="confirmWrites" value="true" />
+                <label>Doc type
+                    <select class="form-control input-sm" name="doc_type">
+                        <option value="invoice">invoice</option>
+                        <option value="sales_order">sales_order</option>
+                        <option value="purchase_order">purchase_order</option>
+                        <option value="payment_voucher">payment_voucher</option>
+                        <option value="receipt_voucher">receipt_voucher</option>
+                        <option value="journal_voucher">journal_voucher</option>
+                        <option value="delivery_note">delivery_note</option>
+                        <option value="quotation">quotation</option>
+                        <option value="report">report</option>
+                    </select>
+                </label>
+                <label>Name <input class="form-control input-sm" name="name" style="width:180px;" /></label>
+                <label>Page
+                    <select class="form-control input-sm" name="page_size">
+                        <option value="A4">A4</option>
+                        <option value="Letter">Letter</option>
+                        <option value="A5">A5</option>
+                    </select>
+                </label>
+                <label>Orientation
+                    <select class="form-control input-sm" name="orientation">
+                        <option value="portrait">portrait</option>
+                        <option value="landscape">landscape</option>
+                    </select>
+                </label>
+                <label><input type="checkbox" name="is_default" value="1" /> Default</label>
+                <button type="submit" class="btn btn-primary btn-sm">Save template</button>
+            </form>
+
 @code {
     private const string _phpTab = "/ERP/?epc_erp_shell=1&area=setup&tab=print_designer";
     private bool _isAdmin;

@@ -100,6 +100,81 @@
 
 </PhpCpDesktopChrome>
 
+<form method="post" action="/erp/mfgr/planned/firm" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin-bottom:1rem;">
+                <input type="hidden" name="returnUrl" value="/erp/production-overview-app" />
+                <input type="hidden" name="confirmWrites" value="true" />
+                <label>Id <input class="form-control input-sm" name="id" placeholder="Planned id" style="width:100px;" /></label>
+                <button type="submit" class="btn btn-primary btn-sm">Firm</button>
+            </form>
+
+<form method="post" action="/erp/mfgr/routes/save" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin-bottom:1rem;">
+                <input type="hidden" name="returnUrl" value="/erp/production-overview-app" />
+                <input type="hidden" name="confirmWrites" value="true" />
+                <label>Id <input class="form-control input-sm" name="id" placeholder="0 = new" style="width:80px;" /></label>
+                <label>Product item ID <input class="form-control input-sm" name="product_item_id" placeholder="0" style="width:110px;" /></label>
+                <label>Name <input class="form-control input-sm" name="name" placeholder="Route name" style="width:180px;" /></label>
+                @for (var opIx = 0; opIx < 4; opIx++)
+                {
+                    <label>Op @((opIx + 1) * 10)
+                        <input class="form-control input-sm" name="op_no[]" value="@((opIx + 1) * 10)" style="width:60px;" />
+                    </label>
+                    <label>Work center
+                        <input class="form-control input-sm" name="workcenter_id[]" placeholder="0" style="width:80px;" />
+                    </label>
+                    <label>Setup
+                        <input class="form-control input-sm" name="setup_min[]" placeholder="0" style="width:70px;" />
+                    </label>
+                    <label>Run/unit
+                        <input class="form-control input-sm" name="run_min_per_unit[]" placeholder="0" style="width:80px;" />
+                    </label>
+                    <label>Desc
+                        <input class="form-control input-sm" name="op_desc[]" placeholder="Op" style="width:140px;" />
+                    </label>
+                }
+                <button type="submit" class="btn btn-primary btn-sm">Save route</button>
+            </form>
+
+<form method="post" action="/erp/mfgr/work-centers/save" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin-bottom:1rem;">
+                <input type="hidden" name="returnUrl" value="/erp/production-overview-app" />
+                <input type="hidden" name="confirmWrites" value="true" />
+                <label>Id <input class="form-control input-sm" name="id" placeholder="0 = new" style="width:80px;" /></label>
+                <label>Code <input class="form-control input-sm" name="code" placeholder="Code" style="width:120px;" /></label>
+                <label>Name <input class="form-control input-sm" name="name" placeholder="Name" style="width:180px;" /></label>
+                <label>Capacity min/day <input class="form-control input-sm" name="capacity_min_per_day" placeholder="480" style="width:90px;" /></label>
+                <label>Cost/hour <input class="form-control input-sm" name="cost_per_hour" placeholder="0" style="width:80px;" /></label>
+                <label>Active
+                    <select class="form-control input-sm" name="active" style="width:80px;">
+                        <option value="1">yes</option>
+                        <option value="0">no</option>
+                    </select>
+                </label>
+                <button type="submit" class="btn btn-primary btn-sm">Save</button>
+            </form>
+
+<form method="post" action="/erp/manufacturing/work-orders/create" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="@(Http.HttpContext?.Request.Path.Value ?? "/cp/production-overview-app")" />
+            <label>BOM id <input type="number" name="bom_id" min="1" required style="width:7rem" /></label>
+            <label>WO no <input type="text" name="wo_no" /></label>
+            <label>Qty planned <input type="number" name="qty_planned" step="0.0001" value="1" style="width:7rem" /></label>
+            <label>Warehouse id <input type="number" name="warehouse_id" min="0" style="width:7rem" /></label>
+            <button type="submit">Create work order</button>
+        </form>
+
+<form method="post" action="/erp/manufacturing/bom/save" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="@(Http.HttpContext?.Request.Path.Value ?? "/cp/production-overview-app")" />
+            <label>Product id <input type="number" name="product_item_id" min="1" required style="width:7rem" /></label>
+            <label>Name <input type="text" name="name" /></label>
+            <label>Output qty <input type="number" name="output_qty" step="0.0001" value="1" style="width:6rem" /></label>
+            <label>Labour <input type="number" name="labour_cost" step="0.01" style="width:6rem" /></label>
+            <label>Overhead <input type="number" name="overhead_cost" step="0.01" style="width:6rem" /></label>
+            <label>Component id <input type="number" name="component_item_id" min="1" required style="width:7rem" /></label>
+            <label>Qty per <input type="number" name="qty_per" step="0.0001" value="1" style="width:6rem" /></label>
+            <label>Scrap % <input type="number" name="scrap_percent" step="0.001" style="width:6rem" /></label>
+            <button type="submit">Save BOM</button>
+        </form>
+
 @code {
     private const string _phpTab = "/CP/shop/finance/erp?area=production&tab=manufacturing&epc_erp_shell=1";
     private bool _isAdmin;

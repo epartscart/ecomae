@@ -3,6 +3,7 @@
 @using System.Globalization
 @using EcomAE.Platform.Auth
 @using EcomAE.Platform.Migration
+@using EcomAE.Platform.Routing
 @using EcomAE.Platform.Presentation
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
@@ -32,6 +33,26 @@
             </div>
             @if (!string.IsNullOrWhiteSpace(_formResult)) { <p style="margin:8px 0 0;font-size:12px;">@_formResult</p> }
         </form>
+        <form method="post" action="@EcomAeRoutes.ErpPerformanceGoalAdd" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+                <input type="hidden" name="returnUrl" value="/erp/performance-app" />
+                <input type="hidden" name="confirmWrites" value="true" />
+                <label>Review <input class="form-control input-sm" name="review_id" placeholder="Review id" style="width:90px;" required /></label>
+                <label>Goal <input class="form-control input-sm" name="title" placeholder="Title" style="width:180px;" required /></label>
+                <label>Target <input class="form-control input-sm" name="target" placeholder="Target" style="width:140px;" /></label>
+                <label>Weight <input class="form-control input-sm" name="weight" value="1" style="width:70px;" /></label>
+                <label>Rating 0-5 <input class="form-control input-sm" name="rating" value="0" style="width:70px;" /></label>
+                <button type="submit" class="btn btn-primary btn-sm">Add</button>
+            </form>
+        <form method="post" action="@EcomAeRoutes.ErpPerformanceReviewSave" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+                <input type="hidden" name="returnUrl" value="/erp/performance-app" />
+                <input type="hidden" name="confirmWrites" value="true" />
+                <label>Employee <input class="form-control input-sm" name="employee_name" placeholder="Name" style="width:160px;" /></label>
+                <label>Employee id <input class="form-control input-sm" name="employee_id" placeholder="0" style="width:80px;" /></label>
+                <label>Period <input class="form-control input-sm" name="period" placeholder="H1-2026" style="width:100px;" /></label>
+                <label>Reviewer <input class="form-control input-sm" name="reviewer" placeholder="Reviewer" style="width:140px;" /></label>
+                <label>Notes <input class="form-control input-sm" name="notes" placeholder="Notes" style="width:180px;" /></label>
+                <button type="submit" class="btn btn-primary btn-sm">Save</button>
+            </form>
     }
 
     <h2 style="font-size:16px;">Reviews</h2>
@@ -120,7 +141,7 @@
 
     private void OnSave()
     {
-        var result = ReviewSave.Evaluate(new ErpHrtReviewSaveRequest(0, _formCode, false));
+        var result = ReviewSave.Evaluate(new ErpHrtReviewSaveRequest(Notes: _formCode, ConfirmWrites: false));
         _formResult = $"{result.Status}: {result.Detail} (writes={result.Writes.ToString(CultureInfo.InvariantCulture)})";
     }
 }

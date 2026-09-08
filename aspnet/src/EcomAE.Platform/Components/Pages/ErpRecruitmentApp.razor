@@ -3,6 +3,7 @@
 @using System.Globalization
 @using EcomAE.Platform.Auth
 @using EcomAE.Platform.Migration
+@using EcomAE.Platform.Routing
 @using EcomAE.Platform.Presentation
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
@@ -32,6 +33,59 @@
             </div>
             @if (!string.IsNullOrWhiteSpace(_formResult)) { <p style="margin:8px 0 0;font-size:12px;">@_formResult</p> }
         </form>
+        <form method="post" action="/erp/recruitment/applicants/stage" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+                <input type="hidden" name="returnUrl" value="/erp/recruitment-app" />
+                <input type="hidden" name="confirmWrites" value="true" />
+                <label>Applicant
+                    <select class="form-control input-sm" name="id">
+                        <option value="0">(select)</option>
+                        @foreach (var app in _applicants)
+                        {
+                            <option value="@app.Id.ToString(CultureInfo.InvariantCulture)">@(string.IsNullOrWhiteSpace(app.Name) ? $"#{app.Id.ToString(CultureInfo.InvariantCulture)}" : app.Name)</option>
+                        }
+                    </select>
+                </label>
+                <label>Stage
+                    <select class="form-control input-sm" name="stage">
+                        <option value="applied">applied</option>
+                        <option value="screening">screening</option>
+                        <option value="interview">interview</option>
+                        <option value="offer">offer</option>
+                        <option value="hired">hired</option>
+                        <option value="rejected">rejected</option>
+                    </select>
+                </label>
+                <button type="submit" class="btn btn-primary btn-sm">Move</button>
+            </form>
+        <form method="post" action="@EcomAeRoutes.ErpRecruitmentApplicantAdd" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+                <input type="hidden" name="returnUrl" value="/erp/recruitment-app" />
+                <input type="hidden" name="confirmWrites" value="true" />
+                <label>Job
+                    <select class="form-control input-sm" name="job_id">
+                        <option value="0">(select)</option>
+                        @foreach (var job in _jobs)
+                        {
+                            <option value="@job.Id.ToString(CultureInfo.InvariantCulture)">@(string.IsNullOrWhiteSpace(job.Title) ? $"#{job.Id.ToString(CultureInfo.InvariantCulture)}" : job.Title)</option>
+                        }
+                    </select>
+                </label>
+                <label>Name <input class="form-control input-sm" name="name" placeholder="Name" style="width:160px;" required /></label>
+                <label>Email <input class="form-control input-sm" name="email" placeholder="Email" style="width:160px;" /></label>
+                <label>Phone <input class="form-control input-sm" name="phone" placeholder="Phone" style="width:120px;" /></label>
+                <label>Rating <input class="form-control input-sm" name="rating" value="0" style="width:60px;" /></label>
+                <label>Notes <input class="form-control input-sm" name="notes" placeholder="Notes" style="width:160px;" /></label>
+                <button type="submit" class="btn btn-primary btn-sm">Add</button>
+            </form>
+        <form method="post" action="@EcomAeRoutes.ErpRecruitmentJobSave" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+                <input type="hidden" name="returnUrl" value="/erp/recruitment-app" />
+                <input type="hidden" name="confirmWrites" value="true" />
+                <label>Title <input class="form-control input-sm" name="title" placeholder="Title" style="width:180px;" required /></label>
+                <label>Department <input class="form-control input-sm" name="department" placeholder="Department" style="width:140px;" /></label>
+                <label>Headcount <input class="form-control input-sm" name="headcount" value="1" style="width:70px;" /></label>
+                <label>Manager <input class="form-control input-sm" name="hiring_manager" placeholder="Manager" style="width:140px;" /></label>
+                <label>Notes <input class="form-control input-sm" name="notes" placeholder="Notes" style="width:180px;" /></label>
+                <button type="submit" class="btn btn-primary btn-sm">Save</button>
+            </form>
     }
 
     <h2 style="font-size:16px;">Jobs</h2>
@@ -122,7 +176,7 @@
 
     private void OnSave()
     {
-        var result = JobSave.Evaluate(new ErpHrtJobSaveRequest(0, _formCode, false));
+        var result = JobSave.Evaluate(new ErpHrtJobSaveRequest(Title: _formCode, ConfirmWrites: false));
         _formResult = $"{result.Status}: {result.Detail} (writes={result.Writes.ToString(CultureInfo.InvariantCulture)})";
     }
 }

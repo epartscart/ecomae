@@ -70,6 +70,22 @@
             </label>
             <button type="submit">Set status</button>
         </form>
+        <form method="post" action="/erp/fin/periods/generate" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/fin-advanced-app" />
+            <label>FY <input type="number" name="fy" style="width:6rem" /></label>
+            <label>Start month <input type="number" name="start_month" min="1" max="12" value="1" style="width:5rem" /></label>
+            <button type="submit">Generate periods</button>
+        </form>
+        <form method="post" action="/erp/fin/alloc/save" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin-bottom:1rem;">
+                <input type="hidden" name="returnUrl" value="/erp/fin-advanced-app" />
+                <input type="hidden" name="confirmWrites" value="true" />
+                <label>Code <input class="form-control input-sm" name="code" required style="width:100px;" /></label>
+                <label>Name <input class="form-control input-sm" name="name" style="width:160px;" /></label>
+                <label>Source account <input class="form-control input-sm" name="source_account" style="width:120px;" /></label>
+                <label>Basis <textarea class="form-control input-sm" name="basis" rows="3" placeholder="DEPT-A|2&#10;DEPT-B|1" style="width:180px;"></textarea></label>
+                <button type="submit" class="btn btn-primary btn-sm">Save rule</button>
+            </form>
     }
 
     <div class="epc-finadv-kpis" aria-label="Financial depth stats">

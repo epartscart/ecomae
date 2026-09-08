@@ -132,6 +132,7 @@ public sealed class ErpCpEmptyModuleParityTests
     public void QualityFormRoutes_AreDedicatedHtmlPosts()
     {
         Assert.Equal("/erp/quality/plan-save", EcomAeRoutes.ErpQualityPlanSaveForm);
+        Assert.Equal("/erp/quality/test-add", EcomAeRoutes.ErpQualityTestAddForm);
         Assert.Equal("/erp/quality/order-create", EcomAeRoutes.ErpQualityOrderCreateForm);
         Assert.Equal("/erp/quality/ncr-create", EcomAeRoutes.ErpQualityNcrCreateForm);
         Assert.Equal("/erp/product-info/create-item", EcomAeRoutes.ErpProductInfoCreateItemForm);

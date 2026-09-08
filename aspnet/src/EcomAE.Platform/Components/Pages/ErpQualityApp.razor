@@ -87,6 +87,48 @@
                 }
             </div>
         </div>
+        <form method="post" action="/erp/quality/ncr-update" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+                    <input type="hidden" name="returnUrl" value="/erp/quality-app?qv=ncr" />
+                    <input type="hidden" name="confirmWrites" value="true" />
+                    <label>Id <input class="form-control input-sm" name="id" placeholder="NCR id" style="width:90px;" /></label>
+                    <label>Status
+                        <select class="form-control input-sm" name="status">
+                            <option value="open">open</option>
+                            <option value="investigate">investigate</option>
+                            <option value="action">action</option>
+                            <option value="closed">closed</option>
+                        </select>
+                    </label>
+                    <label>Disposition
+                        <select class="form-control input-sm" name="disposition">
+                            <option value="">disposition…</option>
+                            <option value="use_as_is">use as-is</option>
+                            <option value="rework">rework</option>
+                            <option value="scrap">scrap</option>
+                            <option value="return">return</option>
+                        </select>
+                    </label>
+                    <label>Corrective action <input class="form-control input-sm" name="corrective_action" placeholder="Action" style="width:200px;" /></label>
+                    <button type="submit" class="btn btn-primary btn-sm">Update</button>
+                </form>
+        <form method="post" action="@EcomAeRoutes.ErpQualityTestAddForm" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+                                        <input type="hidden" name="returnUrl" value="@($"/erp/quality-app?qv=plans&plan_id={_selPlan.ToString(CultureInfo.InvariantCulture)}")" />
+                                        <input type="hidden" name="confirmWrites" value="true" />
+                                        <input type="hidden" name="plan_id" value="@_selPlan.ToString(CultureInfo.InvariantCulture)" />
+                                        <label>Name <input class="form-control input-sm" name="name" placeholder="Name" style="width:160px;" /></label>
+                                        <label>Type
+                                            <select class="form-control input-sm" name="test_type">
+                                                <option value="quantitative">quantitative</option>
+                                                <option value="qualitative">qualitative</option>
+                                            </select>
+                                        </label>
+                                        <label>Unit <input class="form-control input-sm" name="unit" placeholder="Unit" style="width:80px;" /></label>
+                                        <label>Min <input class="form-control input-sm" name="min_val" placeholder="Min" style="width:80px;" /></label>
+                                        <label>Max <input class="form-control input-sm" name="max_val" placeholder="Max" style="width:80px;" /></label>
+                                        <label>Expected <input class="form-control input-sm" name="expected" placeholder="Expected" style="width:120px;" /></label>
+                                        <label>Sort <input class="form-control input-sm" name="sort" value="0" style="width:60px;" /></label>
+                                        <button type="submit" class="btn btn-primary btn-sm">Add</button>
+                                    </form>
     }
     else if (_view == "ncr")
     {

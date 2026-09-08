@@ -653,6 +653,19 @@
 })();
 </script>
 
+<form method="post" action="/erp/bos-intel/toggle" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin-bottom:12px;">
+                                <input type="hidden" name="returnUrl" value="/erp/app" />
+                                <input type="hidden" name="confirmWrites" value="true" />
+                                <label>Code <input class="form-control input-sm" name="code" placeholder="monthly_close" style="width:180px;" /></label>
+                                <label>In place
+                                    <select class="form-control input-sm" name="checked" style="width:80px;">
+                                        <option value="1">yes</option>
+                                        <option value="0">no</option>
+                                    </select>
+                                </label>
+                                <button type="submit" class="btn btn-primary btn-sm">Save</button>
+                            </form>
+
 @code {
     private ErpWorkspaceHomeDigest _home = EmptyHome();
     private ErpWorkspacePeriodKpis _cur = EmptyPeriod();

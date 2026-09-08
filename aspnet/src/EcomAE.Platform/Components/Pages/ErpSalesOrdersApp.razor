@@ -222,6 +222,23 @@
                 <p id="so-feedback" class="text-muted" role="status" aria-live="polite"></p>
             </div>
         </div>
+        <form method="post" action="/erp/edit-lock/heartbeat" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/erp/sales-orders-app" />
+            <label>Entity type <input name="entity_type" maxlength="48" placeholder="sales_order" style="width:9rem" /></label>
+            <label>Entity id <input name="entity_id" maxlength="64" style="width:8rem" /></label>
+            <label>Lock token <input name="lock_token" maxlength="40" style="width:10rem" /></label>
+            <label>TTL <input type="number" name="ttl" value="120" style="width:5rem" /></label>
+            <button type="submit" class="btn btn-sm btn-default">Refresh edit lock</button>
+        </form>
+        <form method="post" action="/erp/edit-lock/release" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/erp/sales-orders-app" />
+            <label>Entity type <input name="entity_type" maxlength="48" placeholder="sales_order" style="width:9rem" /></label>
+            <label>Entity id <input name="entity_id" maxlength="64" style="width:8rem" /></label>
+            <label>Lock token <input name="lock_token" maxlength="40" style="width:10rem" /></label>
+            <button type="submit" class="btn btn-sm btn-default">Release edit lock</button>
+        </form>
     }
 
     <div class="epc-erp-table-wrap">

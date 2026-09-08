@@ -69,6 +69,23 @@
 
 </PhpErpDesktopChrome>
 
+<form method="post" action="/erp/agenda/events/save" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/erp/agenda-app" />
+            <label>Title <input type="text" name="title" required maxlength="255" style="width:14rem" /></label>
+            <label>Start <input type="text" name="start_at" placeholder="YYYY-MM-DD HH:MM" style="width:11rem" /></label>
+            <label>End <input type="text" name="end_at" placeholder="YYYY-MM-DD HH:MM" style="width:11rem" /></label>
+            <label>Type
+                <select name="event_type">
+                    <option value="meeting">Meeting</option>
+                    <option value="call">Call</option>
+                    <option value="task">Task</option>
+                </select>
+            </label>
+            <label>Location <input type="text" name="location" maxlength="255" style="width:10rem" /></label>
+            <button type="submit" class="btn btn-sm btn-primary">Add event</button>
+        </form>
+
 @code {
     private const string _phpTab = "/ERP/?epc_erp_shell=1&area=common&tab=agenda";
     private bool _isAdmin;
