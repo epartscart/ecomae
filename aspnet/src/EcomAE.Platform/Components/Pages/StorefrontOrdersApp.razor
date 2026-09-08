@@ -81,45 +81,131 @@
     }
     else
     {
-        <div class="epc-sf-ord-kpis" aria-label="Orders KPIs">
-            <div class="epc-sf-ord-kpi"><strong>@_orders.Count</strong><span>Shown (limit @_limit)</span></div>
-            <div class="epc-sf-ord-kpi"><strong>@_paid</strong><span>Paid</span></div>
-            <div class="epc-sf-ord-kpi"><strong>@_created</strong><span>Successfully created</span></div>
+        <div class="row">
+            <div class="col-md-2">
+                <div><label style="margin-bottom: 0;" for="time_from_show">From</label></div>
+                <input type="text" id="time_from" class="form-control" value="@_filter.TimeFrom" />
+                <input type="hidden" id="time_from_show" />
+            </div>
+            <div class="col-md-2">
+                <div><label style="margin-bottom: 0;" for="time_to_show">To</label></div>
+                <input type="text" id="time_to" class="form-control" value="@_filter.TimeTo" />
+                <input type="hidden" id="time_to_show" />
+            </div>
+            <div class="col-md-2">
+                <div><label style="margin-bottom: 0;" for="order_id">Order ID</label></div>
+                <input type="text" id="order_id" class="form-control" value="@_filter.OrderId" />
+            </div>
+            <div class="col-md-2">
+                <div><label style="margin-bottom: 0;" for="paid">Paid</label></div>
+                <select id="paid" class="form-control">
+                    <option value="-1">All</option>
+                    <option value="1">Paid</option>
+                    <option value="0">Unpaid</option>
+                    <option value="2">Partial</option>
+                </select>
+            </div>
+            <div class="col-md-2 hidden">
+                <div><label style="margin-bottom: 0;" for="paid_type">Paid type</label></div>
+                <select id="paid_type" class="form-control">
+                    <option value="-1">All</option>
+                    <option value="0">Not specified</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <div><label style="margin-bottom: 0;" for="garage">Garage</label></div>
+                <select id="garage" class="form-control">
+                    <option value="0">All</option>
+                    <option value="-1">Not specified</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <div><label style="margin-bottom: 0;" for="status-select">Status</label></div>
+                <select id="status-select" class="form-control">
+                    <option value="0">All</option>
+                    @foreach (var st in _shownOrders.Select(o => o.Status).Distinct().OrderBy(s => s))
+                    {
+                        <option value="@st.ToString(CultureInfo.InvariantCulture)">@st.ToString(CultureInfo.InvariantCulture)</option>
+                    }
+                </select>
+            </div>
         </div>
+        <div class="box_btn_filter" style="margin:20px 0px 15px;">
+            <button style="margin-right: 2px; margin-bottom:5px;" class="btn btn-ar btn-primary" onclick="filterOrders();">Filter</button>
+            <button style="margin-right: 2px; margin-bottom:5px;" class="btn btn-ar btn-primary" onclick="unsetFilterOrders();">Clear</button>
+            <button style="margin-right: 2px; margin-bottom:5px;" class="btn btn-ar btn-primary" onclick="location='@StorefrontAspNetCanonical.Orders?view=items';">Order items</button>
+            <button style="margin-right: 2px; margin-bottom:5px;" class="hidden-xs hidden-sm btn btn-ar btn-primary" onclick="show_orders_items();"><i style="margin-right: 0px;" class="fa fa-level-down"></i></button>
+        </div>
+        <script>
+            document.getElementById("paid").value = "@_filter.Paid";
+            document.getElementById("paid_type").value = "@_filter.PaidType";
+            document.getElementById("garage").value = "@_filter.Garage";
+            document.getElementById("status-select").value = "@_filter.Status";
+            function filterOrders() {
+                var my_orders_filter = {
+                    time_from: encodeURIComponent(document.getElementById("time_from").value),
+                    time_to: encodeURIComponent(document.getElementById("time_to").value),
+                    order_id: encodeURIComponent(document.getElementById("order_id").value),
+                    status: encodeURIComponent(document.getElementById("status-select").value),
+                    paid: encodeURIComponent(document.getElementById("paid").value),
+                    paid_type: encodeURIComponent(document.getElementById("paid_type").value),
+                    garage: encodeURIComponent(document.getElementById("garage").value)
+                };
+                var date = new Date(new Date().getTime() + 15552000 * 1000);
+                document.cookie = "my_orders_filter="+JSON.stringify(my_orders_filter)+"; path=/; expires=" + date.toUTCString();
+                location = "@StorefrontAspNetCanonical.Orders";
+            }
+            function unsetFilterOrders() {
+                var my_orders_filter = { time_from:"", time_to:"", order_id:"", status:"0", paid:"-1", paid_type:"-1", garage:"0" };
+                var date = new Date(new Date().getTime() + 15552000 * 1000);
+                document.cookie = "my_orders_filter="+JSON.stringify(my_orders_filter)+"; path=/; expires=" + date.toUTCString();
+                location = "@StorefrontAspNetCanonical.Orders";
+            }
+            function show_orders_items() {
+                var rows = document.querySelectorAll('.orders-items-tr');
+                rows.forEach(function(r){ r.style.display = r.style.display === 'table-row' ? 'none' : 'table-row'; });
+            }
+        </script>
 
-        <div class="epc-sf-ord-table-wrap">
-            <table class="epc-sf-ord-table">
+        <div style="overflow: hidden; overflow-x: auto;">
+            <table class="table">
                 <thead>
                     <tr>
-                        <th>Order ID</th>
-                        <th>When</th>
-                        <th>Paid</th>
-                        <th>Created</th>
-                        <th>Status</th>
+                        <th class="hidden"><input type="checkbox" id="check_uncheck_all" name="check_uncheck_all" /></th>
+                        <th style="vertical-align: middle; white-space: nowrap;"><a href="javascript:void(0);" onclick="sortOrders('id');" id="id_sorter">ID</a></th>
+                        <th style="vertical-align: middle; white-space: nowrap;"><a href="javascript:void(0);" onclick="sortOrders('time');" id="time_sorter">When</a></th>
+                        <th style="vertical-align: middle; white-space: nowrap;"><a href="javascript:void(0);" onclick="sortOrders('price_sum');" id="price_sum_sorter">Sum</a></th>
+                        <th style="vertical-align: middle; white-space: nowrap;"><a href="javascript:void(0);" onclick="sortOrders('paid');" id="paid_sorter">Paid</a></th>
+                        <th style="vertical-align: middle; white-space: nowrap;"><a href="javascript:void(0);" onclick="sortOrders('paid_type');" id="paid_type_sorter">Paid type</a></th>
+                        <th style="vertical-align: middle; white-space: nowrap;"><a href="javascript:void(0);" onclick="sortOrders('status');" id="status_sorter">Status</a></th>
+                        <th style="vertical-align: middle; white-space: nowrap;"><a href="javascript:void(0);" onclick="sortOrders('obtain_caption');" id="obtain_caption_sorter">How to obtain</a></th>
+                        <th style="vertical-align: middle; white-space: nowrap;"><a href="javascript:void(0);" onclick="sortOrders('office_id');" id="office_id_sorter">Office</a></th>
                         <th></th>
                     </tr>
                 </thead>
                 <tbody>
-                    @if (_orders.Count == 0)
+                    @if (_shownOrders.Count == 0)
                     {
-                        <tr><td colspan="6">Nothing to show yet.</td></tr>
+                        <tr><td colspan="10">Nothing to show yet.</td></tr>
                     }
                     else
                     {
-                        @foreach (var o in _orders)
+                        @foreach (var o in _shownOrders)
                         {
                             <tr>
-                                <td><strong>@o.Id.ToString(CultureInfo.InvariantCulture)</strong></td>
+                                <td class="hidden"></td>
+                                <td><a href="@StorefrontSurfaceLinks.ForOrder(o.Id)">@o.Id.ToString(CultureInfo.InvariantCulture)</a></td>
                                 <td>@FormatTs(o.TimeUnix)</td>
-                                <td><span class="epc-sf-ord-badge @(o.Paid != 0 ? "epc-sf-ord-badge--ok" : "epc-sf-ord-badge--off")">@(o.Paid != 0 ? "yes" : "no")</span></td>
-                                <td><span class="epc-sf-ord-badge @(o.SuccessfullyCreated != 0 ? "epc-sf-ord-badge--ok" : "epc-sf-ord-badge--info")">@(o.SuccessfullyCreated != 0 ? "yes" : "no")</span></td>
-                                <td><span class="epc-sf-ord-badge epc-sf-ord-badge--info">@o.Status.ToString(CultureInfo.InvariantCulture)</span></td>
+                                <td>—</td>
+                                <td>@(o.Paid != 0 ? "yes" : "no")</td>
+                                <td>—</td>
+                                <td>@o.Status.ToString(CultureInfo.InvariantCulture)</td>
+                                <td>—</td>
+                                <td>—</td>
                                 <td>
                                     <a href="@StorefrontSurfaceLinks.ForOrder(o.Id)">Open</a>
                                     ·
                                     <a href="@StorefrontSurfaceLinks.ForPrint(o.Id, "sales_receipt")">Receipt</a>
-                                    ·
-                                    <a href="@StorefrontSurfaceLinks.ForPrint(o.Id, "invoice_for_payment")">Invoice</a>
                                 </td>
                             </tr>
                         }
@@ -127,6 +213,13 @@
                 </tbody>
             </table>
         </div>
+        <script>
+            function sortOrders(field) {
+                var date = new Date(new Date().getTime() + 15552000 * 1000);
+                document.cookie = "my_orders_sort="+JSON.stringify({field:field,asc_desc:"desc"})+"; path=/; expires=" + date.toUTCString();
+                location = "@StorefrontAspNetCanonical.Orders";
+            }
+        </script>
 
         @if (_items.Count > 0 || _showItems)
         {
@@ -239,6 +332,8 @@
     private string _brand = "eParts Cart";
     private bool _isCustomer;
     private IReadOnlyList<StorefrontOrderDigest> _orders = [];
+    private IReadOnlyList<StorefrontOrderDigest> _shownOrders = [];
+    private MyOrdersFilter _filter = MyOrdersFilter.Empty;
     private int _paid;
     private int _created;
     private int _limit = 25;
@@ -273,10 +368,13 @@
         }
 
         _isCustomer = true;
+        ctx.Request.Cookies.TryGetValue("my_orders_filter", out var filterCookie);
+        _filter = MyOrdersFilter.Parse(filterCookie);
         var result = await Dashboards.ListStorefrontOrdersAsync(session.UserId, _limit, ctx.RequestAborted);
         _orders = result.Orders;
-        _paid = _orders.Count(o => o.Paid != 0);
-        _created = _orders.Count(o => o.SuccessfullyCreated != 0);
+        _shownOrders = _filter.Apply(_orders);
+        _paid = _shownOrders.Count(o => o.Paid != 0);
+        _created = _shownOrders.Count(o => o.SuccessfullyCreated != 0);
         _source = result.Source;
         _message = result.Message;
         var path = ctx.Request.Path.Value ?? string.Empty;
@@ -318,6 +416,95 @@
         catch (ArgumentOutOfRangeException)
         {
             return ts.ToString(CultureInfo.InvariantCulture);
+        }
+    }
+
+    private sealed record MyOrdersFilter(
+        string TimeFrom,
+        string TimeTo,
+        string OrderId,
+        string Status,
+        string Paid,
+        string PaidType,
+        string Garage)
+    {
+        public static MyOrdersFilter Empty { get; } = new("", "", "", "0", "-1", "-1", "0");
+
+        public static MyOrdersFilter Parse(string? cookie)
+        {
+            if (string.IsNullOrWhiteSpace(cookie))
+            {
+                return Empty;
+            }
+
+            try
+            {
+                using var doc = System.Text.Json.JsonDocument.Parse(Uri.UnescapeDataString(cookie));
+                var r = doc.RootElement;
+                return new(
+                    Read(r, "time_from"),
+                    Read(r, "time_to"),
+                    Read(r, "order_id"),
+                    Read(r, "status", "0"),
+                    Read(r, "paid", "-1"),
+                    Read(r, "paid_type", "-1"),
+                    Read(r, "garage", "0"));
+            }
+            catch (Exception)
+            {
+                return Empty;
+            }
+        }
+
+        public IReadOnlyList<StorefrontOrderDigest> Apply(IReadOnlyList<StorefrontOrderDigest> source)
+        {
+            IEnumerable<StorefrontOrderDigest> q = source;
+            var id = Uri.UnescapeDataString(OrderId ?? "");
+            if (!string.IsNullOrWhiteSpace(id) && long.TryParse(id, out var orderId))
+            {
+                q = q.Where(o => o.Id == orderId);
+            }
+
+            var paid = Uri.UnescapeDataString(Paid ?? "-1");
+            if (paid == "1")
+            {
+                q = q.Where(o => o.Paid != 0);
+            }
+            else if (paid == "0")
+            {
+                q = q.Where(o => o.Paid == 0);
+            }
+
+            var status = Uri.UnescapeDataString(Status ?? "0");
+            if (status != "0" && int.TryParse(status, out var st) && st != 0)
+            {
+                q = q.Where(o => o.Status == st);
+            }
+
+            var from = Uri.UnescapeDataString(TimeFrom ?? "");
+            if (long.TryParse(from, out var fromTs) && fromTs > 0)
+            {
+                q = q.Where(o => o.TimeUnix >= fromTs);
+            }
+
+            var to = Uri.UnescapeDataString(TimeTo ?? "");
+            if (long.TryParse(to, out var toTs) && toTs > 0)
+            {
+                q = q.Where(o => o.TimeUnix <= toTs);
+            }
+
+            return q.ToArray();
+        }
+
+        private static string Read(System.Text.Json.JsonElement root, string name, string fallback = "")
+        {
+            if (!root.TryGetProperty(name, out var el))
+            {
+                return fallback;
+            }
+
+            var raw = el.ValueKind == System.Text.Json.JsonValueKind.String ? el.GetString() ?? fallback : el.ToString();
+            return string.IsNullOrWhiteSpace(raw) ? fallback : raw;
         }
     }
 }

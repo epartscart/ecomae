@@ -85,6 +85,23 @@ public sealed class EpartscartCustomerJourneyParityTests
         Assert.Contains("@page \"/en/shop/orders\"", orders, StringComparison.Ordinal);
         Assert.Contains("@page \"/en/shop/orders/order\"", orders, StringComparison.Ordinal);
         Assert.Contains("panel panel-primary", orders, StringComparison.Ordinal);
+        Assert.Contains("id=\"time_from\"", orders, StringComparison.Ordinal);
+        Assert.Contains("id=\"time_from_show\"", orders, StringComparison.Ordinal);
+        Assert.Contains("id=\"order_id\"", orders, StringComparison.Ordinal);
+        Assert.Contains("id=\"status-select\"", orders, StringComparison.Ordinal);
+        Assert.Contains("box_btn_filter", orders, StringComparison.Ordinal);
+        Assert.Contains("filterOrders", orders, StringComparison.Ordinal);
+        Assert.Contains("my_orders_filter", orders, StringComparison.Ordinal);
+        Assert.Contains("class=\"table\"", orders, StringComparison.Ordinal);
+
+        var cart = File.ReadAllText(Find(
+            "aspnet/src/EcomAE.Platform/Components/Pages/StorefrontCartApp.razor"));
+        Assert.Contains("id=\"cart_area\"", cart, StringComparison.Ordinal);
+        Assert.Contains("id=\"check_uncheck_all\"", cart, StringComparison.Ordinal);
+        Assert.Contains("count_need_", cart, StringComparison.Ordinal);
+        Assert.Contains("epc-wa-share-btn", cart, StringComparison.Ordinal);
+        Assert.Contains("btn btn-ar btn-primary", cart, StringComparison.Ordinal);
+        Assert.Contains("CheckoutHowGet", cart, StringComparison.Ordinal);
 
         var profile = File.ReadAllText(Find(
             "aspnet/src/EcomAE.Platform/Components/Pages/StorefrontProfileApp.razor"));
@@ -122,6 +139,9 @@ public sealed class EpartscartCustomerJourneyParityTests
         Assert.Contains("epc-gl", garage, StringComparison.Ordinal);
         Assert.Contains("Garage Manager login", garage, StringComparison.Ordinal);
         Assert.Contains("/garage/login", garage, StringComparison.Ordinal);
+        Assert.Contains("epc-garazh-gms", garage, StringComparison.Ordinal);
+        Assert.Contains("id=\"garage_search_input\"", garage, StringComparison.Ordinal);
+        Assert.Contains("car_div", garage, StringComparison.Ordinal);
 
         var product = File.ReadAllText(Find(
             "aspnet/src/EcomAE.Platform/Components/Pages/StorefrontProductApp.razor"));

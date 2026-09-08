@@ -30,24 +30,16 @@
 
 <StorefrontTenantChrome>
 
-    <PhpStorefrontPageHeader Title="Cart"
-                            Subtitle="Lines in your cart. Quantity and checkout stay on this storefront.">
-        <a class="btn btn-sm btn-primary" href="@StorefrontSurfaceLinks.Checkout">Checkout</a>
-            <a class="btn btn-sm btn-default" href="@StorefrontSurfaceLinks.PartSearch">Continue shopping</a>
-    </PhpStorefrontPageHeader>
-
     <div id="cart_area">
     @if (!_hasShopper)
     {
         <div class="epc-cart-login-gate">
             <h2>Sign in to use your cart</h2>
-            <p>Please log in or register to continue.</p>
             <p>Prices, checkout, quotes, and WhatsApp ordering are available after you log in or register.</p>
             <div class="epc-commerce-login-cta">
-                <a class="btn btn-sm btn-primary" href="/storefront/login?returnUrl=/storefront/cart-app">Log in</a>
+                <a class="btn btn-sm btn-primary" href="@StorefrontSurfaceLinks.Login">Log in</a>
                 <span class="epc-commerce-login-cta__sep">or</span>
-                <a class="btn btn-sm btn-default" href="/storefront/register-app">Register</a>
-                <a class="btn btn-sm btn-default" href="@StorefrontSurfaceLinks.CheckoutLoginOffer">Login offer</a>
+                <a class="btn btn-sm btn-default" href="@StorefrontSurfaceLinks.Registration">Register</a>
             </div>
         </div>
     }
@@ -66,53 +58,57 @@
             <table class="table cart_table">
                 <thead>
                     <tr>
-                        <th></th>
+                        <th><input type="checkbox" id="check_uncheck_all" checked="@_allChecked" onchange="on_check_uncheck_all();" /></th>
                         <th>Brand</th>
                         <th>Article</th>
                         <th>Name</th>
-                        <th>Qty</th>
+                        <th>Term</th>
                         <th>Price</th>
-                        <th>Line</th>
-                        <th>ETA</th>
+                        <th>Qty</th>
+                        <th>Sum</th>
                         <th></th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach (var line in _lines)
                     {
+                        var lineId = line.Id.ToString(CultureInfo.InvariantCulture);
                         var lineTotal = line.Price * line.CountNeed;
+                        var qty = line.CountNeed.ToString("0.###", CultureInfo.InvariantCulture);
                         <tr>
                             <td>
-                                <form method="post" action="/storefront/cart/check-for-order" style="margin:0">
+                                <form method="post" action="/storefront/cart/check-for-order" id="check_form_@lineId" style="margin:0">
                                     <input type="hidden" name="confirmWrites" value="true" />
                                     <input type="hidden" name="returnUrl" value="/storefront/cart-app" />
-                                    <input type="hidden" name="id" value="@line.Id.ToString(CultureInfo.InvariantCulture)" />
+                                    <input type="hidden" name="id" value="@lineId" />
                                     <input type="hidden" name="checked" value="@(line.CheckedForOrder ? "0" : "1")" />
-                                    <input type="checkbox" @(line.CheckedForOrder ? "checked" : null) onclick="this.form.submit()" />
+                                    <input type="checkbox" class="cart_line_check" data-line="@lineId" checked="@line.CheckedForOrder" onclick="this.form.submit()" />
                                 </form>
                             </td>
-                            <td><strong>@(string.IsNullOrWhiteSpace(line.Manufacturer) ? "—" : line.Manufacturer)</strong></td>
-                            <td>@(string.IsNullOrWhiteSpace(line.Article) ? "—" : line.Article)</td>
-                            <td>@(string.IsNullOrWhiteSpace(line.Name) ? "—" : line.Name)</td>
-                            <td>
-                                <form method="post" action="/storefront/cart/change-count-need" style="display:flex;gap:.3rem;align-items:center;margin:0">
-                                    <input type="hidden" name="confirmWrites" value="true" />
-                                    <input type="hidden" name="returnUrl" value="/storefront/cart-app" />
-                                    <input type="hidden" name="id" value="@line.Id.ToString(CultureInfo.InvariantCulture)" />
-                                    <input class="cart_qty" type="number" min="1" step="1" name="countNeed"
-                                           value="@line.CountNeed.ToString("0.###", CultureInfo.InvariantCulture)" />
-                                    <button class="linkish" type="submit">Update</button>
-                                </form>
-                            </td>
-                            <td>@line.Price.ToString("N2", CultureInfo.InvariantCulture)</td>
-                            <td>@lineTotal.ToString("N2", CultureInfo.InvariantCulture)</td>
+                            <td style="font-weight: bold;">@(string.IsNullOrWhiteSpace(line.Manufacturer) ? "—" : line.Manufacturer)</td>
+                            <td style="font-weight: bold;">@(string.IsNullOrWhiteSpace(line.Article) ? "—" : line.Article)</td>
+                            <td style="white-space: normal; line-height: 1em; width: 100%; min-width: 200px;">@(string.IsNullOrWhiteSpace(line.Name) ? "—" : line.Name)</td>
                             <td>@(string.IsNullOrWhiteSpace(line.TimeToExe) ? "—" : line.TimeToExe)</td>
+                            <td><font class="price">@line.Price.ToString("N2", CultureInfo.InvariantCulture)</font></td>
                             <td>
-                                <form method="post" action="/storefront/cart/delete" style="display:inline;margin:0">
+                                <form method="post" action="/storefront/cart/change-count-need" id="qty_form_@lineId" style="margin:0">
                                     <input type="hidden" name="confirmWrites" value="true" />
                                     <input type="hidden" name="returnUrl" value="/storefront/cart-app" />
-                                    <input type="hidden" name="id" value="@line.Id.ToString(CultureInfo.InvariantCulture)" />
-                                    <button class="linkish" type="submit">Delete</button>
+                                    <input type="hidden" name="id" value="@lineId" />
+                                    <table style="margin:auto;"><tr>
+                                        <td><a style="display: inline-block; background: #f5f5f5; font-weight: bold; width: 22px; height: 25px; line-height: 24px; text-decoration: none; text-align: center; border-radius: 3px 0px 0px 3px; border: 1px solid #999; border-right: 0;" href="javascript:void(0);" onclick="minusCountNeed('@lineId');"><span style="position: relative; top: -2px;">-</span></a></td>
+                                        <td><input style="width: 40px; height: 25px; line-height: 24px; text-align: center; border: 1px solid #999; border-radius: unset; box-shadow: none;" type="text" name="countNeed" value="@qty" id="count_need_@lineId" onkeyup="onKeyUpCountNeed('@lineId');" /></td>
+                                        <td><a style="display: inline-block; background: #f5f5f5; font-weight: bold; width: 22px; height: 25px; line-height: 24px; text-decoration: none; text-align: center; border-radius: 0px 3px 3px 0px; border: 1px solid #999; border-left: 0;" href="javascript:void(0);" onclick="plusCountNeed('@lineId');"><span>+</span></a></td>
+                                    </tr></table>
+                                </form>
+                            </td>
+                            <td style="font-weight: bold;"><font class="price">@lineTotal.ToString("N2", CultureInfo.InvariantCulture)</font></td>
+                            <td style="text-align: right;">
+                                <form method="post" action="/storefront/cart/delete" id="delete_form_@lineId" style="display:inline;margin:0">
+                                    <input type="hidden" name="confirmWrites" value="true" />
+                                    <input type="hidden" name="returnUrl" value="/storefront/cart-app" />
+                                    <input type="hidden" name="id" value="@lineId" />
+                                    <a href="javascript:void(0);" onclick="deleteRecord('@lineId');" title="Remove"><i style="font-size: 25px;" class="fa fa-times" aria-hidden="true"></i></a>
                                 </form>
                             </td>
                         </tr>
@@ -121,13 +117,53 @@
             </table>
         </div>
 
-        <p class="cart-note">
-            Add to cart is live on ASP.NET. Quantity, check, and delete write here. Continue to checkout when you are ready.
-            @if (!_isCustomer)
-            {
-                <span> Guest cart uses your session cookie; checkout asks for a phone number.</span>
+        <p style="background: #eee; padding: 10px; margin: 10px 0px; border-radius: 5px; border: 1px solid #ddd;"><i class="fa fa-info-circle" aria-hidden="true"></i> Untick a line to keep it in the cart without ordering it.</p>
+        <div style="padding-top: 10px; text-align: right; font-size: 18px; font-weight: bold;"><span style="font-size: 14px; font-weight: normal;">Total:</span> <font class="price" id="sum_total">@_checkedSum.ToString("N2", CultureInfo.InvariantCulture)</font></div>
+        <div style="text-align:right;margin-top:10px;">
+            <button type="button" class="btn btn-sm epc-wa-share-btn" onclick="epcWaShareCart();"><i class="fa fa-whatsapp"></i> Share cart on WhatsApp</button>
+        </div>
+        @if (_checkedSum > 0)
+        {
+            <div style="text-align: right;margin-top:10px;"><a class="btn btn-ar btn-primary" href="@(_isCustomer ? StorefrontSurfaceLinks.CheckoutHowGet : StorefrontSurfaceLinks.CheckoutLoginOffer)">Checkout</a></div>
+        }
+        <script>
+            function plusCountNeed(id) {
+                var el = document.getElementById("count_need_" + id);
+                if (!el) return;
+                var n = parseInt(el.value || "1", 10) || 1;
+                el.value = String(n + 1);
+                document.getElementById("qty_form_" + id).submit();
             }
-        </p>
+            function minusCountNeed(id) {
+                var el = document.getElementById("count_need_" + id);
+                if (!el) return;
+                var n = parseInt(el.value || "1", 10) || 1;
+                if (n <= 1) return;
+                el.value = String(n - 1);
+                document.getElementById("qty_form_" + id).submit();
+            }
+            function onKeyUpCountNeed(id) {
+                var el = document.getElementById("count_need_" + id);
+                if (!el) return;
+                clearTimeout(window._qtyTimer);
+                window._qtyTimer = setTimeout(function(){ document.getElementById("qty_form_" + id).submit(); }, 600);
+            }
+            function deleteRecord(id) {
+                var f = document.getElementById("delete_form_" + id);
+                if (f) f.submit();
+            }
+            function on_check_uncheck_all() {
+                var boxes = document.querySelectorAll(".cart_line_check");
+                var master = document.getElementById("check_uncheck_all");
+                if (!master || !boxes.length) return;
+                boxes[0].click();
+            }
+            function epcWaShareCart() {
+                var lines = @((MarkupString)System.Text.Json.JsonSerializer.Serialize(_waLines));
+                var text = "Cart:\n" + lines.join("\n");
+                window.open("https://wa.me/?text=" + encodeURIComponent(text), "_blank");
+            }
+        </script>
     }
     </div>
 
@@ -189,5 +225,15 @@
         var result = await Dashboards.ListStorefrontCartAsync(shopper.UserId, 100, ctx.RequestAborted, shopper.SessionRecordId);
         _summary = result.Summary;
         _lines = result.Lines;
+        _allChecked = _lines.Count > 0 && _lines.All(l => l.CheckedForOrder);
+        _checkedSum = _lines.Where(l => l.CheckedForOrder).Sum(l => l.Price * l.CountNeed);
+        _waLines = _lines
+            .Where(l => l.CheckedForOrder)
+            .Select(l => $"{l.Manufacturer} {l.Article} x{l.CountNeed.ToString("0.##", CultureInfo.InvariantCulture)} = {(l.Price * l.CountNeed).ToString("N2", CultureInfo.InvariantCulture)}")
+            .ToArray();
     }
+
+    private bool _allChecked;
+    private decimal _checkedSum;
+    private IReadOnlyList<string> _waLines = [];
 }

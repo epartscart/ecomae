@@ -127,66 +127,89 @@
     }
     else
     {
-        <div class="epc-sf-gar-kpis" aria-label="Garage KPIs">
-            <div class="epc-sf-gar-kpi"><strong>@_vehicles.Count</strong><span>Shown (limit @_limit)</span></div>
-            <div class="epc-sf-gar-kpi"><strong>@_active</strong><span>Active</span></div>
-            <div class="epc-sf-gar-kpi"><strong>@_withVin</strong><span>With VIN</span></div>
+        <style>
+            .epc-garazh-gms{margin:0 0 18px;padding:18px 20px;border-radius:16px;color:#f8fafc;background:linear-gradient(125deg,#0b1220,#164e63 55%,#0e7490);box-shadow:0 14px 32px rgba(11,18,32,.18)}
+            .epc-garazh-gms h2{margin:0 0 6px;color:#fff;font-size:22px;font-weight:800}
+            .epc-garazh-gms p{margin:0 0 12px;opacity:.92;max-width:60ch}
+            .epc-garazh-gms a{display:inline-flex;align-items:center;gap:6px;margin:0 8px 6px 0;padding:8px 12px;border-radius:999px;background:rgba(255,255,255,.16);color:#fff!important;font-weight:700;text-decoration:none!important;border:1px solid rgba(255,255,255,.22);font-size:12px}
+        </style>
+        <div class="epc-garazh-gms col-md-12">
+            <h2><i class="fa fa-wrench"></i> My Garage · Service ready</h2>
+            <p>Keep your vehicles here, then book workshop service or track an open job. Workshop staff use Garage Manager for the full repair workflow.</p>
+            <a href="@(StorefrontAspNetCanonical.AutoWorkshop)#book"><i class="fa fa-calendar"></i> Book service</a>
+            <a href="@(StorefrontAspNetCanonical.AutoWorkshop)#track"><i class="fa fa-search"></i> Track job</a>
+            <a href="@StorefrontAspNetCanonical.GarageLogin"><i class="fa fa-sign-in"></i> Garage Manager login</a>
         </div>
-
-        <div class="epc-sf-gar-table-wrap">
-            <table class="epc-sf-gar-table">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Caption</th>
-                        <th>Make</th>
-                        <th>Model</th>
-                        <th>Year</th>
-                        <th>VIN</th>
-                        <th>Active</th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @if (_vehicles.Count == 0)
-                    {
-                        <tr><td colspan="8">Nothing to show yet.</td></tr>
-                    }
-                    else
-                    {
-                        @foreach (var v in _vehicles)
-                        {
-                            <tr>
-                                <td><strong>@v.Id.ToString(CultureInfo.InvariantCulture)</strong></td>
-                                <td>@(string.IsNullOrWhiteSpace(v.Caption) ? "—" : v.Caption)</td>
-                                <td>@(string.IsNullOrWhiteSpace(v.Marka) ? "—" : v.Marka)</td>
-                                <td>@(string.IsNullOrWhiteSpace(v.Model) ? "—" : v.Model)</td>
-                                <td>@(string.IsNullOrWhiteSpace(v.Year) ? "—" : v.Year)</td>
-                                <td>@(string.IsNullOrWhiteSpace(v.Vin) ? "—" : v.Vin)</td>
-                                <td><span class="epc-sf-gar-badge @(v.Active != 0 ? "epc-sf-gar-badge--ok" : "epc-sf-gar-badge--off")">@(v.Active != 0 ? "yes" : "no")</span></td>
-                                <td>
-                                    <form method="post" action="/storefront/garage/set-active" style="display:inline">
-                                        <input type="hidden" name="confirmWrites" value="true" />
-                                        <input type="hidden" name="returnUrl" value="/storefront/garage-app" />
-                                        <input type="hidden" name="carId" value="@v.Id.ToString(CultureInfo.InvariantCulture)" />
-                                        <button type="submit" style="border:0;background:none;color:#a16207;font-weight:700;cursor:pointer;padding:0">Set active</button>
-                                    </form>
-                                    ·
-                                    <form method="post" action="/storefront/garage/delete" style="display:inline" onsubmit="return confirm('Remove this car?');">
-                                        <input type="hidden" name="confirmWrites" value="true" />
-                                        <input type="hidden" name="returnUrl" value="/storefront/garage-app" />
-                                        <input type="hidden" name="carId" value="@v.Id.ToString(CultureInfo.InvariantCulture)" />
-                                        <button type="submit" style="border:0;background:none;color:#991b1b;font-weight:700;cursor:pointer;padding:0">Delete</button>
-                                    </form>
-                                    ·
-                                    <a href="@StorefrontSurfaceLinks.PartSearch">Search</a>
-                                </td>
-                            </tr>
-                        }
-                    }
-                </tbody>
-            </table>
+        <div class="col-md-6" style="padding-bottom:20px;">
+            <a class="btn btn-ar btn-primary" href="/en/garazh/avtomobil"><i class="fa fa-car"></i> <i class="fa fa-plus"></i> Add vehicle</a>
+            <a href="/en/garazh/bloknot?garage=0" class="btn btn-ar btn-primary"><i class="fa fa-pencil-square-o"></i> Notepad</a>
         </div>
+        <div class="col-md-6" style="padding-bottom:20px;">
+            <form role="form">
+                <div class="input-group">
+                    <input value="" type="text" class="form-control" placeholder="Search vehicles" id="garage_search_input" />
+                    <span class="input-group-btn">
+                        <a class="btn btn-ar btn-default" onclick="document.getElementById('garage_search_input').value=''; document.querySelectorAll('.car_div').forEach(function(el){ el.style.display='block'; });"><i style="margin-right: 0px; color: #555;" class="fa fa-times" aria-hidden="true"></i></a>
+                    </span>
+                </div>
+            </form>
+        </div>
+        <div class="col-md-12">
+            @if (_vehicles.Count == 0)
+            {
+                <p>Nothing to show yet.</p>
+            }
+            else
+            {
+                @foreach (var v in _vehicles)
+                {
+                    var carId = v.Id.ToString(CultureInfo.InvariantCulture);
+                    var caption = string.IsNullOrWhiteSpace(v.Caption) ? ("Vehicle #" + carId) : v.Caption;
+                    var hay = string.Join(" ", new[] { v.Caption, v.Marka, v.Model, v.Year, v.Vin }).ToLowerInvariant();
+                    <div id="car_@carId" class="panel panel-default car_div" data-search="@hay">
+                        <div class="panel-heading">
+                            <form method="post" action="/storefront/garage/set-active" style="display:inline">
+                                <input type="hidden" name="confirmWrites" value="true" />
+                                <input type="hidden" name="returnUrl" value="/storefront/garage-app" />
+                                <input type="hidden" name="carId" value="@carId" />
+                                <button type="submit" class="btn btn-ar btn-default pull-right active_car @(v.Active != 0 ? "btn-success" : "")"><i class="fa fa-check-square-o" aria-hidden="true"></i> Active</button>
+                            </form>
+                            <h3 class="panel-title" style="font-weight:400;">@caption</h3>
+                        </div>
+                        <div class="panel-body">
+                            <p>@(string.IsNullOrWhiteSpace(v.Marka) ? "" : v.Marka) @(string.IsNullOrWhiteSpace(v.Model) ? "" : v.Model) @(string.IsNullOrWhiteSpace(v.Year) ? "" : v.Year)</p>
+                            @if (!string.IsNullOrWhiteSpace(v.Vin))
+                            {
+                                <p>VIN: @v.Vin</p>
+                            }
+                            <p>
+                                <a href="/en/garazh/bloknot?garage=@carId">Notepad</a>
+                                ·
+                                <form method="post" action="/storefront/garage/delete" style="display:inline" onsubmit="return confirm('Remove this car?');">
+                                    <input type="hidden" name="confirmWrites" value="true" />
+                                    <input type="hidden" name="returnUrl" value="/storefront/garage-app" />
+                                    <input type="hidden" name="carId" value="@carId" />
+                                    <button type="submit" style="border:0;background:none;color:#991b1b;font-weight:700;cursor:pointer;padding:0">Delete</button>
+                                </form>
+                            </p>
+                        </div>
+                    </div>
+                }
+            }
+        </div>
+        <script>
+            (function(){
+                var input = document.getElementById('garage_search_input');
+                if (!input) return;
+                input.addEventListener('keyup', function(){
+                    var str = (input.value || '').toLowerCase();
+                    document.querySelectorAll('.car_div').forEach(function(el){
+                        var hay = el.getAttribute('data-search') || '';
+                        el.style.display = (str.length < 2 || hay.indexOf(str) !== -1) ? 'block' : 'none';
+                    });
+                });
+            })();
+        </script>
 
         @if (GarageId is > 0)
         {
