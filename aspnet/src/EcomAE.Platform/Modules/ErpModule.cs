@@ -4094,8 +4094,8 @@ public sealed class ErpModule : ISurfaceModule
         }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxOplParamsSave, async (HttpContext context, ErpOplParamsSaveBody? body, ILegacySessionValidator validator, IErpOplParamsSaveDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpOplParamsSaveRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxOplSetStatus, async (HttpContext context, ErpOplSetStatusBody? body, ILegacySessionValidator validator, IErpOplSetStatusDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpOplSetStatusRequest(body.Id, body.TargetStatus, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxOplSetStatus, HandleOplSetStatusAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpOplSetStatus, HandleOplSetStatusAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxOplConfirmAll, async (HttpContext context, ErpOplConfirmAllBody? body, ILegacySessionValidator validator, IErpOplConfirmAllDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(false); return Results.Ok(dryRun.Evaluate(new ErpOplConfirmAllRequest(body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxOplCreatePos, async (HttpContext context, ErpOplCreatePosBody? body, ILegacySessionValidator validator, IErpOplCreatePosDryRun dryRun, CancellationToken cancellationToken) =>
@@ -11774,6 +11774,68 @@ public sealed class ErpModule : ISurfaceModule
         }
     }
 
+    private static async Task<IResult> HandleOplSetStatusAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpOplSetStatusDryRun dryRun,
+        IErpOplSetStatusWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/order-planning-app", "Admin ERP capability required for recommendation status.");
+        }
+
+        var itemId = 0L;
+        var warehouseId = 0L;
+        var status = "";
+        var statusSpecified = false;
+        var roq = 0m;
+        var value = 0m;
+        var supplier = "";
+        var confirm = false;
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            itemId = LiveWriteFormBinder.Long(form, "item_id", "itemId");
+            warehouseId = LiveWriteFormBinder.Long(form, "warehouse_id", "warehouseId");
+            statusSpecified = form.ContainsKey("status");
+            status = statusSpecified ? form["status"].ToString() : "";
+            roq = LiveWriteFormBinder.Dec(form, "roq");
+            value = LiveWriteFormBinder.Dec(form, "value", "order_value", "orderValue");
+            supplier = form["supplier"].ToString();
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+        }
+        else
+        {
+            var root = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<System.Text.Json.JsonElement>(context, cancellationToken);
+            confirm = ErpOplSetStatusWriteService.JsonFlag(root, "confirmWrites", "confirm_writes");
+            itemId = ErpOplSetStatusWriteService.JsonLong(root, "item_id", "itemId");
+            warehouseId = ErpOplSetStatusWriteService.JsonLong(root, "warehouse_id", "warehouseId");
+            statusSpecified = ErpOplSetStatusWriteService.JsonHas(root, "status");
+            status = ErpOplSetStatusWriteService.JsonText(root, "status");
+            roq = ErpOplSetStatusWriteService.JsonDec(root, "roq");
+            value = ErpOplSetStatusWriteService.JsonDec(root, "value", "order_value", "orderValue");
+            supplier = ErpOplSetStatusWriteService.JsonText(root, "supplier");
+        }
+
+        if (!confirm)
+        {
+            return Results.Ok(dryRun.Evaluate(new ErpOplSetStatusRequest(itemId, status, false)).ToPayload(SessionPayload(session)));
+        }
+
+        var written = await writes.SetAsync(
+            new ErpOplSetStatusWriteRequest(itemId, warehouseId, status, statusSpecified, roq, value, supplier),
+            cancellationToken);
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/erp/order-planning-app",
+            written.Succeeded,
+            written.Message,
+            new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+    }
+
     private static async Task<IResult> HandleWhtCodeSaveAsync(
         HttpContext context,
         ILegacySessionValidator validator,
@@ -13513,7 +13575,6 @@ public sealed class ErpModule : ISurfaceModule
         bool ConfirmWrites = false);
     private sealed record ErpBosVatRefundStatusBody(long Id, string? TargetStatus = null, bool ConfirmWrites = false);
     private sealed record ErpOplParamsSaveBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
-    private sealed record ErpOplSetStatusBody(long Id, string? TargetStatus = null, bool ConfirmWrites = false);
     private sealed record ErpOplConfirmAllBody(bool ConfirmWrites = false);
     private sealed record ErpOplCreatePosBody(bool ConfirmWrites = false);
     private sealed record ErpPfProcessSaveBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);

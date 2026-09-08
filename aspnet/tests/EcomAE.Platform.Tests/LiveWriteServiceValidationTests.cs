@@ -3111,6 +3111,23 @@ public sealed class LiveWriteServiceValidationTests
             .LogAsync(new ErpHrAttendanceWriteRequest(EmployeeId: 1, Hours: 8));
         Assert.False(hrAttDb.Succeeded);
         Assert.Equal("db", hrAttDb.Code);
+
+        var oplStatusInvalid = await new ErpOplSetStatusWriteService(new ConfiguredNeverOpened())
+            .SetAsync(new ErpOplSetStatusWriteRequest());
+        Assert.False(oplStatusInvalid.Succeeded);
+        Assert.Equal("invalid", oplStatusInvalid.Code);
+        Assert.Equal("Item and warehouse required", oplStatusInvalid.Message);
+
+        var oplStatusBad = await new ErpOplSetStatusWriteService(new ConfiguredNeverOpened())
+            .SetAsync(new ErpOplSetStatusWriteRequest(ItemId: 1, WarehouseId: 2, Status: "nope", StatusSpecified: true));
+        Assert.False(oplStatusBad.Succeeded);
+        Assert.Equal("invalid", oplStatusBad.Code);
+        Assert.Equal("Invalid recommendation status", oplStatusBad.Message);
+
+        var oplStatusDb = await new ErpOplSetStatusWriteService(new UnconfiguredConnections())
+            .SetAsync(new ErpOplSetStatusWriteRequest(ItemId: 1, WarehouseId: 2, Status: "confirmed", StatusSpecified: true));
+        Assert.False(oplStatusDb.Succeeded);
+        Assert.Equal("db", oplStatusDb.Code);
     }
 
     [Fact]
