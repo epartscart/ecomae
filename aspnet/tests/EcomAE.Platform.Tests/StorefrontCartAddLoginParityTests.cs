@@ -47,7 +47,7 @@ public sealed class StorefrontCartAddLoginParityTests
             "aspnet/src/EcomAE.Platform/Components/Pages/StorefrontCartApp.razor"));
         Assert.Contains("ValidateCustomerAsync", text, StringComparison.Ordinal);
         Assert.Contains("Please log in or register to continue.", text, StringComparison.Ordinal);
-        Assert.Contains("Add to cart is live on ASP.NET", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("Add to cart is live on ASP.NET", text, StringComparison.Ordinal);
     }
 
     [Fact]

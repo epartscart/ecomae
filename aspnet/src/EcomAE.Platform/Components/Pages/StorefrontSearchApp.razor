@@ -1698,7 +1698,7 @@
         }
 
         // Beat Classic display speed: SSR-seed local warehouse rows (≤350ms) so HTML already has offers.
-        // Client still enriches via protocol-3 products-of-bunch + progressive /storefront/cross-search.
+        // Client still enriches via protocol-3 products-of-bunch (PHP ajax_getProductsOfBunch) + progressive /storefront/cross-search.
         // Genuine OE map: best-effort SSR in parallel with the seed (own CTS). Browser
         // /storefront/genuine-brands reclassifies if this map is empty.
         _normalized = EcomAE.Platform.Api.Catalog.PriceLookupRequest.NormalizeArticle(_articleInput);
