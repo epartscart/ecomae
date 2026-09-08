@@ -18,6 +18,7 @@
     
     <PhpErpModulePageHeader Title="Purchases" Subtitle="Posted purchases and supplier bills." PhpTabHref="@_phpTab" />
     <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
+    <ErpOpenedRecordBanner Id="_openedId" Found="@(_openedPurchase is not null)" Caption="@OpenedCaption" ListHref="/erp/purchases-app" />
 
 
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Purchase KPIs">
@@ -48,15 +49,14 @@
                 {
                     @foreach (var p in _purchases)
                     {
-                        var phpHref = $"{_phpTab}&purchase_id={p.Id.ToString(CultureInfo.InvariantCulture)}";
-                        <tr>
+                        <tr id="erp-row-@p.Id.ToString(CultureInfo.InvariantCulture)" class="@ErpRecordOpen.RowClass(p.Id, _openedId)">
                             <td><strong>@(string.IsNullOrWhiteSpace(p.InvoiceNumber) ? $"#{p.Id}" : p.InvoiceNumber)</strong></td>
                             <td>@FormatTime(p.PurchaseDate)</td>
                             <td>@(string.IsNullOrWhiteSpace(p.SupplierName) ? $"#{p.SupplierId}" : p.SupplierName)</td>
                             <td><span class="label label-default">@p.Status</span></td>
                             <td>@p.TotalAmount.ToString("N2", CultureInfo.InvariantCulture)</td>
                             <td>@(p.OrderId > 0 ? p.OrderId.ToString(CultureInfo.InvariantCulture) : "—")</td>
-                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(phpHref)">Open</a></td>
+                            <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href("/erp/purchases-app", "purchase_id", p.Id)">Open</a></td>
                         </tr>
                         @if (p.Lines.Count > 0)
                         {
@@ -111,6 +111,11 @@
     private int _limit = 100;
     private string _source = "n/a";
     private string _message = "";
+    private long _openedId;
+    private ErpPurchaseDigest? _openedPurchase;
+    private string OpenedCaption => _openedPurchase is null
+        ? ""
+        : (string.IsNullOrWhiteSpace(_openedPurchase.InvoiceNumber) ? $"Purchase #{_openedPurchase.Id}" : _openedPurchase.InvoiceNumber) + " · " + _openedPurchase.Status;
 
     protected override async Task OnInitializedAsync()
     {
@@ -124,8 +129,14 @@
             return; // guest browse — Sign in for live data
         }
 
+        _openedId = ErpRecordOpen.ReadId(ctx.Request, "purchase_id");
         var result = await Dashboards.ListErpPurchasesAsync(_limit, ctx.RequestAborted);
         _purchases = result.Purchases;
+        _openedPurchase = _openedId > 0 ? _purchases.FirstOrDefault(p => p.Id == _openedId) : null;
+        if (_openedPurchase is not null)
+        {
+            _purchases = new[] { _openedPurchase }.Concat(_purchases.Where(p => p.Id != _openedId)).ToList();
+        }
         _open = _purchases.Count(p => !string.Equals(p.Status, "closed", StringComparison.OrdinalIgnoreCase)
             && !string.Equals(p.Status, "cancelled", StringComparison.OrdinalIgnoreCase)
             && !string.Equals(p.Status, "canceled", StringComparison.OrdinalIgnoreCase)

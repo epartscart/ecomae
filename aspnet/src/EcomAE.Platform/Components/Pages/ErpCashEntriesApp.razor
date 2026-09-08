@@ -18,6 +18,7 @@
     
     <PhpErpModulePageHeader Title="Cash Ledger Entries" Subtitle="Cash and bank ledger entries." PhpTabHref="@_phpTab" />
     <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
+    <ErpOpenedRecordBanner Id="_openedId" Found="@(_openedEntry is not null)" Caption="@OpenedCaption" ListHref="/erp/cash-entries-app" />
 
 
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Cash entry KPIs">
@@ -50,9 +51,8 @@
                 {
                     @foreach (var e in _entries)
                     {
-                        var phpHref = $"{_phpTab}&account_id={e.AccountId.ToString(CultureInfo.InvariantCulture)}";
                         var dirClass = e.Direction == 1 ? "" : "out";
-                        <tr>
+                        <tr id="erp-row-@e.Id.ToString(CultureInfo.InvariantCulture)" class="@ErpRecordOpen.RowClass(e.Id, _openedId)">
                             <td>@FormatTime(e.TimeUnix)</td>
                             <td><strong>@(string.IsNullOrWhiteSpace(e.AccountName) ? $"#{e.AccountId}" : e.AccountName)</strong></td>
                             <td>@(string.IsNullOrWhiteSpace(e.AccountType) ? "—" : e.AccountType)</td>
@@ -60,7 +60,7 @@
                             <td>@e.Amount.ToString("N2", CultureInfo.InvariantCulture)</td>
                             <td>@(string.IsNullOrWhiteSpace(e.Reference) ? "—" : e.Reference)</td>
                             <td>@(string.IsNullOrWhiteSpace(e.Note) ? "—" : e.Note)</td>
-                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(phpHref)">Open</a></td>
+                            <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href("/erp/cash-entries-app", "entry_id", e.Id)">Open</a></td>
                         </tr>
                     }
                 }
@@ -81,6 +81,11 @@
     private int? _accountId;
     private string _source = "n/a";
     private string _message = "";
+    private long _openedId;
+    private ErpCashEntryDigest? _openedEntry;
+    private string OpenedCaption => _openedEntry is null
+        ? ""
+        : (string.IsNullOrWhiteSpace(_openedEntry.Reference) ? $"Cash entry #{_openedEntry.Id}" : _openedEntry.Reference);
 
     protected override async Task OnInitializedAsync()
     {
@@ -107,9 +112,16 @@
             _accountId = parsedAccount;
         }
 
+        _openedId = ErpRecordOpen.ReadId(ctx.Request, "entry_id");
+
         _isAdmin = true;
         var result = await Dashboards.ListErpCashEntriesAsync(_accountId, _limit, ctx.RequestAborted);
         _entries = result.Entries;
+        _openedEntry = _openedId > 0 ? _entries.FirstOrDefault(e => e.Id == _openedId) : null;
+        if (_openedEntry is not null)
+        {
+            _entries = new[] { _openedEntry }.Concat(_entries.Where(e => e.Id != _openedId)).ToList();
+        }
         _inCount = _entries.Count(e => e.Direction == 1);
         _outCount = _entries.Count(e => e.Direction != 1);
         _net = _entries.Sum(e => e.Direction == 1 ? e.Amount : -e.Amount);

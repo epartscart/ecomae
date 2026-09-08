@@ -13,8 +13,9 @@
 <PhpChromeStyles Surface="erp" />
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Contracts" BreadcrumbArea="Sales" BreadcrumbTab="Contracts">
 
-    <PhpErpModulePageHeader Title="Contracts register" Subtitle="Save a contract or set status here." />
-    <PhpErpD365ActionPane RefreshHref="@Nav.Uri" />
+    <PhpErpModulePageHeader Title="Contracts register" Subtitle="Save a contract or set status here." PhpTabHref="/ERP/?epc_erp_shell=1&amp;area=sales&amp;tab=contracts" />
+    <PhpErpD365ActionPane PhpTabHref="/ERP/?epc_erp_shell=1&amp;area=sales&amp;tab=contracts" RefreshHref="@Nav.Uri" />
+    <ErpOpenedRecordBanner Id="_openedId" Found="@(_openedContract is not null)" Caption="@OpenedCaption" ListHref="/erp/contracts-app" />
 
     @if (!string.IsNullOrWhiteSpace(_flashOk))
     {
@@ -26,7 +27,7 @@
     }
     @if (_isAdmin)
     {
-        <form method="post" action="/erp/contracts/save" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+        <form id="erp-module-new" method="post" action="/erp/contracts/save" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
             <input type="hidden" name="returnUrl" value="/erp/contracts-app" />
             <label>Code <input name="code" required maxlength="40" style="width:7rem" /></label>
@@ -99,7 +100,7 @@
                 {
                     @foreach (var row in _contracts)
                     {
-                        <tr>
+                        <tr id="erp-row-@row.Id.ToString(CultureInfo.InvariantCulture)" class="@ErpRecordOpen.RowClass(row.Id, _openedId)">
                             <td>@(string.IsNullOrWhiteSpace(row.Code) ? "—" : row.Code)</td>
                             <td><strong>@(string.IsNullOrWhiteSpace(row.Title) ? $"#{row.Id.ToString(CultureInfo.InvariantCulture)}" : row.Title)</strong></td>
                             <td>@(string.IsNullOrWhiteSpace(row.Counterparty) ? "—" : row.Counterparty)</td>
@@ -108,7 +109,7 @@
                             <td>@FormatDate(row.StartDate)</td>
                             <td>@FormatDate(row.EndDate)</td>
                             <td><span class="label label-default">@row.Status</span></td>
-                            <td><a href="/erp/contracts-app">Open</a></td>
+                            <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href("/erp/contracts-app", "contract_id", row.Id)">Open</a></td>
                         </tr>
                     }
                 }
@@ -132,6 +133,11 @@
     private string _message = "";
     private string _flashOk = "";
     private string _flashErr = "";
+    private long _openedId;
+    private ErpContractDigest? _openedContract;
+    private string OpenedCaption => _openedContract is null
+        ? ""
+        : (string.IsNullOrWhiteSpace(_openedContract.Title) ? $"Contract #{_openedContract.Id}" : _openedContract.Title) + " · " + _openedContract.Status;
 
     protected override async Task OnInitializedAsync()
     {
@@ -139,6 +145,7 @@
         if (ctx is null) return;
         _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
         _flashErr = ctx.Request.Query["err"].ToString() ?? "";
+        _openedId = ErpRecordOpen.ReadId(ctx.Request, "contract_id");
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("erp");
         if (!_isAdmin)
@@ -149,6 +156,11 @@
 
         var result = await Dashboards.ListErpContractsAsync(200, ctx.RequestAborted);
         _contracts = result.Contracts;
+        _openedContract = _openedId > 0 ? _contracts.FirstOrDefault(c => c.Id == _openedId) : null;
+        if (_openedContract is not null)
+        {
+            _contracts = new[] { _openedContract }.Concat(_contracts.Where(c => c.Id != _openedId)).ToList();
+        }
         _count = result.Count;
         _active = result.ActiveCount;
         _value = result.ValueTotal;

@@ -22,6 +22,7 @@
         <a class="btn btn-sm btn-default" href="/erp/aging-app">Aging</a>
     </PhpErpModulePageHeader>
     <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
+    <ErpOpenedRecordBanner Id="_openedId" Found="@(_openedRow is not null)" Caption="@OpenedCaption" ListHref="/erp/receivables-app" />
 
     @if (!string.IsNullOrWhiteSpace(_flashOk))
     {
@@ -98,15 +99,14 @@
                 {
                     @foreach (var r in _rows)
                     {
-                        var phpHref = $"{_phpTab}&user_id={r.UserId.ToString(CultureInfo.InvariantCulture)}";
-                        <tr>
+                        <tr id="erp-row-@r.UserId.ToString(CultureInfo.InvariantCulture)" class="@ErpRecordOpen.RowClass(r.UserId, _openedId)">
                             <td>@r.UserId.ToString(CultureInfo.InvariantCulture)</td>
                             <td><strong>@(string.IsNullOrWhiteSpace(r.Email) ? $"#{r.UserId}" : r.Email)</strong></td>
                             <td>@r.Balance.ToString("N2", CultureInfo.InvariantCulture)</td>
                             <td>@r.OrderReceivableDue.ToString("N2", CultureInfo.InvariantCulture)</td>
                             <td>@r.OrderCount.ToString(CultureInfo.InvariantCulture)</td>
                             <td>@r.CompleteOrderCount.ToString(CultureInfo.InvariantCulture)</td>
-                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(phpHref)">Open</a></td>
+                            <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href("/erp/receivables-app", "customer_id", r.UserId)">Open</a></td>
                         </tr>
                     }
                 }
@@ -127,6 +127,11 @@
     private string _message = "";
     private string _flashOk = "";
     private string _flashErr = "";
+    private long _openedId;
+    private ErpReceivableDigest? _openedRow;
+    private string OpenedCaption => _openedRow is null
+        ? ""
+        : (string.IsNullOrWhiteSpace(_openedRow.Email) ? $"Customer #{_openedRow.UserId}" : _openedRow.Email);
 
     protected override async Task OnInitializedAsync()
     {
@@ -135,6 +140,7 @@
 
         _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
         _flashErr = ctx.Request.Query["err"].ToString() ?? "";
+        _openedId = ErpRecordOpen.ReadId(ctx.Request, "customer_id", "user_id");
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
         if (!_isAdmin)
@@ -145,6 +151,11 @@
         var result = await Dashboards.BuildErpReceivablesDigestAsync(300, ctx.RequestAborted);
         _summary = result.Summary;
         _rows = result.Customers;
+        _openedRow = _openedId > 0 ? _rows.FirstOrDefault(r => r.UserId == _openedId) : null;
+        if (_openedRow is not null)
+        {
+            _rows = new[] { _openedRow }.Concat(_rows.Where(r => r.UserId != _openedId)).ToList();
+        }
         _message = result.Message;
     }
 }

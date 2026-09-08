@@ -1,0 +1,33 @@
+@namespace EcomAE.Platform.Components.Shared
+@using System.Globalization
+
+@if (Id > 0)
+{
+    <div id="erp-module-body" class="alert alert-info epc-erp-opened" role="status" style="margin:0 0 12px;">
+        @if (Found)
+        {
+            <strong>Opened.</strong>
+            @(string.IsNullOrWhiteSpace(Caption) ? ("Record #" + Id.ToString(CultureInfo.InvariantCulture)) : Caption)
+        }
+        else
+        {
+            <strong>Record #@Id.ToString(CultureInfo.InvariantCulture)</strong>
+            <span> was not found on this list.</span>
+        }
+        @if (!string.IsNullOrWhiteSpace(ListHref))
+        {
+            <a class="btn btn-xs btn-default" href="@ListHref" style="margin-left:8px;">Back to list</a>
+        }
+    </div>
+}
+else
+{
+    <div id="erp-module-body" class="epc-erp-module-body-anchor" hidden></div>
+}
+
+@code {
+    [Parameter] public long Id { get; set; }
+    [Parameter] public bool Found { get; set; }
+    [Parameter] public string? Caption { get; set; }
+    [Parameter] public string? ListHref { get; set; }
+}
