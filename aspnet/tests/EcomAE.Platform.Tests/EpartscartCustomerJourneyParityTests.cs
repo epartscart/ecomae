@@ -212,6 +212,16 @@ public sealed class EpartscartCustomerJourneyParityTests
             "aspnet/src/EcomAE.Platform/Components/Pages/StorefrontSpecialSearchApp.razor"));
         Assert.Contains("list-group", special, StringComparison.Ordinal);
         Assert.Contains("list-group-item", special, StringComparison.Ordinal);
+
+        var garageMgr = File.ReadAllText(Find(
+            "aspnet/src/EcomAE.Platform/Components/Pages/StorefrontGarageManagerApp.razor"));
+        Assert.Contains("panel panel-primary", garageMgr, StringComparison.Ordinal);
+        Assert.Contains("name=\"customer_name\"", garageMgr, StringComparison.Ordinal);
+        Assert.Contains("name=\"plate\"", garageMgr, StringComparison.Ordinal);
+
+        var brochure = File.ReadAllText(Find(
+            "aspnet/src/EcomAE.Platform/Components/Pages/StorefrontBrochureApp.razor"));
+        Assert.Contains("panel panel-default", brochure, StringComparison.Ordinal);
     }
 
     [Fact]
