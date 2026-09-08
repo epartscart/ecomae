@@ -61,6 +61,33 @@ public sealed class ErpModuleBodyParityTests
     }
 
     [Fact]
+    public void RazorSources_DoNotUseReservedSectionLoopVariable()
+    {
+        var root = FindRepoRoot();
+        var dirs = new[]
+        {
+            Path.Combine(root, "aspnet", "src", "EcomAE.Platform", "Components"),
+        };
+        var offenders = new List<string>();
+        foreach (var dir in dirs)
+        {
+            foreach (var file in Directory.GetFiles(dir, "*.razor", SearchOption.AllDirectories))
+            {
+                var text = File.ReadAllText(file);
+                if (text.Contains("@section.", StringComparison.Ordinal))
+                {
+                    offenders.Add(Path.GetRelativePath(root, file));
+                }
+            }
+        }
+
+        Assert.True(
+            offenders.Count == 0,
+            "@section.Title is parsed as the @section directive (RZ2005/RZ9979) on CloudPanel publish: "
+            + string.Join(", ", offenders));
+    }
+
+    [Fact]
     public void ModuleApp_DoesNotEmbedPhpByDefault()
     {
         var root = FindRepoRoot();
