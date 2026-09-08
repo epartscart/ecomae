@@ -122,6 +122,11 @@
             <input type="hidden" name="confirmWrites" value="true" />
             <input type="hidden" name="returnUrl" value="/storefront/profile-app" />
             <input type="hidden" name="edit_user" value="edit_user" />
+            <div id="RegVariantsSelector">
+                <select id="reg_variant_selector" name="reg_variant" style="display:none">
+                    <option value="@_regVariant.ToString(CultureInfo.InvariantCulture)" selected>@_regVariant.ToString(CultureInfo.InvariantCulture)</option>
+                </select>
+            </div>
             <div id="additional_fields_div">
                 <div class="panel panel-primary">
                     <div class="panel-body">

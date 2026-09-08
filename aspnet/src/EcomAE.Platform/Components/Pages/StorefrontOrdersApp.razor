@@ -25,22 +25,13 @@
             text-decoration:none; color:#0c4a6e; background:#fee2e2;
         }
         .epc-sf-ord-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); color:#fff; }
-        .epc-sf-ord-kpis { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
-        .epc-sf-ord-kpi { background:#fff; border:1px solid #e5e7eb; border-radius:.55rem; padding:.85rem .9rem; }
-        .epc-sf-ord-kpi strong { display:block; font-size:1.35rem; font-variant-numeric:tabular-nums; }
-        .epc-sf-ord-kpi span { color:#64748b; font-size:.78rem; }
         .epc-sf-ord-table-wrap { background:#fff; border:1px solid #e5e7eb; border-radius:.55rem; overflow:auto; }
-        .epc-sf-ord-table { width:100%; border-collapse:collapse; font-size:.86rem; }
-        .epc-sf-ord-table th, .epc-sf-ord-table td { padding:.55rem .7rem; border-bottom:1px solid #f1f5f9; text-align:left; white-space:nowrap; }
-        .epc-sf-ord-table th { background:#f8fafc; color:#475569; font-size:.75rem; text-transform:uppercase; letter-spacing:.03em; }
-        .epc-sf-ord-table a { color:#0e7490; font-weight:700; text-decoration:none; }
         .epc-sf-ord-badge { display:inline-flex; padding:.15rem .45rem; border-radius:.3rem; font-size:.72rem; font-weight:700; }
         .epc-sf-ord-badge--ok { background:#cffafe; color:#155e75; }
         .epc-sf-ord-badge--off { background:#fee2e2; color:#991b1b; }
         .epc-sf-ord-badge--info { background:#e2e8f0; color:#334155; }
         .epc-sf-ord-note { margin-top:1rem; padding:.75rem .9rem; background:#ecfeff; border:1px solid #a5f3fc; border-radius:.45rem; color:#155e75; font-size:.86rem; }
         .epc-sf-ord-gate { padding:1.25rem; background:#fff; border:1px solid #e5e7eb; border-radius:.55rem; }
-        @@media (max-width:900px){ .epc-sf-ord-kpis{grid-template-columns:1fr;} }
     
 </style>
 </HeadContent>
@@ -224,7 +215,7 @@
         @if (_items.Count > 0 || _showItems)
         {
             <div class="epc-sf-ord-table-wrap" style="margin-top:1rem">
-                <table class="epc-sf-ord-table">
+                <table class="table">
                     <thead>
                         <tr>
                             <th>Order</th>
@@ -286,6 +277,18 @@
                         <label>Amount <input type="number" step="0.01" min="0.01" name="amount" required style="width:8rem" /></label>
                         <button type="submit" style="padding:.55rem .9rem;border:0;border-radius:.4rem;background:#0f766e;color:#fff;font-weight:800;cursor:pointer">Pay now</button>
                     </form>
+                    <a class="btn btn-xs btn-ar btn-default" href="javascript:void(0);" onclick="pay_on_place();">Pay on place</a>
+                    <form id="pay_form" name="pay_form" method="post" action="@("/storefront/orders-app?order_id=" + _selected.Id.ToString(CultureInfo.InvariantCulture))" style="display:none;">
+                        <input type="hidden" name="action" id="action" value="pay_on_place" />
+                        <input type="hidden" name="order_id" value="@_selected.Id.ToString(CultureInfo.InvariantCulture)" />
+                        <input type="hidden" name="confirmWrites" value="true" />
+                    </form>
+                    <script>
+                        function pay_on_place() {
+                            if (!confirm('Confirm pay on place for this order?')) { return; }
+                            document.forms["pay_form"].submit();
+                        }
+                    </script>
                 }
                 @if (_messages.Count > 0)
                 {
@@ -302,13 +305,47 @@
                         }
                     </ul>
                 }
-                <form method="post" action="@PhpCustomerWrites.GarageCheckCarHref" style="margin-bottom:1rem">
-                    <input type="hidden" name="confirmWrites" value="true" />
-                    <input type="hidden" name="returnUrl" value="@("/storefront/orders-app?order_id=" + _selected.Id.ToString(CultureInfo.InvariantCulture))" />
-                    <input type="hidden" name="orderId" value="@_selected.Id.ToString(CultureInfo.InvariantCulture)" />
-                    <label>Garage car id <input type="number" name="carId" required style="width:8rem" /></label>
-                    <button type="submit" style="padding:.45rem .75rem;border:0;border-radius:.4rem;background:#a16207;color:#fff;font-weight:800;cursor:pointer">Link / unlink car</button>
-                </form>
+                <table class="table" style="margin-bottom:1rem">
+                    <tbody>
+                    @if (_garage.Count == 0)
+                    {
+                        <tr>
+                            <td>No garage vehicles yet.</td>
+                            <td><a class="btn btn-xs btn-ar btn-primary pull-right" href="/en/garazh/avtomobil"><i class="fa fa-car"></i> Add vehicle</a></td>
+                        </tr>
+                    }
+                    else
+                    {
+                        @foreach (var car in _garage)
+                        {
+                            var carId = car.Id.ToString(CultureInfo.InvariantCulture);
+                            <tr class="car_tr_@carId">
+                                <td style="padding-top:5px;padding-bottom:6px;vertical-align:middle;width:3rem">
+                                    <form method="post" action="@PhpCustomerWrites.GarageCheckCarHref" style="margin:0">
+                                        <input type="hidden" name="confirmWrites" value="true" />
+                                        <input type="hidden" name="returnUrl" value="@("/storefront/orders-app?order_id=" + _selected.Id.ToString(CultureInfo.InvariantCulture))" />
+                                        <input type="hidden" name="orderId" value="@_selected.Id.ToString(CultureInfo.InvariantCulture)" />
+                                        <input type="hidden" name="carId" value="@carId" />
+                                        <button type="submit" class="btn btn-xs" style="color:#a9a9a9;font-size:14px;border:1px solid #dddddd;" onclick="return check_car(this);">
+                                            <i class="fa fa-check" aria-hidden="true"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                                <td style="line-height:1.1em;width:100%;font-size:12px">
+                                    @(string.IsNullOrWhiteSpace(car.Caption) ? ("Vehicle #" + carId) : car.Caption)
+                                    @if (!string.IsNullOrWhiteSpace(car.Vin))
+                                    {
+                                        <br /><small>@car.Vin</small>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    }
+                    </tbody>
+                </table>
+                <script>
+                    function check_car(el) { return true; }
+                </script>
                 <form method="post" action="@PhpCustomerWrites.OrderMessageHref">
                     <input type="hidden" name="confirmWrites" value="true" />
                     <input type="hidden" name="returnUrl" value="@("/storefront/orders-app?order_id=" + _selected.Id.ToString(CultureInfo.InvariantCulture))" />
@@ -344,6 +381,7 @@
     private bool _showItems;
     private string _flashOk = "";
     private string _flashErr = "";
+    private IReadOnlyList<StorefrontGarageVehicleDigest> _garage = [];
 
     [SupplyParameterFromQuery(Name = "order_id")]
     public long? OrderId { get; set; }
@@ -402,6 +440,8 @@
                 80,
                 ctx.RequestAborted);
             _messages = thread.Messages;
+            var garage = await Dashboards.ListStorefrontGarageAsync(session.UserId, 50, ctx.RequestAborted);
+            _garage = garage.Vehicles;
         }
     }
 

@@ -93,6 +93,11 @@ public sealed class EpartscartCustomerJourneyParityTests
         Assert.Contains("filterOrders", orders, StringComparison.Ordinal);
         Assert.Contains("my_orders_filter", orders, StringComparison.Ordinal);
         Assert.Contains("class=\"table\"", orders, StringComparison.Ordinal);
+        Assert.Contains("id=\"pay_form\"", orders, StringComparison.Ordinal);
+        Assert.Contains("pay_on_place", orders, StringComparison.Ordinal);
+        Assert.Contains("car_tr_", orders, StringComparison.Ordinal);
+        Assert.Contains("PhpCustomerWrites.GarageCheckCarHref", orders, StringComparison.Ordinal);
+        Assert.Contains("function check_car", orders, StringComparison.Ordinal);
 
         var cart = File.ReadAllText(Find(
             "aspnet/src/EcomAE.Platform/Components/Pages/StorefrontCartApp.razor"));
@@ -111,6 +116,9 @@ public sealed class EpartscartCustomerJourneyParityTests
         Assert.Contains("id=\"phone_work\"", profile, StringComparison.Ordinal);
         Assert.Contains("id=\"regform\"", profile, StringComparison.Ordinal);
         Assert.Contains("id=\"additional_fields_div\"", profile, StringComparison.Ordinal);
+        Assert.Contains("id=\"RegVariantsSelector\"", profile, StringComparison.Ordinal);
+        Assert.Contains("id=\"reg_variant_selector\"", profile, StringComparison.Ordinal);
+        Assert.Contains("name=\"reg_variant\"", profile, StringComparison.Ordinal);
         Assert.Contains("id=\"password\"", profile, StringComparison.Ordinal);
         Assert.Contains("id=\"password_repeat\"", profile, StringComparison.Ordinal);
         Assert.Contains("name=\"name\"", profile, StringComparison.Ordinal);

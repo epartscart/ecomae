@@ -102,6 +102,18 @@ public sealed class StorefrontCatalogDedicatedAppsTests : IDisposable
         Assert.Equal("/cp/offices-app", PhpSurfaceLinkMap.MapCpPhpPath("/CP/shop/logistics/offices"));
         Assert.NotEqual("/cp/delivery-methods-app", PhpSurfaceLinkMap.MapCpPhpPath("/CP/shop/logistics/offices"));
         Assert.Equal("/cp/delivery-methods-app", PhpSurfaceLinkMap.MapCpPhpPath("/CP/shop/logistics"));
+
+        var delivery = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/CpDeliveryMethodsApp.razor"));
+        Assert.Contains("class=\"hpanel\"", delivery, StringComparison.Ordinal);
+        Assert.Contains("panel-heading hbuilt", delivery, StringComparison.Ordinal);
+        Assert.Contains("table table-condensed table-striped", delivery, StringComparison.Ordinal);
+        Assert.Contains("id=\"check_uncheck_all\"", delivery, StringComparison.Ordinal);
+        Assert.Contains("/cp/delivery-methods/write", delivery, StringComparison.Ordinal);
+        Assert.Contains("name=\"action\" value=\"activation\"", delivery, StringComparison.Ordinal);
+        Assert.Contains("name=\"obtain_mode_id\"", delivery, StringComparison.Ordinal);
+        Assert.Contains("name=\"activate_obtain_mode\"", delivery, StringComparison.Ordinal);
+        Assert.DoesNotContain("epc-del-kpis", delivery, StringComparison.Ordinal);
+        Assert.DoesNotContain("epc-del-hero", delivery, StringComparison.Ordinal);
     }
 
     private static void AssertPage(string fileName, string phpAlias, string aspNetApp)
