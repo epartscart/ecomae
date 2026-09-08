@@ -766,13 +766,13 @@
                     _currency = active.CurrencyCode;
                 }
 
-                _jewellery = ErpIndustryNav.IsJewelleryCompany(active);
+                _jewellery = ErpIndustryNav.ShowJewelleryModules(_ctx.IndustryCode, active);
                 _industryCode = _jewellery ? "jewellery" : (string.IsNullOrWhiteSpace(active.IndustryPack) ? "core" : active.IndustryPack);
                 _industryLabel = ErpIndustryNav.IndustryLabelForPack(active.IndustryPack, _jewellery);
             }
             else
             {
-                _jewellery = ErpIndustryNav.IsJewelleryFromHostOrPack(_ctx.IndustryCode, null, null);
+                _jewellery = ErpIndustryNav.ShowJewelleryModules(_ctx.IndustryCode, null);
                 _heroEntity = string.IsNullOrWhiteSpace(_ctx.BrandLabel) ? "Operations" : _ctx.BrandLabel;
             }
         }

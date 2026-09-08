@@ -53,6 +53,14 @@ public static class ErpIndustryNav
         return code is "jewellery" or "jewelry";
     }
 
+    /// <summary>
+    /// Product jewellery tenants (thejewellerytrend.com) always get jewellery
+    /// modules — even when legal entity 1 is coded MAIN with an empty pack.
+    /// Super CP / auto-parts hosts still require a jewellery company or pack.
+    /// </summary>
+    public static bool ShowJewelleryModules(string? hostIndustryCode, ErpCompanyDigest? company)
+        => IsJewelleryFromHostOrPack(hostIndustryCode, company?.IndustryPack, company);
+
     public static bool IsJewelleryTab(PhpModuleCatalog.ModuleLink tab)
     {
         // Generated catalog ids look like "inventory_mgmt/jw_karat".
