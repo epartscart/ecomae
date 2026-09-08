@@ -5,7 +5,7 @@ namespace EcomAE.Platform.Erp;
 /// <summary>
 /// Live PHP <c>epc_pf_case_reassign</c> / ajax <c>pf_case_reassign</c> twin.
 /// UPDATE the open case assignee and the active step. Does not CREATE tables.
-/// Case cancel and step DELETE are already ASP.NET-live. Start, act, seed, and
+/// Case cancel, start, act, and step DELETE are already ASP.NET-live. Seed and
 /// schema ensure stay PHP.
 /// </summary>
 public interface IErpPfCaseReassignWriteService
