@@ -1680,7 +1680,9 @@ public static class EcomAeRoutes
     public const string ErpAjaxSubInvoicePaid = "/erp/ajax/sub-invoice-paid";
     /// <summary>PHP epc_ctr_set_status. <c>confirmWrites=true</c> writes via <c>IErpContractStatusWriteService</c>.</summary>
     public const string ErpAjaxCtrStatus = "/erp/ajax/ctr-status";
-    /// <summary>Wave B dry-run for PHP ctr_sign (writes=0).</summary>
+    /// <summary>HTML form POST for PHP ctr_sign. confirmWrites=true writes via IErpCtrSignWriteService.</summary>
+    public const string ErpCtrSign = "/erp/contracts/sign";
+    /// <summary>Live PHP ctr_sign ajax alias of <see cref="ErpCtrSign"/>.</summary>
     public const string ErpAjaxCtrSign = "/erp/ajax/ctr-sign";
     /// <summary>Live PHP epc_coll_case_promise twin (ajax alias of <see cref="ErpCollectionsCasePromise"/>).</summary>
     public const string ErpAjaxCollCasePromise = "/erp/ajax/coll-case-promise";

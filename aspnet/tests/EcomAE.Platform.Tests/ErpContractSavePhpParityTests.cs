@@ -14,6 +14,7 @@ public sealed class ErpContractSavePhpParityTests
         var text = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/ErpContractsApp.razor"));
         Assert.Contains("/erp/contracts/save", text, StringComparison.Ordinal);
         Assert.Contains("/erp/ajax/ctr-status", text, StringComparison.Ordinal);
+        Assert.Contains("/erp/contracts/sign", text, StringComparison.Ordinal);
         Assert.Contains("confirmWrites", text, StringComparison.Ordinal);
         Assert.Contains("Save contract", text, StringComparison.Ordinal);
         Assert.DoesNotContain("@onclick", text, StringComparison.Ordinal);

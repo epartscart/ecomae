@@ -13,7 +13,7 @@
 <PhpChromeStyles Surface="erp" />
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Contracts" BreadcrumbArea="Sales" BreadcrumbTab="Contracts">
 
-    <PhpErpModulePageHeader Title="Contracts register" Subtitle="Save a contract or set status here. Sign and OCR stay on the Classic twin." />
+    <PhpErpModulePageHeader Title="Contracts register" Subtitle="Save a contract, set status, or record a signature here. OCR stays on the Classic twin." />
     <PhpErpD365ActionPane RefreshHref="@Nav.Uri" />
 
     @if (!string.IsNullOrWhiteSpace(_flashOk))
@@ -51,6 +51,14 @@
                 </select>
             </label>
             <button type="submit">Set status</button>
+        </form>
+        <form method="post" action="/erp/contracts/sign" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/erp/contracts-app" />
+            <label>Contract id <input type="number" name="contract_id" style="width:6rem" /></label>
+            <label>Signer <input name="signer_name" placeholder="Name" style="width:10rem" /></label>
+            <label>Email <input name="signer_email" placeholder="Email" style="width:12rem" /></label>
+            <button type="submit">Sign</button>
         </form>
     }
 
@@ -102,7 +110,7 @@
     </div>
 
     <div class="epc-erp-empty" style="display:block;margin-top:12px;padding:8px 10px;border:1px solid #c5d4de;background:#f8fafc;color:#475569;font-size:12px;">
-        Source: @_source. Sign and OCR stay on the Classic twin.
+        Source: @_source. Live: <code>ctr_sign</code>. OCR stays on the Classic twin.
         @if (!string.IsNullOrWhiteSpace(_message)) { <span> @_message</span> }
     </div>
 </PhpErpDesktopChrome>

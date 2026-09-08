@@ -3111,6 +3111,17 @@ public sealed class LiveWriteServiceValidationTests
             .LogAsync(new ErpHrAttendanceWriteRequest(EmployeeId: 1, Hours: 8));
         Assert.False(hrAttDb.Succeeded);
         Assert.Equal("db", hrAttDb.Code);
+
+        var ctrSignInvalid = await new ErpCtrSignWriteService(new ConfiguredNeverOpened())
+            .SignAsync(new ErpCtrSignWriteRequest());
+        Assert.False(ctrSignInvalid.Succeeded);
+        Assert.Equal("invalid", ctrSignInvalid.Code);
+        Assert.Equal("Signer name is required", ctrSignInvalid.Message);
+
+        var ctrSignDb = await new ErpCtrSignWriteService(new UnconfiguredConnections())
+            .SignAsync(new ErpCtrSignWriteRequest(ContractId: 1, SignerName: "Aisha"));
+        Assert.False(ctrSignDb.Succeeded);
+        Assert.Equal("db", ctrSignDb.Code);
     }
 
     [Fact]

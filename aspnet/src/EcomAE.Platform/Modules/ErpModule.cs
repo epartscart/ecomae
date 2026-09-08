@@ -4221,8 +4221,8 @@ public sealed class ErpModule : ISurfaceModule
                 written.Message,
                 new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxCtrSign, async (HttpContext context, ErpCtrSignBody? body, ILegacySessionValidator validator, IErpCtrSignDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,false); return Results.Ok(dryRun.Evaluate(new ErpCtrSignRequest(body.Id, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxCtrSign, HandleCtrSignAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpCtrSign, HandleCtrSignAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxCollCasePromise, async (
             HttpContext context,
             ILegacySessionValidator validator,
@@ -11772,6 +11772,60 @@ public sealed class ErpModule : ISurfaceModule
                 session = SessionPayload(session),
             });
         }
+    }
+
+    private static async Task<IResult> HandleCtrSignAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpCtrSignDryRun dryRun,
+        IErpCtrSignWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/contracts-app", "Admin ERP capability required for contract sign.");
+        }
+
+        var contractId = 0L;
+        var signerName = "";
+        var signerEmail = "";
+        var confirm = false;
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            contractId = LiveWriteFormBinder.Long(form, "contract_id", "contractId", "id");
+            signerName = LiveWriteFormBinder.Text(form, "signer_name", "signerName");
+            signerEmail = LiveWriteFormBinder.Text(form, "signer_email", "signerEmail");
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+        }
+        else
+        {
+            var root = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<System.Text.Json.JsonElement>(context, cancellationToken);
+            confirm = ErpCtrSignWriteService.JsonFlag(root, "confirmWrites", "confirm_writes");
+            contractId = ErpCtrSignWriteService.JsonLong(root, "contract_id", "contractId", "id");
+            signerName = ErpCtrSignWriteService.JsonText(root, "signer_name", "signerName");
+            signerEmail = ErpCtrSignWriteService.JsonText(root, "signer_email", "signerEmail");
+        }
+
+        if (!confirm)
+        {
+            return Results.Ok(dryRun.Evaluate(new ErpCtrSignRequest(contractId, false)).ToPayload(SessionPayload(session)));
+        }
+
+        var written = await writes.SignAsync(
+            new ErpCtrSignWriteRequest(
+                contractId,
+                signerName,
+                signerEmail,
+                context.Connection.RemoteIpAddress?.ToString() ?? ""),
+            cancellationToken);
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/erp/contracts-app",
+            written.Succeeded,
+            written.Message,
+            new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
     }
 
     private static async Task<IResult> HandleWhtCodeSaveAsync(
