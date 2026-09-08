@@ -656,6 +656,8 @@ public static class EcomAeRoutes
     public const string ErpMarketingCreate = "/erp/marketing/create";
     /// <summary>PHP epc_sub_save. <c>confirmWrites=true</c> writes via <c>IErpSubscriptionSaveWriteService</c>.</summary>
     public const string ErpSubscriptionsSave = "/erp/subscriptions/save";
+    /// <summary>PHP epc_sub_generate_invoice. <c>confirmWrites=true</c> writes via <c>IErpSubGenerateWriteService</c>.</summary>
+    public const string ErpSubscriptionsGenerate = "/erp/subscriptions/generate";
     /// <summary>PHP epc_ctr_save. <c>confirmWrites=true</c> writes via <c>IErpContractSaveWriteService</c>.</summary>
     public const string ErpContractsSave = "/erp/contracts/save";
     /// <summary>Live PHP epc_wms_receive twin (confirmWrites=true). Schema ensure stays PHP.</summary>
@@ -1674,7 +1676,7 @@ public static class EcomAeRoutes
     public const string ErpAjaxPfCaseStart = "/erp/ajax/pf-case-start";
     /// <summary>Wave B dry-run for PHP pf_case_act (writes=0).</summary>
     public const string ErpAjaxPfCaseAct = "/erp/ajax/pf-case-act";
-    /// <summary>Wave B dry-run for PHP sub_generate (writes=0).</summary>
+    /// <summary>Live PHP epc_sub_generate_invoice twin (ajax alias of <see cref="ErpSubscriptionsGenerate"/>).</summary>
     public const string ErpAjaxSubGenerate = "/erp/ajax/sub-generate";
     /// <summary>Wave B dry-run for PHP sub_invoice_paid (writes=0).</summary>
     public const string ErpAjaxSubInvoicePaid = "/erp/ajax/sub-invoice-paid";
