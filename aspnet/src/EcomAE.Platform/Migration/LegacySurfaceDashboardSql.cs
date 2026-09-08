@@ -1694,6 +1694,29 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>Opened work order — includes cost columns omitted from the dump.</summary>
+    public const string SelectCpProductionWorkOrderDetail = """
+        SELECT `id`, IFNULL(`wo_no`,'') AS wo_no, IFNULL(`bom_id`,0) AS bom_id,
+               IFNULL(`product_item_id`,0) AS product_item_id, IFNULL(`warehouse_id`,0) AS warehouse_id,
+               IFNULL(`status`,'') AS status, IFNULL(`qty_planned`,0) AS qty_planned,
+               IFNULL(`qty_produced`,0) AS qty_produced,
+               IFNULL(`material_cost`,0) AS material_cost, IFNULL(`labour_cost`,0) AS labour_cost,
+               IFNULL(`overhead_cost`,0) AS overhead_cost,
+               IFNULL(`time_created`,0) AS time_created, IFNULL(`time_updated`,0) AS time_updated
+        FROM `epc_mfg_work_orders`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Opened work-order BOM lines (PHP epc_mfg_bom_lines by bom_id).</summary>
+    public const string SelectCpProductionBomLines = """
+        SELECT `id`, IFNULL(`bom_id`,0) AS bom_id, IFNULL(`component_item_id`,0) AS component_item_id,
+               IFNULL(`qty_per`,0) AS qty_per, IFNULL(`scrap_percent`,0) AS scrap_percent
+        FROM `epc_mfg_bom_lines`
+        WHERE `bom_id` = @bom_id
+        ORDER BY `id` ASC
+        """;
+
     /// <summary>Projects overview KPIs — omits timesheet rates; includes contract count.</summary>
     public const string SelectCpProjectsStats = """
         SELECT

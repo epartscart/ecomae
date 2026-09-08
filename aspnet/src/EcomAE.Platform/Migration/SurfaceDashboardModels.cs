@@ -1354,6 +1354,34 @@ public sealed record CpProductionOverviewDigestResult(
     string Source,
     string Message);
 
+public sealed record CpProductionWorkOrderDetail(
+    long Id,
+    string WoNo,
+    long BomId,
+    long ProductItemId,
+    long WarehouseId,
+    string Status,
+    decimal QtyPlanned,
+    decimal QtyProduced,
+    decimal MaterialCost,
+    decimal LabourCost,
+    decimal OverheadCost,
+    long TimeCreated,
+    long TimeUpdated);
+
+public sealed record CpProductionBomLineDigest(
+    long Id,
+    long BomId,
+    long ComponentItemId,
+    decimal QtyPer,
+    decimal ScrapPercent);
+
+public sealed record CpProductionWorkOrderDetailResult(
+    CpProductionWorkOrderDetail? WorkOrder,
+    IReadOnlyList<CpProductionBomLineDigest> BomLines,
+    string Source,
+    string Message);
+
 public sealed record CpProjectsOverviewSummary(
     int OpenProjects,
     int TaskCount,

@@ -670,6 +670,14 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.Contains("shop_obtaining_modes", LegacySurfaceDashboardSql.SelectCpDeliveryModes, StringComparison.Ordinal);
         Assert.DoesNotContain("parameters_values", LegacySurfaceDashboardSql.SelectCpDeliveryModes, StringComparison.Ordinal);
         Assert.Contains("shop_docpart_articles_analogs_list", LegacySurfaceDashboardSql.SelectCpCrossPairs, StringComparison.Ordinal);
+        Assert.Contains("epc_mfg_work_orders", LegacySurfaceDashboardSql.SelectCpProductionWorkOrders, StringComparison.Ordinal);
+        Assert.DoesNotContain("material_cost", LegacySurfaceDashboardSql.SelectCpProductionWorkOrders, StringComparison.Ordinal);
+        Assert.DoesNotContain("labour_cost", LegacySurfaceDashboardSql.SelectCpProductionWorkOrders, StringComparison.Ordinal);
+        Assert.Contains("material_cost", LegacySurfaceDashboardSql.SelectCpProductionWorkOrderDetail, StringComparison.Ordinal);
+        Assert.Contains("labour_cost", LegacySurfaceDashboardSql.SelectCpProductionWorkOrderDetail, StringComparison.Ordinal);
+        Assert.Contains("`id` = @id", LegacySurfaceDashboardSql.SelectCpProductionWorkOrderDetail, StringComparison.Ordinal);
+        Assert.Contains("epc_mfg_bom_lines", LegacySurfaceDashboardSql.SelectCpProductionBomLines, StringComparison.Ordinal);
+        Assert.Contains("`bom_id` = @bom_id", LegacySurfaceDashboardSql.SelectCpProductionBomLines, StringComparison.Ordinal);
         Assert.Contains("`id` = @id", LegacySurfaceDashboardSql.SelectCpCrossPairDetail, StringComparison.Ordinal);
         Assert.Contains("`article` = @article", LegacySurfaceDashboardSql.SelectCpCrossPairSiblings, StringComparison.Ordinal);
         Assert.Contains("`id` <> @id", LegacySurfaceDashboardSql.SelectCpCrossPairSiblings, StringComparison.Ordinal);

@@ -6784,6 +6784,72 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    public async Task<CpProductionWorkOrderDetailResult> BuildCpProductionWorkOrderDetailAsync(long id, CancellationToken cancellationToken = default)
+    {
+        if (id <= 0)
+        {
+            return new(null, [], "n/a", "");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return new(null, [], "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            CpProductionWorkOrderDetail? header = null;
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectCpProductionWorkOrderDetail;
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    header = new CpProductionWorkOrderDetail(
+                        Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["wo_no"] is DBNull ? string.Empty : reader["wo_no"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt64(reader["bom_id"] is DBNull ? 0 : reader["bom_id"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["product_item_id"] is DBNull ? 0 : reader["product_item_id"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["warehouse_id"] is DBNull ? 0 : reader["warehouse_id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["status"] is DBNull ? string.Empty : reader["status"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToDecimal(reader["qty_planned"] is DBNull ? 0 : reader["qty_planned"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(reader["qty_produced"] is DBNull ? 0 : reader["qty_produced"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(reader["material_cost"] is DBNull ? 0 : reader["material_cost"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(reader["labour_cost"] is DBNull ? 0 : reader["labour_cost"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(reader["overhead_cost"] is DBNull ? 0 : reader["overhead_cost"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["time_created"] is DBNull ? 0 : reader["time_created"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["time_updated"] is DBNull ? 0 : reader["time_updated"], CultureInfo.InvariantCulture));
+                }
+            }
+
+            var lines = new List<CpProductionBomLineDigest>();
+            if (header is not null && header.BomId > 0)
+            {
+                await using var cmd = connection.CreateCommand();
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectCpProductionBomLines;
+                AddParameter(cmd, "@bom_id", header.BomId);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    lines.Add(new CpProductionBomLineDigest(
+                        Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["bom_id"] is DBNull ? 0 : reader["bom_id"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["component_item_id"] is DBNull ? 0 : reader["component_item_id"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(reader["qty_per"] is DBNull ? 0 : reader["qty_per"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(reader["scrap_percent"] is DBNull ? 0 : reader["scrap_percent"], CultureInfo.InvariantCulture)));
+                }
+            }
+
+            return new(header, lines, "database", header is null ? "Work order not found." : string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(null, [], "database-error", ex.Message);
+        }
+    }
+
     public async Task<CpProjectsOverviewDigestResult> BuildCpProjectsOverviewDigestAsync(int limit, CancellationToken cancellationToken = default)
     {
         var safeLimit = Math.Clamp(limit, 1, 500);
