@@ -5382,6 +5382,72 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    public async Task<CpStorageDetailResult> BuildCpStoragesDetailAsync(long id, CancellationToken cancellationToken = default)
+    {
+        if (id <= 0)
+        {
+            return new(null, [], "n/a", "");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return new(null, [], "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            CpStorageDetail? header = null;
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectCpStoragesDetail;
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    header = new CpStorageDetail(
+                        Convert.ToInt64(reader["id"] is DBNull ? 0 : reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["name"] is DBNull ? string.Empty : reader["name"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["short_name"] is DBNull ? string.Empty : reader["short_name"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt32(reader["hidden"] is DBNull ? 0 : reader["hidden"], CultureInfo.InvariantCulture) != 0,
+                        Convert.ToInt64(reader["currency"] is DBNull ? 0 : reader["currency"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["interface_type"] is DBNull ? 0 : reader["interface_type"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["bg_line_color"] is DBNull ? 0 : reader["bg_line_color"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["users_len"] is DBNull ? 0 : reader["users_len"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["users_excerpt"] is DBNull ? string.Empty : reader["users_excerpt"], CultureInfo.InvariantCulture) ?? string.Empty);
+                }
+            }
+
+            if (header is null)
+            {
+                return new(null, [], "database", "Warehouse not found.");
+            }
+
+            var siblings = new List<CpStorageDigest>();
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectCpStoragesInterfaceSiblings;
+                AddParameter(cmd, "@interface_type", header.InterfaceType);
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    siblings.Add(new CpStorageDigest(
+                        Convert.ToInt32(reader["id"] is DBNull ? 0 : reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["name"] is DBNull ? string.Empty : reader["name"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["short_name"] is DBNull ? string.Empty : reader["short_name"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt32(reader["hidden"] is DBNull ? 0 : reader["hidden"], CultureInfo.InvariantCulture) != 0));
+                }
+            }
+
+            return new(header, siblings, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(null, [], "database-error", ex.Message);
+        }
+    }
+
     public async Task<BosAuditLogListResult> ListBosAuditLogAsync(string? area, int limit, CancellationToken cancellationToken = default)
     {
         var safeLimit = Math.Clamp(limit, 1, 1000);

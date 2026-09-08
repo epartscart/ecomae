@@ -480,6 +480,16 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.Contains("epc_erp_sales_orders", LegacySurfaceDashboardSql.SelectErpSalesOrders, StringComparison.Ordinal);
         Assert.Contains("epc_boc_audit", LegacySurfaceDashboardSql.SelectBosAuditLog, StringComparison.Ordinal);
         Assert.Contains("shop_storages", LegacySurfaceDashboardSql.SelectCpStorages, StringComparison.Ordinal);
+        Assert.DoesNotContain("connection_options", LegacySurfaceDashboardSql.SelectCpStorages, StringComparison.Ordinal);
+        Assert.DoesNotContain("`users`", LegacySurfaceDashboardSql.SelectCpStorages, StringComparison.Ordinal);
+        Assert.DoesNotContain("`currency`", LegacySurfaceDashboardSql.SelectCpStorages, StringComparison.Ordinal);
+        Assert.Contains("LEFT(IFNULL(`users`,''), 280)", LegacySurfaceDashboardSql.SelectCpStoragesDetail, StringComparison.Ordinal);
+        Assert.Contains("`currency`", LegacySurfaceDashboardSql.SelectCpStoragesDetail, StringComparison.Ordinal);
+        Assert.Contains("interface_type", LegacySurfaceDashboardSql.SelectCpStoragesDetail, StringComparison.Ordinal);
+        Assert.DoesNotContain("connection_options", LegacySurfaceDashboardSql.SelectCpStoragesDetail, StringComparison.Ordinal);
+        Assert.DoesNotContain("connection_options", LegacySurfaceDashboardSql.SelectCpStoragesInterfaceSiblings, StringComparison.Ordinal);
+        Assert.DoesNotContain("`users`", LegacySurfaceDashboardSql.SelectCpStoragesInterfaceSiblings, StringComparison.Ordinal);
+        Assert.Contains("@interface_type", LegacySurfaceDashboardSql.SelectCpStoragesInterfaceSiblings, StringComparison.Ordinal);
         Assert.Contains("epc_erp_purchase_orders", LegacySurfaceDashboardSql.SelectErpPurchaseOrders, StringComparison.Ordinal);
         Assert.Contains("epc_erp_inv_stock", LegacySurfaceDashboardSql.SelectErpInventoryStockSummary, StringComparison.Ordinal);
         Assert.Contains("epc_erp_inv_items", LegacySurfaceDashboardSql.SelectErpInventoryStockRows, StringComparison.Ordinal);
