@@ -245,16 +245,23 @@ public sealed class ErpBosIntelToggleWriteService : IErpBosIntelToggleWriteServi
     }
 
     private static int JsonNodeToInt(JsonNode? value)
-        => value?.GetValueKind() switch
+    {
+        if (value is not JsonValue jv)
+        {
+            return 0;
+        }
+
+        return jv.GetValueKind() switch
         {
             JsonValueKind.True => 1,
-            JsonValueKind.Number when value.TryGetValue<long>(out var n) => n != 0 ? 1 : 0,
-            JsonValueKind.Number when value.TryGetValue<decimal>(out var d) => d != 0 ? 1 : 0,
-            JsonValueKind.String when int.TryParse(value.GetValue<string>(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var i)
+            JsonValueKind.Number when jv.TryGetValue<long>(out var n) => n != 0 ? 1 : 0,
+            JsonValueKind.Number when jv.TryGetValue<decimal>(out var d) => d != 0 ? 1 : 0,
+            JsonValueKind.String when int.TryParse(jv.GetValue<string>(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var i)
                 => i == 0 ? 0 : 1,
-            JsonValueKind.String when !string.IsNullOrEmpty(value.GetValue<string>()) && value.GetValue<string>() is not "0" => 1,
+            JsonValueKind.String when !string.IsNullOrEmpty(jv.GetValue<string>()) && jv.GetValue<string>() is not "0" => 1,
             _ => 0,
         };
+    }
 
     private static async Task<bool> ColumnExistsAsync(DbConnection connection, string table, string column, CancellationToken cancellationToken)
     {
