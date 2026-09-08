@@ -178,6 +178,24 @@ public sealed class EpartscartCustomerJourneyParityTests
         Assert.Contains("name=\"pay_handler\"", payment, StringComparison.Ordinal);
         Assert.Contains("name=\"confirmWrites\"", payment, StringComparison.Ordinal);
         Assert.Contains("action=\"/storefront/payment/create-operation\"", payment, StringComparison.Ordinal);
+
+        var seller = File.ReadAllText(Find(
+            "aspnet/src/EcomAE.Platform/Components/Pages/StorefrontSellerRequestApp.razor"));
+        Assert.Contains("id=\"requestSeller\"", seller, StringComparison.Ordinal);
+        Assert.Contains("request-seller", seller, StringComparison.Ordinal);
+        Assert.Contains("section-form", seller, StringComparison.Ordinal);
+        Assert.Contains("name=\"client_vin\"", seller, StringComparison.Ordinal);
+        Assert.Contains("name=\"client_parts\"", seller, StringComparison.Ordinal);
+        Assert.Contains("name=\"confirmWrites\"", seller, StringComparison.Ordinal);
+
+        var requests = File.ReadAllText(Find(
+            "aspnet/src/EcomAE.Platform/Components/Pages/StorefrontCustomerRequestsApp.razor"));
+        Assert.Contains("panel panel-primary", requests, StringComparison.Ordinal);
+        Assert.Contains("box_btn_filter", requests, StringComparison.Ordinal);
+        Assert.Contains("id=\"chat_block\"", requests, StringComparison.Ordinal);
+        Assert.Contains("id=\"new_message_area\"", requests, StringComparison.Ordinal);
+        Assert.Contains("name=\"vin_id\"", requests, StringComparison.Ordinal);
+        Assert.Contains("class=\"table\"", requests, StringComparison.Ordinal);
     }
 
     [Fact]
