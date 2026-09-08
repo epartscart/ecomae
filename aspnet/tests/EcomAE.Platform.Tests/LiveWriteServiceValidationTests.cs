@@ -3458,4 +3458,19 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(missingDb.Succeeded);
         Assert.Equal("db", missingDb.Code);
     }
+
+    [Fact]
+    public async Task Prj_log_time_rejects_missing_project_and_unconfigured_db()
+    {
+        var invalid = await new ErpPrjLogTimeWriteService(new ConfiguredNeverOpened())
+            .LogAsync(new ErpPrjLogTimeWriteRequest());
+        Assert.False(invalid.Succeeded);
+        Assert.Equal("invalid", invalid.Code);
+        Assert.Equal("Select a project", invalid.Message);
+
+        var missingDb = await new ErpPrjLogTimeWriteService(new UnconfiguredConnections())
+            .LogAsync(new ErpPrjLogTimeWriteRequest(ProjectId: 4, Hours: 2));
+        Assert.False(missingDb.Succeeded);
+        Assert.Equal("db", missingDb.Code);
+    }
 }
