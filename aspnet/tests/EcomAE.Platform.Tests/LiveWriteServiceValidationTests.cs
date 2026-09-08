@@ -3081,6 +3081,21 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(whtCodeDb.Succeeded);
         Assert.Equal("db", whtCodeDb.Code);
 
+        var oaPartyInvalid = await new ErpOaPartySaveWriteService(new ConfiguredNeverOpened())
+            .SaveAsync(new ErpOaPartySaveWriteRequest());
+        Assert.False(oaPartyInvalid.Succeeded);
+        Assert.Equal("invalid", oaPartyInvalid.Code);
+
+        var oaPartyType = await new ErpOaPartySaveWriteService(new ConfiguredNeverOpened())
+            .SaveAsync(new ErpOaPartySaveWriteRequest(Name: "x", PartyType: "alien"));
+        Assert.False(oaPartyType.Succeeded);
+        Assert.Equal("invalid", oaPartyType.Code);
+
+        var oaPartyDb = await new ErpOaPartySaveWriteService(new UnconfiguredConnections())
+            .SaveAsync(new ErpOaPartySaveWriteRequest(Name: "Acme Trading LLC", PartyType: "organization"));
+        Assert.False(oaPartyDb.Succeeded);
+        Assert.Equal("db", oaPartyDb.Code);
+
         var whtRecordInvalid = await new ErpWhtRecordWriteService(new ConfiguredNeverOpened())
             .RecordAsync(new ErpWhtRecordWriteRequest());
         Assert.False(whtRecordInvalid.Succeeded);
