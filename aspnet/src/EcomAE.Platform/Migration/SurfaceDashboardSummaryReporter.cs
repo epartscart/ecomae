@@ -10601,6 +10601,77 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    public async Task<CpDocExpiryDetailResult> BuildCpDocExpiryDetailAsync(long id, CancellationToken cancellationToken = default)
+    {
+        if (id <= 0)
+        {
+            return new(null, [], "n/a", "");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return new(null, [], "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            CpDocExpiryDocumentDetail? header = null;
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectCpDocExpiryDocumentDetail;
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    header = new CpDocExpiryDocumentDetail(
+                        Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["company_id"] is DBNull ? 0 : reader["company_id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["category"] is DBNull ? string.Empty : reader["category"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["doc_type"] is DBNull ? string.Empty : reader["doc_type"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["title"] is DBNull ? string.Empty : reader["title"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["ref_no"] is DBNull ? string.Empty : reader["ref_no"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["owner"] is DBNull ? string.Empty : reader["owner"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["owner_email"] is DBNull ? string.Empty : reader["owner_email"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["issuer"] is DBNull ? string.Empty : reader["issuer"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt64(reader["issue_date"] is DBNull ? 0 : reader["issue_date"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["expiry_date"] is DBNull ? 0 : reader["expiry_date"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["reminder_days"] is DBNull ? string.Empty : reader["reminder_days"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["attachment_path"] is DBNull ? string.Empty : reader["attachment_path"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["note"] is DBNull ? string.Empty : reader["note"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["source_module"] is DBNull ? string.Empty : reader["source_module"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt32(reader["active"] is DBNull ? 0 : reader["active"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["time_created"] is DBNull ? 0 : reader["time_created"], CultureInfo.InvariantCulture));
+                }
+            }
+
+            var reminders = new List<CpDocExpiryReminderDigest>();
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectCpDocExpiryReminders;
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    reminders.Add(new CpDocExpiryReminderDigest(
+                        Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["doc_id"] is DBNull ? 0 : reader["doc_id"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["threshold_days"] is DBNull ? 0 : reader["threshold_days"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["days_left"] is DBNull ? 0 : reader["days_left"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["recipient"] is DBNull ? string.Empty : reader["recipient"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["channel"] is DBNull ? string.Empty : reader["channel"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt64(reader["sent_at"] is DBNull ? 0 : reader["sent_at"], CultureInfo.InvariantCulture)));
+                }
+            }
+
+            return new(header, reminders, "database", header is null ? "Document not found." : string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(null, [], "database-error", ex.Message);
+        }
+    }
+
     public async Task<CpTenantConfigDigestResult> BuildCpTenantConfigDigestAsync(int limit, CancellationToken cancellationToken = default)
     {
         var safeLimit = Math.Clamp(limit, 1, 500);

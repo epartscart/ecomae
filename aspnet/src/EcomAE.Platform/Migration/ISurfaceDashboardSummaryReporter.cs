@@ -296,6 +296,9 @@ public interface ISurfaceDashboardSummaryReporter
     /// <summary>Read-only document expiry register (notes/emails/paths omitted).</summary>
     Task<CpDocExpiryDigestResult> BuildCpDocExpiryDigestAsync(int limit, CancellationToken cancellationToken = default);
 
+    /// <summary>Opened expiry document plus reminder log (PHP <c>doc</c>).</summary>
+    Task<CpDocExpiryDetailResult> BuildCpDocExpiryDetailAsync(long id, CancellationToken cancellationToken = default);
+
     /// <summary>Read-only tenant config keys (config_value omitted).</summary>
     Task<CpTenantConfigDigestResult> BuildCpTenantConfigDigestAsync(int limit, CancellationToken cancellationToken = default);
 

@@ -3225,6 +3225,36 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>Opened expiry document — includes note/owner_email/attachment_path (PHP doc=).</summary>
+    public const string SelectCpDocExpiryDocumentDetail = """
+        SELECT `id`, IFNULL(`company_id`,0) AS company_id, IFNULL(`category`,'') AS category,
+               IFNULL(`doc_type`,'') AS doc_type, IFNULL(`title`,'') AS title,
+               IFNULL(`ref_no`,'') AS ref_no, IFNULL(`owner`,'') AS owner,
+               IFNULL(`owner_email`,'') AS owner_email, IFNULL(`issuer`,'') AS issuer,
+               IFNULL(`issue_date`,0) AS issue_date, IFNULL(`expiry_date`,0) AS expiry_date,
+               IFNULL(`reminder_days`,'') AS reminder_days,
+               IFNULL(`attachment_path`,'') AS attachment_path,
+               IFNULL(`note`,'') AS note,
+               IFNULL(`source_module`,'') AS source_module, IFNULL(`active`,0) AS active,
+               IFNULL(`time_created`,0) AS time_created
+        FROM `epc_erp_doc_expiry`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Opened document reminder log (PHP epc_docx_reminders_sent).</summary>
+    public const string SelectCpDocExpiryReminders = """
+        SELECT `id`, IFNULL(`doc_id`,0) AS doc_id,
+               IFNULL(`threshold_days`,0) AS threshold_days,
+               IFNULL(`days_left`,0) AS days_left,
+               IFNULL(`recipient`,'') AS recipient,
+               IFNULL(`channel`,'') AS channel,
+               IFNULL(`sent_at`,0) AS sent_at
+        FROM `epc_erp_doc_expiry_reminders`
+        WHERE `doc_id` = @id
+        ORDER BY `threshold_days` DESC
+        """;
+
     /// <summary>Tenant config KPIs from epc_tenant_config* (CREATE TABLE in epc_tenant_config.php).</summary>
     public const string SelectCpTenantConfigStats = """
         SELECT
