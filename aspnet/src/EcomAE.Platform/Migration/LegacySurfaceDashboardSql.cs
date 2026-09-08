@@ -1303,6 +1303,53 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>Opened Power BI report. Embed URL is metadata only — no iframe token.</summary>
+    public const string SelectCpPowerBiReportDetail = """
+        SELECT `id`, IFNULL(`site_key`, '') AS site_key,
+               IFNULL(`report_id`, '') AS report_id,
+               IFNULL(`report_name`, '') AS report_name,
+               IFNULL(`dataset_id`, '') AS dataset_id,
+               IFNULL(`category`, '') AS category,
+               IFNULL(`embed_url`, '') AS embed_url,
+               `active`,
+               IFNULL(CAST(`created_at` AS CHAR),'') AS created_at
+        FROM `epc_power_bi_reports`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Site config for an opened report. Notes are a short excerpt; no Azure secrets.</summary>
+    public const string SelectCpPowerBiSiteConfig = """
+        SELECT IFNULL(`site_key`, '') AS site_key,
+               IFNULL(`workspace_id`, '') AS workspace_id,
+               IFNULL(`azure_tenant_id`, '') AS azure_tenant_id,
+               IFNULL(`default_report_id`, '') AS default_report_id,
+               IFNULL(`default_dataset_id`, '') AS default_dataset_id,
+               IFNULL(`embed_url`, '') AS embed_url,
+               IFNULL(`embed_mode`, '') AS embed_mode,
+               CHAR_LENGTH(IFNULL(`notes`,'')) AS notes_len,
+               LEFT(IFNULL(`notes`,''), 280) AS notes_excerpt,
+               `active`
+        FROM `epc_power_bi_config`
+        WHERE `site_key` = @site_key
+        LIMIT 1
+        """;
+
+    /// <summary>Other reports in the same site + category as the opened row.</summary>
+    public const string SelectCpPowerBiCategorySiblings = """
+        SELECT `id`, IFNULL(`site_key`, '') AS site_key,
+               IFNULL(`report_id`, '') AS report_id,
+               IFNULL(`report_name`, '') AS report_name,
+               IFNULL(`dataset_id`, '') AS dataset_id,
+               IFNULL(`category`, '') AS category,
+               IFNULL(`embed_url`, '') AS embed_url,
+               `active`
+        FROM `epc_power_bi_reports`
+        WHERE `site_key` = @site_key AND `category` = @category AND `id` <> @id
+        ORDER BY `report_name` ASC, `id` ASC
+        LIMIT 50
+        """;
+
     /// <summary>Metabase URL/active only — never selects secret_key.</summary>
     public const string SelectCpMetabaseConfig = """
         SELECT IFNULL(`site_key`, '') AS site_key,

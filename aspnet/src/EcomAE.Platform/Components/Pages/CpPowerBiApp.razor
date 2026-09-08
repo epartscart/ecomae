@@ -20,18 +20,104 @@
             </div>
             <div class="panel-body">
                 <p>@CpPhpModuleCopy.PurposeFor("/cp/power-bi-app")</p>
+                <p>Open a report for its site notes excerpt and category siblings. Configure and embed stay on the Classic twin.</p>
             </div>
         </div>
     </div>
-    <PhpParityModuleBody AppPath="/cp/power-bi-app" IsAdmin="_isAdmin" />
+    <PhpParityModuleBody AppPath="/cp/power-bi-app" IsAdmin="_isAdmin" ShowGhostScaffold="false" />
 
+    <ErpOpenedRecordBanner Id="_openedId" Found="@(_openedReport is not null)" Caption="@OpenedCaption" ListHref="@_listHref" />
 
-    <p class="help-block">@(_summary.Active ? "active" : "off") Config (@(string.IsNullOrWhiteSpace(_summary.SiteKey) ? "—" : _summary.SiteKey)) · @(string.IsNullOrWhiteSpace(_summary.WorkspaceId) ? "—" : _summary.WorkspaceId) Workspace · @(string.IsNullOrWhiteSpace(_summary.AzureTenantId) ? "—" : _summary.AzureTenantId) Azure tenant · @(string.IsNullOrWhiteSpace(_summary.EmbedMode) ? "—" : _summary.EmbedMode) Embed mode · @_reports.Count.ToString(CultureInfo.InvariantCulture) Reports shown.</p>
-    @if (!string.IsNullOrWhiteSpace(_summary.EmbedUrl) || !string.IsNullOrWhiteSpace(_summary.Notes))
+    <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Power BI KPIs">
+        <div class="kpi"><div class="lbl">Reports</div><div class="val">@_reports.Count.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Active</div><div class="val">@_reports.Count(r => r.Active).ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Config</div><div class="val">@(_summary.Active ? "on" : "off")</div></div>
+        <div class="kpi"><div class="lbl">Opened siblings</div><div class="val">@_openedSiblings.Count.ToString(CultureInfo.InvariantCulture)</div></div>
+    </div>
+
+    @if (_openedReport is not null)
     {
-        <div class="epc-pbi-note">
-            <div><strong>Embed URL:</strong> @(string.IsNullOrWhiteSpace(_summary.EmbedUrl) ? "—" : _summary.EmbedUrl)</div>
-            <div><strong>Notes:</strong> @(string.IsNullOrWhiteSpace(_summary.Notes) ? "—" : _summary.Notes)</div>
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">
+                    @(!string.IsNullOrWhiteSpace(_openedReport.ReportName) ? _openedReport.ReportName : ("Report #" + _openedReport.Id.ToString(CultureInfo.InvariantCulture)))
+                    <span class="label label-default pull-right">@(_openedReport.Active ? "active" : "off")</span>
+                </div>
+                <div class="panel-body">
+                    <p>@(!string.IsNullOrWhiteSpace(_openedReport.SiteKey) ? _openedReport.SiteKey : "—")
+                        · @(!string.IsNullOrWhiteSpace(_openedReport.Category) ? _openedReport.Category : "—")
+                        · @(!string.IsNullOrWhiteSpace(_openedReport.ReportId) ? _openedReport.ReportId : "—")
+                        · @(!string.IsNullOrWhiteSpace(_openedReport.DatasetId) ? _openedReport.DatasetId : "—")</p>
+                    <p>@(!string.IsNullOrWhiteSpace(_openedReport.EmbedUrl) ? _openedReport.EmbedUrl : "No embed URL yet.")</p>
+                    @if (!string.IsNullOrWhiteSpace(_openedReport.CreatedAt))
+                    {
+                        <p class="text-muted">@_openedReport.CreatedAt</p>
+                    }
+                    @if (_openedConfig is not null)
+                    {
+                        <p>@(_openedConfig.Active ? "config on" : "config off")
+                            · @(!string.IsNullOrWhiteSpace(_openedConfig.WorkspaceId) ? _openedConfig.WorkspaceId : "—")
+                            · @(!string.IsNullOrWhiteSpace(_openedConfig.AzureTenantId) ? _openedConfig.AzureTenantId : "—")
+                            · @(!string.IsNullOrWhiteSpace(_openedConfig.EmbedMode) ? _openedConfig.EmbedMode : "none")</p>
+                        @if (!string.IsNullOrWhiteSpace(_openedConfig.NotesExcerpt))
+                        {
+                            <pre style="max-height:12rem;overflow:auto;white-space:pre-wrap;margin:0">@_openedConfig.NotesExcerpt</pre>
+                            @if (_openedConfig.NotesLen > _openedConfig.NotesExcerpt.Length)
+                            {
+                                <p class="text-muted">Excerpt only (@_openedConfig.NotesExcerpt.Length.ToString(CultureInfo.InvariantCulture) of @_openedConfig.NotesLen.ToString(CultureInfo.InvariantCulture) chars). Full notes and embed stay on the Classic twin.</p>
+                            }
+                        }
+                        else
+                        {
+                            <p class="text-muted">No notes excerpt yet.</p>
+                        }
+                    }
+                    else
+                    {
+                        <p class="text-muted">No notes excerpt yet.</p>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">Category siblings</div>
+                <div class="panel-body">
+                    <div class="table-responsive">
+                        <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped table-bordered table-epc epc-erp-table">
+                            <thead>
+                                <tr>
+                                    <th>Id</th>
+                                    <th>Name</th>
+                                    <th>Report id</th>
+                                    <th>Dataset</th>
+                                    <th>Active</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (_openedSiblings.Count == 0)
+                                {
+                                    <tr><td colspan="5">No category siblings yet.</td></tr>
+                                }
+                                else
+                                {
+                                    @foreach (var sib in _openedSiblings)
+                                    {
+                                        <tr>
+                                            <td>@sib.Id.ToString(CultureInfo.InvariantCulture)</td>
+                                            <td>@(!string.IsNullOrWhiteSpace(sib.ReportName) ? sib.ReportName : "—")</td>
+                                            <td>@(!string.IsNullOrWhiteSpace(sib.ReportId) ? sib.ReportId : "—")</td>
+                                            <td>@(!string.IsNullOrWhiteSpace(sib.DatasetId) ? sib.DatasetId : "—")</td>
+                                            <td>@(sib.Active ? "yes" : "no")</td>
+                                        </tr>
+                                    }
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
         </div>
     }
 
@@ -40,7 +126,7 @@
             <div class="panel-heading hbuilt">Records</div>
             <div class="panel-body">
                 <div class="table-responsive">
-                    <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped">
+                    <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped table-bordered table-epc epc-erp-table">
             <thead>
                 <tr>
                     <th>ID</th>
@@ -57,13 +143,13 @@
             <tbody>
                 @if (_reports.Count == 0)
                 {
-                    <tr><td colspan="9">No records yet.</td></tr>
+                    <tr><td colspan="9">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? "No records yet." : _message) : "Sign in with a staff session for live rows.")</td></tr>
                 }
                 else
                 {
                     @foreach (var r in _reports)
                     {
-                        <tr>
+                        <tr id="erp-row-@r.Id.ToString(CultureInfo.InvariantCulture)" class="@ErpRecordOpen.RowClass(r.Id, _openedId)">
                             <td><strong>@r.Id.ToString(CultureInfo.InvariantCulture)</strong></td>
                             <td>@(string.IsNullOrWhiteSpace(r.SiteKey) ? "—" : r.SiteKey)</td>
                             <td>@(string.IsNullOrWhiteSpace(r.ReportName) ? "—" : r.ReportName)</td>
@@ -72,7 +158,7 @@
                             <td>@(string.IsNullOrWhiteSpace(r.DatasetId) ? "—" : r.DatasetId)</td>
                             <td>@(string.IsNullOrWhiteSpace(r.EmbedUrl) ? "—" : r.EmbedUrl)</td>
                             <td>@(r.Active ? "yes" : "no")</td>
-                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
+                            <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href(_listHref, "pbi_id", r.Id)">Open</a></td>
                         </tr>
                     }
                 }
@@ -87,16 +173,30 @@
 
 @code {
     private const string _phpTab = "/CP/control/portal/epc_power_bi";
+    private const string _listHref = "/cp/power-bi-app";
     private bool _isAdmin;
     private CpPowerBiConfigSummary _summary = new("", "", "", "", "", "", "none", "", false, 0, "n/a", "");
     private IReadOnlyList<CpPowerBiReportDigest> _reports = [];
     private string _source = "n/a";
     private string _message = "";
+    private long _openedId;
+    private CpPowerBiReportDetail? _openedReport;
+    private CpPowerBiSiteConfigExcerpt? _openedConfig;
+    private IReadOnlyList<CpPowerBiReportDigest> _openedSiblings = [];
+
+    private string OpenedCaption => _openedReport is null
+        ? ""
+        : (string.IsNullOrWhiteSpace(_openedReport.ReportName)
+            ? ("Report #" + _openedReport.Id.ToString(CultureInfo.InvariantCulture))
+            : _openedReport.ReportName)
+            + (_openedReport.Active ? " · active" : " · off");
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
+
+        _openedId = ErpRecordOpen.ReadId(ctx.Request, "pbi_id");
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
@@ -110,5 +210,25 @@
         _reports = result.Reports;
         _source = result.Source;
         _message = result.Message;
+
+        if (_openedId > 0)
+        {
+            var detail = await Dashboards.BuildCpPowerBiReportDetailAsync(_openedId, ctx.RequestAborted);
+            _openedReport = detail.Report;
+            _openedConfig = detail.SiteConfig;
+            _openedSiblings = detail.Siblings;
+            if (_openedReport is not null)
+            {
+                var openedList = _reports.FirstOrDefault(r => r.Id == _openedId);
+                if (openedList is not null)
+                {
+                    _reports = new[] { openedList }.Concat(_reports.Where(r => r.Id != _openedId)).ToList();
+                }
+            }
+            else if (!string.IsNullOrWhiteSpace(detail.Message))
+            {
+                _message = detail.Message;
+            }
+        }
     }
 }

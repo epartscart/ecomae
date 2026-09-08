@@ -5898,7 +5898,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only epc_power_bi_config + epc_power_bi_reports metadata. Configure/embed writes remain PHP epc_power_bi."
+                note = "Read-only epc_power_bi_config + epc_power_bi_reports metadata. Open ?pbi_id= loads a 280-char notes excerpt plus category siblings. Configure/embed writes remain PHP epc_power_bi."
             });
         });
 
