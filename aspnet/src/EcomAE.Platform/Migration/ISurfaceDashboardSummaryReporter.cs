@@ -269,6 +269,9 @@ public interface ISurfaceDashboardSummaryReporter
     /// <summary>Read-only CRM tickets (message bodies omitted).</summary>
     Task<CpCrmTicketsDigestResult> BuildCpCrmTicketsDigestAsync(int limit, CancellationToken cancellationToken = default);
 
+    /// <summary>Opened CRM ticket (PHP <c>ticket_id</c>) plus message excerpts. Full bodies omitted.</summary>
+    Task<CpCrmTicketsDetailResult> BuildCpCrmTicketsDetailAsync(long id, CancellationToken cancellationToken = default);
+
     /// <summary>Read-only marketing growth reviews (notes omitted).</summary>
     Task<CpMarketingGrowthDigestResult> BuildCpMarketingGrowthDigestAsync(int limit, CancellationToken cancellationToken = default);
 

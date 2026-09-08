@@ -56,6 +56,7 @@ public sealed class ErpRecordOpenPhpParityTests
     [InlineData("/CP/control/notifications_settings?notif_id=7", "/cp/notifications-app?notif_id=7")]
     [InlineData("/CP/control/portal/epc_notifications?notif_id=7", "/cp/notifications-app?notif_id=7")]
     [InlineData("/CP/control/portal/epc_social_media_hub?social_id=5", "/cp/social-hub-app?social_id=5")]
+    [InlineData("/ERP/?epc_erp_shell=1&area=sales&tab=crm&ticket_id=8", "/erp/crm-tickets-app?ticket_id=8")]
     [InlineData("/ERP/?epc_erp_shell=1&area=landed_cost_area&tab=landed_cost&sheet_id=6", "/erp/landed-cost-app?sheet_id=6")]
     [InlineData("/CP/control/portal/epc_soc2_compliance?soc2_id=8", "/cp/soc2-compliance-app?soc2_id=8")]
     [InlineData("/ERP/?epc_erp_shell=1&area=tax&tab=compliance&soc2_id=8", "/erp/soc2-compliance-app?soc2_id=8")]
@@ -915,6 +916,40 @@ public sealed class ErpRecordOpenPhpParityTests
             ErpRecordOpen.PreserveRecordQuery(
                 "/cp/crm-activities-app",
                 "/CP/shop/crm/crm_main?tab=activities&activity_id=9"));
+    }
+
+    [Fact]
+    public void CrmTicketsApp_OpenLoadsMessageExcerptsAndKeepsWrites()
+    {
+        var root = FindRepoRoot();
+        var text = File.ReadAllText(Path.Combine(root,
+            "aspnet/src/EcomAE.Platform/Components/Pages/CpCrmTicketsApp.razor"));
+        Assert.Contains("ErpRecordOpen.Href(_listHref, \"ticket_id\"", text, StringComparison.Ordinal);
+        Assert.Contains("ErpOpenedRecordBanner", text, StringComparison.Ordinal);
+        Assert.Contains("ReadId(ctx.Request, \"ticket_id\")", text, StringComparison.Ordinal);
+        Assert.Contains("BuildCpCrmTicketsDetailAsync", text, StringComparison.Ordinal);
+        Assert.Contains("No messages yet.", text, StringComparison.Ordinal);
+        Assert.Contains("ShowGhostScaffold=\"false\"", text, StringComparison.Ordinal);
+        Assert.Contains("table-epc", text, StringComparison.Ordinal);
+        Assert.Contains("Create SLA", text, StringComparison.Ordinal);
+        Assert.Contains("Create ticket", text, StringComparison.Ordinal);
+        Assert.Contains("/erp/tickets/reply", text, StringComparison.Ordinal);
+        Assert.Contains("PhpParityModuleBody", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)\">Open", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("/php-reference/", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("ASP.NET", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("epc-ct-hero", text, StringComparison.Ordinal);
+
+        Assert.Equal("/cp/crm-tickets-app?ticket_id=8#erp-row-8",
+            ErpRecordOpen.Href("/cp/crm-tickets-app", "ticket_id", 8));
+        Assert.Equal(
+            "/cp/crm-tickets-app?ticket_id=8",
+            ErpRecordOpen.PreserveRecordQuery(
+                "/cp/crm-tickets-app",
+                "/ERP/?epc_erp_shell=1&area=sales&tab=crm&ticket_id=8"));
+        Assert.Equal(
+            "/erp/crm-tickets-app?tab=tickets&ticket_id=8#erp-row-8",
+            ErpRecordOpen.Href("/erp/crm-tickets-app?tab=tickets", "ticket_id", 8));
     }
 
     [Fact]

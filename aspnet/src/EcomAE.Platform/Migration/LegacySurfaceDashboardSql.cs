@@ -3256,6 +3256,32 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>Opened CRM ticket. Message bodies stay on the messages query.</summary>
+    public const string SelectCpCrmTicketsDetail = """
+        SELECT `id`, IFNULL(`customer_user_id`,0) AS customer_user_id, IFNULL(`order_id`,0) AS order_id,
+               IFNULL(`subject`,'') AS subject, IFNULL(`status`,'') AS status,
+               IFNULL(`priority`,'') AS priority, IFNULL(`assigned_user_id`,0) AS assigned_user_id,
+               IFNULL(`time_created`,0) AS time_created, IFNULL(`time_updated`,0) AS time_updated,
+               IFNULL(`active`,0) AS active
+        FROM `epc_crm_tickets`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Opened ticket messages. Bodies are a short excerpt.</summary>
+    public const string SelectCpCrmTicketMessages = """
+        SELECT `id`, IFNULL(`ticket_id`,0) AS ticket_id,
+               IFNULL(`author_user_id`,0) AS author_user_id,
+               IFNULL(`is_staff`,0) AS is_staff,
+               IFNULL(`time_created`,0) AS time_created,
+               CHAR_LENGTH(IFNULL(`body`,'')) AS body_len,
+               LEFT(IFNULL(`body`,''), 280) AS body_excerpt
+        FROM `epc_crm_ticket_messages`
+        WHERE `ticket_id` = @id
+        ORDER BY `id` DESC
+        LIMIT 50
+        """;
+
     /// <summary>Marketing growth KPIs from epc_marketing_* (CREATE TABLE in epc_marketing_schema.php).</summary>
     public const string SelectCpMarketingGrowthStats = """
         SELECT

@@ -7012,7 +7012,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only epc_crm_tickets KPIs + tickets (message bodies omitted). PHP CRM shell remains authoritative."
+                note = "Read-only epc_crm_tickets KPIs + tickets. Open ?ticket_id= loads 280-char message excerpts. Full bodies omitted. PHP CRM shell remains authoritative."
             });
         });
 
