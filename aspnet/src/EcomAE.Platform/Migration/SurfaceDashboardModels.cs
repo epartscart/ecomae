@@ -3083,6 +3083,32 @@ public sealed record CpTenantConfigDigestResult(
     string Source,
     string Message);
 
+public sealed record CpTenantConfigEntryDetail(
+    long Id,
+    string SiteKey,
+    string ConfigGroup,
+    string ConfigKey,
+    string ConfigValue,
+    string ValueType,
+    string Label,
+    string Description,
+    int Editable,
+    long UpdatedBy,
+    string UpdatedAt);
+
+public sealed record CpTenantConfigHistoryDigest(
+    long Id,
+    string OldValue,
+    string NewValue,
+    long ChangedBy,
+    string ChangedAt);
+
+public sealed record CpTenantConfigDetailResult(
+    CpTenantConfigEntryDetail? Entry,
+    IReadOnlyList<CpTenantConfigHistoryDigest> History,
+    string Source,
+    string Message);
+
 public sealed record CpJewelleryStockVerificationSummary(
     int VerificationCount,
     int InProgressCount,

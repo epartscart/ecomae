@@ -299,6 +299,9 @@ public interface ISurfaceDashboardSummaryReporter
     /// <summary>Read-only tenant config keys (config_value omitted).</summary>
     Task<CpTenantConfigDigestResult> BuildCpTenantConfigDigestAsync(int limit, CancellationToken cancellationToken = default);
 
+    /// <summary>Opened tenant config row plus history (PHP <c>config_id</c>).</summary>
+    Task<CpTenantConfigDetailResult> BuildCpTenantConfigDetailAsync(long id, CancellationToken cancellationToken = default);
+
     /// <summary>Read-only jewellery stock verification vouchers (remarks omitted).</summary>
     Task<CpJewelleryStockVerificationDigestResult> BuildCpJewelleryStockVerificationDigestAsync(int limit, CancellationToken cancellationToken = default);
 
