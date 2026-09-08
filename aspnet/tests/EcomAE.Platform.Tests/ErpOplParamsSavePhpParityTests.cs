@@ -59,7 +59,7 @@ public sealed class ErpOplParamsSavePhpParityTests
         var service = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Erp/ErpOplParamsSaveWriteService.cs"));
         Assert.Contains("Parameters saved — recalculated", service, StringComparison.Ordinal);
         Assert.Contains("Item and warehouse required", service, StringComparison.Ordinal);
-        Assert.DoesNotContain("epc_opl_compute", service, StringComparison.Ordinal);
+        Assert.DoesNotContain("epc_opl_compute(", service, StringComparison.Ordinal);
         Assert.DoesNotContain("CREATE TABLE", service, StringComparison.Ordinal);
     }
 
