@@ -3163,6 +3163,40 @@ public sealed record CpDocExpiryDigestResult(
     string Source,
     string Message);
 
+public sealed record CpDocExpiryDocumentDetail(
+    long Id,
+    long CompanyId,
+    string Category,
+    string DocType,
+    string Title,
+    string RefNo,
+    string Owner,
+    string OwnerEmail,
+    string Issuer,
+    long IssueDate,
+    long ExpiryDate,
+    string ReminderDays,
+    string AttachmentPath,
+    string Note,
+    string SourceModule,
+    int Active,
+    long TimeCreated);
+
+public sealed record CpDocExpiryReminderDigest(
+    long Id,
+    long DocId,
+    int ThresholdDays,
+    int DaysLeft,
+    string Recipient,
+    string Channel,
+    long SentAt);
+
+public sealed record CpDocExpiryDetailResult(
+    CpDocExpiryDocumentDetail? Document,
+    IReadOnlyList<CpDocExpiryReminderDigest> Reminders,
+    string Source,
+    string Message);
+
 public sealed record CpTenantConfigSummary(
     int ConfigCount,
     int GroupCount,
