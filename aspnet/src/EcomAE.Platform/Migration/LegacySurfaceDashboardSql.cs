@@ -2904,6 +2904,68 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>Opened aftersales RMA — includes description/resolution_notes (PHP rma_id detail).</summary>
+    public const string SelectCpReturnsRmaRequestDetail = """
+        SELECT `id`, IFNULL(`site_key`,'') AS site_key, IFNULL(`rma_number`,'') AS rma_number,
+               `warranty_id`, IFNULL(`customer_id`,0) AS customer_id,
+               IFNULL(`customer_name`,'') AS customer_name, IFNULL(`reason`,'') AS reason,
+               IFNULL(`description`,'') AS description,
+               IFNULL(`status`,'') AS status, IFNULL(`resolution_type`,'') AS resolution_type,
+               IFNULL(`resolution_notes`,'') AS resolution_notes,
+               IFNULL(`created_at`,'') AS created_at,
+               IFNULL(`updated_at`,'') AS updated_at,
+               IFNULL(`completed_at`,'') AS completed_at
+        FROM `epc_rma_requests`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Opened aftersales RMA lines (PHP epc_rma_items).</summary>
+    public const string SelectCpReturnsRmaItems = """
+        SELECT `id`, IFNULL(`rma_id`,0) AS rma_id,
+               IFNULL(`product_sku`,'') AS product_sku,
+               IFNULL(`product_name`,'') AS product_name,
+               IFNULL(`qty`,0) AS qty,
+               IFNULL(`unit_price`,0) AS unit_price,
+               IFNULL(`condition_received`,'') AS condition_received,
+               IFNULL(`inspection_notes`,'') AS inspection_notes
+        FROM `epc_rma_items`
+        WHERE `rma_id` = @id
+        ORDER BY `id` ASC
+        """;
+
+    /// <summary>Opened shop return header (PHP returns-manager return_id).</summary>
+    public const string SelectCpShopReturnDetail = """
+        SELECT r.`id`, IFNULL(r.`user_id`,0) AS user_id,
+               IFNULL(r.`status_id`,0) AS status_id,
+               IFNULL(s.`caption`,'') AS status_caption,
+               IFNULL(r.`return_complete`,0) AS return_complete,
+               IFNULL(r.`sum`,0) AS declared_sum
+        FROM `shop_orders_returns` r
+        LEFT JOIN `shop_orders_returns_statuses` s ON s.`id` = r.`status_id`
+        WHERE r.`id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Opened shop return lines (PHP return_detail.php).</summary>
+    public const string SelectCpShopReturnLines = """
+        SELECT ri.`id`, IFNULL(ri.`return_id`,0) AS return_id, IFNULL(ri.`item_id`,0) AS item_id,
+               IFNULL(ri.`comment`,'') AS comment,
+               IFNULL(ri.`return_success`,'') AS return_success,
+               IFNULL(ri.`count_need`,0) AS return_qty,
+               IFNULL(rr.`caption`,'') AS reason_caption,
+               IFNULL(oi.`order_id`,0) AS order_id,
+               IFNULL(oi.`price`,0) AS price,
+               IFNULL(oi.`t2_manufacturer`,'') AS brand,
+               IFNULL(oi.`t2_article`,'') AS article,
+               IFNULL(oi.`t2_name`,'') AS name
+        FROM `shop_orders_returns_items` ri
+        LEFT JOIN `shop_orders_returns_reasons` rr ON rr.`id` = ri.`reason_id`
+        LEFT JOIN `shop_orders_items` oi ON oi.`id` = ri.`item_id`
+        WHERE ri.`return_id` = @id
+        ORDER BY ri.`id` ASC
+        """;
+
     /// <summary>Isolation audit KPIs from epc_ci_* (CREATE TABLE in epc_commerce_isolation.php).</summary>
     public const string SelectCpIsolationAuditStats = """
         SELECT
@@ -3068,6 +3130,38 @@ public static class LegacySurfaceDashboardSql
         FROM `epc_dunning_queue`
         ORDER BY `id` DESC
         LIMIT @limit
+        """;
+
+    /// <summary>Opened dunning queue row — includes notes/customer_name (PHP queue_id detail).</summary>
+    public const string SelectCpCollectionsDunningQueueDetail = """
+        SELECT q.`id`, IFNULL(q.`site_key`,'') AS site_key, IFNULL(q.`customer_id`,0) AS customer_id,
+               IFNULL(q.`customer_name`,'') AS customer_name,
+               IFNULL(q.`invoice_ref`,'') AS invoice_ref,
+               IFNULL(q.`invoice_amount`,0) AS invoice_amount, IFNULL(q.`amount_due`,0) AS amount_due,
+               IFNULL(q.`due_date`,'') AS due_date, IFNULL(q.`days_overdue`,0) AS days_overdue,
+               IFNULL(q.`dunning_step`,0) AS dunning_step, IFNULL(q.`profile_id`,0) AS profile_id,
+               IFNULL(p.`name`,'') AS profile_name,
+               IFNULL(q.`status`,'') AS status,
+               IFNULL(q.`next_action_date`,'') AS next_action_date,
+               IFNULL(q.`assigned_to`,0) AS assigned_to,
+               IFNULL(q.`notes`,'') AS notes,
+               IFNULL(q.`updated_at`,'') AS updated_at
+        FROM `epc_dunning_queue` q
+        LEFT JOIN `epc_dunning_profiles` p ON p.`id` = q.`profile_id`
+        WHERE q.`id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Opened dunning queue log (PHP epc_dunning_log by queue_id).</summary>
+    public const string SelectCpCollectionsDunningLog = """
+        SELECT `id`, IFNULL(`queue_id`,0) AS queue_id,
+               IFNULL(`action_type`,'') AS action_type,
+               IFNULL(`details`,'') AS details,
+               IFNULL(`performed_by`,0) AS performed_by,
+               IFNULL(`performed_at`,'') AS performed_at
+        FROM `epc_dunning_log`
+        WHERE `queue_id` = @id
+        ORDER BY `id` DESC
         """;
 
 

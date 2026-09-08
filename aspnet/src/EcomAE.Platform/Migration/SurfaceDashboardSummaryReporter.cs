@@ -9713,6 +9713,141 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    public async Task<CpReturnsRmaDetailResult> BuildCpReturnsRmaDetailAsync(long id, CancellationToken cancellationToken = default)
+    {
+        if (id <= 0)
+        {
+            return new(null, [], "n/a", "");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return new(null, [], "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            CpReturnsRmaRequestDetail? header = null;
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectCpReturnsRmaRequestDetail;
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    long? warrantyId = reader["warranty_id"] is DBNull ? null : Convert.ToInt64(reader["warranty_id"], CultureInfo.InvariantCulture);
+                    header = new CpReturnsRmaRequestDetail(
+                        Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["site_key"] is DBNull ? string.Empty : reader["site_key"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["rma_number"] is DBNull ? string.Empty : reader["rma_number"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        warrantyId,
+                        Convert.ToInt64(reader["customer_id"] is DBNull ? 0 : reader["customer_id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["customer_name"] is DBNull ? string.Empty : reader["customer_name"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["reason"] is DBNull ? string.Empty : reader["reason"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["description"] is DBNull ? string.Empty : reader["description"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["status"] is DBNull ? string.Empty : reader["status"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["resolution_type"] is DBNull ? string.Empty : reader["resolution_type"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["resolution_notes"] is DBNull ? string.Empty : reader["resolution_notes"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["created_at"] is DBNull ? string.Empty : reader["created_at"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["updated_at"] is DBNull ? string.Empty : reader["updated_at"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["completed_at"] is DBNull ? string.Empty : reader["completed_at"], CultureInfo.InvariantCulture) ?? string.Empty);
+                }
+            }
+
+            var items = new List<CpReturnsRmaItemDigest>();
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectCpReturnsRmaItems;
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    items.Add(new CpReturnsRmaItemDigest(
+                        Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["rma_id"] is DBNull ? 0 : reader["rma_id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["product_sku"] is DBNull ? string.Empty : reader["product_sku"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["product_name"] is DBNull ? string.Empty : reader["product_name"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt32(reader["qty"] is DBNull ? 0 : reader["qty"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(reader["unit_price"] is DBNull ? 0 : reader["unit_price"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["condition_received"] is DBNull ? string.Empty : reader["condition_received"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["inspection_notes"] is DBNull ? string.Empty : reader["inspection_notes"], CultureInfo.InvariantCulture) ?? string.Empty));
+                }
+            }
+
+            return new(header, items, "database", header is null ? "RMA not found." : string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(null, [], "database-error", ex.Message);
+        }
+    }
+
+    public async Task<CpShopReturnDetailResult> BuildCpShopReturnDetailAsync(long id, CancellationToken cancellationToken = default)
+    {
+        if (id <= 0)
+        {
+            return new(null, [], "n/a", "");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return new(null, [], "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            CpShopReturnDetail? header = null;
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectCpShopReturnDetail;
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    header = new CpShopReturnDetail(
+                        Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["user_id"] is DBNull ? 0 : reader["user_id"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["status_id"] is DBNull ? 0 : reader["status_id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["status_caption"] is DBNull ? string.Empty : reader["status_caption"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt32(reader["return_complete"] is DBNull ? 0 : reader["return_complete"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(reader["declared_sum"] is DBNull ? 0 : reader["declared_sum"], CultureInfo.InvariantCulture));
+                }
+            }
+
+            var lines = new List<CpShopReturnLineDigest>();
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectCpShopReturnLines;
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    lines.Add(new CpShopReturnLineDigest(
+                        Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["return_id"] is DBNull ? 0 : reader["return_id"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["item_id"] is DBNull ? 0 : reader["item_id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["comment"] is DBNull ? string.Empty : reader["comment"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["return_success"] is DBNull ? string.Empty : reader["return_success"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToDecimal(reader["return_qty"] is DBNull ? 0 : reader["return_qty"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["reason_caption"] is DBNull ? string.Empty : reader["reason_caption"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt64(reader["order_id"] is DBNull ? 0 : reader["order_id"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(reader["price"] is DBNull ? 0 : reader["price"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["brand"] is DBNull ? string.Empty : reader["brand"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["article"] is DBNull ? string.Empty : reader["article"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["name"] is DBNull ? string.Empty : reader["name"], CultureInfo.InvariantCulture) ?? string.Empty));
+                }
+            }
+
+            return new(header, lines, "database", header is null ? "Return not found." : string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(null, [], "database-error", ex.Message);
+        }
+    }
+
     public async Task<CpIsolationAuditDigestResult> BuildCpIsolationAuditDigestAsync(int limit, CancellationToken cancellationToken = default)
     {
         var safeLimit = Math.Clamp(limit, 1, 500);
@@ -10164,6 +10299,76 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         {
             var err = empty with { Source = "database-error", Message = ex.Message };
             return new(err, [], 0, "database-error", ex.Message);
+        }
+    }
+
+    public async Task<CpCollectionsDunningDetailResult> BuildCpCollectionsDunningDetailAsync(long id, CancellationToken cancellationToken = default)
+    {
+        if (id <= 0)
+        {
+            return new(null, [], "n/a", "");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return new(null, [], "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            CpCollectionsDunningQueueDetail? header = null;
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectCpCollectionsDunningQueueDetail;
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    header = new CpCollectionsDunningQueueDetail(
+                        Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["site_key"] is DBNull ? string.Empty : reader["site_key"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt64(reader["customer_id"] is DBNull ? 0 : reader["customer_id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["customer_name"] is DBNull ? string.Empty : reader["customer_name"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["invoice_ref"] is DBNull ? string.Empty : reader["invoice_ref"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToDecimal(reader["invoice_amount"] is DBNull ? 0 : reader["invoice_amount"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(reader["amount_due"] is DBNull ? 0 : reader["amount_due"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["due_date"] is DBNull ? string.Empty : reader["due_date"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt32(reader["days_overdue"] is DBNull ? 0 : reader["days_overdue"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["dunning_step"] is DBNull ? 0 : reader["dunning_step"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["profile_id"] is DBNull ? 0 : reader["profile_id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["profile_name"] is DBNull ? string.Empty : reader["profile_name"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["status"] is DBNull ? string.Empty : reader["status"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["next_action_date"] is DBNull ? string.Empty : reader["next_action_date"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt64(reader["assigned_to"] is DBNull ? 0 : reader["assigned_to"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["notes"] is DBNull ? string.Empty : reader["notes"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["updated_at"] is DBNull ? string.Empty : reader["updated_at"], CultureInfo.InvariantCulture) ?? string.Empty);
+                }
+            }
+
+            var log = new List<CpCollectionsDunningLogDigest>();
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectCpCollectionsDunningLog;
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    log.Add(new CpCollectionsDunningLogDigest(
+                        Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["queue_id"] is DBNull ? 0 : reader["queue_id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["action_type"] is DBNull ? string.Empty : reader["action_type"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["details"] is DBNull ? string.Empty : reader["details"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt64(reader["performed_by"] is DBNull ? 0 : reader["performed_by"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["performed_at"] is DBNull ? string.Empty : reader["performed_at"], CultureInfo.InvariantCulture) ?? string.Empty));
+                }
+            }
+
+            return new(header, log, "database", header is null ? "Queue item not found." : string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(null, [], "database-error", ex.Message);
         }
     }
 
