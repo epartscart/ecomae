@@ -3111,6 +3111,17 @@ public sealed class LiveWriteServiceValidationTests
             .LogAsync(new ErpHrAttendanceWriteRequest(EmployeeId: 1, Hours: 8));
         Assert.False(hrAttDb.Succeeded);
         Assert.Equal("db", hrAttDb.Code);
+
+        var cftStMissing = await new ErpCftInstrumentStatusWriteService(new ConfiguredNeverOpened())
+            .SetStatusAsync(new ErpCftInstrumentStatusWriteRequest());
+        Assert.False(cftStMissing.Succeeded);
+        Assert.Equal("invalid", cftStMissing.Code);
+        Assert.Equal("Instrument not found", cftStMissing.Message);
+
+        var cftStDb = await new ErpCftInstrumentStatusWriteService(new UnconfiguredConnections())
+            .SetStatusAsync(new ErpCftInstrumentStatusWriteRequest(Id: 1, TargetStatus: "issued"));
+        Assert.False(cftStDb.Succeeded);
+        Assert.Equal("db", cftStDb.Code);
     }
 
     [Fact]
