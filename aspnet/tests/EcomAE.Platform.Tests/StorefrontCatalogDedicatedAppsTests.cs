@@ -507,6 +507,60 @@ public sealed class StorefrontCatalogDedicatedAppsTests : IDisposable
         Assert.DoesNotContain("/php-reference", po, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void TenantFinComplianceProcurementReportingApps_UseClassicHpanelNotInventHero()
+    {
+        var tenant = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/CpTenantConfigApp.razor"));
+        Assert.Contains("class=\"hpanel\"", tenant, StringComparison.Ordinal);
+        Assert.Contains("/erp/tenant-config/save", tenant, StringComparison.Ordinal);
+        Assert.Contains("/erp/security/roles/save", tenant, StringComparison.Ordinal);
+        Assert.DoesNotContain("epc-w17-hero", tenant, StringComparison.Ordinal);
+        Assert.DoesNotContain("/php-reference", tenant, StringComparison.Ordinal);
+
+        var fin = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/CpFinAdvancedApp.razor"));
+        Assert.Contains("class=\"hpanel\"", fin, StringComparison.Ordinal);
+        Assert.Contains("/erp/fin/periods/status", fin, StringComparison.Ordinal);
+        Assert.Contains("/erp/fin/periods/generate", fin, StringComparison.Ordinal);
+        Assert.Contains("/erp/fin/alloc/save", fin, StringComparison.Ordinal);
+        Assert.DoesNotContain("epc-finadv-hero", fin, StringComparison.Ordinal);
+
+        var docx = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/CpDocExpiryApp.razor"));
+        Assert.Contains("/erp/doc-expiry/save", docx, StringComparison.Ordinal);
+        Assert.Contains("/erp/doc-expiry/delete", docx, StringComparison.Ordinal);
+        Assert.DoesNotContain("epc-w17-hero", docx, StringComparison.Ordinal);
+
+        var soc2 = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/CpSoc2ComplianceApp.razor"));
+        Assert.Contains("/erp/compliance/obligations/add", soc2, StringComparison.Ordinal);
+        Assert.DoesNotContain("epc-soc2-hero", soc2, StringComparison.Ordinal);
+
+        var er = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/CpElectronicReportingApp.razor"));
+        Assert.Contains("/erp/electronic-reporting/formats/save", er, StringComparison.Ordinal);
+        Assert.DoesNotContain("epc-w15-hero", er, StringComparison.Ordinal);
+
+        var prq = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/CpPurchaseRequestsApp.razor"));
+        Assert.Contains("/erp/procurement/requisitions/save", prq, StringComparison.Ordinal);
+        Assert.Contains("/erp/procurement/requisitions/add-line", prq, StringComparison.Ordinal);
+        Assert.DoesNotContain("epc-prq-hero", prq, StringComparison.Ordinal);
+
+        var rma = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/CpReturnsRmaApp.razor"));
+        Assert.Contains("/erp/aftersales/rma-create", rma, StringComparison.Ordinal);
+        Assert.Contains("Resolve RMA", rma, StringComparison.Ordinal);
+        Assert.DoesNotContain("epc-rma-hero", rma, StringComparison.Ordinal);
+
+        var quotes = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/CpQuoteRequestsApp.razor"));
+        Assert.Contains("/cp/quote-requests/send", quotes, StringComparison.Ordinal);
+        Assert.DoesNotContain("epc-w19-hero", quotes, StringComparison.Ordinal);
+
+        var syn = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/CpSynonymsApp.razor"));
+        Assert.Contains("/cp/synonyms/write", syn, StringComparison.Ordinal);
+        Assert.DoesNotContain("epc-nw-hero", syn, StringComparison.Ordinal);
+
+        var prices = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/CpPricesEditApp.razor"));
+        Assert.Contains("/cp/prices-edit/write", prices, StringComparison.Ordinal);
+        Assert.DoesNotContain("epc-cpmod-hero", prices, StringComparison.Ordinal);
+        Assert.DoesNotContain("/php-reference", prices, StringComparison.Ordinal);
+    }
+
     private static void AssertPage(string fileName, string phpAlias, string aspNetApp)
     {
         var path = Find("aspnet/src/EcomAE.Platform/Components/Pages/" + fileName);

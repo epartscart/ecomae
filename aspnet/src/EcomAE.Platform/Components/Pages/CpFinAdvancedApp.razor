@@ -8,49 +8,23 @@
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
-@inject NavigationManager Nav
 
 <PageTitle>Financial depth · Control Panel · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="cp" />
-<HeadContent>
-<style>
-        .epc-finadv-hero {
-            margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
-            background:linear-gradient(135deg,#0c4a6e 0%,#2563eb 45%,#0ea5e9 100%);
-        }
-        .epc-finadv-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
-        .epc-finadv-hero p { margin:0; color:rgba(255,255,255,.88); max-width:44rem; font-size:.92rem; line-height:1.45; }
-        .epc-finadv-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
-        .epc-finadv-cta a {
-            display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
-            text-decoration:none; color:#052e16; background:#fff;
-        }
-        .epc-finadv-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); color:#fff; }
-        .epc-finadv-kpis { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
-        .epc-finadv-kpi { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; padding:.85rem .9rem; }
-        .epc-finadv-kpi strong { display:block; font-size:1.2rem; word-break:break-word; }
-        .epc-finadv-kpi span { color:#64748b; font-size:.78rem; }
-        .epc-finadv-table-wrap { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; overflow:auto; }
-        .epc-finadv-table { width:100%; border-collapse:collapse; font-size:.86rem; }
-        .epc-finadv-table th, .epc-finadv-table td { padding:.55rem .7rem; border-bottom:1px solid #f1f5f9; text-align:left; white-space:nowrap; }
-        .epc-finadv-table th { background:#f8fafc; color:#475569; font-size:.75rem; text-transform:uppercase; letter-spacing:.03em; }
-        .epc-finadv-note { margin-top:1rem; padding:.75rem .9rem; background:#f8fafc; border:1px solid #cbd5e1; border-radius:.45rem; color:#334155; font-size:.86rem; }
-        @@media (max-width:900px){ .epc-finadv-kpis{grid-template-columns:1fr 1fr;} }
-    
-</style>
-</HeadContent>
-
-
 <PhpCpDesktopChrome IsAdmin="_isAdmin">
 
-    <section class="epc-finadv-hero">
-        <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
-        <h1>Financial depth</h1>
-        <p>@CpPhpModuleCopy.PurposeFor(Nav.Uri)</p>
-        <div class="epc-finadv-cta">
-            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
+    <div class="col-lg-12">
+        <div class="hpanel">
+            <div class="panel-heading hbuilt">
+                Financial depth
+                <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Classic twin</a>
+            </div>
+            <div class="panel-body">
+                <p>@CpPhpModuleCopy.PurposeFor("/cp/fin-advanced-app")</p>
+                <p>Set period status, generate periods, and save an allocation rule here.</p>
+            </div>
         </div>
-    </section>
+    </div>
     <PhpParityModuleBody AppPath="/cp/fin-advanced-app" IsAdmin="_isAdmin" />
 
     @if (_isAdmin)
@@ -90,15 +64,14 @@
 </ErpPhpCreateWell>
     }
 
-    <div class="epc-finadv-kpis" aria-label="Financial depth stats">
-        <div class="epc-finadv-kpi"><strong>@_summary.PeriodCount.ToString(CultureInfo.InvariantCulture)</strong><span>Periods</span></div>
-        <div class="epc-finadv-kpi"><strong>@_summary.OpenPeriodCount.ToString(CultureInfo.InvariantCulture)</strong><span>Open</span></div>
-        <div class="epc-finadv-kpi"><strong>@_summary.AllocRuleCount.ToString(CultureInfo.InvariantCulture)</strong><span>Alloc rules</span></div>
-        <div class="epc-finadv-kpi"><strong>@_summary.AccrualCount.ToString(CultureInfo.InvariantCulture)</strong><span>Accruals</span></div>
-    </div>
+    <p class="help-block">@_summary.PeriodCount.ToString(CultureInfo.InvariantCulture) Periods · @_summary.OpenPeriodCount.ToString(CultureInfo.InvariantCulture) Open · @_summary.AllocRuleCount.ToString(CultureInfo.InvariantCulture) Alloc rules · @_summary.AccrualCount.ToString(CultureInfo.InvariantCulture) Accruals.</p>
 
-    <div class="epc-finadv-table-wrap">
-        <table class="epc-finadv-table">
+    <div class="col-lg-12">
+        <div class="hpanel">
+            <div class="panel-heading hbuilt">Records</div>
+            <div class="panel-body">
+                <div class="table-responsive">
+                    <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped">
             <thead>
                 <tr>
                     <th>Id</th>
@@ -133,7 +106,10 @@
                     }
                 }
             </tbody>
-        </table>
+                        </table>
+                </div>
+            </div>
+        </div>
     </div>
 
 </PhpCpDesktopChrome>
