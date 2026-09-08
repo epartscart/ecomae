@@ -13752,6 +13752,98 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    public async Task<CpMarketplaceAppDetailResult> BuildCpMarketplaceAppDetailAsync(long id, CancellationToken cancellationToken = default)
+    {
+        if (id <= 0)
+        {
+            return new(null, [], [], "n/a", "");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return new(null, [], [], "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            CpMarketplaceAppDetail? header = null;
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectCpMarketplaceAppDetail;
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    header = new CpMarketplaceAppDetail(
+                        Convert.ToInt64(reader["id"] is DBNull ? 0 : reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["app_key"] is DBNull ? string.Empty : reader["app_key"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["name"] is DBNull ? string.Empty : reader["name"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["short_desc"] is DBNull ? string.Empty : reader["short_desc"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["category"] is DBNull ? string.Empty : reader["category"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["developer"] is DBNull ? string.Empty : reader["developer"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["version"] is DBNull ? string.Empty : reader["version"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["pricing"] is DBNull ? string.Empty : reader["pricing"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToDecimal(reader["price_monthly"] is DBNull ? 0 : reader["price_monthly"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["downloads"] is DBNull ? 0 : reader["downloads"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(reader["avg_rating"] is DBNull ? 0 : reader["avg_rating"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["review_count"] is DBNull ? 0 : reader["review_count"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["status"] is DBNull ? string.Empty : reader["status"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["published_at"] is DBNull ? string.Empty : reader["published_at"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt32(reader["description_len"] is DBNull ? 0 : reader["description_len"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["description_excerpt"] is DBNull ? string.Empty : reader["description_excerpt"], CultureInfo.InvariantCulture) ?? string.Empty);
+                }
+            }
+
+            if (header is null)
+            {
+                return new(null, [], [], "database", "App not found.");
+            }
+
+            var installs = new List<CpMarketplaceInstallDigest>();
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectCpMarketplaceAppInstalls;
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    installs.Add(new CpMarketplaceInstallDigest(
+                        Convert.ToInt64(reader["id"] is DBNull ? 0 : reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["site_key"] is DBNull ? string.Empty : reader["site_key"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["installed_version"] is DBNull ? string.Empty : reader["installed_version"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["status"] is DBNull ? string.Empty : reader["status"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["installed_at"] is DBNull ? string.Empty : reader["installed_at"], CultureInfo.InvariantCulture) ?? string.Empty));
+                }
+            }
+
+            var reviews = new List<CpMarketplaceReviewDigest>();
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectCpMarketplaceAppReviews;
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    reviews.Add(new CpMarketplaceReviewDigest(
+                        Convert.ToInt64(reader["id"] is DBNull ? 0 : reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["site_key"] is DBNull ? string.Empty : reader["site_key"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt32(reader["rating"] is DBNull ? 0 : reader["rating"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["title"] is DBNull ? string.Empty : reader["title"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["reviewer_name"] is DBNull ? string.Empty : reader["reviewer_name"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt64(reader["helpful_count"] is DBNull ? 0 : reader["helpful_count"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["created_at"] is DBNull ? string.Empty : reader["created_at"], CultureInfo.InvariantCulture) ?? string.Empty));
+                }
+            }
+
+            return new(header, installs, reviews, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(null, [], [], "database-error", ex.Message);
+        }
+    }
+
     public async Task<CpNotificationsDigestResult> BuildCpNotificationsDigestAsync(int limit, CancellationToken cancellationToken = default)
     {
         var safeLimit = Math.Clamp(limit, 1, 500);

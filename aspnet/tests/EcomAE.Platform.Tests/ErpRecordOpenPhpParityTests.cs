@@ -35,6 +35,7 @@ public sealed class ErpRecordOpenPhpParityTests
     [InlineData("/ERP/?epc_erp_shell=1&area=tax&tab=blockchain_proofs&proof_id=4", "/erp/blockchain-proofs-app?proof_id=4")]
     [InlineData("/ERP/?epc_erp_shell=1&area=audit_wb&tab=blockchain_proofs&proof_id=4", "/erp/blockchain-proofs-app?proof_id=4")]
     [InlineData("/CP/control/version_control?item_id=4", "/cp/ops-guides-app?item_id=4")]
+    [InlineData("/CP/control/portal/epc_marketplace?app_id=7", "/cp/marketplace-apps-app?app_id=7")]
     [InlineData("/ERP/?epc_erp_shell=1&area=landed_cost_area&tab=landed_cost&sheet_id=6", "/erp/landed-cost-app?sheet_id=6")]
     [InlineData("/CP/control/portal/epc_soc2_compliance?soc2_id=8", "/cp/soc2-compliance-app?soc2_id=8")]
     [InlineData("/ERP/?epc_erp_shell=1&area=tax&tab=compliance&soc2_id=8", "/erp/soc2-compliance-app?soc2_id=8")]
@@ -394,6 +395,36 @@ public sealed class ErpRecordOpenPhpParityTests
             ErpRecordOpen.PreserveRecordQuery(
                 "/cp/ops-guides-app",
                 "/CP/control/version_control?item_id=4"));
+    }
+
+    [Fact]
+    public void MarketplaceAppsApp_OpenLoadsExcerptInstallsAndReviews()
+    {
+        var root = FindRepoRoot();
+        var text = File.ReadAllText(Path.Combine(root,
+            "aspnet/src/EcomAE.Platform/Components/Pages/CpMarketplaceAppsApp.razor"));
+        Assert.Contains("ErpRecordOpen.Href(_listHref, \"app_id\"", text, StringComparison.Ordinal);
+        Assert.Contains("ErpOpenedRecordBanner", text, StringComparison.Ordinal);
+        Assert.Contains("ReadId(ctx.Request, \"app_id\")", text, StringComparison.Ordinal);
+        Assert.Contains("BuildCpMarketplaceAppDetailAsync", text, StringComparison.Ordinal);
+        Assert.Contains("No description excerpt yet.", text, StringComparison.Ordinal);
+        Assert.Contains("No installs yet.", text, StringComparison.Ordinal);
+        Assert.Contains("No reviews yet.", text, StringComparison.Ordinal);
+        Assert.Contains("ShowGhostScaffold=\"false\"", text, StringComparison.Ordinal);
+        Assert.Contains("table-epc", text, StringComparison.Ordinal);
+        Assert.Contains("PhpParityModuleBody", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)\">Open", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("/php-reference/", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("ASP.NET", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("review_text", text, StringComparison.Ordinal);
+
+        Assert.Equal("/cp/marketplace-apps-app?app_id=7#erp-row-7",
+            ErpRecordOpen.Href("/cp/marketplace-apps-app", "app_id", 7));
+        Assert.Equal(
+            "/cp/marketplace-apps-app?app_id=7",
+            ErpRecordOpen.PreserveRecordQuery(
+                "/cp/marketplace-apps-app",
+                "/CP/control/portal/epc_marketplace?app_id=7"));
     }
 
     [Fact]

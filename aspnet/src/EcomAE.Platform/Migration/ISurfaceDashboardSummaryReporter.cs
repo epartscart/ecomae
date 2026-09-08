@@ -504,6 +504,9 @@ public interface ISurfaceDashboardSummaryReporter
     Task<CpFreeToolsDigestResult> BuildCpFreeToolsDigestAsync(int limit, CancellationToken cancellationToken = default);
     Task<CpConfigSandboxDigestResult> BuildCpConfigSandboxDigestAsync(int limit, CancellationToken cancellationToken = default);
     Task<CpMarketplaceAppsDigestResult> BuildCpMarketplaceAppsDigestAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Opened marketplace app (PHP <c>app_id</c>) plus installs/reviews. Config JSON and review_text omitted.</summary>
+    Task<CpMarketplaceAppDetailResult> BuildCpMarketplaceAppDetailAsync(long id, CancellationToken cancellationToken = default);
     Task<CpNotificationsDigestResult> BuildCpNotificationsDigestAsync(int limit, CancellationToken cancellationToken = default);
     Task<CpPortalSettingsDigestResult> BuildCpPortalSettingsDigestAsync(int limit, CancellationToken cancellationToken = default);
     Task<CpDataMigrationsDigestResult> BuildCpDataMigrationsDigestAsync(int limit, CancellationToken cancellationToken = default);

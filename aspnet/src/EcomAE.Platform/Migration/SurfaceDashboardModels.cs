@@ -4352,6 +4352,47 @@ public sealed record CpMarketplaceAppsDigestResult(
     string Source,
     string Message);
 
+public sealed record CpMarketplaceAppDetail(
+    long Id,
+    string AppKey,
+    string Name,
+    string ShortDesc,
+    string Category,
+    string Developer,
+    string Version,
+    string Pricing,
+    decimal PriceMonthly,
+    long Downloads,
+    decimal AvgRating,
+    long ReviewCount,
+    string Status,
+    string PublishedAt,
+    int DescriptionLen,
+    string DescriptionExcerpt);
+
+public sealed record CpMarketplaceInstallDigest(
+    long Id,
+    string SiteKey,
+    string InstalledVersion,
+    string Status,
+    string InstalledAt);
+
+public sealed record CpMarketplaceReviewDigest(
+    long Id,
+    string SiteKey,
+    int Rating,
+    string Title,
+    string ReviewerName,
+    long HelpfulCount,
+    string CreatedAt);
+
+public sealed record CpMarketplaceAppDetailResult(
+    CpMarketplaceAppDetail? App,
+    IReadOnlyList<CpMarketplaceInstallDigest> Installs,
+    IReadOnlyList<CpMarketplaceReviewDigest> Reviews,
+    string Source,
+    string Message);
+
 public sealed record CpNotificationsSummary(
     int NotificationCount,
     int UnreadCount,

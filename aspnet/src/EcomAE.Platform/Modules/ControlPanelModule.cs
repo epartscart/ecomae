@@ -8282,7 +8282,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only epc_marketplace_apps/installs/reviews KPIs + apps (description/features/config/review_text omitted). PHP marketplace portal remains authoritative."
+                note = "Read-only epc_marketplace_apps/installs/reviews KPIs + apps. Open ?app_id= loads a 280-char description excerpt plus installs/reviews. features/config/review_text omitted. Install/review writes stay PHP."
             });
         });
 
