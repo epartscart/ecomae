@@ -2838,6 +2838,29 @@ public sealed record CpElectronicReportingDigestResult(
     string Source,
     string Message);
 
+public sealed record CpElectronicReportingFieldDigest(
+    long Id,
+    long FormatId,
+    string Label,
+    string SourceKey,
+    int Ordinal);
+
+public sealed record CpElectronicReportingRunDigest(
+    long Id,
+    long FormatId,
+    long CompanyId,
+    int RowCount,
+    string OutputType,
+    string Preview,
+    long TimeCreated);
+
+public sealed record CpElectronicReportingFormatDetailResult(
+    CpElectronicReportingFormatDigest? Format,
+    IReadOnlyList<CpElectronicReportingFieldDigest> Fields,
+    IReadOnlyList<CpElectronicReportingRunDigest> Runs,
+    string Source,
+    string Message);
+
 public sealed record CpCollectionsDunningSummary(
     int QueueCount,
     int OpenCount,
