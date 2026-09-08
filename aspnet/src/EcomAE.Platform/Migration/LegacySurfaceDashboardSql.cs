@@ -1931,6 +1931,35 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>Opened purchase requisition header — includes justification/decision shown on PHP detail.</summary>
+    public const string SelectCpPurchaseRequestDetail = """
+        SELECT `id`, IFNULL(`company_id`,0) AS company_id, IFNULL(`req_number`,'') AS req_number,
+               IFNULL(`requester`,'') AS requester, IFNULL(`business_unit_id`,0) AS business_unit_id,
+               IFNULL(`status`,'') AS status, IFNULL(`justification`,'') AS justification,
+               IFNULL(`total`,0) AS total, IFNULL(`requires_approval`,0) AS requires_approval,
+               IFNULL(`decided_by`,'') AS decided_by, IFNULL(`decision_note`,'') AS decision_note,
+               IFNULL(`po_ref`,'') AS po_ref, IFNULL(`time_created`,0) AS time_created
+        FROM `epc_proc_req`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Opened purchase requisition lines with category code (PHP epc_proc_req_lines + category_get).</summary>
+    public const string SelectCpPurchaseRequestLines = """
+        SELECT l.`id`, l.`req_id`, IFNULL(l.`category_id`,0) AS category_id,
+               IFNULL(c.`code`,'') AS category_code,
+               IFNULL(l.`item_code`,'') AS item_code,
+               IFNULL(l.`description`,'') AS description,
+               IFNULL(l.`qty`,0) AS qty,
+               IFNULL(l.`unit_price`,0) AS unit_price,
+               IFNULL(l.`line_total`,0) AS line_total,
+               IFNULL(l.`preferred_vendor`,'') AS preferred_vendor
+        FROM `epc_proc_req_line` l
+        LEFT JOIN `epc_proc_category` c ON c.`id` = l.`category_id`
+        WHERE l.`req_id` = @id
+        ORDER BY l.`id` ASC
+        """;
+
     /// <summary>Promotion KPIs.</summary>
     public const string SelectCpPromotionStats = """
         SELECT

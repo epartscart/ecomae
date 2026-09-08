@@ -7534,6 +7534,76 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    public async Task<CpPurchaseRequestDetailResult> BuildCpPurchaseRequestDetailAsync(long id, CancellationToken cancellationToken = default)
+    {
+        if (id <= 0)
+        {
+            return new(null, [], "n/a", "");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return new(null, [], "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            CpPurchaseRequestDetail? header = null;
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectCpPurchaseRequestDetail;
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    header = new CpPurchaseRequestDetail(
+                        Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["company_id"] is DBNull ? 0 : reader["company_id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["req_number"] is DBNull ? string.Empty : reader["req_number"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["requester"] is DBNull ? string.Empty : reader["requester"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt64(reader["business_unit_id"] is DBNull ? 0 : reader["business_unit_id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["status"] is DBNull ? string.Empty : reader["status"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["justification"] is DBNull ? string.Empty : reader["justification"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToDecimal(reader["total"] is DBNull ? 0 : reader["total"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["requires_approval"] is DBNull ? 0 : reader["requires_approval"], CultureInfo.InvariantCulture) != 0,
+                        Convert.ToString(reader["decided_by"] is DBNull ? string.Empty : reader["decided_by"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["decision_note"] is DBNull ? string.Empty : reader["decision_note"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["po_ref"] is DBNull ? string.Empty : reader["po_ref"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt64(reader["time_created"] is DBNull ? 0 : reader["time_created"], CultureInfo.InvariantCulture));
+                }
+            }
+
+            var lines = new List<CpPurchaseRequestLineDigest>();
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectCpPurchaseRequestLines;
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    lines.Add(new CpPurchaseRequestLineDigest(
+                        Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["req_id"] is DBNull ? 0 : reader["req_id"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["category_id"] is DBNull ? 0 : reader["category_id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["category_code"] is DBNull ? string.Empty : reader["category_code"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["item_code"] is DBNull ? string.Empty : reader["item_code"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["description"] is DBNull ? string.Empty : reader["description"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToDecimal(reader["qty"] is DBNull ? 0 : reader["qty"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(reader["unit_price"] is DBNull ? 0 : reader["unit_price"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(reader["line_total"] is DBNull ? 0 : reader["line_total"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["preferred_vendor"] is DBNull ? string.Empty : reader["preferred_vendor"], CultureInfo.InvariantCulture) ?? string.Empty));
+                }
+            }
+
+            return new(header, lines, "database", header is null ? "Requisition not found." : string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(null, [], "database-error", ex.Message);
+        }
+    }
+
     public async Task<CpPromotionsDigestResult> BuildCpPromotionsDigestAsync(int limit, CancellationToken cancellationToken = default)
     {
         var safeLimit = Math.Clamp(limit, 1, 500);
