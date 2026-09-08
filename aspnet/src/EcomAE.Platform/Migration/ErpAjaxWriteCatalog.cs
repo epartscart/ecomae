@@ -196,6 +196,7 @@ public sealed class ErpAjaxWriteCatalog : IErpAjaxWriteCatalog
         new("ins_claim_status", "dedicated", "/erp/ajax/ins-claim-status"),
         new("hr_emp_save", "dedicated", "/erp/ajax/hr-emp-save"),
         new("hr_attendance", "dedicated", "/erp/ajax/hr-attendance"),
+        new("hr_payroll_generate", "dedicated", "/erp/ajax/hr-payroll-generate"),
         new("hr_leave_request", "dedicated", "/erp/ajax/hr-leave-request"),
         new("hr_leave_status", "dedicated", "/erp/ajax/hr-leave-status"),
         new("hr_expense_save", "dedicated", "/erp/ajax/hr-expense-save"),
