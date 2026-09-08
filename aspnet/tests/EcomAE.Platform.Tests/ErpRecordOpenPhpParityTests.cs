@@ -73,6 +73,8 @@ public sealed class ErpRecordOpenPhpParityTests
     [InlineData("/CP/shop/geo?geo_id=4", "/cp/geo-regions-app?geo_id=4")]
     [InlineData("/CP/shop/logistics/sposoby-polucheniya?obtaining_mode_id=4", "/cp/delivery-methods-app?obtaining_mode_id=4")]
     [InlineData("/CP/shop/logistics/sposoby-polucheniya/sposob-polucheniya?obtaining_mode_id=4", "/cp/delivery-methods-app?obtaining_mode_id=4")]
+    [InlineData("/CP/content/content_manager/content?content_id=12", "/cp/pages-app?content_id=12")]
+    [InlineData("/CP/content/edit_content?content_id=12", "/cp/pages-app?content_id=12")]
     [InlineData("/ERP/?epc_erp_shell=1&area=landed_cost_area&tab=landed_cost&sheet_id=6", "/erp/landed-cost-app?sheet_id=6")]
     [InlineData("/CP/control/portal/epc_soc2_compliance?soc2_id=8", "/cp/soc2-compliance-app?soc2_id=8")]
     [InlineData("/ERP/?epc_erp_shell=1&area=tax&tab=compliance&soc2_id=8", "/erp/soc2-compliance-app?soc2_id=8")]
@@ -1346,6 +1348,40 @@ public sealed class ErpRecordOpenPhpParityTests
             ErpRecordOpen.PreserveRecordQuery(
                 "/cp/delivery-methods-app",
                 "/CP/shop/logistics/sposoby-polucheniya?obtaining_mode_id=4"));
+    }
+
+    [Fact]
+    public void PagesApp_OpenLoadsBodyExcerptAndKeepsWrites()
+    {
+        var root = FindRepoRoot();
+        var text = File.ReadAllText(Path.Combine(root,
+            "aspnet/src/EcomAE.Platform/Components/Pages/CpPagesApp.razor"));
+        Assert.Contains("ErpRecordOpen.Href(_listHref, \"content_id\"", text, StringComparison.Ordinal);
+        Assert.Contains("ErpOpenedRecordBanner", text, StringComparison.Ordinal);
+        Assert.Contains("ReadId(ctx.Request, \"content_id\")", text, StringComparison.Ordinal);
+        Assert.Contains("BuildCpPagesDetailAsync", text, StringComparison.Ordinal);
+        Assert.Contains("No body excerpt yet.", text, StringComparison.Ordinal);
+        Assert.Contains("No same-parent siblings yet.", text, StringComparison.Ordinal);
+        Assert.Contains("ShowGhostScaffold=\"false\"", text, StringComparison.Ordinal);
+        Assert.Contains("/cp/content/published", text, StringComparison.Ordinal);
+        Assert.Contains("/cp/content/body", text, StringComparison.Ordinal);
+        Assert.Contains("/cp/content/save", text, StringComparison.Ordinal);
+        Assert.Contains("epc-scp-users-workspace", text, StringComparison.Ordinal);
+        Assert.Contains("content_id=", text, StringComparison.Ordinal);
+        Assert.Contains("_selected", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)\">Open", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("/php-reference/", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("ASP.NET", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("@bind", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("@onclick", text, StringComparison.Ordinal);
+
+        Assert.Equal("/cp/pages-app?content_id=12#erp-row-12",
+            ErpRecordOpen.Href("/cp/pages-app", "content_id", 12));
+        Assert.Equal(
+            "/cp/pages-app?content_id=12",
+            ErpRecordOpen.PreserveRecordQuery(
+                "/cp/pages-app",
+                "/CP/content/content_manager/content?content_id=12"));
     }
 
     [Fact]

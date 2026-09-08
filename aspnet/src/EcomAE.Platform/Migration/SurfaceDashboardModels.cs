@@ -696,6 +696,26 @@ public sealed record CpPageListResult(
     string Source,
     string Message);
 
+public sealed record CpPageDetail(
+    int Id,
+    string Caption,
+    string Url,
+    string Alias,
+    bool IsFrontend,
+    bool Published,
+    int Level,
+    int SortOrder,
+    long Parent,
+    string ContentType,
+    int BodyLen,
+    string BodyExcerpt);
+
+public sealed record CpPageDetailResult(
+    CpPageDetail? Page,
+    IReadOnlyList<CpPageDigest> Siblings,
+    string Source,
+    string Message);
+
 public sealed record CpAdminSessionDigest(
     int UserId,
     string Email,
