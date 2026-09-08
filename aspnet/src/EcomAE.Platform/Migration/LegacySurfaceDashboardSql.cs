@@ -5339,6 +5339,29 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>Opened additional text. Content and description are short excerpts.</summary>
+    public const string SelectCpAdditionalTextsDetail = """
+        SELECT `id`, IFNULL(`url`,'') AS url, IFNULL(`before_main`,0) AS before_main,
+               IFNULL(`title_tag`,'') AS title_tag, IFNULL(`keywords_tag`,'') AS keywords_tag,
+               CHAR_LENGTH(IFNULL(`description_tag`,'')) AS description_len,
+               LEFT(IFNULL(`description_tag`,''), 280) AS description_excerpt,
+               CHAR_LENGTH(IFNULL(`content`,'')) AS content_len,
+               LEFT(IFNULL(`content`,''), 280) AS content_excerpt
+        FROM `text_for_url`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Other texts with the same before_main flag. Content omitted.</summary>
+    public const string SelectCpAdditionalTextsPlacementSiblings = """
+        SELECT `id`, IFNULL(`url`,'') AS url, IFNULL(`before_main`,0) AS before_main,
+               IFNULL(`title_tag`,'') AS title_tag, IFNULL(`keywords_tag`,'') AS keywords_tag
+        FROM `text_for_url`
+        WHERE `before_main` = @before_main AND `id` <> @id
+        ORDER BY `id` DESC
+        LIMIT 50
+        """;
+
     public const string CountCpSliderBannersImageCount = "SELECT COUNT(*) FROM `slider_images`";
     public const string CountCpSliderBannersConnected = "SELECT IFNULL(`connected`,0) FROM `slider_setings` LIMIT 1";
     public const string CountCpSliderBannersCntImg = "SELECT IFNULL(`cnt_img`,0) FROM `slider_setings` LIMIT 1";

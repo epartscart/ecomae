@@ -8518,7 +8518,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "text_for_url KPIs + texts (title/keywords). Save is POST /cp/additional-texts/write; delete is POST /cp/additional-texts/delete."
+                note = "text_for_url KPIs + texts. Open ?text_id= loads 280-char content and description excerpts. Full HTML omitted from the list. Save is POST /cp/additional-texts/write; delete is POST /cp/additional-texts/delete."
             });
         });
 

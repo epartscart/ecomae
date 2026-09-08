@@ -563,6 +563,9 @@ public interface ISurfaceDashboardSummaryReporter
     Task<CpSearchTabsDigestResult> BuildCpSearchTabsDigestAsync(int limit, CancellationToken cancellationToken = default);
     Task<CpSystemRequestsDigestResult> BuildCpSystemRequestsDigestAsync(int limit, CancellationToken cancellationToken = default);
     Task<CpAdditionalTextsDigestResult> BuildCpAdditionalTextsDigestAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Opened additional text (PHP <c>text_id</c>) plus same-placement siblings. Content excerpt only.</summary>
+    Task<CpAdditionalTextsDetailResult> BuildCpAdditionalTextsDetailAsync(long id, CancellationToken cancellationToken = default);
     Task<CpSliderBannersDigestResult> BuildCpSliderBannersDigestAsync(int limit, CancellationToken cancellationToken = default);
     Task<CpStructureDumpsDigestResult> BuildCpStructureDumpsDigestAsync(int limit, CancellationToken cancellationToken = default);
     Task<CpCommunicationsTestDigestResult> BuildCpCommunicationsTestDigestAsync(int limit, CancellationToken cancellationToken = default);

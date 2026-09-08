@@ -57,6 +57,7 @@ public sealed class ErpRecordOpenPhpParityTests
     [InlineData("/CP/control/portal/epc_notifications?notif_id=7", "/cp/notifications-app?notif_id=7")]
     [InlineData("/CP/control/portal/epc_social_media_hub?social_id=5", "/cp/social-hub-app?social_id=5")]
     [InlineData("/ERP/?epc_erp_shell=1&area=sales&tab=crm&ticket_id=8", "/erp/crm-tickets-app?ticket_id=8")]
+    [InlineData("/CP/content/dopolnitelnye-teksty?text_id=4", "/cp/additional-texts-app?text_id=4")]
     [InlineData("/ERP/?epc_erp_shell=1&area=landed_cost_area&tab=landed_cost&sheet_id=6", "/erp/landed-cost-app?sheet_id=6")]
     [InlineData("/CP/control/portal/epc_soc2_compliance?soc2_id=8", "/cp/soc2-compliance-app?soc2_id=8")]
     [InlineData("/ERP/?epc_erp_shell=1&area=tax&tab=compliance&soc2_id=8", "/erp/soc2-compliance-app?soc2_id=8")]
@@ -950,6 +951,37 @@ public sealed class ErpRecordOpenPhpParityTests
         Assert.Equal(
             "/erp/crm-tickets-app?tab=tickets&ticket_id=8#erp-row-8",
             ErpRecordOpen.Href("/erp/crm-tickets-app?tab=tickets", "ticket_id", 8));
+    }
+
+    [Fact]
+    public void AdditionalTextsApp_OpenLoadsContentExcerptAndKeepsWrites()
+    {
+        var root = FindRepoRoot();
+        var text = File.ReadAllText(Path.Combine(root,
+            "aspnet/src/EcomAE.Platform/Components/Pages/CpAdditionalTextsApp.razor"));
+        Assert.Contains("ErpRecordOpen.Href(_listHref, \"text_id\"", text, StringComparison.Ordinal);
+        Assert.Contains("ErpOpenedRecordBanner", text, StringComparison.Ordinal);
+        Assert.Contains("ReadId(ctx.Request, \"text_id\")", text, StringComparison.Ordinal);
+        Assert.Contains("BuildCpAdditionalTextsDetailAsync", text, StringComparison.Ordinal);
+        Assert.Contains("No content excerpt yet.", text, StringComparison.Ordinal);
+        Assert.Contains("No placement siblings yet.", text, StringComparison.Ordinal);
+        Assert.Contains("ShowGhostScaffold=\"false\"", text, StringComparison.Ordinal);
+        Assert.Contains("table-epc", text, StringComparison.Ordinal);
+        Assert.Contains("/cp/additional-texts/write", text, StringComparison.Ordinal);
+        Assert.Contains("/cp/additional-texts/delete", text, StringComparison.Ordinal);
+        Assert.Contains("PhpParityModuleBody", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)\">Open", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("/php-reference/", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("ASP.NET", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("epc-w22-hero", text, StringComparison.Ordinal);
+
+        Assert.Equal("/cp/additional-texts-app?text_id=4#erp-row-4",
+            ErpRecordOpen.Href("/cp/additional-texts-app", "text_id", 4));
+        Assert.Equal(
+            "/cp/additional-texts-app?text_id=4",
+            ErpRecordOpen.PreserveRecordQuery(
+                "/cp/additional-texts-app",
+                "/CP/content/dopolnitelnye-teksty?text_id=4"));
     }
 
     [Fact]

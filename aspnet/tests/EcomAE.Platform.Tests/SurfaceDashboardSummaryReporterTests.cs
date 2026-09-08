@@ -902,6 +902,14 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.Contains("body_excerpt", LegacySurfaceDashboardSql.SelectCpCrmTicketMessages, StringComparison.Ordinal);
         Assert.Contains("LEFT(IFNULL(`body`,''), 280)", LegacySurfaceDashboardSql.SelectCpCrmTicketMessages, StringComparison.Ordinal);
         Assert.Contains("`ticket_id` = @id", LegacySurfaceDashboardSql.SelectCpCrmTicketMessages, StringComparison.Ordinal);
+        Assert.Contains("text_for_url", LegacySurfaceDashboardSql.SelectCpAdditionalTextsRows, StringComparison.Ordinal);
+        Assert.DoesNotContain("`content`", LegacySurfaceDashboardSql.SelectCpAdditionalTextsRows, StringComparison.Ordinal);
+        Assert.DoesNotContain("description_tag", LegacySurfaceDashboardSql.SelectCpAdditionalTextsRows, StringComparison.Ordinal);
+        Assert.Contains("content_excerpt", LegacySurfaceDashboardSql.SelectCpAdditionalTextsDetail, StringComparison.Ordinal);
+        Assert.Contains("LEFT(IFNULL(`content`,''), 280)", LegacySurfaceDashboardSql.SelectCpAdditionalTextsDetail, StringComparison.Ordinal);
+        Assert.Contains("LEFT(IFNULL(`description_tag`,''), 280)", LegacySurfaceDashboardSql.SelectCpAdditionalTextsDetail, StringComparison.Ordinal);
+        Assert.DoesNotContain("`content`", LegacySurfaceDashboardSql.SelectCpAdditionalTextsPlacementSiblings, StringComparison.Ordinal);
+        Assert.DoesNotContain("description_tag", LegacySurfaceDashboardSql.SelectCpAdditionalTextsPlacementSiblings, StringComparison.Ordinal);
         Assert.Contains("epc_portal_site_settings", LegacySurfaceDashboardSql.SelectCpPortalSettingsStats, StringComparison.Ordinal);
         Assert.Contains("epc_portal_deploy_targets", LegacySurfaceDashboardSql.SelectCpPortalSettingsStats, StringComparison.Ordinal);
         Assert.DoesNotContain("contact_json", LegacySurfaceDashboardSql.SelectCpPortalSettingsRows, StringComparison.Ordinal);

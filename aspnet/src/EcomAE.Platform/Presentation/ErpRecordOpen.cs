@@ -52,7 +52,7 @@ public static class ErpRecordOpen
         "migration_id", "proof_id",
         "item_id", "app_id",
         "report_id", "pbi_id", "mb_id", "review_id", "run_id", "pack_id", "snapshot_id", "rule_id", "task_id",
-        "query_id", "block_id", "notif_id", "social_id", "activity_id", "ticket_id",
+        "query_id", "block_id", "notif_id", "social_id", "activity_id", "ticket_id", "text_id",
     ];
 
     public static string Href(string appPath, string param, long id)

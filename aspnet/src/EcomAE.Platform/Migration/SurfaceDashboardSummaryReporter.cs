@@ -15495,6 +15495,73 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    public async Task<CpAdditionalTextsDetailResult> BuildCpAdditionalTextsDetailAsync(long id, CancellationToken cancellationToken = default)
+    {
+        if (id <= 0)
+        {
+            return new(null, [], "n/a", "");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return new(null, [], "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            CpAdditionalTextsDetail? header = null;
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectCpAdditionalTextsDetail;
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    header = new CpAdditionalTextsDetail(
+                        Convert.ToInt64(reader["id"] is DBNull ? 0 : reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["url"] is DBNull ? string.Empty : reader["url"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt32(reader["before_main"] is DBNull ? 0 : reader["before_main"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["title_tag"] is DBNull ? string.Empty : reader["title_tag"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["keywords_tag"] is DBNull ? string.Empty : reader["keywords_tag"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt32(reader["description_len"] is DBNull ? 0 : reader["description_len"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["description_excerpt"] is DBNull ? string.Empty : reader["description_excerpt"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt32(reader["content_len"] is DBNull ? 0 : reader["content_len"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["content_excerpt"] is DBNull ? string.Empty : reader["content_excerpt"], CultureInfo.InvariantCulture) ?? string.Empty);
+                }
+            }
+
+            if (header is null)
+            {
+                return new(null, [], "database", "Text not found.");
+            }
+
+            var siblings = new List<CpAdditionalTextsRowDigest>();
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectCpAdditionalTextsPlacementSiblings;
+                AddParameter(cmd, "@before_main", header.BeforeMain);
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    siblings.Add(new CpAdditionalTextsRowDigest(
+                        Convert.ToInt64(reader["id"] is DBNull ? 0 : reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["url"] is DBNull ? string.Empty : reader["url"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt32(reader["before_main"] is DBNull ? 0 : reader["before_main"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["title_tag"] is DBNull ? string.Empty : reader["title_tag"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["keywords_tag"] is DBNull ? string.Empty : reader["keywords_tag"], CultureInfo.InvariantCulture) ?? string.Empty));
+                }
+            }
+
+            return new(header, siblings, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(null, [], "database-error", ex.Message);
+        }
+    }
+
     public async Task<CpSliderBannersDigestResult> BuildCpSliderBannersDigestAsync(int limit, CancellationToken cancellationToken = default)
     {
         var safeLimit = Math.Clamp(limit, 1, 500);

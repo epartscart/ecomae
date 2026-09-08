@@ -4964,6 +4964,23 @@ public sealed record CpAdditionalTextsDigestResult(
     string Source,
     string Message);
 
+public sealed record CpAdditionalTextsDetail(
+    long Id,
+    string Url,
+    int BeforeMain,
+    string TitleTag,
+    string KeywordsTag,
+    int DescriptionLen,
+    string DescriptionExcerpt,
+    int ContentLen,
+    string ContentExcerpt);
+
+public sealed record CpAdditionalTextsDetailResult(
+    CpAdditionalTextsDetail? Text,
+    IReadOnlyList<CpAdditionalTextsRowDigest> Siblings,
+    string Source,
+    string Message);
+
 public sealed record CpSliderBannersSummary(
     int ImageCount,
     int Connected,
