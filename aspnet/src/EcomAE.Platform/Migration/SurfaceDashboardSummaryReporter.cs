@@ -14307,6 +14307,72 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    public async Task<CpFreeToolsAccountDetailResult> BuildCpFreeToolsAccountDetailAsync(long id, CancellationToken cancellationToken = default)
+    {
+        if (id <= 0)
+        {
+            return new(null, [], "n/a", "");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return new(null, [], "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await _connections.OpenRegistryAsync(cancellationToken).ConfigureAwait(false);
+            CpFreeToolsAccountDetail? header = null;
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectCpFreeToolsAccountDetail;
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    header = new CpFreeToolsAccountDetail(
+                        Convert.ToInt64(reader["id"] is DBNull ? 0 : reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["email"] is DBNull ? string.Empty : reader["email"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["company"] is DBNull ? string.Empty : reader["company"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["country"] is DBNull ? string.Empty : reader["country"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt64(reader["use_count"] is DBNull ? 0 : reader["use_count"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["login_count"] is DBNull ? 0 : reader["login_count"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["time_created"] is DBNull ? 0 : reader["time_created"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["time_last_seen"] is DBNull ? 0 : reader["time_last_seen"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["time_last_login"] is DBNull ? 0 : reader["time_last_login"], CultureInfo.InvariantCulture));
+                }
+            }
+
+            if (header is null)
+            {
+                return new(null, [], "database", "Account not found.");
+            }
+
+            var saves = new List<CpFreeToolsSaveDigest>();
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectCpFreeToolsAccountSaves;
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    saves.Add(new CpFreeToolsSaveDigest(
+                        Convert.ToInt64(reader["id"] is DBNull ? 0 : reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["tool"] is DBNull ? string.Empty : reader["tool"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["country"] is DBNull ? string.Empty : reader["country"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["title"] is DBNull ? string.Empty : reader["title"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt64(reader["time_created"] is DBNull ? 0 : reader["time_created"], CultureInfo.InvariantCulture)));
+                }
+            }
+
+            return new(header, saves, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(null, [], "database-error", ex.Message);
+        }
+    }
+
     public async Task<CpConfigSandboxDigestResult> BuildCpConfigSandboxDigestAsync(int limit, CancellationToken cancellationToken = default)
     {
         var safeLimit = Math.Clamp(limit, 1, 500);

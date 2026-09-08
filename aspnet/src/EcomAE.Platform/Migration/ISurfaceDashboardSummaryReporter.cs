@@ -529,6 +529,9 @@ public interface ISurfaceDashboardSummaryReporter
     Task<CpPlatformCommunicationTaskDetailResult> BuildCpPlatformCommunicationTaskDetailAsync(long id, CancellationToken cancellationToken = default);
     Task<CpInfoBlocksDigestResult> BuildCpInfoBlocksDigestAsync(int limit, CancellationToken cancellationToken = default);
     Task<CpFreeToolsDigestResult> BuildCpFreeToolsDigestAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Opened free-tools account (PHP <c>account_id</c>) plus saved tools. token/pass_hash/del_code_hash/payload omitted.</summary>
+    Task<CpFreeToolsAccountDetailResult> BuildCpFreeToolsAccountDetailAsync(long id, CancellationToken cancellationToken = default);
     Task<CpConfigSandboxDigestResult> BuildCpConfigSandboxDigestAsync(int limit, CancellationToken cancellationToken = default);
 
     /// <summary>Opened config snapshot (PHP <c>snapshot_id</c>) plus change keys. config_data excerpt only; old/new values omitted.</summary>

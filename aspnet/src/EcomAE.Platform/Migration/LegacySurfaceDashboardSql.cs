@@ -4862,6 +4862,28 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>Opened free-tools account. token/pass_hash/del_code_hash omitted.</summary>
+    public const string SelectCpFreeToolsAccountDetail = """
+        SELECT `id`, IFNULL(`email`,'') AS email, IFNULL(`company`,'') AS company,
+               IFNULL(`country`,'') AS country, IFNULL(`use_count`,0) AS use_count,
+               IFNULL(`login_count`,0) AS login_count, IFNULL(`time_created`,0) AS time_created,
+               IFNULL(`time_last_seen`,0) AS time_last_seen,
+               IFNULL(`time_last_login`,0) AS time_last_login
+        FROM `epc_free_tool_accounts`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Saved tools for the opened account. payload omitted.</summary>
+    public const string SelectCpFreeToolsAccountSaves = """
+        SELECT `id`, IFNULL(`tool`,'') AS tool, IFNULL(`country`,'') AS country,
+               IFNULL(`title`,'') AS title, IFNULL(`time_created`,0) AS time_created
+        FROM `epc_free_tool_saves`
+        WHERE `account_id` = @id
+        ORDER BY `id` DESC
+        LIMIT 50
+        """;
+
     /// <summary>Config sandbox KPIs from epc_config_snapshots/changes (CREATE TABLE in epc_config_sandbox.php).</summary>
     public const string SelectCpConfigSandboxStats = """
         SELECT

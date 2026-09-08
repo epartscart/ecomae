@@ -4501,6 +4501,30 @@ public sealed record CpFreeToolsDigestResult(
     string Source,
     string Message);
 
+public sealed record CpFreeToolsAccountDetail(
+    long Id,
+    string Email,
+    string Company,
+    string Country,
+    long UseCount,
+    long LoginCount,
+    long TimeCreated,
+    long TimeLastSeen,
+    long TimeLastLogin);
+
+public sealed record CpFreeToolsSaveDigest(
+    long Id,
+    string Tool,
+    string Country,
+    string Title,
+    long TimeCreated);
+
+public sealed record CpFreeToolsAccountDetailResult(
+    CpFreeToolsAccountDetail? Account,
+    IReadOnlyList<CpFreeToolsSaveDigest> Saves,
+    string Source,
+    string Message);
+
 public sealed record CpConfigSandboxSummary(
     int SnapshotCount,
     int ActiveSnapshotCount,
