@@ -138,6 +138,8 @@ public sealed class SurfaceDashboardSummaryReporterTests
         var warehouseWms = await reporter.BuildCpWarehouseWmsDigestAsync(10);
         var aiService = await reporter.BuildCpAiServiceDigestAsync(10);
         var returnsRma = await reporter.BuildCpReturnsRmaDigestAsync(10);
+        var returnsRmaDetail = await reporter.BuildCpReturnsRmaDetailAsync(6);
+        var shopReturnDetail = await reporter.BuildCpShopReturnDetailAsync(8);
         var isolationAudit = await reporter.BuildCpIsolationAuditDigestAsync(10);
         var amlCompliance = await reporter.BuildCpAmlComplianceDigestAsync(10);
         var jewelleryMasters = await reporter.BuildCpJewelleryMastersDigestAsync(10);
@@ -376,6 +378,8 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.Equal("migration", warehouseWms.Source);
         Assert.Equal("migration", aiService.Source);
         Assert.Equal("migration", returnsRma.Source);
+        Assert.Equal("migration", returnsRmaDetail.Source);
+        Assert.Equal("migration", shopReturnDetail.Source);
         Assert.Equal("migration", taxExternalReporting.Source);
         Assert.Equal("migration", poApprovals.Source);
         Assert.Equal("migration", financeClose.Source);
@@ -619,6 +623,13 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.Contains("epc_rma_requests", LegacySurfaceDashboardSql.SelectCpReturnsRmaRequests, StringComparison.Ordinal);
         Assert.DoesNotContain("`description`", LegacySurfaceDashboardSql.SelectCpReturnsRmaRequests, StringComparison.Ordinal);
         Assert.DoesNotContain("resolution_notes", LegacySurfaceDashboardSql.SelectCpReturnsRmaRequests, StringComparison.Ordinal);
+        Assert.Contains("`description`", LegacySurfaceDashboardSql.SelectCpReturnsRmaRequestDetail, StringComparison.Ordinal);
+        Assert.Contains("resolution_notes", LegacySurfaceDashboardSql.SelectCpReturnsRmaRequestDetail, StringComparison.Ordinal);
+        Assert.Contains("epc_rma_items", LegacySurfaceDashboardSql.SelectCpReturnsRmaItems, StringComparison.Ordinal);
+        Assert.Contains("`rma_id` = @id", LegacySurfaceDashboardSql.SelectCpReturnsRmaItems, StringComparison.Ordinal);
+        Assert.Contains("shop_orders_returns", LegacySurfaceDashboardSql.SelectCpShopReturnDetail, StringComparison.Ordinal);
+        Assert.Contains("shop_orders_returns_items", LegacySurfaceDashboardSql.SelectCpShopReturnLines, StringComparison.Ordinal);
+        Assert.Contains("`return_id` = @id", LegacySurfaceDashboardSql.SelectCpShopReturnLines, StringComparison.Ordinal);
         Assert.Contains("epc_ci_audit_runs", LegacySurfaceDashboardSql.SelectCpIsolationAuditRuns, StringComparison.Ordinal);
         Assert.DoesNotContain("report_json", LegacySurfaceDashboardSql.SelectCpIsolationAuditRuns, StringComparison.Ordinal);
         Assert.Contains("epc_aml_kyc", LegacySurfaceDashboardSql.SelectCpAmlComplianceKyc, StringComparison.Ordinal);
