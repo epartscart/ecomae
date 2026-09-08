@@ -15,6 +15,8 @@ public interface IErpBosIntelToggleWriteService
     Task<ErpSimpleWriteResult> ToggleAsync(
         ErpBosIntelToggleWriteRequest request,
         CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyDictionary<string, int>> LoadStateAsync(CancellationToken cancellationToken = default);
 }
 
 public sealed record ErpBosIntelToggleWriteRequest(
@@ -30,6 +32,23 @@ public sealed class ErpBosIntelToggleWriteService : IErpBosIntelToggleWriteServi
     public ErpBosIntelToggleWriteService(IErpWriteConnectionFactory connections)
     {
         _connections = connections;
+    }
+
+    public async Task<IReadOnlyDictionary<string, int>> LoadStateAsync(CancellationToken cancellationToken = default)
+    {
+        if (!_connections.IsConfigured)
+        {
+            return new Dictionary<string, int>(StringComparer.Ordinal);
+        }
+
+        await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        if (!await ColumnExistsAsync(connection, "epc_price_settings", "setting_key", cancellationToken).ConfigureAwait(false))
+        {
+            return new Dictionary<string, int>(StringComparer.Ordinal);
+        }
+
+        var raw = await ReadRawAsync(connection, cancellationToken).ConfigureAwait(false);
+        return ParseState(raw);
     }
 
     public async Task<ErpSimpleWriteResult> ToggleAsync(
@@ -49,12 +68,7 @@ public sealed class ErpBosIntelToggleWriteService : IErpBosIntelToggleWriteServi
             return ErpSimpleWriteResult.Fail("invalid", "Settings table is not provisioned");
         }
 
-        var raw = await ErpDb.StringAsync(
-            connection,
-            null,
-            ErpDb.Positional("SELECT `setting_value` FROM `epc_price_settings` WHERE `setting_key` = ? LIMIT 1"),
-            cancellationToken,
-            SettingKey).ConfigureAwait(false);
+        var raw = await ReadRawAsync(connection, cancellationToken).ConfigureAwait(false);
         var state = ParseStateObject(raw);
         if (request.Checked)
         {
@@ -75,6 +89,14 @@ public sealed class ErpBosIntelToggleWriteService : IErpBosIntelToggleWriteServi
             EncodeState(state)).ConfigureAwait(false);
         return ErpSimpleWriteResult.Ok("Control updated", 0);
     }
+
+    private Task<string?> ReadRawAsync(DbConnection connection, CancellationToken cancellationToken)
+        => ErpDb.StringAsync(
+            connection,
+            null,
+            ErpDb.Positional("SELECT `setting_value` FROM `epc_price_settings` WHERE `setting_key` = ? LIMIT 1"),
+            cancellationToken,
+            SettingKey);
 
     /// <summary>PHP <c>json_decode(..., true)</c> of the stored blob; invalid JSON becomes [].</summary>
     public static Dictionary<string, int> ParseState(string? raw)

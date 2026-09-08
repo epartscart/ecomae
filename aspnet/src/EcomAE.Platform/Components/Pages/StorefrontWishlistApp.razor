@@ -72,12 +72,10 @@
         <div class="epc-sf-wl-grid" aria-label="Bookmarked products">
             @foreach (var p in _products)
             {
-                <article class="epc-sf-wl-card">
+                <article class="product_div_tile epc-sf-wl-card">
                     <h3>@(string.IsNullOrWhiteSpace(p.Caption) ? ("Product #" + p.Id) : p.Caption)</h3>
-                    <p>
-                        @(string.IsNullOrWhiteSpace(p.Manufacturer) ? "" : p.Manufacturer + " · ")
-                        @(string.IsNullOrWhiteSpace(p.Article) ? ("#" + p.Id) : p.Article)
-                    </p>
+                    <div class="product_div_manufacturer">@(string.IsNullOrWhiteSpace(p.Manufacturer) ? "—" : p.Manufacturer)</div>
+                    <div class="product_div_article">@(string.IsNullOrWhiteSpace(p.Article) ? ("#" + p.Id) : p.Article)</div>
                     <a href="@StorefrontSurfaceLinks.ForProduct(p.Id)">View</a>
                     ·
                     <form method="get" action="@StorefrontSurfaceLinks.Cart" style="display:inline">
@@ -86,12 +84,14 @@
                         <button type="submit" class="btn btn-sm btn-primary" style="padding:.15rem .5rem;font-size:.78rem">Add to cart</button>
                     </form>
                     ·
-                    <form method="post" action="@PhpCustomerWrites.WishlistRemoveHref" style="display:inline">
-                        <input type="hidden" name="confirmWrites" value="true" />
-                        <input type="hidden" name="returnUrl" value="/storefront/wishlist-app" />
-                        <input type="hidden" name="product_id" value="@p.Id.ToString(CultureInfo.InvariantCulture)" />
-                        <button type="submit" class="btn btn-sm btn-default" style="padding:.15rem .5rem;font-size:.78rem">Remove</button>
-                    </form>
+                    <div class="product_div_bookmark" style="display:inline">
+                        <form method="post" action="@PhpCustomerWrites.WishlistRemoveHref" style="display:inline">
+                            <input type="hidden" name="confirmWrites" value="true" />
+                            <input type="hidden" name="returnUrl" value="/storefront/wishlist-app" />
+                            <input type="hidden" name="product_id" value="@p.Id.ToString(CultureInfo.InvariantCulture)" />
+                            <button type="submit" class="btn btn-sm btn-default" style="padding:.15rem .5rem;font-size:.78rem">Remove</button>
+                        </form>
+                    </div>
                 </article>
             }
         </div>

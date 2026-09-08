@@ -18,10 +18,12 @@
             <p style="color:#475569">Staff board for appointments, check-in, job cards, bays, and handover.</p>
             @if (!_isStaff)
             {
-                <div style="padding:1.15rem 1.2rem;background:#fff;border:1px solid #e2e8f0;border-radius:.55rem">
-                    <p style="margin:0 0 .75rem">Sign in with a workshop staff account to open the board.</p>
-                    <a class="btn btn-primary" href="@StorefrontAspNetCanonical.GarageLogin">Garage login</a>
-                    <a class="btn btn-default" href="@StorefrontAspNetCanonical.AutoWorkshop" style="margin-left:.4rem">Public book / track</a>
+                <div class="panel panel-primary">
+                    <div class="panel-body">
+                        <p style="margin:0 0 .75rem">Sign in with a workshop staff account to open the board.</p>
+                        <a class="btn btn-ar btn-primary" href="@StorefrontAspNetCanonical.GarageLogin">Garage login</a>
+                        <a class="btn btn-ar btn-default" href="@StorefrontAspNetCanonical.AutoWorkshop">Public book / track</a>
+                    </div>
                 </div>
             }
             else
@@ -40,14 +42,18 @@
                     <a class="btn btn-default" href="@StorefrontAspNetCanonical.AutoWorkshop" style="margin-left:.4rem">Public book / track</a>
                     <a class="btn btn-default" href="@StorefrontAspNetCanonical.GarageLogin" style="margin-left:.4rem">Customer garage</a>
                 </p>
-                <form method="post" action="@PhpWorkshopPortal.ManagerWriteHref" style="margin-top:1rem;background:#fff;border:1px solid #e2e8f0;border-radius:.55rem;padding:1rem 1.1rem">
-                    <h2 style="font-size:1.05rem;margin:.1rem 0 .65rem">New appointment</h2>
-                    <label>Customer name</label>
-                    <input name="customer_name" required style="width:100%;margin:0 0 .65rem;padding:.5rem" />
-                    <label>Plate</label>
-                    <input name="plate" required style="width:100%;margin:0 0 .85rem;padding:.5rem" />
-                    <button type="submit" style="border:0;border-radius:.45rem;background:#0e7490;color:#fff;font-weight:800;padding:.65rem 1rem;cursor:pointer">Create appointment</button>
-                </form>
+                <div class="panel panel-primary">
+                    <div class="panel-heading">New appointment</div>
+                    <div class="panel-body">
+                        <form method="post" action="@PhpWorkshopPortal.ManagerWriteHref">
+                            <label for="customer_name">Customer name</label>
+                            <input id="customer_name" class="form-control" name="customer_name" required />
+                            <label for="plate">Plate</label>
+                            <input id="plate" class="form-control" name="plate" required />
+                            <button type="submit" class="btn btn-ar btn-primary" style="margin-top:10px;">Create appointment</button>
+                        </form>
+                    </div>
+                </div>
             }
         </div>
     </section>

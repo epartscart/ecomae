@@ -2,95 +2,206 @@
 @page "/en/vendor/register"
 @page "/vendor/register"
 @layout Layout.PhpChromeLayout
+@using System.Collections.Generic
+@using System.Text.Json
 @using EcomAE.Platform.Presentation
 @inject IHttpContextAccessor Http
 
 <PageTitle>Register as a vendor · @_brand</PageTitle>
 <PhpSurfaceHead Surface="storefront" IncludeStorefrontAnalytics="true" ApplyStorefrontIndustryAttrs="true" />
 <PhpChromeBodyClass Surface="storefront" LoginChrome="true" />
+<HeadContent>
+    <link rel="stylesheet" href="/platform-assets/epc_vendor_portal.css?v=20260908vp" />
+</HeadContent>
 
 <StorefrontTenantChrome>
-    <section class="epc-vp" style="padding:2rem 0 3rem">
-        <div class="container" style="max-width:46rem">
-            <p style="margin:0 0 .35rem;color:#64748b;font-size:.85rem"><a href="@StorefrontAspNetCanonical.VendorPortal">Vendor portal</a></p>
-            <h1 style="margin:.1rem 0 .4rem">Register as a vendor</h1>
-            <p style="color:#475569">Sell from the storefront with UAE e-invoice seller details (TRN, trade licence, address).</p>
-            <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:.45rem;padding:.75rem .9rem;margin:1rem 0;color:#78350f;font-size:.9rem">
-                <strong>UAE e-invoicing (FTA / PINT-AE).</strong>
-                Tax invoices need legal name, 15-digit TRN when VAT-registered, trade licence, and a full UAE address with emirate.
+    <section class="epc-vp">
+        <div class="epc-vp__wrap">
+            <div class="epc-vp__card epc-vp__card--wide">
+                <div class="epc-vp__brand">@_brand <span>Vendor</span></div>
+                <h1>Register as a vendor</h1>
+                <p class="epc-vp__lead">Sell from the storefront with UAE e-invoice ready seller details (TRN, trade licence, address). No control-panel login needed.</p>
+
+                <div class="epc-vp__notice">
+                    <strong>UAE e-invoicing (FTA / PINT-AE)</strong>
+                    Seller tax invoices require legal name, 15-digit TRN (when VAT-registered), trade licence identifier, Peppol electronic address, and full UAE address with emirate.
+                </div>
+
+                <form method="post" action="@PhpVendorPortal.RegisterWriteHref" class="epc-vp__form" autocomplete="on" id="epc-vendor-register-form">
+                    <div class="epc-vp__top-actions">
+                        <button type="submit" class="epc-vp__btn">Create vendor account</button>
+                    </div>
+                    <h2 class="epc-vp__section">1. Account login</h2>
+                    <label>Login email *</label>
+                    <input type="email" name="email" required />
+
+                    <div class="epc-vp__row">
+                        <div>
+                            <label>Password *</label>
+                            <input type="password" name="password" required minlength="6" />
+                        </div>
+                        <div>
+                            <label>Confirm password *</label>
+                            <input type="password" name="password2" required minlength="6" />
+                        </div>
+                    </div>
+
+                    <h2 class="epc-vp__section">2. Contact person</h2>
+                    <div class="epc-vp__row">
+                        <div>
+                            <label>Contact name *</label>
+                            <input type="text" name="contact_name" required maxlength="190" />
+                        </div>
+                        <div>
+                            <label>Job title</label>
+                            <input type="text" name="contact_job_title" maxlength="120" placeholder="Accounts / Sales" />
+                        </div>
+                    </div>
+                    <div class="epc-vp__row">
+                        <div>
+                            <label>Phone / mobile *</label>
+                            <input type="text" name="phone" required maxlength="64" placeholder="+971…" />
+                        </div>
+                        <div>
+                            <label>Billing email <span class="epc-vp__hint">(if different)</span></label>
+                            <input type="email" name="billing_email" maxlength="190" />
+                        </div>
+                    </div>
+
+                    <h2 class="epc-vp__section">3. Legal &amp; tax identity (UAE e-invoice)</h2>
+                    <label>Legal entity name * <span class="epc-vp__hint">(as on trade licence)</span></label>
+                    <input type="text" name="legal_name" required maxlength="255" placeholder="S-UAE Trading L.L.C" />
+
+                    <label>Trade / storefront name * <span class="epc-vp__hint">(warehouse / customer-facing)</span></label>
+                    <input type="text" name="vendor_full" required maxlength="255" placeholder="S-UAE Trading" />
+
+                    <label class="epc-vp__check">
+                        <input type="checkbox" name="vat_registered" value="1" id="epc_vat_registered" checked />
+                        VAT registered in the UAE
+                    </label>
+
+                    <label>Tax Registration Number (TRN) <span class="epc-vp__hint" id="epc_trn_req_hint">* 15 digits</span></label>
+                    <input type="text" name="trn" id="epc_vendor_trn" inputmode="numeric" maxlength="15" placeholder="100123456700003" />
+                    <p class="epc-vp__field-help">FTA TRN is mandatory on tax invoices when VAT-registered. TIN / Peppol endpoint are derived automatically (scheme 0235).</p>
+
+                    <div class="epc-vp__row">
+                        <div>
+                            <label>Legal registration type *</label>
+                            <select name="legal_reg_type" required>
+                                @foreach (var t in PhpVendorPortal.LegalRegTypes)
+                                {
+                                    <option value="@t.Code">@t.Label</option>
+                                }
+                            </select>
+                        </div>
+                        <div>
+                            <label>Trade licence / reg. no. *</label>
+                            <input type="text" name="legal_reg_no" required maxlength="64" placeholder="Commercial licence number" />
+                        </div>
+                    </div>
+
+                    <label>Licensing authority *</label>
+                    <input type="text" name="authority_name" id="epc_authority_name" required maxlength="255" placeholder="Dubai Economy and Tourism" />
+
+                    <h2 class="epc-vp__section">4. Business address</h2>
+                    <label>Address line 1 *</label>
+                    <input type="text" name="address_line1" required maxlength="255" placeholder="Building, street, area" />
+
+                    <label>Address line 2</label>
+                    <input type="text" name="address_line2" maxlength="255" placeholder="Office / unit (optional)" />
+
+                    <div class="epc-vp__row">
+                        <div>
+                            <label>City *</label>
+                            <input type="text" name="city" required maxlength="120" placeholder="Dubai" />
+                        </div>
+                        <div>
+                            <label>Emirate * <span class="epc-vp__hint">(country subdivision)</span></label>
+                            <select name="emirate" id="epc_vendor_emirate" required>
+                                <option value="">Select emirate…</option>
+                                @foreach (var e in PhpVendorPortal.Emirates)
+                                {
+                                    <option value="@e">@e</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                    <div class="epc-vp__row">
+                        <div>
+                            <label>Postal / P.O. Box</label>
+                            <input type="text" name="postal_code" maxlength="32" />
+                        </div>
+                        <div>
+                            <label>Country code *</label>
+                            <input type="text" name="country_code" required maxlength="8" value="AE" />
+                        </div>
+                    </div>
+
+                    <h2 class="epc-vp__section">5. Storefront code</h2>
+                    <label>Vendor short code * <span class="epc-vp__hint">(shown to customers)</span></label>
+                    <input type="text" name="vendor_short" required maxlength="64" placeholder="S-UAE" />
+
+                    <div class="epc-vp__sticky-submit">
+                        <button type="submit" class="epc-vp__btn">Create vendor account</button>
+                    </div>
+                </form>
+
+                <p class="epc-vp__foot">
+                    Already a vendor? <a href="@StorefrontAspNetCanonical.VendorPortal">Sign in to your portal</a>
+                </p>
             </div>
-            <form method="post" action="@PhpVendorPortal.RegisterWriteHref" class="epc-vp__form" autocomplete="on" style="background:#fff;border:1px solid #e2e8f0;border-radius:.55rem;padding:1.1rem 1.2rem">
-                <h2 style="font-size:1.05rem">1. Account login</h2>
-                <label>Login email *</label>
-                <input type="email" name="email" required style="width:100%;margin:.25rem 0 .75rem;padding:.5rem" />
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem">
-                    <div><label>Password *</label><input type="password" name="password" required minlength="6" style="width:100%;margin:.25rem 0 .75rem;padding:.5rem" /></div>
-                    <div><label>Confirm password *</label><input type="password" name="password2" required minlength="6" style="width:100%;margin:.25rem 0 .75rem;padding:.5rem" /></div>
-                </div>
-                <h2 style="font-size:1.05rem">2. Contact person</h2>
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem">
-                    <div><label>Contact name *</label><input type="text" name="contact_name" required maxlength="190" style="width:100%;margin:.25rem 0 .75rem;padding:.5rem" /></div>
-                    <div><label>Job title</label><input type="text" name="contact_job_title" maxlength="120" style="width:100%;margin:.25rem 0 .75rem;padding:.5rem" /></div>
-                </div>
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem">
-                    <div><label>Phone / mobile *</label><input type="text" name="phone" required maxlength="64" placeholder="+971…" style="width:100%;margin:.25rem 0 .75rem;padding:.5rem" /></div>
-                    <div><label>Billing email</label><input type="email" name="billing_email" maxlength="190" style="width:100%;margin:.25rem 0 .75rem;padding:.5rem" /></div>
-                </div>
-                <h2 style="font-size:1.05rem">3. Legal &amp; tax identity</h2>
-                <label>Legal entity name *</label>
-                <input type="text" name="legal_name" required maxlength="255" style="width:100%;margin:.25rem 0 .75rem;padding:.5rem" />
-                <label>Trade / storefront name *</label>
-                <input type="text" name="vendor_full" required maxlength="255" style="width:100%;margin:.25rem 0 .75rem;padding:.5rem" />
-                <label style="display:block;margin:.4rem 0"><input type="checkbox" name="vat_registered" value="1" checked /> VAT registered in the UAE</label>
-                <label>Tax Registration Number (TRN)</label>
-                <input type="text" name="trn" inputmode="numeric" maxlength="15" placeholder="100123456700003" style="width:100%;margin:.25rem 0 .75rem;padding:.5rem" />
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem">
-                    <div>
-                        <label>Legal registration type *</label>
-                        <select name="legal_reg_type" required style="width:100%;margin:.25rem 0 .75rem;padding:.5rem">
-                            @foreach (var t in PhpVendorPortal.LegalRegTypes)
-                            {
-                                <option value="@t.Code">@t.Label</option>
-                            }
-                        </select>
-                    </div>
-                    <div>
-                        <label>Trade licence / reg. no. *</label>
-                        <input type="text" name="legal_reg_no" required maxlength="64" style="width:100%;margin:.25rem 0 .75rem;padding:.5rem" />
-                    </div>
-                </div>
-                <label>Licensing authority *</label>
-                <input type="text" name="authority_name" required maxlength="255" placeholder="Dubai Economy and Tourism" style="width:100%;margin:.25rem 0 .75rem;padding:.5rem" />
-                <h2 style="font-size:1.05rem">4. Business address</h2>
-                <label>Address line 1 *</label>
-                <input type="text" name="address_line1" required maxlength="255" style="width:100%;margin:.25rem 0 .75rem;padding:.5rem" />
-                <label>Address line 2</label>
-                <input type="text" name="address_line2" maxlength="255" style="width:100%;margin:.25rem 0 .75rem;padding:.5rem" />
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem">
-                    <div><label>City *</label><input type="text" name="city" required maxlength="120" style="width:100%;margin:.25rem 0 .75rem;padding:.5rem" /></div>
-                    <div>
-                        <label>Emirate *</label>
-                        <select name="emirate" required style="width:100%;margin:.25rem 0 .75rem;padding:.5rem">
-                            @foreach (var e in PhpVendorPortal.Emirates)
-                            {
-                                <option value="@e">@e</option>
-                            }
-                        </select>
-                    </div>
-                </div>
-                <input type="hidden" name="country_code" value="AE" />
-                <button type="submit" style="width:100%;padding:.75rem 1rem;border:0;border-radius:.45rem;background:#dc2626;color:#fff;font-weight:800;cursor:pointer">Create vendor account</button>
-                <p style="margin:.75rem 0 0;color:#64748b;font-size:.82rem">Already registered? <a href="@StorefrontAspNetCanonical.VendorPortal">Sign in</a></p>
-            </form>
         </div>
     </section>
 </StorefrontTenantChrome>
 
+<script>
+(function(){
+    var authorities = @((MarkupString)_authoritiesJson);
+    var em = document.getElementById('epc_vendor_emirate');
+    var auth = document.getElementById('epc_authority_name');
+    var vat = document.getElementById('epc_vat_registered');
+    var trn = document.getElementById('epc_vendor_trn');
+    var hint = document.getElementById('epc_trn_req_hint');
+    function syncAuth(){
+        if(!em || !auth) return;
+        var next = authorities[em.value] || '';
+        if(next && (!auth.value || Object.values(authorities).indexOf(auth.value) !== -1)){
+            auth.value = next;
+        }
+    }
+    function syncTrn(){
+        var on = !!(vat && vat.checked);
+        if(trn){
+            trn.required = on;
+            trn.setAttribute('aria-required', on ? 'true' : 'false');
+        }
+        if(hint) hint.textContent = on ? '* 15 digits' : '(optional if not VAT-registered)';
+    }
+    if(em) em.addEventListener('change', syncAuth);
+    if(vat) vat.addEventListener('change', syncTrn);
+    if(trn){
+        trn.addEventListener('input', function(){
+            trn.value = (trn.value || '').replace(/\D/g,'').slice(0,15);
+        });
+    }
+    syncAuth();
+    syncTrn();
+})();
+</script>
+
 @code {
     private string _brand = "eParts Cart";
+    private string _authoritiesJson = "{}";
 
     protected override void OnInitialized()
     {
         _brand = StorefrontIndustryHostResolver.ResolveBrandLabel(Http.HttpContext?.Request.Host.Host);
+        var map = new Dictionary<string, string>();
+        foreach (var emirate in PhpVendorPortal.Emirates)
+        {
+            map[emirate] = PhpVendorPortal.AuthorityFor(emirate);
+        }
+
+        _authoritiesJson = JsonSerializer.Serialize(map);
     }
 }

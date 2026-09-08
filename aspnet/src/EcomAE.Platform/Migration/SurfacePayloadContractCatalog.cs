@@ -1262,6 +1262,7 @@ public static class SurfacePayloadContractCatalog
         new("storefront", "profile password write", "/storefront/profile/change-password", "write-live-gated", "POST PHP users/editform.php password; confirmWrites=true writes md5(password+secret_succession). Email/phone stay Classic."),
         new("storefront", "checkout create dry-run", "/storefront/checkout/create", "write-live-gated", "POST PHP ajax_checkout_create.php; confirmWrites=true writes ASP.NET for signed-in and guest session carts (phone_not_auth + created_order cookie). Staff email stays PHP."),
         new("storefront", "payment create-operation", "/storefront/payment/create-operation", "write-live-gated", "POST PHP ajax_create_operation; confirmWrites=true writes ASP.NET."),
+        new("storefront", "orders pay-on-place write", "/storefront/orders/pay-on-place", "write-live-gated", "POST PHP my_order.php action=pay_on_place; confirmWrites=true sets shop_orders.paid_type=1 plus log. set_order_status HTTP stays uncalled."),
         new("storefront", "payment notify", "/storefront/payment/notify", "write-live-gated", "POST PHP epc_demo notification + protocol/pay_for_order; confirmWrites=true writes ASP.NET."),
         new("storefront", "Laximo VIN decode", "/storefront/vin/decode", "write-live-gated", "POST PHP Guayaquil FindVehicleByVIN; live SOAP on ASP.NET."),
         new("storefront", "VIN request create", "/storefront/vin-request/create", "write-live-gated", "POST PHP send_vin_email users_vin INSERT; confirmWrites=true writes ASP.NET. Captcha/files/email stay Classic."),

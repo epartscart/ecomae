@@ -25,124 +25,171 @@
         <div class="container" style="max-width:46rem">
             <p style="margin:0 0 .35rem;color:#64748b;font-size:.85rem"><a href="@StorefrontSurfaceLinks.Orders">My orders</a> · Returns</p>
             <h1 style="margin:.1rem 0 .4rem">Returns</h1>
-            <p style="color:#475569">Open a return from a paid order. The store reviews the request before a credit is issued.</p>
+            <p class="lead">Open a return from a paid order. The store reviews the request before a credit is issued.</p>
+            @if (!string.IsNullOrWhiteSpace(_flashOk))
+            {
+                <p style="margin:0 0 .75rem;padding:.65rem .8rem;background:#ecfdf3;border:1px solid #86efac;color:#166534">@_flashOk</p>
+            }
+            @if (!string.IsNullOrWhiteSpace(_flashErr))
+            {
+                <p style="margin:0 0 .75rem;padding:.65rem .8rem;background:#fef2f2;border:1px solid #fecaca;color:#991b1b">@_flashErr</p>
+            }
             @if (!_isCustomer)
             {
-                <div style="padding:1.15rem 1.2rem;background:#fff;border:1px solid #e2e8f0;border-radius:.55rem">
-                    <p style="margin:0 0 .75rem">Sign in to see your return requests.</p>
-                    <a class="btn btn-primary" href="@StorefrontSurfaceLinks.Login">Sign in</a>
+                <div class="panel panel-primary">
+                    <div class="panel-body">
+                        <p style="margin:0 0 .75rem">Sign in to see your return requests.</p>
+                        <a class="btn btn-ar btn-primary" href="@StorefrontSurfaceLinks.Login">Sign in</a>
+                    </div>
                 </div>
             }
             else
             {
-                <div style="background:#fff;border:1px solid #e2e8f0;border-radius:.55rem;padding:1.1rem 1.2rem">
-                    <p style="margin:0 0 .75rem;color:#475569">Start a new return from an order, or open an existing request.</p>
-                    @if (_returns.Count > 0)
-                    {
-                        <ul style="margin:0 0 1rem;padding:0;list-style:none">
+                <input class="form-control" type="text" placeholder="Search returns" id="search-text" />
+                <div class="hr-line-dashed col-lg-12"></div>
+                <table cellpadding="1" cellspacing="1" id="orders_returns_table" class="table table-condensed table-striped" style="border-collapse: separate; border-spacing: 0 5px;">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Status</th>
+                            <th>Order</th>
+                            <th>Items</th>
+                            <th class="hidden"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (_returns.Count == 0)
+                        {
+                            <tr>
+                                <td colspan="5">@(string.IsNullOrWhiteSpace(_listMessage) ? "No return requests yet." : _listMessage)</td>
+                            </tr>
+                        }
+                        else
+                        {
                             @foreach (var row in _returns)
                             {
-                                <li style="margin:0 0 .45rem;padding:.55rem .7rem;background:#f8fafc;border:1px solid #e2e8f0;border-radius:.4rem">
-                                    Return #@row.Id.ToString(CultureInfo.InvariantCulture)
-                                    · order @(row.OrderId > 0 ? row.OrderId.ToString(CultureInfo.InvariantCulture) : "—")
-                                    · @(string.IsNullOrWhiteSpace(row.Status) ? "Open" : row.Status)
-                                    · <a href="@(StorefrontAspNetCanonical.CustomerReturns + "?return_id=" + row.Id.ToString(CultureInfo.InvariantCulture))">Open</a>
-                                </li>
-                            }
-                        </ul>
-                    }
-                    else if (!string.IsNullOrWhiteSpace(_listMessage))
-                    {
-                        <p style="margin:0 0 .75rem;color:#64748b">@_listMessage</p>
-                    }
-                    @if (_detail is not null)
-                    {
-                        <div style="margin:0 0 1rem;padding:.85rem .9rem;border:1px solid #e2e8f0;border-radius:.45rem;background:#fff">
-                            <h2 style="margin:0 0 .45rem;font-size:1.05rem">Return #@_detail.Id.ToString(CultureInfo.InvariantCulture)</h2>
-                            <p style="margin:0 0 .65rem;color:#475569">
-                                @(string.IsNullOrWhiteSpace(_detail.Status) ? "Open" : _detail.Status)
-                                @if (_detail.OrderId > 0)
-                                {
-                                    <text> · <a href="@StorefrontSurfaceLinks.ForOrder(_detail.OrderId)">Order #@_detail.OrderId.ToString(CultureInfo.InvariantCulture)</a></text>
-                                }
-                            </p>
-                            @if (_items.Count > 0)
-                            {
-                                <table style="width:100%;border-collapse:collapse;font-size:.86rem;margin-bottom:.85rem">
-                                    <thead>
-                                        <tr>
-                                            <th style="text-align:left;padding:.35rem .4rem">Brand</th>
-                                            <th style="text-align:left;padding:.35rem .4rem">Article</th>
-                                            <th style="text-align:left;padding:.35rem .4rem">Name</th>
-                                            <th style="text-align:left;padding:.35rem .4rem">Qty</th>
-                                            <th style="text-align:left;padding:.35rem .4rem">Reason</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @foreach (var line in _items)
+                                <tr>
+                                    <td>
+                                        <a href="@(StorefrontAspNetCanonical.CustomerReturns + "?return_id=" + row.Id.ToString(CultureInfo.InvariantCulture))">@row.Id.ToString(CultureInfo.InvariantCulture)</a>
+                                    </td>
+                                    <td>@(string.IsNullOrWhiteSpace(row.Status) ? "Open" : row.Status)</td>
+                                    <td>
+                                        @if (row.OrderId > 0)
                                         {
-                                            <tr>
-                                                <td style="padding:.35rem .4rem">@(string.IsNullOrWhiteSpace(line.Brand) ? "—" : line.Brand)</td>
-                                                <td style="padding:.35rem .4rem">@(string.IsNullOrWhiteSpace(line.Article) ? "—" : line.Article)</td>
-                                                <td style="padding:.35rem .4rem">@(string.IsNullOrWhiteSpace(line.Name) ? "—" : line.Name)</td>
-                                                <td style="padding:.35rem .4rem">@line.CountNeed.ToString("0.##", CultureInfo.InvariantCulture)</td>
-                                                <td style="padding:.35rem .4rem">@(string.IsNullOrWhiteSpace(line.Reason) ? "—" : line.Reason)</td>
-                                            </tr>
+                                            <a href="@StorefrontSurfaceLinks.ForOrder(row.OrderId)">@row.OrderId.ToString(CultureInfo.InvariantCulture)</a>
                                         }
-                                    </tbody>
-                                </table>
+                                        else
+                                        {
+                                            <text>—</text>
+                                        }
+                                    </td>
+                                    <td>—</td>
+                                    <td class="hidden"></td>
+                                </tr>
                             }
-                            @if (_messages.Count > 0)
+                        }
+                    </tbody>
+                </table>
+
+                @if (_detail is not null)
+                {
+                    <h3><label>Return #@_detail.Id.ToString(CultureInfo.InvariantCulture)</label></h3>
+                    <label>Status: </label>@(string.IsNullOrWhiteSpace(_detail.Status) ? "Open" : _detail.Status)
+                    @if (_detail.OrderId > 0)
+                    {
+                        <p><a href="@StorefrontSurfaceLinks.ForOrder(_detail.OrderId)">Order #@_detail.OrderId.ToString(CultureInfo.InvariantCulture)</a></p>
+                    }
+                    <p class="lead" style="border-bottom: 2px solid; padding-bottom: 10px;"><strong>Return items</strong></p>
+                    <div style="overflow: hidden; overflow-x: auto;">
+                        <table class="table">
+                            <tr>
+                                <th style="vertical-align: middle; white-space: nowrap;">Brand</th>
+                                <th style="vertical-align: middle; white-space: nowrap;">Article</th>
+                                <th style="vertical-align: middle;">Name</th>
+                                <th style="vertical-align: middle; white-space: nowrap;">Qty</th>
+                                <th style="vertical-align: middle; white-space: nowrap;">Reason</th>
+                            </tr>
+                            @if (_items.Count == 0)
                             {
-                                <h3 style="margin:0 0 .4rem;font-size:.95rem">Messages</h3>
-                                <ul style="list-style:none;margin:0 0 .75rem;padding:0">
-                                    @foreach (var msg in _messages)
-                                    {
-                                        <li style="margin:0 0 .45rem;padding:.5rem .65rem;background:#f8fafc;border:1px solid #e2e8f0;border-radius:.35rem">
-                                            <div style="font-size:.75rem;color:#64748b">@(msg.IsCustomer != 0 ? "You" : "Store")</div>
-                                            <div>@msg.Text</div>
-                                        </li>
-                                    }
-                                </ul>
+                                <tr><td colspan="5">No items on this return.</td></tr>
+                            }
+                            else
+                            {
+                                @foreach (var line in _items)
+                                {
+                                    <tr>
+                                        <td style="vertical-align: middle; white-space: nowrap;">@(string.IsNullOrWhiteSpace(line.Brand) ? "—" : line.Brand)</td>
+                                        <td style="vertical-align: middle; white-space: nowrap;">@(string.IsNullOrWhiteSpace(line.Article) ? "—" : line.Article)</td>
+                                        <td style="vertical-align: middle;">@(string.IsNullOrWhiteSpace(line.Name) ? "—" : line.Name)</td>
+                                        <td style="vertical-align: middle; white-space: nowrap; text-align:center;">@line.CountNeed.ToString("0.##", CultureInfo.InvariantCulture)</td>
+                                        <td style="vertical-align: middle; white-space: nowrap;">@(string.IsNullOrWhiteSpace(line.Reason) ? "—" : line.Reason)</td>
+                                    </tr>
+                                }
+                            }
+                        </table>
+                    </div>
+                    <p class="lead">Messages</p>
+                    <div>
+                        <div class="chat_block" id="chat_block">
+                            @if (_messages.Count == 0)
+                            {
+                                <div align="center">No messages yet.</div>
+                            }
+                            else
+                            {
+                                @foreach (var msg in _messages)
+                                {
+                                    <div class="@(msg.IsCustomer != 0 ? "bubble" : "bubble2")">
+                                        @(msg.IsCustomer != 0 ? "You" : "Store")<br />@msg.Text
+                                    </div>
+                                }
                             }
                         </div>
-                    }
-                    <p style="margin:0 0 .85rem"><a class="btn btn-primary" href="@StorefrontSurfaceLinks.Orders">Choose an order</a></p>
-                    <form method="post" action="@PhpCustomerWrites.ReturnsCreateHref">
+                    </div>
+                }
+
+                <p style="margin:1rem 0 .85rem"><a class="btn btn-ar btn-default" href="@StorefrontSurfaceLinks.Orders">Choose an order</a></p>
+                <p class="lead">New return</p>
+                <div class="return_options">
+                    <form class="return_options_data" method="post" action="@PhpCustomerWrites.ReturnsCreateHref">
                         <input type="hidden" name="confirmWrites" value="true" />
                         <input type="hidden" name="returnUrl" value="/storefront/returns-app" />
-                        <label>Order number</label>
-                        <input type="number" name="order_id" required min="1" value="@OrderId" style="width:100%;margin:.25rem 0 .75rem;padding:.5rem" />
-                        <label>Order item id</label>
-                        <input type="number" name="item_id" required min="1" style="width:100%;margin:.25rem 0 .75rem;padding:.5rem" />
-                        <label>Reason id</label>
-                        <input type="number" name="reason_id" required min="1" style="width:100%;margin:.25rem 0 .75rem;padding:.5rem" />
-                        <label>Quantity (full line only)</label>
-                        <input type="number" name="count" required min="1" value="1" style="width:100%;margin:.25rem 0 .75rem;padding:.5rem" />
-                        <label>Comment</label>
-                        <textarea name="comment" rows="3" style="width:100%;margin:.25rem 0 1rem;padding:.5rem"></textarea>
-                        <button type="submit" style="padding:.65rem 1rem;border:0;border-radius:.45rem;background:#0f766e;color:#fff;font-weight:800;cursor:pointer">Submit return request</button>
+                        <div class="col-lg-6 col-sm-6 col-md-12" style="margin-top: 10px;">
+                            <label for="order_id">Order number</label>
+                            <input id="order_id" class="form-control" type="number" name="order_id" required min="1" value="@OrderId" />
+                        </div>
+                        <div class="col-lg-6 col-sm-6 col-md-12" style="margin-top: 10px;">
+                            <label for="item_id">Order item id</label>
+                            <input id="item_id" class="form-control" type="number" name="item_id" required min="1" />
+                        </div>
+                        <div class="col-lg-6 col-sm-6 col-md-12" style="margin-top: 10px;">
+                            <label for="reason_id">Reason id</label>
+                            <input id="reason_id" class="form-control" type="number" name="reason_id" required min="1" />
+                        </div>
+                        <div class="col-lg-6 col-sm-6 col-md-12" style="margin-top: 10px;">
+                            <label for="count">Quantity (full line only)</label>
+                            <input id="count" class="form-control" type="number" name="count" required min="1" value="1" />
+                        </div>
+                        <div class="col-lg-12 col-sm-6 col-md-12" style="margin-top: 10px;">
+                            <label for="comment">Comment</label>
+                            <textarea name="comment" id="comment" class="form-control" rows="6" placeholder="Comment"></textarea>
+                        </div>
+                        <p>
+                            <button type="submit" id="btn_confirm_return" class="btn btn-ar btn-primary">Submit return request</button>
+                        </p>
                     </form>
-                    @if (!string.IsNullOrWhiteSpace(_flashOk))
-                    {
-                        <p style="margin:0 0 .75rem;padding:.65rem .8rem;background:#ecfdf3;border:1px solid #86efac;color:#166534">@_flashOk</p>
-                    }
-                    @if (!string.IsNullOrWhiteSpace(_flashErr))
-                    {
-                        <p style="margin:0 0 .75rem;padding:.65rem .8rem;background:#fef2f2;border:1px solid #fecaca;color:#991b1b">@_flashErr</p>
-                    }
-                    @if (ReturnId is > 0)
-                    {
-                        <form method="post" action="@PhpCustomerWrites.ReturnsMessageHref" style="margin-top:1rem;padding-top:1rem;border-top:1px solid #e2e8f0">
-                            <input type="hidden" name="confirmWrites" value="true" />
-                            <input type="hidden" name="returnUrl" value="@("/storefront/returns-app?return_id=" + ReturnId.Value.ToString(CultureInfo.InvariantCulture))" />
-                            <input type="hidden" name="return_id" value="@ReturnId.Value.ToString(CultureInfo.InvariantCulture)" />
-                            <label>Message on return #@ReturnId</label>
-                            <textarea name="text" rows="3" required style="width:100%;margin:.25rem 0 1rem;padding:.5rem"></textarea>
-                            <button type="submit" style="padding:.55rem .9rem;border:0;border-radius:.4rem;background:#0f766e;color:#fff;font-weight:800;cursor:pointer">Send message</button>
-                        </form>
-                    }
                 </div>
+                @if (ReturnId is > 0)
+                {
+                    <form method="post" action="@PhpCustomerWrites.ReturnsMessageHref" style="margin-top:1rem">
+                        <input type="hidden" name="confirmWrites" value="true" />
+                        <input type="hidden" name="returnUrl" value="@("/storefront/returns-app?return_id=" + ReturnId.Value.ToString(CultureInfo.InvariantCulture))" />
+                        <input type="hidden" name="return_id" value="@ReturnId.Value.ToString(CultureInfo.InvariantCulture)" />
+                        <label for="new_message_area">Message on return #@ReturnId</label>
+                        <textarea id="new_message_area" name="text" rows="3" required class="form-control"></textarea>
+                        <button type="submit" class="btn btn-ar btn-primary" style="margin-top:.75rem">Send message</button>
+                    </form>
+                }
             }
         </div>
     </section>

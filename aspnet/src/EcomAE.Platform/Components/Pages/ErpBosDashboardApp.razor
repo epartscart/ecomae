@@ -4,10 +4,12 @@
 @using System.Globalization
 @using System.Text.Json
 @using EcomAE.Platform.Auth
+@using EcomAE.Platform.Erp
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
+@inject IErpBosIntelToggleWriteService BosIntel
 @inject IHttpContextAccessor Http
 
 <PageTitle>@_pageTitle</PageTitle>
@@ -504,7 +506,7 @@
             }
 
             <h3 class="ns-exec-h" id="ns-industry-controls" style="margin-top:22px;"><i class="fa fa-check-square-o"></i> Industry intelligence — recommended controls
-                <small class="text-muted" style="font-weight:400;">· @_industryLabel</small>
+                <small class="text-muted" style="font-weight:400;">· @_industryLabel · @_controlDone.ToString(CultureInfo.InvariantCulture)/@_controls.Count.ToString(CultureInfo.InvariantCulture) in place</small>
             </h3>
             <div class="ns-port">
                 <div class="bd">
@@ -514,8 +516,19 @@
                         <tbody>
                         @foreach (var c in _controls)
                         {
-                            <tr>
-                                <td style="text-align:center;"><i class="fa fa-square-o" aria-hidden="true"></i></td>
+                            var checkedOn = _controlState.TryGetValue(c.Code, out var flag) && flag != 0;
+                            <tr class="@(checkedOn ? "success" : "")">
+                                <td style="text-align:center;">
+                                    <form method="post" action="/erp/bos-intel/toggle" style="margin:0;">
+                                        <input type="hidden" name="confirmWrites" value="true" />
+                                        <input type="hidden" name="returnUrl" value="/erp/app#ns-industry-controls" />
+                                        <input type="hidden" name="code" value="@c.Code" />
+                                        <input type="hidden" name="checked" value="@(checkedOn ? "0" : "1")" />
+                                        <button type="submit" class="btn btn-xs @(checkedOn ? "btn-success" : "btn-default")">
+                                            <i class="fa fa-@(checkedOn ? "check-square-o" : "square-o")"></i>
+                                        </button>
+                                    </form>
+                                </td>
                                 <td><strong>@c.Title</strong></td>
                                 <td><small class="text-muted">@c.Desc</small></td>
                             </tr>
@@ -705,6 +718,8 @@
     private IReadOnlyList<ErpNetsuiteDashboardCatalog.FinCell> _fin = [];
     private IReadOnlyList<ErpWorkspaceOpKpi> _opKpis = [];
     private IReadOnlyList<ErpNetsuiteDashboardCatalog.IndustryControl> _controls = [];
+    private IReadOnlyDictionary<string, int> _controlState = new Dictionary<string, int>(StringComparer.Ordinal);
+    private int _controlDone;
     private ErpInsightsSuite _insights = ErpInsightsSuiteCatalog.Build(
         new(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "open"),
         new(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "open"),
@@ -775,6 +790,7 @@
 
         if (_isAdmin)
         {
+            _controlState = await BosIntel.LoadStateAsync(ctx.RequestAborted);
             _home = await Dashboards.BuildErpWorkspaceHomeAsync(ctx.RequestAborted);
             _cur = _home.Current;
             _periodFrom = _home.PeriodFrom;
@@ -820,6 +836,7 @@
         var days = ErpNetsuiteDashboardCatalog.PeriodDaysInclusive(_periodFrom, _periodTo);
         _opKpis = ErpNetsuiteDashboardCatalog.OperationalKpis(_profile, _cur, days);
         _controls = ErpNetsuiteDashboardCatalog.IndustryControls(_industryCode, _jewellery);
+        _controlDone = _controls.Count(c => _controlState.TryGetValue(c.Code, out var flag) && flag != 0);
         var autoParts = !_jewellery && (
             string.Equals(_industryCode, "auto_parts", StringComparison.OrdinalIgnoreCase)
             || string.Equals(_industryCode, "core", StringComparison.OrdinalIgnoreCase));

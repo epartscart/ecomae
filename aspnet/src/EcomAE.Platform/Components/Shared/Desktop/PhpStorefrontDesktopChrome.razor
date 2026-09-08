@@ -1,6 +1,7 @@
 @namespace EcomAE.Platform.Components.Shared
 @using EcomAE.Platform.Auth
 @using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Storefront
 @inject IHttpContextAccessor Http
 @inject ILegacySessionValidator Sessions
 @*
@@ -287,11 +288,18 @@
     }
     .epc-ai-expert-widget__live { background:#22c55e; color:#052e16; border-radius:999px; padding:.1rem .4rem; font-size:.65rem; }
     .epc-bottom-dock {
-        position:fixed; left:0; right:0; bottom:0; z-index:45; display:flex; justify-content:space-around;
-        background:#111827; color:#fff; border-top:1px solid #374151; padding:.45rem .5rem;
+        position:fixed; left:0; right:0; bottom:0; z-index:45;
+        background:#111827; color:#fff; border-top:1px solid #374151; padding:.45rem .5rem; margin:0;
+        border-radius:0;
+    }
+    .epc-bottom-dock .container-fluid {
+        display:flex; justify-content:space-around; align-items:center; gap:.35rem; padding:0; flex-wrap:wrap;
     }
     .epc-bottom-dock a { display:flex; flex-direction:column; align-items:center; gap:.15rem; color:#fff !important; font-size:.65rem; font-weight:700; }
     .epc-bottom-dock i { font-size:1rem; }
+    .epc-bottom-dock .bottom-ul { display:flex; gap:.55rem; margin:0; padding:0; list-style:none; }
+    .epc-bottom-dock .bottom-ul li { position:relative; }
+    .epc-bottom-dock .bottom-label { font-size:.65rem; }
     @@media (max-width:1100px){
         .logo-line .table-group{grid-template-columns:1fr 1fr;}
         .epc-header-right-col{grid-column:1 / -1;}
@@ -703,12 +711,39 @@
         </a>
     </div>
 
-    <nav class="epc-bottom-dock" aria-label="Quick dock">
-        <a href="/"><i class="fa fa-home" aria-hidden="true"></i><span>Home</span></a>
-        <a href="@StorefrontSurfaceLinks.PartSearch"><i class="fa fa-search" aria-hidden="true"></i><span>Search</span></a>
-        <a href="@StorefrontSurfaceLinks.Cart"><i class="fa fa-shopping-cart" aria-hidden="true"></i><span>Cart</span></a>
-        <a href="@StorefrontSurfaceLinks.GarageLogin"><i class="fa fa-wrench" aria-hidden="true"></i><span>Garage</span></a>
-        <a href="@StorefrontSurfaceLinks.Login"><i class="fa fa-user" aria-hidden="true"></i><span>Account</span></a>
+    <nav class="navbar navbar-fixed-bottom epc-bottom-dock" aria-label="Quick dock">
+        <div class="container-fluid">
+            <a href="/"><i class="fa fa-home" aria-hidden="true"></i><span>Home</span></a>
+            <a href="@StorefrontSurfaceLinks.PartSearch"><i class="fa fa-search" aria-hidden="true"></i><span>Search</span></a>
+            <ul class="nav navbar-nav navbar-right bottom-ul">
+                <li>
+                    <span id="mark_compare_popup_added" class="badge-primary badge-round panel-primary hidden"></span>
+                    <a href="@StorefrontSurfaceLinks.Compare">
+                        <i class="fa fa-copy fa-flip-horizontal bottom-icon" aria-hidden="true"></i>
+                        <span class="bottom-label hidden-xs">Compare</span>
+                        <span class="badge @(_compareCount == 0 ? "badge-default" : "badge-primary") badge-round" id="compare_count">@_compareCount</span>
+                    </a>
+                </li>
+                <li>
+                    <span id="mark_bookmarks_popup_added" class="badge-primary badge-round panel-primary hidden"></span>
+                    <a href="@StorefrontSurfaceLinks.Wishlist">
+                        <i class="fa fa-bookmark-o bottom-icon" aria-hidden="true"></i>
+                        <span class="bottom-label hidden-xs">Bookmarks</span>
+                        <span class="badge @(_bookmarkCount == 0 ? "badge-default" : "badge-primary") badge-round" id="bookmarks_count">@_bookmarkCount</span>
+                    </a>
+                </li>
+                <li>
+                    <span id="mark_popup_added" class="badge-primary badge-round panel-primary hidden"></span>
+                    <a href="@StorefrontSurfaceLinks.Cart">
+                        <i class="fa fa-shopping-cart bottom-icon" aria-hidden="true"></i>
+                        <span class="bottom-label hidden-xs">Cart</span>
+                        <span class="badge badge-primary badge-round" id="cart_items_count"></span>
+                    </a>
+                </li>
+            </ul>
+            <a href="@StorefrontSurfaceLinks.GarageLogin"><i class="fa fa-wrench" aria-hidden="true"></i><span>Garage</span></a>
+            <a href="@(_signedIn ? StorefrontSurfaceLinks.Orders : StorefrontSurfaceLinks.Login)"><i class="fa fa-user" aria-hidden="true"></i><span>@_userLabel</span></a>
+        </div>
     </nav>
 </div>
 
@@ -807,6 +842,8 @@
 
     private bool _signedIn;
     private string _userLabel = "Account";
+    private int _bookmarkCount;
+    private int _compareCount;
 
     protected override async Task OnInitializedAsync()
     {
@@ -815,6 +852,9 @@
         {
             return;
         }
+
+        _bookmarkCount = StorefrontIntListCookie.Read(ctx.Request, StorefrontIntListCookie.BookmarksName, StorefrontIntListCookie.BookmarksMax).Count;
+        _compareCount = StorefrontIntListCookie.Read(ctx.Request, StorefrontIntListCookie.CompareName, StorefrontIntListCookie.CompareMax).Count;
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _signedIn = session.Kind is LegacySessionKind.Customer or LegacySessionKind.Admin;

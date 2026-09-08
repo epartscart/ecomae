@@ -128,7 +128,8 @@
                         {
                             var columns = group.Columns ?? Array.Empty<LegacyDesktopChromeCatalog.MegaAreaColumn>();
                             var shortLabel = string.IsNullOrWhiteSpace(group.ShortLabel) ? group.Label : group.ShortLabel;
-                            <li class="epc-erp-topnav-item" data-category="@group.Id" role="none">
+                            var itemClass = GroupIsActive(group) ? "epc-erp-topnav-item is-active" : "epc-erp-topnav-item";
+                            <li class="@itemClass" data-category="@group.Id" role="none">
                                 <button type="button"
                                         class="epc-erp-topnav-btn"
                                         role="menuitem"
@@ -170,7 +171,7 @@
                                                 <ul class="epc-erp-topnav-links">
                                                     @foreach (var link in col.Tabs)
                                                     {
-                                                        <li>
+                                                        <li class="@(PathIsActive(link.Href) ? "is-active" : null)">
                                                             <a href="@ModuleHref(link.Href)">
                                                                 <i class="fa @(string.IsNullOrWhiteSpace(link.Icon) ? "fa-circle-o" : link.Icon)"></i>
                                                                 @link.Label
@@ -371,6 +372,7 @@
     private string _companyLabel = "MAIN";
     private string _industryCode = "core";
     private string _industryLabel = "Core / multi-industry";
+    private string _currentPath = "/erp";
     private ErpHostContext.Context _ctx = ErpHostContext.Resolve(null);
     private IReadOnlyList<LegacyDesktopChromeCatalog.MegaGroup> _nav = LegacyDesktopChromeCatalog.ErpTopnav();
 
@@ -388,9 +390,37 @@
         return mapped + sep + "company=" + _activeCompanyId;
     }
 
+    private bool GroupIsActive(LegacyDesktopChromeCatalog.MegaGroup group)
+        => PathIsActive(group.HubHref) || group.Links.Any(l => PathIsActive(l.Href));
+
+    private bool PathIsActive(string? href)
+    {
+        if (string.IsNullOrWhiteSpace(href))
+        {
+            return false;
+        }
+
+        var mapped = ErpPhpTabRouteMap.PreferErpSurface(PhpSurfaceLinkMap.AspNetPrimaryHref(href)).Split('?', 2)[0];
+        if (string.IsNullOrWhiteSpace(mapped) || mapped == "/")
+        {
+            return false;
+        }
+
+        if (mapped.Equals("/erp", StringComparison.OrdinalIgnoreCase)
+            || mapped.Equals("/cp", StringComparison.OrdinalIgnoreCase))
+        {
+            return _currentPath.Equals(mapped, StringComparison.OrdinalIgnoreCase)
+                   || _currentPath.Equals(mapped + "/app", StringComparison.OrdinalIgnoreCase);
+        }
+
+        return _currentPath.Equals(mapped, StringComparison.OrdinalIgnoreCase)
+               || _currentPath.StartsWith(mapped + "/", StringComparison.OrdinalIgnoreCase);
+    }
+
     protected override async Task OnInitializedAsync()
     {
         var host = Http.HttpContext?.Request.Host.Host;
+        _currentPath = Http.HttpContext?.Request.Path.Value ?? "/erp";
         _showBos = PlatformHostPolicy.IsSuperCpHost(host);
         _ctx = ErpHostContext.Resolve(host);
         _industryCode = _ctx.IndustryCode;

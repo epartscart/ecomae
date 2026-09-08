@@ -15,6 +15,10 @@ public sealed class ErpBosIntelTogglePhpParityTests
         Assert.Contains("name=\"code\"", text, StringComparison.Ordinal);
         Assert.Contains("name=\"checked\"", text, StringComparison.Ordinal);
         Assert.Contains("Toggle industry control", text, StringComparison.Ordinal);
+        Assert.Contains("id=\"ns-industry-controls\"", text, StringComparison.Ordinal);
+        Assert.Contains("btn btn-xs", text, StringComparison.Ordinal);
+        Assert.Contains("check-square-o", text, StringComparison.Ordinal);
+        Assert.Contains("LoadStateAsync", text, StringComparison.Ordinal);
         Assert.DoesNotContain("Tick-to-save remains on the PHP workspace", text, StringComparison.Ordinal);
         Assert.DoesNotContain("writes=0", text, StringComparison.Ordinal);
         Assert.DoesNotContain("@onsubmit:preventDefault", text, StringComparison.Ordinal);
@@ -62,6 +66,7 @@ public sealed class ErpBosIntelTogglePhpParityTests
         var service = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Erp/ErpBosIntelToggleWriteService.cs"));
         Assert.Contains("Control updated", service, StringComparison.Ordinal);
         Assert.Contains("bos_intel_controls", service, StringComparison.Ordinal);
+        Assert.Contains("LoadStateAsync", service, StringComparison.Ordinal);
         Assert.DoesNotContain("erp_bos_intel_controls", service, StringComparison.Ordinal);
         Assert.Contains("ON DUPLICATE KEY UPDATE", service, StringComparison.Ordinal);
         Assert.DoesNotContain("CREATE TABLE", service, StringComparison.Ordinal);

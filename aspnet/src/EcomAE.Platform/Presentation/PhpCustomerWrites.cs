@@ -13,6 +13,7 @@ public static class PhpCustomerWrites
     public static string GarageNotepadWriteHref => "/storefront/garage/notepad-add";
     public static string OrderWriteHref => "/php-reference/en/shop/orders/order";
     public static string OrderMessageHref => "/storefront/orders/send-message";
+    public static string PayOnPlaceHref => "/storefront/orders/pay-on-place";
     public static string GuestOrderWriteHref => "/php-reference/en/shop/orders/order";
     public static string PaymentDemoHref => "/storefront/payment/go-to-pay";
     public static string CartAddHref => "/storefront/cart/add";

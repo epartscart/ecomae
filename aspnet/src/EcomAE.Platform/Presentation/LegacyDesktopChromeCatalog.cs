@@ -21,7 +21,9 @@ public static class LegacyDesktopChromeCatalog
         string? Icon = null,
         string? ShortLabel = null,
         string? HubHref = null,
-        IReadOnlyList<MegaAreaColumn>? Columns = null);
+        IReadOnlyList<MegaAreaColumn>? Columns = null,
+        string? Subtitle = null,
+        bool IsAdvanced = false);
 
     /// <summary>
     /// Category → ERP area ids from php_module_catalog.json / erp_nav_areas.php category config.
@@ -167,6 +169,12 @@ public static class LegacyDesktopChromeCatalog
         var groups = new List<MegaGroup>();
         foreach (var nav in LegacyChromeNavCatalog.ControlPanel)
         {
+            // PHP brand link is "Control"; CONTROL is not a dropdown group.
+            if (nav.Label.Equals("CONTROL", StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
             if (!includeSuperOnly && IsSuperOnlyNavGroup(nav.Label))
             {
                 continue;
@@ -242,7 +250,9 @@ public static class LegacyDesktopChromeCatalog
                 CpGroupIcon(id),
                 nav.Label,
                 hub,
-                columns));
+                columns,
+                CpGroupSubtitle(nav.Label),
+                CpGroupIsAdvanced(nav.Label)));
         }
 
         return groups;
@@ -407,13 +417,50 @@ public static class LegacyDesktopChromeCatalog
         "orders" or "commerce" or "shop" => "fa-shopping-cart",
         "catalogue" or "products" or "catalog" => "fa-cube",
         "customers" or "crm" => "fa-users",
-        "logistics" or "shipping" => "fa-truck",
+        "documents" or "content" or "cms" => "fa-file-text-o",
+        "erp" => "fa-university",
+        "purchase" or "procurement" => "fa-truck",
+        "channels" => "fa-share-alt",
+        "logistics" or "shipping" => "fa-cubes",
+        "ai" => "fa-magic",
         "marketing" => "fa-bullhorn",
         "finance" or "payments" => "fa-credit-card",
-        "settings" or "setup" or "system" => "fa-cogs",
-        "content" or "cms" => "fa-file-text-o",
+        "integrations" => "fa-plug",
+        "portal" or "settings" or "setup" or "system" => "fa-cog",
+        "platform" => "fa-sitemap",
+        "operator" => "fa-shield",
         _ => "fa-folder-o",
     };
+
+    /// <summary>PHP <c>epc_portal_cp_group_subtitle_map</c> (English fallbacks).</summary>
+    public static string? CpGroupSubtitle(string label) => label switch
+    {
+        "Commerce" => "Orders, catalogue & prices",
+        "Customers" => "Clients, user accounts & CRM",
+        "Documents" => "Invoices & PDFs",
+        "ERP" => "Finance, VAT & reports",
+        "Purchase" => "Purchasing & suppliers",
+        "Channels" => "Marketplaces & feeds",
+        "Logistics" => "Shipping & delivery",
+        "Payments" => "Cards & online pay",
+        "Marketing" => "Campaigns & social",
+        "AI" => "Pricing & assistants",
+        "Integrations" => "Email, mobile, payments & more",
+        "Portal" => "Site & industry settings",
+        "Platform" => "Platform tools",
+        "Operator" => "Cross-tenant platform tools",
+        _ => null,
+    };
+
+    /// <summary>PHP <c>epc_portal_cp_advanced_group_keys</c>.</summary>
+    public static bool CpGroupIsAdvanced(string label)
+        => label.Equals("AI", StringComparison.OrdinalIgnoreCase)
+           || label.Equals("Marketing", StringComparison.OrdinalIgnoreCase)
+           || label.Equals("Payments", StringComparison.OrdinalIgnoreCase)
+           || label.Equals("Integrations", StringComparison.OrdinalIgnoreCase)
+           || label.Equals("Portal", StringComparison.OrdinalIgnoreCase)
+           || label.Equals("Platform", StringComparison.OrdinalIgnoreCase)
+           || label.Equals("Operator", StringComparison.OrdinalIgnoreCase);
 
     /// <summary>
     /// ERP topnav: categories → area columns → tabs (mirrors <c>epc_erp_render_top_nav</c>).

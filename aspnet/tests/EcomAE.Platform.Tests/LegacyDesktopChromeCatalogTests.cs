@@ -9,7 +9,10 @@ public sealed class LegacyDesktopChromeCatalogTests
     public void ControlPanelTopnavCoversPhpNavLabels()
     {
         var groups = LegacyDesktopChromeCatalog.ControlPanelTopnav();
-        Assert.Equal(LegacyChromeNavCatalog.ControlPanel.Count, groups.Count);
+        // PHP brand is "Control"; CONTROL is not a dropdown group.
+        var expected = LegacyChromeNavCatalog.ControlPanel.Count(n =>
+            !n.Label.Equals("CONTROL", StringComparison.OrdinalIgnoreCase));
+        Assert.Equal(expected, groups.Count);
         Assert.All(groups, g => Assert.NotEmpty(g.Links));
         // Catalog may still store PHP source hrefs; product chrome rewrites via AspNetPrimaryHref.
         Assert.Contains(groups, g => g.Links.Any(l =>
@@ -24,6 +27,13 @@ public sealed class LegacyDesktopChromeCatalogTests
             g => g.Id == "commerce");
         Assert.Contains(commerce.Links, l => (l.Group ?? "").Equals("Shop / OMS", StringComparison.OrdinalIgnoreCase)
             || l.Id.Equals("oms-orders", StringComparison.OrdinalIgnoreCase));
+        Assert.Equal("Orders, catalogue & prices", commerce.Subtitle);
+        Assert.False(commerce.IsAdvanced);
+        var marketing = Assert.Single(
+            LegacyDesktopChromeCatalog.ControlPanelTopnav(includeSuperOnly: false, industryCode: "auto_parts"),
+            g => g.Id == "marketing");
+        Assert.True(marketing.IsAdvanced);
+        Assert.Equal("Campaigns & social", marketing.Subtitle);
         Assert.DoesNotContain(commerce.Links, l =>
             l.Label.Contains("Retail and commerce", StringComparison.OrdinalIgnoreCase));
     }

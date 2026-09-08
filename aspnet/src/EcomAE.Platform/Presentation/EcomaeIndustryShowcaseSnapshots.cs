@@ -74,7 +74,30 @@ public static class EcomaeIndustryShowcaseSnapshots
             return string.Empty;
         }
 
-        return EcomaeMarketingSnapshots.RewritePhpAssetUrls(html);
+        return InjectAspNetPrimaryMarker(EcomaeMarketingSnapshots.RewritePhpAssetUrls(html));
+    }
+
+    /// <summary>
+    /// Classic-entry prove looks for <c>ecomae-chrome-surface</c>. Industry HTML is
+    /// PHP-look snapshots served by ASP.NET — stamp the platform marker without
+    /// Blazor <c>_framework</c> (industry frontend gate forbids those).
+    /// </summary>
+    internal static string InjectAspNetPrimaryMarker(string html)
+    {
+        const string marker = "<meta name=\"ecomae-chrome-surface\" content=\"industry-showcase\" />";
+        if (string.IsNullOrEmpty(html)
+            || html.Contains("ecomae-chrome-surface", StringComparison.Ordinal))
+        {
+            return html;
+        }
+
+        var headClose = html.IndexOf("</head>", StringComparison.OrdinalIgnoreCase);
+        if (headClose >= 0)
+        {
+            return html.Insert(headClose, marker);
+        }
+
+        return marker + html;
     }
 
     public static string? FileSlugFor(string hostSlug, string? path)

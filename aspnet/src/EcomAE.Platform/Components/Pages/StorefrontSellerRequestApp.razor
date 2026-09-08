@@ -25,31 +25,45 @@
     {
         <p style="margin:0 0 .75rem;padding:.65rem .8rem;background:#fef2f2;border:1px solid #fecaca;color:#991b1b">@_flashErr</p>
     }
-    <form method="post" action="@PhpSellerRequest.SellerWriteHref" style="background:#fff;border:1px solid #e2e8f0;border-radius:.55rem;padding:1.1rem 1.2rem">
-        <input type="hidden" name="confirmWrites" value="true" />
-        @foreach (var field in PhpSellerRequest.Fields)
-        {
-            <label for="@field.Name">@field.Label@(field.Required ? " *" : "")</label>
-            @if (field.Required)
-            {
-                <input id="@field.Name" type="text" name="@field.Name" placeholder="@field.Placeholder" required
-                       style="width:100%;margin:.25rem 0 .75rem;padding:.5rem" />
-            }
-            else
-            {
-                <input id="@field.Name" type="text" name="@field.Name" placeholder="@field.Placeholder"
-                       style="width:100%;margin:.25rem 0 .75rem;padding:.5rem" />
-            }
-        }
-        <label for="client_parts">Parts needed *</label>
-        <textarea id="client_parts" name="client_parts" rows="4" required placeholder="Articles, names, quantities"
-                  style="width:100%;margin:.25rem 0 1rem;padding:.5rem"></textarea>
-        <label style="display:flex;gap:.5rem;align-items:flex-start;font-weight:500;margin:0 0 1rem">
-            <input type="checkbox" name="users_agreement" value="yes" required style="margin-top:.2rem" />
-            <span>I accept the <a href="/polzovatelskoe-soglashenie" target="_blank">user agreement</a>.</span>
-        </label>
-        <button type="submit" class="btn btn-ar btn-primary">Send request</button>
-    </form>
+    <div class="section-form">
+        <form class="request-seller" method="post" id="requestSeller" action="@PhpSellerRequest.SellerWriteHref">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <div class="all-input">
+                <div class="main-input">
+                    <h2>Vehicle and contact</h2>
+                    @foreach (var field in PhpSellerRequest.Fields)
+                    {
+                        <div class="input-shell">
+                            <label for="@field.Name">@field.Label@(field.Required ? " *" : "")</label>
+                            @if (field.Required)
+                            {
+                                <input id="@field.Name" class="form-control" type="text" name="@field.Name" placeholder="@field.Placeholder" required />
+                            }
+                            else
+                            {
+                                <input id="@field.Name" class="form-control" type="text" name="@field.Name" placeholder="@field.Placeholder" />
+                            }
+                        </div>
+                    }
+                    <div class="input-shell">
+                        <label for="client_parts">Parts needed *</label>
+                        <textarea id="client_parts" class="form-control" name="client_parts" rows="4" required placeholder="Articles, names, quantities"></textarea>
+                    </div>
+                    <div class="input-shell">
+                        <label style="display:flex;gap:.5rem;align-items:flex-start;font-weight:500;margin:0 0 1rem">
+                            <input type="checkbox" name="users_agreement" value="yes" required style="margin-top:.2rem" />
+                            <span>I accept the <a href="/polzovatelskoe-soglashenie" target="_blank">user agreement</a>.</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="send-input">
+                <div class="button-shell">
+                    <button type="submit" class="btnForm btn btn-ar btn-primary">Send request</button>
+                </div>
+            </div>
+        </form>
+    </div>
 </StorefrontTenantChrome>
 
 @code {

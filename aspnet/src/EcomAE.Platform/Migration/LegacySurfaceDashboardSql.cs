@@ -323,6 +323,21 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>PHP <c>my_balance.php</c> customer ledger (active rows only).</summary>
+    public const string SelectCustomerAccountOperations = """
+        SELECT a.`id`,
+               IFNULL(a.`time`, 0) AS time,
+               IFNULL(a.`amount`, 0) AS amount,
+               IFNULL(a.`income`, 0) AS income,
+               IFNULL(a.`order_id`, 0) AS order_id,
+               IFNULL(a.`operation_code`, 0) AS operation_code,
+               IFNULL((SELECT c.`name` FROM `shop_accounting_codes` c WHERE c.`id` = a.`operation_code` LIMIT 1), '') AS name
+        FROM `shop_users_accounting` a
+        WHERE a.`user_id` = @userId AND a.`active` = 1
+        ORDER BY a.`id` DESC
+        LIMIT @limit
+        """;
+
     /// <summary>
     /// Guest checkout lookup (PHP <c>ajax_check_order_not_authorized.php</c>).
     /// Never omit <c>user_id = 0</c> — registered orders must not leak here.
@@ -708,6 +723,15 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>PHP <c>shop_docpart_garage_orders</c> cars linked to a customer order.</summary>
+    public const string SelectCustomerGarageOrderLinks = """
+        SELECT l.`garage_id`
+        FROM `shop_docpart_garage_orders` l
+        INNER JOIN `shop_docpart_garage` g ON g.`id` = l.`garage_id`
+        INNER JOIN `shop_orders` o ON o.`id` = l.`order_id`
+        WHERE l.`order_id` = @orderId AND g.`user_id` = @userId AND o.`user_id` = @userId
+        """;
+
     /// <summary>Mirrors PHP <c>epc_erp_list_cash_accounts</c> with balance calculation.</summary>
     public const string SelectErpCashAccounts = """
         SELECT a.`id`, a.`name`, a.`account_type`, IFNULL(a.`currency_code`, '') AS currency_code,
@@ -740,6 +764,26 @@ public static class LegacySurfaceDashboardSql
         WHERE `user_id` = @userId
         ORDER BY `data_key` ASC
         LIMIT 200
+        """;
+
+    public const string SelectStorefrontRegVariants = """
+        SELECT `id`, IFNULL(`caption`, '') AS caption
+        FROM `reg_variants`
+        ORDER BY `order` ASC, `id` ASC
+        LIMIT 50
+        """;
+
+    public const string SelectStorefrontRegFields = """
+        SELECT `name`,
+               IFNULL(`caption`, '') AS caption,
+               IFNULL(`show_for`, '[]') AS show_for,
+               IFNULL(`required_for`, '[]') AS required_for,
+               IFNULL(`maxlen`, 80) AS maxlen,
+               IFNULL(`widget_type`, 'text') AS widget_type
+        FROM `reg_fields`
+        WHERE `main_flag` = 0
+        ORDER BY `order` ASC, `name` ASC
+        LIMIT 80
         """;
 
     public const string SelectErpCashEntries = """

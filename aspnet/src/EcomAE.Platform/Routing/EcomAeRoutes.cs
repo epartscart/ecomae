@@ -2178,6 +2178,8 @@ public static class EcomAeRoutes
     public const string StorefrontCheckoutCreate = "/storefront/checkout/create";
     /// <summary>Customer order message. <c>confirmWrites=true</c> is the live twin of PHP ajax_send_message.php customer path.</summary>
     public const string StorefrontOrderSendMessage = "/storefront/orders/send-message";
+    /// <summary>PHP <c>my_order.php</c> action <c>pay_on_place</c>. <c>confirmWrites=true</c> sets <c>shop_orders.paid_type=1</c>.</summary>
+    public const string StorefrontOrdersPayOnPlace = "/storefront/orders/pay-on-place";
     /// <summary>Customer return message. <c>confirmWrites=true</c> is the live twin of PHP ajax_send_message.php return_id path.</summary>
     public const string StorefrontReturnsSendMessage = "/storefront/returns/send-message";
     /// <summary>Create return. <c>confirmWrites=true</c> is the live twin of PHP ajax_load_returns_data.php without line-split or images.</summary>

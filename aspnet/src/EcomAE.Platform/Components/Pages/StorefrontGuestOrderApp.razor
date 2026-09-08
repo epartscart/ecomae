@@ -21,14 +21,16 @@
             </p>
             <h1 style="margin:.1rem 0 .4rem">Track a guest order</h1>
             <p style="color:#475569">Use the order number from checkout if you placed the order without signing in.</p>
-            <form method="get" style="background:#fff;border:1px solid #e2e8f0;border-radius:.55rem;padding:1.1rem 1.2rem">
-                <label for="order_id">Order number</label>
-                <input id="order_id" type="number" name="order_id" min="1" required value="@OrderId" style="width:100%;margin:.25rem 0 .75rem;padding:.5rem" />
-                <label for="email_not_auth">Email on the order</label>
-                <input id="email_not_auth" type="email" name="email_not_auth" value="@EmailNotAuth" style="width:100%;margin:.25rem 0 .75rem;padding:.5rem" />
-                <label for="phone_not_auth">Phone on the order</label>
-                <input id="phone_not_auth" type="text" name="phone_not_auth" value="@PhoneNotAuth" style="width:100%;margin:.25rem 0 1rem;padding:.5rem" />
-                <button type="submit" style="padding:.65rem 1.1rem;border:0;border-radius:.45rem;background:#0f766e;color:#fff;font-weight:800;cursor:pointer">Look up order</button>
+            <form method="get" class="panel panel-primary">
+                <div class="panel-body">
+                    <label for="order_id">Order number</label>
+                    <input id="order_id" class="form-control" type="number" name="order_id" min="1" required value="@OrderId" />
+                    <label for="email_not_auth">Email on the order</label>
+                    <input id="email_not_auth" class="form-control" type="email" name="email_not_auth" value="@EmailNotAuth" />
+                    <label for="phone_not_auth">Phone on the order</label>
+                    <input id="phone_not_auth" class="form-control" type="text" name="phone_not_auth" value="@PhoneNotAuth" />
+                    <button type="submit" class="btn btn-ar btn-primary" style="margin-top:.75rem">Look up order</button>
+                </div>
             </form>
             @if (_lookedUp)
             {

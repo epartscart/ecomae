@@ -7,98 +7,123 @@
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
-@inject NavigationManager Nav
 
 <PageTitle>Notifications · Control Panel · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="cp" />
 <HeadContent>
 <style>
-        .epc-w20-hero {
-            margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
-            background:linear-gradient(135deg,#0c4a6e 0%,#2563eb 45%,#0ea5e9 100%);
-        }
-        .epc-w20-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
-        .epc-w20-hero p { margin:0; color:rgba(255,255,255,.88); max-width:44rem; font-size:.92rem; line-height:1.45; }
-        .epc-w20-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
-        .epc-w20-cta a {
-            display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
-            text-decoration:none; color:#0f172a; background:#fff;
-        }
-        .epc-w20-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); color:#fff; }
-        .epc-w20-kpis { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
-        .epc-w20-kpi { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; padding:.85rem .9rem; }
-        .epc-w20-kpi strong { display:block; font-size:1.2rem; word-break:break-word; }
-        .epc-w20-kpi span { color:#64748b; font-size:.78rem; }
-        .epc-w20-table-wrap { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; overflow:auto; }
-        .epc-w20-table { width:100%; border-collapse:collapse; font-size:.86rem; }
-        .epc-w20-table th, .epc-w20-table td { padding:.55rem .7rem; border-bottom:1px solid #f1f5f9; text-align:left; white-space:nowrap; }
-        .epc-w20-table th { background:#f8fafc; color:#475569; font-size:.75rem; text-transform:uppercase; letter-spacing:.03em; }
-        .epc-w20-note { margin-top:1rem; padding:.75rem .9rem; background:#f8fafc; border:1px solid #cbd5e1; border-radius:.45rem; color:#334155; font-size:.86rem; }
-        @@media (max-width:900px){ .epc-w20-kpis{grid-template-columns:1fr 1fr;} }
-    
+    .epc-cn { --cn-ink:#0f172a; --cn-muted:#64748b; --cn-line:#e2e8f0; --cn-soft:#f8fafc; color:var(--cn-ink); }
+    .epc-cn-hero { background:linear-gradient(125deg,#0f172a 0%,#134e4a 52%,#0f766e 100%); color:#fff; border-radius:14px; padding:20px 22px; margin:0 0 16px; }
+    .epc-cn-hero h3 { margin:0 0 6px; color:#fff; font-size:20px; }
+    .epc-cn-hero p { margin:0; opacity:.92; max-width:52rem; line-height:1.45; font-size:13px; }
+    .epc-cn-hero__actions { display:flex; flex-wrap:wrap; gap:8px; margin-top:14px; }
+    .epc-cn-hero__actions .btn { border:1px solid rgba(255,255,255,.28); background:rgba(255,255,255,.12); color:#fff; font-weight:600; }
+    .epc-cn-hero__actions .btn-primary { background:#fff; color:#0f172a; border-color:#fff; }
+    .epc-cn-quick { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:12px; margin:0 0 16px; }
+    .epc-cn-quick a { display:block; background:#fff; border:1px solid #e2e8f0; border-radius:12px; padding:14px 15px; color:#0f172a; text-decoration:none !important; }
+    .epc-cn-quick strong { display:block; font-size:14px; margin-bottom:3px; }
+    .epc-cn-quick span { display:block; font-size:12px; color:#64748b; line-height:1.4; }
+    .epc-cn-guide { background:linear-gradient(135deg,#f0fdfa 0%,#f0f9ff 100%); border:1px solid #cce7e2; border-radius:12px; padding:16px 18px; margin:0 0 16px; }
+    .epc-cn-guide h4 { margin:0 0 10px; font-size:14px; font-weight:700; color:#134e4a; }
+    .epc-cn-steps { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:10px; margin:0; padding:0; list-style:none; }
+    .epc-cn-steps li { background:rgba(255,255,255,.75); border:1px solid #d9ebe7; border-radius:10px; padding:12px; font-size:12px; line-height:1.45; color:#334155; }
+    .epc-cn-steps strong { display:block; color:#0f172a; font-size:13px; margin-bottom:2px; }
 </style>
 </HeadContent>
 
-
 <PhpCpDesktopChrome IsAdmin="_isAdmin">
 
-    <section class="epc-w20-hero">
-        <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
-        <h1>Notifications</h1>
-        <p>@CpPhpModuleCopy.PurposeFor(Nav.Uri)</p>
-        <div class="epc-w20-cta">
-            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
+    <div class="col-lg-12 epc-cn" id="epc-cn-notify-root">
+        <div class="epc-cn-hero">
+            <h3>Notification settings</h3>
+            <p>Turn e-mail and SMS on or off for each shop event, edit message templates, and restore factory text when needed. Delivery itself is configured under Communications, SMTP, and SMS Operators. Template toggle writes stay on the Classic twin — this page does not invent a send.</p>
+            <div class="epc-cn-hero__actions">
+                <a class="btn btn-sm btn-primary" href="/cp/communications-test-app">Communications</a>
+                <a class="btn btn-sm" href="/cp/sms-whatsapp-app">SMS operators</a>
+                <a class="btn btn-sm" href="/cp/tenant-email-app">E-mail settings</a>
+                <a class="btn btn-sm" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Classic twin</a>
+            </div>
         </div>
-    </section>
+
+        <div class="epc-cn-quick">
+            <a class="is-email" href="/cp/tenant-email-app">
+                <strong>SMTP first</strong>
+                <span>Templates only send when e-mail/SMTP is configured.</span>
+            </a>
+            <a class="is-sms" href="/cp/sms-whatsapp-app">
+                <strong>SMS operator</strong>
+                <span>Activate one operator and set the sender number.</span>
+            </a>
+            <a class="is-templates" href="/cp/communications-test-app">
+                <strong>Test delivery</strong>
+                <span>Last-test status on Communications. Send stays Classic.</span>
+            </a>
+            <a href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">
+                <strong>Edit templates</strong>
+                <span>Channel toggles and factory restore stay on the Classic twin.</span>
+            </a>
+        </div>
+
+        <div class="epc-cn-guide">
+            <h4>How to use this page</h4>
+            <ol class="epc-cn-steps">
+                <li><strong>Scan digest</strong>Unread and channel counts come from tenant notification tables.</li>
+                <li><strong>Edit a template</strong>Open the Classic twin to change subject, HTML body, or SMS text.</li>
+                <li><strong>Restore defaults</strong>Factory reset stays on the Classic twin.</li>
+                <li><strong>Verify send</strong>Test from Classic Communications so SMTP / SMS credentials are confirmed.</li>
+            </ol>
+        </div>
+    </div>
     <PhpParityModuleBody AppPath="/cp/notifications-app" IsAdmin="_isAdmin" />
 
-
-    <div class="epc-w20-kpis" aria-label="Notifications stats">
-        <div class="epc-w20-kpi"><strong>@_summary.NotificationCount.ToString(CultureInfo.InvariantCulture)</strong><span>Notifications</span></div>
-        <div class="epc-w20-kpi"><strong>@_summary.UnreadCount.ToString(CultureInfo.InvariantCulture)</strong><span>Unread</span></div>
-        <div class="epc-w20-kpi"><strong>@_summary.PrefCount.ToString(CultureInfo.InvariantCulture)</strong><span>Prefs</span></div>
-        <div class="epc-w20-kpi"><strong>@_summary.ChannelCount.ToString(CultureInfo.InvariantCulture)</strong><span>Channels</span></div>
+    <div class="col-lg-12">
+        <div class="hpanel">
+            <div class="panel-heading hbuilt">Recent notifications</div>
+            <div class="panel-body">
+                <p class="help-block">@_summary.NotificationCount.ToString(CultureInfo.InvariantCulture) notifications · @_summary.UnreadCount.ToString(CultureInfo.InvariantCulture) unread · @_summary.PrefCount.ToString(CultureInfo.InvariantCulture) prefs · @_summary.ChannelCount.ToString(CultureInfo.InvariantCulture) channels.</p>
+                <div class="table-responsive">
+                    <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped">
+                        <thead>
+                            <tr>
+                                <th>Id</th>
+                                <th>Title</th>
+                                <th>Severity</th>
+                                <th>Category</th>
+                                <th>Channel</th>
+                                <th>Read</th>
+                                <th>Created</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        @if (!_isAdmin)
+                        {
+                            <tr><td colspan="7">Sign in for live data.</td></tr>
+                        }
+                        else if (_rows.Count == 0)
+                        {
+                            <tr><td colspan="7">No records yet.</td></tr>
+                        }
+                        else
+                        {
+                            @foreach (var row in _rows)
+                            {
+                                <tr>
+                                    <td>@row.Id.ToString(CultureInfo.InvariantCulture)</td>
+                                    <td>@(!string.IsNullOrWhiteSpace(row.Title) ? row.Title : "—")</td>
+                                    <td>@(!string.IsNullOrWhiteSpace(row.Severity) ? row.Severity : "—")</td>
+                                    <td>@(!string.IsNullOrWhiteSpace(row.Category) ? row.Category : "—")</td>
+                                    <td>@(!string.IsNullOrWhiteSpace(row.Channel) ? row.Channel : "—")</td>
+                                    <td>@row.IsRead.ToString(CultureInfo.InvariantCulture)</td>
+                                    <td>@(!string.IsNullOrWhiteSpace(row.CreatedAt) ? row.CreatedAt : "—")</td>
+                                </tr>
+                            }
+                        }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
     </div>
-
-    <div class="epc-w20-table-wrap">
-    <table class="epc-w20-table">
-        <thead>
-            <tr>
-                    <th>Id</th>
-                    <th>Title</th>
-                    <th>Severity</th>
-                    <th>Category</th>
-                    <th>Channel</th>
-                    <th>Read</th>
-                    <th>Created</th>
-                    <th></th>
-            </tr>
-        </thead>
-        <tbody>
-            @if (_rows.Count == 0)
-            {
-                <tr><td colspan="8">No records yet.</td></tr>
-            }
-            else
-            {
-                @foreach (var row in _rows)
-                {
-                    <tr>
-                            <td>@row.Id.ToString(CultureInfo.InvariantCulture)</td>
-                            <td>@(!string.IsNullOrWhiteSpace(row.Title) ? row.Title : "—")</td>
-                            <td>@(!string.IsNullOrWhiteSpace(row.Severity) ? row.Severity : "—")</td>
-                            <td>@(!string.IsNullOrWhiteSpace(row.Category) ? row.Category : "—")</td>
-                            <td>@(!string.IsNullOrWhiteSpace(row.Channel) ? row.Channel : "—")</td>
-                            <td>@row.IsRead.ToString(CultureInfo.InvariantCulture)</td>
-                            <td>@(!string.IsNullOrWhiteSpace(row.CreatedAt) ? row.CreatedAt : "—")</td>
-                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
-                    </tr>
-                }
-            }
-        </tbody>
-    </table>
-    </div>
-
 </PhpCpDesktopChrome>
 
 @code {
@@ -106,8 +131,6 @@
     private bool _isAdmin;
     private CpNotificationsSummary _summary = new(0, 0, 0, 0, "n/a", "");
     private IReadOnlyList<CpNotificationsRowDigest> _rows = [];
-    private string _source = "n/a";
-    private string _message = "";
 
     protected override async Task OnInitializedAsync()
     {
@@ -118,13 +141,11 @@
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
         if (!_isAdmin)
         {
-            return; // guest browse — Sign in for live data
+            return;
         }
 
         var result = await Dashboards.BuildCpNotificationsDigestAsync(200, ctx.RequestAborted);
         _summary = result.Summary;
         _rows = result.Notifications;
-        _source = result.Source;
-        _message = result.Message;
     }
 }

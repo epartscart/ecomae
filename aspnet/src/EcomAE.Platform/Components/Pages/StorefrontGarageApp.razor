@@ -41,6 +41,18 @@
         .epc-sf-gar-badge--off { background:#fee2e2; color:#991b1b; }
         .epc-sf-gar-note { margin-top:1rem; padding:.75rem .9rem; background:#fafaf9; border:1px solid #d6d3d1; border-radius:.45rem; color:#44403c; font-size:.86rem; }
         .epc-sf-gar-gate { padding:1.25rem; background:#fff; border:1px solid #e7e5e4; border-radius:.55rem; }
+        .epc-gl{--ink:#0b1220;--muted:#5b6578;--teal:#0e7490;font-family:"DM Sans","Source Sans 3","Segoe UI",sans-serif;color:var(--ink);max-width:920px;margin:0 auto 48px}
+        .epc-gl__hero{margin:0 0 22px;padding:36px 28px;border-radius:18px;color:#f8fafc;background:radial-gradient(800px 240px at 90% -10%,rgba(125,211,252,.28),transparent 55%),linear-gradient(125deg,#0b1220 0%,#164e63 48%,#0e7490 100%);box-shadow:0 18px 40px rgba(11,18,32,.22)}
+        .epc-gl__hero h1{margin:0 0 8px;font-size:clamp(1.8rem,4vw,2.4rem);font-weight:800;letter-spacing:-.03em}
+        .epc-gl__hero p{margin:0;opacity:.92;max-width:52ch;line-height:1.5}
+        .epc-gl__grid{display:grid;grid-template-columns:1.1fr .9fr;gap:16px}
+        @@media(max-width:800px){.epc-gl__grid{grid-template-columns:1fr}}
+        .epc-gl__card{background:#fff;border:1px solid #d9e2e0;border-radius:16px;padding:22px;box-shadow:0 10px 28px rgba(15,23,42,.06)}
+        .epc-gl__card h2{margin:0 0 10px;font-size:1.15rem;font-weight:800}
+        .epc-gl__card p{color:var(--muted);line-height:1.5;margin:0 0 14px}
+        .epc-gl__btn{display:inline-flex;align-items:center;gap:8px;padding:11px 16px;border-radius:10px;background:var(--teal);color:#fff!important;font-weight:800;text-decoration:none!important;margin:0 8px 8px 0}
+        .epc-gl__btn--ghost{background:#fff;color:var(--ink)!important;border:1px solid #c9d4d1}
+        .epc-gl__list{margin:0;padding-left:18px;color:var(--muted);line-height:1.55}
         @@media (max-width:900px){ .epc-sf-gar-kpis{grid-template-columns:1fr;} }
     
 </style>
@@ -82,76 +94,134 @@
         <p style="margin:0 0 .75rem;padding:.65rem .8rem;background:#fef2f2;border:1px solid #fecaca;color:#991b1b">@_flashErr</p>
     }
 
-    @if (!_isCustomer)
+    @if (_staffLoginGate)
     {
-        <div class="epc-sf-gar-gate">
-            <p style="margin:0 0 .75rem;color:#334155">Sign in with your store account to load garage vehicles.</p>
-            <a href="/storefront/login" style="display:inline-flex;padding:.55rem .9rem;border-radius:.4rem;background:#dc2626;color:#fff;font-weight:700;text-decoration:none">Sign in</a>
-            <a href="@StorefrontSurfaceLinks.PartSearch" style="display:inline-flex;margin-left:.45rem;padding:.55rem .9rem;border-radius:.4rem;border:1px solid #d1d5db;color:#111;font-weight:700;text-decoration:none">Part search</a>
+        <div class="epc-gl">
+            <header class="epc-gl__hero">
+                <h1>Garage Manager login</h1>
+                <p>Staff portal for the full garage workflow — appointments, check-in, job cards, bays, technicians, parts &amp; labour, QC and handover.</p>
+            </header>
+            <div class="epc-gl__grid">
+                <div class="epc-gl__card">
+                    <h2><i class="fa fa-wrench"></i> Workshop staff</h2>
+                    <p>Sign in with your <strong>Control Panel / workshop</strong> staff account to run the garage end-to-end.</p>
+                    <a class="epc-gl__btn" href="/cp/login"><i class="fa fa-sign-in"></i> Staff CP login</a>
+                    <a class="epc-gl__btn epc-gl__btn--ghost" href="/cp/workshop-app"><i class="fa fa-car"></i> Workshop desk</a>
+                    <p style="margin-top:12px;font-size:13px">After CP login, return here or open <em>Garage Manager</em> from the header.</p>
+                </div>
+                <div class="epc-gl__card">
+                    <h2><i class="fa fa-users"></i> Customers</h2>
+                    <p>Vehicle garage, notepad, and service booking — no staff login required.</p>
+                    <a class="epc-gl__btn epc-gl__btn--ghost" href="/storefront/garage-app"><i class="fa fa-home"></i> My Garage</a>
+                    <a class="epc-gl__btn epc-gl__btn--ghost" href="@StorefrontAspNetCanonical.AutoWorkshop"><i class="fa fa-calendar"></i> Book / track service</a>
+                    <ul class="epc-gl__list">
+                        <li>Save vehicles &amp; VIN</li>
+                        <li>Parts notepad per car</li>
+                        <li>Book service &amp; track job status</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    }
+    else if (!_isCustomer)
+    {
+        <div class="panel panel-primary epc-cart-login-gate">
+            <div class="panel-body">
+                <p style="margin:0 0 .75rem;color:#334155">Sign in with your store account to load garage vehicles.</p>
+                <div class="epc-commerce-login-cta">
+                    <a class="btn btn-sm btn-primary" href="/storefront/login">Log in</a>
+                    <span class="epc-commerce-login-cta__sep">or</span>
+                    <a class="btn btn-sm btn-default" href="@StorefrontSurfaceLinks.Registration">Register</a>
+                    <a class="btn btn-sm btn-default" href="@StorefrontSurfaceLinks.PartSearch">Part search</a>
+                </div>
+            </div>
         </div>
     }
     else
     {
-        <div class="epc-sf-gar-kpis" aria-label="Garage KPIs">
-            <div class="epc-sf-gar-kpi"><strong>@_vehicles.Count</strong><span>Shown (limit @_limit)</span></div>
-            <div class="epc-sf-gar-kpi"><strong>@_active</strong><span>Active</span></div>
-            <div class="epc-sf-gar-kpi"><strong>@_withVin</strong><span>With VIN</span></div>
+        <style>
+            .epc-garazh-gms{margin:0 0 18px;padding:18px 20px;border-radius:16px;color:#f8fafc;background:linear-gradient(125deg,#0b1220,#164e63 55%,#0e7490);box-shadow:0 14px 32px rgba(11,18,32,.18)}
+            .epc-garazh-gms h2{margin:0 0 6px;color:#fff;font-size:22px;font-weight:800}
+            .epc-garazh-gms p{margin:0 0 12px;opacity:.92;max-width:60ch}
+            .epc-garazh-gms a{display:inline-flex;align-items:center;gap:6px;margin:0 8px 6px 0;padding:8px 12px;border-radius:999px;background:rgba(255,255,255,.16);color:#fff!important;font-weight:700;text-decoration:none!important;border:1px solid rgba(255,255,255,.22);font-size:12px}
+        </style>
+        <div class="epc-garazh-gms col-md-12">
+            <h2><i class="fa fa-wrench"></i> My Garage · Service ready</h2>
+            <p>Keep your vehicles here, then book workshop service or track an open job. Workshop staff use Garage Manager for the full repair workflow.</p>
+            <a href="@(StorefrontAspNetCanonical.AutoWorkshop)#book"><i class="fa fa-calendar"></i> Book service</a>
+            <a href="@(StorefrontAspNetCanonical.AutoWorkshop)#track"><i class="fa fa-search"></i> Track job</a>
+            <a href="@StorefrontAspNetCanonical.GarageLogin"><i class="fa fa-sign-in"></i> Garage Manager login</a>
         </div>
-
-        <div class="epc-sf-gar-table-wrap">
-            <table class="epc-sf-gar-table">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Caption</th>
-                        <th>Make</th>
-                        <th>Model</th>
-                        <th>Year</th>
-                        <th>VIN</th>
-                        <th>Active</th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @if (_vehicles.Count == 0)
-                    {
-                        <tr><td colspan="8">No vehicles in the garage yet. Add a vehicle below.</td></tr>
-                    }
-                    else
-                    {
-                        @foreach (var v in _vehicles)
-                        {
-                            <tr>
-                                <td><strong>@v.Id.ToString(CultureInfo.InvariantCulture)</strong></td>
-                                <td>@(string.IsNullOrWhiteSpace(v.Caption) ? "—" : v.Caption)</td>
-                                <td>@(string.IsNullOrWhiteSpace(v.Marka) ? "—" : v.Marka)</td>
-                                <td>@(string.IsNullOrWhiteSpace(v.Model) ? "—" : v.Model)</td>
-                                <td>@(string.IsNullOrWhiteSpace(v.Year) ? "—" : v.Year)</td>
-                                <td>@(string.IsNullOrWhiteSpace(v.Vin) ? "—" : v.Vin)</td>
-                                <td><span class="epc-sf-gar-badge @(v.Active != 0 ? "epc-sf-gar-badge--ok" : "epc-sf-gar-badge--off")">@(v.Active != 0 ? "yes" : "no")</span></td>
-                                <td>
-                                    <form method="post" action="/storefront/garage/set-active" style="display:inline">
-                                        <input type="hidden" name="confirmWrites" value="true" />
-                                        <input type="hidden" name="returnUrl" value="/storefront/garage-app" />
-                                        <input type="hidden" name="carId" value="@v.Id.ToString(CultureInfo.InvariantCulture)" />
-                                        <button type="submit" style="border:0;background:none;color:#a16207;font-weight:700;cursor:pointer;padding:0">Set active</button>
-                                    </form>
-                                    ·
-                                    <form method="post" action="/storefront/garage/delete" style="display:inline" onsubmit="return confirm('Remove this car?');">
-                                        <input type="hidden" name="confirmWrites" value="true" />
-                                        <input type="hidden" name="returnUrl" value="/storefront/garage-app" />
-                                        <input type="hidden" name="carId" value="@v.Id.ToString(CultureInfo.InvariantCulture)" />
-                                        <button type="submit" style="border:0;background:none;color:#991b1b;font-weight:700;cursor:pointer;padding:0">Delete</button>
-                                    </form>
-                                    ·
-                                    <a href="@StorefrontSurfaceLinks.PartSearch">Search</a>
-                                </td>
-                            </tr>
-                        }
-                    }
-                </tbody>
-            </table>
+        <div class="col-md-6" style="padding-bottom:20px;">
+            <a class="btn btn-ar btn-primary" href="/en/garazh/avtomobil"><i class="fa fa-car"></i> <i class="fa fa-plus"></i> Add vehicle</a>
+            <a href="/en/garazh/bloknot?garage=0" class="btn btn-ar btn-primary"><i class="fa fa-pencil-square-o"></i> Notepad</a>
         </div>
+        <div class="col-md-6" style="padding-bottom:20px;">
+            <form role="form">
+                <div class="input-group">
+                    <input value="" type="text" class="form-control" placeholder="Search vehicles" id="garage_search_input" />
+                    <span class="input-group-btn">
+                        <a class="btn btn-ar btn-default" onclick="document.getElementById('garage_search_input').value=''; document.querySelectorAll('.car_div').forEach(function(el){ el.style.display='block'; });"><i style="margin-right: 0px; color: #555;" class="fa fa-times" aria-hidden="true"></i></a>
+                    </span>
+                </div>
+            </form>
+        </div>
+        <div class="col-md-12">
+            @if (_vehicles.Count == 0)
+            {
+                <p>No vehicles in the garage yet. Add a vehicle below.</p>
+            }
+            else
+            {
+                @foreach (var v in _vehicles)
+                {
+                    var carId = v.Id.ToString(CultureInfo.InvariantCulture);
+                    var caption = string.IsNullOrWhiteSpace(v.Caption) ? ("Vehicle #" + carId) : v.Caption;
+                    var hay = string.Join(" ", new[] { v.Caption, v.Marka, v.Model, v.Year, v.Vin }).ToLowerInvariant();
+                    <div id="car_@carId" class="panel panel-default car_div" data-search="@hay">
+                        <div class="panel-heading">
+                            <form method="post" action="/storefront/garage/set-active" style="display:inline">
+                                <input type="hidden" name="confirmWrites" value="true" />
+                                <input type="hidden" name="returnUrl" value="/storefront/garage-app" />
+                                <input type="hidden" name="carId" value="@carId" />
+                                <button type="submit" class="btn btn-ar btn-default pull-right active_car @(v.Active != 0 ? "btn-success" : "")"><i class="fa fa-check-square-o" aria-hidden="true"></i> Active</button>
+                            </form>
+                            <h3 class="panel-title" style="font-weight:400;">@caption</h3>
+                        </div>
+                        <div class="panel-body">
+                            <p>@(string.IsNullOrWhiteSpace(v.Marka) ? "" : v.Marka) @(string.IsNullOrWhiteSpace(v.Model) ? "" : v.Model) @(string.IsNullOrWhiteSpace(v.Year) ? "" : v.Year)</p>
+                            @if (!string.IsNullOrWhiteSpace(v.Vin))
+                            {
+                                <p>VIN: @v.Vin</p>
+                            }
+                            <p>
+                                <a href="/en/garazh/bloknot?garage=@carId">Notepad</a>
+                                ·
+                                <form method="post" action="/storefront/garage/delete" style="display:inline" onsubmit="return confirm('Remove this car?');">
+                                    <input type="hidden" name="confirmWrites" value="true" />
+                                    <input type="hidden" name="returnUrl" value="/storefront/garage-app" />
+                                    <input type="hidden" name="carId" value="@carId" />
+                                    <button type="submit" style="border:0;background:none;color:#991b1b;font-weight:700;cursor:pointer;padding:0">Delete</button>
+                                </form>
+                            </p>
+                        </div>
+                    </div>
+                }
+            }
+        </div>
+        <script>
+            (function(){
+                var input = document.getElementById('garage_search_input');
+                if (!input) return;
+                input.addEventListener('keyup', function(){
+                    var str = (input.value || '').toLowerCase();
+                    document.querySelectorAll('.car_div').forEach(function(el){
+                        var hay = el.getAttribute('data-search') || '';
+                        el.style.display = (str.length < 2 || hay.indexOf(str) !== -1) ? 'block' : 'none';
+                    });
+                });
+            })();
+        </script>
 
         @if (GarageId is > 0)
         {
@@ -252,6 +322,7 @@
     private string _message = "";
     private string _flashOk = "";
     private string _flashErr = "";
+    private bool _staffLoginGate;
 
     [SupplyParameterFromQuery(Name = "garage")]
     public int? GarageId { get; set; }
@@ -262,6 +333,8 @@
         if (ctx is null) return;
         _brand = StorefrontIndustryHostResolver.ResolveBrandLabel(ctx.Request.Host.Host);
         _showWorkshop = StorefrontIndustryHostResolver.ResolveIndustryCode(ctx.Request.Host.Host) == "auto_parts";
+        _staffLoginGate = (ctx.Request.Path.Value ?? string.Empty)
+            .Contains("/garage/login", StringComparison.OrdinalIgnoreCase);
         _flashOk = ctx.Request.Query["ok"].ToString();
         _flashErr = ctx.Request.Query["err"].ToString();
 

@@ -93,6 +93,22 @@ public sealed record StorefrontAccountDigestResult(
     string Source,
     string Message);
 
+public sealed record StorefrontAccountOperationDigest(
+    long Id,
+    long TimeUnix,
+    decimal Amount,
+    int Income,
+    long OrderId,
+    int OperationCode,
+    string Name);
+
+public sealed record StorefrontAccountOperationsResult(
+    int UserId,
+    IReadOnlyList<StorefrontAccountOperationDigest> Operations,
+    int Count,
+    string Source,
+    string Message);
+
 public sealed record PortalTenantDigest(
     string SiteKey,
     string Hostname,
@@ -364,6 +380,14 @@ public sealed record StorefrontGarageResult(
     string Source,
     string Message);
 
+public sealed record StorefrontGarageOrderLinksResult(
+    int UserId,
+    long OrderId,
+    IReadOnlyList<long> GarageIds,
+    int Count,
+    string Source,
+    string Message);
+
 public sealed record StorefrontGarageNotepadDigest(
     long Id,
     long GarageId,
@@ -458,6 +482,23 @@ public sealed record StorefrontProfileResult(
     int PhoneConfirmed,
     int RegVariant,
     IReadOnlyDictionary<string, string> ProfileFields,
+    string Source,
+    string Message);
+
+public sealed record StorefrontRegVariantDigest(int Id, string Caption);
+
+public sealed record StorefrontRegFieldDigest(
+    string Name,
+    string Caption,
+    string ShowForJson,
+    string RequiredForJson,
+    int MaxLen,
+    string WidgetType);
+
+public sealed record StorefrontRegCatalogResult(
+    IReadOnlyList<StorefrontRegVariantDigest> Variants,
+    IReadOnlyList<StorefrontRegFieldDigest> Fields,
+    int Count,
     string Source,
     string Message);
 

@@ -24,6 +24,12 @@ public interface IStorefrontPaymentWriteService
         string? demoToken,
         string? handler,
         CancellationToken cancellationToken = default);
+
+    /// <summary>PHP <c>my_order.php</c> action <c>pay_on_place</c>: set <c>paid_type=1</c> plus order log. Status protocol HTTP stays uncalled.</summary>
+    Task<StorefrontPaymentWriteResult> PayOnPlaceAsync(
+        int userId,
+        long orderId,
+        CancellationToken cancellationToken = default);
 }
 
 public sealed record StorefrontPaymentWriteResult(
@@ -158,6 +164,145 @@ public sealed class StorefrontPaymentWriteService : IStorefrontPaymentWriteServi
             (long)userId, now, 1, amount, codeId, 0, payOrders, officeId).ConfigureAwait(false);
         var opId = await ErpDb.LastInsertIdAsync(connection, null, cancellationToken).ConfigureAwait(false);
         return new StorefrontPaymentWriteResult(true, "ok", "Operation created", opId, handler, 1);
+    }
+
+    public async Task<StorefrontPaymentWriteResult> PayOnPlaceAsync(
+        int userId,
+        long orderId,
+        CancellationToken cancellationToken = default)
+    {
+        if (userId <= 0)
+        {
+            return Fail("auth", "Please log in or register to continue.");
+        }
+
+        if (orderId <= 0)
+        {
+            return Fail("invalid", "Order is required.");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return Fail("db", "TenantRegistry DB is not configured.");
+        }
+
+        await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        var owner = await ErpDb.LongAsync(
+            connection,
+            null,
+            ErpDb.Positional("SELECT `user_id` FROM `shop_orders` WHERE `id`=? LIMIT 1"),
+            cancellationToken,
+            orderId).ConfigureAwait(false);
+        if (owner != userId)
+        {
+            return Fail("not_found", "Order is not in your account.");
+        }
+
+        var paidType = await ErpDb.LongAsync(
+            connection,
+            null,
+            ErpDb.Positional("SELECT IFNULL(`paid_type`, 0) FROM `shop_orders` WHERE `id`=? LIMIT 1"),
+            cancellationToken,
+            orderId).ConfigureAwait(false);
+        if (paidType != 0)
+        {
+            return Fail("already", "Pay on place is already set for this order.");
+        }
+
+        var officeId = await ErpDb.LongAsync(
+            connection,
+            null,
+            ErpDb.Positional("SELECT IFNULL(`office_id`, 0) FROM `shop_orders` WHERE `id`=? LIMIT 1"),
+            cancellationToken,
+            orderId).ConfigureAwait(false);
+        if (officeId > 0)
+        {
+            var office = await ErpDb.LongAsync(
+                connection,
+                null,
+                ErpDb.Positional("SELECT `id` FROM `shop_offices` WHERE `id`=? LIMIT 1"),
+                cancellationToken,
+                officeId).ConfigureAwait(false);
+            if (office <= 0)
+            {
+                return Fail("office", "Order office is not available for pay on place.");
+            }
+        }
+
+        var rows = await ErpDb.ExecuteAsync(
+            connection,
+            null,
+            ErpDb.Positional("UPDATE `shop_orders` SET `paid_type`=1 WHERE `id`=? AND `user_id`=? AND `paid_type`=0"),
+            cancellationToken,
+            orderId, userId).ConfigureAwait(false);
+        if (rows <= 0)
+        {
+            return Fail("not_found", "Order was not updated.");
+        }
+
+        var writes = 1;
+        var paidName = "Pay on place";
+        try
+        {
+            var name = await ErpDb.StringAsync(
+                connection,
+                null,
+                ErpDb.Positional("SELECT `name` FROM `shop_orders_paid_type` WHERE `id`=1 AND `active`=1 LIMIT 1"),
+                cancellationToken).ConfigureAwait(false);
+            if (!string.IsNullOrWhiteSpace(name))
+            {
+                paidName = name.Trim();
+            }
+        }
+        catch
+        {
+            // Caption table is optional on throwaway DBs.
+        }
+
+        try
+        {
+            var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+            await ErpDb.ExecuteAsync(
+                connection,
+                null,
+                ErpDb.Positional(
+                    "INSERT INTO `shop_orders_logs` (`order_id`,`time`,`user_id`,`is_manager`,`text`,`is_robot`) VALUES (?,?,?,?,?,?)"),
+                cancellationToken,
+                orderId, now, (long)userId, 0, "Способ оплаты: <b>" + paidName + "</b>", 0).ConfigureAwait(false);
+            writes++;
+        }
+        catch
+        {
+            // Log table is optional on throwaway DBs.
+        }
+
+        try
+        {
+            var forPaidStatus = await ErpDb.LongAsync(
+                connection,
+                null,
+                ErpDb.Positional("SELECT `id` FROM `shop_orders_statuses_ref` WHERE `for_paid`=1 LIMIT 1"),
+                cancellationToken).ConfigureAwait(false);
+            if (forPaidStatus > 0)
+            {
+                var statusRows = await ErpDb.ExecuteAsync(
+                    connection,
+                    null,
+                    ErpDb.Positional("UPDATE `shop_orders` SET `status`=? WHERE `id`=? AND `user_id`=?"),
+                    cancellationToken,
+                    forPaidStatus, orderId, userId).ConfigureAwait(false);
+                if (statusRows > 0)
+                {
+                    writes++;
+                }
+            }
+        }
+        catch
+        {
+            // for_paid status protocol HTTP stays uncalled; missing ref table is optional.
+        }
+
+        return new StorefrontPaymentWriteResult(true, "ok", "Pay on place saved.", orderId, null, writes);
     }
 
     public async Task<StorefrontPaymentWriteResult> NotifyAsync(

@@ -54,6 +54,13 @@ else
     .epc-cp-shell #header, .epc-cp-shell .epc-cp-topnav { width:100%; }
     .epc-cp-shell .epc-cp-header-bar, .epc-cp-shell .epc-cp-topnav-inner { width:min(1480px, 100%); margin:0 auto; }
     .epc-cp-shell .footer { padding:1rem; border-top:1px solid var(--cp-line); color:#64748b; font-size:13px; background:#fff; }
+    .epc-cp-shell .splash { position:fixed; z-index:2000; background:#fff; color:#64748b; inset:0; }
+    .epc-cp-shell .splash-title { text-align:center; max-width:500px; margin:15% auto; padding:20px; }
+    .epc-cp-shell .splash-title h1 { font-size:26px; margin:0 0 .35rem; }
+    .epc-cp-shell .splash .spinner { display:flex; gap:4px; justify-content:center; margin-top:12px; }
+    .epc-cp-shell .splash .spinner > div { width:6px; height:28px; background:#2563eb; }
+    .epc-cp-header-icons { display:flex; align-items:center; gap:.35rem; margin:0; padding:0; list-style:none; }
+    .epc-cp-top-connectivity a { display:inline-flex; align-items:center; gap:.25rem; padding:.25rem .45rem; color:#334155 !important; }
 </style>
 </HeadContent>
 <style>
@@ -84,9 +91,31 @@ else
     .epc-cp-shell #header, .epc-cp-shell .epc-cp-topnav { width:100%; }
     .epc-cp-shell .epc-cp-header-bar, .epc-cp-shell .epc-cp-topnav-inner { width:min(1480px, 100%); margin:0 auto; }
     .epc-cp-shell .footer { padding:1rem; border-top:1px solid var(--cp-line); color:#64748b; font-size:13px; background:#fff; }
+    .epc-cp-shell .splash { position:fixed; z-index:2000; background:#fff; color:#64748b; inset:0; }
+    .epc-cp-shell .splash-title { text-align:center; max-width:500px; margin:15% auto; padding:20px; }
+    .epc-cp-shell .splash-title h1 { font-size:26px; margin:0 0 .35rem; }
+    .epc-cp-shell .splash .spinner { display:flex; gap:4px; justify-content:center; margin-top:12px; }
+    .epc-cp-shell .splash .spinner > div { width:6px; height:28px; background:#2563eb; }
+    .epc-cp-header-icons { display:flex; align-items:center; gap:.35rem; margin:0; padding:0; list-style:none; }
+    .epc-cp-top-connectivity a { display:inline-flex; align-items:center; gap:.25rem; padding:.25rem .45rem; color:#334155 !important; }
 </style>
 
-<div class="fixed-navbar fixed-sidebar epc-cp epc-cp-shell epc-cp-topnav-only epc-cp--blue-theme epc-cp-modern epc-php-font-root@(_showBos ? " epc-cp-bos-host epc-boc-mode" : "")">
+<div class="@ShellClass">
+    <div class="splash">
+        <div class="color-line"></div>
+        <div class="splash-title">
+            <h1>eParts Cart - Control Panel</h1>
+            <p>Loading...</p>
+            <div class="spinner">
+                <div class="rect1"></div>
+                <div class="rect2"></div>
+                <div class="rect3"></div>
+                <div class="rect4"></div>
+                <div class="rect5"></div>
+            </div>
+        </div>
+    </div>
+    <script>(function(){function epcHideCpSplash(){var s=document.querySelector('.splash');if(s){s.style.display='none';}}if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',epcHideCpSplash);}else{epcHideCpSplash();}window.addEventListener('load',epcHideCpSplash);})();</script>
     <div id="header">
         <div class="color-line"></div>
         <div class="epc-cp-header-bar">
@@ -102,16 +131,71 @@ else
                             <span class="epc-cp-topbar-cta__host">Operations</span>
                         </span>
                     </a>
-                    <a class="epc-cp-topbar-cta epc-cp-topbar-cta--storefront" href="/" title="Open public storefront">
+                    <a class="epc-cp-topbar-cta epc-cp-topbar-cta--storefront" href="/" target="_blank" rel="noopener noreferrer" title="Open public storefront">
                         <span class="epc-cp-topbar-cta__glyph" aria-hidden="true"><i class="fa fa-shopping-bag"></i></span>
                         <span class="epc-cp-topbar-cta__text">
                             <span class="epc-cp-topbar-cta__label">Storefront</span>
+                            @if (!string.IsNullOrWhiteSpace(_storefrontHost))
+                            {
+                                <span class="epc-cp-topbar-cta__host">@_storefrontHost</span>
+                            }
                         </span>
                         <span class="epc-cp-topbar-cta__go" aria-hidden="true"><i class="fa fa-external-link"></i></span>
                     </a>
                 </nav>
             </div>
+            <div class="epc-cp-header-breadcrumb hidden-xs" aria-label="Breadcrumb">
+                <nav id="epc-cp-header-breadcrumb" class="epc-cp-header-breadcrumb__nav">
+                    <ol class="breadcrumb">
+                        <li><a href="/cp">Control</a></li>
+                        @if (!string.IsNullOrWhiteSpace(_crumbTitle) && !string.Equals(_crumbTitle, "Control", StringComparison.OrdinalIgnoreCase))
+                        {
+                            <li class="active">@_crumbTitle</li>
+                        }
+                    </ol>
+                </nav>
+            </div>
+            <nav role="navigation">
+                <div class="header-link hide-menu"><i class="fa fa-bars"></i></div>
+                <div class="mobile-menu">
+                    <button type="button" class="navbar-toggle mobile-menu-toggle" data-toggle="collapse" data-target="#mobile-collapse" aria-controls="mobile-collapse">
+                        <i class="fa fa-chevron-down"></i>
+                    </button>
+                    <div class="collapse mobile-navbar" id="mobile-collapse">
+                        <ul class="nav navbar-nav">
+                            <li><a href="/erp"><i class="fa fa-briefcase"></i> ERP</a></li>
+                            <li>
+                                <a href="/" target="_blank" rel="noopener noreferrer">
+                                    <i class="fa fa-shopping-bag"></i> Storefront@(string.IsNullOrWhiteSpace(_storefrontHost) ? "" : " · " + _storefrontHost)
+                                </a>
+                            </li>
+                            @if (_signedIn)
+                            {
+                                <li><a href="/cp/logout">Log out</a></li>
+                            }
+                            else
+                            {
+                                <li><a href="/cp/login">Sign in</a></li>
+                            }
+                        </ul>
+                    </div>
+                </div>
+            </nav>
             <nav class="epc-cp-header-actions" aria-label="CP header actions">
+                <ul class="nav navbar-nav no-borders epc-cp-header-icons">
+                    <li class="dropdown hidden-sm hidden-xs hidden-md epc-cp-top-connectivity epc-cp-top-connectivity--ssl" style="pointer-events: none;">
+                        <a href="#" title="SSL">
+                            <i class="fa fa-lock"></i>
+                        </a>
+                    </li>
+                </ul>
+                @if (!string.IsNullOrWhiteSpace(_industryLabel))
+                {
+                    <a class="epc-cp-industry-toggle" href="/cp/industry-packs-app" title="Industry settings">
+                        <i class="fa @_industryIcon"></i>
+                        <span class="hidden-xs">@_industryLabel</span>
+                    </a>
+                }
                 <a href="/cp">Control panel</a>
                 <a href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref("/CP/")" target="_blank" rel="noopener">Classic CP</a>
                 <a href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref("/ERP/")" target="_blank" rel="noopener">Classic ERP</a>
@@ -143,7 +227,10 @@ else
                 {
                     var columns = group.Columns ?? Array.Empty<LegacyDesktopChromeCatalog.MegaAreaColumn>();
                     var shortLabel = string.IsNullOrWhiteSpace(group.ShortLabel) ? group.Label : group.ShortLabel;
-                    <li class="epc-cp-topnav-item" data-group="@group.Id" role="none">
+                    var itemClass = "epc-cp-topnav-item";
+                    if (GroupIsActive(group)) { itemClass += " is-active"; }
+                    if (group.IsAdvanced) { itemClass += " epc-cp-topnav-item--advanced"; }
+                    <li class="@itemClass" data-group="@group.Id" role="none">
                         <button type="button"
                                 class="epc-cp-topnav-btn"
                                 role="menuitem"
@@ -165,6 +252,10 @@ else
                                         <i class="fa @group.Icon"></i>
                                     }
                                     @group.Label
+                                    @if (!string.IsNullOrWhiteSpace(group.Subtitle))
+                                    {
+                                        <span class="epc-cp-topnav-panel-sub">@group.Subtitle</span>
+                                    }
                                 </div>
                                 <a class="epc-cp-topnav-panel-hub" href="@PhpSurfaceLinkMap.AspNetPrimaryHref(group.HubHref ?? group.Links[0].Href)">
                                     Open first <i class="fa fa-arrow-right"></i>
@@ -179,8 +270,9 @@ else
                                             <ul class="epc-cp-topnav-links">
                                                 @foreach (var link in col.Tabs)
                                                 {
-                                                    <li>
-                                                        <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(link.Href)">
+                                                    var href = PhpSurfaceLinkMap.AspNetPrimaryHref(link.Href);
+                                                    <li class="@(PathIsActive(href) ? "is-active" : null)">
+                                                        <a href="@href">
                                                             <i class="fa @(string.IsNullOrWhiteSpace(link.Icon) ? "fa-circle-o" : link.Icon)"></i>
                                                             @link.Label
                                                         </a>
@@ -196,8 +288,9 @@ else
                                         <ul class="epc-cp-topnav-links">
                                             @foreach (var link in group.Links)
                                             {
-                                                <li>
-                                                    <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(link.Href)">@link.Label</a>
+                                                var href = PhpSurfaceLinkMap.AspNetPrimaryHref(link.Href);
+                                                <li class="@(PathIsActive(href) ? "is-active" : null)">
+                                                    <a href="@href">@link.Label</a>
                                                 </li>
                                             }
                                         </ul>
@@ -349,6 +442,17 @@ else
     } else {
         bindCpTopNav();
     }
+
+    var mobileBtn = document.querySelector('[data-target="#mobile-collapse"]');
+    var mobilePane = document.getElementById('mobile-collapse');
+    if (mobileBtn && mobilePane && !mobileBtn._epcMobileBound) {
+        mobileBtn._epcMobileBound = true;
+        mobileBtn.addEventListener('click', function (e) {
+            e.preventDefault();
+            mobilePane.classList.toggle('in');
+            mobilePane.classList.toggle('show');
+        });
+    }
 })();
 </script>
 }
@@ -365,10 +469,35 @@ else
     private bool _signedIn;
     private string _userLabel = "Admin session";
     private string? _industryCode;
+    private string? _industryLabel;
+    private string _industryIcon = "fa-cogs";
+    private string? _storefrontHost;
+    private string _currentPath = "/cp";
+    private string _crumbTitle = "Control";
+
+    private string ShellClass
+    {
+        get
+        {
+            var cls = "fixed-navbar fixed-sidebar epc-cp epc-cp-shell epc-cp-topnav-only epc-cp--blue-theme epc-cp-modern epc-php-font-root";
+            if (_showBos)
+            {
+                cls += " epc-cp-bos-host epc-boc-mode";
+            }
+            else if (!string.IsNullOrWhiteSpace(_industryCode))
+            {
+                cls += " epc-cp--" + _industryCode;
+            }
+
+            return cls;
+        }
+    }
 
     protected override async Task OnInitializedAsync()
     {
         var path = Http.HttpContext?.Request.Path.Value ?? string.Empty;
+        _currentPath = string.IsNullOrWhiteSpace(path) ? "/cp" : path;
+        _crumbTitle = TitleFromCpPath(_currentPath);
         _useErpChrome = path.StartsWith("/erp", StringComparison.OrdinalIgnoreCase);
         if (_useErpChrome)
         {
@@ -382,7 +511,17 @@ else
         // Tenant industry (epartscart → auto_parts) drives jewellery menu filtering.
         if (!_showBos && !string.IsNullOrWhiteSpace(host))
         {
-            _industryCode = ErpHostContext.Resolve(host).IndustryCode;
+            var erpHost = ErpHostContext.Resolve(host);
+            _industryCode = erpHost.IndustryCode;
+            _industryLabel = erpHost.IndustryLabel;
+            _industryIcon = string.Equals(_industryCode, "auto_parts", StringComparison.OrdinalIgnoreCase)
+                ? "fa-car"
+                : "fa-cogs";
+            _storefrontHost = host.Trim();
+            if (_storefrontHost.StartsWith("www.", StringComparison.OrdinalIgnoreCase))
+            {
+                _storefrontHost = _storefrontHost[4..];
+            }
         }
 
         var ctx = Http.HttpContext;
@@ -398,6 +537,62 @@ else
         {
             _userLabel = string.IsNullOrWhiteSpace(session.Email) ? "Admin session" : session.Email!;
         }
+    }
+
+    private bool GroupIsActive(LegacyDesktopChromeCatalog.MegaGroup group)
+    {
+        if (PathIsActive(group.HubHref))
+        {
+            return true;
+        }
+
+        return group.Links.Any(l => PathIsActive(l.Href));
+    }
+
+    private bool PathIsActive(string? href)
+    {
+        if (string.IsNullOrWhiteSpace(href))
+        {
+            return false;
+        }
+
+        var mapped = PhpSurfaceLinkMap.AspNetPrimaryHref(href).Split('?', 2)[0];
+        if (string.IsNullOrWhiteSpace(mapped) || mapped == "/")
+        {
+            return false;
+        }
+
+        if (mapped.Equals("/cp", StringComparison.OrdinalIgnoreCase)
+            || mapped.Equals("/erp", StringComparison.OrdinalIgnoreCase))
+        {
+            return _currentPath.Equals(mapped, StringComparison.OrdinalIgnoreCase)
+                   || _currentPath.Equals(mapped + "/app", StringComparison.OrdinalIgnoreCase);
+        }
+
+        return _currentPath.Equals(mapped, StringComparison.OrdinalIgnoreCase)
+               || _currentPath.StartsWith(mapped + "/", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static string TitleFromCpPath(string path)
+    {
+        var slug = path.Split('?', 2)[0].Trim('/').Split('/').LastOrDefault() ?? "control";
+        slug = slug.Replace("-app", "", StringComparison.OrdinalIgnoreCase).Replace('-', ' ').Trim();
+        if (string.IsNullOrWhiteSpace(slug)
+            || slug.Equals("cp", StringComparison.OrdinalIgnoreCase)
+            || slug.Equals("app", StringComparison.OrdinalIgnoreCase)
+            || slug.Equals("control", StringComparison.OrdinalIgnoreCase))
+        {
+            return "Control";
+        }
+
+        var parts = slug.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        for (var i = 0; i < parts.Length; i++)
+        {
+            var p = parts[i];
+            parts[i] = char.ToUpperInvariant(p[0]) + p[1..];
+        }
+
+        return string.Join(' ', parts);
     }
 
     private static string TitleFromErpPath(string path)

@@ -68,6 +68,21 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(payDb.Ok);
         Assert.Equal("db", payDb.Code);
 
+        var payOnPlaceAuth = await new StorefrontPaymentWriteService(new UnconfiguredConnections())
+            .PayOnPlaceAsync(0, 9);
+        Assert.False(payOnPlaceAuth.Ok);
+        Assert.Equal("auth", payOnPlaceAuth.Code);
+
+        var payOnPlaceInvalid = await new StorefrontPaymentWriteService(new ConfiguredNeverOpened())
+            .PayOnPlaceAsync(1, 0);
+        Assert.False(payOnPlaceInvalid.Ok);
+        Assert.Equal("invalid", payOnPlaceInvalid.Code);
+
+        var payOnPlaceDb = await new StorefrontPaymentWriteService(new UnconfiguredConnections())
+            .PayOnPlaceAsync(1, 9);
+        Assert.False(payOnPlaceDb.Ok);
+        Assert.Equal("db", payOnPlaceDb.Code);
+
         var notifyForbidden = await new StorefrontPaymentWriteService(new ConfiguredNeverOpened())
             .NotifyAsync(1, 9, 10, "bad-token", "epc_demo");
         Assert.False(notifyForbidden.Ok);
@@ -3211,6 +3226,9 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(StorefrontCustomerWriteService.IsAllowedProfileKey("epc_doc_trade_licence"));
         Assert.True(StorefrontCustomerWriteService.IsAllowedProfileKey("name"));
         Assert.True(StorefrontCustomerWriteService.IsAllowedProfileKey("company_name"));
+        Assert.True(StorefrontCustomerWriteService.IsAllowedProfileKey("epc_custom_trade_name"));
+        Assert.False(StorefrontCustomerWriteService.IsAllowedProfileKey("confirmWrites"));
+        Assert.False(StorefrontCustomerWriteService.IsAllowedProfileKey("reg_variant"));
 
         var clean = StorefrontCustomerWriteService.NormalizeProfileFields(new Dictionary<string, string>
         {

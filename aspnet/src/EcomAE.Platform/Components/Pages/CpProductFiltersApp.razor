@@ -7,59 +7,32 @@
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
-@inject NavigationManager Nav
 
 <PageTitle>Product filters · Control Panel · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="cp" />
-<HeadContent>
-<style>
-        .epc-w22-hero {
-            margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
-            background:linear-gradient(135deg,#0c4a6e 0%,#2563eb 45%,#0ea5e9 100%);
-        }
-        .epc-w22-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
-        .epc-w22-hero p { margin:0; color:rgba(255,255,255,.88); max-width:44rem; font-size:.92rem; line-height:1.45; }
-        .epc-w22-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
-        .epc-w22-cta a {
-            display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
-            text-decoration:none; color:#0f172a; background:#fff;
-        }
-        .epc-w22-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); color:#fff; }
-        .epc-w22-kpis { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
-        .epc-w22-kpi { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; padding:.85rem .9rem; }
-        .epc-w22-kpi strong { display:block; font-size:1.2rem; word-break:break-word; }
-        .epc-w22-kpi span { color:#64748b; font-size:.78rem; }
-        .epc-w22-table-wrap { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; overflow:auto; }
-        .epc-w22-table { width:100%; border-collapse:collapse; font-size:.86rem; }
-        .epc-w22-table th, .epc-w22-table td { padding:.55rem .7rem; border-bottom:1px solid #f1f5f9; text-align:left; white-space:nowrap; }
-        .epc-w22-table th { background:#f8fafc; color:#475569; font-size:.75rem; text-transform:uppercase; letter-spacing:.03em; }
-        .epc-w22-note { margin-top:1rem; padding:.75rem .9rem; background:#f8fafc; border:1px solid #cbd5e1; border-radius:.45rem; color:#334155; font-size:.86rem; }
-        @@media (max-width:900px){ .epc-w22-kpis{grid-template-columns:1fr 1fr;} }
-    
-</style>
-</HeadContent>
-
 
 <PhpCpDesktopChrome IsAdmin="_isAdmin">
 
-    <section class="epc-w22-hero">
-        <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
-        <h1>Product filters</h1>
-        <p>@CpPhpModuleCopy.PurposeFor(Nav.Uri)</p>
-        <div class="epc-w22-cta">
-            <a href="/cp/product-filters-app">Filters</a>
-            <a class="ghost" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Classic twin</a>
+    <div class="col-lg-12">
+        <div class="hpanel">
+            <div class="panel-heading hbuilt">
+                Product filters
+                <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Classic twin</a>
+            </div>
+            <div class="panel-body">
+                <p>Catalog filter rows. Add, save, enable, scope, or delete here.</p>
+            </div>
         </div>
-    </section>
+    </div>
     <PhpParityModuleBody AppPath="/cp/product-filters-app" IsAdmin="_isAdmin" />
 
     @if (!string.IsNullOrWhiteSpace(_flashOk))
     {
-        <div class="alert alert-success" role="status" style="margin:0 0 1rem;padding:.7rem .9rem;border-radius:.4rem;background:#ecfdf5;color:#065f46">@_flashOk</div>
+        <div class="alert alert-success" role="status">@_flashOk</div>
     }
     @if (!string.IsNullOrWhiteSpace(_flashErr))
     {
-        <div class="alert alert-danger" role="status" style="margin:0 0 1rem;padding:.7rem .9rem;border-radius:.4rem;background:#fef2f2;color:#991b1b">@_flashErr</div>
+        <div class="alert alert-danger" role="status">@_flashErr</div>
     }
     @if (_isAdmin)
     {
@@ -116,50 +89,48 @@
         </form>
     }
 
-    <div class="epc-w22-kpis" aria-label="Product filters stats">
-        <div class="epc-w22-kpi"><strong>@_summary.FilterCount.ToString(CultureInfo.InvariantCulture)</strong><span>Filters</span></div>
-        <div class="epc-w22-kpi"><strong>@_summary.WithStorageScope.ToString(CultureInfo.InvariantCulture)</strong><span>Storage scope</span></div>
-        <div class="epc-w22-kpi"><strong>@_summary.WithPriceBand.ToString(CultureInfo.InvariantCulture)</strong><span>Price band</span></div>
-        <div class="epc-w22-kpi"><strong>@_summary.WithTimeBand.ToString(CultureInfo.InvariantCulture)</strong><span>Time band</span></div>
+    <div class="col-lg-12">
+        <div class="hpanel">
+            <div class="panel-heading hbuilt">Filters</div>
+            <div class="panel-body">
+                <p class="help-block">@_summary.FilterCount.ToString(CultureInfo.InvariantCulture) filters · storage scope @_summary.WithStorageScope.ToString(CultureInfo.InvariantCulture) · price band @_summary.WithPriceBand.ToString(CultureInfo.InvariantCulture) · time band @_summary.WithTimeBand.ToString(CultureInfo.InvariantCulture).</p>
+                <div class="table-responsive">
+                    <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped">
+                        <thead>
+                            <tr>
+                                <th>Id</th>
+                                <th>Manufacturer</th>
+                                <th>Article</th>
+                                <th>Name</th>
+                                <th>Min price</th>
+                                <th>Max price</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        @if (_rows.Count == 0)
+                        {
+                            <tr><td colspan="6">No records yet.</td></tr>
+                        }
+                        else
+                        {
+                            @foreach (var row in _rows)
+                            {
+                                <tr>
+                                    <td>@row.Id.ToString(CultureInfo.InvariantCulture)</td>
+                                    <td>@(!string.IsNullOrWhiteSpace(row.Manufacturer) ? row.Manufacturer : "—")</td>
+                                    <td>@(!string.IsNullOrWhiteSpace(row.Article) ? row.Article : "—")</td>
+                                    <td>@(!string.IsNullOrWhiteSpace(row.Name) ? row.Name : "—")</td>
+                                    <td>@row.MinPrice.ToString(CultureInfo.InvariantCulture)</td>
+                                    <td>@row.MaxPrice.ToString(CultureInfo.InvariantCulture)</td>
+                                </tr>
+                            }
+                        }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
     </div>
-
-    <div class="epc-w22-table-wrap">
-    <table class="epc-w22-table">
-        <thead>
-            <tr>
-                    <th>Id</th>
-                    <th>Manufacturer</th>
-                    <th>Article</th>
-                    <th>Name</th>
-                    <th>Min price</th>
-                    <th>Max price</th>
-                    <th></th>
-            </tr>
-        </thead>
-        <tbody>
-            @if (_rows.Count == 0)
-            {
-                <tr><td colspan="7">No records yet.</td></tr>
-            }
-            else
-            {
-                @foreach (var row in _rows)
-                {
-                    <tr>
-                                                        <td>@row.Id.ToString(CultureInfo.InvariantCulture)</td>
-                            <td>@(!string.IsNullOrWhiteSpace(row.Manufacturer) ? row.Manufacturer : "—")</td>
-                            <td>@(!string.IsNullOrWhiteSpace(row.Article) ? row.Article : "—")</td>
-                            <td>@(!string.IsNullOrWhiteSpace(row.Name) ? row.Name : "—")</td>
-                            <td>@row.MinPrice.ToString(CultureInfo.InvariantCulture)</td>
-                            <td>@row.MaxPrice.ToString(CultureInfo.InvariantCulture)</td>
-                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
-                    </tr>
-                }
-            }
-        </tbody>
-    </table>
-    </div>
-
 </PhpCpDesktopChrome>
 
 @code {
@@ -167,8 +138,6 @@
     private bool _isAdmin;
     private CpProductFiltersSummary _summary = new(0, 0, 0, 0, "n/a", "");
     private IReadOnlyList<CpProductFiltersRowDigest> _rows = [];
-    private string _source = "n/a";
-    private string _message = "";
     private string _flashOk = "";
     private string _flashErr = "";
 
@@ -183,13 +152,11 @@
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
         if (!_isAdmin)
         {
-            return; // guest browse — Sign in for live data
+            return;
         }
 
         var result = await Dashboards.BuildCpProductFiltersDigestAsync(200, ctx.RequestAborted);
         _summary = result.Summary;
         _rows = result.Filters;
-        _source = result.Source;
-        _message = result.Message;
     }
 }

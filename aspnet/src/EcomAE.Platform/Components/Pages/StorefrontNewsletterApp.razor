@@ -12,11 +12,11 @@
 <PhpChromeBodyClass Surface="storefront" />
 
 <StorefrontTenantChrome>
-    <section style="padding:2rem 0 3rem">
-        <div class="container" style="max-width:36rem">
+    <section class="epc-wc-newsletter" id="epc_wc_newsletter_auto_parts">
+        <div class="container" style="max-width:36rem;text-align:center">
             <p style="margin:0 0 .35rem;color:#64748b;font-size:.85rem"><a href="/">Home</a></p>
-            <h1 style="margin:.1rem 0 .4rem">Newsletter</h1>
-            <p style="color:#475569">Get order and catalogue updates from @_brand.</p>
+            <h2 style="font-size:24px;font-weight:700;margin:0 0 8px;color:#1e293b">Stay updated</h2>
+            <p style="color:#64748b;margin:0 0 20px;font-size:15px">Subscribe for the latest updates and exclusive offers from @_brand.</p>
             @if (!string.IsNullOrWhiteSpace(_flashOk))
             {
                 <p style="margin:0 0 .75rem;padding:.65rem .8rem;background:#ecfdf3;border:1px solid #86efac;color:#166534">@_flashOk</p>
@@ -25,13 +25,13 @@
             {
                 <p style="margin:0 0 .75rem;padding:.65rem .8rem;background:#fef2f2;border:1px solid #fecaca;color:#991b1b">@_flashErr</p>
             }
-            <form method="post" action="@PhpVendorPortal.NewsletterWriteHref" style="background:#fff;border:1px solid #e2e8f0;border-radius:.55rem;padding:1.1rem 1.2rem">
+            <form method="post" action="@PhpVendorPortal.NewsletterWriteHref" class="epc-wc-newsletter__form" style="max-width:480px;margin:0 auto;display:flex;gap:8px;flex-wrap:wrap;text-align:left">
                 <input type="hidden" name="confirmWrites" value="true" />
                 <input type="hidden" name="returnUrl" value="/storefront/newsletter-app" />
-                <label>Email</label>
-                <input type="email" name="email" required autocomplete="email" style="width:100%;margin:.25rem 0 1rem;padding:.5rem" />
-                <button type="submit" style="width:100%;padding:.7rem 1rem;border:0;border-radius:.45rem;background:#dc2626;color:#fff;font-weight:800;cursor:pointer">Subscribe</button>
+                <input type="email" name="email" required autocomplete="email" placeholder="Enter your email" class="form-control" style="flex:1;min-width:12rem" />
+                <button type="submit" class="btn btn-ar btn-primary">Subscribe</button>
             </form>
+            <p class="epc-wc-newsletter__note" style="color:#94a3b8;font-size:12px;margin:12px 0 0">No spam. Unsubscribe anytime.</p>
         </div>
     </section>
 </StorefrontTenantChrome>
