@@ -4512,6 +4512,26 @@ public sealed record ErpWithholdingDigestResult(
     string Source,
     string Message);
 
+public sealed record ErpWithholdingTxnDetail(
+    long Id,
+    long CompanyId,
+    long CodeId,
+    string Code,
+    string Vendor,
+    string DocRef,
+    string TxnDate,
+    decimal BaseAmount,
+    decimal WhtAmount,
+    decimal Rate,
+    string CertificateNo,
+    string Status,
+    long TimeCreated);
+
+public sealed record ErpWithholdingTxnDetailResult(
+    ErpWithholdingTxnDetail? Txn,
+    string Source,
+    string Message);
+
 public sealed record ErpPettyCashDigest(
     long Id,
     string Name,
