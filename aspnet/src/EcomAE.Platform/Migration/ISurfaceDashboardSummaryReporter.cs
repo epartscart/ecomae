@@ -314,6 +314,9 @@ public interface ISurfaceDashboardSummaryReporter
     /// <summary>Read-only WMS work pool.</summary>
     Task<CpWarehouseWmsDigestResult> BuildCpWarehouseWmsDigestAsync(int limit, CancellationToken cancellationToken = default);
 
+    /// <summary>Opened WMS work (PHP <c>work_id</c>) plus wave siblings. List omits from/to location and LP.</summary>
+    Task<CpWarehouseWmsDetailResult> BuildCpWarehouseWmsDetailAsync(long id, CancellationToken cancellationToken = default);
+
     /// <summary>Read-only AI service queries (input/output text omitted).</summary>
     Task<CpAiServiceDigestResult> BuildCpAiServiceDigestAsync(int limit, CancellationToken cancellationToken = default);
 

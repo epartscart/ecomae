@@ -3253,6 +3253,28 @@ public sealed record CpWarehouseWmsDigestResult(
     string Source,
     string Message);
 
+public sealed record CpWarehouseWmsWorkDetail(
+    long Id,
+    long CompanyId,
+    string WorkType,
+    string Reference,
+    long WaveId,
+    string Item,
+    decimal Qty,
+    long FromLocationId,
+    long ToLocationId,
+    long LpId,
+    string Status,
+    string AssignedTo,
+    long TimeCreated,
+    long TimeUpdated);
+
+public sealed record CpWarehouseWmsDetailResult(
+    CpWarehouseWmsWorkDetail? Work,
+    IReadOnlyList<CpWarehouseWmsWorkDigest> Siblings,
+    string Source,
+    string Message);
+
 public sealed record CpAiServiceSummary(
     int QueryCount,
     int SuccessCount,

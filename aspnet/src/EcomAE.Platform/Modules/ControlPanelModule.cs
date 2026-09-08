@@ -7208,7 +7208,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "epc_erp_wms_* KPIs + work pool. Location save/delete, receive, wave create/release, and work complete write when confirmWrites=true. Schema ensure stays PHP."
+                note = "epc_erp_wms_* KPIs + work pool. Open ?work_id= loads from/to location and LP. Location save/delete, receive, wave create/release, and work complete write when confirmWrites=true. Schema ensure stays PHP."
             });
         });
 
