@@ -3111,6 +3111,23 @@ public sealed class LiveWriteServiceValidationTests
             .LogAsync(new ErpHrAttendanceWriteRequest(EmployeeId: 1, Hours: 8));
         Assert.False(hrAttDb.Succeeded);
         Assert.Equal("db", hrAttDb.Code);
+
+        var pmUnknown = await new ErpPmSaveWriteService(new ConfiguredNeverOpened())
+            .SaveAsync(new ErpPmSaveWriteRequest(PmTable: "not_a_table", Fields: new Dictionary<string, string> { ["code"] = "X" }));
+        Assert.False(pmUnknown.Succeeded);
+        Assert.Equal("invalid", pmUnknown.Code);
+        Assert.Equal("Unknown master table", pmUnknown.Message);
+
+        var pmNothing = await new ErpPmSaveWriteService(new ConfiguredNeverOpened())
+            .SaveAsync(new ErpPmSaveWriteRequest(PmTable: "epc_erp_pm_business_units", Id: 9));
+        Assert.False(pmNothing.Succeeded);
+        Assert.Equal("invalid", pmNothing.Code);
+        Assert.Equal("Nothing to save", pmNothing.Message);
+
+        var pmDb = await new ErpPmSaveWriteService(new UnconfiguredConnections())
+            .SaveAsync(new ErpPmSaveWriteRequest(PmTable: "epc_erp_pm_business_units", Fields: new Dictionary<string, string> { ["code"] = "BU1" }));
+        Assert.False(pmDb.Succeeded);
+        Assert.Equal("db", pmDb.Code);
     }
 
     [Fact]

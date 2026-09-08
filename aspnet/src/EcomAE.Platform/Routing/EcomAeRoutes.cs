@@ -1047,7 +1047,9 @@ public static class EcomAeRoutes
     public const string ErpAjaxOrderFulfillmentAutoPost = "/erp/ajax/order-fulfillment-auto-post";
     /// <summary>Wave B dry-run for PHP order_fulfillment_swap_supplier (writes=0).</summary>
     public const string ErpAjaxOrderFulfillmentSwapSupplier = "/erp/ajax/order-fulfillment-swap-supplier";
-    /// <summary>Wave B dry-run for PHP pm_save (writes=0).</summary>
+    /// <summary>HTML form POST for PHP pm_save. confirmWrites=true writes via IErpPmSaveWriteService.</summary>
+    public const string ErpPmSave = "/erp/pm/save";
+    /// <summary>Live PHP pm_save ajax alias of <see cref="ErpPmSave"/>.</summary>
     public const string ErpAjaxPmSave = "/erp/ajax/pm-save";
     /// <summary>Wave B dry-run for PHP pm_toggle (writes=0).</summary>
     public const string ErpAjaxPmToggle = "/erp/ajax/pm-toggle";
