@@ -240,10 +240,36 @@ public sealed class EpartscartCustomerJourneyParityTests
 
         var vendorReg = File.ReadAllText(Find(
             "aspnet/src/EcomAE.Platform/Components/Pages/StorefrontVendorRegisterApp.razor"));
-        Assert.Contains("panel panel-primary", vendorReg, StringComparison.Ordinal);
+        Assert.Contains("id=\"epc-vendor-register-form\"", vendorReg, StringComparison.Ordinal);
+        Assert.Contains("epc-vp__card--wide", vendorReg, StringComparison.Ordinal);
         Assert.Contains("name=\"email\"", vendorReg, StringComparison.Ordinal);
         Assert.Contains("name=\"legal_name\"", vendorReg, StringComparison.Ordinal);
         Assert.Contains("name=\"trn\"", vendorReg, StringComparison.Ordinal);
+        Assert.Contains("name=\"vendor_short\"", vendorReg, StringComparison.Ordinal);
+        Assert.Contains("name=\"postal_code\"", vendorReg, StringComparison.Ordinal);
+        Assert.Contains("id=\"epc_vendor_emirate\"", vendorReg, StringComparison.Ordinal);
+
+        var vendorPortal = File.ReadAllText(Find(
+            "aspnet/src/EcomAE.Platform/Components/Pages/StorefrontVendorPortalApp.razor"));
+        Assert.Contains("id=\"epc-vendor-portal\"", vendorPortal, StringComparison.Ordinal);
+        Assert.Contains("epc-vp__login panel panel-primary", vendorPortal, StringComparison.Ordinal);
+        Assert.Contains("epc-login-html-form", File.ReadAllText(Find(
+            "aspnet/src/EcomAE.Platform/Components/Shared/LegacyAdminLoginForm.razor")), StringComparison.Ordinal);
+
+        var vendorUpload = File.ReadAllText(Find(
+            "aspnet/src/EcomAE.Platform/Components/Pages/StorefrontVendorUploadApp.razor"));
+        Assert.Contains("id=\"epc-vendor-upload\"", vendorUpload, StringComparison.Ordinal);
+        Assert.Contains("id=\"epc-vp-upload-form\"", vendorUpload, StringComparison.Ordinal);
+        Assert.Contains("name=\"data_type\"", vendorUpload, StringComparison.Ordinal);
+        Assert.Contains("name=\"price_file\"", vendorUpload, StringComparison.Ordinal);
+        Assert.Contains("id=\"epc-vp-submit\"", vendorUpload, StringComparison.Ordinal);
+
+        var partsExpert = File.ReadAllText(Find(
+            "aspnet/src/EcomAE.Platform/Components/Pages/StorefrontAiPartsExpertApp.razor"));
+        Assert.Contains("id=\"epc-ai-expert-form\"", partsExpert, StringComparison.Ordinal);
+        Assert.Contains("id=\"epc-ai-expert-article\"", partsExpert, StringComparison.Ordinal);
+        Assert.Contains("name=\"article\"", partsExpert, StringComparison.Ordinal);
+        Assert.Contains("name=\"brand\"", partsExpert, StringComparison.Ordinal);
     }
 
     [Fact]

@@ -9,27 +9,40 @@
 <PageTitle>Vendor portal · @_brand</PageTitle>
 <PhpSurfaceHead Surface="storefront" IncludeStorefrontAnalytics="true" ApplyStorefrontIndustryAttrs="true" />
 <PhpChromeBodyClass Surface="storefront" LoginChrome="true" />
+<HeadContent>
+    <link rel="stylesheet" href="/platform-assets/epc_vendor_portal.css?v=20260908vp" />
+</HeadContent>
 
 <StorefrontTenantChrome>
-    <section class="epc-vp" style="padding:2rem 0 3rem">
-        <div class="container" style="max-width:40rem">
-            <p style="margin:0 0 .35rem;color:#64748b;font-size:.85rem"><a href="/">Home</a> · Vendor</p>
-            <h1 style="margin:.1rem 0 .4rem">Vendor portal</h1>
-            <p style="color:#475569">Sign in to upload your price list and manage warehouse offers from the storefront. No control-panel login.</p>
-            <div style="background:#fff;border:1px solid #e2e8f0;border-radius:.55rem;padding:1.1rem 1.2rem;margin:1rem 0">
-                <LegacyAdminLoginForm Surface="LegacyLoginSurface.Storefront" SurfaceLabel="storefront" PhpLoginHref="/php-reference/en/vendor" SubmitLabel="Sign in as vendor" Accent="red" />
+    <section class="epc-vp" id="epc-vendor-portal">
+        <div class="epc-vp__wrap">
+            <div class="epc-vp__card">
+                <div class="epc-vp__brand">@_brand <span>Vendor</span></div>
+                <h1>Vendor portal</h1>
+                <p class="epc-vp__lead">Sign in to upload your price list and manage your warehouse offers — all from the storefront.</p>
+                @if (_registered)
+                {
+                    <div class="epc-vp__alert epc-vp__alert--ok">Registration complete. Sign in with your vendor email and password to upload prices.</div>
+                }
+                <div class="epc-vp__login panel panel-primary">
+                    <LegacyAdminLoginForm Surface="LegacyLoginSurface.Storefront" SurfaceLabel="storefront" PhpLoginHref="/php-reference/en/vendor" SubmitLabel="Sign in as vendor" Accent="red" />
+                </div>
+                <p class="epc-vp__foot">
+                    New seller? <a href="@StorefrontAspNetCanonical.VendorRegister">Register as a vendor</a>
+                </p>
             </div>
-            <p>New seller? <a href="@StorefrontAspNetCanonical.VendorRegister">Register as a vendor</a></p>
-            <p style="color:#64748b;font-size:.85rem">Approved vendors continue to <a href="@StorefrontAspNetCanonical.VendorUpload">price upload</a>.</p>
         </div>
     </section>
 </StorefrontTenantChrome>
 
 @code {
     private string _brand = "eParts Cart";
+    private bool _registered;
 
     protected override void OnInitialized()
     {
-        _brand = StorefrontIndustryHostResolver.ResolveBrandLabel(Http.HttpContext?.Request.Host.Host);
+        var ctx = Http.HttpContext;
+        _brand = StorefrontIndustryHostResolver.ResolveBrandLabel(ctx?.Request.Host.Host);
+        _registered = ctx?.Request.Query.ContainsKey("registered") == true;
     }
 }

@@ -200,6 +200,9 @@ public static class PhpLegacyAssetBridge
                      // ePartsCart accessories marketplace (storefront top-menu Product → Accessories).
                      ("/platform-assets/epc_accessories.css",
                          "content/general_pages/epc_accessories.css"),
+                     // Storefront vendor portal / register / upload (PHP content/shop/vendor).
+                     ("/platform-assets/epc_vendor_portal.css",
+                         "content/shop/vendor/epc_vendor_portal.css"),
                      ("/platform-assets/epc_accessories_marketplace.js",
                          "content/general_pages/epc_accessories_marketplace.js"),
                      // ASP.NET storefront module look → PHP nero page-header parity
