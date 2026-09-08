@@ -9573,8 +9573,8 @@ public sealed class ErpModule : ISurfaceModule
 
             return Results.Ok(dryRun.Evaluate(new ErpInsClaimAddRequest(id, policyId, claimNo, false)).ToPayload(SessionPayload(session)));
         }).DisableAntiforgery();
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxFinPeriodsGenerate, async (HttpContext context, ErpFinPeriodsGenerateBody? body, ILegacySessionValidator validator, IErpFinPeriodsGenerateDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(false); return Results.Ok(dryRun.Evaluate(new ErpFinPeriodsGenerateRequest(body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxFinPeriodsGenerate, HandleFinPeriodsGenerateAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpFinPeriodsGenerate, HandleFinPeriodsGenerateAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxFinFxRevalue, async (HttpContext context, ErpFinFxRevalueBody? body, ILegacySessionValidator validator, IErpFinFxRevalueDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(false); return Results.Ok(dryRun.Evaluate(new ErpFinFxRevalueRequest(body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxFinAllocSave, async (HttpContext context, ErpFinAllocSaveBody? body, ILegacySessionValidator validator, IErpFinAllocSaveDryRun dryRun, CancellationToken cancellationToken) =>
@@ -11774,6 +11774,64 @@ public sealed class ErpModule : ISurfaceModule
         }
     }
 
+    private static async Task<IResult> HandleFinPeriodsGenerateAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpFinPeriodsGenerateDryRun dryRun,
+        IErpFinPeriodsGenerateWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/cp/fin-advanced-app", "Admin ERP capability required for finance period generate.");
+        }
+
+        var fy = 0;
+        var startMonth = 1;
+        var confirm = false;
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            fy = LiveWriteFormBinder.Int(form, "fy");
+            startMonth = form.ContainsKey("start_month") || form.ContainsKey("startMonth")
+                ? LiveWriteFormBinder.Int(form, "start_month", "startMonth")
+                : 1;
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+        }
+        else
+        {
+            var root = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<JsonElement>(context, cancellationToken);
+            confirm = ErpFinPeriodsGenerateWriteService.JsonFlag(root, "confirmWrites", "confirm_writes");
+            fy = ErpFinPeriodsGenerateWriteService.JsonInt(root, "fy");
+            startMonth = ErpFinPeriodsGenerateWriteService.JsonHas(root, "start_month", "startMonth")
+                ? ErpFinPeriodsGenerateWriteService.JsonInt(root, "start_month", "startMonth")
+                : 1;
+        }
+
+        var companyHint = 0L;
+        if (context.Request.Query.TryGetValue("company", out var companyQ)
+            && long.TryParse(companyQ.ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsedCompany))
+        {
+            companyHint = parsedCompany;
+        }
+
+        if (!confirm)
+        {
+            return Results.Ok(dryRun.Evaluate(new ErpFinPeriodsGenerateRequest(false, fy, startMonth)).ToPayload(SessionPayload(session)));
+        }
+
+        var written = await writes.GenerateAsync(
+            new ErpFinPeriodsGenerateWriteRequest(fy, startMonth, companyHint),
+            cancellationToken);
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/cp/fin-advanced-app",
+            written.Succeeded,
+            written.Message,
+            new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+    }
+
     private static async Task<IResult> HandleWhtCodeSaveAsync(
         HttpContext context,
         ILegacySessionValidator validator,
@@ -12615,7 +12673,6 @@ public sealed class ErpModule : ISurfaceModule
         string? Status = null,
         string? Note = null,
         bool ConfirmWrites = false);
-    private sealed record ErpFinPeriodsGenerateBody(bool ConfirmWrites = false);
     private sealed record ErpFinFxRevalueBody(bool ConfirmWrites = false);
     private sealed record ErpFinAllocSaveBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpFinAllocRunBody(bool ConfirmWrites = false);
