@@ -890,6 +890,34 @@ public sealed class ErpRecordOpenPhpParityTests
     }
 
     [Fact]
+    public void CrmActivitiesApp_OpenLoadsNotesExcerptAndRelatedSiblings()
+    {
+        var root = FindRepoRoot();
+        var text = File.ReadAllText(Path.Combine(root,
+            "aspnet/src/EcomAE.Platform/Components/Pages/CpCrmActivitiesApp.razor"));
+        Assert.Contains("ErpRecordOpen.Href(_listHref, \"activity_id\"", text, StringComparison.Ordinal);
+        Assert.Contains("ErpOpenedRecordBanner", text, StringComparison.Ordinal);
+        Assert.Contains("ReadId(ctx.Request, \"activity_id\")", text, StringComparison.Ordinal);
+        Assert.Contains("BuildCpCrmActivitiesDetailAsync", text, StringComparison.Ordinal);
+        Assert.Contains("No notes excerpt yet.", text, StringComparison.Ordinal);
+        Assert.Contains("No related siblings yet.", text, StringComparison.Ordinal);
+        Assert.Contains("ShowGhostScaffold=\"false\"", text, StringComparison.Ordinal);
+        Assert.Contains("table-epc", text, StringComparison.Ordinal);
+        Assert.Contains("PhpParityModuleBody", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)\">Open", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("/php-reference/", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("ASP.NET", text, StringComparison.Ordinal);
+
+        Assert.Equal("/cp/crm-activities-app?activity_id=9#erp-row-9",
+            ErpRecordOpen.Href("/cp/crm-activities-app", "activity_id", 9));
+        Assert.Equal(
+            "/cp/crm-activities-app?activity_id=9",
+            ErpRecordOpen.PreserveRecordQuery(
+                "/cp/crm-activities-app",
+                "/CP/shop/crm/crm_main?tab=activities&activity_id=9"));
+    }
+
+    [Fact]
     public void DocExpiryApp_OpenLoadsDetailAndAcceptsPhpDoc()
     {
         var root = FindRepoRoot();

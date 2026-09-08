@@ -344,6 +344,9 @@ public interface ISurfaceDashboardSummaryReporter
     /// <summary>Read-only CRM activities (notes omitted).</summary>
     Task<CpCrmActivitiesDigestResult> BuildCpCrmActivitiesDigestAsync(int limit, CancellationToken cancellationToken = default);
 
+    /// <summary>Opened CRM activity (PHP <c>activity_id</c>) plus related siblings. Notes excerpt only.</summary>
+    Task<CpCrmActivitiesDetailResult> BuildCpCrmActivitiesDetailAsync(long id, CancellationToken cancellationToken = default);
+
     /// <summary>Read-only auth MFA enrollments (secrets/hashes omitted).</summary>
     Task<CpAuthMfaDigestResult> BuildCpAuthMfaDigestAsync(int limit, CancellationToken cancellationToken = default);
 

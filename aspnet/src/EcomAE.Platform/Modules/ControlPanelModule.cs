@@ -7404,7 +7404,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only epc_crm_activities KPIs + rows (notes omitted). PHP CRM activities remain authoritative."
+                note = "Read-only epc_crm_activities KPIs + rows. Open ?activity_id= loads a 280-char notes excerpt plus related siblings. Notes omitted from the list. PHP CRM activities remain authoritative."
             });
         });
 
