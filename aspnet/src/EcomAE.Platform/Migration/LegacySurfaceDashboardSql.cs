@@ -2490,6 +2490,19 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>Opened event-bus row. Payload is a short excerpt only — no full JSON, no webhook dispatch.</summary>
+    public const string SelectCpEventBusDetail = """
+        SELECT `id`, IFNULL(`event_type`,'') AS event_type, IFNULL(`tenant_key`,'') AS tenant_key,
+               IFNULL(`actor_type`,'') AS actor_type, IFNULL(`actor_id`,0) AS actor_id,
+               IFNULL(`idempotency_key`,'') AS idempotency_key,
+               DATE_FORMAT(`created_at`, '%Y-%m-%d %H:%i:%s') AS created_at,
+               CHAR_LENGTH(IFNULL(`payload_json`,'')) AS payload_len,
+               LEFT(IFNULL(`payload_json`,''), 280) AS payload_excerpt
+        FROM `epc_events`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
 
     /// <summary>
     /// PHP <c>docpart_sql_article_normalized_expr()</c> — exactly 15 REPLACE layers + UPPER.

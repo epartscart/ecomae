@@ -4957,6 +4957,17 @@ public sealed record CpSsoSamlDigestResult(CpSsoSamlSummary Summary, IReadOnlyLi
 public sealed record CpEventBusSummary(int EventCount, int TypeCount, int TenantCount, int Last24h, string Source, string Message);
 public sealed record CpEventBusRowDigest(long Id, string EventType, string TenantKey, string ActorType, string CreatedAt);
 public sealed record CpEventBusDigestResult(CpEventBusSummary Summary, IReadOnlyList<CpEventBusRowDigest> Rows, int Count, string Source, string Message);
+public sealed record CpEventBusEventDetail(
+    long Id,
+    string EventType,
+    string TenantKey,
+    string ActorType,
+    long ActorId,
+    string IdempotencyKey,
+    string CreatedAt,
+    int PayloadLen,
+    string PayloadExcerpt);
+public sealed record CpEventBusDetailResult(CpEventBusEventDetail? Event, string Source, string Message);
 
 public sealed record ErpDeliveryNoteDigest(
     long Id,
