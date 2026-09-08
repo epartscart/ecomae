@@ -239,6 +239,13 @@ def parse_example(
             "ERROR: example must include location ^~ /storefront/ → :5100 "
             "(without this, /storefront/search-app falls to PHP → warm-up splash)"
         )
+    has_en = any(k == "prefix" and m == "/en/" for (k, m), _ in blocks)
+    has_p = any(k == "prefix" and m == "/p/" for (k, m), _ in blocks)
+    if has_en and not has_p:
+        raise SystemExit(
+            "ERROR: example with ^~ /en/ must also include ^~ /p/ → :5100 "
+            "(bare /p/SKU otherwise hits PHP-deactivated splash and bounces home)"
+        )
     return named_blocks, blocks
 
 
@@ -373,6 +380,7 @@ def install_into_host_servers(conf_text: str, example: str, host: str) -> tuple[
         "prefixStorefront": any(k == "prefix" and m == "/storefront/" for (k, m), _ in blocks),
         "prefixEn": any(k == "prefix" and m == "/en/" for (k, m), _ in blocks),
         "prefixEnParts": any(k == "prefix" and m in {"/en/", "/en/parts/"} for (k, m), _ in blocks),
+        "prefixIndustryPdp": any(k == "prefix" and m == "/p/" for (k, m), _ in blocks),
     }
     for start, end, body, names in sorted(targets, key=lambda t: t[0], reverse=True):
         new_body, inserted, replaced = apply_blocks_to_server_body(body, named_blocks, blocks)
@@ -433,6 +441,8 @@ def strip_classic_entry_from_host_servers(conf_text: str, host: str | None = Non
         "/en/",
         "/me/",
         "/ru/",
+        "/p/",
+        "/product/",
         "/en/parts/",
         "/parts/",
         "/marketing/",
@@ -521,6 +531,7 @@ def main(argv: list[str] | None = None) -> int:
         print(f"PREFIX_STOREFRONT={summary['prefixStorefront']}")
         print(f"PREFIX_EN={summary['prefixEn']}")
         print(f"PREFIX_EN_PARTS={summary['prefixEnParts']}")
+        print(f"PREFIX_INDUSTRY_PDP={summary.get('prefixIndustryPdp', False)}")
         for names in summary["serverNames"]:
             print(f"  server_name={names[:12]}")
         print(f"REPLACED: {len(summary['replaced'])}")

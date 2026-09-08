@@ -69,7 +69,7 @@ public static class PhpStorefrontSitemap
         {
             foreach (var cat in PhpIndustryStorefrontCatalog.Roots(industry))
             {
-                rows.Add(new("/" + cat.Url, cat.Name, "Catalog"));
+                rows.Add(new(PhpIndustryStorefrontCatalog.CategoryHref(cat.Url), cat.Name, "Catalog"));
             }
         }
 

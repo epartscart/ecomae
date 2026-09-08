@@ -320,14 +320,14 @@ public sealed class LiveTenantIndustryParityTests
         Assert.DoesNotContain(auto, l => l.Href.Contains("jewellery", StringComparison.OrdinalIgnoreCase));
 
         var jewellery = PhpStorefrontSitemap.ForIndustry("jewellery");
-        Assert.Contains(jewellery, l => l.Href == "/bridal");
-        Assert.Contains(jewellery, l => l.Href == "/gold");
+        Assert.Contains(jewellery, l => l.Href == "/en/bridal");
+        Assert.Contains(jewellery, l => l.Href == "/en/gold");
         Assert.DoesNotContain(jewellery, l => l.Href == StorefrontAspNetCanonical.SellerRequest);
         Assert.DoesNotContain(jewellery, l => l.Href == StorefrontAspNetCanonical.AutoWorkshop);
 
         var tax = PhpStorefrontSitemap.ForIndustry("tax_advisory");
         Assert.Contains(tax, l => l.Href == "/erp");
-        Assert.Contains(tax, l => l.Href == "/services/tax");
+        Assert.Contains(tax, l => l.Href == "/en/services/tax");
         Assert.DoesNotContain(tax, l => l.Href == StorefrontAspNetCanonical.AutoWorkshop);
     }
 
@@ -491,6 +491,40 @@ public sealed class LiveTenantIndustryParityTests
         Assert.DoesNotContain("@page \"/en/katalog-laximo\"", File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/StorefrontVinApp.razor")), StringComparison.Ordinal);
         Assert.Contains("ListStorefrontGenuineBrandsAsync", File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/StorefrontAvailableBrandsApp.razor")), StringComparison.Ordinal);
         Assert.StartsWith("/php-reference/", PhpCustomerWrites.GuestOrderWriteHref);
+    }
+
+    [Fact]
+    public void JewelleryBarePdpSlug_RewritesAndHasFirstClassRoute()
+    {
+        Assert.True(IndustryStorefrontSlugMiddleware.TryMatch(
+            "www.thejewellerytrend.com",
+            "/p/JWL-EV-ROPE-5G",
+            out var rewrite,
+            out var kind));
+        Assert.Equal("product:JWL-EV-ROPE-5G", kind);
+        Assert.Contains("sku=JWL-EV-ROPE-5G", rewrite, StringComparison.Ordinal);
+        Assert.True(IndustryStorefrontSlugMiddleware.TryMatch(
+            "www.thejewellerytrend.com",
+            "/en/p/JWL-EV-ROPE-5G",
+            out _,
+            out var enKind));
+        Assert.Equal("product:JWL-EV-ROPE-5G", enKind);
+
+        var pdp = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/StorefrontIndustryProductApp.razor"));
+        Assert.Contains("@page \"/p/{Sku}\"", pdp, StringComparison.Ordinal);
+        Assert.Contains("@page \"/en/p/{Sku}\"", pdp, StringComparison.Ordinal);
+
+        Assert.Equal("/en/p/JWL-EV-ROPE-5G", PhpIndustryStorefrontCatalog.ProductHref("JWL-EV-ROPE-5G"));
+        Assert.Equal("/en/everyday/chains", PhpIndustryStorefrontCatalog.CategoryHref("everyday/chains"));
+
+        var splash = File.ReadAllText(Find("epc-platform-splash.html"));
+        Assert.Contains("keptShopperPath", splash, StringComparison.Ordinal);
+        Assert.Contains("'/en' + path", splash, StringComparison.Ordinal);
+        Assert.DoesNotContain("probe then replace with /", splash, StringComparison.Ordinal);
+
+        var tenantNginx = File.ReadAllText(Find("deploy/aspnet/nginx-classic-entry-tenant-aspnet-primary-shadow-example.conf"));
+        Assert.Contains("location ^~ /p/", tenantNginx, StringComparison.Ordinal);
+        Assert.Contains("classic-entry-industry-pdp", tenantNginx, StringComparison.Ordinal);
     }
 
     [Fact]
