@@ -15,7 +15,12 @@ public sealed class ErpWorkflowCreatePhpParityTests
         Assert.Contains("/erp/workflow/create", text, StringComparison.Ordinal);
         Assert.Contains("/erp/workflow/status", text, StringComparison.Ordinal);
         Assert.Contains("confirmWrites", text, StringComparison.Ordinal);
-        Assert.Contains("Create task", text, StringComparison.Ordinal);
+        Assert.Contains("Add task", text, StringComparison.Ordinal);
+        Assert.Contains("epc-erp-section", text, StringComparison.Ordinal);
+        Assert.Contains("department_code", text, StringComparison.Ordinal);
+        Assert.Contains("workflow_step", text, StringComparison.Ordinal);
+        Assert.Contains("epc-wf-done", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("Process-flow cases stay", text, StringComparison.Ordinal);
         Assert.DoesNotContain("@onclick", text, StringComparison.Ordinal);
         Assert.DoesNotContain("@bind", text, StringComparison.Ordinal);
         Assert.DoesNotContain("Open PHP reference", text, StringComparison.Ordinal);

@@ -15,10 +15,10 @@
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="@(_barcodePurchase ? "Barcode / Purchase Margin" : "Purchase Orders")" BreadcrumbArea="Procure to Pay" BreadcrumbTab="@(_barcodePurchase ? "Barcode purchase" : "Purchase Orders")">
     @if (!_barcodePurchase)
     {
-        <PhpParityModuleBody AppPath="/erp/purchase-orders-app" IsAdmin="_isAdmin" />
+        <PhpParityModuleBody ShowGhostScaffold="false" AppPath="/erp/purchase-orders-app" IsAdmin="_isAdmin" />
     }
 
-    <PhpErpModulePageHeader Title="@(_barcodePurchase ? "Barcode / Purchase Margin" : "Purchase Orders")" Subtitle="@(_barcodePurchase ? "In jewellery, the barcode is the purchase — cost, margin, and salesman at barcode level." : "Live shop digest. Writes stay on ERP ajax.")" PhpTabHref="@_phpTab" />
+    <PhpErpModulePageHeader Title="@(_barcodePurchase ? "Barcode / Purchase Margin" : "Purchase Orders")" Subtitle="@(_barcodePurchase ? "In jewellery, the barcode is the purchase — cost, margin, and salesman at barcode level." : "Purchase orders from draft through receive.")" PhpTabHref="@_phpTab" />
     <ErpPhpFlash Ok="@_ok" Err="@_err" />
     @if (!_barcodePurchase)
     {
@@ -139,7 +139,7 @@
             <tbody>
                 @if (_orders.Count == 0)
                 {
-                    <tr><td colspan="7">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? "No records yet." : _message) : "Sign in with ERP capability for live rows.")</td></tr>
+                    <tr><td colspan="7" class="text-muted">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? "No purchase orders." : _message) : "Sign in with ERP capability for live rows.")</td></tr>
                 }
                 else
                 {
@@ -151,7 +151,7 @@
                             <td>@FormatTime(o.TimeCreated)</td>
                             <td>@o.SupplierId</td>
                             <td>@(string.IsNullOrWhiteSpace(o.Title) ? "—" : o.Title)</td>
-                            <td><span class="label label-default">@o.Status</span></td>
+                            <td><span class="label label-@ErpPhpStatusLabel.Class(o.Status)">@o.Status</span></td>
                             <td>@o.TotalAmount.ToString("N2", CultureInfo.InvariantCulture)</td>
                             <td>
                                 <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(phpHref)">Open</a>

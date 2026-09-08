@@ -39,12 +39,11 @@
                 <a class="btn btn-default btn-sm" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Classic twin</a>
             </div>
         </div>
-
         <div class="epc-statuses-hint">
             <strong>Tips:</strong> Statuses not listed in the JSON are deleted. Empty lists are refused. Notification send stays Classic; flags are stored.
         </div>
 
-        <PhpParityModuleBody AppPath="/cp/order-statuses-app" IsAdmin="_isAdmin" />
+        <PhpParityModuleBody ShowGhostScaffold="false" AppPath="/cp/order-statuses-app" IsAdmin="_isAdmin" />
 
         @if (!string.IsNullOrWhiteSpace(_flashOk))
         {

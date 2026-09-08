@@ -12,7 +12,7 @@
 <PageTitle>Sales Orders · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Sales Orders" BreadcrumbArea="Order to Cash" BreadcrumbTab="Sales Orders">
-    <PhpParityModuleBody AppPath="/erp/sales-orders-app" IsAdmin="_isAdmin" />
+    <PhpParityModuleBody ShowGhostScaffold="false" AppPath="/erp/sales-orders-app" IsAdmin="_isAdmin" />
 
 
     
@@ -256,7 +256,7 @@
             <tbody>
                 @if (_orders.Count == 0)
                 {
-                    <tr><td colspan="6">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? "No records yet." : _message) : "Sign in with ERP capability for live sales orders.")</td></tr>
+                    <tr><td colspan="6" class="text-muted">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? "No sales orders." : _message) : "Sign in with ERP capability for live sales orders.")</td></tr>
                 }
                 else
                 {
@@ -267,7 +267,7 @@
                             <td><strong>@(string.IsNullOrWhiteSpace(o.SoNo) ? $"#{o.Id}" : o.SoNo)</strong></td>
                             <td>@FormatTime(o.TimeCreated)</td>
                             <td>@o.CustomerUserId</td>
-                            <td><span class="label label-default">@o.Status</span></td>
+                            <td><span class="label label-@ErpPhpStatusLabel.Class(o.Status)">@o.Status</span></td>
                             <td>@o.TotalAmount.ToString("N2", CultureInfo.InvariantCulture)</td>
                             <td>
                                 <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(phpHref)">Open</a>
@@ -369,7 +369,7 @@
         _title = _view == "subscriptions" ? "Subscriptions" : "Sales Orders";
         _subtitle = _view == "subscriptions"
             ? "Save a subscription, generate a cycle invoice, or set status here."
-            : "Sales orders with line totals.";
+            : "Sales orders with line totals, customer, and status.";
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);

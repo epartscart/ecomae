@@ -12,11 +12,11 @@
 <PageTitle>Aging · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Aging" BreadcrumbArea="Finance" BreadcrumbTab="Aging">
-    <PhpParityModuleBody AppPath="/erp/aging-app" IsAdmin="_isAdmin" />
+    <PhpParityModuleBody ShowGhostScaffold="false" AppPath="/erp/aging-app" IsAdmin="_isAdmin" />
 
 
     
-    <PhpErpModulePageHeader Title="AR / AP / Inventory aging" Subtitle="Live shop digest. Writes stay on ERP ajax." PhpTabHref="@_phpTab" />
+    <PhpErpModulePageHeader Title="AR / AP / Inventory aging" Subtitle="AR, AP, and inventory aging buckets." PhpTabHref="@_phpTab" />
     <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
 
 

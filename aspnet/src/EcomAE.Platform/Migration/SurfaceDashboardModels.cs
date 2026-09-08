@@ -2168,6 +2168,8 @@ public sealed record ErpProcessFlowTasksSummary(
     int DoneCount,
     int OverdueCount,
     int CancelledCount,
+    int RejectedCount,
+    decimal AvgCycleHours,
     string Source,
     string Message);
 
@@ -2188,7 +2190,13 @@ public sealed record ErpProcessFlowTaskDigest(
     long DueAt,
     long CompletedAt,
     long TimeCreated,
-    long TimeUpdated);
+    long TimeUpdated,
+    string CurrentLocation,
+    string ProcessName,
+    int StepCount,
+    string CurrentStepName,
+    string AssigneeName,
+    string InitiatorName);
 
 public sealed record ErpProcessFlowTasksDigestResult(
     ErpProcessFlowTasksSummary Summary,

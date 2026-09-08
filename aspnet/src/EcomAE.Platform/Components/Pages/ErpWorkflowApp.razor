@@ -7,14 +7,9 @@
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
-@inject NavigationManager Nav
-
 <PageTitle>Workflow · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Workflow" BreadcrumbArea="Overview" BreadcrumbTab="Workflow">
-
-    <PhpErpModulePageHeader Title="Department workflow board" Subtitle="Create a task or set status here. Process-flow cases stay on the Classic twin." />
-    <PhpErpD365ActionPane RefreshHref="@Nav.Uri" />
 
     @if (!string.IsNullOrWhiteSpace(_flashOk))
     {
@@ -24,49 +19,46 @@
     {
         <div class="alert alert-danger" role="status" style="margin:0 0 1rem;padding:.7rem .9rem;border-radius:.4rem;background:#fef2f2;color:#991b1b">@_flashErr</div>
     }
-    @if (_isAdmin)
-    {
-        <form method="post" action="/erp/workflow/create" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
-            <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="/erp/workflow-app" />
-            <label>Title <input name="title" required maxlength="255" style="width:12rem" /></label>
-            <label>Dept <input name="department_code" value="admin" maxlength="32" style="width:6rem" /></label>
-            <label>Priority
-                <select name="priority">
-                    <option value="normal" selected>normal</option>
-                    <option value="low">low</option>
-                    <option value="high">high</option>
-                </select>
-            </label>
-            <label>Order id <input type="number" name="order_id" min="0" style="width:6rem" /></label>
-            <button type="submit">Create task</button>
-        </form>
-        <form method="post" action="/erp/workflow/status" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
-            <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="/erp/workflow-app" />
-            <label>Task id <input type="number" name="taskId" min="1" required style="width:6rem" /></label>
-            <label>Status
-                <select name="status">
-                    <option value="pending">pending</option>
-                    <option value="in_progress">in_progress</option>
-                    <option value="done">done</option>
-                    <option value="cancelled">cancelled</option>
-                </select>
-            </label>
-            <button type="submit">Set status</button>
-        </form>
-    }
 
-    <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Workflow KPIs">
-        <div class="kpi"><div class="lbl">Tasks</div><div class="val">@_summary.TaskCount.ToString(CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">Open</div><div class="val">@_summary.OpenCount.ToString(CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">Done</div><div class="val">@_summary.DoneCount.ToString(CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">Overdue</div><div class="val">@_summary.OverdueCount.ToString(CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">Cancelled</div><div class="val">@_summary.CancelledCount.ToString(CultureInfo.InvariantCulture)</div></div>
-    </div>
+    <div class="epc-erp-section">
+        <h4><i class="fa fa-random"></i> Department workflow board</h4>
+        <p class="text-muted">Cross-department order flow: <strong>Sales</strong> → <strong>Purchase</strong> → <strong>Logistics</strong> → <strong>Finance</strong> → <strong>Accounts</strong>. Marketing &amp; HR support parallel tracks.</p>
 
-    <div class="epc-erp-table-wrap">
-        <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
+        <form method="get" action="/erp/workflow-app" class="form-inline" style="margin-bottom:12px;">
+            <label>Department</label>
+            <select name="dept" class="form-control input-sm" onchange="this.form.submit()">
+                <option value="">All departments</option>
+                @foreach (var deptRow in ErpStaffDepartmentCatalog.All)
+                {
+                    <option value="@deptRow.Code" selected="@string.Equals(_dept, deptRow.Code, StringComparison.OrdinalIgnoreCase)">@deptRow.Name</option>
+                }
+            </select>
+        </form>
+
+        @if (_isAdmin)
+        {
+            <form method="post" action="/erp/workflow/create" class="form-inline epc-erp-form-inline" style="margin-bottom:12px;">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="@_returnUrl" />
+                <select name="department_code" class="form-control input-sm">
+                    @foreach (var deptRow in ErpStaffDepartmentCatalog.All)
+                    {
+                        <option value="@deptRow.Code" selected="@string.Equals(_dept, deptRow.Code, StringComparison.OrdinalIgnoreCase)">@deptRow.Name</option>
+                    }
+                </select>
+                <input type="text" name="title" class="form-control input-sm" placeholder="Task title" required maxlength="255" />
+                <input type="text" name="workflow_step" class="form-control input-sm" placeholder="Step" maxlength="64" />
+                <input type="number" name="order_id" class="form-control input-sm" placeholder="Order ID" value="0" min="0" />
+                <select name="priority" class="form-control input-sm">
+                    <option value="normal">Normal</option>
+                    <option value="high">High</option>
+                    <option value="low">Low</option>
+                </select>
+                <button type="submit" class="btn btn-sm btn-primary">Add task</button>
+            </form>
+        }
+
+        <table class="table table-bordered table-condensed">
             <thead>
                 <tr>
                     <th>Dept</th>
@@ -83,15 +75,16 @@
             <tbody>
                 @if (_tasks.Count == 0)
                 {
-                    <tr><td colspan="9">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? "No workflow tasks yet." : _message) : "Sign in with ERP capability for live rows.")</td></tr>
+                    <tr><td colspan="9" class="text-muted">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? "No workflow tasks — run staff setup with sample data." : _message) : "Sign in with ERP capability for live rows.")</td></tr>
                 }
                 else
                 {
                     @foreach (var row in _tasks)
                     {
+                        var statusClass = row.Status == "done" ? "success" : (row.Status == "in_progress" ? "info" : "default");
                         <tr>
-                            <td>@(string.IsNullOrWhiteSpace(row.DepartmentCode) ? "—" : row.DepartmentCode)</td>
-                            <td>@(string.IsNullOrWhiteSpace(row.WorkflowStep) ? "—" : row.WorkflowStep)</td>
+                            <td>@ErpStaffDepartmentCatalog.NameFor(row.DepartmentCode)</td>
+                            <td><small>@(string.IsNullOrWhiteSpace(row.WorkflowStep) ? "—" : row.WorkflowStep)</small></td>
                             <td>
                                 <strong>@row.Title</strong>
                                 @if (!string.IsNullOrWhiteSpace(row.Description))
@@ -101,31 +94,44 @@
                             </td>
                             <td>@(row.OrderId > 0 ? $"#{row.OrderId.ToString(CultureInfo.InvariantCulture)}" : "—")</td>
                             <td>@(string.IsNullOrWhiteSpace(row.AssigneeName) ? "—" : row.AssigneeName)</td>
-                            <td><span class="label label-default">@row.Priority</span></td>
-                            <td><span class="label label-default">@row.Status</span></td>
+                            <td>@row.Priority</td>
+                            <td><span class="label label-@statusClass">@row.Status</span></td>
                             <td>@FormatDate(row.DueAt)</td>
-                            <td><a href="/erp/workflow-app">Open</a></td>
+                            <td>
+                                @if (_isAdmin && row.Status != "done" && row.Status != "cancelled")
+                                {
+                                    <form method="post" action="/erp/workflow/status" style="display:inline">
+                                        <input type="hidden" name="confirmWrites" value="true" />
+                                        <input type="hidden" name="returnUrl" value="@_returnUrl" />
+                                        <input type="hidden" name="task_id" value="@row.Id.ToString(CultureInfo.InvariantCulture)" />
+                                        <input type="hidden" name="status" value="done" />
+                                        <button type="submit" class="btn btn-xs btn-success epc-wf-done">Done</button>
+                                    </form>
+                                    <form method="post" action="/erp/workflow/status" style="display:inline">
+                                        <input type="hidden" name="confirmWrites" value="true" />
+                                        <input type="hidden" name="returnUrl" value="@_returnUrl" />
+                                        <input type="hidden" name="task_id" value="@row.Id.ToString(CultureInfo.InvariantCulture)" />
+                                        <input type="hidden" name="status" value="in_progress" />
+                                        <button type="submit" class="btn btn-xs btn-default epc-wf-progress">Start</button>
+                                    </form>
+                                }
+                            </td>
                         </tr>
                     }
                 }
             </tbody>
         </table>
     </div>
-
-    <div class="epc-erp-empty" style="display:block;margin-top:12px;padding:8px 10px;border:1px solid #c5d4de;background:#f8fafc;color:#475569;font-size:12px;">
-        Source: @_source. Process-flow cases stay on <a href="/erp/process-flow-tasks-app">process flow</a>.
-        @if (!string.IsNullOrWhiteSpace(_message)) { <span> @_message</span> }
-    </div>
 </PhpErpDesktopChrome>
 
 @code {
     private bool _isAdmin;
-    private ErpWorkflowTasksSummary _summary = new(0, 0, 0, 0, 0, "n/a", "");
     private IReadOnlyList<ErpWorkflowTaskDigest> _tasks = [];
-    private string _source = "n/a";
     private string _message = "";
     private string _flashOk = "";
     private string _flashErr = "";
+    private string _dept = "";
+    private string _returnUrl = "/erp/workflow-app";
 
     protected override async Task OnInitializedAsync()
     {
@@ -133,6 +139,10 @@
         if (ctx is null) return;
         _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
         _flashErr = ctx.Request.Query["err"].ToString() ?? "";
+        _dept = (ctx.Request.Query["dept"].ToString() ?? "").Trim();
+        _returnUrl = string.IsNullOrWhiteSpace(_dept)
+            ? "/erp/workflow-app"
+            : "/erp/workflow-app?dept=" + Uri.EscapeDataString(_dept);
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("erp");
         if (!_isAdmin)
@@ -141,11 +151,11 @@
             return;
         }
 
-        var result = await Dashboards.BuildErpWorkflowTasksDigestAsync(100, ctx.RequestAborted);
-        _summary = result.Summary;
-        _tasks = result.Tasks;
-        _source = result.Source;
+        var result = await Dashboards.BuildErpWorkflowTasksDigestAsync(80, ctx.RequestAborted);
         _message = result.Message;
+        _tasks = string.IsNullOrWhiteSpace(_dept)
+            ? result.Tasks
+            : result.Tasks.Where(t => string.Equals(t.DepartmentCode, _dept, StringComparison.OrdinalIgnoreCase)).ToList();
     }
 
     private static string FormatDate(long unix)

@@ -12,11 +12,11 @@
 <PageTitle>Sales quotations · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Sales quotations" BreadcrumbArea="Sales" BreadcrumbTab="Proposals">
-    <PhpParityModuleBody AppPath="/erp/sales-quotations-app" IsAdmin="_isAdmin" />
+    <PhpParityModuleBody ShowGhostScaffold="false" AppPath="/erp/sales-quotations-app" IsAdmin="_isAdmin" />
 
 
     
-    <PhpErpModulePageHeader Title="Sales quotations" Subtitle="Live shop digest. Writes stay on ERP ajax." PhpTabHref="@_phpTab" />
+    <PhpErpModulePageHeader Title="Sales quotations" Subtitle="Sales quotations awaiting convert or expiry." PhpTabHref="@_phpTab" />
     <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
 
 

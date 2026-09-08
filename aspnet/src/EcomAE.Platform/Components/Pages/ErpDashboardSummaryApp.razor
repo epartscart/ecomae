@@ -8,72 +8,45 @@
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
-@inject NavigationManager Nav
 
-<PageTitle>ERP Dashboard Summary · eParts Cart</PageTitle>
+<PageTitle>Executive dashboard · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
 <HeadContent>
 <style>
-    .epc-eds-sec { margin:14px 0 6px; font-size:13px; font-weight:700; color:#243746; }
+.epc-exec-kpis{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:18px;}
+.epc-exec-kpi{flex:1 1 18%;min-width:170px;background:#fff;border:1px solid #e3e8ee;border-left-width:4px;border-radius:6px;padding:12px 14px;}
+.epc-exec-kpi .lbl{font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:#8a97a8;}
+.epc-exec-kpi .val{font-size:22px;font-weight:700;margin-top:3px;}
+.epc-exec-kpi .hint{font-size:11px;color:#9aa6b5;margin-top:2px;}
+.epc-exec-kpi a{color:inherit;text-decoration:none;}
+.epc-eds-sec{margin:14px 0 6px;font-size:13px;font-weight:700;color:#243746;}
 </style>
 </HeadContent>
 
-<PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Dashboard Summary" BreadcrumbArea="Home" BreadcrumbTab="Dashboard KPIs">
+<PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Dashboard" BreadcrumbArea="Home" BreadcrumbTab="Executive dashboard">
 
-    <PhpErpModulePageHeader Title="ERP Dashboard"
-                            Subtitle="Executive KPIs on ASP.NET Core. PHP reference remains temporary compare only."
-                            PhpTabHref="@_phpTab" />
+    <h3 style="margin:0 0 .35rem;"><i class="fa fa-dashboard"></i> Executive dashboard</h3>
+    <p class="text-muted">Cross-module executive cockpit — headline KPIs, working capital, approval queue and planning alerts.</p>
 
-    <h2 class="epc-eds-sec">Executive tiles</h2>
-    <div class="epc-erp-kpi epc-erp-stat-row" aria-label="ERP executive KPIs">
-        <div class="kpi"><div class="lbl">Cash position</div><div class="val">@_s.CashPosition.ToString("N2", CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">Receivables</div><div class="val">@_s.Receivables.ToString("N2", CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">Payables</div><div class="val">@_s.Payables.ToString("N2", CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">Stock value</div><div class="val">@_s.StockValue.ToString("N2", CultureInfo.InvariantCulture)</div></div>
+    <div class="epc-exec-kpis" aria-label="Executive KPIs">
+        @ExecTile("Cash position", _s.CashPosition.ToString("N2", CultureInfo.InvariantCulture), "/erp/cash-accounts-app", "#2bb3c0", "Cash &amp; bank")
+        @ExecTile("Receivables", _s.Receivables.ToString("N2", CultureInfo.InvariantCulture), "/erp/receivables-app", Health(_s.Receivables, warnAbove: false), "Open AR")
+        @ExecTile("Payables", _s.Payables.ToString("N2", CultureInfo.InvariantCulture), "/erp/payables-app", Health(_s.Payables, warnAbove: true), "Open AP")
+        @ExecTile("Stock value", _s.StockValue.ToString("N2", CultureInfo.InvariantCulture), "/erp/inventory-stock-app", "#0a7d33", "On-hand inventory")
+        @ExecTile("Revenue (ex. VAT)", _s.RevenueExVat.ToString("N2", CultureInfo.InvariantCulture), "/erp/invoices-app", "#2bb3c0", "Completed sales")
+        @ExecTile("Orders", _s.OrdersCount.ToString(CultureInfo.InvariantCulture), "/erp/sales-orders-app", "#2563eb", "Sales orders")
+        @ExecTile("VAT net payable", _s.VatNetPayable.ToString("N2", CultureInfo.InvariantCulture), "/erp/vat-app", Health(_s.VatNetPayable, warnAbove: true), "Current return")
+        @ExecTile("Period status", _s.PeriodStatus, "/erp/period-close-app", string.Equals(_s.PeriodStatus, "open", StringComparison.OrdinalIgnoreCase) ? "#0a7d33" : "#c98a00", "Fiscal period")
     </div>
 
-    <h2 class="epc-eds-sec">Command center tiles</h2>
-    <div class="epc-erp-kpi epc-erp-stat-row" aria-label="ERP command center KPIs">
-        <div class="kpi"><div class="lbl">Revenue (ex. VAT)</div><div class="val">@_s.RevenueExVat.ToString("N2", CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">Orders</div><div class="val">@_s.OrdersCount.ToString(CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">AR balance</div><div class="val">@_s.ArBalance.ToString("N2", CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">AP balance</div><div class="val">@_s.ApBalance.ToString("N2", CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">Cash &amp; bank</div><div class="val">@_s.CashPosition.ToString("N2", CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">VAT net payable</div><div class="val">@_s.VatNetPayable.ToString("N2", CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">Period status</div><div class="val">@_s.PeriodStatus</div></div>
-        <div class="kpi"><div class="lbl">Active items</div><div class="val">@_s.InventoryItems.ToString(CultureInfo.InvariantCulture)</div></div>
+    <h5 class="epc-eds-sec"><i class="fa fa-sitemap"></i> Process flow</h5>
+    <div class="epc-exec-kpis" aria-label="Process flow">
+        @ExecTile("Open cases", _s.ProcessOpen.ToString(CultureInfo.InvariantCulture), "/erp/process-flow-tasks-app", "#2563eb", "Monitor")
+        @ExecTile("Completed", _s.ProcessDone.ToString(CultureInfo.InvariantCulture), "/erp/process-flow-tasks-app?pf_view=monitor&amp;f_status=done", "#0a7d33", "Done")
+        @ExecTile("Overdue", _s.ProcessOverdue.ToString(CultureInfo.InvariantCulture), "/erp/process-flow-tasks-app", _s.ProcessOverdue > 0 ? "#c0392b" : "#0a7d33", "SLA")
     </div>
 
-    <h2 class="epc-eds-sec">Cash / supplier ledger</h2>
-    <div class="epc-erp-kpi epc-erp-stat-row" aria-label="ERP cash supplier KPIs">
-        <div class="kpi"><div class="lbl">Supplier credit</div><div class="val">@_s.SupplierCredit.ToString("N2", CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">Supplier debit</div><div class="val">@_s.SupplierDebit.ToString("N2", CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">Supplier net</div><div class="val">@_s.SupplierNet.ToString("N2", CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">Cash accounts</div><div class="val">@_s.CashAccounts.ToString(CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">Active suppliers</div><div class="val">@_s.ActiveSuppliers.ToString(CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">Active purchases</div><div class="val">@_s.ActivePurchases.ToString(CultureInfo.InvariantCulture)</div></div>
-</div>
-
-    <h2 class="epc-eds-sec">Approval queue counts</h2>
-    <div class="epc-erp-kpi epc-erp-stat-row" aria-label="ERP approval queue">
-        <div class="kpi"><div class="lbl">Draft sales orders</div><div class="val">@_s.DraftSalesOrders.ToString(CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">Pending POs</div><div class="val">@_s.PendingPurchaseOrders.ToString(CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">Unposted GL journals</div><div class="val">@_s.UnpostedGlJournals.ToString(CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">Overdue invoices (30+)</div><div class="val">@_s.OverdueInvoices.ToString(CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">Low stock items</div><div class="val">@_s.LowStockItems.ToString(CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">Pending e-invoices</div><div class="val">@_s.PendingEinvoices.ToString(CultureInfo.InvariantCulture)</div></div>
-    </div>
-
-    @if (!_isAdmin)
-    {
-        <div class="alert alert-info" role="status">Sign in with an ERP admin session to load live KPIs from the tenant shop DB (docpart on ePartsCart).</div>
-    }
-    else if (!string.IsNullOrWhiteSpace(_s.Message) || (_s.Source != "database" && _s.Source != "n/a"))
-    {
-        <div class="alert alert-warning" role="status">Source: <code>@_s.Source</code>@if (!string.IsNullOrWhiteSpace(_s.Message)) { <text> — @_s.Message</text> }</div>
-    }
-
-    <h2 class="epc-eds-sec">Approval queue</h2>
+    <h5 class="epc-eds-sec"><i class="fa fa-check-square-o"></i> Approval queue</h5>
     <div class="epc-erp-table-wrap">
         <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
             <thead>
@@ -82,7 +55,7 @@
             <tbody>
                 @if (_queue.Count == 0)
                 {
-                    <tr><td colspan="5">No approval queue items.</td></tr>
+                    <tr><td colspan="5" class="text-muted">No approval queue items.</td></tr>
                 }
                 else
                 {
@@ -93,7 +66,7 @@
                             <td>@item.Label</td>
                             <td>@item.Count.ToString(CultureInfo.InvariantCulture)</td>
                             <td><a href="@item.Link">@item.Action</a></td>
-                            <td>@item.Severity</td>
+                            <td><span class="label label-@(item.Severity is "high" or "bad" ? "danger" : (item.Severity is "warn" or "medium" ? "warning" : "default"))">@item.Severity</span></td>
                         </tr>
                     }
                 }
@@ -101,17 +74,28 @@
         </table>
     </div>
 
-    <h2 class="epc-eds-sec">Process flow</h2>
-    <div class="epc-erp-kpi epc-erp-stat-row" aria-label="ERP process flow">
-        <div class="kpi"><div class="lbl">Open tasks</div><div class="val">@_s.ProcessOpen.ToString(CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">Done tasks</div><div class="val">@_s.ProcessDone.ToString(CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">Overdue tasks</div><div class="val">@_s.ProcessOverdue.ToString(CultureInfo.InvariantCulture)</div></div>
+    <h5 class="epc-eds-sec"><i class="fa fa-truck"></i> Working capital</h5>
+    <div class="epc-exec-kpis">
+        @ExecTile("Supplier credit", _s.SupplierCredit.ToString("N2", CultureInfo.InvariantCulture), "/erp/suppliers-app", "#0a7d33", "Credit notes")
+        @ExecTile("Supplier debit", _s.SupplierDebit.ToString("N2", CultureInfo.InvariantCulture), "/erp/payables-app", "#c98a00", "Open bills")
+        @ExecTile("Supplier net", _s.SupplierNet.ToString("N2", CultureInfo.InvariantCulture), "/erp/suppliers-app", "#2563eb", "Net position")
+        @ExecTile("Active suppliers", _s.ActiveSuppliers.ToString(CultureInfo.InvariantCulture), "/erp/suppliers-app", "#2bb3c0", "Masters")
+        @ExecTile("Active purchases", _s.ActivePurchases.ToString(CultureInfo.InvariantCulture), "/erp/purchases-app", "#2563eb", "Open POs / bills")
+        @ExecTile("Active items", _s.InventoryItems.ToString(CultureInfo.InvariantCulture), "/erp/inventory-stock-app", "#0a7d33", "SKU count")
     </div>
+
+    @if (!_isAdmin)
+    {
+        <div class="alert alert-info" role="status">Sign in with an ERP admin session to load live KPIs from the tenant shop database.</div>
+    }
+    else if (!string.IsNullOrWhiteSpace(_s.Message) && _s.Source != "database")
+    {
+        <div class="alert alert-warning" role="status">@_s.Message</div>
+    }
 
 </PhpErpDesktopChrome>
 
 @code {
-    private const string _phpTab = "/ERP/?epc_erp_shell=1&area=overview&tab=dashboard";
     private bool _isAdmin;
     private ErpDashboardSummary _s = new(
         0, 0, 0, 0, 0, 0, 0,
@@ -129,13 +113,24 @@
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("erp");
-        if (!_isAdmin)
-        {
-            return; // guest browse — Sign in for live data
-        }
+        if (!_isAdmin) return;
 
         var result = await Dashboards.BuildErpAsync(ctx.RequestAborted);
         _s = result.Summary;
         _queue = result.ApprovalQueue;
     }
+
+    private static string Health(decimal value, bool warnAbove) =>
+        value == 0 ? "#8a97a8" : (warnAbove && value > 0 ? "#c98a00" : "#0a7d33");
+
+    private RenderFragment ExecTile(string label, string value, string href, string color, string hint) => __builder =>
+    {
+        <div class="epc-exec-kpi" style="border-left-color:@color;">
+            <a href="@href">
+                <div class="lbl">@label</div>
+                <div class="val" style="color:@color;">@value</div>
+                <div class="hint">@hint</div>
+            </a>
+        </div>
+    };
 }

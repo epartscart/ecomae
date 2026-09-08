@@ -12,18 +12,31 @@
 <PageTitle>Invoices · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Invoices" BreadcrumbArea="Order to Cash" BreadcrumbTab="Invoices">
-    <PhpParityModuleBody AppPath="/erp/invoices-app" IsAdmin="_isAdmin" />
+    <PhpParityModuleBody ShowGhostScaffold="false" AppPath="/erp/invoices-app" IsAdmin="_isAdmin" />
 
 
     
-    <PhpErpModulePageHeader Title="Invoices" Subtitle="Live shop digest. Writes stay on ERP ajax." PhpTabHref="@_phpTab" />
-    <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
-
+    <PhpErpModulePageHeader Title="Invoices" Subtitle="Customer invoices with status, totals, and order links." PhpTabHref="@_phpTab" />
+    <p class="text-muted" style="margin:0 0 10px;">
+        <a href="/erp/sales-orders-app">Sales orders</a>
+        · <a href="/erp/invoices-app">Invoices</a>
+        · <a href="/erp/receivables-app">Receivables</a>
+        · <a href="/erp/delivery-notes-app">Delivery notes</a>
+    </p>
+    <form method="get" action="/erp/invoices-app" class="form-inline" style="margin-bottom:10px;">
+        <label>Show</label>
+        <select name="f_status" class="form-control input-sm" onchange="this.form.submit()">
+            <option value="all" selected="@(_status == "all")">All</option>
+            <option value="open" selected="@(_status == "open")">Open</option>
+            <option value="paid" selected="@(_status == "paid")">Paid</option>
+            <option value="cancelled" selected="@(_status == "cancelled")">Cancelled</option>
+        </select>
+    </form>
 
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Invoice KPIs">
-        <div class="kpi"><div class="lbl">Shown (limit @_limit)</div><div class="val">@_invoices.Count</div></div>
-        <div class="kpi"><div class="lbl">Non-closed in page</div><div class="val">@_open</div></div>
-        <div class="kpi"><div class="lbl">Page total incl. VAT</div><div class="val">@_totalInclVat.ToString("N2", CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Shown</div><div class="val">@_visible.Count</div></div>
+        <div class="kpi"><div class="lbl">Open</div><div class="val">@_open</div></div>
+        <div class="kpi"><div class="lbl">Total incl. VAT</div><div class="val">@_totalInclVat.ToString("N2", CultureInfo.InvariantCulture)</div></div>
     </div>
 
     <div class="epc-erp-table-wrap">
@@ -40,23 +53,22 @@
                 </tr>
             </thead>
             <tbody>
-                @if (_invoices.Count == 0)
+                @if (_visible.Count == 0)
                 {
-                    <tr><td colspan="7">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? "No records yet." : _message) : "Sign in with ERP capability for live invoices.")</td></tr>
+                    <tr><td colspan="7" class="text-muted">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? "No invoices." : _message) : "Sign in with ERP capability for live invoices.")</td></tr>
                 }
                 else
                 {
-                    @foreach (var inv in _invoices)
+                    @foreach (var inv in _visible)
                     {
-                        var phpHref = $"{_phpTab}&inv_id={inv.Id.ToString(CultureInfo.InvariantCulture)}";
                         <tr>
-                            <td><strong>@(string.IsNullOrWhiteSpace(inv.InvoiceNumber) ? $"#{inv.Id}" : inv.InvoiceNumber)</strong></td>
+                            <td><a href="/erp/invoices-app?inv_id=@inv.Id.ToString(CultureInfo.InvariantCulture)"><strong>@(string.IsNullOrWhiteSpace(inv.InvoiceNumber) ? $"#{inv.Id}" : inv.InvoiceNumber)</strong></a></td>
                             <td>@FormatTime(inv.IssueDate)</td>
                             <td>@(inv.OrderId > 0 ? inv.OrderId.ToString(CultureInfo.InvariantCulture) : "—")</td>
                             <td>@(string.IsNullOrWhiteSpace(inv.CustomerEmail) ? $"user {inv.UserId}" : inv.CustomerEmail)</td>
-                            <td><span class="label label-default">@inv.Status</span></td>
+                            <td><span class="label label-@ErpPhpStatusLabel.Class(inv.Status)">@inv.Status</span></td>
                             <td>@inv.TotalInclVat.ToString("N2", CultureInfo.InvariantCulture)</td>
-                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(phpHref)">Open</a></td>
+                            <td><a class="btn btn-xs btn-default" href="/erp/invoices-app?inv_id=@inv.Id.ToString(CultureInfo.InvariantCulture)">Open</a></td>
                         </tr>
                     }
                 }
@@ -70,9 +82,11 @@
     private const string _phpTab = "/ERP/?epc_erp_shell=1&area=sales&tab=invoices";
     private bool _isAdmin;
     private IReadOnlyList<ErpInvoiceDigest> _invoices = [];
+    private IReadOnlyList<ErpInvoiceDigest> _visible = [];
     private int _open;
     private decimal _totalInclVat;
     private int _limit = 100;
+    private string _status = "all";
     private string _source = "n/a";
     private string _message = "";
 
@@ -80,6 +94,9 @@
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
+
+        _status = (ctx.Request.Query["f_status"].ToString() ?? "all").Trim().ToLowerInvariant();
+        if (_status is not ("all" or "open" or "paid" or "cancelled")) _status = "all";
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
@@ -90,15 +107,25 @@
 
         var result = await Dashboards.ListErpInvoicesAsync(_limit, ctx.RequestAborted);
         _invoices = result.Invoices;
-        _open = _invoices.Count(i => !string.Equals(i.Status, "closed", StringComparison.OrdinalIgnoreCase)
-            && !string.Equals(i.Status, "cancelled", StringComparison.OrdinalIgnoreCase)
-            && !string.Equals(i.Status, "canceled", StringComparison.OrdinalIgnoreCase)
-            && !string.Equals(i.Status, "void", StringComparison.OrdinalIgnoreCase)
-            && !string.Equals(i.Status, "paid", StringComparison.OrdinalIgnoreCase));
-        _totalInclVat = _invoices.Sum(i => i.TotalInclVat);
+        _visible = _status switch
+        {
+            "paid" => _invoices.Where(i => string.Equals(i.Status, "paid", StringComparison.OrdinalIgnoreCase) || string.Equals(i.Status, "closed", StringComparison.OrdinalIgnoreCase)).ToList(),
+            "cancelled" => _invoices.Where(i => i.Status.Contains("cancel", StringComparison.OrdinalIgnoreCase) || string.Equals(i.Status, "void", StringComparison.OrdinalIgnoreCase)).ToList(),
+            "open" => _invoices.Where(IsOpenInvoice).ToList(),
+            _ => _invoices,
+        };
+        _open = _invoices.Count(IsOpenInvoice);
+        _totalInclVat = _visible.Sum(i => i.TotalInclVat);
         _source = result.Source;
         _message = result.Message;
     }
+
+    private static bool IsOpenInvoice(ErpInvoiceDigest i) =>
+        !string.Equals(i.Status, "closed", StringComparison.OrdinalIgnoreCase)
+        && !string.Equals(i.Status, "cancelled", StringComparison.OrdinalIgnoreCase)
+        && !string.Equals(i.Status, "canceled", StringComparison.OrdinalIgnoreCase)
+        && !string.Equals(i.Status, "void", StringComparison.OrdinalIgnoreCase)
+        && !string.Equals(i.Status, "paid", StringComparison.OrdinalIgnoreCase);
 
     private static string FormatTime(long unix)
     {

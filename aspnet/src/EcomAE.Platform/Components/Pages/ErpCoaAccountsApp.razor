@@ -12,11 +12,11 @@
 <PageTitle>Chart of Accounts · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Chart of Accounts" BreadcrumbArea="Record to Report" BreadcrumbTab="Chart of accounts">
-    <PhpParityModuleBody AppPath="/erp/coa-accounts-app" IsAdmin="_isAdmin" />
+    <PhpParityModuleBody ShowGhostScaffold="false" AppPath="/erp/coa-accounts-app" IsAdmin="_isAdmin" />
 
 
     
-    <PhpErpModulePageHeader Title="Chart of Accounts" Subtitle="Live shop digest. Writes stay on ERP ajax." PhpTabHref="@_phpTab" />
+    <PhpErpModulePageHeader Title="Chart of Accounts" Subtitle="Chart of accounts for this tenant." PhpTabHref="@_phpTab" />
     <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
 
 

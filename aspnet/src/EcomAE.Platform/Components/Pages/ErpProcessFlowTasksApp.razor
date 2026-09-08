@@ -7,16 +7,33 @@
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
-@inject NavigationManager Nav
-
 <PageTitle>Process flow · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
+<HeadContent>
+<style>
+    .pf-track-wrap{background:#0f172a;border-radius:10px;padding:16px 18px 14px;margin:14px 0;}
+    .pf-track-hd{color:#e2e8f0;font-size:13px;margin-bottom:10px;}
+    .pf-track-hd .pin{color:#38bdf8;}
+    .pf-route{display:flex;min-width:480px;position:relative;padding-top:6px;}
+    .pf-route .pf-line{position:absolute;top:26px;left:8%;right:8%;height:4px;background:#334155;border-radius:2px;}
+    .pf-route .pf-line-fill{position:absolute;top:26px;left:8%;height:4px;background:linear-gradient(90deg,#22c55e,#38bdf8);border-radius:2px;}
+    .pf-node{position:relative;flex:1;text-align:center;z-index:2;padding:0 4px;}
+    .pf-dot{width:42px;height:42px;line-height:42px;border-radius:50%;margin:0 auto;color:#fff;font-size:16px;box-shadow:0 0 0 4px #0f172a;}
+    .pf-dot.done{background:#22c55e;} .pf-dot.active{background:#3b82f6;} .pf-dot.pending{background:#475569;color:#cbd5e1;}
+    .pf-loc{color:#f1f5f9;font-weight:600;font-size:12px;margin-top:8px;}
+    .pf-step{color:#cbd5e1;font-size:11px;margin-top:2px;}
+    .pf-meta{color:#94a3b8;font-size:10px;margin-top:1px;}
+    .pf-badge-here{display:inline-block;background:#38bdf8;color:#0f172a;font-size:9px;font-weight:700;padding:1px 6px;border-radius:8px;margin-top:4px;letter-spacing:.5px;}
+    .pf-tile{background:#fff;border:1px solid #e5e7eb;border-radius:6px;padding:10px;margin-bottom:10px;}
+    .pf-om-node{background:#fff;border:1px solid #e2e8f0;border-radius:8px;min-width:140px;overflow:hidden;}
+    .pf-om-nhd{color:#fff;font-weight:700;font-size:12px;padding:8px 10px;display:flex;justify-content:space-between;}
+    .pf-om-nbody{padding:8px 10px;font-size:12px;color:#334155;}
+</style>
+</HeadContent>
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Process flow" BreadcrumbArea="Overview" BreadcrumbTab="Process flow">
-    <PhpParityModuleBody AppPath="/erp/process-flow-tasks-app" IsAdmin="_isAdmin" />
 
-
-    
-    <PhpErpModulePageHeader Title="Process flow cases" Subtitle="Cancel an open case or remove a step here. Start, act, reassign, and seed stay on the classic twin." />
+    <h3 style="margin:0 0 .35rem;"><i class="fa fa-sitemap"></i> Process flow</h3>
+    <p class="text-muted">Define a process as a chain of steps, route work automatically from one person/department head to the next, and monitor exactly where every case has reached.</p>
 
     @if (!string.IsNullOrWhiteSpace(_flashOk))
     {
@@ -26,150 +43,549 @@
     {
         <div class="alert alert-danger" role="status" style="margin:0 0 1rem;padding:.7rem .9rem;border-radius:.4rem;background:#fef2f2;color:#991b1b">@_flashErr</div>
     }
-    @if (_isAdmin)
+
+    <ul class="nav nav-tabs" style="margin-bottom:16px;">
+        @foreach (var viewTab in Views)
+        {
+            var isActive = _pfCaseId == 0 && string.Equals(_view, viewTab.Key, StringComparison.OrdinalIgnoreCase);
+            <li class="@(isActive ? "active" : null)">
+                <a href="@ViewHref(viewTab.Key)">
+                    @viewTab.Label
+                    @if (viewTab.Key == "inbox" && _inboxCount > 0)
+                    {
+                        <span class="badge">@_inboxCount.ToString(CultureInfo.InvariantCulture)</span>
+                    }
+                </a>
+            </li>
+        }
+    </ul>
+
+    @if (_pfCaseId > 0)
     {
-        <form method="post" action="/erp/ajax/pf-case-cancel" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
-            <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="/erp/process-flow-tasks-app" />
-            <label>Case id <input type="number" name="id" min="1" required style="width:6rem" /></label>
-            <button type="submit">Cancel case</button>
-        </form>
-        <form method="post" action="/erp/ajax/pf-step-delete" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
-            <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="/erp/process-flow-tasks-app" />
-            <label>Step id <input type="number" name="step_id" min="1" required style="width:6rem" /></label>
-            <button type="submit">Remove step</button>
-        </form>
-        <form method="post" action="/erp/process-flow/processes/save" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
-            <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="/erp/process-flow-tasks-app" />
-            <input type="hidden" name="id" value="0" />
-            <label>Name <input type="text" name="name" required maxlength="160" style="width:12rem" /></label>
-            <label>Category <input type="text" name="category" maxlength="64" placeholder="general" style="width:8rem" /></label>
-            <label>Description <input type="text" name="description" style="width:14rem" /></label>
-            <label>Active
-                <select name="active">
-                    <option value="1" selected>active</option>
-                    <option value="0">inactive</option>
-                </select>
-            </label>
-            <button type="submit">Save process</button>
-        </form>
-        <form method="post" action="/erp/process-flow/steps/save" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
-            <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="/erp/process-flow-tasks-app" />
-            <label>Process id <input type="number" name="process_id" min="1" required style="width:6rem" /></label>
-            <label>Name <input type="text" name="name" required maxlength="160" style="width:10rem" /></label>
-            <label>Assign
-                <select name="assign_type">
-                    <option value="dept_head" selected>dept_head</option>
-                    <option value="user">user</option>
-                    <option value="department">department</option>
-                    <option value="initiator">initiator</option>
-                </select>
-            </label>
-            <label>User id <input type="number" name="assign_user_id" min="0" value="0" style="width:5rem" /></label>
-            <label>Department <input type="text" name="assign_department" maxlength="32" style="width:8rem" /></label>
-            <label>SLA hours <input type="number" name="sla_hours" min="0" value="24" style="width:5rem" /></label>
-            <button type="submit">Add step</button>
-        </form>
-        <form method="post" action="/erp/process-flow/dept-heads/save" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
-            <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="/erp/process-flow-tasks-app" />
-            <label>Department code <input type="text" name="department_code" required /></label>
-            <label>Head user id <input type="number" name="head_user_id" min="1" required style="width:6rem" /></label>
-            <button type="submit">Save department head</button>
-        </form>
-        <form method="post" action="/erp/process-flow/cases/reassign" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
-            <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="/erp/process-flow-tasks-app" />
-            <label>Case id <input type="number" name="case_id" min="1" required style="width:6rem" /></label>
-            <label>Assignee user id <input type="number" name="user_id" min="1" required style="width:6rem" /></label>
-            <button type="submit">Reassign case</button>
-        </form>
+        @if (_detail is null)
+        {
+            <p class="text-muted">Case not found.</p>
+            <p><a href="@ViewHref("monitor")">&laquo; Back to monitor</a></p>
+        }
+        else
+        {
+            var detail = _detail;
+            <p><a href="@ViewHref("monitor")">&laquo; Back to monitor</a></p>
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <strong>@detail.Title</strong>
+                    <span class="label label-@StatusClass(detail.Status)" style="margin-left:8px;">@detail.Status.ToUpperInvariant()</span>
+                    <span class="text-muted" style="float:right;">@ProcessLabel(detail) · ref @(string.IsNullOrWhiteSpace(detail.Reference) ? "—" : detail.Reference)</span>
+                </div>
+                <div class="panel-body">
+                    <p class="text-muted">
+                        Initiated by <strong>@PersonLabel(detail.InitiatorName, detail.InitiatorId)</strong>
+                        on @FormatDateTime(detail.StartedAt).
+                        Priority: <strong>@TitleCase(detail.Priority)</strong>.
+                        @if (detail.Status == "open")
+                        {
+                            <text>Currently with <strong>@PersonLabel(detail.AssigneeName, detail.CurrentAssigneeId)</strong>.</text>
+                        }
+                    </p>
+                    <div class="pf-track-wrap">
+                        <div class="pf-track-hd">
+                            <i class="fa fa-map-marker pin"></i>
+                            @if (detail.Status == "done")
+                            {
+                                <text>Completed — final stop <strong>@(string.IsNullOrWhiteSpace(detail.CurrentLocation) ? "—" : detail.CurrentLocation)</strong>.</text>
+                            }
+                            else if (detail.Status == "open")
+                            {
+                                <text>Currently at <strong>@(string.IsNullOrWhiteSpace(detail.CurrentLocation) ? "Unassigned" : detail.CurrentLocation)</strong>
+                                · @ErpStaffDepartmentCatalog.NameFor(detail.CurrentDepartment)
+                                · with <strong>@PersonLabel(detail.AssigneeName, detail.CurrentAssigneeId)</strong></text>
+                            }
+                            else
+                            {
+                                <text>Route stopped (@detail.Status.ToUpperInvariant()).</text>
+                            }
+                        </div>
+                        <div class="pf-route-scroll" style="overflow-x:auto;">
+                            <div class="pf-route">
+                                <div class="pf-line"></div>
+                                <div class="pf-line-fill" style="width:@TrackFill(detail)"></div>
+                                <div class="pf-node @(detail.Status == "open" ? null : "is-active")">
+                                    <div class="pf-dot done"><i class="fa fa-check"></i></div>
+                                    <div class="pf-loc">Start</div>
+                                    <div class="pf-step">@(string.IsNullOrWhiteSpace(detail.CurrentLocation) ? "—" : detail.CurrentLocation)</div>
+                                    <div class="pf-meta">@ErpStaffDepartmentCatalog.NameFor(detail.CurrentDepartment)</div>
+                                </div>
+                                <div class="pf-node @(detail.Status == "open" ? "is-active" : null)">
+                                    <div class="pf-dot @(detail.Status == "open" ? "active" : (detail.Status == "done" ? "done" : "pending"))"><i class="fa @(detail.Status == "open" ? "fa-truck" : "fa-check")"></i></div>
+                                    <div class="pf-loc">In progress</div>
+                                    <div class="pf-step">@(string.IsNullOrWhiteSpace(detail.CurrentStepName) ? ("step " + detail.CurrentStepNo.ToString(CultureInfo.InvariantCulture)) : detail.CurrentStepName)</div>
+                                    <div class="pf-meta">@PersonLabel(detail.AssigneeName, detail.CurrentAssigneeId)</div>
+                                    @if (detail.Status == "open")
+                                    {
+                                        <div class="pf-badge-here">YOU ARE HERE</div>
+                                    }
+                                </div>
+                                <div class="pf-node">
+                                    <div class="pf-dot @(detail.Status == "done" ? "done" : "pending")"><i class="fa @(detail.Status == "done" ? "fa-check" : "fa-map-marker")"></i></div>
+                                    <div class="pf-loc">Finish</div>
+                                    <div class="pf-step">@(string.IsNullOrWhiteSpace(detail.ProcessName) ? "—" : detail.ProcessName)</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    @if (_isAdmin && detail.Status == "open")
+                    {
+                        <form method="post" action="/erp/ajax/pf-case-cancel" class="form-inline" style="margin-top:12px;">
+                            <input type="hidden" name="confirmWrites" value="true" />
+                            <input type="hidden" name="returnUrl" value="@ViewHref("monitor")" />
+                            <input type="hidden" name="id" value="@detail.Id.ToString(CultureInfo.InvariantCulture)" />
+                            <button type="submit" class="btn btn-sm btn-default">Cancel case</button>
+                        </form>
+                    }
+                </div>
+            </div>
+        }
     }
+    else if (_view == "monitor")
+    {
+        <div class="row" style="margin-bottom:6px;">
+            @Tile("Open cases", _summary.OpenCount.ToString(CultureInfo.InvariantCulture), "#2563eb", "fa-folder-open")
+            @Tile("Overdue", _summary.OverdueCount.ToString(CultureInfo.InvariantCulture), "#dc2626", "fa-exclamation-triangle")
+            @Tile("Completed", _summary.DoneCount.ToString(CultureInfo.InvariantCulture), "#16a34a", "fa-check-circle")
+            @Tile("Rejected", _summary.RejectedCount.ToString(CultureInfo.InvariantCulture), "#b45309", "fa-times-circle")
+            @Tile("Avg cycle (h)", _summary.AvgCycleHours.ToString("0.#", CultureInfo.InvariantCulture), "#0891b2", "fa-clock-o")
+        </div>
 
-    <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Process flow stats">
-        <div class="kpi"><div class="lbl">Cases</div><div class="val">@_summary.TaskCount.ToString(CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">Open</div><div class="val">@_summary.OpenCount.ToString(CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">Done</div><div class="val">@_summary.DoneCount.ToString(CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">Overdue</div><div class="val">@_summary.OverdueCount.ToString(CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">Cancelled/rejected</div><div class="val">@_summary.CancelledCount.ToString(CultureInfo.InvariantCulture)</div></div>
-    </div>
+        <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:6px;padding:10px 12px;margin-bottom:12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+            <span style="font-size:12px;color:#1e3a8a;"><i class="fa fa-truck"></i> <strong>Customer Order → Delivery</strong> runs automatically for every order (online &amp; manual): quote → payment → procured → out for delivery → delivered → invoiced. Each completed stage is credited to the responsible employee.</span>
+        </div>
 
-    <div class="epc-erp-table-wrap">
-        <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
-            <thead>
-                <tr>
-                    <th>Id</th>
-                    <th>Title</th>
-                    <th>Reference</th>
-                    <th>Priority</th>
-                    <th>Status</th>
-                    <th>Step</th>
-                    <th>Assignee</th>
-                    <th>Due</th>
-                </tr>
-            </thead>
-            <tbody>
-                @if (_tasks.Count == 0)
+        <form method="get" action="/erp/process-flow-tasks-app" class="form-inline" style="margin-bottom:10px;">
+            <input type="hidden" name="pf_view" value="monitor" />
+            <label>Show</label>
+            <select name="f_status" class="form-control input-sm" onchange="this.form.submit()">
+                @foreach (var statusRow in StatusFilters)
                 {
-                    <tr><td colspan="8">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? "No records yet." : _message) : "Sign in with ERP capability for live rows.")</td></tr>
+                    <option value="@statusRow.Key" selected="@string.Equals(_status, statusRow.Key, StringComparison.OrdinalIgnoreCase)">@statusRow.Label</option>
+                }
+            </select>
+        </form>
+
+        @if (_byLocation.Count > 0)
+        {
+            var maxLoc = _byLocation.Max(x => x.Count);
+            <div class="panel panel-default">
+                <div class="panel-heading"><strong><i class="fa fa-map-marker text-info"></i> Live site map — open cases by location</strong></div>
+                <div class="panel-body" style="background:#0f172a;border-radius:0 0 4px 4px;">
+                    <div style="display:flex;flex-wrap:wrap;gap:14px;">
+                        @foreach (var locRow in _byLocation)
+                        {
+                            var barH = maxLoc > 0 ? Math.Max(8, (int)Math.Round(locRow.Count / (double)maxLoc * 46)) : 8;
+                            <div style="flex:1;min-width:130px;text-align:center;background:#1e293b;border-radius:8px;padding:12px 8px;">
+                                <div style="height:54px;display:flex;align-items:flex-end;justify-content:center;">
+                                    <div style="width:30px;background:linear-gradient(180deg,#38bdf8,#2563eb);border-radius:4px 4px 0 0;height:@(barH.ToString(CultureInfo.InvariantCulture))px;"></div>
+                                </div>
+                                <div style="color:#f1f5f9;font-weight:700;font-size:18px;margin-top:4px;">@locRow.Count.ToString(CultureInfo.InvariantCulture)</div>
+                                <div style="color:#94a3b8;font-size:11px;"><i class="fa fa-map-marker"></i> @locRow.Location</div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+
+        @CaseTable(_visible, 11, "No cases.")
+    }
+    else if (_view == "inbox")
+    {
+        <p class="text-muted">Cases currently routed to you.</p>
+        <table class="table table-bordered table-condensed">
+            <thead><tr><th>Case</th><th>Process</th><th>Current step</th><th>Priority</th><th>Due</th><th></th></tr></thead>
+            <tbody>
+                @if (_inbox.Count == 0)
+                {
+                    <tr><td colspan="6" class="text-muted">Your inbox is empty — no cases are waiting on you.</td></tr>
                 }
                 else
                 {
-                    @foreach (var row in _tasks)
+                    @foreach (var row in _inbox)
                     {
                         <tr>
-                            <td>@row.Id.ToString(CultureInfo.InvariantCulture)</td>
-                            <td>@row.Title</td>
-                            <td>@row.Reference</td>
-                            <td>@row.Priority</td>
-                            <td>@row.Status</td>
-                            <td>@row.CurrentStepNo.ToString(CultureInfo.InvariantCulture)</td>
-                            <td>@row.CurrentAssigneeId.ToString(CultureInfo.InvariantCulture)</td>
-                            <td>@row.DueAt.ToString(CultureInfo.InvariantCulture)</td>
+                            <td><a href="@CaseHref(row.Id)"><strong>@row.Title</strong></a></td>
+                            <td><small>@ProcessLabel(row)</small></td>
+                            <td>@(string.IsNullOrWhiteSpace(row.CurrentStepName) ? ("step " + row.CurrentStepNo.ToString(CultureInfo.InvariantCulture)) : row.CurrentStepName)</td>
+                            <td>@TitleCase(row.Priority)</td>
+                            <td>@FormatDue(row)</td>
+                            <td><a class="btn btn-xs btn-default" href="@CaseHref(row.Id)">Open</a></td>
                         </tr>
                     }
                 }
             </tbody>
         </table>
-    </div>
+    }
+    else if (_view == "orgmap")
+    {
+        <p class="text-muted">Open cases grouped by department — the live route each case is on.</p>
+        <div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:14px;">
+            @foreach (var deptRow in ErpStaffDepartmentCatalog.All)
+            {
+                var n = _tasks.Count(t => t.Status == "open" && string.Equals(t.CurrentDepartment, deptRow.Code, StringComparison.OrdinalIgnoreCase));
+                <div class="pf-om-node">
+                    <div class="pf-om-nhd" style="background:@deptRow.Color;"><span>@deptRow.Name</span><span>@n.ToString(CultureInfo.InvariantCulture)</span></div>
+                    <div class="pf-om-nbody">@deptRow.Workflows[0]</div>
+                </div>
+            }
+        </div>
+        @CaseTable(_tasks.Where(t => t.Status == "open").ToList(), 11, "No open cases.")
+    }
+    else if (_view == "hierarchy")
+    {
+        <p class="text-muted">Departments with rolled-up open and completed case counts from the live case list.</p>
+        <table class="table table-bordered table-condensed" style="max-width:720px;">
+            <thead><tr><th>Department</th><th>Open</th><th>Completed</th></tr></thead>
+            <tbody>
+                @foreach (var deptRow in ErpStaffDepartmentCatalog.All)
+                {
+                    var openN = _tasks.Count(t => t.Status == "open" && string.Equals(t.CurrentDepartment, deptRow.Code, StringComparison.OrdinalIgnoreCase));
+                    var doneN = _tasks.Count(t => t.Status == "done" && string.Equals(t.CurrentDepartment, deptRow.Code, StringComparison.OrdinalIgnoreCase));
+                    <tr>
+                        <td><i class="fa @deptRow.Icon" style="color:@deptRow.Color"></i> @deptRow.Name</td>
+                        <td><span class="label label-danger">@openN.ToString(CultureInfo.InvariantCulture)</span></td>
+                        <td><span class="label label-success">@doneN.ToString(CultureInfo.InvariantCulture)</span></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+    else if (_view == "workforce")
+    {
+        <p class="text-muted">Who is holding open cases right now.</p>
+        <table class="table table-bordered table-condensed">
+            <thead><tr><th>With</th><th>Dept</th><th>Open cases</th><th>Latest case</th></tr></thead>
+            <tbody>
+                @if (_workforce.Count == 0)
+                {
+                    <tr><td colspan="4" class="text-muted">No staff holding open cases.</td></tr>
+                }
+                else
+                {
+                    @foreach (var wfRow in _workforce)
+                    {
+                        <tr>
+                            <td>@wfRow.Name</td>
+                            <td>@wfRow.Dept</td>
+                            <td>@wfRow.Open.ToString(CultureInfo.InvariantCulture)</td>
+                            <td><a href="@CaseHref(wfRow.CaseId)">@wfRow.Title</a></td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    }
+    else if (_view == "processes")
+    {
+        <p class="text-muted">Processes inferred from live cases on this tenant.</p>
+        <table class="table table-bordered table-condensed">
+            <thead><tr><th>Process</th><th>Open cases</th><th>All cases</th></tr></thead>
+            <tbody>
+                @if (_processes.Count == 0)
+                {
+                    <tr><td colspan="3" class="text-muted">No processes yet.</td></tr>
+                }
+                else
+                {
+                    @foreach (var procRow in _processes)
+                    {
+                        <tr>
+                            <td><strong>@procRow.Name</strong></td>
+                            <td>@procRow.Open.ToString(CultureInfo.InvariantCulture)</td>
+                            <td>@procRow.Total.ToString(CultureInfo.InvariantCulture)</td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    }
+    else if (_view == "heads")
+    {
+        <p class="text-muted">Set the head of each department. Steps routed to "Department head" go to the person named here.</p>
+        <table class="table table-bordered table-condensed" style="max-width:620px;">
+            <thead><tr><th>Department</th><th>Head</th></tr></thead>
+            <tbody>
+                @foreach (var deptRow in ErpStaffDepartmentCatalog.All)
+                {
+                    <tr>
+                        <td><i class="fa @deptRow.Icon"></i> @deptRow.Name</td>
+                        <td class="text-muted">— unassigned —</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
 
-    <div class="epc-erp-empty" style="display:block;margin-top:12px;padding:8px 10px;border:1px solid #c5d4de;background:#f8fafc;color:#475569;font-size:12px;">
-        Source: @_summary.Source. PHP <code>epc_erp_processflow.php</code> remains authoritative for case create/approve/reject and step save.
-        @if (!string.IsNullOrWhiteSpace(_summary.Message)) { <span> @_summary.Message</span> }
-    </div>
+    @if (_isAdmin)
+    {
+        <div class="panel panel-default" style="margin-top:18px;">
+            <div class="panel-heading"><strong>Case tools</strong></div>
+            <div class="panel-body">
+                <form method="post" action="/erp/ajax/pf-case-cancel" class="form-inline" style="margin:0 0 .75rem;">
+                    <input type="hidden" name="confirmWrites" value="true" />
+                    <input type="hidden" name="returnUrl" value="/erp/process-flow-tasks-app" />
+                    <label>Case id <input type="number" name="id" min="1" required class="form-control input-sm" style="width:6rem" /></label>
+                    <button type="submit" class="btn btn-sm btn-default">Cancel case</button>
+                </form>
+                <form method="post" action="/erp/ajax/pf-step-delete" class="form-inline" style="margin:0 0 .75rem;">
+                    <input type="hidden" name="confirmWrites" value="true" />
+                    <input type="hidden" name="returnUrl" value="/erp/process-flow-tasks-app" />
+                    <label>Step id <input type="number" name="step_id" min="1" required class="form-control input-sm" style="width:6rem" /></label>
+                    <button type="submit" class="btn btn-sm btn-default">Remove step</button>
+                </form>
+                <form method="post" action="/erp/process-flow/processes/save" class="form-inline" style="margin:0 0 .75rem;">
+                    <input type="hidden" name="confirmWrites" value="true" />
+                    <input type="hidden" name="returnUrl" value="/erp/process-flow-tasks-app" />
+                    <input type="hidden" name="id" value="0" />
+                    <label>Name <input type="text" name="name" required maxlength="160" class="form-control input-sm" style="width:12rem" /></label>
+                    <label>Category <input type="text" name="category" maxlength="64" placeholder="general" class="form-control input-sm" style="width:8rem" /></label>
+                    <label>Description <input type="text" name="description" class="form-control input-sm" style="width:14rem" /></label>
+                    <label>Active
+                        <select name="active" class="form-control input-sm">
+                            <option value="1" selected>active</option>
+                            <option value="0">inactive</option>
+                        </select>
+                    </label>
+                    <button type="submit" class="btn btn-sm btn-default">Save process</button>
+                </form>
+                <form method="post" action="/erp/process-flow/steps/save" class="form-inline" style="margin:0 0 .75rem;">
+                    <input type="hidden" name="confirmWrites" value="true" />
+                    <input type="hidden" name="returnUrl" value="/erp/process-flow-tasks-app" />
+                    <label>Process id <input type="number" name="process_id" min="1" required class="form-control input-sm" style="width:6rem" /></label>
+                    <label>Name <input type="text" name="name" required maxlength="160" class="form-control input-sm" style="width:10rem" /></label>
+                    <label>Assign
+                        <select name="assign_type" class="form-control input-sm">
+                            <option value="dept_head" selected>dept_head</option>
+                            <option value="user">user</option>
+                            <option value="department">department</option>
+                            <option value="initiator">initiator</option>
+                        </select>
+                    </label>
+                    <label>User id <input type="number" name="assign_user_id" min="0" value="0" class="form-control input-sm" style="width:5rem" /></label>
+                    <label>Department <input type="text" name="assign_department" maxlength="32" class="form-control input-sm" style="width:8rem" /></label>
+                    <label>SLA hours <input type="number" name="sla_hours" min="0" value="24" class="form-control input-sm" style="width:5rem" /></label>
+                    <button type="submit" class="btn btn-sm btn-default">Add step</button>
+                </form>
+                <form method="post" action="/erp/process-flow/dept-heads/save" class="form-inline" style="margin:0 0 .75rem;">
+                    <input type="hidden" name="confirmWrites" value="true" />
+                    <input type="hidden" name="returnUrl" value="/erp/process-flow-tasks-app" />
+                    <label>Department code <input type="text" name="department_code" required class="form-control input-sm" /></label>
+                    <label>Head user id <input type="number" name="head_user_id" min="1" required class="form-control input-sm" style="width:6rem" /></label>
+                    <button type="submit" class="btn btn-sm btn-default">Save department head</button>
+                </form>
+                <form method="post" action="/erp/process-flow/cases/reassign" class="form-inline" style="margin:0;">
+                    <input type="hidden" name="confirmWrites" value="true" />
+                    <input type="hidden" name="returnUrl" value="/erp/process-flow-tasks-app" />
+                    <label>Case id <input type="number" name="case_id" min="1" required class="form-control input-sm" style="width:6rem" /></label>
+                    <label>Assignee user id <input type="number" name="user_id" min="1" required class="form-control input-sm" style="width:6rem" /></label>
+                    <button type="submit" class="btn btn-sm btn-default">Reassign case</button>
+                </form>
+            </div>
+        </div>
+    }
 </PhpErpDesktopChrome>
 
 @code {
+    private static readonly (string Key, string Label)[] Views =
+    [
+        ("monitor", "Monitor"),
+        ("orgmap", "Org map"),
+        ("hierarchy", "Hierarchy"),
+        ("workforce", "Workforce"),
+        ("inbox", "My inbox"),
+        ("processes", "Processes"),
+        ("heads", "Department heads"),
+    ];
+
+    private static readonly (string Key, string Label)[] StatusFilters =
+    [
+        ("open", "Open"),
+        ("all", "All"),
+        ("done", "Completed"),
+        ("rejected", "Rejected"),
+        ("cancelled", "Cancelled"),
+    ];
+
     private bool _isAdmin;
-    private string _message = "";
-    private ErpProcessFlowTasksSummary _summary = new(0, 0, 0, 0, 0, "migration", string.Empty);
-    private IReadOnlyList<ErpProcessFlowTaskDigest> _tasks = [];
+    private long _userId;
+    private string _view = "monitor";
+    private string _status = "open";
+    private long _pfCaseId;
     private string _flashOk = "";
     private string _flashErr = "";
+    private string _message = "";
+    private ErpProcessFlowTasksSummary _summary = new(0, 0, 0, 0, 0, 0, 0m, "migration", string.Empty);
+    private IReadOnlyList<ErpProcessFlowTaskDigest> _tasks = [];
+    private IReadOnlyList<ErpProcessFlowTaskDigest> _visible = [];
+    private IReadOnlyList<ErpProcessFlowTaskDigest> _inbox = [];
+    private ErpProcessFlowTaskDigest? _detail;
+    private int _inboxCount;
+    private IReadOnlyList<(string Location, int Count)> _byLocation = [];
+    private IReadOnlyList<(string Name, string Dept, int Open, long CaseId, string Title)> _workforce = [];
+    private IReadOnlyList<(string Name, int Open, int Total)> _processes = [];
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
-        if (ctx is null)
-        {
-            return;
-        }
+        if (ctx is null) return;
         _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
         _flashErr = ctx.Request.Query["err"].ToString() ?? "";
+        _view = (ctx.Request.Query["pf_view"].ToString() ?? "monitor").Trim().ToLowerInvariant();
+        if (Views.All(v => v.Key != _view)) _view = "monitor";
+        _status = (ctx.Request.Query["f_status"].ToString() ?? "open").Trim().ToLowerInvariant();
+        if (StatusFilters.All(s => s.Key != _status)) _status = "open";
+        long.TryParse(ctx.Request.Query["pf_case"].ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out _pfCaseId);
 
         var session = await Sessions.ValidateAsync(ctx);
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
-        if (!_isAdmin)
-        {
-            return; // guest browse — Sign in for live data
-        }
+        _userId = session.UserId;
+        if (!_isAdmin) return;
 
-        var result = await Dashboards.BuildErpProcessFlowTasksDigestAsync(100);
+        var result = await Dashboards.BuildErpProcessFlowTasksDigestAsync(300);
         _summary = result.Summary;
         _tasks = result.Tasks;
         _message = result.Message;
+        _inbox = _tasks.Where(t => t.Status == "open" && _userId > 0 && t.CurrentAssigneeId == _userId).ToList();
+        _inboxCount = _inbox.Count;
+        _visible = _status == "all" ? _tasks : _tasks.Where(t => string.Equals(t.Status, _status, StringComparison.OrdinalIgnoreCase)).ToList();
+        _detail = _pfCaseId > 0 ? _tasks.FirstOrDefault(t => t.Id == _pfCaseId) : null;
+        _byLocation = _tasks
+            .Where(t => t.Status == "open" && !string.IsNullOrWhiteSpace(t.CurrentLocation))
+            .GroupBy(t => t.CurrentLocation, StringComparer.OrdinalIgnoreCase)
+            .Select(g => (g.Key, g.Count()))
+            .OrderByDescending(x => x.Item2)
+            .ToList();
+        _workforce = _tasks
+            .Where(t => t.Status == "open" && t.CurrentAssigneeId > 0)
+            .GroupBy(t => t.CurrentAssigneeId)
+            .Select(g =>
+            {
+                var first = g.First();
+                return (PersonLabel(first.AssigneeName, first.CurrentAssigneeId), ErpStaffDepartmentCatalog.NameFor(first.CurrentDepartment), g.Count(), first.Id, first.Title);
+            })
+            .OrderByDescending(x => x.Item3)
+            .ToList();
+        _processes = _tasks
+            .GroupBy(t => t.ProcessId)
+            .Select(g =>
+            {
+                var first = g.First();
+                return (ProcessLabel(first), g.Count(x => x.Status == "open"), g.Count());
+            })
+            .OrderBy(x => x.Item1)
+            .ToList();
     }
+
+    private RenderFragment Tile(string label, string value, string color, string icon) => __builder =>
+    {
+        <div class="col-sm-2 col-xs-4" style="margin-bottom:10px;">
+            <div class="pf-tile" style="border-left:4px solid @color;">
+                <div style="font-size:11px;color:#6b7280;"><i class="fa @icon"></i> @label</div>
+                <div style="font-size:22px;font-weight:700;color:@color;">@value</div>
+            </div>
+        </div>
+    };
+
+    private RenderFragment CaseTable(IReadOnlyList<ErpProcessFlowTaskDigest> rows, int cols, string empty) => __builder =>
+    {
+        <table class="table table-bordered table-condensed">
+            <thead><tr><th>Case</th><th>Process</th><th>Progress</th><th>Current step</th><th>With</th><th>Dept</th><th>Location</th><th>Priority</th><th>Due</th><th>Status</th><th></th></tr></thead>
+            <tbody>
+                @if (rows.Count == 0)
+                {
+                    <tr><td colspan="@cols" class="text-muted">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? empty : _message) : "Sign in with ERP capability for live rows.")</td></tr>
+                }
+                else
+                {
+                    @foreach (var row in rows)
+                    {
+                        var pct = ProgressPercent(row);
+                        var color = row.Status == "done" ? "#16a34a" : (IsOverdue(row) ? "#dc2626" : "#2563eb");
+                        <tr>
+                            <td><a href="@CaseHref(row.Id)"><strong>@row.Title</strong></a><br /><small class="text-muted">@row.Reference</small></td>
+                            <td><small>@ProcessLabel(row)</small></td>
+                            <td style="min-width:130px;">
+                                <div style="background:#eef2f7;border-radius:4px;height:16px;position:relative;">
+                                    <div style="background:@color;width:@(pct.ToString(CultureInfo.InvariantCulture))%;height:16px;border-radius:4px;"></div>
+                                </div>
+                                <small class="text-muted">step @row.CurrentStepNo.ToString(CultureInfo.InvariantCulture) of @row.StepCount.ToString(CultureInfo.InvariantCulture)</small>
+                            </td>
+                            <td><small>@(string.IsNullOrWhiteSpace(row.CurrentStepName) ? "—" : row.CurrentStepName)</small></td>
+                            <td>@PersonLabel(row.AssigneeName, row.CurrentAssigneeId)</td>
+                            <td><small>@ErpStaffDepartmentCatalog.NameFor(row.CurrentDepartment)</small></td>
+                            <td><small>@(string.IsNullOrWhiteSpace(row.CurrentLocation) ? "—" : row.CurrentLocation)</small></td>
+                            <td>@TitleCase(row.Priority)</td>
+                            <td>@FormatDue(row)</td>
+                            <td><span class="label label-@StatusClass(row.Status)">@row.Status</span></td>
+                            <td><a class="btn btn-xs btn-default" href="@CaseHref(row.Id)">Open</a></td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    };
+
+    private static string ViewHref(string view) => "/erp/process-flow-tasks-app?pf_view=" + Uri.EscapeDataString(view);
+    private static string CaseHref(long id) => "/erp/process-flow-tasks-app?pf_view=monitor&pf_case=" + id.ToString(CultureInfo.InvariantCulture);
+
+    private static string StatusClass(string? status) => status switch
+    {
+        "open" => "info",
+        "done" => "success",
+        "rejected" => "danger",
+        _ => "default",
+    };
+
+    private static string ProcessLabel(ErpProcessFlowTaskDigest row) =>
+        string.IsNullOrWhiteSpace(row.ProcessName)
+            ? (row.ProcessId > 0 ? ("Process #" + row.ProcessId.ToString(CultureInfo.InvariantCulture)) : "—")
+            : row.ProcessName;
+
+    private static string PersonLabel(string? name, long id)
+    {
+        if (!string.IsNullOrWhiteSpace(name)) return name;
+        return id > 0 ? ("Staff #" + id.ToString(CultureInfo.InvariantCulture)) : "—";
+    }
+
+    private static string TitleCase(string? value)
+    {
+        var text = (value ?? string.Empty).Trim();
+        if (text.Length == 0) return "—";
+        return char.ToUpperInvariant(text[0]) + text[1..];
+    }
+
+    private static int ProgressPercent(ErpProcessFlowTaskDigest row)
+    {
+        if (row.Status == "done") return 100;
+        if (row.StepCount <= 0) return 0;
+        var n = row.CurrentStepNo - 1;
+        if (n < 0) n = 0;
+        return Math.Clamp((int)Math.Round(n / (double)row.StepCount * 100), 0, 100);
+    }
+
+    private static bool IsOverdue(ErpProcessFlowTaskDigest row) =>
+        row.Status == "open" && row.DueAt > 0 && row.DueAt < DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+
+    private static string FormatDue(ErpProcessFlowTaskDigest row)
+    {
+        if (row.DueAt <= 0) return "—";
+        var text = DateTimeOffset.FromUnixTimeSeconds(row.DueAt).ToLocalTime().ToString("MM-dd HH:mm", CultureInfo.InvariantCulture);
+        return IsOverdue(row) ? text : text;
+    }
+
+    private static string FormatDateTime(long unix)
+    {
+        if (unix <= 0) return "—";
+        return DateTimeOffset.FromUnixTimeSeconds(unix).ToLocalTime().ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture);
+    }
+
+    private static string TrackFill(ErpProcessFlowTaskDigest row) =>
+        row.Status == "done" ? "84%" : (row.Status == "open" ? "50%" : "16%");
 }

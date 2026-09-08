@@ -12,11 +12,11 @@
 <PageTitle>Stock transfers · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Stock transfers" BreadcrumbArea="Inventory" BreadcrumbTab="Stock groups">
-    <PhpParityModuleBody AppPath="/erp/stock-transfers-app" IsAdmin="_isAdmin" />
+    <PhpParityModuleBody ShowGhostScaffold="false" AppPath="/erp/stock-transfers-app" IsAdmin="_isAdmin" />
 
 
     
-    <PhpErpModulePageHeader Title="Stock transfers" Subtitle="Live shop digest. Writes stay on ERP ajax." PhpTabHref="@_phpTab" />
+    <PhpErpModulePageHeader Title="Stock transfers" Subtitle="Warehouse-to-warehouse stock transfers." PhpTabHref="@_phpTab" />
     <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
 
 
