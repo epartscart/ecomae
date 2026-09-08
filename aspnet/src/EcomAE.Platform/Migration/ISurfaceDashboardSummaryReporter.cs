@@ -194,6 +194,9 @@ public interface ISurfaceDashboardSummaryReporter
     /// <summary>Read-only purchase requisitions (justification/decision_note omitted).</summary>
     Task<CpPurchaseRequestsDigestResult> BuildCpPurchaseRequestsDigestAsync(int limit, CancellationToken cancellationToken = default);
 
+    /// <summary>Opened requisition header + lines (PHP <c>rq=</c> detail).</summary>
+    Task<CpPurchaseRequestDetailResult> BuildCpPurchaseRequestDetailAsync(long id, CancellationToken cancellationToken = default);
+
     /// <summary>Read-only promotions (epc_promo_promotions).</summary>
     Task<CpPromotionsDigestResult> BuildCpPromotionsDigestAsync(int limit, CancellationToken cancellationToken = default);
 

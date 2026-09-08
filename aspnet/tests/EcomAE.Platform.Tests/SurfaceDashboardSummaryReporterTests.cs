@@ -510,6 +510,10 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.Contains("epc_proc_req", LegacySurfaceDashboardSql.SelectCpPurchaseRequests, StringComparison.Ordinal);
         Assert.DoesNotContain("justification", LegacySurfaceDashboardSql.SelectCpPurchaseRequests, StringComparison.Ordinal);
         Assert.DoesNotContain("decision_note", LegacySurfaceDashboardSql.SelectCpPurchaseRequests, StringComparison.Ordinal);
+        Assert.Contains("justification", LegacySurfaceDashboardSql.SelectCpPurchaseRequestDetail, StringComparison.Ordinal);
+        Assert.Contains("decision_note", LegacySurfaceDashboardSql.SelectCpPurchaseRequestDetail, StringComparison.Ordinal);
+        Assert.Contains("epc_proc_req_line", LegacySurfaceDashboardSql.SelectCpPurchaseRequestLines, StringComparison.Ordinal);
+        Assert.Contains("`req_id` = @id", LegacySurfaceDashboardSql.SelectCpPurchaseRequestLines, StringComparison.Ordinal);
         Assert.Contains("epc_promo_promotions", LegacySurfaceDashboardSql.SelectCpPromotions, StringComparison.Ordinal);
         Assert.Contains("epc_crm_opportunities", LegacySurfaceDashboardSql.SelectCpCrmOpportunities, StringComparison.Ordinal);
         Assert.DoesNotContain("`notes`", LegacySurfaceDashboardSql.SelectCpCrmOpportunities, StringComparison.Ordinal);

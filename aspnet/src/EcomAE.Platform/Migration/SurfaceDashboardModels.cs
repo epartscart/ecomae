@@ -1627,6 +1627,39 @@ public sealed record CpPurchaseRequestsDigestResult(
     string Source,
     string Message);
 
+public sealed record CpPurchaseRequestDetail(
+    long Id,
+    long CompanyId,
+    string ReqNumber,
+    string Requester,
+    long BusinessUnitId,
+    string Status,
+    string Justification,
+    decimal Total,
+    bool RequiresApproval,
+    string DecidedBy,
+    string DecisionNote,
+    string PoRef,
+    long TimeCreated);
+
+public sealed record CpPurchaseRequestLineDigest(
+    long Id,
+    long ReqId,
+    long CategoryId,
+    string CategoryCode,
+    string ItemCode,
+    string Description,
+    decimal Qty,
+    decimal UnitPrice,
+    decimal LineTotal,
+    string PreferredVendor);
+
+public sealed record CpPurchaseRequestDetailResult(
+    CpPurchaseRequestDetail? Request,
+    IReadOnlyList<CpPurchaseRequestLineDigest> Lines,
+    string Source,
+    string Message);
+
 public sealed record CpPromotionsSummary(
     int PromotionCount,
     int ActivePromotions,

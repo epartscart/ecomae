@@ -13,6 +13,8 @@ public sealed class ErpRecordOpenPhpParityTests
     [InlineData("/ERP/?epc_erp_shell=1&area=banking&tab=cash_bank&account_id=5", "/erp/cash-accounts-app?account_id=5")]
     [InlineData("/ERP/?epc_erp_shell=1&area=purchasing&tab=vendors&supplier_id=8", "/erp/suppliers-app?supplier_id=8")]
     [InlineData("/ERP/?epc_erp_shell=1&area=overview&tab=processflow&pf_case=11", "/erp/process-flow-tasks-app?pf_case=11")]
+    [InlineData("/ERP/?epc_erp_shell=1&area=purchasing&tab=purchase_requisitions&rq=4", "/erp/purchase-requests-app?rq=4")]
+    [InlineData("/ERP/?epc_erp_shell=1&area=purchasing&tab=purchase_requisitions&req_id=4", "/erp/purchase-requests-app?req_id=4")]
     public void AspNetPrimaryHref_KeepsErpRecordId(string php, string expected)
     {
         var href = PhpSurfaceLinkMap.AspNetPrimaryHref(php);
@@ -95,6 +97,7 @@ public sealed class ErpRecordOpenPhpParityTests
     [InlineData("ErpCashAccountsApp.razor", "account_id")]
     [InlineData("ErpOnPremisesApp.razor", "license_id")]
     [InlineData("ErpPayablesApp.razor", "supplier_id")]
+    [InlineData("CpPurchaseRequestsApp.razor", "req_id")]
     public void DumpListApps_RowOpenIsRecordUrl(string fileName, string param)
     {
         var root = FindRepoRoot();
@@ -103,6 +106,39 @@ public sealed class ErpRecordOpenPhpParityTests
         Assert.Contains("ErpRecordOpen.Href(", text, StringComparison.Ordinal);
         Assert.Contains("\"" + param + "\"", text, StringComparison.Ordinal);
         Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)\">Open", text, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void PurchaseRequestsApp_OpenLoadsDetailAndAcceptsPhpRq()
+    {
+        var root = FindRepoRoot();
+        var text = File.ReadAllText(Path.Combine(root,
+            "aspnet/src/EcomAE.Platform/Components/Pages/CpPurchaseRequestsApp.razor"));
+        Assert.Contains("ErpRecordOpen.Href(_listHref, \"req_id\"", text, StringComparison.Ordinal);
+        Assert.Contains("ErpOpenedRecordBanner", text, StringComparison.Ordinal);
+        Assert.Contains("ReadId(ctx.Request, \"req_id\", \"rq\")", text, StringComparison.Ordinal);
+        Assert.Contains("BuildCpPurchaseRequestDetailAsync", text, StringComparison.Ordinal);
+        Assert.Contains("No lines yet.", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)\">Open", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("/php-reference/", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("ASP.NET", text, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void ReadId_AcceptsReqIdAndPhpRqAlias()
+    {
+        Assert.Equal("/erp/purchase-requests-app?req_id=9#erp-row-9",
+            ErpRecordOpen.Href("/erp/purchase-requests-app", "req_id", 9));
+        Assert.Equal(
+            "/erp/purchase-requests-app?rq=4",
+            ErpRecordOpen.PreserveRecordQuery(
+                "/erp/purchase-requests-app",
+                "/ERP/?epc_erp_shell=1&area=purchasing&tab=purchase_requisitions&rq=4"));
+        Assert.Equal(
+            "/erp/purchase-requests-app?req_id=4",
+            ErpRecordOpen.PreserveRecordQuery(
+                "/erp/purchase-requests-app",
+                "/ERP/?epc_erp_shell=1&area=purchasing&tab=purchase_requisitions&req_id=4"));
     }
 
     private static string FindRepoRoot()
