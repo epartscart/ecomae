@@ -3,7 +3,7 @@ using System.Globalization;
 namespace EcomAE.Platform.Erp;
 
 /// <summary>
-/// Live PHP <c>epc_sub_save</c> twin. Schema ensure and cycle-invoice generate stay PHP.
+/// Live PHP <c>epc_sub_save</c> twin. Schema ensure stays PHP. Cycle generate is <c>IErpSubGenerateWriteService</c>.
 /// </summary>
 public interface IErpSubscriptionSaveWriteService
 {
