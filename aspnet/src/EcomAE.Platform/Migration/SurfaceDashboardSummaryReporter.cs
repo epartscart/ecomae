@@ -15755,6 +15755,89 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    public async Task<CpProductFiltersDetailResult> BuildCpProductFiltersDetailAsync(long id, CancellationToken cancellationToken = default)
+    {
+        if (id <= 0)
+        {
+            return new(null, [], "n/a", "");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return new(null, [], "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            CpProductFiltersDetail? header = null;
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectCpProductFiltersDetail;
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    header = new CpProductFiltersDetail(
+                        Convert.ToInt64(reader["id"] is DBNull ? 0 : reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["manufacturer"] is DBNull ? string.Empty : reader["manufacturer"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["article"] is DBNull ? string.Empty : reader["article"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["name"] is DBNull ? string.Empty : reader["name"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToDecimal(reader["min_price"] is DBNull ? 0 : reader["min_price"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(reader["max_price"] is DBNull ? 0 : reader["max_price"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["min_time"] is DBNull ? 0 : reader["min_time"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["max_time"] is DBNull ? 0 : reader["max_time"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["active"] is DBNull ? 0 : reader["active"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["storages_len"] is DBNull ? 0 : reader["storages_len"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["storages_excerpt"] is DBNull ? string.Empty : reader["storages_excerpt"], CultureInfo.InvariantCulture) ?? string.Empty);
+                }
+            }
+
+            if (header is null)
+            {
+                return new(null, [], "database", "Product filter not found.");
+            }
+
+            var siblings = new List<CpProductFiltersRowDigest>();
+            var useManufacturer = !string.IsNullOrWhiteSpace(header.Manufacturer);
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = useManufacturer
+                    ? LegacySurfaceDashboardSql.SelectCpProductFiltersManufacturerSiblings
+                    : LegacySurfaceDashboardSql.SelectCpProductFiltersArticleSiblings;
+                if (useManufacturer)
+                {
+                    AddParameter(cmd, "@manufacturer", header.Manufacturer);
+                }
+                else
+                {
+                    AddParameter(cmd, "@article", header.Article);
+                }
+
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    siblings.Add(new CpProductFiltersRowDigest(
+                        Convert.ToInt64(reader["id"] is DBNull ? 0 : reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["manufacturer"] is DBNull ? string.Empty : reader["manufacturer"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["article"] is DBNull ? string.Empty : reader["article"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["name"] is DBNull ? string.Empty : reader["name"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToDecimal(reader["min_price"] is DBNull ? 0 : reader["min_price"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(reader["max_price"] is DBNull ? 0 : reader["max_price"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["min_time"] is DBNull ? 0 : reader["min_time"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["max_time"] is DBNull ? 0 : reader["max_time"], CultureInfo.InvariantCulture)));
+                }
+            }
+
+            return new(header, siblings, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(null, [], "database-error", ex.Message);
+        }
+    }
+
     public async Task<CpSearchTabsDigestResult> BuildCpSearchTabsDigestAsync(int limit, CancellationToken cancellationToken = default)
     {
         var safeLimit = Math.Clamp(limit, 1, 500);

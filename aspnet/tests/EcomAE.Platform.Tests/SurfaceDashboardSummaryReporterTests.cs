@@ -809,6 +809,14 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.DoesNotContain("to_location_id", LegacySurfaceDashboardSql.SelectCpWarehouseWmsWaveSiblings, StringComparison.Ordinal);
         Assert.DoesNotContain("lp_id", LegacySurfaceDashboardSql.SelectCpWarehouseWmsWaveSiblings, StringComparison.Ordinal);
         Assert.Contains("`wave_id` = @wave_id", LegacySurfaceDashboardSql.SelectCpWarehouseWmsWaveSiblings, StringComparison.Ordinal);
+        Assert.Contains("shop_docpart_filter", LegacySurfaceDashboardSql.SelectCpProductFiltersRows, StringComparison.Ordinal);
+        Assert.DoesNotContain("list_storages", LegacySurfaceDashboardSql.SelectCpProductFiltersRows, StringComparison.Ordinal);
+        Assert.Contains("LEFT(IFNULL(`list_storages`,''), 280)", LegacySurfaceDashboardSql.SelectCpProductFiltersDetail, StringComparison.Ordinal);
+        Assert.Contains("`id` = @id", LegacySurfaceDashboardSql.SelectCpProductFiltersDetail, StringComparison.Ordinal);
+        Assert.DoesNotContain("list_storages", LegacySurfaceDashboardSql.SelectCpProductFiltersManufacturerSiblings, StringComparison.Ordinal);
+        Assert.Contains("@manufacturer", LegacySurfaceDashboardSql.SelectCpProductFiltersManufacturerSiblings, StringComparison.Ordinal);
+        Assert.DoesNotContain("list_storages", LegacySurfaceDashboardSql.SelectCpProductFiltersArticleSiblings, StringComparison.Ordinal);
+        Assert.Contains("@article", LegacySurfaceDashboardSql.SelectCpProductFiltersArticleSiblings, StringComparison.Ordinal);
         Assert.Contains("shop_docpart_search_tabs", LegacySurfaceDashboardSql.SelectCpSearchTabsRows, StringComparison.Ordinal);
         Assert.DoesNotContain("parameters_values", LegacySurfaceDashboardSql.SelectCpSearchTabsRows, StringComparison.Ordinal);
         Assert.Contains("LEFT(IFNULL(`parameters_values`,''), 280)", LegacySurfaceDashboardSql.SelectCpSearchTabsDetail, StringComparison.Ordinal);

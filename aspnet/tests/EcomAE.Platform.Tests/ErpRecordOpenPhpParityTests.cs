@@ -67,6 +67,8 @@ public sealed class ErpRecordOpenPhpParityTests
     [InlineData("/CP/shop/taby-poiska/tab-poiska?tab_id=3", "/cp/search-tabs-app?tab_id=3")]
     [InlineData("/CP/shop/logistics/storages/storage?id=5", "/cp/storages-app?storage_id=5")]
     [InlineData("/CP/shop/logistics/storages?storage_id=5", "/cp/storages-app?storage_id=5")]
+    [InlineData("/CP/shop/filter?filter_id=4", "/cp/product-filters-app?filter_id=4")]
+    [InlineData("/CP/shop/filter/setting?id=4", "/cp/product-filters-app?filter_id=4")]
     [InlineData("/ERP/?epc_erp_shell=1&area=landed_cost_area&tab=landed_cost&sheet_id=6", "/erp/landed-cost-app?sheet_id=6")]
     [InlineData("/CP/control/portal/epc_soc2_compliance?soc2_id=8", "/cp/soc2-compliance-app?soc2_id=8")]
     [InlineData("/ERP/?epc_erp_shell=1&area=tax&tab=compliance&soc2_id=8", "/erp/soc2-compliance-app?soc2_id=8")]
@@ -1236,6 +1238,41 @@ public sealed class ErpRecordOpenPhpParityTests
             ErpRecordOpen.PreserveRecordQuery(
                 "/cp/storages-app",
                 "/CP/shop/logistics/storages?storage_id=5"));
+    }
+
+    [Fact]
+    public void ProductFiltersApp_OpenLoadsStoragesExcerptAndKeepsWrites()
+    {
+        var root = FindRepoRoot();
+        var text = File.ReadAllText(Path.Combine(root,
+            "aspnet/src/EcomAE.Platform/Components/Pages/CpProductFiltersApp.razor"));
+        Assert.Contains("ErpRecordOpen.Href(_listHref, \"filter_id\"", text, StringComparison.Ordinal);
+        Assert.Contains("ErpOpenedRecordBanner", text, StringComparison.Ordinal);
+        Assert.Contains("ReadId(ctx.Request, \"filter_id\", \"id\")", text, StringComparison.Ordinal);
+        Assert.Contains("BuildCpProductFiltersDetailAsync", text, StringComparison.Ordinal);
+        Assert.Contains("No storage-scope excerpt yet.", text, StringComparison.Ordinal);
+        Assert.Contains("No same-manufacturer siblings yet.", text, StringComparison.Ordinal);
+        Assert.Contains("ShowGhostScaffold=\"false\"", text, StringComparison.Ordinal);
+        Assert.Contains("table-epc", text, StringComparison.Ordinal);
+        Assert.Contains("/cp/product-filters/write", text, StringComparison.Ordinal);
+        Assert.Contains("name=\"action\" value=\"save_storages\"", text, StringComparison.Ordinal);
+        Assert.Contains("Add filter", text, StringComparison.Ordinal);
+        Assert.Contains("Save filter", text, StringComparison.Ordinal);
+        Assert.Contains("PhpParityModuleBody", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)\">Open", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("/php-reference/", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("ASP.NET", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("epc-w22-hero", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("@bind", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("@onclick", text, StringComparison.Ordinal);
+
+        Assert.Equal("/cp/product-filters-app?filter_id=4#erp-row-4",
+            ErpRecordOpen.Href("/cp/product-filters-app", "filter_id", 4));
+        Assert.Equal(
+            "/cp/product-filters-app?filter_id=4",
+            ErpRecordOpen.PreserveRecordQuery(
+                "/cp/product-filters-app",
+                "/CP/shop/filter?filter_id=4"));
     }
 
     [Fact]
