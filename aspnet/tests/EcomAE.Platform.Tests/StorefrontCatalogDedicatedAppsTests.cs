@@ -182,6 +182,37 @@ public sealed class StorefrontCatalogDedicatedAppsTests : IDisposable
         Assert.DoesNotContain("epc-car-kpis", text, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void NotificationsLanguagesIntegrationsApps_UseClassicChromeNotInventHero()
+    {
+        var notify = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/CpNotificationsApp.razor"));
+        Assert.Contains("epc-cn-hero", notify, StringComparison.Ordinal);
+        Assert.Contains("epc-cn-quick", notify, StringComparison.Ordinal);
+        Assert.Contains("does not invent a send", notify, StringComparison.Ordinal);
+        Assert.Contains("PhpReferenceOnlyHref", notify, StringComparison.Ordinal);
+        Assert.DoesNotContain("epc-w20-hero", notify, StringComparison.Ordinal);
+        Assert.DoesNotContain("epc-w20-kpis", notify, StringComparison.Ordinal);
+
+        var lang = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/CpLanguagesApp.razor"));
+        Assert.Contains("class=\"hpanel\"", lang, StringComparison.Ordinal);
+        Assert.Contains("panel-heading hbuilt", lang, StringComparison.Ordinal);
+        Assert.Contains("/cp/lang/save-translation", lang, StringComparison.Ordinal);
+        Assert.Contains("/cp/lang/create-string", lang, StringComparison.Ordinal);
+        Assert.DoesNotContain("epc-w22-hero", lang, StringComparison.Ordinal);
+        Assert.DoesNotContain("epc-w22-kpis", lang, StringComparison.Ordinal);
+        Assert.DoesNotContain("ASP.NET", lang, StringComparison.Ordinal);
+
+        var integrations = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/CpIntegrationsApp.razor"));
+        Assert.Contains("epc-inthub-brand", integrations, StringComparison.Ordinal);
+        Assert.Contains("epc-inthub-stats", integrations, StringComparison.Ordinal);
+        Assert.Contains("/erp/integrations/events/raise", integrations, StringComparison.Ordinal);
+        Assert.Contains("/erp/integrations/subscriptions/save", integrations, StringComparison.Ordinal);
+        Assert.Contains("/erp/integrations/entities/save", integrations, StringComparison.Ordinal);
+        Assert.DoesNotContain("epc-int-hero", integrations, StringComparison.Ordinal);
+        Assert.DoesNotContain("epc-int-kpis", integrations, StringComparison.Ordinal);
+        Assert.DoesNotContain("SuperCpHostGate", integrations, StringComparison.Ordinal);
+    }
+
     private static void AssertPage(string fileName, string phpAlias, string aspNetApp)
     {
         var path = Find("aspnet/src/EcomAE.Platform/Components/Pages/" + fileName);
