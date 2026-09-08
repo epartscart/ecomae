@@ -7376,7 +7376,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only epc_cons_* KPIs + group entities. PHP consolidations area remains authoritative."
+                note = "Read-only epc_cons_* KPIs + group entities. Open ?cons_id= loads figures and IC rows. Entity/figures/IC writes stay here. Consolidation run stays PHP."
             });
         });
 

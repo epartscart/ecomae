@@ -11930,6 +11930,97 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    public async Task<CpConsolidationsDetailResult> BuildCpConsolidationsDetailAsync(long id, CancellationToken cancellationToken = default)
+    {
+        if (id <= 0)
+        {
+            return new(null, null, [], "n/a", "");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return new(null, null, [], "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            CpConsolidationsEntityDigest? header = null;
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectCpConsolidationsEntityDetail;
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    header = new CpConsolidationsEntityDigest(
+                        Convert.ToInt64(reader["id"] is DBNull ? 0 : reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["code"] is DBNull ? string.Empty : reader["code"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["name"] is DBNull ? string.Empty : reader["name"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["currency_code"] is DBNull ? string.Empty : reader["currency_code"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToDecimal(reader["ownership_pct"] is DBNull ? 0 : reader["ownership_pct"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["is_home"] is DBNull ? 0 : reader["is_home"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["parent_code"] is DBNull ? string.Empty : reader["parent_code"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt32(reader["active"] is DBNull ? 0 : reader["active"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["time_created"] is DBNull ? 0 : reader["time_created"], CultureInfo.InvariantCulture));
+                }
+            }
+
+            if (header is null)
+            {
+                return new(null, null, [], "database", "Entity not found.");
+            }
+
+            CpConsolidationsFigureDigest? figure = null;
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectCpConsolidationsFigures;
+                AddParameter(cmd, "@code", header.Code);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    figure = new CpConsolidationsFigureDigest(
+                        Convert.ToInt64(reader["id"] is DBNull ? 0 : reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["entity_code"] is DBNull ? string.Empty : reader["entity_code"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToDecimal(reader["revenue"] is DBNull ? 0 : reader["revenue"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(reader["expenses"] is DBNull ? 0 : reader["expenses"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(reader["assets"] is DBNull ? 0 : reader["assets"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(reader["liabilities"] is DBNull ? 0 : reader["liabilities"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(reader["equity"] is DBNull ? 0 : reader["equity"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["time_updated"] is DBNull ? 0 : reader["time_updated"], CultureInfo.InvariantCulture));
+                }
+            }
+
+            var icRows = new List<CpConsolidationsIcDigest>();
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectCpConsolidationsIc;
+                AddParameter(cmd, "@code", header.Code);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    icRows.Add(new CpConsolidationsIcDigest(
+                        Convert.ToInt64(reader["id"] is DBNull ? 0 : reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["ref"] is DBNull ? string.Empty : reader["ref"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["from_entity"] is DBNull ? string.Empty : reader["from_entity"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["to_entity"] is DBNull ? string.Empty : reader["to_entity"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["txn_type"] is DBNull ? string.Empty : reader["txn_type"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToDecimal(reader["amount"] is DBNull ? 0 : reader["amount"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["txn_date"] is DBNull ? string.Empty : reader["txn_date"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["memo"] is DBNull ? string.Empty : reader["memo"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt32(reader["reconciled"] is DBNull ? 0 : reader["reconciled"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["time_created"] is DBNull ? 0 : reader["time_created"], CultureInfo.InvariantCulture)));
+                }
+            }
+
+            return new(header, figure, icRows, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(null, null, [], "database-error", ex.Message);
+        }
+    }
+
     public async Task<CpCrmActivitiesDigestResult> BuildCpCrmActivitiesDigestAsync(int limit, CancellationToken cancellationToken = default)
     {
         var safeLimit = Math.Clamp(limit, 1, 500);

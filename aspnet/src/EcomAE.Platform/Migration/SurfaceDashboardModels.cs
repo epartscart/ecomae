@@ -3529,6 +3529,35 @@ public sealed record CpConsolidationsDigestResult(
     string Source,
     string Message);
 
+public sealed record CpConsolidationsFigureDigest(
+    long Id,
+    string EntityCode,
+    decimal Revenue,
+    decimal Expenses,
+    decimal Assets,
+    decimal Liabilities,
+    decimal Equity,
+    long TimeUpdated);
+
+public sealed record CpConsolidationsIcDigest(
+    long Id,
+    string Ref,
+    string FromEntity,
+    string ToEntity,
+    string TxnType,
+    decimal Amount,
+    string TxnDate,
+    string Memo,
+    int Reconciled,
+    long TimeCreated);
+
+public sealed record CpConsolidationsDetailResult(
+    CpConsolidationsEntityDigest? Entity,
+    CpConsolidationsFigureDigest? Figure,
+    IReadOnlyList<CpConsolidationsIcDigest> Ic,
+    string Source,
+    string Message);
+
 public sealed record CpCrmActivitiesSummary(
     int ActivityCount,
     int OpenCount,

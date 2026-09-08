@@ -3910,6 +3910,42 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>Opened consolidation entity.</summary>
+    public const string SelectCpConsolidationsEntityDetail = """
+        SELECT `id`, IFNULL(`code`,'') AS code, IFNULL(`name`,'') AS name,
+               IFNULL(`currency_code`,'') AS currency_code,
+               IFNULL(`ownership_pct`,0) AS ownership_pct,
+               IFNULL(`is_home`,0) AS is_home, IFNULL(`parent_code`,'') AS parent_code,
+               IFNULL(`active`,0) AS active, IFNULL(`time_created`,0) AS time_created
+        FROM `epc_cons_entities`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Manual figures for the opened entity code.</summary>
+    public const string SelectCpConsolidationsFigures = """
+        SELECT `id`, IFNULL(`entity_code`,'') AS entity_code,
+               IFNULL(`revenue`,0) AS revenue, IFNULL(`expenses`,0) AS expenses,
+               IFNULL(`assets`,0) AS assets, IFNULL(`liabilities`,0) AS liabilities,
+               IFNULL(`equity`,0) AS equity, IFNULL(`time_updated`,0) AS time_updated
+        FROM `epc_cons_figures`
+        WHERE `entity_code` = @code
+        LIMIT 1
+        """;
+
+    /// <summary>Intercompany rows touching the opened entity. Memo is short.</summary>
+    public const string SelectCpConsolidationsIc = """
+        SELECT `id`, IFNULL(`ref`,'') AS ref,
+               IFNULL(`from_entity`,'') AS from_entity, IFNULL(`to_entity`,'') AS to_entity,
+               IFNULL(`txn_type`,'') AS txn_type, IFNULL(`amount`,0) AS amount,
+               IFNULL(`txn_date`,'') AS txn_date, IFNULL(`memo`,'') AS memo,
+               IFNULL(`reconciled`,0) AS reconciled, IFNULL(`time_created`,0) AS time_created
+        FROM `epc_cons_ic`
+        WHERE `from_entity` = @code OR `to_entity` = @code
+        ORDER BY `id` DESC
+        LIMIT 50
+        """;
+
     /// <summary>CRM activity KPIs from epc_crm_activities (CREATE TABLE in epc_crm_schema.php).</summary>
     public const string SelectCpCrmActivitiesStats = """
         SELECT

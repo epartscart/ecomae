@@ -59,6 +59,7 @@ public sealed class ErpRecordOpenPhpParityTests
     [InlineData("/ERP/?epc_erp_shell=1&area=sales&tab=crm&ticket_id=8", "/erp/crm-tickets-app?ticket_id=8")]
     [InlineData("/CP/content/dopolnitelnye-teksty?text_id=4", "/cp/additional-texts-app?text_id=4")]
     [InlineData("/CP/requests?vin_id=6", "/cp/system-requests-app?vin_id=6")]
+    [InlineData("/ERP/?epc_erp_shell=1&area=consolidations&tab=consolidation_bu&cons_id=3", "/erp/consolidations-app?cons_id=3")]
     [InlineData("/ERP/?epc_erp_shell=1&area=landed_cost_area&tab=landed_cost&sheet_id=6", "/erp/landed-cost-app?sheet_id=6")]
     [InlineData("/CP/control/portal/epc_soc2_compliance?soc2_id=8", "/cp/soc2-compliance-app?soc2_id=8")]
     [InlineData("/ERP/?epc_erp_shell=1&area=tax&tab=compliance&soc2_id=8", "/erp/soc2-compliance-app?soc2_id=8")]
@@ -1014,6 +1015,41 @@ public sealed class ErpRecordOpenPhpParityTests
             ErpRecordOpen.PreserveRecordQuery(
                 "/cp/system-requests-app",
                 "/CP/requests?vin_id=6"));
+    }
+
+    [Fact]
+    public void ConsolidationsApp_OpenLoadsFiguresAndIcAndKeepsWrites()
+    {
+        var root = FindRepoRoot();
+        var text = File.ReadAllText(Path.Combine(root,
+            "aspnet/src/EcomAE.Platform/Components/Pages/CpConsolidationsApp.razor"));
+        Assert.Contains("ErpRecordOpen.Href(_listHref, \"cons_id\"", text, StringComparison.Ordinal);
+        Assert.Contains("ErpOpenedRecordBanner", text, StringComparison.Ordinal);
+        Assert.Contains("ReadId(ctx.Request, \"cons_id\")", text, StringComparison.Ordinal);
+        Assert.Contains("BuildCpConsolidationsDetailAsync", text, StringComparison.Ordinal);
+        Assert.Contains("No figures yet.", text, StringComparison.Ordinal);
+        Assert.Contains("No IC rows yet.", text, StringComparison.Ordinal);
+        Assert.Contains("ShowGhostScaffold=\"false\"", text, StringComparison.Ordinal);
+        Assert.Contains("table-epc", text, StringComparison.Ordinal);
+        Assert.Contains("/erp/ajax/cons-entity-save", text, StringComparison.Ordinal);
+        Assert.Contains("/erp/consolidations/figures/save", text, StringComparison.Ordinal);
+        Assert.Contains("/erp/consolidations/ic/save", text, StringComparison.Ordinal);
+        Assert.Contains("Save entity", text, StringComparison.Ordinal);
+        Assert.Contains("PhpParityModuleBody", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)\">Open", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("/php-reference/", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("ASP.NET", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("epc-w14-hero", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("@bind", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("@onclick", text, StringComparison.Ordinal);
+
+        Assert.Equal("/cp/consolidations-app?cons_id=3#erp-row-3",
+            ErpRecordOpen.Href("/cp/consolidations-app", "cons_id", 3));
+        Assert.Equal(
+            "/erp/consolidations-app?cons_id=3",
+            ErpRecordOpen.PreserveRecordQuery(
+                "/erp/consolidations-app",
+                "/ERP/?epc_erp_shell=1&area=consolidations&tab=consolidation_bu&cons_id=3"));
     }
 
     [Fact]
