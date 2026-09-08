@@ -338,8 +338,8 @@ public sealed class ErpModule : ISurfaceModule
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpFaRunDepreciationRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxOpeningCreateBatch, async (HttpContext context, ErpOpeningCreateBatchBody? body, ILegacySessionValidator validator, IErpOpeningCreateBatchDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpOpeningCreateBatchRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxOpeningAddCoaLine, async (HttpContext context, ErpOpeningAddCoaLineBody? body, ILegacySessionValidator validator, IErpOpeningAddCoaLineDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpOpeningAddCoaLineRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.ErpOpeningAddCoaLine, HandleOpeningAddCoaLineAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxOpeningAddCoaLine, HandleOpeningAddCoaLineAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxOpeningAddInvLine, async (HttpContext context, ErpOpeningAddInvLineBody? body, ILegacySessionValidator validator, IErpOpeningAddInvLineDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpOpeningAddInvLineRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxOpeningPostBatch, async (HttpContext context, ErpOpeningPostBatchBody? body, ILegacySessionValidator validator, IErpOpeningPostBatchDryRun dryRun, CancellationToken cancellationToken) =>
@@ -11772,6 +11772,59 @@ public sealed class ErpModule : ISurfaceModule
                 session = SessionPayload(session),
             });
         }
+    }
+
+    private static async Task<IResult> HandleOpeningAddCoaLineAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpOpeningAddCoaLineDryRun dryRun,
+        IErpOpeningAddCoaLineWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/opening-app", "Admin ERP capability required for opening COA line.");
+        }
+
+        var batchId = 0L;
+        var entityId = 0L;
+        var debit = 0m;
+        var credit = 0m;
+        var confirm = false;
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            batchId = LiveWriteFormBinder.Long(form, "batch_id", "batchId");
+            entityId = LiveWriteFormBinder.Long(form, "entity_id", "entityId");
+            debit = LiveWriteFormBinder.Dec(form, "debit");
+            credit = LiveWriteFormBinder.Dec(form, "credit");
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+        }
+        else
+        {
+            var root = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<System.Text.Json.JsonElement>(context, cancellationToken);
+            confirm = ErpOpeningAddCoaLineWriteService.JsonFlag(root, "confirmWrites", "confirm_writes");
+            batchId = ErpOpeningAddCoaLineWriteService.JsonLong(root, "batch_id", "batchId", "id");
+            entityId = ErpOpeningAddCoaLineWriteService.JsonLong(root, "entity_id", "entityId");
+            debit = ErpOpeningAddCoaLineWriteService.JsonDec(root, "debit");
+            credit = ErpOpeningAddCoaLineWriteService.JsonDec(root, "credit");
+        }
+
+        if (!confirm)
+        {
+            return Results.Ok(dryRun.Evaluate(new ErpOpeningAddCoaLineRequest(batchId, null, false)).ToPayload(SessionPayload(session)));
+        }
+
+        var written = await writes.AddAsync(
+            new ErpOpeningAddCoaLineWriteRequest(batchId, entityId, debit, credit),
+            cancellationToken);
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/erp/opening-app",
+            written.Succeeded,
+            written.Message,
+            new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
     }
 
     private static async Task<IResult> HandleWhtCodeSaveAsync(
