@@ -1059,7 +1059,9 @@ public static class EcomAeRoutes
     public const string ErpAjaxPmListingSave = "/erp/ajax/pm-listing-save";
     /// <summary>Wave B dry-run for PHP pm_listing_attach (writes=0).</summary>
     public const string ErpAjaxPmListingAttach = "/erp/ajax/pm-listing-attach";
-    /// <summary>Wave B dry-run for PHP pm_cheque_save (writes=0).</summary>
+    /// <summary>HTML form POST for PHP pm_cheque_save. confirmWrites=true writes via IErpPmChequeSaveWriteService.</summary>
+    public const string ErpPmChequeSave = "/erp/pm/cheques/save";
+    /// <summary>Live PHP pm_cheque_save ajax alias of <see cref="ErpPmChequeSave"/>.</summary>
     public const string ErpAjaxPmChequeSave = "/erp/ajax/pm-cheque-save";
     /// <summary>Wave B dry-run for PHP mfgr_wc_save (writes=0).</summary>
     public const string ErpAjaxMfgrWcSave = "/erp/ajax/mfgr-wc-save";
