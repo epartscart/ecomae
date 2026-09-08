@@ -40,6 +40,9 @@ public sealed class ErpExternalReportingAppTests
         Assert.Equal("/erp/tax-external-reporting-app",
             PhpSurfaceLinkMap.AspNetPrimaryHref("/ERP/?epc_erp_shell=1&area=tax&tab=ext_reports&company=2"));
         Assert.DoesNotContain("/cp/tax-external-reporting-app", href, StringComparison.Ordinal);
+        Assert.Equal("/erp/external-reporting/import", EcomAeRoutes.ErpExternalReportingImport);
+        Assert.Equal("/erp/external-reporting/intake", EcomAeRoutes.ErpExternalReportingIntake);
+        Assert.Equal("/erp/external-reporting/template", EcomAeRoutes.ErpExternalReportingTemplate);
     }
 
     [Fact]
@@ -55,6 +58,10 @@ public sealed class ErpExternalReportingAppTests
         Assert.Contains("Import from Excel", razor, StringComparison.Ordinal);
         Assert.Contains("Guided IFRS report builder", razor, StringComparison.Ordinal);
         Assert.Contains("Fetch &amp; build", razor, StringComparison.Ordinal);
+        Assert.Contains("ErpExternalReportingImport", razor, StringComparison.Ordinal);
+        Assert.Contains("ErpExternalReportingTemplate", razor, StringComparison.Ordinal);
+        Assert.Contains("enctype=\"multipart/form-data\"", razor, StringComparison.Ordinal);
+        Assert.Contains("RenderPack", razor, StringComparison.Ordinal);
         Assert.Contains("Download PDF", razor, StringComparison.Ordinal);
         Assert.Contains("Download Word", razor, StringComparison.Ordinal);
         Assert.Contains("epcExtPrint()", razor, StringComparison.Ordinal);
@@ -140,6 +147,49 @@ public sealed class ErpExternalReportingAppTests
             decimal.Round(purch * 0.05m, 2),
             5m,
             true);
+    }
+
+    [Fact]
+    public void ImportTemplatesBuildStatutoryPacks()
+    {
+        var vatMap = ErpExternalReportingImport.ParseCsvText(ErpExternalReportingCatalog.ImportTemplateCsv("vat"));
+        Assert.Equal("vat", ErpExternalReportingImport.DetectKind(vatMap, "vat"));
+        Assert.Null(ErpExternalReportingImport.ValidateKind(vatMap, "vat"));
+        var vat = ErpExternalReportingImport.Build("vat", vatMap, "AED", "AE");
+        Assert.Contains("Box 14", vat.BodyHtml, StringComparison.Ordinal);
+        Assert.Contains("VAT Return", vat.Title, StringComparison.Ordinal);
+        Assert.Contains("epc-ext-bars", vat.BodyHtml, StringComparison.Ordinal);
+        Assert.Equal("vat", ErpExternalReportingImport.DetectKind(vatMap, "fin"));
+
+        var ctMap = ErpExternalReportingImport.ParseCsvText(ErpExternalReportingCatalog.ImportTemplateCsv("ct"));
+        Assert.Equal("ct", ErpExternalReportingImport.DetectKind(ctMap, "ct"));
+        var ct = ErpExternalReportingImport.Build("ct", ctMap, "AED", "AE");
+        Assert.Contains("0%", ct.BodyHtml, StringComparison.Ordinal);
+        Assert.Contains("9%", ct.BodyHtml, StringComparison.Ordinal);
+        Assert.Contains("AED 375,000", ct.BodyHtml, StringComparison.Ordinal);
+        Assert.Contains("Art. 33", ct.BodyHtml, StringComparison.Ordinal);
+        Assert.Equal("0% / 9%", ct.Summary.First(s => s.Label == "Rate").Value);
+
+        var finMap = ErpExternalReportingImport.ParseCsvText(ErpExternalReportingCatalog.ImportTemplateCsv("fin"));
+        Assert.Equal("fin", ErpExternalReportingImport.DetectKind(finMap, "fin"));
+        var fin = ErpExternalReportingImport.Build("fin", finMap, "AED", "AE");
+        Assert.Contains("IFRS 18", fin.Title, StringComparison.Ordinal);
+        Assert.Contains("Operating profit or loss", fin.BodyHtml, StringComparison.Ordinal);
+        Assert.Equal("red", fin.Theme);
+
+        var intake = ErpExternalReportingImport.BuildIntake("Acme Trading LLC", 2026, "Trading, Contracting", "AED", "AE");
+        Assert.Contains("guided intake", intake.Title, StringComparison.Ordinal);
+        Assert.Contains("IFRS 18", intake.BodyHtml, StringComparison.Ordinal);
+        Assert.Contains("Trading, Contracting", intake.BodyHtml, StringComparison.Ordinal);
+        Assert.Equal("red", intake.Theme);
+
+        var cache = new ErpExternalReportingPackCache();
+        var id = cache.Store(vat, "vat", "Detected VAT lines in the file — switched the builder.");
+        Assert.True(cache.TryGet(id, out var pack));
+        Assert.NotNull(pack);
+        Assert.Equal("vat", pack!.Kind);
+        Assert.Contains("Box 14", pack.Built.BodyHtml, StringComparison.Ordinal);
+        Assert.False(cache.TryGet("missing", out _));
     }
 
     [Fact]
