@@ -1969,7 +1969,7 @@ public static class LegacySurfaceDashboardSql
             (SELECT COUNT(*) FROM `epc_loy_accounts`) AS loyalty_accounts
         """;
 
-    /// <summary>Promotions from epc_promo_promotions.</summary>
+    /// <summary>Promotions from epc_promo_promotions (list already has every dump column; dates stay off the grid).</summary>
     public const string SelectCpPromotions = """
         SELECT `id`, IFNULL(`code`,'') AS code, IFNULL(`name`,'') AS name,
                IFNULL(`type`,'') AS type, IFNULL(`value`,0) AS value,
@@ -1978,6 +1978,17 @@ public static class LegacySurfaceDashboardSql
         FROM `epc_promo_promotions`
         ORDER BY `id` DESC
         LIMIT @limit
+        """;
+
+    /// <summary>Opened promotion — same dump columns, including valid_from/valid_to the list grid hides.</summary>
+    public const string SelectCpPromotionDetail = """
+        SELECT `id`, IFNULL(`code`,'') AS code, IFNULL(`name`,'') AS name,
+               IFNULL(`type`,'') AS type, IFNULL(`value`,0) AS value,
+               IFNULL(`min_spend`,0) AS min_spend, IFNULL(`valid_from`,0) AS valid_from,
+               IFNULL(`valid_to`,0) AS valid_to, IFNULL(`active`,0) AS active
+        FROM `epc_promo_promotions`
+        WHERE `id` = @id
+        LIMIT 1
         """;
 
     /// <summary>CRM opportunity KPIs — omits notes.</summary>

@@ -524,6 +524,9 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.Contains("epc_dunning_log", LegacySurfaceDashboardSql.SelectCpCollectionsDunningLog, StringComparison.Ordinal);
         Assert.Contains("`queue_id` = @id", LegacySurfaceDashboardSql.SelectCpCollectionsDunningLog, StringComparison.Ordinal);
         Assert.Contains("epc_promo_promotions", LegacySurfaceDashboardSql.SelectCpPromotions, StringComparison.Ordinal);
+        Assert.Contains("valid_from", LegacySurfaceDashboardSql.SelectCpPromotionDetail, StringComparison.Ordinal);
+        Assert.Contains("valid_to", LegacySurfaceDashboardSql.SelectCpPromotionDetail, StringComparison.Ordinal);
+        Assert.Contains("`id` = @id", LegacySurfaceDashboardSql.SelectCpPromotionDetail, StringComparison.Ordinal);
         Assert.Contains("epc_crm_opportunities", LegacySurfaceDashboardSql.SelectCpCrmOpportunities, StringComparison.Ordinal);
         Assert.DoesNotContain("`notes`", LegacySurfaceDashboardSql.SelectCpCrmOpportunities, StringComparison.Ordinal);
         Assert.Contains("epc_tenant_feature_flags", LegacySurfaceDashboardSql.SelectCpIntegrationFeatureFlags, StringComparison.Ordinal);
