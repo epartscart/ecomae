@@ -94,11 +94,18 @@ public sealed class StorefrontFrontendParityWaveTests
     public void ProductApp_RendersMediaAndSpecs()
     {
         var text = Read("aspnet/src/EcomAE.Platform/Components/Pages/StorefrontProductApp.razor");
-        Assert.Contains("epc-sf-pd-gallery", text, StringComparison.Ordinal);
-        Assert.Contains("Specifications", text, StringComparison.Ordinal);
+        Assert.Contains("product_info_wrap", text, StringComparison.Ordinal);
+        Assert.Contains("id=\"product_info_wrap_div\"", text, StringComparison.Ordinal);
+        Assert.Contains("id=\"product_galery_div\"", text, StringComparison.Ordinal);
+        Assert.Contains("id=\"main_image\"", text, StringComparison.Ordinal);
+        Assert.Contains("id=\"all_product_images_div\"", text, StringComparison.Ordinal);
+        Assert.Contains("product_div_manufacturer", text, StringComparison.Ordinal);
+        Assert.Contains("product_div_article", text, StringComparison.Ordinal);
+        Assert.Contains("product_div_count_need", text, StringComparison.Ordinal);
+        Assert.Contains("product_div_bookmark", text, StringComparison.Ordinal);
+        Assert.Contains("product_div_compare", text, StringComparison.Ordinal);
         Assert.Contains("_product.Images", text, StringComparison.Ordinal);
         Assert.Contains("_product.Specs", text, StringComparison.Ordinal);
-        Assert.Contains("epc_sku_media", text, StringComparison.Ordinal);
     }
 
     [Fact]

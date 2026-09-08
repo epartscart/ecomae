@@ -77,6 +77,31 @@ public sealed class EpartscartCustomerJourneyParityTests
         Assert.Contains("epc-gl", garage, StringComparison.Ordinal);
         Assert.Contains("Garage Manager login", garage, StringComparison.Ordinal);
         Assert.Contains("/garage/login", garage, StringComparison.Ordinal);
+
+        var product = File.ReadAllText(Find(
+            "aspnet/src/EcomAE.Platform/Components/Pages/StorefrontProductApp.razor"));
+        Assert.Contains("id=\"product_info_wrap_div\"", product, StringComparison.Ordinal);
+        Assert.Contains("product_galery", product, StringComparison.Ordinal);
+        Assert.Contains("product_genaral_info", product, StringComparison.Ordinal);
+
+        var wishlist = File.ReadAllText(Find(
+            "aspnet/src/EcomAE.Platform/Components/Pages/StorefrontWishlistApp.razor"));
+        Assert.Contains("product_div_tile", wishlist, StringComparison.Ordinal);
+        Assert.Contains("product_div_bookmark", wishlist, StringComparison.Ordinal);
+
+        var compare = File.ReadAllText(Find(
+            "aspnet/src/EcomAE.Platform/Components/Pages/StorefrontCompareApp.razor"));
+        Assert.Contains("id=\"category_select\"", compare, StringComparison.Ordinal);
+        Assert.Contains("table-nonfluid", compare, StringComparison.Ordinal);
+        Assert.Contains("product_div_compare", compare, StringComparison.Ordinal);
+        Assert.Contains("id=\"work_area\"", compare, StringComparison.Ordinal);
+
+        var chrome = File.ReadAllText(Find(
+            "aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpStorefrontDesktopChrome.razor"));
+        Assert.Contains("navbar-fixed-bottom", chrome, StringComparison.Ordinal);
+        Assert.Contains("id=\"compare_count\"", chrome, StringComparison.Ordinal);
+        Assert.Contains("id=\"bookmarks_count\"", chrome, StringComparison.Ordinal);
+        Assert.Contains("id=\"cart_items_count\"", chrome, StringComparison.Ordinal);
     }
 
     [Fact]
