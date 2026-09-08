@@ -43,7 +43,7 @@
 <link rel="stylesheet" href="/platform-assets/epc_warehouse_search_parity.css?v=20260904-purchase" />
 <link rel="stylesheet" href="/platform-assets/epc_sku_media.css?v=20260812-fitment-sku" />
 <style>
-        /* Keep PHP professional-shell look; only hide inventing ASP.NET chrome on CHPU/picker. */
+        /* Keep Classic professional-shell look; hide extra search chrome on CHPU/picker. */
         .epc-chpu-direct-part-search .epc-sf-search-form,
         .epc-chpu-direct-part-search .epc-sf-page-actions .btn-default,
         .epc-brand-picker-mode .epc-sf-search-kpis,
@@ -506,8 +506,16 @@
 
                 <div id="work_area" class="epc-chpu-work-area">
                 <div class="epc-ssr-warehouse-banner" role="status">
-                    <strong>@_brandInput.ToUpperInvariant() @_normalized</strong>
-                    <span> — warehouse prices &amp; stock (Genuine / Aftermarket)</span>
+                    @if (_genuineRows.Count + _aftermarketRows.Count > 0)
+                    {
+                        <strong>UAE warehouse stock</strong>
+                        <span> — @(_genuineRows.Count + _aftermarketRows.Count) offer@(_genuineRows.Count + _aftermarketRows.Count == 1 ? "" : "s") ready below. Cross references may list additional numbers that are not in stock.</span>
+                    }
+                    else
+                    {
+                        <strong>@_brandInput.ToUpperInvariant() @_normalized</strong>
+                        <span> — polling UAE warehouses for Genuine (OE) and Aftermarket stock.</span>
+                    }
                 </div>
                 <div id="products_area" class="epc-part-search-results" role="region" aria-label="Part search results">
                     <table id="all_table_products" class="epc-ssr-warehouse-table notranslate"
@@ -753,8 +761,8 @@
         '<a class="count_need_minus" href="#"><i class="fa fa-minus"></i></a>' +
         '<input class="epc-qty-input" id="count_need_' + aid + '" value="' + minOrder + '" />' +
         '<a class="count_need_plus" href="#"><i class="fa fa-plus"></i></a></div>' +
-        '<button type="button" class="btn btn-sm btn-danger epc-btn-cart">Add to Cart</button>' +
-        (isCrossStock ? (' ' + quoteBtn) : '') +
+        '<button type="button" class="btn btn-sm btn-danger epc-btn-cart">Add to Cart</button> ' +
+        quoteBtn +
         '</div></div>';
     }
     return '<div class="epc-product-actions epc-product-actions--quote-only" data-aid="' + aid + '">' + tools +
@@ -1264,15 +1272,38 @@
         if (loading) loading.textContent = 'Cross search unavailable — showing local manufacturer aliases only.';
       });
   }
-  // Parity with PHP epcRunChpuPriceSearch model: ONE protocol-3 products-of-bunch + parallel cross,
-  // but every live URL is ASP.NET (/storefront/*) — zero product .php links.
+  // Parity with Classic epcRunChpuPriceSearch model: ONE protocol-3 products-of-bunch + parallel cross.
+  // Live URLs stay on /storefront/* — no product .php links.
   // First warehouse paint must NOT wait on search-bunches (extra RTT) — fire protocol-3 immediately.
   // When SSR already seeded offers (data-ssr-offers=1), enrich quietly — rows are already visible.
+  function reclassifyExistingRows() {
+    if (!body) return;
+    body.querySelectorAll('tr.epc-part-type-row[data-offer-key]').forEach(function (tr) {
+      var want = isGenuine(tr.getAttribute('data-manufacturer') || '') ? 'genuine' : 'aftermarket';
+      var have = tr.classList.contains('epc-part-type-row--genuine') ? 'genuine' : 'aftermarket';
+      if (want === have) return;
+      tr.classList.remove('epc-part-type-row--genuine', 'epc-part-type-row--aftermarket');
+      tr.classList.add('epc-part-type-row--' + want);
+      var cap = ensureSection(want);
+      var gk = (tr.getAttribute('data-group-key') || '').replace(/"/g, '');
+      var peers = gk
+        ? body.querySelectorAll('tr.epc-part-type-row--' + want + '[data-group-key="' + gk + '"]')
+        : [];
+      if (peers.length) body.insertBefore(tr, peers[peers.length - 1].nextSibling);
+      else if (cap && cap.nextSibling) body.insertBefore(tr, cap.nextSibling);
+      else body.appendChild(tr);
+    });
+    normalizeWarehouseGroups('genuine');
+    normalizeWarehouseGroups('aftermarket');
+    bumpCaption('genuine');
+    bumpCaption('aftermarket');
+  }
   function loadGenuineBrandsBackground() {
-    fetch('/storefront/genuine-brands', { credentials: 'same-origin' })
+    return fetch('/storefront/genuine-brands', { credentials: 'same-origin' })
       .then(function (r) { return r.json(); })
       .then(function (data) {
         ((data && data.brands) || []).forEach(function (b) { genuine[normBrand(b)] = 1; });
+        reclassifyExistingRows();
       })
       .catch(function () {});
   }
@@ -1328,7 +1359,7 @@
   }
 })();
             </script>
-            <script src="/platform-assets/epc_warehouse_search_parity.js?v=20260812-fitment-sku" defer></script>
+            <script src="/platform-assets/epc_warehouse_search_parity.js?v=20260908-warehouse2" defer></script>
         }
     }
 
@@ -1666,9 +1697,10 @@
             return;
         }
 
-        // Beat PHP display speed: SSR-seed local warehouse rows (≤350ms) so HTML already has offers.
-        // Client still enriches via protocol-3 products-of-bunch + progressive /storefront/cross-search.
-        // Genuine-brand map loads in the browser (/storefront/genuine-brands).
+        // Beat Classic display speed: SSR-seed local warehouse rows (≤350ms) so HTML already has offers.
+        // Client still enriches via protocol-3 products-of-bunch (PHP ajax_getProductsOfBunch) + progressive /storefront/cross-search.
+        // Genuine OE map: best-effort SSR in parallel with the seed (own CTS). Browser
+        // /storefront/genuine-brands reclassifies if this map is empty.
         _normalized = EcomAE.Platform.Api.Catalog.PriceLookupRequest.NormalizeArticle(_articleInput);
         _rows = [];
         _genuineRows = [];
@@ -1680,6 +1712,11 @@
         _source = "ssr-seed-fast-path";
         _message = string.Empty;
         _genuineKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        var abort = Http.HttpContext?.RequestAborted ?? CancellationToken.None;
+        using var genuineCts = CancellationTokenSource.CreateLinkedTokenSource(abort);
+        genuineCts.CancelAfter(TimeSpan.FromMilliseconds(500));
+        var genuineMapTask = Dashboards.ListStorefrontGenuineBrandsAsync(genuineCts.Token);
 
         try
         {
@@ -1698,7 +1735,6 @@
             {
                 var rows = _pricesVisible ? offers.Rows : PriceAccess.RedactOffers(offers.Rows);
                 _rows = rows;
-                SplitOfferRows(rows);
                 _source = "ssr-seed";
                 _chpuSeoInStock = rows.Any(static r => r.Exist > 0);
                 _chpuSeoProductName = rows.Select(static r => r.Name)
@@ -1723,6 +1759,23 @@
         {
             // PHP skips enrichment when stock unknown — prefer noindex over false index.
             _chpuSeoInStock = false;
+        }
+
+        try
+        {
+            var genuine = await genuineMapTask.ConfigureAwait(false);
+            _genuineKeys = new HashSet<string>(
+                genuine.Brands.Where(name => !string.IsNullOrWhiteSpace(name)),
+                StringComparer.OrdinalIgnoreCase);
+        }
+        catch (OperationCanceledException)
+        {
+            // Client loadGenuineBrandsBackground + reclassifyExistingRows.
+        }
+
+        if (_rows.Count > 0)
+        {
+            SplitOfferRows(_rows);
         }
 
         // Best-effort local CP cross seed for the REFERENCES badge (no crossbase.ru in SSR).
@@ -2173,6 +2226,7 @@
                                 <a class="count_need_plus" href="#"><i class="fa fa-plus"></i></a>
                             </div>
                             <button type="button" class="btn btn-sm btn-danger epc-btn-cart">Add to Cart</button>
+                            <button type="button" class="btn btn-sm btn-primary epc-btn-quote">Add to Quote</button>
                         </div>
                     </div>
                 }

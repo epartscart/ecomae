@@ -47,10 +47,10 @@
 <StorefrontTenantChrome>
 
     <PhpStorefrontPageHeader Title="Profile"
-                            Subtitle="Browse parts, manage your garage, and track recent orders.">
-        <a class="btn btn-sm btn-primary" href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpProfile)">Open module</a>
+                            Subtitle="Your account details, contacts, and password.">
             <a class="btn btn-sm btn-default" href="/storefront/garage-app">Garage</a>
             <a class="btn btn-sm btn-default" href="/storefront/orders-app">My orders</a>
+            <a class="btn btn-sm btn-default" href="/storefront/account-summary-app">Account</a>
             <a class="btn btn-sm btn-default" href="/storefront/login">Customer login</a>
     </PhpStorefrontPageHeader>
 
@@ -59,7 +59,7 @@
         <div class="epc-sf-pf-gate">
             <p style="margin:0 0 .75rem;color:#334155">Sign in with your store account to load your profile.</p>
             <a href="/storefront/login" style="display:inline-flex;padding:.55rem .9rem;border-radius:.4rem;background:#dc2626;color:#fff;font-weight:700;text-decoration:none">Sign in</a>
-            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpProfile)" style="display:inline-flex;margin-left:.45rem;padding:.55rem .9rem;border-radius:.4rem;border:1px solid #d1d5db;color:#111;font-weight:700;text-decoration:none">Profile</a>
+            <a href="@StorefrontAspNetCanonical.Profile" style="display:inline-flex;margin-left:.45rem;padding:.55rem .9rem;border-radius:.4rem;border:1px solid #d1d5db;color:#111;font-weight:700;text-decoration:none">Profile</a>
         </div>
     }
     else
@@ -93,7 +93,7 @@
                 <tbody>
                     @if (_fields.Count == 0)
                     {
-                        <tr><td colspan="2">Nothing to show yet.</td></tr>
+                        <tr><td colspan="2">No extra profile fields yet.</td></tr>
                     }
                     else
                     {
@@ -142,15 +142,13 @@
             <button type="submit" style="padding:.55rem .95rem;border:0;border-radius:.4rem;background:#0f766e;color:#fff;font-weight:800;cursor:pointer">Update password</button>
         </form>
         <p class="epc-sf-pf-note">
-            Email and phone confirmation stay on the classic account form.
-            <a href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref("/en/users/editform")">Classic contacts</a>
+            Save name, company, and address here. Email and phone confirmation stay on this profile after you verify the contact.
         </p>
     }
 
 </StorefrontTenantChrome>
 
 @code {
-    private const string _phpProfile = "https://epartscart.com/users/profile";
     private string _brand = "eParts Cart";
     private bool _isCustomer;
     private int _userId;

@@ -21,11 +21,9 @@
             <p style="margin:0 0 .35rem;color:#64748b;font-size:.85rem">
                 <a href="@StorefrontSurfaceLinks.Orders">My orders</a>
                 · Pay
-                ·
-                <a href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(StorefrontPhpCanonical.Payment)" target="_blank" rel="noopener">Classic twin</a>
             </p>
             <h1 style="margin:.1rem 0 .4rem">Pay an order or top-up</h1>
-            <p style="color:#475569">Create a pending operation, then confirm on the demo gateway. Live acquirer keys stay unconfigured the same way as Classic demo stubs.</p>
+            <p style="color:#475569">Create a pending operation, then confirm on the payment gateway.</p>
             @if (!string.IsNullOrWhiteSpace(_flashOk))
             {
                 <p style="margin:0 0 .75rem;padding:.65rem .8rem;background:#ecfdf3;border:1px solid #86efac;color:#166534">@_flashOk</p>

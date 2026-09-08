@@ -50,10 +50,10 @@
 <StorefrontTenantChrome>
 
     <PhpStorefrontPageHeader Title="My Orders"
-                            Subtitle="Browse parts, manage your garage, and track recent orders.">
-        <a class="btn btn-sm btn-primary" href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpOrders)">Open orders</a>
-            <a class="btn btn-sm btn-default" href="/storefront/cart-app">Cart</a>
+                            Subtitle="Your orders, receipts, and messages to the store.">
+            <a class="btn btn-sm btn-primary" href="/storefront/cart-app">Cart</a>
             <a class="btn btn-sm btn-default" href="@StorefrontSurfaceLinks.PartSearch">Search parts</a>
+            <a class="btn btn-sm btn-default" href="@StorefrontAspNetCanonical.GuestOrder">Guest order</a>
             <a class="btn btn-sm btn-default" href="@StorefrontSurfaceLinks.Login">Customer login</a>
     </PhpStorefrontPageHeader>
 
@@ -71,7 +71,7 @@
         <div class="epc-sf-ord-gate">
             <p style="margin:0 0 .75rem;color:#334155">Sign in with your store account to load recent orders.</p>
             <a href="/storefront/login" style="display:inline-flex;padding:.55rem .9rem;border-radius:.4rem;background:#dc2626;color:#fff;font-weight:700;text-decoration:none">Sign in</a>
-            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpOrders)" style="display:inline-flex;margin-left:.45rem;padding:.55rem .9rem;border-radius:.4rem;border:1px solid #d1d5db;color:#111;font-weight:700;text-decoration:none">Orders</a>
+            <a href="@StorefrontAspNetCanonical.Orders" style="display:inline-flex;margin-left:.45rem;padding:.55rem .9rem;border-radius:.4rem;border:1px solid #d1d5db;color:#111;font-weight:700;text-decoration:none">Orders</a>
         </div>
     }
     else
@@ -97,7 +97,7 @@
                 <tbody>
                     @if (_orders.Count == 0)
                     {
-                        <tr><td colspan="6">Nothing to show yet.</td></tr>
+                        <tr><td colspan="6">You have no orders yet.</td></tr>
                     }
                     else
                     {
@@ -230,7 +230,6 @@
 </StorefrontTenantChrome>
 
 @code {
-    private const string _phpOrders = "https://epartscart.com/shop/orders";
     private string _brand = "eParts Cart";
     private bool _isCustomer;
     private IReadOnlyList<StorefrontOrderDigest> _orders = [];

@@ -48,7 +48,8 @@
         if (string.IsNullOrWhiteSpace(_html))
         {
             _html = "<p style=\"margin:0;color:#64748b\">Vehicle catalog widget is unavailable in this environment. "
-                  + "<a href=\"" + StorefrontPhpCanonical.VehicleCatalog + "\">Open classic vehicle catalog</a>.</p>";
+                  + "<a href=\"" + StorefrontAspNetCanonical.PartSearch + "\">Part search</a> · "
+                  + "<a href=\"" + StorefrontAspNetCanonical.LaximoVin + "\">VIN / Frame</a>.</p>";
         }
     }
 }
