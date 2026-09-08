@@ -8490,7 +8490,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only users_vin KPIs + requests (VIN request text body (injection-prone PHP cookie filters not ported)). PHP System requests remains authoritative."
+                note = "Read-only users_vin KPIs + requests. Open ?vin_id= loads 280-char request and message excerpts. Full HTML omitted. Mark viewed writes here."
             });
         });
 

@@ -15437,6 +15437,87 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    public async Task<CpSystemRequestsDetailResult> BuildCpSystemRequestsDetailAsync(long id, CancellationToken cancellationToken = default)
+    {
+        if (id <= 0)
+        {
+            return new(null, [], [], "n/a", "");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return new(null, [], [], "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            CpSystemRequestsDetail? header = null;
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectCpSystemRequestsDetail;
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    header = new CpSystemRequestsDetail(
+                        Convert.ToInt64(reader["id"] is DBNull ? 0 : reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["time_unix"] is DBNull ? 0 : reader["time_unix"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["user_id"] is DBNull ? 0 : reader["user_id"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["viewed"] is DBNull ? 0 : reader["viewed"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["text_len"] is DBNull ? 0 : reader["text_len"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["text_excerpt"] is DBNull ? string.Empty : reader["text_excerpt"], CultureInfo.InvariantCulture) ?? string.Empty);
+                }
+            }
+
+            if (header is null)
+            {
+                return new(null, [], [], "database", "Request not found.");
+            }
+
+            var messages = new List<CpSystemRequestMessageDigest>();
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectCpSystemRequestMessages;
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    messages.Add(new CpSystemRequestMessageDigest(
+                        Convert.ToInt64(reader["id"] is DBNull ? 0 : reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["vin_id"] is DBNull ? 0 : reader["vin_id"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["is_customer"] is DBNull ? 0 : reader["is_customer"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["time_unix"] is DBNull ? 0 : reader["time_unix"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["text_len"] is DBNull ? 0 : reader["text_len"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["text_excerpt"] is DBNull ? string.Empty : reader["text_excerpt"], CultureInfo.InvariantCulture) ?? string.Empty));
+                }
+            }
+
+            var siblings = new List<CpSystemRequestsRowDigest>();
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectCpSystemRequestUserSiblings;
+                AddParameter(cmd, "@user_id", header.UserId);
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    siblings.Add(new CpSystemRequestsRowDigest(
+                        Convert.ToInt64(reader["id"] is DBNull ? 0 : reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["time_unix"] is DBNull ? 0 : reader["time_unix"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["user_id"] is DBNull ? 0 : reader["user_id"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["viewed"] is DBNull ? 0 : reader["viewed"], CultureInfo.InvariantCulture)));
+                }
+            }
+
+            return new(header, messages, siblings, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(null, [], [], "database-error", ex.Message);
+        }
+    }
+
     public async Task<CpAdditionalTextsDigestResult> BuildCpAdditionalTextsDigestAsync(int limit, CancellationToken cancellationToken = default)
     {
         var safeLimit = Math.Clamp(limit, 1, 500);

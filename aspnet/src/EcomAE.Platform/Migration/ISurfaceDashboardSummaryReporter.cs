@@ -562,6 +562,9 @@ public interface ISurfaceDashboardSummaryReporter
     Task<CpProductFiltersDigestResult> BuildCpProductFiltersDigestAsync(int limit, CancellationToken cancellationToken = default);
     Task<CpSearchTabsDigestResult> BuildCpSearchTabsDigestAsync(int limit, CancellationToken cancellationToken = default);
     Task<CpSystemRequestsDigestResult> BuildCpSystemRequestsDigestAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Opened VIN request (PHP <c>vin_id</c>) plus message excerpts and same-user siblings. Full HTML omitted.</summary>
+    Task<CpSystemRequestsDetailResult> BuildCpSystemRequestsDetailAsync(long id, CancellationToken cancellationToken = default);
     Task<CpAdditionalTextsDigestResult> BuildCpAdditionalTextsDigestAsync(int limit, CancellationToken cancellationToken = default);
 
     /// <summary>Opened additional text (PHP <c>text_id</c>) plus same-placement siblings. Content excerpt only.</summary>

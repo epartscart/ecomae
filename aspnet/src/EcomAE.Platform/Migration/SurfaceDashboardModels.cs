@@ -4942,6 +4942,29 @@ public sealed record CpSystemRequestsDigestResult(
     string Source,
     string Message);
 
+public sealed record CpSystemRequestsDetail(
+    long Id,
+    long TimeUnix,
+    long UserId,
+    int Viewed,
+    int TextLen,
+    string TextExcerpt);
+
+public sealed record CpSystemRequestMessageDigest(
+    long Id,
+    long VinId,
+    int IsCustomer,
+    long TimeUnix,
+    int TextLen,
+    string TextExcerpt);
+
+public sealed record CpSystemRequestsDetailResult(
+    CpSystemRequestsDetail? Request,
+    IReadOnlyList<CpSystemRequestMessageDigest> Messages,
+    IReadOnlyList<CpSystemRequestsRowDigest> Siblings,
+    string Source,
+    string Message);
+
 public sealed record CpAdditionalTextsSummary(
     int TextCount,
     int BeforeMainCount,
