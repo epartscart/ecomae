@@ -215,6 +215,9 @@ public interface ISurfaceDashboardSummaryReporter
     /// <summary>Read-only page builder layouts (layout_json/brand_json omitted).</summary>
     Task<CpPageBuilderDigestResult> BuildCpPageBuilderDigestAsync(int limit, CancellationToken cancellationToken = default);
 
+    /// <summary>Opened page-builder layout (PHP <c>layout_id=</c> detail, includes JSON payloads).</summary>
+    Task<CpPageBuilderLayoutDetailResult> BuildCpPageBuilderLayoutDetailAsync(long id, CancellationToken cancellationToken = default);
+
     /// <summary>Read-only product catalogue (shop_catalogue_products).</summary>
     Task<CpProductCatalogueDigestResult> BuildCpProductCatalogueDigestAsync(int limit, CancellationToken cancellationToken = default);
 

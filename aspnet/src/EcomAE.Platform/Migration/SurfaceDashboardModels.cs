@@ -2348,6 +2348,21 @@ public sealed record CpPageBuilderDigestResult(
     string Source,
     string Message);
 
+public sealed record CpPageBuilderLayoutDetail(
+    long Id,
+    string SiteKey,
+    string PageKey,
+    string LayoutJson,
+    string BrandJson,
+    bool IsPublished,
+    long UpdatedAt,
+    long PublishedAt);
+
+public sealed record CpPageBuilderLayoutDetailResult(
+    CpPageBuilderLayoutDetail? Layout,
+    string Source,
+    string Message);
+
 public sealed record CpProductCatalogueSummary(
     int ProductCount,
     int PublishedCount,

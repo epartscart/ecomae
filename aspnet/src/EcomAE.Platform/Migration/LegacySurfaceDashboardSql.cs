@@ -2637,6 +2637,17 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>Opened page-builder layout — includes layout_json/brand_json omitted from the list.</summary>
+    public const string SelectCpPageBuilderLayoutDetail = """
+        SELECT `id`, IFNULL(`site_key`,'') AS site_key, IFNULL(`page_key`,'') AS page_key,
+               IFNULL(`layout_json`,'') AS layout_json, IFNULL(`brand_json`,'') AS brand_json,
+               IFNULL(`is_published`,0) AS is_published, IFNULL(`updated_at`,0) AS updated_at,
+               IFNULL(`published_at`,0) AS published_at
+        FROM `epc_page_builder_layouts`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
     /// <summary>Product catalogue KPIs from shop_catalogue_products.</summary>
     public const string SelectCpProductCatalogueStats = """
         SELECT
