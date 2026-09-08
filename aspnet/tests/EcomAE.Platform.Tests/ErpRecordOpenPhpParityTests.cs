@@ -17,6 +17,7 @@ public sealed class ErpRecordOpenPhpParityTests
     [InlineData("/ERP/?epc_erp_shell=1&area=purchasing&tab=purchase_requisitions&req_id=4", "/erp/purchase-requests-app?req_id=4")]
     [InlineData("/CP/shop/finance/epc_collections_dunning?queue_id=12", "/cp/collections-dunning-app?queue_id=12")]
     [InlineData("/ERP/?epc_erp_shell=1&area=credit_coll&queue_id=12", "/erp/collections-dunning-app?queue_id=12")]
+    [InlineData("/ERP/?epc_erp_shell=1&area=cost_mgmt&tab=cost_models&costm_id=3", "/erp/cost-models-app?costm_id=3")]
     [InlineData("/ERP/?epc_erp_shell=1&area=tax&tab=elec_reporting&format_id=6", "/erp/electronic-reporting-app?format_id=6")]
     [InlineData("/CP/shop/finance/epc_einvoice?ei_id=8", "/cp/einvoice-documents-app?ei_id=8")]
     [InlineData("/ERP/?epc_erp_shell=1&area=tax&tab=einvoice&ei_id=8", "/erp/einvoice-documents-app?ei_id=8")]
@@ -130,6 +131,7 @@ public sealed class ErpRecordOpenPhpParityTests
     [InlineData("ErpPayablesApp.razor", "supplier_id")]
     [InlineData("CpPurchaseRequestsApp.razor", "req_id")]
     [InlineData("CpCollectionsDunningApp.razor", "queue_id")]
+    [InlineData("CpCostModelsApp.razor", "costm_id")]
     [InlineData("CpElectronicReportingApp.razor", "format_id")]
     [InlineData("CpEinvoiceDocumentsApp.razor", "ei_id")]
     [InlineData("CpProjectsOverviewApp.razor", "project_id")]
@@ -356,6 +358,35 @@ public sealed class ErpRecordOpenPhpParityTests
             ErpRecordOpen.PreserveRecordQuery(
                 "/cp/collections-dunning-app",
                 "/CP/shop/finance/epc_collections_dunning?queue_id=12"));
+        Assert.Equal("/erp/cost-models-app?costm_id=3#erp-row-3",
+            ErpRecordOpen.Href("/erp/cost-models-app", "costm_id", 3));
+        Assert.Equal(
+            "/erp/cost-models-app?costm_id=3",
+            ErpRecordOpen.PreserveRecordQuery(
+                "/erp/cost-models-app",
+                "/ERP/?epc_erp_shell=1&area=cost_mgmt&tab=cost_models&costm_id=3"));
+    }
+
+    [Fact]
+    public void CostModelsApp_OpenLoadsTxnsAndCloseDetail()
+    {
+        var root = FindRepoRoot();
+        var text = File.ReadAllText(Path.Combine(root,
+            "aspnet/src/EcomAE.Platform/Components/Pages/CpCostModelsApp.razor"));
+        Assert.Contains("ErpRecordOpen.Href(_listHref, \"costm_id\"", text, StringComparison.Ordinal);
+        Assert.Contains("ErpOpenedRecordBanner", text, StringComparison.Ordinal);
+        Assert.Contains("ReadId(ctx.Request, \"costm_id\")", text, StringComparison.Ordinal);
+        Assert.Contains("BuildCpCostModelItemDetailAsync", text, StringComparison.Ordinal);
+        Assert.Contains("No transactions yet.", text, StringComparison.Ordinal);
+        Assert.Contains("No closes yet.", text, StringComparison.Ordinal);
+        Assert.Contains("ShowGhostScaffold=\"false\"", text, StringComparison.Ordinal);
+        Assert.Contains("table-epc", text, StringComparison.Ordinal);
+        Assert.Contains("/erp/cost-models/txns/add", text, StringComparison.Ordinal);
+        Assert.Contains("/erp/cost-models/items/set", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)\">Open", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("/php-reference/", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("ASP.NET", text, StringComparison.Ordinal);
+
         Assert.Equal("/erp/electronic-reporting-app?format_id=6#erp-row-6",
             ErpRecordOpen.Href("/erp/electronic-reporting-app", "format_id", 6));
         Assert.Equal(

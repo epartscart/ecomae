@@ -3065,6 +3065,43 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>Opened cost model assignment.</summary>
+    public const string SelectCpCostModelItemDetail = """
+        SELECT `id`, IFNULL(`company_id`,0) AS company_id, IFNULL(`item_id`,0) AS item_id,
+               IFNULL(`model`,'') AS model, IFNULL(`std_cost`,0) AS std_cost,
+               IFNULL(`time_updated`,0) AS time_updated
+        FROM `epc_costm_item`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Opened cost model transactions for the assignment's item.</summary>
+    public const string SelectCpCostModelTxns = """
+        SELECT `id`, IFNULL(`company_id`,0) AS company_id, IFNULL(`item_id`,0) AS item_id,
+               IFNULL(`txn_type`,'') AS txn_type, IFNULL(`qty`,0) AS qty,
+               IFNULL(`unit_cost`,0) AS unit_cost, IFNULL(`txn_date`,0) AS txn_date,
+               IFNULL(`time_created`,0) AS time_created
+        FROM `epc_costm_txn`
+        WHERE `item_id` = (SELECT `item_id` FROM `epc_costm_item` WHERE `id` = @id)
+          AND `company_id` = (SELECT `company_id` FROM `epc_costm_item` WHERE `id` = @id)
+        ORDER BY `id` DESC
+        LIMIT 20
+        """;
+
+    /// <summary>Opened cost model closes — includes detail_json omitted from the dump.</summary>
+    public const string SelectCpCostModelCloses = """
+        SELECT `id`, IFNULL(`company_id`,0) AS company_id, IFNULL(`item_id`,0) AS item_id,
+               IFNULL(`model`,'') AS model, IFNULL(`label`,'') AS label,
+               IFNULL(`cogs`,0) AS cogs, IFNULL(`closing_qty`,0) AS closing_qty,
+               IFNULL(`closing_value`,0) AS closing_value, IFNULL(`variance`,0) AS variance,
+               IFNULL(`detail_json`,'') AS detail_json, IFNULL(`time_created`,0) AS time_created
+        FROM `epc_costm_close`
+        WHERE `item_id` = (SELECT `item_id` FROM `epc_costm_item` WHERE `id` = @id)
+          AND `company_id` = (SELECT `company_id` FROM `epc_costm_item` WHERE `id` = @id)
+        ORDER BY `id` DESC
+        LIMIT 20
+        """;
+
     /// <summary>Financial depth KPIs from epc_fin_* (CREATE TABLE in epc_erp_fin_advanced.php).</summary>
     public const string SelectCpFinAdvancedStats = """
         SELECT
