@@ -4,7 +4,7 @@ namespace EcomAE.Platform.Erp;
 
 /// <summary>
 /// Live PHP <c>epc_pf_process_save</c> / ajax <c>pf_process_save</c> twin.
-/// INSERT/UPDATE <c>epc_pf_processes</c>. Step save, case start/act, and schema ensure stay PHP.
+/// INSERT/UPDATE <c>epc_pf_processes</c>. Seed and schema ensure stay PHP.
 /// Does not CREATE tables.
 /// </summary>
 public interface IErpPfProcessSaveWriteService

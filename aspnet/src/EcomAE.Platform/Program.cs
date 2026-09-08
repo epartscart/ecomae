@@ -789,6 +789,8 @@ builder.Services.AddScoped<EcomAE.Platform.Erp.IErpMfgBomSaveWriteService, EcomA
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpMfgWoCreateWriteService, EcomAE.Platform.Erp.ErpMfgWoCreateWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpBosComplianceAddObligationWriteService, EcomAE.Platform.Erp.ErpBosComplianceAddObligationWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpPfCaseReassignWriteService, EcomAE.Platform.Erp.ErpPfCaseReassignWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpPfCaseStartWriteService, EcomAE.Platform.Erp.ErpPfCaseStartWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpPfCaseActWriteService, EcomAE.Platform.Erp.ErpPfCaseActWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpBosWfSaveRuleWriteService, EcomAE.Platform.Erp.ErpBosWfSaveRuleWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpBosRetentionSaveWriteService, EcomAE.Platform.Erp.ErpBosRetentionSaveWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpPfSetDeptHeadWriteService, EcomAE.Platform.Erp.ErpPfSetDeptHeadWriteService>();

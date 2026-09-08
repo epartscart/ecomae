@@ -2938,6 +2938,28 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(pfDb.Succeeded);
         Assert.Equal("db", pfDb.Code);
 
+        var pfStartInvalid = await new ErpPfCaseStartWriteService(new ConfiguredNeverOpened())
+            .StartAsync(new ErpPfCaseStartWriteRequest(4, ""));
+        Assert.False(pfStartInvalid.Succeeded);
+        Assert.Equal("invalid", pfStartInvalid.Code);
+        Assert.Equal("Case title is required", pfStartInvalid.Message);
+
+        var pfStartDb = await new ErpPfCaseStartWriteService(new UnconfiguredConnections())
+            .StartAsync(new ErpPfCaseStartWriteRequest(4, "Launch case"));
+        Assert.False(pfStartDb.Succeeded);
+        Assert.Equal("db", pfStartDb.Code);
+
+        var pfActInvalid = await new ErpPfCaseActWriteService(new ConfiguredNeverOpened())
+            .ActAsync(new ErpPfCaseActWriteRequest(0, "approve"));
+        Assert.False(pfActInvalid.Succeeded);
+        Assert.Equal("invalid", pfActInvalid.Code);
+        Assert.Equal("Case not found", pfActInvalid.Message);
+
+        var pfActDb = await new ErpPfCaseActWriteService(new UnconfiguredConnections())
+            .ActAsync(new ErpPfCaseActWriteRequest(9, "approve"));
+        Assert.False(pfActDb.Succeeded);
+        Assert.Equal("db", pfActDb.Code);
+
         var convInvalid = await new ErpProcurementReqWriteService(new ConfiguredNeverOpened())
             .ConvertAsync(0);
         Assert.False(convInvalid.Succeeded);

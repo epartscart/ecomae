@@ -1,7 +1,7 @@
 namespace EcomAE.Platform.Erp;
 
 /// <summary>
-/// Live PHP <c>epc_pf_case_cancel</c> twin. Case start, act, seed, and schema ensure stay PHP.
+/// Live PHP <c>epc_pf_case_cancel</c> twin. Case start and act are already ASP.NET-live. Seed and schema ensure stay PHP.
 /// </summary>
 public interface IErpPfCaseCancelWriteService
 {

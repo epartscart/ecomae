@@ -1690,9 +1690,9 @@ public static class EcomAeRoutes
     public const string ErpAjaxPfStepSave = "/erp/ajax/pf-step-save";
     /// <summary>Live PHP pf_step_delete twin (confirmWrites=true writes).</summary>
     public const string ErpAjaxPfStepDelete = "/erp/ajax/pf-step-delete";
-    /// <summary>Wave B dry-run for PHP pf_case_start (writes=0).</summary>
+    /// <summary>PHP epc_pf_case_start. <c>confirmWrites=true</c> writes via <c>IErpPfCaseStartWriteService</c>.</summary>
     public const string ErpAjaxPfCaseStart = "/erp/ajax/pf-case-start";
-    /// <summary>Wave B dry-run for PHP pf_case_act (writes=0).</summary>
+    /// <summary>PHP epc_pf_case_act. <c>confirmWrites=true</c> writes via <c>IErpPfCaseActWriteService</c>.</summary>
     public const string ErpAjaxPfCaseAct = "/erp/ajax/pf-case-act";
     /// <summary>Live PHP epc_sub_generate_invoice twin (ajax alias of <see cref="ErpSubscriptionsGenerate"/>).</summary>
     public const string ErpAjaxSubGenerate = "/erp/ajax/sub-generate";
@@ -2306,6 +2306,10 @@ public static class EcomAeRoutes
     public const string ErpComplianceObligationAdd = "/erp/compliance/obligations/add";
     /// <summary>Live PHP pf_case_reassign twin (confirmWrites=true writes).</summary>
     public const string ErpProcessFlowCaseReassign = "/erp/process-flow/cases/reassign";
+    /// <summary>Live PHP pf_case_start twin (confirmWrites=true writes).</summary>
+    public const string ErpProcessFlowCaseStart = "/erp/process-flow/cases/start";
+    /// <summary>Live PHP pf_case_act twin (confirmWrites=true writes).</summary>
+    public const string ErpProcessFlowCaseAct = "/erp/process-flow/cases/act";
     /// <summary>Live PHP bos_wf_save_rule twin (confirmWrites=true writes).</summary>
     public const string ErpApprovalsRuleSave = "/erp/approvals/rules/save";
     /// <summary>Live PHP bos_compliance_save_retention twin (confirmWrites=true writes).</summary>

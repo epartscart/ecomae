@@ -210,6 +210,8 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapPost(EcomAeRoutes.ErpManufacturingWoCreate, HandleMfgWoCreateAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpComplianceObligationAdd, HandleBosComplianceAddObligationAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpProcessFlowCaseReassign, HandlePfCaseReassignAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpProcessFlowCaseStart, HandlePfCaseStartAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpProcessFlowCaseAct, HandlePfCaseActAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpApprovalsRuleSave, HandleBosWfSaveRuleAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpComplianceRetentionSave, HandleBosRetentionSaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpProcessFlowDeptHeadSave, HandlePfSetDeptHeadAsync).DisableAntiforgery();
@@ -4160,10 +4162,8 @@ public sealed class ErpModule : ISurfaceModule
                 written.Message,
                 new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxPfCaseStart, async (HttpContext context, ErpPfCaseStartBody? body, ILegacySessionValidator validator, IErpPfCaseStartDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,false); return Results.Ok(dryRun.Evaluate(new ErpPfCaseStartRequest(body.Id, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxPfCaseAct, async (HttpContext context, ErpPfCaseActBody? body, ILegacySessionValidator validator, IErpPfCaseActDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,false); return Results.Ok(dryRun.Evaluate(new ErpPfCaseActRequest(body.Id, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxPfCaseStart, HandlePfCaseStartAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxPfCaseAct, HandlePfCaseActAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpSubscriptionsGenerate, HandleSubGenerateAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxSubGenerate, HandleSubGenerateAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxSubInvoicePaid, async (
@@ -12711,6 +12711,119 @@ public sealed class ErpModule : ISurfaceModule
             new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
     }
 
+    private static async Task<IResult> HandlePfCaseStartAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpPfCaseStartDryRun dryRun,
+        IErpPfCaseStartWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/process-flow-tasks-app", "Admin ERP capability required for process-flow start.");
+        }
+
+        var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpPfCaseStartBody>(context, cancellationToken) ?? new();
+        var processId = body.ProcessId;
+        var title = body.Title;
+        var reference = body.Reference;
+        var priority = body.Priority;
+        var initiatorId = body.InitiatorId;
+        var subjectType = body.SubjectType;
+        var subjectId = body.SubjectId;
+        var confirm = body.ConfirmWrites;
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            processId = LiveWriteFormBinder.Long(form, "processId", "process_id");
+            title = LiveWriteFormBinder.Text(form, "title");
+            reference = LiveWriteFormBinder.Text(form, "reference");
+            priority = LiveWriteFormBinder.Text(form, "priority");
+            initiatorId = LiveWriteFormBinder.Long(form, "initiatorId", "initiator_id");
+            subjectType = LiveWriteFormBinder.Text(form, "subjectType", "subject_type");
+            subjectId = LiveWriteFormBinder.Long(form, "subjectId", "subject_id");
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+        }
+
+        if (!confirm)
+        {
+            return Results.Ok(dryRun.Evaluate(new ErpPfCaseStartRequest(processId, title, false)).ToPayload(SessionPayload(session)));
+        }
+
+        var written = await writes.StartAsync(
+            new ErpPfCaseStartWriteRequest(
+                processId,
+                title,
+                reference,
+                priority,
+                initiatorId,
+                subjectType,
+                subjectId,
+                session.UserId),
+            cancellationToken);
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/erp/process-flow-tasks-app",
+            written.Succeeded,
+            written.Message,
+            new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+    }
+
+    private static async Task<IResult> HandlePfCaseActAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpPfCaseActDryRun dryRun,
+        IErpPfCaseActWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/process-flow-tasks-app", "Admin ERP capability required for process-flow act.");
+        }
+
+        var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpPfCaseActBody>(context, cancellationToken) ?? new();
+        var id = body.CaseId > 0 ? body.CaseId : body.Id;
+        var decision = body.Decision;
+        var comment = body.Comment;
+        var confirm = body.ConfirmWrites;
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            id = LiveWriteFormBinder.Long(form, "caseId", "case_id", "id");
+            decision = LiveWriteFormBinder.Text(form, "decision");
+            comment = LiveWriteFormBinder.Text(form, "comment");
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+        }
+
+        if (!confirm)
+        {
+            return Results.Ok(dryRun.Evaluate(new ErpPfCaseActRequest(id, decision, false)).ToPayload(SessionPayload(session)));
+        }
+
+        var written = await writes.ActAsync(
+            new ErpPfCaseActWriteRequest(id, decision, comment, session.UserId),
+            cancellationToken);
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/erp/process-flow-tasks-app",
+            written.Succeeded,
+            written.Message,
+            new
+            {
+                ok = written.Succeeded,
+                writes = written.Writes,
+                phpAuthoritative = false,
+                validation_code = written.Code,
+                message = written.Message,
+                id = written.Id,
+                status = written.CaseStatus,
+                next_assignee = written.NextAssignee,
+                session = SessionPayload(session)
+            });
+    }
+
     private static async Task<IResult> HandleBosWfSaveRuleAsync(
         HttpContext context,
         ILegacySessionValidator validator,
@@ -19501,8 +19614,21 @@ public sealed class ErpModule : ISurfaceModule
         string? Instructions = null,
         bool ConfirmWrites = false);
     private sealed record ErpPfStepDeleteBody(long Id, bool ConfirmWrites = false);
-    private sealed record ErpPfCaseStartBody(long Id, bool ConfirmWrites = false);
-    private sealed record ErpPfCaseActBody(long Id, bool ConfirmWrites = false);
+    private sealed record ErpPfCaseStartBody(
+        long ProcessId = 0,
+        string? Title = null,
+        string? Reference = null,
+        string? Priority = null,
+        long InitiatorId = 0,
+        string? SubjectType = null,
+        long SubjectId = 0,
+        bool ConfirmWrites = false);
+    private sealed record ErpPfCaseActBody(
+        long CaseId = 0,
+        long Id = 0,
+        string? Decision = null,
+        string? Comment = null,
+        bool ConfirmWrites = false);
     private sealed record ErpSubGenerateBody(long Id = 0, bool ConfirmWrites = false);
     private sealed record ErpSubInvoicePaidBody(long Id, bool ConfirmWrites = false);
     private sealed record ErpCtrStatusBody(long Id, string? TargetStatus = null, bool ConfirmWrites = false);
