@@ -365,6 +365,8 @@ public static class EcomAeRoutes
     public const string ErpExternalReportingIntake = "/erp/external-reporting/intake";
     /// <summary>VAT / CT / IFRS import CSV template download.</summary>
     public const string ErpExternalReportingTemplate = "/erp/external-reporting/template";
+    /// <summary>Linked Excel audit / financial-model pack (no shop writes).</summary>
+    public const string ErpExternalReportingXlsx = "/erp/external-reporting/xlsx";
     public const string ControlPanelPoApprovals = "/cp/po-approvals";
     /// <summary>CP PO approvals Blazor list (JSON digest remains <see cref="ControlPanelPoApprovals"/>).</summary>
     public const string ControlPanelPoApprovalsApp = "/cp/po-approvals-app";

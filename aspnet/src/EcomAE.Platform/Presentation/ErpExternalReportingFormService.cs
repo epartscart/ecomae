@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text;
 using EcomAE.Platform.Auth;
 using EcomAE.Platform.Migration;
@@ -106,6 +107,36 @@ public sealed class ErpExternalReportingFormService
         var built = ErpExternalReportingImport.BuildIntake(entity, year, units, "AED", "AE");
         var id = _packs.Store(built, "fin", "Built from guided intake.");
         return Results.Redirect(Append(ret, "tool=intake&pack=" + id + "&ok=" + Uri.EscapeDataString("Built from guided intake · IFRS 18-compliant.")));
+    }
+
+    public async Task<IResult> XlsxAsync(HttpContext context, CancellationToken cancellationToken)
+    {
+        var session = await _sessions.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin
+            || !(session.Capabilities.Contains("erp") || session.Capabilities.Contains("cp")))
+        {
+            return Results.Redirect("/erp/login");
+        }
+
+        var kind = (context.Request.Query["kind"].ToString() ?? "audit").Trim().ToLowerInvariant();
+        if (kind is not ("audit" or "finmodel")) kind = "audit";
+        var ccy = (context.Request.Query["ccy"].ToString() ?? "AED").Trim();
+        if (ccy.Length == 0) ccy = "AED";
+        var entity = context.Request.Query["entity"].ToString();
+        if (string.IsNullOrWhiteSpace(entity)) entity = "Company";
+        var country = ErpExternalReportingCatalog.NormalizeCountry(context.Request.Query["country"].ToString());
+        DateTime from = DateTime.TryParse(context.Request.Query["from"].ToString(), out var pf) ? pf : new DateTime(DateTime.UtcNow.Year, 1, 1);
+        DateTime to = DateTime.TryParse(context.Request.Query["to"].ToString(), out var pt) ? pt : new DateTime(DateTime.UtcNow.Year, 12, 31);
+        decimal.TryParse(context.Request.Query["sales"].ToString(), NumberStyles.Any, CultureInfo.InvariantCulture, out var sales);
+        decimal.TryParse(context.Request.Query["purch"].ToString(), NumberStyles.Any, CultureInfo.InvariantCulture, out var purch);
+        var data = ErpExternalReportingFin.Dataset(from, to, sales, purch);
+        var bytes = kind == "finmodel"
+            ? ErpExternalReportingXlsx.FinModel(data)
+            : ErpExternalReportingXlsx.Audit(data, ccy, entity, country);
+        var name = kind == "finmodel"
+            ? "Financial_Model_FY" + data.CurYear + ".xlsx"
+            : "External_Audit_Report_IFRS_FY" + data.CurYear + ".xlsx";
+        return Results.File(bytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", name);
     }
 
     private static IResult Fail(string ret, string kind, string message)

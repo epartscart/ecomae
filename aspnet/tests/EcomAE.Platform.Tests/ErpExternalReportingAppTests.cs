@@ -43,6 +43,7 @@ public sealed class ErpExternalReportingAppTests
         Assert.Equal("/erp/external-reporting/import", EcomAeRoutes.ErpExternalReportingImport);
         Assert.Equal("/erp/external-reporting/intake", EcomAeRoutes.ErpExternalReportingIntake);
         Assert.Equal("/erp/external-reporting/template", EcomAeRoutes.ErpExternalReportingTemplate);
+        Assert.Equal("/erp/external-reporting/xlsx", EcomAeRoutes.ErpExternalReportingXlsx);
     }
 
     [Fact]
@@ -64,6 +65,9 @@ public sealed class ErpExternalReportingAppTests
         Assert.Contains("RenderPack", razor, StringComparison.Ordinal);
         Assert.Contains("Download PDF", razor, StringComparison.Ordinal);
         Assert.Contains("Download Word", razor, StringComparison.Ordinal);
+        Assert.Contains("Download Excel (linked model)", razor, StringComparison.Ordinal);
+        Assert.Contains("Download Excel (linked audit pack)", razor, StringComparison.Ordinal);
+        Assert.Contains("ErpExternalReportingXlsx", razor, StringComparison.Ordinal);
         Assert.Contains("epcExtPrint()", razor, StringComparison.Ordinal);
         Assert.Contains("epcExtWord(", razor, StringComparison.Ordinal);
         Assert.Contains("id=\"epc_ext_doc\"", razor, StringComparison.Ordinal);
@@ -193,6 +197,42 @@ public sealed class ErpExternalReportingAppTests
     }
 
     [Fact]
+    public void LinkedExcelPacksHaveLiveFormulas()
+    {
+        var from = new DateTime(2026, 1, 1);
+        var to = new DateTime(2026, 12, 31);
+        var data = ErpExternalReportingFin.Dataset(from, to, 8_400_000m, 5_800_000m);
+        Assert.Equal(2026, data.CurYear);
+        Assert.True(data.Cur.Rev > 0);
+        Assert.True(data.Cur.TotalAssets > 0);
+        var proj = ErpExternalReportingFin.Project(data);
+        Assert.Equal(5, proj.Years.Count);
+
+        var model = ErpExternalReportingXlsx.FinModel(data);
+        var modelXml = XlsxInnerXml(model);
+        Assert.Contains("Assumptions", modelXml, StringComparison.Ordinal);
+        Assert.Contains("Calculations", modelXml, StringComparison.Ordinal);
+        Assert.Contains("Results", modelXml, StringComparison.Ordinal);
+        Assert.Contains("Assumptions!$B$3", modelXml, StringComparison.Ordinal);
+        Assert.Contains("Calculations!B26", modelXml, StringComparison.Ordinal);
+        Assert.Contains("PK", System.Text.Encoding.ASCII.GetString(model, 0, 2), StringComparison.Ordinal);
+
+        var audit = ErpExternalReportingXlsx.Audit(data, "AED", "Acme Trading LLC", "AE");
+        var auditXml = XlsxInnerXml(audit);
+        Assert.Contains("Trial Balance", auditXml, StringComparison.Ordinal);
+        Assert.Contains("Financial Position", auditXml, StringComparison.Ordinal);
+        Assert.Contains("Profit &amp; Loss OCI", auditXml, StringComparison.Ordinal);
+        Assert.True(
+            auditXml.Contains("'Trial Balance'!C3", StringComparison.Ordinal)
+            || auditXml.Contains("&#39;Trial Balance&#39;!C3", StringComparison.Ordinal),
+            "Audit pack must link SOFP figures to the Trial Balance.");
+        Assert.Contains("IFRS 18", auditXml, StringComparison.Ordinal);
+        Assert.Contains("ISA 700", auditXml, StringComparison.Ordinal);
+        Assert.DoesNotContain("ASP.NET", auditXml, StringComparison.Ordinal);
+        Assert.DoesNotContain("/php-reference/", auditXml, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void FetchDryRunBlocksWrites()
     {
         var dry = new ErpExternalReportingFetchDryRun();
@@ -207,6 +247,21 @@ public sealed class ErpExternalReportingAppTests
         Assert.Equal(0, refused.Writes);
         Assert.Equal("confirm_writes_refused", refused.ValidationCode);
         Assert.False(refused.WouldWrite);
+    }
+
+    private static string XlsxInnerXml(byte[] bytes)
+    {
+        using var ms = new MemoryStream(bytes);
+        using var zip = new System.IO.Compression.ZipArchive(ms, System.IO.Compression.ZipArchiveMode.Read);
+        var sb = new System.Text.StringBuilder();
+        foreach (var entry in zip.Entries)
+        {
+            using var s = entry.Open();
+            using var r = new StreamReader(s);
+            sb.Append(r.ReadToEnd());
+        }
+
+        return sb.ToString();
     }
 
     private static string FindRepoRoot()
