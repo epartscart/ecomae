@@ -1067,7 +1067,9 @@ public static class EcomAeRoutes
     public const string ErpAjaxMfgrRouteSave = "/erp/ajax/mfgr-route-save";
     /// <summary>Wave B dry-run for PHP mfgr_mrp_run (writes=0).</summary>
     public const string ErpAjaxMfgrMrpRun = "/erp/ajax/mfgr-mrp-run";
-    /// <summary>Wave B dry-run for PHP mfgr_planned_firm (writes=0).</summary>
+    /// <summary>HTML form POST for PHP mfgr_planned_firm. confirmWrites=true writes via IErpMfgrPlannedFirmWriteService.</summary>
+    public const string ErpMfgrPlannedFirm = "/erp/mfgr/planned/firm";
+    /// <summary>Live PHP mfgr_planned_firm ajax alias of <see cref="ErpMfgrPlannedFirm"/>.</summary>
     public const string ErpAjaxMfgrPlannedFirm = "/erp/ajax/mfgr-planned-firm";
     /// <summary>Wave B dry-run for PHP qm_plan_save (writes=0).</summary>
     public const string ErpAjaxQmPlanSave = "/erp/ajax/qm-plan-save";
