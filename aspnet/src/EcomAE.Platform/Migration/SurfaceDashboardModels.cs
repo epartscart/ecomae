@@ -1296,6 +1296,19 @@ public sealed record CpCrossesDigestResult(
     string Source,
     string Message);
 
+public sealed record CpCrossPairDetail(
+    long Id,
+    string Manufacturer,
+    string Article,
+    string CrossManufacturer,
+    string CrossArticle);
+
+public sealed record CpCrossPairDetailResult(
+    CpCrossPairDetail? Pair,
+    IReadOnlyList<CpCrossPairDigest> Siblings,
+    string Source,
+    string Message);
+
 public sealed record CpHrOverviewSummary(
     int ActiveEmployees,
     int PendingLeave,

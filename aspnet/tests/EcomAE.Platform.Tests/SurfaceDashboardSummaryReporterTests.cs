@@ -663,6 +663,9 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.Contains("shop_obtaining_modes", LegacySurfaceDashboardSql.SelectCpDeliveryModes, StringComparison.Ordinal);
         Assert.DoesNotContain("parameters_values", LegacySurfaceDashboardSql.SelectCpDeliveryModes, StringComparison.Ordinal);
         Assert.Contains("shop_docpart_articles_analogs_list", LegacySurfaceDashboardSql.SelectCpCrossPairs, StringComparison.Ordinal);
+        Assert.Contains("`id` = @id", LegacySurfaceDashboardSql.SelectCpCrossPairDetail, StringComparison.Ordinal);
+        Assert.Contains("`article` = @article", LegacySurfaceDashboardSql.SelectCpCrossPairSiblings, StringComparison.Ordinal);
+        Assert.Contains("`id` <> @id", LegacySurfaceDashboardSql.SelectCpCrossPairSiblings, StringComparison.Ordinal);
         Assert.Contains("shop_docpart_manufacturers_synonyms", LegacySurfaceDashboardSql.SelectCpSynonymsRows, StringComparison.Ordinal);
         Assert.DoesNotContain("s.`id`", LegacySurfaceDashboardSql.SelectCpSynonymsRows, StringComparison.Ordinal);
         Assert.Contains("shop_docpart_manufacturers", LegacySurfaceDashboardSql.SelectCpSynonymManufacturerDetail, StringComparison.Ordinal);

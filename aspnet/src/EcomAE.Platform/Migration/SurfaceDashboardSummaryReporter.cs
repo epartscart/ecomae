@@ -6617,6 +6617,66 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    public async Task<CpCrossPairDetailResult> BuildCpCrossPairDetailAsync(long id, CancellationToken cancellationToken = default)
+    {
+        if (id <= 0)
+        {
+            return new(null, [], "n/a", "");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return new(null, [], "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            CpCrossPairDetail? header = null;
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectCpCrossPairDetail;
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    header = new CpCrossPairDetail(
+                        Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["manufacturer"] is DBNull ? string.Empty : reader["manufacturer"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["article"] is DBNull ? string.Empty : reader["article"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["cross_manufacturer"] is DBNull ? string.Empty : reader["cross_manufacturer"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["cross_article"] is DBNull ? string.Empty : reader["cross_article"], CultureInfo.InvariantCulture) ?? string.Empty);
+                }
+            }
+
+            var siblings = new List<CpCrossPairDigest>();
+            if (header is not null)
+            {
+                await using var cmd = connection.CreateCommand();
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectCpCrossPairSiblings;
+                AddParameter(cmd, "@id", id);
+                AddParameter(cmd, "@article", header.Article);
+                AddParameter(cmd, "@manufacturer", header.Manufacturer);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    siblings.Add(new CpCrossPairDigest(
+                        Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["manufacturer"] is DBNull ? string.Empty : reader["manufacturer"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["article"] is DBNull ? string.Empty : reader["article"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["cross_manufacturer"] is DBNull ? string.Empty : reader["cross_manufacturer"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["cross_article"] is DBNull ? string.Empty : reader["cross_article"], CultureInfo.InvariantCulture) ?? string.Empty));
+                }
+            }
+
+            return new(header, siblings, "database", header is null ? "Cross not found." : string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(null, [], "database-error", ex.Message);
+        }
+    }
+
     public async Task<CpHrOverviewDigestResult> BuildCpHrOverviewDigestAsync(int limit, CancellationToken cancellationToken = default)
     {
         var safeLimit = Math.Clamp(limit, 1, 500);

@@ -1618,6 +1618,7 @@ public static class LegacySurfaceDashboardSql
             (SELECT COUNT(DISTINCT `manufacturer_article`) FROM `shop_docpart_articles_analogs_list`) AS brands
         """;
 
+    /// <summary>Cross pairs dump — article/manufacturer/analog columns only.</summary>
     public const string SelectCpCrossPairs = """
         SELECT `id`,
                IFNULL(`manufacturer_article`, '') AS manufacturer,
@@ -1627,6 +1628,33 @@ public static class LegacySurfaceDashboardSql
         FROM `shop_docpart_articles_analogs_list`
         ORDER BY `id` DESC
         LIMIT @limit
+        """;
+
+    /// <summary>Opened cross pair.</summary>
+    public const string SelectCpCrossPairDetail = """
+        SELECT `id`,
+               IFNULL(`manufacturer_article`, '') AS manufacturer,
+               IFNULL(`article`, '') AS article,
+               IFNULL(`manufacturer_analog`, '') AS cross_manufacturer,
+               IFNULL(`analog`, '') AS cross_article
+        FROM `shop_docpart_articles_analogs_list`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Sibling crosses for the same article + manufacturer (PHP analog family).</summary>
+    public const string SelectCpCrossPairSiblings = """
+        SELECT `id`,
+               IFNULL(`manufacturer_article`, '') AS manufacturer,
+               IFNULL(`article`, '') AS article,
+               IFNULL(`manufacturer_analog`, '') AS cross_manufacturer,
+               IFNULL(`analog`, '') AS cross_article
+        FROM `shop_docpart_articles_analogs_list`
+        WHERE `article` = @article
+          AND `manufacturer_article` = @manufacturer
+          AND `id` <> @id
+        ORDER BY `id` DESC
+        LIMIT 20
         """;
 
     /// <summary>HR overview KPIs — omits salary/allowances/currency/payslip detail.</summary>
