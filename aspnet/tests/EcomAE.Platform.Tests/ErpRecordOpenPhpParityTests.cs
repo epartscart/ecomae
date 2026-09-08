@@ -196,6 +196,7 @@ public sealed class ErpRecordOpenPhpParityTests
         Assert.DoesNotContain("ASP.NET", text, StringComparison.Ordinal);
     }
 
+    [Fact]
     public void TenantConfigApp_OpenLoadsDetailAndAcceptsPhpConfigId()
     {
         var root = FindRepoRoot();
@@ -211,6 +212,7 @@ public sealed class ErpRecordOpenPhpParityTests
         Assert.DoesNotContain("ASP.NET", text, StringComparison.Ordinal);
     }
 
+    [Fact]
     public void AuditTrailApp_OpenLoadsDetailAndAcceptsPhpEventId()
     {
         var root = FindRepoRoot();
@@ -226,6 +228,7 @@ public sealed class ErpRecordOpenPhpParityTests
         Assert.DoesNotContain("ASP.NET", text, StringComparison.Ordinal);
     }
 
+    [Fact]
     public void DocExpiryApp_OpenLoadsDetailAndAcceptsPhpDoc()
     {
         var root = FindRepoRoot();
@@ -241,6 +244,7 @@ public sealed class ErpRecordOpenPhpParityTests
         Assert.DoesNotContain("ASP.NET", text, StringComparison.Ordinal);
     }
 
+    [Fact]
     public void WithholdingApp_OpenLoadsDetailAndAcceptsPhpTxnId()
     {
         var root = FindRepoRoot();
@@ -256,6 +260,7 @@ public sealed class ErpRecordOpenPhpParityTests
         Assert.DoesNotContain("ASP.NET", text, StringComparison.Ordinal);
     }
 
+    [Fact]
     public void InsuranceComplianceApp_OpenLoadsDetailAndAcceptsPhpPol()
     {
         var root = FindRepoRoot();
