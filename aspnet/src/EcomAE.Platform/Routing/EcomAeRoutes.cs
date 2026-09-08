@@ -1630,7 +1630,9 @@ public static class EcomAeRoutes
     public const string ErpAjaxEditLockAcquire = "/erp/ajax/edit-lock-acquire";
     /// <summary>Wave B dry-run for PHP edit_lock_heartbeat (writes=0).</summary>
     public const string ErpAjaxEditLockHeartbeat = "/erp/ajax/edit-lock-heartbeat";
-    /// <summary>Wave B dry-run for PHP edit_lock_release (writes=0).</summary>
+    /// <summary>HTML form POST for PHP edit_lock_release. confirmWrites=true writes via IErpEditLockReleaseWriteService.</summary>
+    public const string ErpEditLockRelease = "/erp/edit-lock/release";
+    /// <summary>Live PHP edit_lock_release ajax alias of <see cref="ErpEditLockRelease"/>.</summary>
     public const string ErpAjaxEditLockRelease = "/erp/ajax/edit-lock-release";
     /// <summary>Wave B dry-run for PHP presence_heartbeat (writes=0).</summary>
     public const string ErpAjaxPresenceHeartbeat = "/erp/ajax/presence-heartbeat";

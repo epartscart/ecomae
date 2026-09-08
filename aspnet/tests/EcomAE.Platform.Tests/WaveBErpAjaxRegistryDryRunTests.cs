@@ -87,6 +87,18 @@ public sealed class WaveBErpAjaxRegistryDryRunTests
     }
 
     [Fact]
+    public void EditLockReleaseValidated()
+    {
+        var r = new ErpEditLockReleaseDryRun().Evaluate(new("so:1"));
+        Assert.Equal("dry-run-validated", r.Status);
+        Assert.Equal(0, r.Writes);
+        Assert.False(r.CutoverAllowed);
+        Assert.Equal(
+            "confirm_writes_refused",
+            new ErpEditLockReleaseDryRun().Evaluate(new("so:1", true)).ValidationCode);
+    }
+
+    [Fact]
     public void BosWfDecideValidated()
     {
         var r = new ErpBosWfDecideDryRun().Evaluate(new(3, true, "ok"));

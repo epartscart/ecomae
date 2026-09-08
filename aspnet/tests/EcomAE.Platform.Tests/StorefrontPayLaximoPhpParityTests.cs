@@ -151,6 +151,8 @@ public sealed class StorefrontPayLaximoPhpParityTests
         Assert.Equal("write-live-gated", SurfacePayloadContractCatalog.Functions.First(f => f.AspNetRouteOrCapability == "/erp/customers/master-save").Status);
         Assert.Equal("write-live-gated", SurfacePayloadContractCatalog.Functions.First(f => f.AspNetRouteOrCapability == "/erp/customers/settlement").Status);
         Assert.Equal("write-live-gated", SurfacePayloadContractCatalog.Functions.First(f => f.AspNetRouteOrCapability == "/erp/orders/settlement").Status);
+        Assert.Equal("write-live-gated", SurfacePayloadContractCatalog.Functions.First(f => f.AspNetRouteOrCapability == "/erp/edit-lock/release").Status);
+        Assert.Equal("write-live-gated", SurfacePayloadContractCatalog.Functions.First(f => f.AspNetRouteOrCapability == "/erp/ajax/edit-lock-release").Status);
         Assert.Equal("write-live-gated", SurfacePayloadContractCatalog.Functions.First(f => f.AspNetRouteOrCapability == "/erp/aftersales/rma-create").Status);
         Assert.Equal("write-live-gated", SurfacePayloadContractCatalog.Functions.First(f => f.AspNetRouteOrCapability == "/erp/ajax/jw-repair-create").Status);
         Assert.Equal("write-live-gated", SurfacePayloadContractCatalog.Functions.First(f => f.AspNetRouteOrCapability == "/erp/ajax/jw-repair-update-status").Status);
@@ -271,6 +273,8 @@ public sealed class StorefrontPayLaximoPhpParityTests
         var salesOrders = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/ErpSalesOrdersApp.razor"));
         Assert.Contains("action=\"/erp/orders/settlement\"", salesOrders, StringComparison.Ordinal);
         Assert.Contains("Post order settlement", salesOrders, StringComparison.Ordinal);
+        Assert.Contains("action=\"/erp/edit-lock/release\"", salesOrders, StringComparison.Ordinal);
+        Assert.Contains("Release edit lock", salesOrders, StringComparison.Ordinal);
         var returnsRma = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/CpReturnsRmaApp.razor"));
         Assert.Contains("action=\"/erp/aftersales/rma-create\"", returnsRma, StringComparison.Ordinal);
         Assert.Contains("Create aftersales RMA", returnsRma, StringComparison.Ordinal);
