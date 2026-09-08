@@ -3394,6 +3394,7 @@ public static class LegacySurfaceDashboardSql
     /// <summary>
     /// Abandoned cart lines (read-only subset of carts.php). Deletes/filters remain PHP.
     /// Prefer guest/session rows first, then authenticated user carts.
+    /// Omits lead-time / exist / min-order (shown on Open detail).
     /// </summary>
     public const string SelectCpAbandonedCartsRows = """
         SELECT `id`, IFNULL(`user_id`,0) AS user_id, IFNULL(`session_id`,0) AS session_id,
@@ -3405,6 +3406,42 @@ public static class LegacySurfaceDashboardSql
         FROM `shop_carts`
         ORDER BY CASE WHEN IFNULL(`session_id`,0) != 0 THEN 0 ELSE 1 END ASC, `id` DESC
         LIMIT @limit
+        """;
+
+    /// <summary>Opened abandoned cart line — includes lead-time / exist / min-order from PHP cart.php.</summary>
+    public const string SelectCpAbandonedCartsLineDetail = """
+        SELECT `id`, IFNULL(`user_id`,0) AS user_id, IFNULL(`session_id`,0) AS session_id,
+               IFNULL(`price`,0) AS price, IFNULL(`count_need`,0) AS count_need,
+               IFNULL(`checked_for_order`,0) AS checked_for_order, IFNULL(`product_type`,0) AS product_type,
+               IFNULL(`t2_manufacturer`,'') AS manufacturer, IFNULL(`t2_article`,'') AS article,
+               IFNULL(`t2_name`,'') AS name, IFNULL(`time`,0) AS time,
+               CAST(IFNULL(`price`,0) * IFNULL(`count_need`,0) AS DECIMAL(20,2)) AS price_sum,
+               IFNULL(`t2_time_to_exe`,'') AS time_to_exe,
+               IFNULL(`t2_time_to_exe_guaranteed`,'') AS time_to_exe_guaranteed,
+               IFNULL(`t2_min_order`,0) AS min_order, IFNULL(`t2_exist`,0) AS t2_exist
+        FROM `shop_carts`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Sibling lines in the same guest session or user cart.</summary>
+    public const string SelectCpAbandonedCartsSiblings = """
+        SELECT `id`, IFNULL(`user_id`,0) AS user_id, IFNULL(`session_id`,0) AS session_id,
+               IFNULL(`price`,0) AS price, IFNULL(`count_need`,0) AS count_need,
+               IFNULL(`checked_for_order`,0) AS checked_for_order, IFNULL(`product_type`,0) AS product_type,
+               IFNULL(`t2_manufacturer`,'') AS manufacturer, IFNULL(`t2_article`,'') AS article,
+               IFNULL(`t2_name`,'') AS name, IFNULL(`time`,0) AS time,
+               CAST(IFNULL(`price`,0) * IFNULL(`count_need`,0) AS DECIMAL(20,2)) AS price_sum,
+               IFNULL(`t2_time_to_exe`,'') AS time_to_exe,
+               IFNULL(`t2_time_to_exe_guaranteed`,'') AS time_to_exe_guaranteed,
+               IFNULL(`t2_min_order`,0) AS min_order, IFNULL(`t2_exist`,0) AS t2_exist
+        FROM `shop_carts`
+        WHERE (
+            (@session_id > 0 AND IFNULL(`session_id`,0) = @session_id)
+            OR (@session_id = 0 AND @user_id > 0 AND IFNULL(`session_id`,0) = 0 AND IFNULL(`user_id`,0) = @user_id)
+        )
+        ORDER BY `id` DESC
+        LIMIT 50
         """;
 
     /// <summary>Customer quote list (PHP <c>my_quotes.php</c>).</summary>
