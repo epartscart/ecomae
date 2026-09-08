@@ -4803,6 +4803,30 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>Opened config snapshot. config_data is a short excerpt.</summary>
+    public const string SelectCpConfigSandboxSnapshotDetail = """
+        SELECT `id`, IFNULL(`site_key`,'') AS site_key, IFNULL(`snapshot_name`,'') AS snapshot_name,
+               IFNULL(`status`,'') AS status, IFNULL(`created_by`,0) AS created_by,
+               IFNULL(CAST(`created_at` AS CHAR),'') AS created_at,
+               IFNULL(CAST(`promoted_at` AS CHAR),'') AS promoted_at,
+               CHAR_LENGTH(IFNULL(`config_data`,'')) AS config_len,
+               LEFT(IFNULL(`config_data`,''), 280) AS config_excerpt
+        FROM `epc_config_snapshots`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Sandbox changes for the opened snapshot. old_value/new_value omitted.</summary>
+    public const string SelectCpConfigSandboxChanges = """
+        SELECT `id`, IFNULL(`change_key`,'') AS change_key,
+               IFNULL(`change_type`,'') AS change_type,
+               IFNULL(CAST(`created_at` AS CHAR),'') AS created_at
+        FROM `epc_sandbox_changes`
+        WHERE `snapshot_id` = @id
+        ORDER BY `id` DESC
+        LIMIT 50
+        """;
+
     /// <summary>Marketplace portal KPIs from epc_marketplace_* (CREATE TABLE in epc_marketplace.php).</summary>
     public const string SelectCpMarketplaceAppsStats = """
         SELECT

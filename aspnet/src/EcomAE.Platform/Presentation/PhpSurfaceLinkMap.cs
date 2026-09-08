@@ -1620,7 +1620,8 @@ public static class PhpSurfaceLinkMap
                     || aspNet.Equals("/cp/metabase-app", StringComparison.OrdinalIgnoreCase)
                     || aspNet.Equals("/cp/marketing-growth-app", StringComparison.OrdinalIgnoreCase)
                     || aspNet.Equals("/cp/isolation-audit-app", StringComparison.OrdinalIgnoreCase)
-                    || aspNet.Equals("/cp/industry-packs-app", StringComparison.OrdinalIgnoreCase))
+                    || aspNet.Equals("/cp/industry-packs-app", StringComparison.OrdinalIgnoreCase)
+                    || aspNet.Equals("/cp/config-sandbox-app", StringComparison.OrdinalIgnoreCase))
                 {
                     return ErpRecordOpen.PreserveRecordQuery(aspNet, value);
                 }
