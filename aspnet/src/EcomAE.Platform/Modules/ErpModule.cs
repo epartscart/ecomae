@@ -4971,6 +4971,8 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapPost(EcomAeRoutes.ErpAjaxHrEmpSave, HandleHrEmpSaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpHrAttendanceLog, HandleHrAttendanceAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxHrAttendance, HandleHrAttendanceAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpHrPayrollGenerate, HandleHrPayrollRunAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxHrPayrollGenerate, HandleHrPayrollRunAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxHrLeaveRequest, async (
             HttpContext context,
             ILegacySessionValidator validator,
@@ -11961,6 +11963,52 @@ public sealed class ErpModule : ISurfaceModule
             new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
     }
 
+    private static async Task<IResult> HandleHrPayrollRunAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpHrPayrollRunDryRun dryRun,
+        IErpHrPayrollRunWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/cp/hr-overview-app", "Admin ERP capability required for HR payroll generate.");
+        }
+
+        var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpHrPayrollRunBody>(context, cancellationToken) ?? new();
+        var period = body.Period;
+        var deductionsJson = body.DeductionsJson;
+        var employeeId = body.EmployeeId;
+        var label = body.Label;
+        var amount = body.Amount;
+        var confirm = body.ConfirmWrites;
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            period = LiveWriteFormBinder.Text(form, "period", "period_label", "periodLabel");
+            deductionsJson = LiveWriteFormBinder.Text(form, "deductionsJson", "deductions_json");
+            employeeId = LiveWriteFormBinder.Long(form, "employeeId", "employee_id");
+            label = LiveWriteFormBinder.Text(form, "label", "deduction_label", "deductionLabel");
+            amount = LiveWriteFormBinder.Dec(form, "amount", "deduction_amount", "deductionAmount");
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+        }
+
+        if (!confirm)
+        {
+            return Results.Ok(dryRun.Evaluate(new ErpHrPayrollRunRequest(period, false)).ToPayload(SessionPayload(session)));
+        }
+
+        var deductions = ErpHrPayrollRunWriteService.ParseDeductions(deductionsJson, employeeId, label, amount);
+        var written = await writes.GenerateAsync(new ErpHrPayrollRunWriteRequest(period, deductions), cancellationToken);
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/cp/hr-overview-app",
+            written.Succeeded,
+            written.Message,
+            new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+    }
+
     private static async Task<IResult> HandleHrEmpSaveAsync(
         HttpContext context,
         ILegacySessionValidator validator,
@@ -12514,6 +12562,13 @@ public sealed class ErpModule : ISurfaceModule
         [JsonExtensionData]
         public Dictionary<string, JsonElement>? Extra { get; set; }
     }
+    private sealed record ErpHrPayrollRunBody(
+        string? Period = null,
+        string? DeductionsJson = null,
+        long EmployeeId = 0,
+        string? Label = null,
+        decimal Amount = 0,
+        bool ConfirmWrites = false);
     private sealed record ErpHrAttendanceBody(
         long Id = 0,
         long EmployeeId = 0,

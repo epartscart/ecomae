@@ -1021,6 +1021,10 @@ public static class EcomAeRoutes
     public const string ErpAjaxHrExpenseStatus = "/erp/ajax/hr-expense-status";
     /// <summary>PHP hr_update_days. <c>confirmWrites=true</c> writes via <c>IErpHrDaysWriteService</c>.</summary>
     public const string ErpAjaxHrUpdateDays = "/erp/ajax/hr-update-days";
+    /// <summary>PHP epc_hr_payroll_run. <c>confirmWrites=true</c> writes via <c>IErpHrPayrollRunWriteService</c>.</summary>
+    public const string ErpHrPayrollGenerate = "/erp/hr/payroll/generate";
+    /// <summary>Live PHP epc_hr_payroll_run twin (ajax alias of <see cref="ErpHrPayrollGenerate"/>).</summary>
+    public const string ErpAjaxHrPayrollGenerate = "/erp/ajax/hr-payroll-generate";
     /// <summary>Wave B dry-run for PHP einvoice_create (writes=0).</summary>
     public const string ErpAjaxEinvoiceCreate = "/erp/ajax/einvoice-create";
     /// <summary>PHP einvoice_save_seller. <c>confirmWrites=true</c> writes via <c>IErpEinvoiceProfileWriteService</c>.</summary>
