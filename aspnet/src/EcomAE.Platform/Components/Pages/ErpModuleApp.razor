@@ -37,20 +37,20 @@
         <ErpPhpViewTabs QueryName="pm_view" Active="@_pmView" BaseHref="@($"/erp/module-app?tab={Uri.EscapeDataString(_tab)}")" Tabs="@_chrome.ViewTabs" />
     }
 
-    @foreach (var section in _chrome.Sections)
+    @foreach (var block in _chrome.Sections)
     {
         <div class="epc-erp-section">
-            <h4>@section.Title</h4>
-            @if (!string.IsNullOrWhiteSpace(section.Intro))
+            <h4>@block.Title</h4>
+            @if (!string.IsNullOrWhiteSpace(block.Intro))
             {
-                <p class="text-muted">@section.Intro</p>
+                <p class="text-muted">@block.Intro</p>
             }
-            @if (section.Fields.Count > 0 && _isAdmin)
+            @if (block.Fields.Count > 0 && _isAdmin)
             {
-                <ErpPhpCreateWell Title="@($"New {section.Title.ToLowerInvariant()}")">
+                <ErpPhpCreateWell Title="@($"New {block.Title.ToLowerInvariant()}")">
                     <form method="get" action="/erp/module-app" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
                         <input type="hidden" name="tab" value="@_tab" />
-                        @foreach (var field in section.Fields)
+                        @foreach (var field in block.Fields)
                         {
                             <div class="pm-field">
                                 <label>@field.Label
@@ -78,14 +78,14 @@
                 <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
                     <thead>
                         <tr>
-                            @foreach (var col in section.Columns)
+                            @foreach (var col in block.Columns)
                             {
                                 <th>@col</th>
                             }
                         </tr>
                     </thead>
                     <tbody>
-                        <tr><td colspan="@section.Columns.Count" class="text-muted">@section.EmptyCopy</td></tr>
+                        <tr><td colspan="@block.Columns.Count" class="text-muted">@block.EmptyCopy</td></tr>
                     </tbody>
                 </table>
             </div>
