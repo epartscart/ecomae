@@ -624,8 +624,10 @@ public static class EcomAeRoutes
     public const string ErpAftersalesJobClose = "/erp/aftersales/job-close";
     /// <summary>Wave B dry-run for PHP purchase_from_order (writes=0).</summary>
     public const string ErpPurchasesFromOrder = "/erp/purchases/from-order";
-    /// <summary>Wave B dry-run for PHP ccy_set_rate (writes=0).</summary>
+    /// <summary>HTML form POST for PHP ccy_set_rate. confirmWrites=true writes via IErpCcySetRateWriteService.</summary>
     public const string ErpCcySetRate = "/erp/currency/set-rate";
+    /// <summary>Live PHP ccy_set_rate ajax alias of <see cref="ErpCcySetRate"/>.</summary>
+    public const string ErpAjaxCcySetRate = "/erp/ajax/ccy-set-rate";
     /// <summary>Wave B dry-run for PHP period_soft_close (writes=0).</summary>
     public const string ErpPeriodSoftClose = "/erp/periods/soft-close";
     /// <summary>Wave B dry-run for PHP period_lock (writes=0).</summary>

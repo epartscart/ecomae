@@ -149,6 +149,7 @@ public sealed class PhpVsAspNetRemovalMatrixTests
             ("ErpInventoryForecastApp.razor", "/erp/inventory-forecast/recompute"),
             ("ErpMultiEntityApp.razor", "/erp/multi-entity/write"),
             ("ErpMultiCurrencyGlApp.razor", "/erp/multi-currency-gl/set-rate"),
+            ("ErpMultiCurrencyGlApp.razor", "/erp/currency/set-rate"),
             ("CpCreditLimitsApp.razor", "/cp/credit-limits/set"),
             ("CpPoApprovalsApp.razor", "/cp/po-approvals/approve"),
             ("CpOrdersApp.razor", "/cp/orders/set-item-status"),

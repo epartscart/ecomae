@@ -2228,22 +2228,8 @@ public sealed class ErpModule : ISurfaceModule
             return Results.Ok(result.ToPayload(SessionPayload(session)));
         });
 
-        endpoints.MapPost(EcomAeRoutes.ErpCcySetRate, async (
-            HttpContext context,
-            ErpCcySetRateBody? body,
-            ILegacySessionValidator validator,
-            IErpCcySetRateDryRun dryRun,
-            CancellationToken cancellationToken) =>
-        {
-            var session = await validator.ValidateAsync(context, cancellationToken);
-            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
-            {
-                return Unauthorized("Admin ERP capability required for currency set-rate dry-run.");
-            }
-            body ??= new ErpCcySetRateBody(null, null, 0, false);
-            var result = dryRun.Evaluate(new ErpCcySetRateRequest(body.From, body.To, body.Rate, body.ConfirmWrites));
-            return Results.Ok(result.ToPayload(SessionPayload(session)));
-        });
+        endpoints.MapPost(EcomAeRoutes.ErpCcySetRate, HandleCcySetRateAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxCcySetRate, HandleCcySetRateAsync).DisableAntiforgery();
 
         endpoints.MapPost(EcomAeRoutes.ErpPeriodSoftClose, async (
             HttpContext context,
@@ -11772,6 +11758,63 @@ public sealed class ErpModule : ISurfaceModule
                 session = SessionPayload(session),
             });
         }
+    }
+
+    private static async Task<IResult> HandleCcySetRateAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpCcySetRateDryRun dryRun,
+        IErpCcySetRateWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/multi-currency-gl-app", "Admin ERP capability required for currency set-rate.");
+        }
+
+        var from = "";
+        var to = "";
+        var rate = 0m;
+        var asOf = "";
+        var asOfUnix = 0L;
+        var confirm = false;
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            from = LiveWriteFormBinder.Text(form, "from", "From");
+            to = LiveWriteFormBinder.Text(form, "to", "To");
+            rate = LiveWriteFormBinder.Dec(form, "rate", "Rate");
+            asOf = LiveWriteFormBinder.Text(form, "as_of", "asOf");
+            asOfUnix = LiveWriteFormBinder.Long(form, "asOfUnix", "as_of_unix");
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+        }
+        else
+        {
+            var root = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<System.Text.Json.JsonElement>(context, cancellationToken);
+            confirm = ErpCcySetRateWriteService.JsonFlag(root, "confirmWrites", "confirm_writes");
+            from = ErpCcySetRateWriteService.JsonText(root, "from", "From");
+            to = ErpCcySetRateWriteService.JsonText(root, "to", "To");
+            rate = ErpCcySetRateWriteService.JsonDec(root, "rate", "Rate");
+            asOf = ErpCcySetRateWriteService.JsonText(root, "as_of", "asOf");
+            asOfUnix = ErpCcySetRateWriteService.JsonLong(root, "asOfUnix", "as_of_unix");
+        }
+
+        var unix = ErpCcySetRateWriteService.ResolveAsOfUnix(asOf, asOfUnix);
+        if (!confirm)
+        {
+            return Results.Ok(dryRun.Evaluate(new ErpCcySetRateRequest(from, to, rate, false)).ToPayload(SessionPayload(session)));
+        }
+
+        var written = await writes.SaveAsync(
+            new ErpCcySetRateWriteRequest(from, to, rate, unix),
+            cancellationToken);
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/erp/multi-currency-gl-app",
+            written.Succeeded,
+            written.Message,
+            new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
     }
 
     private static async Task<IResult> HandleWhtCodeSaveAsync(

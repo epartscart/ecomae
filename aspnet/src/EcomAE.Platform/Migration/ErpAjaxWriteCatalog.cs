@@ -46,7 +46,7 @@ public sealed class ErpAjaxWriteCatalog : IErpAjaxWriteCatalog
         new("period_reopen", "dedicated", "/erp/periods/reopen"),
         new("period_summary", "dedicated", "/erp/ajax/period-summary"),
         new("period_log", "dedicated", "/erp/ajax/period-log"),
-        new("ccy_set_rate", "dedicated", "/erp/currency/set-rate"),
+        new("ccy_set_rate", "dedicated", "/erp/ajax/ccy-set-rate"),
         new("fx_revaluation_preview", "dedicated", "/erp/ajax/fx-revaluation-preview"),
         new("fx_post_revaluation", "dedicated", "/erp/ajax/fx-post-revaluation"),
         new("gl_post_sales", "dedicated", "/erp/gl-journals/post-sales"),

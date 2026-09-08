@@ -3111,6 +3111,17 @@ public sealed class LiveWriteServiceValidationTests
             .LogAsync(new ErpHrAttendanceWriteRequest(EmployeeId: 1, Hours: 8));
         Assert.False(hrAttDb.Succeeded);
         Assert.Equal("db", hrAttDb.Code);
+
+        var bosCcyInvalid = await new ErpCcySetRateWriteService(new ConfiguredNeverOpened())
+            .SaveAsync(new ErpCcySetRateWriteRequest());
+        Assert.False(bosCcyInvalid.Succeeded);
+        Assert.Equal("invalid", bosCcyInvalid.Code);
+        Assert.Equal("Provide from, to and a positive rate", bosCcyInvalid.Message);
+
+        var bosCcyDb = await new ErpCcySetRateWriteService(new UnconfiguredConnections())
+            .SaveAsync(new ErpCcySetRateWriteRequest(From: "USD", To: "AED", Rate: 3.67m, AsOfUnix: 1788868800));
+        Assert.False(bosCcyDb.Succeeded);
+        Assert.Equal("db", bosCcyDb.Code);
     }
 
     [Fact]
