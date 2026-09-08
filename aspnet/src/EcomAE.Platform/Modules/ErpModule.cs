@@ -5429,8 +5429,8 @@ public sealed class ErpModule : ISurfaceModule
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpPmListingSaveRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxPmListingAttach, async (HttpContext context, ErpPmListingAttachBody? body, ILegacySessionValidator validator, IErpPmListingAttachDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpPmListingAttachRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxPmChequeSave, async (HttpContext context, ErpPmChequeSaveBody? body, ILegacySessionValidator validator, IErpPmChequeSaveDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpPmChequeSaveRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxPmChequeSave, HandlePmChequeSaveAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpPmChequeSave, HandlePmChequeSaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxMfgrWcSave, async (HttpContext context, ErpMfgrWcSaveBody? body, ILegacySessionValidator validator, IErpMfgrWcSaveDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpMfgrWcSaveRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxMfgrRouteSave, async (HttpContext context, ErpMfgrRouteSaveBody? body, ILegacySessionValidator validator, IErpMfgrRouteSaveDryRun dryRun, CancellationToken cancellationToken) =>
@@ -11774,6 +11774,65 @@ public sealed class ErpModule : ISurfaceModule
         }
     }
 
+    private static async Task<IResult> HandlePmChequeSaveAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpPmChequeSaveDryRun dryRun,
+        IErpPmChequeSaveWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/budgets-app", "Admin ERP capability required for cheque save.");
+        }
+
+        var bankAccountId = 0L;
+        var chequeNo = "";
+        var payTo = "";
+        var amount = 0m;
+        var chequeDate = "";
+        var memo = "";
+        var confirm = false;
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            bankAccountId = LiveWriteFormBinder.Long(form, "bank_account_id", "bankAccountId");
+            chequeNo = LiveWriteFormBinder.Text(form, "cheque_no", "chequeNo");
+            payTo = LiveWriteFormBinder.Text(form, "pay_to", "payTo");
+            amount = LiveWriteFormBinder.Dec(form, "amount");
+            chequeDate = LiveWriteFormBinder.Text(form, "cheque_date", "chequeDate");
+            memo = LiveWriteFormBinder.Text(form, "memo");
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+        }
+        else
+        {
+            var root = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<System.Text.Json.JsonElement>(context, cancellationToken);
+            confirm = ErpPmChequeSaveWriteService.JsonFlag(root, "confirmWrites", "confirm_writes");
+            bankAccountId = ErpPmChequeSaveWriteService.JsonLong(root, "bank_account_id", "bankAccountId");
+            chequeNo = ErpPmChequeSaveWriteService.JsonText(root, "cheque_no", "chequeNo");
+            payTo = ErpPmChequeSaveWriteService.JsonText(root, "pay_to", "payTo");
+            amount = ErpPmChequeSaveWriteService.JsonDec(root, "amount");
+            chequeDate = ErpPmChequeSaveWriteService.JsonText(root, "cheque_date", "chequeDate");
+            memo = ErpPmChequeSaveWriteService.JsonText(root, "memo");
+        }
+
+        if (!confirm)
+        {
+            return Results.Ok(dryRun.Evaluate(new ErpPmChequeSaveRequest(0, chequeNo, false)).ToPayload(SessionPayload(session)));
+        }
+
+        var written = await writes.SaveAsync(
+            new ErpPmChequeSaveWriteRequest(bankAccountId, chequeNo, payTo, amount, chequeDate, memo),
+            cancellationToken);
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/erp/budgets-app",
+            written.Succeeded,
+            written.Message,
+            new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+    }
+
     private static async Task<IResult> HandleWhtCodeSaveAsync(
         HttpContext context,
         ILegacySessionValidator validator,
@@ -12604,7 +12663,6 @@ public sealed class ErpModule : ISurfaceModule
     private sealed record ErpPmBudgetLineSaveBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpPmListingSaveBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpPmListingAttachBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
-    private sealed record ErpPmChequeSaveBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpMfgrWcSaveBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpMfgrRouteSaveBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpMfgrMrpRunBody(bool ConfirmWrites = false);
