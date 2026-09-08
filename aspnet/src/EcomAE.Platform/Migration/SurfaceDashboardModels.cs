@@ -1057,6 +1057,38 @@ public sealed record CpMarketingBroadcastDigestResult(
     string Source,
     string Message);
 
+public sealed record CpMarketingBroadcastCampaignDetail(
+    long Id,
+    long CreatedAt,
+    string Channel,
+    string TemplateKey,
+    string Subject,
+    string Preview,
+    string BodyHtml,
+    string BodyText,
+    string AudienceMode,
+    string AudienceMeta,
+    int TotalTargets,
+    int SentOk,
+    int SentFail,
+    string Status,
+    long OperatorId);
+
+public sealed record CpMarketingBroadcastLogDigest(
+    long Id,
+    long CreatedAt,
+    string Recipient,
+    long UserId,
+    int Status,
+    string Detail,
+    string WaLink);
+
+public sealed record CpMarketingBroadcastDetailResult(
+    CpMarketingBroadcastCampaignDetail? Campaign,
+    IReadOnlyList<CpMarketingBroadcastLogDigest> Log,
+    string Source,
+    string Message);
+
 public sealed record CpDemoTenantDigest(
     string SiteKey,
     string Hostname,

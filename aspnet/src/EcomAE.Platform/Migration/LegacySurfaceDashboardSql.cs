@@ -1365,6 +1365,40 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>Opened campaign includes bodies omitted from the list dump.</summary>
+    public const string SelectCpMarketingBroadcastCampaignDetail = """
+        SELECT `id`, IFNULL(`created_at`, 0) AS created_at,
+               IFNULL(`channel`, '') AS channel,
+               IFNULL(`template_key`, '') AS template_key,
+               IFNULL(`subject`, '') AS subject,
+               IFNULL(`preview`, '') AS preview,
+               IFNULL(`body_html`, '') AS body_html,
+               IFNULL(`body_text`, '') AS body_text,
+               IFNULL(`audience_mode`, '') AS audience_mode,
+               IFNULL(`audience_meta`, '') AS audience_meta,
+               IFNULL(`total_targets`, 0) AS total_targets,
+               IFNULL(`sent_ok`, 0) AS sent_ok,
+               IFNULL(`sent_fail`, 0) AS sent_fail,
+               IFNULL(`status`, '') AS status,
+               IFNULL(`operator_id`, 0) AS operator_id
+        FROM `epc_marketing_broadcast_campaigns`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    public const string SelectCpMarketingBroadcastLog = """
+        SELECT `id`, IFNULL(`created_at`, 0) AS created_at,
+               IFNULL(`recipient`, '') AS recipient,
+               IFNULL(`user_id`, 0) AS user_id,
+               IFNULL(`status`, 0) AS status,
+               IFNULL(`detail`, '') AS detail,
+               IFNULL(`wa_link`, '') AS wa_link
+        FROM `epc_marketing_broadcast_log`
+        WHERE `campaign_id` = @id
+        ORDER BY `id` DESC
+        LIMIT 200
+        """;
+
     /// <summary>Demo tenant registry — no passwords / temp credentials.</summary>
     public const string SelectCpDemoTenants = """
         SELECT IFNULL(`site_key`, '') AS site_key,
