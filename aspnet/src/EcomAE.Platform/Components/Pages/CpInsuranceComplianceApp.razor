@@ -21,12 +21,11 @@
             </div>
             <div class="panel-body">
                 <p>@CpPhpModuleCopy.PurposeFor("/cp/insurance-compliance-app")</p>
-                <p>Log a claim, set claim status, add or remove a document, and save or delete a policy here.</p>
+                <p>Log a claim, set claim status, add or remove a document, and save or delete a policy here. Open a row for notes, documents, and claims.</p>
             </div>
         </div>
     </div>
-    <PhpParityModuleBody AppPath="/cp/insurance-compliance-app" IsAdmin="_isAdmin" />
-
+    <PhpParityModuleBody AppPath="/cp/insurance-compliance-app" IsAdmin="_isAdmin" ShowGhostScaffold="false" />
 
     @if (!string.IsNullOrWhiteSpace(_flashOk))
     {
@@ -36,12 +35,22 @@
     {
         <div class="alert alert-danger" role="status" style="margin:0 0 1rem;padding:.7rem .9rem;border-radius:.4rem;background:#fef2f2;color:#991b1b">@_flashErr</div>
     }
+
+    <ErpOpenedRecordBanner Id="_openedId" Found="@(_openedDetail is not null)" Caption="@OpenedCaption" ListHref="@_listHref" />
+
+    <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Insurance compliance KPIs">
+        <div class="kpi"><div class="lbl">Policies</div><div class="val">@_summary.PolicyCount.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Active</div><div class="val">@_summary.ActiveCount.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Claims</div><div class="val">@_summary.ClaimCount.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Documents</div><div class="val">@_summary.DocumentCount.ToString(CultureInfo.InvariantCulture)</div></div>
+    </div>
+
     @if (_isAdmin)
     {
         <form method="post" action="/erp/ajax/ins-claim-add" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="/cp/insurance-compliance-app" />
-            <label>Policy id <input type="number" name="policy_id" min="0" style="width:6rem" /></label>
+            <input type="hidden" name="returnUrl" value="@_returnHref" />
+            <label>Policy id <input type="number" name="policy_id" min="0" style="width:6rem" value="@OpenedIdValue" /></label>
             <label>Claim no <input type="text" name="claim_no" /></label>
             <label>Description <input type="text" name="description" /></label>
             <label>Amount <input type="number" name="claim_amount" step="0.01" style="width:7rem" /></label>
@@ -49,7 +58,7 @@
         </form>
         <form method="post" action="/erp/ajax/ins-claim-status" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="@(Http.HttpContext?.Request.Path.Value ?? "/cp/insurance-compliance-app")" />
+            <input type="hidden" name="returnUrl" value="@_returnHref" />
             <label>Claim id <input type="number" name="id" min="1" required style="width:6rem" /></label>
             <label>Status
                 <select name="status">
@@ -66,20 +75,20 @@
         </form>
         <form method="post" action="/erp/ajax/ins-doc-delete" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="@(Http.HttpContext?.Request.Path.Value ?? "/cp/insurance-compliance-app")" />
+            <input type="hidden" name="returnUrl" value="@_returnHref" />
             <label>Document id <input type="number" name="id" min="1" required style="width:6rem" /></label>
             <button type="submit">Remove document</button>
         </form>
         <form method="post" action="/erp/insurance/delete" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="/cp/insurance-compliance-app" />
-            <label>Policy id <input type="number" name="id" min="1" required style="width:6rem" /></label>
+            <input type="hidden" name="returnUrl" value="@_listHref" />
+            <label>Policy id <input type="number" name="id" min="1" required style="width:6rem" value="@OpenedIdValue" /></label>
             <button type="submit">Delete policy</button>
         </form>
         <form method="post" action="/erp/insurance/docs/add" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="/cp/insurance-compliance-app" />
-            <label>Policy id <input type="number" name="policy_id" min="1" required style="width:6rem" /></label>
+            <input type="hidden" name="returnUrl" value="@_returnHref" />
+            <label>Policy id <input type="number" name="policy_id" min="1" required style="width:6rem" value="@OpenedIdValue" /></label>
             <label>Type
                 <select name="doc_type">
                     <option value="policy">Policy schedule</option>
@@ -94,9 +103,9 @@
             <label>File path / URL <input type="text" name="file_path" placeholder="/uploads/policy.pdf" /></label>
             <button type="submit">Add document</button>
         </form>
-        <form method="post" action="/erp/insurance/save" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+        <form id="erp-module-new" method="post" action="/erp/insurance/save" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="/cp/insurance-compliance-app" />
+            <input type="hidden" name="returnUrl" value="@_listHref" />
             <label>Policy no <input type="text" name="policy_no" required /></label>
             <label>Class
                 <select name="class">
@@ -117,6 +126,129 @@
         </form>
     }
 
+    @if (_openedDetail is not null)
+    {
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">
+                    @(!string.IsNullOrWhiteSpace(_openedDetail.PolicyNo) ? _openedDetail.PolicyNo : ("Policy #" + _openedDetail.Id.ToString(CultureInfo.InvariantCulture)))
+                    <span class="label label-default pull-right">@(!string.IsNullOrWhiteSpace(_openedDetail.Status) ? _openedDetail.Status : "—")</span>
+                </div>
+                <div class="panel-body">
+                    <p>@(!string.IsNullOrWhiteSpace(_openedDetail.Title) ? _openedDetail.Title : "—")
+                        · @(!string.IsNullOrWhiteSpace(_openedDetail.Class) ? _openedDetail.Class : "—")</p>
+                    <p>Insurer <strong>@(!string.IsNullOrWhiteSpace(_openedDetail.Insurer) ? _openedDetail.Insurer : "—")</strong>
+                        @if (!string.IsNullOrWhiteSpace(_openedDetail.Broker))
+                        {
+                            <span> · Broker @_openedDetail.Broker</span>
+                        }
+                        @if (!string.IsNullOrWhiteSpace(_openedDetail.InsuredName))
+                        {
+                            <span> · Insured @_openedDetail.InsuredName</span>
+                        }
+                    </p>
+                    <p>Sum @_openedDetail.SumInsured.ToString("0.00", CultureInfo.InvariantCulture)
+                        · Premium @_openedDetail.Premium.ToString("0.00", CultureInfo.InvariantCulture)
+                        @(!string.IsNullOrWhiteSpace(_openedDetail.Currency) ? _openedDetail.Currency : "")
+                        · Deductible @_openedDetail.Deductible.ToString("0.00", CultureInfo.InvariantCulture)</p>
+                    @if (!string.IsNullOrWhiteSpace(_openedDetail.ContactEmail))
+                    {
+                        <p>Reminder @_openedDetail.ContactEmail
+                            @if (!string.IsNullOrWhiteSpace(_openedDetail.ReminderDays))
+                            {
+                                <span> · @_openedDetail.ReminderDays</span>
+                            }
+                        </p>
+                    }
+                    @if (!string.IsNullOrWhiteSpace(_openedDetail.Note))
+                    {
+                        <p class="text-muted">@_openedDetail.Note</p>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">Documents</div>
+                <div class="panel-body">
+                    <div class="table-responsive">
+                        <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped table-bordered table-epc epc-erp-table">
+                            <thead>
+                                <tr>
+                                    <th>Id</th>
+                                    <th>Type</th>
+                                    <th>Title</th>
+                                    <th>File</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (_openedDocs.Count == 0)
+                                {
+                                    <tr><td colspan="4">No documents yet.</td></tr>
+                                }
+                                else
+                                {
+                                    @foreach (var doc in _openedDocs)
+                                    {
+                                        <tr>
+                                            <td>@doc.Id.ToString(CultureInfo.InvariantCulture)</td>
+                                            <td>@(!string.IsNullOrWhiteSpace(doc.DocType) ? doc.DocType : "—")</td>
+                                            <td>@(!string.IsNullOrWhiteSpace(doc.Title) ? doc.Title : "—")</td>
+                                            <td>@(!string.IsNullOrWhiteSpace(doc.FilePath) ? doc.FilePath : "—")</td>
+                                        </tr>
+                                    }
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">Claims</div>
+                <div class="panel-body">
+                    <div class="table-responsive">
+                        <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped table-bordered table-epc epc-erp-table">
+                            <thead>
+                                <tr>
+                                    <th>Id</th>
+                                    <th>Claim</th>
+                                    <th>Status</th>
+                                    <th class="text-right">Amount</th>
+                                    <th class="text-right">Settled</th>
+                                    <th>Description</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (_openedClaims.Count == 0)
+                                {
+                                    <tr><td colspan="6">No claims yet.</td></tr>
+                                }
+                                else
+                                {
+                                    @foreach (var claim in _openedClaims)
+                                    {
+                                        <tr>
+                                            <td>@claim.Id.ToString(CultureInfo.InvariantCulture)</td>
+                                            <td>@(!string.IsNullOrWhiteSpace(claim.ClaimNo) ? claim.ClaimNo : "—")</td>
+                                            <td>@(!string.IsNullOrWhiteSpace(claim.Status) ? claim.Status : "—")</td>
+                                            <td class="text-right">@claim.ClaimAmount.ToString("0.00", CultureInfo.InvariantCulture)</td>
+                                            <td class="text-right">@claim.SettledAmount.ToString("0.00", CultureInfo.InvariantCulture)</td>
+                                            <td>@(!string.IsNullOrWhiteSpace(claim.Description) ? claim.Description : "—")</td>
+                                        </tr>
+                                    }
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
     <p class="help-block">@_summary.PolicyCount.ToString(CultureInfo.InvariantCulture) Policies · @_summary.ActiveCount.ToString(CultureInfo.InvariantCulture) Active · @_summary.ClaimCount.ToString(CultureInfo.InvariantCulture) Claims · @_summary.DocumentCount.ToString(CultureInfo.InvariantCulture) Documents.</p>
 
     <div class="col-lg-12">
@@ -124,51 +256,51 @@
             <div class="panel-heading hbuilt">Records</div>
             <div class="panel-body">
                 <div class="table-responsive">
-                    <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped">
-        <thead>
-            <tr>
-                    <th>Id</th>
-                    <th>Company</th>
-                    <th>Policy</th>
-                    <th>Class</th>
-                    <th>Title</th>
-                    <th>Insurer</th>
-                    <th>Sum</th>
-                    <th>Premium</th>
-                    <th>CCY</th>
-                    <th>Status</th>
-                    <th>Expiry</th>
-                    <th>Created</th>
-                    <th></th>
-            </tr>
-        </thead>
-        <tbody>
-            @if (_rows.Count == 0)
-            {
-                <tr><td colspan="13">No records yet.</td></tr>
-            }
-            else
-            {
-                @foreach (var row in _rows)
-                {
-                    <tr>
-                            <td>@row.Id.ToString(CultureInfo.InvariantCulture)</td>
-                            <td>@row.CompanyId.ToString(CultureInfo.InvariantCulture)</td>
-                            <td>@(!string.IsNullOrWhiteSpace(row.PolicyNo) ? row.PolicyNo : "—")</td>
-                            <td>@(!string.IsNullOrWhiteSpace(row.Class) ? row.Class : "—")</td>
-                            <td>@(!string.IsNullOrWhiteSpace(row.Title) ? row.Title : "—")</td>
-                            <td>@(!string.IsNullOrWhiteSpace(row.Insurer) ? row.Insurer : "—")</td>
-                            <td>@row.SumInsured.ToString(CultureInfo.InvariantCulture)</td>
-                            <td>@row.Premium.ToString(CultureInfo.InvariantCulture)</td>
-                            <td>@(!string.IsNullOrWhiteSpace(row.Currency) ? row.Currency : "—")</td>
-                            <td>@(!string.IsNullOrWhiteSpace(row.Status) ? row.Status : "—")</td>
-                            <td>@row.ExpiryDate.ToString(CultureInfo.InvariantCulture)</td>
-                            <td>@row.TimeCreated.ToString(CultureInfo.InvariantCulture)</td>
-                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
-                    </tr>
-                }
-            }
-        </tbody>
+                    <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped table-bordered table-epc epc-erp-table">
+                        <thead>
+                            <tr>
+                                <th>Id</th>
+                                <th>Company</th>
+                                <th>Policy</th>
+                                <th>Class</th>
+                                <th>Title</th>
+                                <th>Insurer</th>
+                                <th>Sum</th>
+                                <th>Premium</th>
+                                <th>CCY</th>
+                                <th>Status</th>
+                                <th>Expiry</th>
+                                <th>Created</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (_rows.Count == 0)
+                            {
+                                <tr><td colspan="13">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? "No records yet." : _message) : "Sign in with a staff session for live rows.")</td></tr>
+                            }
+                            else
+                            {
+                                @foreach (var row in _rows)
+                                {
+                                    <tr id="erp-row-@row.Id.ToString(CultureInfo.InvariantCulture)" class="@ErpRecordOpen.RowClass(row.Id, _openedId)">
+                                        <td>@row.Id.ToString(CultureInfo.InvariantCulture)</td>
+                                        <td>@row.CompanyId.ToString(CultureInfo.InvariantCulture)</td>
+                                        <td>@(!string.IsNullOrWhiteSpace(row.PolicyNo) ? row.PolicyNo : "—")</td>
+                                        <td>@(!string.IsNullOrWhiteSpace(row.Class) ? row.Class : "—")</td>
+                                        <td>@(!string.IsNullOrWhiteSpace(row.Title) ? row.Title : "—")</td>
+                                        <td>@(!string.IsNullOrWhiteSpace(row.Insurer) ? row.Insurer : "—")</td>
+                                        <td>@row.SumInsured.ToString(CultureInfo.InvariantCulture)</td>
+                                        <td>@row.Premium.ToString(CultureInfo.InvariantCulture)</td>
+                                        <td>@(!string.IsNullOrWhiteSpace(row.Currency) ? row.Currency : "—")</td>
+                                        <td>@(!string.IsNullOrWhiteSpace(row.Status) ? row.Status : "—")</td>
+                                        <td>@row.ExpiryDate.ToString(CultureInfo.InvariantCulture)</td>
+                                        <td>@row.TimeCreated.ToString(CultureInfo.InvariantCulture)</td>
+                                        <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href(_listHref, "pol", row.Id)">Open</a></td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
                     </table>
                 </div>
             </div>
@@ -186,6 +318,19 @@
     private string _message = "";
     private string _flashOk = "";
     private string _flashErr = "";
+    private long _openedId;
+    private CpInsuranceCompliancePolicyDetail? _openedDetail;
+    private IReadOnlyList<CpInsuranceComplianceDocumentDigest> _openedDocs = [];
+    private IReadOnlyList<CpInsuranceComplianceClaimDigest> _openedClaims = [];
+    private string _listHref = "/cp/insurance-compliance-app";
+    private string _returnHref = "/cp/insurance-compliance-app";
+
+    private string OpenedCaption => _openedDetail is null
+        ? ""
+        : (string.IsNullOrWhiteSpace(_openedDetail.PolicyNo) ? ("Policy #" + _openedDetail.Id.ToString(CultureInfo.InvariantCulture)) : _openedDetail.PolicyNo)
+            + " · " + (string.IsNullOrWhiteSpace(_openedDetail.Status) ? "open" : _openedDetail.Status);
+
+    private string OpenedIdValue => _openedId > 0 ? _openedId.ToString(CultureInfo.InvariantCulture) : "";
 
     protected override async Task OnInitializedAsync()
     {
@@ -193,6 +338,14 @@
         if (ctx is null) return;
         _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
         _flashErr = ctx.Request.Query["err"].ToString() ?? "";
+        var path = ctx.Request.Path.Value;
+        _listHref = string.Equals(path, "/erp/insurance-compliance-app", StringComparison.OrdinalIgnoreCase)
+            ? "/erp/insurance-compliance-app"
+            : "/cp/insurance-compliance-app";
+        _openedId = ErpRecordOpen.ReadId(ctx.Request, "pol", "policy_id");
+        _returnHref = _openedId > 0
+            ? ErpRecordOpen.Href(_listHref, "pol", _openedId).Split('#')[0]
+            : _listHref;
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
@@ -206,5 +359,25 @@
         _rows = result.Policies;
         _source = result.Source;
         _message = result.Message;
+
+        if (_openedId > 0)
+        {
+            var detail = await Dashboards.BuildCpInsuranceComplianceDetailAsync(_openedId, ctx.RequestAborted);
+            _openedDetail = detail.Policy;
+            _openedDocs = detail.Documents;
+            _openedClaims = detail.Claims;
+            if (_openedDetail is not null)
+            {
+                var openedList = _rows.FirstOrDefault(r => r.Id == _openedId);
+                if (openedList is not null)
+                {
+                    _rows = new[] { openedList }.Concat(_rows.Where(r => r.Id != _openedId)).ToList();
+                }
+            }
+            else if (!string.IsNullOrWhiteSpace(detail.Message))
+            {
+                _message = detail.Message;
+            }
+        }
     }
 }
