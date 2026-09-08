@@ -9577,8 +9577,8 @@ public sealed class ErpModule : ISurfaceModule
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(false); return Results.Ok(dryRun.Evaluate(new ErpFinPeriodsGenerateRequest(body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxFinFxRevalue, async (HttpContext context, ErpFinFxRevalueBody? body, ILegacySessionValidator validator, IErpFinFxRevalueDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(false); return Results.Ok(dryRun.Evaluate(new ErpFinFxRevalueRequest(body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxFinAllocSave, async (HttpContext context, ErpFinAllocSaveBody? body, ILegacySessionValidator validator, IErpFinAllocSaveDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpFinAllocSaveRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxFinAllocSave, HandleFinAllocSaveAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpFinAllocSave, HandleFinAllocSaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxFinAllocRun, async (HttpContext context, ErpFinAllocRunBody? body, ILegacySessionValidator validator, IErpFinAllocRunDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(false); return Results.Ok(dryRun.Evaluate(new ErpFinAllocRunRequest(body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxFinAccrualSave, async (HttpContext context, ErpFinAccrualSaveBody? body, ILegacySessionValidator validator, IErpFinAccrualSaveDryRun dryRun, CancellationToken cancellationToken) =>
@@ -11774,6 +11774,63 @@ public sealed class ErpModule : ISurfaceModule
         }
     }
 
+    private static async Task<IResult> HandleFinAllocSaveAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpFinAllocSaveDryRun dryRun,
+        IErpFinAllocSaveWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/fin-advanced-app", "Admin ERP capability required for allocation rule save.");
+        }
+
+        var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpFinAllocSaveBody>(context, cancellationToken) ?? new();
+        var id = body.Id;
+        var companyId = body.CompanyId;
+        var code = body.Code;
+        var name = body.Name;
+        var sourceAccount = body.SourceAccount;
+        var basis = body.Basis;
+        var active = body.Active;
+        var confirm = body.ConfirmWrites;
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            id = LiveWriteFormBinder.Long(form, "id");
+            companyId = LiveWriteFormBinder.Long(form, "companyId", "company_id", "company");
+            code = LiveWriteFormBinder.Text(form, "code");
+            name = LiveWriteFormBinder.Text(form, "name");
+            sourceAccount = LiveWriteFormBinder.Text(form, "source_account", "sourceAccount");
+            if (form.ContainsKey("basis"))
+            {
+                basis = LiveWriteFormBinder.Text(form, "basis");
+            }
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            if (form.ContainsKey("active") || form.ContainsKey("Active"))
+            {
+                active = LiveWriteFormBinder.Flag(form, "active", "Active") ? 1 : 0;
+            }
+        }
+
+        if (!confirm)
+        {
+            return Results.Ok(dryRun.Evaluate(new ErpFinAllocSaveRequest(id, companyId, code, name, sourceAccount, basis, active, false)).ToPayload(SessionPayload(session)));
+        }
+
+        var written = await writes.SaveAsync(
+            new ErpFinAllocSaveWriteRequest(id, companyId, code, name, sourceAccount, basis, active),
+            cancellationToken);
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/erp/fin-advanced-app",
+            written.Succeeded,
+            written.Message,
+            new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+    }
+
     private static async Task<IResult> HandleWhtCodeSaveAsync(
         HttpContext context,
         ILegacySessionValidator validator,
@@ -12617,7 +12674,15 @@ public sealed class ErpModule : ISurfaceModule
         bool ConfirmWrites = false);
     private sealed record ErpFinPeriodsGenerateBody(bool ConfirmWrites = false);
     private sealed record ErpFinFxRevalueBody(bool ConfirmWrites = false);
-    private sealed record ErpFinAllocSaveBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
+    private sealed record ErpFinAllocSaveBody(
+        long Id = 0,
+        long CompanyId = 0,
+        string? Code = null,
+        string? Name = null,
+        string? SourceAccount = null,
+        string? Basis = null,
+        int? Active = null,
+        bool ConfirmWrites = false);
     private sealed record ErpFinAllocRunBody(bool ConfirmWrites = false);
     private sealed record ErpFinAccrualSaveBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpCollHoldSetBody(

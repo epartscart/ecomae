@@ -1240,7 +1240,9 @@ public static class EcomAeRoutes
     public const string ErpAjaxFinPeriodsGenerate = "/erp/ajax/fin-periods-generate";
     /// <summary>Wave B dry-run for PHP fin_fx_revalue (writes=0).</summary>
     public const string ErpAjaxFinFxRevalue = "/erp/ajax/fin-fx-revalue";
-    /// <summary>Wave B dry-run for PHP fin_alloc_save (writes=0).</summary>
+    /// <summary>HTML form POST for PHP <c>fin_alloc_save</c>. <c>confirmWrites=true</c> writes via <c>IErpFinAllocSaveWriteService</c>.</summary>
+    public const string ErpFinAllocSave = "/erp/fin/alloc/save";
+    /// <summary>Live PHP epc_fin_alloc_rule_save ajax alias of <see cref="ErpFinAllocSave"/>.</summary>
     public const string ErpAjaxFinAllocSave = "/erp/ajax/fin-alloc-save";
     /// <summary>Wave B dry-run for PHP fin_alloc_run (writes=0).</summary>
     public const string ErpAjaxFinAllocRun = "/erp/ajax/fin-alloc-run";

@@ -3111,6 +3111,11 @@ public sealed class LiveWriteServiceValidationTests
             .LogAsync(new ErpHrAttendanceWriteRequest(EmployeeId: 1, Hours: 8));
         Assert.False(hrAttDb.Succeeded);
         Assert.Equal("db", hrAttDb.Code);
+
+        var finAllocDb = await new ErpFinAllocSaveWriteService(new UnconfiguredConnections())
+            .SaveAsync(new ErpFinAllocSaveWriteRequest(Code: "SPLIT"));
+        Assert.False(finAllocDb.Succeeded);
+        Assert.Equal("db", finAllocDb.Code);
     }
 
     [Fact]
