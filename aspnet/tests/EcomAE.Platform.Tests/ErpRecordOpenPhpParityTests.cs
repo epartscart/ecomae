@@ -92,6 +92,9 @@ public sealed class ErpRecordOpenPhpParityTests
     [InlineData("ErpSalesQuotationsApp.razor", "quote_id")]
     [InlineData("ErpMarketingApp.razor", "campaign_id")]
     [InlineData("ErpContactsApp.razor", "contact_id")]
+    [InlineData("ErpCashAccountsApp.razor", "account_id")]
+    [InlineData("ErpOnPremisesApp.razor", "license_id")]
+    [InlineData("ErpPayablesApp.razor", "supplier_id")]
     public void DumpListApps_RowOpenIsRecordUrl(string fileName, string param)
     {
         var root = FindRepoRoot();
