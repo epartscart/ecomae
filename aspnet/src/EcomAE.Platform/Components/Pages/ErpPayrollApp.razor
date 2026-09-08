@@ -13,7 +13,7 @@
 <PhpChromeStyles Surface="erp" />
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Payroll" BreadcrumbArea="People" BreadcrumbTab="Payroll">
 
-    <PhpErpModulePageHeader Title="Payroll runs" Subtitle="Period totals from the shop payroll register. Approve writes on ASP.NET." />
+    <PhpErpModulePageHeader Title="Payroll runs" Subtitle="Generate a draft run from active staff, then approve here." />
     <PhpErpD365ActionPane RefreshHref="/erp/payroll-app" />
 
     @if (!string.IsNullOrWhiteSpace(_flash))
@@ -23,6 +23,12 @@
 
     @if (_isAdmin)
     {
+        <form method="post" action="/erp/payroll/generate" class="form-inline" style="margin:0 0 12px;padding:10px;border:1px solid #c5d4de;background:#fff">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/erp/payroll-app" />
+            <label>Period <input name="period_label" placeholder="YYYY-MM" maxlength="7" required style="width:7rem;margin:0 8px" /></label>
+            <button type="submit" class="btn btn-sm btn-primary">Generate payroll</button>
+        </form>
         <form method="post" action="/erp/ajax/payroll-approve" class="form-inline" style="margin:0 0 12px;padding:10px;border:1px solid #c5d4de;background:#fff">
             <input type="hidden" name="confirmWrites" value="true" />
             <input type="hidden" name="returnUrl" value="/erp/payroll-app" />
@@ -99,7 +105,7 @@
     </div>
 
     <div class="epc-erp-empty" style="display:block;margin-top:12px;padding:8px 10px;border:1px solid #c5d4de;background:#f8fafc;color:#475569;font-size:12px;">
-        Source: @_source. Staff directory stays on <a href="/erp/staff-app">staff</a>. Approve is live on <code>/erp/ajax/payroll-approve</code>.
+        Source: @_source. Staff directory stays on <a href="/erp/staff-app">staff</a>. Generate and approve write here. Pay stays on the Classic twin.
         @if (!string.IsNullOrWhiteSpace(_message)) { <span> @_message</span> }
     </div>
 </PhpErpDesktopChrome>
