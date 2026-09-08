@@ -54,7 +54,7 @@
                             <td>@(row.EntityId > 0 ? row.EntityId.ToString(CultureInfo.InvariantCulture) : "—")</td>
                             <td>@(row.FileSize > 0 ? row.FileSize.ToString(CultureInfo.InvariantCulture) : "—")</td>
                             <td>@FormatTime(row.TimeCreated)</td>
-                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
+                            <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href("/erp/documents-app", "document_id", row.Id)">Open</a></td>
                         </tr>
                     }
                 }

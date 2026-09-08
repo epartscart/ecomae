@@ -135,7 +135,7 @@
                             <td>@(!string.IsNullOrWhiteSpace(row.TargetTab) ? row.TargetTab : "—")</td>
                             <td>@row.SortOrder.ToString(CultureInfo.InvariantCulture)</td>
                             <td>@(row.IsPinned ? "yes" : "no")</td>
-                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
+                            <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href("/erp/workspace-favorites-app", "favorite_id", row.Id)">Open</a></td>
                         </tr>
                     }
                 }

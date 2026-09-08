@@ -22,6 +22,10 @@ public static class ErpRecordOpen
         "journal_id", "entry_id", "account_id", "supplier_id",
         "customer_id", "user_id", "contract_id", "order_id",
         "pf_case", "case_id", "campaign_id", "warehouse_id",
+        "rfq_id", "quote_id", "transfer_id", "period_id", "favorite_id",
+        "batch_id", "expense_id", "expense_report_id", "recon_line_id",
+        "delivery_note_id", "document_id", "asset_id", "contact_id",
+        "event_id", "template_id", "session_id",
     ];
 
     public static string Href(string appPath, string param, long id)

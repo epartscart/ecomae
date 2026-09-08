@@ -55,7 +55,7 @@
                             <td>@row.TotalAmount.ToString("N2", CultureInfo.InvariantCulture)</td>
                             <td><span class="label label-default">@row.Status</span></td>
                             <td>@FormatTime(row.TimeUpdated)</td>
-                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
+                            <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href("/erp/expense-reports-app", "expense_id", row.Id)">Open</a></td>
                         </tr>
                     }
                 }

@@ -83,7 +83,7 @@
                             <td class="text-right">@row.Leads.ToString(CultureInfo.InvariantCulture)</td>
                             <td>@FormatDate(row.TimeStart)</td>
                             <td>@FormatDate(row.TimeEnd)</td>
-                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
+                            <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href("/erp/marketing-app", "campaign_id", row.Id)">Open</a></td>
                         </tr>
                     }
                 }
