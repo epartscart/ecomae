@@ -18,10 +18,21 @@ public sealed class EpartscartCustomerJourneyParityTests
         Assert.Contains("@page \"/storefront/register-app\"", reg, StringComparison.Ordinal);
         Assert.Contains("@page \"/en/users/registration\"", reg, StringComparison.Ordinal);
         Assert.Contains("/php-reference/en/users/register", reg, StringComparison.Ordinal);
+        Assert.Contains("id=\"regform\"", reg, StringComparison.Ordinal);
+        Assert.Contains("name=\"reg_contact\"", reg, StringComparison.Ordinal);
+        Assert.Contains("name=\"reg_contact_type\"", reg, StringComparison.Ordinal);
+        Assert.Contains("name=\"password_repeat\"", reg, StringComparison.Ordinal);
+        Assert.Contains("epc-auth-page", reg, StringComparison.Ordinal);
 
         var login = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/StorefrontLoginApp.razor"));
         Assert.Contains("@page \"/en/users/login\"", login, StringComparison.Ordinal);
         Assert.Contains("StorefrontSurfaceLinks.Registration", login, StringComparison.Ordinal);
+
+        var forgot = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/StorefrontForgotPasswordApp.razor"));
+        Assert.Contains("id=\"forgot_password_contact_select\"", forgot, StringComparison.Ordinal);
+        Assert.Contains("id=\"forgot_password_contact_input\"", forgot, StringComparison.Ordinal);
+        Assert.Contains("name=\"forgot_password_contact\"", forgot, StringComparison.Ordinal);
+        Assert.Contains("epc-auth-page", forgot, StringComparison.Ordinal);
     }
 
     [Fact]

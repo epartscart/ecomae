@@ -19,20 +19,22 @@
 
 <HeadContent>
 <style>
-    .epc-reg-sf { max-width:720px; margin:0 auto; }
-    .epc-reg-sf h1 { margin:.2rem 0 .35rem; font-size:1.45rem; }
-    .epc-reg-sf .lead { color:#64748b; font-size:.92rem; margin-bottom:1rem; }
-    .epc-reg-panel {
+    .epc-auth-page { box-sizing:border-box; width:100%; max-width:480px; margin:0 auto; padding:28px 16px 48px; }
+    .epc-auth-page--wide { max-width:720px; }
+    .epc-auth-page h1 { margin:.2rem 0 .35rem; font-size:1.45rem; }
+    .epc-auth-page .lead { color:#64748b; font-size:.92rem; margin-bottom:1rem; }
+    .epc-auth-page .panel {
         background:#fff; border:1px solid #e5e7eb; border-radius:.55rem; padding:1.1rem 1.2rem; margin-bottom:1rem;
+        box-shadow:0 1px 3px rgba(0,0,0,.06);
     }
-    .epc-reg-panel h2 { margin:0 0 .75rem; font-size:1rem; color:#0f172a; }
-    .epc-reg-field { margin:0 0 .75rem; }
-    .epc-reg-field label { display:block; font-size:.82rem; font-weight:600; margin-bottom:.25rem; color:#334155; }
-    .epc-reg-field input, .epc-reg-field select {
+    .epc-auth-page .panel-heading { font-weight:700; margin:0 0 .75rem; font-size:1rem; color:#0f172a; }
+    .epc-auth-page .form-group { margin:0 0 .75rem; }
+    .epc-auth-page .form-group label { display:block; font-size:.82rem; font-weight:600; margin-bottom:.25rem; color:#334155; }
+    .epc-auth-page .form-control {
         width:100%; padding:.55rem .65rem; border:1px solid #d1d5db; border-radius:.4rem; font-size:.95rem;
     }
-    .epc-reg-submit {
-        width:100%; margin-top:.35rem; padding:.75rem 1rem; border:0; border-radius:.45rem;
+    .epc-auth-page #regform > button {
+        display:block; width:100%; margin:16px auto 0; padding:.75rem 1rem; border:0; border-radius:.45rem;
         background:#dc2626; color:#fff; font-weight:800; cursor:pointer; font-size:.95rem;
     }
     .epc-reg-note {
@@ -41,9 +43,6 @@
     }
     .epc-reg-login { margin-top:1rem; font-size:.9rem; }
     .epc-reg-login a { color:#dc2626; font-weight:700; }
-    .epc-reg-iframe {
-        width:100%; min-height:720px; border:1px solid #e5e7eb; border-radius:.55rem; background:#fff;
-    }
     .epc-reg-tabs { display:flex; gap:.45rem; flex-wrap:wrap; margin-bottom:1rem; }
     .epc-reg-tabs a {
         display:inline-flex; padding:.45rem .75rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
@@ -53,7 +52,7 @@
 </style>
 </HeadContent>
 
-<div class="epc-reg-sf">
+<div class="epc-auth-page epc-auth-page--wide">
     <StorefrontTenantChrome>
         <h1>Create your account</h1>
         <p class="lead">Register to place orders, save items, and track deliveries.</p>
@@ -63,43 +62,63 @@
             <a href="@StorefrontSurfaceLinks.Login">Already have an account?</a>
         </div>
 
-        <form class="epc-reg-panel" method="post" action="/php-reference/en/users/register" id="epc_regform" enctype="multipart/form-data">
-            <h2>Account details</h2>
-            <div class="epc-reg-field">
-                <label for="epc_reg_email">E-mail</label>
-                <input id="epc_reg_email" name="email" type="email" autocomplete="email" required />
+        <form class="panel panel-primary" method="post" action="/php-reference/en/users/register" id="regform" enctype="multipart/form-data">
+            <input type="hidden" name="reg_variant" value="1" />
+            <div class="panel-heading">Account details</div>
+            <div class="panel-body">
+                <div class="form-group">
+                    <label for="reg_contact_select" class="control-label">Register by</label>
+                    <select name="reg_contact_type" class="form-control" id="reg_contact_select">
+                        <option value="email">E-mail</option>
+                        <option value="phone">Phone</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="reg_contact_input" class="control-label" id="reg_contact_label">E-mail*</label>
+                    <input type="text" name="reg_contact" class="form-control" id="reg_contact_input"
+                           autocomplete="off" required placeholder="Enter your E-mail" />
+                </div>
+                <div class="form-group">
+                    <label for="password" class="control-label">Password*</label>
+                    <input type="password" name="password" class="form-control" id="password"
+                           autocomplete="new-password" required minlength="6" placeholder="Password" />
+                </div>
+                <div class="form-group">
+                    <label for="password_repeat" class="control-label">Repeat password*</label>
+                    <input type="password" class="form-control" name="password_repeat" id="password_repeat"
+                           autocomplete="new-password" required minlength="6" placeholder="Repeat password" />
+                </div>
+                <div class="form-group">
+                    <label style="display:flex;gap:.5rem;align-items:flex-start;font-weight:500">
+                        <input type="checkbox" name="users_agreement" value="yes" required style="margin-top:.2rem" />
+                        <span>I accept the <a href="/polzovatelskoe-soglashenie" target="_blank">user agreement</a>.</span>
+                    </label>
+                </div>
+                <button type="submit">Register</button>
+                <p class="epc-reg-note">
+                    After you submit, the store reviews the account before prices and orders unlock.
+                </p>
             </div>
-            <div class="epc-reg-field">
-                <label for="epc_reg_phone">Phone</label>
-                <input id="epc_reg_phone" name="phone" type="tel" autocomplete="tel" required />
-            </div>
-            <div class="epc-reg-field">
-                <label for="epc_reg_password">Password</label>
-                <input id="epc_reg_password" name="password" type="password" autocomplete="new-password" required minlength="6" />
-            </div>
-            <div class="epc-reg-field">
-                <label for="epc_reg_password2">Confirm password</label>
-                <input id="epc_reg_password2" name="password_confirm" type="password" autocomplete="new-password" required minlength="6" />
-            </div>
-            <div class="epc-reg-field">
-                <label for="epc_reg_name">Full name</label>
-                <input id="epc_reg_name" name="name" type="text" autocomplete="name" />
-            </div>
-            <div class="epc-reg-field">
-                <label style="display:flex;gap:.5rem;align-items:flex-start;font-weight:500">
-                    <input type="checkbox" name="users_agreement" value="yes" required style="margin-top:.2rem" />
-                    <span>I accept the <a href="/polzovatelskoe-soglashenie" target="_blank">user agreement</a>.</span>
-                </label>
-            </div>
-            <button class="epc-reg-submit" type="submit">Register</button>
-            <p class="epc-reg-note">
-                After you submit, the store reviews the account before prices and orders unlock.
-            </p>
         </form>
 
         <p class="epc-reg-login">Already registered? <a href="@StorefrontSurfaceLinks.Login">Sign in</a></p>
     </StorefrontTenantChrome>
 </div>
+<script>
+(function () {
+    var sel = document.getElementById('reg_contact_select');
+    var input = document.getElementById('reg_contact_input');
+    var label = document.getElementById('reg_contact_label');
+    if (!sel || !input || !label) return;
+    function apply() {
+        var phone = sel.value === 'phone';
+        label.textContent = phone ? 'Phone*' : 'E-mail*';
+        input.placeholder = phone ? '9005556677' : 'Enter your E-mail';
+    }
+    sel.addEventListener('change', apply);
+    apply();
+})();
+</script>
 
 @code {
     private string _brand = "eParts Cart";
