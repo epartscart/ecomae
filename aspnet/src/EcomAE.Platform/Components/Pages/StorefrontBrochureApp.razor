@@ -13,11 +13,11 @@
             <p style="margin:0 0 .35rem;color:#64748b;font-size:.85rem"><a href="/">Home</a> · Brochure</p>
             <h1 style="margin:.1rem 0 .4rem">@_brand</h1>
             <p style="color:#475569">What this store offers.</p>
-            @foreach (var section in _sections)
+            @foreach (var block in _sections)
             {
                 <article style="margin:1rem 0;padding:1rem 1.1rem;background:#fff;border:1px solid #e2e8f0;border-radius:.55rem">
-                    <h2 style="margin:0 0 .35rem;font-size:1.1rem">@section.Title</h2>
-                    <p style="margin:0;color:#475569;line-height:1.55">@section.Body</p>
+                    <h2 style="margin:0 0 .35rem;font-size:1.1rem">@block.Title</h2>
+                    <p style="margin:0;color:#475569;line-height:1.55">@block.Body</p>
                 </article>
             }
             <p style="margin-top:1.25rem">
