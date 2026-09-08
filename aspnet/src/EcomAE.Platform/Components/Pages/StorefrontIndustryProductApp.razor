@@ -28,7 +28,7 @@
                     @if (_category is not null)
                     {
                         <text> · </text>
-                        <a href="@($"/{_category.Url}")">@_category.Name</a>
+                        <a href="@PhpIndustryStorefrontCatalog.CategoryHref(_category.Url)">@_category.Name</a>
                     }
                     <text> · @_product.Name</text>
                 </p>

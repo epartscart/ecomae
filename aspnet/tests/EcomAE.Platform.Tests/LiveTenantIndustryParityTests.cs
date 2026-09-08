@@ -320,14 +320,14 @@ public sealed class LiveTenantIndustryParityTests
         Assert.DoesNotContain(auto, l => l.Href.Contains("jewellery", StringComparison.OrdinalIgnoreCase));
 
         var jewellery = PhpStorefrontSitemap.ForIndustry("jewellery");
-        Assert.Contains(jewellery, l => l.Href == "/bridal");
-        Assert.Contains(jewellery, l => l.Href == "/gold");
+        Assert.Contains(jewellery, l => l.Href == "/en/bridal");
+        Assert.Contains(jewellery, l => l.Href == "/en/gold");
         Assert.DoesNotContain(jewellery, l => l.Href == StorefrontAspNetCanonical.SellerRequest);
         Assert.DoesNotContain(jewellery, l => l.Href == StorefrontAspNetCanonical.AutoWorkshop);
 
         var tax = PhpStorefrontSitemap.ForIndustry("tax_advisory");
         Assert.Contains(tax, l => l.Href == "/erp");
-        Assert.Contains(tax, l => l.Href == "/services/tax");
+        Assert.Contains(tax, l => l.Href == "/en/services/tax");
         Assert.DoesNotContain(tax, l => l.Href == StorefrontAspNetCanonical.AutoWorkshop);
     }
 
@@ -514,8 +514,12 @@ public sealed class LiveTenantIndustryParityTests
         Assert.Contains("@page \"/p/{Sku}\"", pdp, StringComparison.Ordinal);
         Assert.Contains("@page \"/en/p/{Sku}\"", pdp, StringComparison.Ordinal);
 
+        Assert.Equal("/en/p/JWL-EV-ROPE-5G", PhpIndustryStorefrontCatalog.ProductHref("JWL-EV-ROPE-5G"));
+        Assert.Equal("/en/everyday/chains", PhpIndustryStorefrontCatalog.CategoryHref("everyday/chains"));
+
         var splash = File.ReadAllText(Find("epc-platform-splash.html"));
         Assert.Contains("keptShopperPath", splash, StringComparison.Ordinal);
+        Assert.Contains("'/en' + path", splash, StringComparison.Ordinal);
         Assert.DoesNotContain("probe then replace with /", splash, StringComparison.Ordinal);
 
         var tenantNginx = File.ReadAllText(Find("deploy/aspnet/nginx-classic-entry-tenant-aspnet-primary-shadow-example.conf"));

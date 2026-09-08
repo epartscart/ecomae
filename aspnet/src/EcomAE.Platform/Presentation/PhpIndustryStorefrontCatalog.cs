@@ -93,8 +93,18 @@ public static class PhpIndustryStorefrontCatalog
             .ToArray();
     }
 
+    /// <summary>
+    /// Language-prefixed PDP. Bare <c>/p/SKU</c> is not in the live classic-entry
+    /// <c>^~ /en/</c> proxy, so it hits PHP-deactivated splash and bounces home.
+    /// </summary>
     public static string ProductHref(string alias)
-        => "/p/" + Uri.EscapeDataString(alias);
+        => "/en/p/" + Uri.EscapeDataString(alias);
+
+    public static string CategoryHref(string url)
+    {
+        var trimmed = (url ?? string.Empty).Trim().Trim('/');
+        return trimmed.Length == 0 ? "/" : "/en/" + trimmed;
+    }
 
     public static IReadOnlyList<Category> ChildrenOf(string industryCode, string alias)
         => CategoriesFor(industryCode)

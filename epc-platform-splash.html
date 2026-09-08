@@ -49,7 +49,12 @@ a.cta:hover{text-decoration:underline}
     if (path.indexOf('//') !== -1) {
       return '/';
     }
-    return path + (window.location.search || '');
+    var search = window.location.search || '';
+    // Bare /p/SKU is not proxied on live tenants; /en/p/SKU already reaches Kestrel.
+    if (/^\/p\//i.test(path) || /^\/product\//i.test(path)) {
+      return '/en' + path + search;
+    }
+    return path + search;
   }
 
   function goHome() {
