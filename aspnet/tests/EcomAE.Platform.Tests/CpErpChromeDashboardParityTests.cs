@@ -55,6 +55,32 @@ public sealed class CpErpChromeDashboardParityTests
         Assert.DoesNotContain("Admin users", src);
         Assert.DoesNotContain("Portal tenants", src);
         Assert.DoesNotContain("PhpHybridModuleDirectory", src);
+        Assert.Contains("epc-insights--cp", src);
+        Assert.Contains("Unread VIN / parts requests", src);
+        Assert.Contains("Open returns", src);
+        Assert.Contains("Finance pulse (MTD)", src);
+        Assert.Contains("id=\"cpDashOrdersChart\"", src);
+        Assert.Contains("cp-dash-more", src);
+        Assert.Contains("More tools", src);
+        Assert.Contains("cp-dash-help", src);
+        Assert.Contains("All warehouse SKUs (S-UAE, R-UAE", src);
+        Assert.Contains("Supplier warehouse stock (all price lists)", src);
+        Assert.Contains("fa-car", src);
+        Assert.Contains("data-shortcut-key=\"@tile.Key\"", src);
+        Assert.Contains("\"crosses\"", src);
+        Assert.Contains("\"multivendor\"", src);
+        Assert.Contains("\"/cp/config-items-app\"", src);
+        Assert.DoesNotContain("\"/cp/portal-settings-app\"", src);
+    }
+
+    [Fact]
+    public void TenantCpChromeStampsIndustryAndStorefrontHost()
+    {
+        var src = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpCpDesktopChrome.razor"));
+        Assert.Contains("epc-cp--blue-theme", src);
+        Assert.Contains("ShellClass", src);
+        Assert.Contains("epc-cp-topbar-cta__host", src);
+        Assert.Contains("_storefrontHost", src);
     }
 
     [Fact]

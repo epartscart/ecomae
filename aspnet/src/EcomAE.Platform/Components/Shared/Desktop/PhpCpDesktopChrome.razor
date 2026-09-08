@@ -86,7 +86,7 @@ else
     .epc-cp-shell .footer { padding:1rem; border-top:1px solid var(--cp-line); color:#64748b; font-size:13px; background:#fff; }
 </style>
 
-<div class="fixed-navbar fixed-sidebar epc-cp epc-cp-shell epc-cp-topnav-only epc-cp--blue-theme epc-cp-modern epc-php-font-root@(_showBos ? " epc-cp-bos-host epc-boc-mode" : "")">
+<div class="@ShellClass">
     <div id="header">
         <div class="color-line"></div>
         <div class="epc-cp-header-bar">
@@ -106,6 +106,10 @@ else
                         <span class="epc-cp-topbar-cta__glyph" aria-hidden="true"><i class="fa fa-shopping-bag"></i></span>
                         <span class="epc-cp-topbar-cta__text">
                             <span class="epc-cp-topbar-cta__label">Storefront</span>
+                            @if (!string.IsNullOrWhiteSpace(_storefrontHost))
+                            {
+                                <span class="epc-cp-topbar-cta__host">@_storefrontHost</span>
+                            }
                         </span>
                         <span class="epc-cp-topbar-cta__go" aria-hidden="true"><i class="fa fa-external-link"></i></span>
                     </a>
@@ -365,6 +369,25 @@ else
     private bool _signedIn;
     private string _userLabel = "Admin session";
     private string? _industryCode;
+    private string? _storefrontHost;
+
+    private string ShellClass
+    {
+        get
+        {
+            var cls = "fixed-navbar fixed-sidebar epc-cp epc-cp-shell epc-cp-topnav-only epc-cp--blue-theme epc-cp-modern epc-php-font-root";
+            if (_showBos)
+            {
+                cls += " epc-cp-bos-host epc-boc-mode";
+            }
+            else if (!string.IsNullOrWhiteSpace(_industryCode))
+            {
+                cls += " epc-cp--" + _industryCode;
+            }
+
+            return cls;
+        }
+    }
 
     protected override async Task OnInitializedAsync()
     {
@@ -383,6 +406,11 @@ else
         if (!_showBos && !string.IsNullOrWhiteSpace(host))
         {
             _industryCode = ErpHostContext.Resolve(host).IndustryCode;
+            _storefrontHost = host.Trim();
+            if (_storefrontHost.StartsWith("www.", StringComparison.OrdinalIgnoreCase))
+            {
+                _storefrontHost = _storefrontHost[4..];
+            }
         }
 
         var ctx = Http.HttpContext;
