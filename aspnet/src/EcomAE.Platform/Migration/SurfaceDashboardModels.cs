@@ -2660,6 +2660,66 @@ public sealed record CpReturnsRmaDigestResult(
     string Source,
     string Message);
 
+public sealed record CpReturnsRmaRequestDetail(
+    long Id,
+    string SiteKey,
+    string RmaNumber,
+    long? WarrantyId,
+    long CustomerId,
+    string CustomerName,
+    string Reason,
+    string Description,
+    string Status,
+    string ResolutionType,
+    string ResolutionNotes,
+    string CreatedAt,
+    string UpdatedAt,
+    string CompletedAt);
+
+public sealed record CpReturnsRmaItemDigest(
+    long Id,
+    long RmaId,
+    string ProductSku,
+    string ProductName,
+    int Qty,
+    decimal UnitPrice,
+    string ConditionReceived,
+    string InspectionNotes);
+
+public sealed record CpReturnsRmaDetailResult(
+    CpReturnsRmaRequestDetail? Request,
+    IReadOnlyList<CpReturnsRmaItemDigest> Items,
+    string Source,
+    string Message);
+
+public sealed record CpShopReturnDetail(
+    long Id,
+    long UserId,
+    long StatusId,
+    string StatusCaption,
+    int ReturnComplete,
+    decimal DeclaredSum);
+
+public sealed record CpShopReturnLineDigest(
+    long Id,
+    long ReturnId,
+    long ItemId,
+    string Comment,
+    string ReturnSuccess,
+    decimal ReturnQty,
+    string ReasonCaption,
+    long OrderId,
+    decimal Price,
+    string Brand,
+    string Article,
+    string Name);
+
+public sealed record CpShopReturnDetailResult(
+    CpShopReturnDetail? Return,
+    IReadOnlyList<CpShopReturnLineDigest> Lines,
+    string Source,
+    string Message);
+
 public sealed record CpIsolationAuditSummary(
     int RunCount,
     int FailedRunCount,
@@ -3001,6 +3061,52 @@ public sealed record CpInsuranceComplianceDigestResult(
     CpInsuranceComplianceSummary Summary,
     IReadOnlyList<CpInsuranceCompliancePolicyDigest> Policies,
     int Count,
+    string Source,
+    string Message);
+
+public sealed record CpInsuranceCompliancePolicyDetail(
+    long Id,
+    long CompanyId,
+    string PolicyNo,
+    string Class,
+    string Title,
+    string Insurer,
+    string Broker,
+    string InsuredName,
+    decimal SumInsured,
+    decimal Premium,
+    decimal Deductible,
+    string Currency,
+    long StartDate,
+    long ExpiryDate,
+    string ReminderDays,
+    string ContactEmail,
+    string Status,
+    string Note,
+    long TimeCreated);
+
+public sealed record CpInsuranceComplianceDocumentDigest(
+    long Id,
+    long PolicyId,
+    string DocType,
+    string Title,
+    string FilePath,
+    long TimeCreated);
+
+public sealed record CpInsuranceComplianceClaimDigest(
+    long Id,
+    long PolicyId,
+    string ClaimNo,
+    string Description,
+    decimal ClaimAmount,
+    decimal SettledAmount,
+    string Status,
+    long TimeCreated);
+
+public sealed record CpInsuranceComplianceDetailResult(
+    CpInsuranceCompliancePolicyDetail? Policy,
+    IReadOnlyList<CpInsuranceComplianceDocumentDigest> Documents,
+    IReadOnlyList<CpInsuranceComplianceClaimDigest> Claims,
     string Source,
     string Message);
 
@@ -3427,6 +3533,36 @@ public sealed record CpQuoteRequestsDigestResult(
     CpQuoteRequestsSummary Summary,
     IReadOnlyList<CpQuoteRequestsRowDigest> Quotes,
     int Count,
+    string Source,
+    string Message);
+
+public sealed record CpQuoteRequestDetail(
+    long Id,
+    long UserId,
+    long SessionId,
+    string Status,
+    long TimeCreated,
+    long TimeUpdated,
+    long TimeSubmitted,
+    long AcceptedOrderId,
+    string AdminNote,
+    string CustomerNote);
+
+public sealed record CpQuoteRequestLineDigest(
+    long Id,
+    long QuoteId,
+    int CountNeed,
+    decimal QuotedPrice,
+    int QuotedTimeToExe,
+    string LineAdminNote,
+    int OfferAlternative,
+    string AltManufacturer,
+    string AltArticle,
+    string AltName);
+
+public sealed record CpQuoteRequestDetailResult(
+    CpQuoteRequestDetail? Quote,
+    IReadOnlyList<CpQuoteRequestLineDigest> Lines,
     string Source,
     string Message);
 
