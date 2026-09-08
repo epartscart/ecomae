@@ -53,7 +53,29 @@
         </div>
     </section>
     <PhpParityModuleBody AppPath="/cp/production-overview-app" IsAdmin="_isAdmin" />
+    <ErpPhpFlash Ok="@_ok" Err="@_err" />
 
+    @if (_isErp)
+    {
+        <ErpPhpCreateWell Title="Save work center">
+            <form method="post" action="/erp/mfgr/work-centers/save" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin-bottom:1rem;">
+                <input type="hidden" name="returnUrl" value="/erp/production-overview-app" />
+                <input type="hidden" name="confirmWrites" value="true" />
+                <label>Id <input class="form-control input-sm" name="id" placeholder="0 = new" style="width:80px;" /></label>
+                <label>Code <input class="form-control input-sm" name="code" placeholder="Code" style="width:120px;" /></label>
+                <label>Name <input class="form-control input-sm" name="name" placeholder="Name" style="width:180px;" /></label>
+                <label>Capacity min/day <input class="form-control input-sm" name="capacity_min_per_day" placeholder="480" style="width:90px;" /></label>
+                <label>Cost/hour <input class="form-control input-sm" name="cost_per_hour" placeholder="0" style="width:80px;" /></label>
+                <label>Active
+                    <select class="form-control input-sm" name="active" style="width:80px;">
+                        <option value="1">yes</option>
+                        <option value="0">no</option>
+                    </select>
+                </label>
+                <button type="submit" class="btn btn-primary btn-sm">Save</button>
+            </form>
+        </ErpPhpCreateWell>
+    }
 
     <div class="epc-mfg-kpis" aria-label="Production stats">
         <div class="epc-mfg-kpi"><strong>@_summary.BomCount.ToString(CultureInfo.InvariantCulture)</strong><span>Active BOMs</span></div>
@@ -103,18 +125,24 @@
 @code {
     private const string _phpTab = "/CP/shop/finance/erp?area=production&tab=manufacturing&epc_erp_shell=1";
     private bool _isAdmin;
+    private bool _isErp;
     private CpProductionOverviewSummary _summary = new(0, 0, 0, "n/a", "");
     private IReadOnlyList<CpProductionWorkOrderDigest> _workOrders = [];
     private string _source = "n/a";
     private string _message = "";
+    private string _ok = "";
+    private string _err = "";
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
+        _ok = ctx.Request.Query["ok"].ToString();
+        _err = ctx.Request.Query["err"].ToString();
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
+        _isErp = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("erp");
         if (!_isAdmin)
         {
             return; // guest browse — Sign in for live data

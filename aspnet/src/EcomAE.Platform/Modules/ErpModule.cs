@@ -5431,8 +5431,8 @@ public sealed class ErpModule : ISurfaceModule
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpPmListingAttachRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxPmChequeSave, async (HttpContext context, ErpPmChequeSaveBody? body, ILegacySessionValidator validator, IErpPmChequeSaveDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpPmChequeSaveRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxMfgrWcSave, async (HttpContext context, ErpMfgrWcSaveBody? body, ILegacySessionValidator validator, IErpMfgrWcSaveDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpMfgrWcSaveRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxMfgrWcSave, HandleMfgrWcSaveAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpMfgrWcSave, HandleMfgrWcSaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxMfgrRouteSave, async (HttpContext context, ErpMfgrRouteSaveBody? body, ILegacySessionValidator validator, IErpMfgrRouteSaveDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpMfgrRouteSaveRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxMfgrMrpRun, async (HttpContext context, ErpMfgrMrpRunBody? body, ILegacySessionValidator validator, IErpMfgrMrpRunDryRun dryRun, CancellationToken cancellationToken) =>
@@ -11774,6 +11774,79 @@ public sealed class ErpModule : ISurfaceModule
         }
     }
 
+    private static async Task<IResult> HandleMfgrWcSaveAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpMfgrWcSaveDryRun dryRun,
+        IErpMfgrWcSaveWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/production-overview-app", "Admin ERP capability required for work center save.");
+        }
+
+        var id = 0L;
+        var code = "";
+        var name = "";
+        int? capacity = null;
+        var cost = 0m;
+        int? active = null;
+        var confirm = false;
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            id = LiveWriteFormBinder.Long(form, "id");
+            code = LiveWriteFormBinder.Text(form, "code");
+            name = form["name"].ToString();
+            if (form.ContainsKey("capacity_min_per_day") || form.ContainsKey("capacityMinPerDay"))
+            {
+                capacity = LiveWriteFormBinder.Int(form, "capacity_min_per_day", "capacityMinPerDay");
+            }
+
+            cost = LiveWriteFormBinder.Dec(form, "cost_per_hour", "costPerHour");
+            if (form.ContainsKey("active"))
+            {
+                active = LiveWriteFormBinder.Int(form, "active");
+            }
+
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+        }
+        else
+        {
+            var root = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<System.Text.Json.JsonElement>(context, cancellationToken);
+            confirm = ErpMfgrWcSaveWriteService.JsonFlag(root, "confirmWrites", "confirm_writes");
+            id = ErpMfgrWcSaveWriteService.JsonLong(root, "id");
+            code = ErpMfgrWcSaveWriteService.JsonText(root, "code");
+            name = ErpMfgrWcSaveWriteService.JsonText(root, "name");
+            capacity = ErpMfgrWcSaveWriteService.JsonIntOrNull(root, "capacity_min_per_day", "capacityMinPerDay");
+            cost = ErpMfgrWcSaveWriteService.JsonDec(root, "cost_per_hour", "costPerHour");
+            active = ErpMfgrWcSaveWriteService.JsonIntOrNull(root, "active");
+        }
+
+        var companyHint = 0L;
+        if (long.TryParse(context.Request.Query["company"].ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var qCompany))
+        {
+            companyHint = qCompany;
+        }
+
+        if (!confirm)
+        {
+            return Results.Ok(dryRun.Evaluate(new ErpMfgrWcSaveRequest(id, code, false)).ToPayload(SessionPayload(session)));
+        }
+
+        var written = await writes.SaveAsync(
+            new ErpMfgrWcSaveWriteRequest(id, code, name, capacity, cost, active, companyHint),
+            cancellationToken);
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/erp/production-overview-app",
+            written.Succeeded,
+            written.Message,
+            new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+    }
+
     private static async Task<IResult> HandleWhtCodeSaveAsync(
         HttpContext context,
         ILegacySessionValidator validator,
@@ -12568,7 +12641,6 @@ public sealed class ErpModule : ISurfaceModule
     private sealed record ErpPmListingSaveBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpPmListingAttachBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpPmChequeSaveBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
-    private sealed record ErpMfgrWcSaveBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpMfgrRouteSaveBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpMfgrMrpRunBody(bool ConfirmWrites = false);
     private sealed record ErpMfgrPlannedFirmBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);

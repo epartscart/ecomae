@@ -3111,6 +3111,17 @@ public sealed class LiveWriteServiceValidationTests
             .LogAsync(new ErpHrAttendanceWriteRequest(EmployeeId: 1, Hours: 8));
         Assert.False(hrAttDb.Succeeded);
         Assert.Equal("db", hrAttDb.Code);
+
+        var mfgrWcInvalid = await new ErpMfgrWcSaveWriteService(new ConfiguredNeverOpened())
+            .SaveAsync(new ErpMfgrWcSaveWriteRequest(Code: "  "));
+        Assert.False(mfgrWcInvalid.Succeeded);
+        Assert.Equal("invalid", mfgrWcInvalid.Code);
+        Assert.Equal("Work center code is required", mfgrWcInvalid.Message);
+
+        var mfgrWcDb = await new ErpMfgrWcSaveWriteService(new UnconfiguredConnections())
+            .SaveAsync(new ErpMfgrWcSaveWriteRequest(Code: "CUT", Name: "Cutting"));
+        Assert.False(mfgrWcDb.Succeeded);
+        Assert.Equal("db", mfgrWcDb.Code);
     }
 
     [Fact]
