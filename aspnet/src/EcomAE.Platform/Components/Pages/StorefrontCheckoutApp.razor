@@ -83,19 +83,41 @@
             <p style="margin:0 0 .75rem;color:#64748b;font-size:.9rem">@_stepHelp</p>
             @if (_step is "how_get")
             {
-                <form method="post" action="@PhpCustomerWrites.CheckoutHowGetWriteHref" style="margin:0 0 .85rem">
-                    @foreach (var mode in _obtainModes)
-                    {
-                        <label style="display:block;margin:.35rem 0">
-                            <input type="radio" name="how_get" value="@mode.Code" />
-                            @mode.Label
-                        </label>
-                    }
-                    <label style="display:block;margin:.65rem 0 .25rem">City / area</label>
-                    <input type="text" name="city" style="width:100%;max-width:22rem;padding:.45rem" />
-                    <p style="margin:.75rem 0 .35rem"><a href="@StorefrontSurfaceLinks.Offices">Pickup points</a></p>
-                    <button type="submit" style="margin-top:.75rem;padding:.5rem .85rem;border:0;border-radius:.4rem;background:#0f766e;color:#fff;font-weight:800;cursor:pointer">Save delivery option</button>
-                </form>
+                <p class="lead">Choose how you want to receive this order:</p>
+                @if (_obtainModes.Count == 0)
+                {
+                    <div class="alert alert-danger">No delivery / pickup methods are available right now. Please contact support.</div>
+                }
+                else
+                {
+                    <form method="post" action="@PhpCustomerWrites.CheckoutHowGetWriteHref" style="margin:0 0 .85rem">
+                        @foreach (var mode in _obtainModes)
+                        {
+                            var radioId = "how_get_radio_" + mode.Code;
+                            <div class="radio">
+                                <input type="radio"
+                                       name="how_get"
+                                       value="@mode.Code"
+                                       id="@radioId"
+                                       class="radio_how_get"
+                                       onchange="onHowGetChanged('@mode.Code')" />
+                                <label class="label_how_get" for="@radioId">@mode.Label</label>
+                            </div>
+                        }
+                        <div id="how_get_options_div">
+                            <label style="display:block;margin:.65rem 0 .25rem">City / area</label>
+                            <input type="text" name="city" style="width:100%;max-width:22rem;padding:.45rem" />
+                            <p style="margin:.75rem 0 .35rem"><a href="@StorefrontSurfaceLinks.Offices">Pickup points</a></p>
+                        </div>
+                        <button type="submit" class="btn btn-primary" style="margin-top:.75rem">Save delivery option</button>
+                    </form>
+                    <script>
+                        function onHowGetChanged(mode) {
+                            var date = new Date(new Date().getTime() + 15552000 * 1000);
+                            document.cookie = "obtain_mode=" + JSON.stringify(mode) + "; path=/; expires=" + date.toUTCString();
+                        }
+                    </script>
+                }
             }
             else if (_step is "login_offer")
             {
@@ -110,42 +132,58 @@
             }
             else if (_step is "confirm")
             {
+                <p class="lead">Please confirm your order</p>
+                <p>Review the cart lines, delivery, and totals, then place the order.</p>
                 @if (_lines.Count > 0)
                 {
-                    <table style="width:100%;border-collapse:collapse;font-size:.86rem;margin:0 0 .85rem">
-                        <thead>
-                            <tr>
-                                <th style="text-align:left;padding:.35rem .4rem">Brand</th>
-                                <th style="text-align:left;padding:.35rem .4rem">Article</th>
-                                <th style="text-align:left;padding:.35rem .4rem">Name</th>
-                                <th style="text-align:left;padding:.35rem .4rem">Qty</th>
-                                <th style="text-align:left;padding:.35rem .4rem">Price</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var line in _lines)
-                            {
+                    <div style="overflow: hidden; overflow-x: auto;">
+                        <table class="table">
+                            <thead>
                                 <tr>
-                                    <td style="padding:.35rem .4rem">@(string.IsNullOrWhiteSpace(line.Manufacturer) ? "—" : line.Manufacturer)</td>
-                                    <td style="padding:.35rem .4rem">@(string.IsNullOrWhiteSpace(line.Article) ? "—" : line.Article)</td>
-                                    <td style="padding:.35rem .4rem">@(string.IsNullOrWhiteSpace(line.Name) ? "—" : line.Name)</td>
-                                    <td style="padding:.35rem .4rem">@line.CountNeed.ToString("0.##", CultureInfo.InvariantCulture)</td>
-                                    <td style="padding:.35rem .4rem">@line.Price.ToString("N2", CultureInfo.InvariantCulture)</td>
+                                    <th style="vertical-align: middle; white-space: nowrap;">Product</th>
+                                    <th style="vertical-align: middle; white-space: nowrap; text-align: right;">Term</th>
+                                    <th style="vertical-align: middle; white-space: nowrap; text-align: right;">Price</th>
+                                    <th style="vertical-align: middle; white-space: nowrap; text-align: center;">Qty</th>
+                                    <th style="vertical-align: middle; white-space: nowrap; text-align: right;">Sum</th>
                                 </tr>
-                            }
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                @for (var i = 0; i < _lines.Count; i++)
+                                {
+                                    var line = _lines[i];
+                                    var rowClass = _lines.Count == 1
+                                        ? "product_div_single"
+                                        : i == 0
+                                            ? "product_div_first"
+                                            : i == _lines.Count - 1
+                                                ? "product_div_last"
+                                                : "";
+                                    var lineSum = line.Price * line.CountNeed;
+                                    <tr class="@rowClass">
+                                        <td style="vertical-align: middle; width: 100%; min-width: 200px; max-width: 800px; word-wrap: break-word;">
+                                            @($"{line.Manufacturer} {line.Article} {line.Name}".Trim())
+                                        </td>
+                                        <td style="vertical-align: middle; white-space: nowrap; text-align: right;">@FormatTerm(line)</td>
+                                        <td style="vertical-align: middle; white-space: nowrap; text-align: right;"><font class="price">@line.Price.ToString("N2", CultureInfo.InvariantCulture)</font></td>
+                                        <td style="vertical-align: middle; white-space: nowrap; text-align: center;">@line.CountNeed.ToString("0.##", CultureInfo.InvariantCulture)</td>
+                                        <td style="vertical-align: middle; white-space: nowrap; text-align: right;"><b><font class="price">@lineSum.ToString("N2", CultureInfo.InvariantCulture)</font></b></td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
                 }
                 <form method="post" action="@PhpCustomerWrites.CheckoutConfirmWriteHref" style="margin:0 0 .85rem">
                     <input type="hidden" name="confirmWrites" value="true" />
                     <input type="hidden" name="returnUrl" value="/storefront/checkout-app?step=confirm" />
-                    <p style="margin:0 0 .5rem;font-weight:700">How to obtain</p>
+                    <p class="lead" style="margin:0 0 .5rem;font-weight:700">How to obtain</p>
                     @foreach (var mode in _obtainModes)
                     {
-                        <label style="display:block;margin:.3rem 0">
-                            <input type="radio" name="howGetMode" value="@mode.Code" required />
-                            @mode.Label
-                        </label>
+                        var confirmRadioId = "how_get_radio_" + mode.Code;
+                        <div class="radio">
+                            <input type="radio" name="howGetMode" value="@mode.Code" id="@confirmRadioId" class="radio_how_get" required />
+                            <label class="label_how_get" for="@confirmRadioId">@mode.Label</label>
+                        </div>
                     }
                     <label style="display:block;margin:.65rem 0 .25rem">Pickup office id (mode 1)</label>
                     <input type="number" name="officeId" min="0" style="width:8rem;padding:.4rem" />
@@ -372,5 +410,22 @@
             _ => ("Checkout readiness", "Review your cart and continue to delivery and payment.",
                 "", "")
         };
+    }
+
+    private static string FormatTerm(StorefrontCartLineDigest line)
+    {
+        var exe = (line.TimeToExe ?? "").Trim();
+        var guaranteed = (line.TimeToExeGuaranteed ?? "").Trim();
+        if (string.IsNullOrWhiteSpace(exe) || exe == "0")
+        {
+            return string.IsNullOrWhiteSpace(guaranteed) || guaranteed == "0" ? "In stock" : guaranteed + " days";
+        }
+
+        if (!string.IsNullOrWhiteSpace(guaranteed) && guaranteed != exe)
+        {
+            return exe + " - " + guaranteed + " days";
+        }
+
+        return exe + " days";
     }
 }

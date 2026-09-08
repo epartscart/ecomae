@@ -54,6 +54,13 @@ else
     .epc-cp-shell #header, .epc-cp-shell .epc-cp-topnav { width:100%; }
     .epc-cp-shell .epc-cp-header-bar, .epc-cp-shell .epc-cp-topnav-inner { width:min(1480px, 100%); margin:0 auto; }
     .epc-cp-shell .footer { padding:1rem; border-top:1px solid var(--cp-line); color:#64748b; font-size:13px; background:#fff; }
+    .epc-cp-shell .splash { position:fixed; z-index:2000; background:#fff; color:#64748b; inset:0; }
+    .epc-cp-shell .splash-title { text-align:center; max-width:500px; margin:15% auto; padding:20px; }
+    .epc-cp-shell .splash-title h1 { font-size:26px; margin:0 0 .35rem; }
+    .epc-cp-shell .splash .spinner { display:flex; gap:4px; justify-content:center; margin-top:12px; }
+    .epc-cp-shell .splash .spinner > div { width:6px; height:28px; background:#2563eb; }
+    .epc-cp-header-icons { display:flex; align-items:center; gap:.35rem; margin:0; padding:0; list-style:none; }
+    .epc-cp-top-connectivity a { display:inline-flex; align-items:center; gap:.25rem; padding:.25rem .45rem; color:#334155 !important; }
 </style>
 </HeadContent>
 <style>
@@ -84,9 +91,31 @@ else
     .epc-cp-shell #header, .epc-cp-shell .epc-cp-topnav { width:100%; }
     .epc-cp-shell .epc-cp-header-bar, .epc-cp-shell .epc-cp-topnav-inner { width:min(1480px, 100%); margin:0 auto; }
     .epc-cp-shell .footer { padding:1rem; border-top:1px solid var(--cp-line); color:#64748b; font-size:13px; background:#fff; }
+    .epc-cp-shell .splash { position:fixed; z-index:2000; background:#fff; color:#64748b; inset:0; }
+    .epc-cp-shell .splash-title { text-align:center; max-width:500px; margin:15% auto; padding:20px; }
+    .epc-cp-shell .splash-title h1 { font-size:26px; margin:0 0 .35rem; }
+    .epc-cp-shell .splash .spinner { display:flex; gap:4px; justify-content:center; margin-top:12px; }
+    .epc-cp-shell .splash .spinner > div { width:6px; height:28px; background:#2563eb; }
+    .epc-cp-header-icons { display:flex; align-items:center; gap:.35rem; margin:0; padding:0; list-style:none; }
+    .epc-cp-top-connectivity a { display:inline-flex; align-items:center; gap:.25rem; padding:.25rem .45rem; color:#334155 !important; }
 </style>
 
 <div class="@ShellClass">
+    <div class="splash">
+        <div class="color-line"></div>
+        <div class="splash-title">
+            <h1>eParts Cart - Control Panel</h1>
+            <p>Loading...</p>
+            <div class="spinner">
+                <div class="rect1"></div>
+                <div class="rect2"></div>
+                <div class="rect3"></div>
+                <div class="rect4"></div>
+                <div class="rect5"></div>
+            </div>
+        </div>
+    </div>
+    <script>(function(){function epcHideCpSplash(){var s=document.querySelector('.splash');if(s){s.style.display='none';}}if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',epcHideCpSplash);}else{epcHideCpSplash();}window.addEventListener('load',epcHideCpSplash);})();</script>
     <div id="header">
         <div class="color-line"></div>
         <div class="epc-cp-header-bar">
@@ -153,6 +182,13 @@ else
                 </div>
             </nav>
             <nav class="epc-cp-header-actions" aria-label="CP header actions">
+                <ul class="nav navbar-nav no-borders epc-cp-header-icons">
+                    <li class="dropdown hidden-sm hidden-xs hidden-md epc-cp-top-connectivity epc-cp-top-connectivity--ssl" style="pointer-events: none;">
+                        <a href="#" title="SSL">
+                            <i class="fa fa-lock"></i>
+                        </a>
+                    </li>
+                </ul>
                 @if (!string.IsNullOrWhiteSpace(_industryLabel))
                 {
                     <a class="epc-cp-industry-toggle" href="/cp/industry-packs-app" title="Industry settings">

@@ -55,6 +55,16 @@ public sealed class EpartscartCustomerJourneyParityTests
         Assert.Contains("panel panel-primary", checkout, StringComparison.Ordinal);
         Assert.Contains("login_offer", checkout, StringComparison.Ordinal);
         Assert.Contains("Continue as guest", checkout, StringComparison.Ordinal);
+        Assert.Contains("class=\"lead\"", checkout, StringComparison.Ordinal);
+        Assert.Contains("how_get_radio_", checkout, StringComparison.Ordinal);
+        Assert.Contains("radio_how_get", checkout, StringComparison.Ordinal);
+        Assert.Contains("label_how_get", checkout, StringComparison.Ordinal);
+        Assert.Contains("id=\"how_get_options_div\"", checkout, StringComparison.Ordinal);
+        Assert.Contains("onHowGetChanged", checkout, StringComparison.Ordinal);
+        Assert.Contains("class=\"table\"", checkout, StringComparison.Ordinal);
+        Assert.Contains("product_div_first", checkout, StringComparison.Ordinal);
+        Assert.Contains("product_div_last", checkout, StringComparison.Ordinal);
+        Assert.Contains("product_div_single", checkout, StringComparison.Ordinal);
 
         var orders = File.ReadAllText(Find(
             "aspnet/src/EcomAE.Platform/Components/Pages/StorefrontOrdersApp.razor"));

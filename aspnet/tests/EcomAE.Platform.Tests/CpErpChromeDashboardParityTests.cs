@@ -85,6 +85,11 @@ public sealed class CpErpChromeDashboardParityTests
         Assert.Contains("_storefrontHost", src);
         Assert.Contains("id=\"epc-cp-header-breadcrumb\"", src);
         Assert.Contains("id=\"mobile-collapse\"", src);
+        Assert.Contains("class=\"splash\"", src);
+        Assert.Contains("splash-title", src);
+        Assert.Contains("epcHideCpSplash", src);
+        Assert.Contains("epc-cp-header-icons", src);
+        Assert.Contains("epc-cp-top-connectivity--ssl", src);
         Assert.Contains("epc-cp-industry-toggle", src);
         Assert.Contains("epc-cp-topnav-item--advanced", src);
         Assert.Contains("epc-cp-topnav-panel-sub", src);
