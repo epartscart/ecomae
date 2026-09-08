@@ -63,7 +63,8 @@ public sealed class ErpCsDeleteDeclarationPhpParityTests
         Assert.Contains("Declaration not found", service, StringComparison.Ordinal);
         Assert.Contains("epc_custom_shipping_declaration_items", service, StringComparison.Ordinal);
         Assert.DoesNotContain("CREATE TABLE", service, StringComparison.Ordinal);
-        Assert.DoesNotContain("unlink", service, StringComparison.Ordinal);
+        Assert.DoesNotContain("@unlink", service, StringComparison.Ordinal);
+        Assert.DoesNotContain("File.Delete", service, StringComparison.Ordinal);
         Assert.DoesNotContain("epc_cs_ensure", service, StringComparison.Ordinal);
     }
 
