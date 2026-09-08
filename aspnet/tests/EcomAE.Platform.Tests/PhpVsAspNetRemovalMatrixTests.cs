@@ -148,6 +148,7 @@ public sealed class PhpVsAspNetRemovalMatrixTests
             ("ErpPayrollApp.razor", "/erp/payroll/generate"),
             ("ErpPayrollApp.razor", "/erp/ajax/payroll-approve"),
             ("ErpPayrollApp.razor", "/erp/payroll/pay"),
+            ("ErpPayrollApp.razor", "/erp/payroll/update-days"),
             ("ErpInventoryForecastApp.razor", "/erp/inventory-forecast/recompute"),
             ("ErpMultiEntityApp.razor", "/erp/multi-entity/write"),
             ("ErpMultiCurrencyGlApp.razor", "/erp/multi-currency-gl/set-rate"),
