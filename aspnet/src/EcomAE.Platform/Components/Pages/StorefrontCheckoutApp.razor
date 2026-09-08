@@ -93,23 +93,29 @@
                 }
                 else
                 {
-                    <form method="post" action="@PhpCustomerWrites.CheckoutHowGetWriteHref" style="margin:0 0 .85rem">
-                        @foreach (var mode in _obtainModes)
+                    @foreach (var mode in _obtainModes)
+                    {
+                        var radioId = "how_get_radio_" + mode.Id.ToString(CultureInfo.InvariantCulture);
+                        var checkedAttr = mode.Id == _currentObtainModeId;
+                        <div class="radio">
+                            <input type="radio"
+                                   name="how_get_radio"
+                                   value="@mode.Id.ToString(CultureInfo.InvariantCulture)"
+                                   id="@radioId"
+                                   class="radio_how_get"
+                                   checked="@checkedAttr"
+                                   onchange="onHowGetChanged(@mode.Id.ToString(CultureInfo.InvariantCulture));" />
+                            <label class="label_how_get" for="@radioId" onclick="onHowGetChanged(@mode.Id.ToString(CultureInfo.InvariantCulture));">@mode.Label</label>
+                        </div>
+                    }
+                    <div id="how_get_options_div">
+                        @if (_currentHandler == EpcObtainModes.GetInOffice)
                         {
-                            var radioId = "how_get_radio_" + mode.Code;
-                            <div class="radio">
-                                <input type="radio"
-                                       name="how_get"
-                                       value="@mode.Code"
-                                       id="@radioId"
-                                       class="radio_how_get"
-                                       onchange="onHowGetChanged('@mode.Code')" />
-                                <label class="label_how_get" for="@radioId">@mode.Label</label>
-                            </div>
-                        }
-                        <div id="how_get_options_div">
                             <p class="lead">Pickup office:</p>
                             <div class="list-group">
+                                <script>
+                                    var customer_offices = [];
+                                </script>
                                 @if (_offices.Count == 0)
                                 {
                                     <div class="office_box list-group-item">No pickup offices are listed for this shop yet.</div>
@@ -118,30 +124,141 @@
                                 {
                                     @foreach (var office in _offices)
                                     {
-                                        var officeBoxId = "office_box_" + office.Id.ToString(CultureInfo.InvariantCulture);
-                                        var officeInfoId = "office_info_" + office.Id.ToString(CultureInfo.InvariantCulture);
-                                        var officeRadioId = "office_radio_" + office.Id.ToString(CultureInfo.InvariantCulture);
-                                        <label class="office_box list-group-item" id="@officeBoxId" for="@officeRadioId">
-                                            <input type="radio"
-                                                   name="office_id"
-                                                   value="@office.Id.ToString(CultureInfo.InvariantCulture)"
-                                                   id="@officeRadioId" />
-                                            <span>@(string.IsNullOrWhiteSpace(office.Caption) ? ("Office #" + office.Id.ToString(CultureInfo.InvariantCulture)) : office.Caption), city: @(string.IsNullOrWhiteSpace(office.City) ? "—" : office.City), @(string.IsNullOrWhiteSpace(office.Address) ? "—" : office.Address)</span>
-                                        </label>
+                                        var officeId = office.Id.ToString(CultureInfo.InvariantCulture);
+                                        var officeBoxId = "office_box_" + officeId;
+                                        var officeInfoId = "office_info_" + officeId;
+                                        var caption = string.IsNullOrWhiteSpace(office.Caption) ? ("Office #" + officeId) : office.Caption;
+                                        var city = string.IsNullOrWhiteSpace(office.City) ? "—" : office.City;
+                                        var address = string.IsNullOrWhiteSpace(office.Address) ? "—" : office.Address;
+                                        <script>
+                                            customer_offices[customer_offices.length] = { id: @officeId, caption: @CaptionJs(caption), city: @CaptionJs(city), address: @CaptionJs(address), phone: @CaptionJs(office.Phone ?? "") };
+                                        </script>
+                                        <div onclick="showOfficeInfo(@officeId);" class="office_box list-group-item" id="@officeBoxId">
+                                            <span style="border:0;">@caption, city: @city, @address</span>
+                                        </div>
                                         <div class="office_info hidden_info" id="@officeInfoId"></div>
                                     }
                                 }
                             </div>
-                            <label style="display:block;margin:.65rem 0 .25rem">City / area</label>
-                            <input type="text" name="city" style="width:100%;max-width:22rem;padding:.45rem" />
+                            <input type="hidden" name="office_id" id="office_id" value="" />
                             <p style="margin:.75rem 0 .35rem"><a href="@StorefrontSurfaceLinks.Offices">Pickup points</a></p>
-                        </div>
-                        <button type="submit" class="btn btn-primary" style="margin-top:.75rem">Save delivery option</button>
-                    </form>
+                        }
+                        else if (_currentHandler == EpcObtainModes.EpcCarriers)
+                        {
+                            <style>
+                                .epc-carrier-rates { margin: 12px 0; }
+                                .epc-carrier-rates label { display: block; padding: 8px 12px; border: 1px solid #dce4ef; border-radius: 8px; margin-bottom: 8px; cursor: pointer; }
+                                .epc-carrier-rates label.active { border-color: #2563eb; background: #eff6ff; }
+                                .epc-carrier-rates input { margin-right: 8px; }
+                            </style>
+                            <p class="lead">International carriers — DHL, FedEx, Aramex, UPS</p>
+                            <p class="text-muted">Customer pays the courier fee — it is added to your tax invoice. UAE destinations: VAT applies on courier (income). Outside UAE: zero-rated (no VAT). Demo rates until live API keys are set in CP → Logistics → Carriers.</p>
+                            <table class="table">
+                                <tr><td>Destination city</td><td><input class="form-control" id="epc_c_city" type="text" value="@(_carrierPref.City)" /></td></tr>
+                                <tr><td>Country (ISO)</td><td><input class="form-control" id="epc_c_country" type="text" value="@(_carrierPref.Country)" maxlength="2" /></td></tr>
+                                <tr><td>Address</td><td><input class="form-control" id="epc_c_address" type="text" value="@(_carrierPref.Address)" /></td></tr>
+                                <tr><td>Phone</td><td><input class="form-control" id="epc_c_phone" type="text" value="@(_carrierPref.Phone)" /></td></tr>
+                                <tr><td>Weight (kg)</td><td><input class="form-control" id="epc_c_weight" type="number" step="0.1" min="0.1" value="@(_carrierPref.WeightKg)" onchange="epcCarrierRecalc()" /></td></tr>
+                            </table>
+                            <div class="epc-carrier-rates" id="epc_carrier_rates">
+                                @foreach (var carrier in EpcObtainModes.Carriers)
+                                {
+                                    @foreach (var svc in carrier.Services)
+                                    {
+                                        var pick = carrier.Code + "|" + svc.Code;
+                                        var rate = EpcObtainModes.DemoRate(carrier.Code, _carrierWeight, _carrierPref.Country);
+                                        var active = string.Equals(_carrierPref.Carrier, carrier.Code, StringComparison.OrdinalIgnoreCase)
+                                                     && string.Equals(_carrierPref.Service, svc.Code, StringComparison.OrdinalIgnoreCase);
+                                        <label class="@(active ? "active" : "")">
+                                            <input type="radio"
+                                                   name="epc_carrier_pick"
+                                                   value="@pick"
+                                                   checked="@active"
+                                                   onchange="epcCarrierPick(this)" />
+                                            <strong>@carrier.Name</strong> — @svc.Label
+                                            <span class="pull-right">@rate.ToString("0.00", CultureInfo.InvariantCulture) AED</span>
+                                        </label>
+                                    }
+                                }
+                            </div>
+                            <div class="text-center">
+                                <a class="btn btn-ar btn-primary" href="javascript:void(0);" onclick="epcCarrierNext();">Continue</a>
+                            </div>
+                        }
+                    </div>
                     <script>
                         function onHowGetChanged(mode) {
                             var date = new Date(new Date().getTime() + 15552000 * 1000);
-                            document.cookie = "obtain_mode=" + JSON.stringify(mode) + "; path=/; expires=" + date.toUTCString();
+                            document.cookie = "obtain_mode="+JSON.stringify(mode)+"; path=/; expires=" + date.toUTCString();
+                            location="@StorefrontSurfaceLinks.CheckoutHowGet";
+                        }
+                        var current_selected_office = 0;
+                        function showOfficeInfo(id) {
+                            if (typeof customer_offices === "undefined") return;
+                            for (var i = 0; i < customer_offices.length; i++) {
+                                var info = document.getElementById("office_info_" + customer_offices[i].id);
+                                var box = document.getElementById("office_box_" + customer_offices[i].id);
+                                if (info) { info.className = "office_info hidden_info"; info.innerHTML = ""; }
+                                if (box) { box.className = "office_box list-group-item"; box.setAttribute("onclick", "showOfficeInfo(" + customer_offices[i].id + ");"); }
+                            }
+                            var office = undefined;
+                            for (var i = 0; i < customer_offices.length; i++) {
+                                if (customer_offices[i].id == id) { office = customer_offices[i]; break; }
+                            }
+                            var officeInfo = document.getElementById("office_info_" + id);
+                            var officeBox = document.getElementById("office_box_" + id);
+                            if (officeInfo) officeInfo.className = "office_info";
+                            if (officeBox) { officeBox.className = "office_box list-group-item selected_office"; officeBox.setAttribute("onclick", ""); }
+                            current_selected_office = id;
+                            var officeIdEl = document.getElementById("office_id");
+                            if (officeIdEl) officeIdEl.value = String(id);
+                            if (officeInfo && office) {
+                                officeInfo.innerHTML = '<div class="execute_info"><p class="alert alert-border alert-success" style="margin-bottom:0">Collect from this office.</p><div class="buttons"><a href="javascript:void(0);" onclick="nextStep();" class="btn btn-ar btn-primary">Continue</a></div></div>';
+                            }
+                        }
+                        function nextStep() {
+                            var how_get = { mode: @_currentObtainModeId.ToString(CultureInfo.InvariantCulture), office_id: current_selected_office };
+                            var date = new Date(new Date().getTime() + 15552000 * 1000);
+                            document.cookie = "how_get="+JSON.stringify(how_get)+"; path=/; expires=" + date.toUTCString();
+                            location = "@StorefrontSurfaceLinks.CheckoutConfirm";
+                        }
+                        function epcCarrierPick(el) {
+                            document.querySelectorAll('.epc-carrier-rates label').forEach(function(l){ l.classList.remove('active'); });
+                            el.closest('label').classList.add('active');
+                        }
+                        function epcCarrierRecalc() { }
+                        function epcCarrierNext() {
+                            var pick = document.querySelector('input[name="epc_carrier_pick"]:checked');
+                            if (!pick) { alert('Select a carrier service'); return; }
+                            var parts = pick.value.split('|');
+                            var carrier = parts[0] || '';
+                            var service = parts[1] || '';
+                            var country = (document.getElementById('epc_c_country').value || 'AE').toUpperCase().substring(0, 2);
+                            var weight = parseFloat(document.getElementById('epc_c_weight').value || '1') || 1;
+                            var base = @((MarkupString)EpcObtainModes.DemoBasesJson());
+                            var b = base[carrier] != null ? base[carrier] : 35;
+                            var intl = (country && country !== 'AE') ? 1.35 : 1.0;
+                            var rate = Math.round((b + (Math.max(0.1, weight) * 8.5)) * intl * 100) / 100;
+                            var how_get = {
+                                mode: @_currentObtainModeId.ToString(CultureInfo.InvariantCulture),
+                                carrier: carrier,
+                                service: service,
+                                city: document.getElementById('epc_c_city').value || '',
+                                country: country,
+                                address: document.getElementById('epc_c_address').value || '',
+                                phone: document.getElementById('epc_c_phone').value || '',
+                                weight_kg: String(weight),
+                                rate: rate,
+                                delivery_price: rate,
+                                courier_payer: 'customer'
+                            };
+                            var date = new Date(new Date().getTime() + 15552000 * 1000);
+                            document.cookie = 'how_get=' + encodeURIComponent(JSON.stringify(how_get)) + '; path=/; expires=' + date.toUTCString();
+                            document.cookie = 'how_get_epc_carriers=' + encodeURIComponent(JSON.stringify(how_get)) + '; path=/; max-age=86400';
+                            location.href = '@StorefrontSurfaceLinks.CheckoutConfirm';
+                        }
+                        if (typeof customer_offices !== "undefined" && customer_offices.length == 1) {
+                            showOfficeInfo(customer_offices[0].id);
                         }
                     </script>
                 }
@@ -149,10 +266,8 @@
             else if (_step is "login_offer")
             {
                 <div class="panel panel-primary">
-                    <div class="panel-body">
-                        <p style="margin:0 0 .75rem">Sign in to continue checkout with your cart, or continue as a guest.</p>
-                        <a class="btn btn-ar btn-primary" href="@StorefrontSurfaceLinks.Login">Log in</a>
-                        <a class="btn btn-ar btn-default" href="@StorefrontSurfaceLinks.Registration">Register</a>
+                    <LegacyAdminLoginForm Surface="LegacyLoginSurface.Storefront" SurfaceLabel="storefront" PhpLoginHref="/php-reference/en/shop/checkout/how_get" SubmitLabel="Log in" Accent="red" />
+                    <div class="panel-body" style="color:#777;">
                         <a class="btn btn-ar btn-default" href="@StorefrontSurfaceLinks.CheckoutHowGet">Continue as guest</a>
                     </div>
                 </div>
@@ -161,96 +276,122 @@
             {
                 <p class="lead">Please confirm your order</p>
                 <p>Review the cart lines, delivery, and totals, then place the order.</p>
-                @if (_lines.Count > 0)
+                @if (!_howGetOk)
                 {
-                    <div style="overflow: hidden; overflow-x: auto;">
-                        <table class="table">
-                            <thead>
-                                <tr>
-                                    <th style="vertical-align: middle; white-space: nowrap;">Product</th>
-                                    <th style="vertical-align: middle; white-space: nowrap; text-align: right;">Term</th>
-                                    <th style="vertical-align: middle; white-space: nowrap; text-align: right;">Price</th>
-                                    <th style="vertical-align: middle; white-space: nowrap; text-align: center;">Qty</th>
-                                    <th style="vertical-align: middle; white-space: nowrap; text-align: right;">Sum</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @for (var i = 0; i < _lines.Count; i++)
-                                {
-                                    var line = _lines[i];
-                                    var rowClass = _lines.Count == 1
-                                        ? "product_div_single"
-                                        : i == 0
-                                            ? "product_div_first"
-                                            : i == _lines.Count - 1
-                                                ? "product_div_last"
-                                                : "";
-                                    var lineSum = line.Price * line.CountNeed;
-                                    <tr class="@rowClass">
-                                        <td style="vertical-align: middle; width: 100%; min-width: 200px; max-width: 800px; word-wrap: break-word;">
-                                            @($"{line.Manufacturer} {line.Article} {line.Name}".Trim())
-                                        </td>
-                                        <td style="vertical-align: middle; white-space: nowrap; text-align: right;">@FormatTerm(line)</td>
-                                        <td style="vertical-align: middle; white-space: nowrap; text-align: right;"><font class="price">@line.Price.ToString("N2", CultureInfo.InvariantCulture)</font></td>
-                                        <td style="vertical-align: middle; white-space: nowrap; text-align: center;">@line.CountNeed.ToString("0.##", CultureInfo.InvariantCulture)</td>
-                                        <td style="vertical-align: middle; white-space: nowrap; text-align: right;"><b><font class="price">@lineSum.ToString("N2", CultureInfo.InvariantCulture)</font></b></td>
-                                    </tr>
-                                }
-                            </tbody>
-                        </table>
-                    </div>
+                    <div class="alert alert-warning" style="margin:16px 0;">Please choose a delivery / pickup method to continue checkout.</div>
+                    <p><a class="btn btn-ar btn-primary" href="@StorefrontSurfaceLinks.CheckoutHowGet">Choose delivery method</a></p>
                 }
-                <form method="post" action="@PhpCustomerWrites.CheckoutConfirmWriteHref" style="margin:0 0 .85rem">
-                    <input type="hidden" name="confirmWrites" value="true" />
-                    <input type="hidden" name="returnUrl" value="/storefront/checkout-app?step=confirm" />
-                    <p class="lead" style="margin:0 0 .5rem;font-weight:700">How to obtain</p>
-                    @foreach (var mode in _obtainModes)
+                else
+                {
+                    @if (_lines.Count > 0)
                     {
-                        var confirmRadioId = "how_get_radio_" + mode.Code;
-                        <div class="radio">
-                            <input type="radio" name="howGetMode" value="@mode.Code" id="@confirmRadioId" class="radio_how_get" required />
-                            <label class="label_how_get" for="@confirmRadioId">@mode.Label</label>
+                        <div style="overflow: hidden; overflow-x: auto;">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th style="vertical-align: middle; white-space: nowrap;">Product</th>
+                                        <th style="vertical-align: middle; white-space: nowrap; text-align: right;">Term</th>
+                                        <th style="vertical-align: middle; white-space: nowrap; text-align: right;">Price</th>
+                                        <th style="vertical-align: middle; white-space: nowrap; text-align: center;">Qty</th>
+                                        <th style="vertical-align: middle; white-space: nowrap; text-align: right;">Sum</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @for (var i = 0; i < _lines.Count; i++)
+                                    {
+                                        var line = _lines[i];
+                                        var rowClass = _lines.Count == 1
+                                            ? "product_div_single"
+                                            : i == 0
+                                                ? "product_div_first"
+                                                : i == _lines.Count - 1
+                                                    ? "product_div_last"
+                                                    : "";
+                                        var lineSum = line.Price * line.CountNeed;
+                                        <tr class="@rowClass">
+                                            <td style="vertical-align: middle; width: 100%; min-width: 200px; max-width: 800px; word-wrap: break-word;">
+                                                @($"{line.Manufacturer} {line.Article} {line.Name}".Trim())
+                                            </td>
+                                            <td style="vertical-align: middle; white-space: nowrap; text-align: right;">@FormatTerm(line)</td>
+                                            <td style="vertical-align: middle; white-space: nowrap; text-align: right;"><font class="price">@line.Price.ToString("N2", CultureInfo.InvariantCulture)</font></td>
+                                            <td style="vertical-align: middle; white-space: nowrap; text-align: center;">@line.CountNeed.ToString("0.##", CultureInfo.InvariantCulture)</td>
+                                            <td style="vertical-align: middle; white-space: nowrap; text-align: right;"><b><font class="price">@lineSum.ToString("N2", CultureInfo.InvariantCulture)</font></b></td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
                         </div>
+                        <div style="margin-bottom: 0px; text-align: right; font-size: 18px; font-weight: bold;"><span style="font-size: 14px; font-weight: normal;">Total:</span> <font class="price">@_lines.Sum(l => l.Price * l.CountNeed).ToString("N2", CultureInfo.InvariantCulture)</font></div>
                     }
-                    <p class="lead" style="margin:.75rem 0 .35rem">Pickup office:</p>
-                    <div class="list-group">
-                        @if (_offices.Count == 0)
+                    <div style="overflow-x: auto;">
+                        @if (_currentHandler == EpcObtainModes.GetInOffice)
                         {
-                            <label style="display:block;margin:.65rem 0 .25rem">Pickup office id (mode 1)</label>
-                            <input type="number" name="officeId" min="0" style="width:8rem;padding:.4rem" />
-                        }
-                        else
-                        {
-                            @foreach (var office in _offices)
+                            var picked = _offices.FirstOrDefault(o => o.Id == (_howGet?.OfficeId ?? 0));
+                            <p class="lead">How to obtain - @_currentModeLabel</p>
+                            @if (picked is not null)
                             {
-                                var confirmOfficeId = "confirm_office_" + office.Id.ToString(CultureInfo.InvariantCulture);
-                                <label class="office_box list-group-item" id="office_box_confirm_@office.Id.ToString(CultureInfo.InvariantCulture)" for="@confirmOfficeId">
-                                    <input type="radio"
-                                           name="officeId"
-                                           value="@office.Id.ToString(CultureInfo.InvariantCulture)"
-                                           id="@confirmOfficeId" />
-                                    <span>@(string.IsNullOrWhiteSpace(office.Caption) ? ("Office #" + office.Id.ToString(CultureInfo.InvariantCulture)) : office.Caption), city: @(string.IsNullOrWhiteSpace(office.City) ? "—" : office.City), @(string.IsNullOrWhiteSpace(office.Address) ? "—" : office.Address)</span>
-                                </label>
+                                <p>@(string.IsNullOrWhiteSpace(picked.Caption) ? ("Office #" + picked.Id.ToString(CultureInfo.InvariantCulture)) : picked.Caption), city: @(string.IsNullOrWhiteSpace(picked.City) ? "—" : picked.City), @(string.IsNullOrWhiteSpace(picked.Address) ? "—" : picked.Address)</p>
+                            }
+                            else if ((_howGet?.OfficeId ?? 0) > 0)
+                            {
+                                <p>Office #@_howGet!.OfficeId.ToString(CultureInfo.InvariantCulture)</p>
                             }
                         }
+                        else if (_currentHandler == EpcObtainModes.EpcCarriers && _howGet is not null)
+                        {
+                            <p class="lead">Delivery — @_currentModeLabel</p>
+                            <table class="table">
+                                <tr><th>Carrier &amp; service</th></tr>
+                                <tr><td>@EpcObtainModes.CarrierName(_howGet.Carrier) — @EpcObtainModes.ServiceName(_howGet.Carrier, _howGet.Service) (customer pays @_howGet.Rate.ToString("0.00", CultureInfo.InvariantCulture) AED + VAT if UAE)</td></tr>
+                                <tr><td>@_howGet.City, @_howGet.Country</td></tr>
+                                <tr><td>@_howGet.Address</td></tr>
+                                <tr><td>Phone: @_howGet.Phone</td></tr>
+                                <tr><td>Weight: @(string.IsNullOrWhiteSpace(_howGet.WeightKg) ? "1" : _howGet.WeightKg) kg</td></tr>
+                            </table>
+                        }
                     </div>
-                    @if (!_isCustomer)
-                    {
-                        <label style="display:block;margin:.65rem 0 .25rem">Phone</label>
-                        <input type="tel" name="phone_not_auth" required style="width:100%;max-width:22rem;padding:.45rem" />
-                        <label style="display:block;margin:.65rem 0 .25rem">Email (optional)</label>
-                        <input type="email" name="email_not_auth" style="width:100%;max-width:22rem;padding:.45rem" />
-                    }
-                    <label style="display:block;margin:.65rem 0 .25rem">Purchase order</label>
-                    <input type="text" name="buyerPoNumber" maxlength="64" style="width:100%;max-width:22rem;padding:.45rem" />
-                    <label style="display:block;margin:.65rem 0 .25rem">Order note</label>
-                    <textarea name="orderMessage" rows="3" style="width:100%;margin:.25rem 0 .75rem;padding:.45rem"></textarea>
-                    <label style="display:block;margin:0 0 .75rem">
-                        <input type="checkbox" name="usersAgreement" value="1" required />
-                        I accept the user agreement
-                    </label>
-                    <button type="submit" style="padding:.5rem .85rem;border:0;border-radius:.4rem;background:#dc2626;color:#fff;font-weight:800;cursor:pointer">Place order</button>
-                </form>
+                    <form method="post" action="@PhpCustomerWrites.CheckoutConfirmWriteHref" style="margin:0 0 .85rem">
+                        <input type="hidden" name="confirmWrites" value="true" />
+                        <input type="hidden" name="returnUrl" value="/storefront/checkout-app?step=confirm" />
+                        <input type="hidden" name="howGetMode" value="@_currentObtainModeId.ToString(CultureInfo.InvariantCulture)" />
+                        <input type="hidden" name="officeId" value="@((_howGet?.OfficeId ?? 0).ToString(CultureInfo.InvariantCulture))" />
+                        <div class="row">
+                            <div class="col-lg-12">
+                                <p class="lead">Order note:</p>
+                                <textarea style="height: 36px;" class="form-control" id="message_textarea" name="orderMessage" rows="1" placeholder="Comment for the warehouse..."></textarea>
+                            </div>
+                        </div>
+                        @if (_isCustomer)
+                        {
+                            <div class="row" style="margin-top:12px;">
+                                <div class="col-lg-6">
+                                    <p class="lead">Purchase order (PO) number <small class="text-muted">(optional)</small>:</p>
+                                    <input style="height: 36px;" class="form-control" type="text" id="buyer_po_number" name="buyerPoNumber" maxlength="64" placeholder="Your internal PO reference" />
+                                </div>
+                            </div>
+                        }
+                        @if (!_isCustomer)
+                        {
+                            <div class="row" style="margin-top:20px;">
+                                <div class="col-lg-6">
+                                    <p class="lead">Phone*:</p>
+                                    <input style="height: 36px;" class="form-control" type="text" id="phone_not_auth" name="phone_not_auth" value="" required />
+                                </div>
+                                <div class="col-lg-6">
+                                    <p class="lead">E-mail:</p>
+                                    <input style="height: 36px;" class="form-control" type="text" id="email_not_auth" name="email_not_auth" value="" />
+                                </div>
+                            </div>
+                        }
+                        <label style="display:block;margin:1rem 0 .75rem">
+                            <input type="checkbox" name="usersAgreement" value="1" required />
+                            I accept the user agreement
+                        </label>
+                        <div class="order_confirm_button_div text-center">
+                            <button type="submit" id="confirm_btn" class="btn btn-ar btn-primary">Place order</button>
+                        </div>
+                    </form>
+                }
             }
             <p style="margin:0">
                 <a href="@StorefrontSurfaceLinks.Cart" style="display:inline-flex;padding:.5rem .85rem;border-radius:.4rem;background:#dc2626;color:#fff;font-weight:700;text-decoration:none;margin-right:.35rem">Back to cart</a>
@@ -258,24 +399,21 @@
         </div>
     }
 
-    @if (!_hasShopper)
+    @if (_step is not "how_get" and not "confirm" and not "login_offer" && !_hasShopper)
     {
-        @if (_step is not "login_offer")
-        {
-            <div class="panel panel-primary epc-cart-login-gate">
-                <div class="panel-body">
-                    <p style="margin:0 0 .75rem;color:#334155">Sign in to continue checkout with your cart, or continue as a guest.</p>
-                    <div class="epc-commerce-login-cta">
-                        <a class="btn btn-sm btn-primary" href="@StorefrontSurfaceLinks.Login">Log in</a>
-                        <span class="epc-commerce-login-cta__sep">or</span>
-                        <a class="btn btn-sm btn-default" href="@StorefrontSurfaceLinks.Registration">Register</a>
-                        <a class="btn btn-sm btn-default" href="@StorefrontSurfaceLinks.CheckoutLoginOffer">Guest checkout</a>
-                    </div>
+        <div class="panel panel-primary epc-cart-login-gate">
+            <div class="panel-body">
+                <p style="margin:0 0 .75rem;color:#334155">Sign in to continue checkout with your cart, or continue as a guest.</p>
+                <div class="epc-commerce-login-cta">
+                    <a class="btn btn-sm btn-primary" href="@StorefrontSurfaceLinks.Login">Log in</a>
+                    <span class="epc-commerce-login-cta__sep">or</span>
+                    <a class="btn btn-sm btn-default" href="@StorefrontSurfaceLinks.Registration">Register</a>
+                    <a class="btn btn-sm btn-default" href="@StorefrontSurfaceLinks.CheckoutLoginOffer">Guest checkout</a>
                 </div>
             </div>
-        }
+        </div>
     }
-    else
+    else if (_step is not "how_get" and not "confirm" and not "login_offer" && _hasShopper)
     {
         <div class="epc-sf-co-kpis" aria-label="Checkout readiness KPIs">
             <div class="epc-sf-co-kpi"><strong>@_summary.Count</strong><span>Cart lines</span></div>
@@ -361,8 +499,15 @@
     private string _heroLead = "Review your cart and continue to delivery and payment.";
     private string _stepHeading = "";
     private string _stepHelp = "";
-    private IReadOnlyList<(string Code, string Label)> _obtainModes = PhpCustomerWrites.ObtainModes;
+    private IReadOnlyList<ObtainModeOption> _obtainModes = EpcObtainModes.FallbackModes;
     private IReadOnlyList<CpOfficeDigest> _offices = [];
+    private int _currentObtainModeId;
+    private string _currentHandler = EpcObtainModes.GetInOffice;
+    private string _currentModeLabel = "Collect from warehouse";
+    private HowGetSelection? _howGet;
+    private bool _howGetOk;
+    private HowGetSelection _carrierPref = new(2, 0, "dhl", "EXPRESS", "Dubai", "AE", "", "", "1.5", 0m);
+    private decimal _carrierWeight = 1.5m;
     private string _flashOk = "";
     private string _flashErr = "";
     protected override async Task OnInitializedAsync()
@@ -374,6 +519,7 @@
         if (ctx is null) return;
         _brand = StorefrontIndustryHostResolver.ResolveBrandLabel(ctx.Request.Host.Host);
         await LoadOfficesAndModesAsync(ctx);
+        ApplyObtainCookies(ctx);
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         var shopper = session.Kind == LegacySessionKind.Customer && session.UserId > 0
@@ -423,25 +569,64 @@
             var methods = await Dashboards.BuildCpDeliveryMethodsDigestAsync(20, ctx.RequestAborted);
             if (methods.Modes.Count > 0)
             {
-                _obtainModes = methods.Modes
-                    .Where(m => m.Available)
+                var filtered = methods.Modes
+                    .Where(m => m.Available && EpcObtainModes.HasCustomerInterface(m.Handler))
                     .OrderBy(m => m.SortOrder)
-                    .Select(m => (
-                        m.Id.ToString(CultureInfo.InvariantCulture),
-                        string.IsNullOrWhiteSpace(m.Caption) ? m.Handler : m.Caption))
+                    .Select(m => new ObtainModeOption(
+                        (int)m.Id,
+                        string.IsNullOrWhiteSpace(m.Caption) ? EpcObtainModes.SanitizeHandler(m.Handler) : m.Caption,
+                        EpcObtainModes.SanitizeHandler(m.Handler)))
                     .ToArray();
+                if (filtered.Length > 0)
+                {
+                    _obtainModes = filtered;
+                }
             }
         }
         catch (Exception)
         {
-            _obtainModes = PhpCustomerWrites.ObtainModes;
+            _obtainModes = EpcObtainModes.FallbackModes;
         }
 
         if (_obtainModes.Count == 0)
         {
-            _obtainModes = PhpCustomerWrites.ObtainModes;
+            _obtainModes = EpcObtainModes.FallbackModes;
         }
     }
+
+    private void ApplyObtainCookies(HttpContext ctx)
+    {
+        ctx.Request.Cookies.TryGetValue("obtain_mode", out var obtainCookie);
+        ctx.Request.Cookies.TryGetValue("how_get", out var howGetCookie);
+        ctx.Request.Cookies.TryGetValue("how_get_epc_carriers", out var carrierCookie);
+        _howGet = EpcObtainModes.ParseHowGetCookie(howGetCookie);
+        var cookieMode = EpcObtainModes.ParseObtainModeCookie(obtainCookie);
+        if (cookieMode <= 0 && _howGet is not null)
+        {
+            cookieMode = _howGet.Mode;
+        }
+
+        var selected = _obtainModes.FirstOrDefault(m => m.Id == cookieMode) ?? _obtainModes[0];
+        _currentObtainModeId = selected.Id;
+        _currentHandler = selected.Handler;
+        _currentModeLabel = selected.Label;
+        _howGetOk = _howGet is not null
+                    && _howGet.Mode == _currentObtainModeId
+                    && EpcObtainModes.HasCustomerInterface(_currentHandler);
+
+        var carrierSource = EpcObtainModes.ParseHowGetCookie(carrierCookie) ?? _howGet;
+        if (carrierSource is not null && !string.IsNullOrWhiteSpace(carrierSource.Carrier))
+        {
+            _carrierPref = carrierSource;
+            if (decimal.TryParse(carrierSource.WeightKg, NumberStyles.Number, CultureInfo.InvariantCulture, out var w) && w > 0)
+            {
+                _carrierWeight = w;
+            }
+        }
+    }
+
+    private static MarkupString CaptionJs(string value)
+        => (MarkupString)System.Text.Json.JsonSerializer.Serialize(value ?? "");
 
     private void ResolveStep()
     {

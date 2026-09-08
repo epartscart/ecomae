@@ -60,6 +60,7 @@ public sealed class EpartscartCustomerJourneyParityTests
         Assert.Contains("radio_how_get", checkout, StringComparison.Ordinal);
         Assert.Contains("label_how_get", checkout, StringComparison.Ordinal);
         Assert.Contains("id=\"how_get_options_div\"", checkout, StringComparison.Ordinal);
+        Assert.Contains("name=\"how_get_radio\"", checkout, StringComparison.Ordinal);
         Assert.Contains("office_box", checkout, StringComparison.Ordinal);
         Assert.Contains("list-group", checkout, StringComparison.Ordinal);
         Assert.Contains("office_info", checkout, StringComparison.Ordinal);
@@ -67,6 +68,13 @@ public sealed class EpartscartCustomerJourneyParityTests
         Assert.Contains("name=\"office_id\"", checkout, StringComparison.Ordinal);
         Assert.Contains("name=\"officeId\"", checkout, StringComparison.Ordinal);
         Assert.Contains("onHowGetChanged", checkout, StringComparison.Ordinal);
+        Assert.Contains("EpcObtainModes.GetInOffice", checkout, StringComparison.Ordinal);
+        Assert.Contains("EpcObtainModes.EpcCarriers", checkout, StringComparison.Ordinal);
+        Assert.Contains("showOfficeInfo", checkout, StringComparison.Ordinal);
+        Assert.Contains("epcCarrierNext", checkout, StringComparison.Ordinal);
+        Assert.Contains("id=\"message_textarea\"", checkout, StringComparison.Ordinal);
+        Assert.Contains("id=\"confirm_btn\"", checkout, StringComparison.Ordinal);
+        Assert.Contains("EpcObtainModes.HasCustomerInterface", checkout, StringComparison.Ordinal);
         Assert.Contains("class=\"table\"", checkout, StringComparison.Ordinal);
         Assert.Contains("product_div_first", checkout, StringComparison.Ordinal);
         Assert.Contains("product_div_last", checkout, StringComparison.Ordinal);
@@ -253,6 +261,10 @@ public sealed class EpartscartCustomerJourneyParityTests
             "aspnet/src/EcomAE.Platform/Components/Pages/StorefrontVendorPortalApp.razor"));
         Assert.Contains("id=\"epc-vendor-portal\"", vendorPortal, StringComparison.Ordinal);
         Assert.Contains("epc-vp__login panel panel-primary", vendorPortal, StringComparison.Ordinal);
+        Assert.Contains("epc-vp__dash", vendorPortal, StringComparison.Ordinal);
+        Assert.Contains("Not a vendor yet", vendorPortal, StringComparison.Ordinal);
+        Assert.Contains("Account pending", vendorPortal, StringComparison.Ordinal);
+        Assert.Contains("UAE e-invoice seller profile", vendorPortal, StringComparison.Ordinal);
         Assert.Contains("epc-login-html-form", File.ReadAllText(Find(
             "aspnet/src/EcomAE.Platform/Components/Shared/LegacyAdminLoginForm.razor")), StringComparison.Ordinal);
 
