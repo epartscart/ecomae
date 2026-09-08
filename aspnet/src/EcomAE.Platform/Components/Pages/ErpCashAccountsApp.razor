@@ -134,6 +134,20 @@
             <div class="kpi"><div class="lbl">Closing</div><div class="val">@_forecast.Closing.ToString("N2", CultureInfo.InvariantCulture)</div></div>
             <div class="kpi"><div class="lbl">Min balance</div><div class="val">@_forecast.MinBalance.ToString("N2", CultureInfo.InvariantCulture)</div></div>
         </div>
+        @if (_isAdmin)
+        {
+            <ErpPhpCreateWell Title="New forecast">
+                <form method="post" action="@EcomAeRoutes.ErpCashForecastSave" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin-bottom:1rem;">
+                    <input type="hidden" name="returnUrl" value="/erp/cash-accounts-app?tab=cash_forecast" />
+                    <input type="hidden" name="confirmWrites" value="true" />
+                    <label>Name <input class="form-control input-sm" name="name" placeholder="Name" style="width:180px;" required /></label>
+                    <label>Opening <input class="form-control input-sm" name="opening_balance" value="0" style="width:90px;" /></label>
+                    <label>Currency <input class="form-control input-sm" name="currency" placeholder="AED" style="width:70px;" /></label>
+                    <label>Notes <input class="form-control input-sm" name="notes" placeholder="Notes" style="width:180px;" /></label>
+                    <button type="submit" class="btn btn-primary btn-sm">Save</button>
+                </form>
+            </ErpPhpCreateWell>
+        }
         <h2 style="font-size:16px;">Forecasts</h2>
         <div class="epc-erp-table-wrap">
             <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">

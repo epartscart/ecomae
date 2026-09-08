@@ -1264,7 +1264,9 @@ public static class EcomAeRoutes
     public const string ErpAjaxHrtGoalAdd = "/erp/ajax/hrt-goal-add";
     /// <summary>Wave B dry-run for PHP hrt_review_finalize (writes=0).</summary>
     public const string ErpAjaxHrtReviewFinalize = "/erp/ajax/hrt-review-finalize";
-    /// <summary>Wave B dry-run for PHP cft_forecast_save (writes=0).</summary>
+    /// <summary>HTML form POST for PHP <c>cft_forecast_save</c>. <c>confirmWrites=true</c> writes via <c>IErpCftForecastSaveWriteService</c>.</summary>
+    public const string ErpCashForecastSave = "/erp/cash-forecast/save";
+    /// <summary>Live PHP epc_cft_forecast_save ajax alias of <see cref="ErpCashForecastSave"/>.</summary>
     public const string ErpAjaxCftForecastSave = "/erp/ajax/cft-forecast-save";
     /// <summary>Wave B dry-run for PHP cft_line_add (writes=0).</summary>
     public const string ErpAjaxCftLineAdd = "/erp/ajax/cft-line-add";

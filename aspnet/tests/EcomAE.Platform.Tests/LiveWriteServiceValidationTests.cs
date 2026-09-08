@@ -3111,6 +3111,17 @@ public sealed class LiveWriteServiceValidationTests
             .LogAsync(new ErpHrAttendanceWriteRequest(EmployeeId: 1, Hours: 8));
         Assert.False(hrAttDb.Succeeded);
         Assert.Equal("db", hrAttDb.Code);
+
+        var cftFcInvalid = await new ErpCftForecastSaveWriteService(new ConfiguredNeverOpened())
+            .SaveAsync(new ErpCftForecastSaveWriteRequest());
+        Assert.False(cftFcInvalid.Succeeded);
+        Assert.Equal("invalid", cftFcInvalid.Code);
+        Assert.Equal("Forecast name is required", cftFcInvalid.Message);
+
+        var cftFcDb = await new ErpCftForecastSaveWriteService(new UnconfiguredConnections())
+            .SaveAsync(new ErpCftForecastSaveWriteRequest(Name: "Q1"));
+        Assert.False(cftFcDb.Succeeded);
+        Assert.Equal("db", cftFcDb.Code);
     }
 
     [Fact]
