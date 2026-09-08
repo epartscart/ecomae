@@ -809,6 +809,12 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.DoesNotContain("to_location_id", LegacySurfaceDashboardSql.SelectCpWarehouseWmsWaveSiblings, StringComparison.Ordinal);
         Assert.DoesNotContain("lp_id", LegacySurfaceDashboardSql.SelectCpWarehouseWmsWaveSiblings, StringComparison.Ordinal);
         Assert.Contains("`wave_id` = @wave_id", LegacySurfaceDashboardSql.SelectCpWarehouseWmsWaveSiblings, StringComparison.Ordinal);
+        Assert.Contains("shop_geo", LegacySurfaceDashboardSql.SelectCpGeoRegionsRows, StringComparison.Ordinal);
+        Assert.DoesNotContain("lang_text_strings_translation", LegacySurfaceDashboardSql.SelectCpGeoRegionsRows, StringComparison.Ordinal);
+        Assert.Contains("LEFT(IFNULL(t.`value`,''), 280)", LegacySurfaceDashboardSql.SelectCpGeoRegionsDetail, StringComparison.Ordinal);
+        Assert.Contains("g.`id` = @id", LegacySurfaceDashboardSql.SelectCpGeoRegionsDetail, StringComparison.Ordinal);
+        Assert.DoesNotContain("lang_text_strings_translation", LegacySurfaceDashboardSql.SelectCpGeoRegionsParentSiblings, StringComparison.Ordinal);
+        Assert.Contains("`parent` = @parent", LegacySurfaceDashboardSql.SelectCpGeoRegionsParentSiblings, StringComparison.Ordinal);
         Assert.Contains("shop_docpart_filter", LegacySurfaceDashboardSql.SelectCpProductFiltersRows, StringComparison.Ordinal);
         Assert.DoesNotContain("list_storages", LegacySurfaceDashboardSql.SelectCpProductFiltersRows, StringComparison.Ordinal);
         Assert.Contains("LEFT(IFNULL(`list_storages`,''), 280)", LegacySurfaceDashboardSql.SelectCpProductFiltersDetail, StringComparison.Ordinal);
