@@ -296,6 +296,7 @@ builder.Services.AddSingleton<IErpHrLeaveStatusDryRun, ErpHrLeaveStatusDryRun>()
 builder.Services.AddSingleton<IErpHrExpenseSaveDryRun, ErpHrExpenseSaveDryRun>();
 builder.Services.AddSingleton<IErpHrExpenseStatusDryRun, ErpHrExpenseStatusDryRun>();
 builder.Services.AddSingleton<IErpHrUpdateDaysDryRun, ErpHrUpdateDaysDryRun>();
+builder.Services.AddSingleton<IErpHrPayrollRunDryRun, ErpHrPayrollRunDryRun>();
 builder.Services.AddSingleton<IErpEinvoiceCreateDryRun, ErpEinvoiceCreateDryRun>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpEinvoiceProfileWriteService, EcomAE.Platform.Erp.ErpEinvoiceProfileWriteService>();
 builder.Services.AddSingleton<IErpEinvoiceSaveSellerDryRun, ErpEinvoiceSaveSellerDryRun>();
@@ -669,6 +670,8 @@ builder.Services.AddScoped<EcomAE.Platform.Storefront.IStorefrontQuoteWriteServi
 builder.Services.AddScoped<EcomAE.Platform.Storefront.IStorefrontGarageWriteService, EcomAE.Platform.Storefront.StorefrontGarageWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Storefront.IStorefrontCustomerWriteService, EcomAE.Platform.Storefront.StorefrontCustomerWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpPayrollWriteService, EcomAE.Platform.Erp.ErpPayrollWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpPayrollPayWriteService, EcomAE.Platform.Erp.ErpPayrollPayWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpPayrollUpdateDaysWriteService, EcomAE.Platform.Erp.ErpPayrollUpdateDaysWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpPayrollGenerateWriteService, EcomAE.Platform.Erp.ErpPayrollGenerateWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpInventoryForecastWriteService, EcomAE.Platform.Erp.ErpInventoryForecastWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpMultiEntityWriteService, EcomAE.Platform.Erp.ErpMultiEntityWriteService>();
@@ -772,6 +775,7 @@ builder.Services.AddScoped<EcomAE.Platform.Erp.IErpHrLeaveRequestWriteService, E
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpHrEmpSaveWriteService, EcomAE.Platform.Erp.ErpHrEmpSaveWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpHrAttendanceWriteService, EcomAE.Platform.Erp.ErpHrAttendanceWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpPrjTaskSaveWriteService, EcomAE.Platform.Erp.ErpPrjTaskSaveWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpHrPayrollRunWriteService, EcomAE.Platform.Erp.ErpHrPayrollRunWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpConsDeleteWriteService, EcomAE.Platform.Erp.ErpConsDeleteWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpConsEntitySaveWriteService, EcomAE.Platform.Erp.ErpConsEntitySaveWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpInsDocDeleteWriteService, EcomAE.Platform.Erp.ErpInsDocDeleteWriteService>();
