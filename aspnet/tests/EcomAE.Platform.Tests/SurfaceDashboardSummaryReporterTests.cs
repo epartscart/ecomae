@@ -135,6 +135,7 @@ public sealed class SurfaceDashboardSummaryReporterTests
         var finAdvanced = await reporter.BuildCpFinAdvancedDigestAsync(10);
         var blockchainProofs = await reporter.BuildCpBlockchainProofsDigestAsync(10);
         var landedCost = await reporter.BuildCpLandedCostDigestAsync(10);
+        var landedCostDetail = await reporter.BuildCpLandedCostSheetDetailAsync(6);
         var warehouseWms = await reporter.BuildCpWarehouseWmsDigestAsync(10);
         var aiService = await reporter.BuildCpAiServiceDigestAsync(10);
         var returnsRma = await reporter.BuildCpReturnsRmaDigestAsync(10);
@@ -360,6 +361,7 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.Equal("migration", finAdvanced.Source);
         Assert.Equal("migration", blockchainProofs.Source);
         Assert.Equal("migration", landedCost.Source);
+        Assert.Equal("migration", landedCostDetail.Source);
         Assert.Equal("migration", isolationAudit.Source);
         Assert.Equal("migration", amlCompliance.Source);
         Assert.Equal("migration", jewelleryMasters.Source);

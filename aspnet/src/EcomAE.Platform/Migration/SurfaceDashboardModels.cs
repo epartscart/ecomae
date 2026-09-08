@@ -2579,6 +2579,56 @@ public sealed record CpLandedCostDigestResult(
     string Source,
     string Message);
 
+public sealed record CpLandedCostSheetDetail(
+    long Id,
+    long CompanyId,
+    string SheetNo,
+    string PoReference,
+    string GrnReference,
+    long SupplierId,
+    string SupplierName,
+    decimal GoodsValue,
+    decimal TotalExpenses,
+    string DistributionMethod,
+    string Currency,
+    string Status,
+    string PostedAt,
+    long CreatedBy,
+    string Notes,
+    long TimeCreated);
+
+public sealed record CpLandedCostExpenseDigest(
+    long Id,
+    long SheetId,
+    string ExpenseType,
+    string VendorName,
+    string Reference,
+    decimal Amount,
+    string Currency,
+    decimal ExchangeRate,
+    decimal AmountLocal);
+
+public sealed record CpLandedCostLineDigest(
+    long Id,
+    long SheetId,
+    long ProductId,
+    string Sku,
+    string Description,
+    decimal Qty,
+    decimal UnitCost,
+    decimal LineValue,
+    decimal Weight,
+    decimal Volume,
+    decimal AllocatedCost,
+    decimal NewUnitCost);
+
+public sealed record CpLandedCostSheetDetailResult(
+    CpLandedCostSheetDetail? Sheet,
+    IReadOnlyList<CpLandedCostExpenseDigest> Expenses,
+    IReadOnlyList<CpLandedCostLineDigest> Lines,
+    string Source,
+    string Message);
+
 public sealed record CpWarehouseWmsSummary(
     int LocationCount,
     int LpCount,
